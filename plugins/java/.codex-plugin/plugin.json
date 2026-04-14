@@ -1,0 +1,36 @@
+{
+  "name": "java",
+  "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/java",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "keywords": [
+    "java",
+    "gradle",
+    "maven",
+    "junit",
+    "syntax",
+    "jdtls"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Java",
+    "shortDescription": "Practical Java syntax, design, testing, performance, and JDTLS workflows.",
+    "longDescription": "Install a shared, skill-first Java plugin for syntax boundaries, language design, dependency decisions, test-driven development, performance review, and JDTLS-assisted editing across Claude Code and Codex-style runtimes.",
+    "developerName": "ririnto",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Explain whether this Java syntax is valid on Java 17 or Java 21, and what the safest fallback shape is.",
+      "Review this Java API design for immutability, exceptions, naming, and public contract clarity.",
+      "Design a JUnit 5 test strategy for this Java change and choose the smallest correct scope.",
+      "Help me use JDTLS to inspect, refactor, or diagnose this Java source file."
+    ],
+    "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/java"
+  }
+}

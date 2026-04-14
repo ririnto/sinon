@@ -1,0 +1,34 @@
+{
+  "name": "jdk",
+  "description": "JDK development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/jdk",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "keywords": [
+    "jdk",
+    "javac",
+    "jfr",
+    "gc",
+    "diagnostics"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "JDK",
+    "shortDescription": "Shared JDK tooling, runtime diagnostics, and GC workflows.",
+    "longDescription": "Install a shared skill-first plugin for standard JDK tools, JVM runtime evidence, and garbage-collection analysis across Claude Code and Codex-style runtimes.",
+    "developerName": "ririnto",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Which JDK tool should I use for this packaging or module problem?",
+      "Interpret this thread dump, JFR, or heap-pressure symptom.",
+      "Explain this GC symptom and what evidence to collect next."
+    ],
+    "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/jdk"
+  }
+}

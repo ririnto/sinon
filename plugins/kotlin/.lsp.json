@@ -1,0 +1,10 @@
+{
+  "kotlin-lsp": {
+    "command": "kotlin-lsp",
+    "extensionToLanguage": {
+      ".kt": "kotlin",
+      ".kts": "kotlin"
+    },
+    "startupTimeout": 120000
+  }
+}

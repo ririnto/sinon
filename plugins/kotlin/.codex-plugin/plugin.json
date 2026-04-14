@@ -1,0 +1,35 @@
+{
+  "name": "kotlin",
+  "description": "Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.",
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/kotlin",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "keywords": [
+    "kotlin",
+    "kotlin-lsp",
+    "kotlin-language",
+    "coroutines",
+    "flow"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Kotlin",
+    "shortDescription": "Practical Kotlin language, coroutine, testing, and kotlin-lsp workflows.",
+    "longDescription": "Install a shared, skill-first Kotlin plugin for idiomatic language design, coroutine and Flow modeling, Kotlin testing strategy, and kotlin-lsp-assisted editing across Claude Code and Codex-style runtimes.",
+    "developerName": "ririnto",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Review this Kotlin type or API for idiomatic null-safety, value modeling, and collection usage.",
+      "Decide whether this Kotlin async path should use suspend, Flow, or a different concurrency shape.",
+      "Design a deterministic Kotlin test strategy for this suspend or Flow-based change.",
+      "Help me use kotlin-lsp to inspect, refactor, or diagnose this Kotlin source file."
+    ],
+    "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/kotlin"
+  }
+}

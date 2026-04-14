@@ -1,0 +1,48 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "sinon",
+  "version": "2026.04.12",
+  "description": "Claude catalog view for the Sinon universal marketplace.",
+  "owner": {
+    "name": "ririnto",
+    "email": "ririnto@kakao.com"
+  },
+  "plugins": [
+    {
+      "name": "java",
+      "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
+      "source": "./plugins/java",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    },
+    {
+      "name": "jdk",
+      "description": "JDK development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
+      "source": "./plugins/jdk",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    },
+    {
+      "name": "kotlin",
+      "description": "Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.",
+      "source": "./plugins/kotlin",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    },
+    {
+      "name": "spring",
+      "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, scheduling runtime control, Quartz job/trigger operations, Integration, Cloud, and Kafka workflows.",
+      "source": "./plugins/spring",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    }
+  ]
+}

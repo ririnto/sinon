@@ -1,0 +1,9 @@
+interface:
+  display_name: "JDK Runtime Diagnostics"
+  short_description: >-
+    Triage JVM incidents with stack traces, dumps, and standard diagnostic tools
+  default_prompt: >-
+    Use $jdk-runtime-diagnostics when interpreting Java stack traces, thread
+    dumps, JFR captures, heap pressure symptoms, or choosing between standard
+    JVM diagnostic tools. Start from available evidence and recommend the least
+    invasive next step.

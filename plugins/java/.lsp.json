@@ -1,0 +1,9 @@
+{
+  "jdtls": {
+    "command": "${CLAUDE_PLUGIN_ROOT}/scripts/jdtls-wrapper.sh",
+    "extensionToLanguage": {
+      ".java": "java"
+    },
+    "startupTimeout": 120000
+  }
+}

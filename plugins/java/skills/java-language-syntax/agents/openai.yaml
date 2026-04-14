@@ -1,0 +1,9 @@
+interface:
+  display_name: "Java Language Syntax"
+  short_description: >-
+    Explain Java syntax, expression forms, and version-specific language changes
+  default_prompt: >-
+    Use $java-language-syntax when comparing Java syntax across versions,
+    explaining language features such as var, switch expressions, records,
+    text blocks, or pattern matching, or rewriting code for an older or newer
+    Java baseline.

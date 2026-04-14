@@ -1,0 +1,9 @@
+interface:
+  display_name: "Java Test"
+  short_description: >-
+    Drive Java work through JUnit-based red-green-refactor workflows
+  default_prompt: >-
+    Use $java-test when adding Java tests, fixing failing tests, or
+    driving Java changes through TDD. Start from the smallest failing test,
+    choose the right scope, and use the JUnit or build-tool references only
+    when the task needs that detail.
