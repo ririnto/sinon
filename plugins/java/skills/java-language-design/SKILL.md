@@ -68,6 +68,38 @@ public final class RetryPolicy {
 ```
 Use when: constructor overloading would obscure validation or naming.
 
+Member ordering baseline:
+
+```java
+public final class Example {
+
+    private static final String TYPE = "example";
+
+    private final String value;
+
+    public Example(String value) {
+        this.value = value;
+    }
+
+    public static Example of(String value) {
+        return new Example(value);
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+
+    public String value() {
+        return value;
+    }
+
+    static final class Parser {
+    }
+}
+```
+Use when: a class needs a predictable top-to-bottom scan order for fields, construction, behavior, and nested types.
+
 Read-only collection exposure:
 
 ```java
@@ -112,6 +144,8 @@ Validate the common case with these checks:
 - MUST use checked exceptions sparingly and only when callers can meaningfully recover.
 - MUST keep constructors and factories explicit about invariants.
 - MUST avoid leaking implementation types in public signatures.
+- SHOULD order top-level class members as: static fields, instance fields, constructors, static methods, overridden methods, instance methods, then inner static classes/records/enums.
+- SHOULD order members within each method group by visibility: `public`, `protected`, package-private, then `private`.
 
 ## Common Pitfalls
 
@@ -121,6 +155,7 @@ Validate the common case with these checks:
 | using inheritance when the model is just data or capability | the contract becomes harder to understand | choose record, enum, or interface first |
 | throwing checked exceptions for non-recoverable failures | callers get noise without real recovery paths | reserve checked exceptions for meaningful recovery contracts |
 | hiding invariants inside overloaded constructors | object creation rules become unclear | use named factories or explicit validation |
+| mixing fields, constructors, methods, and nested types in scan-hostile order | readers must hunt for state, construction, and behavior | keep the class in the declared member-order baseline and group each section by visibility |
 
 ## Scope Boundaries
 

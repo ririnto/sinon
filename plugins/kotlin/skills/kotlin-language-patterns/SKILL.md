@@ -114,6 +114,27 @@ class OrderFormatter {
 ```
 Use when: the API is called from both Kotlin and Java code.
 
+Predictable member ordering:
+
+```kotlin
+class Example(
+    private val value: String,
+) {
+    companion object {
+        private const val TYPE = "example"
+
+        fun of(value: String): Example = Example(value)
+    }
+
+    override fun toString(): String = value
+
+    fun value(): String = value
+
+    private class Parser
+}
+```
+Use when: a Kotlin class needs a stable top-to-bottom scan order for companion members, properties, construction, behavior, and nested types.
+
 Path-first file boundary:
 
 ```kotlin
@@ -224,6 +245,8 @@ Validate the common case with these checks:
 - SHOULD configure one reusable `Json` instance instead of scattering ad hoc JSON behavior.
 - MUST not force Java-style verbosity where Kotlin offers a clearer equivalent.
 - MUST preserve Java interoperability requirements when they matter.
+- SHOULD order class members as: companion-object or other static-like fields, instance properties, constructors, companion-object methods, overridden methods, instance methods, then nested classes/objects/enums.
+- SHOULD order declarations within each method group by visibility: `public`, `protected`, internal/package-level equivalent, then `private`.
 
 ## Common Pitfalls
 
@@ -238,6 +261,7 @@ Validate the common case with these checks:
 | using one date-time type for timestamps, local dates, and user-facing calendar concepts | time-zone and business semantics get blurred | choose `Instant`, `LocalDate`, or `LocalDateTime` based on the real domain meaning |
 | converting future civil schedules into `Instant` too early | later time-zone rule changes can invalidate the intended wall-clock meaning | keep future schedule intent as `LocalDateTime` plus `TimeZone` until conversion is actually needed |
 | using `!!` as a design shortcut | null-safety becomes hidden runtime failure | model absence explicitly and keep the flow nullable |
+| scattering properties, overrides, helper methods, and nested types without a stable order | readers lose the class shape and Java interop scanning gets harder | keep the class in the declared member-order baseline and group each section consistently |
 
 ## Scope Boundaries
 
