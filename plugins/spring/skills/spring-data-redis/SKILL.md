@@ -1,7 +1,7 @@
 ---
 name: spring-data-redis
 description: >-
-  This skill should be used when the user asks to "use Spring Data Redis", "model Redis data in Spring", "set TTL in Redis", "use Redis repositories or templates", or needs guidance on Spring Data Redis patterns.
+  Use this skill when the user asks to "use Spring Data Redis", "model Redis data in Spring", "set TTL in Redis", "use Redis repositories or templates", or needs guidance on Spring Data Redis patterns.
 ---
 
 # Spring Data Redis

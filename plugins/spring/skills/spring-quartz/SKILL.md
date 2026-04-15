@@ -1,7 +1,7 @@
 ---
 name: spring-quartz
 description: >-
-  This skill should be used when the user asks to "use Quartz with Spring Boot", "configure JobDetail and Trigger", "persist scheduled jobs in JDBC", "cluster scheduled jobs", or needs guidance on Quartz-backed scheduling patterns in Spring.
+  Use this skill when the user asks to "use Quartz with Spring Boot", "configure JobDetail and Trigger", "persist scheduled jobs in JDBC", "cluster scheduled jobs", or needs guidance on Quartz-backed scheduling patterns in Spring.
 ---
 
 # Spring Quartz

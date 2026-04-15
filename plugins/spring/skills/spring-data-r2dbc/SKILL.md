@@ -1,7 +1,7 @@
 ---
 name: spring-data-r2dbc
 description: >-
-  This skill should be used when the user asks to "use Spring Data R2DBC", "build a reactive repository", "choose R2DBC over JPA or JDBC", or needs guidance on reactive relational persistence with Spring Data R2DBC.
+  Use this skill when the user asks to "use Spring Data R2DBC", "build a reactive repository", "choose R2DBC over JPA or JDBC", or needs guidance on reactive relational persistence with Spring Data R2DBC.
 ---
 
 # Spring Data R2DBC

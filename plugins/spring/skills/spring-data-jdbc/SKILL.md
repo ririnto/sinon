@@ -1,7 +1,7 @@
 ---
 name: spring-data-jdbc
 description: >-
-  This skill should be used when the user asks to "use Spring Data JDBC", "model a Spring Data JDBC aggregate", "choose JDBC over JPA", or needs guidance on aggregate-oriented relational persistence with Spring Data JDBC.
+  Use this skill when the user asks to "use Spring Data JDBC", "model a Spring Data JDBC aggregate", "choose JDBC over JPA", or needs guidance on aggregate-oriented relational persistence with Spring Data JDBC.
 ---
 
 # Spring Data JDBC
@@ -43,6 +43,11 @@ public class OrderAggregate {
     @Id
     Long id;
     String customerId;
+    @MappedCollection(idColumn = "order_id")
+    Set<OrderLine> lines;
+}
+
+public record OrderLine(String sku, int quantity) {
 }
 
 interface OrderRepository extends CrudRepository<OrderAggregate, Long> {

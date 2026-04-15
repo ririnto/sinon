@@ -1,7 +1,7 @@
 ---
 name: java-language-design
 description: >-
-  This skill should be used when the user asks to "design a Java API", "review Java class structure", "refactor Java code", "decide whether records or sealed classes fit the model", "choose checked vs unchecked exceptions", or needs guidance on idiomatic Java language and library design.
+  Use this skill when the user asks to "design a Java API", "review Java class structure", "refactor Java code", "decide whether records or sealed classes fit the model", "choose checked vs unchecked exceptions", or needs guidance on idiomatic Java language and library design.
 ---
 
 # Java Language Design

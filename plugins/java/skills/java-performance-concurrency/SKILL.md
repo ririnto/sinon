@@ -1,7 +1,7 @@
 ---
 name: java-performance-concurrency
 description: >-
-  This skill should be used when the user asks to "optimize Java performance", "analyze concurrency design", "use virtual threads", "reduce allocation pressure", "profile Java code", or needs guidance on Java performance and concurrency tradeoffs.
+  Use this skill when the user asks to "optimize Java performance", "analyze concurrency design", "use virtual threads", "reduce allocation pressure", "profile Java code", or needs guidance on Java performance and concurrency tradeoffs.
 ---
 
 # Java Performance Concurrency

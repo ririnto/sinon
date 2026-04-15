@@ -1,7 +1,7 @@
 ---
 name: spring-webflux
 description: >-
-  This skill should be used when the user asks to "build a reactive Spring endpoint", "use Mono or Flux in Spring", "choose WebFlux controllers or functional routes", "use WebClient", or needs guidance on Spring WebFlux patterns.
+  Use this skill when the user asks to "build a reactive Spring endpoint", "use Mono or Flux in Spring", "choose WebFlux controllers or functional routes", "use WebClient", or needs guidance on Spring WebFlux patterns.
 ---
 
 # Spring WebFlux

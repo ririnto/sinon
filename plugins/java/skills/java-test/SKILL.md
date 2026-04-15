@@ -1,7 +1,7 @@
 ---
 name: java-test
 description: >-
-  This skill should be used when the user asks to "write a JUnit test", "follow TDD in Java", "fix a failing Maven test", "configure Gradle tests", "set up Surefire or Failsafe", or needs guidance on Java test-first workflows.
+  Use this skill when the user asks to "write a JUnit test", "follow TDD in Java", "fix a failing Maven test", "configure Gradle tests", "set up Surefire or Failsafe", or needs guidance on Java test-first workflows.
 ---
 
 # Java Test

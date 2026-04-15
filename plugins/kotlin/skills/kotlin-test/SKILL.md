@@ -1,7 +1,7 @@
 ---
 name: kotlin-test
 description: >-
-  This skill should be used when the user asks to "test Kotlin code", "write a coroutine test", "mock a Kotlin dependency", "structure Kotlin tests", or needs guidance on practical Kotlin testing patterns.
+  Use this skill when the user asks to "test Kotlin code", "write a coroutine test", "mock a Kotlin dependency", "structure Kotlin tests", or needs guidance on practical Kotlin testing patterns.
 ---
 
 # Kotlin Test

@@ -1,7 +1,7 @@
 ---
 name: jdk-tooling-workflows
 description: >-
-  This skill should be used when the user asks to "use javac", "package a Java app", "compare jlink and jpackage", "generate Javadoc", "analyze dependencies with jdeps", or needs guidance on official JDK toolchain workflows.
+  Use this skill when the user asks to "use javac", "package a Java app", "compare jlink and jpackage", "generate Javadoc", "analyze dependencies with jdeps", or needs guidance on official JDK toolchain workflows.
 ---
 
 # JDK Tooling Workflows
@@ -70,9 +70,10 @@ jpackage \
   --name DemoApp \
   --input build/libs \
   --main-jar demo-app.jar \
-  --main-class com.example.demo.App
+  --main-class com.example.demo.App \
+  --type app-image
 ```
-Use when: the product requirement includes an installable or native-looking distribution.
+Use when: you want to validate the packaged launch shape before choosing a platform-specific installer type.
 
 Javadoc generation:
 

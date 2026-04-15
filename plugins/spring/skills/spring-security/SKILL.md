@@ -1,7 +1,7 @@
 ---
 name: spring-security
 description: >-
-  This skill should be used when the user asks to "configure Spring Security", "secure Spring endpoints", "use method security", "understand the filter chain", "handle authentication or authorization in Spring", or needs guidance on Spring Security patterns.
+  Use this skill when the user asks to "configure Spring Security", "secure Spring endpoints", "use method security", "understand the filter chain", "handle authentication or authorization in Spring", or needs guidance on Spring Security patterns.
 ---
 
 # Spring Security

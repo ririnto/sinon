@@ -1,7 +1,7 @@
 ---
 name: spring-data-jpa
 description: >-
-  This skill should be used when the user asks to "model a Spring Data JPA entity", "write a Spring Data JPA repository", "use query methods", "review JPA pagination or transactions", or needs guidance on Spring Data JPA patterns.
+  Use this skill when the user asks to "model a Spring Data JPA entity", "write a Spring Data JPA repository", "use query methods", "review JPA pagination or transactions", or needs guidance on Spring Data JPA patterns.
 ---
 
 # Spring Data JPA

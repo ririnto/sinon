@@ -1,7 +1,7 @@
 ---
 name: kotlin-language-patterns
 description: >-
-  This skill should be used when the user asks to "write idiomatic Kotlin", "refactor Java to Kotlin", "use Kotlin null safety", "choose data class vs sealed class", "use Kotlin serialization", "model Path or date-time values in Kotlin", "choose collection vs sequence", "use runCatching or Result", "parse text with Regex", or needs guidance on Kotlin language and standard-library patterns.
+  Use this skill when the user asks to "write idiomatic Kotlin", "refactor Java to Kotlin", "use Kotlin null safety", "choose data class vs sealed class", "use Kotlin serialization", "model Path or date-time values in Kotlin", "choose collection vs sequence", "use runCatching or Result", "parse text with Regex", or needs guidance on Kotlin language and standard-library patterns.
 ---
 
 # Kotlin Language Patterns

@@ -1,7 +1,7 @@
 ---
 name: java-dependency-versioning
 description: >-
-  This skill should be used when the user asks to "find the latest Maven dependency version", "look up a Java artifact coordinate", "check Maven Central for the current release", "install a Java testing library", or needs guidance on version-neutral dependency lookup for Java projects.
+  Use this skill when the user asks to "find the latest Maven dependency version", "look up a Java artifact coordinate", "check Maven Central for the current release", "install a Java testing library", or needs guidance on version-neutral dependency lookup for Java projects.
 ---
 
 # Java Dependency Versioning

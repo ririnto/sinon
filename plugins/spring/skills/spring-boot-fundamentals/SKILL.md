@@ -1,7 +1,7 @@
 ---
 name: spring-boot-fundamentals
 description: >-
-  This skill should be used when the user asks to "set up a Spring Boot app", "explain Spring Boot structure", "configure beans or profiles", "use configuration properties", or needs guidance on Spring Boot application fundamentals.
+  Use this skill when the user asks to "set up a Spring Boot app", "explain Spring Boot structure", "configure beans or profiles", "use configuration properties", or needs guidance on Spring Boot application fundamentals.
 ---
 
 # Spring Boot Fundamentals

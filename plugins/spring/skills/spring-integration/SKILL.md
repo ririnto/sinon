@@ -1,7 +1,7 @@
 ---
 name: spring-integration
 description: >-
-  This skill should be used when the user asks to "build a Spring integration flow", "route messages", "use channels and adapters", "model enterprise integration patterns in Spring", or needs guidance on Spring Integration flow design.
+  Use this skill when the user asks to "build a Spring integration flow", "route messages", "use channels and adapters", "model enterprise integration patterns in Spring", or needs guidance on Spring Integration flow design.
 ---
 
 # Spring Integration

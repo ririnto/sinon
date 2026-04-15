@@ -1,7 +1,7 @@
 ---
 name: jdk-gc-diagnostics
 description: >-
-  This skill should be used when the user asks to "analyze GC logs", "compare G1 and ZGC", "understand Java garbage collection", "debug pause times", "explain heap pressure", or needs guidance on JDK garbage-collection diagnostics and collector tradeoffs.
+  Use this skill when the user asks to "analyze GC logs", "compare G1 and ZGC", "understand Java garbage collection", "debug pause times", "explain heap pressure", or needs guidance on JDK garbage-collection diagnostics and collector tradeoffs.
 ---
 
 # JDK GC Diagnostics

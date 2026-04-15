@@ -1,7 +1,7 @@
 ---
 name: kotlin-coroutines-flows
 description: >-
-  This skill should be used when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
+  Use this skill when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
 ---
 
 # Kotlin Coroutines and Flows

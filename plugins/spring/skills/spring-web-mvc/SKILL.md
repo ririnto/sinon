@@ -1,7 +1,7 @@
 ---
 name: spring-web-mvc
 description: >-
-  This skill should be used when the user asks to "build a Spring REST controller", "validate requests", "handle Spring MVC exceptions", "design a Spring Web endpoint", or needs guidance on servlet-based Spring Web MVC patterns.
+  Use this skill when the user asks to "build a Spring REST controller", "validate requests", "handle Spring MVC exceptions", "design a Spring Web endpoint", or needs guidance on servlet-based Spring Web MVC patterns.
 ---
 
 # Spring Web MVC

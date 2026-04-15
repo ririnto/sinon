@@ -1,7 +1,7 @@
 ---
 name: spring-cloud-gateway
 description: >-
-  This skill should be used when the user asks to "configure Spring Cloud Gateway", "define routes and filters", "use route predicates", "add retry or circuit breaker at the gateway", or needs guidance on Spring Cloud Gateway patterns.
+  Use this skill when the user asks to "configure Spring Cloud Gateway", "define routes and filters", "use route predicates", "add retry or circuit breaker at the gateway", or needs guidance on Spring Cloud Gateway patterns.
 ---
 
 # Spring Cloud Gateway

@@ -1,7 +1,7 @@
 ---
 name: spring-cloud-kubernetes
 description: >-
-  This skill should be used when the user asks to "use Spring Cloud Kubernetes", "read config from ConfigMaps or Secrets", "use Kubernetes discovery in Spring", "configure Spring Cloud Kubernetes RBAC or namespaces", or needs guidance on Spring Cloud Kubernetes patterns.
+  Use this skill when the user asks to "use Spring Cloud Kubernetes", "read config from ConfigMaps or Secrets", "use Kubernetes discovery in Spring", "configure Spring Cloud Kubernetes RBAC or namespaces", or needs guidance on Spring Cloud Kubernetes patterns.
 ---
 
 # Spring Cloud Kubernetes
@@ -72,6 +72,18 @@ spring:
           - name: payments-config
 ```
 
+Secret-backed configuration — load sensitive values from a named Kubernetes Secret:
+
+```yaml
+spring:
+  cloud:
+    kubernetes:
+      secrets:
+        enabled: true
+        sources:
+          - name: db-credentials
+```
+
 Namespace-scoped discovery — limit service discovery to one explicit namespace:
 
 ```yaml
@@ -103,6 +115,8 @@ rules:
       - watch
 ```
 
+If Secret property sources are enabled, include `secrets` in the RBAC resources alongside `configmaps`.
+
 ## Validate the Result
 
 Validate the common case with these checks:
@@ -116,7 +130,7 @@ Validate the common case with these checks:
 
 | If the blocker is... | Read... |
 | --- | --- |
-| config versus discovery choice, namespace scope, or RBAC heuristics | `./references/kubernetes-patterns.md` |
+| config versus discovery choice, namespace scope, RBAC heuristics, or reload strategy nuance | `./references/kubernetes-patterns.md` |
 
 ## Invariants
 

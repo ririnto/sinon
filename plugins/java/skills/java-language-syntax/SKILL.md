@@ -1,7 +1,7 @@
 ---
 name: java-language-syntax
 description: >-
-  This skill should be used when the user asks to "explain Java syntax", "compare Java LTS versions", "rewrite code for an older Java version", "use switch expressions", "use var", "explain records or pattern matching", or needs guidance on Java syntax, expression differences, or foundational `java.base` coverage across language versions.
+  Use this skill when the user asks to "explain Java syntax", "compare Java LTS versions", "rewrite code for an older Java version", "use switch expressions", "use var", "explain records or pattern matching", or needs guidance on Java syntax, expression differences, or foundational `java.base` coverage across language versions.
 ---
 
 # Java Language Syntax

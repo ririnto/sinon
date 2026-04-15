@@ -1,7 +1,7 @@
 ---
 name: spring-scheduling
 description: >-
-  This skill should be used when the user asks to "use @Scheduled", "configure Spring scheduling", "run cron jobs in Spring", "use TaskScheduler", "register scheduled tasks dynamically", or needs guidance on lightweight Spring scheduling patterns.
+  Use this skill when the user asks to "use @Scheduled", "configure Spring scheduling", "run cron jobs in Spring", "use TaskScheduler", "register scheduled tasks dynamically", or needs guidance on lightweight Spring scheduling patterns.
 ---
 
 # Spring Scheduling

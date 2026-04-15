@@ -1,7 +1,7 @@
 ---
 name: spring-batch
 description: >-
-  This skill should be used when the user asks to "design a Spring Batch job", "configure job steps", "use chunk processing", "scale a batch workload", or needs guidance on Spring Batch jobs, steps, readers, writers, and retries.
+  Use this skill when the user asks to "design a Spring Batch job", "configure job steps", "use chunk processing", "scale a batch workload", or needs guidance on Spring Batch jobs, steps, readers, writers, and retries.
 ---
 
 # Spring Batch

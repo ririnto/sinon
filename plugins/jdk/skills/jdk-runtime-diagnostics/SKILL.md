@@ -1,7 +1,7 @@
 ---
 name: jdk-runtime-diagnostics
 description: >-
-  This skill should be used when the user asks to "debug a JVM issue", "read a Java stack trace", "analyze thread dumps", "use jcmd or JFR", "diagnose memory pressure", or needs guidance on JDK runtime incident triage.
+  Use this skill when the user asks to "debug a JVM issue", "read a Java stack trace", "analyze thread dumps", "use jcmd or JFR", "diagnose memory pressure", or needs guidance on JDK runtime incident triage.
 ---
 
 # JDK Runtime Diagnostics

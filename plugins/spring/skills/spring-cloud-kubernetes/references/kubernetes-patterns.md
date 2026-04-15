@@ -113,6 +113,8 @@ rules:
       - watch
 ```
 
+If Secret property sources are enabled, add `secrets` only when the application really needs them, and grant the narrowest permissions that match the read or reload path in use.
+
 RoleBinding — binds the Role to a ServiceAccount in a namespace:
 
 ```yaml
@@ -163,12 +165,14 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ```
 
+For cross-namespace Secret access, avoid broad secret grants by default. Add `secrets` only for the namespaces and read pattern the application truly needs.
+
 ## Namespace Checklist
 
 Before deploying, confirm:
 
 - namespace scope is declared explicitly and the app's service account can read the required resources in that namespace
-- RBAC rules grant `get`, `list`, and `watch` on the specific resource types the app needs (ConfigMaps, Services, Endpoints); do not grant broader permissions than required
+- RBAC rules grant `get`, `list`, and `watch` on the specific resource types the app needs (ConfigMaps, Services, Endpoints, and Secrets only when enabled); do not grant broader permissions than required
 - Secrets are accessed through the Secrets property source, not treated as ordinary ConfigMap values; Secrets values are single-value by design and behave differently under property binding
 
 ## Common Pitfalls

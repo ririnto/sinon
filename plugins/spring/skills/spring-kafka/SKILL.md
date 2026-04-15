@@ -1,7 +1,7 @@
 ---
 name: spring-kafka
 description: >-
-  This skill should be used when the user asks to "use KafkaTemplate", "build a Spring Kafka listener", "configure retry or dead-letter handling", "test Kafka listener behavior in Spring", or needs guidance on Spring Kafka patterns.
+  Use this skill when the user asks to "use KafkaTemplate", "build a Spring Kafka listener", "configure retry or dead-letter handling", "test Kafka listener behavior in Spring", or needs guidance on Spring Kafka patterns.
 ---
 
 # Spring Kafka

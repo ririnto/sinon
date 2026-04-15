@@ -1,7 +1,7 @@
 ---
 name: spring-observability
 description: >-
-  This skill should be used when the user asks to "expose Actuator safely", "add metrics or tracing to a Spring app", "use ObservationRegistry or @Observed", "configure health probes", or needs guidance on Micrometer and Spring Boot operator surfaces.
+  Use this skill when the user asks to "expose Actuator safely", "add metrics or tracing to a Spring app", "use ObservationRegistry or @Observed", "configure health probes", or needs guidance on Micrometer and Spring Boot operator surfaces.
 ---
 
 # Spring Observability
@@ -78,6 +78,26 @@ class InvoiceService {
 }
 ```
 
+`@Observed` method annotation — use the annotation path when one method cleanly expresses the unit of work:
+
+```java
+@Service
+class InvoiceService {
+
+    @Observed(name = "invoice.issue",
+            lowCardinalityKeyValues = {"channel", "portal"})
+    Invoice issue(InvoiceCommand command) {
+        return doIssue(command);
+    }
+
+    private Invoice doIssue(InvoiceCommand command) {
+        return new Invoice();
+    }
+}
+```
+
+Use this path only when observation annotations are actually enabled in the application context. If the project does not have the required AOP support for `@Observed`, stay with the programmatic `ObservationRegistry` pattern instead.
+
 HTTP client instrumentation — use Boot-managed builder so client observations attach normally:
 
 ```java
@@ -121,7 +141,7 @@ Validate the common case with these checks:
 | If the blocker is... | Read... |
 | --- | --- |
 | endpoint exposure, security, health groups, or management-port design | `./references/actuator-endpoints.md` |
-| metric naming, observation APIs, timers, tags, or HTTP observations | `./references/metrics-and-observations.md` |
+| metric naming, deeper observation APIs, timers, tags, or HTTP observations | `./references/metrics-and-observations.md` |
 | trace propagation, baggage, MDC correlation, or OTLP export | `./references/tracing-and-correlation.md` |
 
 ## Invariants

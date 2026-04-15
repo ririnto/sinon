@@ -1,7 +1,7 @@
 ---
 name: spring-test
 description: >-
-  This skill should be used when the user asks to "test a Spring Boot app", "choose @SpringBootTest or a slice test", "use MockMvc or WebTestClient", "test Spring Data integration", or needs guidance on Spring testing patterns.
+  Use this skill when the user asks to "test a Spring Boot app", "choose @SpringBootTest or a slice test", "use MockMvc or WebTestClient", "test Spring Data integration", or needs guidance on Spring testing patterns.
 ---
 
 # Spring Test

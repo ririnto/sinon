@@ -1,7 +1,7 @@
 ---
 name: spring-transactions-events
 description: >-
-  This skill should be used when the user asks to "use @Transactional correctly", "handle transactional events", "avoid dual writes", "design an outbox flow", or needs guidance on Spring transaction boundaries and post-commit side effects.
+  Use this skill when the user asks to "use @Transactional correctly", "handle transactional events", "avoid dual writes", "design an outbox flow", or needs guidance on Spring transaction boundaries and post-commit side effects.
 ---
 
 # Spring Transactions and Events
