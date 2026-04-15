@@ -4,18 +4,25 @@ description: >-
   Reference for bounded Flow assertions, replay-focused checks, and Kotlin test patterns for StateFlow and SharedFlow contracts.
 ---
 
-Use this reference when the test already needs coroutine tooling and the remaining blocker is Flow replay or bounded collection shape.
+Use this reference when the job is to prove one Flow contract with bounded, deterministic assertions. This reference should be sufficient on its own for that task.
+
+Use this file to finish one of these jobs:
+
+- assert a finite prefix of a cold `Flow`
+- verify the replay behavior of `StateFlow`
+- verify that a `SharedFlow` with `replay = 0` only reaches active collectors
+- keep collection bounded so the test finishes as soon as the contract is proven
 
 Bounded Flow assertion:
 
 ```kotlin
-import kotlin.test.Test
-import org.junit.jupiter.api.assertAll
-import kotlin.test.assertEquals
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Assertions.assertEquals
 
 class UiStateRepositoryTest {
     @DisplayName("emits loading then data")
@@ -29,6 +36,8 @@ class UiStateRepositoryTest {
     }
 }
 ```
+
+Use when: a cold `Flow` or bounded stream contract can be proven by collecting only the exact number of items needed.
 
 Kotest Flow matcher shape:
 
@@ -55,6 +64,59 @@ class UiStateRepositoryKotestTest : FunSpec() {
 }
 ```
 
+Use when: the project already uses Kotest and the Flow assertion should match the existing test style.
+
+StateFlow replay example:
+
+```kotlin
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+
+class UiStateReplayTest {
+    @Test
+    fun newCollectorGetsLatestState() = runTest {
+        val state = MutableStateFlow<UiState>(UiState.Loading)
+        state.value = UiState.Data
+
+        assertEquals(UiState.Data, state.first())
+    }
+}
+```
+
+Use when: the contract is about the latest replayed state rather than every intermediate transition.
+
+SharedFlow replay-zero example:
+
+```kotlin
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
+import kotlinx.coroutines.yield
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+
+class UiEventReplayTest {
+    @Test
+    fun replayZeroRequiresActiveCollector() = runTest {
+        val events = MutableSharedFlow<String>(replay = 0)
+        val collected = async(start = CoroutineStart.UNDISPATCHED) { events.first() }
+
+        yield()
+
+        events.emit("saved")
+
+        assertEquals("saved", collected.await())
+    }
+}
+```
+
+Use when: the contract depends on starting collection before emission because the stream should not replay old events.
+
 StateFlow and SharedFlow rules:
 
 - `StateFlow` tests should assert the latest replayed state unless the contract explicitly requires every intermediate step
@@ -66,3 +128,5 @@ Replay-focused checklist:
 1. Name the expected replay behavior before writing assertions.
 2. Keep collection bounded to the exact items needed for the scenario.
 3. Cancel the collector or finish the scope once the contract is proven.
+
+The JUnit examples in this file use JUnit consistently; the Kotest example is the deliberate exception for Kotest-based suites.

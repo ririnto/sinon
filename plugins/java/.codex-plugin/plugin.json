@@ -1,6 +1,6 @@
 {
   "name": "java",
-  "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
+  "description": "Java development plugin with practical skills for LTS syntax boundaries, foundational java.base guidance, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
   "author": "ririnto",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/java",
   "repository": "https://github.com/ririnto/sinon",
@@ -11,13 +11,15 @@
     "maven",
     "junit",
     "syntax",
+    "java.base",
+    "lts",
     "jdtls"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Java",
-    "shortDescription": "Practical Java syntax, design, testing, performance, and JDTLS workflows.",
-    "longDescription": "Install a shared, skill-first Java plugin for syntax boundaries, language design, dependency decisions, test-driven development, performance review, and JDTLS-assisted editing across Claude Code and Codex-style runtimes.",
+    "shortDescription": "Practical Java LTS syntax, java.base, design, testing, performance, and JDTLS workflows.",
+    "longDescription": "Install a shared, skill-first Java plugin for LTS-boundary syntax guidance, foundational java.base coverage, language design, dependency decisions, test-driven development, performance review, and JDTLS-assisted editing across Claude Code and Codex-style runtimes.",
     "developerName": "ririnto",
     "category": "Coding",
     "capabilities": [
@@ -26,7 +28,8 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Explain whether this Java syntax is valid on Java 17 or Java 21, and what the safest fallback shape is.",
+      "Explain whether this Java syntax is valid on Java 11, 17, 21, or 25, and what the safest LTS-boundary fallback shape is.",
+      "Help me choose the right foundational java.base package family for this code without drifting into JDK tooling advice.",
       "Review this Java API design for immutability, exceptions, naming, and public contract clarity.",
       "Design a JUnit 5 test strategy for this Java change and choose the smallest correct scope.",
       "Help me use JDTLS to inspect, refactor, or diagnose this Java source file."

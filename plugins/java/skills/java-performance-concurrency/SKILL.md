@@ -37,23 +37,68 @@ java -XX:StartFlightRecording=duration=60s,filename=profile.jfr,settings=profile
 
 ## Ready-to-Adapt Templates
 
-Blocking-I/O review (use when the service spends more time waiting than computing):
+These templates stay in `SKILL.md` because performance review is part of the skill's primary purpose and the common path should be usable without opening references.
 
-```text
-# 1. Confirm: network, disk, or external services dominate the hot path.
-# 2. Check: thread count or thread blocking is the real limiter.
-# 3. Consider virtual threads only if blocking tasks dominate.
+Blocking-I/O review template:
+
+```yaml
+workload: request-per-thread service with blocking network or disk calls
+evidence:
+  - flame graph or JFR shows waiting time dominating compute time
+  - thread dump shows many blocked or parked request threads
+baseline: JDK 21+
+first_change:
+  - isolate the blocking call path
+  - confirm the bottleneck is waiting rather than CPU saturation
+  - evaluate virtual threads only after the blocking path is confirmed
+not_first:
+  - generic pool-size increases
+  - GC tuning before the waiting path is measured
 ```
 
-Allocation-pressure review (use when evidence points to churn and GC pressure rather than lock contention):
-
-```text
-# 1. Identify allocation-heavy paths from a profile.
-# 2. Check: object churn, serialization, or parsing dominates.
-# 3. Reduce allocation in the hot path before discussing GC tuning.
+```java
+Response load(UserId id) throws IOException {
+    HttpResponse<String> response = httpClient.send(requestFor(id), BodyHandlers.ofString());
+    return mapper.readValue(response.body(), Response.class);
+}
 ```
 
-Virtual-thread evaluation (use when the workload is blocking-I/O and the baseline supports virtual threads):
+Use when: the service spends more time waiting on network, disk, or external systems than computing locally.
+
+Allocation-pressure review template:
+
+```yaml
+workload: allocation-heavy request or batch path
+evidence:
+  - JFR or heap profile shows high allocation rate in one hot path
+  - GC pauses or CPU time track object churn rather than lock contention
+top_allocators:
+  - parser
+  - serializer
+  - intermediate collections
+first_change:
+  - reduce transient object creation in the hot path
+  - collapse unnecessary intermediate materialization
+  - re-measure before discussing collector tuning
+not_first:
+  - collector swaps without allocation evidence
+  - broad object pooling in ordinary code
+```
+
+```java
+List<Result> parse(List<String> lines) {
+    return lines.stream()
+        .map(line -> line.trim())
+        .filter(line -> !line.isEmpty())
+        .map(line -> line.split(","))
+        .map(parts -> new Result(parts[0], Integer.parseInt(parts[1])))
+        .toList();
+}
+```
+
+Use when: evidence points to churn and GC pressure caused by parsing, serialization, or intermediate objects rather than lock contention.
+
+Virtual-thread evaluation `(JDK 21+)`:
 
 ```java
 try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
@@ -61,14 +106,35 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 }
 ```
 
-Pinned-CPU warning (use when someone proposes virtual threads or concurrency changes as a blanket upgrade):
+Use when: the workload is blocking-I/O, request concurrency matters, and the baseline supports virtual threads cleanly.
 
-```text
-# 1. CPU-bound hot path → virtual threads are not the first fix.
-# 2. JDK 21-23 baseline → review synchronized pinning and thread-local assumptions.
-# 3. JDK 24+ baseline → JEP 491 removes synchronized-driven pinning, but native/JNI pinning can still exist.
-# 4. Bottleneck is parsing/allocation/serialization → optimize the hot path first.
+CPU-bound or pinning-risk review template:
+
+```yaml
+workload: CPU-bound or mixed CPU plus blocking path
+evidence:
+  - flame graph dominated by parsing, serialization, crypto, or business computation
+  - carrier-thread or pinned-thread warnings appear in tracing or JFR
+baseline: JDK 21-23 or JDK 24+
+why_virtual_threads_are_not_first:
+  - thread model does not remove CPU saturation
+  - pre-JDK-24 synchronized pinning guidance still matters on 21-23
+  - JDK 24+ removes synchronized-driven pinning, but native or JNI pinning can remain
+first_change:
+  - optimize the hot computation path or blocking primitive causing pinning
+  - then re-evaluate concurrency model changes
+not_first:
+  - blanket migration to virtual threads
+  - lock-free rewrites without evidence
 ```
+
+```java
+synchronized Result parse(byte[] payload) {
+    return parser.parse(payload);
+}
+```
+
+Use when: someone proposes virtual threads or concurrency changes as a blanket upgrade while the hot path is still CPU-bound or pinning-sensitive.
 
 ## Validate the Result
 
@@ -79,6 +145,7 @@ Validate the common case with these checks:
 - virtual threads are recommended only for workloads that actually fit them
 - the Java baseline is known before version-sensitive virtual-thread caveats are discussed
 - allocation or synchronization fixes are tied to observed evidence, not generic advice
+- the review template records workload shape, evidence, first change, and what is intentionally not first
 
 ## Deep References
 

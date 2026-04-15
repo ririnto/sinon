@@ -300,9 +300,9 @@ Validate the common case with these checks:
 
 | If the blocker is... | Read... |
 | --- | --- |
-| delay control, scheduler advancement, or dispatcher injection | `./references/coroutine-testing-recipes.md` |
+| delay control, scheduler advancement, or dispatcher injection | `./references/coroutine-test-determinism.md` |
 | Flow replay or bounded collection shape | `./references/flow-testing.md` |
-| test shape, naming, or mocking boundaries | `./references/testing-patterns.md` |
+| test shape, naming, or mocking boundaries | `./references/test-structure-and-mocking.md` |
 
 ## Invariants
 

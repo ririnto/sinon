@@ -4,7 +4,14 @@ description: >-
   Reference for choosing Kotlin and kotlinx-datetime types, conversion timing, and civil-time modeling boundaries.
 ---
 
-Use this reference when the module already clearly needs time modeling and the remaining blocker is exact type choice or conversion timing.
+Use this reference when the job is to choose or convert Kotlin date-time types for one concrete model or workflow. This reference should be sufficient on its own for that task.
+
+Use this file to finish one of these jobs:
+
+- choose between `Instant`, `LocalDate`, and `LocalDateTime`
+- decide when a civil-time value should stay local instead of becoming an `Instant`
+- convert between scheduled local time and a zoned instant deliberately
+- keep Kotlin stdlib time support and `kotlinx-datetime` responsibilities separate
 
 Date-time rules:
 
@@ -22,6 +29,17 @@ Migration note:
 Example:
 
 ```kotlin
+import kotlin.time.Clock
+import kotlin.time.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+
+data class Invoice(
+    val issuedAt: Instant,
+    val dueDate: LocalDate,
+)
+
 val now: Instant = Clock.System.now()
 val birthday = LocalDate.parse("2010-06-01")
 val meeting = LocalDateTime.parse("2026-04-20T09:00:00")

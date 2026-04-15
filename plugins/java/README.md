@@ -15,7 +15,7 @@ Java is a shared, skill-first plugin for Java language work in the Sinon univers
 
 ## Included Skills
 
-- `java-language-syntax`: Java grammar, expression forms, and LTS-boundary syntax differences.
+- `java-language-syntax`: Java grammar, expression forms, LTS-boundary syntax differences, and foundational `java.base` coverage that materially affects code-shape guidance.
 - `java-language-design`: language features, API design, exceptions, immutability, and collections guidance.
 - `java-test`: JUnit 5, red-green-refactor, mocking boundaries, and Java test execution guidance.
 - `java-performance-concurrency`: virtual threads, profiling, contention analysis, and performance review.
@@ -27,8 +27,8 @@ These skills are meant to help complete Java work directly inside the current re
 
 Start here when the question is still fuzzy:
 
-- If the question is "can this Java baseline compile or express it?", stay in syntax-oriented guidance; if the question is "should this type or API be modeled this way?", stay in design-oriented guidance.
-- Java baseline, grammar, and syntax compatibility questions belong in the syntax-oriented guidance.
+- If the question is "can this Java baseline compile or express it?", stay in syntax-oriented guidance; if the question is "which foundational Java SE API family in `java.base` should I reach for while staying within a given LTS baseline?", still start in syntax-oriented guidance; if the question is "should this type or API be modeled this way?", stay in design-oriented guidance.
+- Java baseline, grammar, syntax compatibility, and foundational `java.base` standard-library coverage questions belong in the syntax-oriented guidance.
 - Type modeling, API shape, immutability, and exception-boundary questions belong in the design-oriented guidance.
 - JUnit structure, red-green-refactor sequencing, and test-execution setup belong in the testing guidance.
 - Virtual-thread fit, contention, and profiling-driven bottleneck review belong in the performance and concurrency guidance.
@@ -36,7 +36,7 @@ Start here when the question is still fuzzy:
 
 Typical workflow:
 
-1. Confirm what the current Java baseline allows before changing syntax.
+1. Confirm what the current Java LTS baseline allows before changing syntax or recommending newer foundational APIs.
 2. Shape the API or type model before broad refactors.
 3. Lock behavior with tests before or while changing implementation.
 4. Review concurrency and performance only after there is real evidence of a bottleneck.
@@ -103,6 +103,13 @@ Use JDTLS when the task needs Java symbol navigation, diagnostics, or refactors.
 
 - `jdtls` executable available on `PATH`
 - JDK 21 or newer available for the `jdtls` runtime
+
+## Java 25 and LTS Framing
+
+- Treat Java version-difference guidance in this plugin as LTS-first: `8`, `11`, `17`, `21`, and `25`.
+- Treat `java.base` coverage here as foundational Java SE standard-library guidance rather than as a claim about broader `jdk.*` tooling or diagnostics.
+- Use the Java plugin for code-shape questions tied to core packages such as `java.lang`, `java.util`, `java.time`, `java.io`, `java.nio`, `java.net`, and related `java.base` SPI families.
+- Use the JDK plugin instead when the real question is about `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, or live JVM diagnostics.
 
 ### Lombok Source Selection
 

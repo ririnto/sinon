@@ -39,13 +39,17 @@ class OrderLoader {
 
 ## Ready-to-Adapt Templates
 
-One-shot async work (use when the caller wants one logical result):
+These templates stay in `SKILL.md` because they are part of the skill's primary purpose and should be available without opening references.
+
+One-shot async work:
 
 ```kotlin
 suspend fun loadOrder(orderId: OrderId): Order = repository.load(orderId)
 ```
 
-Stream of updates (use when the caller reacts to changing state or repeated updates):
+Use when: the caller wants one logical result and the API should complete after one async boundary.
+
+Stream of updates:
 
 ```kotlin
 class OrderObserver {
@@ -53,7 +57,9 @@ class OrderObserver {
 }
 ```
 
-Hot state vs hot event stream (use when collectors need either the latest state on subscription or a non-replayed event stream):
+Use when: the caller reacts to changing state or repeated updates over time instead of one completed result.
+
+Hot state vs hot event stream:
 
 ```kotlin
 class OrdersViewModel {
@@ -64,6 +70,40 @@ class OrdersViewModel {
     val events: SharedFlow<UiEvent> = _events
 }
 ```
+
+Use when: collectors need either the latest state on subscription or a non-replayed event stream with explicit replay behavior.
+
+Lifecycle-owned coroutine work:
+
+```kotlin
+class OrdersPresenter(
+    private val presenterScope: CoroutineScope,
+) {
+    fun refresh() {
+        presenterScope.launch {
+            repository.refresh()
+        }
+    }
+}
+```
+
+Use when: the work should be cancelled with an owning lifecycle or parent scope rather than escaping into detached background work.
+
+Explicit blocking boundary:
+
+```kotlin
+import java.nio.file.Path
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+class CsvImporter {
+    suspend fun import(path: Path): ImportResult = withContext(Dispatchers.IO) {
+        parser.import(path)
+    }
+}
+```
+
+Use when: the async path crosses a real blocking I/O boundary and the dispatcher hop should stay visible in the implementation.
 
 ## Validate the Result
 
