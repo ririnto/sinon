@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spring Transactions and Events"
+  short_description: "Spring transactions, outbox, and post-commit events"
+  default_prompt: "Use $spring-transactions-events for @Transactional rules, transactional events, dual-write avoidance, and outbox design."

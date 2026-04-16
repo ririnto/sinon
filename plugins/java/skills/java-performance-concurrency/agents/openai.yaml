@@ -1,9 +1,4 @@
 interface:
   display_name: "Java Performance Concurrency"
-  short_description: >-
-    Review Java performance bottlenecks, profiling strategy, and concurrency tradeoffs
-  default_prompt: >-
-    Use $java-performance-concurrency when evaluating Java latency, throughput,
-    contention, allocation pressure, profiling approach, or virtual thread
-    adoption. Ground the answer in evidence, prefer measured bottlenecks over
-    intuition, and load the performance references only when the task needs them.
+  short_description: "Java performance, profiling, and concurrency review"
+  default_prompt: "Use $java-performance-concurrency for Java bottlenecks, profiling strategy, contention, and virtual thread tradeoffs."

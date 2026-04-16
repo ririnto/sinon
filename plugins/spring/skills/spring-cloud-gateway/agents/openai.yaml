@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spring Cloud Gateway"
+  short_description: "Spring Cloud Gateway route and filter patterns"
+  default_prompt: "Use $spring-cloud-gateway for routes, predicates, filters, retries, and gateway edge policy."

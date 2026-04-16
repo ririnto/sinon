@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kotlin Test"
+  short_description: "Practical Kotlin testing with coroutine-aware scope"
+  default_prompt: "Use $kotlin-test for Kotlin test design, coroutine tests, mocking, and focused behavioral coverage."

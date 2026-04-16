@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spring Test"
+  short_description: "Focused Spring testing with slices and Boot contexts"
+  default_prompt: "Use $spring-test for Spring Boot tests, slice selection, MockMvc, WebTestClient, and focused test scope."

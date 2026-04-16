@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spring Scheduling"
+  short_description: "Lightweight Spring scheduling and TaskScheduler patterns"
+  default_prompt: "Use $spring-scheduling for @Scheduled tasks, cron jobs, TaskScheduler usage, and local recurring work."

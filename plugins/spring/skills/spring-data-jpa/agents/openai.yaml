@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spring Data JPA"
+  short_description: "Spring Data JPA entities, queries, and transactions"
+  default_prompt: "Use $spring-data-jpa for entity design, repositories, query methods, pagination, and transaction boundaries."

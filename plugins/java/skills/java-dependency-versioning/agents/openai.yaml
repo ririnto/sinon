@@ -1,8 +1,4 @@
 interface:
   display_name: "Java Dependency Versioning"
-  short_description: >-
-    Look up Java dependency coordinates and verify Maven Central releases with a concrete checkable path
-  default_prompt: >-
-    Use $java-dependency-versioning when identifying Java artifact coordinates,
-    checking the current Maven Central release with a concrete curl-verifiable path,
-    or giving version-neutral installation guidance for Maven or Gradle.
+  short_description: "Java dependency coordinates and Maven Central checks"
+  default_prompt: "Use $java-dependency-versioning for Java artifact coordinates, Maven Central release checks, and Maven or Gradle install guidance."

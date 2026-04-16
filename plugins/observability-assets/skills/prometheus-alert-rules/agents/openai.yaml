@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prometheus Alert Rules"
+  short_description: "Prometheus alerts, recording rules, and promtool checks"
+  default_prompt: "Use $prometheus-alert-rules for Prometheus alert design, PromQL tuning, recording rules, and promtool validation."

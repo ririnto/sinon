@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kotlin Coroutines and Flows"
+  short_description: "Kotlin coroutines, Flow, and cancellation patterns"
+  default_prompt: "Use $kotlin-coroutines-flows for suspend APIs, Flow design, cancellation debugging, and Kotlin async review."

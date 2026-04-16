@@ -1,9 +1,4 @@
 interface:
   display_name: "JDK Tooling Workflows"
-  short_description: >-
-    Choose and sequence official JDK tools for compile, analysis, and packaging tasks
-  default_prompt: >-
-    Use $jdk-tooling-workflows when a task depends on standard JDK tools such as
-    javac, java, jshell, javadoc, jdeps, jlink, or jpackage. Prefer the smallest
-    official tool sequence that solves the problem and load the detailed tooling
-    references only when the task requires them.
+  short_description: "Official JDK compile, analysis, and packaging workflows"
+  default_prompt: "Use $jdk-tooling-workflows for javac, java, jshell, javadoc, jdeps, jlink, and jpackage workflows."

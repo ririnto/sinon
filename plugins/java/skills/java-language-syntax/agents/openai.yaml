@@ -1,10 +1,4 @@
 interface:
   display_name: "Java Language Syntax"
-  short_description: >-
-    Explain Java LTS syntax, expression forms, and foundational java.base coverage
-  default_prompt: >-
-    Use $java-language-syntax when comparing Java syntax across LTS releases,
-    explaining language features such as var, switch expressions, records,
-    text blocks, pattern matching, or Java 25 cleanup syntax, rewriting code
-    for an older or newer Java baseline, or choosing a foundational java.base
-    package family that fits the code without drifting into JDK tooling.
+  short_description: "Java LTS syntax and foundational java.base guidance"
+  default_prompt: "Use $java-language-syntax for Java LTS syntax changes, feature comparisons, and baseline-safe java.base choices."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spring WebFlux"
+  short_description: "Reactive Spring WebFlux endpoint and client patterns"
+  default_prompt: "Use $spring-webflux for reactive endpoints, WebClient flows, Mono or Flux design, and non-blocking composition."

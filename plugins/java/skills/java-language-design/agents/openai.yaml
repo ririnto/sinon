@@ -1,9 +1,4 @@
 interface:
   display_name: "Java Language Design"
-  short_description: >-
-    Review or design Java APIs, type models, and exception boundaries
-  default_prompt: >-
-    Use $java-language-design when designing or reviewing Java types, public
-    APIs, exception models, records, sealed hierarchies, mutability choices, or
-    collection exposure. Prefer small, explicit contracts and load the language
-    or API design references only when the task needs that detail.
+  short_description: "Java API, type model, and exception design guidance"
+  default_prompt: "Use $java-language-design for Java API review, type modeling, exception boundaries, and contract design."

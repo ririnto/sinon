@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grafana Dashboards"
+  short_description: "Grafana dashboard assets, JSON, and panel design"
+  default_prompt: "Use $grafana-dashboards for Grafana dashboard JSON, stable UIDs, mixin output, and panel design review."

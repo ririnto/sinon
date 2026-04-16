@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kotlin Language Patterns"
+  short_description: "Idiomatic Kotlin language and stdlib design patterns"
+  default_prompt: "Use $kotlin-language-patterns for idiomatic Kotlin syntax, modeling, null-safety, serialization, and stdlib choices."
