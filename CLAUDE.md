@@ -65,6 +65,7 @@ Rules in this file describe stable repository expectations that SHOULD remain va
 - `references/` SHOULD avoid chains where one reference regularly sends the reader to a second reference to finish the same job.
 - If two reference documents are commonly read together to resolve the same blocker, and the split does not materially reduce scanning cost, they SHOULD be merged.
 - If a skill keeps only one reference file and that reference is likely to be read in the common path, its durable content SHOULD be folded back into `SKILL.md` instead of staying separate.
+- A coding-skill reference file SHOULD include at least one concrete additive example, command, config snippet, diff pattern, or output shape tied to its blocker; references SHOULD NOT degrade into prose-only checklists.
 
 ## Coding-Skill Rules
 
@@ -76,6 +77,8 @@ Rules in this file describe stable repository expectations that SHOULD remain va
 - Broken-versus-correct examples SHOULD be preferred over abstract warnings when they communicate the rule more clearly.
 - Format-critical output shapes MUST appear in `SKILL.md`, not only in references.
 - References for coding skills SHOULD expand coverage with additional concrete examples rather than longer conceptual narration.
+- When a skill documents multiple valid workflows for the same asset class, each workflow MUST keep its own commands, paths, and output tree internally consistent.
+- If a skill distinguishes direct-source assets from generated or rendered assets, the documentation MUST name that boundary explicitly and keep validation commands, render commands, and provisioning paths aligned to the correct side of the boundary.
 
 ## Command-Heavy Skill Rules
 
@@ -102,3 +105,5 @@ Rules in this file describe stable repository expectations that SHOULD remain va
 - If a reference can be deleted without losing additive depth, it SHOULD be deleted or reduced.
 - If a coding skill explains a pattern at length without showing the pattern concretely, it SHOULD be revised toward code-first guidance.
 - If `SKILL.md` cannot handle the common case without opening references, it MUST be strengthened.
+- Reviewers MUST check that example commands and documented repository layouts refer to the same paths for the same workflow.
+- Reviewers MUST check that direct-asset workflows and rendered-asset workflows are distinguishable in examples, so copy-paste commands do not silently cross those boundaries.

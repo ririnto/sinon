@@ -54,6 +54,110 @@ Individual plugin directories remain the source of truth for plugin-specific run
 
 Bundled upstream plugins may support only a subset of runtimes. In some cases, this repository may add minimal runtime metadata such as `.codex-plugin/` while leaving the upstream plugin content otherwise intact.
 
+## Registering This Marketplace in Claude Code
+
+Claude Code supports registering marketplaces from GitHub repositories, generic git URLs, direct URLs to `marketplace.json`, and local paths.
+
+For this repository, use a GitHub repository, git URL, or local path. Sinon currently uses relative plugin sources such as `./plugins/java` inside `.claude-plugin/marketplace.json`, so a direct HTTP URL to the catalog file is not a safe distribution path for this marketplace.
+
+The Claude marketplace catalog for this repository is:
+
+- `.claude-plugin/marketplace.json`
+
+### Interactive registration
+
+Register this marketplace from a local checkout:
+
+```bash
+/plugin marketplace add /path/to/sinon
+```
+
+Register this marketplace from GitHub:
+
+```bash
+/plugin marketplace add ririnto/sinon
+```
+
+Register this marketplace from a generic git URL:
+
+```bash
+/plugin marketplace add https://github.com/ririnto/sinon.git
+```
+
+After Claude Code registers the `sinon` marketplace, install a plugin from it with:
+
+```bash
+/plugin install <plugin>@sinon
+```
+
+Examples:
+
+```bash
+/plugin install java@sinon
+/plugin install jdk@sinon
+/plugin install kotlin@sinon
+/plugin install spring@sinon
+```
+
+### `~/.claude/settings.json`
+
+You can also preconfigure the marketplace in `~/.claude/settings.json`:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "extraKnownMarketplaces": {
+    "sinon": {
+      "source": {
+        "source": "github",
+        "repo": "ririnto/sinon"
+      }
+    }
+  }
+}
+```
+
+To enable a plugin by default, add it to `enabledPlugins`:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "extraKnownMarketplaces": {
+    "sinon": {
+      "source": {
+        "source": "github",
+        "repo": "ririnto/sinon"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "java@sinon": true
+  }
+}
+```
+
+For a local checkout, use a directory source instead:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "extraKnownMarketplaces": {
+    "sinon": {
+      "source": {
+        "source": "directory",
+        "path": "/path/to/sinon"
+      }
+    }
+  }
+}
+```
+
+If you are working from a local checkout instead of a registered marketplace, you can also load a plugin directly from its plugin root:
+
+```bash
+cc --plugin-dir /path/to/sinon/plugins/java
+```
+
 ## License
 
 This repository is distributed under the MIT License. See [LICENSE](./LICENSE).
