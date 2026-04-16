@@ -4,11 +4,11 @@ description: >-
   Reference for calibrating skill descriptions, trigger phrases, and should-trigger versus should-not-trigger examples.
 ---
 
-Use this reference when the blocker is not how to structure a skill, but how to make the `description` route cleanly and predictably. This file should be sufficient on its own to finish that calibration.
+Use this reference when the blocker is not skill structure itself, but making the `description` route cleanly and predictably as the first trigger in the agentskills.io loading hierarchy. This file is sufficient on its own for that calibration.
 
 ## Routing Goal
 
-The `description` is not a slogan. It is the routing key that tells the agent when to load the skill.
+The `description` is not a slogan. It is the routing key that tells the agent when to load the skill before `SKILL.md` or any reference file is read.
 
 Prefer this shape:
 
@@ -33,6 +33,7 @@ The correct description names user-visible tasks and outcomes. The incorrect des
 - Name adjacent-domain exclusions only when they are likely confusions.
 - Prefer natural phrases a user would say over taxonomy labels a maintainer would invent.
 - Keep the description precise enough that unrelated tasks do not activate it by accident.
+- If host or platform deltas do not change the ordinary user job, keep one shared skill description instead of splitting routing by host name alone.
 
 ## Should-Trigger Examples
 
@@ -66,3 +67,4 @@ The correct description names user-visible tasks and outcomes. The incorrect des
 | trigger list that mixes unrelated jobs | matching becomes noisy | split the skill or narrow the description |
 | internal repo jargon only | users and routers do not share the same terms | rewrite in plain task language first, then add one repo-specific cue if needed |
 | overly broad words such as "improve" or "help" | too many requests become plausible matches | anchor on the repeatable job and outcome |
+| separate host-specific descriptions for the same ordinary task | routing splits too early and duplicates the shared path | keep one shared description and branch into focused references only when the exact host delta is the blocker |

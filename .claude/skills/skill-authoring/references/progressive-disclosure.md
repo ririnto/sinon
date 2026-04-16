@@ -4,7 +4,7 @@ description: >-
   Reference for deciding what belongs in SKILL.md, what belongs in references, and when scripts or assets are justified.
 ---
 
-Use this reference when the blocker is content placement rather than content quality. This file should be sufficient on its own to decide whether material belongs in `SKILL.md`, `references/`, `scripts/`, or `assets/`.
+Use this reference when the blocker is content placement rather than content quality. This file is sufficient on its own to decide whether material belongs in `SKILL.md`, `references/`, `scripts/`, or `assets/` under the agentskills.io loading hierarchy.
 
 ## Default Placement Rules
 
@@ -22,13 +22,12 @@ Move these to `references/`:
 - edge-case decision material
 - extended examples that are too long for the common path
 - portability notes across runtimes or vendors
+- host-, vendor-, or platform-specific deltas when the common workflow is already covered in `SKILL.md`
 - deeper comparisons that only matter after a blocker appears
 
 Add `scripts/` only when the workflow needs executable helpers. Add `assets/` only when templates or other files are consumed directly during execution.
 
 ## Fast Placement Test
-
-Ask these questions in order:
 
 1. Can a maintainer complete the ordinary task without this content?
    - If no, keep it in `SKILL.md`.
@@ -38,6 +37,8 @@ Ask these questions in order:
    - If yes, consider `scripts/` or `assets/`.
 4. Is the content duplicated from `SKILL.md` only to reduce file size?
    - If yes, move it back into `SKILL.md`.
+5. Do sibling skills share the same common path and differ mainly by host or platform details?
+   - If yes, merge the shared path into one skill and move only the deltas to focused references.
 
 ## Broken vs Correct Splits
 
@@ -63,6 +64,17 @@ references/
 
 Why it works: the ordinary path stays in `SKILL.md`, while deeper blockers move out.
 
+Merged multi-platform split:
+
+```text
+SKILL.md
+references/
+  github-deltas.md
+  gitlab-deltas.md
+```
+
+Why it works: one coherent task keeps its shared workflow in `SKILL.md`, and host-specific mechanics move to focused on-demand references.
+
 ## Reference Completeness Rule
 
 Each reference file should open with:
@@ -80,3 +92,4 @@ If two reference files are almost always opened together to finish one job, merg
 - Does each reference correspond to one blocker rather than one broad topic?
 - Does each reference add new material instead of repeating canonical templates?
 - Are scripts and assets present only because the workflow needs them?
+- Would merging sibling skills reduce duplicated common-path content without weakening routing precision?
