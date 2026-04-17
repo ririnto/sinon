@@ -1,7 +1,27 @@
 {
   "name": "sinon",
-  "version": "2026.04.16",
+  "version": "2026.04.17",
   "plugins": [
+    {
+      "name": "git-workflow",
+      "description": "Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.",
+      "source": {
+        "source": "local",
+        "path": "./plugins/git-workflow"
+      },
+      "category": "Coding",
+      "author": {
+        "name": "ririnto"
+      },
+      "interface": {
+        "displayName": "Git Workflow",
+        "shortDescription": "Commit readiness, Conventional Commit drafting, and template-aware PR/MR body drafting."
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      }
+    },
     {
       "name": "java",
       "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",

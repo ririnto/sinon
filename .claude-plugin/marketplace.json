@@ -1,13 +1,22 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "sinon",
-  "version": "2026.04.16",
+  "version": "2026.04.17",
   "description": "Claude catalog view for the Sinon universal marketplace.",
   "owner": {
     "name": "ririnto",
     "email": "ririnto@kakao.com"
   },
   "plugins": [
+    {
+      "name": "git-workflow",
+      "description": "Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.",
+      "source": "./plugins/git-workflow",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    },
     {
       "name": "java",
       "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",

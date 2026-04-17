@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "git-workflow",
+  "description": "Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.",
+  "author": {
+    "name": "ririnto"
+  },
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "keywords": [
+    "git",
+    "git-workflow",
+    "commit",
+    "conventional-commits",
+    "pull-request",
+    "merge-request",
+    "github",
+    "gitlab",
+    "gh",
+    "glab"
+  ]
+}

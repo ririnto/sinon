@@ -1,0 +1,38 @@
+{
+  "name": "git-workflow",
+  "description": "Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.",
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/git-workflow",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "keywords": [
+    "git",
+    "git-workflow",
+    "commit",
+    "conventional-commits",
+    "pull-request",
+    "merge-request",
+    "github",
+    "gitlab",
+    "gh",
+    "glab"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Git Workflow",
+    "shortDescription": "Commit readiness, Conventional Commit drafting, and template-aware PR/MR body drafting.",
+    "longDescription": "Install a shared Git workflow plugin with one skill for deciding whether changes are ready to commit, drafting Conventional Commit messages, and preparing GitHub pull request or GitLab merge request bodies while preserving repository templates or using a stable fallback structure.",
+    "developerName": "ririnto",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Decide whether this change set is ready for one commit or should be split before committing.",
+      "Draft a Conventional Commit message from the actual staged diff and explain the chosen type.",
+      "Prepare hosted review text that preserves the repository template or uses a safe fallback structure, then branch into GitHub or GitLab-specific template handling when needed."
+    ],
+    "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/git-workflow"
+  }
+}
