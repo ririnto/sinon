@@ -1,88 +1,89 @@
 ---
 title: Sinon Project Rules
-description: >-
-  Stable repository rules for plugin packaging and skill authoring in the Sinon marketplace.
+description: Stable repository rules for plugin packaging and skill authoring in the Sinon marketplace.
 ---
 
-# Sinon Project Rules
+Sinon is a marketplace repository for Claude Code plugins and Agent Skills. These rules govern repository layout, skill authoring, and documentation posture. Normative keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) follow BCP 14. All repository-level and agent-facing rules documents MUST be written in English.
 
-## Repository Model
+## Canonical files and symlinks
+
+- `CLAUDE.md` is the canonical root rules document. `AGENTS.md` is a symlink to it; treat them as one document, not parallel copies.
+- `.claude/skills/` is the canonical repository-local skills directory. `.agents/skills/` is a symlink to it; treat them as one inventory.
+- Root-level documentation MUST describe repository-wide structure and rules, not fast-changing plugin details.
+
+## Repository layout
 
 - Plugins MUST live under `plugins/`.
 - Each plugin MAY expose multiple runtime manifests from the same plugin root.
-- Runtime-specific marketplace metadata MUST stay aligned with the plugin content they publish.
-- Root-level documentation MUST describe repository-wide structure and rules, not fast-changing plugin details.
-- `CLAUDE.md` MUST remain the canonical root rules document. `AGENTS.md` is a symlink to `CLAUDE.md` and MUST be treated as the same document rather than an independently maintained copy.
-- `.claude/skills/` MUST remain the canonical repository-local skills directory. `.agents/skills/` is a symlink to `.claude/skills/` and MUST be treated as the same skill inventory rather than a separate parallel tree.
+- Runtime-specific marketplace metadata MUST stay aligned with the plugin content it publishes.
 
-## Skill Loading Model
+## Authoring Agent Skills
 
-- This repository MUST treat the agentskills.io loading model as the top-level basis for local skill rules.
-- When the task is to create, edit, review, refactor, validate, or package an Agent Skill for this repository, agents SHOULD load the local `skill-authoring` skill from `.claude/skills/skill-authoring/`. The mirrored path `.agents/skills/skill-authoring/` resolves to the same content via symlink.
-- Skill metadata, especially `description`, MUST act as the routing trigger for activation and SHOULD use user-intent language such as "Use this skill when...".
-- `SKILL.md` MUST be the canonical document loaded at activation time and MUST carry the common path for the ordinary task.
-- `references/`, `assets/`, `scripts/`, and similar support material MUST be treated as focused on-demand depth rather than always-loaded context.
-- Skill structures SHOULD follow progressive disclosure: routing metadata first, common-path instructions in `SKILL.md`, then optional depth in auxiliary files.
-- A skill SHOULD cover one coherent unit of work. When sibling skills share the same common path and differ mainly by host, vendor, or platform details, they SHOULD be merged and the deltas SHOULD move to focused references.
+When the task is to create, edit, review, refactor, validate, or package an Agent Skill for this repository, **YOU MUST** load the local `skill-authoring` skill from `.claude/skills/skill-authoring/`. The mirrored path `.agents/skills/skill-authoring/` resolves to the same content via symlink.
 
-## Skill Structure Contracts
+Sinon treats the **agentskills.io loading model** as the top-level basis for local skill rules. Progressive disclosure applies at three levels:
 
-- A skill MUST remain usable when installed by itself.
-- A skill MUST NOT depend on another skill as a required prerequisite for basic execution.
-- A skill MUST NOT require direct cross-skill routing or handoff text in order to explain its common case or scope boundaries.
-- A single skill MAY cover multiple hosts or platforms when the user job is the same and the common path remains in `SKILL.md`.
-- Plugin-level inventories or catalog documentation MAY list bundled skills, but a skill entrypoint itself MUST remain self-sufficient.
-- Skill directories SHOULD keep a shallow structure so agents can discover relevant material quickly.
-- `SKILL.md` `name` MUST exactly match the skill directory basename.
-- `SKILL.md` MUST contain the activation surface, common-case workflow, representative templates or commands, invariants, pitfalls, scope boundaries, and brief reference pointers.
-- `SKILL.md` MUST stay self-sufficient for the common case.
-- `SKILL.md` MUST keep the shared workflow, decision point, and first safe commands when a skill spans multiple hosts or platforms.
-- `SKILL.md` MUST retain material that belongs to the skill's primary purpose, even when that material is detailed or example-heavy.
-- Common-case guidance MUST NOT be moved to `references/` only to reduce the size of `SKILL.md`.
-- Primary authoring conventions that users are expected to apply during ordinary use of the skill MUST appear in `SKILL.md`.
-- `SKILL.md` MUST describe adjacent-domain exclusions in domain terms, not as instructions to jump to another skill by name.
-- `SKILL.md` SHOULD route to deeper material by concrete blocker or job, not by broad topic labels alone.
-- `SKILL.md` SHOULD include the short, copy-adaptable examples that demonstrate the common path or primary output shape.
-- `SKILL.md` SHOULD favor direct, imperative guidance over tutorial-style narration.
-- `SKILL.md` MUST NOT become a generic essay or background article.
+1. Skill `description` metadata is the activation trigger and SHOULD use user-intent phrasing such as "Use this skill when…".
+2. `SKILL.md` is the common-path entrypoint loaded at activation and MUST be self-sufficient for the ordinary task.
+3. `references/`, `assets/`, and `scripts/` hold on-demand additive depth and MUST NOT be treated as always-loaded context.
 
-## `references/` Contract
+A skill SHOULD cover one coherent unit of work. When sibling skills share a common path and differ only by host, vendor, or platform, they SHOULD be merged and the deltas SHOULD move to focused references.
 
-- `references/` MUST contain additive depth only and MUST NOT hold material required for the skill's common case or primary purpose.
-- `references/` MUST NOT repeat the same canonical templates, workflow steps, invariants, or pitfalls already owned by `SKILL.md`.
-- Platform-specific references MAY hold host-specific template paths, command variants, fallback shapes, and operational caveats once the shared path is already covered in `SKILL.md`.
-- Each reference file MUST be a purpose-complete unit that states its purpose, the condition for opening it, and stands alone for one specific blocker or job.
-- `references/` SHOULD hold extended examples, deeper comparisons, operational caveats, version boundaries, and edge-case decision material.
-- `references/` MAY assume the reader has already activated and understood the parent `SKILL.md`.
-- `references/` MUST support progressive disclosure rather than act as duplicate standalone skill files.
-- `references/` SHOULD avoid chains, and references commonly read together for the same blocker SHOULD be merged when the split does not materially reduce scanning cost.
-- If a skill keeps only one reference file and that reference is likely to be read in the common path, its durable content SHOULD be folded back into `SKILL.md` instead of staying separate.
-- A coding-skill reference file SHOULD include at least one concrete additive example, command, config snippet, diff pattern, or output shape tied to its blocker; references SHOULD NOT degrade into prose-only checklists.
+## `SKILL.md` contract
 
-## Coding and Command Rules
+A skill MUST remain usable when installed by itself and MUST NOT require another skill as a prerequisite or routing handoff. A single `SKILL.md` MAY cover multiple hosts or platforms when the user job is the same and the common path stays in `SKILL.md`. Plugin-level inventories MAY list bundled skills, but each skill entrypoint MUST remain self-sufficient.
 
-- Coding-related skills MUST give more weight to code, commands, templates, and concrete examples than to explanatory prose.
-- In coding-related skills, every important rule SHOULD be anchored by runnable or readily adaptable code or command examples.
-- In coding-related skills, default code-organization and authoring conventions that are central to the skill's purpose MUST appear in `SKILL.md` with concrete examples.
-- In coding-related skills, short common-path examples SHOULD live in `SKILL.md`, while longer or conditional examples SHOULD move to purpose-complete references.
-- Explanatory prose around templates SHOULD be compressed to the minimum needed for safe use.
-- Broken-versus-correct examples SHOULD be preferred over abstract warnings when they communicate the rule more clearly.
-- Format-critical output shapes MUST appear in `SKILL.md`, not only in references.
-- References for coding skills SHOULD expand coverage with additional concrete examples rather than longer conceptual narration.
-- When a skill documents multiple valid workflows for the same asset class, each workflow MUST keep its own commands, paths, and output tree internally consistent.
-- If a skill distinguishes direct-source assets from generated or rendered assets, the documentation MUST name that boundary explicitly and keep validation commands, render commands, and provisioning paths aligned to the correct side of the boundary.
-- Command-heavy skills MUST present the primary decision path and first safe commands in `SKILL.md`.
-- Command syntax shown in `SKILL.md` MUST be copyable and explicit.
-- Long command catalogs, compatibility matrices, and secondary option tables SHOULD live in `references/`.
-- Operational cautions MUST stay close to the commands they constrain.
+`SKILL.md` MUST contain:
 
-## Documentation Style
+- A `name` field exactly matching the skill directory basename.
+- The activation surface, common-case workflow, decision points, and first safe commands.
+- Representative templates, copy-adaptable examples, invariants, pitfalls, and scope boundaries.
+- Primary authoring conventions users apply during ordinary use of the skill.
+- The shared workflow and first safe commands when the skill spans multiple hosts or platforms.
+- Format-critical output shapes.
+- Brief pointers to `references/` indexed by concrete blocker or job.
 
-- Repository-level and agent-facing rules documents MUST be written in English.
+`SKILL.md` MUST NOT:
+
+- Move common-case guidance to `references/` solely to shrink `SKILL.md`.
+- Describe adjacent-domain exclusions as "jump to skill X" — state them in domain terms.
+- Degrade into a generic essay or background article.
+
+`SKILL.md` SHOULD favor direct, imperative guidance over tutorial narration and SHOULD keep a shallow directory structure so agents can discover material quickly.
+
+## `references/` contract
+
+`references/` MUST contain additive depth only: extended examples, host-specific template paths and command variants, operational caveats, version boundaries, and edge-case decision material. Each reference file MUST be a purpose-complete unit that states its purpose and the condition for opening it, and MUST stand alone for one specific blocker or job. `references/` MAY assume the reader has already activated `SKILL.md`.
+
+`references/` MUST NOT:
+
+- Hold material required for the common case or primary purpose.
+- Repeat canonical templates, workflow steps, invariants, or pitfalls owned by `SKILL.md`.
+- Act as duplicate standalone skill files.
+
+`references/` SHOULD avoid chains; references commonly read together for the same blocker SHOULD be merged when splitting does not materially reduce scanning cost. If a skill keeps only one reference file and that reference sits on the common path, its durable content SHOULD be folded back into `SKILL.md`.
+
+## Coding-related skills
+
+Coding-related skills MUST weight code, commands, templates, and concrete examples over explanatory prose.
+
+- Every important rule SHOULD be anchored by runnable or readily adaptable code or commands.
+- Default code-organization and authoring conventions central to the skill MUST appear in `SKILL.md` with concrete examples.
+- Short common-path examples belong in `SKILL.md`; longer or conditional examples belong in purpose-complete references.
+- Broken-versus-correct examples SHOULD be preferred over abstract warnings.
+- Prose around templates SHOULD be compressed to the minimum needed for safe use.
+- Each reference file SHOULD include at least one concrete additive example, command, config snippet, diff, or output shape tied to its blocker, and MUST NOT degrade into a prose-only checklist.
+
+Command-heavy skills MUST present the primary decision path and first safe commands in `SKILL.md`. Command syntax in `SKILL.md` MUST be copyable and explicit. Operational cautions MUST stay adjacent to the commands they constrain. Long command catalogs, compatibility matrices, and secondary option tables SHOULD live in `references/`.
+
+When a skill documents multiple valid workflows for the same asset class, each workflow MUST keep its own commands, paths, and output tree internally consistent. If a skill distinguishes direct-source assets from generated or rendered assets, the documentation MUST name that boundary explicitly and keep validation, render, and provisioning paths aligned to the correct side.
+
+## Documentation style
+
+- Markdown documents MUST prefer headings, lists, and code blocks over dense prose.
 - Normative statements in stable rules documents MUST use BCP 14 language.
-- Markdown documents MUST prefer headings, lists, and code blocks over dense prose paragraphs.
-- Documentation comments and examples SHOULD use the native language or tool syntax of the subject being documented.
+- Documentation examples SHOULD use the native language or tool syntax of the subject being documented.
 
-## Review Enforcement
+## Review checklist
 
-- Reviewers MUST verify that all rules above are met, especially self-sufficiency, coherent-unit sizing, progressive disclosure, blocker-based references, and example/path consistency.
+Reviewers MUST verify: skill self-sufficiency, coherent-unit sizing, progressive disclosure, blocker-based (not topic-label) references, example and path consistency across workflows, and strict separation of `SKILL.md` common-case content from `references/` additive depth.
