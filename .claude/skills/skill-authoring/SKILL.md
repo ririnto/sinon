@@ -1,8 +1,8 @@
 ---
 name: skill-authoring
-description: Author new Agent Skills that conform to the open Agent Skills format (SKILL.md with YAML frontmatter, optional scripts/, references/, assets/ directories). Use when the user asks to create, scaffold, write, design, draft, package, or publish a "skill", "agent skill", "SKILL.md", or wants to give an agent new capabilities via an agentskills.io-compatible package. Also use when the user wants to refactor an existing prompt, workflow, or runbook into a reusable skill, or when they ask how to structure a skill's frontmatter, description, scripts, or reference files. Do NOT use when the user only wants to *use* an existing skill, is asking general prompting questions, or is building an MCP server (use `mcp-builder` instead).
+description: Author new Agent Skills that conform to the open Agent Skills format (SKILL.md with YAML frontmatter, optional scripts/, references/, assets/ directories). Use when the user asks to create, scaffold, write, design, draft, package, or publish a "skill", "agent skill", "SKILL.md", or wants to give an agent new capabilities via an agentskills.io-compatible package. Also use when the user wants to refactor an existing prompt, workflow, or runbook into a reusable skill, or when they ask how to structure a skill's frontmatter, description, scripts, or reference files. Do NOT use when the user only wants to *use* an existing skill, is asking general prompting questions, or is building an MCP server rather than an Agent Skill.
 license: MIT
-compatibility: Requires uvx (shipped with uv — https://docs.astral.sh/uv/) and python3. Validation delegates to the official skills-ref reference library at https://github.com/agentskills/agentskills/tree/main/skills-ref, pulled on demand via uvx.
+compatibility: Requires uvx (shipped with uv — https://docs.astral.sh/uv/). Validation delegates to the official skills-ref reference library at https://github.com/agentskills/agentskills/tree/main/skills-ref, pulled on demand via uvx.
 metadata:
   source: https://agentskills.io
   version: "1.0"
@@ -39,7 +39,7 @@ Activate this skill whenever the user wants to create, edit, or package an Agent
 - "Review/validate this SKILL.md."
 - "How do I structure my `description` so it triggers on Z?"
 
-Do NOT activate this skill for generic prompt-engineering questions or for building MCP servers (prefer the `mcp-builder` skill for the latter).
+Do NOT activate this skill for generic prompt-engineering questions or for building MCP servers, which are a separate extensibility mechanism from Agent Skills.
 
 ## Workflow
 

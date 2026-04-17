@@ -12,10 +12,13 @@ description: >-
 - Each plugin MAY expose multiple runtime manifests from the same plugin root.
 - Runtime-specific marketplace metadata MUST stay aligned with the plugin content they publish.
 - Root-level documentation MUST describe repository-wide structure and rules, not fast-changing plugin details.
+- `CLAUDE.md` MUST remain the canonical root rules document. `AGENTS.md` is a symlink to `CLAUDE.md` and MUST be treated as the same document rather than an independently maintained copy.
+- `.claude/skills/` MUST remain the canonical repository-local skills directory. `.agents/skills/` is a symlink to `.claude/skills/` and MUST be treated as the same skill inventory rather than a separate parallel tree.
 
 ## Skill Loading Model
 
 - This repository MUST treat the agentskills.io loading model as the top-level basis for local skill rules.
+- When the task is to create, edit, review, refactor, validate, or package an Agent Skill for this repository, agents SHOULD load the local `skill-authoring` skill from `.claude/skills/skill-authoring/`. The mirrored path `.agents/skills/skill-authoring/` resolves to the same content via symlink.
 - Skill metadata, especially `description`, MUST act as the routing trigger for activation and SHOULD use user-intent language such as "Use this skill when...".
 - `SKILL.md` MUST be the canonical document loaded at activation time and MUST carry the common path for the ordinary task.
 - `references/`, `assets/`, `scripts/`, and similar support material MUST be treated as focused on-demand depth rather than always-loaded context.

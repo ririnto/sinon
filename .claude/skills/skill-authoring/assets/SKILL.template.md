@@ -39,10 +39,10 @@ Minimal input/output pairs that illustrate the common cases. Short examples in t
 
 ## References
 
-Load these on demand, not upfront:
+If the skill bundles files under `references/` or `assets/`, list them here with explicit 'load when X' triggers so the agent knows when to read each one. Remove this section entirely if the skill has no bundled reference material. Replace the placeholder entries below with real filenames once you add them:
 
-- `references/DETAILS.md` — detailed technical reference. Load when the workflow above is insufficient.
-- `assets/template.md` — output template. Load when producing formatted deliverables.
+- `references/<topic>.md` — short description of what is in the file. Load when the agent encounters condition X.
+- `assets/<template-name>.<ext>` — what the template produces. Load when producing that deliverable.
 
 ## Output contract
 
