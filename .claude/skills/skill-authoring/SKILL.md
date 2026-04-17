@@ -1,240 +1,220 @@
 ---
 name: skill-authoring
-description: >-
-  Use this skill when the user asks to write a new skill, review or refactor an existing skill, tighten a skill description, decide what belongs in SKILL.md versus references, or raise a skill to the repository's current quality bar for consistency, structure, and clear scope boundaries.
+description: Author new Agent Skills that conform to the open Agent Skills format (SKILL.md with YAML frontmatter, optional scripts/, references/, assets/ directories). Use when the user asks to create, scaffold, write, design, draft, package, or publish a "skill", "agent skill", "SKILL.md", or wants to give an agent new capabilities via an agentskills.io-compatible package. Also use when the user wants to refactor an existing prompt, workflow, or runbook into a reusable skill, or when they ask how to structure a skill's frontmatter, description, scripts, or reference files. Do NOT use when the user only wants to *use* an existing skill, is asking general prompting questions, or is building an MCP server (use `mcp-builder` instead).
+license: MIT
+compatibility: Requires uvx (shipped with uv — https://docs.astral.sh/uv/) and python3. Validation delegates to the official skills-ref reference library at https://github.com/agentskills/agentskills/tree/main/skills-ref, pulled on demand via uvx.
+metadata:
+  source: https://agentskills.io
+  version: "1.0"
 ---
 
-# Skill Authoring
+# Agent Skill authoring
 
 ## Overview
 
-Use this skill to author repository-local skills that follow the agentskills.io loading hierarchy, stay self-sufficient in the common case, and route by user intent. The standard shape is one coherent skill directory, one `SKILL.md` for the common path, and optional `references/` files for blocker-driven depth.
+An Agent Skill is a folder containing a `SKILL.md` file with YAML frontmatter (at minimum, `name` and `description`) plus Markdown instructions. Skills may also bundle executable `scripts/`, detailed `references/`, and static `assets/`. Agents use progressive disclosure: only `name` + `description` load at startup, the full `SKILL.md` loads on activation, and bundled files load on demand.
 
-Treat agentskills.io as the structural basis, then normalize to this repository's local rules: metadata routes activation, `SKILL.md` carries the common path, and `references/` hold focused on-demand depth.
+This skill packages the full agentskills.io specification, best-practices guidance, and tested scaffolding/validation scripts so the agent can produce a high-quality, spec-compliant skill in one pass.
 
-## Use This Skill When
+## Quick reference
 
-- You are creating a new skill under `.claude/skills/`, `.opencode/skills/`, or another repository-local skill surface.
-- You are reviewing whether a skill is consistent, structured, and explicit about its role.
-- You are tightening a `description` so it routes by user intent instead of internal implementation wording.
-- You are deciding what belongs in `SKILL.md` and what should move into `references/`.
-- You are adding templates, commands, checklists, or validation guidance to make a skill usable without extra interpretation.
-- You are reconciling repository-specific expectations with agentskills.io-first skill conventions and any secondary runtime-specific compatibility constraints.
-- Do not use this skill when the main task is the domain content of another skill rather than the structure and authoring quality of the skill itself.
+| Task | Approach |
+| --- | --- |
+| Scaffold a new skill directory | `sh scripts/new_skill.sh <name> [target-dir]` |
+| Validate frontmatter and layout | `sh scripts/validate_skill.sh <skill-dir>` (wraps `uvx --from skills-ref agentskills validate`) |
+| Generate `<available_skills>` XML for agent prompts | `uvx --from skills-ref agentskills to-prompt <skill-dir>...` |
+| Look up spec details | Read `references/specification.md` |
+| Author best practices | Read `references/best-practices.md` |
+| Tune the `description` for triggering | Read `references/optimizing-descriptions.md` |
+| Design executable scripts | Read `references/using-scripts.md` |
+| Build a skills-compatible client | Read `references/client-implementation.md` |
 
-## Common-Case Workflow
+## When to use this skill
 
-1. Read the repository rules and 2-3 nearby skill examples.
-2. Define one coherent user job. If sibling skills would share the same common path and differ mainly by host, vendor, or platform deltas, merge them first.
-3. Write the `description` as a routing key in user-intent language.
-4. Make `SKILL.md` sufficient for the common path.
-5. Add `references/` only for blocker-based depth such as routing calibration, host/vendor/platform deltas, or edge-case structure rules.
-6. Validate self-sufficiency, progressive disclosure, coherent-unit sizing, and routing clarity.
+Activate this skill whenever the user wants to create, edit, or package an Agent Skill. Typical prompts:
 
-## Skill Design Decision Path
+- "Make a skill that does X."
+- "I want to give my agent a workflow for Y."
+- "Turn this runbook/prompt into a skill."
+- "Review/validate this SKILL.md."
+- "How do I structure my `description` so it triggers on Z?"
 
-- Start with one question: what repeatable job does this skill help an agent finish correctly?
-- If the common case can be completed from one file, keep it in `SKILL.md`.
-- If sibling skills share the same common path and differ mainly by host, vendor, or platform details, merge them and move only the deltas into focused references.
-- If a deeper topic is only needed after a specific blocker appears, move it to `references/`.
-- If the skill needs executable helpers or generated artifacts, add `scripts/` or `assets/` only when the workflow actually depends on them.
-- If two references are almost always read together for one blocker, merge them.
-- If a reference is likely to be read in the common path, fold its durable guidance back into `SKILL.md`.
-- If the `description` only names technologies or internals, rewrite it in task language that a user would naturally say.
+Do NOT activate this skill for generic prompt-engineering questions or for building MCP servers (prefer the `mcp-builder` skill for the latter).
 
-## Minimal Setup
+## Workflow
 
-Start from the smallest valid tree:
+Follow these steps in order. Do not skip validation.
 
-```text
-.claude/
-  skills/
-    skill-name/
-      SKILL.md
+### Step 1: Clarify scope before authoring
+
+Ask the user only the questions needed to produce a coherent skill. In most cases the answers to the following are enough:
+
+1. What task should the skill accomplish? (one sentence)
+2. What triggering phrases / user intents should activate it?
+3. Are there existing artifacts (runbooks, scripts, prompts, examples) to draw from?
+4. Target audience: general agents, or a specific client (Claude Code, Cursor, etc.)?
+5. Any environment prerequisites (runtimes, network, secrets)?
+
+If the user already supplied enough context, skip the questions and proceed.
+
+> [!IMPORTANT]
+> A common failure mode is generating a skill from generic LLM knowledge. Ground the skill in real artifacts (runbooks, incident reports, API specs, fix patches, code-review comments) whenever possible. See `references/best-practices.md` → "Start from real expertise".
+
+### Step 2: Scaffold the directory
+
+Use the bundled script to create the skeleton:
+
+```bash
+sh scripts/new_skill.sh my-skill-name ./path/to/parent
 ```
 
-Add additive depth only when needed:
+The script creates:
 
 ```text
-.claude/
-  skills/
-    skill-name/
-      SKILL.md
-      references/
-        blocker-one.md
-        blocker-two.md
+my-skill-name/
+├── SKILL.md          # Pre-filled from assets/SKILL.template.md
+├── scripts/          # Empty, keep if scripts are bundled
+├── references/       # Empty, keep for progressive-disclosure content
+└── assets/           # Empty, keep for templates and static data
 ```
 
-Merged multi-platform shape when the common path is shared:
+Remove any of `scripts/`, `references/`, or `assets/` that will not be used. Directory names other than `SKILL.md` are not required by the spec.
 
-```text
-.claude/
-  skills/
-    skill-name/
-      SKILL.md
-      references/
-        github-deltas.md
-        gitlab-deltas.md
-```
+### Step 3: Write the frontmatter
 
-Setup rules:
+The frontmatter is the most scrutinized part of the file. Follow the spec exactly:
 
-- the directory name MUST match the `name` in `SKILL.md`
-- `name` SHOULD stay lowercase kebab-case
-- `description` MUST tell the agent what the skill helps with and when it should activate
-- `SKILL.md` SHOULD stay compact enough to scan quickly during activation
-- `references/` MUST remain additive, not required for the ordinary path
-- one merged skill MAY span multiple hosts or platforms when the common path remains in `SKILL.md`
+| Field | Required | Constraints |
+| --- | --- | --- |
+| `name` | Yes | 1-64 chars. Lowercase `a-z`, digits, hyphens. No leading/trailing/consecutive hyphens. MUST match the parent directory name. |
+| `description` | Yes | 1-1024 chars. Non-empty. Covers what the skill does AND when to use it. |
+| `license` | No | License name or reference to a bundled license file. |
+| `compatibility` | No | 1-500 chars. Only when environment constraints matter. |
+| `metadata` | No | Arbitrary string-to-string map. Use unique keys to avoid collisions. |
+| `allowed-tools` | No | Space-separated list of pre-approved tools (experimental). |
 
-## Ready-to-Adapt Templates
+Minimal frontmatter:
 
-Minimum scaffold:
-
-`````markdown
+```markdown
 ---
-name: skill-name
-description: >-
-  Use this skill when the user asks to [job], needs [outcome], or wants help with [task-shaped trigger].
+name: my-skill-name
+description: One or two sentences stating what the skill does and when to use it.
 ---
-
-# Skill Title
-
-## Overview
-
-Use this skill to [primary purpose]. The common case is [ordinary path].
-
-## Use This Skill When
-
-- You are [trigger].
-- You are [trigger].
-- Do not use this skill when [adjacent-domain exclusion].
-
-## Common-Case Workflow
-
-1. Read [inputs].
-2. Decide [main branch].
-3. Apply [default path].
-4. Validate [result].
-
-## Ready-to-Adapt Templates
-
-```text
-[Put the highest-value reusable output shape here.]
 ```
 
-## Validate the Result
+For full field semantics and valid/invalid `name` examples, read `references/specification.md`.
 
-- [check]
-- [check]
+### Step 4: Write a description that triggers reliably
 
-## Scope Boundaries
+The `description` is the only text the agent sees at startup when deciding whether to activate the skill. Apply these principles:
 
-- Activate this skill for:
-  - [job]
-- Do not use this skill as the primary source for:
-  - [adjacent job]
-`````
+- Imperative framing. "Use this skill when..." beats "This skill does...".
+- User-intent focus. Describe what the user is trying to achieve, not implementation details.
+- Be pushy. Explicitly enumerate the triggering contexts, including ones where the user does not name the domain (e.g. "even if they do not mention 'CSV' or 'analysis'").
+- Set boundaries. Include a "Do NOT use..." clause when adjacent skills or tools could be confused with this one.
+- Stay under 1024 characters. Descriptions tend to grow; trim at the end.
 
-Description pattern:
+Good example:
 
 ```yaml
-description: >-
-  Use this skill when the user asks to [task in user language], needs [outcome], or wants help with [specific repeatable job].
+description: Analyze CSV and tabular data files — compute summary statistics, add derived columns, generate charts, and clean messy data. Use when the user has a CSV, TSV, or Excel file and wants to explore, transform, or visualize data, even if they do not explicitly mention "CSV" or "analysis". Do NOT use for database ETL or Excel formula editing.
 ```
 
-Deep reference routing table:
+Poor example:
 
-```markdown
-## Deep References
-
-| If the blocker is... | Read... |
-| --- | --- |
-| tightening trigger phrases or should-trigger vs should-not-trigger calibration | `./references/description-routing.md` |
-| deciding whether content belongs in `SKILL.md` or `references/` | `./references/progressive-disclosure.md` |
+```yaml
+description: Helps with CSVs.
 ```
 
-Merged multi-platform baseline:
+Iteratively refine using the optimization loop in `references/optimizing-descriptions.md` if the skill is misfiring.
 
-```markdown
-## Overview
+### Step 5: Write the body
 
-Use this skill to [shared job]. The common case is [shared path]. Branch into host-specific references only when exact platform mechanics are the blocker.
+The body is the Markdown content after the closing `---`. There are no structural restrictions, but these sections work well in most skills:
 
-## Deep References
+1. `## Overview` — one-paragraph summary of the skill's purpose.
+2. `## When to use this skill` — restated triggers, negative cases, and prerequisites.
+3. `## Workflow` or `## Quick reference` — stepwise procedure or lookup table.
+4. `## Gotchas` — environment-specific facts that defy reasonable assumptions. This is often the highest-value section.
+5. `## Examples` — short input/output pairs.
+6. `## References` — pointers to `references/*.md` with explicit load triggers ("Read `references/api-errors.md` if the API returns a non-200 status.").
 
-| If the blocker is... | Read... |
-| --- | --- |
-| exact GitHub-specific deltas | `./references/github-deltas.md` |
-| exact GitLab-specific deltas | `./references/gitlab-deltas.md` |
+Keep the body under ~500 lines / ~5,000 tokens. Move longer material into `references/` and tell the agent when to load each file.
+
+Apply the patterns from `references/best-practices.md` (gotchas sections, output templates, checklists, validation loops, plan-validate-execute, bundled scripts) as appropriate. Not every skill needs every pattern.
+
+### Step 6: Add scripts, references, and assets (optional)
+
+- `scripts/` — Bundled executable code. Prefer self-contained scripts with inline dependency declarations (PEP 723 for Python, `npm:` specifiers for Deno, etc.) so the agent can run them with a single command. See `references/using-scripts.md`.
+- `references/` — Additional Markdown loaded on demand. Keep files focused and topical. Name them descriptively (`api-errors.md`, `schema.md`, not `reference.md` alone).
+- `assets/` — Templates, schemas, images, data files. Reference them from `SKILL.md` or `scripts/` via relative paths.
+
+Reference files via relative paths from the skill directory root. Keep references one level deep. Avoid deeply nested reference chains.
+
+> [!TIP]
+> When bundling scripts, design them for agentic use: no interactive prompts, helpful `--help` output, structured output (JSON/CSV), clear error messages, meaningful exit codes, and predictable output size. See `references/using-scripts.md` → "Designing scripts for agentic use".
+
+### Step 7: Validate
+
+Run the validator before declaring the skill done:
+
+```bash
+sh scripts/validate_skill.sh ./my-skill-name
 ```
 
-Reference opener pattern:
+The wrapper delegates to the official [`skills-ref`](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference library via `uvx`. The equivalent direct invocation is:
 
-```markdown
----
-title: Reference Title
-description: >-
-  Reference for [one concrete blocker or job].
----
-
-Use this reference when the blocker is [specific blocker] rather than [what stays in SKILL.md]. This file should be sufficient on its own to finish that job.
+```bash
+uvx --from skills-ref agentskills validate ./my-skill-name
 ```
 
-## Validate the Result
+`skills-ref` checks that:
 
-- the directory name and `SKILL.md` `name` match exactly
-- the `description` reads like a routing key driven by user intent
-- `SKILL.md` alone can guide the ordinary authoring or review task without opening references
-- the common path contains concrete templates, commands, or output shapes instead of prose-only advice
-- host/vendor/platform differences are pushed into references only when the shared workflow already lives in `SKILL.md`
-- each reference file starts with a blocker-based condition for opening it
-- references add depth without duplicating the canonical templates, workflow steps, or invariants owned by `SKILL.md`
-- invariants use BCP 14 language when they express stable rules
-- scope boundaries exclude adjacent domains in domain terms rather than by cross-skill handoff
-- the skill reads as one coherent unit of work instead of a loose bundle of unrelated advice
+- The directory contains a `SKILL.md` with well-formed YAML frontmatter.
+- `name` is present, 1-64 chars, lowercase-hyphen-digit only, and matches the parent directory basename.
+- `description` is present and within 1-1024 chars.
+- Optional fields satisfy their spec constraints if present.
 
-## Deep References
+First invocation downloads and caches `skills-ref`; subsequent runs are near-instant.
 
-| If the blocker is... | Read... |
-| --- | --- |
-| tightening trigger wording, should-trigger examples, or description calibration | `./references/description-routing.md` |
-| deciding what belongs in `SKILL.md` versus `references/` or other support files | `./references/progressive-disclosure.md` |
-| reconciling agentskills.io-first rules with secondary runtime or vendor-specific compatibility details | `./references/source-synthesis.md` |
+### Step 8: Smoke-test activation
 
-## Invariants
+Load the skill into the target agent (Claude Code, VS Code + Copilot, Cursor, Gemini CLI, etc.) and issue 3-5 prompts that should trigger it and 2-3 near-misses that should not. If it mis-triggers, iterate on the `description` using `references/optimizing-descriptions.md`.
 
-- `SKILL.md` MUST be the canonical entrypoint for the skill.
-- The `name` in `SKILL.md` MUST exactly match the skill directory basename.
-- The `description` MUST route by user intent and SHOULD use “Use this skill when...” framing.
-- `SKILL.md` MUST remain self-sufficient for the common case.
-- Common-case workflow steps, canonical templates, and primary validation checks MUST stay in `SKILL.md`.
-- `references/` MUST contain additive depth only and MUST open with a concrete blocker-based condition.
-- A skill SHOULD cover one coherent unit of work and route precisely.
-- Sibling skills that share the same common path and differ mainly by host, vendor, or platform deltas SHOULD be merged.
-- A skill MUST remain usable when installed by itself and MUST NOT require another skill for basic execution.
-- A skill MUST add project-specific or non-obvious value instead of restating generic model knowledge.
-- Code-heavy or format-critical skills SHOULD teach through copy-adaptable examples rather than essay-style explanation.
-- Scope boundaries MUST describe adjacent-domain exclusions in domain terms.
+## Critical constraints
 
-## Common Pitfalls
+These are non-negotiable. Re-check them on every edit.
 
-| Anti-pattern | Why it fails | Correct move |
-| --- | --- | --- |
-| writing a broad description that only names technologies or file types | activation becomes noisy and imprecise | describe the user task, expected outcome, and natural trigger phrases |
-| putting the common path into `references/` to keep `SKILL.md` short | the skill stops being usable by itself | keep the normal workflow and core templates in `SKILL.md` |
-| splitting one ordinary task into sibling host-specific skills with the same common path | routing overhead rises and the common path gets duplicated | merge the shared path into one skill and move only host-specific deltas into references |
-| mixing multiple unrelated jobs into one skill | routing precision and scanability collapse | split the work into coherent units or narrow the promised surface |
-| treating secondary runtime or vendor docs as co-equal with the agentskills.io-based repository hierarchy | the local skill loses a stable structural basis | use agentskills.io as the structural basis and treat runtime/vendor docs as compatibility deltas |
+- `name` regex (effectively): `^[a-z0-9]+(-[a-z0-9]+)*$`, length 1-64, must equal the parent directory basename.
+- `description` is required and capped at 1024 characters.
+- `SKILL.md` must contain YAML frontmatter delimited by `---` at the very top of the file.
+- Every bundled file referenced from `SKILL.md` must exist at its stated relative path.
+- Keep `SKILL.md` under 500 lines / ~5,000 tokens. Push detail into `references/`.
 
-## Scope Boundaries
+## Gotchas
 
-- Activate this skill for:
-  - writing new repository-local skills
-  - reviewing or refactoring existing skill structure
-  - calibrating skill descriptions and routing language
-  - deciding common-path versus deep-reference placement
-  - raising a skill to the repository's current quality bar
-- Do not use this skill as the primary source for:
-  - the domain-specific content of another skill
-  - generic prompting advice with no skill packaging context
-  - slash-command authoring or other agent surfaces that do not use `SKILL.md` as the canonical entrypoint
+- Do not hide triggering context in references. The agent only sees the `description` at discovery time. Anything needed to decide activation must be in `description`, not in the body or `references/`.
+- Do not embed secrets in `SKILL.md`, scripts, or assets. Skills are usually version-controlled and shared.
+- Do not assume global installs. For scripts, prefer runners that self-provision dependencies (`uv run`, `npx <pkg>@<ver>`, `deno run`, `bun run`) over `pip install` + direct invocation.
+- Project-level skills can shadow user-level skills in most clients. If a user reports a skill "not working", check for a same-named skill earlier in the scope precedence.
+- Frontmatter YAML with unquoted colons is invalid even if some clients parse it. Quote any `description: Use this when: X` style values.
+- File-read activation vs. tool activation varies by client. Make the skill work either way — do not rely on a specific activation mechanism in the body.
+
+## References
+
+Load the relevant reference file on demand rather than reading everything:
+
+- `references/specification.md` — Full format spec (frontmatter fields, constraints, directory rules, progressive disclosure). Load when unsure about a frontmatter field or layout rule.
+- `references/best-practices.md` — Authoring patterns (gotchas, templates, checklists, validation loops, plan-validate-execute, bundled scripts). Load when designing the body of a non-trivial skill.
+- `references/optimizing-descriptions.md` — Trigger-rate optimization loop for the `description` field. Load when a skill is misfiring or you need to tune triggers.
+- `references/using-scripts.md` — One-off commands vs. bundled scripts, self-contained script formats, agentic design rules. Load when the skill ships executable code.
+- `references/client-implementation.md` — How clients discover and activate skills. Load when targeting an unusual runtime (sandboxed, cloud, custom agent) or building a skills-compatible client.
+
+## Output contract
+
+When finished, report to the user:
+
+1. The absolute path of the created/edited skill directory.
+2. The frontmatter (rendered verbatim).
+3. The output of `scripts/validate_skill.sh` (must be clean).
+4. Suggested next steps (install location for the target client, smoke-test prompts, link to `references/optimizing-descriptions.md` if tuning is needed).
