@@ -32,16 +32,17 @@ Each plugin directory can expose one or more runtime manifests from the same plu
 
 - `.claude-plugin/plugin.json`: Claude plugin manifest.
 - `.codex-plugin/plugin.json`: Codex plugin manifest.
-
 Optional plugin assets such as `README.md`, `.mcp.json`, `.app.json`, `commands/`, `agents/`, `skills/`, and `assets/` live beside those manifests at the plugin root.
 
 The repository keeps separate official marketplace catalogs per runtime.
 
 ## Current Plugins
 
+- `plugins/git-workflow`: Git workflow plugin for commit readiness, Conventional Commit drafting, and template-aware GitHub pull request or GitLab merge request body drafting.
 - `plugins/java`: Java language plugin for syntax boundaries, API design, testing, dependency decisions, performance review, and JDTLS-assisted editing.
 - `plugins/jdk`: JDK tooling plugin for runtime diagnostics, garbage-collection guidance, and standard JDK command workflows.
 - `plugins/kotlin`: Kotlin plugin for language patterns, coroutine and Flow design, Kotlin testing, and kotlin-lsp-assisted editing.
+- `plugins/observability-assets`: Prometheus and Grafana plugin for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and mixin workflows.
 - `plugins/spring`: Spring plugin for Boot, Web, Data, transactions, observability, scheduling, messaging, batch, and cloud workflows.
 
 ## Publishing Model
@@ -94,8 +95,10 @@ Examples:
 
 ```bash
 /plugin install java@sinon
+/plugin install git-workflow@sinon
 /plugin install jdk@sinon
 /plugin install kotlin@sinon
+/plugin install observability-assets@sinon
 /plugin install spring@sinon
 ```
 
