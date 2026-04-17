@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Change integration handoff"
+  short_description: "Commit readiness, Conventional Commit drafting, and template-aware change description body drafting"
+  default_prompt: "Use $git-change-integration handoff to decide whether changes are ready to commit, draft a Conventional Commit message, prepare hosted review body text, and branch into repository-specific template handling only when needed."
