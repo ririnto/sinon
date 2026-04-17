@@ -38,12 +38,12 @@ The repository keeps separate official marketplace catalogs per runtime.
 
 ## Current Plugins
 
-- `plugins/git-workflow`: Git workflow plugin for commit readiness, Conventional Commit drafting, and template-aware GitHub pull request or GitLab merge request body drafting.
-- `plugins/java`: Java language plugin for syntax boundaries, API design, testing, dependency decisions, performance review, and JDTLS-assisted editing.
-- `plugins/jdk`: JDK tooling plugin for runtime diagnostics, garbage-collection guidance, and standard JDK command workflows.
-- `plugins/kotlin`: Kotlin plugin for language patterns, coroutine and Flow design, Kotlin testing, and kotlin-lsp-assisted editing.
-- `plugins/observability-assets`: Prometheus and Grafana plugin for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and mixin workflows.
-- `plugins/spring`: Spring plugin for Boot, Web, Data, transactions, observability, scheduling, messaging, batch, and cloud workflows.
+- `plugins/git-workflow`: Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.
+- `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
+- `plugins/jdk`: JDK development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
+- `plugins/kotlin`: Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.
+- `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, scheduling runtime control, Quartz job/trigger operations, Integration, Cloud, and Kafka workflows.
+- `plugins/observability-assets`: Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.
 
 ## Publishing Model
 
@@ -94,12 +94,12 @@ After Claude Code registers the `sinon` marketplace, install a plugin from it wi
 Examples:
 
 ```bash
-/plugin install java@sinon
 /plugin install git-workflow@sinon
+/plugin install java@sinon
 /plugin install jdk@sinon
 /plugin install kotlin@sinon
-/plugin install observability-assets@sinon
 /plugin install spring@sinon
+/plugin install observability-assets@sinon
 ```
 
 ### `~/.claude/settings.json`
