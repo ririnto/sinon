@@ -1,7 +1,6 @@
 ---
 title: Prometheus Alert Patterns Reference
-description: >-
-  Reference for common Prometheus alert design choices, including direct alerts, recording-rule-backed alerts, and low-noise operational patterns.
+description: "Open this when choosing between direct alerts, recording-rule-backed alerts, or reusable low-noise alert patterns is the blocker."
 ---
 
 Use this reference when the blocker is choosing the right alert shape rather than writing YAML syntax.
@@ -10,35 +9,15 @@ Use this reference when the blocker is choosing the right alert shape rather tha
 
 - Use a direct alert when the expression is short, read rarely, and cheap enough to evaluate directly.
 - Use a recording rule when the query is expensive, reused, or easier to reason about as one named intermediate signal.
-- When `rate()`, division, or quantile evaluation produces decimal values, wrap the expression with an explicit precision such as `round(expr, 0.001)`.
-- Write comparisons as `threshold < expr` or `threshold <= expr` so the smaller value stays on the left.
 
-## Recording Rule Naming and Structure
+Decision sketch:
 
-Prefer a `level:metric:operations` shape for recorded metric names.
-
-```yaml
-- record: job:http_requests:rate5m
-  expr: >-
-    round(sum by (job) (rate(http_requests_total[5m])), 0.001)
+```text
+short and one-off expression -> direct alert
+expensive or reused expression -> recording rule first, alert second
 ```
 
-Use this when the blocker is naming or organizing the recording rule itself.
-
-- `level` should describe the aggregation level after label removal or collapse
-- `metric` should keep the base metric meaning; drop `_total` when the source counter is wrapped with `rate()` or `irate()`
-- `operations` should read from newest transformation outward, such as `rate5m` or `avg_rate5m`
-- prefer `without (...)` when aggregating away labels so the removed labels stay explicit in both the query and the recorded metric level
-
-Aggregation example with explicit label removal:
-
-```yaml
-- record: job:http_requests:rate5m
-  expr: >-
-    sum without (instance) (instance:http_requests:rate5m)
-```
-
-Use this when the blocker is deciding how to preserve useful labels while still reducing query cost.
+Use this when the blocker is deciding whether the alert should stay direct or split through one reusable recorded metric.
 
 ## When to Promote a Query into `record:`
 
@@ -48,7 +27,7 @@ Promote a query into a recording rule when one of these is true:
 - the expression contains expensive aggregation or subquery work that should not be recomputed everywhere
 - the alert becomes easier to read if it consumes one named intermediate metric
 
-Subquery-heavy pattern:
+Recording-rule split pattern:
 
 ```yaml
 - record: job:http_requests:rate5m
@@ -66,26 +45,6 @@ Subquery-heavy pattern:
 ```
 
 Use this when the blocker is deciding whether one repeated expression deserves its own reusable recorded metric.
-
-## Good Default Pattern
-
-Prefer one symptom-oriented alert, one `for` window, one clear runbook pointer, and one alert name that exposes the threshold or condition.
-
-```yaml
-- alert: CheckoutP95LatencyAbove1s
-  expr: >-
-    1 < round(histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{job="checkout"}[5m]))), 0.001)
-  for: 10m
-  labels:
-    severity: page
-    service: checkout
-  annotations:
-    summary: Checkout latency is high
-    description: |-
-      Checkout p95 latency stayed above 1s for 10 minutes.
-      Current value: {{ $value }}s.
-    runbook_url: https://runbooks.example.com/checkout-latency
-```
 
 ## Broken vs Better
 
@@ -115,4 +74,6 @@ Better:
       Current value: {{ $value }}%.
 ```
 
-The second alert is still not universally correct, but it usually maps more directly to user-visible impact, keeps the smaller threshold on the left, and rounds decimal output explicitly so the comparison stays readable.
+The second alert is still not universally correct, but it usually maps more directly to user-visible impact and is the better shape when the blocker is poor signal choice rather than YAML mechanics.
+
+Use this reference for pattern choice, not for ordinary rule anatomy. Baseline guidance for rule groups, `for`, `keep_firing_for`, labels, annotations, templating, and Alertmanager-facing label contracts stays in [`../SKILL.md`](../SKILL.md).

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dashboard Provisioning"
+  short_description: "Grafana dashboard provider files, folder mapping, and drift control"
+  default_prompt: "Use $dashboard-provisioning for Grafana dashboard provider YAML, folder organization, file-wins behavior, and dashboard-as-code review."

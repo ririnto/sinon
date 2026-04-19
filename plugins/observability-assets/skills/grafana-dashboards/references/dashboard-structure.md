@@ -1,8 +1,9 @@
 ---
 title: Grafana Dashboard Structure Reference
-description: >-
-  Reference for dashboard JSON cleanup, panel identity, datasource handling, and practical export normalization.
+description: "Open this when export cleanup, JSON ownership, or normalization after UI edits or rendering is the blocker."
 ---
+
+# Grafana Dashboard Structure Reference
 
 Use this reference when the main blocker is understanding what to keep or remove in dashboard JSON after an export, a manual edit, or a Grafana mixin render.
 
@@ -13,12 +14,6 @@ Use this reference when the main blocker is understanding what to keep or remove
 - panel `id` values within the dashboard
 - datasource references that match the intended environment model
 - the mapping back to the source mixin file when the dashboard is generated
-
-## Review Carefully
-
-- refresh interval
-- templating variables
-- panel legends and query labels that affect operator readability
 
 ## Export Cleanup Decisions
 
@@ -58,6 +53,8 @@ When a dashboard comes from Grafana mixin or another generator, review two disti
 2. Should this cleanup happen in the source generator instead of the rendered artifact?
 
 If the same cleanup would be needed after every render, move that decision back into the source template rather than patching generated JSON repeatedly.
+
+Use this reference for ownership boundaries, not for ordinary dashboard review. Normal decisions about variables, legends, thresholds, links, annotations, or panel readability stay in [`../SKILL.md`](../SKILL.md).
 
 Concrete review split:
 
