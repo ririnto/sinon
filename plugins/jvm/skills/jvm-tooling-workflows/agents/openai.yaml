@@ -1,0 +1,4 @@
+interface:
+  display_name: "JVM Tooling Workflows"
+  short_description: "Official JVM tooling workflows with explicit version gates"
+  default_prompt: "Use $jvm-tooling-workflows for javac, java, javadoc, and jdeps across the LTS line, plus version-gated jshell (JDK 9+), jlink (JDK 9+), and jpackage (JDK 14+) workflows."

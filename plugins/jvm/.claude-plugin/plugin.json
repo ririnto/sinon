@@ -1,0 +1,16 @@
+{
+  "name": "jvm",
+  "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
+  "author": {
+    "name": "ririnto"
+  },
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "keywords": [
+    "jvm",
+    "javac",
+    "jfr",
+    "gc",
+    "diagnostics"
+  ]
+}

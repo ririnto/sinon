@@ -1,0 +1,4 @@
+interface:
+  display_name: "JVM Runtime Diagnostics"
+  short_description: "JVM stack, dump, JFR, and runtime triage workflows"
+  default_prompt: "Use $jvm-runtime-diagnostics for stack traces, thread dumps, JFR captures, and low-risk JVM triage steps."
