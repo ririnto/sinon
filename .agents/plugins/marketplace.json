@@ -141,6 +141,26 @@
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       }
+    },
+    {
+      "name": "netty",
+      "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.",
+      "source": {
+        "source": "local",
+        "path": "./plugins/netty"
+      },
+      "category": "Coding",
+      "author": {
+        "name": "ririnto"
+      },
+      "interface": {
+        "displayName": "Netty",
+        "shortDescription": "Practical Netty bootstrap, pipelines, ByteBuf or codec work, and reactive HTTP/TCP/UDP workflows."
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      }
     }
   ]
 }

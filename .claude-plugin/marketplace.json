@@ -70,6 +70,15 @@
         "name": "ririnto"
       },
       "category": "development"
+    },
+    {
+      "name": "netty",
+      "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.",
+      "source": "./plugins/netty",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
     }
   ]
 }
