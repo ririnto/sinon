@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Data JDBC"
-  short_description: "Aggregate-oriented Spring Data JDBC persistence"
-  default_prompt: "Use $spring-data-jdbc for aggregate modeling, JDBC repositories, and direct relational persistence without ORM drift."

@@ -1,172 +1,256 @@
 ---
-name: spring-kafka
-description: >-
-  Use this skill when the user asks to "use KafkaTemplate", "build a Spring Kafka listener", "configure retry or dead-letter handling", "test Kafka listener behavior in Spring", or needs guidance on Spring Kafka patterns.
+name: "spring-kafka"
+description: "Use this skill when building Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, and embedded Kafka tests."
+metadata:
+  title: "Spring for Apache Kafka"
+  official_project_url: "https://spring.io/projects/spring-kafka"
+  reference_doc_urls:
+    - "https://docs.spring.io/spring-kafka/reference/index.html"
+  version: "4.0.4"
 ---
 
-# Spring Kafka
+Use this skill when building Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, and embedded Kafka tests.
 
-## Overview
+## Boundaries
 
-Use this skill to design Spring Kafka producers, consumers, listener containers, retry and dead-letter handling, and Kafka-specific integration tests. The common case is one explicit event contract, one producer, one listener, and one deliberate failure policy. Focus on message contract and delivery semantics before tuning listener settings.
+Use `spring-kafka` for Kafka producers, consumers, listener containers, offsets, retry topics, dead-letter topics, and Kafka-specific testing.
 
-## Use This Skill When
+- Use `spring-amqp` or `spring-pulsar` for RabbitMQ or Pulsar semantics and client APIs.
+- Keep transport concerns in producer and listener boundaries. Domain logic should not know about offsets or Kafka headers.
 
-- You are building Spring Kafka producers or listeners.
-- You need retry, dead-letter, or listener error-handling policy.
-- You need to verify listener delivery behavior, retry, or dead-letter handling with embedded Kafka or other Spring Kafka test support.
-- You need a default Spring Kafka producer/consumer shape you can paste into a project.
-- Do not use this skill when the problem is generic Spring Integration flow design without Kafka focus.
+## Common path
 
-## Common-Case Workflow
+The ordinary Spring Kafka job is:
 
-1. Start from the message contract and delivery semantics.
-2. Keep producer and consumer responsibilities explicit.
-3. Define terminal failure behavior before adding retry or dead-letter handling.
-4. Prove async listener behavior and Kafka-specific failure handling with Spring Kafka testing support rather than assuming delivery works.
+1. Define the topic names, key strategy, and consumer group first.
+2. Add Spring Kafka and keep serialization format explicit.
+3. Publish through `KafkaTemplate` and consume through `@KafkaListener`, defaulting to container-managed acknowledgment unless offset control requires a manual strategy.
+4. Decide retry and dead-letter behavior before production rollout.
+5. Add an embedded Kafka or equivalent integration test that proves producer and consumer agreement.
 
-## Minimal Setup
+## Core decisions
+
+| Situation | Use |
+| --- | --- |
+| Application sends records into Kafka | `KafkaTemplate` |
+| Application consumes records from Kafka | `@KafkaListener` |
+| Listener should commit after successful processing with the ordinary container flow | container-managed acknowledgment |
+| Listener must control when acknowledgment is requested instead of using the ordinary container-managed path | manual acknowledgment |
+| Listener should process many records together | batch listener |
+| Ordinary failure path needs delayed reprocessing and a DLT | `@RetryableTopic` |
+
+Keep the default path small: one producer, one listener, one serialization strategy per topic, container-managed acknowledgment unless explicit offset control is required, and one explicit retry/DLT policy.
+
+## Dependency baseline
+
+Use Spring Kafka for application code and the Kafka test module for integration tests.
 
 ```xml
-<dependency>
-  <groupId>org.springframework.kafka</groupId>
-  <artifactId>spring-kafka</artifactId>
-</dependency>
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.kafka</groupId>
+        <artifactId>spring-kafka</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.kafka</groupId>
+        <artifactId>spring-kafka-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
 ```
 
-## First Runnable Commands or Code Shape
+## First safe configuration
 
-Start with one producer and one listener:
-
-```java
-@Service
-class OrderPublisher {
-    private final KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
-
-    OrderPublisher(KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-    }
-
-    void publish(OrderCreatedEvent event) {
-        kafkaTemplate.send("orders.created", event.id(), event);
-    }
-}
-
-@KafkaListener(topics = "orders.created", groupId = "billing")
-void onOrderCreated(OrderCreatedEvent event) {
-    // handle event
-}
-```
-
----
-
-*Applies when:* you need the default Spring Kafka happy path before advanced retry or topology work.
-
-## Ready-to-Adapt Templates
-
-Producer:
-
-```java
-@Service
-class OrderPublisher {
-    private final KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
-
-    OrderPublisher(KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate) {
-        this.kafkaTemplate = kafkaTemplate;
-    }
-
-    void publish(OrderCreatedEvent event) {
-        kafkaTemplate.send("orders.created", event.id(), event);
-    }
-}
-```
-
----
-
-*Applies when:* the application emits one event type to one topic.
-
-Listener:
-
-```java
-@KafkaListener(topics = "orders.created", groupId = "billing")
-void onOrderCreated(OrderCreatedEvent event) {
-    // handle event
-}
-```
-
----
-
-*Applies when:* the application consumes one event contract with one clear group identity.
-
-Retry and dead-letter policy:
+### Topic declaration shape
 
 ```java
 @Bean
-DefaultErrorHandler kafkaErrorHandler(KafkaTemplate<Object, Object> kafkaTemplate) {
-    return new DefaultErrorHandler(
-            new DeadLetterPublishingRecoverer(kafkaTemplate),
-            new FixedBackOff(1000L, 3)
-    );
+NewTopic paymentsTopic() {
+    return TopicBuilder.name("payments")
+        .partitions(3)
+        .replicas(1)
+        .build();
 }
 ```
 
----
+### JSON serializer shape
 
-*Applies when:* terminal failure behavior is already defined and retries are intentional rather than hopeful.
+```yaml
+spring:
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.example.events"
+        spring.json.value.default.type: "com.example.events.PaymentEvent"
+```
 
-Integration test:
+## Coding procedure
+
+1. Keep topic names, keys, and consumer groups explicit and stable.
+2. Use one serializer and deserializer strategy per topic unless interop forces otherwise.
+3. Choose acknowledgment mode deliberately and do not assume defaults match delivery guarantees.
+4. Keep listeners idempotent because retries and rebalances can re-deliver records.
+5. Choose retry topics or dead-letter topics before enabling concurrency at scale.
+6. Test both successful handling and one representative retry or dead-letter path.
+
+## Failure classification
+
+- Retry transient infrastructure failures.
+- Dead-letter permanent business failures.
+- Treat serialization or schema failures as configuration or contract problems first, not as ordinary business retries.
+
+## Implementation examples
+
+### Producer and ordinary listener
+
+```java
+@Service
+class PaymentPublisher {
+    private final KafkaTemplate<String, PaymentEvent> kafka;
+
+    PaymentPublisher(KafkaTemplate<String, PaymentEvent> kafka) {
+        this.kafka = kafka;
+    }
+
+    CompletableFuture<SendResult<String, PaymentEvent>> publish(PaymentEvent event) {
+        return kafka.send("payments", event.paymentId(), event);
+    }
+}
+
+@Component
+class PaymentListener {
+    private final PaymentProcessor processor;
+    private final AtomicReference<String> lastSeenPaymentId = new AtomicReference<>();
+
+    PaymentListener(PaymentProcessor processor) {
+        this.processor = processor;
+    }
+
+    @KafkaListener(topics = "payments", groupId = "billing")
+    void handle(PaymentEvent event) {
+        processor.process(event);
+        lastSeenPaymentId.set(event.paymentId());
+    }
+
+    String lastSeenPaymentId() {
+        return lastSeenPaymentId.get();
+    }
+}
+```
+
+### Retry topic shape
+
+```java
+@Configuration
+@EnableKafkaRetryTopic
+class KafkaRetryConfiguration {
+}
+
+@RetryableTopic(attempts = "4", backoff = @Backoff(delay = 1000, multiplier = 2.0))
+@KafkaListener(topics = "orders")
+void process(OrderEvent event) {
+    service.process(event);
+}
+
+@DltHandler
+void deadLetter(OrderEvent event) {
+    audit.failed(event);
+}
+```
+
+### Manual acknowledgment container intent
+
+```java
+@Bean
+ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> manualAckKafkaListenerContainerFactory(
+        ConsumerFactory<String, PaymentEvent> consumerFactory) {
+    ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(consumerFactory);
+    factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+    return factory;
+}
+
+@KafkaListener(topics = "payments", groupId = "billing", containerFactory = "manualAckKafkaListenerContainerFactory")
+void handle(PaymentEvent event, Acknowledgment ack) {
+    processor.process(event);
+    ack.acknowledge();
+}
+```
+
+Use manual acknowledgment only when listener code must control the commit point explicitly.
+
+Keep the ordinary path on single-record listeners unless throughput or downstream batching requirements justify batch consumption. Open [references/batch-listeners.md](references/batch-listeners.md) when the listener should actually switch to batch mode.
+
+### Embedded Kafka test shape
 
 ```java
 @SpringBootTest
-@EmbeddedKafka(topics = "orders.created")
-class OrderConsumerTest {
+@EmbeddedKafka(topics = "payments", partitions = 1)
+class PaymentFlowTests {
+    @Autowired
+    PaymentPublisher publisher;
+
+    @Autowired
+    PaymentListener listener;
+
+    @Test
+    void producerAndListenerAgreeOnThePaymentEventShape() {
+        publisher.publish(new PaymentEvent("p-1"));
+        await().untilAsserted(() -> assertThat(listener.lastSeenPaymentId()).isEqualTo("p-1"));
+    }
 }
 ```
 
----
+## Output and configuration shapes
 
-*Applies when:* listener behavior, retry, dead-letter handling, or delivery semantics are part of the contract.
+### Topic name shape
 
-## Validate the Result
+```text
+payments
+orders
+orders-dlt
+```
 
-Validate the common case with these checks:
+### Consumer group shape
 
-- the message contract is explicit and stable before listener logic grows
-- producer and consumer responsibilities are separated cleanly
-- retry exists only together with a defined terminal failure policy
-- listener behavior and Kafka-specific failure handling are tested with Spring Kafka support when async delivery matters
+```text
+billing
+```
 
-## Deep References
+### Retry topic annotation shape
 
-| If the blocker is... | Read... |
-| --- | --- |
-| delivery semantics, listener topology, or failure-policy heuristics | `./references/kafka-patterns.md` |
-| producer, listener, error-handler, or test configuration recipes | `./references/kafka-config-recipes.md` |
+```java
+@RetryableTopic(attempts = "4")
+```
 
-## Invariants
+## Testing checklist
 
-- MUST make message contract and delivery semantics explicit.
-- SHOULD keep producer and consumer responsibilities separate.
-- MUST define failure behavior before adding retry or dead-letter handling.
-- SHOULD test async listener behavior and Kafka-specific failure handling with Spring Kafka testing support.
+- Verify producers write to the intended topic with the expected key.
+- Verify listeners deserialize the record shape that producers send.
+- Verify retry and DLT behavior on one representative failure path.
+- Verify acknowledgment mode matches the intended delivery guarantee.
+- Verify topic declarations and serializer settings stay aligned with production configuration.
 
-## Common Pitfalls
+## Production checklist
 
-| Anti-pattern | Why it fails | Correct move |
-| --- | --- | --- |
-| defining consumers before the event contract is stable | listener behavior drifts with a moving payload | stabilize the contract first |
-| adding retry without dead-letter or terminal failure policy | failures loop without a clear terminal path | define retry and terminal handling together |
-| leaving async listener behavior untested | delivery assumptions remain unproven | use embedded or container-backed tests where delivery is part of the contract |
-| treating Kafka listener tests as generic Spring slice questions | messaging semantics and retry behavior get under-specified | keep Spring test-scope choice separate from Kafka-specific integration verification |
+- Keep topic names, keys, and consumer groups stable after other systems depend on them.
+- Make listeners idempotent because rebalances and retries can replay records.
+- Distinguish transient retryable failures from permanent business failures.
+- Keep dead-letter topics observable and operationally documented.
+- Bound concurrency and partitioning decisions to the actual ordering and throughput needs.
 
-## Scope Boundaries
+## References
 
-- Activate this skill for:
-  - Spring Kafka producer and consumer patterns
-  - retry and dead-letter handling
-  - Spring Kafka testing support, including embedded-Kafka listener verification
-- Do not use this skill as the primary source for:
-  - generic Spring Integration flows without Kafka focus
-  - batch-oriented job design
-  - transactional consistency across messaging and persistence boundaries
-  - non-Spring Kafka client concerns divorced from Spring usage
+- Open [references/transactions.md](references/transactions.md) when the application needs atomic consume-produce workflows.
+- Open [references/exactly-once-semantics.md](references/exactly-once-semantics.md) when the workflow must combine Kafka transactions with exactly-once delivery expectations.
+- Open [references/batch-listeners.md](references/batch-listeners.md) when the consumer should process `List<T>` batches instead of one record at a time.
+- Open [references/deserialization-failures.md](references/deserialization-failures.md) when bad payloads fail before listener code runs and retry or DLT policy must still be intentional.
+- Open [references/listener-replay.md](references/listener-replay.md) when the consumer must seek or replay records deliberately.
+- Open [references/tombstones.md](references/tombstones.md) when the topic uses compacted-record delete semantics.
+- Open [references/advanced-retry-and-error-handling.md](references/advanced-retry-and-error-handling.md) when `@RetryableTopic` is not enough and the listener needs explicit `DefaultErrorHandler`, recoverers, or deeper retry classification.

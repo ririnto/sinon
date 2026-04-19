@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Web MVC"
-  short_description: "Servlet-based Spring MVC endpoint and validation patterns"
-  default_prompt: "Use $spring-web-mvc for REST controllers, request validation, exception mapping, and servlet-based HTTP design."
