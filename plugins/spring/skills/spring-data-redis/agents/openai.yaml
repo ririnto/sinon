@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Data Redis"
-  short_description: "Spring Data Redis modeling, TTL, and template patterns"
-  default_prompt: "Use $spring-data-redis for Redis models, repositories, templates, TTL rules, and serialization choices in Spring."

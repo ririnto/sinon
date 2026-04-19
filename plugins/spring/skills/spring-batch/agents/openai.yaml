@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Batch"
-  short_description: "Spring Batch jobs, chunk steps, and retry design"
-  default_prompt: "Use $spring-batch for job design, step flow, chunk processing, retry policy, and restart semantics."

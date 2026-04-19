@@ -1,0 +1,30 @@
+# Spring Integration control bus and system management
+
+Open this reference when the application must inspect, start, stop, or observe Integration endpoints in production.
+
+## Control bus shape
+
+```java
+IntegrationFlow.from("controlBus.input")
+    .controlBus()
+    .get()
+```
+
+## Observability shape
+
+```java
+channel.addInterceptor(new ObservationPropagationChannelInterceptor(observationRegistry));
+```
+
+## Integration graph shape
+
+```java
+IntegrationGraphServer graphServer = context.getBean(IntegrationGraphServer.class);
+String graph = graphServer.rebuild();
+```
+
+## Operational rules
+
+- Use the control bus for explicit endpoint lifecycle operations, not as a replacement for normal business messaging.
+- Keep message history, metrics, and interceptor-based tracing enabled before debugging production routing issues.
+- Inspect the integration graph before changing endpoint code when the system already contains dynamic or conditional flows.

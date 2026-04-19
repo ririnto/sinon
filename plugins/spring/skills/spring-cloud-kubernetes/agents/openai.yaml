@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Cloud Kubernetes"
-  short_description: "Spring Cloud Kubernetes config and discovery patterns"
-  default_prompt: "Use $spring-cloud-kubernetes for ConfigMaps, Secrets, service discovery, namespaces, and RBAC-aware Spring setup."

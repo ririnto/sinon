@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Observability"
-  short_description: "Spring Actuator, Micrometer, and tracing patterns"
-  default_prompt: "Use $spring-observability for Actuator exposure, Micrometer metrics, tracing, and Spring health probes."

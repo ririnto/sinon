@@ -1,144 +1,263 @@
 ---
-name: spring-integration
-description: >-
-  Use this skill when the user asks to "build a Spring integration flow", "route messages", "use channels and adapters", "model enterprise integration patterns in Spring", or needs guidance on Spring Integration flow design.
+name: "spring-integration"
+description: "Use this skill when building message-driven application flows with Spring Integration using channels, routers, filters, splitters, aggregators, gateways, pollers, and protocol adapters."
+metadata:
+  title: "Spring Integration"
+  official_project_url: "https://spring.io/projects/spring-integration"
+  reference_doc_urls:
+    - "https://docs.spring.io/spring-integration/reference/"
+    - "https://docs.spring.io/spring-integration/reference/core.html"
+    - "https://docs.spring.io/spring-integration/reference/router.html"
+    - "https://docs.spring.io/spring-integration/reference/dsl.html"
+    - "https://docs.spring.io/spring-integration/reference/system-management.html"
+    - "https://docs.spring.io/spring-integration/reference/file.html"
+    - "https://docs.spring.io/spring-integration/reference/http.html"
+    - "https://docs.spring.io/spring-integration/reference/jdbc.html"
+    - "https://docs.spring.io/spring-integration/reference/testing.html"
+  version: "7.0.4"
 ---
 
-# Spring Integration
+Use this skill when building message-driven application flows with Spring Integration using channels, routers, filters, splitters, aggregators, gateways, pollers, and protocol adapters.
 
-## Overview
+## Boundaries
 
-Use this skill to design Spring Integration flows around messages, channels, adapters, routers, and handlers. The common case is one inbound edge, one explicit transform or route, and one outbound edge, with transport details kept at the boundary. Focus on the message flow shape before choosing specific integration adapters.
+Use `spring-integration` for Enterprise Integration Patterns inside or at the edge of a Spring application.
 
-## Use This Skill When
+- Use `spring-kafka`, `spring-amqp`, or `spring-pulsar` when you only need direct broker APIs without an Integration flow.
+- Use `spring-cloud` for distributed-system infrastructure such as Config, Gateway, or general service-to-service wiring.
+- Keep domain logic out of the flow graph. Flows should orchestrate message movement, routing, and adaptation.
 
-- You are designing Spring Integration flows with channels, routers, transformers, or aggregators.
-- You need a default IntegrationFlow shape you can paste into a codebase.
-- You need to decide where adapter boundaries and message-routing rules belong.
-- Do not use this skill when the main problem is Kafka-specific consumer/producer design or batch-job structure.
+## Common path
 
-## Common-Case Workflow
+The ordinary Spring Integration job is:
 
-1. Identify the message source, the transformation steps, and the destination.
-2. Pick the simplest channel and endpoint types that fit the flow.
-3. Keep transport-specific adapters at the edge of the flow.
-4. Model routing, transformation, and aggregation explicitly rather than hiding them inside unrelated services.
+1. Draw the flow as source -> channel -> endpoint -> channel -> sink before coding.
+2. Choose the smallest set of EIP components that expresses the routing and transformation need.
+3. Use gateways for request-reply boundaries and adapters for one-way boundaries, whether the caller is application code or an external system.
+4. Choose channel semantics, poller behavior, and error-channel routing before the flow goes live.
+5. Put idempotency, retries, transactions, and persistent stores only where restart or remote failure semantics require them.
+6. Add one graph-level test that proves the intended message path and one failure-path test that proves error routing.
 
-## Minimal Setup
+## Core flow decisions
+
+| Situation                                              | Use                       |
+| --- | --- |
+| One caller hands off to one handler inline             | `DirectChannel`           |
+| The flow needs buffering between producer and consumer | `QueueChannel`            |
+| One message fans out to several subscribers            | publish-subscribe channel |
+| Application code sends into the flow                   | messaging gateway         |
+| External system sends one-way events                   | inbound adapter           |
+| External system expects request-reply behavior         | inbound gateway           |
+
+Choose the simplest channel and endpoint pair that matches the delivery semantics. Add pollers only for sources that do not naturally push messages.
+
+## Dependency baseline
+
+Use the Boot starter for core Integration features and add only the protocol modules the flow actually needs.
+
+### Core baseline
 
 ```xml
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-integration</artifactId>
-</dependency>
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-integration</artifactId>
+    </dependency>
+</dependencies>
 ```
 
-## First Runnable Commands or Code Shape
+### Optional adapter and test modules
 
-Start with one inbound adapter, one transform, and one output channel:
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.integration</groupId>
+        <artifactId>spring-integration-file</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.integration</groupId>
+        <artifactId>spring-integration-http</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.integration</groupId>
+        <artifactId>spring-integration-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+Remove any adapter or test module the flow does not actually use.
+
+## First safe configuration
+
+### Gateway shape
 
 ```java
-@Bean
-IntegrationFlow fileImportFlow() {
-    return IntegrationFlow
-            .from(Files.inboundAdapter(Path.of("inbox").toFile()), c -> c.poller(Pollers.fixedDelay(1000)))
-            .transform(String.class, payload -> payload.trim())
-            .channel("outboundChannel")
-            .get();
+@MessagingGateway(defaultRequestChannel = "orders.input")
+interface OrderGateway {
+    void submit(OrderCommand command);
 }
 ```
 
----
-
-*Applies when:* you need the default Spring Integration flow shape before more advanced routing or aggregation.
-
-## Ready-to-Adapt Templates
-
-Transform flow:
+### Basic flow shape
 
 ```java
 @Bean
-IntegrationFlow orderFlow() {
-    return IntegrationFlow.from("inputChannel")
-            .transform(String.class, payload -> payload.trim())
-            .channel("outputChannel")
-            .get();
+IntegrationFlow orderFlow(OrderValidator validator, OrderService service) {
+    return IntegrationFlow.from("orders.input")
+        .transform(OrderCommand.class, command -> command.normalize())
+        .filter(OrderCommand.class, validator::isValid)
+        .handle(service, "process")
+        .get();
 }
 ```
 
----
+This ordinary DSL chain covers the three most common endpoint types in one place: transformer, filter, and service activator.
 
-*Applies when:* one message shape must be cleaned up or transformed before handoff.
-
-Router flow:
+### Error channel shape
 
 ```java
 @Bean
-IntegrationFlow routerFlow() {
-    return IntegrationFlow.from("inputChannel")
-            .<String, Boolean>route(payload -> payload.startsWith("A"), m -> m
-                    .channelMapping(true, "alphaChannel")
-                    .channelMapping(false, "otherChannel"))
-            .get();
+IntegrationFlow integrationErrors() {
+    return IntegrationFlow.from("errorChannel")
+        .handle(message -> logger.warn("integration failure", message.getPayload()))
+        .get();
 }
 ```
 
----
+Use the default `errorChannel` for the ordinary baseline. Open [references/error-handling-and-retry-patterns.md](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit custom error-channel routing.
 
-*Applies when:* several destinations are possible and the routing rule belongs in the flow.
+## Coding procedure
 
-Service activator endpoint:
+1. Choose channel semantics deliberately: direct, queued, publish-subscribe, or reactive.
+2. Use filters, routers, splitters, and aggregators only when the flow actually needs them.
+3. Keep message headers intentional and stable when downstream routing depends on them.
+4. Add persistent stores only when idempotency, aggregation, resequencing, or poller state must survive restarts.
+5. Use Java DSL for new code unless the surrounding application already standardized on another style.
+6. Add runtime flow registration, reactive channels, or adapter-specific modules only when the ordinary direct flow is not enough.
+7. Test both the happy path and one representative error or discard path.
 
-```java
-@Bean
-IntegrationFlow handlerFlow(OrderHandler handler) {
-    return IntegrationFlow.from("inputChannel")
-            .handle(handler, "handle")
-            .get();
-}
-```
+## Basic DSL verbs
 
----
-
-*Applies when:* the flow reaches an application service boundary after transformation or routing.
-
-## Validate the Result
-
-Validate the common case with these checks:
-
-- adapters stay at the edge of the flow
-- routing and transformation remain explicit in the flow definition
-- channel choices match the needed coupling or decoupling semantics
-- transport-specific logic is not hidden in business handlers
-
-## Deep References
-
-| If the blocker is... | Read... |
+| Need | DSL shape |
 | --- | --- |
-| channel choice, router/filter tradeoffs, or flow-shape heuristics | `./references/integration-patterns.md` |
+| Change the payload | `.transform(...)` |
+| Drop or reroute some messages | `.filter(...)` |
+| Choose the next channel from content or headers | `.route(...)` |
+| Invoke application code at the endpoint boundary | `.handle(...)` |
+| Fan one message out into parts | `.split(...)` |
+| Rejoin related messages | `.aggregate(...)` |
 
-## Invariants
+## Endpoint composition rules
 
-- MUST keep adapters at the edge.
-- SHOULD keep message transformations explicit.
-- MUST model routing and aggregation deliberately.
-- SHOULD choose the smallest flow that satisfies the integration need.
+- Use a transformer when the payload shape changes.
+- Use a filter when the flow should discard or reroute some messages.
+- Use a router when the next channel depends on message content or headers.
+- Use a service activator when application code should consume or reply to the current message at the endpoint boundary.
+- Use a splitter and aggregator pair only when one message really must fan out and rejoin.
 
-## Common Pitfalls
+When a flow fans out and rejoins, define correlation, release, and timeout rules deliberately instead of assuming the default group behavior is correct for the business boundary.
 
-| Anti-pattern | Why it fails | Correct move |
-| --- | --- | --- |
-| embedding transport-specific logic in the middle of a business flow | the message flow stops being portable and readable | keep adapters and transport concerns at the edge |
-| using too many intermediate channels for a simple integration | the flow becomes harder to follow than the business need | keep the channel topology minimal |
-| hiding routing decisions inside unrelated service classes | the actual integration graph becomes invisible | express routing in the flow itself |
+## Implementation examples
 
-## Scope Boundaries
+### Gateway and flow shape
 
-- Activate this skill for:
-  - Spring Integration flow design
-  - channels, routers, filters, transformers, and aggregators
-  - message-driven adapter composition
-- Do not use this skill as the primary source for:
-  - Kafka-specific producer/consumer design
-  - batch job design
-  - transactional consistency across messaging and persistence
+```java
+@MessagingGateway(defaultRequestChannel = "orders.input")
+interface OrderGateway {
+    void submit(OrderCommand command);
+}
+
+@Bean
+IntegrationFlow orderFlow(OrderValidator validator, OrderService service) {
+    return IntegrationFlow.from("orders.input")
+        .transform(OrderCommand.class, command -> command.normalize())
+        .filter(OrderCommand.class, validator::isValid)
+        .handle(service, "process")
+        .get();
+}
+```
+
+### Service activator annotation shape
+
+```java
+@ServiceActivator(inputChannel = "orders.validated")
+void process(OrderCommand command) {
+    service.process(command);
+}
+```
+
+Use this annotation shape only when the surrounding application already standardized on annotation-driven endpoint wiring. For new flows, keep the DSL-first `handle(...)` style as the default.
+
+### Splitter and aggregator shape
+
+```java
+IntegrationFlow.from("orders.batches")
+    .split()
+    .channel("orders.parts")
+    .aggregate(aggregator -> aggregator
+        .correlationStrategy(message -> message.getHeaders().get("batchId"))
+        .releaseStrategy(group -> group.size() >= 10))
+```
+
+### Poller shape
+
+```java
+Pollers.fixedDelay(Duration.ofSeconds(5)).maxMessagesPerPoll(10)
+```
+
+### Router shape
+
+```java
+.route(OrderCommand::priority, mapping -> mapping
+    .channelMapping(Priority.HIGH.name(), "orders.priority")
+    .channelMapping(Priority.NORMAL.name(), "orders.standard"))
+```
+
+## Output and configuration shapes
+
+### Flow sketch shape
+
+```text
+source -> channel -> endpoint -> channel -> sink
+```
+
+### Gateway channel shape
+
+```text
+orders.input
+```
+
+### Poller shape
+
+```java
+Pollers.fixedDelay(Duration.ofSeconds(5))
+```
+
+## Testing checklist
+
+- Verify the intended message path through the graph.
+- Verify discard, error-channel, or retry behavior on one representative failure path.
+- Verify channel semantics match ordering and throughput expectations.
+- Verify headers used for routing or correlation are actually present.
+- Verify persistent stores are present only when restart or clustering semantics require them.
+- Verify poller, retry, and endpoint advice configuration match the intended failure boundary.
+
+## Production checklist
+
+- Keep channel names, endpoint ids, and header conventions stable.
+- Bound queues or use backpressure-aware channels where accumulation can grow.
+- Make external adapters idempotent before adding retries.
+- Put explicit timeouts on remote adapters and pollers.
+- Keep error channels, retry advice, and circuit-breaker behavior observable.
+- Treat flow tests and adapter contracts as part of the operational compatibility surface.
+
+## References
+
+- Open [references/error-handling-and-retry-patterns.md](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit error-channel routing.
+- Open [references/testing-integration-flows.md](references/testing-integration-flows.md) when the task needs `@SpringIntegrationTest`, `MockIntegrationContext`, `noAutoStartup`, or graph-level assertions.
+- Open [references/pollers-transactions-and-stores.md](references/pollers-transactions-and-stores.md) when the flow depends on pollers, transactional sources, aggregators, or persistent message stores.
+- Open [references/dsl-runtime-flows-and-reactive.md](references/dsl-runtime-flows-and-reactive.md) when the task needs runtime flow registration, subflows, reactive channels, or composed Java DSL flows.
+- Open [references/control-bus-and-system-management.md](references/control-bus-and-system-management.md) when the application must inspect, start, stop, or observe Integration endpoints in production.
+- Open [references/adapter-family-selection.md](references/adapter-family-selection.md) when choosing protocol adapters or module boundaries for a concrete external system.
+- Open [references/native-aot-support.md](references/native-aot-support.md) when the flow must run in a native image and adapter or reflection constraints become part of the design.

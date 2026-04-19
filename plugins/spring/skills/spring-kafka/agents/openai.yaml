@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Kafka"
-  short_description: "Spring Kafka producers, listeners, and retry patterns"
-  default_prompt: "Use $spring-kafka for KafkaTemplate usage, listener design, retry policy, dead-letter handling, and Kafka tests."

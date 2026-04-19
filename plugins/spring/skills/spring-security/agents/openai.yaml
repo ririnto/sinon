@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Security"
-  short_description: "Spring Security filter chains and authorization design"
-  default_prompt: "Use $spring-security for filter chains, endpoint security, method security, and Spring auth design."

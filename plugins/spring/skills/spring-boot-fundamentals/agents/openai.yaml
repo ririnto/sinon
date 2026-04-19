@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Boot Fundamentals"
-  short_description: "Spring Boot startup, configuration, and bean wiring"
-  default_prompt: "Use $spring-boot-fundamentals for Boot app setup, profiles, configuration properties, and bean wiring."

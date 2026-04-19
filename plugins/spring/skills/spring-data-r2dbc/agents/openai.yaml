@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Data R2DBC"
-  short_description: "Reactive Spring Data R2DBC persistence patterns"
-  default_prompt: "Use $spring-data-r2dbc for reactive repositories, R2DBC adoption, and non-blocking relational persistence."
