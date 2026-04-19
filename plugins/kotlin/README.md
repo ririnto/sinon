@@ -10,7 +10,7 @@ Kotlin is a shared, skill-first plugin for Kotlin application and library work i
 
 - Provide reusable Kotlin workflows that remain portable across Claude Code and Codex-style plugin systems.
 - Keep skills practical, example-driven, and focused on writing or reviewing real Kotlin code rather than routing users elsewhere.
-- Separate Kotlin language, coroutine, and Kotlin-native testing concerns from Java language, JDK tooling, and framework-specific Spring behavior.
+- Separate Kotlin language, coroutine, and Kotlin-native testing concerns from Java language, JVM tooling, and framework-specific Spring behavior.
 
 ## Included Skills
 
@@ -30,8 +30,8 @@ Typical workflow:
 1. Establish the type model, null-safety, and collection shape first.
 2. Add coroutine and Flow guidance when async control flow, cancellation, or stream semantics matter.
 3. Lock behavior with deterministic tests and the smallest correct scope.
-4. Keep Java syntax and JDK tooling questions in the Java- or JDK-focused plugin surfaces.
-5. Keep Spring-specific coroutine controllers, Spring Boot tests, and Spring WebFlux behavior in the Spring-focused plugin surface.
+4. Java syntax and JVM tooling questions belong in Java- or JVM-focused guidance.
+5. Spring-specific coroutine controllers, Spring Boot tests, and Spring WebFlux behavior belong in Spring-focused guidance.
 
 Testing boundary:
 
@@ -42,10 +42,10 @@ Testing boundary:
 
 Kotlin stays responsible for Kotlin-native language patterns, coroutine and Flow modeling, Kotlin-focused test structure, and kotlin-lsp-assisted source analysis.
 
-Keep these in other plugins:
+These topics fall outside Kotlin's scope:
 
 - Java syntax rules, Java API design, and Java-specific build conventions.
-- JDK tools, JVM diagnostics, and GC analysis.
+- JVM tools, JVM diagnostics, and GC analysis.
 - Spring annotations, WebFlux framework wiring, Spring Boot testing, and framework-managed reactive behavior.
 
 Spring-specific coroutine endpoints, reactive controllers, and `WebClient` usage belong to Spring-focused guidance. Kotlin remains the home for general coroutine and Flow design outside Spring framework behavior.

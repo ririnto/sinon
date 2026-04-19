@@ -1,6 +1,6 @@
 ---
 name: "spring-framework"
-description: "Use this skill when the task depends on core Spring Framework APIs rather than Boot conventions, especially the container, Java configuration, bean lifecycle, transactions, events, validation, and TestContext support."
+description: "Use this skill when the task depends on core Spring Framework APIs rather than Boot conventions, especially the container, Java configuration, bean lifecycle, transactions, events, validation, servlet MVC controllers and exception handling, reactive HTTP with WebFlux, WebClient, and TestContext support."
 metadata:
   title: "Spring Framework"
   official_project_url: "https://spring.io/projects/spring-framework"
@@ -11,13 +11,13 @@ metadata:
   version: "7.0.7"
 ---
 
-Use this skill when the task depends on core Spring Framework APIs rather than Boot conventions, especially the container, Java configuration, bean lifecycle, transactions, events, validation, and TestContext support.
+Use this skill when the task depends on core Spring Framework APIs rather than Boot conventions, especially the container, Java configuration, bean lifecycle, transactions, events, validation, servlet MVC controllers and exception handling, reactive HTTP with WebFlux, WebClient, and TestContext support.
 
 ## Boundaries
 
-Use `spring-framework` for low-level Spring container behavior, bean wiring, lifecycle hooks, transactions, events, scheduling, property binding, conversion, validation, and TestContext-driven framework tests.
+Use spring-framework for core Spring Framework APIs: container behavior, bean wiring, lifecycle hooks, transactions, events, scheduling, property binding, conversion, validation, ordinary servlet MVC, reactive HTTP, WebClient, and TestContext-driven framework tests.
 
-Use narrower guidance when the task is primarily about servlet MVC, reactive HTTP, security, or Boot auto-configuration rather than framework-core building blocks.
+Use narrower guidance when the task is primarily about security or Boot auto-configuration rather than Spring Framework modules and APIs.
 
 ## Common path
 
@@ -242,6 +242,150 @@ class TransferService {
 
 Validate at the boundary where input enters the application. Use standard Bean Validation annotations (`@NotNull`, `@NotBlank`, `@Size`, `@Min`, `@Max`) on input objects, and register method-validation infrastructure explicitly when service-layer method validation is part of the ordinary path.
 
+## Servlet MVC
+
+Enable the MVC infrastructure with a configuration class and a `DispatcherServlet` registration, or let a servlet container initializer wire both together. The controller examples below assume the infrastructure is already in place and focus on controller shape.
+
+```java
+@Configuration
+@EnableWebMvc
+class WebConfig implements WebMvcConfigurer {
+}
+```
+
+Define controllers with constructor-injected dependencies:
+
+```java
+@RestController
+@RequestMapping("/orders")
+class OrderController {
+    private final OrderService orders;
+
+    OrderController(OrderService orders) {
+        this.orders = orders;
+    }
+
+    @GetMapping("/{id}")
+    Order get(@PathVariable Long id) {
+        return orders.findById(id);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    Order create(@RequestBody @Valid CreateOrderRequest request) {
+        return orders.create(request);
+    }
+}
+```
+
+Handle exceptions centrally with `@RestControllerAdvice`:
+
+```java
+@RestControllerAdvice
+class ApiExceptionHandler {
+    @ExceptionHandler(OrderNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    ErrorResponse handleNotFound(OrderNotFoundException ex) {
+        return new ErrorResponse(ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    ErrorResponse handleValidation(MethodArgumentNotValidException ex) {
+        return new ErrorResponse(ex.getBindingResult().getFieldError().getDefaultMessage());
+    }
+}
+```
+
+Keep controllers thin: delegate all logic to services. Use `@RestControllerAdvice` as a single exception boundary rather than scattering `try/catch` blocks across controllers.
+
+## Reactive HTTP
+
+Add `spring-webflux` and use annotated controllers returning `Mono` and `Flux`. The examples below assume WebFlux infrastructure is already configured and focus on controller shape.
+
+```java
+@RestController
+@RequestMapping("/items")
+class ItemController {
+    private final ItemService items;
+
+    ItemController(ItemService items) {
+        this.items = items;
+    }
+
+    @GetMapping("/{id}")
+    Mono<Item> get(@PathVariable Long id) {
+        return items.findById(id);
+    }
+
+    @GetMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    Flux<Item> stream() {
+        return items.streamAll();
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    Mono<Item> create(@RequestBody @Valid Mono<CreateItemRequest> request) {
+        return request.flatMap(items::create);
+    }
+}
+```
+
+Handle errors in the reactive chain with `onErrorMap` or a `@RestControllerAdvice` that returns `Mono<ResponseEntity<?>>`:
+
+```java
+@ExceptionHandler(ItemNotFoundException.class)
+Mono<ResponseEntity<ErrorResponse>> handleNotFound(ItemNotFoundException ex) {
+    return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(new ErrorResponse(ex.getMessage())));
+}
+```
+
+Keep operator chains short. Return early by flatMapping into the service rather than blocking.
+
+## WebClient
+
+In Spring Boot, `WebClient.Builder` is auto-registered and can be injected directly. In plain Spring Framework, register the builder explicitly as shown below.
+
+Build a `WebClient` bean once and inject it where needed:
+
+```java
+@Bean
+WebClient.Builder webClientBuilder() {
+    return WebClient.builder();
+}
+
+@Bean
+WebClient webClient(WebClient.Builder builder) {
+    return builder
+        .baseUrl("https://api.example.com")
+        .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+        .build();
+}
+```
+
+Make a typed GET request:
+
+```java
+Mono<Order> order = client.get()
+    .uri("/orders/{id}", orderId)
+    .retrieve()
+    .bodyToMono(Order.class);
+```
+
+Handle 4xx and 5xx responses explicitly rather than letting them propagate as `WebClientResponseException`:
+
+```java
+Mono<Order> order = client.get()
+    .uri("/orders/{id}", orderId)
+    .retrieve()
+    .onStatus(HttpStatusCode::is4xxClientError,
+        response -> response.bodyToMono(String.class).map(ApiException::new))
+    .bodyToMono(Order.class);
+```
+
+Use `bodyToFlux` for streaming responses and `ExchangeStrategies` when the default codec buffer limit needs adjustment.
+
 ## Transaction boundary
 
 Enable transaction management explicitly in plain Spring Framework:
@@ -332,6 +476,71 @@ class AppConfigTests {
 
 Test the smallest framework integration that proves the behavior. Use `@ExtendWith(SpringExtension.class)` to integrate the Spring `ApplicationContext` with JUnit Jupiter.
 
+## MVC and reactive tests
+
+Test a servlet MVC controller with `MockMvc` wired from the `WebApplicationContext`:
+
+```java
+@ExtendWith(SpringExtension.class)
+@WebAppConfiguration
+@ContextConfiguration(classes = {AppConfig.class, WebConfig.class})
+class OrderControllerTests {
+    @Autowired
+    WebApplicationContext wac;
+
+    MockMvc mockMvc;
+
+    @BeforeEach
+    void setup() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(wac).build();
+    }
+
+    @Test
+    void getOrder_returnsOk() throws Exception {
+        mockMvc.perform(get("/orders/1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.id").value(1));
+    }
+
+    @Test
+    void createOrder_withInvalidBody_returnsBadRequest() throws Exception {
+        mockMvc.perform(post("/orders")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+            .andExpect(status().isBadRequest());
+    }
+}
+```
+
+Test a reactive controller or `WebClient` interaction with `WebTestClient`:
+
+```java
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {AppConfig.class, ReactiveWebConfig.class})
+class ItemControllerTests {
+    @Autowired
+    ApplicationContext ctx;
+
+    WebTestClient client;
+
+    @BeforeEach
+    void setup() {
+        client = WebTestClient.bindToApplicationContext(ctx).build();
+    }
+
+    @Test
+    void getItem_returnsOk() {
+        client.get().uri("/items/1")
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(Item.class)
+            .value(item -> assertNotNull(item.id()));
+    }
+}
+```
+
+Keep controller tests focused on HTTP semantics: status codes, headers, and response shape. Delegate business-logic assertions to plain unit tests against the service layer.
+
 ## Output shapes
 
 ### Bean declaration
@@ -359,6 +568,9 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent>
 - Verify transaction boundaries wrap the intended unit of work.
 - Verify lifecycle or event callbacks run at the correct framework phase.
 - Verify validation or conversion logic applies at the expected boundary.
+- Verify MVC controllers return the correct HTTP status and response shape under `MockMvc`.
+- Verify reactive controllers and `WebClient` interactions return the expected status and body under `WebTestClient`.
+- Verify `@RestControllerAdvice` exception mappings produce the intended status codes.
 - Verify framework tests stay narrow enough to isolate the intended integration behavior.
 
 ## Production checklist

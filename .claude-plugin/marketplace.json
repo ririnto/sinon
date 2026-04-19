@@ -27,9 +27,9 @@
       "category": "development"
     },
     {
-      "name": "jdk",
-      "description": "JDK development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
-      "source": "./plugins/jdk",
+      "name": "jvm",
+      "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
+      "source": "./plugins/jvm",
       "author": {
         "name": "ririnto"
       },
@@ -46,7 +46,7 @@
     },
     {
       "name": "spring",
-      "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, scheduling runtime control, Quartz job/trigger operations, Integration, Cloud, and Kafka workflows.",
+      "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.",
       "source": "./plugins/spring",
       "author": {
         "name": "ririnto"
