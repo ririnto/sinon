@@ -1,0 +1,8 @@
+{
+  "lspServers": {
+    "example": {
+      "command": "python3",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/lsp/example-lsp.py", "--stdio"]
+    }
+  }
+}

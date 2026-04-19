@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "example": {
+      "command": "python3",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/servers/example-mcp.py"]
+    }
+  }
+}
