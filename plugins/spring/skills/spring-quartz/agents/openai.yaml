@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Quartz"
-  short_description: "Quartz scheduling, triggers, and clustering in Spring"
-  default_prompt: "Use $spring-quartz for Quartz jobs, triggers, JDBC persistence, clustering, and durable scheduling in Spring."

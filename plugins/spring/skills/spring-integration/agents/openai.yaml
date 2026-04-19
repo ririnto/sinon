@@ -1,4 +1,0 @@
-interface:
-  display_name: "Spring Integration"
-  short_description: "Spring Integration channels, adapters, and flow design"
-  default_prompt: "Use $spring-integration for message channels, adapters, routers, and Spring integration flow design."
