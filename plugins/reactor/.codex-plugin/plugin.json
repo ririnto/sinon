@@ -1,0 +1,38 @@
+{
+  "name": "reactor",
+  "description": "Project Reactor skills for reactive programming with Flux, Mono, operators, schedulers, sinks, and reactor-test",
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/reactor",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "keywords": [
+    "reactor",
+    "reactive",
+    "flux",
+    "mono",
+    "operator",
+    "scheduler",
+    "sinks",
+    "testing",
+    "java"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Reactor",
+    "shortDescription": "Project Reactor reactive programming guidance",
+    "longDescription": "Skills for reactive programming with Project Reactor. Covers core types (Flux, Mono), operator composition, error handling, scheduling, Sinks, Context, ConnectableFlux, and testing with reactor-test.",
+    "developerName": "ririnto",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "How do I create a Flux from an iterable?",
+      "How do I handle errors in a reactive pipeline?",
+      "How do I test a Mono with StepVerifier?"
+    ],
+    "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/reactor"
+  }
+}

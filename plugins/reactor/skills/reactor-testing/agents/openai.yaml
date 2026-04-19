@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reactor Testing"
+  short_description: "reactor-test: StepVerifier, virtual time, TestPublisher, PublisherProbe, and post-verification checks"
+  default_prompt: "Use $reactor-testing for testing reactive pipelines with StepVerifier, virtual time, TestPublisher, PublisherProbe, and ordinary reactor-test assertions."
