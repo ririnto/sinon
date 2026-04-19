@@ -39,13 +39,13 @@ Typical workflow:
 5. Use `alertmanager` when the blocker is routing or notification quality after the alert fires.
 6. Use `grafana-dashboards` when the blocker is how to present the signal.
 7. Use `dashboard-provisioning` when the blocker is how the dashboard is delivered and kept in sync from files.
-8. Keep application-framework-specific instrumentation concerns in framework-specific plugins rather than this plugin.
+8. Application-framework-specific instrumentation concerns fall outside this plugin's scope.
 
 ## Scope Boundaries
 
 Observability Assets stays responsible for PromQL, Prometheus rule files, alert-rule tests, Alertmanager config, Grafana dashboard JSON, Grafana mixin and Jsonnet-oriented dashboard generation, and Grafana dashboard provisioning.
 
-Keep these in other plugins:
+These topics fall outside Observability Assets' scope:
 
 - application-framework-specific instrumentation and metrics emission details
 - generic incident response or on-call process design not tied to alert-rule or dashboard assets
