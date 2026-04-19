@@ -1,7 +1,7 @@
 ---
-title: Coroutine Testing Recipes
+title: Coroutine Test Determinism
 description: >-
-  Reference for deterministic coroutine test patterns, dispatcher control, and virtual-time recipes in Kotlin tests.
+  Open this when virtual time, dispatcher injection, or deterministic coroutine scheduling is the blocker.
 ---
 
 Use this reference when the job is to make one coroutine test deterministic. This reference should be sufficient on its own for that task.
@@ -142,9 +142,11 @@ import org.junit.jupiter.api.assertThrows
 
 class PaymentServiceTest {
     @Test
-    fun rejectsExpiredToken() = runTest {
+    fun rejectsExpiredToken() {
         assertThrows<IllegalStateException> {
-            service.authorize(ExpiredToken)
+            runTest {
+                service.authorize(ExpiredToken)
+            }
         }
     }
 }

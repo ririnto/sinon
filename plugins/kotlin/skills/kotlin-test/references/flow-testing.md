@@ -1,7 +1,7 @@
 ---
-title: Flow Testing Guide
+title: Flow Replay and Bounded Assertions
 description: >-
-  Reference for bounded Flow assertions, replay-focused checks, and Kotlin test patterns for StateFlow and SharedFlow contracts.
+  Open this when Flow replay semantics or bounded collection shape is the blocker.
 ---
 
 Use this reference when the job is to prove one Flow contract with bounded, deterministic assertions. This reference should be sufficient on its own for that task.
@@ -121,7 +121,7 @@ StateFlow and SharedFlow rules:
 
 - `StateFlow` tests should assert the latest replayed state unless the contract explicitly requires every intermediate step
 - `SharedFlow` tests should start collection before emission when replay is `0`
-- use bounded collection helpers such as `first`, `take`, or `toList()` instead of collecting forever
+- use bounded collection helpers such as `first()`, `single()`, or `take(n).toList()` instead of collecting forever
 
 Replay-focused checklist:
 
