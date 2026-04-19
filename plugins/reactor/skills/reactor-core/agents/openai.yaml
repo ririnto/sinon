@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reactor Core"
+  short_description: "Flux and Mono authoring: creation, composition, combination, ordinary backpressure, and Context"
+  default_prompt: "Use $reactor-core for Flux/Mono design, source creation, operator composition, combination, error handling, ordinary backpressure decisions, and everyday Context usage."

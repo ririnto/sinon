@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "reactor",
+  "description": "Project Reactor skills for reactive programming with Flux, Mono, operators, schedulers, sinks, and reactor-test",
+  "author": {
+    "name": "ririnto"
+  },
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "keywords": [
+    "reactor",
+    "reactive",
+    "flux",
+    "mono",
+    "operator",
+    "scheduler",
+    "sinks",
+    "testing",
+    "java"
+  ]
+}
