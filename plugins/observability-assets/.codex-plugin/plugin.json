@@ -1,6 +1,6 @@
 {
   "name": "observability-assets",
-  "description": "Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.",
+  "description": "Prometheus and Grafana plugin with practical skills for PromQL, alert-rule authoring, alert-rule testing, Alertmanager routing, dashboard JSON authoring, and dashboard provisioning for version-controlled observability assets.",
   "author": "ririnto",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/observability-assets",
   "repository": "https://github.com/ririnto/sinon",
@@ -17,8 +17,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Observability Assets",
-    "shortDescription": "Practical Prometheus alerting, recording rules, promtool, Grafana dashboard, and mixin workflows.",
-    "longDescription": "Install a shared Prometheus and Grafana plugin with example-driven skills for Prometheus alert-rule design, promtool validation, recording-rule support, Grafana dashboard JSON authoring, and Grafana mixin and Jsonnet workflows for Git-managed observability assets.",
+    "shortDescription": "Practical PromQL, alerting, routing, testing, dashboard, and provisioning workflows.",
+    "longDescription": "Install a shared Prometheus and Grafana plugin with example-driven skills for PromQL, Prometheus alert-rule design, alert-rule testing, Alertmanager routing, Grafana dashboard JSON authoring, and dashboard-as-code provisioning workflows for Git-managed observability assets.",
     "developerName": "ririnto",
     "category": "Coding",
     "capabilities": [
@@ -27,9 +27,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Draft a Prometheus alert rule for this symptom and validate it with promtool.",
-      "Show me the Grafana dashboard JSON or mixin shape for this signal.",
-      "Review this Prometheus or Grafana asset for noise, drift, or source-of-truth issues."
+      "Draft the PromQL, alert rule, test, and Alertmanager routing for this symptom.",
+      "Show me the Grafana dashboard JSON and provisioning shape for this signal.",
+      "Review this observability asset for noise, drift, routing, or source-of-truth issues."
     ],
     "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/observability-assets"
   }

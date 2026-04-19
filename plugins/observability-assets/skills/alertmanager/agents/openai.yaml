@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alertmanager"
+  short_description: "Alert routing, grouping, inhibition, and notification templates"
+  default_prompt: "Use $alertmanager for Alertmanager route trees, receivers, grouping timers, inhibition, and notification review."
