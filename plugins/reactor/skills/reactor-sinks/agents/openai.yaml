@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reactor Sinks"
+  short_description: "Reactor hot sources: Sinks, replay and multicast choice, emit handling, and ConnectableFlux boundaries"
+  default_prompt: "Use $reactor-sinks for Reactor hot-source design with Sinks, emit result handling, replay or multicast choice, and the boundary between manual emission and ConnectableFlux-style sharing."

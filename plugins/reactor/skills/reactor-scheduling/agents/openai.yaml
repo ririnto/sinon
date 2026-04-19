@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reactor Scheduling"
+  short_description: "Reactor execution context: schedulers, publishOn/subscribeOn, blocking offload, and diagnostics"
+  default_prompt: "Use $reactor-scheduling for Reactor execution context decisions, scheduler choice, publishOn/subscribeOn placement, blocking offload, and scheduling diagnostics."
