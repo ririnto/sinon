@@ -1,8 +1,9 @@
 ---
 title: Grafana Mixin Reference
-description: >-
-  Reference for Grafana mixin and Jsonnet-based dashboard workflows, including source layout, rendered dashboard outputs, and review boundaries.
+description: "Open this when generated dashboards, Jsonnet source review, or source-vs-rendered handoff is the blocker."
 ---
+
+# Grafana Mixin Reference
 
 Use this reference when the team already uses Grafana mixin or Jsonnet and the blocker is understanding how source files and rendered dashboard assets should relate to each other.
 
@@ -18,29 +19,39 @@ Review the mixin source itself when the normal dashboard JSON review is no longe
 
 - check that stable identifiers such as `uid`, folder assumptions, and tags are set in the Jsonnet source rather than patched only in rendered output
 - check that the default time range policy still starts at `now-30m` or less unless the source explicitly justifies something wider
+- check that datasource configuration is set explicitly in source rather than inherited implicitly from an environment default
 - check that rounded display-oriented PromQL stays in the source templates instead of being hand-edited only in rendered JSON
 
 Example source snippet to inspect:
 
 ```jsonnet
 {
-  'api-overview.json':
-    grafana.dashboard.new('API Overview')
-    + grafana.dashboard.withUid('api-overview')
-    + grafana.dashboard.time.withFrom('now-30m')
-    + grafana.dashboard.withPanel(
-      grafana.timeseriesPanel.new('Request Rate')
-      + grafana.timeseriesPanel.queryOptions.withTargets([
-        {
-          expr: 'round(sum(rate(http_requests_total{job="api"}[5m])), 0.001)',
-          refId: 'A',
+  'api-overview.json': {
+    uid: 'api-overview',
+    time: {
+      from: 'now-30m',
+    },
+    panels: [
+      {
+        title: 'Request Rate',
+        datasource: {
+          type: 'prometheus',
+          uid: 'prometheus',
         },
-      ])
-    ),
+        targets: [
+          {
+            expr: 'round(sum(rate(http_requests_total{job="api"}[5m])), 0.001)',
+            refId: 'A',
+          },
+        ],
+      },
+    ],
+  },
 }
 ```
 
 Use this when the blocker is deciding whether an operator-facing rule such as time range or rounding lives in source Jsonnet or was applied later only in rendered JSON.
+Treat source templates as trusted, reviewed inputs only, and review rendered output before sharing it because imported local file contents can be inlined into generated artifacts.
 
 ## Render Boundary Checks
 
