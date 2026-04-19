@@ -1,4 +1,0 @@
-interface:
-  display_name: "JDK Tooling Workflows"
-  short_description: "Official JDK compile, analysis, and packaging workflows"
-  default_prompt: "Use $jdk-tooling-workflows for javac, java, jshell, javadoc, jdeps, jlink, and jpackage workflows."
