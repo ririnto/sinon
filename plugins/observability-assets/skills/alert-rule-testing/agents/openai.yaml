@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alert Rule Testing"
+  short_description: "promtool rule tests, fixtures, eval timing, and alert expectations"
+  default_prompt: "Use $alert-rule-testing for promtool rule tests, alert timing checks, fixture design, and regression review."
