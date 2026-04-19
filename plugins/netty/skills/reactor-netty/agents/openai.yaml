@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reactor Netty"
+  short_description: "Reactor Netty: reactive HTTP, TCP, UDP servers and clients with Mono/Flux"
+  default_prompt: "Use $reactor-netty for Reactor Netty HTTP/TCP/UDP server and client guidance, routing, and reactive connection management."
