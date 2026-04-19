@@ -1,0 +1,4 @@
+interface:
+  display_name: "Netty"
+  short_description: "Core Netty API: bootstrap, channels, pipelines, ByteBuf, codecs, TCP/UDP"
+  default_prompt: "Use $netty for Netty bootstrap, ChannelPipeline, ByteBuf, codec, and TCP/UDP server/client guidance."

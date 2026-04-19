@@ -44,6 +44,8 @@ The repository keeps separate official marketplace catalogs per runtime.
 - `plugins/kotlin`: Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.
 - `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, scheduling runtime control, Quartz job/trigger operations, Integration, Cloud, and Kafka workflows.
 - `plugins/observability-assets`: Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.
+- `plugins/reactor`: Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.
+- `plugins/netty`: Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.
 
 ## Publishing Model
 
@@ -100,6 +102,8 @@ Examples:
 /plugin install kotlin@sinon
 /plugin install spring@sinon
 /plugin install observability-assets@sinon
+/plugin install reactor@sinon
+/plugin install netty@sinon
 ```
 
 ### `~/.claude/settings.json`
