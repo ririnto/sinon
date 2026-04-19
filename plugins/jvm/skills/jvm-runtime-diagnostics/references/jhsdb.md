@@ -38,6 +38,9 @@ jhsdb debugd --pid <pid>
 jhsdb <subcommand> --connect host
 ```
 
+> [!WARNING]
+> Remote SA debug-server flows are admin-only diagnostics. Keep them on trusted networks or behind SSH tunneling, never expose them to the public internet, and shut them down immediately after the investigation.
+
 ## jhsdb jstack
 
 Typical shapes:
@@ -131,3 +134,4 @@ Prefer `jhsdb` when:
 - live attach can hang the target process and may crash it on detach
 - same-machine, executable-path, and symbol expectations still matter for good results
 - use the exact matching `java` executable for `--exe` when reading a core file
+- treat heap dumps, system properties, and remote SA channels as sensitive operational data paths

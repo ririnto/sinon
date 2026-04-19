@@ -1,22 +1,24 @@
 ---
-title: JDK
+title: JVM
 description: >-
-  Overview of the JDK plugin, its included skills, and JVM tooling and diagnostics workflows.
+  Overview of the JVM plugin, its included skills, and JVM tooling and diagnostics workflows.
 ---
 
-JDK is a shared, skill-first plugin for standard JDK tooling, JVM runtime diagnostics, and garbage-collection workflows in the Sinon universal marketplace.
+JVM is a shared, skill-first plugin for standard JDK tooling, JVM runtime diagnostics, and garbage-collection workflows in the Sinon universal marketplace.
+
+This plugin treats JDK 8, 11, 17, 21, and 25 as the supported LTS reference line.
 
 ## Purpose
 
-- Provide reusable JDK workflows that remain portable across Claude Code and Codex-style plugin systems.
+- Provide reusable JVM workflows that remain portable across Claude Code and Codex-style plugin systems.
 - Keep the portable value surface in `skills/` and avoid coupling the plugin to Java-language-server setup.
 - Ground guidance in official JDK, JVM, and HotSpot tooling references instead of ad-hoc advice.
 
 ## Included Skills
 
-- `jdk-tooling-workflows`: `javac`, `java`, `jshell`, `javadoc`, `jdeps`, `jlink`, and `jpackage` workflows.
-- `jdk-runtime-diagnostics`: stack traces, `jcmd`, `jstack`, `jmap`, `jfr`, and runtime incident triage.
-- `jdk-gc-diagnostics`: GC symptom interpretation, collector tradeoffs, and LTS-boundary GC guidance.
+- `jvm-tooling-workflows`: `javac`, `java`, `javadoc`, and `jdeps` across the supported LTS line, plus version-gated `jshell` (JDK 9+), `jlink` (JDK 9+), and `jpackage` (JDK 14+ in this plugin's framing) workflows.
+- `jvm-runtime-diagnostics`: stack traces, `jcmd`, `jstack`, `jmap`, `jfr`, and runtime incident triage.
+- `jvm-gc-diagnostics`: GC symptom interpretation, collector tradeoffs, and LTS-boundary GC guidance.
 
 ## When to Use Which Skill
 
@@ -52,11 +54,11 @@ The actual reusable content lives beside those manifests at the plugin root.
 Install from Sinon:
 
 ```bash
-/plugin install jdk@sinon
+/plugin install jvm@sinon
 ```
 
 For local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/jdk
+cc --plugin-dir /path/to/sinon/plugins/jvm
 ```

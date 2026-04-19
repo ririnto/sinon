@@ -1,4 +1,0 @@
-interface:
-  display_name: "JDK GC Diagnostics"
-  short_description: "JDK garbage collection symptoms and collector tradeoffs"
-  default_prompt: "Use $jdk-gc-diagnostics for GC symptoms, collector comparisons, and Java LTS garbage-collection differences."
