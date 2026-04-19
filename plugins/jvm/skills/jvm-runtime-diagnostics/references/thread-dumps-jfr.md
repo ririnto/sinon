@@ -4,7 +4,7 @@ description: >-
   Reference for repeated thread-dump capture and JFR recording during JVM runtime diagnostics.
 ---
 
-Use official JDK tool documentation from the Oracle Java docs hub: <https://docs.oracle.com/en/java/>
+Use official JDK tool documentation from the [Oracle Java docs hub](https://docs.oracle.com/en/java/).
 
 Use this reference when the issue needs either repeated snapshot comparison or time-based runtime evidence and the remaining blocker is choosing or running the capture.
 
@@ -51,16 +51,18 @@ jcmd <pid> JFR.check
 Start JFR at JVM launch:
 
 ```bash
-java -XX:StartFlightRecording=name=startup,settings=profile,filename=/tmp/startup.jfr,dumponexit=true -jar app.jar
+java -XX:StartFlightRecording=name=startup,settings=profile,filename=/path/to/private-diagnostics/startup.jfr,dumponexit=true -jar app.jar
 ```
 
 - use startup-attached JFR when the failure window may happen before attach is practical
 - keep `dumponexit=true` when the process may terminate before an explicit `JFR.dump`
+- prefer a private diagnostics directory with restrictive permissions instead of a shared location such as `/tmp`
+- on JDK 8, verify the Oracle JDK 8 Flight Recorder availability, licensing posture, and any required commercial-feature unlock before treating startup-attached JFR as a normal path
 
 Dump after the workload window:
 
 ```bash
-jcmd <pid> JFR.dump name=baseline filename=/tmp/baseline-%p-%t.jfr
+jcmd <pid> JFR.dump name=baseline filename=/path/to/private-diagnostics/baseline-%p-%t.jfr
 ```
 
 Stop a recording cleanly:
@@ -78,15 +80,15 @@ jcmd <pid> JFR.start name=profile settings=profile disk=true maxage=2h
 Quick analysis commands:
 
 ```bash
-jfr print --summary /tmp/baseline.jfr
-jfr print --json --events "jdk.JavaMonitorEnter" /tmp/baseline.jfr
+jfr print --summary /path/to/private-diagnostics/baseline.jfr
+jfr print --json --events "jdk.JavaMonitorEnter" /path/to/private-diagnostics/baseline.jfr
 ```
 
 Key JFR events:
 
 - `jdk.ObjectAllocationInNewTLAB` for allocation-heavy hot paths
 - `jdk.JavaMonitorEnter` for lock contention
-- `jdk.ContextSwitchRate` for scheduling overhead
+- `jdk.ThreadContextSwitchRate` for scheduling overhead
 - `jdk.GCHeapSummary` for heap occupation over time
 - `jdk.CPULoad` for per-process CPU saturation
 
