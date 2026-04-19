@@ -39,6 +39,34 @@ This plugin uses one shared plugin root with two thin runtime manifests:
 
 The actual reusable content lives beside those manifests at the plugin root.
 
+## Plugin Layout
+
+```text
+plugins/git-workflow/
+├── .claude-plugin/plugin.json
+├── .codex-plugin/plugin.json
+├── README.md
+└── skills/
+    └── git-change-integration handoff/
+        ├── SKILL.md
+        ├── agents/openai.yaml
+        └── references/
+            ├── hosted-service-pull-request-templates.md
+            └── hosted-service-merge-request-templates.md
+```
+
+- `.claude-plugin/plugin.json` carries thin Claude-facing marketplace metadata.
+- `.codex-plugin/plugin.json` carries thin Codex-facing marketplace metadata plus the `./skills/` entry point.
+- `skills/git-change-integration handoff/SKILL.md` is the common path for commit readiness, split-vs-single decisions, Conventional Commit drafting, fallback hosted review text, and validation phrasing.
+- `skills/git-change-integration handoff/references/` holds additive host-specific depth only.
+- `skills/git-change-integration handoff/agents/openai.yaml` is the thin trigger surface for the same skill, not a second workflow.
+
+## Shipped Surfaces
+
+- The plugin ships one reusable skill under `skills/`.
+- The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
+- Host-specific hosted service and hosted service mechanics stay inside the skill references rather than the manifests or plugin root README.
+
 ## Design Principles
 
 - Prefer one coherent user job per skill.
@@ -54,11 +82,13 @@ Install from Sinon:
 /plugin install git-workflow@sinon
 ```
 
-For local development:
+For Claude Code local development:
 
 ```bash
 cc --plugin-dir /path/to/sinon/plugins/git-workflow
 ```
+
+Codex-facing marketplace metadata ships through `.codex-plugin/plugin.json`, but it points to the same shared `skills/` content at this plugin root.
 
 ## Scope Notes
 
