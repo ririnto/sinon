@@ -43,6 +43,9 @@ jcmd <pid> GC.class_histogram -all
 jcmd <pid> GC.heap_dump heap.hprof
 ```
 
+> [!WARNING]
+> Heap dumps are highly sensitive artifacts. Use a restricted destination path, handle transfer and retention as sensitive-data operations, and prefer histograms or JFR first when they can answer the question with lower disclosure risk.
+
 Version-sensitive note:
 
 - newer JDKs document extra `GC.class_histogram` / `GC.heap_dump` options such as parallelism, overwrite, or gzip-related controls

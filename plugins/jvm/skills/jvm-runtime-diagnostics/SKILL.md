@@ -1,14 +1,26 @@
 ---
-name: jdk-runtime-diagnostics
+name: jvm-runtime-diagnostics
 description: >-
   Use this skill when the user asks to "debug a JVM issue", "read a Java stack trace", "analyze thread dumps", "use jcmd or JFR", "diagnose memory pressure", or needs guidance on JDK runtime incident triage.
+metadata:
+  title: JVM Runtime Diagnostics
+  official_project_url: "https://docs.oracle.com/en/java/"
+  reference_doc_urls:
+    - "https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/"
+    - "https://docs.oracle.com/en/java/javase/11/troubleshoot/diagnostic-tools.html"
+    - "https://docs.oracle.com/en/java/javase/17/troubleshoot/diagnostic-tools.html"
+    - "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html"
+    - "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
+  version: "LTS"
 ---
-
-# JDK Runtime Diagnostics
 
 ## Overview
 
 Use this skill to triage JVM runtime problems with standard JDK diagnostic tools and an evidence-first workflow. The common case is not "guess the root cause" but "collect the smallest next capture that reduces uncertainty". Prefer `jcmd` first for live JVMs, keep `jstack` and `jmap` as legacy or narrower-purpose tools, and reserve `jhsdb` for Serviceability Agent cases such as core dumps or deeper postmortem inspection.
+
+Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and confirm runtime-specific command availability on the target JVM before assuming a newer flag or event exists.
+
+Treat JFR as the standard low-overhead path on JDK 11 and later. On JDK 8, do not assume JFR is ordinarily available: verify the exact Oracle JDK 8 commercial-feature and licensing posture before recommending `JFR.start` or `-XX:StartFlightRecording`, and prefer thread dumps plus other low-risk captures when that requirement is not clearly satisfied.
 
 ## Use This Skill When
 
@@ -53,6 +65,7 @@ jcmd <pid> VM.command_line
 jcmd <pid> VM.flags
 jcmd <pid> Thread.print -l
 ```
+
 Use when: the symptom is real but you do not yet know which deeper tool is justified.
 
 ## Ready-to-Adapt Templates
@@ -65,6 +78,7 @@ jcmd <pid> VM.version
 jcmd <pid> VM.flags
 jcmd <pid> Thread.print -l
 ```
+
 Use when: you have only a vague "the JVM is slow" report or one incomplete stack trace.
 
 Single thread dump with lock detail:
@@ -72,6 +86,7 @@ Single thread dump with lock detail:
 ```bash
 jcmd <pid> Thread.print -l > thread-dump.txt
 ```
+
 Use when: the issue looks like blocking, deadlock, starvation, or lock contention and you need the first snapshot.
 
 Low-overhead JFR start for a running JVM:
@@ -80,14 +95,21 @@ Low-overhead JFR start for a running JVM:
 jcmd <pid> JFR.start name=baseline settings=default disk=true maxage=6h
 jcmd <pid> JFR.check
 ```
+
 Use when: the issue depends on time-based evidence such as CPU, allocation, I/O, or lock behavior.
 
 Startup-attached JFR:
 
 ```bash
-java -XX:StartFlightRecording=name=startup,settings=profile,filename=/tmp/startup.jfr,dumponexit=true -jar app.jar
+java -XX:StartFlightRecording=name=startup,settings=profile,filename=/path/to/private-diagnostics/startup.jfr,dumponexit=true -jar app.jar
 ```
+
 Use when: the problem happens during startup, very early request handling, or any phase that might be missed if JFR starts later via `jcmd`.
+
+> [!IMPORTANT]
+> JFR recordings can contain stack traces, class names, request metadata, and other sensitive runtime details. Prefer a private diagnostics directory with restrictive permissions instead of a shared location such as `/tmp`, and clean up captures promptly after analysis.
+>
+> For JDK 8, treat JFR as a special-case workflow, not the default path. Verify that the target runtime and operational policy actually permit Flight Recorder before recommending these commands.
 
 Heap-oriented escalation:
 
@@ -95,6 +117,7 @@ Heap-oriented escalation:
 jcmd <pid> GC.heap_info
 jcmd <pid> GC.class_histogram
 ```
+
 Use when: the symptom is memory growth, allocation pressure, or suspected heap retention.
 
 Native-memory escalation:
@@ -102,6 +125,7 @@ Native-memory escalation:
 ```bash
 jcmd <pid> VM.native_memory summary
 ```
+
 Use when: RSS or container memory keeps growing but heap evidence alone does not explain the pressure.
 
 Important setup note:
@@ -113,6 +137,7 @@ Legacy `jstack` thread dump:
 ```bash
 jstack -l <pid>
 ```
+
 Use when: you need the traditional `jstack` output shape or are working in an older operational workflow that still documents `jstack`.
 
 Legacy `jmap` histogram and dump:
@@ -121,7 +146,11 @@ Legacy `jmap` histogram and dump:
 jmap -histo <pid>
 jmap -dump:live,format=b,file=heap.hprof <pid>
 ```
+
 Use when: you specifically need the standalone `jmap` form instead of the newer `jcmd` command family.
+
+> [!WARNING]
+> Heap dumps are highly sensitive artifacts and can contain credentials, tokens, session state, and PII. Write them only to restricted paths, transfer them over approved secure channels, and delete them as soon as the investigation allows.
 
 Postmortem `jhsdb` core analysis:
 
@@ -129,6 +158,7 @@ Postmortem `jhsdb` core analysis:
 jhsdb jstack --exe "$JAVA_HOME/bin/java" --core /path/to/core
 jhsdb jmap --exe "$JAVA_HOME/bin/java" --core /path/to/core --heap
 ```
+
 Use when: the JVM has already crashed or you need core-file inspection rather than routine live attach.
 
 ## Validate the Result
