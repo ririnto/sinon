@@ -1,7 +1,7 @@
 ---
-title: Date-Time Modeling Guide
+title: Date-Time Type Decisions
 description: >-
-  Reference for choosing Kotlin and kotlinx-datetime types, conversion timing, and civil-time modeling boundaries.
+  Open this when choosing or converting Kotlin date-time types is the blocker.
 ---
 
 Use this reference when the job is to choose or convert Kotlin date-time types for one concrete model or workflow. This reference should be sufficient on its own for that task.

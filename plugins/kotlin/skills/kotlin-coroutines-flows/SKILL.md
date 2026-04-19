@@ -2,83 +2,88 @@
 name: kotlin-coroutines-flows
 description: >-
   Use this skill when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
+metadata:
+  title: "Kotlin Coroutines and Flows"
+  official_project_url: "https://kotlinlang.org/docs/coroutines-overview.html"
+  reference_doc_urls:
+    - "https://kotlinlang.org/docs/coroutines-basics.html"
+    - "https://kotlinlang.org/docs/coroutine-context-and-dispatchers.html"
+    - "https://kotlinlang.org/docs/cancellation-and-timeouts.html"
+    - "https://kotlinlang.org/docs/exception-handling.html"
+    - "https://kotlinlang.org/docs/shared-mutable-state-and-concurrency.html"
+    - "https://kotlinlang.org/docs/flow.html"
+    - "https://kotlinlang.org/docs/flow.html#stateflow-and-sharedflow"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-state-flow/"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-shared-flow/"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.sync/-mutex/"
 ---
 
-# Kotlin Coroutines and Flows
+## Goal
 
-## Overview
+Design Kotlin coroutine and Flow code with honest async semantics, explicit ownership, and cancellation-safe behavior. Start with the smallest shape that matches the contract, then open a blocker reference only when scope, failure behavior, hot sharing, or concurrent mutation becomes the real problem.
 
-Use this skill to design coroutine and Flow usage with structured concurrency, cancellation awareness, and clear async boundaries. The common case is deciding whether the API should return one logical result or a stream over time, then choosing the smallest coroutine structure that preserves ownership and cancellation semantics. Keep the async shape honest to the workload instead of adding reactive machinery by default.
+## Operating Rules
 
-## Use This Skill When
+- MUST prefer `suspend` for one logical async result.
+- MUST use `Flow` only when the contract delivers values over time.
+- MUST keep coroutine ownership explicit through a caller, parent function, or injected `CoroutineScope`.
+- MUST let `CancellationException` propagate.
+- MUST keep blocking or CPU-heavy boundaries explicit with the right dispatcher or context hop.
+- SHOULD treat ordinary `Flow` as cold and sequential unless sharing or buffering is chosen intentionally.
+- SHOULD choose `StateFlow` for current state and `SharedFlow` for events or broadcasts.
+- MUST avoid detached work unless the API is explicitly about background ownership.
 
-- You are designing or reviewing `suspend` APIs.
-- You are choosing between `suspend` and `Flow`.
-- You need to choose between `StateFlow`, `SharedFlow`, and ordinary cold `Flow`.
-- You need to reason about scope ownership, cancellation, or dispatcher boundaries.
-- Do not use this skill when the main problem is Kotlin language modeling or test structure rather than async design.
+## Common-Path Procedure
 
-## Common-Case Workflow
+1. Decide whether the caller needs one result, a stream over time, or explicitly owned background work.
+2. Start with `suspend` for one-shot work and switch to `Flow` only if the contract is truly streaming.
+3. Make ownership visible by keeping child work inside the current suspend function or launching from an explicit parent scope.
+4. Keep cancellation and failure semantics boring by default: child failure cancels the structured parent unless supervision is intentionally required.
+5. Keep dispatcher changes at real blocking or CPU-heavy boundaries rather than scattering them across leaf code.
+6. Escalate to a blocker reference only when hot sharing, buffering, supervision, or shared mutable state is the actual hard part.
 
-1. Identify whether the caller needs one result, many results over time, or detached background work.
-2. Prefer `suspend` for one-shot async work and `Flow` only for true stream semantics.
-3. Keep scope ownership explicit and keep dispatcher switching at real blocking or CPU boundaries.
-4. Escalate to deeper notes only if lifecycle, buffering, or operator choice is the real blocker.
+## Key Decisions
 
-## First Runnable Commands or Code Shape
+### `suspend` vs `Flow`
 
-Start from the smallest honest async API:
-
-```kotlin
-class OrderLoader {
-    suspend fun loadOrder(orderId: OrderId): Order = repository.load(orderId)
-}
-```
-
-*Applies when:* the caller wants one logical result rather than an ongoing stream.
-
-## Ready-to-Adapt Templates
-
-These templates stay in `SKILL.md` because they are part of the skill's primary purpose and should be available without opening references.
-
-One-shot async work:
+Choose `suspend` when the operation produces one logical answer and then completes.
 
 ```kotlin
 suspend fun loadOrder(orderId: OrderId): Order = repository.load(orderId)
 ```
 
-Use when: the caller wants one logical result and the API should complete after one async boundary.
-
-Stream of updates:
+Choose `Flow` when the contract is ongoing observation, repeated updates, or incremental delivery over time.
 
 ```kotlin
-class OrderObserver {
-    fun observeOrders(): Flow<List<Order>> = repository.observeOrders()
-}
+fun observeOrders(): Flow<List<Order>> = repository.observeOrders()
 ```
 
-Use when: the caller reacts to changing state or repeated updates over time instead of one completed result.
+### Cold `Flow` vs hot state or event streams
 
-Hot state vs hot event stream:
+Use ordinary `Flow` as the default streaming type. It is usually cold, so each collection starts the upstream work again unless you share it intentionally.
+
+Use `StateFlow` when every collector should immediately see the latest state.
 
 ```kotlin
-class OrdersViewModel {
-    private val _uiState = MutableStateFlow(UiState.Loading)
-    val uiState: StateFlow<UiState> = _uiState
-
-    private val _events = MutableSharedFlow<UiEvent>(replay = 0)
-    val events: SharedFlow<UiEvent> = _events
-}
+private val _uiState = MutableStateFlow(UiState.Loading)
+val uiState: StateFlow<UiState> = _uiState
 ```
 
-Use when: collectors need either the latest state on subscription or a non-replayed event stream with explicit replay behavior.
-
-Lifecycle-owned coroutine work:
+Use `SharedFlow` when the stream represents events or broadcasts and replay must be chosen explicitly.
 
 ```kotlin
-class OrdersPresenter(
-    private val presenterScope: CoroutineScope,
-) {
+private val _events = MutableSharedFlow<UiEvent>(replay = 0)
+val events: SharedFlow<UiEvent> = _events
+```
+
+### Ownership and dispatchers
+
+Keep launched work attached to a visible owner.
+
+```kotlin
+class OrdersPresenter(private val presenterScope: CoroutineScope) {
     fun refresh() {
         presenterScope.launch {
             repository.refresh()
@@ -87,9 +92,7 @@ class OrdersPresenter(
 }
 ```
 
-Use when: the work should be cancelled with an owning lifecycle or parent scope rather than escaping into detached background work.
-
-Explicit blocking boundary:
+Keep blocking boundaries explicit.
 
 ```kotlin
 import java.nio.file.Path
@@ -103,51 +106,61 @@ class CsvImporter {
 }
 ```
 
-Use when: the async path crosses a real blocking I/O boundary and the dispatcher hop should stay visible in the implementation.
+## First Safe Default
+
+If you are unsure, start here:
+
+```kotlin
+class OrderLoader(private val repository: OrderRepository) {
+    suspend fun load(orderId: OrderId): Order = repository.load(orderId)
+}
+```
+
+Only add `Flow`, extra scopes, sharing, or buffering when the contract clearly needs them.
 
 ## Validate the Result
 
-Validate the common case with these checks:
+Check these pass/fail conditions before you stop:
 
-- `suspend` is used for one-shot results and `Flow` only for real stream semantics
-- `StateFlow` is used for current state and `SharedFlow` only when replay and event semantics are explicitly chosen
-- scope ownership is visible in the API or parent function
-- blocking I/O is not hidden inside apparently lightweight coroutine paths
-- cancellation is allowed to propagate instead of being swallowed
-
-## Deep References
-
-| If the blocker is... | Read... |
-| --- | --- |
-| scope ownership, `coroutineScope`, `supervisorScope`, or dispatcher boundaries | `./references/coroutine-scope-patterns.md` |
-| operator choice, buffering, or whether `Flow` is justified | `./references/flow-shaping.md` |
-
-## Invariants
-
-- MUST keep scope ownership explicit.
-- SHOULD prefer `suspend` for one-shot async work.
-- SHOULD prefer `Flow` only for true stream semantics.
-- MUST preserve cancellation rather than swallowing it.
-- MUST avoid inventing concurrency that the workload does not need.
+- one-shot work uses `suspend` instead of a decorative stream
+- stream APIs describe real ongoing delivery rather than single-response work
+- `StateFlow` and `SharedFlow` are chosen for clear state or event semantics
+- scope ownership is visible and launched work is not detached by accident
+- blocking or CPU-heavy work is not hidden inside an apparently cheap async path
+- cancellation is preserved instead of swallowed in broad exception handling
 
 ## Common Pitfalls
 
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
-| returning `Flow` for single-value work just to look reactive | the API gains machinery without better meaning | use `suspend` for one logical result |
-| launching detached background work without a clear owner | cancellation and lifecycle become ambiguous | attach child work to an explicit parent scope |
-| swallowing `CancellationException` inside broad exception handling | structured cancellation breaks silently | let cancellation propagate and clean up in `finally` if needed |
-| mixing blocking I/O into coroutine paths without explicit boundaries | async code looks cheap but still blocks threads | keep dispatcher switching explicit at the real blocking boundary |
+| returning `Flow` for a single result | the API looks reactive without changing the contract | use `suspend` |
+| launching work without a visible owner | lifecycle and cancellation become ambiguous | attach work to an explicit parent scope |
+| swallowing `CancellationException` | structured cancellation silently breaks | let cancellation propagate and clean up in `finally` |
+| sharing or buffering a flow by default | delivery semantics become harder to reason about | keep the flow cold and sequential until sharing is required |
+| mutating shared state from multiple coroutines without a rule | race conditions become hidden design bugs | confine the state or protect it deliberately |
+
+## Output Contract
+
+Return:
+
+1. the chosen async shape and why it matches the contract
+2. the ownership and cancellation model
+3. any dispatcher, sharing, or buffering decisions that affect behavior
+4. any blocker references needed for deeper branches
+
+## Blocker References
+
+Open these only when the named blocker is the real issue.
+
+| Open this when... | Read... |
+| --- | --- |
+| you need `coroutineScope`, `supervisorScope`, explicit launch ownership, or dispatcher boundaries | `./references/scope-ownership-and-dispatchers.md` |
+| you are debugging cancellation, timeouts, failure propagation, or cleanup semantics | `./references/cancellation-timeouts-and-failures.md` |
+| you need to justify `Flow`, choose `StateFlow` or `SharedFlow`, or shape hot sharing and buffering | `./references/flow-selection-hot-sharing-and-buffering.md` |
+| you are coordinating mutable state across coroutines and need a concurrency rule | `./references/shared-state-and-concurrency.md` |
 
 ## Scope Boundaries
 
-- Activate this skill for:
-  - coroutine structure and scope ownership
-  - Flow versus suspend decisions
-  - cancellation-aware async design
-- Do not use this skill as the primary source for:
-  - general Kotlin language modeling
-  - Kotlin test structure
-  - `runTest`, virtual-time control, or Flow assertion strategy
-  - Spring-specific reactive endpoints, `Mono`/`Flux` controller design, or `WebClient` usage
-  - Java/JDK runtime tooling guidance
+Use this skill for coroutine structure, `suspend` versus `Flow`, cancellation-aware async design, hot or cold stream choices, and shared-state decisions directly caused by coroutine usage.
+
+Do not use this skill as the primary source for general Kotlin language modeling, Kotlin test structure, framework-specific reactive APIs, Android architecture guidance, or JVM runtime internals.

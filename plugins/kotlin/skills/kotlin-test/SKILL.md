@@ -2,150 +2,81 @@
 name: kotlin-test
 description: >-
   Use this skill when the user asks to "test Kotlin code", "write a coroutine test", "mock a Kotlin dependency", "structure Kotlin tests", or needs guidance on practical Kotlin testing patterns.
+metadata:
+  title: "Kotlin Test"
+  official_project_url: "https://kotlinlang.org/api/core/kotlin-test/"
+  reference_doc_urls:
+    - "https://kotlinlang.org/api/core/kotlin-test/"
+    - "https://kotlinlang.org/api/core/kotlin-test/kotlin.test/assert-fails-with.html"
+    - "https://kotlinlang.org/api/core/kotlin-test/kotlin.test.junit5/index.html"
+    - "https://junit.org/junit5/docs/current/user-guide/"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-test/"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-test/kotlinx.coroutines.test/run-test.html"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-test/kotlinx.coroutines.test/-test-coroutine-scheduler/"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/first.html"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/take.html"
+    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/to-list.html"
+    - "https://kotest.io/docs/framework/testing-styles.html"
+    - "https://mockk.io/"
+    - "https://github.com/awaitility/awaitility/wiki/Kotlin"
 ---
 
-# Kotlin Test
+## Goal
 
-## Overview
+Write clear, deterministic Kotlin tests by proving one observable behavior with the smallest scope that works. Keep the common path centered on `kotlin.test`, `runTest` for suspend code, bounded Flow collection, and direct exception assertions, then open a blocker reference only when virtual time, replay semantics, mocking-library details, or JUnit 5 structure features become the real problem.
 
-Use this skill to write clear, deterministic Kotlin tests with an emphasis on behavioral scope, coroutine-aware execution, and readable fixtures. The common case is not building a perfect test pyramid; it is choosing the smallest test that proves one observable behavior. Keep the test intent obvious, then add coroutine tooling only when async semantics actually matter.
+## Operating Rules
 
-Example conventions:
+- MUST choose the smallest test scope that proves the behavior.
+- SHOULD keep one observable behavior per test.
+- SHOULD use `kotlin.test` annotations and baseline assertions as the default surface.
+- MUST use `runTest` when coroutine semantics actually matter.
+- SHOULD keep Flow assertions bounded with `first()`, `single()`, or `take(n).toList()`.
+- SHOULD use `assertFailsWith<T>()` when exception type is part of the contract.
+- MUST avoid real sleeps when deterministic scheduler control can prove the same behavior.
+- SHOULD keep mocks at collaboration boundaries and keep simple values real.
 
-- test classes use PascalCase
-- test functions use camelCase
-- human-facing explanation belongs in `@DisplayName`
-- test annotations and baseline assertions come from `kotlin.test.*`
-- code examples should stay ktlint-friendly by default
-- avoid unnecessary blank lines inside function bodies
-- use infix assertions where the chosen test library makes them read more clearly
-- each file-oriented example keeps exactly one top-level root type
-- the root declaration is a type, not a top-level `fun` or `val`
-
-## Use This Skill When
-
-- You are adding or fixing Kotlin unit or integration tests.
-- You need to test `suspend` functions or `Flow` behavior.
-- You need to decide what should be mocked and what should stay real.
-- Do not use this skill when the main problem is Spring test-slice selection or full application-context wiring rather than Kotlin test structure itself.
-
-## Common-Case Workflow
+## Common-Path Procedure
 
 1. Read the production behavior and the nearest related tests first.
-2. Choose the smallest test scope that proves the requested behavior.
-3. Start with a plain assertion shape, then add coroutine-aware tooling if the code under test uses `suspend`, `Flow`, delay, or cancellation semantics.
-4. Escalate to deeper recipes only if virtual time, Flow sampling, or mocking boundaries are the real blocker.
+2. Choose the smallest test scope that proves one observable contract.
+3. Start with `kotlin.test` assertions and plain synchronous structure.
+4. Add `runTest` only when the code under test uses `suspend`, delay, cancellation, or Flow collection, and make sure `kotlinx-coroutines-test` is available in test scope.
+5. Bound Flow collection to the exact items needed for the assertion.
+6. Layer JUnit 5 structure or other test libraries only when the suite already uses them.
+7. Open one blocker reference only when scheduler control, replay semantics, JUnit 5 structure, MockK, Kotest, or eventual-consistency helpers are the actual blocker.
 
-## Minimal Setup
+## Core Decisions
 
-Add coroutine-aware test tooling only in test scope:
+### Start with `kotlin.test`
 
-```kotlin
-dependencies {
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
-    testImplementation("org.awaitility:awaitility-kotlin")
-    testImplementation("io.mockk:mockk")
-}
-```
-
-Add Kotest when the repository wants matcher-heavy or spec-style tests:
-
-```kotlin
-dependencies {
-    testImplementation(kotlin("test"))
-    testImplementation(platform("io.kotest:kotest-bom"))
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
-    testImplementation("io.kotest:kotest-runner-junit5")
-    testImplementation("io.kotest:kotest-assertions-core")
-    testImplementation("org.awaitility:awaitility-kotlin")
-    testImplementation("io.mockk:mockk")
-}
-```
-
-Setup rules:
-
-- keep `kotlinx-coroutines-test` aligned with the kotlinx-coroutines version already used in the project when the build tool or version catalog resolves it separately
-- use bounded Flow collection such as `first()`, `take(n)`, or `toList()` before adding extra test helpers
-- add `awaitility-kotlin` only for genuinely eventual behavior that cannot be proven with deterministic coroutine scheduler control alone
-- add MockK when Kotlin-specific mocking is needed and the repository prefers it over Mockito-style doubles
-- use the JUnit 5 bridge when combining `kotlin.test.Test` with `@DisplayName`
-- when several JUnit assertions describe one observable behavior, prefer `assertAll`; when using Kotest, prefer `assertSoftly`
-- when a Kotest example proves exception type precisely, prefer `shouldThrowExactly<T>()` and verify the returned message with `assertEquals` when it matters
-
-## First Runnable Commands or Code Shape
-
-Start with one behavior-focused test:
+Use `@Test` and baseline assertions first.
 
 ```kotlin
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.DisplayName
 
 class ProfileServiceTest {
-    @DisplayName("returns cached profile when cache hit exists")
     @Test
-    fun returnsCachedProfileWhenCacheHitExists() {
+    fun returnsCachedProfile() {
         val result = service.loadProfile("user-1")
         assertEquals(Profile("user-1"), result)
     }
 }
 ```
-Use when: the code path is synchronous and the test question is simply "what behavior should be proven?"
 
-## Ready-to-Adapt Templates
+Layer JUnit 5 annotations such as `@DisplayName` only when the suite already uses Jupiter features.
 
-Pure behavior-focused unit test:
+### Use `runTest` for suspend code
+
+`runTest` is the ordinary path for coroutine-aware tests. It skips delays and surfaces uncaught child-coroutine failures.
 
 ```kotlin
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.DisplayName
-
-class ProfileServiceTest {
-    @DisplayName("returns cached profile when cache hit exists")
-    @Test
-    fun returnsCachedProfileWhenCacheHitExists() {
-        val result = service.loadProfile("user-1")
-        assertEquals(Profile("user-1"), result)
-    }
-}
-```
-Use when: the behavior is synchronous and local.
-
-Kotest matcher shape:
-
-```kotlin
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.assertions.assertSoftly
-import io.kotest.matchers.shouldBe
-
-class ProfileServiceKotestTest : FunSpec() {
-    init {
-        test("returns cached profile when cache hit exists") {
-            val result = service.loadProfile("user-1")
-            assertSoftly(result) {
-                it shouldBe Profile("user-1")
-                it.id shouldBe "user-1"
-            }
-        }
-    }
-}
-```
-Use when: the repository already prefers Kotest matchers, infix assertions, and grouped soft assertions.
-
-Suspend function test:
-
-```kotlin
-import kotlin.test.Test
-import org.junit.jupiter.api.assertAll
-import kotlin.test.assertEquals
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.DisplayName
 
 class OrderSummaryServiceTest {
-    @DisplayName("loads order summary")
     @Test
     fun loadsOrderSummary() = runTest {
         val result = service.loadSummary(OrderId("o-1"))
@@ -153,184 +84,98 @@ class OrderSummaryServiceTest {
     }
 }
 ```
-Use when: the code under test uses `suspend` semantics.
 
-Flow assertion shape:
+### Keep Flow collection bounded
+
+Use `first()`, `single()`, or `take(n).toList()` to prove a finite contract and finish the test.
 
 ```kotlin
 import kotlin.test.Test
-import org.junit.jupiter.api.assertAll
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.DisplayName
 
 class UiStateRepositoryTest {
-    @DisplayName("emits loading then data")
     @Test
     fun emitsLoadingThenData() = runTest {
         val items = repository.observe().take(2).toList()
-        assertAll(
-            { assertEquals(UiState.Loading, items[0]) },
-            { assertEquals(UiState.Data, items[1]) },
-        )
+        assertTrue(items.size == 2)
+        assertEquals(UiState.Loading, items[0])
+        assertEquals(UiState.Data, items[1])
     }
 }
 ```
-Use when: you only need a small, deterministic sample from a Flow.
 
-Kotest infix assertion shape:
+### Use direct exception assertions
 
-```kotlin
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
-
-class OrderSummaryKotestTest : FunSpec() {
-    init {
-        test("loads order summary") {
-            val result = service.loadSummary(OrderId("o-1"))
-            result shouldBe OrderSummary("o-1")
-        }
-    }
-}
-```
-Use when: infix assertions make the expected contract easier to scan.
-
-Nested JUnit 5 context shape:
+Use `assertFailsWith<T>()` when the thrown type is part of the contract. It returns the exception, so message or property checks can stay explicit.
 
 ```kotlin
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
+import kotlin.test.assertFailsWith
 
-class CartServiceTest {
-    @Nested
-    @DisplayName("when the cart is empty")
-    inner class WhenCartIsEmpty {
-        @Test
-        fun returnsZeroTotal() {
-            assertEquals(0, service.total())
+class RetryPolicyTest {
+    @Test
+    fun rejectsInvalidRetryBudget() {
+        val error = assertFailsWith<IllegalArgumentException> {
+            service.configure(-1)
         }
+        assertEquals("retry budget must be non-negative", error.message)
     }
 }
 ```
-Use when: one behavior splits into a few context groups and an `inner` nested class makes the scenario tree easier to scan.
 
-JUnit 5 timeout shape:
+## First Safe Default
 
-```kotlin
-import kotlin.test.Test
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Timeout
-import java.util.concurrent.TimeUnit
-
-class FeedRefreshTest {
-    @DisplayName("refresh finishes within budget")
-    @Test
-    @Timeout(value = 500, unit = TimeUnit.MILLISECONDS)
-    fun refreshFinishesWithinBudget() {
-        service.refresh()
-    }
-}
-```
-Use when: the contract includes an ordinary time budget and the test does not need preemptive interruption.
-
-MockK boundary shape:
-
-```kotlin
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import org.junit.jupiter.api.DisplayName
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
-
-class ClientServiceMockKTest {
-    private val client: RemoteClient = mockk()
-    private val service = ClientService(client)
-
-    @DisplayName("retries after transient failure")
-    @Test
-    fun retriesAfterTransientFailure() {
-        every { client.call() } throws IllegalStateException("temporary") andThen "ok"
-
-        assertEquals("ok", service.run())
-        verify(exactly = 2) { client.call() }
-    }
-}
-```
-Use when: the repository already standardizes MockK and the mock boundary is a real collaborator.
-
-Awaitility Kotlin shape:
-
-```kotlin
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import org.awaitility.kotlin.await
-import org.junit.jupiter.api.DisplayName
-import java.time.Duration
-
-class EventPublisherAwaitilityTest {
-    @DisplayName("publishes eventually")
-    @Test
-    fun publishesEventually() {
-        service.triggerAsyncWork()
-
-        await.atMost(Duration.ofSeconds(5)).untilAsserted {
-            assertEquals(Status.DONE, repository.status())
-        }
-    }
-}
-```
-Use when: the code really is eventually consistent and deterministic coroutine scheduler control cannot prove the same behavior.
+If the path is still unclear, write one synchronous behavior test first, then add `runTest` or bounded Flow collection only if the production contract requires it.
 
 ## Validate the Result
 
-Validate the common case with these checks:
+Check these pass/fail conditions before you stop:
 
-- each test proves one observable behavior
-- coroutine tests use deterministic scheduler control instead of real sleeps
-- coroutine test dependencies are present in test scope instead of being assumed implicitly
-- mocks exist only at real collaboration boundaries
+- the test proves one observable behavior rather than internal choreography
+- coroutine tests use `runTest` instead of real sleeps
 - Flow tests collect only the amount needed for the assertion
-
-## Deep References
-
-| If the blocker is... | Read... |
-| --- | --- |
-| delay control, scheduler advancement, or dispatcher injection | `./references/coroutine-test-determinism.md` |
-| Flow replay or bounded collection shape | `./references/flow-testing.md` |
-| test shape, naming, or mocking boundaries | `./references/test-structure-and-mocking.md` |
-
-## Invariants
-
-- MUST choose the smallest test scope that proves the behavior.
-- SHOULD keep one observable behavior per test.
-- MUST use coroutine-aware testing where async semantics matter.
-- SHOULD inject dispatchers instead of hardcoding them when coroutine code needs deterministic tests.
-- MUST avoid flaky timing-based assertions when deterministic alternatives exist.
-- SHOULD keep test names scenario-based and intention-revealing.
+- exception assertions prove the exact contract that matters
+- mocks exist only at real collaboration boundaries
 
 ## Common Pitfalls
 
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
-| asserting internal call order instead of behavior | the test becomes coupled to implementation noise | assert the visible contract first |
-| using real delays in coroutine tests | the suite becomes slow and flaky | use `runTest` and virtual time control |
-| hardcoding production dispatchers in coroutine code under test | scheduler control is lost in tests | inject a dispatcher or dispatcher provider so tests can pass a test dispatcher |
+| asserting internal call order instead of behavior | the test couples to implementation noise | assert the visible contract first |
+| using real delays in coroutine tests | the suite becomes slow and flaky | use `runTest` and scheduler control |
+| collecting a Flow forever | the test never reaches a bounded assertion | use `first()`, `single()`, or `take(n).toList()` |
 | over-mocking simple values or pure helpers | fixtures become harder to read than the code under test | keep simple values real |
-| collecting a Flow forever | the test never reaches a bounded assertion | use `take`, `first`, or a short bounded collection |
+| reaching for framework-specific helpers before a plain test works | the test shape becomes heavier than the behavior | start with `kotlin.test` and grow only when needed |
+
+## Output Contract
+
+Return:
+
+1. the chosen test scope and the behavior it proves
+2. whether the test stays synchronous, uses `runTest`, or uses bounded Flow collection
+3. any exception or mocking decisions that affect the contract
+4. any blocker references needed for deeper branches
+
+## Blocker References
+
+Open only the reference that matches the remaining blocker.
+
+| Open when... | Read... |
+| --- | --- |
+| delay control, scheduler advancement, or dispatcher injection is the blocker | `./references/coroutine-test-determinism.md` |
+| Flow replay semantics or bounded collection shape is the blocker | `./references/flow-testing.md` |
+| JUnit 5 nested structure, grouped assertions, or timeout variants are the blocker | `./references/junit5-structure-and-timeouts.md` |
+| mocking boundaries or MockK collaboration checks are the blocker | `./references/mocking-boundaries-and-mockk.md` |
+| Kotest style, soft assertions, or exact exception checks are the blocker | `./references/kotest-style-and-exact-exceptions.md` |
+| eventual consistency requires Awaitility rather than scheduler control or bounded collection | `./references/eventual-consistency-and-awaitility.md` |
 
 ## Scope Boundaries
 
-- Activate this skill for:
-  - Kotlin unit and integration test shape
-  - coroutine-aware Kotlin testing
-  - mock and fixture decisions in Kotlin code
-- Do not use this skill as the primary source for:
-  - coroutine API design or `suspend` versus `Flow` contract decisions
-  - general Kotlin language refactors
-  - Spring-context testing
-  - Java/JDK tool concerns
+Use this skill for Kotlin unit and integration test shape, coroutine-aware test execution, bounded Flow assertions, and practical mocking-boundary choices.
+
+Do not use this skill as the primary source for coroutine API design, general Kotlin language refactors, or framework-heavy application-context testing.
