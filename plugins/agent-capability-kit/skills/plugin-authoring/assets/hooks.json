@@ -1,0 +1,13 @@
+{
+  "PreToolUse": [
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "sh ${CLAUDE_PLUGIN_ROOT}/hooks/check.sh"
+        }
+      ]
+    }
+  ]
+}
