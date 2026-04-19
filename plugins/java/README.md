@@ -109,21 +109,24 @@ Use JDTLS when the task needs Java symbol navigation, diagnostics, or refactors.
 - Treat Java version-difference guidance in this plugin as LTS-first: `8`, `11`, `17`, `21`, and `25`.
 - Treat `java.base` coverage here as foundational Java SE standard-library guidance rather than as a claim about broader `jdk.*` tooling or diagnostics.
 - Use the Java plugin for code-shape questions tied to core packages such as `java.lang`, `java.util`, `java.time`, `java.io`, `java.nio`, `java.net`, and related `java.base` SPI families.
-- Use the JDK plugin instead when the real question is about `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, or live JVM diagnostics.
+- `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, and live JVM diagnostics are outside this plugin's scope.
 
 ### Lombok Source Selection
 
 The wrapper now selects a Lombok source at startup in this order:
 
-1. Explicit override jar from `JAVA_ASSISTANT_LOMBOK_JAR`, `JDK_ASSISTANT_LOMBOK_JAR`, or `LOMBOK_JAR`
+1. Explicit override jar from `JAVA_ASSISTANT_LOMBOK_JAR`, `JDK_ASSISTANT_LOMBOK_JAR` (legacy alias), or `LOMBOK_JAR`
 2. Compatible project jar discovered from `.classpath` or `.factorypath`
 
 This is intentionally closer to the VS Code Java extension in one specific way: startup chooses the effective Lombok jar and prefers a compatible project jar when it can resolve one. Unlike VS Code Java, this plugin does not ship its own fallback Lombok jar.
 
+> [!WARNING]
+> Project-discovered Lombok jars are **trusted executable code** loaded as a `-javaagent`. Only use this auto-discovery behavior in trusted repositories and workspaces. In untrusted environments, set `JAVA_ASSISTANT_LOMBOK_ENABLED=false` to disable it entirely. When Lombok support is needed in an untrusted context, prefer an explicit trusted override jar via one of the environment variables below.
+
 To provide an explicit override jar, point one of these environment variables at a local `lombok.jar`:
 
-- `JAVA_ASSISTANT_LOMBOK_JAR`
-- `JDK_ASSISTANT_LOMBOK_JAR`
+- `JAVA_ASSISTANT_LOMBOK_JAR` (preferred)
+- `JDK_ASSISTANT_LOMBOK_JAR` (legacy compatibility alias)
 - `LOMBOK_JAR`
 
 The wrapper injects the selected jar through `JDK_JAVA_OPTIONS=-javaagent:...`.
@@ -137,6 +140,6 @@ Project detection signals still matter, but they are now used to prefer a projec
 
 The wrapper first checks the discovered project root and then scans nested Maven, Gradle, and Eclipse metadata files under that root while skipping common build output directories.
 
-If no override is supplied and no compatible project jar can be resolved, the wrapper starts plain `jdtls` without Lombok support. Set `JAVA_ASSISTANT_LOMBOK_ENABLED=false` to disable Lombok selection entirely. The older `JDK_ASSISTANT_LOMBOK_ENABLED` name is also accepted for compatibility.
+If no override is supplied and no compatible project jar can be resolved, the wrapper starts plain `jdtls` without Lombok support. Set `JAVA_ASSISTANT_LOMBOK_ENABLED=false` to disable Lombok selection entirely. `JDK_ASSISTANT_LOMBOK_ENABLED` is a legacy compatibility alias for the same setting.
 
 For safety, override jar paths must be single filesystem tokens without whitespace.

@@ -43,19 +43,19 @@
       }
     },
     {
-      "name": "jdk",
-      "description": "JDK development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
+      "name": "jvm",
+      "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
       "source": {
         "source": "local",
-        "path": "./plugins/jdk"
+        "path": "./plugins/jvm"
       },
       "category": "Coding",
       "author": {
         "name": "ririnto"
       },
       "interface": {
-        "displayName": "JDK",
-        "shortDescription": "Shared JDK tooling, runtime diagnostics, and GC workflows."
+        "displayName": "JVM",
+        "shortDescription": "Shared JVM tooling, runtime diagnostics, and GC workflows."
       },
       "policy": {
         "installation": "AVAILABLE",
@@ -84,7 +84,7 @@
     },
     {
       "name": "spring",
-      "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, scheduling runtime control, Quartz job/trigger operations, Integration, Cloud, and Kafka workflows.",
+      "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.",
       "source": {
         "source": "local",
         "path": "./plugins/spring"
@@ -95,7 +95,7 @@
       },
       "interface": {
         "displayName": "Spring",
-        "shortDescription": "Practical Spring Boot, Web, Data, transaction, observability, Batch, scheduling, Quartz, Integration, Cloud, and Kafka skills."
+        "shortDescription": "Practical Spring Boot, Web, Data, transaction, observability, Batch, Integration, Cloud, and Kafka skills."
       },
       "policy": {
         "installation": "AVAILABLE",

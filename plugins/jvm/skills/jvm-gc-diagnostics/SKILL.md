@@ -42,7 +42,7 @@ Treat JFR-based GC evidence as the normal low-overhead path on JDK 11 and later.
 For a running JVM, confirm the process and current runtime first:
 
 ```bash
-jcmd
+jcmd -l
 jcmd <pid> VM.version
 jcmd <pid> VM.flags
 ```

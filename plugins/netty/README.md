@@ -27,13 +27,13 @@ Typical workflow:
 2. Add reactive behavior when stream processing or backpressure is required.
 3. Use Netty core guidance for low-level channel and pipeline concerns.
 4. Use Reactor Netty guidance for HTTP/WebSocket with reactive patterns.
-5. Keep Java syntax, JVM diagnostics, and general I/O questions in the Java- or platform-level plugin surfaces.
+5. Java syntax, JVM diagnostics, and general I/O questions belong in Java- or JVM-focused guidance.
 
 ## Scope Boundaries
 
 Netty stays responsible for Netty-specific API, reactive programming with Project Reactor, and network application patterns.
 
-Keep these in other plugins:
+These topics fall outside Netty's scope:
 
 - Java syntax, records, sealed types, and general language design.
 - JDK tools, JVM diagnostics, and GC analysis.

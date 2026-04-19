@@ -81,4 +81,4 @@ Use when: the problem is explicitly about customizing or extending standard-libr
 
 ## Boundary Reminder
 
-Stay in this reference only for foundational `java.base` guidance. If the real blocker is `jdeps`, `jlink`, `jpackage`, runtime images, or JVM diagnostics, route to the JDK plugin instead.
+Stay in this reference only for foundational `java.base` guidance. `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, and live JVM diagnostics are outside this skill's scope.

@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "spring",
-  "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, scheduling runtime control, Quartz job/trigger operations, Integration, Cloud, and Kafka workflows.",
+  "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.",
   "author": {
     "name": "ririnto"
   },
@@ -14,8 +14,6 @@
     "spring-data",
     "spring-cloud",
     "kafka",
-    "scheduler",
-    "quartz",
     "observability",
     "transactions"
   ]

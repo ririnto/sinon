@@ -37,12 +37,12 @@ Typical workflow:
 
 Reactor stays responsible for Project Reactor API, reactive stream semantics, and operator patterns.
 
-Keep these in other plugins:
+These topics fall outside Reactor's scope:
 
 - Java syntax, records, sealed types, and general language design.
 - Spring WebFlux configuration and server setup.
 - Netty or Reactor Netty network programming.
-- Kotlin coroutines and Flow (use Kotlin plugin skills).
+- Kotlin coroutines and Flow.
 - R2DBC or Spring Data reactive repository configuration.
 
 Reactor-specific reactive programming and operator composition belong in Reactor guidance. General concurrency patterns outside the Reactor ecosystem belong elsewhere.

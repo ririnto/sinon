@@ -65,7 +65,7 @@ plugins/git-workflow/
 
 ## Shipped Surfaces
 
-- The plugin ships one reusable skill under `skills/`.
+- The plugin ships one reusable skill under `skills/` plus one agent trigger surface at `skills/git-change-publication/agents/openai.yaml`.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 - Host-specific GitHub and GitLab mechanics stay inside the skill references rather than the manifests or plugin root README.
 

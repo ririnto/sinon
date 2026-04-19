@@ -38,11 +38,13 @@ The repository keeps separate official marketplace catalogs per runtime.
 
 ## Current Plugins
 
+This list describes the plugins currently published through the repository marketplace catalogs.
+
 - `plugins/git-workflow`: Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
-- `plugins/jdk`: JDK development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
+- `plugins/jvm`: JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
 - `plugins/kotlin`: Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.
-- `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, scheduling runtime control, Quartz job/trigger operations, Integration, Cloud, and Kafka workflows.
+- `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.
 - `plugins/observability-assets`: Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.
 - `plugins/reactor`: Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.
 - `plugins/netty`: Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.
@@ -98,7 +100,7 @@ Examples:
 ```bash
 /plugin install git-workflow@sinon
 /plugin install java@sinon
-/plugin install jdk@sinon
+/plugin install jvm@sinon
 /plugin install kotlin@sinon
 /plugin install spring@sinon
 /plugin install observability-assets@sinon

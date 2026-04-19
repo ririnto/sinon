@@ -11,12 +11,12 @@ All content in this package is written in English.
 
 ## Scope
 
-Included:
+Covered topics:
 
 - plugin root structure and `plugin.json`
-- hooks, MCP, and LSP configuration
-- reusable agents in `agents/`
-- reusable commands and prompt files in `commands/`
+- hooks, MCP, LSP, monitors, output-styles, and settings configuration
+- authoring guidance for reusable agents under `skills/agent-authoring/`
+- authoring guidance for reusable commands and prompt files under `skills/command-authoring/`
 - cross-platform Agent Skill structure under `skills/`
 
 Explicitly excluded:

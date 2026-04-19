@@ -49,8 +49,11 @@ Tool-selection baseline:
 Identify the JVM first:
 
 ```bash
-jcmd
+jcmd -l
 ```
+
+> [!NOTE]
+> `jcmd -l` lists processes visible to the current user context. In container environments, process visibility may be restricted by namespace boundaries; ensure you are querying from the correct user or namespace context.
 
 ## First Runnable Commands or Code Shape
 
@@ -73,7 +76,7 @@ Use when: the symptom is real but you do not yet know which deeper tool is justi
 Lightweight first triage:
 
 ```bash
-jcmd
+jcmd -l
 jcmd <pid> VM.version
 jcmd <pid> VM.flags
 jcmd <pid> Thread.print -l
@@ -88,6 +91,9 @@ jcmd <pid> Thread.print -l > thread-dump.txt
 ```
 
 Use when: the issue looks like blocking, deadlock, starvation, or lock contention and you need the first snapshot.
+
+> [!WARNING]
+> Thread dumps can contain thread names, stack traces, class names, and other runtime details that may expose request paths or internal system structure. Write thread dumps to a restricted diagnostics path rather than a shared working directory, and clean them up after analysis like other sensitive captures.
 
 Low-overhead JFR start for a running JVM:
 
@@ -117,6 +123,9 @@ Heap-oriented escalation:
 jcmd <pid> GC.heap_info
 jcmd <pid> GC.class_histogram
 ```
+
+> [!NOTE]
+> `GC.class_stats` was removed in JDK 15 and should not be treated as a current default diagnostic command. Use `GC.class_histogram` for heap class analysis on modern JVMs.
 
 Use when: the symptom is memory growth, allocation pressure, or suspected heap retention.
 

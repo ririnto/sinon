@@ -241,7 +241,7 @@ Validate the common case with these checks:
 | treating string templates as if they were a stable Java 25 feature | the recommendation points users toward a withdrawn path | treat string templates as unavailable for default guidance and keep them out of LTS upgrade advice |
 | replacing every old form with a new one mechanically | readability can get worse | upgrade only where the newer form is clearly better |
 | omitting a fallback for older baselines | migration guidance becomes incomplete | show the simpler compatible form too |
-| treating `java.base` as if it covered all `jdk.*` tools or every Java SE module | library guidance and tooling guidance get mixed together | keep `java.base` here as foundational library coverage and route tooling questions to the JDK plugin |
+| treating `java.base` as if it covered all `jdk.*` tools or every Java SE module | library guidance and tooling guidance get mixed together | keep `java.base` here as foundational library coverage; `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, and live JVM diagnostics are outside this skill's scope |
 
 ## Scope Boundaries
 
