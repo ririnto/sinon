@@ -1,7 +1,7 @@
 ---
-title: Standard Library Best Practices
+title: Platform and Experimental Stdlib Boundaries
 description: >-
-  Best-practice reference for platform-specific, experimental, and less-common Kotlin standard-library surfaces that need explicit caveats in skill guidance.
+  Open this when platform-specific or experimental stdlib APIs need explicit caveats.
 ---
 
 Use this reference when the job is to recommend a Kotlin stdlib API responsibly, with the right platform and stability caveats. This reference should be sufficient on its own for that decision.
