@@ -14,6 +14,32 @@ Open this when you need to decide who owns coroutine work, where to launch it, o
 - prefer `supervisorScope` only when sibling isolation is an intentional requirement
 - keep dispatcher changes at real blocking or CPU-heavy boundaries
 
+## Dispatcher Catalog
+
+| Dispatcher | Pool | Best for | Avoid |
+| --- | --- | --- | --- |
+| `Dispatchers.Default` | CPU-bound (core count) | Computation, sorting, parsing | Blocking I/O, UI work |
+| `Dispatchers.IO` | Shared I/O pool (~64 threads) | File, network, database I/O | CPU-heavy computation |
+| `Dispatchers.Main` | Main/UI thread | UI updates, quick dispatches | Blocking, CPU-heavy work |
+| `Dispatchers.Unconfined` | Resumes on caller's thread | Tests, non-blocking bridges | Production concurrency |
+
+Root scope with exception handler:
+
+```kotlin
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.SupervisorJob
+
+val applicationScope = CoroutineScope(
+    SupervisorJob() +
+    Dispatchers.Default +
+    CoroutineExceptionHandler { _, throwable ->
+        logger.error("Uncaught coroutine exception", throwable)
+    }
+)
+```
+
+Invariant: `CoroutineExceptionHandler` installed on a child scope does NOT catch exceptions from sibling coroutines. Install it only at the root scope or directly on `launch`/`async`.
+
 ## Patterns
 
 All children succeed or fail together:
@@ -51,18 +77,24 @@ class OrderPresenter(private val scope: CoroutineScope) {
 }
 ```
 
-Keep blocking work on the right dispatcher:
+Control parallelism for CPU-bound work without creating extra threads. `limitedParallelism(n)` creates a dispatcher view that limits concurrent execution to `n` threads from the parent pool:
 
 ```kotlin
-import java.nio.file.Files
-import java.nio.file.Path
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
-suspend fun importCsv(path: Path): List<Row> = withContext(Dispatchers.IO) {
-    Files.readAllLines(path).map(::parseRow)
+private val boundedCompute = Dispatchers.Default.limitedParallelism(4)
+
+suspend fun processAll(items: List<Input>): List<Output> = withContext(boundedCompute) {
+    coroutineScope {
+        items.map { item -> async { heavyTransform(item) } }.awaitAll()
+    }
 }
 ```
+
+Use when you need to limit parallelism of CPU-bound work (e.g., to avoid exhausting CPU cores or rate-limiting external calls). The canonical `withContext(Dispatchers.IO)` and `withContext(Dispatchers.Default)` patterns are in `SKILL.md` under "Ownership and dispatchers".
 
 ## Pitfalls
 

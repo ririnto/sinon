@@ -3,8 +3,6 @@ title: Grafana Dashboard Structure Reference
 description: "Open this when export cleanup, JSON ownership, or normalization after UI edits or rendering is the blocker."
 ---
 
-# Grafana Dashboard Structure Reference
-
 Use this reference when the main blocker is understanding what to keep or remove in dashboard JSON after an export, a manual edit, or a Grafana mixin render.
 
 ## Keep Stable
@@ -23,13 +21,36 @@ Use this section when the blocker is deciding what to normalize after export rat
 - keep stable identity fields even when a UI export tries to regenerate them
 - normalize titles, panel ordering, and datasource references before treating the exported file as Git-owned
 
-Example normalization target:
+Broken — raw UI export with unstable fields:
+
+```json
+{
+  "id": 42,
+  "uid": "abc123xyz",
+  "slug": "api-overview-v2",
+  "timezone": "browser",
+  "version": 15,
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries"
+    }
+  ]
+}
+```
+
+Better — cleaned, Git-owned JSON with stable identity:
 
 ```json
 {
   "uid": "api-overview",
   "title": "API Overview",
+  "schemaVersion": 39,
   "version": 1,
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
   "panels": [
     {
       "id": 1,
@@ -54,8 +75,6 @@ When a dashboard comes from Grafana mixin or another generator, review two disti
 
 If the same cleanup would be needed after every render, move that decision back into the source template rather than patching generated JSON repeatedly.
 
-Use this reference for ownership boundaries, not for ordinary dashboard review. Normal decisions about variables, legends, thresholds, links, annotations, or panel readability stay in [`../SKILL.md`](../SKILL.md).
-
 Concrete review split:
 
 ```text
@@ -66,8 +85,4 @@ Source Jsonnet only changed:
 - check whether rendered artifacts were intentionally deferred
 ```
 
-## Broken vs Better
-
-Broken: large raw UI export committed without cleanup, renamed fields, or ownership context.
-
-Better: stable `uid`, explicit title, minimal normalized JSON, and mixin source tracked clearly when generation is involved.
+Use this reference for ownership boundaries, not for ordinary dashboard review. Normal decisions about variables, legends, thresholds, links, annotations, or panel readability stay in [`../SKILL.md`](../SKILL.md).

@@ -1,64 +1,55 @@
 ---
 name: java-language-syntax
 description: >-
-  Use this skill when the user asks to "explain Java syntax", "compare Java LTS versions", "rewrite code for an older Java version", "use switch expressions", "use var", "explain records or pattern matching", or needs guidance on Java syntax, expression differences, or foundational `java.base` coverage across language versions.
+  Explain Java syntax availability across LTS baselines, compare expression forms between Java versions,
+  rewrite code for older or newer targets, and choose foundational java.base package families.
+  Use when the user asks about Java grammar, var, switch expressions, records, pattern matching,
+  sealed classes, text blocks, unnamed patterns, or whether a syntax form compiles on a given Java baseline.
 ---
 
 # Java Language Syntax
 
-## Overview
+Explain Java syntax, LTS-boundary language differences, and foundational `java.base` coverage when it materially affects how code is written, read, or refactored. The common case is checking the target Java LTS baseline first, then choosing the clearest stable syntax and the smallest baseline-safe standard-library surface available on that baseline.
 
-Use this skill to explain Java syntax, expression forms, LTS-boundary language differences, and foundational `java.base` coverage when it materially affects how code is written, read, or refactored. The common case is checking the target Java LTS baseline first, then choosing the clearest stable syntax and the smallest baseline-safe standard-library surface available on that baseline. Focus on syntax and expression shape first, and treat `java.base` guidance here as code-shape support rather than higher-level API design.
+## Operating rules
 
-## Use This Skill When
+- MUST identify the target Java LTS version (`8`, `11`, `17`, `21`, or `25`) before recommending any version-sensitive syntax.
+- MUST distinguish stable language features from preview-only or withdrawn features.
+- SHOULD prefer stable syntax unless preview use is explicitly requested.
+- MUST explain fallback forms when recommending syntax unavailable on the target baseline.
+- MUST treat string templates as withdrawn (previewed in JDK 21-23, then withdrawn instead of being finalized), not as a valid Java 25 default or modernization path.
+- MUST keep version-difference guidance centered on LTS releases unless the user explicitly asks about a non-LTS release.
+- MUST treat `java.base` guidance here as foundational standard-library coverage, not as a claim about broader Java SE modules or JDK tooling.
+- SHOULD focus on syntax and expression differences that materially affect code shape.
+- SHOULD prefer the smallest newer syntax that materially improves readability over mechanically replacing every older form.
 
-- You need to know whether a syntax form is available on a given Java baseline.
-- You are rewriting Java code for an older or newer LTS target.
-- You need a direct example of classic versus newer Java syntax.
-- You need to know whether a foundational `java.base` API family is a reasonable default on a given Java LTS baseline.
-- Do not use this skill when the main issue is API or type-modeling semantics rather than syntax availability.
+## Procedure
 
-## Common-Case Workflow
-
-1. Identify the target Java LTS baseline before recommending any syntax change.
-2. Read the current code and decide whether the question is about stable syntax, preview syntax, migration compatibility, or foundational `java.base` usage that affects code shape.
+1. Identify the target Java LTS baseline from the project build configuration, or ask the user if ambiguous.
+2. Read the current code and classify the question: stable syntax, preview syntax, migration compatibility, or foundational `java.base` usage.
 3. Prefer stable language features by default and call out preview-only or withdrawn constructs explicitly.
-4. When the question reaches into `java.base`, keep the answer anchored to foundational standard-library families rather than JDK tooling or packaging workflows.
+4. When the question reaches into `java.base`, anchor to foundational families such as collections, time, files, regex, or `Optional` before suggesting extra dependencies.
 5. Recommend the smallest syntax or library-shape change that improves clarity while remaining compatible with the target baseline.
+6. Keep fallback shapes visible for older baselines when the recommendation depends on `17`, `21`, or `25`.
 
-## Java Syntax Decision Path
+### Version legend
 
-Use this quick decision path before escalating to deeper references:
-
-- start with the target Java LTS boundary: `8`, `11`, `17`, `21`, or `25`
-- start with stable syntax; call out preview or withdrawn constructs explicitly instead of treating them as the default modernization path
-- prefer the smallest newer syntax that materially improves readability over mechanically replacing every older form
-- keep fallback shapes visible for older baselines when the recommendation depends on `17`, `21`, or `25`
-- when the question reaches into `java.base`, start with foundational families such as collections, time, files, regex, or `Optional` before suggesting extra dependencies
-- keep `java.base` guidance separate from `jdeps`, `jlink`, `jpackage`, runtime images, or live JVM diagnostics
-
-## Example Version Legend
-
-- `(JDK 8+)` means the example is safe on Java 8 and later LTS targets.
-- `(JDK 11+)` means the example depends on syntax or standard-library shapes available on Java 11 and later.
-- `(JDK 17+)`, `(JDK 21+)`, and `(JDK 25+)` mean the example should be treated as an LTS-boundary upgrade, not as a universal fallback.
+- `(JDK 8+)` means safe on Java 8 and later LTS targets.
+- `(JDK 11+)` means available on Java 11 and later.
+- `(JDK 17+)`, `(JDK 21+)`, `(JDK 25+)` mean an LTS-boundary upgrade, not a universal fallback.
 - If two examples solve the same problem, prefer the lowest-baseline version that still keeps the code clear.
 
-## First Runnable Commands or Code Shape
-
-Start from one version-aware syntax comparison.
+## First runnable commands
 
 Version-aware switch comparison `(JDK 17+)` vs fallback `(JDK 8+)`:
 
 ```java
-var result = switch (status) {
+String result = switch (status) {
     case OK -> "ok";
     case FAIL -> "fail";
     default -> "unknown";
 };
 ```
-
-Fallback shape for older baselines:
 
 ```java
 String result;
@@ -73,19 +64,19 @@ switch (status) {
         result = "unknown";
 }
 ```
+
 Use when: you need a quick answer to "can I use this on Java X?"
 
 Text block for multiline literals `(JDK 17+)`:
 
 ```java
-var sql = """
+String sql = """
     select *
     from users
     where active = true
     order by created_at desc
     """;
 ```
-Use when: the baseline is Java 17+ and the literal is clearer as real multiline text than as concatenated strings.
 
 Record `(JDK 17+)`:
 
@@ -93,58 +84,234 @@ Record `(JDK 17+)`:
 record Point(int x, int y) {
 }
 ```
-Use when: the type is mostly data and the baseline supports records.
 
-## Ready-to-Adapt Templates
+## Ready-to-adapt templates
 
-Local variable inference `(JDK 11+)`:
+### Lambda expressions `(JDK 8+)`
+
+Single-expression lambda:
 
 ```java
-var count = users.size();
+import java.util.Comparator;
+
+Comparator<String> byLength = (a, b) -> Integer.compare(a.length(), b.length());
 ```
-Use when: the Java baseline supports `var` and the type remains readable from the right-hand side.
 
-Switch expression `(JDK 17+)`:
+Block-body lambda:
 
 ```java
-var result = switch (status) {
-    case OK -> "ok";
-    case FAIL -> "fail";
-    default -> "unknown";
+import java.util.function.Consumer;
+
+Consumer<String> logger = message -> {
+    System.err.println(message);
 };
 ```
-Use when: the target baseline supports stable switch expressions and the expression form is clearer than a statement block.
 
-Classic switch fallback `(JDK 8+)`:
+No-argument lambda:
 
 ```java
-String result;
-switch (status) {
-    case OK:
-        result = "ok";
-        break;
-    case FAIL:
-        result = "fail";
-        break;
-    default:
-        result = "unknown";
+Runnable task = () -> runCleanup();
+```
+
+Type-inferred lambda with functional interface:
+
+```java
+import java.util.function.Function;
+
+Function<String, Integer> lengthOf = String::length;
+```
+
+### Method references `(JDK 8+)`
+
+Static method reference:
+
+```java
+import java.util.function.Function;
+
+Function<String, Integer> parser = Integer::parseInt;
+```
+
+Instance method reference on arbitrary object:
+
+```java
+import java.util.function.Function;
+
+Function<String, Integer> lengthOf = String::length;
+```
+
+Bound instance method reference:
+
+```java
+import java.util.function.Consumer;
+
+Consumer<String> printer = System.out::println;
+```
+
+Constructor reference:
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+List<ArrayList<String>> lists = Stream.of("a", "b")
+    .map(s -> new ArrayList<>())
+    .toList();
+```
+
+### Stream pipeline `(JDK 8+)`
+
+Basic filter-map-collect:
+
+```java
+import java.util.List;
+import java.util.stream.Collectors;
+
+List<String> activeNames = users.stream()
+    .filter(User::isActive)
+    .map(User::name)
+    .toList();
+```
+
+Grouping and counting:
+
+```java
+import java.util.Map;
+import java.util.stream.Collectors;
+
+Map<String, Long> countByRole = users.stream()
+    .collect(Collectors.groupingBy(User::role, Collectors.counting()));
+```
+
+Flat map for nested collections:
+
+```java
+import java.util.List;
+
+List<String> allTags = orders.stream()
+    .flatMap(order -> order.tags().stream())
+    .distinct()
+    .toList();
+```
+
+### `Optional` pipeline `(JDK 8+)`
+
+```java
+import java.util.Optional;
+
+Optional<Integer> timeout = Optional.ofNullable(config)
+    .map(Config::timeout)
+    .filter(t -> t > 0);
+```
+
+### Immutable collection factory `(JDK 9+, practical LTS: JDK 11+)`
+
+```java
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+List<String> roles = List.of("reader", "writer");
+Set<String> perms = Set.of("read", "write");
+Map<String, Integer> scores = Map.of("alice", 90, "bob", 85);
+```
+
+### `CompletableFuture` async composition `(JDK 8+)`
+
+Basic async chain:
+
+```java
+import java.util.concurrent.CompletableFuture;
+
+CompletableFuture<String> result = CompletableFuture
+    .supplyAsync(() -> fetchUser(id))
+    .thenApply(User::name)
+    .thenCompose(name -> fetchAvatar(name))
+    .exceptionally(ex -> "default-avatar");
+```
+
+Combine multiple futures:
+
+```java
+import java.util.concurrent.CompletableFuture;
+
+CompletableFuture<String> userFuture = CompletableFuture.supplyAsync(() -> fetchUser(id));
+CompletableFuture<String> permFuture = CompletableFuture.supplyAsync(() -> fetchPerms(id));
+
+CompletableFuture<String> combined = userFuture.thenCombine(permFuture,
+    (user, perms) -> user + ":" + perms);
+```
+
+### `HttpClient` API `(JDK 11+)`
+
+Synchronous request:
+
+```java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.example.com/data"))
+    .header("Accept", "application/json")
+    .GET()
+    .build();
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+```
+
+Asynchronous request:
+
+```java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.concurrent.CompletableFuture;
+
+CompletableFuture<HttpResponse<String>> future = client.sendAsync(
+    request, HttpResponse.BodyHandlers.ofString());
+```
+
+### String convenience methods `(JDK 11+)`
+
+```java
+boolean blank = "  ".isBlank();
+String stripped = "  hello  ".strip();
+String repeated = "ha".repeat(3);
+```
+
+### Default and static interface methods `(JDK 8+)`
+
+```java
+interface LogFormatter {
+    String format(String message);
+
+    default String formatWithPrefix(String prefix, String message) {
+        return prefix + format(message);
+    }
+
+    static LogFormatter prefixed(String prefix) {
+        return message -> prefix + message;
+    }
 }
 ```
-Use when: the target baseline is Java 8 or Java 11 and switch expressions are not stable yet.
 
-Text block `(JDK 17+)`:
+### Switch expression with `yield` `(JDK 17+)`
 
 ```java
-var payload = """
-    {
-      "enabled": true,
-      "name": "demo"
+int code = switch (status) {
+    case OK -> 0;
+    case FAIL -> {
+        System.err.println("failure detected");
+        yield 1;
     }
-    """;
+    default -> -1;
+};
 ```
-Use when: the baseline is Java 17+ and the literal is easier to read as structured text.
 
-Sealed hierarchy `(JDK 17+)`:
+### Sealed hierarchy `(JDK 17+)`
 
 ```java
 sealed interface PaymentResult permits Approved, Rejected {
@@ -156,103 +323,111 @@ record Approved(String authorizationId) implements PaymentResult {
 record Rejected(String reason) implements PaymentResult {
 }
 ```
-Use when: the baseline is Java 17+ and the domain should stay closed to a known set of variants.
 
-Pattern matching for `instanceof` `(JDK 17+)`:
+### Pattern matching for `instanceof` `(JDK 17+)`
 
 ```java
 if (obj instanceof String s) {
     use(s);
 }
 ```
-Use when: the target baseline supports pattern matching for `instanceof`.
 
-Pattern-matching switch `(JDK 21+)`:
+### Pattern-matching switch `(JDK 21+)`
 
 ```java
-return switch (shape) {
+double area = switch (shape) {
     case Circle c -> c.radius();
     case Rectangle r -> r.width() * r.height();
 };
 ```
-Use when: the baseline is Java 21+ and exhaustive matching is clearer than chained casts or `if/else` blocks.
 
-Unnamed pattern `(JDK 25+)`:
+Switch with guarded patterns (`when` clause) `(JDK 21+)`:
 
 ```java
-if (obj instanceof Order(String id, _, var total)) {
+String label = switch (value) {
+    case String s when s.length() > 10 -> s.substring(0, 7) + "...";
+    case String s -> s;
+    case Integer i -> "int:" + i;
+    default -> "unknown";
+};
+```
+
+### Sequenced collections `(JDK 21+)`
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SequencedCollection;
+
+SequencedCollection<String> items = new ArrayList<>(List.of("a", "b", "c"));
+String first = items.getFirst();
+String last = items.getLast();
+SequencedCollection<String> reversed = items.reversed();
+items.addFirst("z");
+items.addLast("d");
+```
+
+### Unnamed pattern `(JDK 25+)`
+
+```java
+if (obj instanceof Order(String id, _, double total)) {
     audit(id, total);
 }
 ```
-Use when: the baseline is Java 25+ and some deconstructed values do not add meaning.
 
-`Optional` pipeline `(JDK 8+)`:
-
-```java
-return Optional.ofNullable(config)
-    .map(Config::timeout)
-    .filter(timeout -> timeout > 0)
-    .orElseThrow(() -> new IllegalStateException("timeout must be set"));
-```
-Use when: the problem is a small return-value or configuration pipeline rather than a field model.
-
-Immutable collection factory `(JDK 9+, practical LTS use: JDK 11+)`:
+### Local variable inference `(JDK 11+)`
 
 ```java
-var roles = List.of("reader", "writer");
+int count = users.size();
 ```
-Use when: the list is fixed at creation time and the code benefits from an immutable factory rather than mutable setup.
 
-## Validate the Result
+### Classic switch fallback `(JDK 8+)`
 
-Validate the common case with these checks:
+```java
+String result;
+switch (status) {
+    case OK:
+        result = "ok";
+        break;
+    case FAIL:
+        result = "fail";
+        break;
+    default:
+        result = "unknown";
+}
+```
 
-- the target Java baseline is explicit
-- the recommended syntax is stable on that baseline
-- a simpler fallback exists when the baseline is older
-- any `java.base` recommendation stays inside foundational standard-library coverage rather than drifting into `jdk.*` tools or packaging advice
-- preview-sensitive or withdrawn constructs are marked explicitly instead of being smuggled in as normal style
+## Edge cases
 
-## Deep References
+- If the user does not specify a Java baseline, ask before recommending any version-sensitive syntax.
+- If the question is about API shape, type modeling, or exception contracts rather than syntax availability, that is outside this skill's scope.
+- If the question is about JUnit structure or test-first workflow, that is outside this skill's scope.
+- If the question is about profiling, concurrency, or virtual threads, that is outside this skill's scope.
+- If the question is about Maven coordinate lookup, that is outside this skill's scope.
+- If a preview feature is requested, state the support cost and baseline requirement explicitly before including it in guidance.
+- If `java.base` drifts toward `jdk.*` tools, `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, or live JVM diagnostics, stop and clarify that those are outside this skill's scope.
 
-| If the blocker is... | Read... |
+## Output contract
+
+Return:
+
+1. The target Java LTS baseline used for the recommendation.
+2. The recommended syntax form with version annotation.
+3. A compatible fallback form when the target baseline is older than the recommendation.
+4. Explicit note if any construct is preview or withdrawn on the target baseline.
+
+## Support-file pointers
+
+| If the blocker is... | Open... |
 | --- | --- |
-| exact LTS-boundary availability, baseline comparison, upgrade/downgrade planning, or later-LTS syntax recipes | [`advanced-syntax-recipes.md`](./references/advanced-syntax-recipes.md) |
-| the question is really about choosing a foundational `java.base` package family first | [`java-base-family-map.md`](./references/java-base-family-map.md) |
+| exact LTS-boundary availability, migration heuristics, or later-LTS recipes | [`advanced-syntax-recipes.md`](./references/advanced-syntax-recipes.md) |
+| choosing a foundational `java.base` package family | [`java-base-family-map.md`](./references/java-base-family-map.md) |
 
-## Invariants
+## Gotchas
 
-- MUST identify the target Java LTS version before recommending version-sensitive syntax.
-- MUST distinguish stable language features from preview-only features.
-- SHOULD prefer stable syntax when the user does not explicitly ask for preview features.
-- MUST explain fallback forms when recommending syntax unavailable on the target baseline.
-- SHOULD focus on syntax and expression differences that materially affect code shape.
-- MUST avoid presenting preview or withdrawn features as generally safe defaults.
-- MUST treat string templates as withdrawn rather than as a valid Java 25 default or modernization path.
-- MUST keep version-difference guidance centered on LTS releases unless the user explicitly asks about a non-LTS release.
-- MUST treat `java.base` guidance here as foundational standard-library coverage, not as a claim about broader Java SE modules or JDK tooling.
-
-## Common Pitfalls
-
-| Anti-pattern | Why it fails | Correct move |
-| --- | --- | --- |
-| suggesting syntax without naming the Java baseline | compatibility becomes guesswork | anchor every syntax recommendation to the target baseline |
-| treating preview features as default modernization | build and operational complexity rise unexpectedly | stay on stable syntax unless preview use is explicitly requested |
-| treating string templates as if they were a stable Java 25 feature | the recommendation points users toward a withdrawn path | treat string templates as unavailable for default guidance and keep them out of LTS upgrade advice |
-| replacing every old form with a new one mechanically | readability can get worse | upgrade only where the newer form is clearly better |
-| omitting a fallback for older baselines | migration guidance becomes incomplete | show the simpler compatible form too |
-| treating `java.base` as if it covered all `jdk.*` tools or every Java SE module | library guidance and tooling guidance get mixed together | keep `java.base` here as foundational library coverage; `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, and live JVM diagnostics are outside this skill's scope |
-
-## Scope Boundaries
-
-- Activate this skill for:
-  - Java grammar and syntax choices
-  - expression-form differences across Java LTS versions
-  - version-aware language feature explanation
-  - foundational `java.base` package-family guidance when it affects code shape or baseline-safe examples
-- Do not use this skill as the primary source for:
-  - public API or type-modeling decisions
-  - JUnit structure or test-first workflow
-  - performance or concurrency tradeoffs
-  - broader Java SE module coverage outside `java.base`
-  - standard JDK tool selection or packaging workflows
+- Do not suggest syntax without naming the Java baseline.
+- Do not treat preview features as default modernization.
+- Do not treat string templates as a stable Java 25 feature.
+- Do not replace every old form with a new one mechanically.
+- Do not omit a fallback for older baselines.
+- Do not treat `java.base` as if it covered all `jdk.*` tools or every Java SE module.

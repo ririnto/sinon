@@ -8,6 +8,9 @@ metadata:
     - "https://projectreactor.io/docs/test/release/reference/"
     - "https://projectreactor.io/docs/test/release/api/"
   version: "3.7"
+  dependencies:
+    - "io.projectreactor:reactor-core:3.7.x"
+    - "io.projectreactor:reactor-test:3.7.x"
 ---
 
 Test Reactor publishers with the ordinary `reactor-test` path.
@@ -88,12 +91,14 @@ This skill covers everyday `StepVerifier` flow, success/empty/error assertions, 
 | basic publisher verification | `StepVerifier.create(publisher)` | ordinary signal assertions |
 | empty completion | `expectComplete()` | asserts no further signals |
 | specific error type | `expectError(Class)` | keeps error intent explicit |
+| complex value assertion | `assertNext(consumer)` | multi-property inspection per value |
 | time-based operator | `StepVerifier.withVirtualTime(() -> publisher)` | avoids real delays |
 | no events during a window | `expectSubscription().expectNoEvent(duration)` | subscription itself is an event |
 | additional demand mid-test | `thenRequest(n)` | controls request flow |
 | manual upstream source | `TestPublisher.create()` | emits signals on demand |
 | branch selection check | `PublisherProbe.empty()` or `PublisherProbe.of(...)` | verifies subscription path |
 | dropped/discarded checks | `verifyThenAssertThat()` | post-execution assertions |
+| recorded-signal inspection | `verifyThenAssertThat().consumeRecordedWith(...)` | inspect all recorded signals after verification |
 
 ## Ready-to-adapt examples
 
@@ -202,6 +207,7 @@ class RequestAndCancellationExample {
 
 ```java
 import org.junit.jupiter.api.Test;
+import java.time.Duration;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -211,10 +217,73 @@ class PostVerificationExample {
         StepVerifier.create(Flux.just("a", "b"))
             .expectNext("a", "b")
             .verifyThenAssertThat()
-            .tookLessThan(java.time.Duration.ofSeconds(1));
+            .tookLessThan(Duration.ofSeconds(1));
     }
 }
 ```
+
+### `assertNext(...)` for complex value assertions
+
+Use `assertNext(...)` when a value needs multi-assertion inspection beyond simple equality.
+
+```java
+import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+
+class AssertNextExample {
+    @Test
+    void assertsMultiplePropertiesPerValue() {
+        StepVerifier.create(Flux.just("alpha", "beta", "gamma"))
+            .expectNext("alpha")
+            .assertNext(value -> {
+                assertThat(value).hasSizeGreaterThan(1);
+                assertThat(value).startsWith("b");
+            })
+            .expectNext("gamma")
+            .verifyComplete();
+    }
+}
+```
+
+`assertNext(...)` receives the value and allows arbitrary assertions inside the lambda. Use it when `expectNext(...)` equality matching is not expressive enough.
+
+### Virtual time and `delayElement` caveat
+
+`delayElement` uses `Schedulers.parallel()` by default, which bypasses virtual time just like `subscribeOn`. Use `delaySubscription` instead when working inside `withVirtualTime`, or ensure no real-scheduler call appears in the publisher chain.
+
+```java
+import java.time.Duration;
+import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+class DelayElementVirtualTimeTest {
+    @Test
+    void badDelayElementInVirtualTime() {
+        StepVerifier.withVirtualTime(() ->
+            Mono.just("value").delayElement(Duration.ofSeconds(5))
+        )
+            .expectSubscription()
+            .expectNoEvent(Duration.ofSeconds(5))
+            .expectNext("value")
+            .verifyComplete();
+    }
+    @Test
+    void goodVirtualTimeWithoutDelayElement() {
+        StepVerifier.withVirtualTime(() ->
+            Mono.just("value").delaySubscription(Duration.ofSeconds(5))
+        )
+            .expectSubscription()
+            .expectNoEvent(Duration.ofSeconds(5))
+            .expectNext("value")
+            .verifyComplete();
+    }
+}
+```
+
+The first test may hang or fail because `delayElement` uses the real `parallel()` scheduler. The second test uses `delaySubscription` which is compatible with virtual time.
 
 ## Common pitfalls
 

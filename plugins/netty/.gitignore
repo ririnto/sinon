@@ -1,0 +1,13 @@
+.DS_Store
+*.log
+node_modules/
+target/
+*.class
+*.jar
+*.war
+*.ear
+.idea/
+*.iml
+.settings/
+.project
+.classpath

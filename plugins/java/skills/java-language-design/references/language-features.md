@@ -1,14 +1,11 @@
 ---
 title: Java Language Features Reference
 description: >-
-  Reference for Java language feature behavior and version-sensitive feature lookup.
+  Reference for Java language feature tradeoffs, record vs class vs sealed modeling,
+  enum vs sealed variants, and preview-feature cost assessment.
 ---
 
-Use these official and high-signal references when the Java baseline is already known and the remaining blocker is language-feature tradeoff rather than syntax availability lookup. This file should be sufficient on its own to finish one semantic-modeling decision.
-
-- Oracle Java SE documentation hub: <https://docs.oracle.com/en/java/>
-- Oracle Java API documentation index: <https://docs.oracle.com/en/java/javase/index.html>
-- OpenJDK JEP index: <https://openjdk.org/jeps/0>
+Open this reference when the Java baseline is already known and the remaining blocker is language-feature tradeoff rather than syntax availability lookup. This file should be sufficient on its own to finish one semantic-modeling decision.
 
 Use this file to finish one of these jobs:
 
@@ -17,11 +14,18 @@ Use this file to finish one of these jobs:
 - decide whether enum or sealed variants communicate the model more clearly
 - pressure-test whether a preview-only feature is worth the baseline or support cost
 
-## Semantic Modeling Comparisons
+## Official references
+
+- Oracle Java SE documentation hub: <https://docs.oracle.com/en/java/>
+- Oracle Java API documentation index: <https://docs.oracle.com/en/java/javase/index.html>
+- OpenJDK JEP index: <https://openjdk.org/jeps/0>
+
+## Semantic modeling comparisons
 
 Record vs mutable class:
 
 ```java
+// Mutable class: fields can change, no built-in equality
 final class Money {
     private String currency;
     private long cents;
@@ -42,6 +46,7 @@ final class Money {
 ```
 
 ```java
+// Record: immutable, value-based equality, compact
 record Money(String currency, long cents) {
 }
 ```
@@ -51,6 +56,7 @@ Use when: the type is primarily a value carrier with stable components, value se
 Record with invariants vs regular class:
 
 ```java
+// Record with compact invariant validation
 record Percentage(int value) {
     Percentage {
         if (value < 0 || value > 100) {
@@ -61,6 +67,7 @@ record Percentage(int value) {
 ```
 
 ```java
+// Regular class with evolving state
 final class RetryBudget {
     private int remaining;
 
@@ -79,6 +86,7 @@ Use when: a record still fits if the invariant is construction-time only; stay w
 Sealed hierarchy vs open interface:
 
 ```java
+// Sealed: compiler-enforced closed hierarchy
 sealed interface PaymentResult permits Approved, Rejected {
 }
 
@@ -90,6 +98,7 @@ record Rejected(String reason) implements PaymentResult {
 ```
 
 ```java
+// Open: extensible across packages
 public interface PaymentResult {
 }
 
@@ -115,6 +124,7 @@ Use when: sealed types fit a closed domain owned by the module, while an open in
 Enum vs sealed variants:
 
 ```java
+// Enum: singleton states, no per-variant payload
 enum JobState {
     QUEUED,
     RUNNING,
@@ -124,6 +134,9 @@ enum JobState {
 ```
 
 ```java
+import java.time.Duration;
+
+// Sealed: each branch carries different data
 sealed interface JobOutcome permits Success, Failure {
 }
 
@@ -139,14 +152,15 @@ Use when: enum fits singleton states with no per-variant payload, while sealed v
 Preview feature gate:
 
 ```java
+// preview-sensitive primitive pattern example intentionally omitted from common guidance
 switch (value) {
-    // preview-sensitive primitive pattern example intentionally omitted from common guidance
+    // Preview constructs go here only after explicit team decision
 }
 ```
 
 Use when: the team is considering a preview-only construct. Treat it as a product and support decision, not as default design modernization.
 
-## Review Questions
+## Review questions
 
 - Does a record model value semantics more clearly than a mutable class here?
 - Is a sealed hierarchy genuinely closed inside the module, or is future extension still expected?

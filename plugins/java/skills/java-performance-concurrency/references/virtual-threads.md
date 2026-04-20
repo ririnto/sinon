@@ -1,22 +1,34 @@
 ---
 title: Virtual Threads Reference
 description: >-
-  Reference for virtual thread fit, limits, and review questions in Java concurrency work.
+  Reference for virtual thread fit assessment, version-sensitive limits,
+  ScopedValue usage, pinning diagnosis, and ThreadLocal guidance
+  in Java concurrency work.
 ---
+
+Open this reference when the workload shape is already classified as blocking-I/O and you still need one of these deeper jobs:
+
+- evaluate whether virtual threads are the right fit for a specific concurrency model
+- understand version-specific pinning behavior on JDK 21-23 vs 24+
+- use `ScopedValue` for immutable request context instead of broad `ThreadLocal`
+- diagnose pinning from thread dumps or JFR traces
+- audit `ThreadLocal` usage before migrating to virtual threads
 
 Use official Java and OpenJDK materials for version-specific behavior and limitations.
 
-## Version-Sensitive Guidance
+## Version-sensitive guidance
 
 - Java 21-23: review `synchronized` sections carefully because virtual threads can still pin to carrier threads in those baselines.
 - Java 24+: JEP 491 removes `synchronized`-driven pinning as the default concern, but native or JNI-heavy paths can still pin virtual threads.
 - Treat `ScopedValue` as version-sensitive rather than a universal default: it is preview on Java 21-24 and finalized in Java 25.
 
-## Concrete Code Examples
+## Concrete code examples
 
 Simplest virtual-thread execution model for blocking-task workloads:
 
 ```java
+import java.util.concurrent.Executors;
+
 try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
     executor.submit(() -> service.handle(request));
 }
@@ -25,15 +37,17 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 Scope-bounding virtual threads without a pool:
 
 ```java
+import java.util.concurrent.Future;
+import java.util.concurrent.StructuredTaskScope;
+
 try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
     Future<String> a = scope.fork(() -> blockingCall("a"));
     Future<String> b = scope.fork(() -> blockingCall("b"));
     scope.join();
-    // children inherit parent interruption and cancellation
 }
 ```
 
-ScopedValue for immutable request context (JDK 21-25 preview, finalized JDK 25+):
+ScopedValue for immutable request context (preview on JDK 21-24, finalized in JDK 25):
 
 ```java
 final class RequestContextHandler {
@@ -53,7 +67,7 @@ Pinning diagnosis on JDK 21-23 (look for carrier-thread blocking in thread dumps
 #   at java.base/java.lang.Continuation.enter()
 
 # Synchronized block that pins the carrier:
-synchronized(lock) {   // pins virtual thread to carrier on JDK 21-23
+synchronized(lock) {   # pins virtual thread to carrier on JDK 21-23
     doWork();
 }
 ```
@@ -65,7 +79,7 @@ Avoid broad `ThreadLocal` in virtual-thread workloads; use `ThreadLocal` only fo
 static final ThreadLocal<int[]> buffer = ThreadLocal.withInitial(() -> new int[256]);
 ```
 
-## Review Questions
+## Review questions
 
 - Is the workload dominated by blocking I/O?
 - Are thread-local assumptions or pinning risks present?

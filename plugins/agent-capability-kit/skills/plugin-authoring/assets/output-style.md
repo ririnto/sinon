@@ -1,10 +1,10 @@
 ---
-name: Executive Summary
+name: executive-summary
 description: Format responses as a short decision, key facts, risks, and next action.
 keep-coding-instructions: true
 ---
 
-# Executive Summary Output Style
+# Executive Summary
 
 Produce responses in this order:
 

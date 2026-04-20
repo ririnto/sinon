@@ -50,9 +50,9 @@ Return:
 
 ## Optional tool boundary
 
-Add `tools` only when the agent needs a bounded tool surface.
+Omit this section unless the role needs tools different from the default environment. Add `tools` only when the agent needs a bounded tool surface. Per SKILL.md rule: default to omitting `tools` and add it only when the role requires a tighter or non-default boundary.
 
-Example:
+Example (include only when needed):
 
 ```markdown
 tools: ["Read", "Grep"]

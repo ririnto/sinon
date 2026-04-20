@@ -1,5 +1,7 @@
 # Validation Checklist
 
+Use this checklist as a final verification pass, not as a gate that blocks completion. Items marked with `[repo]` are specific to the Sinon publishing standard and may not apply to skills published elsewhere.
+
 ## Frontmatter
 
 - [ ] Directory name matches `name`
@@ -48,7 +50,9 @@
 - [ ] No script is a hidden prerequisite for understanding the ordinary path
 - [ ] Script guidance does not assume host-specific wrappers or required external services
 
-## Cross-platform
+## Cross-platform [repo]
+
+These items apply when publishing to the Sinon marketplace. Skip them if the skill targets a different publishing context.
 
 - [ ] No Claude-only frontmatter guidance appears in the source
 - [ ] No product-specific SDK code appears in the source

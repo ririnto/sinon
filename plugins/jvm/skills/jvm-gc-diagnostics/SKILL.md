@@ -1,7 +1,9 @@
 ---
 name: jvm-gc-diagnostics
 description: >-
-  Use this skill when the user asks to "analyze GC logs", "compare G1 and ZGC", "understand Java garbage collection", "debug pause times", "explain heap pressure", or needs guidance on JDK garbage-collection diagnostics and collector tradeoffs.
+  Use this skill when the user asks to "analyze GC logs", "compare G1 and ZGC",
+  "understand Java garbage collection", "debug pause times", "explain heap pressure",
+  or needs guidance on JDK garbage-collection diagnostics and collector tradeoffs.
 metadata:
   title: JVM GC Diagnostics
   official_project_url: "https://docs.oracle.com/en/java/"
@@ -22,13 +24,6 @@ Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this ski
 
 Treat JFR-based GC evidence as the normal low-overhead path on JDK 11 and later. On JDK 8, verify the exact Oracle JDK 8 Flight Recorder availability, commercial-feature status, and licensing posture before recommending JFR commands; otherwise prefer GC logs plus `jcmd` evidence first.
 
-## Use This Skill When
-
-- You need to read GC logs or GC-related JFR evidence.
-- You need to compare collectors such as G1, ZGC, Shenandoah, Parallel, or Serial.
-- You need to decide whether long pauses or heap pressure are really GC-driven.
-- Do not use this skill when the problem is general JVM incident triage without specific GC evidence.
-
 ## Common-Case Workflow
 
 1. Start from the symptom: pauses, throughput loss, allocation spikes, memory growth, or startup footprint.
@@ -47,16 +42,13 @@ jcmd <pid> VM.version
 jcmd <pid> VM.flags
 ```
 
-For the next deploy, enable bounded GC log output so pauses and allocation pressure are visible:
+For the next deploy, enable bounded GC log output for basic pause visibility:
 
 ```bash
 java -Xlog:gc:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M ...
 ```
 
-Legacy note:
-
-- JDK 8 and earlier use legacy GC log flags such as `-verbose:gc`, `-XX:+PrintGCDetails`, `-XX:+PrintGCTimeStamps`, and `-Xloggc:gc.log`
-- JDK 9 and later use unified logging with `-Xlog:gc...`
+Version-specific logging syntax — JDK 8 and earlier use legacy GC log flags (`-verbose:gc`, `-XX:+PrintGCDetails`, `-XX:+PrintGCTimeStamps`, `-Xloggc:gc.log`); JDK 9 and later use unified logging with `-Xlog:gc...`.
 
 ## First Runnable Commands or Code Shape
 
@@ -164,30 +156,110 @@ Validate the common case with these checks:
 - recommendation framed in pause/throughput/footprint, not collector branding
 - no collector switch until GC evidence shows default is a mismatch
 
-## Collector Baselines
+## Format-Critical Output Shapes
 
-| Java baseline | Common/default baseline | Realistic selectable collectors | Notes |
-| --- | --- | --- | --- |
-| 8 | Parallel on older server-class JVMs | Serial, Parallel, CMS, G1 | pre-unified-logging era; CMS still exists |
-| 11 | G1 default | Serial, Parallel, G1, experimental ZGC; Shenandoah depends on build | ZGC needs experimental unlock |
-| 17 | G1 default | Serial, Parallel, G1, ZGC; Shenandoah on builds that ship it | ZGC no longer needs experimental unlock |
-| 21 | G1 default | Serial, Parallel, G1, ZGC with optional generational mode; Shenandoah on builds that ship it | Treat `-XX:+UseZGC -XX:+ZGenerational` as the explicit generational-ZGC shape on this LTS line |
-| 25 | G1 default | Serial, Parallel, G1, generational ZGC; Shenandoah still vendor-sensitive | Use `-XX:+UseZGC`; do not rely on `-XX:+ZGenerational` on this LTS line |
+### `GC.heap_info` Output
 
-## Version-Specific Collector Notes
+```bash
+jcmd <pid> GC.heap_info
+```
 
-- JDK 21 LTS can run ZGC in its explicit generational form with `-XX:+UseZGC -XX:+ZGenerational` when that mode is the intended choice.
-- By JDK 25 LTS, the generational-only ZGC path is the practical baseline, so new scripts should use `-XX:+UseZGC` without `-XX:+ZGenerational`.
-- Shenandoah remains build- and vendor-sensitive in practice; confirm the actual JDK distribution before recommending it.
-- If deployment is pinned to an older LTS in container images, treat that pinned runtime as the effective collector baseline rather than the newest LTS available elsewhere.
+Sample output (G1 on JDK 21):
 
-## Review Questions
+```text
+Min heap alignment: 4096 KiB
+Reserved region:
+ - [0x00000007ffc00000, 0x0000000800000000): committed
+Heap region sizes:
+ - Region 0: 2048 KiB
+ - Region 1: 1024 KiB
+G1 Heap:
+   num_regions: 512
+   Max regions: 512
+   Heap size: 1048576K
+   Free regions: 200
+   Young regions: 180
+   Eden regions: 160
+   Survivor regions: 20
+   Old regions: 132
+   Humongous regions: 0
+   Start CS time: 12345 ms
+   End CS time: 12346 ms
+```
 
-- What Java LTS baseline is actually running in production?
-- Is the current collector the default for that baseline?
-- Are the proposed collector flags valid for that runtime era?
-- Is the problem better explained by allocation rate, heap sizing, or non-GC runtime behavior?
-- Is there evidence strong enough to justify moving away from the default collector?
+Read: Total heap = 1048576K (~1GB), 200 free regions (39% free). Young gen = 180 regions (35%), Old gen = 132 regions (26%). If `Free regions` drops below ~50 during sustained load, the heap is under pressure.
+
+### `VM.flags` Output (Collector Identity)
+
+```bash
+jcmd <pid> VM.flags
+```
+
+Look for these flag lines to identify the active collector:
+
+```bash
+-XX:G1HeapRegionSize=4M          ← G1 is active
+-XX:+UseG1GC                     ← G1 explicitly set (or default)
+-XX:+UseZGC                      ← ZGC is active
+-XX:+UseParallelGC               ← Parallel GC is active
+-XX:+UseSerialGC                 ← Serial GC is active
+```
+
+If none of these appear, the default collector for that LTS applies (G1 for 11+, Parallel for 8 server-class).
+
+### `JFR.check` Output
+
+```bash
+jcmd <pid> JFR.check
+```
+
+Sample output:
+
+```text
+Recording 1: name=gc-baseline maxsize=0 (unlimited) duration=0 (unlimited) disk=true
+  Recording: to=true size=48 KiB (48 KiB) maxsize=0 (unlimited) duration=2 h (2 h)
+  Dump on exit: false
+  Path: /tmp/gc-baseline_12345_2026-04-20_101530.jfr
+```
+
+Read: Recording is active, has captured 48KB so far, max age 2h, writing to disk. Confirm `maxage` reflects the intended retention window. A `duration` of `0 (unlimited)` is expected when only `maxage` is set — these are independent parameters.
+
+### Unified GC Log Line Shape (JDK 9+)
+
+```text
+[0.952s][info][gc,start ] GC(0) Pause Young (Normal) (G1 Evacuation Pause)
+[0.956s][info][gc,cpu  ] GC(0) User=0.01s Sys=0.00s Real=0.00s
+```
+
+Read each event: timestamp → log level → tag(s) → GC ID + phase → details. The `Real=` value in the `[gc,cpu]` line is the wall-clock pause duration.
+
+### Legacy GC Log Line Shape (JDK 8)
+
+```text
+2026-04-20T10:15:30.123+0000: 1.234: [GC (Allocation Failure) ...] 196608K->139264K(524288K), 0.0234321 secs
+```
+
+Read: datestamp → uptime → GC type → total heap Before->After(Max) → pause seconds. The value before `secs` is the wall-clock pause duration.
+
+### `jfr print --summary` Output
+
+```bash
+jfr print --summary /path/to/recording.jfr
+```
+
+Shows event counts grouped by type. Look for:
+
+- `jdk.GarbageCollection` count — how many GC cycles occurred
+- `jdk.GCPhasePause` — individual pause phases; check max duration
+- `jdk.ObjectAllocationInNewTLAB` count — very high counts indicate allocation pressure
+
+## Deep References
+
+| If the blocker is... | Read... |
+| --- | --- |
+| confirming which collectors exist on an LTS baseline, comparing defaults, or deciding between G1/ZGC/Shenandoah | `./references/collector-baselines.md` |
+| configuring GC logging for next deploy, interpreting GC log output, translating JDK 8 legacy flags to unified logging | `./references/gc-logging.md` |
+| analyzing JFR recordings for GC events, querying specific events, interpreting event output | `./references/jfr-gc-events.md` |
 
 ## Invariants
 

@@ -167,7 +167,7 @@ Return:
 
 ## Ordinary authoring procedure
 
-1. Read the existing agent file if you are refactoring; otherwise start from `assets/agent-template.md`.
+1. Read the existing agent file if you are refactoring; otherwise start from `assets/agent-template.md` or use the Minimal example below as an inline fallback.
 2. Define the agent role in one sentence.
 3. Check that the role is narrow enough to be discoverable and autonomous.
 4. Draft or revise frontmatter:
@@ -226,6 +226,15 @@ Correct for a bounded editor:
 tools: ["Read", "Write"]
 ```
 
+## First safe checks
+
+Use simple local checks first:
+
+1. Open the target agent Markdown file.
+2. Confirm that the frontmatter includes the required fields.
+3. Confirm that the body contains a role statement plus `Responsibilities`, `Process`, and `Output` sections.
+4. Confirm that the `description` examples and `tools` choice match the role.
+
 ## Minimal example
 
 Use this as a smallest useful agent starting point:
@@ -282,15 +291,6 @@ Return:
 2. Supporting evidence with file references
 3. Remaining uncertainty or blockers
 ```
-
-## First safe checks
-
-Use simple local checks first:
-
-1. Open the target agent Markdown file.
-2. Confirm that the frontmatter includes the required fields.
-3. Confirm that the body contains a role statement plus `Responsibilities`, `Process`, and `Output` sections.
-4. Confirm that the `description` examples and `tools` choice match the role.
 
 ## Edge cases
 

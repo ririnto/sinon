@@ -5,7 +5,7 @@ description: "Open when local log and checkpoint diagnostics are not enough and 
 
 Open when a few local probes are not enough to explain where execution moved, where assembly happened, or why scheduling behavior differs across chains.
 
-For signal-level inspection (checkpoint, log, doOnEach) without assembly tracing or thread debugging, see [Signal-Level Diagnostics](../reactor-core/references/debugging-and-observability.md) in the `reactor-core` skill.
+For signal-level inspection (checkpoint, log, doOnEach) without assembly tracing or thread debugging, see [Signal-Level Diagnostics](../../reactor-core/references/debugging-and-observability.md) in the `reactor-core` skill.
 
 ## Start with the narrowest advanced tool
 
@@ -49,7 +49,6 @@ final class ThreadLoggingExample {
             .publishOn(Schedulers.parallel())
             .doOnNext(value -> currentThread("after", value));
     }
-
     private void currentThread(String stage, Integer value) {
         System.out.println(stage + ":" + value + ":" + Thread.currentThread().getName());
     }
@@ -57,6 +56,29 @@ final class ThreadLoggingExample {
 ```
 
 Use this pattern to verify that `publishOn(...)` actually switches threads at the expected point. The before/after pair shows whether the scheduler hop occurred.
+
+## `ReactorDebugAgent` for lower-overhead instrumentation
+
+```java
+import reactor.core.publisher.Flux;
+import reactor.tools.agent.ReactorDebugAgent;
+
+final class DebugAgentExample {
+    void instrument() {
+        ReactorDebugAgent.init();
+    }
+    Flux<Integer> values() {
+        return Flux.range(1, 3)
+            .map(value -> value * 2)
+            .checkpoint("after-map");
+    }
+    void shutdown() {
+        ReactorDebugAgent.processErrors();
+    }
+}
+```
+
+`ReactorDebugAgent` provides assembly tracing with lower steady-state overhead than `Hooks.onOperatorDebug()` because it defers processing until explicitly requested. Call `init()` once during initialization and `processErrors()` when you need to dump collected assembly traces. Requires `io.projectreactor:reactor-tools` as a dependency.
 
 ## Guardrails
 
@@ -67,6 +89,6 @@ Use this pattern to verify that `publishOn(...)` actually switches threads at th
 
 ## When this reference is the wrong tool
 
-- If you need signal-level inspection (what values flow through which operator), see [Signal-Level Diagnostics](../reactor-core/references/debugging-and-observability.md) in the `reactor-core` skill.
-- If the chain is correct but `ThreadLocal`-backed data disappears, open [Context Propagation Across Scheduler Boundaries](context-propagation.md).
+- If you need signal-level inspection (what values flow through which operator), see [Signal-Level Diagnostics](../../reactor-core/references/debugging-and-observability.md) in the `reactor-core` skill.
+- If the chain is correct but `ThreadLocal`-backed data disappears, open [ThreadLocal Context Bridging](threadlocal-context-bridging.md).
 - If the main need is virtual time or scheduler replacement inside tests, use the testing skill instead.

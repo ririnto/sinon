@@ -4,33 +4,15 @@ Use these patterns when you need copyable frontmatter examples for common agent 
 
 ## Read-only analysis agent
 
-```markdown
----
-name: schema-reviewer
-description: Use this agent when a schema, contract, or config file needs focused review. Examples:
+See the Minimal example in `SKILL.md` for a complete read-only analysis shape (`schema-reviewer`). The pattern below shows only the frontmatter differences for a read-only role:
 
-  <example>
-  Context: API contract review before release
-  user: "Review this OpenAPI file for consistency and missing fields"
-  assistant: "I'll use the schema-reviewer agent to inspect the file closely."
-  <commentary>
-  The task is narrow, analytical, and does not require edits.
-  </commentary>
-  </example>
-
-  <example>
-  Context: deployment configuration audit
-  user: "Check this config file for risky defaults and missing required values"
-  assistant: "I'll use the schema-reviewer agent to review the configuration file."
-  <commentary>
-  The request is still a bounded review with a read-only outcome.
-  </commentary>
-  </example>
+```yaml
 model: inherit
 color: cyan
 tools: ["Read", "Grep"]
----
 ```
+
+Key traits: narrow inspection scope, no mutation tools, `description` starts with `Use this agent when...` and includes concrete `<example>` blocks showing trigger conditions.
 
 ## Editing agent
 
@@ -59,5 +41,35 @@ description: Use this agent when a documentation file needs direct rewriting wit
 model: inherit
 color: green
 tools: ["Read", "Write"]
+---
+```
+
+## Multi-file refactor agent
+
+```markdown
+---
+name: dependency-updater
+description: Use this agent when dependency versions, import paths, or API signatures need coordinated updates across multiple files. Examples:
+
+  <example>
+  Context: library version bump after security advisory
+  user: "Update all lodash imports from v3 to v4 across the codebase"
+  assistant: "I'll use the dependency-updater agent to trace and update every import path."
+  <commentary>
+  The task spans multiple files but the changes are mechanical and bounded to import statements.
+  </commentary>
+  </example>
+
+  <example>
+  Context: module rename after package restructure
+  user: "Rename all references from utils/helpers to utils/internal in src/"
+  assistant: "I'll use the dependency-updater agent to find and update every reference."
+  <commentary>
+  The role requires both broad read access (to find all references) and targeted mutation (to update each one).
+  </commentary>
+  </example>
+model: inherit
+color: yellow
+tools: ["Read", "Write", "Edit", "Grep"]
 ---
 ```

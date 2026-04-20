@@ -9,9 +9,10 @@ Open this when the application must switch from plain HTTP or TCP to secure tran
 
 ## HTTPS server
 
+File-based certificate (production):
+
 ```java
-SelfSignedCertificate certificate = new SelfSignedCertificate();
-SslContext sslContext = SslContextBuilder.forServer(certificate.certificate(), certificate.privateKey()).build();
+SslContext sslContext = SslContextBuilder.forServer(new File("server.crt"), new File("server.key")).build();
 
 DisposableServer server = HttpServer.create()
     .secure(spec -> spec.sslContext(sslContext))
@@ -19,6 +20,9 @@ DisposableServer server = HttpServer.create()
     .bindNow();
 server.onDispose().block();
 ```
+
+> [!CAUTION]
+> `SelfSignedCertificate` is a Netty test utility (`io.netty.handler.ssl.util.SelfSignedCertificate`) intended for development and test code only. Never use it in production. For local development, replace the `File(...)` arguments above with `certificate.certificate()` / `certificate.privateKey()` from a `new SelfSignedCertificate()` instance.
 
 ## HTTPS client
 

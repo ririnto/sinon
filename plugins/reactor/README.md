@@ -25,7 +25,7 @@ Reactor is a shared, skill-first plugin for Project Reactor reactive programming
 
 Use this tree to select the correct skill for any Reactor task.
 
-```
+```text
 Is the task about testing a publisher?
   YES -> reactor-testing
   NO  -> Continue

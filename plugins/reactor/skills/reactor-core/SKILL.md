@@ -1,6 +1,6 @@
 ---
 name: reactor-core
-description: Author Reactor pipelines with Flux and Mono. Use when designing or reviewing Flux/Mono source creation, operator composition, combination, empty/error behavior, ordinary backpressure choices, and everyday Context usage in Project Reactor.
+description: Author Reactor pipelines with Flux and Mono. Use this skill when designing or reviewing Flux/Mono source creation, operator composition, combination, empty/error behavior, ordinary backpressure choices, and everyday Context usage in Project Reactor.
 metadata:
   title: Reactor Core
   official_project_url: "https://projectreactor.io/docs/core/release/reference/"
@@ -8,6 +8,8 @@ metadata:
     - "https://projectreactor.io/docs/core/release/reference/"
     - "https://projectreactor.io/docs/core/release/api/"
   version: "3.7"
+  dependencies:
+    - "io.projectreactor:reactor-core:3.7.x"
 ---
 
 Author the ordinary Reactor path with `Flux` and `Mono`.
@@ -18,8 +20,8 @@ This skill covers source selection, operator composition, combination, empty/err
 
 - choosing between `Flux<T>` and `Mono<T>`
 - creating a sequence from fixed values, collections, one lazy value, a future, or one blocking call
-- composing a pipeline with transformation, filtering, sequencing, merging, zipping, and collection operators
-- making empty behavior, error translation, fallback, cleanup, and bounded retry explicit
+- composing a pipeline with transformation, filtering, sequencing, merging, zipping, cancellation-aware fan-out, time-bounded operations, and collection operators
+- making empty behavior, error translation, fallback, cleanup, completion-side repeat, bounded retry, and timeout explicit
 - deciding whether ordinary backpressure defaults are enough or an overflow policy must be chosen
 - carrying tracing, request, tenant, or auth metadata through `Context`
 
@@ -37,9 +39,9 @@ This skill covers source selection, operator composition, combination, empty/err
 | --- | --- | --- |
 | `Flux` / `Mono` choice | cardinality, contract, type-switching operators | the real problem is hot/manual sources rather than ordinary cardinality |
 | source creation | `just`, `empty`, `error`, `defer`, `fromCallable`, `fromSupplier`, `fromFuture`, `fromIterable`, `range` | you need `generate`, `create`, `push`, `using`, or other programmatic patterns |
-| operator composition | `map`, `flatMap`, `concatMap`, `handle`, `filter`, `take`, `skip`, `collectList`, `reduce` | ordering, batching, or async fan-out details become the blocker |
-| combination | `concat`, `merge`, `zip`, `combineLatest`, `then`, `switchIfEmpty` | exact completion or ordering semantics decide correctness |
-| empty/error behavior | `defaultIfEmpty`, `switchIfEmpty`, `onErrorResume`, `onErrorMap`, `doFinally`, bounded retry | you need `Retry` policies, backoff, filtering, or retry exhaustion rules |
+| operator composition | `map`, `flatMap`, `concatMap`, `handle`, `filter`, `take`, `skip`, `collectList`, `reduce`, `switchMap`, `flatMapMany` | ordering, batching, or async fan-out details become the blocker |
+| combination | `concat`, `merge`, `zip`, `combineLatest`, `then`, `switchIfEmpty`, `switchOnNext` | exact completion or ordering semantics decide correctness |
+| empty/error behavior | `defaultIfEmpty`, `switchIfEmpty`, `onErrorResume`, `onErrorMap`, `doFinally`, `timeout`, `repeat`, bounded retry | you need `Retry` policies, backoff, filtering, retry exhaustion, or repeat exhaustion rules |
 | ordinary backpressure | natural demand, `limitRate(...)`, basic overflow choice | `prefetch`, `BaseSubscriber`, or queue growth becomes the blocker |
 | threading / schedulers | recognize the boundary only | `publishOn(...)`, `subscribeOn(...)`, scheduler choice, or execution tracing becomes the main problem |
 | blocking bridge | one blocking boundary with `Mono.fromCallable(...)` | multiple boundaries, fromRunnable/fromFuture nuances, terminal bridges, or virtual-thread considerations are needed |
@@ -55,6 +57,8 @@ This skill covers source selection, operator composition, combination, empty/err
 - Prefer the narrowest source factory that matches the real data boundary.
 - Use `map(...)` for synchronous value-to-value work and `flatMap(...)` for publisher-returning work.
 - Use `concatMap(...)` when downstream order must stay stable.
+- Use `switchMap(...)` when previous inner publishers should cancel on new trigger (search-as-you-type, latest-win semantics).
+- Use `timeout(...)` to bound the wait for any signal and fall back or error on delay.
 - Make empty and error behavior explicit before returning the publisher.
 - Wrap blocking work once with `Mono.fromCallable(...)` and move it off the caller thread deliberately.
 - Use `Context` for cross-cutting metadata, not for primary business payload.
@@ -72,7 +76,8 @@ This skill covers source selection, operator composition, combination, empty/err
    - Future bridge: `fromFuture`.
    - Subscription-time choice: `defer`.
 3. Compose the main business path.
-   - Transform: `map`, `flatMap`, `concatMap`, `handle`.
+   - Transform: `map`, `flatMap`, `concatMap`, `switchMap`, `handle`.
+   - Flatten Mono-to-Flux: `flatMapMany` (or `flatMapIterable` for Iterable sources).
    - Filter or gate: `filter`, `take`, `skip`, `distinct`.
    - Aggregate: `collectList`, `reduce`, `count`.
 4. Choose the combination behavior explicitly.
@@ -82,8 +87,10 @@ This skill covers source selection, operator composition, combination, empty/err
    - Latest-state recompute: `combineLatest`.
    - Completion dependency only: `then`, `thenMany`.
 5. Make terminal behavior explicit.
-   - Empty fallback: `defaultIfEmpty`, `switchIfEmpty`.
+   - Empty fallback: `defaultIfEmpty` (eager static value), `switchIfEmpty` (lazy alternative publisher).
    - Error recovery: `onErrorReturn`, `onErrorResume`, `onErrorMap`.
+   - Time bound: `timeout(...)` or `timeoutWhen(...)` for delayed fallback on silence.
+   - Completion-side repeat: `repeat(...)` or `repeatWhen(...)` for re-subscription loops.
    - Cleanup: `doFinally`.
    - Bounded retry: `retry(n)` or `retryWhen(...)` with a deliberate policy.
 6. Check demand and metadata.
@@ -110,15 +117,21 @@ This skill covers source selection, operator composition, combination, empty/err
 | lazy one-shot lookup | `Mono.fromCallable(...)` | captures deferred work once per subscription |
 | async step returning a publisher | `flatMap(...)` | flattens the nested publisher |
 | async step with ordering | `concatMap(...)` | preserves source order |
+| cancellation-aware fan-out (latest-win) | `switchMap(...)` | cancels previous inner on new trigger |
+| Mono-to-Flux flatten | `flatMapMany(...)` or `flatMapIterable(...)` | bridges cardinality change |
 | synchronous reshape | `map(...)` | keeps the chain simple |
-| static empty fallback | `defaultIfEmpty(...)` | replaces empty with one value |
-| dynamic empty fallback | `switchIfEmpty(...)` | switches to another publisher |
+| conditional multi-signal emission | `handle(...)` | emit 0..N values per input element |
+| static empty fallback | `defaultIfEmpty(...)` | eagerly replaces empty with one value |
+| dynamic empty fallback | `switchIfEmpty(...)` | lazily switches to another publisher on empty |
 | error fallback | `onErrorResume(...)` | chooses a replacement publisher |
 | exception translation | `onErrorMap(...)` | preserves failure flow while changing the type |
+| time-bounded operation | `timeout(Duration)` | errors or falls back if no signal arrives in time |
+| completion-side repeat | `repeat(n)` or `repeatWhen(...)` | re-subscribes on completion, not error |
 | sequential combination | `concat(...)` | later sources wait for earlier completion |
 | concurrent combination | `merge(...)` | emits as soon as values arrive |
 | pair by index | `zip(...)` | aligns values positionally |
 | latest-state recompute | `combineLatest(...)` | recomputes when any source changes |
+| lifecycle side effect | `doOnSubscribe` / `doOnNext` / `doOnError` / `doOnCancel` / `doFinally` | observe signals without transforming |
 | request metadata | `contextWrite(...)` + `deferContextual(...)` | keeps metadata in the subscription, not the thread |
 
 ## Ready-to-adapt examples
@@ -133,21 +146,20 @@ import reactor.core.scheduler.Schedulers;
 final class UserLookupService {
     Mono<UserView> loadUser(String userId) {
         return Mono.fromCallable(() -> fetchUser(userId))
-            .subscribeOn(Schedulers.boundedElastic()) // one scheduler hop; see reactor-scheduling for multi-hop or custom scheduler design
+            .subscribeOn(Schedulers.boundedElastic())
             .switchIfEmpty(Mono.error(new IllegalStateException("Missing user: " + userId)))
             .map(user -> new UserView(user.id(), user.name()))
             .onErrorMap(IOException.class, error -> new IllegalStateException("User lookup failed", error));
     }
-
     private User fetchUser(String userId) throws IOException {
         return new User(userId, "Ada");
     }
-
     record User(String id, String name) {}
-
     record UserView(String id, String name) {}
 }
 ```
+
+One scheduler hop offloads the blocking call to `boundedElastic`. For multi-hop or custom scheduler design, see the `reactor-scheduling` skill.
 
 ### `Flux` pipeline with ordered async fan-out and empty fallback
 
@@ -162,11 +174,9 @@ final class ActivityService {
             .filter(action -> !action.isBlank())
             .switchIfEmpty(Flux.just("NO_ACTIONS"));
     }
-
     private Flux<String> findActionIds(String userId) {
         return Flux.just("login", "purchase", "logout");
     }
-
     private Mono<String> fetchAction(String actionId) {
         return Mono.just(actionId.toUpperCase());
     }
@@ -187,6 +197,100 @@ final class TraceAwareHandler {
 }
 ```
 
+### `switchMap` for cancellation-aware fan-out
+
+```java
+import reactor.core.publisher.Flux;
+import java.time.Duration;
+
+final class SearchAsYouType {
+    Flux<String> search(Flux<String> queries) {
+        return queries.switchMap(query ->
+            fetchResults(query).take(Duration.ofMillis(200))
+        );
+    }
+    private Flux<String> fetchResults(String query) {
+        return Flux.just(query + "-result1", query + "-result2");
+    }
+}
+```
+
+`switchMap` cancels the previous inner publisher when a new trigger arrives. Use it for latest-win scenarios like search-as-you-type or live configuration refresh.
+
+### `timeout` with fallback
+
+```java
+import java.time.Duration;
+import reactor.core.publisher.Mono;
+
+final class BoundedCall {
+    Mono<String> fetchWithTimeout() {
+        return remoteCall()
+            .timeout(Duration.ofSeconds(3), Mono.just("fallback-value"));
+    }
+    private Mono<String> remoteCall() {
+        return Mono.just("response").delayElement(Duration.ofMillis(100));
+    }
+}
+```
+
+### `repeat` for completion-side re-subscription
+
+```java
+import reactor.core.publisher.Mono;
+
+final class PollingService {
+    Flux<String> pollUntilCondition() {
+        return fetchStatus()
+            .repeat(3)
+            .filter(status -> "DONE".equals(status))
+            .take(1);
+    }
+    private Mono<String> fetchStatus() {
+        return Mono.just("PENDING");
+    }
+}
+```
+
+`repeat` re-subscribes on completion (not error). Combine with `take(n)` or `repeatWhen(...)` to avoid infinite loops.
+
+### `handle` for conditional multi-signal emission
+
+```java
+import reactor.core.publisher.Flux;
+
+final class ConditionalEmission {
+    Flux<Integer> expand(Flux<Integer> source) {
+        return source.handle((value, sink) -> {
+            if (value > 0) {
+                sink.next(value);
+                if (value % 2 == 0) {
+                    sink.next(value * 10);
+                }
+            }
+        });
+    }
+}
+```
+
+`handle` allows emitting 0, 1, or N values per input element without nesting publishers. Values less than or equal to zero are silently filtered (no signal emitted).
+
+### `flatMapMany` for Mono-to-Flux cardinality change
+
+```java
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import java.util.List;
+
+final class BatchExpand {
+    Flux<String> expandBatch(Mono<List<String>> batchLoader) {
+        return batchLoader.flatMapMany(Flux::fromIterable);
+    }
+}
+```
+
+Use `flatMapMany` when a `Mono<T>` produces a collection that should be emitted as individual elements in a `Flux`.
+
 ## Common pitfalls
 
 | Anti-pattern | Why it fails | Correct move |
@@ -195,16 +299,19 @@ final class TraceAwareHandler {
 | returning `Mono<List<T>>` for a streaming contract | hides streaming semantics and demand | use `Flux<T>` unless the collection itself is the single value |
 | placing blocking I/O inside `map(...)` | occupies the current worker thread invisibly | isolate it with `fromCallable(...)` |
 | using `retry()` without a bound or policy | can loop forever under outage | use bounded retry or a deliberate `Retry` policy |
+| using `repeat()` without a termination condition | re-subscribes forever on every completion | combine with `take(n)`, `repeatUntil(...)`, or `repeatWhen(...)` |
+| using `timeout(...)` without fallback | unbounded timeout produces raw `TimeoutException` downstream | provide a fallback publisher via `timeout(duration, fallback)` |
 | treating `Context` like mutable shared state | writes are immutable and per subscription | write a new `Context` and read it with `deferContextual(...)` |
 | choosing `merge(...)` when order matters | output order becomes unstable | use `concat(...)` or `concatMap(...)` |
 | using programmatic creation for ordinary values | makes the source harder to reason about | stay with factory methods until a blocker exists |
+| using `switchMap(...)` when all inner results matter | cancels previous inners before they complete | use `flatMap(...)` or `concatMap(...)` instead |
 
 ## Validation checklist
 
 - [ ] `Flux` vs `Mono` matches the real cardinality contract.
 - [ ] Source creation reflects the true boundary: eager, lazy, async, future, or one blocking call.
-- [ ] Operator choice matches sync vs async work and ordering requirements.
-- [ ] Empty behavior, error behavior, and cleanup are explicit.
+- [ ] Operator choice matches sync vs async work and ordering requirements (including `switchMap` for cancellation-aware fan-out).
+- [ ] Empty behavior, error behavior, timeout bounds, repeat policy, and cleanup are explicit.
 - [ ] Ordinary backpressure decisions are explicit only when mismatch is real.
 - [ ] `Context` carries metadata, not primary payload.
 - [ ] Any advanced blocker is routed to exactly one reference.

@@ -37,15 +37,12 @@ Return:
 4. Recommended next action if a blocker remains
 ```
 
-## Deciding between read-only and mutation tools
+## Tool-boundary decision test
 
-Use this quick test:
+Use this three-step test when the tool choice is not obvious from the role description alone:
 
 1. If the role can succeed by inspecting and reporting, keep it read-only.
 2. If the role must change files as part of its ordinary job, allow only the smallest mutation set needed.
 3. If the role only rarely edits, prefer a read-only agent and let the caller hand off edits to another agent.
 
-Example split:
-
-- `schema-reviewer` stays read-only because it inspects and reports.
-- `docs-refiner` gets bounded write access because direct rewriting is the core job.
+The broken-vs-correct examples in `SKILL.md` under Tool-boundary rule show concrete frontmatter for each case. Use this reference's decision test when the role falls between the obvious categories.

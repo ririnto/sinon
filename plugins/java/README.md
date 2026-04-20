@@ -1,7 +1,8 @@
 ---
 title: Java
 description: >-
-  Overview of the Java plugin, its included skills, runtime model, and Java LSP setup guidance.
+  Overview of the Java plugin, its included skills, runtime model,
+  orchestration routing, and Java LSP setup guidance.
 ---
 
 Java is a shared, skill-first plugin for Java language work in the Sinon universal marketplace.
@@ -15,32 +16,41 @@ Java is a shared, skill-first plugin for Java language work in the Sinon univers
 
 ## Included Skills
 
-- `java-language-syntax`: Java grammar, expression forms, LTS-boundary syntax differences, and foundational `java.base` coverage that materially affects code-shape guidance.
-- `java-language-design`: language features, API design, exceptions, immutability, and collections guidance.
-- `java-test`: JUnit 5, red-green-refactor, mocking boundaries, and Java test execution guidance.
-- `java-performance-concurrency`: virtual threads, profiling, contention analysis, and performance review.
-- `java-dependency-versioning`: Maven Central coordinate and current-release lookup guidance.
+| Skill | Job | Trigger |
+| --- | --- | --- |
+| `java-language-syntax` | Java grammar, LTS-boundary syntax differences, foundational `java.base` coverage | "explain Java syntax", "rewrite for Java X", "is this valid on Java 17" |
+| `java-language-design` | API shape, type modeling, immutability, exception contracts, collection exposure | "design a Java API", "review class structure", "records vs sealed classes" |
+| `java-test` | JUnit 5 TDD, Mockito boundaries, Awaitility async, build-tool test wiring | "write a JUnit test", "follow TDD in Java", "fix failing test" |
+| `java-performance-concurrency` | Profiling strategy, virtual-thread fit, contention analysis, bottleneck classification | "optimize Java performance", "use virtual threads", "profile Java code" |
+| `java-dependency-versioning` | Maven Central coordinate lookup, current-release verification, install snippets | "find latest version", "look up artifact coordinate", "check Maven Central" |
 
 These skills are meant to help complete Java work directly inside the current repository. They should not stop at pointing toward other repositories or documentation when the local task can already be unblocked with stable Java guidance.
 
-## When to Use Which Skill
+## Orchestration Routing
 
 Start here when the question is still fuzzy:
 
-- If the question is "can this Java baseline compile or express it?", stay in syntax-oriented guidance; if the question is "which foundational Java SE API family in `java.base` should I reach for while staying within a given LTS baseline?", still start in syntax-oriented guidance; if the question is "should this type or API be modeled this way?", stay in design-oriented guidance.
-- Java baseline, grammar, syntax compatibility, and foundational `java.base` standard-library coverage questions belong in the syntax-oriented guidance.
-- Type modeling, API shape, immutability, and exception-boundary questions belong in the design-oriented guidance.
-- JUnit structure, red-green-refactor sequencing, and test-execution setup belong in the testing guidance.
-- Virtual-thread fit, contention, and profiling-driven bottleneck review belong in the performance and concurrency guidance.
-- Maven coordinate lookup and current dependency-release checks belong in the dependency guidance.
+### Syntax vs design vs test vs performance vs dependency
 
-Typical workflow:
+- If the question is "can this Java baseline compile or express it?", route to **syntax**.
+- If the question is "which foundational `java.base` API family should I reach for?", route to **syntax** (`java-base-family-map` reference).
+- If the question is "should this type or API be modeled this way?", route to **design**.
+- If the question is about type modeling, immutability, exception boundaries, or collection exposure, route to **design**.
+- If the question is about JUnit structure, red-green-refactor sequencing, or test execution setup, route to **test**.
+- If the question is about virtual-thread fit, contention, profiling-driven bottleneck review, route to **performance**.
+- If the question is about Maven coordinate lookup or current dependency-release checks, route to **dependency**.
 
-1. Confirm what the current Java LTS baseline allows before changing syntax or recommending newer foundational APIs.
-2. Shape the API or type model before broad refactors.
-3. Lock behavior with tests before or while changing implementation.
-4. Review concurrency and performance only after there is real evidence of a bottleneck.
-5. Check dependency coordinates and current releases before hardcoding version text.
+### Typical workflow
+
+1. Confirm what the current Java LTS baseline allows before changing syntax or recommending newer foundational APIs (**syntax**).
+2. Shape the API or type model before broad refactors (**design**).
+3. Lock behavior with tests before or while changing implementation (**test**).
+4. Review concurrency and performance only after there is real evidence of a bottleneck (**performance**).
+5. Check dependency coordinates and current releases before hardcoding version text (**dependency**).
+
+### Cross-skill scope boundaries
+
+Each skill explicitly states what it does not cover and which sibling skill handles that territory instead. When a question lands on a boundary, follow the scope-boundaries section in the active skill's SKILL.md.
 
 ## Runtime Model
 
@@ -113,7 +123,7 @@ Use JDTLS when the task needs Java symbol navigation, diagnostics, or refactors.
 
 ### Lombok Source Selection
 
-The wrapper now selects a Lombok source at startup in this order:
+The wrapper selects a Lombok source at startup in this order:
 
 1. Explicit override jar from `JAVA_ASSISTANT_LOMBOK_JAR`, `JDK_ASSISTANT_LOMBOK_JAR` (legacy alias), or `LOMBOK_JAR`
 2. Compatible project jar discovered from `.classpath` or `.factorypath`
@@ -131,7 +141,7 @@ To provide an explicit override jar, point one of these environment variables at
 
 The wrapper injects the selected jar through `JDK_JAVA_OPTIONS=-javaagent:...`.
 
-Project detection signals still matter, but they are now used to prefer a project-local jar when it can be resolved:
+Project detection signals used to prefer a project-local jar when it can be resolved:
 
 - `pom.xml` with `org.projectlombok` or `lombok`
 - `build.gradle` or `build.gradle.kts` with Lombok coordinates, Lombok plugins, or common Lombok dependency configurations

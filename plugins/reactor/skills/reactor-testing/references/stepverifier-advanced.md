@@ -72,6 +72,56 @@ class PostVerificationAssertionsTest {
 }
 ```
 
+## `assertNext(...)` for complex value inspection
+
+When `expectNext(...)` equality is not enough, use `assertNext(...)` to run arbitrary assertions on each value.
+
+```java
+import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+
+class AssertNextAdvancedTest {
+    @Test
+    void inspectsMultipleValueProperties() {
+        StepVerifier.create(Flux.just("first-value", "second-item"))
+            .assertNext(v -> {
+                assertThat(v).startsWith("first");
+                assertThat(v).contains("-");
+            })
+            .assertNext(v -> {
+                assertThat(v).startsWith("second");
+                assertThat(v).endsWith("item");
+            })
+            .verifyComplete();
+    }
+}
+```
+
+## `consumeRecordedWith(...)` for full signal inspection
+
+After verification, `consumeRecordedWith(...)` gives access to the complete list of recorded signals (onNext, onError, onComplete) for complex post-hoc assertions.
+
+```java
+import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+
+class RecordedSignalsTest {
+    @Test
+    void inspectsAllRecordedSignals() {
+        StepVerifier.create(Flux.just("a", "b"))
+            .expectNext("a", "b")
+            .verifyThenAssertThat()
+            .consumeRecordedWith(signals -> {
+                assertThat(signals).hasSize(3);
+            });
+    }
+}
+```
+
 ## Guardrails
 
 - Use `StepVerifierOptions` only when scenario naming, initial request, or initial context is the real blocker.

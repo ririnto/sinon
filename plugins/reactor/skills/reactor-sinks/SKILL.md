@@ -8,6 +8,8 @@ metadata:
     - "https://projectreactor.io/docs/core/release/reference/"
     - "https://projectreactor.io/docs/core/release/api/"
   version: "3.7"
+  dependencies:
+    - "io.projectreactor:reactor-core:3.7.x"
 ---
 
 Author Reactor hot sources deliberately.
@@ -82,6 +84,9 @@ This skill covers the ordinary path for choosing `Sinks.one()`, `Sinks.empty()`,
 2. Pick the narrowest sink type that matches the real contract.
 3. Choose unicast, multicast, or replay based on subscriber count and history needs.
 4. Expose the sink as `Mono` or `Flux` through `asMono()` or `asFlux()`.
+   - Use `asMono()` for `Sinks.one()` and `Sinks.empty()` -- matches the 0..1 cardinality contract.
+   - Use `asFlux()` for `Sinks.many()` -- exposes the multi-value surface.
+   - Calling `asMono()` on a `Sinks.many()` works but signals a cardinality mismatch; prefer `asFlux()`.
 5. Pick `tryEmit*` or `emit*` deliberately and make failure behavior explicit.
 6. Verify backpressure and late-subscriber behavior before finalizing the API.
 
@@ -95,6 +100,7 @@ This skill covers the ordinary path for choosing `Sinks.one()`, `Sinks.empty()`,
 | live fan-out with retained backlog | `Sinks.many().multicast().onBackpressureBuffer()` | broadcast current signals and buffer by demand |
 | live fan-out where all subscribers move together | `Sinks.many().multicast().directAllOrNothing()` | drop for everyone if one subscriber has no demand |
 | live fan-out where only slow subscribers fall behind | `Sinks.many().multicast().directBestEffort()` | keep fast subscribers flowing |
+| live fan-out that errors on overflow | `Sinks.many().multicast().onBackpressureError()` | fail fast when downstream cannot keep up |
 | replay all retained history | `Sinks.many().replay().all()` | late subscribers receive full retained history |
 | replay only the latest signal | `Sinks.many().replay().latest()` | late subscribers see current state only |
 | replay bounded history | `Sinks.many().replay().limit(...)` | retains selected size or time window |
@@ -109,8 +115,9 @@ This skill covers the ordinary path for choosing `Sinks.one()`, `Sinks.empty()`,
 | every active subscriber to stay aligned | `directAllOrNothing()` | one slow subscriber can cause drops for all |
 | fast subscribers to keep flowing while slow ones miss values | `directBestEffort()` | delivery diverges across subscribers |
 | demand-aware buffering for subscribers | `onBackpressureBuffer()` | retains elements in memory |
+| fail immediately on downstream overflow | `onBackpressureError()` | propagates error to upstream producer |
 | late subscribers to see the full retained stream | `replay().all()` | retention grows unless bounded externally |
-| late subscribers to see only the current state | `replay().latest()` | older values are discarded |
+| late subscribers to see only the current state | `replay().latest()` | emits last signal after first emission; `replay().limit(1)` replays even the first signal immediately |
 | late subscribers to see bounded recent history | `replay().limit(...)` | history is explicit by size or time |
 
 ## Ready-to-adapt examples
@@ -183,6 +190,51 @@ final class RetriedEmission {
     }
 }
 ```
+
+### `Sinks.empty()` for terminal-only signals
+
+```java
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
+
+final class CompletionSignal {
+    Mono<Void> shutdownSignal() {
+        Sinks.Empty<Void> sink = Sinks.empty();
+        triggerShutdownLater(sink);
+        return sink.asMono();
+    }
+    private void triggerShutdownLater(Sinks.Empty<Void> sink) {
+        sink.tryEmitComplete();
+    }
+}
+```
+
+Use `Sinks.empty()` when the only signals are completion or error -- no payload value is carried. Call `tryEmitComplete()` for normal termination or `tryEmitError(...)` for abnormal termination.
+
+### `Sinks.many().unicast()` for single-subscriber streams
+
+```java
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
+
+final class UnicastStream {
+    private final Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
+
+    Flux<String> stream() {
+        return sink.asFlux();
+    }
+
+    void send(String value) {
+        sink.tryEmitNext(value);
+    }
+
+    void finish() {
+        sink.tryEmitComplete();
+    }
+}
+```
+
+Unicast allows exactly one subscriber. A second subscription attempt receives an `IllegalStateException`. Use it when the downstream consumer is known to be singular (e.g., a dedicated processing pipeline).
 
 ## Common pitfalls
 

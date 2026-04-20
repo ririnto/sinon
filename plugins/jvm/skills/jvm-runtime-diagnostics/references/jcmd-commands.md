@@ -1,44 +1,24 @@
 ---
 title: jcmd Command Reference
 description: >-
-  Reference for choosing and invoking jcmd command families during live JVM diagnostics.
+  Reference for extended jcmd command families, version-sensitive options, and operational
+  constraints beyond the common-case commands in the parent SKILL.md.
 ---
 
-Use this reference when the runtime symptom is known and the remaining question is which `jcmd` command family should be used.
+Use this reference when the base discovery and core VM identity commands from the parent SKILL.md are not sufficient and the remaining blocker is which extended `jcmd` variant or option to apply.
 
-Base discovery:
-
-```bash
-jcmd -l
-jcmd <pid> help
-jcmd <pid> help Thread.print
-```
-
-Core VM identity and flags:
+## Extended Thread Inspection
 
 ```bash
-jcmd <pid> VM.version
-jcmd <pid> VM.command_line
-jcmd <pid> VM.flags
-jcmd <pid> VM.flags -all
-```
-
-Thread inspection:
-
-```bash
-jcmd <pid> Thread.print
-jcmd <pid> Thread.print -l
 jcmd <pid> Thread.print -e
 ```
 
-- use `Thread.print -l` as the standard diagnostic default because it includes ownable synchronizers and lock detail
+- use `Thread.print -l` (documented in parent SKILL.md) as the standard diagnostic default because it includes ownable synchronizers and lock detail
 - use `-e` only when extended thread information is worth the extra output
 
-Heap and object inspection:
+## Extended Heap and Object Inspection
 
 ```bash
-jcmd <pid> GC.heap_info
-jcmd <pid> GC.class_histogram
 jcmd <pid> GC.class_histogram -all
 jcmd <pid> GC.heap_dump heap.hprof
 ```
@@ -54,7 +34,7 @@ Version-sensitive note:
 > [!WARNING]
 > `GC.class_stats` was removed in JDK 15. Do not treat it as a modern default command.
 
-Native memory inspection:
+## Native Memory Inspection
 
 ```bash
 jcmd <pid> VM.native_memory summary
@@ -70,7 +50,7 @@ jcmd <pid> VM.native_memory summary.diff
 - use `detail` only when allocator-level evidence is worth the extra output
 - use `baseline` and `summary.diff` for repeated captures that isolate growth over time
 
-Operational notes:
+## Operational Constraints
 
 - `jcmd` must run on the same machine as the target JVM
 - effective user/group must match the target process

@@ -13,31 +13,7 @@ Use this file to finish one of these jobs:
 - verify that a `SharedFlow` with `replay = 0` only reaches active collectors
 - keep collection bounded so the test finishes as soon as the contract is proven
 
-Bounded Flow assertion:
-
-```kotlin
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.assertAll
-import org.junit.jupiter.api.Assertions.assertEquals
-
-class UiStateRepositoryTest {
-    @DisplayName("emits loading then data")
-    @Test
-    fun emitsLoadingThenData() = runTest {
-        val items = repository.observe().take(2).toList()
-        assertAll(
-            { assertEquals(UiState.Loading, items[0]) },
-            { assertEquals(UiState.Data, items[1]) },
-        )
-    }
-}
-```
-
-Use when: a cold `Flow` or bounded stream contract can be proven by collecting only the exact number of items needed.
+The canonical bounded cold Flow collection pattern (`.take(n).toList()`) is in `SKILL.md` under "Keep Flow collection bounded". This reference covers only additive material.
 
 Kotest Flow matcher shape:
 
