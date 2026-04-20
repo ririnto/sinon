@@ -42,12 +42,12 @@ This skill covers source selection, operator composition, combination, empty/err
 | empty/error behavior | `defaultIfEmpty`, `switchIfEmpty`, `onErrorResume`, `onErrorMap`, `doFinally`, bounded retry | you need `Retry` policies, backoff, filtering, or retry exhaustion rules |
 | ordinary backpressure | natural demand, `limitRate(...)`, basic overflow choice | `prefetch`, `BaseSubscriber`, or queue growth becomes the blocker |
 | threading / schedulers | recognize the boundary only | `publishOn(...)`, `subscribeOn(...)`, scheduler choice, or execution tracing becomes the main problem |
-| blocking bridge | one blocking boundary with `Mono.fromCallable(...)` | blocking APIs, thread affinity, or bridge semantics become the main problem |
+| blocking bridge | one blocking boundary with `Mono.fromCallable(...)` | multiple boundaries, fromRunnable/fromFuture nuances, terminal bridges, or virtual-thread considerations are needed |
 | `Context` | `contextWrite(...)`, `deferContextual(...)`, ordinary metadata flow | nested writes, library-facing composition, or precedence rules are the blocker |
 | hot/cold and multicast | recognize the boundary only | repeated work, replay, or shared subscriptions decide the design |
 | sink/manual hot-source APIs | recognize the boundary only | manual emission, sink flavor choice, or emit-failure behavior decides the design |
 | batching/grouping/windowing | recognize the boundary only | `groupBy`, `window`, or `buffer` shapes the pipeline |
-| sequence diagnostics | local `checkpoint(...)` or `log(...)` as a narrow tool | assembly/runtime diagnosis becomes the main job |
+| sequence diagnostics | signal-level `checkpoint(...)`, `log(...)`, or `doOnEach(...)` as narrow tools | assembly tracing, global hooks, or thread-hop debugging becomes the main job |
 
 ## Operating rules
 
@@ -133,7 +133,7 @@ import reactor.core.scheduler.Schedulers;
 final class UserLookupService {
     Mono<UserView> loadUser(String userId) {
         return Mono.fromCallable(() -> fetchUser(userId))
-            .subscribeOn(Schedulers.boundedElastic())
+            .subscribeOn(Schedulers.boundedElastic()) // one scheduler hop; see reactor-scheduling for multi-hop or custom scheduler design
             .switchIfEmpty(Mono.error(new IllegalStateException("Missing user: " + userId)))
             .map(user -> new UserView(user.id(), user.name()))
             .onErrorMap(IOException.class, error -> new IllegalStateException("User lookup failed", error));
@@ -221,8 +221,8 @@ final class TraceAwareHandler {
 | plain `retry(n)` is not enough and you need backoff, filtering, or retry exhaustion rules | [Retry Strategies](references/retry-strategies.md) |
 | shared subscriptions, replay, or hot/cold behavior changes the design | [Hot, Cold, and Multicasting](references/hot-cold-and-multicasting.md) |
 | `groupBy`, `window`, or `buffer` shapes the pipeline and the flow stalls or grows unexpectedly | [Batching, Grouping, and Windowing](references/batching-grouping-windowing.md) |
-| you must adapt a blocking or thread-affine API without hiding the cost | [Blocking Bridges](references/blocking-bridges.md) |
-| assembly/runtime diagnosis or local signal tracing becomes the main job | [Debugging and Observability](references/debugging-and-observability.md) |
+| one blocking boundary is not enough and you need multiple boundaries, fromRunnable/fromFuture bridges, terminal edges, or virtual-thread considerations | [Advanced Blocking Bridges](references/blocking-bridges.md) |
+| signal-level inspection (per-signal Context, conditional value inspection, tap observer) is needed, or assembly/thread tracing is the real blocker | [Signal-Level Diagnostics](references/debugging-and-observability.md) |
 
 ## Output contract
 
