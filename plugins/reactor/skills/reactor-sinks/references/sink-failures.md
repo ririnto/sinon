@@ -5,7 +5,7 @@ description: "Open this when EmitResult handling, retry policy, overflow, or ter
 
 Open this when the sink type is already correct but emission outcomes and retry behavior are the real problem.
 
-## `tryEmit*` result handling
+## `tryEmit*` result handling with real branching logic
 
 ```java
 import reactor.core.publisher.Sinks;
@@ -19,10 +19,19 @@ final class EmitResultBranching {
     }
 
     private void handleFailure(Sinks.EmitResult result) {
-        System.out.println(result.name());
+        switch (result) {
+            case FAIL_OVERFLOW -> System.err.println("downstream cannot keep up -- consider backpressure policy change");
+            case FAIL_CANCELLED -> System.out.println("consumer cancelled -- stop emitting");
+            case FAIL_TERMINATED -> System.out.println("sink already completed -- need a new sink instance");
+            case FAIL_NON_SERIALIZED -> throw new IllegalStateException("concurrent emission detected -- coordinate producers");
+            case FAIL_ZERO_SUBSCRIBER -> System.out.println("no subscriber yet -- value dropped");
+            default -> System.err.println("unexpected failure: " + result);
+        }
     }
 }
 ```
+
+Each `EmitResult` variant requires a different recovery strategy. Branching on the specific failure type avoids both silent data loss and inappropriate retries.
 
 ## `EmitResult` quick guide
 

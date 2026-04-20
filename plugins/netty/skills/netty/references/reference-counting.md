@@ -19,25 +19,8 @@ Open this when you are seeing `IllegalReferenceCountException`, leak detector ou
 
 ## Safe release patterns
 
-Manual release in `ChannelInboundHandlerAdapter`:
-
-```java
-final class BusinessHandler extends ChannelInboundHandlerAdapter {
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        ByteBuf buf = (ByteBuf) msg;
-        try {
-            consume(buf);
-        } finally {
-            buf.release();
-        }
-    }
-
-    private void consume(ByteBuf buf) {
-        buf.readableBytes();
-    }
-}
-```
+> [!NOTE]
+> The manual release pattern for `ChannelInboundHandlerAdapter` is covered in the SKILL.md common path (`ManualReleaseHandler`). This reference focuses on ownership handoff patterns that go beyond single-handler release.
 
 Pass downstream from `SimpleChannelInboundHandler`:
 
@@ -52,6 +35,8 @@ final class ForwardingHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 Keep a buffer for real off-thread async work:
 
+`ChannelInboundHandlerAdapter` does not auto-release — you own `msg` at `ref=1`. Retain so the executor has its own reference at `ref=2`. In the executor: release the executor's reference (`ref=2 → 1`), then release the original since `ChannelInboundHandlerAdapter` does not auto-release (`ref=1 → 0`).
+
 ```java
 final class AsyncHandler extends ChannelInboundHandlerAdapter {
     private final Executor executor;
@@ -62,12 +47,12 @@ final class AsyncHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        ByteBuf buf = ((ByteBuf) msg).retain();
+        ByteBuf retained = ((ByteBuf) msg).retain();
         executor.execute(() -> {
             try {
-                useLater(buf);
+                useLater(retained);
             } finally {
-                buf.release();
+                retained.release();
                 ((ByteBuf) msg).release();
             }
         });
@@ -78,6 +63,9 @@ final class AsyncHandler extends ChannelInboundHandlerAdapter {
     }
 }
 ```
+
+> [!WARNING]
+> This pattern is correct only for `ChannelInboundHandlerAdapter`. If you extend `SimpleChannelInboundHandler` instead, it auto-releases after `channelRead0` returns, and releasing `msg` again in the executor causes an `IllegalReferenceCountException`. In that case, retain once and release only the retained reference in the executor.
 
 Use a real external executor for blocking or CPU-heavy work. If you stay on the channel's event loop, you did not actually offload anything.
 

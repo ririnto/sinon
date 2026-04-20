@@ -32,96 +32,49 @@ Use this file to finish one of these jobs:
 - decide whether a variant set is truly closed enough for sealed modeling
 - make a Java-facing public model read clearly without Kotlin-only surprises
 
-Smallest code shape that fits the model:
+The canonical type-shape examples (`value class`, `data class`, `object`, `enum class`, sealed types, regular class) and their decision criteria are in `SKILL.md` under "Choose the smallest type shape". This reference covers only additive material not present there.
 
-Single wrapped meaning with `value class`:
+## Operator Conventions
 
-```kotlin
-@JvmInline
-value class UserId(val value: String)
-```
-
-Use when: one wrapped value needs stronger domain meaning than a raw `String` or primitive.
-
-Small fixed constants with `enum class`:
+Define operator functions to enable symbolic syntax for domain-appropriate operations. Only overload when the meaning is obvious within the domain.
 
 ```kotlin
-enum class InvoiceStatus {
-    DRAFT,
-    SENT,
-    PAID,
+data class Vector(val x: Double, val y: Double) {
+    operator fun plus(other: Vector): Vector = Vector(x + other.x, y + other.y)
+    operator fun times(scalar: Double): Vector = Vector(x * scalar, y * scalar)
 }
-```
 
-Use when: the set is small, constant-like, and each value does not need distinct payload data.
+val sum = Vector(1.0, 2.0) + Vector(3.0, 4.0)
 
-Immutable multi-field value with `data class`:
-
-```kotlin
-data class Customer(
-    val id: UserId,
-    val email: String,
-)
-```
-
-Use when: the type is primarily a value carrier with immutable fields and structural equality is desirable.
-
-Stateless singleton behavior with `object`:
-
-```kotlin
-object IsoCountryCodes {
-    fun isSupported(code: String): Boolean = code in setOf("US", "JP", "DE")
+data class Grid(private val cells: Array<Array<Int>>) {
+    operator fun get(row: Int, col: Int): Int = cells[row][col]
+    operator fun set(row: Int, col: Int, value: Int) { cells[row][col] = value }
 }
-```
 
-Use when: one shared stateless behavior or registry should exist only once in the process.
+val value = grid[0, 1]
+grid[0, 1] = 42
 
-Closed variant set with sealed modeling:
-
-```kotlin
-sealed interface PaymentResult {
-    data class Approved(val authorizationId: String) : PaymentResult
-    data class Rejected(val reason: String) : PaymentResult
-}
-```
-
-Use when: the variant set is intentionally closed inside the module and each branch may carry different payload data.
-
-Stateful or identity-bearing behavior with a regular class:
-
-```kotlin
-class RetryBudget(
-    private var remaining: Int,
-) {
-    fun consume(): Boolean {
-        if (remaining == 0) {
-            return false
-        }
-        remaining -= 1
-        return true
+class RouteHandler(private val routes: Map<String, () -> Unit>) {
+    operator fun invoke(path: String) {
+        routes[path]?.invoke() ?: println("404: $path")
     }
 }
 ```
 
-Use when: mutation and state transitions are part of the real domain behavior rather than an incidental implementation detail.
+Common conventions: `+`/`-` for algebraic composition, `get`/`set` for indexed access, `invoke` for callable abstractions, `compareTo` for ordering. Never overload for side-effect-heavy or non-obvious meanings.
 
-Java-facing public model without Kotlin-only surprises:
+## Functional Interfaces (SAM)
+
+Use `fun interface` when you need a Kotlin-native single-abstract-method interface that allows lambda syntax at call sites. Unlike Java SAM conversion (covered in `SKILL.md`), `fun interface` is a Kotlin-first construct that works without a JVM runtime target.
 
 ```kotlin
-class ReceiptFormatter {
-    @JvmOverloads
-    fun format(amount: Long, currency: String = "USD"): String {
-        return "$currency $amount"
-    }
+fun interface ClickHandler {
+    fun onClick(event: ClickEvent)
 }
+
+fun setupButton(handler: ClickHandler) { }
+
+setupButton { event -> println("Clicked at ${event.x},${event.y}") }
 ```
 
-Use when: Java callers should be able to use the public API without hidden default-parameter assumptions.
-
-Avoid:
-
-- using `value class` when the type really has several fields or richer state transitions
-- using `enum class` when each branch needs meaningful payload data or different behavior contracts
-- using `data class` for entities whose identity is not pure field equality
-- using sealed hierarchies when the set is expected to grow outside the module
-- using singleton `object` just to avoid dependency injection or lifecycle clarity
+Use `fun interface` when the callback contract is Kotlin-defined and you want lambda syntax without pulling in a Java interface. For Java interfaces consumed from Kotlin, SAM conversion applies automatically -- no `fun interface` needed.

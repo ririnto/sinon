@@ -1,4 +1,1 @@
-{
-  "agent": "inherit",
-  "subagentStatusLine": true
-}
+{"_comment": "Example settings — replace placeholder values with only the keys your plugin actually reads at runtime", "agent": "inherit", "subagentStatusLine": true}

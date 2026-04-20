@@ -8,6 +8,7 @@ metadata:
     - "https://netty.io/wiki/user-guide-for-4.x.html"
     - "https://netty.io/4.1/api/"
   version: "4.x"
+  recommended_version: "4.1.x.Final"
 ---
 
 # Netty
@@ -113,6 +114,8 @@ clientBootstrap.group(group)
 Dependency entrypoint:
 
 ```xml
+<!-- Use netty-all for development convenience or individual modules for production.
+     Recommended: 4.1.x.Final (the 4.1 branch is the current stable line). -->
 <dependency>
     <groupId>io.netty</groupId>
     <artifactId>netty-all</artifactId>
@@ -165,6 +168,8 @@ try {
 ```
 
 UDP server skeleton:
+
+`writeAndFlush` takes ownership of the new reference from `retainedDuplicate`; `SimpleChannelInboundHandler` auto-releases the original `DatagramPacket`.
 
 ```java
 EventLoopGroup group = new NioEventLoopGroup();
@@ -225,6 +230,47 @@ final class MessagePipeline extends ChannelInitializer<SocketChannel> {
 }
 ```
 
+### POJO-based pipeline
+
+Separate byte-level concerns from business logic by decoding bytes into POJOs and encoding POJOs back to bytes:
+
+```java
+final class UnixTime {
+    private final long value;
+
+    UnixTime(long value) { this.value = value; }
+    long value() { return value; }
+
+    @Override
+    public String toString() { return new Date((value - 2208988800L) * 1000).toString(); }
+}
+
+final class TimeDecoder extends ByteToMessageDecoder {
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+        if (in.readableBytes() < 4) return;
+        out.add(new UnixTime(in.readUnsignedInt()));
+    }
+}
+
+final class TimeEncoder extends MessageToByteEncoder<UnixTime> {
+    @Override
+    protected void encode(ChannelHandlerContext ctx, UnixTime msg, ByteBuf out) {
+        out.writeInt((int) msg.value());
+    }
+}
+
+final class TimeHandler extends SimpleChannelInboundHandler<UnixTime> {
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, UnixTime msg) {
+        System.out.println(msg);
+        ctx.close();
+    }
+}
+```
+
+Pipeline assembly order: `TimeDecoder` (bytes to POJO, inbound) → `TimeHandler` (business logic with POJOs) → `TimeEncoder` (POJO to bytes, outbound).
+
 ### Manual `ByteBuf` ownership
 
 ```java
@@ -245,6 +291,27 @@ final class ManualReleaseHandler extends ChannelInboundHandlerAdapter {
 }
 ```
 
+### Write-then-close pattern
+
+Use `ChannelFutureListener.CLOSE` when a handler must close the channel after a write completes:
+
+```java
+final class TimeServerHandler extends ChannelInboundHandlerAdapter {
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        ByteBuf time = ctx.alloc().buffer(4);
+        time.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
+        ctx.writeAndFlush(time).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
+    }
+}
+```
+
 ## Decision points
 
 | Decision | Default | Escalate when |
@@ -252,6 +319,7 @@ final class ManualReleaseHandler extends ChannelInboundHandlerAdapter {
 | TCP vs UDP | TCP for ordered reliable streams and backpressure-friendly request/response flow | UDP if the protocol is datagram-oriented, per-packet boundaries matter, or loss and reordering are acceptable |
 | `ServerBootstrap` vs `Bootstrap` | `ServerBootstrap` for listening sockets | `Bootstrap` for clients and UDP |
 | NIO vs native transport | NIO first | open [`native-transport.md`](./references/native-transport.md) for platform-specific tuning |
+| auto-read vs manual flow control | `AUTO_READ = true` (default) for standard servers | open [`backpressure.md`](./references/backpressure.md) when the consumer cannot keep up with the producer rate or bounded memory is required |
 | simple handler vs codec chain | simple handler when frames already exist | open [`framing.md`](./references/framing.md) or [`custom-codec.md`](./references/custom-codec.md) when bytes must become messages |
 | `SimpleChannelInboundHandler` vs manual release | `SimpleChannelInboundHandler` for one inbound type | open [`reference-counting.md`](./references/reference-counting.md) when ownership is shared or asynchronous |
 
@@ -273,6 +341,7 @@ TCP and UDP imply different Netty shapes:
 - [ ] pipeline order matches framing, decoding, business logic, and encoding flow
 - [ ] every owned `ByteBuf` is released exactly once
 - [ ] shutdown path calls `shutdownGracefully()` for every event loop group
+- [ ] if `AUTO_READ` is `false`, `channel.read()` is called in `channelActive()` and after each processed message
 
 ## Common pitfalls
 
@@ -295,6 +364,7 @@ Open these only when the common path is no longer enough:
 | stateful decoders, `LengthFieldBasedFrameDecoder`, sharability rules | [custom-codec.md](./references/custom-codec.md) |
 | line-, delimiter-, fixed-size-, or length-based framing choices | [framing.md](./references/framing.md) |
 | epoll, kqueue, or io_uring selection and fallback | [native-transport.md](./references/native-transport.md) |
+| `AUTO_READ`, manual `channel.read()`, flow-controlled consumption | [backpressure.md](./references/backpressure.md) |
 | testing handlers and pipelines with `EmbeddedChannel` | [testing-embedded-channel.md](./references/testing-embedded-channel.md) |
 | TLS or SSL pipeline setup | [tls-ssl.md](./references/tls-ssl.md) |
 | heartbeat, timeout, or stale connection handling | [idle-handling.md](./references/idle-handling.md) |

@@ -25,15 +25,12 @@ final class MultiBoundaryPipeline {
             .map(EnrichedProfile::format)
             .flux();
     }
-
     private Profile fetchProfile(String userId) {
         return new Profile(userId, "Alice");
     }
-
     private EnrichedProfile enrichProfile(Profile profile) {
         return new EnrichedProfile(profile.id(), profile.name(), "enriched");
     }
-
     record Profile(String id, String name) {}
     record EnrichedProfile(String id, String name, String data) {
         String format() { return id + ":" + name + ":" + data; }
@@ -57,12 +54,12 @@ final class BlockingSideEffect {
             .subscribeOn(Schedulers.boundedElastic())
             .thenReturn("ready");
     }
-
     private void blockingInit() {
-        // blocking initialization with no return value
     }
 }
 ```
+
+The `blockingInit` method performs a blocking initialization with no return value. The `fromCallable` wrapper is not needed here because there is no return value to capture.
 
 ## Future-based handoff
 
@@ -70,7 +67,6 @@ When an external API already returns a `CompletableFuture`, use `fromFuture` to 
 
 ```java
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import java.util.concurrent.CompletableFuture;
 
 final class FutureBridge {
@@ -89,10 +85,39 @@ If the future-completing thread is a blocking caller, add `subscribeOn(boundedEl
 
 ## Terminal bridge cautions
 
-- `block()`, `blockFirst()`, `blockLast()`, `toIterable()`, and `toStream()` are boundary tools for the outermost imperative edge only.
-- Never use terminal bridges inside an operator chain.
-- `Mono.toFuture()` is the safest bridge when the caller already expects `CompletableFuture` semantics.
-- If blocking is spread across `map(...)`, `flatMap(...)`, and callbacks, the chain no longer communicates where the cost lives.
+`block()`, `blockFirst()`, `blockLast()`, `toIterable()`, and `toStream()` are boundary tools for the outermost imperative edge only. Never use terminal bridges inside an operator chain.
+
+Placing blocking work inside `map(...)` occupies the reactive worker thread invisibly. Isolate it at the boundary with `fromCallable(...)` instead.
+
+```java
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+
+final class BadBlockingInChain {
+    Flux<String> broken() {
+        return Flux.just("a", "b")
+            .map(value -> value + ":" + slowSyncCall());
+    }
+    private String slowSyncCall() {
+        try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+        return "result";
+    }
+}
+
+final class GoodBoundaryIsolation {
+    Mono<String> correct() {
+        return Mono.fromCallable(() -> "result:" + slowSyncCall())
+            .subscribeOn(Schedulers.boundedElastic());
+    }
+    private String slowSyncCall() {
+        try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+        return "result";
+    }
+}
+```
+
+`Mono.toFuture()` is the safest bridge when the caller already expects `CompletableFuture` semantics. If blocking is spread across `map(...)`, `flatMap(...)`, and callbacks, the chain no longer communicates where the cost lives.
 
 ## Virtual-thread considerations (Java 21+)
 
@@ -111,7 +136,6 @@ final class PinnedBlockingBridge {
         return Mono.fromCallable(() -> pinnedRead(path))
             .subscribeOn(Schedulers.newBoundedElastic(4, 100, "pinned-io"));
     }
-
     private byte[] pinnedRead(String path) {
         return new byte[0];
     }

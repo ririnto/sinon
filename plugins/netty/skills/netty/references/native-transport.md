@@ -19,13 +19,40 @@ Open this when Linux or macOS deployment needs native transport features, lower 
 ## Dependency pattern
 
 ```xml
+<!-- Linux epoll (x86_64) -->
 <dependency>
     <groupId>io.netty</groupId>
     <artifactId>netty-transport-native-epoll</artifactId>
     <version>${netty.version}</version>
     <classifier>linux-x86_64</classifier>
 </dependency>
+
+<!-- Linux epoll (aarch64 / ARM64) -->
+<dependency>
+    <groupId>io.netty</groupId>
+    <artifactId>netty-transport-native-epoll</artifactId>
+    <version>${netty.version}</version>
+    <classifier>linux-aarch_64</classifier>
+</dependency>
+
+<!-- macOS / BSD kqueue -->
+<dependency>
+    <groupId>io.netty</groupId>
+    <artifactId>netty-transport-native-kqueue</artifactId>
+    <version>${netty.version}</version>
+    <classifier>osx-x86_64</classifier>
+</dependency>
+
+<!-- Linux io_uring (JDK 21+, kernel 5.11+) -->
+<dependency>
+    <groupId>io.netty</groupId>
+    <artifactId>netty-transport-native-io_uring</artifactId>
+    <version>${netty.version}</version>
+    <classifier>linux-x86_64</classifier>
+</dependency>
 ```
+
+Choose the classifier that matches the target OS and architecture. The classifier determines which native library (`.so`, `.dylib`, `.dll`) is bundled in the artifact.
 
 ## Conditional fallback
 

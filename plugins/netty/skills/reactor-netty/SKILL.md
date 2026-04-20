@@ -93,6 +93,65 @@ Use `reactor-netty-core` instead when the work is only TCP or UDP.
 - TCP and UDP handlers compose inbound and outbound streams with `Publisher` chains.
 - Use lifecycle hooks such as `doOnBind`, `doOnBound`, `doOnChannelInit`, `doOnConnection`, `doOnConnected`, and `doOnDisconnected` only when they change startup, channel extension, or shutdown behavior.
 
+### Response consumption shapes
+
+| Method | Use when | Return shape |
+| --- | --- | --- |
+| `.responseSingle((resp, content) -> ...)` | you need the status code + full body aggregated at once | `Mono<T>` — body is fully buffered |
+| `.responseContent()` | you want streaming/chunked processing of the response body | `Flux<ByteBuf>` — each chunk arrives as it is received |
+
+Aggregated body (status check + full body in one signal):
+
+```java
+String body = HttpClient.create()
+    .get().uri("http://localhost:8080/hello")
+    .responseSingle((resp, content) -> {
+        if (resp.status().code() != 200) {
+            return Mono.error(new RuntimeException("unexpected: " + resp.status()));
+        }
+        return content.asString();
+    })
+    .block();
+```
+
+Streaming body (process chunks as they arrive):
+
+```java
+List<String> chunks = HttpClient.create()
+    .get().uri("http://localhost:8080/stream")
+    .responseContent()
+    .asString()
+    .collectList()
+    .block();
+```
+
+### Error handling in reactive handlers
+
+Use `onErrorResume` for per-route fallback logic and let unexpected errors propagate to the subscriber:
+
+Route-level fallback (return an error response for 500):
+
+```java
+.route(routes -> routes
+    .get("/hello", (req, res) -> res.sendString(Mono.just("Hello")))
+    .get("/fail", (req, res) -> Mono.error(new RuntimeException("boom")))
+    .errorHandler(500, (req, res) -> res.sendString(
+        Mono.just("Error: " + req.uri()))))
+```
+
+Handler-level recovery (map errors to fallback values):
+
+```java
+HttpClient.create()
+    .get().uri("http://localhost:8080/hello")
+    .responseSingle((resp, content) -> content.asString())
+    .onErrorResume(TimeoutException.class,
+        timeout -> Mono.just("fallback (timeout)"))
+    .block();
+```
+
+Do not use blocking `try/catch` inside reactive lambdas. Reactive errors travel through the error channel, not Java exceptions.
+
 ### Resource model
 
 - Default loop resources are shared and usually sufficient for the common path.
@@ -114,7 +173,9 @@ HTTP server:
 ```java
 DisposableServer server = HttpServer.create()
     .port(8080)
-    .route(routes -> routes.post("/echo", (request, response) -> response.status(201)
+    .route(routes -> routes
+        .get("/hello", (request, response) -> response.sendString(Mono.just("Hello, World!")))
+        .post("/echo", (request, response) -> response.status(201)
         .addHeader("X-Mode", "echo")
         .sendString(request.receive().asString().map(body -> "echo: " + body))))
     .bindNow();
@@ -123,7 +184,11 @@ server.onDispose().block();
 
 HTTP client:
 
+`ByteBufFlux.fromString` converts a `String` publisher into a `Flux<ByteBuf>` — the idiomatic way to send string bodies with Reactor Netty HTTP. It is provided by the `reactor-netty-http` artifact.
+
 ```java
+import reactor.netty.ByteBufFlux;
+
 String body = HttpClient.create()
     .post()
     .uri("http://localhost:8080/echo")
@@ -138,6 +203,8 @@ String body = HttpClient.create()
 ```
 
 Warmup before first bind or connect:
+
+`warmup()` pre-initializes event loops without binding a port. The `HttpServer` builder remains reusable — `bindNow()` can be called afterward.
 
 ```java
 HttpServer server = HttpServer.create().port(8080);
@@ -172,12 +239,14 @@ connection.onDispose().block();
 
 UDP server:
 
+`UdpServer.bindNow()` returns `Connection` (not `DisposableServer`).
+
 ```java
-Connection server = UdpServer.create()
+Connection udpServer = UdpServer.create()
     .port(9001)
     .handle((inbound, outbound) -> outbound.sendObject(inbound.receiveObject()))
     .bindNow();
-server.onDispose().block();
+udpServer.onDispose().block();
 ```
 
 UDP client:
@@ -194,16 +263,29 @@ Connection connection = UdpClient.create()
 connection.onDispose().block();
 ```
 
-Lifecycle hook example:
+Lifecycle hook examples:
+
+Server lifecycle (bind, bound, unbound):
 
 ```java
 DisposableServer server = HttpServer.create()
     .port(8080)
-    .doOnBind(config -> logger.atInfo().log(() -> "binding " + config.host() + ":" + config.port()))
-    .doOnBound(bound -> logger.atInfo().log(() -> "bound " + bound.port()))
-    .doOnUnbound(bound -> logger.atInfo().log(() -> "unbound " + bound.port()))
+    .doOnBind(config -> System.out.println("binding " + config.host() + ":" + config.port()))
+    .doOnBound(bound -> System.out.println("bound " + bound.port()))
+    .doOnUnbound(bound -> System.out.println("unbound " + bound.port()))
     .bindNow();
 server.onDispose().block();
+```
+
+Channel init (access the low-level Netty `ChannelPipeline` before handlers run). Use this when a channel-level option or handler must be set per-connection:
+
+```java
+HttpServer.create()
+    .port(8080)
+    .doOnChannelInit((observer, channel, remoteAddress) -> {
+        channel.pipeline().addFirst(new TrafficLoggingHandler());
+    })
+    .bindNow();
 ```
 
 ## Decision points
@@ -212,6 +294,8 @@ server.onDispose().block();
 | --- | --- | --- |
 | HTTP vs TCP vs UDP | choose the builder that matches the application protocol | the task needs low-level Netty framing or codecs |
 | HTTP routing vs `.handle(...)` | use `.route(...)` for standard HTTP endpoints | use `.handle(...)` when you need lower-level response composition |
+| `.responseSingle()` vs `.responseContent()` | `.responseSingle()` for status + aggregated body | use `.responseContent()` for streaming/chunked response processing |
+| error handling strategy | propagate errors to subscriber; use `errorHandler` for route-level fallbacks | per-handler `onErrorResume` recovery is needed for specific exception types |
 | default resources vs custom resources | stay on defaults first | open [`event-loop-and-resources.md`](./references/event-loop-and-resources.md) for isolation or custom sizing |
 | plain text vs TLS | start plain for local flow | open [`ssl-tls.md`](./references/ssl-tls.md) when certificates or HTTPS are required |
 | simple lifecycle vs operational tuning | start with bind/connect + dispose | open [`timeouts-and-pool-tuning.md`](./references/timeouts-and-pool-tuning.md) or [`metrics-and-observability.md`](./references/metrics-and-observability.md) when production tuning appears |
@@ -224,6 +308,8 @@ server.onDispose().block();
 - [ ] reactive handlers do not block internally
 - [ ] lifecycle hooks are attached only where they affect behavior
 - [ ] low-level Netty pipeline or buffer ownership details are not required for the common path
+- [ ] error handling uses reactive operators (`onErrorResume`, `errorHandler`) rather than blocking try/catch inside lambdas
+- [ ] response consumption shape (`.responseSingle()` vs `.responseContent()`) matches the use case
 
 ## Common pitfalls
 

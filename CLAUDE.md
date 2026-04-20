@@ -13,6 +13,10 @@ Sinon is a marketplace repository for Claude Code plugins and Agent Skills. Thes
 - `.agents/skills/` is a symlink to `.claude/skills/`; treat all three paths as one inventory, not separate sources.
 - Root-level documentation MUST describe repository-wide structure and rules, not fast-changing plugin details.
 
+## Versioning
+
+- Plugins MUST NOT carry a version field. Versions are managed at the marketplace level, not within individual plugins.
+
 ## Repository layout
 
 - Plugins MUST live under `plugins/`.
@@ -51,7 +55,7 @@ A skill MUST remain usable when installed by itself and MUST NOT require another
 - Describe adjacent-domain exclusions as "jump to skill X" — state them in domain terms.
 - Degrade into a generic essay or background article.
 
-`SKILL.md` SHOULD favor direct, imperative guidance over tutorial narration and SHOULD keep a shallow directory structure so agents can discover material quickly.
+`SKILL.md` SHOULD favor direct, imperative guidance over tutorial narration and SHOULD keep a shallow directory structure so agents can discover material quickly. Skill documentation MUST be self-contained enough to enable productive offline development — it MUST NOT assume the reader has live internet access to external documentation, registries, or remote services during ordinary use.
 
 ## `references/` contract
 
@@ -85,7 +89,14 @@ When a skill documents multiple valid workflows for the same asset class, each w
 - Markdown documents MUST prefer headings, lists, and code blocks over dense prose.
 - Normative statements in stable rules documents MUST use BCP 14 language.
 - Documentation examples SHOULD use the native language or tool syntax of the subject being documented.
+- Comments in example code MUST use documentation comment styles: JavaDoc (Java), KDoc (Kotlin), TSDoc/JSDoc (TypeScript/JavaScript), or reStructuredText docstrings (Python). Non-documentation comments MUST NOT appear in example code.
+- Blank lines MUST NOT appear inside function bodies in example code.
+- Fenced code blocks MUST specify a language.
+- Example code MUST use import statements over fully qualified names (FQN).
+- Authors MUST verify against the official reference documentation before writing or modifying any skill content.
+- When example code depends on a specific version of a library, framework, language, or tool, the minimum supported version MUST be explicitly stated.
+- If a review results in modifications, a follow-up review MUST be performed to verify the changes.
 
 ## Review checklist
 
-Reviewers MUST verify: skill self-sufficiency, coherent-unit sizing, progressive disclosure, blocker-based (not topic-label) references, example and path consistency across workflows, and strict separation of `SKILL.md` common-case content from `references/` additive depth.
+Reviewers MUST verify: skill self-sufficiency, coherent-unit sizing, progressive disclosure, blocker-based (not topic-label) references, example and path consistency across workflows, and strict separation of `SKILL.md` common-case content from `references/` additive depth. All identified issues MUST be tracked and resolved, including minor ones. Reviewers MUST NOT dismiss issues as too small to fix.

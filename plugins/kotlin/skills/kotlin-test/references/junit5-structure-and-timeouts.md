@@ -93,3 +93,108 @@ class RemotePricingTest {
 | --- | --- | --- |
 | adding JUnit 5 structure before a plain test works | the test shape grows faster than the behavior | start with `kotlin.test` and layer Jupiter features only when needed |
 | using `assertTimeoutPreemptively` in thread-local-sensitive code | the assertion runs work on another thread | prefer declarative `@Timeout` unless preemption is the actual contract |
+
+## Lifecycle hooks
+
+Use `@BeforeEach` / `@AfterEach` for per-test fixture setup. Use `@BeforeAll` / `@AfterAll` (on `companion object`) for expensive one-time setup.
+
+```kotlin
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import kotlin.test.Test
+import kotlin.test.assertTrue
+import java.nio.file.Path
+
+class FileProcessorTest {
+    private lateinit var processor: FileProcessor
+
+    @TempDir
+    lateinit var tempDir: Path
+
+    @BeforeEach
+    fun setUp() {
+        processor = FileProcessor(tempDir)
+    }
+
+    @Test
+    fun writesOutputFile() {
+        processor.process("input.txt")
+        assertTrue(tempDir.resolve("output.txt").toFile().exists())
+    }
+}
+```
+
+## Parameterized tests
+
+Use `@ParameterizedTest` with `@MethodSource` for data-driven cases. Use `@CsvSource` for small inline datasets.
+
+```kotlin
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.Arguments
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class DiscountCalculatorTest {
+
+    @ParameterizedTest
+    @CsvSource(
+        "100, 10, 90.0",
+        "200, 20, 160.0",
+        "50,  0,  50.0"
+    )
+    fun appliesDiscountCorrectly(original: Int, percent: Int, expected: Double) {
+        assertEquals(expected, calculator.apply(original, percent))
+    }
+
+    companion object {
+        @JvmStatic
+        private fun edgeCases() = listOf(
+            Arguments.of(0, 10, 0.0),
+            Arguments.of(-100, 10, -100.0),
+        )
+    }
+
+    @ParameterizedTest
+    @MethodSource("edgeCases")
+    fun handlesEdgeCases(price: Int, percent: Int, expected: Double) {
+        assertEquals(expected, calculator.apply(price, percent))
+    }
+}
+```
+
+## Test instance lifecycle
+
+By default JUnit 5 creates a new instance per method (`PER_METHOD`). Use `@TestInstance(Lifecycle.PER_CLASS)` when tests share expensive state.
+
+```kotlin
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
+
+@TestInstance(Lifecycle.PER_CLASS)
+class DatabaseIntegrationTest {
+    private lateinit var connection: Connection
+
+    @BeforeAll
+    fun startDatabase() {
+        connection = Database.startEmbedded()
+    }
+
+    @AfterAll
+    fun stopDatabase() {
+        connection.close()
+    }
+
+    @Test
+    fun insertsRow() { /* ... */ }
+
+    @Test
+    fun queriesRow() { /* ... */ }
+}
+```

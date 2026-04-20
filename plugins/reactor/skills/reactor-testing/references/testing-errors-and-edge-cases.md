@@ -117,20 +117,17 @@ import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 class VirtualTimeSchedulerBypassTest {
-    // BAD: real scheduler bypasses virtual time
     @Test
     void badRealSchedulerInVirtualTime() {
         StepVerifier.withVirtualTime(() ->
             Mono.delay(Duration.ofSeconds(5))
-                .subscribeOn(Schedulers.parallel()) // breaks virtual time
+                .subscribeOn(Schedulers.parallel())
         )
             .expectSubscription()
             .expectNoEvent(Duration.ofSeconds(5))
             .expectNext(0L)
-            .verifyComplete(); // may hang or fail
+            .verifyComplete();
     }
-
-    // GOOD: no real scheduler inside virtual time block
     @Test
     void goodPureVirtualTime() {
         StepVerifier.withVirtualTime(() -> Mono.delay(Duration.ofSeconds(5)))
@@ -141,6 +138,8 @@ class VirtualTimeSchedulerBypassTest {
     }
 }
 ```
+
+The first test uses `subscribeOn(Schedulers.parallel())` which introduces a real scheduler that bypasses virtual time. The test may hang or fail. The second test avoids any real scheduler call inside the `withVirtualTime` block.
 
 ### `expectNoEvent` includes subscription
 
@@ -158,8 +157,8 @@ class ExpectNoEventEdgeCase {
         StepVerifier.withVirtualTime(() -> Mono.defer(() ->
             Mono.just("value").delayElement(Duration.ofMillis(100))
         ))
-            .expectSubscription()  // this counts as first event
-            .expectNoEvent(Duration.ofMillis(50))  // only 50ms of silence AFTER subscription
+            .expectSubscription()
+            .expectNoEvent(Duration.ofMillis(50))
             .expectNext("value")
             .verifyComplete();
     }

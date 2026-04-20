@@ -15,7 +15,7 @@ Use this path for the ordinary case:
 2. Name the one coherent job the skill covers, then remove adjacent jobs from the draft before writing.
 3. Draft a short plan for the main file, support files, and validation pass.
 4. Write `SKILL.md` first so the common path works without `references/`, `assets/`, or `scripts/`.
-5. Validate against `assets/validation-checklist.md`, revise weak spots, and stop only when the checklist passes.
+5. Plan your validation approach using `assets/validation-checklist.md` as a final verification pass, not a required gate.
 
 If the scope feels broad, the description feels vague, or `SKILL.md` keeps growing, fix that before adding more content.
 
@@ -23,7 +23,7 @@ If the scope feels broad, the description feels vague, or `SKILL.md` keeps growi
 
 Before you edit anything:
 
-1. Confirm the target is `plugins/agent-capability-kit/skills/skill-authoring/` only.
+1. Confirm the target is the current skill directory.
 2. Read `SKILL.md`, `assets/skill-template.md`, and `assets/validation-checklist.md` together.
 3. Check that the skill still reads as one flat, self-contained skill directory.
 4. Verify that no support file is required to understand the ordinary path.
@@ -161,12 +161,14 @@ Use a plan-validate-revise loop instead of writing the whole skill in one pass.
    - Move additive depth out of `SKILL.md`.
    - Fold any always-needed reference content back into `SKILL.md`.
 7. Finish with the checklist.
-   - Run `assets/validation-checklist.md`.
-   - Fix every failing item before returning the skill.
+   - Run `assets/validation-checklist.md` as a final verification pass.
+   - Fix every failing item, but do not treat the checklist as a gate that blocks completion when all ordinary-path guidance is correct.
 
-## Coherent-unit and context-budget rules
+## Coherent unit and content placement
 
 Keep a skill small enough that activation loads the common path without dragging in unrelated decisions.
+
+### Scope rules
 
 - One skill SHOULD cover one job that can be named in one sentence.
 - `SKILL.md` SHOULD contain only material needed on most activations.
@@ -175,6 +177,39 @@ Keep a skill small enough that activation loads the common path without dragging
 - If the main file starts reading like a handbook for several adjacent jobs, narrow the scope instead of adding more structure.
 
 Open `references/context-budget-and-scope.md` only when you need help deciding whether the skill is too broad, too crowded, or split at the wrong boundary.
+
+### Placement rules
+
+Keep content in `SKILL.md` when the agent needs it immediately after activation:
+
+- the skill's main workflow
+- required validation steps
+- the default file layout
+- the output shape
+- always-on guardrails
+
+Move content to `references/` only when it is additive rather than mandatory:
+
+- host-specific deviations
+- extended examples for a special branch
+- troubleshooting after the main workflow fails
+- compatibility details that do not apply to every run
+
+Move content to `assets/` when the best form is a copyable artifact:
+
+- starter frontmatter blocks
+- Markdown skeletons
+- sample JSON or YAML files
+- reusable checklists
+
+Move content to `scripts/` when a repeated step is safer as code than prose:
+
+- validation helpers
+- packaging helpers
+- static checks
+- report generation
+
+Open `references/progressive-disclosure.md` only when the placement decision is unclear or `SKILL.md` is getting crowded.
 
 ## `SKILL.md` body contract
 
@@ -249,45 +284,6 @@ Scripts are optional. Add `scripts/` only when code is safer than prose for a re
 
 Open `references/scripts-guidance.md` only when you are unsure whether a script belongs in the skill or how to document it without making it mandatory.
 
-## Common placement decisions
-
-Keep content in `SKILL.md` when the agent needs it immediately after activation.
-
-Examples:
-
-- the skill's main workflow
-- required validation steps
-- the default file layout
-- the output shape
-- always-on guardrails
-
-Move content to `references/` only when it is additive rather than mandatory.
-
-Examples:
-
-- host-specific deviations
-- extended examples for a special branch
-- troubleshooting after the main workflow fails
-- compatibility details that do not apply to every run
-
-Move content to `assets/` when the best form is a copyable artifact.
-
-Examples:
-
-- starter frontmatter blocks
-- Markdown skeletons
-- sample JSON or YAML files
-- reusable checklists
-
-Move content to `scripts/` when a repeated step is safer as code than prose.
-
-Examples:
-
-- validation helpers
-- packaging helpers
-- static checks
-- report generation
-
 ## Minimal example
 
 Use this as a smallest useful starting point:
@@ -350,7 +346,7 @@ Return:
 3. Every referenced support file needed for the requested deliverable
 4. Validation results and any explicit remaining risks
 
-## Optional support files in this skill
+## Optional support files
 
 - `references/context-budget-and-scope.md` - open when the skill feels too broad, too long, or split at the wrong boundary
 - `references/description-design.md` - open when the scope is correct but the `description` is still weak or hard to trigger

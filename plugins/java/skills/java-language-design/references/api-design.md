@@ -1,10 +1,12 @@
 ---
 title: Java API Design Reference
 description: >-
-  Reference for Java API design heuristics, public contracts, and review rules.
+  Reference for Java API design heuristics, public contracts,
+  mutability boundaries, visibility choices, collection exposure,
+  and exception-contract review rules.
 ---
 
-Use this reference when reviewing or proposing a Java public contract and the blocker is no longer syntax, but the exact API shape, mutability boundary, visibility choice, or exception contract. This file should be sufficient on its own to finish that review.
+Open this reference when reviewing or proposing a Java public contract and the blocker is no longer syntax, but the exact API shape, mutability boundary, visibility choice, or exception contract. This file should be sufficient on its own to finish that review.
 
 Use this file to finish one of these jobs:
 
@@ -14,7 +16,7 @@ Use this file to finish one of these jobs:
 - review checked vs unchecked exception boundaries
 - decide whether a type should stay public, package-private, or hidden behind an interface
 
-## Core Heuristics
+## Core heuristics
 
 - Prefer interfaces for capabilities and records for simple value carriers.
 - Prefer explicit factory methods when invariants or naming would be unclear in overloaded constructors.
@@ -22,7 +24,7 @@ Use this file to finish one of these jobs:
 - Document nullability assumptions in the absence of a project-level annotation standard.
 - Keep exception contracts stable and unsurprising.
 
-## Specific Review Points
+## Specific review points
 
 - Mutability of returned state
 - Exposure of internal collections
@@ -31,11 +33,15 @@ Use this file to finish one of these jobs:
 - Package-private vs public visibility
 - Checked vs unchecked exception choices
 
-## Broken vs Correct Review Patterns
+## Broken vs correct review patterns
 
 Mutable collection leak:
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+
+// Broken: returns mutable internal list
 final class UserDirectory {
     private final ArrayList<User> users = new ArrayList<>();
 
@@ -46,6 +52,10 @@ final class UserDirectory {
 ```
 
 ```java
+import java.util.ArrayList;
+import java.util.List;
+
+// Correct: returns immutable copy with interface type
 final class UserDirectory {
     private final ArrayList<User> users = new ArrayList<>();
 
@@ -60,12 +70,16 @@ Use when: reviewing whether a public getter leaks mutability or overcommits call
 Ambiguous absence contract:
 
 ```java
+// Broken: callers must guess whether null is possible
 interface SessionRepository {
     Session findByToken(String token);
 }
 ```
 
 ```java
+import java.util.Optional;
+
+// Correct: absence is explicit in the return type
 interface SessionRepository {
     Optional<Session> findByToken(String token);
 }
@@ -76,6 +90,7 @@ Use when: callers need to distinguish ordinary absence from an error instead of 
 Named factory for invariant-heavy construction:
 
 ```java
+// Broken: constructor hides the meaning of parameters and invariants
 final class PortRange {
     private final int lo;
     private final int hi;
@@ -91,6 +106,7 @@ final class PortRange {
 ```
 
 ```java
+// Correct: named factory makes the invariant and units visible at the call site
 final class PortRange {
     private final int lo;
     private final int hi;
@@ -114,12 +130,16 @@ Use when: constructor overloads would hide invariants, units, or naming that mat
 Recoverable vs programming-error exceptions:
 
 ```java
+// Broken: no distinction between recoverable and programming errors
 interface DocumentStore {
     Document load(DocumentId id);
 }
 ```
 
 ```java
+import java.io.IOException;
+
+// Correct: checked exception for recoverable I/O failure, unchecked for programming error
 interface DocumentStore {
     Document load(DocumentId id) throws IOException;
 }
@@ -139,6 +159,7 @@ Use when: deciding whether the caller can reasonably recover from a boundary fai
 Capability interface with hidden implementation:
 
 ```java
+// Broken: callers depend on concrete class
 public final class EmailValidator {
     public boolean isValid(String value) {
         return value.contains("@");
@@ -147,6 +168,7 @@ public final class EmailValidator {
 ```
 
 ```java
+// Correct: callers depend on capability, implementation stays hidden
 public interface EmailValidationService {
     boolean isValid(String value);
 }
@@ -161,7 +183,7 @@ final class DefaultEmailValidationService implements EmailValidationService {
 
 Use when: callers depend on a capability while implementation choice, construction, or replacement should remain internal to the package or module.
 
-## Review Checklist
+## Review checklist
 
 - Does the public signature expose an implementation type or mutable backing state?
 - Does the contract make absence explicit, or does it force callers to infer a `null` convention?

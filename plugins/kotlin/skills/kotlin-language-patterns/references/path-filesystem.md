@@ -75,13 +75,11 @@ import java.io.File
 
 fun countErrors(logFile: File): Int {
     var count = 0
-
     logFile.forEachLine { line ->
         if ("ERROR" in line) {
             count += 1
         }
     }
-
     return count
 }
 ```

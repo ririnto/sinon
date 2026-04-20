@@ -1,12 +1,13 @@
 ---
 title: Java Base Family Map
 description: >-
-  Purpose-oriented lookup guide for choosing foundational java.base package families.
+  Purpose-oriented lookup guide for choosing foundational java.base package families
+  by domain, with representative examples and boundary reminders.
 ---
 
-Use this reference when the question is no longer just “is this syntax valid?” and has become “which foundational `java.base` family should I reach for first?”
+Open this reference when the question is no longer just "is this syntax valid?" and has become "which foundational `java.base` family should I reach for first?"
 
-## Choose the Right Family
+## Choose the right family
 
 ### Core runtime and metadata
 
@@ -15,6 +16,12 @@ Use this reference when the question is no longer just “is this syntax valid?�
 - `java.lang.constant`, `java.lang.invoke`, `java.lang.module`, and `java.lang.runtime` for constants, method-handle/bootstrap linkage, modules, and lower-level runtime support.
 
 Use when: the code question is about runtime structure, reflection, or module-aware behavior rather than packaging or tooling.
+
+Representative example:
+
+```java
+Thread.ofVirtual().name("worker").start(() -> processTask());
+```
 
 ### Collections, utility, and text
 
@@ -29,10 +36,14 @@ Use when: ordinary collection shaping, immutable factories, formatting, or regex
 Representative examples:
 
 ```java
-var roles = List.of("reader", "writer");
+import java.util.List;
+
+List<String> roles = List.of("reader", "writer");
 ```
 
 ```java
+import java.util.regex.Pattern;
+
 Pattern issuePattern = Pattern.compile("([A-Z]+)-(\\d+)");
 ```
 
@@ -45,6 +56,9 @@ Use when: you need to distinguish precise instants from date-only or wall-clock 
 Representative example:
 
 ```java
+import java.time.Instant;
+import java.time.LocalDate;
+
 record Invoice(Instant issuedAt, LocalDate dueDate) {
 }
 ```
@@ -61,6 +75,9 @@ Use when: program structure still fits normal standard-library I/O rather than J
 Representative example:
 
 ```java
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 Path config = root.resolve("app.json");
 Files.writeString(config, payload);
 String loaded = Files.readString(config);
@@ -79,6 +96,6 @@ Use when: the code genuinely needs these specialized capabilities. These are not
 
 Use when: the problem is explicitly about customizing or extending standard-library behavior rather than simply using it.
 
-## Boundary Reminder
+## Boundary reminder
 
 Stay in this reference only for foundational `java.base` guidance. `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, and live JVM diagnostics are outside this skill's scope.

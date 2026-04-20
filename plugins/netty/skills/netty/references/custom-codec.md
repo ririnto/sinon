@@ -15,19 +15,9 @@ Open this when built-in framing is not enough, a protocol is stateful, or a pipe
 | messages to bytes | `MessageToByteEncoder<T>` |
 | message to message translation | `MessageToMessageCodec<IN, OUT>` |
 
-## Length-prefixed decoding
+## Framing prerequisite
 
-Payload shaped as `[length:4][payload:*]`:
-
-```java
-pipeline.addLast(new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
-```
-
-Payload shaped as `[magic:2][length:4][payload:*]`:
-
-```java
-pipeline.addLast(new LengthFieldBasedFrameDecoder(1048576, 2, 4, 0, 6));
-```
+Length-prefixed and other framing choices belong in [framing.md](./framing.md). This file covers what comes after framing: stateful decode logic, encode patterns, and handler sharability.
 
 ## Stateful decoder pattern
 
@@ -62,6 +52,51 @@ final class CommandDecoder extends ByteToMessageDecoder {
                     state = State.READ_HEADER;
                 }
             }
+        }
+    }
+}
+```
+
+## `ReplayingDecoder` for simple protocols
+
+When the protocol has a fixed structure and you want to avoid manual readable-bytes checks, use `ReplayingDecoder`. It throws a buffered `Error` (caught internally by Netty) when not enough bytes are available, then retries when more data arrives.
+
+```java
+final class TimeDecoder extends ReplayingDecoder<Void> {
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+        out.add(new UnixTime(in.readUnsignedInt()));
+    }
+}
+```
+
+> [!WARNING]
+> `ReplayingDecoder` is slightly slower than `ByteToMessageDecoder` due to try/catch overhead. Use it for readability on simple protocols; switch to `ByteToMessageDecoder` for hot paths where decode throughput matters.
+
+## Stateful decoder with `handlerAdded` / `handlerRemoved`
+
+Stateful handlers that allocate buffers or external resources must initialize them in `handlerAdded` and clean up in `handlerRemoved`:
+
+```java
+final class CumulativeDecoder extends ByteToMessageDecoder {
+    private ByteBuf buf;
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) {
+        buf = ctx.alloc().buffer(4);
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) {
+        buf.release();
+        buf = null;
+    }
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+        buf.writeBytes(in, in.readableBytes());
+        if (buf.readableBytes() >= 4) {
+            out.add(buf.readBytes(4));
         }
     }
 }

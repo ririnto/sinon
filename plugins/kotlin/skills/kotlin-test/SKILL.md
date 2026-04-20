@@ -2,33 +2,19 @@
 name: kotlin-test
 description: >-
   Use this skill when the user asks to "test Kotlin code", "write a coroutine test", "mock a Kotlin dependency", "structure Kotlin tests", or needs guidance on practical Kotlin testing patterns.
-metadata:
-  title: "Kotlin Test"
-  official_project_url: "https://kotlinlang.org/api/core/kotlin-test/"
-  reference_doc_urls:
-    - "https://kotlinlang.org/api/core/kotlin-test/"
-    - "https://kotlinlang.org/api/core/kotlin-test/kotlin.test/assert-fails-with.html"
-    - "https://kotlinlang.org/api/core/kotlin-test/kotlin.test.junit5/index.html"
-    - "https://junit.org/junit5/docs/current/user-guide/"
-    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-test/"
-    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-test/kotlinx.coroutines.test/run-test.html"
-    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-test/kotlinx.coroutines.test/-test-coroutine-scheduler/"
-    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/first.html"
-    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/take.html"
-    - "https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/to-list.html"
-    - "https://kotest.io/docs/framework/testing-styles.html"
-    - "https://mockk.io/"
-    - "https://github.com/awaitility/awaitility/wiki/Kotlin"
 ---
 
 ## Goal
 
-Write clear, deterministic Kotlin tests by proving one observable behavior with the smallest scope that works. Keep the common path centered on `kotlin.test`, `runTest` for suspend code, bounded Flow collection, and direct exception assertions, then open a blocker reference only when virtual time, replay semantics, mocking-library details, or JUnit 5 structure features become the real problem.
+Write clear, deterministic Kotlin tests by proving one observable behavior with the smallest scope that works.
+
+**Minimum Kotlin version: 1.9** -- examples use `kotlin.test` baseline assertions, `kotlinx.coroutines.test` (1.7+), JUnit 5 Jupiter APIs, MockK 1.14+, Kotest 6.x, and Turbine 1.2+. All library versions are managed through the project's dependency catalog; pin versions when adopting features from specific releases. This skill covers JVM testing only -- for multiplatform targets, adapt assertions to `kotlin-test-js` or `kotlin-test-native`. Keep the common path centered on `kotlin.test`, `runTest` for suspend code, bounded Flow collection, and direct exception assertions, then open a blocker reference only when virtual time, replay semantics, mocking-library details, or JUnit 5 structure features become the real problem.
 
 ## Operating Rules
 
 - MUST choose the smallest test scope that proves the behavior.
 - SHOULD keep one observable behavior per test.
+- SHOULD name tests as `verbCondition` or `subjectVerb` describing the observable behavior (e.g., `returnsCachedProfile`, `emitsLoadingThenData`, `rejectsInvalidInput`).
 - SHOULD use `kotlin.test` annotations and baseline assertions as the default surface.
 - MUST use `runTest` when coroutine semantics actually matter.
 - SHOULD keep Flow assertions bounded with `first()`, `single()`, or `take(n).toList()`.
@@ -50,26 +36,68 @@ Write clear, deterministic Kotlin tests by proving one observable behavior with 
 
 ### Start with `kotlin.test`
 
-Use `@Test` and baseline assertions first.
+Use `@Test` and baseline assertions first. Prefer the multi-assertion form that checks several properties in one test body.
 
 ```kotlin
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.assertNull
+import kotlin.test.assertContentEquals
+import kotlin.test.assertContains
 
 class ProfileServiceTest {
     @Test
     fun returnsCachedProfile() {
         val result = service.loadProfile("user-1")
         assertEquals(Profile("user-1"), result)
+        assertTrue(result.isActive)
+        assertNull(result.error)
+    }
+
+    @Test
+    fun returnsTagList() {
+        val tags = service.loadTags("user-1")
+        assertContentEquals(listOf("admin", "editor"), tags)
+        assertContains(tags, "admin")
     }
 }
 ```
 
-Layer JUnit 5 annotations such as `@DisplayName` only when the suite already uses Jupiter features.
+These are the common `kotlin.test` assertions you will reach for most often:
+
+| Assertion | When to use it |
+| --- | --- |
+| `assertEquals(expected, actual)` | value equality is the contract |
+| `assertTrue(condition)` / `assertFalse(condition)` | boolean predicate is the contract |
+| `assertNull(value)` / `assertNotNull(value)` | nullability is part of the contract |
+| `assertContentEquals(expected, actual)` | comparing lists, arrays, or sequences by element |
+| `assertContains(collection, element)` / `assertContains(charSequence, value)` | membership check on collections or strings |
+| `assertNotEquals(illegal, actual)` | proving a value is *not* something specific |
+| `assertSame(expected, actual)` | referential identity (not equality) matters |
+| `assertFailsWith<T> { ... }` | thrown type and message/properties are the contract |
+| `fail(reason)` | mark an unreachable branch as a test failure |
+
+Layer JUnit 5 annotations such as `@DisplayName`, `@BeforeEach`, or `@ParameterizedTest` only when the suite already uses Jupiter features.
+
+Import rule: When using any JUnit 5 feature (`@Nested`, `@ParameterizedTest`, `@DisplayName`, `@TempDir`, etc.), import `@Test` from `org.junit.jupiter.api.Test`. When using only `kotlin.test` features, import `@Test` from `kotlin.test.Test`. Never mix both imports in the same file -- the compiler cannot resolve which `@Test` you mean.
 
 ### Use `runTest` for suspend code
 
 `runTest` is the ordinary path for coroutine-aware tests. It skips delays and surfaces uncaught child-coroutine failures.
+
+When code under test uses `withTimeout`, a timed-out `delay` inside `runTest` throws `TimeoutCancellationException` (a subclass of `CancellationException`). Since `runTest` handles `CancellationException` at scope level, time out assertions work naturally -- the test body completes and you assert on the fallback result:
+
+```kotlin
+@Test
+fun returnsFallbackOnTimeout() = runTest {
+    advanceTimeBy(5_000)
+    val result = service.loadWithTimeout(OrderId("1"))
+    assertEquals(Fallback, result)
+}
+```
+
+Do not wrap `runTest` bodies in try/catch for `CancellationException` or `TimeoutCancellationException` -- `runTest` manages cancellation lifecycle automatically.
 
 ```kotlin
 import kotlin.test.Test
@@ -118,6 +146,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class RetryPolicyTest {
+    private val service = RetryPolicyService()
+
     @Test
     fun rejectsInvalidRetryBudget() {
         val error = assertFailsWith<IllegalArgumentException> {
@@ -141,6 +171,7 @@ Check these pass/fail conditions before you stop:
 - Flow tests collect only the amount needed for the assertion
 - exception assertions prove the exact contract that matters
 - mocks exist only at real collaboration boundaries
+- assertion choice matches the contract shape (equality vs content-equality vs containment)
 
 ## Common Pitfalls
 
@@ -151,6 +182,7 @@ Check these pass/fail conditions before you stop:
 | collecting a Flow forever | the test never reaches a bounded assertion | use `first()`, `single()`, or `take(n).toList()` |
 | over-mocking simple values or pure helpers | fixtures become harder to read than the code under test | keep simple values real |
 | reaching for framework-specific helpers before a plain test works | the test shape becomes heavier than the behavior | start with `kotlin.test` and grow only when needed |
+| using `assertEquals` on lists when element order is unstable | structural comparison fails on reorderings | use `assertContains` or sort before `assertEquals` |
 
 ## Output Contract
 
@@ -167,6 +199,8 @@ Open only the reference that matches the remaining blocker.
 
 | Open when... | Read... |
 | --- | --- |
+| step-by-step Flow inspection, cancellation verification, or error-terminal states are the blocker | `./references/turbine-flow-testing.md` |
+| setting up test dependencies, Gradle configuration, or choosing libraries is the blocker | `./references/gradle-dependencies-and-config.md` |
 | delay control, scheduler advancement, or dispatcher injection is the blocker | `./references/coroutine-test-determinism.md` |
 | Flow replay semantics or bounded collection shape is the blocker | `./references/flow-testing.md` |
 | JUnit 5 nested structure, grouped assertions, or timeout variants are the blocker | `./references/junit5-structure-and-timeouts.md` |
@@ -176,6 +210,6 @@ Open only the reference that matches the remaining blocker.
 
 ## Scope Boundaries
 
-Use this skill for Kotlin unit and integration test shape, coroutine-aware test execution, bounded Flow assertions, and practical mocking-boundary choices.
+Use this skill for Kotlin JVM unit and integration test shape, coroutine-aware test execution, bounded Flow assertions, and practical mocking-boundary choices. This skill covers JVM testing with JUnit 5, MockK (JVM), Kotest, and Turbine. For multiplatform Kotlin testing (`kotlin-test-js`, `kotlin-test-native`), adapt assertions to the target platform's available surface.
 
-Do not use this skill as the primary source for coroutine API design, general Kotlin language refactors, or framework-heavy application-context testing.
+Do not use this skill as the primary source for coroutine API design (use `kotlin-coroutines-flows`), general Kotlin language refactors (use `kotlin-language-patterns`), or framework-heavy application-context testing such as Spring `@SpringBootTest`.

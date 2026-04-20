@@ -1,7 +1,7 @@
 ---
 name: jvm-tooling-workflows
 description: >-
-  Use this skill when the user asks to "use javac", "package a Java app", "compare jlink and jpackage", "generate Javadoc", "analyze dependencies with jdeps", or needs guidance on official JDK toolchain workflows.
+  Use this skill when the user asks to "use javac", "package a Java app", "compare jlink and jpackage", "generate Javadoc", "analyze dependencies with jdeps", "start jshell", "build a custom JRE", or needs guidance on official JDK toolchain workflows.
 metadata:
   title: JVM Tooling Workflows
   official_project_url: "https://docs.oracle.com/en/java/"
@@ -21,13 +21,6 @@ Use this skill to guide tasks that depend on official JDK command-line tools and
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and call out when a tool or packaging behavior changes across those releases.
 
 Do not describe the full tooling surface as uniformly available across that whole line. In this skill's framing, `javac`, `java`, `javadoc`, and `jdeps` span the supported LTS line, while `jshell` and `jlink` are JDK 9+ workflows and `jpackage` is a JDK 14+ workflow.
-
-## Use This Skill When
-
-- You need to compile, run, experiment in `jshell`, document, inspect, slim, or package a Java application with standard JDK tools, and you know the runtime/tooling version boundary that applies.
-- You need to decide between `jdeps`, `jlink`, and `jpackage`.
-- You need a direct command sequence before mapping it into Maven, Gradle, or another wrapper.
-- Do not use this skill when the task starts from a live JVM symptom and the next step is runtime evidence collection rather than build or packaging flow.
 
 ## Common-Case Workflow
 
@@ -52,6 +45,8 @@ Tool availability baseline:
 - `javac`, `java`, `javadoc`, `jdeps`: available across the supported LTS line used by this plugin
 - `jshell`, `jlink`: JDK 9+
 - `jpackage`: JDK 14+
+
+Confirm the target JDK version before recommending `jshell`, `jlink`, or `jpackage`.
 
 ## First Runnable Commands or Code Shape
 
@@ -119,6 +114,9 @@ Use when: you want to validate the packaged launch shape before choosing a platf
 
 Version note: `jpackage` is a JDK 14+ workflow. Do not present it as an option on the JDK 8 or JDK 11 baseline.
 
+> [!NOTE]
+> On JDK 25 and later, `jpackage` no longer includes service bindings in the generated runtime image by default. Add `--jlink-options --bind-services` when the application depends on service loader bindings.
+
 Javadoc generation:
 
 ```bash
@@ -141,13 +139,96 @@ java --list-modules | grep java.base
 - After `jlink`, run `build/runtime/bin/java --version` to verify the image is usable.
 - After `jpackage`, verify the generated app image or installer exists for the target platform.
 
-- Before recommending `jshell`, `jlink`, or `jpackage`, confirm the target JDK version actually includes that tool.
+## Format-Critical Output Shapes
+
+### `javac` Error Output
+
+```text
+src/main/java/com/example/App.java:5: error: cannot find symbol
+    System.out.prinln("hello");
+                ^
+  symbol:   method prinln(String)
+  location: variable out of type PrintStream
+1 error
+```
+
+Read: file:line:column → error type → caret points to exact token. The `symbol` line names what could not be resolved.
+
+### `java --version` Output
+
+```text
+openjdk 25.0Internal 2026-04-20
+OpenJDK Runtime Environment (build 25.0Internal+12-adhoc.ririnto)
+OpenJDK 64-Bit Server VM (build 25.0Internal+12-adhoc.ririnto, mixed mode, sharing)
+```
+
+Read: feature version (25 = JDK 25), `Server VM` = server-class JVM, `mixed mode` = JIT + interpreter.
+
+### `jdeps --print-module-deps` Output
+
+```text
+java.base
+java.net.http
+java.sql
+```
+
+Read: each line is a required module name. Feed this list directly to `jlink --add-modules`. Empty output means non-modular or classpath-only dependencies.
+
+### `jlink` Runtime Image Structure
+
+```text
+build/runtime/
+├── bin/java              ← launcher (verify with build/runtime/bin/java --version)
+├── conf/
+├── lib/
+└── release               ← version metadata
+```
+
+### `jpackage` App Image Structure (platform-specific)
+
+**macOS:** `DemoApp.app/Contents/MacOS/DemoApp` + bundled runtime in `Contents/runtime/`
+**Linux:** `DemoApp/bin/DemoApp` + runtime in `DemoApp/lib/runtime/`
+**Windows:** `DemoApp\DemoApp.exe` + runtime in `DemoApp\runtime\`
+
+### `jshell` Session Shape
+
+```jshell
+jshell> int x = 42;
+x ==> 42
+
+jshell> /exit
+```
+
+Variable declarations show `name ==> value`. Expressions auto-assign `$N`. `/exit` ends session.
+
+### `javadoc` Output
+
+```bash
+javadoc -d build/docs src/main/java/com/example/demo/*.java
+```
+
+Produces HTML documentation tree:
+
+```text
+build/docs/
+├── index.html              ← entry point (overview frame)
+├── allclasses-index.html   ← alphabetical class index
+├── com/
+│   └── example/
+│       ├── App.html        ← per-class docs
+│       └── package-summary.html
+├── script/
+│   └── ...
+└── stylesheet.css
+```
+
+Entry point is `index.html`. Verify generation succeeded when this file exists and contains the expected package/class listing.
 
 ## Deep References
 
 | If the blocker is... | Read... |
 | --- | --- |
-| choosing among the wider JDK tool set before narrowing the command sequence | `./references/jdk-tool-index.md` |
+| choosing among the wider JDK tool set before narrowing the command sequence, or reading tool output shapes | `./references/jdk-tool-index.md` |
 | module-aware slimming or native packaging details | `./references/modules-packaging.md` |
 
 ## Invariants
