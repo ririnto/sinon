@@ -1,18 +1,22 @@
 ---
 title: "Debugging and Hooks"
-description: "Open this when local log and checkpoint diagnostics are not enough and you need assembly tracing, global hooks, or scheduler-level debugging aids."
+description: "Open when local log and checkpoint diagnostics are not enough and you need assembly tracing, global hooks, or scheduler-level debugging aids."
 ---
 
-Open this when a few local probes are not enough to explain where execution moved, where assembly happened, or why scheduling behavior differs across chains.
+Open when a few local probes are not enough to explain where execution moved, where assembly happened, or why scheduling behavior differs across chains.
+
+For signal-level inspection (checkpoint, log, doOnEach) without assembly tracing or thread debugging, see [Signal-Level Diagnostics](../reactor-core/references/debugging-and-observability.md) in the `reactor-core` skill.
 
 ## Start with the narrowest advanced tool
 
 | Need | Use | Cost |
 | --- | --- | --- |
-| mark one suspicious stage | `checkpoint("label")` | low |
-| trace local signals and requests | `log("category")` | low to medium |
 | capture global assembly traces | `Hooks.onOperatorDebug()` | high |
 | instrument runtime with lower steady-state debugging overhead | `ReactorDebugAgent` | medium to high |
+| visible thread logging at each stage | `doOnNext` with thread name output | low |
+
+> [!NOTE]
+> For `checkpoint("label")` and `log("category")`, see the `reactor-core` skill's signal-level diagnostics reference. This reference covers execution-tracing tools only.
 
 ## Global assembly tracing
 
@@ -29,6 +33,8 @@ final class OperatorDebugExample {
     }
 }
 ```
+
+`Hooks.onOperatorDebug()` captures assembly stack traces for every operator. Enable once during initialization, not per-pipeline. The cost is high because every operator stores assembly information.
 
 ## Visible thread logging
 
@@ -50,14 +56,17 @@ final class ThreadLoggingExample {
 }
 ```
 
+Use this pattern to verify that `publishOn(...)` actually switches threads at the expected point. The before/after pair shows whether the scheduler hop occurred.
+
 ## Guardrails
 
-- Prefer named `checkpoint(...)` and local `log(...)` before enabling global hooks.
+- Prefer named `checkpoint(...)` and local `log(...)` from the core skill's diagnostics before enabling global hooks.
 - Remove broad debug instrumentation once the root cause is known.
 - `Hooks.onOperatorDebug()` is powerful but expensive because it captures assembly details globally.
 - If the real problem is scheduler construction or lifecycle, open [Scheduler Tuning and Custom Schedulers](scheduler-tuning.md).
 
 ## When this reference is the wrong tool
 
+- If you need signal-level inspection (what values flow through which operator), see [Signal-Level Diagnostics](../reactor-core/references/debugging-and-observability.md) in the `reactor-core` skill.
 - If the chain is correct but `ThreadLocal`-backed data disappears, open [Context Propagation Across Scheduler Boundaries](context-propagation.md).
 - If the main need is virtual time or scheduler replacement inside tests, use the testing skill instead.

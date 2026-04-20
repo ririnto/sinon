@@ -1,20 +1,22 @@
 ---
-title: "Debugging and Observability"
-description: "Open this when the pipeline behaves differently at assembly and runtime and you need checkpoints, signal logging, or sequence-level diagnostics."
+title: "Signal-Level Diagnostics"
+description: "Open this when you need to inspect signal flow, value propagation, or Context at individual pipeline stages without changing execution context or tracing assembly."
 ---
 
-Open this when the pipeline is conceptually right but failure location, signal flow, or assembly context is unclear.
+Open this when the pipeline is conceptually correct but you need to see what signals flow through which stage, what values each operator sees, or how Context propagates per-signal.
+
+For assembly tracing, global hooks, or thread-hop debugging, see the `reactor-scheduling` skill's debugging reference.
 
 ## Start with the narrowest tool
 
-| Need | Use | Cost |
+| Need | Use | What it shows |
 | --- | --- | --- |
-| label one suspicious stage | `checkpoint("label")` | low |
-| inspect local signal flow | `log("category")` | low to medium |
-| inspect every signal with context | `doOnEach(...)` | medium |
-| capture assembly traces broadly | `Hooks.onOperatorDebug()` | high |
+| label one suspicious stage | `checkpoint("label")` | assembly traceback on error |
+| inspect local signal flow | `log("category")` | every signal with default formatting |
+| inspect per-signal Context | `doOnEach(...)` with `Signal.getContextView()` | metadata attached to each signal |
+| conditional value inspection | `doOnNext(...)` / `doOnError(...)` | only values or only errors |
 
-## `checkpoint(...)`
+## `checkpoint(...)` for error localization
 
 ```java
 import reactor.core.publisher.Flux;
@@ -23,12 +25,18 @@ final class CheckpointedPipeline {
     Flux<Integer> values() {
         return Flux.range(1, 3)
             .map(value -> value * 2)
-            .checkpoint("after-doubling");
+            .checkpoint("after-doubling")
+            .map(value -> {
+                if (value == 4) throw new IllegalStateException("bad value");
+                return value;
+            });
     }
 }
 ```
 
-## `log(...)`
+When an error occurs downstream, the checkpoint label appears in the stack trace, identifying which stage produced or last touched the failing value.
+
+## `log(...)` for full signal visibility
 
 ```java
 import reactor.core.publisher.Flux;
@@ -40,7 +48,9 @@ final class LoggedPipeline {
 }
 ```
 
-## `doOnEach(...)` with `ContextView`
+The category string appears in every logged line. Filter logs by category to isolate one pipeline from others running in the same process.
+
+## `doOnEach(...)` with per-signal `ContextView`
 
 ```java
 import reactor.core.publisher.Mono;
@@ -50,16 +60,39 @@ final class ContextLogging {
         return Mono.just("payload")
             .doOnEach(signal -> {
                 if (signal.isOnNext()) {
-                    signal.getContextView().getOrEmpty("traceId");
+                    String traceId = signal.getContextView()
+                        .getOrEmpty("traceId")
+                        .orElse("missing");
                 }
-            });
+            })
+            .contextWrite(context -> context.put("traceId", "t-123"));
     }
 }
 ```
 
+`doOnEach` fires for every signal type: onNext, onError, onComplete. Always check the signal type before accessing value or context.
+
+## Conditional inspection without side effects
+
+Use `doOnNext(...)` for value-only inspection when error or completion handling is not needed.
+
+```java
+import reactor.core.publisher.Flux;
+
+final class InspectedPipeline {
+    Flux<String> processed() {
+        return Flux.just("a", "b", "c")
+            .doOnNext(value -> System.out.println("processing: " + value))
+            .map(String::toUpperCase);
+    }
+}
+```
+
+`doOnNext(...)` fires only for `onNext` signals, making it lighter than `doOnEach(...)` when completion and error signals do not need inspection.
+
 ## Failure checks
 
-- Prefer a local checkpoint before enabling global debug hooks.
-- Remove broad instrumentation once the root cause is known.
-- If the problem is demand rather than location, open [Backpressure and Demand](backpressure.md).
-- If the real blocker is scheduler policy or thread switching, treat that as a scheduling problem rather than a sequence-diagnostics problem.
+- Prefer a local checkpoint before enabling any global debug instrumentation.
+- Remove diagnostic operators once the root cause is known -- they add overhead in production.
+- If the problem is demand rather than signal content, open [Backpressure and Demand](backpressure.md).
+- If the problem is where execution moves rather than what signals flow, open the `reactor-scheduling` skill's debugging reference.

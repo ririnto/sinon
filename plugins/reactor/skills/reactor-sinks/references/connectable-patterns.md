@@ -5,6 +5,10 @@ description: "Open this when the real problem is connect, disconnect, replay, or
 
 Open this when a cold source already exists and the blocker is how multiple subscribers share, trigger, or replay it.
 
+## Conceptual foundation
+
+For the cold versus hot distinction and when sharing is the right design move, see [Hot, Cold, and Multicasting](../reactor-core/references/hot-cold-and-multicasting.md) in the `reactor-core` skill. This reference covers the concrete patterns after that conceptual decision is made.
+
 ## Choose the sharing pattern
 
 | Need | Use | Why |

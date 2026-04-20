@@ -1,6 +1,6 @@
 ---
 title: Reactor
-description: Overview of the Reactor plugin, its included skills, and reactive programming workflow coverage.
+description: Overview of the Reactor plugin, its included skills, routing decisions, and reactive programming workflow coverage.
 ---
 
 Reactor is a shared, skill-first plugin for Project Reactor reactive programming work in the Sinon universal marketplace.
@@ -10,32 +10,72 @@ Reactor is a shared, skill-first plugin for Project Reactor reactive programming
 - Provide reusable Reactor workflows that remain portable across Claude Code and Codex-style plugin systems.
 - Keep skills practical, example-driven, and focused on real reactive programming tasks rather than framework trivia.
 - Separate reactive programming concerns from Java language, Spring framework, and general concurrency concerns.
+- Act as an orchestrator that routes every reactive programming task to exactly one skill.
 
 ## Included Skills
 
-- `reactor-core`: Core Reactor types (Flux, Mono), operator composition, data transformation, error handling, and Context propagation.
-- `reactor-scheduling`: Scheduler configuration, publishOn/subscribeOn threading, and debugging reactive chains.
-- `reactor-sinks`: Sinks API, ConnectableFlux, hot versus cold publishers, and backpressure strategies for manual emission.
-- `reactor-testing`: StepVerifier, TestPublisher, PublisherProbe, and virtual time testing with reactor-test.
+| Skill | Domain | One-line scope |
+| --- | --- | --- |
+| `reactor-core` | Core types | Flux/Mono selection, source creation, operator composition, combination, error handling, backpressure, Context |
+| `reactor-scheduling` | Execution context | Scheduler choice, publishOn/subscribeOn placement, blocking offload, thread-affinity boundaries |
+| `reactor-sinks` | Hot sources | Sinks API, ConnectableFlux, replay/multicast choices, emit result handling |
+| `reactor-testing` | Test verification | StepVerifier, virtual time, TestPublisher, PublisherProbe, post-verification checks |
 
-## When to Use Which Skill
+## Routing decision tree
 
-- Flux/Mono creation, operators (map, flatMap, filter), combining (concat, merge, zip), and error handling belong in reactor-core.
-- Scheduler selection, publishOn/subscribeOn, threading context switching, and debugging belong in reactor-scheduling.
-- Sinks (one, many, empty), ConnectableFlux, caching, replay, and hot publishers belong in reactor-sinks.
-- StepVerifier, TestPublisher, virtual time, and testing reactive pipelines belong in reactor-testing.
+Use this tree to select the correct skill for any Reactor task.
 
-Typical workflow:
+```
+Is the task about testing a publisher?
+  YES -> reactor-testing
+  NO  -> Continue
 
-1. Start with reactor-core to define data sources and transformation pipelines.
-2. Apply error handling patterns from reactor-core for robust pipelines.
-3. Use reactor-scheduling to control threading and execution context.
-4. Use reactor-sinks when imperative emission or hot publishing is needed.
-5. Validate everything with reactor-testing patterns.
+Does the task involve manual programmatic emission or hot-source design?
+  YES -> reactor-sinks
+  NO  -> Continue
+
+Does the task involve scheduler choice, thread placement, or publishOn/subscribeOn?
+  YES -> reactor-scheduling
+  NO  -> reactor-core (default)
+```
+
+### Routing by surface area
+
+| Task keyword or intent | Skill |
+| --- | --- |
+| Flux, Mono, map, flatMap, concatMap, filter, zip, merge, combineLatest, concat | reactor-core |
+| fromCallable, fromSupplier, just, defer, generate, create, push, using | reactor-core |
+| onErrorResume, retry, switchIfEmpty, defaultIfEmpty, doFinally | reactor-core |
+| Context, contextWrite, deferContextual | reactor-core |
+| Schedulers.parallel, Schedulers.boundedElastic, Schedulers.single | reactor-scheduling |
+| publishOn, subscribeOn, blocking bridge, thread-affine | reactor-scheduling |
+| Sinks.one, Sinks.many, Sinks.empty, tryEmitNext, emitNext | reactor-sinks |
+| multicast, replay, unicast, share, autoConnect, refCount, ConnectableFlux | reactor-sinks |
+| StepVerifier, TestPublisher, PublisherProbe, withVirtualTime, expectNext | reactor-testing |
+
+### Cross-skill dependencies
+
+These patterns require coordination between two skills:
+
+| Primary task | Secondary concern | Primary skill | Consult also |
+| --- | --- | --- | --- |
+| Blocking bridge inside a pipeline | Where does the blocking call run? | reactor-core | reactor-scheduling (blocking offload reference) |
+| Hot source with thread-safe emission | Which scheduler owns emission? | reactor-sinks | reactor-scheduling (thread-affinity boundary) |
+| Testing a pipeline with schedulers | Virtual time vs real scheduler behavior | reactor-testing | reactor-scheduling (virtual time boundary note) |
+| Error handling with retry backoff | Retry policy + scheduler interaction | reactor-core | reactor-scheduling (if retry involves scheduling) |
+| Context across async boundaries | Context survival through thread hops | reactor-core | reactor-scheduling (context propagation reference) |
+
+## Typical workflow
+
+1. Start with `reactor-core` to define data sources and transformation pipelines.
+2. Apply error handling patterns from `reactor-core` for robust pipelines.
+3. Use `reactor-scheduling` to control threading and execution context when the default model is insufficient.
+4. Use `reactor-sinks` when imperative emission or hot publishing is needed.
+5. Validate everything with `reactor-testing` patterns.
 
 ## Scope Boundaries
 
-Reactor stays responsible for Project Reactor API, reactive stream semantics, and operator patterns.
+Reactor stays responsible for Project Reactor API, Reactive Streams semantics, and operator patterns.
 
 These topics fall outside Reactor's scope:
 
