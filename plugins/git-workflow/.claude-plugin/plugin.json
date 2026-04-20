@@ -5,6 +5,7 @@
   "author": {
     "name": "ririnto"
   },
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/git-workflow",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
   "keywords": [

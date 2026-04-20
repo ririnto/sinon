@@ -3,8 +3,6 @@ title: "Alertmanager Inhibition Rules"
 description: "Open this when suppressing secondary alerts with inhibition rules is the blocker."
 ---
 
-# Alertmanager Inhibition Rules
-
 Use this reference when the blocker is deciding whether one alert should suppress another after both are already routed into Alertmanager.
 
 ## When Inhibition Is Appropriate

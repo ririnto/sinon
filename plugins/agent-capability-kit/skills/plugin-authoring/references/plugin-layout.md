@@ -47,10 +47,9 @@ Use these helper directories only when the associated surface needs local code b
 
 ## Layout exceptions
 
-- keep `.claude-plugin/` limited to `plugin.json`
-- place bundled executables and support modules at the plugin root, not inside `.claude-plugin/`
-- keep runtime output and generated state outside the shipped surface files unless the specific component explicitly expects it
 - prefer one helper directory per surface so the plugin tree stays readable when a surface grows beyond one file
+- when a surface needs multiple files, group them under a directory named after the surface rather than scattering files at the root
+- keep runtime output and generated state outside the shipped surface files unless the specific component explicitly expects it
 
 ## When this file matters
 

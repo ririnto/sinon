@@ -231,13 +231,6 @@ Read `commands/your-command.md` and confirm:
 
 If you need a starting point or comparison set, use the optional files in this skill directory.
 
-## Optional support files
-
-- `assets/command-template.md` - copy when creating a new command from scratch
-- `assets/command-frontmatter-patterns.md` - open when you need quick frontmatter examples for common command types
-- `references/command-frontmatter.md` - open when a frontmatter decision is unusual or field interactions need deeper comparison
-- `references/prompt-structure.md` - open when the command body needs extended structural examples or repair guidance
-
 ## Pitfalls
 
 - Do not write the command as a background essay about what Claude should do.
@@ -255,3 +248,10 @@ Return:
 3. A short note explaining the argument model
 4. A short note explaining the output contract
 5. Any explicit remaining blocker or risk
+
+## Optional support files
+
+- `assets/command-template.md` - copy when creating a new command from scratch
+- `assets/command-frontmatter-patterns.md` - open when you need quick frontmatter examples for common command types
+- `references/command-frontmatter.md` - open when a frontmatter decision is unusual or field interactions need deeper comparison
+- `references/prompt-structure.md` - open when the command body needs extended structural examples or repair guidance

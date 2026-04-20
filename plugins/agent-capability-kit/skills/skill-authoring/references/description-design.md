@@ -89,6 +89,8 @@ Example:
 | Should not match | 'Review the quality of this model response.' | No match |
 | Should not match | 'Create a product-specific Claude command.' | No match |
 
+> These examples use the skill-authoring domain for illustration. Substitute your own domain's prompts when testing a different type of skill.
+
 ## Common mistakes
 
 - naming a domain without the task

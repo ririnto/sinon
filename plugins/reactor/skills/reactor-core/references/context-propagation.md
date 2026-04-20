@@ -55,6 +55,23 @@ final class ContextAwareOperator {
 | add one key | `put(...)` |
 | merge another context | `putAll(...)` |
 
+## Capturing current thread-local values at subscription time
+
+Use `contextCapture()` when you need to snapshot thread-local state (such as MDC, security context) into the Reactor `Context` at subscription time rather than manually writing each key.
+
+```java
+import reactor.core.publisher.Mono;
+
+final class ContextCaptureExample {
+    Mono<String> withCapturedContext() {
+        return Mono.just("value")
+            .contextCapture();
+    }
+}
+```
+
+`contextCapture()` snapshots available `ThreadLocal` values (such as MDC or security context) into the Reactor `Context` at subscription time. This requires the Micrometer `context-propagation` library on the classpath and `Hooks.enableAutomaticContextPropagation()` to be enabled. For explicit manual Context writes, prefer `contextWrite(...)` and `deferContextual(...)`.
+
 ## Failure checks
 
 - Do not use `Context` as a mutable request cache.

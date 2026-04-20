@@ -84,3 +84,24 @@ fun encodeExperimental(raw: ByteArray): String = Base64.encode(raw)
 ```
 
 Use when: the example needs encoding support, but the API should not be mistaken for the unconditional common-path recommendation.
+
+## Reflection
+
+Kotlin reflection (`kotlin.reflect`) is separate from Java reflection. Use it when you need type-token access or property references at runtime.
+
+```kotlin
+inline fun <reified T> className(): String = T::class.simpleName ?: "Anonymous"
+println(className<String>())
+println(className<List<Int>>())
+
+class User(val name: String, val age: Int)
+val nameProp: KProperty1<User, String> = User::name
+val user = User("Alice", 30)
+println(nameProp.get(user))
+
+if (String::class.isInstance("hello")) {
+    println("value is a String")
+}
+```
+
+Note: `kotlin-reflect` is a separate artifact. On JVM, `T::class` works with just the stdlib, but `KProperty` access requires `kotlin-reflect` on the classpath. Prefer reified inline functions when possible.

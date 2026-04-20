@@ -114,88 +114,29 @@ Use these defaults during normal authoring:
 
 If a plugin does not need a surface yet, omit both the file or directory and the manifest key.
 
-## Optional runtime surfaces at a glance
+## Optional runtime surfaces
 
-Use this section for the ordinary offline path. Copy only the files for the surfaces you are actually adding.
+Add optional surfaces only when the plugin genuinely needs that behavior. Omit both the manifest key and the filesystem artifact when the surface is not in use.
 
-### Hooks
+| Surface | Manifest key | When to add | Starter |
+| --- | --- | --- | --- |
+| Hooks | `"hooks"` | the plugin must react to Claude Code lifecycle events | copy `assets/hooks.json` + `assets/hooks/check.sh` |
+| MCP | `"mcpServers"` | the plugin ships a local MCP server | copy `assets/.mcp.json` + `assets/servers/example-mcp.py` |
+| LSP | `"lspServers"` | the plugin configures a language server | copy `assets/.lsp.json` + `assets/lsp/example-lsp.py` |
+| Settings | `"settings"` | the plugin needs plugin-level settings | copy `assets/settings.json` |
+| Output styles | `"outputStyles"` | the plugin ships reusable response formats | copy `assets/output-style.md` |
+| Monitors | `"monitors"` | the plugin needs background observation | copy `assets/monitors.json` + `assets/monitors/watch.sh` |
 
-- Manifest key: `"hooks": "./hooks/hooks.json"`
-- Copy `assets/hooks.json` to `hooks/hooks.json`
-- Copy `assets/hooks/check.sh` to `hooks/check.sh`
-- Use this when the plugin must allow, reject, or annotate Claude Code events before or after tool or session activity
-
-The starter hook in `assets/hooks.json` watches `Write|Edit` and runs `hooks/check.sh`. The starter script reads the JSON payload from stdin and blocks likely secret-file edits. Extend it by changing the matcher, adding more hook groups, or replacing the shell command with another local executable under `${CLAUDE_PLUGIN_ROOT}`.
-
-### MCP
-
-- Manifest key: `"mcpServers": "./.mcp.json"`
-- Copy `assets/.mcp.json` to `.mcp.json`
-- Copy `assets/servers/example-mcp.py` to `servers/example-mcp.py`
-- Use this when the plugin ships a local MCP server and wants Claude Code to connect to it over stdio
-
-The starter `.mcp.json` uses `python3` plus a local script under `${CLAUDE_PLUGIN_ROOT}`. The starter server exposes one example tool and keeps the transport local. Extend it by renaming the server entry, adding more tools inside the Python file, or adding arguments and environment variables while keeping generated state under `${CLAUDE_PLUGIN_DATA}`.
-
-### LSP
-
-- Manifest key: `"lspServers": "./.lsp.json"`
-- Copy `assets/.lsp.json` to `.lsp.json`
-- Copy `assets/lsp/example-lsp.py` to `lsp/example-lsp.py`
-- Use this when the plugin configures a local language server for diagnostics, hover, completion, or other editor-like features
-
-The starter `.lsp.json` uses `python3` plus a local stdio server. The example server handles `initialize`, `shutdown`, `exit`, and a simple `textDocument/hover` response so you have a working shape to extend offline. Replace the hover logic or add more LSP methods in the same file.
-
-### Settings
-
-- Manifest key: `"settings": "./settings.json"`
-- Copy `assets/settings.json` to `settings.json`
-- Use this only when the plugin needs supported plugin-level settings keys
-
-Keep this file short and operational. Add only supported settings keys that the plugin actually needs. If the plugin can work without a setting, leave the file out.
-
-### Output styles
-
-- Manifest key: `"outputStyles": "./output-styles"`
-- Copy `assets/output-style.md` to `output-styles/executive-summary.md`
-- Use this when the plugin ships one or more reusable response formats
-
-Each file in `output-styles/` is a standalone style with frontmatter and body instructions. Start from the provided example, rename the file to match the style, and keep the instructions focused on response shape rather than plugin logic.
-
-### Monitors
-
-- Manifest key: `"monitors": "./monitors/monitors.json"`
-- Copy `assets/monitors.json` to `monitors/monitors.json`
-- Copy `assets/monitors/watch.sh` to `monitors/watch.sh`
-- Use this only when the plugin genuinely needs a local monitor process or recurring observation command
-
-The starter monitor runs a local shell script from `${CLAUDE_PLUGIN_ROOT}` and writes state under `${CLAUDE_PLUGIN_DATA}`. Extend it by changing the command, adding more monitor entries, or replacing the shell script with another local executable.
+Open `references/plugin-runtime-components.md` for per-surface extension points, tradeoffs, and deeper wiring guidance beyond the ordinary copy path above.
 
 ## Data boundary guidance
 
-Use these boundaries in examples and starter files:
+Keep these boundaries invariant across all plugin assets and starter files:
 
-- `${CLAUDE_PLUGIN_ROOT}`: read bundled assets that ship with the plugin
-- `${CLAUDE_PLUGIN_DATA}`: write generated or persistent runtime data owned by the plugin
+- `${CLAUDE_PLUGIN_ROOT}`: read-only for bundled scripts, templates, servers, and other shipped files
+- `${CLAUDE_PLUGIN_DATA}`: writable only for generated caches, logs, indexes, or other persistent runtime data
 
-Broken:
-
-```json
-{
-  "mcpServers": "./.mcp.json"
-}
-```
-
-with `.mcp.json` writing cache files back into `${CLAUDE_PLUGIN_ROOT}`.
-
-Correct:
-
-```json
-{
-  "mcpServers": "./.mcp.json"
-}
-```
-
-with `.mcp.json` reading bundled server code from `${CLAUDE_PLUGIN_ROOT}` and writing any generated runtime state under `${CLAUDE_PLUGIN_DATA}`.
+Never treat `${CLAUDE_PLUGIN_ROOT}` as a writable data directory. Open `references/plugin-release.md` for the full example split and release-review context.
 
 ## Pitfalls
 
@@ -211,9 +152,16 @@ with `.mcp.json` reading bundled server code from `${CLAUDE_PLUGIN_ROOT}` and wr
 Use these commands first when checking a real plugin root:
 
 ```bash
-claude --plugin-dir /absolute/path/to/your-plugin
 python3 -m json.tool .claude-plugin/plugin.json >/dev/null
 ```
+
+The command above validates JSON syntax offline. For runtime validation with a live Claude Code installation, use:
+
+```bash
+claude --plugin-dir /absolute/path/to/your-plugin
+```
+
+This second command requires an online environment and is optional for ordinary offline authoring.
 
 ## Output contract
 

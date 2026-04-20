@@ -4,51 +4,105 @@ description: >-
   Open this when Kotest style, soft assertions, or exact exception checks are the blocker.
 ---
 
-Open this when the project already uses Kotest and the remaining blocker is keeping the assertion style consistent.
+Open this when the project already uses Kotest and the remaining blocker is keeping assertion style consistent.
 
 ## Rules
 
-- keep Kotest examples inside the suite's existing style rather than mixing styles arbitrarily
+- keep Kotest examples inside the suite's existing style; do not mix styles
 - use `assertSoftly` when several assertions describe one observable behavior
 - use `shouldThrowExactly<T>()` when the exact exception type matters
+- place lifecycle hooks at the spec level
 
-## Patterns
+## Spec styles
 
-Soft assertions for one behavior:
+Choose the style the project already uses.
 
 ```kotlin
-import io.kotest.assertions.assertSoftly
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
+class ProfileServiceTest : FunSpec({
+    test("returns cached profile") {
+        val result = service.loadProfile("user-1")
+        result shouldBe Profile("user-1")
+    }
+})
 
-class ProfileServiceKotestTest : FunSpec() {
-    init {
-        test("returns cached profile") {
-            val result = service.loadProfile("user-1")
-            assertSoftly(result) {
-                it shouldBe Profile("user-1")
-                it.id shouldBe "user-1"
-            }
+class OrderServiceTest : DescribeSpec({
+    describe("checkout") {
+        it("calculates total") { }
+        it("applies discount") { }
+    }
+})
+
+class CartTest : BehaviorSpec({
+    given("an empty cart") {
+        `when`("an item is added") {
+            then("size becomes 1") { /* ... */ }
         }
     }
-}
+})
 ```
 
-Exact exception check:
+## Common matchers
 
 ```kotlin
-import io.kotest.assertions.throwables.shouldThrowExactly
-import io.kotest.core.spec.style.FunSpec
-import kotlin.test.assertEquals
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.string.shouldContain
+import io.kotest.assertions.assertSoftly
 
-class RetryPolicyKotestTest : FunSpec() {
-    init {
-        test("rejects invalid retry budget") {
-            val error = shouldThrowExactly<RetryException> {
-                service.run()
-            }
-            assertEquals("retry budget exhausted", error.message)
+result shouldBe expected
+result shouldNotBe unexpected
+list shouldContain item
+list shouldHaveSize 3
+value shouldBeInstanceOf<String>()
+nullable.shouldBeNull()
+message shouldContain "error"
+```
+
+## Soft assertions
+
+```kotlin
+class ProfileServiceKotestTest : FunSpec({
+    test("returns cached profile with correct fields") {
+        val result = service.loadProfile("user-1")
+        assertSoftly(result) {
+            it shouldBe Profile("user-1")
+            it.id shouldBe "user-1"
+            it.isActive shouldBe true
         }
     }
-}
+})
+```
+
+## Exact exception check
+
+```kotlin
+class RetryPolicyKotestTest : FunSpec({
+    test("rejects invalid retry budget") {
+        val error = shouldThrowExactly<RetryException> {
+            service.run()
+        }
+        error.message shouldBe "retry budget exhausted"
+    }
+})
+```
+
+## Lifecycle listeners
+
+```kotlin
+class DatabaseRepositoryTest : FunSpec({
+    lateinit var repo: Repository
+
+    beforeTest {
+        repo = InMemoryRepository()
+    }
+
+    test("saves and loads") {
+        repo.save(Entity("x"))
+        repo.load("x") shouldBe Entity("x")
+    }
+})
 ```

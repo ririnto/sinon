@@ -1,0 +1,13 @@
+# OS artifacts
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# Editor artifacts
+*.swp
+*~
+.#*
+
+# Dependencies
+node_modules/

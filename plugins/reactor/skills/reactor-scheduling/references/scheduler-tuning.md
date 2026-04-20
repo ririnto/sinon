@@ -10,27 +10,25 @@ Open this when the blocker is no longer scheduler choice but scheduler construct
 ```java
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import java.util.concurrent.ThreadFactory;
 
 final class ReplaceSharedSchedulers {
     void installFactory() {
         Schedulers.setFactory(new Schedulers.Factory() {
             @Override
-            public Scheduler newParallel(int parallelism, java.util.concurrent.ThreadFactory threadFactory) {
+            public Scheduler newParallel(int parallelism, ThreadFactory threadFactory) {
                 return Schedulers.Factory.DEFAULT.newParallel(parallelism, threadFactory);
             }
-
             @Override
-            public Scheduler newSingle(java.util.concurrent.ThreadFactory threadFactory) {
+            public Scheduler newSingle(ThreadFactory threadFactory) {
                 return Schedulers.Factory.DEFAULT.newSingle(threadFactory);
             }
-
             @Override
-            public Scheduler newBoundedElastic(int threadCap, int queuedTaskCap, java.util.concurrent.ThreadFactory threadFactory, int ttlSeconds) {
+            public Scheduler newBoundedElastic(int threadCap, int queuedTaskCap, ThreadFactory threadFactory, int ttlSeconds) {
                 return Schedulers.Factory.DEFAULT.newBoundedElastic(threadCap, queuedTaskCap, threadFactory, ttlSeconds);
             }
         });
     }
-
     void resetFactory() {
         Schedulers.resetFactory();
     }
@@ -50,6 +48,9 @@ Use shared-scheduler replacement only when scheduler policy must change applicat
 | dedicated blocking pool | `Schedulers.newBoundedElastic(...)` | explicit cap and queue limit |
 | integrate an existing executor | `Schedulers.fromExecutorService(...)` | bridge existing infrastructure deliberately |
 
+> [!NOTE]
+> `Schedulers.fromExecutor(Executor)` is deprecated in Reactor 3.7+. Use `Schedulers.fromExecutorService(ExecutorService)` instead, which provides proper lifecycle management and disposal semantics.
+
 ## Dedicated scheduler factory methods
 
 ```java
@@ -60,7 +61,6 @@ final class CustomSchedulerFactory {
     Scheduler cpuScheduler() {
         return Schedulers.newParallel("reactor-cpu", 4);
     }
-
     Scheduler blockingScheduler() {
         return Schedulers.newBoundedElastic(32, 1000, "reactor-io");
     }
@@ -104,6 +104,28 @@ final class SchedulerLifecycle {
     }
 }
 ```
+
+## Graceful shutdown with `disposeGracefully(...)`
+
+For application shutdown scenarios where in-flight tasks should complete before the scheduler stops, use `disposeGracefully(...)` instead of `dispose()`.
+
+```java
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
+
+final class GracefulShutdown {
+    Mono<Void> shutdown(Scheduler scheduler) {
+        return Flux.range(1, 3)
+            .publishOn(scheduler)
+            .map(value -> value * 2)
+            .then(scheduler.disposeGracefully());
+    }
+}
+```
+
+`disposeGracefully()` returns a `Mono<Void>` that completes when all scheduled tasks have finished. Use it in application lifecycle hooks where graceful degradation is required. `dispose()` is immediate and drops in-flight work.
 
 ## Tuning guardrails
 

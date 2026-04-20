@@ -1,30 +1,38 @@
 ---
 title: Java Testing Core Reference
 description: >-
-  Reference for JUnit 5 detail, mocking boundaries, and asynchronous verification in Java tests.
+  Reference for JUnit 5 building blocks, assertion patterns,
+  Mockito usage, Awaitility async verification,
+  and representative test shapes for Java TDD workflows.
 ---
 
-Official user guide: <https://junit.org/junit5/docs/current/user-guide/>
+Open this reference when the common Java test shape is already clear and the remaining blocker is assertion detail, mocking, or asynchronous verification.
 
-Official Mockito site: <https://site.mockito.org/>
+Official references:
 
-Official Awaitility wiki: <https://github.com/awaitility/awaitility/wiki/Usage>
+- JUnit 5 user guide: <https://junit.org/junit5/docs/current/user-guide/>
+- Official Mockito site: <https://site.mockito.org/>
+- Official Awaitility wiki: <https://github.com/awaitility/awaitility/wiki/Usage>
 
-Use this reference when the common Java test shape is already clear and the remaining blocker is assertion detail, mocking, or asynchronous verification.
-
-## JUnit 5 Building Blocks
+## JUnit 5 building blocks
 
 - Core test annotations: `@Test`, `@DisplayName`, `@Nested`, `@Tag`, `@Disabled`
 - Lifecycle annotations: `@BeforeEach`, `@AfterEach`, `@BeforeAll`, `@AfterAll`
-- Assertion methods to know first: `assertEquals`, `assertTrue`, `assertFalse`, `assertThrowsExactly`, `assertAll`
-- Parameterized test entry points: `@ParameterizedTest`, `@ValueSource`, `@MethodSource`
+- Assertion methods: `assertEquals`, `assertNotEquals`, `assertTrue`, `assertFalse`, `assertNull`, `assertNotNull`, `assertSame`, `assertNotSame`, `assertThrowsExactly`, `assertDoesNotThrow`, `assertAll`, `assertArrayEquals`, `assertIterableEquals`, `assertLinesMatch`, `assertTimeoutPreemptively`
+- Parameterized test entry points: `@ParameterizedTest`, `@ValueSource`, `@MethodSource`, `@CsvSource`, `@EnumSource`, `@NullSource`, `@EmptySource`
 
-## Representative JUnit 5 Patterns
+## Representative JUnit 5 patterns
 
-- Prefer `assertThrowsExactly` when the exact exception type is part of the contract.
-- When the exception message is part of the contract, capture the returned exception and verify `getMessage()` with `assertEquals`.
+Prefer `assertThrowsExactly` when the exact exception type is part of the contract.
+
+When the exception message is part of the contract, capture the returned exception and verify `getMessage()` with `assertEquals`:
 
 ```java
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+
 class RetryServiceTest {
     @Test
     void rejectsInvalidRetryBudget() {
@@ -34,9 +42,14 @@ class RetryServiceTest {
 }
 ```
 
-- Use `assertAll` when several related assertions describe one observable behavior.
+Use `assertAll` when several related assertions describe one observable behavior:
 
 ```java
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 class OrderSnapshotTest {
     @Test
     void returnsCompleteOrderSnapshot() {
@@ -49,9 +62,29 @@ class OrderSnapshotTest {
 }
 ```
 
-- Use `@Nested` to group scenario-specific tests under one outer behavior without flattening everything into long method names.
+Use `assertDoesNotThrow` when the contract requires that no exception occurs:
 
 ```java
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
+class ConfigurationLoaderTest {
+    @Test
+    void loadsValidConfigWithoutError() {
+        assertDoesNotThrow(() -> loader.load("valid-config.yaml"));
+    }
+}
+```
+
+Use `@Nested` to group scenario-specific tests under one outer behavior without flattening everything into long method names:
+
+```java
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class PaymentPolicyTest {
     @Nested
     class WhenLimitIsExceeded {
@@ -63,9 +96,14 @@ class PaymentPolicyTest {
 }
 ```
 
-- Use `@Timeout` for declarative limits on one test or a whole test class.
+Use `@Timeout` for declarative limits on one test or a whole test class:
 
 ```java
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+
 class ReportExportTest {
     @Test
     @Timeout(value = 2, unit = TimeUnit.SECONDS)
@@ -75,9 +113,15 @@ class ReportExportTest {
 }
 ```
 
-- Use `assertTimeoutPreemptively` only when the test must abort work on timeout rather than merely report a slow path.
+Use `assertTimeoutPreemptively` only when the test must abort work on timeout rather than merely report a slow path:
 
 ```java
+import java.time.Duration;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+
 class PricingClientTest {
     @Test
     void abortsSlowRemoteCall() {
@@ -88,15 +132,17 @@ class PricingClientTest {
 
 `assertTimeoutPreemptively` runs the work on a different thread, so do not use it casually around `ThreadLocal`-sensitive code such as transaction-bound framework tests.
 
-- Use `@ParameterizedTest` for the same rule over multiple inputs, not for unrelated scenarios.
-- Use `@BeforeEach` for small fixture setup and keep shared mutable state to a minimum.
+Use `@ParameterizedTest` for the same rule over multiple inputs, not for unrelated scenarios.
 
-## Mockito Guidance
+Use `@BeforeEach` for small fixture setup and keep shared mutable state to a minimum.
+
+## Mockito guidance
 
 - Mock creation: `mock(...)`, `@Mock`, `@Spy`
-- Stubbing: `when(...).thenReturn(...)`, `thenThrow(...)`, `thenAnswer(...)`
+- Stubbing: `when(...).thenReturn(...)`, `thenThrow(...)`, `thenAnswer(...)`, `doThrow(...)`, `doReturn(...)`
 - Verification: `verify(...)`, `verifyNoInteractions(...)`, `verifyNoMoreInteractions(...)`
 - Argument matching: `any()`, `anyString()`, `eq(...)`, `argThat(...)`
+- Argument capture: `ArgumentCaptor.forClass(...)`, `@Captor`
 
 Default approach:
 
@@ -105,9 +151,22 @@ Default approach:
 3. Verify observable collaboration after execution, not before.
 4. Avoid over-specifying call counts unless they are part of the behavior under test.
 
-Representative Mockito shape:
+Representative Mockito shape with `@ExtendWith`:
 
 ```java
+import java.io.IOException;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class ClientServiceTest {
     @Mock
@@ -128,7 +187,32 @@ class ClientServiceTest {
 }
 ```
 
-## Awaitility Guidance
+Spy for partial mocking of real objects:
+
+```java
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+
+@ExtendWith(MockitoExtension.class)
+class AuditServiceTest {
+    @Spy
+    private AuditService service = new AuditService();
+
+    @Test
+    void skipsSlowValidationWhenCached() {
+        doReturn(true).when(service).isCached("report-1");
+        service.process("report-1");
+        verify(service).isCached("report-1");
+    }
+}
+```
+
+## Awaitility guidance
 
 - Entry points: `await()`, `until(...)`, `untilAsserted(...)`
 - Timeout controls: `atMost(...)`, `atLeast(...)`
@@ -144,6 +228,13 @@ Default approach:
 Representative Awaitility shape:
 
 ```java
+import java.time.Duration;
+
+import org.junit.jupiter.api.Test;
+
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 class JobMonitorTest {
     @Test
     void marksJobCompletedEventually() {
@@ -151,6 +242,7 @@ class JobMonitorTest {
 
         await()
                 .atMost(Duration.ofSeconds(5))
+                .pollInterval(Duration.ofMillis(200))
                 .untilAsserted(() -> assertEquals(Status.COMPLETED, repository.status(jobId)));
     }
 }

@@ -1,30 +1,40 @@
 ---
 name: java-language-design
 description: >-
-  Use this skill when the user asks to "design a Java API", "review Java class structure", "refactor Java code", "decide whether records or sealed classes fit the model", "choose checked vs unchecked exceptions", or needs guidance on idiomatic Java language and library design.
+  Design idiomatic Java APIs, review class structure for immutability and clarity,
+  choose between records and sealed classes, decide checked vs unchecked exception boundaries,
+  and shape public contracts with narrow surfaces and explicit value semantics.
+  Use when the user asks to design a Java API, review Java class structure,
+  refactor Java code, or needs guidance on idiomatic Java language and library design.
 ---
 
 # Java Language Design
 
-## Overview
+Produce idiomatic, maintainable Java code and API designs. The common case is choosing a clearer type shape, a narrower contract, and an unsurprising exception and mutability model before touching framework details.
 
-Use this skill to produce idiomatic, maintainable Java code and API designs. The common case is choosing a clearer type shape, a narrower contract, and an unsurprising exception and mutability model before touching framework details. Make ownership, value semantics, and failure behavior explicit to callers.
+## Operating rules
 
-## Use This Skill When
+- SHOULD prefer value semantics where possible.
+- MUST keep public APIs narrow and intention-revealing.
+- MUST expose immutable views unless mutation is part of the contract.
+- SHOULD prefer simple, explicit contracts over inheritance-heavy designs.
+- SHOULD check whether records, sealed classes, enums, or interfaces fit the model better than ordinary classes.
+- MUST use checked exceptions sparingly and only when callers can meaningfully recover.
+- MUST keep constructors and factories explicit about invariants.
+- MUST avoid leaking implementation types in public signatures.
+- SHOULD order top-level class members as: static fields, instance fields, constructors, static methods, overridden methods, instance methods, then inner static classes/records/enums.
+- SHOULD order members within each method group by visibility: `public`, `protected`, package-private, then `private`.
 
-- You are shaping a public or widely used Java API.
-- You are refactoring class hierarchy, mutability, or exception strategy.
-- You need a default design shape for records, sealed types, interfaces, factories, or collection exposure after the baseline question is already settled.
-- Do not use this skill when the main issue is syntax availability across Java versions rather than design semantics.
-
-## Common-Case Workflow
+## Procedure
 
 1. Read the target class and the nearest related tests or callers first.
 2. Identify the Java baseline and whether the surface is internal or externally consumed.
 3. Choose the smallest design change that improves clarity while preserving the requested behavior.
 4. Make value semantics, exception contracts, and mutability boundaries explicit before adding extra abstraction.
+5. Verify collection-returning methods do not leak internal mutable state.
+6. Confirm checked exceptions remain only where callers can meaningfully recover.
 
-## First Runnable Commands or Code Shape
+## First runnable commands
 
 Start from one explicit value carrier and one explicit capability interface:
 
@@ -36,19 +46,12 @@ public interface PaymentGateway {
     Receipt charge(ChargeRequest request);
 }
 ```
+
 Use when: tightening a contract or replacing a vague mutable DTO or service surface.
 
-## Ready-to-Adapt Templates
+## Ready-to-adapt templates
 
-Immutable value carrier:
-
-```java
-public record CustomerId(String value) {
-}
-```
-Use when: the type is immutable data and the Java baseline supports records.
-
-Factory for clearer invariants:
+### Factory for clearer invariants
 
 ```java
 public final class RetryPolicy {
@@ -66,9 +69,113 @@ public final class RetryPolicy {
     }
 }
 ```
-Use when: constructor overloading would obscure validation or naming.
 
-Member ordering baseline:
+### Builder for complex construction
+
+When a type has many optional parameters and a factory method becomes unwieldy:
+
+```java
+public final class QueryOptions {
+    private final int limit;
+    private final int offset;
+    private final String sortBy;
+    private final boolean ascending;
+
+    private QueryOptions(Builder builder) {
+        this.limit = builder.limit;
+        this.offset = builder.offset;
+        this.sortBy = builder.sortBy;
+        this.ascending = builder.ascending;
+    }
+
+    public int limit() {
+        return limit;
+    }
+
+    public int offset() {
+        return offset;
+    }
+
+    public String sortBy() {
+        return sortBy;
+    }
+
+    public boolean ascending() {
+        return ascending;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private int limit = 100;
+        private int offset = 0;
+        private String sortBy = "id";
+        private boolean ascending = true;
+
+        public Builder limit(int limit) {
+            if (limit < 1) {
+                throw new IllegalArgumentException("limit must be positive");
+            }
+            this.limit = limit;
+            return this;
+        }
+
+        public Builder offset(int offset) {
+            if (offset < 0) {
+                throw new IllegalArgumentException("offset must be >= 0");
+            }
+            this.offset = offset;
+            return this;
+        }
+
+        public Builder sortBy(String sortBy) {
+            this.sortBy = sortBy;
+            return this;
+        }
+
+        public Builder ascending(boolean ascending) {
+            this.ascending = ascending;
+            return this;
+        }
+
+        public QueryOptions build() {
+            return new QueryOptions(this);
+        }
+    }
+}
+```
+
+### equals and hashCode for non-record value types (pre-Java 17)
+
+```java
+import java.util.Objects;
+
+public final class Money {
+    private final String currency;
+    private final long cents;
+
+    public Money(String currency, long cents) {
+        this.currency = Objects.requireNonNull(currency);
+        this.cents = cents;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof Money m
+            && currency.equals(m.currency)
+            && cents == m.cents;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(currency, cents);
+    }
+}
+```
+
+### Member ordering baseline
 
 ```java
 public final class Example {
@@ -98,73 +205,82 @@ public final class Example {
     }
 }
 ```
-Use when: a class needs a predictable top-to-bottom scan order for fields, construction, behavior, and nested types.
 
-Read-only collection exposure:
+### Read-only collection exposure
 
 ```java
+import java.util.List;
+
 public List<String> roles() {
     return List.copyOf(roles);
 }
 ```
-Use when: callers should read a collection without mutating internal storage.
 
-Checked vs unchecked exception rule:
+### Checked vs unchecked exception rule
 
 ```java
+import java.io.IOException;
+
 public Receipt load(String id) throws IOException {
     return gateway.load(id);
 }
 ```
-Use when: the failure mode is part of a real caller contract rather than a generic programming failure.
 
-## Validate the Result
+### Generic wildcard guidance for public APIs
 
-Validate the common case with these checks:
+Use `? extends T` for input (producer) and `? super T` for output (consumer):
 
-- the public surface is narrower and clearer than before
-- value semantics, mutability, and visibility are explicit
-- collection-returning methods do not leak internal mutable state
-- checked exceptions remain only where callers can meaningfully recover
+```java
+import java.util.Collection;
+import java.util.List;
 
-## Deep References
+public void processAll(Collection<? extends Task> tasks) {
+    tasks.forEach(Task::run);
+}
 
-| If the blocker is... | Read... |
+public void addAll(List<? super String> target, List<String> source) {
+    target.addAll(source);
+}
+```
+
+### @FunctionalInterface for SAM types
+
+```java
+@FunctionalInterface
+public interface RetryStrategy {
+    boolean shouldRetry(int attempt, Throwable lastFailure);
+}
+```
+
+## Edge cases
+
+- If the question is about syntax availability across Java versions rather than design semantics, that is outside this skill's scope.
+- If the question is about JUnit structure or test-first workflow, that is outside this skill's scope.
+- If the question is about performance tuning or concurrency model selection, that is outside this skill's scope.
+- If the Java baseline does not support records (pre-17), fall back to `final` classes with manual equality and constructor validation.
+- If a type owns evolving state or identity-bearing behavior, a record may not fit even when the baseline supports it.
+- If the domain must remain extensible across package or module boundaries, prefer an open interface over a sealed hierarchy.
+
+## Output contract
+
+Return:
+
+1. The recommended type shape with Java baseline annotation.
+2. Explicit mutability and visibility decisions.
+3. Exception contract with recoverability rationale.
+4. Member ordering that follows the declared baseline.
+
+## Support-file pointers
+
+| If the blocker is... | Open... |
 | --- | --- |
-| records, sealed classes, and semantic modeling tradeoffs once the Java baseline is known | `./references/language-features.md` |
-| mutability, collection exposure, visibility, or exception-contract review | `./references/api-design.md` |
+| records, sealed classes, and semantic modeling tradeoffs once the Java baseline is known | [`language-features.md`](./references/language-features.md) |
+| mutability, collection exposure, visibility, or exception-contract review | [`api-design.md`](./references/api-design.md) |
 
-## Invariants
+## Gotchas
 
-- SHOULD prefer value semantics where possible.
-- MUST keep public APIs narrow and intention-revealing.
-- MUST expose immutable views unless mutation is part of the contract.
-- SHOULD prefer simple, explicit contracts over inheritance-heavy designs.
-- SHOULD check whether records, sealed classes, enums, or interfaces fit the model better than ordinary classes.
-- MUST use checked exceptions sparingly and only when callers can meaningfully recover.
-- MUST keep constructors and factories explicit about invariants.
-- MUST avoid leaking implementation types in public signatures.
-- SHOULD order top-level class members as: static fields, instance fields, constructors, static methods, overridden methods, instance methods, then inner static classes/records/enums.
-- SHOULD order members within each method group by visibility: `public`, `protected`, package-private, then `private`.
-
-## Common Pitfalls
-
-| Anti-pattern | Why it fails | Correct move |
-| --- | --- | --- |
-| returning concrete mutable collections directly | callers can accidentally mutate internal state | return interfaces and defensive copies where needed |
-| using inheritance when the model is just data or capability | the contract becomes harder to understand | choose record, enum, or interface first |
-| throwing checked exceptions for non-recoverable failures | callers get noise without real recovery paths | reserve checked exceptions for meaningful recovery contracts |
-| hiding invariants inside overloaded constructors | object creation rules become unclear | use named factories or explicit validation |
-| mixing fields, constructors, methods, and nested types in scan-hostile order | readers must hunt for state, construction, and behavior | keep the class in the declared member-order baseline and group each section by visibility |
-
-## Scope Boundaries
-
-- Activate this skill for:
-  - API shape and contract clarity
-  - language-level type and modeling decisions
-  - mutability, ownership, and exception decisions
-- Do not use this skill as the primary source for:
-  - Java grammar and syntax-form compatibility questions
-  - JUnit structure or test-first workflow
-  - performance tuning or concurrency model selection
-  - standard JDK tool selection or packaging workflows
+- Do not return concrete mutable collections directly from public APIs.
+- Do not use inheritance when the model is just data or capability.
+- Do not throw checked exceptions for non-recoverable failures.
+- Do not hide invariants inside overloaded constructors.
+- Do not mix fields, constructors, methods, and nested types in scan-hostile order.

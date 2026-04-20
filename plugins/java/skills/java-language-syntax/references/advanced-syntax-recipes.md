@@ -1,16 +1,18 @@
 ---
 title: Advanced Java Syntax Recipes
 description: >-
-  Version-sensitive Java syntax guide for LTS lookup, migration framing, and advanced recipes.
+  Version-sensitive Java syntax guide for LTS lookup, migration framing,
+  per-version recipes, and preview/withdrawn feature tracking.
 ---
 
-Use this reference when `SKILL.md` handles the common case but you still need one of these deeper jobs:
+Open this reference when `SKILL.md` handles the common case but you still need one of these deeper jobs:
 
 - confirm exact syntax availability on a Java LTS boundary
 - compare upgrade or downgrade implications across Java 8, 11, 17, 21, and 25
 - reach for a later-LTS or less-common syntax recipe that should not live in the main entrypoint
+- check whether a specific feature is preview or withdrawn on a given baseline
 
-## Quick LTS Availability Table
+## Quick LTS availability table
 
 | Syntax or API shape | First stable LTS |
 | --- | --- |
@@ -30,7 +32,7 @@ Use this reference when `SKILL.md` handles the common case but you still need on
 | compact source files | Java 25 |
 | flexible constructor bodies | Java 25 |
 
-## LTS Boundary Notes
+## LTS boundary notes
 
 ### Java 8 LTS
 
@@ -46,7 +48,7 @@ Use this reference when `SKILL.md` handles the common case but you still need on
 
 ### Java 17 LTS
 
-- This is the biggest “modern Java” boundary for everyday code shape.
+- This is the biggest "modern Java" boundary for everyday code shape.
 - Switch expressions, text blocks, records, sealed classes, and `instanceof` pattern matching can all be treated as realistic defaults.
 - Prefer this boundary when you want modern syntax without requiring a cutting-edge runtime.
 
@@ -61,18 +63,20 @@ Use this reference when `SKILL.md` handles the common case but you still need on
 - Unnamed variables and unnamed patterns become the most generally useful additions.
 - Module import declarations, compact source files, and flexible constructor bodies are available, but should still be treated as deliberate style choices rather than default modernization.
 
-## Migration Heuristics
+## Migration heuristics
 
-- Java 8 → 11: adopt `var` only where the right-hand side keeps the type obvious.
-- Java 11 → 17: modernize `switch`, multiline literals, and data-carrier types first.
-- Java 17 → 21: use record patterns and pattern-matching `switch` only when they materially simplify matching logic.
-- Java 21 → 25: adopt unnamed bindings only when ignored values truly add no meaning.
+- Java 8 to 11: adopt `var` only where the right-hand side keeps the type obvious.
+- Java 11 to 17: modernize `switch`, multiline literals, and data-carrier types first.
+- Java 17 to 21: use record patterns and pattern-matching `switch` only when they materially simplify matching logic.
+- Java 21 to 25: adopt unnamed bindings only when ignored values truly add no meaning.
 
-## Java 11 Recipes
+## Java 11 recipes
 
 ### `var` in lambda parameters `(JDK 11+)`
 
 ```java
+import java.util.function.Function;
+
 Function<String, String> normalize = (@Nonnull var input) -> input.trim().toLowerCase();
 ```
 
@@ -81,19 +85,25 @@ Use when: the whole parameter list needs modifiers or annotations and you still 
 ### Try-with-resources with effectively final values `(JDK 11+)`
 
 ```java
+import java.io.BufferedReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 BufferedReader reader = Files.newBufferedReader(path);
 try (reader) {
-    return reader.readLine();
+    String line = reader.readLine();
 }
 ```
 
 Use when: the resource already exists as a local variable and you want concise cleanup without re-declaring it.
 
-## Java 17 Recipes
+## Java 17 recipes
 
 ### Record with canonical constructor `(JDK 17+)`
 
 ```java
+import java.util.Objects;
+
 record Money(String currency, long cents) {
     Money {
         Objects.requireNonNull(currency);
@@ -121,7 +131,7 @@ record Rectangle(double width, double height) implements Shape {
 
 Use when: a closed domain benefits from both exhaustive matching and lightweight immutable carriers.
 
-## Java 21 Recipes
+## Java 21 recipes
 
 ### Record pattern deconstruction `(JDK 21+)`
 
@@ -133,7 +143,7 @@ if (obj instanceof Point(int x, int y)) {
 
 Use when: record components are needed immediately and deconstruction is clearer than accessor calls.
 
-## Java 25 Recipes
+## Java 25 recipes
 
 ### Module import declaration `(JDK 25+)`
 
@@ -160,7 +170,7 @@ class Account {
 
 Use when: earlier validation or setup reads more clearly before all field assignments complete.
 
-## Preview and Withdrawn Notes
+## Preview and withdrawn notes
 
 - Primitive-type patterns still need explicit preview framing even on Java 25.
-- String templates should not be presented as default guidance because they were previewed and then withdrawn instead of finalized.
+- String templates should not be presented as default guidance because they were previewed in JDK 21-23 and then withdrawn instead of being finalized.

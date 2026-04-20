@@ -31,46 +31,36 @@ Version boundaries for this reference:
 - Use `jdeps` first when module requirements are not yet explicit.
 - Use `jlink` to shrink runtime distribution only when the module graph is stable and the target JDK actually includes `jlink`.
 - Use `jpackage` when native installers or app images are part of the product requirement and the target JDK actually includes `jpackage`.
-- Mention that native packages must be built for their target platform.
-- On JDK 25 and later, call out that `jpackage` no longer includes service bindings in generated runtime images by default.
+- Native packages MUST be built for their target platform; cross-platform packaging is not supported.
+- On JDK 25 and later, `jpackage` no longer includes service bindings in generated runtime images by default. Add `--jlink-options --bind-services` when the application depends on service loader bindings.
 
 ## `jdeps` to `jlink` Sequence
 
-Start by printing the module dependencies of the application artifact and treat the output as an input to packaging, not as a final answer by itself:
+The canonical `jdeps` and `jlink` commands are documented in the parent SKILL.md **Ready-to-Adapt Templates** section. This reference covers the sequencing logic and additive considerations when chaining them together.
 
-```bash
-jdeps --multi-release 21 --print-module-deps app.jar
-```
+Sequencing rules:
 
-Then build the runtime image only after the required modules are explicit and the packaging goal is still a trimmed runtime rather than an installer:
-
-```bash
-jlink \
-  --add-modules java.base,java.net.http \
-  --output build/runtime
-```
-
-Use this path when the goal is a smaller runtime image rather than an installer.
+1. Run `jdeps --print-module-deps` first to enumerate required modules; treat the output as an input to `jlink`, not as a final answer by itself.
+2. Feed the module list to `jlink --add-modules` only after the required modules are confirmed and the packaging goal is a trimmed runtime rather than an installer.
+3. If the application relies on service loading (`ServiceLoader`), add `--bind-services` to the `jlink` command or make that requirement explicit before recommending the runtime image as complete.
 
 This path is a JDK 9+ workflow because it depends on `jlink` and the module system.
 
-If the application relies on service loading, add `--bind-services` to the `jlink` flow or make that requirement explicit before recommending the runtime image as complete.
-
 ## `jpackage` App Image or Installer Flow
 
-Build an application image or installer only after the launcher inputs are already known and a plain runtime image is not enough for the product requirement:
+The canonical `jpackage` command is documented in the parent SKILL.md **Ready-to-Adapt Templates** section. This reference covers the packaging decision logic and version-specific considerations.
 
-```bash
-jpackage \
-  --name DemoApp \
-  --input build/libs \
-  --main-jar demo-app.jar \
-  --main-class com.example.demo.App \
-  --type app-image
-```
+Packaging rules:
 
-Use `app-image` first when you want to validate the packaged launch shape before choosing a platform-specific installer type. Native packaging output is target-platform specific, so produce it on the operating system that matches the final deliverable.
+1. Build an application image or installer only after the launcher inputs (main class, main jar, input directory) are already known.
+2. Use `--type app-image` first to validate the packaged launch shape before choosing a platform-specific installer type (e.g., `deb`, `rpm`, `msi`, `pkg`).
+3. Native packaging output is target-platform specific; produce it on the operating system that matches the final deliverable.
 
 This path is a JDK 14+ workflow because it depends on `jpackage`.
 
-On JDK 25 and later, add `--jlink-options --bind-services` when the packaged application depends on service bindings that earlier `jpackage` defaults used to include automatically.
+On JDK 25 and later, add `--jlink-options --bind-services` when the packaged application depends on service bindings that earlier `jpackage` defaults used to include automatically. The full form preserves the default stripping behavior while re-adding service bindings:
+
+```bash
+jpackage [...] --jlink-options --strip-native-commands --strip-debug \
+               --no-man-pages --no-header-files --bind-services
+```

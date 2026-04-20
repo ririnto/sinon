@@ -1,10 +1,20 @@
 ---
 title: Performance Review Patterns
 description: >-
-  Reference for Java performance review heuristics and evidence-driven tuning guidance.
+  Reference for concrete JFR profiling commands, allocation diagnosis,
+  lock contention investigation, and evidence interpretation heuristics
+  in Java performance review work.
 ---
 
-## Concrete Profiling and Evidence Commands
+Open this reference when the bottleneck type is already classified and you still need one of these deeper jobs:
+
+- attach JFR to a live JVM or read an existing recording
+- diagnose allocation-heavy paths with class histograms
+- investigate lock contention from thread dumps
+- establish a throughput vs latency baseline
+- interpret profiling evidence with disciplined review prompts
+
+## Concrete profiling and evidence commands
 
 Attach JFR to a live JVM when the process is already running:
 
@@ -55,8 +65,8 @@ jcmd <pid> JFR.start name=baseline settings=default disk=true maxage=2h
 jcmd <pid> JFR.dump name=baseline filename=/tmp/baseline.jfr
 ```
 
-Review prompts for evidence interpretation:
+## Review prompts for evidence interpretation
 
-- separate startup costs from steady-state costs
-- compare contention, allocation churn, serialization, and parsing before proposing a fix
-- match the recommendation to the measured workload rather than a generic optimization rule
+- Separate startup costs from steady-state costs.
+- Compare contention, allocation churn, serialization, and parsing before proposing a fix.
+- Match the recommendation to the measured workload rather than a generic optimization rule.

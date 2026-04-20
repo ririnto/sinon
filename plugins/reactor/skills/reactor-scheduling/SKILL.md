@@ -8,6 +8,8 @@ metadata:
     - "https://projectreactor.io/docs/core/release/reference/"
     - "https://projectreactor.io/docs/core/release/api/"
   version: "3.7"
+  dependencies:
+    - "io.projectreactor:reactor-core:3.7.x"
 ---
 
 Choose execution context deliberately in Reactor.
@@ -91,7 +93,7 @@ This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `s
 | CPU-bound non-blocking work | `Schedulers.parallel()` | fixed worker pool sized for CPU work |
 | blocking I/O or legacy bridge | `Schedulers.boundedElastic()` | bounded worker expansion for blocking tasks |
 | one serialized execution lane | `Schedulers.single()` | preserves one-thread affinity |
-| no real handoff | `Schedulers.immediate()` | runs on the current thread |
+| no real handoff (test or caller-thread only) | `Schedulers.immediate()` | runs on the current thread; avoid in production pipelines |
 | move source and subscription | `subscribeOn(...)` | affects upstream work |
 | move downstream operators | `publishOn(...)` | affects work after that operator |
 | request metadata across async boundaries | `contextWrite(...)` + `deferContextual(...)` | survives thread switches without thread-local assumptions |
@@ -110,7 +112,6 @@ final class BlockingLookup {
             .subscribeOn(Schedulers.boundedElastic())
             .map(String::trim);
     }
-
     private String blockingLookup(String userId) {
         return "user-" + userId;
     }
@@ -146,7 +147,6 @@ final class MixedExecutionExample {
             .publishOn(Schedulers.parallel())
             .map(String::toUpperCase);
     }
-
     private String blockingLookup(String userId) {
         return "user-" + userId;
     }
@@ -178,6 +178,9 @@ final class ContextAcrossThreads {
 | using `parallel()` for blocking I/O | blocks non-blocking worker threads | use `boundedElastic()` |
 | assuming thread locals survive scheduler hops | the thread can change between signals | move request data through `Context` |
 | adding multiple `subscribeOn(...)` calls for control | only the closest relevant source placement matters | place one `subscribeOn(...)` at the real boundary |
+| placing `subscribeOn(...)` inside a `flatMap` lambda to affect the outer chain | `subscribeOn` inside `flatMap` scopes to the inner publisher only | place `subscribeOn` at the outer source or on the inner publisher deliberately |
+| using `Schedulers.immediate()` in production code | runs on the caller thread with no isolation | reserve for test code or when you explicitly want caller-thread execution |
+| placing `contextWrite(...)` downstream of `publishOn(...)` | `contextWrite` affects upstream operators; placement after a thread switch may not reach intended targets | place `contextWrite` before `publishOn` when upstream needs the context |
 
 ## Validation checklist
 
@@ -195,7 +198,7 @@ final class ContextAcrossThreads {
 | Open this when... | Reference |
 | --- | --- |
 | shared scheduler defaults are not enough and you must create, tune, or replace schedulers explicitly | [Scheduler Tuning and Custom Schedulers](references/scheduler-tuning.md) |
-| `ThreadLocal`-backed data must cross scheduler boundaries or automatic context propagation becomes the blocker | [Context Propagation Across Scheduler Boundaries](references/context-propagation.md) |
+| `ThreadLocal`-backed data must cross scheduler boundaries or automatic context propagation becomes the blocker | [ThreadLocal Context Bridging](references/threadlocal-context-bridging.md) |
 | local `log(...)` and `checkpoint(...)` are not enough and you need global debugging hooks or assembly tracing | [Debugging and Hooks](references/debugging-and-hooks.md) |
 
 ## Output contract
