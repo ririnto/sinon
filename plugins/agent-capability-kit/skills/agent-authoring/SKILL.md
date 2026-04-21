@@ -22,6 +22,8 @@ Keep the scope on one agent role per file. Preserve the existing job the agent c
 5. Make the body read like a system prompt for autonomous execution, not like release notes or background prose.
 6. Put the normal authoring path in the agent file itself. Do not rely on external web pages or hidden conventions.
 7. State the output shape explicitly so the caller can use the result without guessing.
+8. Keep the ordinary path self-sufficient inside the agent file; do not require the caller to load another skill, hidden prompt, or external document just to execute the agent's main workflow.
+9. Make process verbs and declared tools agree. A report-only agent MUST NOT claim file edits, and an editing agent MUST have the mutation tools its process requires.
 
 ## Required frontmatter
 
@@ -186,6 +188,8 @@ Return:
    - editing roles get mutation tools only when direct edits are part of the role
    - broad tool access must be justified by the role, not by convenience
 8. Verify that the output section is directly usable by the caller.
+9. Check that the ordinary path is self-sufficient inside the agent body. If the draft says to 'load skill X first' or depends on hidden runtime guidance, fold the required instructions back into the agent file.
+10. Check that the tool boundary matches the process and output claims. Remove file-updating claims from read-only agents, or add the minimal mutation tools only when direct edits are genuinely part of the role.
 
 ## Autonomy defaults
 
@@ -198,6 +202,8 @@ Use these defaults unless the role needs a stricter rule:
 - The agent should prefer deterministic checks and direct evidence over speculation.
 
 For most agents, that means: do the requested role fully, stay narrow, and return a structured result.
+
+If the role depends on repository-specific invariants such as worktree isolation, observability-backed validation, or execution-plan lifecycle rules, state those invariants directly in the body instead of assuming they are known elsewhere.
 
 ## Tool-boundary rule
 
@@ -226,6 +232,12 @@ Correct for a bounded editor:
 tools: ["Read", "Write"]
 ```
 
+Also keep the output contract consistent with the tools:
+
+- report-only agent: findings, evidence, and recommended follow-up only
+- editing agent: changed files, validation, and remaining risks
+- execution agent with `Bash`: runtime evidence, commands or checks performed, and any cleanup or teardown status
+
 ## First safe checks
 
 Use simple local checks first:
@@ -234,6 +246,7 @@ Use simple local checks first:
 2. Confirm that the frontmatter includes the required fields.
 3. Confirm that the body contains a role statement plus `Responsibilities`, `Process`, and `Output` sections.
 4. Confirm that the `description` examples and `tools` choice match the role.
+5. Confirm that the process does not require hidden skill loading or contradict the tool boundary.
 
 ## Minimal example
 
@@ -307,6 +320,8 @@ Return:
 - Do not grant broad tools when read-only or narrower mutation access is enough.
 - Do not leave the output contract implicit.
 - Do not depend on external documentation for the ordinary authoring path.
+- Do not tell the caller to load another skill or prompt in the agent's main workflow.
+- Do not mix report-only wording with claims about updated files, grades, or pull requests unless the tools and process actually support those actions.
 
 ## Output contract
 
