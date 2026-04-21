@@ -1,0 +1,82 @@
+openapi: "3.1.0"
+info:
+  title: "{{title}} API"
+  description: >-
+    {{description_yaml}}
+  version: "0.1.0"
+paths:
+  /{{operation_path}}:
+    post:
+      summary: "{{operation_summary}}"
+      operationId: "{{operation_id}}"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/{{request_schema_name}}"
+            examples:
+              default:
+                summary: "Primary request example"
+                value:
+                  {{input_field_name}}: "{{input_field_value}}"
+      responses:
+        "200":
+          description: "Successful response"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/{{response_schema_name}}"
+              examples:
+                default:
+                  summary: "Primary response example"
+                  value:
+                    {{output_field_name}}: "{{output_field_value}}"
+        "400":
+          description: "Invalid request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                default:
+                  summary: "Validation error example"
+                  value:
+                    error: "Invalid request"
+        "500":
+          description: "Unexpected failure"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                default:
+                  summary: "Unexpected error example"
+                  value:
+                    error: "Unexpected failure"
+components:
+  schemas:
+    "{{request_schema_name}}":
+      type: object
+      required:
+        - {{input_field_name}}
+      properties:
+        {{input_field_name}}:
+          type: string
+          description: {{description_yaml}}
+    "{{response_schema_name}}":
+      type: object
+      required:
+        - {{output_field_name}}
+      properties:
+        {{output_field_name}}:
+          type: string
+          description: {{description_yaml}}
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: {{description_yaml}}
