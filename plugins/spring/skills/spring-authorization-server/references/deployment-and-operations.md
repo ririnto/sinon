@@ -98,10 +98,10 @@ When the authorization server sits behind a reverse proxy or load balancer:
 
 ```yaml
 server:
-  use-forwarded-headers: true
+  forward-headers-strategy: native
 ```
 
-With `use-forwarded-headers: true`, Spring uses `X-Forwarded-Host` and `X-Forwarded-Proto` to construct URLs correctly for the issuer and redirects.
+Use `forward-headers-strategy: native` when the runtime or proxy already provides standard forwarded-header support. Switch to `forward-headers-strategy: framework` only when native support is not enough for the deployment.
 
 ### Required forwarded headers
 
@@ -194,6 +194,6 @@ The introspection endpoint and OIDC UserInfo endpoint are part of the provider c
 | --- | --- |
 | Clients fail issuer discovery | verify issuer URL matches exactly including scheme and path |
 | Tokens signed with different key than JWKS shows | confirm key rotation did not remove the active signing key |
-| Redirect URLs use wrong host | check `X-Forwarded-Host` is sent by the proxy and `use-forwarded-headers: true` |
+| Redirect URLs use wrong host | check `X-Forwarded-Host` is sent by the proxy and forwarded-header handling is enabled, using `native` first and `framework` only when native support is insufficient |
 | Multiple instances produce different JWK sets | use a shared key store or custom shared `JWKSource` instead of per-node in-memory keys |
 | Authorization state lost after restart | see [jpa-persistence.md](jpa-persistence.md) or [redis-persistence.md](redis-persistence.md) |

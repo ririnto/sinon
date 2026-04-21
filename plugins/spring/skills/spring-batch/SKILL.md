@@ -34,6 +34,8 @@ The ordinary Spring Batch job is:
 
 Use the Boot starter for application code and the Batch test module for job and step tests.
 
+For the latest released line, Spring Batch itself is 6.0.3. The stable Spring Boot 3.4.x line still manages Spring Batch 5.2.x, so Batch 6-specific APIs require either a direct Spring Batch 6.x path or a Spring Boot line that has moved to Batch 6.
+
 ```xml
 <dependencies>
     <dependency>
@@ -47,6 +49,8 @@ Use the Boot starter for application code and the Batch test module for job and 
     </dependency>
 </dependencies>
 ```
+
+Treat the Boot-managed path and the standalone current-line path as different compatibility branches. Verify the actual Batch line before copying infrastructure or migration examples that depend on Batch 6 behavior.
 
 ## Core batch terms
 
@@ -80,7 +84,7 @@ class BatchInfrastructureConfiguration {
 }
 ```
 
-Use the framework-managed `JobRepository` and transaction manager first. Change repository strategy only when operations, scale, or platform constraints require it.
+Use the framework-managed `JobRepository` and transaction manager first. On the Boot-managed 5.2.x path, start from the ordinary Boot batch infrastructure. On the current released 6.x path, open the infrastructure reference before adopting Batch 6-specific repository options or migration behavior. Change repository strategy only when operations, scale, or platform constraints require it.
 
 ### Chunk job baseline
 
@@ -168,19 +172,16 @@ Start with one end-to-end job test and one restart or failure-path test.
 
 ```java
 @SpringBatchTest
-@SpringBootTest
-@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@SpringJUnitConfig(ImportJobConfiguration.class)
 class ImportJobTests {
-    private final JobLauncherTestUtils jobs;
-
-    ImportJobTests(JobLauncherTestUtils jobs) {
-        this.jobs = jobs;
-    }
+    @Autowired
+    private JobOperatorTestUtils jobOperatorTestUtils;
 
     @Test
-    void jobCompletes() throws Exception {
-        JobExecution execution = jobs.launchJob(new JobParametersBuilder().addString("input", "classpath:/customers.csv").toJobParameters());
-        assertEquals(ExitStatus.COMPLETED, execution.getExitStatus());
+    void jobCompletes(@Autowired Job importJob) throws Exception {
+        jobOperatorTestUtils.setJob(importJob);
+        JobExecution execution = jobOperatorTestUtils.startJob(new JobParametersBuilder().addString("input", "classpath:/customers.csv").toJobParameters());
+        assertEquals("COMPLETED", execution.getExitStatus().getExitCode());
     }
 }
 ```

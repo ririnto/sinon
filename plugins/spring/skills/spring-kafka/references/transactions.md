@@ -38,9 +38,23 @@ void publishAll(List<OrderEvent> events) {
 }
 ```
 
+## Consume-produce workflow shape
+
+```java
+@KafkaListener(topics = "orders")
+@Transactional
+void handle(OrderEvent event) {
+    kafkaTemplate.send("orders-out", event.id(), new ProcessedOrderEvent(event.id()));
+}
+```
+
 ## Decision points
 
 | Situation | Use |
 | --- | --- |
 | Atomic consume-and-produce workflow | Kafka transactions |
 | Simple producer or listener application | stay on the ordinary path |
+
+## Verification rule
+
+Verify one consume-produce integration test proves the produced record does not escape when the surrounding transaction rolls back.

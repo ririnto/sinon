@@ -16,6 +16,17 @@ class Order extends AbstractAggregateRoot<Order> {
 
 Keep event registration inside aggregate behavior so the repository save path publishes events that reflect real state changes.
 
+## Repository save verification shape
+
+```java
+@Test
+void publishesOrderSubmittedEvent() {
+    order.markSubmitted();
+    repository.save(order);
+    assertThat(events.stream(OrderSubmitted.class).count()).isEqualTo(1);
+}
+```
+
 ## Publication lifecycle blocker
 
 Use `@DomainEvents` and `@AfterDomainEventPublication` when the aggregate does not extend `AbstractAggregateRoot`.
@@ -42,3 +53,7 @@ Remember that `deleteById(...)` does not publish aggregate-root events because n
 | Event list keeps republishing on later saves | verify `@AfterDomainEventPublication` cleanup |
 | Delete path must publish a domain event | do not rely on `deleteById(...)` |
 | Event handling depends on one store's semantics | move to the store-specific path |
+
+## Verification rule
+
+Verify one save path publishes exactly one event and one later save does not republish stale events after cleanup.

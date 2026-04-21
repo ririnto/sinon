@@ -5,8 +5,8 @@ metadata:
   title: "Spring Cloud Data Flow"
   official_project_url: "https://spring.io/projects/spring-cloud-dataflow"
   reference_doc_urls:
-    - "https://docs.spring.io/spring-cloud-dataflow/docs/current/reference/htmlsingle/"
     - "https://dataflow.spring.io/docs/"
+    - "https://dataflow.spring.io/docs/installation/local/"
   version: "2.11.5"
 ---
 
@@ -36,6 +36,8 @@ The ordinary Spring Cloud Data Flow job is:
 
 SCDF is primarily an external orchestration platform, not a business-app dependency. Custom apps normally depend on Spring Cloud Stream or Spring Cloud Task rather than an SCDF library.
 
+The current stable SCDF server line is `2.11.5`. Keep examples on the stable GA line unless the task explicitly targets a newer milestone or snapshot.
+
 ```text
 SCDF server and shell are operated outside the business application.
 Custom stream or task apps use their own Spring Boot + Spring Cloud dependencies.
@@ -46,8 +48,8 @@ Custom stream or task apps use their own Spring Boot + Spring Cloud dependencies
 ### Register applications
 
 ```text
-dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:latest
-dataflow:>app register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:latest
+dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
+dataflow:>app register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:3.2.1
 ```
 
 ### Create and deploy a stream
@@ -78,8 +80,8 @@ dataflow:>task launch --name import-customers
 ### Stream definition
 
 ```text
-dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:latest
-dataflow:>app register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:latest
+dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
+dataflow:>app register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:3.2.1
 dataflow:>stream create --name http-log --definition "http | log"
 dataflow:>stream deploy --name http-log
 ```
@@ -108,6 +110,8 @@ public class ImportTaskApplication {
 }
 ```
 
+This task-app shape assumes a Spring Cloud Task application and therefore keeps `@EnableTask` explicit instead of presenting the app as a plain Boot command-line process.
+
 ### Task orchestration shape
 
 ```text
@@ -117,6 +121,13 @@ dataflow:>task execution list
 ```
 
 ## Output and configuration shapes
+
+Return these artifacts for the ordinary path:
+
+1. One pinned app-registration command or curated import file
+2. One stream or task definition
+3. One platform-specific deployment-properties set only when needed
+4. One runtime verification command sequence after deploy or launch
 
 ### Stream DSL shape
 

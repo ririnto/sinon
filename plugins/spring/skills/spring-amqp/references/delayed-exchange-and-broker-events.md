@@ -28,7 +28,19 @@ void handleDeclarationException(DeclarationExceptionEvent event) {
 }
 ```
 
+## Decision points
+
+| Situation | First choice |
+| --- | --- |
+| delivery just needs retry or dead-letter after failure | stay on retry/DLX path in `SKILL.md` |
+| routing itself must be delayed before first delivery | delayed exchange |
+| operators must observe broker declaration or availability signals | broker events |
+
 ## Pitfalls
 
 - Do not hide delayed delivery inside application sleeps or retry loops.
 - Do not mix operational broker events with business message listeners.
+
+## Validation rule
+
+Verify the broker really supports the delayed-exchange path and that operational event listeners stay separate from business message handling.

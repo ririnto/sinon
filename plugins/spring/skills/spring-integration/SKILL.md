@@ -55,6 +55,8 @@ Choose the simplest channel and endpoint pair that matches the delivery semantic
 
 Use the Boot starter for core Integration features and add only the protocol modules the flow actually needs.
 
+For the current stable line, Spring Integration is 7.0.4. The latest released Spring Boot line, 4.0.5, already manages Spring Integration 7.0.4. Older Boot 3.5.x applications still manage Spring Integration 6.5.8 and therefore remain a separate compatibility branch.
+
 ### Core baseline
 
 ```xml
@@ -87,6 +89,8 @@ Use the Boot starter for core Integration features and add only the protocol mod
 ```
 
 Remove any adapter or test module the flow does not actually use.
+
+When Spring Boot already manages the module line, keep Spring Integration artifacts versionless. Add an exact version only on a standalone path that intentionally pins Spring Integration outside Boot-managed dependency control.
 
 ## First safe configuration
 
@@ -215,6 +219,13 @@ Pollers.fixedDelay(Duration.ofSeconds(5)).maxMessagesPerPoll(10)
 ```
 
 ## Output and configuration shapes
+
+Return these artifacts for the ordinary path:
+
+1. One gateway or explicit entry channel
+2. One IntegrationFlow configuration class
+3. One adapter or transport boundary configuration when the flow leaves the process
+4. One graph-level test plus one failure-path test
 
 ### Flow sketch shape
 

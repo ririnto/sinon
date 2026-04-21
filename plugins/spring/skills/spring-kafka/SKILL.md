@@ -45,6 +45,8 @@ Keep the default path small: one producer, one listener, one serialization strat
 
 Use Spring Kafka for application code and the Kafka test module for integration tests.
 
+The current stable Spring Kafka line is `4.0.4`. The `4.1.x` line is still milestone-only and should be treated as upcoming until it reaches GA. Spring Boot `4.0.x` manages Spring Kafka `4.0.x`; older Spring Boot `3.5.x` and `3.4.x` applications remain on the `3.3.x` line and should be treated as a separate compatibility branch.
+
 ```xml
 <dependencies>
     <dependency>
@@ -167,10 +169,8 @@ void deadLetter(OrderEvent event) {
 
 ```java
 @Bean
-ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> manualAckKafkaListenerContainerFactory(
-        ConsumerFactory<String, PaymentEvent> consumerFactory) {
-    ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> factory =
-        new ConcurrentKafkaListenerContainerFactory<>();
+ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> manualAckKafkaListenerContainerFactory(ConsumerFactory<String, PaymentEvent> consumerFactory) {
+    ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(consumerFactory);
     factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
     return factory;
@@ -208,6 +208,13 @@ class PaymentFlowTests {
 ```
 
 ## Output and configuration shapes
+
+Return these artifacts for the ordinary path:
+
+1. One producer or gateway entry point
+2. One listener or listener-container configuration path
+3. One explicit retry or DLT policy
+4. One integration test that proves producer, broker, and listener agreement
 
 ### Topic name shape
 

@@ -17,8 +17,7 @@ class SecurityConfig {
         return http
             .securityMatcher("/api/**")
             .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
             .build();
     }
@@ -26,9 +25,7 @@ class SecurityConfig {
     @Bean
     SecurityFilterChain web(HttpSecurity http) throws Exception {
         return http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/assets/**").permitAll()
-                .anyRequest().authenticated())
+            .authorizeHttpRequests(auth -> auth.requestMatchers("/login", "/assets/**").permitAll().anyRequest().authenticated())
             .formLogin(Customizer.withDefaults())
             .build();
     }

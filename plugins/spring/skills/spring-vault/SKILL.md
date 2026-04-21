@@ -6,10 +6,12 @@ metadata:
   official_project_url: "https://spring.io/projects/spring-vault"
   reference_doc_urls:
     - "https://docs.spring.io/spring-vault/reference/index.html"
-  version: "4.0.1"
+  version: "4.0.2"
 ---
 
 Use this skill when integrating Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, or transit encryption.
+
+The latest released Spring Vault line is 4.0.2. Keep the frontmatter docs URL unversioned, but pin the concrete artifact example in this skill to 4.0.2 because this skill documents the current released standalone client path rather than a Spring BOM-managed path.
 
 ## Boundaries
 
@@ -20,6 +22,17 @@ Use `spring-vault` for application-side Vault access, authentication setup, KV e
 - Keep one auth mode per runtime profile so startup and token-renewal behavior stay predictable.
 - Keep Kubernetes auth, reactive access, and versioned KV behavior out of the ordinary path unless the task explicitly needs them.
 - Keep Vault repositories, PKI certificate issuance, and Spring Security crypto integration outside the ordinary path unless those surfaces are the actual blocker.
+
+## Surface map
+
+| Surface | Start here when | Open a reference when |
+| --- | --- | --- |
+| Token or AppRole auth | one application reads or writes secrets in an imperative path | stay in `SKILL.md` |
+| Property import from Vault | startup configuration must come from Vault | stay in `SKILL.md` |
+| Transit encrypt/decrypt | the app needs Vault-managed crypto without raw key material | stay in `SKILL.md` |
+| Kubernetes auth | pod identity and service-account token are the real auth boundary | open [references/kubernetes-authentication.md](references/kubernetes-authentication.md) |
+| Reactive secret access | secret reads are already on a reactive request path | open [references/reactive-vault-access.md](references/reactive-vault-access.md) |
+| KV v2 versioning and CAS | multiple writers or explicit secret versions matter | open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) |
 
 ## Common path
 
@@ -47,10 +60,20 @@ Use `spring-vault-core` for direct client access. Add Spring Boot config integra
     <dependency>
         <groupId>org.springframework.vault</groupId>
         <artifactId>spring-vault-core</artifactId>
-        <version>4.0.1</version>
+        <version>4.0.2</version>
     </dependency>
 </dependencies>
 ```
+
+### Feature-to-artifact map
+
+| Need | Artifact or module |
+| --- | --- |
+| Imperative Vault client access with `VaultTemplate` | `spring-vault-core` |
+| Reactive secret access with `ReactiveVaultTemplate` | `spring-vault-core` |
+| KV v2 version-aware access and CAS | `spring-vault-core` |
+| Spring Boot property import from Vault | Spring Boot config import plus Vault environment support in the active runtime |
+| Tests that prove the secret boundary | the project test stack plus focused Vault integration tests |
 
 ## First safe configuration
 
@@ -98,6 +121,35 @@ Keep these keys explicit in the active profile:
 | `spring.cloud.vault.kv.application-name` | application path segment |
 
 Prefer one auth mode per runtime profile so startup and renewal behavior stay obvious.
+
+### First safe commands
+
+```bash
+./mvnw test -Dtest=SecretServiceTests
+```
+
+```bash
+./gradlew test --tests SecretServiceTests
+```
+
+### First safe testing shape
+
+```java
+@SpringBootTest
+class SecretServiceTests {
+    @Autowired
+    SecretService secretService;
+
+    @Test
+    void databaseSecretReturnsRequiredData() {
+        Map<String, Object> secret = secretService.readDatabaseSecret();
+        assertAll(
+            () -> assertNotNull(secret),
+            () -> assertTrue(secret.containsKey("username"))
+        );
+    }
+}
+```
 
 ## Coding procedure
 
@@ -191,11 +243,35 @@ Return:
 5. The test shape proving the secret access boundary
 6. Any blocker that requires Kubernetes auth, reactive access, or KV versioning and CAS behavior
 
+## Output shapes
+
+### KV read shape
+
+```json
+{
+  "username": "app",
+  "password": "secret-value"
+}
+```
+
+### Transit encrypt shape
+
+```text
+vault:v1:8sd7f6...
+```
+
+### Missing secret failure shape
+
+```text
+Vault secret missing at secret/app/prod/database
+```
+
 ## Testing checklist
 
 - Verify the service reads or writes the expected Vault path for the active environment.
 - Verify KV v2 reads unwrap the expected payload and fail fast when required data is absent.
 - Verify missing secrets and permission denials fail without leaking secret values.
+- Verify one focused integration test proves the chosen auth mode or property-import boundary.
 
 ## Production checklist
 

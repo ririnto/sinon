@@ -27,7 +27,7 @@ The ordinary Spring Web Flow job is:
 2. Keep mutable user input in flow-scoped variables and reserve conversation scope for truly cross-flow state.
 3. Use view states for user input, decision states for branching, action states for side effects, and end states for completion.
 4. Invoke a service only at explicit transition points such as validate, price, reserve, or submit.
-5. Add a flow execution test that proves the expected state sequence and end-state outcome.
+5. Add a flow execution test that proves startup, one forward transition, and the end-state outcome before adding deeper scope or recovery behavior.
 
 ### Branch selector
 
@@ -39,6 +39,8 @@ The ordinary Spring Web Flow job is:
 ## Dependency baseline
 
 Use the core Web Flow module for ordinary MVC-integrated flows.
+
+Spring Web Flow 4.0.0 is the current released line and targets Java 17+, Spring Framework 7.0, and Servlet 6.1.
 
 ```xml
 <dependencies>
@@ -193,6 +195,12 @@ class WebFlowConfig extends AbstractFlowConfiguration {
 ```
 
 ## Output and configuration shapes
+
+Return these implementation artifacts for the ordinary path:
+
+1. One `*-flow.xml` definition with explicit states and transitions
+2. One `WebFlowConfig` or equivalent configuration class that registers the flow and executor
+3. One `*FlowExecutionTests` class that proves startup, one forward transition, and one negative or backtracking path
 
 ### State naming shape
 

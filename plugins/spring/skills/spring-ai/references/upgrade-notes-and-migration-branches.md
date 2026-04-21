@@ -90,8 +90,8 @@ class KnowledgeBase {
         this.vectorStore = vectorStore;
     }
 
-    void reingestAll(List<Document> documents) {
-        vectorStore.deleteAll();
+    void reingestAll(List<String> staleIds, List<Document> documents) {
+        vectorStore.delete(staleIds);
         vectorStore.add(documents);
     }
 }

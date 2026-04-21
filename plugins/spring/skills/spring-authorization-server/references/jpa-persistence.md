@@ -101,5 +101,5 @@ Custom entities require a custom `RegisteredClientRepository` implementation and
 
 See:
 
-- [How-to: Implement core services with JPA](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-jpa.html)
-- [RegisteredClientRepository](https://docs.spring.io/spring-authorization-server/reference/authorization-server-components.html#registeredclientrepository)
+- [Core model components](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)
+- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

@@ -13,6 +13,21 @@ class SessionConfig {
 }
 ```
 
+## Application properties
+
+```yaml
+spring:
+  session:
+    store-type: redis
+    timeout: 30m
+    redis:
+      namespace: app:session
+  data:
+    redis:
+      host: localhost
+      port: 6379
+```
+
 ## Reactive security context shape
 
 ```java
@@ -22,6 +37,36 @@ SecurityWebFilterChain webFilterChain(ServerHttpSecurity http) {
         .authorizeExchange(exchange -> exchange.anyExchange().authenticated())
         .formLogin(Customizer.withDefaults())
         .build();
+}
+```
+
+## Test example
+
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class WebFluxSessionFlowTest {
+    @Autowired
+    WebTestClient webTestClient;
+
+    @Test
+    void sessionStateIsReusedAcrossRequests() {
+        String sessionId = webTestClient.post().uri("/cart/items")
+            .bodyValue(Map.of("sku", "SKU-1"))
+            .exchange()
+            .expectStatus().isOk()
+            .returnResult(String.class)
+            .getResponseCookies()
+            .getFirst("SESSION")
+            .getValue();
+
+        webTestClient.post().uri("/cart/items")
+            .bodyValue(Map.of("sku", "SKU-2"))
+            .cookie("SESSION", sessionId)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$.itemCount").isEqualTo(2);
+    }
 }
 ```
 

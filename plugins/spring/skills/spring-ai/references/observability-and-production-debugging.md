@@ -2,6 +2,8 @@
 
 Open this reference when the task involves token accounting, metrics, tracing, or production debugging for a Spring AI application.
 
+Keep the ordinary path in [SKILL.md](../SKILL.md). Use this file only when telemetry or incident diagnosis becomes the blocker.
+
 Make AI behavior observable before scaling concurrency or changing prompt and retrieval strategy in production.
 
 ## When to open this file

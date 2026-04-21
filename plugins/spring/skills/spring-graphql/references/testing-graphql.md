@@ -37,3 +37,7 @@ Keep subscription tests focused on stream shape and completion semantics rather 
 | Interceptors or server wiring matter | use `WebGraphQlTester` |
 | The operation is a subscription | use subscription execution with reactive assertions |
 | A full application context is not needed | stay on the slice test path |
+
+## Validation rule
+
+Verify the chosen tester exercises the same resolver, interceptor, and transport boundary that the production request path depends on.

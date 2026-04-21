@@ -10,6 +10,18 @@ PagedModel<OrderModel> model = pagedResourcesAssembler.toModel(page, assembler);
 
 Use the paged assembler when the API should expose both item representations and top-level page navigation.
 
+## Controller integration shape
+
+```java
+@GetMapping("/orders")
+PagedModel<OrderModel> all(Pageable pageable) {
+    Page<Order> page = service.findAll(pageable);
+    return pagedResourcesAssembler.toModel(page, assembler);
+}
+```
+
+Inject `PagedResourcesAssembler<Order>` into the controller path that already returns a `Page<Order>`. Keep item link generation inside the ordinary assembler so paged navigation and item links stay aligned.
+
 ## Paged response shape
 
 ```json
@@ -39,3 +51,7 @@ Use the paged assembler when the API should expose both item representations and
 - Verify navigation links only appear when the page state actually supports them.
 - Treat page metadata and top-level navigation links as part of the public response contract.
 - Keep page numbering assumptions consistent between controller inputs, generated links, and tests.
+
+## Validation rule
+
+Verify the controller, `Pageable` inputs, generated navigation links, and `page` metadata all use the same numbering and sizing assumptions in both runtime code and tests.

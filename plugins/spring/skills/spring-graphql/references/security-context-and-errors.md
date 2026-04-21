@@ -58,3 +58,7 @@ Use explicit exception shaping when clients need stable error categories instead
 | Request metadata must reach resolvers | interceptor-based context propagation |
 | Access rules differ by field or operation | explicit authorization at resolver or service boundary |
 | Clients need predictable failure handling | stable error categorization |
+
+## Validation rule
+
+Verify that context values are present at resolver execution time and that each error category still maps to the intended GraphQL error shape in tests.

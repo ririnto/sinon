@@ -26,7 +26,7 @@ Open this reference when the minimal JWT customizer in [SKILL.md](../SKILL.md) i
 
 ```java
 TokenSettings.builder()
-    .accessTokenFormat(OAuth2TokenFormat.JWT)
+    .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
     .build();
 
 TokenSettings.builder()
@@ -130,7 +130,6 @@ RegisteredClient restrictedClient = RegisteredClient.withId(UUID.randomUUID().to
 
 ## Official references
 
-- [Token Settings](https://docs.spring.io/spring-authorization-server/reference/available-settings.html#token-settings)
-- [Core Model Components](https://docs.spring.io/spring-authorization-server/reference/core-model-components.html)
-- [How-to: Add authorities as custom claims in JWT access tokens](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-custom-claims-authorities.html)
-- [How-to: Customize the OpenID Connect 1.0 UserInfo response](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-userinfo.html)
+- [Core model components](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)
+- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)
+- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)

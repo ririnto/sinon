@@ -10,12 +10,14 @@ Schedules apply to tasks, not to long-running streams.
 
 Use a schedule only when the workload is naturally launchable as a task and must run repeatedly under SCDF control.
 
+SCDF does not provide out-of-the-box task scheduling for the local platform. Use schedules only on a platform that exposes scheduler support.
+
 ## Schedule lifecycle
 
 ```text
-dataflow:>schedule create --name nightly-import --task-definition-name import-customers --properties "scheduler.cron.expression=0 0 2 * * *"
-dataflow:>schedule list
-dataflow:>schedule destroy --name nightly-import
+dataflow:>task schedule create --name nightly-import --definitionName import-customers --expression "0 0 2 * * ?" --platform kubernetes
+dataflow:>task schedule list
+dataflow:>task schedule destroy --name nightly-import --platform kubernetes
 ```
 
 Treat schedule creation, inspection, and destruction as part of the operational contract.
@@ -25,7 +27,7 @@ Treat schedule creation, inspection, and destruction as part of the operational 
 Keep task arguments and schedule properties aligned:
 
 ```text
-dataflow:>schedule create --name nightly-import --task-definition-name import-customers --arguments "--input=file:/data/customers.csv" --properties "scheduler.cron.expression=0 0 2 * * *"
+dataflow:>task schedule create --name nightly-import --definitionName import-customers --arguments "--input=file:/data/customers.csv" --expression "0 0 2 * * ?" --platform kubernetes
 ```
 
 If the task contract changes, update both the task definition and the schedule payload intentionally.

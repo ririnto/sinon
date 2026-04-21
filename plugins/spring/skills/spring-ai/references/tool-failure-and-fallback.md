@@ -6,7 +6,9 @@ Open this reference when the ordinary tool path in [SKILL.md](../SKILL.md) is no
 
 **Problem:** tool execution fails, and the workflow must degrade explicitly instead of retrying blindly.
 
-**Solution:** catch tool-call failures at the application seam and choose a fallback deliberately.
+**Solution:** enable thrown tool execution failures at the application seam, then choose a fallback deliberately.
+
+Set `spring.ai.tools.throw-exception-on-error=true` or install a custom `ToolExecutionExceptionProcessor` before using this pattern.
 
 ```java
 @Service
@@ -26,7 +28,7 @@ class ResilientOrchestrator {
                 .tools(toolCallbacks)
                 .call()
                 .content();
-        } catch (ToolCallException ex) {
+        } catch (ToolExecutionException ex) {
             return chatClient.prompt()
                 .user("The tool failed: " + ex.getMessage() + ". Provide a response without using tools.")
                 .call()

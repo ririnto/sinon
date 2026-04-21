@@ -6,11 +6,12 @@ metadata:
   official_project_url: "https://spring.io/projects/spring-grpc"
   reference_doc_urls:
     - "https://docs.spring.io/spring-grpc/reference/"
-  compatibility_note: "Reference documentation is current 1.1.0-M1; validate Boot and starter compatibility against the version already chosen in the project."
-  version: "1.1.0-M1"
+  version: "1.0.3"
 ---
 
 Use this skill when implementing protobuf-first gRPC servers or clients in a Spring application, generating stubs, configuring channels, applying interceptors, and controlling deadlines, metadata, and reflection.
+
+The latest stable Spring gRPC starter line is 1.0.3. The official reference is currently ahead on the 1.1.0-M1 line, where Spring Boot autoconfiguration and starters move into Spring Boot itself, so the ordinary path in this skill stays on the published 1.0.3 starter artifacts unless the project is intentionally opting into the milestone branch.
 
 ## Boundaries
 
@@ -30,6 +31,16 @@ The ordinary Spring gRPC job is:
 5. Configure deadlines, metadata, and interceptors at the client or server boundary.
 6. Add an integration test that proves the generated contract, server binding, and client call all agree.
 
+### Branch selector
+
+| Situation | Stay here or open a branch |
+| --- | --- |
+| Stable server or client implementation using published starters | Stay in `SKILL.md` |
+| Project explicitly adopts the 1.1.0-M1 milestone line | Use the milestone branch below and re-verify Boot ownership of starters |
+| Unary request-response is enough | Stay in `SKILL.md` |
+| Streaming RPCs or async stubs are required | Open [references/streaming-and-async-stubs.md](references/streaming-and-async-stubs.md) |
+| TLS, mTLS, bearer tokens, or OAuth2 are the blocker | Open [references/security-tls-mtls.md](references/security-tls-mtls.md) |
+
 ## Starter and runtime decisions
 
 | Situation | Use |
@@ -43,7 +54,25 @@ Keep reflection and optional support services out of the default path unless a c
 
 ## Dependency baseline
 
-Use only the starter set the application actually needs.
+Use only the starter set the application actually needs on the stable 1.0.3 line.
+
+### Stable BOM baseline
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.grpc</groupId>
+            <artifactId>spring-grpc-dependencies</artifactId>
+            <version>1.0.3</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+Keep starter coordinates versionless underneath the BOM.
 
 ### Server-only baseline
 
@@ -95,7 +124,59 @@ Use only the starter set the application actually needs.
 
 Add `grpc-services` only when reflection, health, or other optional gRPC support services are needed.
 
+### Proto generation baseline
+
+Generate Java types from `.proto` files before implementing services or clients.
+
+```xml
+<build>
+    <extensions>
+        <extension>
+            <groupId>kr.motd.maven</groupId>
+            <artifactId>os-maven-plugin</artifactId>
+            <version>1.7.1</version>
+        </extension>
+    </extensions>
+    <plugins>
+        <plugin>
+            <groupId>org.xolstice.maven.plugins</groupId>
+            <artifactId>protobuf-maven-plugin</artifactId>
+            <version>0.6.1</version>
+            <configuration>
+                <protocArtifact>com.google.protobuf:protoc:4.30.2:exe:${os.detected.classifier}</protocArtifact>
+                <pluginId>grpc-java</pluginId>
+                <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.72.0:exe:${os.detected.classifier}</pluginArtifact>
+            </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>compile</goal>
+                        <goal>compile-custom</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+Check generated sources into the ordinary build output, not into hand-maintained source folders. If the project intentionally tracks generated sources in VCS, keep the `.proto` contract and generated stubs in the same reviewed change.
+
+### Milestone branch note
+
+The 1.1.0-M1 BOM and `spring-grpc-core` are published, but the dedicated server and client starter artifacts stop at 1.0.3 because the 1.1 line moves starters and autoconfiguration into Spring Boot. Treat that milestone path as an explicit compatibility branch, not the default path for this skill.
+
 ## First safe configuration
+
+### First safe commands
+
+```bash
+./mvnw test -Dtest=GreeterServiceIntegrationTests
+```
+
+```bash
+./gradlew test --tests GreeterServiceIntegrationTests
+```
 
 ### Server properties
 
@@ -174,6 +255,20 @@ Unary request-response is the ordinary path. Open the streaming reference only w
 | Actuator is already on the classpath | use the autoconfigured observability interceptor |
 
 Server health and client health are separate concerns. Server health publishes service state, while client health decides whether a channel should keep using an upstream endpoint.
+
+### Observability baseline
+
+When Spring Boot Actuator is already present, prefer the framework-provided gRPC observability integration over hand-rolled interceptors for metrics or tracing.
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, metrics
+```
+
+Keep custom interceptors for correlation ids, authorization, or request policy. Do not duplicate observability behavior in a second interceptor chain unless the deployment has a concrete requirement that the default integration cannot satisfy.
 
 ## Implementation examples
 
@@ -267,10 +362,7 @@ class GreetingClient {
 ServerInterceptor correlationInterceptor() {
     return new ServerInterceptor() {
         @Override
-        public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
-                ServerCall<ReqT, RespT> call,
-                Metadata headers,
-                ServerCallHandler<ReqT, RespT> next) {
+        public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
             String correlationId = headers.get(Metadata.Key.of("x-correlation-id", Metadata.ASCII_STRING_MARSHALLER));
             return next.startCall(call, headers);
         }
@@ -339,6 +431,8 @@ spring:
           health-indicator-paths: Greeter
 ```
 
+`health-indicator-paths` is the list of gRPC service paths the Actuator health bridge should report. Keep it intentional instead of publishing every service by default.
+
 ### Client health-check shape
 
 ```yaml
@@ -354,6 +448,8 @@ spring:
 
 Client health checks are optional and should be enabled only when the upstream exposes the health service and the deployment wants the channel to react to serving state.
 
+If the upstream does not publish the gRPC health service, leave client health disabled and rely on explicit deadlines, retries, or transport-level failure handling instead.
+
 ### Test port injection shape
 
 ```java
@@ -366,6 +462,7 @@ GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalG
 
 ## Testing checklist
 
+- Verify `.proto` compilation produces the generated stubs used by the server and client code.
 - Verify generated stubs and the checked-in `.proto` contract stay aligned.
 - Verify the server binds the expected service and returns the protobuf response shape the client expects.
 - Verify deadlines, metadata propagation, and interceptor behavior on at least one representative call.
@@ -382,6 +479,7 @@ GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalG
 - Prefer the autoconfigured observability interceptor when Actuator is already in use instead of hand-rolling duplicate metrics logic.
 - Distinguish server health publication from client health gating and enable each intentionally.
 - Expose reflection only when operations tooling requires it.
+- Keep the stable 1.0.3 starter line and the 1.1.0-M1 milestone branch separate in dependency guidance so starter coordinates never point at unpublished versions.
 - Keep transport errors and application errors distinct so retries and observability stay meaningful.
 
 ## References

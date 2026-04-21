@@ -21,10 +21,12 @@ Spring Authorization Server exposes endpoint customization through `OAuth2Author
 The token endpoint uses `AuthenticationConverter` and `AuthenticationProvider` chains.
 
 ```java
+AuthenticationProvider customAuthenticationProvider = new CustomExtensionGrantAuthenticationProvider(authorizationService, tokenGenerator);
+
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
     .tokenEndpoint(token -> token
         .accessTokenRequestConverter(this::configureAccessTokenRequestConverters)
-        .authenticationProvider(this::configureAuthenticationProvider)
+        .authenticationProvider(customAuthenticationProvider)
         .accessTokenResponseHandler(this::handleAccessTokenResponse)
         .errorResponseHandler(this::handleErrorResponse)
     );
@@ -49,7 +51,7 @@ Consumer<List<AuthenticationProvider>> configureAuthenticationProviders = authen
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
     .authorizationEndpoint(authorization -> authorization
         .consentPage("/custom-consent")
-        .authenticationConverter(this::configureAuthenticationConverter)
+        .authorizationRequestConverter(this::configureAuthorizationRequestConverter)
     );
 ```
 
@@ -72,5 +74,5 @@ http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 
 ## Official documentation
 
-- [Configuration model](https://docs.spring.io/spring-authorization-server/reference/configuration-model.html)
-- [Protocol endpoints](https://docs.spring.io/spring-authorization-server/reference/protocol-endpoints.html)
+- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)
+- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)

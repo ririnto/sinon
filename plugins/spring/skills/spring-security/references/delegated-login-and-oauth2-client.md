@@ -8,6 +8,15 @@ Keep provider registration, redirect URIs, and granted scopes explicit.
 
 Use OAuth2 login when the application delegates user authentication to an external identity provider and then creates a local authenticated session.
 
+When these examples use Spring Boot starters, they assume Boot dependency management/BOM is already providing the Spring Security versions.
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-oauth2-client</artifactId>
+</dependency>
+```
+
 ### Configuration properties shape
 
 ```yaml
@@ -41,25 +50,75 @@ Use this shape when registration data does not live only in configuration files.
 ```java
 @Bean
 ClientRegistrationRepository clientRegistrationRepository() {
-    ClientRegistration registration = ClientRegistration.withRegistrationId("google")
+    ClientRegistration registration = CommonOAuth2Provider.GOOGLE.getBuilder("google")
         .clientId("google-client-id")
         .clientSecret("google-client-secret")
-        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
         .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-        .scope("openid", "profile", "email")
-        .authorizationUri("https://accounts.google.com/o/oauth2/v2/auth")
-        .tokenUri("https://www.googleapis.com/oauth2/v4/token")
-        .userInfoUri("https://www.googleapis.com/oauth2/v3/userinfo")
-        .userNameAttributeName("sub")
         .build();
 
     return new InMemoryClientRegistrationRepository(registration);
 }
 ```
 
+Use `CommonOAuth2Provider` for common providers like Google so current authorization, token, user-info, and JWK set endpoints stay aligned with Spring Security's maintained defaults.
+
 ## Outbound OAuth2 client support
 
 Use OAuth2 client support when the application must call downstream protected APIs on behalf of a user or using a client credential.
+
+## Servlet request-scoped user flow
+
+Use this shape when the application is inside an `HttpServletRequest` and needs the authorized client associated with the current user session.
+
+```java
+@Bean
+SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    return http
+        .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+        .oauth2Login(Customizer.withDefaults())
+        .oauth2Client(Customizer.withDefaults())
+        .build();
+}
+
+@Bean
+OAuth2AuthorizedClientRepository authorizedClientRepository() {
+    return new HttpSessionOAuth2AuthorizedClientRepository();
+}
+
+@Bean
+OAuth2AuthorizedClientManager authorizedClientManager(
+        ClientRegistrationRepository clients,
+        OAuth2AuthorizedClientRepository authorizedClientRepository) {
+    OAuth2AuthorizedClientProvider provider = OAuth2AuthorizedClientProviderBuilder.builder()
+        .authorizationCode()
+        .refreshToken()
+        .build();
+
+    DefaultOAuth2AuthorizedClientManager manager =
+        new DefaultOAuth2AuthorizedClientManager(clients, authorizedClientRepository);
+    manager.setAuthorizedClientProvider(provider);
+    return manager;
+}
+```
+
+Use the manager inside the servlet request flow:
+
+```java
+OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest.withClientRegistrationId("google")
+    .principal(authentication)
+    .attributes(attrs -> {
+        attrs.put(HttpServletRequest.class.getName(), servletRequest);
+        attrs.put(HttpServletResponse.class.getName(), servletResponse);
+    })
+    .build();
+
+OAuth2AuthorizedClient client = authorizedClientManager.authorize(authorizeRequest);
+String accessToken = client.getAccessToken().getTokenValue();
+```
+
+## Service or background client-credentials flow
+
+Use this shape when there is no `HttpServletRequest`, such as a scheduled job or message listener.
 
 ```java
 @Bean
@@ -67,12 +126,50 @@ OAuth2AuthorizedClientService authorizedClientService(
         ClientRegistrationRepository clients) {
     return new InMemoryOAuth2AuthorizedClientService(clients);
 }
+
+@Bean
+OAuth2AuthorizedClientManager authorizedClientManager(
+        ClientRegistrationRepository clients,
+        OAuth2AuthorizedClientService authorizedClientService) {
+    OAuth2AuthorizedClientProvider provider = OAuth2AuthorizedClientProviderBuilder.builder()
+        .clientCredentials()
+        .build();
+
+    AuthorizedClientServiceOAuth2AuthorizedClientManager manager =
+        new AuthorizedClientServiceOAuth2AuthorizedClientManager(clients, authorizedClientService);
+    manager.setAuthorizedClientProvider(provider);
+    return manager;
+}
+```
+
+Use this manager for service-to-service client-credentials flows:
+
+```java
+Authentication systemPrincipal = new AnonymousAuthenticationToken(
+    "key",
+    "system",
+    AuthorityUtils.createAuthorityList("ROLE_SYSTEM")
+);
+
+OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest.withClientRegistrationId("invoices")
+    .principal(systemPrincipal)
+    .build();
+
+OAuth2AuthorizedClient client = authorizedClientManager.authorize(authorizeRequest);
+String accessToken = client.getAccessToken().getTokenValue();
 ```
 
 Keep this boundary explicit:
 
 - OAuth2 login authenticates the user into your app.
 - OAuth2 client support manages outbound access tokens for downstream calls.
+- Request-scoped user flows and service/background flows use different `OAuth2AuthorizedClientManager` implementations.
+
+| Boundary | What it does | When to use it |
+| --- | --- | --- |
+| `oauth2Login` | Delegates user authentication to an external identity provider | Users sign in with Google, GitHub, or another external IdP |
+| `oauth2Client` | Obtains and manages outbound access tokens for downstream APIs | The application calls APIs on behalf of a user or a service principal |
+| `oauth2ResourceServer` | Validates incoming bearer tokens | The application receives bearer tokens from callers and does not initiate delegated login |
 
 ## Testing shapes
 
@@ -89,6 +186,8 @@ mvc.perform(get("/").with(oauth2Login()))
 mvc.perform(get("/").with(oidcLogin()))
     .andExpect(status().isOk());
 ```
+
+Use these helpers only when the test is exercising delegated login behavior. Keep ordinary servlet authorization tests on `@WithMockUser` or `jwt()` in the common path.
 
 ## Decision points
 

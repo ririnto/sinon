@@ -17,8 +17,13 @@ Message message = rabbitTemplate.receive("orders", 5000);
 | Situation | First choice |
 | --- | --- |
 | the flow is scheduled or command-driven | polling receive |
+| the application should react immediately to broker delivery | stay on `@RabbitListener` |
 
 ## Pitfalls
 
 - Do not use polling receive as a substitute for a normal event-driven consumer.
 - Keep timeout expectations explicit at the call site.
+
+## Validation rule
+
+Verify the call site really is scheduled or command-driven and that the timeout, null-result handling, and broker load profile are acceptable for polling semantics.

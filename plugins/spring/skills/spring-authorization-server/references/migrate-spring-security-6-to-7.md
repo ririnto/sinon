@@ -12,19 +12,18 @@ Open this reference when the task is specifically migrating the authorization se
 @Bean
 @Order(Ordered.HIGHEST_PRECEDENCE)
 SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-    OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
-    http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-        .oidc(Customizer.withDefaults());
-    return http.exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"), new AntPathRequestMatcher("/oauth2/authorization/**"))).build();
+    http.oauth2AuthorizationServer(authorizationServer -> {
+        http.securityMatcher(authorizationServer.getEndpointsMatcher());
+        authorizationServer.oidc(Customizer.withDefaults());
+    });
+    return http.exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"), new MediaTypeRequestMatcher(MediaType.TEXT_HTML))).build();
 }
 ```
 
 ## Session behavior branch
 
 ```java
-http.sessionManagement(session -> session
-    .sessionFixation(fixation -> fixation.none())
-);
+http.sessionManagement(session -> session.sessionFixation(fixation -> fixation.none()));
 ```
 
 Use custom session-fixation handling only when the authorization flow explicitly depends on preserving the existing session behavior.

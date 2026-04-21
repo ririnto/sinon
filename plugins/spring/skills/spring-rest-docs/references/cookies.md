@@ -2,6 +2,13 @@
 
 Open this reference when the contract depends on cookies.
 
+## Decision points
+
+| Situation | Use |
+| --- | --- |
+| A cookie is part of the public API contract | document it |
+| The cookie is framework-internal or deployment-specific | keep it out of published docs |
+
 ```java
 requestCookies(
     cookieWithName("SESSION").description("Session identifier")

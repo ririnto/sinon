@@ -60,8 +60,8 @@ class TenantOAuth2AuthorizationService implements OAuth2AuthorizationService {
     private final TenantPerIssuerComponentRegistry componentRegistry;
 
     @Override
-    public OAuth2Authorization save(OAuth2Authorization authorization) {
-        return componentRegistry.get(OAuth2AuthorizationService.class).save(authorization);
+    public void save(OAuth2Authorization authorization) {
+        componentRegistry.get(OAuth2AuthorizationService.class).save(authorization);
     }
 }
 ```
@@ -94,5 +94,4 @@ Keep database and Redis storage strategies in their own persistence references. 
 
 ## Official documentation
 
-- [Issuer](https://docs.spring.io/spring-authorization-server/reference/authorization-server-components.html#issuer)
-- [How-to: Implement multitenancy](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-multitenancy.html)
+- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

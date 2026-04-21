@@ -8,13 +8,15 @@ metadata:
     - "https://docs.spring.io/spring-amqp/reference/index.html"
     - "https://docs.spring.io/spring-amqp/reference/amqp/template.html"
     - "https://docs.spring.io/spring-amqp/reference/amqp/receiving-messages/async-annotation-driven.html"
-    - "https://docs.spring.io/spring-amqp/reference/amqp/receiving-messages/container-management.html"
+    - "https://docs.spring.io/spring-amqp/reference/amqp/receiving-messages/async-annotation-driven/container-management.html"
     - "https://docs.spring.io/spring-amqp/reference/amqp/resilience-recovering-from-errors-and-broker-failures.html"
     - "https://docs.spring.io/spring-amqp/reference/amqp/request-reply.html"
-  version: "4.0.2"
+  version: "4.0.3"
 ---
 
 Use this skill when building RabbitMQ or AMQP producers and consumers in Spring with `RabbitTemplate`, `@RabbitListener`, queue and exchange topology, message conversion, listener containers, batching, retry, dead-letter handling, broker configuration, testing, observability, or stream and multi-broker variants.
+
+The latest released Spring AMQP line is 4.0.3. Keep this skill on the 4.0.x stable line unless the project is intentionally evaluating the 4.1 preview line.
 
 ## Boundaries
 
@@ -71,6 +73,36 @@ Use the Boot starter for application code and the Rabbit test module for listene
     </dependency>
 </dependencies>
 ```
+
+### Feature-to-artifact map
+
+| Need | Artifact |
+| --- | --- |
+| Ordinary publisher and listener path | `spring-boot-starter-amqp` |
+| Listener and broker-focused tests | `spring-rabbit-test` |
+| RabbitMQ stream semantics | stream client support from [references/stream-variants.md](references/stream-variants.md) |
+
+## First safe commands
+
+```bash
+./mvnw test -Dtest=OrderMessagingTests
+```
+
+```bash
+./gradlew test --tests OrderMessagingTests
+```
+
+## Build and run path
+
+```bash
+./mvnw spring-boot:run
+```
+
+```bash
+./gradlew bootRun
+```
+
+Run the ordinary queue path first. Add broker confirms, request-reply, streams, or multiple brokers only after the base send/receive flow is stable.
 
 ## AMQP topology basics
 
@@ -199,10 +231,7 @@ Start with one baseline container factory and keep advanced concurrency or prefe
 
 ```java
 @Bean
-SimpleRabbitListenerContainerFactory ordersListenerContainerFactory(
-    SimpleRabbitListenerContainerFactoryConfigurer configurer,
-    ConnectionFactory connectionFactory
-) {
+SimpleRabbitListenerContainerFactory ordersListenerContainerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer, ConnectionFactory connectionFactory) {
     SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
     configurer.configure(factory, connectionFactory);
     return factory;
@@ -257,19 +286,53 @@ class OrderMessagingTests {
 
 Open [references/testing-support-and-listener-harnesses.md](references/testing-support-and-listener-harnesses.md) when the task needs listener-test harnesses, broker-backed integration depth, or repeatable contract checks.
 
-## Secondary official surfaces
+## Failure classification
 
-These surfaces are part of official Spring AMQP scope, but they are not on the ordinary queue path unless the use case requires them.
+- Treat message conversion, payload validation, and listener-signature mismatches as contract failures.
+- Treat broker disconnects, transient downstream outages, and resource exhaustion as infrastructure failures that may justify retry.
+- Treat exhausted retries, rejected business operations, and poison messages as dead-letter or recovery-path failures that must stay observable.
 
-- Open [references/batch-listeners.md](references/batch-listeners.md) when the consumer contract must process whole batches.
-- Open [references/async-return-listeners.md](references/async-return-listeners.md) when the listener must return asynchronously without blocking the consumer thread.
-- Open [references/polling-receive.md](references/polling-receive.md) when the caller needs pull-style receive instead of a container-managed consumer.
-- Open [references/listener-threading-and-back-pressure.md](references/listener-threading-and-back-pressure.md) when threading and back pressure are the real blocker.
-- Open [references/stream-variants.md](references/stream-variants.md) when the task needs RabbitMQ stream semantics.
-- Open [references/multi-broker-variants.md](references/multi-broker-variants.md) when the blocker is isolating multiple broker connections, templates, or listener factories.
-- Open [references/listener-metrics-and-micrometer.md](references/listener-metrics-and-micrometer.md) when Micrometer metrics are the blocker.
-- Open [references/distributed-tracing-for-amqp.md](references/distributed-tracing-for-amqp.md) when publish and consume tracing is the blocker.
-- Open [references/delivery-debugging-checklist.md](references/delivery-debugging-checklist.md) when delivery diagnosis is the blocker.
+## Output and configuration shapes
+
+### Queue and exchange naming shape
+
+```text
+orders
+orders.exchange
+orders.created
+orders.dlq
+```
+
+### Publish shape
+
+```java
+rabbitTemplate.convertAndSend("orders.exchange", "orders.created", event);
+```
+
+### Listener shape
+
+```java
+@RabbitListener(queues = "orders")
+void handle(OrderCreated event) {
+    orderService.process(event);
+}
+```
+
+### Container factory shape
+
+```java
+SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+```
+
+## Output contract
+
+Return:
+
+1. The queue, exchange, binding, and routing-key contract
+2. The publish and consume shape, including converter strategy
+3. The chosen listener container and retry or dead-letter policy
+4. The focused test shape proving one delivery path and one failure path
+5. Any blocker that requires request-reply, streams, batching, async returns, or multiple brokers
 
 ## Production guardrails
 

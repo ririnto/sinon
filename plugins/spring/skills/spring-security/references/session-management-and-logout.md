@@ -4,12 +4,21 @@ Open this reference when the application depends on concurrent-session control, 
 
 Use stateless session policy for bearer-token APIs and stateful session policy only for browser-login flows that actually need a server-side session.
 
+The ordinary path in [SKILL.md](../SKILL.md) already covers the session-creation policy matrix and the Spring Security 6/7 session behavior changes. Open this reference only when the job goes beyond that baseline into concurrency control or custom logout handling.
+
 ## Concurrent-session control
 
 ```java
-.sessionManagement(session -> session
-    .maximumSessions(1)
-    .maxSessionsPreventsLogin(true))
+.sessionManagement(session -> session.sessionConcurrency(concurrency -> concurrency.maximumSessions(1).maxSessionsPreventsLogin(true)))
+```
+
+Register `HttpSessionEventPublisher` as well so Spring Security can observe session lifecycle events correctly:
+
+```java
+@Bean
+HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
+}
 ```
 
 Use this when one active login per user is a business or compliance requirement.
@@ -26,11 +35,7 @@ LogoutSuccessHandler logoutSuccessHandler() {
 ```
 
 ```java
-.logout(logout -> logout
-    .logoutUrl("/api/logout")
-    .logoutSuccessHandler(logoutSuccessHandler())
-    .addLogoutHandler(new HeaderWriterLogoutHandler(
-        new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.ALL))))
+.logout(logout -> logout.logoutUrl("/api/logout").logoutSuccessHandler(logoutSuccessHandler()).addLogoutHandler(new HeaderWriterLogoutHandler(new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.ALL))))
 ```
 
 ## Decision points

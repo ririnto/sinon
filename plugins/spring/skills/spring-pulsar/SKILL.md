@@ -5,7 +5,7 @@ metadata:
   title: "Spring for Apache Pulsar"
   official_project_url: "https://spring.io/projects/spring-pulsar"
   reference_doc_urls:
-    - "https://docs.spring.io/spring-pulsar/docs/2.0.4/reference/index.html"
+    - "https://docs.spring.io/spring-pulsar/reference/"
   version: "2.0.4"
 ---
 
@@ -192,6 +192,9 @@ Return:
 @SpringBootTest
 @Testcontainers
 class ShipmentFlowTest {
+    static CountDownLatch deliveries = new CountDownLatch(1);
+    static AtomicReference<ShipmentEvent> received = new AtomicReference<>();
+
     @Container
     static PulsarContainer pulsar = new PulsarContainer("apachepulsar/pulsar:3.3.2");
 
@@ -200,8 +203,31 @@ class ShipmentFlowTest {
         registry.add("spring.pulsar.client.service-url", pulsar::getPulsarBrokerUrl);
         registry.add("spring.pulsar.admin.service-url", pulsar::getHttpServiceUrl);
     }
+
+    @Autowired
+    PulsarTemplate<ShipmentEvent> pulsarTemplate;
+
+    @Test
+    void sendsAndReceivesJsonPayload() throws Exception {
+        pulsarTemplate.send("shipments", new ShipmentEvent("shipment-42"));
+        assertAll(
+            () -> assertThat(deliveries.await(10, TimeUnit.SECONDS)).isTrue(),
+            () -> assertThat(received.get().shipmentId()).isEqualTo("shipment-42")
+        );
+    }
+
+    @Component
+    static class TestListener {
+        @PulsarListener(topics = "shipments", subscriptionName = "warehouse-test", schemaType = SchemaType.JSON)
+        void handle(ShipmentEvent event) {
+            received.set(event);
+            deliveries.countDown();
+        }
+    }
 }
 ```
+
+Pin a concrete broker image only when the test must prove compatibility with a chosen Pulsar line. Otherwise, keep the image aligned with one of the supported Pulsar lines for Spring Pulsar 2.0.x.
 
 ## Testing checklist
 

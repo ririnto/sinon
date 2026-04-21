@@ -2,6 +2,8 @@
 
 Open this reference when the common-path advisor and chat-memory guidance in [SKILL.md](../SKILL.md) is not enough and the blocker is advisor ordering, persistent memory design, token buffering, or conversation isolation.
 
+Keep the ordinary path in [SKILL.md](../SKILL.md). Use this file only when one of those specific blockers appears.
+
 ## When to open this
 
 - Choosing between in-memory and repository-backed chat memory
@@ -24,25 +26,24 @@ Advisors wrap the model call. The outermost advisor runs first on the request pa
 
 ```java
 @Bean
-ChatClient chatClient(ChatClient.Builder builder, PromptChatMemoryAdvisor memoryAdvisor, TokenBufferAdvisor tokenAdvisor) {
+ChatClient chatClient(ChatClient.Builder builder, PromptChatMemoryAdvisor memoryAdvisor) {
     return builder
-        .defaultAdvisors(memoryAdvisor, tokenAdvisor)
+        .defaultAdvisors(memoryAdvisor)
         .build();
 }
 ```
 
-In this shape, `memoryAdvisor` runs first, then `tokenAdvisor`, then the model.
+In this shape, `memoryAdvisor` runs before the model call.
 
 Common ordering pattern:
 
 ```text
 [audit advisor]
 [memory advisor]
-[token buffer advisor]
 [model]
 ```
 
-Put token truncation closer to the model than memory injection so truncation happens after history has been assembled.
+Put history assembly and truncation policy in the same memory strategy so the model sees a predictable context budget.
 
 ## Memory strategy blocker
 
@@ -97,31 +98,36 @@ String answer = chatClient.prompt()
 
 Keep the conversation ID explicit at the call site. Do not rely on mutable per-user memory objects stored in application code.
 
-## Token buffer blocker
+## Context budget blocker
 
 **Problem:** memory injection makes prompts exceed the model context window.
 
-**Solution:** add a token-buffer advisor after memory injection and tune its limit against the actual model context budget.
+**Solution:** bound the memory window explicitly and keep the conversation identifier stable.
 
 ```java
 @Bean
 PromptChatMemoryAdvisor memoryAdvisor(ChatMemory memory) {
-    return new PromptChatMemoryAdvisor(memory, "default");
+    return PromptChatMemoryAdvisor.builder(memory)
+        .conversationId("default")
+        .build();
 }
 
 @Bean
-TokenBufferAdvisor tokenBufferAdvisor() {
-    return new TokenBufferAdvisor(1500);
+ChatMemory boundedChatMemory(JdbcChatMemoryRepository repository) {
+    return MessageWindowChatMemory.builder()
+        .chatMemoryRepository(repository)
+        .maxMessages(12)
+        .build();
 }
 ```
 
 ```text
 [memory advisor]
-[token buffer advisor]
+[bounded chat memory]
 [model]
 ```
 
-Treat the token limit as a tuned deployment parameter, not a magic constant.
+Treat the message window as a tuned deployment parameter, not a magic constant.
 
 ## Decision points
 
@@ -129,7 +135,7 @@ Treat the token limit as a tuned deployment parameter, not a magic constant.
 | --- | --- |
 | Single-session demo | `MessageWindowChatMemory` with default in-memory repository |
 | Multi-user production | repository-backed `MessageWindowChatMemory` |
-| Token budget is tight | `TokenBufferAdvisor` after the memory advisor |
+| Token budget is tight | smaller `MessageWindowChatMemory` window with explicit conversation IDs |
 | Need restart-safe continuity | persistent repository plus explicit conversation IDs |
 | Need to inspect prompt decoration order | trace and simplify advisor registration order |
 

@@ -13,14 +13,9 @@ Use HAL-FORMS only when clients will actually consume form templates and action 
 - Good fit: machine-driven UI flows or dynamic clients.
 - Poor fit: simple APIs where plain HAL links already express enough.
 
-## Affordance shape
+## Affordance boundary
 
-```java
-Link self = linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel();
-Link update = self.andAffordance(afford(methodOn(OrderController.class).update(order.id(), null)));
-```
-
-Use affordances when the representation should advertise actionable transitions, not merely navigational links.
+Use plain affordances when the representation should advertise actionable transitions but the client still consumes ordinary HAL. Move to HAL-FORMS only when the client must also consume form templates and action metadata directly from `_templates`.
 
 ## HAL-FORMS response expectation
 
@@ -54,3 +49,7 @@ Use this media type when the API must expose HAL-FORMS templates rather than ord
 | Link-only navigation is enough | plain HAL |
 | Clients need discoverable action metadata | HAL-FORMS |
 | Representation should advertise state transitions | affordances |
+
+## Validation rule
+
+Verify that HAL-FORMS responses actually render `application/prs.hal-forms+json` and expose `_templates`, rather than assuming that plain HAL affordances automatically become HAL-FORMS templates.

@@ -23,6 +23,14 @@ VersionedKeyValueOperations operations = vault.opsForVersionedKeyValue("secret")
 operations.put("app/prod/database", Map.of("username", "app"), Versioned.Version.from(7));
 ```
 
+## Decision points
+
+| Situation | Use |
+| --- | --- |
+| One writer reads the latest value only | ordinary KV v2 access in `SKILL.md` |
+| The application needs a specific historical version | versioned read |
+| Multiple writers must avoid silent overwrite | CAS write |
+
 ## Testing rule
 
 Add tests for version conflicts, expected soft-delete behavior, and any startup failure that should remain fail-fast when configuration import depends on a versioned path.

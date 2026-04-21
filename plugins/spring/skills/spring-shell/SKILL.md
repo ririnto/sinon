@@ -11,6 +11,8 @@ metadata:
 
 Use this skill when building operational CLIs, administrative shells, interactive command workflows, or shell-focused tests with Spring Shell command registration, option parsing, completion, availability, and terminal-aware input or output.
 
+The latest released Spring Shell line is 4.0.1. In 4.x, `@Command` is the ordinary command model and the built-in exit command is `exit`, not `quit`, so keep older 3.x command examples out of the common path.
+
 ## Boundaries
 
 Use `spring-shell` for command registration, command grouping, option syntax, validation, completion, availability checks, shell-specific prompting, terminal-facing output, and shell-focused testing.
@@ -19,6 +21,16 @@ Use `spring-shell` for command registration, command grouping, option syntax, va
 - Keep durable batch execution, restartable jobs, and large-scale scheduled processing outside this skill's scope.
 - Keep business workflows outside the command class. The shell layer should parse input, enforce availability, and delegate to application services.
 - Keep guided flows, TUI views, and custom prompt styling outside the ordinary path. Open the references only when the command-and-option model is not enough.
+
+## Surface map
+
+| Surface | Start here when | Open a reference when |
+| --- | --- | --- |
+| Ordinary commands | one command with options, help text, and deterministic output is enough | stay in `SKILL.md` |
+| Availability and completion | a command needs state checks or bounded values | stay in `SKILL.md` |
+| Headless or scripted execution | the shell must run without the interactive REPL loop | stay in `SKILL.md` |
+| Guided flows or selection widgets | plain options become error-prone or too hard to discover | open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) |
+| Prompt or output risk signaling | environment, login state, or operator risk must stay visible | open [references/prompt-and-styling.md](references/prompt-and-styling.md) |
 
 ## Common path
 
@@ -33,9 +45,9 @@ The ordinary Spring Shell job is:
 
 ### Branch selector
 
-- Stay in `SKILL.md` for the ordinary command path: annotation-based commands, command grouping, built-in help behavior, option defaults, validation, completion, availability, `CommandContext` reads and writes, stable output, exit-status decisions, and shell-focused tests.
-- Open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) when the task needs guided multi-step flows, selection widgets, confirmations, or richer TUI behavior.
-- Open [references/prompt-and-styling.md](references/prompt-and-styling.md) when the shell prompt or output styling must reflect environment, login state, or operator risk.
+- Stay in `SKILL.md` for the ordinary command path: annotation-based commands, command grouping, built-in help behavior, option defaults, validation, completion, availability, `CommandContext` reads and writes, stable output, exit-status decisions, headless execution, and shell-focused tests.
+- Open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) when the task needs guided multi-step flows, selection widgets, confirmations, or richer terminal UI behavior.
+- Open [references/prompt-and-styling.md](references/prompt-and-styling.md) when the prompt or output styling must reflect environment, login state, or operator risk.
 
 ## Dependency baseline
 
@@ -57,7 +69,37 @@ Use the starter for normal Spring Boot integration. Add the test module whenever
 </dependencies>
 ```
 
+### Feature-to-artifact map
+
+| Need | Starter or artifact |
+| --- | --- |
+| Ordinary `@Command` registration and REPL runtime | `spring-shell-starter` |
+| Shell-focused tests | `spring-shell-test` |
+| Completion and availability rules | `spring-shell-starter` |
+| Guided flows or TUI components | `spring-shell-starter`, then open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) |
+| Prompt customization and styled operator output | `spring-shell-starter`, then open [references/prompt-and-styling.md](references/prompt-and-styling.md) |
+
 ## First safe configuration
+
+### First safe commands
+
+```bash
+./mvnw test -Dtest=CatalogCommandsTests
+```
+
+```bash
+./gradlew test --tests CatalogCommandsTests
+```
+
+```bash
+printf 'help
+exit
+' | java -jar build/libs/app.jar
+```
+
+```bash
+java -jar build/libs/app.jar --spring.shell.interactive.enabled=false catalog item add --sku SKU-1
+```
 
 ```yaml
 spring:
@@ -68,11 +110,11 @@ spring:
       enabled: true
 ```
 
-Disable interactive mode only for automated script execution or test harnesses that intentionally bypass the REPL loop.
+Keep interactive mode enabled for the ordinary 4.x REPL path. Disable it only for automated script execution or harnesses that intentionally bypass the REPL loop.
 
 ## Built-in commands and help
 
-Spring Shell can expose built-in commands such as `help`, `clear`, `quit`, `script`, and `version`.
+Spring Shell can expose built-in commands such as `help`, `clear`, `exit`, `script`, and `version`.
 
 - Keep built-ins enabled unless the product has a deliberate operator-experience reason to hide them.
 - Keep custom command names distinct from built-ins so help output and command routing stay unambiguous.
@@ -93,6 +135,35 @@ Spring Shell can expose built-in commands such as `help`, `clear`, `quit`, `scri
 
 ## Implementation examples
 
+### End-to-end shell path
+
+```java
+@SpringBootApplication
+class CatalogShellApplication {
+}
+
+@Service
+class CatalogService {
+    String add(String sku, int quantity) {
+        return "added sku=%s quantity=%d".formatted(sku, quantity);
+    }
+}
+
+@Command(group = "catalog")
+class CatalogCommands {
+    private final CatalogService catalogService;
+
+    CatalogCommands(CatalogService catalogService) {
+        this.catalogService = catalogService;
+    }
+
+    @Command(command = "item add", description = "Add an item")
+    String add(@Option(longNames = "sku", required = true) String sku, @Option(longNames = "quantity", defaultValue = "1") int quantity) {
+        return catalogService.add(sku, quantity);
+    }
+}
+```
+
 ### Command group with explicit help and options
 
 ```java
@@ -104,14 +175,8 @@ class CatalogCommands {
         this.catalog = catalog;
     }
 
-    @Command(
-        command = "item add",
-        description = "Add an item",
-        help = "Adds an item to the catalog with an explicit SKU and optional quantity."
-    )
-    String add(
-            @Option(longNames = "sku", required = true) String sku,
-            @Option(longNames = "quantity", defaultValue = "1") int quantity) {
+    @Command(command = "item add", description = "Add an item", help = "Adds an item to the catalog with an explicit SKU and optional quantity.")
+    String add(@Option(longNames = "sku", required = true) String sku, @Option(longNames = "quantity", defaultValue = "1") int quantity) {
         catalog.add(sku, quantity);
         return "added sku=%s quantity=%d".formatted(sku, quantity);
     }
@@ -184,6 +249,20 @@ ExitStatusExceptionMapper exitStatusExceptionMapper() {
 
 Use explicit exit-status mapping only when scripts or operators depend on a stable non-zero contract.
 
+### JUnit 5 shell test shape
+
+```java
+@ShellTest
+@ContextConfiguration(classes = CatalogShellApplication.class)
+class CatalogCommandsTests {
+    @Test
+    void addCommandReturnsDeterministicOutput(@Autowired ShellTestClient client) throws Exception {
+        ShellScreen shellScreen = client.sendCommand("catalog item add --sku SKU-1 --quantity 2");
+        ShellAssertions.assertThat(shellScreen).containsText("added sku=SKU-1 quantity=2");
+    }
+}
+```
+
 ## Output contract
 
 Return:
@@ -228,6 +307,7 @@ exit code: 2
 - Verify completion suggestions only return values valid for the current environment or state.
 - Verify help output stays aligned with the registered command names, groups, and options.
 - Verify non-zero exit behavior only where the shell contract explicitly defines it.
+- Add a `@ShellTest` path when parsing, dispatch, and terminal output are the real contract under test.
 - Add a `@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, useMainMethod = SpringBootTest.UseMainMethod.ALWAYS)` path when full application wiring matters beyond `@ShellTest`.
 
 ### Example command verification shape

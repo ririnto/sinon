@@ -2,6 +2,8 @@
 
 Open this reference when ingestion pipeline design, chunking strategy, embedding model choice, vector store behavior, retrieval tuning, or RAG assembly must be decided.
 
+Keep the ordinary path in [SKILL.md](../SKILL.md). Use this file only when retrieval design itself becomes the blocker.
+
 ## ETL and document ingestion blocker
 
 **Problem:** Spring AI `Document` ingestion fails silently or produces poor retrieval results downstream.
@@ -73,8 +75,8 @@ Use `EmbeddingModel` interface so the embedding source can be swapped without ch
 
 ```java
 @Bean
-VectorStore vectorStore(EmbeddingModel model) {
-    return new PgVectorStore(model, dataSource);
+VectorStore vectorStore(PgVectorStore pgVectorStore) {
+    return pgVectorStore;
 }
 ```
 

@@ -43,6 +43,8 @@ Supported `ClientAuthenticationMethod` values:
 | `CLIENT_SECRET_POST` | Confidential form-post clients |
 | `CLIENT_SECRET_JWT` | Confidential servers that can sign a JWT assertion |
 | `PRIVATE_KEY_JWT` | Clients that authenticate with an asymmetric key pair |
+| `TLS_CLIENT_AUTH` | Confidential clients authenticated by a CA-issued client certificate |
+| `SELF_SIGNED_TLS_CLIENT_AUTH` | Confidential clients authenticated by a self-signed certificate and JWK Set |
 | `NONE` | Public clients; acceptable with PKCE and no shared secret |
 
 ## PKCE and client type interaction
@@ -68,7 +70,7 @@ Implement an application-owned authentication converter and register it through 
 public class CustomClientAuthenticationConverter implements AuthenticationConverter {
     @Override
     public Authentication convert(HttpServletRequest request) {
-        return new OAuth2ClientAuthenticationToken(clientId, authenticationMethod, clientSecret);
+        return new OAuth2ClientAuthenticationToken(clientId, authenticationMethod, clientSecret, Collections.emptyMap());
     }
 }
 ```
@@ -86,6 +88,6 @@ http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 
 ## Official references
 
-- [Client Authentication](https://docs.spring.io/spring-authorization-server/reference/available-settings.html#client-authentication)
-- [Client Settings](https://docs.spring.io/spring-authorization-server/reference/available-settings.html#client-settings)
-- [Proof Key for Code Exchange (PKCE)](https://docs.spring.io/spring-authorization-server/reference/grant-authorization-code.html#proof-key-for-code-exchange-pkce)
+- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)
+- [Core model components](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)
+- [Authorization code grant and PKCE](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)

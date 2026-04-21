@@ -1,16 +1,18 @@
 ---
 name: "spring-rest-docs"
-description: "Use this skill when generating REST API documentation from Spring tests with MockMvc, WebTestClient, or REST Assured snippets, and publishing those snippets through Asciidoctor."
+description: "Use this skill when generating REST API documentation from Spring tests with MockMvc or WebTestClient snippets, and publishing those snippets through Asciidoctor."
 metadata:
   title: "Spring REST Docs"
   official_project_url: "https://spring.io/projects/spring-restdocs"
   reference_doc_urls:
-    - "https://docs.spring.io/spring-restdocs/index.html"
+    - "https://docs.spring.io/spring-restdocs/"
     - "https://docs.spring.io/spring-restdocs/tutorial/getting-started/index.html"
   version: "4.0.0"
 ---
 
-Use this skill when generating REST API documentation from Spring tests with MockMvc, WebTestClient, or REST Assured snippets, and publishing those snippets through Asciidoctor.
+Use this skill when generating REST API documentation from Spring tests with MockMvc or WebTestClient snippets, and publishing those snippets through Asciidoctor.
+
+The latest released Spring REST Docs line is 4.0.0. On this line the ordinary supported documentation surfaces are MockMvc and WebTestClient, so older REST Assured guidance must stay out of the common path.
 
 ## Boundaries
 
@@ -23,11 +25,21 @@ Use `spring-rest-docs` for test-driven request and response documentation, gener
 
 The ordinary Spring REST Docs job is:
 
-1. Pick the test surface already used by the project: MockMvc, WebTestClient, or REST Assured.
+1. Pick the test surface already used by the project: MockMvc for servlet tests or WebTestClient for reactive tests.
 2. Add the matching REST Docs test dependency and wire snippet generation into tests.
 3. Document the exact request and response fields, parameters, headers, and status codes the endpoint returns.
 4. Publish snippets through Asciidoctor includes.
 5. Keep documentation generation in CI so snippets fail when the endpoint contract changes.
+
+## Surface map
+
+| Surface | Start here when | Open a reference when |
+| --- | --- | --- |
+| MockMvc | the project already tests servlet endpoints with MockMvc | stay in `SKILL.md` |
+| WebTestClient | the endpoint is reactive or the project already uses WebTestClient | open [references/webtestclient-surface.md](references/webtestclient-surface.md) |
+| Payload descriptors | field descriptors are the real blocker | open the payload-specific references below |
+| Hypermedia links | links are part of the contract | open [references/links.md](references/links.md) |
+| Multipart requests | multipart parts are part of the contract | open [references/multipart.md](references/multipart.md) |
 
 ## Dependency baseline
 
@@ -44,9 +56,41 @@ Use only the test module that matches the chosen test surface.
 </dependencies>
 ```
 
-Switch the artifact to `spring-restdocs-webtestclient` or `spring-restdocs-restassured` when the project does not use MockMvc.
+### Feature-to-artifact map
+
+| Need | Artifact |
+| --- | --- |
+| Servlet tests with MockMvc | `spring-restdocs-mockmvc` |
+| Reactive tests with WebTestClient | `spring-restdocs-webtestclient` |
+| Asciidoctor integration | `spring-restdocs-asciidoctor` |
+
+Switch the artifact to `spring-restdocs-webtestclient` when the project does not use MockMvc.
 
 ## First safe configuration
+
+### Boot test configuration shape
+
+```java
+@WebMvcTest(OrderController.class)
+@AutoConfigureRestDocs
+class OrderDocumentationTests {
+}
+```
+
+`@AutoConfigureRestDocs` wires the REST Docs infrastructure into the Boot test slice. When the output directory or URI rewriting must be customized, keep that customization explicit in the test or in `spring.restdocs.*` configuration.
+
+### REST Docs property shape
+
+```yaml
+spring:
+  restdocs:
+    uri:
+      scheme: https
+      host: api.example.com
+      port: 443
+```
+
+Keep published URI rewriting stable across local runs and CI jobs.
 
 ### First safe commands
 
@@ -159,17 +203,7 @@ class OrderDocumentationTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"sku\":\"ABC\",\"quantity\":2}"))
             .andExpect(status().isCreated())
-            .andDo(document("orders-create",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()),
-                requestFields(
-                    fieldWithPath("sku").description("Stock keeping unit"),
-                    fieldWithPath("quantity").description("Quantity requested")
-                ),
-                responseFields(
-                    fieldWithPath("id").description("Created order id"),
-                    fieldWithPath("status").description("Order status")
-                )));
+            .andDo(document("orders-create", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()), requestFields(fieldWithPath("sku").description("Stock keeping unit"), fieldWithPath("quantity").description("Quantity requested")), responseFields(fieldWithPath("id").description("Created order id"), fieldWithPath("status").description("Order status"))));
     }
 }
 ```
@@ -177,39 +211,19 @@ class OrderDocumentationTests {
 ### Query parameter and header documentation
 
 ```java
-.andDo(document("orders-list",
-    queryParameters(
-        parameterWithName("status").description("Order status filter")
-    ),
-    requestHeaders(
-        headerWithName("X-Correlation-Id").description("Request correlation id")
-    ),
-    responseFields(
-        fieldWithPath("[].id").description("Order id"),
-        fieldWithPath("[].status").description("Order status")
-    )));
+.andDo(document("orders-list", queryParameters(parameterWithName("status").description("Order status filter")), requestHeaders(headerWithName("X-Correlation-Id").description("Request correlation id")), responseFields(fieldWithPath("[].id").description("Order id"), fieldWithPath("[].status").description("Order status"))));
 ```
 
 ### Path parameter documentation
 
 ```java
-.andDo(document("orders-get",
-    pathParameters(
-        parameterWithName("orderId").description("Order identifier")
-    ),
-    responseFields(
-        fieldWithPath("id").description("Order id"),
-        fieldWithPath("status").description("Order status")
-    )));
+.andDo(document("orders-get", pathParameters(parameterWithName("orderId").description("Order identifier")), responseFields(fieldWithPath("id").description("Order id"), fieldWithPath("status").description("Order status"))));
 ```
 
 ### URI preprocessing shape
 
 ```java
-.andDo(document("orders-get",
-    preprocessRequest(modifyUris().scheme("https").host("api.example.com").removePort()),
-    preprocessResponse(prettyPrint())
-));
+.andDo(document("orders-get", preprocessRequest(modifyUris().scheme("https").host("api.example.com").removePort()), preprocessResponse(prettyPrint())));
 ```
 
 ### Asciidoctor include shape
@@ -258,7 +272,7 @@ Return:
 - Verify request and response field descriptors match the actual payload shape.
 - Verify volatile values are normalized or masked before snippets are written.
 - Verify the docs build fails when an endpoint contract changes without updating descriptors.
-- Verify only one documentation style per module is treated as canonical output.
+- Verify only one documentation surface per module is treated as canonical output.
 
 ## Production checklist
 
@@ -271,7 +285,6 @@ Return:
 ## References
 
 - Open [references/webtestclient-surface.md](references/webtestclient-surface.md) when the ordinary MockMvc path is not enough and the task needs WebTestClient.
-- Open [references/rest-assured-surface.md](references/rest-assured-surface.md) when the ordinary MockMvc path is not enough and the task needs REST Assured.
 - Open [references/relaxed-payloads.md](references/relaxed-payloads.md) when relaxed payload documentation is required.
 - Open [references/subsection-payloads.md](references/subsection-payloads.md) when one payload subtree should be documented without every leaf field.
 - Open [references/ignored-fields.md](references/ignored-fields.md) when a field must exist in the payload but should stay out of published docs.

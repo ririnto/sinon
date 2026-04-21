@@ -4,10 +4,9 @@ description: "Use this skill when the task is about Spring Boot application boot
 metadata:
   title: "Spring Boot"
   official_project_url: "https://spring.io/projects/spring-boot"
-  reference_doc_urls:
-    - "https://docs.spring.io/spring-boot/index.html"
-    - "https://docs.spring.io/spring-boot/system-requirements.html"
-    - "https://docs.spring.io/spring-boot/reference/index.html"
+  reference_doc_url_home: "https://docs.spring.io/spring-boot/index.html"
+  reference_doc_url_system_requirements: "https://docs.spring.io/spring-boot/system-requirements.html"
+  reference_doc_url_reference: "https://docs.spring.io/spring-boot/reference/index.html"
   version: "4.0.5"
 ---
 
@@ -171,15 +170,24 @@ class GreetingControllerTests {
 }
 ```
 
-Open the testing reference when Boot wiring, local services, or service containers become the blocker.
+Open [references/application-context-runner.md](references/application-context-runner.md) when the blocker is Boot wiring without starting the whole application, and open [references/testcontainers.md](references/testcontainers.md) or [references/service-connections.md](references/service-connections.md) when tests need real local services.
 
 ## Production guardrails
 
 - Keep starter choices small and intentional.
 - Externalize credentials and environment-specific settings.
-- Expose only the Actuator endpoints operations truly needs.
+- Expose only the Actuator endpoints the operations team actually needs.
 - Keep profile, config import, Docker Compose, and deployment assumptions explicit.
 - Make startup, packaging, and local-service assumptions reproducible across local and deployment environments.
+
+## Output contract
+
+Return:
+
+1. The concrete configuration, code shape, or command for the stated Spring Boot feature.
+2. The specific file or path changes if an implementation is required.
+3. Any named reference to open when the path hits a blocker.
+4. Explicit risks or version-sensitive behaviors that cannot be assumed backward-compatible.
 
 ## References
 

@@ -20,8 +20,13 @@ CompletableFuture<Void> handleAsync(OrderCreated event) {
 | Situation | First choice |
 | --- | --- |
 | downstream work must complete asynchronously | async return type with explicit ack review |
+| downstream work can finish in the listener thread | stay on the synchronous listener path |
 
 ## Pitfalls
 
 - Do not assume async returns preserve the same acknowledgment semantics as synchronous listeners.
 - Keep downstream completion and failure paths observable.
+
+## Validation rule
+
+Verify how the container acknowledges success and failure for the async return type before treating it as behaviorally equivalent to a synchronous listener.

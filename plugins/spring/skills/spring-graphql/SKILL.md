@@ -17,6 +17,7 @@ Use `spring-graphql` for GraphQL schema design, query and mutation handlers, fie
 
 - Use narrower guidance for ordinary REST or non-GraphQL HTTP endpoint design.
 - Keep transport and resolver concerns at the GraphQL boundary. Domain services should not depend on GraphQL-specific annotations or response shapes.
+- Keep federation out of the ordinary path. Open the federation reference only when the graph is intentionally split across several services.
 
 ## Common path
 
@@ -28,6 +29,17 @@ The ordinary Spring GraphQL job is:
 4. Keep GraphQL error categories intentional so validation, authorization, and execution failures stay distinguishable.
 5. Add a `GraphQlTester` test that proves the query shape, response path, and error behavior.
 6. Keep one canonical transport, usually HTTP, unless the application truly needs subscriptions or another protocol.
+
+## Surface map
+
+| Surface | Start here when | Open a reference when |
+| --- | --- | --- |
+| Ordinary schema-first query and mutation API | one service owns the schema and HTTP transport is enough | stay in `SKILL.md` |
+| Subscription or alternate transports | subscriptions, WebSocket, or RSocket are the blocker | open [references/transports-and-subscriptions.md](references/transports-and-subscriptions.md) |
+| Custom batching lifecycle | `@BatchMapping` is not enough | open [references/advanced-dataloader.md](references/advanced-dataloader.md) |
+| Test-slice or integration-tester choice | the blocker is choosing the right GraphQL test surface | open [references/testing-graphql.md](references/testing-graphql.md) |
+| Security context or explicit error shaping | request metadata, authorization, or stable error categories are the blocker | open [references/security-context-and-errors.md](references/security-context-and-errors.md) |
+| Federated graph ownership | more than one service contributes to the graph | open [references/federation.md](references/federation.md) |
 
 ## Dependency baseline
 
@@ -47,7 +59,25 @@ Use the Boot starter for application code and the GraphQL test module for focuse
 </dependencies>
 ```
 
+### Feature-to-artifact map
+
+| Need | Artifact |
+| --- | --- |
+| Ordinary GraphQL controllers, schema resources, and HTTP endpoint | `spring-boot-starter-graphql` |
+| GraphQL-focused test slices and tester support | `spring-graphql-test` |
+| Subscription, WebSocket, or RSocket transport support | `spring-boot-starter-graphql` with transport-specific configuration |
+
 ## First safe configuration
+
+### First safe commands
+
+```bash
+./mvnw test -Dtest=BookGraphQlControllerTests
+```
+
+```bash
+./gradlew test --tests BookGraphQlControllerTests
+```
 
 ### Schema resource shape
 
@@ -64,6 +94,18 @@ spring:
 ```
 
 Start with a single schema resource set and one HTTP endpoint. Add WebSocket or RSocket transports only when the API really needs them.
+
+## Build and run path
+
+```bash
+./mvnw spring-boot:run
+```
+
+```bash
+./gradlew bootRun
+```
+
+Run the server on the ordinary HTTP path first. Add WebSocket or RSocket verification only after the base schema and resolver path is stable.
 
 ## Mapping and batching decisions
 
@@ -246,6 +288,12 @@ bookById.title
 - Verify authorization or validation failures surface as GraphQL errors in the intended shape.
 - Verify the chosen transport path stays aligned with deployment configuration.
 
+## Failure classification
+
+- Treat schema-validation, field-selection, and input-shape problems as client contract failures.
+- Treat authorization denials and missing context propagation as security-boundary failures.
+- Treat resolver exceptions, DataLoader misconfiguration, and transport wiring failures as execution or infrastructure failures.
+
 ## Production checklist
 
 - Keep schema field names, nullability, and argument names stable after clients depend on them.
@@ -253,6 +301,17 @@ bookById.title
 - Keep GraphQL error shapes intentional so client handling stays predictable.
 - Do not expose subscriptions or alternate transports unless clients really need them.
 - Treat GraphQL schema and tester assertions as part of the API compatibility surface.
+
+## Output contract
+
+Return:
+
+1. The chosen schema and controller mapping shape for the operation
+2. The batching strategy, including whether `@BatchMapping` or explicit DataLoader registration is used
+3. The selected transport path and any transport-specific configuration
+4. The GraphQlTester or integration test shape proving the response and error behavior
+5. The intended GraphQL error categories and context-propagation approach
+6. Any blocker that requires subscriptions, custom DataLoader wiring, security interception, or federation
 
 ## References
 

@@ -21,7 +21,7 @@ JobExecution execution = jobLauncher.run(importJob, parameters);
 ```
 
 ```java
-long executionId = jobOperator.startNextInstance("importJob");
+JobExecution execution = jobOperator.startNextInstance(importJob);
 ```
 
 ## Restart versus rerun versus recover blocker
@@ -30,13 +30,14 @@ Choose the operator action deliberately:
 
 - restart: same logical instance, next execution attempt
 - rerun: new logical instance with different identifying parameters
-- recover: continue from a failed execution state when supported by the operator path
+- recover: mark a stuck `STARTED` execution as restartable on a Batch 6 path before a later restart attempt
 
 ```java
-long recoveredExecutionId = jobOperator.recover(failedExecutionId);
+JobExecution recoveredExecution = jobOperator.recover(jobExplorer.getJobExecution(failedExecutionId));
+JobExecution restartedExecution = jobOperator.restart(recoveredExecution);
 ```
 
-Use recovery only when reader, writer, and execution-context state are compatible with continued processing.
+Use recovery only when reader, writer, and execution-context state are compatible with continued processing. Recovery does not resume work by itself; it makes the stuck execution restartable so a later `restart(...)` can continue the logical instance. On the stable Spring Boot 3.4.x path with Spring Batch 5.2.x, prefer restart and rerun guidance unless the application has intentionally moved to a Batch 6 line that exposes recovery support.
 
 ## Repository choices
 
@@ -51,12 +52,14 @@ class BatchInfrastructureConfiguration {
 
 Use a Mongo-backed repository only when the platform already standardizes on Mongo for operational metadata and the Batch 6 repository model fits the deployment.
 
+Stable Spring Boot 3.4.x still manages Spring Batch 5.2.x. Open the Batch 6 migration reference before copying 6.x-specific repository annotations or operator behavior into a Boot-managed application.
+
 ## Graceful shutdown blocker
 
 When the deployment must stop safely mid-run, make stop semantics explicit and prefer steps that can persist and resume state cleanly.
 
 ```java
-jobOperator.stop(executionId);
+jobOperator.stop(execution);
 ```
 
 Pair stop behavior with restart tests before production rollout.

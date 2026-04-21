@@ -27,15 +27,31 @@ spring:
 ## Publication lifecycle shape
 
 ```java
-IncompleteEventPublications publications = registry.findIncompletePublications();
+Collection<TargetEventPublication> publications = registry.findIncompletePublications();
 ```
 
 ```java
-FailedEventPublications failures = registry.findFailedPublications();
-failures.resubmit();
+failedPublications.resubmit(ResubmissionOptions.defaults());
 ```
 
 Use the registry lifecycle views when operations must inspect incomplete or failed publications and intentionally resubmit them.
+
+## Failed publication management shape
+
+```java
+@Component
+class FailedPublicationResubmitter {
+    private final FailedEventPublications failedPublications;
+
+    FailedPublicationResubmitter(FailedEventPublications failedPublications) {
+        this.failedPublications = failedPublications;
+    }
+
+    void resubmitFailures() {
+        failedPublications.resubmit(ResubmissionOptions.defaults());
+    }
+}
+```
 
 ## Starter choices
 
@@ -50,3 +66,7 @@ Use the registry lifecycle views when operations must inspect incomplete or fail
 | Event handling must be tracked across failures | publication registry |
 | Simple in-memory event collaboration is enough | stay on the common path |
 | Operations must inspect stale publications | registry plus operational visibility |
+
+## Verification rule
+
+Verify one failure-handling test leaves an incomplete or failed publication behind and one resubmission path processes it with explicit `ResubmissionOptions`.

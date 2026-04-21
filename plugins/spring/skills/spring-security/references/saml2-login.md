@@ -8,7 +8,18 @@ Use SAML2 only when the identity provider or enterprise environment already requ
 
 SAML2 login needs the service-provider module in addition to the ordinary starter.
 
+These dependency examples assume Spring Boot dependency management (parent/BOM) is already in use, so the managed Spring versions stay versionless here.
+
+For the current Spring Security 7 line, `spring-security-saml2-service-provider` currently depends on OpenSAML 5.1.6 artifacts that may still require the Shibboleth repository (or an internal mirror that proxies it) in some environments.
+
 ```xml
+<repositories>
+    <repository>
+        <id>shibboleth-releases</id>
+        <url>https://build.shibboleth.net/maven/releases/</url>
+    </repository>
+</repositories>
+
 <dependency>
     <groupId>org.springframework.security</groupId>
     <artifactId>spring-security-saml2-service-provider</artifactId>

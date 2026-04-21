@@ -21,6 +21,14 @@ Do not register or deploy apps until the SCDF server, Skipper or task platform, 
 - Verify the target platform account exists before the first deploy or launch.
 - Verify one trivial app can be registered before curating larger catalogs.
 
+## Local install shape
+
+```text
+$ docker compose up
+$ dataflow shell
+dataflow:>about
+```
+
 ## Decision points
 
 | Situation | First check |
