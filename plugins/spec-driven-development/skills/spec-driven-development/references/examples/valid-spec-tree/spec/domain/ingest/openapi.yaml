@@ -1,0 +1,89 @@
+openapi: "3.1.0"
+info:
+  title: "Domain Ingest API"
+  description: "HTTP contract example for the domain ingest capability"
+  version: "0.1.0"
+paths:
+  /domain/ingest:
+    post:
+      summary: "Submit a domain ingest request"
+      operationId: "submitDomainIngest"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainIngestRequest"
+            examples:
+              default:
+                summary: "Primary request example"
+                value:
+                  requestId: "ingest-request-001"
+                  note: "primary path"
+      responses:
+        "200":
+          description: "Accepted request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainIngestResponse"
+              examples:
+                default:
+                  summary: "Accepted response example"
+                  value:
+                    outcome: "accepted"
+                    recordId: "record-001"
+        "400":
+          description: "Invalid request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                default:
+                  summary: "Validation error example"
+                  value:
+                    error: "invalid_request"
+        "500":
+          description: "Unexpected failure"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                default:
+                  summary: "Unexpected failure example"
+                  value:
+                    error: "unexpected_failure"
+components:
+  schemas:
+    DomainIngestRequest:
+      type: object
+      required:
+        - requestId
+      properties:
+        requestId:
+          type: string
+          description: "Caller-provided request identifier"
+        note:
+          type: string
+          description: "Optional note stored with the accepted request"
+    DomainIngestResponse:
+      type: object
+      required:
+        - outcome
+      properties:
+        outcome:
+          type: string
+          description: "Documented ingest outcome"
+        recordId:
+          type: string
+          description: "Persisted record identifier for accepted requests"
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: "Documented error code"

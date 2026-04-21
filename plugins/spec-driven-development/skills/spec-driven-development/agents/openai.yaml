@@ -1,0 +1,18 @@
+interface:
+  display_name: "Spec-Driven Development"
+  short_description: >-
+    Drive work through SPEC, RESEARCH, validation, and review artifacts
+  default_prompt: >-
+    Use $spec-driven-development when work should be driven by `spec/` artifacts:
+    revise `SPEC.md`,
+    use `RESEARCH.md` only for external framework, library, or topic questions,
+    add optional contract artifacts when they improve review clarity,
+    validate the `spec/` tree,
+    and review implementation completeness against approved specs.
+    Treat `SPEC.md` as the source of truth for abstract requirements,
+    scope, and intended behavior.
+    Keep `SPEC.md` implementation-agnostic by default,
+    but allow explicit language, framework, library, or code-style constraints
+    when the user asks for them or verified external constraints require them.
+    Do not use RESEARCH for project comparison, repository audits,
+    implementation planning, migration sequencing, or task management.
