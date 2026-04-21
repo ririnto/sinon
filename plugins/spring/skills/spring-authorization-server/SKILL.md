@@ -5,11 +5,11 @@ metadata:
   title: "Spring Authorization Server"
   official_project_url: "https://spring.io/projects/spring-authorization-server"
   reference_doc_urls:
-    - "https://docs.spring.io/spring-authorization-server/reference/index.html"
-    - "https://docs.spring.io/spring-authorization-server/reference/configuration-model.html"
-    - "https://docs.spring.io/spring-authorization-server/reference/core-model-components.html"
-    - "https://docs.spring.io/spring-authorization-server/reference/protocol-endpoints.html"
-  version: "1.5.6"
+    - "https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/index.html"
+    - "https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html"
+    - "https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html"
+    - "https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html"
+  version: "7.0.5"
 ---
 
 Use this skill when implementing an OAuth2 or OpenID Connect provider with Spring Authorization Server, including registered clients, authorization code with PKCE, token issuance, JWK exposure, consent, PAR, device authorization, introspection, revocation, and provider configuration.
@@ -24,7 +24,7 @@ Use `spring-authorization-server` for provider-side OAuth2 or OIDC endpoints, to
 
 ## Official surface map
 
-Use this map to keep the official 1.5.6 surface visible without pushing every protocol branch into `references/`.
+Use this map to keep the current stable Spring Security 7 authorization-server surface visible without pushing every protocol branch into `references/`.
 
 | Surface | Start here when | Open a reference when |
 | --- | --- | --- |
@@ -104,10 +104,7 @@ Keep the core model vocabulary explicit:
 @Bean
 @Order(1)
 SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-    OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = OAuth2AuthorizationServerConfigurer.authorizationServer();
-    http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-        .with(authorizationServerConfigurer, authorizationServer -> {
-        });
+    http.oauth2AuthorizationServer(authorizationServer -> http.securityMatcher(authorizationServer.getEndpointsMatcher()));
     return http.exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"), new MediaTypeRequestMatcher(MediaType.TEXT_HTML))).build();
 }
 

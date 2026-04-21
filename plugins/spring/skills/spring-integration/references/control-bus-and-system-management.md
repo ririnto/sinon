@@ -13,14 +13,23 @@ IntegrationFlow.from("controlBus.input")
 ## Observability shape
 
 ```java
-channel.addInterceptor(new ObservationPropagationChannelInterceptor(observationRegistry));
+@EnableIntegrationManagement(observationPatterns = "*")
+class IntegrationManagementConfiguration {
+}
 ```
 
 ## Integration graph shape
 
 ```java
 IntegrationGraphServer graphServer = context.getBean(IntegrationGraphServer.class);
-String graph = graphServer.rebuild();
+graphServer.rebuild();
+Graph graph = graphServer.getGraph();
+```
+
+## Control bus command shape
+
+```java
+gateway.send(new GenericMessage<>("@'fileInboundAdapter'.stop()"));
 ```
 
 ## Operational rules
@@ -28,3 +37,7 @@ String graph = graphServer.rebuild();
 - Use the control bus for explicit endpoint lifecycle operations, not as a replacement for normal business messaging.
 - Keep message history, metrics, and interceptor-based tracing enabled before debugging production routing issues.
 - Inspect the integration graph before changing endpoint code when the system already contains dynamic or conditional flows.
+
+## Verification rule
+
+Verify one production-facing management test can inspect the graph and stop or start the intended endpoint without affecting unrelated flows.

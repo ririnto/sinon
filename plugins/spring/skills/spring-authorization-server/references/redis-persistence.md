@@ -151,5 +151,5 @@ Do not mix separate Redis-backed and JPA-backed authorization services in the sa
 
 See:
 
-- [How-to: Implement core services with Redis](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-redis.html)
-- [RegisteredClientRepository](https://docs.spring.io/spring-authorization-server/reference/authorization-server-components.html#registeredclientrepository)
+- [Core model components](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html)
+- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

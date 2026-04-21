@@ -25,6 +25,7 @@ class ClientRegistrationConfig {
         RegisteredClient initialAccessClient = RegisteredClient.withId("initial-access")
             .clientId("initial-access-client")
             .clientSecret("{noop}initial-access-secret")
+            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
             .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
             .scope("client.create")
             .build();
@@ -40,7 +41,7 @@ Use the initial-access token only for registration. The official path is initial
 When client metadata needs custom mapping, customize the official registration providers instead of inventing a separate validator seam.
 
 ```java
-OidcClientRegistrationAuthenticationProvider registrationProvider = new OidcClientRegistrationAuthenticationProvider(authorizationService, registeredClientRepository);
+OidcClientRegistrationAuthenticationProvider registrationProvider = new OidcClientRegistrationAuthenticationProvider(registeredClientRepository, authorizationService, tokenGenerator);
 registrationProvider.setRegisteredClientConverter(customRegisteredClientConverter);
 registrationProvider.setClientRegistrationConverter(customClientRegistrationConverter);
 ```
@@ -54,4 +55,4 @@ registrationProvider.setClientRegistrationConverter(customClientRegistrationConv
 
 ## Official documentation
 
-- [Dynamic Client Registration](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-dynamic-client-registration.html)
+- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)

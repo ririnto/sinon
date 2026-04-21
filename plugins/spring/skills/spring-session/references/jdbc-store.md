@@ -13,17 +13,73 @@ Choose JDBC-backed sessions when the application already depends on a relational
 </dependency>
 ```
 
+## Application properties
+
+```yaml
+spring:
+  session:
+    store-type: jdbc
+    timeout: 45m
+    jdbc:
+      table-name: SPRING_SESSION
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sessions
+    driver-class-name: org.postgresql.Driver
+    username: app_user
+    password: secret
+```
+
 ## Repository customization
 
 ```java
 @Bean
-SessionRepositoryCustomizer<JdbcIndexedSessionRepository> jdbcRepositoryCustomizer(
-        TransactionTemplate transactionTemplate) {
+SessionRepositoryCustomizer<JdbcIndexedSessionRepository> jdbcRepositoryCustomizer() {
     return repository -> {
         repository.setTableName("SPRING_SESSION");
         repository.setDefaultMaxInactiveInterval(Duration.ofMinutes(45));
-        repository.setTransactionOperations(transactionTemplate);
     };
+}
+```
+
+Use a dedicated transaction-operations bean when Spring Session JDBC needs different propagation or a different transaction manager:
+
+```java
+@Bean("springSessionTransactionOperations")
+TransactionOperations springSessionTransactionOperations(PlatformTransactionManager transactionManager) {
+    TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+    transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    return transactionTemplate;
+}
+```
+
+## Test example
+
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+class JdbcSessionFlowTest {
+    @Autowired
+    MockMvc mockMvc;
+
+    @Test
+    void sessionStateIsReusedAcrossRequests() throws Exception {
+        MvcResult first = mockMvc.perform(post("/cart/items")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"sku\":\"SKU-1\"}"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+        Cookie sessionCookie = first.getResponse().getCookie("SESSION");
+
+        ResultActions secondRequest = mockMvc.perform(post("/cart/items")
+                .cookie(sessionCookie)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"sku\":\"SKU-2\"}"));
+        assertAll(
+            () -> secondRequest.andExpect(status().isOk()),
+            () -> secondRequest.andExpect(jsonPath("$.itemCount").value(2))
+        );
+    }
 }
 ```
 

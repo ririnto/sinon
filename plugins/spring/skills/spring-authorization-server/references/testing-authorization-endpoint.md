@@ -9,11 +9,11 @@ void authorizationRequestWithPkceSucceeds() {
         .clientId("test-client")
         .redirectUri("http://127.0.0.1:8080/callback")
         .scopes(Set.of("openid", "message.read"))
-        .codeChallenge("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", "S256")
+        .apply(OAuth2AuthorizationRequestCustomizers.withPkce())
         .build();
     assertAll(
-        () -> assertEquals("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM", request.getCodeChallenge()),
-        () -> assertEquals("S256", request.getCodeChallengeMethod())
+        () -> assertNotNull(request.getAttribute(PkceParameterNames.CODE_VERIFIER)),
+        () -> assertEquals("S256", request.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD))
     );
 }
 ```

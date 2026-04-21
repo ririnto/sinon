@@ -58,4 +58,4 @@ OAuth2TokenCustomizer<JwtEncodingContext> idTokenCustomizer = new FederatedIdent
 
 ## Official documentation
 
-- [How-to: Authenticate using social login](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-social-login.html)
+- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

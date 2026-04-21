@@ -40,3 +40,7 @@ type Book @key(fields: "id") {
 | One service owns the whole schema | stay on the ordinary schema-first path |
 | Multiple services contribute entity fields into one graph | federation |
 | No clear graph ownership reason | do not add federation |
+
+## Validation rule
+
+Verify that entity ownership and `@EntityMapping` resolution boundaries are explicit before adding federation-specific schema directives or controllers.

@@ -1,6 +1,6 @@
 # Spring Data store-specific module selection
 
-Open this reference when the ordinary repository-abstraction path in `SKILL.md` is not enough and the task depends on one store's persistence semantics.
+Open this reference when the ordinary repository-abstraction path in [SKILL.md](../SKILL.md) is not enough and the task depends on one store's persistence semantics.
 
 ## Store-specific module rule
 
@@ -9,11 +9,16 @@ Use store-specific repository guidance when the underlying persistence model cha
 - JPA: entity graphs, flush behavior, lazy loading, JPQL.
 - JDBC: aggregate persistence without JPA session semantics.
 - R2DBC: reactive relational access.
+- MongoDB: document storage, nested aggregates, and flexible document shape.
 - Redis: key-space and cache-style patterns.
 
 Keep the common `spring-data` skill focused on shared repository abstractions.
 
-## Repository base types by store
+If the project already imports the Spring Data BOM for the chosen release train, omit child Spring Data versions from the store-specific dependency examples and keep the BOM as the single version anchor.
+
+## Representative repository base types
+
+The examples below are illustrative, not exhaustive. Use the base type that matches the selected store and programming model.
 
 Choose the repository base interface that matches the selected store.
 
@@ -42,17 +47,7 @@ Use `JpaRepository` only when the task actually relies on JPA semantics such as 
 
 ## Multiple modules in one application
 
-If the application uses more than one store module, scope repositories explicitly.
-
-```java
-@Configuration
-@EnableJpaRepositories(basePackages = "com.example.jpa")
-@EnableMongoRepositories(basePackages = "com.example.mongo")
-class DataConfig {
-}
-```
-
-Do not let repository scanning guess across several store modules.
+Open [multimodule-repository-scanning.md](multimodule-repository-scanning.md) when the application uses more than one store module and repository scanning must be scoped explicitly.
 
 ## Decision points
 

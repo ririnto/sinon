@@ -19,14 +19,21 @@ spring:
 
 ```java
 @Bean
-ConcurrentKafkaListenerContainerFactory<String, OrderEvent> eosKafkaListenerContainerFactory(
-        ConsumerFactory<String, OrderEvent> consumerFactory,
-        KafkaTransactionManager<String, OrderEvent> transactionManager) {
-    ConcurrentKafkaListenerContainerFactory<String, OrderEvent> factory =
-        new ConcurrentKafkaListenerContainerFactory<>();
+ConcurrentKafkaListenerContainerFactory<String, OrderEvent> eosKafkaListenerContainerFactory(ConsumerFactory<String, OrderEvent> consumerFactory, KafkaTransactionManager<String, OrderEvent> transactionManager) {
+    ConcurrentKafkaListenerContainerFactory<String, OrderEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(consumerFactory);
     factory.getContainerProperties().setKafkaAwareTransactionManager(transactionManager);
     return factory;
+}
+```
+
+## Consume-produce verification shape
+
+```java
+@KafkaListener(topics = "orders", containerFactory = "eosKafkaListenerContainerFactory")
+@Transactional
+void handle(OrderEvent event) {
+    kafkaTemplate.send("orders-out", event.id(), new ProcessedOrderEvent(event.id()));
 }
 ```
 
@@ -35,3 +42,7 @@ ConcurrentKafkaListenerContainerFactory<String, OrderEvent> eosKafkaListenerCont
 - Do not treat exactly-once semantics as a substitute for idempotent business logic.
 - Keep retry, DLT, and transactional boundaries aligned so the same record does not escape one policy and enter another unexpectedly.
 - Prefer the ordinary at-least-once path unless the workflow truly needs transactional consume-produce coordination.
+
+## Verification rule
+
+Verify one integration test proves a consumed record and its produced follow-up record commit or roll back together instead of treating transaction enablement as sufficient evidence.

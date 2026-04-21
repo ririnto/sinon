@@ -6,6 +6,8 @@ Keep LDAP lookup, password comparison, and authority mapping explicit and well-t
 
 ## Dependency baseline
 
+These dependency examples assume Spring Boot dependency management (parent/BOM) is already in use, so the managed Spring versions stay versionless here.
+
 ```xml
 <dependency>
     <groupId>org.springframework.security</groupId>
@@ -13,7 +15,7 @@ Keep LDAP lookup, password comparison, and authority mapping explicit and well-t
 </dependency>
 <dependency>
     <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-data-ldap</artifactId>
+    <artifactId>spring-boot-starter-ldap</artifactId>
 </dependency>
 ```
 

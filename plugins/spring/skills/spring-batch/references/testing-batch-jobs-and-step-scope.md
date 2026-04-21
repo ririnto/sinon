@@ -7,7 +7,15 @@ Open this reference when the ordinary end-to-end job test in [SKILL.md](../SKILL
 Use step-launch tests when the job is too large for every test to run end to end.
 
 ```java
-JobExecution execution = jobs.launchStep("importStep", new JobParametersBuilder().addString("input", "classpath:/customers.csv").toJobParameters());
+jobOperatorTestUtils.setJob(importJob);
+JobExecution execution = jobOperatorTestUtils.startStep("importStep", new JobParametersBuilder().addString("input", "classpath:/customers.csv").toJobParameters(), new ExecutionContext());
+```
+
+```java
+assertAll(
+    () -> assertEquals(BatchStatus.COMPLETED, execution.getStatus()),
+    () -> assertEquals(100, execution.getStepExecutions().iterator().next().getWriteCount())
+);
 ```
 
 ## Scope test blocker
@@ -20,6 +28,11 @@ StepExecution stepExecution = MetaDataInstanceFactory.createStepExecution(new Jo
 
 Bind the scope explicitly before asserting reader or writer behavior.
 
+```java
+int count = StepScopeTestUtils.doInStepScope(stepExecution, () -> customerReader.read() != null ? 1 : 0);
+assertEquals(1, count);
+```
+
 ## Restart and failure blocker
 
 Do not stop at the happy path. Add one restart, skip, retry, or failure classification test.
@@ -28,9 +41,20 @@ Do not stop at the happy path. Add one restart, skip, retry, or failure classifi
 assertEquals(BatchStatus.FAILED, execution.getStatus());
 ```
 
+```java
+jobOperatorTestUtils.setJob(importJob);
+JobExecution failed = jobOperatorTestUtils.startJob(new JobParametersBuilder().addString("input", "classpath:/customers.csv").toJobParameters());
+JobExecution restarted = jobOperator.restart(failed);
+assertEquals(BatchStatus.COMPLETED, restarted.getStatus());
+```
+
 ## Metadata-driven assertions
 
 Assert on `ExitStatus`, `BatchStatus`, read counts, write counts, skip counts, and execution context changes when those are part of the contract.
+
+## Verification rule
+
+Verify one scoped component test resolves late-bound parameters and one restart test proves already committed work is not written twice.
 
 ## Decision points
 

@@ -26,10 +26,12 @@ The ordinary Spring Web Services job is:
 
 1. Define the XSD and WSDL contract first.
 2. Generate or hand-maintain the JAXB-bound types and keep them aligned with the schema.
-3. Register a `MessageDispatcherServlet` and expose the SOAP endpoint path.
+3. Expose the SOAP endpoint path and add manual `MessageDispatcherServlet` registration only when the deployment needs custom servlet mapping.
 4. Implement an `@Endpoint` handler that maps one payload root to one application use case.
 5. Add basic SOAP fault mapping so domain failures become stable SOAP responses.
 6. Add a server or client test that proves the XML payload and SOAP response match the contract.
+
+In Spring Boot, prefer the starter-managed ordinary path first: keep the starter, marshaller, schema, endpoint, and test wiring explicit, but do not reintroduce manual servlet setup unless the deployment actually needs custom servlet registration.
 
 ### Branch selector
 
@@ -41,6 +43,8 @@ The ordinary Spring Web Services job is:
 ## Dependency baseline
 
 Use the Boot starter for ordinary SOAP server or client work and add test support for SOAP contract verification.
+
+For the current Boot 4.x line, use `spring-boot-starter-webservices`. Older Boot lines may still use `spring-boot-starter-web-services`.
 
 ```xml
 <dependencies>
@@ -58,6 +62,29 @@ Use the Boot starter for ordinary SOAP server or client work and add test suppor
 
 ## First safe configuration
 
+### Schema and marshaller shape
+
+```java
+@Bean
+XsdSchema holidaysSchema() {
+    return new SimpleXsdSchema(new ClassPathResource("xsd/holidays.xsd"));
+}
+
+@Bean
+Jaxb2Marshaller marshaller() {
+    Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
+    marshaller.setContextPath("com.example.hr.schema");
+    return marshaller;
+}
+```
+
+### Boot ordinary-path property shape
+
+```properties
+spring.webservices.path=/ws
+spring.webservices.wsdl-locations=classpath:/wsdl
+```
+
 ### SOAP servlet registration shape
 
 ```java
@@ -69,6 +96,8 @@ ServletRegistrationBean<MessageDispatcherServlet> messageDispatcherServlet(Appli
     return new ServletRegistrationBean<>(servlet, "/ws/*");
 }
 ```
+
+Use the Boot property path above as the ordinary path first. Add explicit servlet registration only when the application is not relying on Spring Boot's auto-configured SOAP servlet path or when the mapping must differ from the default deployment shape.
 
 ### WSDL publication shape
 
@@ -84,6 +113,15 @@ DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema holidaysSchema) {
 }
 ```
 
+### `WebServiceTemplateBuilder` client shape
+
+```java
+@Bean
+WebServiceTemplate webServiceTemplate(WebServiceTemplateBuilder builder, Jaxb2Marshaller marshaller) {
+    return builder.setMarshaller(marshaller).setUnmarshaller(marshaller).build();
+}
+```
+
 ### Basic SOAP fault mapping shape
 
 ```java
@@ -91,10 +129,7 @@ DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema holidaysSchema) {
 SoapFaultMappingExceptionResolver soapFaultMappingExceptionResolver() {
     SoapFaultMappingExceptionResolver resolver = new SoapFaultMappingExceptionResolver();
     Properties exceptionMappings = new Properties();
-    exceptionMappings.setProperty(
-        BookingNotAllowedException.class.getName(),
-        SoapFaultDefinition.SERVER + ",Booking failed"
-    );
+    exceptionMappings.setProperty(BookingNotAllowedException.class.getName(), SoapFaultDefinition.SERVER + ",Booking failed");
     SoapFaultDefinition definition = new SoapFaultDefinition();
     definition.setFaultCode(SoapFaultDefinition.SERVER);
     resolver.setExceptionMappings(exceptionMappings);
@@ -184,6 +219,24 @@ class HolidayClient {
 }
 ```
 
+### Server-side contract test with `MockWebServiceClient`
+
+```java
+@SpringBootTest
+class HolidayEndpointTests {
+    @Autowired
+    ApplicationContext applicationContext;
+
+    @Test
+    void respondsWithContractPayload() throws Exception {
+        MockWebServiceClient client = MockWebServiceClient.createClient(applicationContext);
+        client.sendRequest(withPayload(new StringSource("<HolidayRequest xmlns='http://example.com/hr'/>")))
+            .andExpect(noFault())
+            .andExpect(payload(new StringSource("<HolidayResponse xmlns='http://example.com/hr'><status>OK</status></HolidayResponse>")));
+    }
+}
+```
+
 ### Client-side test with `MockWebServiceServer`
 
 ```java
@@ -234,6 +287,7 @@ class HolidayClientTests {
 - Verify the published WSDL and XSD match the actual endpoint namespace and payload roots.
 - Verify server-side tests use real XML payloads that satisfy the schema.
 - Verify client tests assert the exact SOAP request and response payloads sent through `WebServiceTemplate`.
+- Verify at least one server-side test asserts the endpoint response XML or SOAP fault shape without bypassing the SOAP stack.
 - Verify expected domain failures map to the intended SOAP fault shape.
 - Verify WS-Security headers are present only when the integration contract requires them.
 

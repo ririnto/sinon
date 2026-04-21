@@ -10,10 +10,8 @@ Use batch listeners when throughput or downstream APIs naturally operate on grou
 
 ```java
 @Bean
-ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> batchKafkaListenerContainerFactory(
-        ConsumerFactory<String, PaymentEvent> consumerFactory) {
-    ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> factory =
-        new ConcurrentKafkaListenerContainerFactory<>();
+ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> batchKafkaListenerContainerFactory(ConsumerFactory<String, PaymentEvent> consumerFactory) {
+    ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(consumerFactory);
     factory.setBatchListener(true);
     return factory;
@@ -24,6 +22,10 @@ void handleBatch(List<PaymentEvent> events) {
     events.forEach(processor::process);
 }
 ```
+
+## Verification rule
+
+Verify one batch test proves how a single bad record affects the whole batch and whether the chosen retry or DLT policy stays per batch or per record.
 
 ## Batch guardrails
 

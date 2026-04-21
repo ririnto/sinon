@@ -8,12 +8,12 @@ Prefer Redis or JDBC unless the deployment already operates another repository a
 
 | Repository | Good fit |
 | --- | --- |
-| Hazelcast | The platform already runs Hazelcast and in-memory grid locality matters |
-| MongoDB | The platform already standardizes on MongoDB and document-backed session storage is acceptable |
+| Community extension with a published 4.0.2-compatible release | The platform already mandates that store and the exact release line has been verified before adoption |
 | Custom `SessionRepository` | Regulatory or proprietary infrastructure requirements make the built-in repositories unsuitable |
 
 ## Gotchas
 
 - Do not pick an alternative repository just to avoid learning Redis or JDBC defaults.
+- Do not assume older Hazelcast or MongoDB session modules are available on the current 4.0.2 line without checking their published artifacts first.
 - Do not skip store-backed tests for session creation, reuse, expiration, and principal lookup.
 - Do not treat a custom repository as a small task; it changes durability and operational behavior at the core session layer.

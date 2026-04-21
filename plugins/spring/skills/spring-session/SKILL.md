@@ -200,12 +200,14 @@ class SessionFlowTest {
 
         Cookie sessionCookie = first.getResponse().getCookie("SESSION");
 
-        mockMvc.perform(post("/cart/items")
+        ResultActions secondRequest = mockMvc.perform(post("/cart/items")
                 .cookie(sessionCookie)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"sku\":\"SKU-2\"}"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.itemCount").value(2));
+                .content("{\"sku\":\"SKU-2\"}"));
+        assertAll(
+            () -> secondRequest.andExpect(status().isOk()),
+            () -> secondRequest.andExpect(jsonPath("$.itemCount").value(2))
+        );
     }
 }
 ```

@@ -4,10 +4,9 @@ description: "Use this skill when the task depends on core Spring Framework APIs
 metadata:
   title: "Spring Framework"
   official_project_url: "https://spring.io/projects/spring-framework"
-  reference_doc_urls:
-    - "https://docs.spring.io/spring-framework/reference/index.html"
-    - "https://docs.spring.io/spring-framework/reference/core.html"
-    - "https://docs.spring.io/spring-framework/reference/testing.html"
+  reference_doc_url_home: "https://docs.spring.io/spring-framework/reference/index.html"
+  reference_doc_url_core: "https://docs.spring.io/spring-framework/reference/core.html"
+  reference_doc_url_testing: "https://docs.spring.io/spring-framework/reference/testing.html"
   version: "7.0.7"
 ---
 
@@ -34,21 +33,30 @@ The ordinary Spring Framework job is:
 Use only the Spring Framework modules the application actually needs.
 
 ```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-framework-bom</artifactId>
+            <version>7.0.7</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
 <dependencies>
     <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-context</artifactId>
-        <version>7.0.7</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-tx</artifactId>
-        <version>7.0.7</version>
     </dependency>
     <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-test</artifactId>
-        <version>7.0.7</version>
         <scope>test</scope>
     </dependency>
 </dependencies>
@@ -345,7 +353,7 @@ Keep operator chains short. Return early by flatMapping into the service rather 
 
 ## WebClient
 
-In Spring Boot, `WebClient.Builder` is auto-registered and can be injected directly. In plain Spring Framework, register the builder explicitly as shown below.
+In plain Spring Framework, register the builder explicitly as shown below.
 
 Build a `WebClient` bean once and inject it where needed:
 
@@ -379,12 +387,16 @@ Handle 4xx and 5xx responses explicitly rather than letting them propagate as `W
 Mono<Order> order = client.get()
     .uri("/orders/{id}", orderId)
     .retrieve()
-    .onStatus(HttpStatusCode::is4xxClientError,
-        response -> response.bodyToMono(String.class).map(ApiException::new))
+    .onStatus(HttpStatusCode::is4xxClientError, response -> response.bodyToMono(String.class).map(ApiException::new))
+    .onStatus(HttpStatusCode::is5xxServerError, response -> response.bodyToMono(String.class).map(UpstreamServiceException::new))
     .bodyToMono(Order.class);
 ```
 
 Use `bodyToFlux` for streaming responses and `ExchangeStrategies` when the default codec buffer limit needs adjustment.
+
+Keep client configuration explicit. Centralize base URL and default headers in the bean definition rather than scattering them across call sites.
+
+Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when the task needs client filters, Reactor Netty-specific timeouts, retry behavior, or deeper reactive-chain patterns.
 
 ## Transaction boundary
 
@@ -418,7 +430,105 @@ class TransferService {
 
 Keep transaction boundaries on service methods that own one business unit of work. Avoid transactions that span multiple unrelated operations.
 
-## Scheduling
+## Plain JDBC and DataSource
+
+### DataSource registration
+
+```java
+@Configuration
+class DataConfig {
+    @Bean
+    DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("org.hsqldb.jdbcDriver");
+        dataSource.setUrl("jdbc:hsqldb:hsql://localhost:");
+        dataSource.setUsername("sa");
+        dataSource.setPassword("");
+        return dataSource;
+    }
+}
+```
+
+Use `DriverManagerDataSource` or `SimpleDriverDataSource` only for testing and stand-alone environments. Pair plain Spring JDBC with a real pool such as HikariCP or Apache DBCP2 when the application manages its own production data source.
+
+### JdbcTemplate wiring
+
+```java
+@Configuration
+class DataConfig {
+    @Bean
+    JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+}
+```
+
+Query a single row:
+
+```java
+@Service
+class InventoryRepository {
+    private final JdbcTemplate jdbc;
+
+    InventoryRepository(JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
+
+    Item findById(Long id) {
+        return jdbc.queryForObject("SELECT id, name, quantity FROM items WHERE id = ?", (rs, rowNum) -> new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity")), id);
+    }
+}
+```
+
+Update with parameters:
+
+```java
+void updateQuantity(Long id, int quantity) {
+    jdbc.update("UPDATE items SET quantity = ? WHERE id = ?", quantity, id);
+}
+```
+
+Batch operations:
+
+```java
+void insertBatch(List<Item> items) {
+    jdbc.batchUpdate("INSERT INTO items (name, quantity) VALUES (?, ?)", items.stream().map(item -> new Object[]{item.name(), item.quantity()}).toList());
+}
+```
+
+Keep JDBC templates as the data-access primitive when the application needs plain SQL without an ORM layer. Use `NamedParameterJdbcTemplate` when named parameters improve readability over positional `?` placeholders.
+
+Open [references/plain-jdbc-wiring.md](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
+
+## Async and scheduling
+
+### Enable async processing
+
+```java
+@Configuration
+@EnableAsync
+class AppConfig {
+    @Bean
+    TaskExecutor taskExecutor() {
+        return new SimpleAsyncTaskExecutor();
+    }
+}
+```
+
+Async method:
+
+```java
+@Component
+class InventoryNotifier {
+    @Async
+    void sendAlert(String itemId) {
+    }
+}
+```
+
+Use `@EnableAsync` to activate framework-managed async execution. The default `SimpleAsyncTaskExecutor` creates a new thread per call. Register a custom `TaskExecutor` bean when pooled thread behavior, queue depth, or naming strategy matters.
+
+### Enable scheduling
 
 ```java
 @Configuration
@@ -440,7 +550,31 @@ class InventoryCleanup {
 
 Use `@EnableScheduling` to activate framework-scheduled tasks. Keep scheduled jobs idempotent and document the cron expression.
 
-Do not stack `@Async` and `@Scheduled` on the same method casually. Treat that combination as a proxy and executor design decision rather than ordinary scheduling.
+### Executor registration pointers
+
+| Executor type | Use when |
+| --- | --- |
+| `SimpleAsyncTaskExecutor` | default async; each call gets a new thread |
+| `ThreadPoolTaskExecutor` | pooled threads with queue; most common choice |
+| `ThreadPoolTaskScheduler` | for `@Scheduled` methods that need a dedicated scheduler pool |
+| `TaskExecutor` interface | `execute(Runnable)` abstraction for swapping executor implementations |
+
+```java
+@Bean
+TaskExecutor threadPoolTaskExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(4);
+    executor.setMaxPoolSize(16);
+    executor.setQueueCapacity(100);
+    executor.setThreadNamePrefix("inventory-");
+    executor.initialize();
+    return executor;
+}
+```
+
+Open [references/async-executor-registration.md](references/async-executor-registration.md) when the task needs async exception handling, completion coordination with `Future` / `CompletableFuture`, or custom `TaskDecorator` for thread-local propagation.
+
+Do not stack `@Async` and `@Scheduled` on the same method casually. Treat that combination as a proxy and executor design decision rather than ordinary scheduling. Separate concerns into distinct methods when both behaviors are needed.
 
 ## Cache and AOT escalation
 
@@ -584,6 +718,10 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent>
 ## References
 
 - Open [references/aop-cross-cutting.md](references/aop-cross-cutting.md) when the task needs framework-level AOP beyond ordinary bean wiring.
+- Open [references/async-executor-registration.md](references/async-executor-registration.md) when the task needs async exception handling, completion coordination with `Future` / `CompletableFuture`, or `TaskDecorator` for thread-local propagation.
+- Open [references/aspectj-ltw.md](references/aspectj-ltw.md) when the task needs load-time weaving, `@Configurable`, or AspectJ join points beyond Spring AOP proxies.
 - Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the blocker is container extension points, custom scopes, advanced listener infrastructure, or `@Configuration` lite-mode behavior.
 - Open [references/environment-and-resources.md](references/environment-and-resources.md) when the task needs deeper control over profiles, property sources, or resource resolution beyond the common path.
+- Open [references/plain-jdbc-wiring.md](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
 - Open [references/property-binding-conversion-validation.md](references/property-binding-conversion-validation.md) when the task needs advanced data-binding rules, formatter/converter registration, or validation groups beyond the common path.
+- Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when the task needs WebClient filters, transport-specific timeouts, retry selection, or deeper reactive pipeline behavior.

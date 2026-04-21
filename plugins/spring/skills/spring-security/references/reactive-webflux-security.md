@@ -17,6 +17,16 @@ Use `ServerHttpSecurity`, not `HttpSecurity`, in reactive applications.
 @EnableReactiveMethodSecurity
 class WebFluxSecurityConfig {
     @Bean
+    ReactiveUserDetailsService reactiveUserDetailsService() {
+        UserDetails user = User.withUsername("user")
+            // `{noop}` is for local smoke tests only.
+            .password("{noop}password")
+            .roles("USER")
+            .build();
+        return new MapReactiveUserDetailsService(user);
+    }
+
+    @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
             .authorizeExchange(exchanges -> exchanges
@@ -28,6 +38,8 @@ class WebFluxSecurityConfig {
     }
 }
 ```
+
+If the real application authenticates through another reactive mechanism, replace the sample `ReactiveUserDetailsService` bean with that production authentication source.
 
 ## Multiple filter chains by path
 
@@ -43,7 +55,19 @@ SecurityWebFilterChain apiChain(ServerHttpSecurity http) {
         .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
         .build();
 }
+
+@Bean
+SecurityWebFilterChain appChain(ServerHttpSecurity http) {
+    return http
+        .authorizeExchange(exchanges -> exchanges
+            .pathMatchers("/login", "/assets/**").permitAll()
+            .anyExchange().authenticated())
+        .formLogin(Customizer.withDefaults())
+        .build();
+}
 ```
+
+When one reactive chain narrows itself with `securityMatcher(...)`, keep an explicit fallback chain for the rest of the exchanges.
 
 ## Reactive resource server shapes
 

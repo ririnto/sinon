@@ -98,6 +98,5 @@ class LogoutConfig {
 
 ## Official documentation
 
-- [OpenID Connect Support](https://docs.spring.io/spring-authorization-server/reference/index.html#oauth2-authorization-server-oidc)
-- [OpenID Provider Metadata](https://docs.spring.io/spring-authorization-server/reference/index.html#oauth2-authorization-server-provider-configuration)
-- [Logout](https://docs.spring.io/spring-authorization-server/reference/index.html#logout)
+- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)
+- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)
