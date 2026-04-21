@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "spec-driven-development",
+  "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness",
+  "author": {
+    "name": "ririnto"
+  },
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/spec-driven-development",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "Apache-2.0",
+  "agents": "./agents",
+  "skills": "./skills",
+  "keywords": [
+    "spec",
+    "specification",
+    "workflow",
+    "review",
+    "research"
+  ]
+}

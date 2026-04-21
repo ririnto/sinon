@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "contract-frontmatter.schema.json",
+  "title": "CONTRACT.md YAML Frontmatter",
+  "description": "Schema for CONTRACT.md YAML frontmatter validation. additionalProperties is true by design: CONTRACT documents are intended to support domain-specific extension fields beyond the required core properties.",
+  "type": "object",
+  "required": [
+    "title",
+    "description",
+    "last_updated"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Contract title"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Contract description"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date (ISO 8601 calendar date, YYYY-MM-DD)"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional metadata fields",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

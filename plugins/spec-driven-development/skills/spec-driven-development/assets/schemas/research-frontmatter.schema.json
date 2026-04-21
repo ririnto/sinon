@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "research-frontmatter.schema.json",
+  "title": "RESEARCH.md YAML Frontmatter",
+  "description": "Schema for RESEARCH.md YAML frontmatter validation",
+  "type": "object",
+  "required": [
+    "title",
+    "description",
+    "last_updated",
+    "subject",
+    "tag"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Research title"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Research description"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date (ISO 8601 calendar date, YYYY-MM-DD)"
+    },
+    "subject": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Framework, library, or topic name"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Version of the subject"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Optional reference URL"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tag": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0,
+      "description": "Classification tag values"
+    }
+  },
+  "additionalProperties": false
+}

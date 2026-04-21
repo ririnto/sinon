@@ -1,0 +1,33 @@
+{
+  "name": "spec-driven-development",
+  "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness",
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/spec-driven-development",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "Apache-2.0",
+  "keywords": [
+    "spec",
+    "specification",
+    "workflow",
+    "review",
+    "research"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Spec-Driven Development",
+    "shortDescription": "Spec-first workflow: research unknowns, write SPEC.md, get approval, implement, verify completeness.",
+    "longDescription": "Install a shared, skill-first plugin for spec-driven development. Use this skill when the user explicitly asks to follow a spec-first workflow, write a SPEC.md before implementing, or use a spec-first approach. Covers the full lifecycle: research external unknowns, author SPEC.md, pass review gates, implement against the approved spec, and verify completeness.",
+    "developerName": "ririnto",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Follow the spec-driven development workflow to plan and implement this change.",
+      "Write a SPEC.md for the requested feature before writing any code.",
+      "If external framework, library, or topic behavior is unclear, document that research in RESEARCH.md before finalizing the spec."
+    ],
+    "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/spec-driven-development"
+  }
+}

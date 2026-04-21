@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "spec-frontmatter.schema.json",
+  "title": "SPEC.md YAML Frontmatter",
+  "description": "Schema for SPEC.md YAML frontmatter validation",
+  "type": "object",
+  "required": [
+    "title",
+    "description",
+    "last_updated",
+    "status",
+    "call"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SPEC title"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "SPEC description"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date (ISO 8601 calendar date, YYYY-MM-DD)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "review",
+        "approved",
+        "wip",
+        "implemented",
+        "deprecated",
+        "superseded",
+        "removed"
+      ],
+      "description": "Current SPEC status"
+    },
+    "tag": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0,
+      "description": "Classification tag values"
+    },
+    "call": {
+      "type": "array",
+      "description": "One-way outbound SPEC calls from this SPEC (use [] when none)",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?![a-zA-Z][a-zA-Z0-9+.-]*:)(?!/)(?![A-Za-z]:[\\\\/])(?:\\./|\\.\\./|[^/][^/]*/)*SPEC\\.md(?:#[^\\s]+)?$",
+            "description": "Relative path to target SPEC.md (SPEC-to-SPEC only)"
+          },
+          {
+            "type": "object",
+            "required": [
+              "path"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^(?![a-zA-Z][a-zA-Z0-9+.-]*:)(?!/)(?![A-Za-z]:[\\\\/])(?:\\./|\\.\\./|[^/][^/]*/)*SPEC\\.md(?:#[^\\s]+)?$",
+                "description": "Relative path to target SPEC.md (SPEC-to-SPEC only)"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "owner": {
+      "type": "string",
+      "description": "Optional owner identifier"
+    },
+    "priority": {
+      "type": "string",
+      "description": "Optional priority level"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional free-form object for custom extension fields",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
