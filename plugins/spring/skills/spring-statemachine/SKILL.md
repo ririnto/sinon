@@ -11,6 +11,8 @@ metadata:
 
 Use this skill when modeling explicit application lifecycles with Spring Statemachine, including states, events, guards, actions, extended state, persistence boundaries, and state-machine tests.
 
+The current stable Spring Statemachine line is 4.0.1. The official project README marks the project as maintenance mode, so prefer the ordinary, well-supported configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
+
 ## Boundaries
 
 Use `spring-statemachine` for finite-state lifecycle modeling where legal transitions matter and invalid event handling must be explicit.
@@ -34,26 +36,68 @@ The ordinary Spring Statemachine job is:
 
 ### Branch selector
 
-- Stay in `SKILL.md` for the ordinary single-machine path: enum states and events, `@EnableStateMachine`, initial and end states, external transitions, guards, actions, extended state, event sending, listener usage, and in-memory tests.
-- Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) when one singleton machine is not enough and the task needs many machine instances, regions, or persistence-aware testing.
-- Open [references/pseudo-states.md](references/pseudo-states.md) when the workflow needs choice, junction, fork, join, or history semantics.
-- Open [references/reactive-support.md](references/reactive-support.md) when the task depends on reactive guards, actions, or reactive event flows.
+| Situation | Stay here or open a reference |
+| --- | --- |
+| One singleton machine with external transitions, guards, actions, listeners, and in-memory tests | Stay in `SKILL.md` |
+| Many machine instances, persisted state, regions, or persistence-aware tests | Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) |
+| Choice, junction, fork, join, or history semantics | Open [references/pseudo-states.md](references/pseudo-states.md) |
+| Reactive guards, actions, or event flows | Open [references/reactive-support.md](references/reactive-support.md) |
+
+### Transition decisions
+
+| Situation | Use |
+| --- | --- |
+| Transition eligibility depends on machine data | guard |
+| A transition must trigger a side effect | action |
+| Small workflow context must travel with the machine | extended state |
+| The application must observe lifecycle movement | `StateMachineListener` |
+| One topology must create many runtime instances or survive restart | factory and persistence support |
 
 ## Dependency baseline
 
-Use the starter for ordinary Boot-based state machine work.
+Use the BOM once and keep the Statemachine modules versionless underneath it. When Spring Boot already manages the same Statemachine line, keep the child artifacts versionless there too and only pin the BOM or module version when the example is intentionally overriding the managed line.
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.statemachine</groupId>
+            <artifactId>spring-statemachine-bom</artifactId>
+            <version>4.0.1</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+Use the starter for ordinary Boot-based state machine work and the test module for state-machine tests.
 
 ```xml
 <dependencies>
     <dependency>
         <groupId>org.springframework.statemachine</groupId>
         <artifactId>spring-statemachine-starter</artifactId>
-        <version>4.0.1</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.statemachine</groupId>
+        <artifactId>spring-statemachine-test</artifactId>
+        <scope>test</scope>
     </dependency>
 </dependencies>
 ```
 
 ## First safe configuration
+
+### First safe commands
+
+```bash
+./mvnw test -Dtest=OrderStateMachineTests
+```
+
+```bash
+./gradlew test --tests OrderStateMachineTests
+```
 
 ### Simple lifecycle enums
 
@@ -173,16 +217,44 @@ public void configure(StateMachineConfigurationConfigurer<States, Events> config
 boolean accepted = stateMachine.sendEvent(Events.PAY);
 ```
 
+### JUnit 5 test shape
+
+```java
+@SpringBootTest
+class OrderStateMachineTests {
+    @Autowired
+    StateMachine<States, Events> stateMachine;
+
+    @Test
+    void payTransitionReachesPaidState() {
+        stateMachine.start();
+        boolean accepted = stateMachine.sendEvent(Events.PAY);
+        assertAll(
+            () -> assertTrue(accepted),
+            () -> assertEquals(States.PAID, stateMachine.getState().getId())
+        );
+    }
+
+    @Test
+    void invalidEventLeavesStateUnchanged() {
+        stateMachine.start();
+        stateMachine.sendEvent(Events.SHIP);
+        assertEquals(States.NEW, stateMachine.getState().getId());
+    }
+}
+```
+
 ## Output contract
 
 Return:
 
 1. The named states and events that define the lifecycle
-2. The transition shape, including where guards and actions apply
-3. Any extended-state variables that are required for transition decisions
-4. The event-dispatch and listener shape used to observe lifecycle movement
-5. The test shape proving the happy path and at least one blocked or invalid transition path
-6. Any blocker that requires factories, persistence, pseudo states, regions, or reactive support
+2. The dependency shape, including the BOM import and the versionless modules required for runtime and tests
+3. The transition shape, including where guards and actions apply
+4. Any extended-state variables that are required for transition decisions
+5. The event-dispatch and listener shape used to observe lifecycle movement
+6. The JUnit 5 test shape proving the happy path and at least one blocked or invalid transition path
+7. Any blocker that requires factories, persistence, pseudo states, regions, or reactive support
 
 ## Testing checklist
 
@@ -191,6 +263,7 @@ Return:
 - Verify guards block transitions when preconditions are not met.
 - Verify actions run only on the transitions that should trigger them.
 - Verify listeners or assertions observe the state change that the workflow depends on.
+- Use `assertAll(...)` when one test evaluates multiple assertions for the same transition outcome.
 
 ## Production checklist
 

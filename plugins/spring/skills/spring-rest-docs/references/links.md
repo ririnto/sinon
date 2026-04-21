@@ -2,6 +2,13 @@
 
 Open this reference when the contract includes hypermedia links.
 
+## Decision points
+
+| Situation | Use |
+| --- | --- |
+| Every emitted rel is part of the public contract | `links(...)` |
+| Only part of a larger hypermedia response is stable | `relaxedLinks(...)` |
+
 ```java
 links(
     linkWithRel("self").description("Canonical self link"),

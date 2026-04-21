@@ -58,3 +58,7 @@ Use RSocket only when the surrounding platform already carries request-stream tr
 | Subscription stream for clients | WebSocket + `@SubscriptionMapping` |
 | Existing RSocket-native platform | RSocket transport |
 | No concrete subscription need | stay on HTTP |
+
+## Validation rule
+
+Verify the chosen transport matches the deployed endpoint path and that subscription tests prove stream behavior on the same protocol clients will actually use.

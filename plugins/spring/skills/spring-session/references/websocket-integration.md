@@ -4,26 +4,18 @@ Open this reference when WebSocket or STOMP traffic must observe the same sessio
 
 Use Spring Session messaging integration when expiring or invalidating the backing session must also terminate or invalidate related messaging activity.
 
-## WebSocket endpoint baseline
-
-```java
-@Configuration
-@EnableWebSocketMessageBroker
-class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-            .setAllowedOriginPatterns("https://app.example.com")
-            .withSockJS();
-    }
-}
-```
-
 ## Session-aware broker configuration
 
 ```java
 @Configuration
+@EnableWebSocketMessageBroker
 class WebSocketSessionConfig extends AbstractSessionWebSocketMessageBrokerConfigurer<Session> {
+    @Override
+    protected void configureStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/ws")
+            .setAllowedOriginPatterns("https://app.example.com")
+            .withSockJS();
+    }
 }
 ```
 

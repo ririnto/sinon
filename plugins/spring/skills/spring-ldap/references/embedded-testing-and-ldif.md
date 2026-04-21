@@ -19,7 +19,7 @@ Disable embedded schema validation only when the embedded server does not publis
 
 ## Embedded server compatibility note
 
-When using ApacheDS for embedded tests, keep the server version aligned with the Spring LDAP testing support expected by the current project baseline. Use UnboundID when the ApacheDS compatibility path is not already proven in the build.
+Use the embedded LDAP server implementation that is already proven in the build. Prefer UnboundID when the project does not already have a known-good ApacheDS testing path, because the common Spring LDAP test examples in this repository assume UnboundID-backed embedded tests.
 
 ## LDIF loading choices
 
@@ -32,7 +32,10 @@ When using ApacheDS for embedded tests, keep the server version aligned with the
 @Test
 void verifyEmbeddedDataLoads() {
     List<Person> people = repository.findBySurname("Doe");
-    assertEquals(1, people.size());
+    assertAll(
+        () -> assertEquals(1, people.size()),
+        () -> assertEquals("Doe", people.get(0).getSurname())
+    );
 }
 ```
 
@@ -43,3 +46,7 @@ void verifyEmbeddedDataLoads() {
 | Test can use a random port | `port: 0` |
 | Test harness needs a fixed port | explicit embedded LDAP port |
 | Embedded server schema conflicts with test data | validation tuning |
+
+## Validation rule
+
+Verify the LDIF fixture actually loads into the embedded server before running repository assertions, and prefer `port: 0` unless the test harness truly requires a fixed port.

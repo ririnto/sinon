@@ -26,6 +26,15 @@ Example<Customer> example = Example.of(new Customer("a@example.com", null), matc
 
 Keep matcher rules explicit so probe null handling and string matching semantics stay reviewable.
 
+## Query execution shape
+
+```java
+List<Customer> matches = repository.findAll(example);
+assertThat(matches).extracting(Customer::getEmail).contains("a@example.com");
+```
+
+Use a repository test slice to prove matcher behavior with representative probe values before relying on QBE in a service path.
+
 ## Decision points
 
 | Situation | First check |
@@ -34,3 +43,7 @@ Keep matcher rules explicit so probe null handling and string matching semantics
 | Query path is stable and frequently reused | prefer a derived repository method |
 | Null properties behave unexpectedly | verify `ExampleMatcher` null-handling rules |
 | QBE needs store-specific query semantics | move to the store-specific path |
+
+## Verification rule
+
+Verify one test with ignored nulls and one with explicit matcher customization so probe shape changes do not silently widen the query.

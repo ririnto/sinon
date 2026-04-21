@@ -36,3 +36,7 @@ Use batch-loader context when request-scoped metadata must reach the batch load 
 | Several resolvers should reuse the same batch loader | register a named DataLoader |
 | Loader caching or dispatch is wrong | inspect `DataLoaderOptions` |
 | Batch logic needs request metadata | pass and read batch-loader context explicitly |
+
+## Validation rule
+
+Verify the chosen loader removes the N+1 access pattern and that key types, loader names, and cache behavior all match the resolver contract.

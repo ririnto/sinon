@@ -127,5 +127,5 @@ Run integration tests against the actual `/oauth2/token` endpoint with a client 
 
 ## Official documentation
 
-- [How-to: Implement an extension authorization grant type](https://docs.spring.io/spring-authorization-server/reference/guides/how-to-ext-grant-type.html)
-- [Protocol endpoints](https://docs.spring.io/spring-authorization-server/reference/protocol-endpoints.html)
+- [Protocol endpoints](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html)
+- [Configuration model](https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html)

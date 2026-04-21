@@ -29,6 +29,18 @@ The ordinary Spring HATEOAS job is:
 4. Pick one hypermedia media type, usually HAL, and keep it stable for the module.
 5. Add a test that proves the response contains the required `_links` and embedded data shape.
 
+## Surface map
+
+| Surface | Start here when | Open a reference when |
+| --- | --- | --- |
+| Plain HAL item and collection responses | one controller returns `EntityModel` or `CollectionModel` | stay in `SKILL.md` |
+| Page navigation and page metadata | clients depend on `prev`/`next`/`first`/`last` or strict page metadata semantics | open [references/pagedmodel-navigation-and-page-metadata.md](references/pagedmodel-navigation-and-page-metadata.md) |
+| HAL-FORMS or affordances | clients need action metadata or `_templates` | open [references/hal-forms-and-affordances.md](references/hal-forms-and-affordances.md) |
+| Aggregate-type link derivation | explicit hypermedia activation or `EntityLinks` is the blocker | open [references/entity-links-and-hypermedia-support.md](references/entity-links-and-hypermedia-support.md) |
+| Cross-cutting link enrichment | one shared rule must enrich many models after assembly | open [references/representation-processors.md](references/representation-processors.md) |
+| Reverse-proxy link correctness | generated host, scheme, or base path is wrong | open [references/forwarded-headers-and-proxy-configuration.md](references/forwarded-headers-and-proxy-configuration.md) |
+| Problem Details error payloads | the error path needs `application/problem+json` | open [references/problem-details-error-representations.md](references/problem-details-error-representations.md) |
+
 ## Representation decisions
 
 | Situation | Use |
@@ -54,7 +66,25 @@ Use the Boot starter for ordinary HATEOAS work.
 
 The Boot starter is the ordinary activation path. Open the entity-links reference only when the application needs explicit `@EnableHypermediaSupport`, `EntityLinks`, or aggregate-type-based link derivation.
 
+### Feature-to-artifact map
+
+| Need | Artifact |
+| --- | --- |
+| HAL item, collection, and paged responses | `spring-boot-starter-hateoas` |
+| HAL-FORMS and affordances | `spring-boot-starter-hateoas` |
+| EntityLinks and explicit hypermedia activation | `spring-boot-starter-hateoas` |
+
 ## First safe configuration
+
+### First safe commands
+
+```bash
+./mvnw test -Dtest=OrderRepresentationTests
+```
+
+```bash
+./gradlew test --tests OrderRepresentationTests
+```
 
 ### HAL-oriented response expectation
 
@@ -167,6 +197,23 @@ Link update = self.andAffordance(afford(methodOn(OrderController.class).update(o
 
 Use affordances only when clients or generated UI flows will actually consume them.
 
+### Hypermedia test shape
+
+```java
+@WebMvcTest(OrderController.class)
+class OrderRepresentationTests {
+    @Autowired
+    MockMvc mvc;
+
+    @Test
+    void orderResponseContainsSelfLink() throws Exception {
+        mvc.perform(get("/orders/1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._links.self.href").exists());
+    }
+}
+```
+
 ## Output and configuration shapes
 
 ### Entity model shape
@@ -213,6 +260,12 @@ orders
 - Verify affordances appear only on representations that should expose those actions.
 - Verify the selected media type is the one actually produced by the endpoint.
 
+## Failure classification
+
+- Treat missing `_links`, broken relation names, or malformed representation shapes as contract failures.
+- Treat wrong host, scheme, or base path in generated links as deployment or proxy-configuration failures.
+- Treat absent affordances or HAL-FORMS templates as capability-shape failures when clients depend on them.
+
 ## Production checklist
 
 - Keep link relation names and URI templates stable after clients are published.
@@ -220,6 +273,17 @@ orders
 - Keep one canonical hypermedia media type per module to reduce client ambiguity.
 - Ensure reverse proxy or base-path configuration does not break generated links.
 - Treat assembler tests as part of the API compatibility surface.
+
+## Output contract
+
+Return:
+
+1. The chosen representation type and why it fits the endpoint contract
+2. The assembler or processor shape that owns link generation
+3. The stable link relations clients depend on
+4. The selected hypermedia media type and any affordance or HAL-FORMS decision
+5. The test shape proving the required `_links` and embedded data
+6. Any blocker that requires paged navigation, entity links, processor-based enrichment, or proxy-aware link rewriting
 
 ## References
 

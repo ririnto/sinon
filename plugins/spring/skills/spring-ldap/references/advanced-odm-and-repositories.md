@@ -39,6 +39,8 @@ Use `@Query` only when method-name derivation cannot express the required filter
 - Stay on the common path when one property name maps cleanly to one LDAP attribute.
 - Open this reference when repository naming becomes unclear, when substring or compound naming is no longer readable, or when raw `@Query` is the safer expression.
 
+For complex filter escaping or DN extraction around those repository queries, also open [filters-and-dn-handling.md](filters-and-dn-handling.md).
+
 ## Decision points
 
 | Situation | Use |
@@ -46,3 +48,7 @@ Use `@Query` only when method-name derivation cannot express the required filter
 | Multi-valued attributes map cleanly to fields | ODM annotations |
 | Repository method name expresses the filter | derived query method |
 | Repository method name cannot express the filter | raw `@Query` |
+
+## Validation rule
+
+Verify that multi-valued attributes map to the intended Java collection type and that any raw `@Query` still escapes user-provided values before building the final LDAP filter.

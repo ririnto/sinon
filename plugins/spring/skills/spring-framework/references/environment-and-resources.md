@@ -12,7 +12,12 @@ Use `@Profile` to restrict bean or configuration class activation to specific en
 class ProductionDataConfig {
     @Bean
     DataSource dataSource() {
-        return new HikariDataSource();
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName("org.hsqldb.jdbcDriver");
+        dataSource.setUrl("jdbc:hsqldb:hsql://prod-db:");
+        dataSource.setUsername("sa");
+        dataSource.setPassword("");
+        return dataSource;
     }
 }
 ```

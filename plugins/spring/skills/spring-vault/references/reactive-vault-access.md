@@ -9,20 +9,20 @@ Keep the ordinary path imperative unless the surrounding application is already 
 ```java
 @Service
 class ReactiveSecretService {
-    private final ReactiveVaultTemplate vault;
+    private final ReactiveVaultVersionedKeyValueOperations keyValue;
 
     ReactiveSecretService(ReactiveVaultTemplate vault) {
-        this.vault = vault;
+        this.keyValue = vault.opsForVersionedKeyValue("secret");
     }
 
     Mono<Map<String, Object>> readSecret() {
-        return vault.read("secret/data/app/prod/database")
-            .map(response -> (Map<String, Object>) response.getRequiredData().get("data"));
+        return keyValue.get("app/prod/database")
+            .map(Versioned::getRequiredData);
     }
 }
 ```
 
-This shape is low-level KV v2 handling. On the raw `secret/data/...` path, the response still contains the outer KV v2 wrapper, so the nested `data` map must be extracted explicitly.
+Use the versioned reactive key-value operations when the application already knows it is talking to a KV v2 mount. Keep raw `secret/data/...` path handling out of the ordinary reactive path unless the task is explicitly about low-level Vault HTTP semantics.
 
 ## Decision points
 
@@ -36,3 +36,7 @@ This shape is low-level KV v2 handling. On the raw `secret/data/...` path, the r
 - Do not wrap blocking Vault access in reactive types when the reactive template is already available.
 - Do not mix imperative and reactive secret clients casually inside the same boundary service.
 - Do not treat reactive access as a substitute for KV version control or alternative auth configuration.
+
+## Validation rule
+
+Verify the reactive path stays on `ReactiveVaultTemplate` and versioned reactive key-value operations end to end instead of falling back to blocking imperative access.

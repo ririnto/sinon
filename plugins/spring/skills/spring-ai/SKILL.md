@@ -209,7 +209,7 @@ Use advisors when the request or response must be decorated around the model cal
 ```java
 @Bean
 ChatClient supportChatClient(ChatClient.Builder builder, ChatMemory chatMemory) {
-    return builder.defaultAdvisors(new MessageChatMemoryAdvisor(chatMemory)).build();
+    return builder.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build()).build();
 }
 
 String answer(ChatClient chatClient, String conversationId, String question) {
@@ -289,28 +289,3 @@ Open [references/testing-and-evaluation-harnesses.md](references/testing-and-eva
 - Put timeouts, retries, fallback behavior, and provider switching at the provider edge.
 - Log latency, token usage, retrieval count, and tool usage without leaking secrets or personal data.
 - Treat image, audio, and moderation model choices as explicit configuration, not ambient defaults.
-
-## References
-
-- Open [references/provider-selection-and-model-capability-fit.md](references/provider-selection-and-model-capability-fit.md) when choosing a provider, model family, context window, latency profile, cost envelope, or model-type selector.
-- Open [references/advisors-memory-and-conversation-state.md](references/advisors-memory-and-conversation-state.md) when advisor ordering, persistent memory repositories, or token buffering is the blocker.
-- Open [references/rag-pipeline-and-vector-store-decisions.md](references/rag-pipeline-and-vector-store-decisions.md) when chunking, embeddings, filters, vector stores, or retrieval flow design is the blocker.
-- Open [references/mcp-client-server-boundaries.md](references/mcp-client-server-boundaries.md) when deciding between in-process tools and MCP client or server boundaries.
-- Open [references/advanced-tool-orchestration.md](references/advanced-tool-orchestration.md) when one tool call must explicitly feed the next.
-- Open [references/tool-set-curation.md](references/tool-set-curation.md) when the blocker is exposing only a curated tool set to the model.
-- Open [references/tool-failure-and-fallback.md](references/tool-failure-and-fallback.md) when tool failures need explicit fallback behavior.
-- Open [references/image-generation-and-vision-inputs.md](references/image-generation-and-vision-inputs.md) when the blocker is single-image vision-style input handling.
-- Open [references/multiple-image-comparison.md](references/multiple-image-comparison.md) when the blocker is comparing several images in one request.
-- Open [references/image-generation.md](references/image-generation.md) when the blocker is text-to-image generation.
-- Open [references/audio-transcription-and-speech-output.md](references/audio-transcription-and-speech-output.md) when the blocker is speech-to-text or text-to-speech behavior.
-- Open [references/moderation-and-safety-gates.md](references/moderation-and-safety-gates.md) when content safety must be enforced before or after generation.
-- Open [references/routing-workflow.md](references/routing-workflow.md) when the blocker is routing across bounded specialist seams.
-- Open [references/chain-workflow.md](references/chain-workflow.md) when the blocker is an explicit multi-step chain.
-- Open [references/planning-and-stepwise-execution.md](references/planning-and-stepwise-execution.md) when the blocker is bounded planning before execution.
-- Open [references/loop-bounds-and-iteration-control.md](references/loop-bounds-and-iteration-control.md) when the blocker is bounding iterative loops.
-- Open [references/testing-and-evaluation-harnesses.md](references/testing-and-evaluation-harnesses.md) when the task needs repeatable evaluation datasets, regression checks, or model-behavior test harnesses.
-- Open [references/observability-and-production-debugging.md](references/observability-and-production-debugging.md) when token accounting, tracing, or production debugging must be added.
-- Open [references/development-services-and-local-infra.md](references/development-services-and-local-infra.md) when the blocker is a local model runtime such as Ollama.
-- Open [references/local-vector-store-dev.md](references/local-vector-store-dev.md) when the blocker is a reproducible local vector store.
-- Open [references/containerized-dev-environment.md](references/containerized-dev-environment.md) when the blocker is a repeatable containerized AI development stack.
-- Open [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) when upgrading Spring AI or reconciling starter, API, or model changes across branches.

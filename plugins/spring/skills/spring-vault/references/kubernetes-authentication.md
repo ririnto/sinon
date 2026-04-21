@@ -29,3 +29,7 @@ spring:
 - Do not assume Kubernetes auth works just because the pod has a service-account token.
 - Do not mismatch the Vault role with the actual namespace and service-account binding.
 - Do not mix Kubernetes auth with another auth mode in the same runtime profile.
+
+## Validation rule
+
+Verify the mounted service-account token file, Vault role binding, and pod identity all match before treating Kubernetes auth as a valid runtime path.

@@ -75,3 +75,7 @@ ContextSource contextSource() {
 | Several LDAP writes must move as one unit | transaction-aware context source |
 | Default Boot properties are enough | stay on the common path |
 | Context source or pooling needs explicit tuning | custom `LdapContextSource` bean |
+
+## Validation rule
+
+Verify whether the directory operation truly needs client-side compensating transactions before promising rollback semantics that the LDAP server itself does not enforce.

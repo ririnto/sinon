@@ -12,17 +12,26 @@ Choose the platform account before deployment or launch, not after the topology 
 - Account choice affects resource quotas, namespaces, credentials, and deployment properties.
 - Keep the chosen account visible in the shell command or deployment definition review.
 
+## Account discovery shape
+
+```text
+dataflow:>stream platform-list
+dataflow:>task platform-list
+```
+
+## Account selection shape
+
+```text
+dataflow:>stream deploy --name http-log --platformName kubernetes --properties "deployer.http.memory=1024m,deployer.http.count=2"
+```
+
+```text
+dataflow:>task launch --name import-customers --platformName kubernetes --properties "deployer.import-task.kubernetes.namespace=batch-jobs"
+```
+
 ## Deployment-property handoff
 
 Pass platform-specific settings as deployment properties instead of baking them into the application artifact.
-
-```text
-dataflow:>stream deploy --name http-log --properties "deployer.http.memory=1024m,deployer.http.count=2"
-```
-
-```text
-dataflow:>task launch --name import-customers --properties "deployer.import-task.kubernetes.namespace=batch-jobs"
-```
 
 ## Verification after account selection
 

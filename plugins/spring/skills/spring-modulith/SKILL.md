@@ -45,6 +45,8 @@ When one module may depend on only specific neighbors, make that dependency rule
 
 Import the BOM and use the core and test starters for the common path.
 
+The current stable Spring Modulith line is `2.0.5`. The `2.1.x` line is still milestone-only and should be treated as upcoming until it reaches GA.
+
 ```xml
 <dependencyManagement>
     <dependencies>
@@ -178,9 +180,15 @@ class Orders {
 ```java
 @Component
 class InventoryProjection {
+    private final InventoryReadModel readModel;
+
+    InventoryProjection(InventoryReadModel readModel) {
+        this.readModel = readModel;
+    }
+
     @ApplicationModuleListener
     void on(OrderCompleted event) {
-        // update read model or trigger follow-up work
+        readModel.markCompleted(event.orderId());
     }
 }
 ```
@@ -190,6 +198,14 @@ class InventoryProjection {
 ```java
 @ApplicationModuleTest(mode = ApplicationModuleTest.BootstrapMode.STANDALONE)
 class OrdersModuleTest {
+    @Autowired
+    Orders orders;
+
+    @Test
+    void completesOrderAndPublishesModuleEvent(PublishedEvents publishedEvents) {
+        orders.complete(new Order("o-1"));
+        assertThat(publishedEvents.ofType(OrderCompleted.class)).hasSize(1);
+    }
 }
 ```
 
@@ -198,8 +214,13 @@ class OrdersModuleTest {
 ```java
 @ApplicationModuleTest
 class OrdersModuleTest {
+    @Autowired
+    Orders orders;
+
     @Test
     void publishesOrderCompleted(PublishedEvents events) {
+        orders.complete(new Order("o-1"));
+        assertThat(events.ofType(OrderCompleted.class)).hasSize(1);
     }
 }
 ```
@@ -209,6 +230,11 @@ class OrdersModuleTest {
 ```text
 example.orders.api
 example.orders.internal
+```
+
+```java
+@ApplicationModule(allowedDependencies = "inventory::api")
+package example.orders;
 ```
 
 ## Output and configuration shapes
