@@ -2,6 +2,5 @@
   "name": "your-plugin-name",
   "description": "Claude Code plugin for a clearly bounded workflow.",
   "commands": "./commands",
-  "agents": "./agents",
   "skills": "./skills"
 }

@@ -5,7 +5,6 @@
   "author": { "name": "ririnto" },
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
-  "agents": "./agents",
   "skills": "./skills",
   "keywords": [
     "agent-first",

@@ -35,6 +35,7 @@ This skill owns the plugin root and plugin-level runtime files:
 5. Keep plugin metadata concise and operational.
 6. Keep bundled source files under `${CLAUDE_PLUGIN_ROOT}` and keep generated or persistent runtime data under `${CLAUDE_PLUGIN_DATA}`.
 7. Keep the ordinary authoring path in this file; open support files only for named blockers, deeper examples, or release review.
+8. Treat `agents/` as a root-level runtime directory when a plugin ships agents or subagents, but do not declare an `agents` manifest key in current host schemas.
 
 ## Canonical minimal tree
 
@@ -45,11 +46,10 @@ your-plugin/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── commands/
-├── agents/
 └── skills/
 ```
 
-This is the normal starter layout because a plugin usually exists to ship commands, agents, skills, or a combination of them. Remove any directory the plugin does not actually use, and add other runtime surfaces only when the plugin needs them.
+This is the normal starter layout because a plugin usually exists to ship commands, skills, or a combination of them. Add `agents/` at the plugin root when the plugin ships agents or subagents, but keep it out of `plugin.json`. Remove any directory the plugin does not actually use, and add other runtime surfaces only when the plugin needs them.
 
 ## Procedure
 
@@ -78,10 +78,11 @@ Use this as the default `plugin.json` starting point:
   "name": "your-plugin-name",
   "description": "Claude Code plugin for a clearly bounded workflow.",
   "commands": "./commands",
-  "agents": "./agents",
   "skills": "./skills"
 }
 ```
+
+If the plugin ships agents or subagents, create an `agents/` directory at the plugin root, but do not add an `agents` manifest key.
 
 Add optional keys only when the plugin needs the corresponding runtime surface. For example:
 
@@ -103,7 +104,7 @@ This is valid only if `./hooks/hooks.json` and `./settings.json` exist and the p
 Use these defaults during normal authoring:
 
 - `commands/`: add when the plugin ships slash commands
-- `agents/`: add when the plugin ships agents or subagents
+- `agents/`: add as a root-level runtime directory when the plugin ships agents or subagents; do not add a manifest key for it
 - `skills/`: add when the plugin ships reusable skills
 - `hooks/`: add when the plugin must intercept or react to tool or session events
 - `.mcp.json`: add when the plugin needs MCP server registrations
@@ -120,6 +121,7 @@ Add optional surfaces only when the plugin genuinely needs that behavior. Omit b
 
 | Surface | Manifest key | When to add | Starter |
 | --- | --- | --- | --- |
+| Agents | none | the plugin ships agents or subagents as a root-level directory | create `agents/` at the plugin root |
 | Hooks | `"hooks"` | the plugin must react to Claude Code lifecycle events | copy `assets/hooks.json` + `assets/hooks/check.sh` |
 | MCP | `"mcpServers"` | the plugin ships a local MCP server | copy `assets/.mcp.json` + `assets/servers/example-mcp.py` |
 | LSP | `"lspServers"` | the plugin configures a language server | copy `assets/.lsp.json` + `assets/lsp/example-lsp.py` |
