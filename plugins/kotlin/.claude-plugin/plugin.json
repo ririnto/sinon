@@ -2,11 +2,11 @@
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "kotlin",
   "description": "Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.",
-  "author": {
-    "name": "ririnto"
-  },
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/kotlin",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
+  "skills": "./skills/",
   "keywords": [
     "kotlin",
     "kotlin-lsp",

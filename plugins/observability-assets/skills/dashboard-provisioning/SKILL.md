@@ -1,10 +1,7 @@
 ---
 name: dashboard-provisioning
 description: >-
-  Use this skill when provisioning Grafana dashboards as code via provider YAML files,
-  organizing dashboard-as-code folder layouts, controlling drift between file sources and UI state,
-  delivering reviewable dashboard configurations, or understanding Grafana provisioning file locations,
-  environment variable syntax, and delete behavior.
+  Provision Grafana dashboards as code via provider YAML with drift control, reviewable folder layouts, and predictable delete behavior. Use this skill when provisioning Grafana dashboards as code via provider YAML files, organizing dashboard-as-code folder layouts, controlling drift between file sources and UI state, delivering reviewable dashboard configurations, or understanding Grafana provisioning file locations, environment variable syntax, and delete behavior.
 ---
 
 # Dashboard Provisioning

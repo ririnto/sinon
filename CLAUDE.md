@@ -22,6 +22,22 @@ Sinon is a marketplace repository for Claude Code plugins and Agent Skills. Thes
 - Plugins MUST live under `plugins/`.
 - Each plugin MAY expose multiple runtime manifests from the same plugin root.
 - Runtime-specific marketplace metadata MUST stay aligned with the plugin content it publishes.
+- Each plugin root MUST ship a `README.md` that describes the plugin's purpose, included skills and agents, runtime model, layout, and scope notes.
+
+## Plugin manifests
+
+Each plugin root ships both `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`. Non-runtime-specific fields MUST stay aligned across the two manifests within the same plugin.
+
+- `name` and `description` MUST match across both manifests in a pair.
+- `author` MUST use the string form (for example, `"author": "ririnto"`) and MUST match across the two manifests.
+- `repository`, `homepage`, and `license` MUST match across the two manifests.
+- `skills`, when present, MUST use the directory form `"./skills/"` with a trailing slash. Array-of-paths form MUST NOT be used.
+- `agents`, when the plugin ships agents, MUST appear in both manifests as `"./agents/"` with a trailing slash.
+- `.claude-plugin/plugin.json` MUST include the `$schema` field `"https://anthropic.com/claude-code/plugin.schema.json"`.
+- `.claude-plugin/plugin.json` MUST NOT include an `interface` block.
+- `.codex-plugin/plugin.json` MUST include an `interface` block with at least `displayName`, `shortDescription`, `longDescription`, `developerName`, `category`, `capabilities`, `defaultPrompt`, and `websiteURL`.
+- `version` MUST NOT appear in any plugin manifest.
+- Plugins with agents MUST ship an `agents/` directory at the plugin root with one `.md` file per agent whose frontmatter `name` matches the file basename.
 
 ## Authoring Agent Skills
 
@@ -29,7 +45,7 @@ When the task is to create, edit, review, refactor, validate, or package an Agen
 
 Sinon treats the **agentskills.io loading model** as the top-level basis for local skill rules. Progressive disclosure applies at three levels:
 
-1. Skill `description` metadata is the activation trigger and SHOULD use user-intent phrasing such as "Use this skill when…".
+1. Skill `description` metadata is the activation trigger. It MUST open with a capability statement written as an imperative clause that names what the skill does (for example, "Design…", "Write…", "Build…", "Author…", "Triage…", "Integrate…"), followed by a user-intent trigger clause such as "Use this skill when…". Starting the description with the trigger clause alone, without an opening capability statement, is PROHIBITED.
 2. `SKILL.md` is the common-path entrypoint loaded at activation and MUST be self-sufficient for the ordinary task.
 3. `references/`, `assets/`, and `scripts/` hold on-demand additive depth and MUST NOT be treated as always-loaded context.
 

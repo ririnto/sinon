@@ -2,9 +2,11 @@
   "name": "harness-engineering",
   "description": "Agent-first repository design with progressive disclosure, architecture enforcement, and entropy management.",
   "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness-engineering",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
-  "skills": "./skills",
+  "skills": "./skills/",
+  "agents": "./agents/",
   "keywords": [
     "agent-first",
     "architecture",
@@ -14,5 +16,25 @@
     "linting",
     "progressive-disclosure",
     "repository-structure"
-  ]
+  ],
+  "interface": {
+    "displayName": "Harness Engineering",
+    "shortDescription": "Agent-first repository design with progressive disclosure, architecture enforcement, and entropy management.",
+    "longDescription": "Install the Harness Engineering plugin to design and maintain agent-first repositories with progressive disclosure, machine-checkable architecture invariants, documentation entropy control, and autonomous agents that enforce structure, drive end-to-end work, and manage execution plans.",
+    "developerName": "ririnto",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Audit this repository for layer-direction violations and structural-test compliance.",
+      "Review recent changes for bugs, security issues, and project-convention drift.",
+      "Report documentation drift, stale cross-links, and execution-plan freshness across the repo.",
+      "Reproduce this bug in an isolated worktree, implement the fix, and validate it with observability evidence.",
+      "Write or update the execution plan for this feature under docs/exec-plans/."
+    ],
+    "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/harness-engineering"
+  }
 }

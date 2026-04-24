@@ -1,6 +1,7 @@
 ---
 name: reactor-sinks
-description: Use this skill when designing or reviewing Reactor hot-source APIs with Sinks: sink type selection, manual emission, replay/multicast choices, emit result handling, and the boundary between Sinks and ConnectableFlux-style sharing.
+description: >-
+  Author Reactor hot sources with Sinks for manual emission, replay/multicast selection, and emit-result handling. Use this skill when designing or reviewing Reactor hot-source APIs with Sinks: sink type selection, manual emission, replay/multicast choices, emit result handling, and the boundary between Sinks and ConnectableFlux-style sharing.
 metadata:
   title: "Reactor Sinks"
   official_project_url: "https://projectreactor.io/docs/core/release/reference/"

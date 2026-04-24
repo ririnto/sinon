@@ -1,7 +1,7 @@
 ---
 name: kotlin-test
 description: >-
-  Use this skill when the user asks to "test Kotlin code", "write a coroutine test", "mock a Kotlin dependency", "structure Kotlin tests", or needs guidance on practical Kotlin testing patterns.
+  Write clear, deterministic Kotlin tests that prove one observable behavior with the smallest correct scope. Use this skill when the user asks to "test Kotlin code", "write a coroutine test", "mock a Kotlin dependency", "structure Kotlin tests", or needs guidance on practical Kotlin testing patterns.
 ---
 
 ## Goal

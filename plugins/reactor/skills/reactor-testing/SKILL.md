@@ -1,6 +1,7 @@
 ---
 name: reactor-testing
-description: Use this skill when designing or reviewing Reactor tests with reactor-test: StepVerifier workflow, virtual time, request and cancellation assertions, TestPublisher, PublisherProbe, and ordinary post-verification checks.
+description: >-
+  Test Reactor publishers with reactor-test using StepVerifier, virtual time, TestPublisher, and PublisherProbe. Use this skill when designing or reviewing Reactor tests with reactor-test: StepVerifier workflow, virtual time, request and cancellation assertions, TestPublisher, PublisherProbe, and ordinary post-verification checks.
 metadata:
   title: "Reactor Testing"
   official_project_url: "https://projectreactor.io/docs/test/release/reference/"

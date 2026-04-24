@@ -1,6 +1,6 @@
 ---
 name: skill-authoring
-description: Write or refactor a cross-platform Agent Skill. Use when the skill must stay self-sufficient in SKILL.md, easy to trigger from its description, and usable offline without mandatory external tooling.
+description: Write or refactor a cross-platform Agent Skill. Use this skill when the skill must stay self-sufficient in SKILL.md, easy to trigger from its description, and usable offline without mandatory external tooling.
 ---
 
 # Skill Authoring

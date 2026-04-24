@@ -37,9 +37,9 @@ This section keeps only a compact lifecycle summary.
 1. Use Research only when external framework, library, or topic behavior is unclear.
 2. Create or revise `SPEC.md`, then link outbound `call` dependencies.
 3. Add optional contract artifacts only when they improve review clarity.
-4. Run Spec Review with the inline checklist in `../SKILL.md` and `"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec`.
+4. Run Spec Review with the inline checklist in `../SKILL.md` and `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec`.
 5. Start implementation only after the approved artifact set is explicit.
-6. Finish with Implementation Review, final spec sync, and re-run `"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec`.
+6. Finish with Implementation Review, final spec sync, and re-run `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec`.
 
 ## Status Lifecycle
 
@@ -65,7 +65,7 @@ The agent MUST present a scope summary and request explicit approval before adva
 Passes when both of the following conditions are met:
 
 - Every applicable inline checklist item in `../SKILL.md` is recorded as `pass` or `n/a` (zero `fail` items remain).
-- `"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec` exits with status 0.
+- `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` exits with status 0.
 
 ## Research
 
@@ -176,7 +176,7 @@ Activities:
 5. Outbound links and inbound query integrity MUST be verified.
 6. If `RESEARCH.md` is relevant, its findings MUST be current enough for this review.
 7. If `CONTRACT.md` or `openapi.yaml` exists, those artifacts MUST be checked against SPEC requirements and scenarios.
-8. `"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec` MUST be run on the spec root or subtree.
+8. `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` MUST be run on the spec root or subtree.
 9. When review passes, `SPEC.md` status MUST be updated to `approved` and `last_updated` MUST be refreshed.
 
 Exit:
@@ -218,7 +218,7 @@ Activities:
 6. Relevant `RESEARCH.md` artifacts MUST remain synchronized with the implemented state.
 7. `spec/CHANGELOG.md` MUST be updated when adopted spec-state changes occur. Changes MUST include behavior changes, configuration additions or changes, and contract changes. Research, initialization, planning, and future-reservation content MUST be excluded. Entries MUST keep the latest date first.
 8. When review passes, `SPEC.md` status MUST be updated to the correct post-implementation state and `last_updated` MUST be refreshed.
-9. `"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec` MUST be re-run on the touched spec root or subtree after the final spec sync.
+9. `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` MUST be re-run on the touched spec root or subtree after the final spec sync.
 10. If the consuming repository already uses markdownlint, maintainers MAY re-run `npx -y markdownlint-cli2 <touched-markdown-files>` after the final Markdown sync.
 
 Exit:

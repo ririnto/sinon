@@ -1,6 +1,6 @@
 ---
 name: "spring-vault"
-description: "Use this skill when integrating Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, or transit encryption."
+description: "Integrate Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, and transit encryption. Use this skill when integrating Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, or transit encryption."
 metadata:
   title: "Spring Vault"
   official_project_url: "https://spring.io/projects/spring-vault"

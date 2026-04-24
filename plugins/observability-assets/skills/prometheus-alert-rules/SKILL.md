@@ -1,10 +1,7 @@
 ---
 name: prometheus-alert-rules
 description: >-
-  Use this skill when writing Prometheus alert or recording rules, authoring rule YAML files,
-  running promtool check rules, tuning alert noise with for/keep_firing_for, using Go templates
-  in annotations, understanding alert state transitions, or needing guidance on
-  PromQL expressions within alert-rule context.
+  Author Prometheus alert and recording rules with promtool-verified YAML, Go-templated annotations, and intentional noise control. Use this skill when writing Prometheus alert or recording rules, authoring rule YAML files, running promtool check rules, tuning alert noise with for/keep_firing_for, using Go templates in annotations, understanding alert state transitions, or needing guidance on PromQL expressions within alert-rule context.
 ---
 
 # Prometheus Alert Rules

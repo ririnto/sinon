@@ -1,10 +1,7 @@
 ---
 name: git-change-publication
 description: >-
-  Use this skill when the user asks to decide whether changes are ready for one commit,
-  draft a Conventional Commit message from the real diff, prepare a pull request or
-  merge request body, or preserve GitHub/GitLab repository templates while publishing
-  a change.
+  Decide commit readiness from real repository state, draft Conventional Commit messages, and publish GitHub pull request or GitLab merge request bodies that preserve repository templates. Use this skill when the user asks to decide whether changes are ready for one commit, draft a Conventional Commit message from the real diff, prepare a pull request or merge request body, or preserve GitHub/GitLab repository templates while publishing a change.
 ---
 
 # Git Change Publication

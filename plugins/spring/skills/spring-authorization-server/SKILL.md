@@ -1,6 +1,6 @@
 ---
 name: "spring-authorization-server"
-description: "Use this skill when implementing an OAuth2 or OpenID Connect provider with Spring Authorization Server, including registered clients, authorization code with PKCE, token issuance, JWK exposure, consent, PAR, device authorization, introspection, revocation, and provider configuration."
+description: "Implement an OAuth2 or OpenID Connect provider with Spring Authorization Server including registered clients, PKCE authorization code, token issuance, JWK exposure, consent, PAR, device authorization, introspection, and revocation. Use this skill when implementing an OAuth2 or OpenID Connect provider with Spring Authorization Server, including registered clients, authorization code with PKCE, token issuance, JWK exposure, consent, PAR, device authorization, introspection, revocation, and provider configuration."
 metadata:
   title: "Spring Authorization Server"
   official_project_url: "https://spring.io/projects/spring-authorization-server"

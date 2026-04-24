@@ -1,6 +1,6 @@
 ---
 name: "spring-credhub"
-description: "Use this skill when integrating a Spring application with CredHub for credential reads, writes, generated passwords or certificates, interpolation, and mutual-TLS or OAuth2 authenticated client access."
+description: "Integrate Spring applications with CredHub for credential reads, writes, generated passwords or certificates, interpolation, and mutual-TLS or OAuth2 authenticated client access. Use this skill when integrating a Spring application with CredHub for credential reads, writes, generated passwords or certificates, interpolation, and mutual-TLS or OAuth2 authenticated client access."
 metadata:
   title: "Spring CredHub"
   official_project_url: "https://spring.io/projects/spring-credhub"

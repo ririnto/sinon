@@ -1,1 +1,20 @@
-{"$schema": "https://anthropic.com/claude-code/plugin.schema.json", "name": "java", "description": "Java development plugin with practical skills for LTS syntax boundaries, foundational java.base guidance, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.", "author": {"name": "ririnto"}, "repository": "https://github.com/ririnto/sinon", "license": "MIT", "keywords": ["java", "gradle", "maven", "junit", "syntax", "java.base", "lts", "jdtls"], "skills": ["skills/java-language-syntax", "skills/java-language-design", "skills/java-test", "skills/java-performance-concurrency", "skills/java-dependency-versioning"]}
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "java",
+  "description": "Java development plugin with practical skills for LTS syntax boundaries, foundational java.base guidance, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/java",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "skills": "./skills/",
+  "keywords": [
+    "java",
+    "gradle",
+    "maven",
+    "junit",
+    "syntax",
+    "java.base",
+    "lts",
+    "jdtls"
+  ]
+}
