@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "sinon",
-  "version": "2026.04.21",
+  "version": "2026.04.24",
   "description": "Claude catalog view for the Sinon universal marketplace.",
   "owner": {
     "name": "ririnto",
@@ -84,6 +84,24 @@
       "name": "harness-engineering",
       "description": "Agent-first repository design with progressive disclosure, architecture enforcement, and entropy management for AI agent development.",
       "source": "./plugins/harness-engineering",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    },
+    {
+      "name": "spec-driven-development",
+      "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.",
+      "source": "./plugins/spec-driven-development",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    },
+    {
+      "name": "agent-capability-kit",
+      "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.",
+      "source": "./plugins/agent-capability-kit",
       "author": {
         "name": "ririnto"
       },

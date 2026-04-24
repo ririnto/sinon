@@ -151,17 +151,26 @@ Constructor reference:
 
 ```java
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 
-List<ArrayList<String>> lists = Stream.of("a", "b")
-    .map(s -> new ArrayList<>())
+Supplier<ArrayList<String>> newList = ArrayList::new;
+ArrayList<String> buffer = newList.get();
+```
+
+### Stream pipeline `(JDK 8+, `.toList()` requires JDK 17+)`
+
+Basic filter-map-collect using the unmodifiable `toList()` terminator `(JDK 17+)`:
+
+```java
+import java.util.List;
+
+List<String> activeNames = users.stream()
+    .filter(User::isActive)
+    .map(User::name)
     .toList();
 ```
 
-### Stream pipeline `(JDK 8+)`
-
-Basic filter-map-collect:
+Older-LTS fallback using `Collectors.toList()` `(JDK 8+)` — the official javadoc makes no guarantee about the returned `List` implementation, its mutability, its serializability, or its thread-safety; current HotSpot builds happen to return a mutable `ArrayList`, but code MUST NOT rely on that. When mutability matters, use `Collectors.toCollection(ArrayList::new)`; when an unmodifiable result is part of the contract, use `Collectors.toUnmodifiableList()` (JDK 10+) or `Stream.toList()` on JDK 16+.
 
 ```java
 import java.util.List;
@@ -170,10 +179,10 @@ import java.util.stream.Collectors;
 List<String> activeNames = users.stream()
     .filter(User::isActive)
     .map(User::name)
-    .toList();
+    .collect(Collectors.toList());
 ```
 
-Grouping and counting:
+Grouping and counting `(JDK 8+)`:
 
 ```java
 import java.util.Map;
@@ -183,7 +192,7 @@ Map<String, Long> countByRole = users.stream()
     .collect(Collectors.groupingBy(User::role, Collectors.counting()));
 ```
 
-Flat map for nested collections:
+Flat map for nested collections (uses `Stream.toList()`, so target `(JDK 17+)`):
 
 ```java
 import java.util.List;
@@ -334,9 +343,21 @@ if (obj instanceof String s) {
 
 ### Pattern-matching switch `(JDK 21+)`
 
+Exhaustive over a sealed hierarchy (no `default` needed because the permitted
+subtypes are enumerated):
+
 ```java
+sealed interface Shape permits Circle, Rectangle {
+}
+
+record Circle(double radius) implements Shape {
+}
+
+record Rectangle(double width, double height) implements Shape {
+}
+
 double area = switch (shape) {
-    case Circle c -> c.radius();
+    case Circle c -> Math.PI * c.radius() * c.radius();
     case Rectangle r -> r.width() * r.height();
 };
 ```
@@ -378,8 +399,18 @@ if (obj instanceof Order(String id, _, double total)) {
 ### Local variable inference `(JDK 11+)`
 
 ```java
-int count = users.size();
+import java.util.List;
+import java.util.function.Predicate;
+
+var users = List.of("alice", "bob", "carol");
+var count = users.size();
+Predicate<String> lengthOver3 = (var name) -> name.length() > 3;
 ```
+
+Notes:
+
+- `var` is for local variables; it does not change runtime types.
+- Use of `var` inside lambda parameter lists (`(var name) -> ...`) requires JDK 11 or later.
 
 ### Classic switch fallback `(JDK 8+)`
 
