@@ -7,7 +7,6 @@
   "repository": "https://github.com/ririnto/sinon",
   "license": "Apache-2.0",
   "skills": "./skills/",
-  "agents": "./agents/",
   "keywords": [
     "spec",
     "specification",
