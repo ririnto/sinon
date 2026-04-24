@@ -1,6 +1,9 @@
 {
   "name": "your-plugin-name",
   "description": "Claude Code plugin for a clearly bounded workflow.",
+  "author": {
+    "name": "your-handle"
+  },
   "commands": "./commands",
   "skills": "./skills"
 }

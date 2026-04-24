@@ -1,7 +1,9 @@
 {
   "name": "observability-assets",
   "description": "Prometheus and Grafana plugin with practical skills for PromQL, alert-rule authoring, alert-rule testing, Alertmanager routing, dashboard JSON authoring, and dashboard provisioning for version-controlled observability assets.",
-  "author": "ririnto",
+  "author": {
+    "name": "ririnto"
+  },
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/observability-assets",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",

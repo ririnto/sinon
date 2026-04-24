@@ -1,7 +1,9 @@
 {
   "name": "spring",
   "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.",
-  "author": "ririnto",
+  "author": {
+    "name": "ririnto"
+  },
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/spring",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
