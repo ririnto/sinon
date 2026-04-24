@@ -1,11 +1,11 @@
 {
   "name": "jvm",
   "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
-  "author": {
-    "name": "ririnto"
-  },
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/jvm",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
+  "skills": "./skills/",
   "keywords": [
     "jvm",
     "javac",
@@ -13,7 +13,6 @@
     "gc",
     "diagnostics"
   ],
-  "skills": "./skills/",
   "interface": {
     "displayName": "JVM",
     "shortDescription": "Shared JVM tooling, runtime diagnostics, and GC workflows.",
@@ -29,6 +28,7 @@
       "Which JVM tool should I use for this packaging or module problem?",
       "Interpret this thread dump, JFR, or heap-pressure symptom.",
       "Explain this GC symptom and what evidence to collect next."
-    ]
+    ],
+    "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/jvm"
   }
 }

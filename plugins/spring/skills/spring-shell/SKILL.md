@@ -1,6 +1,6 @@
 ---
 name: "spring-shell"
-description: "Use this skill when building Spring Shell command-line applications, interactive REPL workflows, validated commands, completion, command availability rules, terminal prompts, and shell-focused tests."
+description: "Build Spring Shell command-line applications with validated commands, completion, availability rules, terminal prompts, and shell-focused tests. Use this skill when building Spring Shell command-line applications, interactive REPL workflows, validated commands, completion, command availability rules, terminal prompts, and shell-focused tests."
 metadata:
   title: "Spring Shell"
   official_project_url: "https://spring.io/projects/spring-shell"

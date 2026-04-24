@@ -1,12 +1,7 @@
 ---
 name: spec-driven-development
 description: >-
-  Use this skill when the user explicitly asks to follow a spec-driven
-  workflow, write a SPEC.md before implementing, create a specification, define
-  requirements before coding, or use a spec-first approach. Covers the full
-  lifecycle: research external unknowns, author SPEC.md, pass review gates,
-  implement against the approved spec, and verify completeness. Activated only on
-  explicit user request, not automatically.
+  Drive implementation through a SPEC.md-first workflow covering research, review gates, approved-spec execution, and completeness verification. Use this skill when the user explicitly asks to follow a spec-driven workflow, write a SPEC.md before implementing, create a specification, define requirements before coding, or use a spec-first approach. Covers the full lifecycle: research external unknowns, author SPEC.md, pass review gates, implement against the approved spec, and verify completeness. Activated only on explicit user request, not automatically.
 license: Apache-2.0
 ---
 
@@ -44,11 +39,14 @@ If your host does not provide `${CLAUDE_PLUGIN_ROOT}`, replace `SKILL_ROOT` with
 - MUST NOT create or modify Git branches.
 - MUST NOT reset or overwrite in-progress plan documents without user confirmation.
 - MUST NOT create backup files.
-- MUST run `"${SKILL_ROOT}/scripts/sdd.sh" validate <spec-root-or-subtree>` before Spec Review closes and again after the final spec sync.
+- MUST run `"${SKILL_ROOT}/scripts/sdd.sh" validate <spec-root-or-subtree>` before Spec Review closes and again after the final spec sync when `uv` is available on the host.
+  When `uv` is not available, MUST document the absent runtime in the review record and MUST complete every applicable inline-checklist item manually in place of the validator result.
 - MAY run `npx -y markdownlint-cli2 <touched-markdown-files>` only when the maintainer or consuming repository already uses markdownlint.
   Markdown linting is OPTIONAL maintenance guidance, not a prerequisite for ordinary offline use of this skill.
 
 ## Package surface
+
+Offline prerequisite: `sdd.sh` shells out to `uvx`, which is part of [uv](https://github.com/astral-sh/uv). The validator is the preferred Spec Review gate when `uv` is installed on the host. When `uv` is not installed, fall back to the manual inline-checklist path documented in the Ordinary offline workflow and Review gates sections.
 
 Use these bundled paths from `SKILL_ROOT`:
 
@@ -63,8 +61,6 @@ Use these bundled paths from `SKILL_ROOT`:
 - `./assets/templates/` — scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `openapi.yaml`, and `spec/CHANGELOG.md`
 - `./assets/schemas/` — schema files used by the validator
 - `./references/examples/` — validator-clean examples for comparison
-
-Offline prerequisite: `sdd.sh` shells out to `uvx`, which is part of [uv](https://github.com/astral-sh/uv). Ensure `uv` is installed on the host before relying on the validator.
 
 ## Ordinary offline workflow
 
@@ -167,7 +163,7 @@ Passes only when the user explicitly approves the scope, primary requirements, a
 Passes only when both conditions are true:
 
 - Every applicable item in the inline review checklist below is recorded as `pass` or `n/a`, with zero remaining `fail` items.
-- `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` exits with status `0`.
+- `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` exits with status `0` when `uv` is available on the host; otherwise the review record documents the absent runtime and every applicable inline-checklist item is recorded as `pass` or `n/a` manually.
 
 ## Inline review checklist
 
@@ -241,7 +237,8 @@ Open a reference only for the named blocker:
 
 Return:
 
-1. The updated spec artifacts or review results
-2. The paths changed under `spec/`
-3. Validation results from `"${SKILL_ROOT}/scripts/sdd.sh" validate`
-4. Any explicit remaining blockers, failed checklist items, or approval needs
+1. The spec artifacts created, revised, or reviewed, with relative paths under `spec/`
+2. Gate 1 (SPEC Setup Complete) status: whether the user has explicitly approved scope, primary requirements, and scenario direction of the current `SPEC.md` draft
+3. Gate 2 (Spec Review Passed) status: `sdd.sh validate` exit result when `uv` is available (or a documented absence of `uv`), together with the inline-checklist results recorded as `pass`, `fail`, or `n/a` with rationale per applicable item
+4. When verifying implementation, the drift summary between the approved specification and the shipped code, including missing requirements, undocumented behavior, and scope drift
+5. Any remaining blockers, failed checklist items, or approval needs that prevent the next gate from closing or that block implementation or release

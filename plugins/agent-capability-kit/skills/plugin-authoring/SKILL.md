@@ -1,6 +1,6 @@
 ---
 name: plugin-authoring
-description: Create or refactor a Claude Code plugin root with a minimal manifest and only the runtime components the plugin actually uses. Use when authoring or reorganizing a plugin root offline.
+description: Create or refactor a Claude Code plugin root with a minimal manifest and only the runtime components the plugin actually uses. Use this skill when authoring or reorganizing a plugin root offline.
 ---
 
 # Plugin Authoring
@@ -15,7 +15,8 @@ Create or refactor one plugin root so the manifest is minimal, the filesystem la
 
 This skill owns the plugin root and plugin-level runtime files:
 
-- `.claude-plugin/plugin.json`
+- `.claude-plugin/plugin.json` (Claude Code runtime manifest)
+- `.codex-plugin/plugin.json` (Codex runtime manifest; optional for single-runtime plugins)
 - `commands/`
 - `agents/`
 - `skills/`
@@ -28,14 +29,15 @@ This skill owns the plugin root and plugin-level runtime files:
 
 ## Operating rules
 
-1. Only `plugin.json` belongs inside `.claude-plugin/`.
-2. Runtime components live at the plugin root.
+1. Only `plugin.json` belongs inside `.claude-plugin/` and `.codex-plugin/`.
+2. Runtime components live at the plugin root, shared across both runtime manifests.
 3. Add only the directories and config files the plugin actually needs.
-4. Use relative paths beginning with `./` inside `plugin.json`.
+4. Use relative paths beginning with `./` inside `plugin.json`, and use the trailing-slash directory form (for example `"skills": "./skills/"`, `"agents": "./agents/"`) rather than array-of-paths or bare `./skills`.
 5. Keep plugin metadata concise and operational.
 6. Keep bundled source files under `${CLAUDE_PLUGIN_ROOT}` and keep generated or persistent runtime data under `${CLAUDE_PLUGIN_DATA}`.
 7. Keep the ordinary authoring path in this file; open support files only for named blockers, deeper examples, or release review.
-8. Treat `agents/` as a root-level runtime directory when a plugin ships agents or subagents, but do not declare an `agents` manifest key in current host schemas.
+8. Declare the `agents` manifest key as `"./agents/"` in both `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json` whenever the plugin ships agents at the plugin root.
+9. Keep `name`, `description`, `author`, `repository`, `homepage`, and `license` aligned across `.claude-plugin/` and `.codex-plugin/` manifests for the same plugin. Keep the runtime-specific marketplace block (for example Codex `interface`) only in its own manifest.
 
 ## Canonical minimal tree
 
@@ -71,27 +73,65 @@ This is the normal starter layout because a plugin usually exists to ship comman
 
 ## Minimal example
 
-Use this as the default `plugin.json` starting point:
+Use this as the default `.claude-plugin/plugin.json` starting point:
+
+```json
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "your-plugin-name",
+  "description": "Claude Code plugin for a clearly bounded workflow.",
+  "author": "your-handle",
+  "commands": "./commands/",
+  "skills": "./skills/"
+}
+```
+
+If the plugin ships agents at the plugin root, declare them in the manifest:
+
+```json
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "your-plugin-name",
+  "description": "Claude Code plugin for a clearly bounded workflow.",
+  "author": "your-handle",
+  "commands": "./commands/",
+  "skills": "./skills/",
+  "agents": "./agents/"
+}
+```
+
+When the plugin also ships a Codex-facing manifest, mirror the same fields in `.codex-plugin/plugin.json` and add the runtime-specific `interface` block there (not in `.claude-plugin/plugin.json`):
 
 ```json
 {
   "name": "your-plugin-name",
   "description": "Claude Code plugin for a clearly bounded workflow.",
-  "commands": "./commands",
-  "skills": "./skills"
+  "author": "your-handle",
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "interface": {
+    "displayName": "Your Plugin",
+    "shortDescription": "One-line summary for marketplace listings.",
+    "longDescription": "Longer marketplace copy.",
+    "developerName": "your-handle",
+    "category": "Coding",
+    "capabilities": ["Interactive", "Read"],
+    "defaultPrompt": ["First representative prompt."],
+    "websiteURL": "https://example.com/your-plugin"
+  }
 }
 ```
-
-If the plugin ships agents or subagents, create an `agents/` directory at the plugin root, but do not add an `agents` manifest key.
 
 Add optional keys only when the plugin needs the corresponding runtime surface. For example:
 
 ```json
 {
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
   "description": "Claude Code plugin for a clearly bounded workflow.",
-  "commands": "./commands",
-  "skills": "./skills",
+  "author": "your-handle",
+  "commands": "./commands/",
+  "skills": "./skills/",
   "hooks": "./hooks/hooks.json",
   "settings": "./settings.json"
 }
@@ -104,7 +144,7 @@ This is valid only if `./hooks/hooks.json` and `./settings.json` exist and the p
 Use these defaults during normal authoring:
 
 - `commands/`: add when the plugin ships slash commands
-- `agents/`: add as a root-level runtime directory when the plugin ships agents or subagents; do not add a manifest key for it
+- `agents/`: add when the plugin ships agents or subagents, and declare the matching `"agents": "./agents/"` manifest key in both runtime manifests
 - `skills/`: add when the plugin ships reusable skills
 - `hooks/`: add when the plugin must intercept or react to tool or session events
 - `.mcp.json`: add when the plugin needs MCP server registrations
@@ -121,7 +161,7 @@ Add optional surfaces only when the plugin genuinely needs that behavior. Omit b
 
 | Surface | Manifest key | When to add | Starter |
 | --- | --- | --- | --- |
-| Agents | none | the plugin ships agents or subagents as a root-level directory | create `agents/` at the plugin root |
+| Agents | `"agents"` | the plugin ships agents or subagents as a root-level directory | create `agents/` at the plugin root and set `"agents": "./agents/"` in both runtime manifests |
 | Hooks | `"hooks"` | the plugin must react to Claude Code lifecycle events | copy `assets/hooks.json` + `assets/hooks/check.sh` |
 | MCP | `"mcpServers"` | the plugin ships a local MCP server | copy `assets/.mcp.json` + `assets/servers/example-mcp.py` |
 | LSP | `"lspServers"` | the plugin configures a language server | copy `assets/.lsp.json` + `assets/lsp/example-lsp.py` |

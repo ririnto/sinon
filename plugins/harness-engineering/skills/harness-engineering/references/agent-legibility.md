@@ -183,6 +183,65 @@ With all legibility components in place, a single agent run can:
 7. Query observability data to confirm performance constraints.
 8. Open a pull request with evidence attached.
 
+## Long-running single runs
+
+Single agent runs regularly span several hours. A run MUST be able to survive runtime restarts, context truncation, and intentional checkpoint-and-resume without losing state.
+
+### Checkpoint layout per worktree
+
+Store checkpoints inside the worktree so they share the same isolation boundary as logs and data.
+
+```text
+{worktree_path}/.runtime/checkpoints/
+├── plan.md
+├── progress.jsonl
+├── evidence/
+│   ├── before.mp4
+│   ├── after.mp4
+│   ├── before-dom.html
+│   └── after-dom.html
+└── last_step.txt
+```
+
+Key invariants:
+
+- `plan.md` is the execution plan the run is following. It MUST be committed to the repository before the run starts so a resuming agent can load it from git rather than from volatile state.
+- `progress.jsonl` is append-only. Each line records one completed step with a timestamp and a short outcome note.
+- `evidence/` holds artifacts that would otherwise be recomputed on resume, such as reproduction videos, DOM snapshots, and observability query results.
+- `last_step.txt` stores the identifier of the last completed step so a resuming agent can skip finished work.
+
+### Progress record format
+
+```json
+{"step": "reproduce-bug", "status": "completed", "ts": "2026-04-24T12:03:11Z", "evidence": ["evidence/before.mp4", "evidence/before-dom.html"]}
+{"step": "implement-fix", "status": "completed", "ts": "2026-04-24T13:47:02Z", "evidence": ["src/service/retry.py"]}
+{"step": "validate-fix", "status": "in_progress", "ts": "2026-04-24T14:05:44Z"}
+```
+
+Each line is one JSON object and is appended atomically. A resuming agent reads the file sequentially and resumes from the last `in_progress` or from the next unlisted step in `plan.md`.
+
+### Resume protocol
+
+1. Load the worktree and read `.runtime/checkpoints/plan.md`.
+2. Replay `progress.jsonl` to rebuild the set of completed steps and the last in-flight step.
+3. Verify checkpoint evidence still exists and matches the recorded paths. Treat any missing file as a step that must be re-run.
+4. Rehydrate the observability stack and the application instance using the worktree's existing ports and data directory. Do not allocate fresh ports; they belong to the original run.
+5. Continue execution from the first unfinished step. Append new progress entries rather than rewriting earlier ones.
+6. Tear the worktree down only after the full plan is marked complete in `progress.jsonl` and every declared evidence artifact is present.
+
+### Checkpoint cadence
+
+- After every structural boundary: reproduction, fix, validation, observability check, pull-request open.
+- Before any action that consumes significant wall time, such as a long test run or a multi-step browser journey.
+- Never in the middle of a write that could leave the working tree partially updated; complete the write, then checkpoint.
+
+### Common long-run failures
+
+- Losing the worktree because the host pruned stale branches. Protect worktrees used for long runs with a naming convention that the cleanup job ignores.
+- Running out of disk because evidence artifacts accumulated. Apply a retention policy per worktree, for example keeping only the most recent before-and-after pair.
+- Resuming against a fresh application instance that has lost ephemeral state. Always resume inside the same worktree and observability stack that produced the earlier checkpoints.
+- Rewriting `progress.jsonl` instead of appending. A rewritten history hides prior decisions and makes failure analysis impossible.
+
 ## Common mistakes
 
 - Sharing a single application instance across agent tasks. This causes interference and non-deterministic test results.

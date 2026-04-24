@@ -56,6 +56,65 @@ Key invariants:
 - Each plan includes progress tracking and a decision log.
 - Plans are checked into the repository so agents can operate without external context.
 
+## Third-party documentation as `*-llms.txt`
+
+External documentation the agent relies on MUST live in `docs/references/` as plain-text files named with the `-llms.txt` suffix. This keeps third-party material inside the repository so agent runs do not depend on live internet access, and it marks the file as a repackaged reference rather than authored documentation.
+
+### Naming convention
+
+One file per external source, named after the tool or library with the `-llms.txt` suffix:
+
+```text
+docs/references/
+├── design-system-reference-llms.txt
+├── nixpacks-llms.txt
+├── uv-llms.txt
+└── ...
+```
+
+### File shape
+
+Each `*-llms.txt` file MUST begin with a header block that states its provenance so a resuming agent can decide whether to reopen the source.
+
+```text
+# uv-llms.txt
+# source: https://docs.astral.sh/uv/
+# fetched: 2026-04-15
+# version: 0.4.12
+# regenerate: scripts/refresh-llms-txt.sh uv
+
+<condensed reference content follows>
+```
+
+Key invariants:
+
+- `source` points to the canonical upstream page.
+- `fetched` records the date the content was captured.
+- `version` pins the upstream version the snapshot describes.
+- `regenerate` names the script that refreshes the file so a doc-gardening pass can update it mechanically.
+
+### Selection and condensation
+
+`*-llms.txt` files MUST be condensed for agent consumption, not raw crawls.
+
+- Keep only sections relevant to how the repository uses the dependency.
+- Preserve code examples verbatim; they are the highest-signal part for agents.
+- Remove navigation, marketing copy, and version-history chatter.
+- Prefer one focused file per concern over a single sprawling dump.
+
+### Refresh cadence
+
+- Refresh on every upstream version bump that the repository adopts.
+- Refresh at least once per quarter for long-lived dependencies.
+- Record the refresh in the pull request body so the doc-gardening agent can confirm freshness.
+
+### Common mistakes
+
+- Treating `*-llms.txt` as authored documentation. These files are mirrors and MUST be regenerated from the source, never edited by hand.
+- Placing `*-llms.txt` outside `docs/references/`. Agents discover references through that directory; content elsewhere is invisible in practice.
+- Omitting the header block. Without provenance, a stale file cannot be distinguished from a fresh one.
+- Pulling entire manuals without condensation. A file that competes with application code for context is worse than no reference at all.
+
 ## Mechanical enforcement
 
 Dedicated linters and CI jobs validate the knowledge base:

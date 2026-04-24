@@ -1,6 +1,6 @@
 {
   "name": "spec-driven-development",
-  "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness",
+  "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.",
   "author": "ririnto",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/spec-driven-development",
   "repository": "https://github.com/ririnto/sinon",
@@ -13,6 +13,7 @@
     "research"
   ],
   "skills": "./skills/",
+  "agents": "./agents/",
   "interface": {
     "displayName": "Spec-Driven Development",
     "shortDescription": "Spec-first workflow: research unknowns, write SPEC.md, get approval, implement, verify completeness.",

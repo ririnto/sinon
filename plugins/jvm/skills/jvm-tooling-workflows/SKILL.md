@@ -1,7 +1,7 @@
 ---
 name: jvm-tooling-workflows
 description: >-
-  Use this skill when the user asks to "use javac", "package a Java app", "compare jlink and jpackage", "generate Javadoc", "analyze dependencies with jdeps", "start jshell", "build a custom JRE", or needs guidance on official JDK toolchain workflows.
+  Guide JDK command-line toolchain workflows for compilation, documentation, dependency analysis, packaging, and custom runtime images. Use this skill when the user asks to "use javac", "package a Java app", "compare jlink and jpackage", "generate Javadoc", "analyze dependencies with jdeps", "start jshell", "build a custom JRE", or needs guidance on official JDK toolchain workflows.
 metadata:
   title: JVM Tooling Workflows
   official_project_url: "https://docs.oracle.com/en/java/"
