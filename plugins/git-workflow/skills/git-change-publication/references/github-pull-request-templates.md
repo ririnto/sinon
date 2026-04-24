@@ -45,20 +45,27 @@ Rules:
   PR creation flow.
 - `.md` and `.txt` extensions are both supported.
 
-### API-Based Fallback Discovery
+### Remote and Community-Health Fallback Discovery
 
+
+1. Inspect the default branch on the remote without cloning the whole tree.
+2. Check the owner's community-health `.hosted-service` repository for a fallback template.
 
 ```bash
-# Requires host-cli CLI; skip if unavailable or offline
-  || echo "NO_API_TEMPLATE"
+# Requires host-cli CLI; skip if unavailable or offline.
+# Path 1: list template files on the remote default branch.
+    || echo "NO_REMOTE_TEMPLATE"
+
+# Path 2: check owner's community-health .hosted-service repository.
+    || echo "NO_COMMUNITY_HEALTH_TEMPLATE"
 ```
 
 Rules:
 
-- If offline or no `host-cli` CLI available, rely solely on filesystem discovery.
-- Do not fail or guess when neither filesystem nor API finds a template.
-- If API returns a template that does not exist in the filesystem, use the API-discovered template structure.
-- Report the discovery source (filesystem / API / both) in the output contract host assumption field.
+- If offline or no `host-cli` CLI is available, rely on filesystem discovery only.
+- The community-health `.hosted-service` repository MUST be public; private repositories cannot serve as the default source.
+- When a community-health template is used, note this explicitly in the host-assumption output: the repository itself has no template; a public `.hosted-service` repository provides the fallback.
+- Report the discovery source (filesystem / remote / community-health) in the output contract host assumption field.
 
 ## Preservation Rules
 
@@ -138,20 +145,37 @@ If the workflow targets `bug-fix-template.md`, use only the bug-fix template str
 https://github.com/{owner}/{repo}/compare/{base}...{head}?quick_pull=1&template={filename}
 ```
 
-The `template` value is the filename (with extension) of a template file stored inside any `PULL_REQUEST_TEMPLATE/` subdirectory (root, docs/, or .hosted-service/). This parameter does NOT work with single-file templates at the repository root or hidden .hosted-service directory.
+Documented behavior:
 
-When both `template` and `body` query parameters are provided, the `template` parameter takes precedence: the specified template fills the body, and the `body` parameter value is ignored. Other parameters (`title`, `labels`, etc.) compose independently with the template-selected body.
+- The `template` value is the filename with extension, for example `template=bug-fix-template.md`.
+- The parameter only resolves templates stored in a `PULL_REQUEST_TEMPLATE` subdirectory under the repository root, `docs/`, or `.hosted-service/`. Single-file root templates such as `pull_request_template.md` are ignored by this parameter.
+- Additional parameters listed in the official page: `quick_pull`, `title`, `body`, `labels`, `milestone`, `assignees`, `projects`.
+
+Behavior not explicitly documented by hosted service:
+
+- The precedence between `template` and `body` when both are supplied on the same URL is not stated. Do not assert that one wins over the other; surface the conflict to the user and let them pick.
+- Composition rules between `template` and non-body parameters such as `title` or `labels` are not stated. Assume they compose independently only when the caller has confirmed the behavior in the target hosted service instance.
 
 ### Organization/Account-Level Default Templates
 
-Organizations and personal accounts can define default PR templates in a public `.hosted-service` repository. These defaults apply to any owned repository that lacks its own template, with this precedence order:
+Organizations and personal accounts MAY define default community-health files, including change description templates, in a public `.hosted-service` repository. These defaults apply to any owned repository that does not provide its own file in the corresponding location.
 
-1. Repository's own `PULL_REQUEST_TEMPLATE/` folder (highest priority — full override)
-2. Repository root single-file template
-3. Repository `docs/` single-file template
-4. Organization/account `.hosted-service` repository (lowest priority)
+Documented search order inside a single repository (community-health files):
 
-If a repository has ANY files in its own `PULL_REQUEST_TEMPLATE/` folder, the organization-level default is NOT used.
+1. `.hosted-service/` folder
+2. Repository root
+3. `docs/` folder
+
+Documented override rule (for the issue-template folder specifically):
+
+> "If a repository has any files in its own `.hosted-service/ISSUE_TEMPLATE` folder, such as issue templates or a `_config.yml` file, none of the contents of the default `.hosted-service/ISSUE_TEMPLATE` folder will be used."
+
+
+Owner-level `.hosted-service` repository constraints:
+
+- The `.hosted-service` repository MUST be public.
+- Private repositories cannot serve as default community-health providers.
+- Defaults are not applied to repositories that already ship the same file in the locations above.
 
 ### YAML Frontmatter Note
 

@@ -34,18 +34,24 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 }
 ```
 
-Scope-bounding virtual threads without a pool:
+Scope-bounding virtual threads without a pool (Structured Concurrency API, preview through JDK 25 inclusive; JEP 505 is the fifth preview):
 
 ```java
-import java.util.concurrent.Future;
 import java.util.concurrent.StructuredTaskScope;
+import java.util.concurrent.StructuredTaskScope.Subtask;
 
 try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
-    Future<String> a = scope.fork(() -> blockingCall("a"));
-    Future<String> b = scope.fork(() -> blockingCall("b"));
+    Subtask<String> a = scope.fork(() -> blockingCall("a"));
+    Subtask<String> b = scope.fork(() -> blockingCall("b"));
     scope.join();
+    scope.throwIfFailed();
+    String first = a.get();
+    String second = b.get();
 }
 ```
+
+> [!IMPORTANT]
+> `StructuredTaskScope` is a preview API through JDK 25 (`JEP 505: Structured Concurrency (Fifth Preview)`). Compile with `--enable-preview --release <n>` and accept that the API surface MAY still move before finalization. Call `scope.fork()` which returns `StructuredTaskScope.Subtask<T>`; read values only after `join()` (and `throwIfFailed()` when using `ShutdownOnFailure`) has returned.
 
 ScopedValue for immutable request context (preview on JDK 21-24, finalized in JDK 25):
 

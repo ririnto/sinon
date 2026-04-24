@@ -6,7 +6,7 @@ metadata:
   official_project_url: "https://spring.io/projects/spring-batch"
   reference_doc_urls:
     - "https://docs.spring.io/spring-batch/reference/index.html"
-  version: "6.0.3"
+  version: "6.0.x"
 ---
 
 Use this skill when building or operating Spring Batch jobs with job and step configuration, chunk or tasklet processing, job parameters, restartability, reader or writer choices, scaling patterns, and batch-focused tests.
@@ -77,6 +77,8 @@ The minimum Spring Batch model is `Job -> Step -> chunk or tasklet`.
 
 ### Infrastructure shape
 
+On Spring Boot's Batch 5.2.x path (current Boot 3.x), `@EnableBatchProcessing` alone provides the framework-managed `JobRepository` and transaction manager backed by the Boot `DataSource`:
+
 ```java
 @Configuration
 @EnableBatchProcessing
@@ -84,7 +86,25 @@ class BatchInfrastructureConfiguration {
 }
 ```
 
-Use the framework-managed `JobRepository` and transaction manager first. On the Boot-managed 5.2.x path, start from the ordinary Boot batch infrastructure. On the current released 6.x path, open the infrastructure reference before adopting Batch 6-specific repository options or migration behavior. Change repository strategy only when operations, scale, or platform constraints require it.
+On Spring Batch 6, `@EnableBatchProcessing` no longer assumes a JDBC-backed store. It configures the common batch infrastructure and defaults to a `ResourcelessJobRepository` plus `ResourcelessTransactionManager` (in-memory, non-persistent). Opt into a persistent backend explicitly with one of the store-specific annotations:
+
+```java
+@Configuration
+@EnableBatchProcessing
+@EnableJdbcJobRepository
+class BatchInfrastructureConfiguration {
+}
+```
+
+```java
+@Configuration
+@EnableBatchProcessing
+@EnableMongoJobRepository
+class BatchInfrastructureConfiguration {
+}
+```
+
+`@EnableJdbcJobRepository` and `@EnableMongoJobRepository` attributes (`dataSourceRef`, `transactionManagerRef`, `tablePrefix`, etc.) are all optional; add them only when overriding the defaults. Change repository strategy only when operations, scale, or platform constraints require it. Open the infrastructure reference before adopting Batch 6-specific migration behavior beyond these annotations.
 
 ### Chunk job baseline
 

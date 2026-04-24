@@ -5,11 +5,11 @@ metadata:
   title: "Spring Authorization Server"
   official_project_url: "https://spring.io/projects/spring-authorization-server"
   reference_doc_urls:
-    - "https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/index.html"
-    - "https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/configuration-model.html"
-    - "https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/core-model-components.html"
-    - "https://docs.spring.io/spring-security/reference/servlet/oauth2/authorization-server/protocol-endpoints.html"
-  version: "7.0.5"
+    - "https://docs.spring.io/spring-authorization-server/reference/index.html"
+    - "https://docs.spring.io/spring-authorization-server/reference/configuration-model.html"
+    - "https://docs.spring.io/spring-authorization-server/reference/core-model-components.html"
+    - "https://docs.spring.io/spring-authorization-server/reference/protocol-endpoints.html"
+  version: "1.5.7"
 ---
 
 Use this skill when implementing an OAuth2 or OpenID Connect provider with Spring Authorization Server, including registered clients, authorization code with PKCE, token issuance, JWK exposure, consent, PAR, device authorization, introspection, revocation, and provider configuration.
@@ -24,7 +24,7 @@ Use `spring-authorization-server` for provider-side OAuth2 or OIDC endpoints, to
 
 ## Official surface map
 
-Use this map to keep the current stable Spring Security 7 authorization-server surface visible without pushing every protocol branch into `references/`.
+Use this map to keep the current stable Spring Authorization Server 1.5.x surface visible without pushing every protocol branch into `references/`. Spring Authorization Server is a standalone project that builds on Spring Security; version advice here targets the SAS artifact line (`org.springframework.security:spring-security-oauth2-authorization-server`), not Spring Security's release cadence.
 
 | Surface | Start here when | Open a reference when |
 | --- | --- | --- |

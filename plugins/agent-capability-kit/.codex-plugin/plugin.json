@@ -1,0 +1,34 @@
+{
+  "name": "agent-capability-kit",
+  "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.",
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/agent-capability-kit",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "agent",
+    "skill",
+    "command",
+    "authoring"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Agent Capability Kit",
+    "shortDescription": "Authoring kit for plugins, agents, commands, and cross-platform Agent Skills.",
+    "longDescription": "Install the Agent Capability Kit to author Claude Code plugins, agents, commands and prompts, and cross-platform Agent Skills with consistent structure, progressive disclosure, and validation guidance.",
+    "developerName": "ririnto",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Use the plugin-authoring skill to scaffold or refactor a Claude Code plugin root.",
+      "Use the skill-authoring skill to create or revise a cross-platform Agent Skill.",
+      "Use the command-authoring or agent-authoring skill to design commands and agents with explicit frontmatter and bounded tool access."
+    ],
+    "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/agent-capability-kit"
+  }
+}

@@ -75,6 +75,21 @@ def script_dir() -> str:
     return str(Path(__file__).resolve().parent.parent)
 
 
+def skill_root() -> str:
+    # :description: Returns the resolved skill root directory that owns assets/ and scripts/.
+    #     When ``SDD_SKILL_ROOT`` is set, its value wins. This lets ``sdd.sh`` pass the
+    #     original skill-installed location even when ``__file__`` resolves inside a uvx
+    #     cache that does not ship the sibling assets/ directory. The env override is
+    #     passed through ``Path.resolve()``, which follows symlinks; if the caller mounts
+    #     the skill under a symlink and expects the skill root to remain logical, set
+    #     ``SDD_SKILL_ROOT`` to the already-resolved absolute path.
+    # :return: Absolute path to the skill root directory.
+    env_override = os.environ.get("SDD_SKILL_ROOT")
+    if env_override:
+        return str(Path(env_override).resolve())
+    return str(Path(script_dir()).parent)
+
+
 def is_record(value: object) -> bool:
     # :description: Checks whether a value is a non-null dict-like object.
     # :param value: Value to test.
@@ -742,7 +757,7 @@ def cmd_validate(args) -> int:
         )
         return 1
     spec_root, scan_root = roots
-    schema_dir = os.path.join(script_dir(), "..", "assets", "schemas")
+    schema_dir = os.path.join(skill_root(), "assets", "schemas")
     spec_schema = os.path.join(schema_dir, "spec-frontmatter.schema.json")
     research_schema = os.path.join(schema_dir, "research-frontmatter.schema.json")
     contract_schema = os.path.join(schema_dir, "contract-frontmatter.schema.json")

@@ -115,7 +115,19 @@ Use when: you want to validate the packaged launch shape before choosing a platf
 Version note: `jpackage` is a JDK 14+ workflow. Do not present it as an option on the JDK 8 or JDK 11 baseline.
 
 > [!NOTE]
-> On JDK 25 and later, `jpackage` no longer includes service bindings in the generated runtime image by default. Add `--jlink-options --bind-services` when the application depends on service loader bindings.
+> On JDK 25 and later (JDK-8345185), `jpackage` no longer adds `--bind-services` to its default `jlink` options. The default now resolves to `--strip-native-commands --strip-debug --no-man-pages --no-header-files`, so the generated runtime image drops providers that were previously included by service-loader binding. When the application uses `java.util.ServiceLoader`, restore the old behavior by passing a quoted `--jlink-options` string that re-includes `--bind-services`:
+>
+> ```bash
+> jpackage \
+>     --name DemoApp \
+>     --input build/libs \
+>     --main-jar demo-app.jar \
+>     --main-class com.example.demo.App \
+>     --type app-image \
+>     --jlink-options "--strip-native-commands --strip-debug --no-man-pages --no-header-files --bind-services"
+> ```
+>
+> If `--jlink-options` is provided, it replaces the default list entirely — include the four strip flags explicitly when the operational goal is still a lean image.
 
 Javadoc generation:
 
