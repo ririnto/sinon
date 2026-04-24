@@ -228,7 +228,7 @@ tests:
 expr: 5 < round(100 * errors / total, 0.001)
 ```
 
-See [`./references/test-execution-controls.md`](./references/test-execution-controls.md) for more on `fuzzy_compare`.
+See [`./test-execution-controls.md`](./test-execution-controls.md) for more on `fuzzy_compare`.
 
 ## Review Questions
 

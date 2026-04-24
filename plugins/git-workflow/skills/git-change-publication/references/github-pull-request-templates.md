@@ -49,22 +49,32 @@ Rules:
   PR creation flow.
 - `.md` and `.txt` extensions are both supported.
 
-### API-Based Fallback Discovery
+### Remote and Community-Health Fallback Discovery
 
-When filesystem discovery finds no template, the GitHub REST API may still have a repository-level template configured via the web UI (not stored in the cloned repository).
+GitHub pull request templates are always files on the repository's default branch. There is no web-UI-only PR template configuration. When the working copy does not contain a template, two remote-discovery paths exist:
+
+1. Inspect the default branch on the remote without cloning the whole tree.
+2. Check the owner's community-health `.github` repository for a fallback template.
 
 ```bash
-# Requires gh CLI; skip if unavailable or offline
+# Requires gh CLI; skip if unavailable or offline.
+# Path 1: list template files on the remote default branch.
 gh api repos/{owner}/{repo}/contents/.github/PULL_REQUEST_TEMPLATE 2>/dev/null \
-  || echo "NO_API_TEMPLATE"
+    || gh api repos/{owner}/{repo}/contents/.github/pull_request_template.md 2>/dev/null \
+    || echo "NO_REMOTE_TEMPLATE"
+
+# Path 2: check owner's community-health .github repository.
+gh api repos/{owner}/.github/contents/.github/PULL_REQUEST_TEMPLATE 2>/dev/null \
+    || gh api repos/{owner}/.github/contents/.github/pull_request_template.md 2>/dev/null \
+    || echo "NO_COMMUNITY_HEALTH_TEMPLATE"
 ```
 
 Rules:
 
-- If offline or no `gh` CLI available, rely solely on filesystem discovery.
-- Do not fail or guess when neither filesystem nor API finds a template.
-- If API returns a template that does not exist in the filesystem, use the API-discovered template structure.
-- Report the discovery source (filesystem / API / both) in the output contract host assumption field.
+- If offline or no `gh` CLI is available, rely on filesystem discovery only.
+- The community-health `.github` repository MUST be public; private repositories cannot serve as the default source.
+- When a community-health template is used, note this explicitly in the host-assumption output: the repository itself has no template; a public `.github` repository provides the fallback.
+- Report the discovery source (filesystem / remote / community-health) in the output contract host assumption field.
 
 ## Preservation Rules
 
@@ -146,20 +156,38 @@ GitHub supports the `template` query parameter on compare URLs to pre-select a n
 https://github.com/{owner}/{repo}/compare/{base}...{head}?quick_pull=1&template={filename}
 ```
 
-The `template` value is the filename (with extension) of a template file stored inside any `PULL_REQUEST_TEMPLATE/` subdirectory (root, docs/, or .github/). This parameter does NOT work with single-file templates at the repository root or hidden .github directory.
+Documented behavior:
 
-When both `template` and `body` query parameters are provided, the `template` parameter takes precedence: the specified template fills the body, and the `body` parameter value is ignored. Other parameters (`title`, `labels`, etc.) compose independently with the template-selected body.
+- The `template` value is the filename with extension, for example `template=bug-fix-template.md`.
+- The parameter only resolves templates stored in a `PULL_REQUEST_TEMPLATE` subdirectory under the repository root, `docs/`, or `.github/`. Single-file root templates such as `pull_request_template.md` are ignored by this parameter.
+- Additional parameters listed in the official page: `quick_pull`, `title`, `body`, `labels`, `milestone`, `assignees`, `projects`.
+
+Behavior not explicitly documented by GitHub:
+
+- The precedence between `template` and `body` when both are supplied on the same URL is not stated. Do not assert that one wins over the other; surface the conflict to the user and let them pick.
+- Composition rules between `template` and non-body parameters such as `title` or `labels` are not stated. Assume they compose independently only when the caller has confirmed the behavior in the target GitHub instance.
 
 ### Organization/Account-Level Default Templates
 
-Organizations and personal accounts can define default PR templates in a public `.github` repository. These defaults apply to any owned repository that lacks its own template, with this precedence order:
+Organizations and personal accounts MAY define default community-health files, including pull request templates, in a public `.github` repository. These defaults apply to any owned repository that does not provide its own file in the corresponding location.
 
-1. Repository's own `PULL_REQUEST_TEMPLATE/` folder (highest priority — full override)
-2. Repository root single-file template
-3. Repository `docs/` single-file template
-4. Organization/account `.github` repository (lowest priority)
+Documented search order inside a single repository (community-health files):
 
-If a repository has ANY files in its own `PULL_REQUEST_TEMPLATE/` folder, the organization-level default is NOT used.
+1. `.github/` folder
+2. Repository root
+3. `docs/` folder
+
+Documented override rule (for the issue-template folder specifically):
+
+> "If a repository has any files in its own `.github/ISSUE_TEMPLATE` folder, such as issue templates or a `_config.yml` file, none of the contents of the default `.github/ISSUE_TEMPLATE` folder will be used."
+
+GitHub does not publish an equivalent, explicit override rule for the `PULL_REQUEST_TEMPLATE/` folder. When both an owner-level `.github` repository and a project-local PR template exist, prefer the project-local template; flag the interaction as "documented for issue templates only, applied here by analogy" in the output contract so downstream reviewers know the precedence is not spec-level confirmed.
+
+Owner-level `.github` repository constraints:
+
+- The `.github` repository MUST be public.
+- Private repositories cannot serve as default community-health providers.
+- Defaults are not applied to repositories that already ship the same file in the locations above.
 
 ### YAML Frontmatter Note
 

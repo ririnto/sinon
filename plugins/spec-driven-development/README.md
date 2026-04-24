@@ -41,13 +41,8 @@ plugins/spec-driven-development/
 ├── .claude-plugin/plugin.json
 ├── .codex-plugin/plugin.json
 ├── README.md
-├── LICENSE
-├── .gitignore
 ├── agents/
 │   └── spec-driven-development.md
-├── docs/
-│   └── maintainers/
-│       └── runtime-architecture.md
 └── skills/
     └── spec-driven-development/
         ├── SKILL.md
@@ -60,7 +55,9 @@ plugins/spec-driven-development/
         │   ├── review-checklist.md
         │   └── examples/
         ├── scripts/
-        ├── dist/
+        │   ├── sdd.sh
+        │   ├── sdd/            # Python package backing the CLI
+        │   └── pyproject.toml
         ├── assets/
         │   ├── templates/
         │   └── schemas/
@@ -72,8 +69,7 @@ plugins/spec-driven-development/
 - The plugin ships one reusable skill under `skills/`.
 - `agents/` contains the Claude-facing agent trigger surface.
 - `skills/spec-driven-development/agents/openai.yaml` contains skill-local OpenAI metadata.
-- `skills/spec-driven-development/scripts/` contains stable shell entrypoints.
-- `skills/spec-driven-development/dist/` contains the committed offline runtime executed by those entrypoints.
+- `skills/spec-driven-development/scripts/sdd.sh` is the single CLI entrypoint; it dispatches all SDD subcommands (`validate`, `list-frontmatter`, `get-frontmatter`, `generate-diagram`, `list-tags`) via `uvx` against the bundled `sdd` Python package.
 - `assets/templates/` contains scaffolds for SPEC.md, RESEARCH.md, CONTRACT.md, CHANGELOG.md, and openapi.yaml.
 - `assets/schemas/` contains JSON Schema definitions for frontmatter validation.
 
@@ -86,11 +82,10 @@ plugins/spec-driven-development/
 
 ## Offline Runtime
 
-The packaged skill is usable offline with Node.js 20+.
-Runtime shell entrypoints execute committed artifacts under `skills/spec-driven-development/dist/` and do not perform package installation at execution time.
+The packaged skill is usable offline once [uv](https://github.com/astral-sh/uv) is installed on the host.
+`skills/spec-driven-development/scripts/sdd.sh` invokes the bundled Python package through `uvx --from "${script_dir}"`, which resolves the local `pyproject.toml` and runs the `sdd` console script without reaching any remote index at execution time.
 
-Maintainers rebuild the packaged runtime from the TypeScript sources in `skills/spec-driven-development/`.
-Maintainer-only architecture notes live under `docs/maintainers/`, not in the skill's user-facing `references/` directory.
+Maintainers update the runtime by editing the Python sources under `skills/spec-driven-development/scripts/sdd/` and the accompanying `pyproject.toml`.
 
 ## Installation
 

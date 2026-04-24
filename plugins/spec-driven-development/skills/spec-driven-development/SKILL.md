@@ -44,7 +44,7 @@ If your host does not provide `${CLAUDE_PLUGIN_ROOT}`, replace `SKILL_ROOT` with
 - MUST NOT create or modify Git branches.
 - MUST NOT reset or overwrite in-progress plan documents without user confirmation.
 - MUST NOT create backup files.
-- MUST run `"${SKILL_ROOT}/scripts/verify-spec.sh" <spec-root-or-subtree>` before Spec Review closes and again after the final spec sync.
+- MUST run `"${SKILL_ROOT}/scripts/sdd.sh" validate <spec-root-or-subtree>` before Spec Review closes and again after the final spec sync.
 - MAY run `npx -y markdownlint-cli2 <touched-markdown-files>` only when the maintainer or consuming repository already uses markdownlint.
   Markdown linting is OPTIONAL maintenance guidance, not a prerequisite for ordinary offline use of this skill.
 
@@ -52,15 +52,19 @@ If your host does not provide `${CLAUDE_PLUGIN_ROOT}`, replace `SKILL_ROOT` with
 
 Use these bundled paths from `SKILL_ROOT`:
 
-- `./scripts/verify-spec.sh` — default validation entrypoint for a `spec/` tree or subtree
-- `./scripts/validate-spec.sh` — lower-level validation entrypoint
-- `./scripts/list-frontmatter.sh` — frontmatter inventory and inbound-call queries
-- `./scripts/get-frontmatter.sh` — read one artifact frontmatter block
-- `./scripts/generate-diagram.sh` — generate relationship diagrams from SPEC links
-- `./scripts/list-tags.sh` — aggregate tag inventory
+- `./scripts/sdd.sh` — single CLI entrypoint that dispatches to all SDD toolkit subcommands. The shipped subcommands are:
+  - `validate <spec-root>` — validate a `spec/` tree or subtree (default Spec Review gate)
+  - `list-frontmatter [spec-path]` — frontmatter inventory and inbound-call queries
+  - `get-frontmatter <kind> <path>` — read one artifact frontmatter block
+  - `generate-diagram [spec-root]` — generate Mermaid relationship diagrams from SPEC links
+  - `list-tags [spec-path]` — aggregate tag inventory across the tree
+- `./scripts/sdd/` — Python package that implements the CLI.
+- `./scripts/pyproject.toml` — sibling of `./scripts/sdd/`; declares the `sdd` console script entry point that `sdd.sh` invokes via `uvx --from "${script_dir}"`.
 - `./assets/templates/` — scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `openapi.yaml`, and `spec/CHANGELOG.md`
 - `./assets/schemas/` — schema files used by the validator
 - `./references/examples/` — validator-clean examples for comparison
+
+Offline prerequisite: `sdd.sh` shells out to `uvx`, which is part of [uv](https://github.com/astral-sh/uv). Ensure `uv` is installed on the host before relying on the validator.
 
 ## Ordinary offline workflow
 
@@ -122,7 +126,7 @@ Follow this path unless a named blocker sends you to an optional reference.
    - Validate the authored tree.
 
    ```bash
-   "${SKILL_ROOT}/scripts/verify-spec.sh" ./spec
+   "${SKILL_ROOT}/scripts/sdd.sh" validate ./spec
    ```
 
    - If review passes, set `SPEC.md` status to `approved` and refresh `last_updated`.
@@ -138,7 +142,7 @@ Follow this path unless a named blocker sends you to an optional reference.
     - Re-run validation after the final spec sync.
 
     ```bash
-    "${SKILL_ROOT}/scripts/verify-spec.sh" ./spec
+    "${SKILL_ROOT}/scripts/sdd.sh" validate ./spec
     ```
 
     - Mark `SPEC.md` with the correct post-implementation status and refresh `last_updated`.
@@ -163,7 +167,7 @@ Passes only when the user explicitly approves the scope, primary requirements, a
 Passes only when both conditions are true:
 
 - Every applicable item in the inline review checklist below is recorded as `pass` or `n/a`, with zero remaining `fail` items.
-- `"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec` exits with status `0`.
+- `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` exits with status `0`.
 
 ## Inline review checklist
 
@@ -180,7 +184,7 @@ Record each applicable item as `pass`, `fail`, or `n/a` with rationale.
 - `RESEARCH.md`, when present, is limited to external framework/library/topic investigation
 - `CONTRACT.md` or `openapi.yaml`, when present, stays consistent with the current SPEC
 - unresolved `TODO:` markers or template placeholders are removed from authored artifacts
-- `"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec` passes
+- `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` passes
 
 ### Implementation Review minimum checklist
 
@@ -189,7 +193,7 @@ Record each applicable item as `pass`, `fail`, or `n/a` with rationale.
 - `call` links are updated when dependency relationships changed
 - `RESEARCH.md`, `CONTRACT.md`, `openapi.yaml`, and `spec/CHANGELOG.md`, when present, are synchronized with the implemented state
 - `spec/CHANGELOG.md` keeps the latest date first and excludes planning-only content
-- `"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec` passes after final sync
+- `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` passes after final sync
 
 ## Review evidence contract
 
@@ -212,9 +216,9 @@ Use these from the consuming repository after setting `SKILL_ROOT`:
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
 SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
 
-"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec
-"${SKILL_ROOT}/scripts/list-frontmatter.sh" ./spec --inbound-of spec/domain/ingest/SPEC.md
-"${SKILL_ROOT}/scripts/generate-diagram.sh" ./spec
+"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec
+"${SKILL_ROOT}/scripts/sdd.sh" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
+"${SKILL_ROOT}/scripts/sdd.sh" generate-diagram ./spec
 ```
 
 If you need per-file Markdown linting for maintainer hygiene, run it separately and treat it as optional:
@@ -239,5 +243,5 @@ Return:
 
 1. The updated spec artifacts or review results
 2. The paths changed under `spec/`
-3. Validation results from `"${SKILL_ROOT}/scripts/verify-spec.sh"`
+3. Validation results from `"${SKILL_ROOT}/scripts/sdd.sh" validate`
 4. Any explicit remaining blockers, failed checklist items, or approval needs

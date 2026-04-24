@@ -17,7 +17,7 @@ Use this reference when the blocker is choosing among the wider JDK tool set bef
 | `javadoc` | All LTS | Generate API documentation from source |
 | `jdeps` | All LTS | Analyze package and module dependencies |
 | `jlink` | JDK 9+ | Build custom runtime images from modules |
-| `jpackage` | JDK 14+ | Build native installers or app images |
+| `jpackage` | JDK 14-15 incubator (`jdk.incubator.jpackage`); standard from JDK 16 (JEP 392) | Build native installers or app images |
 | `jcmd` | All LTS | Send diagnostic commands to running JVMs |
 | `jstack` | All LTS (deprecated) | Print thread dumps (legacy; prefer `jcmd Thread.print`) |
 | `jmap` | All LTS (deprecated) | Heap inspection and dump (legacy; prefer `jcmd GC.*`) |
@@ -40,5 +40,5 @@ Core tool output shapes (`javac`, `java --version`, `jdeps`, `jlink`, `jpackage`
 | Analyze module deps | 9 | `jdeps --print-module-deps` |
 | Build custom runtime image | 9 | `jlink` |
 | Generate API docs | 8 | `javadoc` |
-| Build native installer | 14 | `jpackage` |
+| Build native installer | 16 (standard) / 14 (incubator; not production-grade) | `jpackage` |
 | Low-overhead flight recording | 11 (OpenJDK) / 8 (Oracle commercial) | `JFR.start` via `jcmd` |

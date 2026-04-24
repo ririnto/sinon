@@ -6,9 +6,11 @@ metadata:
   official_project_url: "https://netty.io/"
   reference_doc_urls:
     - "https://netty.io/wiki/user-guide-for-4.x.html"
+    - "https://netty.io/wiki/netty-4.2-migration-guide.html"
+    - "https://netty.io/4.2/api/"
     - "https://netty.io/4.1/api/"
   version: "4.x"
-  recommended_version: "4.1.x.Final"
+  recommended_version: "4.2.x.Final (current stable); 4.1.x.Final remains supported for existing deployments"
 ---
 
 # Netty
@@ -115,7 +117,8 @@ Dependency entrypoint:
 
 ```xml
 <!-- Use netty-all for development convenience or individual modules for production.
-     Recommended: 4.1.x.Final (the 4.1 branch is the current stable line). -->
+     Recommended: 4.2.x.Final (current stable); 4.1.x.Final remains supported for existing deployments
+     and is largely binary-compatible except for the changes listed in the Netty 4.2 migration guide. -->
 <dependency>
     <groupId>io.netty</groupId>
     <artifactId>netty-all</artifactId>

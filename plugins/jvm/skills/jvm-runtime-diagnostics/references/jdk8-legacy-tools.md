@@ -56,12 +56,23 @@ jmap -F -dump:format=b,file=heap.hprof <pid>
 
 ### PermGen vs Metaspace
 
-JDK 8 moved class metadata storage from PermGen (`-XX:MaxPermSize`) to native Metaspace (`-XX:MaxMetaspaceSize`). When diagnosing JDK 8 memory issues:
+JDK 8 removed the PermGen space and moved class metadata into native-memory Metaspace. Both generations of flag still appear in practice:
 
-- `OutOfMemoryError: PermGen space` indicates the legacy PermGen area is exhausted; increase `-XX:MaxPermSize` or investigate class-loader leaks
-- `OutOfMemoryError: Metaspace` indicates native Metaspace is exhausted; increase `-XX:MaxMetaspaceSize` or investigate dynamic class generation
-- `jmap -heap <pid>` output shows PermGen usage on JDK 8 but Metaspace on JDK 9+
-- `jcmd <pid> VM.native_memory` can show metaspace consumption when NMT is enabled
+- `-XX:MaxPermSize=<n>` applies only to JDK 7 and earlier. On JDK 8 it is accepted but produces a warning and is then ignored. On JDK 9 and later the flag is unrecognized and the JVM refuses to start with `Unrecognized VM option 'MaxPermSize=<n>'`, so any legacy startup scripts still carrying it MUST be cleaned up as part of the upgrade.
+- `-XX:MetaspaceSize=<n>` sets the initial Metaspace high-water mark (the first level at which an unloading-triggered GC runs). Setting this low wastes GC cycles; setting it close to the expected steady-state metaspace size avoids early GC pressure. There is no implicit default from heap size.
+- `-XX:MaxMetaspaceSize=<n>` caps Metaspace; the default is effectively unlimited, so a JVM with a class-loader leak MAY exhaust host memory before a native OOM surfaces. Set an explicit cap in production.
+- `-XX:CompressedClassSpaceSize=<n>` bounds the compressed-class-pointers region that lives inside Metaspace on 64-bit JVMs when compressed oops/class pointers are enabled; it is distinct from `MaxMetaspaceSize`.
+
+Error strings to distinguish:
+
+- `OutOfMemoryError: PermGen space` means the runtime is JDK 7 or earlier. If this appears on a "JDK 8" process, the deployed runtime is not actually JDK 8.
+- `OutOfMemoryError: Metaspace` means Metaspace is exhausted on JDK 8+. Raise `-XX:MaxMetaspaceSize` or investigate dynamic class generation and class-loader retention.
+- `OutOfMemoryError: Compressed class space` means the compressed-class region is exhausted; raise `-XX:CompressedClassSpaceSize` or `-XX:MaxMetaspaceSize`, or disable compressed class pointers.
+
+Diagnostic output:
+
+- `jmap -heap <pid>` shows Metaspace on JDK 8 and later; it shows PermGen only on JDK 7 and earlier.
+- `jcmd <pid> VM.native_memory` (with NMT enabled at startup) reports Metaspace and Compressed Class Space consumption separately.
 
 ### JDK 8 JFR Availability
 

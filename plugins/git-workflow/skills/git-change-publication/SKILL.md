@@ -195,7 +195,7 @@ git commit -m "fix(auth): reject expired refresh tokens" -m "- Prevent expired r
 
 A scope MUST be a noun describing a section of the codebase, contained within parentheses (e.g., `fix(parser):`).
 
-The type MUST be a noun. Use `feat`, `fix`, `docs`, `style`, `test`, `refactor`, `perf`, `build`, `ci`, or `chore`, and prefer `feat` or `fix` whenever published behavior changes. If the diff mixes unrelated feature work, broad cleanup, or separate test concerns, split the commit before drafting final text.
+The type MUST be a noun. Use `feat`, `fix`, `docs`, `style`, `test`, `refactor`, `perf`, `build`, `ci`, `chore`, or `revert`, and prefer `feat` or `fix` whenever published behavior changes. Use `revert` only with the dedicated revert format documented below; it is not interchangeable with the other types. If the diff mixes unrelated feature work, broad cleanup, or separate test concerns, split the commit before drafting final text.
 
 Quick type choices:
 
@@ -209,6 +209,7 @@ Quick type choices:
 | restructures code without changing behavior | `refactor` | `refactor(cache): extract key builder` |
 | improves performance characteristics | `perf` | `perf(query): reduce duplicate index scans` |
 | changes tooling, packaging, or automation | `build`, `ci`, or `chore` | `ci(actions): cache pnpm store` |
+| reverts a prior commit (use the dedicated revert format below) | `revert` | `revert: reject expired refresh tokens` |
 
 ### Scope Derivation
 
@@ -688,7 +689,7 @@ echo -n "<proposed subject>" | wc -c
 
 # 4. Type validity
 echo "=== Type check ==="
-echo "<proposed type>" | grep -E '^(feat|fix|docs|test|refactor|perf|build|ci|chore)$'
+echo "<proposed type>" | grep -E '^(feat|fix|docs|style|test|refactor|perf|build|ci|chore|revert)$'
 # Must exit 0
 
 # 5. Recent history consistency

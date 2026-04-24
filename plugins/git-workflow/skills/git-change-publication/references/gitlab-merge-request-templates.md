@@ -32,20 +32,23 @@ curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
   || echo "NO_API_ACCESS"
 ```
 
-Discovery precedence order:
+Discovery precedence order (default template resolution, per official docs):
 
-1. Project settings (Settings > Merge requests > Default description template) — highest priority
-2. Parent group's `Default.md` (case-insensitive, via `.gitlab/merge_request_templates/` in group template project)
-3. Project-level `.gitlab/merge_request_templates/` (filesystem; case-insensitive for `Default.md`)
-4. GitLab API project templates endpoint
-5. Instance-level admin template (only discoverable via API; lowest priority)
+1. Template set in project settings (Settings > Merge requests > Default description template) — Premium/Ultimate only.
+2. `Default.md` (case-insensitive) from the parent group's template project.
+3. `Default.md` (case-insensitive) from the project repository's `.gitlab/merge_request_templates/` directory.
+
+Additional inheritance (documented but not fully enumerated):
+
+- Merge requests have extra inheritance rules that depend on commit message contents and branch names; if the author has not explicitly selected a template, GitLab MAY apply these rules ahead of the default template.
+- Instance-level admins MAY publish MR description templates through an instance template repository (Premium/Ultimate). The interaction order between instance-level templates and the three-step default chain is not explicitly documented; treat instance-level templates as a fallback that applies only when no project or group default resolves.
 
 Rules:
 
 - Templates MUST be on the default branch to be active.
-- `Default.md` is case-insensitive (gitlab recognizes `default.md`, `DEFAULT.MD`, etc.).
+- `Default.md` is case-insensitive; GitLab recognizes `default.md`, `DEFAULT.MD`, etc.
 - If offline, only filesystem discovery (step 3) is available.
-- Report template as "filesystem-only discovery; group/instance-level templates not verified" when offline.
+- Report the template as "filesystem-only discovery; project-settings, group, and instance-level templates not verified" when offline or when the API is unreachable.
 - Group-level templates require GitLab Premium/Ultimate and a configured template project.
 
 ## Default vs. Named Templates
@@ -81,30 +84,33 @@ If the MR author explicitly selects a named template that you cannot locate, rep
 
 ## Instance-Level vs. Project-Level Precedence
 
-GitLab administrators can set instance-level templates that apply when no project-level or group-level template is selected.
+GitLab administrators MAY publish instance-level templates through an instance template repository (Premium/Ultimate), which exposes MR description templates such as `.gitlab/merge_request_templates/*.md`. The documented default template resolution chain only enumerates project settings, parent-group `Default.md`, and project-repository `Default.md`. The interaction order between the instance template repository and that chain is not explicitly documented.
 
 | Scenario | Which template applies |
 | --- | --- |
-| Project settings template set + any other template exists | Project settings template wins |
-| No project settings + group has `Default.md` + project has `Default.md` | Group `Default.md` wins (inherits from parent) |
-| Project has `Default.md` + no group template + no instance template | Project `Default.md` applies |
-| No project templates + group template exists | Group-level template applies |
-| No project or group templates + instance template exists | Instance-level template applies |
-| Project has named template selected + any other template exists | Named template wins (explicit selection overrides all) |
+| Author explicitly selects a named template (project, group, or instance) | The selected named template wins; no inheritance from `Default.md`. |
+| Project settings default description template is configured | Project settings template wins over any `Default.md`. |
+| No project settings + parent group has `Default.md` + project has `Default.md` | Group `Default.md` wins (inherits from parent). |
+| Project has `Default.md` + no group template | Project `Default.md` applies. |
+| No project or group default template + instance template repository is configured | Instance-level template is the remaining fallback; confirm via API before relying on it. |
 
-The precedence chain: **project settings** > **group Default.md** > **project Default.md** > **instance-level admin template**.
+Documented default chain: **project settings** > **group `Default.md`** > **project `Default.md`**.
 
 `Default.md` filename is case-insensitive across all levels.
 
-Detect instance-level template (API-only):
+Detect instance-level template (API, maintainer/owner permissions required):
 
 ```bash
 curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-  "$GITLAB_API_URL/templates/mergerequests" 2>/dev/null \
-  || echo "NO_INSTANCE_TEMPLATE"
+    "$GITLAB_API_URL/templates/merge_request_templates" 2>/dev/null \
+    || echo "NO_INSTANCE_TEMPLATE"
+
+curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
+    "$GITLAB_API_URL/templates/merge_request_templates/Default" 2>/dev/null \
+    || echo "NO_INSTANCE_DEFAULT_TEMPLATE"
 ```
 
-Note: This endpoint requires maintainer or owner permissions. Report inability to verify if credentials are insufficient.
+If the API is unreachable or credentials are insufficient, report the inability to verify instead of silently falling back.
 
 ## Preservation Rules
 
@@ -118,21 +124,24 @@ Note: This endpoint requires maintainer or owner permissions. Report inability t
 
 ### Variable Preservation
 
-GitLab substitutes these variables at MR creation time (case-insensitive):
+> [!IMPORTANT]
+> GitLab variable substitution applies only to the configured default template (either the project-settings default template or `Default.md`). Named templates keep the same `%{...}` text as literal body content, so verbatim preservation matters more when you cannot confirm that the MR will be opened with the default template.
+
+GitLab substitutes these variables at MR creation time (the official documentation lists them in lowercase; treat `%{...}` tokens as case-sensitive and keep the exact casing used by the template):
 
 | Variable | Description | When to leave as-is |
-| --- | --- | --- | --- |
-| `%{source_branch}` | The branch to be merged | Template displays branch info in header or footer |
-| `%{target_branch}` | The branch the source branch merges into | Template shows target for reviewer context |
-| `%{all_commits}` | All commit messages in the MR (up to 100, last 100KiB excluded) | Template references full commit history |
-| `%{co_authored_by}` | `Co-authored-by:` trailers from recent commits | Template credits multiple authors |
-| `%{first_commit}` | The very first commit message in the MR | Template references the initial commit |
-| `%{first_multiline_commit}` | First commit with a multi-line body (not merge commit) | Template needs full first-commit content |
-| `%{first_multiline_commit_description}` | Description part of the first multiline commit (after the subject line) | Template references first-commit description |
+| --- | --- | --- |
+| `%{source_branch}` | The name of the branch being merged | Template displays branch info in header or footer |
+| `%{target_branch}` | The branch that the changes are applied to | Template shows target for reviewer context |
+| `%{all_commits}` | Messages from all commits in the MR (the MR body is truncated when it would exceed the MR description limit) | Template references full commit history |
+| `%{co_authored_by}` | Names and emails of commit authors derived from `Co-authored-by:` trailers | Template credits multiple authors |
+| `%{first_commit}` | Full message of the first commit | Template references the initial commit |
+| `%{first_multiline_commit}` | Full message of the first commit that is not a merge commit | Template needs full first-commit content |
+| `%{first_multiline_commit_description}` | Description part (without the first line/title) of `%{first_multiline_commit}` | Template references first-commit description |
 
-Note: `%{url}`, `%{title}`, and `%{id}` are not in the official MR template variable list. They may be issue-template legacy variables or version-dependent. Prefer the 7 variables listed above. If a template uses them, preserve them as-is since they may still function in some GitLab versions.
+Variables outside this list (for example `%{url}`, `%{title}`, `%{id}`) are not part of the merge request template variable set. If an existing template uses them, preserve them verbatim so version-dependent behavior is not silently lost, but do not introduce new variables beyond the seven above.
 
-If the template already contains any of these variables, keep them verbatim. Do not replace them with static text. Do not add new variable references unless the template already demonstrates them.
+If the template already contains any of these variables, keep them verbatim. Do not replace them with static text. Do not add new variable references unless the template already demonstrates them. When the MR will be opened with a named template rather than the default, surface this to the user so they know the variables will remain literal.
 
 ### Quick-Action Preservation
 

@@ -1,4 +1,19 @@
 {
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "agent-capability-kit",
-  "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills."
+  "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.",
+  "author": {
+    "name": "ririnto"
+  },
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/agent-capability-kit",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "agent",
+    "skill",
+    "command",
+    "authoring"
+  ]
 }
