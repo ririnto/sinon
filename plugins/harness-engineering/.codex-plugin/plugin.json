@@ -6,7 +6,6 @@
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
   "skills": "./skills/",
-  "agents": "./agents/",
   "keywords": [
     "agent-first",
     "architecture",

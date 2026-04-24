@@ -32,7 +32,7 @@ This plugin uses one shared plugin root with two thin runtime manifests:
 - `.claude-plugin/plugin.json`
 - `.codex-plugin/plugin.json`
 
-Both manifests point to the same shared `skills/` and `agents/` content at the plugin root.
+Both manifests point to the same shared plugin root content, while the actual reusable surfaces live under `skills/` and `agents/` beside those manifests.
 
 ## Plugin Layout
 
@@ -53,8 +53,8 @@ plugins/harness-engineering/
         └── references/
 ```
 
-- `.claude-plugin/plugin.json` carries thin Claude-facing marketplace metadata with `skills` and `agents` entry points.
-- `.codex-plugin/plugin.json` carries thin Codex-facing marketplace metadata pointing at the same shared content.
+- `.claude-plugin/plugin.json` carries thin Claude-facing marketplace metadata with the declared `skills` entry point and shared plugin metadata.
+- `.codex-plugin/plugin.json` carries thin Codex-facing marketplace metadata pointing at the same shared plugin root.
 - `skills/harness-engineering/SKILL.md` holds the common path for repository layout, progressive disclosure, architecture enforcement, and entropy management.
 - `skills/harness-engineering/references/` holds additive depth for bootstrap, CI integration, agent legibility, and repository-knowledge structure.
 - `agents/*.md` define the autonomous agents with explicit triggers, bounded tools, and self-contained system prompts.
@@ -80,7 +80,7 @@ For Claude Code local development:
 cc --plugin-dir /path/to/sinon/plugins/harness-engineering
 ```
 
-Codex-facing marketplace metadata ships through `.codex-plugin/plugin.json`, but it points to the same shared `skills/` and `agents/` content at this plugin root.
+Codex-facing marketplace metadata ships through `.codex-plugin/plugin.json`, and it refers to the same plugin root content at this path.
 
 ## Scope Notes
 

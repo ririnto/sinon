@@ -13,7 +13,6 @@
     "research"
   ],
   "skills": "./skills/",
-  "agents": "./agents/",
   "interface": {
     "displayName": "Spec-Driven Development",
     "shortDescription": "Spec-first workflow: research unknowns, write SPEC.md, get approval, implement, verify completeness.",
