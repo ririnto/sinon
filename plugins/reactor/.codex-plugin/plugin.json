@@ -1,7 +1,9 @@
 {
   "name": "reactor",
   "description": "Project Reactor skills for reactive programming with Flux, Mono, operators, schedulers, sinks, and reactor-test.",
-  "author": "ririnto",
+  "author": {
+    "name": "ririnto"
+  },
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/reactor",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",

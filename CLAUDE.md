@@ -29,7 +29,7 @@ Sinon is a marketplace repository for Claude Code plugins and Agent Skills. Thes
 Each plugin root ships both `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`. Non-runtime-specific fields MUST stay aligned across the two manifests within the same plugin.
 
 - `name` and `description` MUST match across both manifests in a pair.
-- `author` MUST use the string form (for example, `"author": "ririnto"`) and MUST match across the two manifests.
+- `author` MUST use the object form (for example, `"author": { "name": "ririnto" }`) and MUST match across the two manifests.
 - `repository`, `homepage`, and `license` MUST match across the two manifests.
 - `skills`, when present, MUST use the directory form `"./skills/"` with a trailing slash. Array-of-paths form MUST NOT be used.
 - `agents` MUST NOT appear in plugin manifests. When a plugin ships agents, keep the `agents/` directory at the plugin root and describe that runtime surface in the plugin README instead of declaring an `agents` manifest key.

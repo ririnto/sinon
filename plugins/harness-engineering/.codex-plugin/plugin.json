@@ -1,7 +1,9 @@
 {
   "name": "harness-engineering",
   "description": "Agent-first repository design with progressive disclosure, architecture enforcement, and entropy management.",
-  "author": "ririnto",
+  "author": {
+    "name": "ririnto"
+  },
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness-engineering",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",

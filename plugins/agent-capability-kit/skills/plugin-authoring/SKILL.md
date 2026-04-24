@@ -80,7 +80,9 @@ Use this as the default `.claude-plugin/plugin.json` starting point:
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
   "description": "Claude Code plugin for a clearly bounded workflow.",
-  "author": "your-handle",
+  "author": {
+    "name": "your-handle"
+  },
   "commands": "./commands/",
   "skills": "./skills/"
 }
@@ -93,7 +95,9 @@ If the plugin ships agents at the plugin root, keep the directory in the plugin 
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
   "description": "Claude Code plugin for a clearly bounded workflow.",
-  "author": "your-handle",
+  "author": {
+    "name": "your-handle"
+  },
   "commands": "./commands/",
   "skills": "./skills/"
 }
@@ -105,7 +109,9 @@ When the plugin also ships a Codex-facing manifest, mirror the same shared field
 {
   "name": "your-plugin-name",
   "description": "Claude Code plugin for a clearly bounded workflow.",
-  "author": "your-handle",
+  "author": {
+    "name": "your-handle"
+  },
   "skills": "./skills/",
   "interface": {
     "displayName": "Your Plugin",

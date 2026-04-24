@@ -2,7 +2,9 @@
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "java",
   "description": "Java development plugin with practical skills for LTS syntax boundaries, foundational java.base guidance, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
-  "author": "ririnto",
+  "author": {
+    "name": "ririnto"
+  },
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/java",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
