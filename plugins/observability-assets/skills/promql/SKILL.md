@@ -1,11 +1,7 @@
 ---
 name: promql
 description: >-
-  Use this skill when writing or reviewing PromQL expressions, debugging query correctness,
-  adding aggregation or matching logic, tuning dashboard or alert queries, working with
-  selectors, aggregations, functions, vector matching, offset/@ modifiers, subqueries,
-  histogram quantiles, recording rules, HTTP API interactions, or needing a complete
-  offline PromQL language reference.
+  Write and review PromQL expressions for correctness, aggregation and matching shape, and consumer fit (dashboard, alert, recording rule). Use this skill when writing or reviewing PromQL expressions, debugging query correctness, adding aggregation or matching logic, tuning dashboard or alert queries, working with selectors, aggregations, functions, vector matching, offset/@ modifiers, subqueries, histogram quantiles, recording rules, HTTP API interactions, or needing a complete offline PromQL language reference.
 ---
 
 # PromQL

@@ -1,12 +1,11 @@
 {
   "name": "netty",
-  "description": "Netty and Reactor Netty skills for building high-performance network applications with non-blocking I/O",
-  "author": {
-    "name": "ririnto"
-  },
+  "description": "Netty and Reactor Netty skills for building high-performance network applications with non-blocking I/O.",
+  "author": "ririnto",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/netty",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
+  "skills": "./skills/",
   "keywords": [
     "netty",
     "reactor-netty",
@@ -20,10 +19,9 @@
     "codec",
     "java"
   ],
-  "skills": "./skills/",
   "interface": {
     "displayName": "Netty",
-    "shortDescription": "Netty and Reactor Netty network application guidance",
+    "shortDescription": "Netty and Reactor Netty network application guidance.",
     "longDescription": "Skills for building high-performance network applications with Netty (core API) and Reactor Netty (reactive wrapper). Covers bootstrap, channels, pipelines, codecs, ByteBuf, TCP/UDP/HTTP/WebSocket servers and clients, and reactive HTTP/TCP/UDP with Project Reactor integration.",
     "developerName": "ririnto",
     "category": "Coding",

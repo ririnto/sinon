@@ -18,6 +18,8 @@ Design and maintain a repository optimized for AI agent throughput and coherence
 
 ## Procedure
 
+The steps below assume a git repository with at least one commit and a working application scaffold. If the repository is empty, see `references/bootstrap.md` for the zero-to-one path (seeding `CLAUDE.md`, scaffolding `docs/`, generating the application skeleton, and wiring the first structural test and linters), then return here.
+
 ### 1. Establish the knowledge map
 
 Create `CLAUDE.md` as a table of contents, not an encyclopedia. Keep it under 150 lines. It should point to deeper sources of truth in `docs/`. `AGENTS.md` is a symlink to `CLAUDE.md`; both names resolve to the same file.
@@ -129,7 +131,7 @@ Enforcement rules:
 - Structural tests assert each domain follows the fixed layer set.
 - File size limits, naming conventions, and structured logging are enforced with custom lints.
 
-Open `references/architecture-enforcement.md` for detailed linter patterns, taste invariant examples, and structural test templates.
+Open `references/architecture-enforcement.md` for detailed linter patterns, taste invariant examples, and structural test templates. Open `references/ci-integration.md` for pipeline samples that run these checks on every push and on a schedule.
 
 ### 4. Encode golden principles
 
@@ -172,7 +174,7 @@ Wire the runtime so agents can observe and validate behavior directly:
 
 With this context, prompts like "ensure service startup completes in under 800 ms" or "no span in these four critical user journeys exceeds two seconds" become tractable.
 
-Open `references/agent-legibility.md` for per-worktree isolation setup, DevTools integration, and observability stack configuration.
+Open `references/agent-legibility.md` for per-worktree isolation setup, DevTools integration, observability stack configuration, and the checkpoint protocol for long-running single runs.
 
 ### 7. Optimize merge philosophy for throughput
 
@@ -184,6 +186,26 @@ In high-throughput agent environments:
 - Corrections are cheap; waiting is expensive.
 
 This would be irresponsible in a low-throughput environment. In agent-first development, it is often the correct tradeoff.
+
+### 8. Run an agent-to-agent review loop
+
+Every pull request MUST pass a declared set of agent reviewers before merge. The author agent iterates until each reviewer returns `approve`.
+
+Default reviewer set:
+
+- `architecture-guard` verifies the layer model, provider interface, and mechanical taste invariants.
+- `code-reviewer` produces the merge verdict against the full diff, golden principles, and any referenced execution plan.
+- `doc-gardener` runs when the change touches `docs/` or when the referenced plan updates cross-links.
+
+Loop contract:
+
+1. The author agent opens the pull request with the change summary and evidence.
+2. Each declared reviewer runs and returns `approve`, `request-changes`, or `needs-info`.
+3. The author agent resolves every blocking comment with a fix or with evidence, then re-requests review.
+4. Merge proceeds only when every declared reviewer returns `approve`.
+5. Escalate to a human reviewer only when a blocking comment requires judgment the agent cannot supply.
+
+Keep the list of declared reviewers in a committed file (for example `docs/design-docs/review-policy.md`) so the loop is reproducible and auditable. Encode auto-merge eligibility as a ruleset rather than as reviewer discretion; see `references/ci-integration.md` for the policy shape.
 
 ## Edge cases
 
@@ -199,9 +221,10 @@ Return:
 
 1. The `CLAUDE.md` table of contents
 2. The `docs/` directory structure with index files
-3. Architecture enforcement configuration (linter rules, structural tests)
+3. Architecture enforcement configuration (linter rules, structural tests, CI wiring)
 4. Golden principles document
-5. Validation results and remaining risks
+5. The declared agent reviewer set and review-loop policy
+6. Validation results and remaining risks
 
 ## Gotchas
 
@@ -212,10 +235,12 @@ Return:
 
 ## Support files
 
-- `references/repository-knowledge-structure.md` -- open for detailed `docs/` hierarchy design, indexing patterns, and progressive disclosure mechanics
+- `references/bootstrap.md` -- open when seeding an empty repository from zero, including the starter prompt and the first structural test
+- `references/repository-knowledge-structure.md` -- open for detailed `docs/` hierarchy design, indexing patterns, `*-llms.txt` packaging, and progressive disclosure mechanics
 - `references/architecture-enforcement.md` -- open for custom linter patterns, structural test templates, and taste invariant examples
+- `references/ci-integration.md` -- open for CI pipeline samples, scheduled doc-gardening, and the auto-merge policy shape
 - `references/entropy-management.md` -- open for doc-gardening cadence, quality grading rubrics, and cleanup automation patterns
-- `references/agent-legibility.md` -- open for per-worktree isolation setup, DevTools integration, and observability stack configuration
+- `references/agent-legibility.md` -- open for per-worktree isolation setup, DevTools integration, observability stack configuration, and long-running checkpoint protocol
 - `assets/claude-md-template.md` -- copy when creating `CLAUDE.md` from scratch
 - `assets/docs-directory-scaffold.md` -- copy when scaffolding the `docs/` directory
 - `assets/execution-plan-template.md` -- copy when writing execution plans

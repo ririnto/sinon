@@ -1,10 +1,7 @@
 ---
 name: alert-rule-testing
 description: >-
-  Use this skill when writing or reviewing promtool rule tests, testing alert pending/firing/resolved
-  lifecycle behavior, designing input_series fixtures, placing eval_time against for windows,
-  protecting alert regressions, or needing guidance on Prometheus alert-rule test authoring,
-  schema, and verification.
+  Write and review promtool rule tests that cover the pending/firing/resolved lifecycle with realistic input_series fixtures. Use this skill when writing or reviewing promtool rule tests, testing alert pending/firing/resolved lifecycle behavior, designing input_series fixtures, placing eval_time against for windows, protecting alert regressions, or needing guidance on Prometheus alert-rule test authoring, schema, and verification.
 ---
 
 # Alert Rule Testing

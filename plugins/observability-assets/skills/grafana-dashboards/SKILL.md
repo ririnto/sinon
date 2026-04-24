@@ -1,12 +1,7 @@
 ---
 name: grafana-dashboards
 description: >-
-  Use this skill when creating or reviewing Grafana dashboards, editing dashboard JSON,
-  authoring panel queries and visualization config, using Grafana variables (all 9 types),
-  configuring transformations, field config, thresholds, overrides, and value mappings,
-  stabilizing dashboard uid, applying USE/RED/Golden Signals frameworks, setting up repeat
-  behavior and links, using a Grafana mixin or Jsonnet generation workflow, or needing
-  guidance on Grafana dashboard asset structure and panel JSON schema.
+  Author and review Grafana dashboards as version-controlled JSON assets with stable uid, deliberate datasource handling, and operator-centric panel layout. Use this skill when creating or reviewing Grafana dashboards, editing dashboard JSON, authoring panel queries and visualization config, using Grafana variables (all 9 types), configuring transformations, field config, thresholds, overrides, and value mappings, stabilizing dashboard uid, applying USE/RED/Golden Signals frameworks, setting up repeat behavior and links, using a Grafana mixin or Jsonnet generation workflow, or needing guidance on Grafana dashboard asset structure and panel JSON schema.
 ---
 
 # Grafana Dashboards

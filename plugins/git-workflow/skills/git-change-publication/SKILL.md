@@ -1,10 +1,6 @@
 ---
 name: git-change-integration handoff
 description: >-
-  Use this skill when the user asks to decide whether changes are ready for one commit,
-  draft a Conventional Commit message from the real diff, prepare a change description or
-  change description body, or preserve repository repository templates while integrateing
-  a change.
 ---
 
 # Git Change integration handoff

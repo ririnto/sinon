@@ -1,1 +1,17 @@
-{"name": "jvm", "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.", "author": {"name": "ririnto"}, "repository": "https://github.com/ririnto/sinon", "license": "MIT", "keywords": ["jvm", "javac", "jfr", "gc", "diagnostics"], "skills": "./skills/", "interface": {"displayName": "JVM", "shortDescription": "Shared JVM tooling, runtime diagnostics, and GC workflows.", "longDescription": "Install a shared skill-first plugin for standard JDK tools, JVM runtime evidence, and garbage-collection analysis across Claude Code and Codex-style runtimes.", "developerName": "ririnto", "category": "Coding", "capabilities": ["Interactive", "Read", "Write"], "defaultPrompt": ["Which JVM tool should I use for this packaging or module problem?", "Interpret this thread dump, JFR, or heap-pressure symptom.", "Explain this GC symptom and what evidence to collect next."]}}
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "jvm",
+  "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
+  "author": "ririnto",
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/jvm",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "skills": "./skills/",
+  "keywords": [
+    "jvm",
+    "javac",
+    "jfr",
+    "gc",
+    "diagnostics"
+  ]
+}

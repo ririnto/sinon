@@ -1,9 +1,7 @@
 ---
 name: jvm-gc-diagnostics
 description: >-
-  Use this skill when the user asks to "analyze GC logs", "compare G1 and ZGC",
-  "understand Java garbage collection", "debug pause times", "explain heap pressure",
-  or needs guidance on JDK garbage-collection diagnostics and collector tradeoffs.
+  Analyze JVM garbage-collection behavior, compare collector tradeoffs, and interpret pause-time and heap-pressure evidence. Use this skill when the user asks to "analyze GC logs", "compare G1 and ZGC", "understand Java garbage collection", "debug pause times", "explain heap pressure", or needs guidance on JDK garbage-collection diagnostics and collector tradeoffs.
 metadata:
   title: JVM GC Diagnostics
   official_project_url: "https://docs.oracle.com/en/java/"

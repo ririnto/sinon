@@ -57,7 +57,7 @@ When SPEC A references SPEC B:
    If callers of SPEC B are needed, they SHOULD be queried instead:
 
     ```bash
-    "${SKILL_ROOT}/scripts/list-frontmatter.sh" ./spec --inbound-of spec/domain/ingest/SPEC.md
+    "${SKILL_ROOT}/scripts/sdd.sh" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
     ```
 
 ## Removing a Link
@@ -71,7 +71,7 @@ When deleting a spec, all links pointing to it MUST be removed from every refere
 To find those references, query inbound callers:
 
 ```bash
-"${SKILL_ROOT}/scripts/list-frontmatter.sh" ./spec --inbound-of spec/domain/ingest/SPEC.md
+"${SKILL_ROOT}/scripts/sdd.sh" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
 ```
 
 ## Link Paths
@@ -104,7 +104,7 @@ Forbidden examples:
 
 ## Link Validation
 
-`"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec` validates linking rules:
+`"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` validates linking rules:
 
 - frontmatter `call` MUST exist (`call: []` allowed)
 - each `call` entry MUST be a relative path
@@ -113,12 +113,12 @@ Forbidden examples:
 
 ## Reverse Reference Query
 
-Reverse references are derived from frontmatter `call`. `"${SKILL_ROOT}/scripts/list-frontmatter.sh"` with `--inbound-of` SHOULD be used to query callers of a target spec.
+Reverse references are derived from frontmatter `call`. `"${SKILL_ROOT}/scripts/sdd.sh" list-frontmatter` with `--inbound-of` SHOULD be used to query callers of a target spec.
 
 Examples:
 
-- `"${SKILL_ROOT}/scripts/list-frontmatter.sh" ./spec --inbound-of spec/domain/ingest/SPEC.md`
-- `"${SKILL_ROOT}/scripts/list-frontmatter.sh" ./spec --inbound-of spec/domain/ingest/SPEC.md --jsonl`
+- `"${SKILL_ROOT}/scripts/sdd.sh" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md`
+- `"${SKILL_ROOT}/scripts/sdd.sh" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md --jsonl`
 
 ## Cross-Hierarchy Links
 

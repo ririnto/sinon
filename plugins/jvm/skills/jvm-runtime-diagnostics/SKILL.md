@@ -1,7 +1,7 @@
 ---
 name: jvm-runtime-diagnostics
 description: >-
-  Use this skill when the user asks to "debug a JVM issue", "read a Java stack trace", "analyze thread dumps", "use jcmd or JFR", "diagnose memory pressure", or needs guidance on JDK runtime incident triage.
+  Triage JVM runtime incidents with stack traces, thread dumps, jcmd, JFR, and memory-pressure evidence. Use this skill when the user asks to "debug a JVM issue", "read a Java stack trace", "analyze thread dumps", "use jcmd or JFR", "diagnose memory pressure", or needs guidance on JDK runtime incident triage.
 metadata:
   title: JVM Runtime Diagnostics
   official_project_url: "https://docs.oracle.com/en/java/"

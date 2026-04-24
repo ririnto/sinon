@@ -1,6 +1,7 @@
 ---
 name: reactor-scheduling
-description: Use this skill when designing or reviewing Reactor execution context decisions: scheduler choice, publishOn/subscribeOn placement, blocking offload, thread-affinity boundaries, and ordinary scheduling diagnostics.
+description: >-
+  Design Reactor execution context with explicit scheduler choice, publishOn/subscribeOn placement, and blocking-boundary decisions. Use this skill when designing or reviewing Reactor execution context decisions: scheduler choice, publishOn/subscribeOn placement, blocking offload, thread-affinity boundaries, and ordinary scheduling diagnostics.
 metadata:
   title: "Reactor Scheduling"
   official_project_url: "https://projectreactor.io/docs/core/release/reference/"

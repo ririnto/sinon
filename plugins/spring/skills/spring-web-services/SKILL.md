@@ -1,6 +1,6 @@
 ---
 name: "spring-web-services"
-description: "Use this skill when building contract-first SOAP services or clients in Spring with XSD or WSDL contracts, `@Endpoint` handlers, XML marshalling, `WebServiceTemplate`, SOAP faults, and WS-Security-aware integration."
+description: "Build contract-first SOAP services and clients in Spring with XSD or WSDL contracts, `@Endpoint` handlers, XML marshalling, `WebServiceTemplate`, and WS-Security integration. Use this skill when building contract-first SOAP services or clients in Spring with XSD or WSDL contracts, `@Endpoint` handlers, XML marshalling, `WebServiceTemplate`, SOAP faults, and WS-Security-aware integration."
 metadata:
   title: "Spring Web Services"
   official_project_url: "https://spring.io/projects/spring-ws"

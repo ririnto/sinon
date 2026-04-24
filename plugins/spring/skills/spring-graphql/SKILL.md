@@ -1,6 +1,6 @@
 ---
 name: "spring-graphql"
-description: "Use this skill when building Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests."
+description: "Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests. Use this skill when building Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests."
 metadata:
     title: "Spring for GraphQL"
     official_project_url: "https://spring.io/projects/spring-graphql"

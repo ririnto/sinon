@@ -1,7 +1,7 @@
 ---
 name: kotlin-coroutines-flows
 description: >-
-  Use this skill when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
+  Design Kotlin coroutine and Flow APIs with explicit ownership, honest async semantics, and cancellation-safe behavior. Use this skill when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
 ---
 
 ## Goal
@@ -263,8 +263,7 @@ Open these only when the named blocker is the real issue.
 | you need `coroutineScope`, `supervisorScope`, explicit launch ownership, or dispatcher boundaries | `./references/scope-ownership-and-dispatchers.md` |
 | you are debugging cancellation, timeouts, failure propagation, or cleanup semantics | `./references/cancellation-timeouts-and-failures.md` |
 | you need to justify `Flow`, choose `StateFlow` or `SharedFlow`, or shape hot sharing and buffering | `./references/flow-selection-hot-sharing-and-buffering.md` |
-| you are coordinating mutable state across coroutines and need a concurrency rule | `./references/shared-state-and-concurrency.md` |
-| you need fan-in/fan-out, Channel handoff, work queues, or `select` expressions | `./references/shared-state-and-concurrency.md` |
+| you are coordinating mutable state across coroutines, or need fan-in/fan-out, Channel handoff, work queues, or `select` expressions | `./references/shared-state-and-concurrency.md` |
 | you are writing or debugging tests for coroutine or Flow code | `./references/testing.md` |
 
 ## Scope Boundaries

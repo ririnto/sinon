@@ -1,6 +1,7 @@
 ---
 name: netty
-description: Build Netty TCP or UDP clients and servers with Bootstrap, ServerBootstrap, ChannelPipeline, handlers, ByteBuf, and codec basics. Use when creating or debugging core Netty application flow, channel lifecycle, threading, or buffer ownership.
+description: >-
+  Build Netty TCP or UDP clients and servers with Bootstrap, ServerBootstrap, ChannelPipeline, handlers, ByteBuf, and codec basics. Use this skill when creating or debugging core Netty application flow, channel lifecycle, threading, or buffer ownership.
 metadata:
   title: Netty
   official_project_url: "https://netty.io/"

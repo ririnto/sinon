@@ -1,6 +1,6 @@
 ---
 name: "spring-grpc"
-description: "Use this skill when implementing protobuf-first gRPC servers or clients in a Spring application, generating stubs, configuring channels, applying interceptors, and controlling deadlines, metadata, and reflection." 
+description: "Implement protobuf-first gRPC servers and clients in Spring with generated stubs, configured channels, interceptors, and explicit deadlines, metadata, and reflection. Use this skill when implementing protobuf-first gRPC servers or clients in a Spring application, generating stubs, configuring channels, applying interceptors, and controlling deadlines, metadata, and reflection."
 metadata:
   title: "Spring gRPC"
   official_project_url: "https://spring.io/projects/spring-grpc"
