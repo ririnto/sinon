@@ -1,11 +1,7 @@
 #!/bin/sh
 set -eu
 
-# :description: Detect whether a Java project uses Lombok and resolve its jar path.
-#     Supports Maven, Gradle, and Eclipse metadata. Two modes:
-#     --uses-lombok (default): exit 0 if project uses Lombok.
-#     --resolve-project-jar: print the resolved lombok jar path.
-
+# :description: Minimum Lombok version accepted for project-resolved jars.
 COMPATIBLE_VERSION="1.18.4"
 mode="uses-lombok"
 

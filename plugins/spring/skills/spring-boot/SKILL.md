@@ -7,7 +7,7 @@ metadata:
   reference_doc_url_home: "https://docs.spring.io/spring-boot/index.html"
   reference_doc_url_system_requirements: "https://docs.spring.io/spring-boot/system-requirements.html"
   reference_doc_url_reference: "https://docs.spring.io/spring-boot/reference/index.html"
-  version: "4.0.5"
+  version: "4.0.6"
 ---
 
 Use this skill when the task is about Spring Boot application bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator operations, packaging, or Boot-level runtime wiring.
@@ -39,7 +39,7 @@ Use Boot dependency management and only the starters the application actually ne
 <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.5</version>
+        <version>4.0.6</version>
     <relativePath/>
 </parent>
 

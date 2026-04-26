@@ -309,7 +309,6 @@ class GreeterService extends GreeterGrpc.GreeterImplBase {
         HelloReply reply = HelloReply.newBuilder()
             .setMessage(greetingService.greet(request.getName()))
             .build();
-
         responseObserver.onNext(reply);
         responseObserver.onCompleted();
     }
@@ -348,7 +347,6 @@ class GreetingClient {
         HelloReply reply = greeter
             .withDeadlineAfter(2, TimeUnit.SECONDS)
             .sayHello(HelloRequest.newBuilder().setName(name).build());
-
         return reply.getMessage();
     }
 }

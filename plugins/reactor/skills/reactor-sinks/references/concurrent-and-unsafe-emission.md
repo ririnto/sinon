@@ -11,7 +11,6 @@ When multiple producers race, a safe sink returns `FAIL_NON_SERIALIZED` instead 
 
 ```java
 import reactor.core.publisher.Sinks;
-
 final class SafeSinkContention {
     Sinks.EmitResult emit(Sinks.Many<String> sink, String value) {
         return sink.tryEmitNext(value);
@@ -26,11 +25,9 @@ Contention on a safe sink usually means the producer side needs coordination, no
 ```java
 import reactor.core.publisher.Sinks;
 import java.util.concurrent.locks.ReentrantLock;
-
 final class CoordinatedEmission {
     private final Sinks.Many<String> sink = Sinks.many().multicast().onBackpressureBuffer();
     private final ReentrantLock lock = new ReentrantLock();
-
     void safePublish(String value) {
         lock.lock();
         try {
@@ -51,7 +48,6 @@ When contention is brief and infrequent (e.g., bursty events from a limited set 
 ```java
 import java.time.Duration;
 import reactor.core.publisher.Sinks;
-
 final class BusyLoopRetry {
     void publish(Sinks.Many<String> sink, String value) {
         sink.emitNext(value, Sinks.EmitFailureHandler.busyLooping(Duration.ofMillis(200)));
@@ -67,7 +63,6 @@ The handler retries on `FAIL_NON_SERIALIZED` up to the specified duration before
 
 ```java
 import reactor.core.publisher.Sinks;
-
 final class UnsafeSinkFactory {
     Sinks.Many<String> sink() {
         return Sinks.unsafe().many().multicast().onBackpressureBuffer();

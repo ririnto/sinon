@@ -1,22 +1,23 @@
 ---
 name: plugin-authoring
-description: Create or refactor a Claude Code plugin root with a minimal manifest and only the runtime components the plugin actually uses. Use this skill when authoring or reorganizing a plugin root offline.
+description: Create or refactor a Claude Code or Codex plugin root with paired manifests, a README, and only the runtime components the plugin actually uses. Use this skill when authoring or reorganizing a plugin root offline.
 ---
 
 # Plugin Authoring
 
-Author a Claude Code plugin root that is structurally clear, minimal, and fully authorable from local files alone.
+Author a Claude Code or Codex plugin root that is structurally clear, minimal, and fully authorable from local files alone.
 
 ## Goal
 
-Create or refactor one plugin root so the manifest is minimal, the filesystem layout matches the manifest, and optional runtime surfaces appear only when the plugin truly needs them.
+Create or refactor one plugin root so paired manifests and the README match the filesystem layout, and optional runtime surfaces appear only when the plugin truly needs them.
 
 ## Scope
 
 This skill owns the plugin root and plugin-level runtime files:
 
 - `.claude-plugin/plugin.json` (Claude Code runtime manifest)
-- `.codex-plugin/plugin.json` (Codex runtime manifest; optional for single-runtime plugins)
+- `.codex-plugin/plugin.json` (Codex runtime manifest)
+- `README.md`
 - `commands/`
 - `agents/`
 - `skills/`
@@ -38,6 +39,8 @@ This skill owns the plugin root and plugin-level runtime files:
 7. Keep the ordinary authoring path in this file; open support files only for named blockers, deeper examples, or release review.
 8. Keep `agents/` at the plugin root whenever the plugin ships agents, but do not declare an `agents` manifest key in either runtime manifest because current host schemas reject it.
 9. Keep `name`, `description`, `author`, `repository`, `homepage`, and `license` aligned across `.claude-plugin/` and `.codex-plugin/` manifests for the same plugin. Keep the runtime-specific marketplace block (for example Codex `interface`) only in its own manifest.
+10. For Sinon marketplace plugins, ship `.claude-plugin/plugin.json`, `.codex-plugin/plugin.json`, and `README.md` together; outside Sinon, only omit a runtime manifest when the target distribution is explicitly single-runtime.
+11. Ordinary authoring remains offline, but maintainers changing host-specific or schema-specific guidance should verify against official host documentation when available and record any verification blocker.
 
 ## Canonical minimal tree
 
@@ -47,6 +50,9 @@ Start from this tree unless the plugin needs fewer or more root-level components
 your-plugin/
 ├── .claude-plugin/
 │   └── plugin.json
+├── .codex-plugin/
+│   └── plugin.json
+├── README.md
 ├── commands/
 └── skills/
 ```
@@ -56,20 +62,21 @@ This is the normal starter layout because a plugin usually exists to ship comman
 ## Procedure
 
 1. Define the plugin purpose in one sentence.
-2. Create `.claude-plugin/plugin.json` from `assets/plugin.json` or copy the minimal example below.
-3. Keep only the manifest keys that point to real component paths in the current tree.
-4. Create root-level component directories only when the plugin ships that component.
-5. Add optional runtime surfaces only after deciding that the plugin needs that specific behavior:
+2. Create `.claude-plugin/plugin.json` from `assets/plugin.json` and `.codex-plugin/plugin.json` from `assets/codex-plugin.json`, or copy the minimal examples below.
+3. Create `README.md` describing the plugin purpose, included skills and agents, runtime model, layout, and scope notes.
+4. Keep only the manifest keys that point to real component paths in the current tree.
+5. Create root-level component directories only when the plugin ships that component.
+6. Add optional runtime surfaces only after deciding that the plugin needs that specific behavior:
    - add `hooks` only when the plugin reacts to Claude Code lifecycle events
    - add `mcpServers` only when the plugin ships MCP server definitions
    - add `lspServers` only when the plugin configures LSP servers
    - add `settings` only when the plugin needs plugin-level settings
    - add `outputStyles` only when the plugin ships reusable output styles
    - add `monitors` only when the plugin genuinely needs monitor definitions
-6. Keep plugin data boundaries explicit:
+7. Keep plugin data boundaries explicit:
    - use `${CLAUDE_PLUGIN_ROOT}` for bundled scripts, templates, servers, and other files that ship with the plugin
    - use `${CLAUDE_PLUGIN_DATA}` for generated caches, logs, indexes, or other persistent runtime data
-7. Validate that every declared path begins with `./`, every declared component exists, and `.claude-plugin/` contains only `plugin.json`.
+8. Validate that every declared path begins with `./`, every declared component exists, and `.claude-plugin/` and `.codex-plugin/` contain only `plugin.json`.
 
 ## Minimal example
 
@@ -79,7 +86,7 @@ Use this as the default `.claude-plugin/plugin.json` starting point:
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
-  "description": "Claude Code plugin for a clearly bounded workflow.",
+  "description": "Plugin for a clearly bounded workflow.",
   "author": {
     "name": "your-handle"
   },
@@ -94,7 +101,7 @@ If the plugin ships agents at the plugin root, keep the directory in the plugin 
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
-  "description": "Claude Code plugin for a clearly bounded workflow.",
+  "description": "Plugin for a clearly bounded workflow.",
   "author": {
     "name": "your-handle"
   },
@@ -103,15 +110,16 @@ If the plugin ships agents at the plugin root, keep the directory in the plugin 
 }
 ```
 
-When the plugin also ships a Codex-facing manifest, mirror the same shared fields in `.codex-plugin/plugin.json`, keep `agents/` at the plugin root without declaring it in the manifest, and add the runtime-specific `interface` block there (not in `.claude-plugin/plugin.json`):
+Mirror the same shared fields in `.codex-plugin/plugin.json`, keep `agents/` at the plugin root without declaring it in the manifest, and add the runtime-specific `interface` block there (not in `.claude-plugin/plugin.json`):
 
 ```json
 {
   "name": "your-plugin-name",
-  "description": "Claude Code plugin for a clearly bounded workflow.",
+  "description": "Plugin for a clearly bounded workflow.",
   "author": {
     "name": "your-handle"
   },
+  "commands": "./commands/",
   "skills": "./skills/",
   "interface": {
     "displayName": "Your Plugin",
@@ -126,14 +134,18 @@ When the plugin also ships a Codex-facing manifest, mirror the same shared field
 }
 ```
 
+The plugin root also needs a `README.md` with purpose, included skills and agents, runtime model, layout, and scope notes.
+
 Add optional keys only when the plugin needs the corresponding runtime surface. For example:
 
 ```json
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
-  "description": "Claude Code plugin for a clearly bounded workflow.",
-  "author": "your-handle",
+  "description": "Plugin for a clearly bounded workflow.",
+  "author": {
+    "name": "your-handle"
+  },
   "commands": "./commands/",
   "skills": "./skills/",
   "hooks": "./hooks/hooks.json",
@@ -199,6 +211,7 @@ Use these commands first when checking a real plugin root:
 
 ```bash
 python3 -m json.tool .claude-plugin/plugin.json >/dev/null
+python3 -m json.tool .codex-plugin/plugin.json >/dev/null
 ```
 
 The command above validates JSON syntax offline. For runtime validation with a live Claude Code installation, use:
@@ -214,7 +227,7 @@ This second command requires an online environment and is optional for ordinary 
 Return:
 
 1. The plugin root tree.
-2. The final `plugin.json`.
+2. The final `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`.
 3. Every plugin-level config file created.
 4. A short note explaining why each optional component exists.
 
@@ -223,5 +236,5 @@ Return:
 - Open `references/plugin-layout.md` when you need expanded tree examples for minimal, command-only, or full plugin roots.
 - Open `references/plugin-runtime-components.md` when a plugin needs deeper per-surface examples, extension points, or local file layout beyond the ordinary copy path above.
 - Open `references/plugin-release.md` when reviewing install scope, packaging, or release checks.
-- Copy from `assets/plugin.json` for the minimal starter manifest.
+- Copy from `assets/plugin.json` and `assets/codex-plugin.json` for paired starter manifests.
 - Copy the other files under `assets/` only when the matching optional surface is part of the plugin you are authoring.

@@ -7,12 +7,14 @@ description: >-
 
 Open this when the task is testing coroutine or Flow code.
 
+This reference is a minimal bridge for coroutine-design work. For full Kotlin test structure, dependency setup, Turbine usage, and JUnit/Kotest choices, use the `kotlin-test` skill's ordinary path.
+
 ## Rules
 
 - use `runTest` from `kotlinx.coroutines.test` as the standard test entry point
 - prefer `StandardTestDispatcher` for time-controlled tests
 - use `UnconfinedTestDispatcher` only for synchronous execution without time control
-- advance time with `advanceTimeBy()` and flush pending work with `advanceUntilIdle()`
+- start the delayed work, advance virtual time, then call `runCurrent()` or `advanceUntilIdle()` to run tasks scheduled at the new virtual time
 - verify Flow emissions with bounded collection (`first()`, `take(n).toList()`, or Turbine)
 - test cancellation by launching in a `TestScope`, cancelling, and verifying cleanup
 
@@ -33,19 +35,24 @@ fun loadOrderReturnsData() = runTest {
 }
 ```
 
-Time-controlled test -- advance time BEFORE the operation that depends on timing:
+Time-controlled test -- start the delayed work, advance time, then run tasks scheduled at the target time:
 
 ```kotlin
+import kotlinx.coroutines.async
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 @Test
 fun timeoutEmitsFallback() = runTest {
+    val result = async { slowRepository.loadWithTimeout(OrderId("1")) }
+
     advanceTimeBy(5_000)
-    val result = slowRepository.loadWithTimeout(OrderId("1"))
-    assertEquals(Fallback, result)
+    runCurrent()
+
+    assertEquals(Fallback, result.await())
 }
 ```
 
@@ -69,6 +76,8 @@ fun stateFlowEmitsInitialThenUpdated() = runTest {
 Testing cancellation triggers cleanup:
 
 ```kotlin
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import org.junit.jupiter.api.Test
@@ -78,10 +87,13 @@ import kotlin.test.assertTrue
 fun cancellationRunsCleanup() {
     val resource = TrackingResource()
     val scope = TestScope()
-    scope.launch {
+    val job: Job = scope.launch {
         resource.use { r -> r.longOperation() }
     }
+
+    job.cancel()
     scope.advanceUntilIdle()
+
     assertTrue(resource.wasClosed)
 }
 ```

@@ -81,9 +81,7 @@ Register via `OAuth2AuthorizationServerConfigurer`:
 
 ```java
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-    .clientAuthentication(clientAuth -> clientAuth
-        .authenticationConverter(new CustomClientAuthenticationConverter())
-    );
+    .clientAuthentication(clientAuth -> clientAuth.authenticationConverter(new CustomClientAuthenticationConverter()));
 ```
 
 ## Official references

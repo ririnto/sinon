@@ -6,12 +6,12 @@ metadata:
   official_project_url: "https://spring.io/projects/spring-shell"
   reference_doc_urls:
     - "https://docs.spring.io/spring-shell/reference/index.html"
-  version: "4.0.1"
+  version: "4.0.2"
 ---
 
 Use this skill when building operational CLIs, administrative shells, interactive command workflows, or shell-focused tests with Spring Shell command registration, option parsing, completion, availability, and terminal-aware input or output.
 
-The latest released Spring Shell line is 4.0.1. In 4.x, `@Command` is the ordinary command model and the built-in exit command is `exit`, not `quit`, so keep older 3.x command examples out of the common path.
+The current GA Spring Shell starter is `4.0.2`. Keep dependency examples on that released line; this matches the current Spring docs release line and the published Maven artifact metadata for `org.springframework.shell:spring-shell-starter`.
 
 ## Boundaries
 
@@ -58,12 +58,12 @@ Use the starter for normal Spring Boot integration. Add the test module whenever
     <dependency>
         <groupId>org.springframework.shell</groupId>
         <artifactId>spring-shell-starter</artifactId>
-        <version>4.0.1</version>
+        <version>4.0.2</version>
     </dependency>
     <dependency>
         <groupId>org.springframework.shell</groupId>
         <artifactId>spring-shell-test</artifactId>
-        <version>4.0.1</version>
+        <version>4.0.2</version>
         <scope>test</scope>
     </dependency>
 </dependencies>

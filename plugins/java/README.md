@@ -2,7 +2,7 @@
 title: Java
 description: >-
   Overview of the Java plugin, its included skills, runtime model,
-  orchestration routing, and Java LSP setup guidance.
+  skill selection guidance, and Java LSP setup guidance.
 ---
 
 Java is a shared, skill-first plugin for Java language work in the Sinon universal marketplace.
@@ -11,8 +11,8 @@ Java is a shared, skill-first plugin for Java language work in the Sinon univers
 
 - Provide reusable Java workflows that remain portable across Claude Code and Codex-style plugin systems.
 - Keep the portable value surface in `skills/`, with Java-specific language-server integration kept separate from the shared skill corpus.
-- Keep skills practical, example-driven, and focused on direct Java implementation work rather than router-style guidance.
-- Ground guidance in official Java, JUnit, Gradle, Maven, and JDT LS references instead of ad-hoc advice.
+- Keep skills practical, example-driven, and focused on direct Java implementation work rather than directory-style guidance.
+- Ground guidance in plugin-local skills, wrapper behavior, and stable Java ecosystem conventions instead of ad-hoc advice.
 
 ## Included Skills
 
@@ -26,19 +26,19 @@ Java is a shared, skill-first plugin for Java language work in the Sinon univers
 
 These skills are meant to help complete Java work directly inside the current repository. They should not stop at pointing toward other repositories or documentation when the local task can already be unblocked with stable Java guidance.
 
-## Orchestration Routing
+## Skill Selection
 
-Start here when the question is still fuzzy:
+Start here when the Java work could fit more than one skill:
 
 ### Syntax vs design vs test vs performance vs dependency
 
-- If the question is "can this Java baseline compile or express it?", route to **syntax**.
-- If the question is "which foundational `java.base` API family should I reach for?", route to **syntax** (`java-base-family-map` reference).
-- If the question is "should this type or API be modeled this way?", route to **design**.
-- If the question is about type modeling, immutability, exception boundaries, or collection exposure, route to **design**.
-- If the question is about JUnit structure, red-green-refactor sequencing, or test execution setup, route to **test**.
-- If the question is about virtual-thread fit, contention, profiling-driven bottleneck review, route to **performance**.
-- If the question is about Maven coordinate lookup or current dependency-release checks, route to **dependency**.
+- Use **syntax** when the question is "can this Java baseline compile or express it?".
+- Use **syntax** and the `java-base-family-map` reference when the question is "which foundational `java.base` API family should I reach for?".
+- Use **design** when the question is "should this type or API be modeled this way?".
+- Use **design** for type modeling, immutability, exception boundaries, or collection exposure.
+- Use **test** for JUnit structure, red-green-refactor sequencing, or test execution setup.
+- Use **performance** for virtual-thread fit, contention, profiling-driven bottleneck review.
+- Use **dependency** for Maven coordinate lookup or current dependency-release checks.
 
 ### Typical workflow
 
@@ -48,9 +48,9 @@ Start here when the question is still fuzzy:
 4. Review concurrency and performance only after there is real evidence of a bottleneck (**performance**).
 5. Check dependency coordinates and current releases before hardcoding version text (**dependency**).
 
-### Cross-skill scope boundaries
+### Scope boundaries
 
-Each skill explicitly states what it does not cover and which sibling skill handles that territory instead. When a question lands on a boundary, follow the scope-boundaries section in the active skill's SKILL.md.
+Each skill states its own scope and exclusions. When work lands on a boundary, keep the active task inside the skill that owns the current implementation blocker instead of turning the answer into transfer instructions.
 
 ## Runtime Model
 
@@ -61,12 +61,39 @@ This plugin uses one shared plugin root with two thin runtime manifests:
 
 The actual reusable content lives beside those manifests at the plugin root.
 
+## Plugin Layout
+
+```text
+plugins/java/
+├── .claude-plugin/plugin.json
+├── .codex-plugin/plugin.json
+├── .lsp.json
+├── README.md
+├── scripts/
+│   ├── has-lombok.sh
+│   ├── jdtls-wrapper.sh
+│   └── test-jdtls-wrapper.sh
+└── skills/
+    ├── java-dependency-versioning/
+    ├── java-language-design/
+    ├── java-language-syntax/
+    ├── java-performance-concurrency/
+    └── java-test/
+```
+
+## Shipped Surfaces
+
+- The plugin ships five reusable Java skills under `skills/`.
+- `.lsp.json` and `scripts/jdtls-wrapper.sh` expose the Java language-server surface for Claude-compatible local development.
+- The plugin ships no plugin-root `agents/` directory.
+- The plugin does not ship commands, hooks, MCP servers, or custom runtime data surfaces.
+
 ## Claude-Specific Surfaces
 
 Claude Code gets Java language-server support through `.lsp.json` and `scripts/jdtls-wrapper.sh`.
 
 - The wrapper expects `jdtls` to be installed on `PATH`.
-- Use JDK 21 or newer for the `jdtls` runtime baseline.
+- Use a Java runtime compatible with your local `jdtls` installation.
 - Built-in Lombok selection happens at startup, but this plugin does not vendor a fallback Lombok jar.
 
 ## Design Principles
@@ -92,7 +119,7 @@ Install from Sinon:
 For local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/java
+claude --plugin-dir /path/to/sinon/plugins/java
 ```
 
 ## Scope Notes
@@ -112,7 +139,7 @@ Use JDTLS when the task needs Java symbol navigation, diagnostics, or refactors.
 ### Requirements
 
 - `jdtls` executable available on `PATH`
-- JDK 21 or newer available for the `jdtls` runtime
+- Java runtime compatible with the local `jdtls` installation
 
 ## Java 25 and LTS Framing
 
@@ -128,7 +155,7 @@ The wrapper selects a Lombok source at startup in this order:
 1. Explicit override jar from `JAVA_ASSISTANT_LOMBOK_JAR`, `JDK_ASSISTANT_LOMBOK_JAR` (legacy alias), or `LOMBOK_JAR`
 2. Compatible project jar discovered from `.classpath` or `.factorypath`
 
-This is intentionally closer to the VS Code Java extension in one specific way: startup chooses the effective Lombok jar and prefers a compatible project jar when it can resolve one. Unlike VS Code Java, this plugin does not ship its own fallback Lombok jar.
+The wrapper chooses the effective Lombok jar at startup and prefers a compatible project jar when it can resolve one. This plugin does not ship its own fallback Lombok jar.
 
 > [!WARNING]
 > Project-discovered Lombok jars are **trusted executable code** loaded as a `-javaagent`. Only use this auto-discovery behavior in trusted repositories and workspaces. In untrusted environments, set `JAVA_ASSISTANT_LOMBOK_ENABLED=false` to disable it entirely. When Lombok support is needed in an untrusted context, prefer an explicit trusted override jar via one of the environment variables below.

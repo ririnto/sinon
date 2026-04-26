@@ -37,9 +37,7 @@ Use `UserCredential` only when the platform truly stores the username and passwo
 Use generated certificates only when CredHub is the system of record for certificate issuance and renewal.
 
 ```java
-credHub.credentials().generateCertificate(
-    new SimpleCredentialName("/app/prod/client-cert")
-);
+credHub.credentials().generateCertificate(new SimpleCredentialName("/app/prod/client-cert"));
 ```
 
 ```java

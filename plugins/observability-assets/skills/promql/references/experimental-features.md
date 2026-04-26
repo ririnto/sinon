@@ -19,7 +19,7 @@ Use this reference when the query requires a function or operator that is gated 
 
 | Function | Status | Notes |
 | --- | --- | --- |
-| `double_exponential_smoothing(v, sf, tf)` | Experimental | Formerly `holt_winters`. Holt Linear method. sf=trend factor, tf=smoothing factor. Both in [0,1]. Gauges only. |
+| `double_exponential_smoothing(v, sf, tf)` | Experimental | Formerly `holt_winters`. Holt Linear method. `sf` is the smoothing factor; lower values give more weight to older data. `tf` is the trend factor; higher values consider trends more strongly. Both in [0,1]. Gauges only. |
 
 ### Multi-quantile computation
 
@@ -37,7 +37,7 @@ Use this reference when the query requires a function or operator that is gated 
 
 | Function | Status | Notes |
 | --- | --- | --- |
-| `limitk(k, v)` | Experimental | Deterministic pseudo-random subset of k elements. Works on floats and histograms. |
+| `limitk(k, v)` | Experimental | Deterministic pseudo-random selection of k elements. Works on floats and histograms. |
 | `limit_ratio(r, v)` | Experimental | Pseudo-random sampling by ratio r (abs(r) used; negative inverts selection). |
 
 ### Extended `_over_time` functions
@@ -62,19 +62,19 @@ Use this reference when the query requires a function or operator that is gated 
 
 Fill modifiers override the default behavior of dropping unmatched elements in binary vector operations.
 
+These examples show filling missing matches on both sides, only on the left, only on the right, and on both sides with different defaults.
+
 ```promql
-# Fill missing matches on either side with 0
 expr1 / fill(0) expr2
 
-# Fill only one side
 expr1 * fill_left(1) expr2
 expr1 + fill_right(-1) expr2
 
-# Fill both sides with different defaults
 expr1 fill_left(0) fill_right(1) + expr2
 ```
 
 Constraints:
+
 - Value must be a numeric literal (float sample). Histogram samples not supported.
 - Cannot create series missing on both sides.
 - Must appear after all other modifiers (`bool`, `on`, `ignoring`, `group_left`, `group_right`).

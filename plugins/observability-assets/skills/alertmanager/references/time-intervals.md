@@ -3,7 +3,7 @@ title: "Alertmanager Time Intervals"
 description: "Open this when mute schedules, active time intervals, or time-based routing constraints are the blocker."
 ---
 
-# Alertmanager Time Intervals
+## Alertmanager Time Intervals
 
 Use this reference when the blocker is time-based suppression, schedule-aware routing, or any use of `mute_time_intervals` / `active_time_intervals` on routes.
 
@@ -58,9 +58,11 @@ Defines a day-of-week range using full lowercase names. Sunday = 0, Saturday = 6
 
 ```yaml
 weekdays:
-  - monday:friday    # Monday through Friday
-  - saturday         # Saturday only
+  - monday:friday
+  - saturday
 ```
+
+This matches Monday through Friday plus Saturday.
 
 Valid names: `sunday`, `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`.
 
@@ -72,9 +74,11 @@ Defines a day-of-month range. Supports positive (1-based from month start) and n
 
 ```yaml
 days_of_month:
-  - 1:15            # 1st through 15th of the month
-  - -3:-1           # Last 3 days of the month
+  - 1:15
+  - -3:-1
 ```
+
+This matches the 1st through 15th of the month and the last 3 days of the month.
 
 | Property | Range | Notes |
 | --- | --- | --- |
@@ -92,9 +96,11 @@ Defines a month range using full lowercase names or integers. January = 1, Decem
 
 ```yaml
 months:
-  - january:march     # Q1
-  - october:december   # Q4
+  - january:march
+  - october:december
 ```
+
+This matches Q1 and Q4.
 
 Valid names: `january`, `february`, `march`, `april`, `may`, `june`, `july`, `august`, `september`, `october`, `november`, `december`.
 
@@ -106,9 +112,11 @@ Defines a year range using positive integers only.
 
 ```yaml
 years:
-  - 2024:2026        # 2024 through 2026 inclusive
-  - 2024             # Only 2024
+  - 2024:2026
+  - 2024
 ```
+
+This matches 2024 through 2026 inclusive and the single year 2024.
 
 Format: single integer (`"2024"`) or colon-separated range (`"2024:2026"`). Start must not exceed end.
 
@@ -219,13 +227,15 @@ time_intervals:
 
 Combined complex example (business hours during specific months):
 
+This example models fiscal-year business hours in `America/Chicago`, with a July-through-June month range, Monday-through-Friday coverage, and an `08:00` to `17:00` window.
+
 ```yaml
 time_intervals:
   - name: fiscal-year-business-hours
     time_intervals:
       - location: America/Chicago
         months:
-          - july:june   # Fiscal year July-June
+          - july:june
         weekdays:
           - monday:friday
         times:

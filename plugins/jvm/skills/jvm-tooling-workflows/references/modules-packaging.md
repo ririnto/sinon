@@ -36,7 +36,15 @@ Version boundaries for this reference:
 
 ## `jdeps` to `jlink` Sequence
 
-The canonical `jdeps` and `jlink` commands are documented in the parent SKILL.md **Ready-to-Adapt Templates** section. This reference covers the sequencing logic and additive considerations when chaining them together.
+Use this runnable sequence when you need to derive a module list and build a trimmed runtime image:
+
+```bash
+jdeps --multi-release 21 --print-module-deps app.jar
+jlink \
+    --add-modules java.base,java.net.http \
+    --output build/runtime
+build/runtime/bin/java --version
+```
 
 Sequencing rules:
 
@@ -48,7 +56,16 @@ This path is a JDK 9+ workflow because it depends on `jlink` and the module syst
 
 ## `jpackage` App Image or Installer Flow
 
-The canonical `jpackage` command is documented in the parent SKILL.md **Ready-to-Adapt Templates** section. This reference covers the packaging decision logic and version-specific considerations.
+Use this runnable shape when launcher inputs are already known and the goal is an app image before a platform-specific installer:
+
+```bash
+jpackage \
+    --name DemoApp \
+    --input build/libs \
+    --main-jar demo-app.jar \
+    --main-class com.example.demo.App \
+    --type app-image
+```
 
 Packaging rules:
 

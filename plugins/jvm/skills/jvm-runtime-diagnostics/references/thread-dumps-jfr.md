@@ -39,7 +39,7 @@ What to look for in the diff:
 ## JFR Analysis Commands
 
 ```bash
-jfr print --summary /path/to/private-diagnostics/baseline.jfr
+jfr summary /path/to/private-diagnostics/baseline.jfr
 jfr print --json --events "jdk.JavaMonitorEnter" /path/to/private-diagnostics/baseline.jfr
 ```
 
@@ -99,7 +99,19 @@ Diagnosis: Circular wait — classic deadlock. Stack trace shows exactly which o
 
 ## Startup-Attached JFR Operational Notes
 
-Key operational notes when using the startup-attached JFR template from the parent SKILL.md:
+Use this shape when evidence must start before later attach would be possible:
+
+```bash
+java -XX:StartFlightRecording=name=startup,settings=profile,filename=/path/to/private-diagnostics/startup.jfr,dumponexit=true -jar app.jar
+```
+
+Expected capture after exit or dump:
+
+```text
+/path/to/private-diagnostics/startup.jfr
+```
+
+Key operational notes:
 
 - use startup-attached JFR when the failure window may happen before attach is practical
 - keep `dumponexit=true` when the process may terminate before an explicit `JFR.dump`

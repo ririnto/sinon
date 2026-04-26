@@ -59,11 +59,11 @@ plugins/git-workflow/
 - `.codex-plugin/plugin.json` carries thin Codex-facing marketplace metadata plus the `./skills/` entry point.
 - `skills/git-change-integration handoff/SKILL.md` is the common path for commit readiness, split-vs-single decisions, Conventional Commit drafting, fallback hosted review text, and validation phrasing.
 - `skills/git-change-integration handoff/references/` holds additive host-specific depth only.
-- `skills/git-change-integration handoff/agents/openai.yaml` is the thin trigger surface for the same skill, not a second workflow.
+- `skills/git-change-integration handoff/agents/openai.yaml` is skill-local Codex/OpenAI interface metadata for the same skill, not a root-level agent definition or second workflow.
 
 ## Shipped Surfaces
 
-- The plugin ships one reusable skill under `skills/` plus one agent trigger surface at `skills/git-change-integration handoff/agents/openai.yaml`.
+- The plugin ships one reusable skill under `skills/` plus skill-local Codex/OpenAI interface metadata at `skills/git-change-integration handoff/agents/openai.yaml`; it does not ship root-level `agents/*.md` definitions.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 - Host-specific hosted service and hosted service mechanics stay inside the skill references rather than the manifests or plugin root README.
 
@@ -85,7 +85,7 @@ Install from Sinon:
 For Claude Code local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/git-workflow
+claude --plugin-dir /path/to/sinon/plugins/git-workflow
 ```
 
 Codex-facing marketplace metadata ships through `.codex-plugin/plugin.json`, but it points to the same shared `skills/` content at this plugin root.

@@ -18,8 +18,8 @@ The latest released Spring LDAP line is 4.0.3. That 4.x line targets Spring Fram
 
 Use `spring-ldap` for LDAP operations, ODM mapping, LDAP repository support, and embedded LDAP testing.
 
-- Use `spring-security` for authentication, authorization, and filter-chain design around LDAP authentication providers. Keep this skill focused on directory operations and data mapping.
-- Keep repository-backed LDAP query design in this skill. Use `spring-security` only when the real task is authentication or authorization policy rather than directory access itself.
+- Authentication, authorization, and filter-chain design around LDAP authentication providers are Spring Security concerns outside this directory-operations scope.
+- Keep repository-backed LDAP query design in this skill. Treat authentication or authorization policy as a separate application-security concern rather than directory access itself.
 
 ## Common path
 
@@ -40,7 +40,7 @@ The ordinary Spring LDAP job is:
 | Context source tuning or compensating transactions | connection tuning or multi-write rollback semantics matter | open [references/transactions-and-context-source.md](references/transactions-and-context-source.md) |
 | Advanced ODM and repository mapping | multi-valued attributes or raw `@Query` are the blocker | open [references/advanced-odm-and-repositories.md](references/advanced-odm-and-repositories.md) |
 | Embedded LDAP details | LDIF loading, embedded server choice, or schema-validation tuning is the blocker | open [references/embedded-testing-and-ldif.md](references/embedded-testing-and-ldif.md) |
-| LDAP-backed authentication | the real task is authentication or authorization policy | use the Spring Security LDAP path, not this skill |
+| LDAP-backed authentication | the real task is authentication or authorization policy | outside this directory access and mapping scope |
 
 ## Mapping decisions
 
@@ -245,16 +245,13 @@ class PersonDirectory {
     }
 
     List<Person> findByLastName(String lastName) {
-        return ldap.search(
-            query().where("objectclass").is("person").and("sn").is(lastName),
-            (AttributesMapper<Person>) attrs -> {
+        return ldap.search(query().where("objectclass").is("person").and("sn").is(lastName), (AttributesMapper<Person>) attrs -> {
                 Person p = new Person();
                 p.setCn((String) attrs.get("cn").get());
                 p.setSn((String) attrs.get("sn").get());
                 p.setMail((String) attrs.get("mail").get());
                 return p;
-            }
-        );
+            });
     }
 }
 ```
@@ -328,10 +325,7 @@ class LdapAuthService {
 
     boolean checkCredentials(String uid, String password) {
         try {
-            ldap.authenticate(
-                query().where("uid").is(uid).and("objectclass").is("person"),
-                password
-            );
+            ldap.authenticate(query().where("uid").is(uid).and("objectclass").is("person"), password);
             return true;
         } catch (Exception e) {
             return false;
@@ -382,17 +376,27 @@ Use a tiny LDIF fixture with only the entries needed by the test so query expect
 
 ### LdapQuery filter shapes
 
+Simple equality:
+
 ```java
-// Simple equality
 query().where("objectclass").is("person")
+```
 
-// Compound filter
+Compound filter:
+
+```java
 query().where("objectclass").is("person").and("sn").is("Doe")
+```
 
-// Substring match
+Substring match:
+
+```java
 query().where("cn").like("*Doe*")
+```
 
-// Presence check
+Presence check:
+
+```java
 query().where("telephoneNumber").isPresent()
 ```
 

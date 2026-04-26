@@ -8,8 +8,7 @@ Obtain a connection that participates in the current Spring transaction with `Da
 
 ```java
 Connection connection = DataSourceUtils.getConnection(dataSource);
-try (PreparedStatement ps = connection.prepareStatement(
-        "UPDATE items SET quantity = quantity - ? WHERE id = ?")) {
+try (PreparedStatement ps = connection.prepareStatement("UPDATE items SET quantity = quantity - ? WHERE id = ?")) {
     ps.setInt(1, amount);
     ps.setLong(2, itemId);
     ps.executeUpdate();
@@ -38,11 +37,7 @@ Use `TransactionTemplate` when each method needs its own transaction boundary wi
 
 ```java
 TransactionTemplate tx = new TransactionTemplate(transactionManager);
-tx.executeWithoutResult(status -> jdbc.update(
-    "UPDATE items SET quantity = quantity - ? WHERE id = ?",
-    amount,
-    itemId
-));
+tx.executeWithoutResult(status -> jdbc.update("UPDATE items SET quantity = quantity - ? WHERE id = ?", amount, itemId));
 ```
 
 ## SqlRowSet for disconnected result sets
@@ -50,10 +45,7 @@ tx.executeWithoutResult(status -> jdbc.update(
 Query into a `SqlRowSet` when the result must survive beyond the connection lifetime:
 
 ```java
-SqlRowSet rows = jdbc.queryForRowSet(
-    "SELECT id, name FROM items WHERE warehouse = ?",
-    warehouseId
-);
+SqlRowSet rows = jdbc.queryForRowSet("SELECT id, name FROM items WHERE warehouse = ?", warehouseId);
 while (rows.next()) {
     Item item = new Item(rows.getLong("id"), rows.getString("name"));
 }
@@ -69,11 +61,7 @@ Extract a `RowMapper` for reuse across query methods:
 class ItemRowMapper implements RowMapper<Item> {
     @Override
     public Item mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return new Item(
-            rs.getLong("id"),
-            rs.getString("name"),
-            rs.getInt("quantity")
-        );
+        return new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity"));
     }
 }
 ```
@@ -100,10 +88,7 @@ class InventoryDao {
     }
 
     List<Item> findAll() {
-        return jdbc.query(
-            "SELECT id, name, quantity FROM items",
-            itemRowMapper
-        );
+        return jdbc.query("SELECT id, name, quantity FROM items", itemRowMapper);
     }
 }
 ```
@@ -122,11 +107,7 @@ class InventoryDao {
     }
 
     Item findById(Long id) {
-        return named.queryForObject(
-            "SELECT id, name, quantity FROM items WHERE id = :id",
-            Map.of("id", id),
-            (rs, rowNum) -> new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity"))
-        );
+        return named.queryForObject("SELECT id, name, quantity FROM items WHERE id = :id", Map.of("id", id), (rs, rowNum) -> new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity")));
     }
 }
 ```

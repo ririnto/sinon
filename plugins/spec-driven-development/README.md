@@ -80,10 +80,11 @@ plugins/spec-driven-development/
 - Derive spec content from requirements, not from implementation.
 - Keep manifests aligned with the actual shipped runtime surface.
 
-## Offline Runtime
+## Offline-Capable Runtime
 
-The packaged skill is usable offline once [uv](https://github.com/astral-sh/uv) is installed on the host.
-`skills/spec-driven-development/scripts/sdd.sh` invokes the bundled Python package through `uvx --from "${script_dir}"`, which resolves the local `pyproject.toml` and runs the `sdd` console script without reaching any remote index at execution time.
+The packaged skill is usable offline only when [uv](https://github.com/astral-sh/uv) is installed and the Python interpreter plus required dependency/build artifacts are already cached or otherwise available locally.
+`skills/spec-driven-development/scripts/sdd.sh` invokes the bundled Python package through `uvx --from "${script_dir}"`, which resolves the local `pyproject.toml` and runs the `sdd` console script.
+If uv must download Python, dependency metadata, dependencies, or build artifacts, network access may be required unless those inputs are already cached.
 
 Maintainers update the runtime by editing the Python sources under `skills/spec-driven-development/scripts/sdd/` and the accompanying `pyproject.toml`.
 
@@ -98,7 +99,7 @@ When this plugin is published in the Sinon marketplace, install it with:
 For current local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/spec-driven-development
+claude --plugin-dir /path/to/sinon/plugins/spec-driven-development
 ```
 
 Codex-facing marketplace metadata ships through `.codex-plugin/plugin.json`, but it points to the same shared `skills/` content at this plugin root.

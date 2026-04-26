@@ -1,6 +1,6 @@
 ---
 title: "Dashboard Provisioning Folder Organization"
-description: "Open this when folder mapping, file layout, foldersFromFilesStructure constraints, folderUid field, or no-nested-folders behavior is the blocker."
+description: "Open this when folder mapping, file layout, provider-level folderUid targeting, foldersFromFilesStructure constraints, or no-nested-folders behavior is the blocker."
 ---
 
 Use this reference when the provider exists, but the file tree and folder strategy are still unclear.
@@ -67,15 +67,17 @@ When `foldersFromFilesStructure` is active, the provider-level `folder` and `fol
 
 Invalid -- will fail at startup:
 
+This provider is invalid because provider-level `folder` conflicts with `foldersFromFilesStructure: true`.
+
 ```yaml
 apiVersion: 1
 providers:
   - name: broken-provider
-    folder: Operations              # <-- CONFLICTS with foldersFromFilesStructure
+    folder: Operations
     type: file
     options:
       path: /var/lib/grafana/dashboards
-      foldersFromFilesStructure: true   # <-- CONFLICTS with folder
+      foldersFromFilesStructure: true
 ```
 
 Valid -- folder is omitted:
@@ -128,23 +130,23 @@ dashboards/
 
 **Folder UIDs are auto-generated:**
 
-When using `foldersFromFilesStructure`, Grafana creates folders with auto-generated UIDs. If you need stable, cross-instance folder references, use fixed-folder mode with explicit `folderUid` in each dashboard JSON wrapper instead.
+When using `foldersFromFilesStructure`, Grafana creates folders with auto-generated UIDs. If you need stable, cross-instance folder references, use fixed-folder mode with provider-level `folderUid` instead.
 
 Use when: the blocker is debugging why a `foldersFromFilesStructure` provider fails to start, why nested directories do not create nested Grafana folders, or where root-level dashboards end up.
 
-## The `folderUid` Field
+## Provider-Level `folderUid`
 
-The `folderUid` field exists in two places with different semantics:
-
-### Provider-level `folderUid` (not commonly used)
+For legacy file provisioning, `folderUid` belongs on the provider when you need to target a fixed Grafana folder by UID.
 
 Set at the provider top level alongside `folder`. References an existing Grafana folder by its UID rather than by name. Mutually exclusive with `foldersFromFilesStructure`.
+
+This example targets an existing Grafana folder by UID instead of by folder name.
 
 ```yaml
 apiVersion: 1
 providers:
   - name: targeted-provider
-    folderUid: "abc123def"          # targets folder by UID, not name
+    folderUid: "abc123def"
     type: file
     options:
       path: /var/lib/grafana/dashboards/target
@@ -152,9 +154,11 @@ providers:
 
 Use when: the folder name might change but the UID must remain stable across deployments.
 
-### Dashboard JSON wrapper `folderUid`
+## API and Resource Folder Fields
 
-Set inside each individual dashboard source file. Overrides the provider-level folder placement for that specific dashboard.
+`folderUid` can also appear in API request bodies or newer resource-style workflows, but those are separate from the raw dashboard JSON files stored under a legacy provider path.
+
+Representative API payload:
 
 ```json
 {
@@ -162,20 +166,16 @@ Set inside each individual dashboard source file. Overrides the provider-level f
     "id": null,
     "uid": "my-dashboard",
     "title": "My Dashboard",
-    ...
+    "schemaVersion": 39,
+    "version": 1,
+    "panels": []
   },
   "folderUid": "xyz789ghi",
   "overwrite": true
 }
 ```
 
-Behavior:
-
-- If set to a non-empty string: places this dashboard into the folder with that UID.
-- If set to empty string `""` or omitted: falls back to the provider's `folder` or `folderUid` setting.
-- Works with both fixed-folder providers and `foldersFromFilesStructure` providers (overrides the auto-assigned folder for that one dashboard).
-
-Use when: the blocker is placing individual dashboards into specific folders by UID regardless of the provider's default folder assignment.
+Use when: the blocker is translating a dashboard between provider-path files and an API or resource workflow that explicitly asks for `folderUid`. Keep this envelope out of legacy file-provisioning source directories.
 
 ## Review Questions
 
@@ -183,5 +183,5 @@ Use when: the blocker is placing individual dashboards into specific folders by 
 - would folder mirroring create confusing names or unstable placement
 - are nested directories being mistaken for nested Grafana folders
 - is `folder` or `folderUid` still set when `foldersFromFilesStructure: true`
-- does the team need stable folder UIDs for cross-dashboard links or programmatic access
+- does the team need stable provider-level folder UIDs for cross-dashboard links or programmatic access
 - are root-level dashboard files intentionally placed outside all subdirectories

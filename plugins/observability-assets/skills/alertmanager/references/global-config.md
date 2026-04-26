@@ -3,7 +3,7 @@ title: "Alertmanager Global Configuration"
 description: "Open this when you need the complete global configuration reference, including all fields, defaults, credential pairing rules, and interaction with receiver-level overrides."
 ---
 
-# Alertmanager Global Configuration
+## Alertmanager Global Configuration
 
 Use this reference when you need the full global configuration schema, field-by-field details on how global defaults interact with receiver-level overrides, and the validation rules for paired credential fields.
 

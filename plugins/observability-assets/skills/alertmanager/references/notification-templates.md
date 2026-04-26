@@ -3,7 +3,7 @@ title: "Alertmanager Notification Templates"
 description: "Open this when notification message shape, template data structures, template functions, or template rendering behavior is the blocker."
 ---
 
-# Alertmanager Notification Templates
+## Alertmanager Notification Templates
 
 Use this reference when the route is already correct, but the notification text itself still needs work.
 
@@ -35,7 +35,6 @@ The root data object (`.`) passed to every template is a `Data` struct with thes
 | `.Receiver` | string | Name of the receiver handling this notification (regex-escaped) |
 | `.Status` | string | Overall group status: `"firing"` or `"resolved"` |
 | `.Alerts` | Alerts | Container with `.Firing()` and `.Resolved()` methods |
-| `.NotificationReason` | string | Why this notification was sent (e.g., `"group_wait_elapsed"`) |
 | `.GroupLabels` | KV | Labels used to form the alert group for routing |
 | `.CommonLabels` | KV | Labels shared by ALL alerts in the group |
 | `.CommonAnnotations` | KV | Annotations shared by ALL alerts in the group |
@@ -237,19 +236,31 @@ Per-alert expansion pattern when grouped labels are insufficient:
 {{ end }}
 ```
 
-Custom JSON payload for webhook receivers:
+Receiver-side JSON shape for webhook integrations:
 
-```gotemplate
-{{ define "webhook.payload" }}
+```json
 {
-  "text": "{{ .CommonLabels.alertname }}",
-  "severity": "{{ .CommonLabels.severity }}",
-  "firing_count": {{ .Alerts.Firing | len }},
-  "resolved_count": {{ .Alerts.Resolved | len }},
-  "labels": {{ .CommonLabels | toJson }}
+  "receiver": "api-webhook",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": { "alertname": "ApiDown", "severity": "page" },
+      "annotations": { "summary": "API is down" },
+      "startsAt": "2026-04-26T12:00:00Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "https://prometheus.example.com/graph?...",
+      "fingerprint": "0123456789abcdef"
+    }
+  ],
+  "groupLabels": { "alertname": "ApiDown" },
+  "commonLabels": { "alertname": "ApiDown", "severity": "page" },
+  "commonAnnotations": { "summary": "API is down" },
+  "externalURL": "https://alertmanager.example.com"
 }
-{{ end }}
 ```
+
+Webhook receivers get Alertmanager's fixed JSON body based on the same `Data` fields; customize the outgoing format in the HTTP receiver or an intermediary service, not with a `webhook_configs` body field.
 
 Time formatting with timezone conversion:
 
@@ -260,10 +271,10 @@ Duration: {{ humanizeDuration (since .StartsAt) }}
 {{ end }}
 ```
 
-Building structured data with `dict`:
+Building structured data with `dict` for template reuse:
 
 ```gotemplate
-{{ define "custom.payload" }}
+{{ define "custom.incident_json" }}
 {{ dict "alertname" .CommonLabels.alertname "status" .Status "count" (.Alerts.Firing | len) | toJson }}
 {{ end }}
 ```

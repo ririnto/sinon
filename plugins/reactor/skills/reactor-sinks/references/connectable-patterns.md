@@ -5,7 +5,7 @@ description: "Open this when the real problem is connect, disconnect, replay, or
 
 Open this when a cold source already exists and the blocker is how multiple subscribers share, trigger, or replay it.
 
-For the cold versus hot distinction and when sharing is the right design move, see [Hot, Cold, and Multicasting](../../reactor-core/references/hot-cold-and-multicasting.md) in the `reactor-core` skill. This reference covers the concrete patterns after that conceptual decision is made.
+For the cold versus hot distinction and when sharing is the right design move, start with [Hot, Cold, and Multicasting](../../reactor-core/references/hot-cold-and-multicasting.md). This reference covers the concrete patterns after that conceptual decision is made.
 
 ## Choose the sharing pattern
 
@@ -23,7 +23,6 @@ Use `publish()` + `connect()` when you must control exactly when the source star
 ```java
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
-
 final class ManualConnect {
     void demonstrate() {
         ConnectableFlux<Integer> source = Flux.range(1, 3).publish();
@@ -41,7 +40,6 @@ The source starts only after N subscribers arrive. Prior subscribers are queued 
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class AutoConnectExample {
     void demonstrate() {
         Flux<Integer> source = Flux.range(1, 3).publish().autoConnect(2);
@@ -60,7 +58,6 @@ Output: both subscribers receive all values (`sub1: 1..3`, `sub2: 1..3`). The fi
 ```java
 import reactor.core.publisher.Flux;
 import java.time.Duration;
-
 final class RefCountExample {
     void demonstrate() {
         Flux<Long> source = Flux.interval(Duration.ofMillis(200)).publish().refCount(1);
@@ -79,7 +76,6 @@ With threshold of 1, the source starts immediately on the first subscription. Wh
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class ReplayExample {
     void demonstrate() {
         Flux<Integer> source = Flux.range(1, 5).replay(2).autoConnect(1);

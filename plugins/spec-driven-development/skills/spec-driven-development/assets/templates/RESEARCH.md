@@ -6,7 +6,7 @@ last_updated: "{{last_updated_date}}"
 subject:
   name: "{{subject_name}}"
   version: "{{version}}"
-  # url: "https://example.com/reference"
+  url: "{{subject_url_or_empty_string}}"
 tag: []
 ---
 

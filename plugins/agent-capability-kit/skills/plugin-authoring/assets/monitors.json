@@ -2,7 +2,7 @@
   "monitors": [
     {
       "name": "example-monitor",
-      "command": "sh ${CLAUDE_PLUGIN_ROOT}/monitors/watch.sh"
+      "command": "sh \"${CLAUDE_PLUGIN_ROOT}/monitors/watch.sh\""
     }
   ]
 }

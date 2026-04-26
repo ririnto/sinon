@@ -12,16 +12,16 @@ Open this when ordinary `TestPublisher.create()` is not enough because the test 
 | `REQUEST_OVERFLOW` | emit more elements than requested (tests operator backpressure handling) |
 | `ALLOW_NULL` | emit null values (tests operator null tolerance) |
 | `CLEANUP_ON_TERMINATE` | emit after onComplete/onError (tests operator cleanup robustness) |
+| `DEFER_CANCELLATION` | continue emitting after cancellation as if cancellation lost a race |
 
-Combine multiple violations with bitwise OR:
+Pass one required violation followed by any additional violations as varargs:
 
 ```java
 import reactor.test.publisher.TestPublisher;
-
-int violations = TestPublisher.Violation.REQUEST_OVERFLOW
-    | TestPublisher.Violation.ALLOW_NULL;
-
-TestPublisher<Integer> publisher = TestPublisher.createNoncompliant(violations);
+TestPublisher<Integer> publisher = TestPublisher.createNoncompliant(
+    TestPublisher.Violation.REQUEST_OVERFLOW,
+    TestPublisher.Violation.ALLOW_NULL
+);
 ```
 
 ## Request overflow example
@@ -30,17 +30,40 @@ TestPublisher<Integer> publisher = TestPublisher.createNoncompliant(violations);
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
-
 class NoncompliantPublisherTest {
     @Test
     void allowsRequestOverflowForOperatorTests() {
-        TestPublisher<Integer> publisher = TestPublisher.createNoncompliant(TestPublisher.Violation.REQUEST_OVERFLOW);
-
+        TestPublisher<Integer> publisher = TestPublisher.createNoncompliant(
+            TestPublisher.Violation.REQUEST_OVERFLOW
+        );
         StepVerifier.create(publisher.flux(), 0)
             .then(() -> publisher.next(1))
             .expectNext(1)
             .thenCancel()
             .verify();
+    }
+}
+```
+
+## Deferred cancellation example
+
+Use `DEFER_CANCELLATION` when the operator must handle an upstream that keeps emitting after downstream cancellation.
+
+```java
+import org.junit.jupiter.api.Test;
+import reactor.test.StepVerifier;
+import reactor.test.publisher.TestPublisher;
+class DeferredCancellationTest {
+    @Test
+    void emitsAfterCancellationRace() {
+        TestPublisher<Integer> publisher = TestPublisher.createNoncompliant(
+            TestPublisher.Violation.DEFER_CANCELLATION
+        );
+        StepVerifier.create(publisher.flux().take(1))
+            .then(() -> publisher.next(1, 2))
+            .expectNext(1)
+            .verifyComplete();
+        publisher.assertCancelled();
     }
 }
 ```

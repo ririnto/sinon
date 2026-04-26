@@ -23,45 +23,53 @@ jcmd <pid> JFR.start name=profile settings=profile disk=true maxage=10m
 jcmd <pid> JFR.dump name=profile filename=/tmp/profile.jfr
 ```
 
-Reading a JFR recording for allocation and lock evidence:
+List available JFR events and filters, then dump the recording for later analysis:
 
 ```bash
-# List available JFR events and filters:
 jcmd <pid> JFR.check
-
-# Dump for later analysis:
 jcmd <pid> JFR.dump name=profile filename=/tmp/profile.jfr
 ```
 
 Allocation-heavy path diagnosis (look for `java.lang.String` or byte-buffers in the hot path):
 
-```bash
-# Class histogram to find top allocators:
-jcmd <pid> GC.class_histogram | head -50
+Class histogram to find top allocators:
 
-# Live histogram (stops the world briefly — use with care in prod):
+```bash
+jcmd <pid> GC.class_histogram | head -50
+```
+
+Live histogram; this stops the world briefly, so use it with care in production:
+
+```bash
 jcmd <pid> GC.class_histogram -all
 ```
 
 Lock contention diagnosis:
 
-```bash
-# Thread dump with lock detail:
-jcmd <pid> Thread.print -l
+Thread dump with lock detail:
 
-# Run three times 5 seconds apart, compare for blocked threads:
+```bash
+jcmd <pid> Thread.print -l
+```
+
+Run the dump three times 5 seconds apart, then compare for blocked threads:
+
+```bash
 for i in 1 2 3; do jcmd <pid> Thread.print -l > thread-$i.txt; sleep 5; done
 ```
 
 Throughput vs latency baseline:
 
-```bash
-# Verify selected JVM flags at startup:
-java -XX:+PrintCommandLineFlags -version
+Verify selected JVM flags at startup:
 
-# Capture a short JFR recording to get allocation rate and thread states:
+```bash
+java -XX:+PrintCommandLineFlags -version
+```
+
+Capture a short JFR recording to get allocation rate and thread states, then dump it after the workload runs:
+
+```bash
 jcmd <pid> JFR.start name=baseline settings=default disk=true maxage=2h
-# let workload run...
 jcmd <pid> JFR.dump name=baseline filename=/tmp/baseline.jfr
 ```
 

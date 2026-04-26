@@ -65,10 +65,8 @@ class OrderPersistenceTests {
         machine.start();
         machine.sendEvent(Events.PAY);
         stateMachinePersister.persist(machine, "order-1");
-
         StateMachine<States, Events> restored = factory.getStateMachine("order-1");
         stateMachinePersister.restore(restored, "order-1");
-
         assertAll(
             () -> assertEquals(States.PAID, restored.getState().getId()),
             () -> assertEquals("order-1", restored.getId())

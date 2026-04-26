@@ -7,15 +7,9 @@ Open this reference when the blocker is scroll position semantics, `WindowIterat
 Use offset scrolling when the sort columns can be null or when the caller cannot keep a stable keyset position. Use keyset scrolling when the result set is large and the query can sort on stable, non-null columns.
 
 ```java
-Window<Customer> firstWindow = repository.findFirst20ByAddressCityOrderByIdAsc(
-    "Seoul",
-    ScrollPosition.offset()
-);
+Window<Customer> firstWindow = repository.findFirst20ByAddressCityOrderByIdAsc("Seoul", ScrollPosition.offset());
 
-Window<Customer> nextWindow = repository.findFirst20ByAddressCityOrderByIdAsc(
-    "Seoul",
-    firstWindow.positionAt(firstWindow.size() - 1)
-);
+Window<Customer> nextWindow = repository.findFirst20ByAddressCityOrderByIdAsc("Seoul", firstWindow.positionAt(firstWindow.size() - 1));
 ```
 
 `ScrollPosition.offset()` means 'start of scroll'. Carry forward the returned position from the previous `Window`; do not invent one manually.
@@ -42,10 +36,7 @@ Keyset scrolling requires the projection to include the sort properties that anc
 record CustomerScrollView(Long id, String city, String email) {
 }
 
-Window<CustomerScrollView> findFirst20ByAddressCityOrderByIdAsc(
-    String city,
-    KeysetScrollPosition position
-);
+Window<CustomerScrollView> findFirst20ByAddressCityOrderByIdAsc(String city, KeysetScrollPosition position);
 ```
 
 If the query sorts by `id`, keep `id` in the projection. Omitting a sort property breaks keyset extraction.

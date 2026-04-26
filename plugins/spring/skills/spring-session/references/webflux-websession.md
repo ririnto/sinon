@@ -58,7 +58,6 @@ class WebFluxSessionFlowTest {
             .getResponseCookies()
             .getFirst("SESSION")
             .getValue();
-
         webTestClient.post().uri("/cart/items")
             .bodyValue(Map.of("sku", "SKU-2"))
             .cookie("SESSION", sessionId)

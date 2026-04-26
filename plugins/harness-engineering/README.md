@@ -50,13 +50,24 @@ plugins/harness-engineering/
 └── skills/
     └── harness-engineering/
         ├── SKILL.md
+        ├── assets/
+        │   ├── claude-md-template.md
+        │   ├── docs-directory-scaffold.md
+        │   └── execution-plan-template.md
         └── references/
+            ├── agent-legibility.md
+            ├── architecture-enforcement.md
+            ├── bootstrap.md
+            ├── ci-integration.md
+            ├── entropy-management.md
+            └── repository-knowledge-structure.md
 ```
 
 - `.claude-plugin/plugin.json` carries thin Claude-facing marketplace metadata with the declared `skills` entry point and shared plugin metadata.
 - `.codex-plugin/plugin.json` carries thin Codex-facing marketplace metadata pointing at the same shared plugin root.
 - `skills/harness-engineering/SKILL.md` holds the common path for repository layout, progressive disclosure, architecture enforcement, and entropy management.
-- `skills/harness-engineering/references/` holds additive depth for bootstrap, CI integration, agent legibility, and repository-knowledge structure.
+- `skills/harness-engineering/assets/` holds copyable CLAUDE.md, docs scaffold, and execution-plan templates.
+- `skills/harness-engineering/references/` holds additive depth for agent legibility, architecture enforcement, bootstrap, CI integration, entropy management, and repository-knowledge structure.
 - `agents/*.md` define the autonomous agents with explicit triggers, bounded tools, and self-contained system prompts.
 
 ## Design Principles
@@ -77,7 +88,7 @@ Install from the Sinon marketplace:
 For Claude Code local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/harness-engineering
+claude --plugin-dir /path/to/sinon/plugins/harness-engineering
 ```
 
 Codex-facing marketplace metadata ships through `.codex-plugin/plugin.json`, and it refers to the same plugin root content at this path.

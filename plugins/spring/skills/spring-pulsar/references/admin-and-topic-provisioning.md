@@ -7,11 +7,7 @@ Open this reference when the application must create topics, partitions, or name
 ```java
 @Bean
 ApplicationRunner provisionTopics(PulsarAdministration administration) {
-    return args -> administration.createOrModify(
-        PulsarTopic.builder("persistent://public/default/shipments")
-            .numberOfPartitions(8)
-            .build()
-    );
+    return args -> administration.createOrModify(PulsarTopic.builder("persistent://public/default/shipments").numberOfPartitions(8).build());
 }
 ```
 

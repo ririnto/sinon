@@ -17,7 +17,6 @@ Open this when the blocker is no longer ordinary composition but how elements ar
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class GroupedPipeline {
     Flux<String> grouped() {
         return Flux.just("a1", "a2", "b1")
@@ -31,7 +30,6 @@ final class GroupedPipeline {
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class WindowedPipeline {
     Flux<Integer> sums() {
         return Flux.range(1, 6)
@@ -46,7 +44,6 @@ final class WindowedPipeline {
 ```java
 import java.util.List;
 import reactor.core.publisher.Flux;
-
 final class BufferedPipeline {
     Flux<List<Integer>> batches() {
         return Flux.range(1, 5).buffer(2);

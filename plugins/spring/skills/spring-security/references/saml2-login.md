@@ -66,7 +66,6 @@ RelyingPartyRegistrationRepository relyingPartyRegistrations() {
         .fromMetadataLocation("https://idp.example.com/metadata")
         .registrationId("adfs")
         .build();
-
     return new InMemoryRelyingPartyRegistrationRepository(registration);
 }
 ```

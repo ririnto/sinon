@@ -27,6 +27,8 @@ color: blue
 
 You are a specialized agent for [domain].
 
+Save this template as `agents/your-agent-name.md`, keeping the file basename and frontmatter `name` identical.
+
 ## Responsibilities
 
 1. [responsibility one]

@@ -87,7 +87,7 @@ Use when: the blocker is deciding whether removing a source file should destroy 
 
 ## Version Property Behavior
 
-The `version` field inside `dashboard` JSON is **ignored** by Grafana's provisioning system.
+The `version` field inside a raw dashboard JSON source file is **ignored** by Grafana's file-provisioning update logic.
 
 What actually happens:
 
@@ -104,34 +104,28 @@ Practical consequence:
 
 - Do not attempt to manage version numbers in source files.
 - Do not use version as a conflict-detection mechanism for provisioning.
-- The version field in exported files can be left as-is; it has no effect on provisioning behavior.
+- The version field in exported files can be left as-is; it has no effect on file-provisioning update behavior.
 - Version only matters for manual UI save conflicts between two browser sessions editing the same dashboard simultaneously -- a scenario that does not apply to file-based provisioning where file content always wins.
 
 Use when: the blocker is understanding why version numbers in dashboard JSON files seem to have no effect during provisioning.
 
 ## UI Export Workflows
 
-All three Grafana UI export methods produce raw dashboard JSON that requires post-processing before it works as a provisioning source file.
+Dashboard menu exports already produce raw dashboard JSON, which is the file shape legacy provider-path provisioning expects.
 
 ### Save JSON to file (Dashboard menu -> Save JSON to file)
 
-Produces raw dashboard JSON without the provisioning wrapper.
+Produces raw dashboard JSON in the same general shape you can store under the provider path.
 
-Required post-processing:
+Recommended cleanup before committing:
 
-```json
-{
-  "dashboard": <paste exported JSON here>,
-  "folderUid": "",
-  "overwrite": true
-}
-```
-
-Additionally, set `"id": null` inside the pasted dashboard object.
+1. Remove `id` or set it to `null`.
+2. Normalize noisy UI-only changes you do not want in Git.
+3. Keep the file as the raw dashboard object; do not wrap it in an API import payload.
 
 ### Copy JSON to clipboard (Dashboard menu -> Copy JSON to clipboard)
 
-Identical output format to Save JSON to file. Same wrapper and id-stripping steps apply.
+Identical output format to Save JSON to file. Apply the same raw-file cleanup steps.
 
 ### API export (`GET /api/dashboards/uid/<uid>`)
 
@@ -144,17 +138,20 @@ Response shape:
 }
 ```
 
-The response already nests the dashboard under a `dashboard` key, but you must still:
+The response is an API object, not a raw file-provisioning source file. For a dashboard file under `options.path`:
 
-1. Wrap in `{ "dashboard": <response.dashboard>, "overwrite": true }`
-2. Set `id: null` inside the dashboard object
-3. Add `folderUid` if targeting a specific folder by UID
+1. Extract `response.dashboard`
+2. Remove API-only envelope fields such as `meta`
+3. Remove `id` or set it to `null`
+4. Save the extracted dashboard object itself as the file content
+
+If you are calling an API that explicitly requires `folderUid`, `overwrite`, or `message`, keep those fields in the API request body only; do not treat that body as the raw file you commit for legacy provisioning.
 
 ### Common export gotcha: ID leakage
 
 Every export method includes the numeric `id` assigned by the exporting Grafana instance. This ID is instance-specific and will conflict (or silently map wrong) when provisioning to a different instance. Always strip or nullify `id`.
 
-Before (exported -- unsafe for provisioning):
+Before (API response fragment -- not a raw provider-path file):
 
 ```json
 {
@@ -165,17 +162,14 @@ Before (exported -- unsafe for provisioning):
 }
 ```
 
-After (provisioning-ready):
+After (raw file-provisioning source):
 
 ```json
 {
-  "dashboard": {
-    "id": null,
-    "uid": "abc123def",
-    "title": "API Overview",
-    ...
-  },
-  "overwrite": true
+  "id": null,
+  "uid": "abc123def",
+  "title": "API Overview",
+  ...
 }
 ```
 
@@ -187,5 +181,5 @@ Use when: the blocker is converting a UI-exported dashboard into a valid provisi
 - is `allowUiUpdates` aligned with the actual team workflow
 - would a failed provisioning reload be easier to debug with a smaller, cleaner source tree
 - is `disableDeletion` set correctly for the team's file-removal workflow
-- are exported dashboards being wrapped with `overwrite: true` before committing
-- is `id` being stripped from all exported dashboard files
+- are exported dashboards being committed as raw dashboard JSON rather than API payload envelopes
+- is `id` being stripped or nulled in shared dashboard source files

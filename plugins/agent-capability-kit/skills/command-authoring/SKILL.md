@@ -16,6 +16,7 @@ Create or refactor one Claude Code command or prompt file under `commands/*.md` 
 - Add frontmatter only for fields the command actually needs.
 - Keep tool assumptions narrow and explicit.
 - Make arguments, ambiguity behavior, and expected output visible in the command body whenever they affect ordinary use.
+- Ordinary authoring remains offline, but maintainers changing host-specific command behavior should verify against official host documentation when available and record any verification blocker.
 
 ## Ordinary authoring procedure
 

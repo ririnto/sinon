@@ -90,7 +90,7 @@ jcmd <pid> VM.log list
 Add a GC log output dynamically (JDK 9+):
 
 ```bash
-jcmd <pid> VM.log output="gc*=info:file=/path/to/gc-dynamic.log"
+jcmd <pid> VM.log output=/path/to/gc-dynamic.log what="gc*=info"
 ```
 
 Sample `VM.log list` output:

@@ -21,7 +21,6 @@ Open this when failure recovery needs a deliberate retry policy rather than a pl
 import java.time.Duration;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
-
 final class RetriedLookup {
     Mono<String> fetch() {
         return callRemote()
@@ -29,7 +28,6 @@ final class RetriedLookup {
                 .filter(IllegalStateException.class::isInstance)
                 .onRetryExhaustedThrow((spec, signal) -> signal.failure()));
     }
-
     private Mono<String> callRemote() {
         return Mono.error(new IllegalStateException("temporary"));
     }
@@ -45,13 +43,11 @@ final class RetriedLookup {
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 final class FixedRepeat {
     Flux<String> pollThreeTimes() {
         return fetchStatus()
             .repeat(3);
     }
-
     private Mono<String> fetchStatus() {
         return Mono.just("PENDING");
     }
@@ -63,14 +59,13 @@ final class FixedRepeat {
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 final class ConditionalRepeat {
     Flux<String> pollUntilDone() {
         return fetchStatus()
-            .repeatUntil("DONE"::equals)
+            .repeat()
+            .takeUntil("DONE"::equals)
             .take(10);
     }
-
     private Mono<String> fetchStatus() {
         return Mono.just("PENDING");
     }
@@ -83,14 +78,12 @@ final class ConditionalRepeat {
 import java.time.Duration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 final class RepeatedWithBackoff {
     Flux<String> scheduledPoll() {
         return fetchStatus()
             .repeatWhen(completed -> completed.delayElements(Duration.ofSeconds(2)))
             .take(20);
     }
-
     private Mono<String> fetchStatus() {
         return Mono.just("PENDING");
     }

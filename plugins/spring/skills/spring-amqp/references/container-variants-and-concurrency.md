@@ -21,10 +21,7 @@ Open this reference when the default listener-container setup in [SKILL.md](../S
 
 ```java
 @Bean
-SimpleRabbitListenerContainerFactory ordersFactory(
-    SimpleRabbitListenerContainerFactoryConfigurer configurer,
-    ConnectionFactory connectionFactory
-) {
+SimpleRabbitListenerContainerFactory ordersFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer, ConnectionFactory connectionFactory) {
     SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
     configurer.configure(factory, connectionFactory);
     factory.setAcknowledgeMode(AcknowledgeMode.AUTO);

@@ -18,9 +18,7 @@ Reactive support changes how side effects and eligibility checks are composed, b
 ## Reactive event dispatch shape
 
 ```java
-Flux<StateMachineEventResult<States, Events>> results = stateMachine.sendEvents(
-    Flux.just(MessageBuilder.withPayload(Events.PAY).build())
-);
+Flux<StateMachineEventResult<States, Events>> results = stateMachine.sendEvents(Flux.just(MessageBuilder.withPayload(Events.PAY).build()));
 ```
 
 Use the reactive event path when event dispatch itself must stay reactive. Unlike the ordinary imperative `sendEvent(...)` shape in `SKILL.md`, the reactive path returns event results rather than a simple boolean acceptance flag.
@@ -34,14 +32,10 @@ Test reactive machines with assertions that prove the event flow completes and r
 ```java
 @Test
 void reactivePayEventReachesPaidState() {
-    Flux<StateMachineEventResult<States, Events>> results = stateMachine.sendEvents(
-        Flux.just(MessageBuilder.withPayload(Events.PAY).build())
-    );
-
+    Flux<StateMachineEventResult<States, Events>> results = stateMachine.sendEvents(Flux.just(MessageBuilder.withPayload(Events.PAY).build()));
     StepVerifier.create(results)
         .expectNextCount(1)
         .verifyComplete();
-
     assertEquals(States.PAID, stateMachine.getState().getId());
 }
 ```

@@ -4,13 +4,13 @@ description: >-
   Author Reactor hot sources with Sinks for manual emission, replay/multicast selection, and emit-result handling. Use this skill when designing or reviewing Reactor hot-source APIs with Sinks: sink type selection, manual emission, replay/multicast choices, emit result handling, and the boundary between Sinks and ConnectableFlux-style sharing.
 metadata:
   title: "Reactor Sinks"
-  official_project_url: "https://projectreactor.io/docs/core/release/reference/"
+  official_project_url: "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures/sinks.html"
   reference_doc_urls:
-    - "https://projectreactor.io/docs/core/release/reference/"
-    - "https://projectreactor.io/docs/core/release/api/"
-  version: "3.7"
+    - "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures/sinks.html"
+    - "https://projectreactor.io/docs/core/3.7.18/api/"
+  version: "3.7.18"
   dependencies:
-    - "io.projectreactor:reactor-core:3.7.x"
+    - "io.projectreactor:reactor-core:3.7.18"
 ---
 
 Author Reactor hot sources deliberately.
@@ -32,7 +32,7 @@ This skill covers the ordinary path for choosing `Sinks.one()`, `Sinks.empty()`,
 - scheduler choice or thread placement as the main problem
 - `reactor-test` APIs as the main job
 - framework-specific event buses or transport integration details
-- deprecated `Processor`-based designs
+- legacy `Processor`-based designs
 
 ## Coverage map
 
@@ -74,8 +74,8 @@ This skill covers the ordinary path for choosing `Sinks.one()`, `Sinks.empty()`,
    - Many live subscribers: `multicast()` with the right delivery strategy.
    - Late subscribers need history: `replay()` with the right retention rule.
 4. Choose the emission style.
-   - Immediate result and explicit branching: `tryEmitNext(...)`, `tryEmitComplete()`, `tryEmitError(...)`.
-   - Controlled retry policy: `emitNext(...)`, `emitComplete(...)`, `emitError(...)` with a failure handler.
+   - Immediate result and explicit branching: `tryEmitNext(...)`, `tryEmitEmpty()`, or `tryEmitError(...)`.
+   - Controlled retry policy: `emitNext(...)`, `emitEmpty(...)`, or `emitError(...)` with a failure handler.
 5. Check backpressure and late-subscriber behavior before returning the publisher view.
 6. Open a reference only when the blocker is failure handling, connection lifecycle, or concurrent internal emission.
 
@@ -128,14 +128,12 @@ This skill covers the ordinary path for choosing `Sinks.one()`, `Sinks.empty()`,
 ```java
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
-
 final class CallbackBridge {
     Mono<String> loadValue() {
         Sinks.One<String> sink = Sinks.one();
         completeLater(sink);
         return sink.asMono();
     }
-
     private void completeLater(Sinks.One<String> sink) {
         sink.tryEmitValue("done");
     }
@@ -147,14 +145,11 @@ final class CallbackBridge {
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
-
 final class EventBus {
     private final Sinks.Many<String> sink = Sinks.many().multicast().onBackpressureBuffer();
-
     Flux<String> events() {
         return sink.asFlux();
     }
-
     void publish(String event) {
         sink.tryEmitNext(event);
     }
@@ -166,14 +161,11 @@ final class EventBus {
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
-
 final class ReplayFeed {
     private final Sinks.Many<String> sink = Sinks.many().replay().limit(3);
-
     Flux<String> feed() {
         return sink.asFlux();
     }
-
     void record(String value) {
         sink.tryEmitNext(value);
     }
@@ -184,7 +176,6 @@ final class ReplayFeed {
 
 ```java
 import reactor.core.publisher.Sinks;
-
 final class RetriedEmission {
     void publish(Sinks.Many<String> sink, String value) {
         sink.emitNext(value, Sinks.EmitFailureHandler.FAIL_FAST);
@@ -197,7 +188,6 @@ final class RetriedEmission {
 ```java
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
-
 final class CompletionSignal {
     Mono<Void> shutdownSignal() {
         Sinks.Empty<Void> sink = Sinks.empty();
@@ -205,32 +195,25 @@ final class CompletionSignal {
         return sink.asMono();
     }
     private void triggerShutdownLater(Sinks.Empty<Void> sink) {
-        sink.tryEmitComplete();
+        sink.tryEmitEmpty();
     }
 }
 ```
 
-Use `Sinks.empty()` when the only signals are completion or error -- no payload value is carried. Call `tryEmitComplete()` for normal termination or `tryEmitError(...)` for abnormal termination.
+Use `Sinks.empty()` when the only signals are completion or error -- no payload value is carried. Call `tryEmitEmpty()` for normal termination or `tryEmitError(...)` for abnormal termination. Use `emitEmpty(Sinks.EmitFailureHandler.FAIL_FAST)` only when a convenience emit API is deliberate.
 
 ### `Sinks.many().unicast()` for single-subscriber streams
 
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
-
 final class UnicastStream {
     private final Sinks.Many<String> sink = Sinks.many().unicast().onBackpressureBuffer();
-
     Flux<String> stream() {
         return sink.asFlux();
     }
-
     void send(String value) {
         sink.tryEmitNext(value);
-    }
-
-    void finish() {
-        sink.tryEmitComplete();
     }
 }
 ```
