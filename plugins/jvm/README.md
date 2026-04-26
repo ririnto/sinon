@@ -16,7 +16,7 @@ This plugin treats JDK 8, 11, 17, 21, and 25 as the supported LTS reference line
 
 ## Included Skills
 
-- `jvm-tooling-workflows`: `javac`, `java`, `javadoc`, and `jdeps` across the supported LTS line, plus version-gated `jshell` (JDK 9+), `jlink` (JDK 9+), and `jpackage` (JDK 14+ in this plugin's framing) workflows.
+- `jvm-tooling-workflows`: `javac`, `java`, `javadoc`, and `jdeps` across the supported LTS line, plus version-gated `jshell` (JDK 9+), `jlink` (JDK 9+), and `jpackage` workflows. Treat `jpackage` as standard from JDK 16; JDK 14-15 shipped it only as an incubating tool.
 - `jvm-runtime-diagnostics`: stack traces, `jcmd`, `jstack`, `jmap`, `jfr`, and runtime incident triage.
 - `jvm-gc-diagnostics`: GC symptom interpretation, collector tradeoffs, and LTS-boundary GC guidance.
 
@@ -41,6 +41,35 @@ This plugin uses one shared plugin root with two thin runtime manifests:
 
 The actual reusable content lives beside those manifests at the plugin root.
 
+## Plugin Layout
+
+```text
+plugins/jvm/
+├── .claude-plugin/plugin.json
+├── .codex-plugin/plugin.json
+├── README.md
+└── skills/
+    ├── jvm-gc-diagnostics/
+    │   ├── SKILL.md
+    │   ├── agents/openai.yaml
+    │   └── references/
+    ├── jvm-runtime-diagnostics/
+    │   ├── SKILL.md
+    │   ├── agents/openai.yaml
+    │   └── references/
+    └── jvm-tooling-workflows/
+        ├── SKILL.md
+        ├── agents/openai.yaml
+        └── references/
+```
+
+## Shipped Surfaces
+
+- The plugin ships three reusable skills under `skills/`.
+- Each skill ships focused `references/` for blocker-specific JVM details and an `agents/openai.yaml` runtime surface for OpenAI-style agent packaging.
+- The plugin ships no plugin-root `agents/` directory.
+- The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
+
 ## Design Principles
 
 - Prefer one job per skill.
@@ -60,5 +89,13 @@ Install from Sinon:
 For local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/jvm
+claude --plugin-dir /path/to/sinon/plugins/jvm
 ```
+
+## Scope Notes
+
+This plugin intentionally focuses on standard JDK tooling, JVM runtime diagnostics, and garbage-collection guidance. It does not cover:
+
+- Java language syntax or API design
+- framework-specific Spring or application instrumentation workflows
+- Java language-server setup

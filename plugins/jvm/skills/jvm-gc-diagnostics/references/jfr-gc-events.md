@@ -17,7 +17,7 @@ Start on a running JVM:
 jcmd <pid> JFR.start name=gc-baseline settings=default disk=true maxage=2h
 ```
 
-This uses the `default` preset which includes core GC events at low overhead (~1%).
+This uses the `default` preset, which Oracle documents as recommended for continuous recordings with a good balance between data and performance, typically less than 1% overhead. Treat the percentage as a `default.jfc` baseline, not as a guarantee for custom event settings.
 
 ### GC-Diagnostic Recording (Higher Overhead)
 
@@ -31,7 +31,7 @@ The `profile` preset adds allocation and CPU events useful for correlating GC pr
 
 ### Startup-Attached GC Recording
 
-This extends the startup-attached JFR template from the parent SKILL.md **Ready-to-Adapt Templates** section by adding unified GC logging for simultaneous GC + JFR evidence capture.
+Use this command when you need simultaneous GC + JFR evidence from process start:
 
 ```bash
 java \
@@ -42,6 +42,12 @@ filename=/path/to/private-diagnostics/gc-startup.jfr,dumponexit=true \
 ```
 
 Use when the GC symptom appears during startup warmup or early request phases.
+
+Expected artifacts:
+
+```text
+/path/to/private-diagnostics/gc-startup.jfr
+```
 
 ## Key JFR GC Events
 
@@ -81,10 +87,10 @@ These are the primary events to query when analyzing GC behavior from JFR data.
 ### Quick Summary Overview
 
 ```bash
-jfr print --summary /path/to/recording.jfr
+jfr summary /path/to/recording.jfr
 ```
 
-This shows event counts, durations, and top stacks. Start here to understand what the recording contains.
+This shows event counts and other high-level recording contents. Start here before using `jfr print` for event extraction.
 
 ### Query Specific GC Events
 
@@ -114,10 +120,10 @@ jfr print --events "jdk.GCConfiguration" /path/to/recording.jfr
 
 ### Filter by Time Window
 
-Events during a known problem window (e.g., 60-120 seconds after start):
+Portable note: do not use relative `--beginTime 60s --endTime 120s` examples here. For a known incident window, first extract the target event stream and then apply a separately verified time-slicing workflow for the target JDK/tooling stack.
 
 ```bash
-jfr print --beginTime 60s --endTime 120s --events "jdk.GarbageCollection" /path/to/recording.jfr
+jfr print --events "jdk.GarbageCollection" /path/to/recording.jfr
 ```
 
 ### JSON Output for Programmatic Analysis

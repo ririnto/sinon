@@ -1,6 +1,6 @@
 ---
 title: Reactor
-description: Overview of the Reactor plugin, its included skills, routing decisions, and reactive programming workflow coverage.
+description: Overview of the Reactor plugin, its included skills, selection guidance, and reactive programming workflow coverage.
 ---
 
 Reactor is a shared, skill-first plugin for Project Reactor reactive programming work in the Sinon universal marketplace.
@@ -10,7 +10,7 @@ Reactor is a shared, skill-first plugin for Project Reactor reactive programming
 - Provide reusable Reactor workflows that remain portable across Claude Code and Codex-style plugin systems.
 - Keep skills practical, example-driven, and focused on real reactive programming tasks rather than framework trivia.
 - Separate reactive programming concerns from Java language, Spring framework, and general concurrency concerns.
-- Act as an orchestrator that routes every reactive programming task to exactly one skill.
+- Document the primary skill for each Reactor task while keeping secondary concerns explicit.
 
 ## Included Skills
 
@@ -21,9 +21,9 @@ Reactor is a shared, skill-first plugin for Project Reactor reactive programming
 | `reactor-sinks` | Hot sources | Sinks API, ConnectableFlux, replay/multicast choices, emit result handling |
 | `reactor-testing` | Test verification | StepVerifier, virtual time, TestPublisher, PublisherProbe, post-verification checks |
 
-## Routing decision tree
+## Skill Selection Tree
 
-Use this tree to select the correct skill for any Reactor task.
+Use this tree to select the primary skill for any Reactor task.
 
 ```text
 Is the task about testing a publisher?
@@ -39,7 +39,7 @@ Does the task involve scheduler choice, thread placement, or publishOn/subscribe
   NO  -> reactor-core (default)
 ```
 
-### Routing by surface area
+### Selection by Surface Area
 
 | Task keyword or intent | Skill |
 | --- | --- |
@@ -53,11 +53,11 @@ Does the task involve scheduler choice, thread placement, or publishOn/subscribe
 | multicast, replay, unicast, share, autoConnect, refCount, ConnectableFlux | reactor-sinks |
 | StepVerifier, TestPublisher, PublisherProbe, withVirtualTime, expectNext | reactor-testing |
 
-### Cross-skill dependencies
+### Primary Skill and Secondary Concerns
 
-These patterns require coordination between two skills:
+These patterns keep one primary skill while naming the Reactor concern that may need a focused reference from another area.
 
-| Primary task | Secondary concern | Primary skill | Consult also |
+| Primary task | Secondary concern | Primary skill | Secondary Reactor concern |
 | --- | --- | --- | --- |
 | Blocking bridge inside a pipeline | Where does the blocking call run? | reactor-core | reactor-scheduling (blocking offload reference) |
 | Hot source with thread-safe emission | Which scheduler owns emission? | reactor-sinks | reactor-scheduling (thread-affinity boundary) |
@@ -87,11 +87,41 @@ These topics fall outside Reactor's scope:
 
 Reactor-specific reactive programming and operator composition belong in Reactor guidance. General concurrency patterns outside the Reactor ecosystem belong elsewhere.
 
+## Runtime Model
+
+This plugin uses one shared plugin root with two thin runtime manifests:
+
+- `.claude-plugin/plugin.json`
+- `.codex-plugin/plugin.json`
+
+The actual reusable content lives beside those manifests at the plugin root.
+
+## Plugin Layout
+
+```text
+plugins/reactor/
+├── .claude-plugin/plugin.json
+├── .codex-plugin/plugin.json
+├── README.md
+└── skills/
+    ├── reactor-core/
+    ├── reactor-scheduling/
+    ├── reactor-sinks/
+    └── reactor-testing/
+```
+
+## Shipped Surfaces
+
+- The plugin ships four reusable Reactor skills under `skills/`.
+- The plugin ships no plugin-root `agents/` directory.
+- Each skill may ship a skill-local `agents/openai.yaml` surface for runtimes that consume agent metadata next to the skill.
+- The plugin does not ship commands, hooks, MCP servers, LSP servers, or plugin-root custom runtime data surfaces.
+
 ## Design Principles
 
 - Prefer working reactive pipeline examples over isolated API documentation.
 - Keep examples minimal but runnable in spirit.
-- Route to the smallest Reactor skill that matches the task.
+- Select the smallest Reactor skill that matches the primary task.
 - Keep `SKILL.md` self-contained and usable on its own; use `references/` only for supplemental decision aids and longer notes.
 - Reactor reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries; prose explains the example, the example proves the rule.
 
@@ -106,5 +136,5 @@ Install from Sinon:
 For local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/reactor
+claude --plugin-dir /path/to/sinon/plugins/reactor
 ```

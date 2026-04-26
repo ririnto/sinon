@@ -9,10 +9,7 @@ Customize the prompt only when environment visibility materially reduces operato
 ```java
 @Bean
 PromptProvider promptProvider(ActiveEnvironment environment) {
-    return () -> new AttributedString(
-        "ops-%s:> ".formatted(environment.name()),
-        AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW)
-    );
+    return () -> new AttributedString("ops-%s:> ".formatted(environment.name()), AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
 }
 ```
 

@@ -22,10 +22,9 @@ Use this file to finish one of these jobs:
 
 ## Semantic modeling comparisons
 
-Record vs mutable class:
+Mutable class: fields can change, and equality remains whatever the class explicitly implements.
 
 ```java
-// Mutable class: fields can change, no built-in equality
 final class Money {
     private String currency;
     private long cents;
@@ -45,18 +44,18 @@ final class Money {
 }
 ```
 
+Record: components are final, accessors are generated, and equality is value-based.
+
 ```java
-// Record: immutable, value-based equality, compact
 record Money(String currency, long cents) {
 }
 ```
 
 Use when: the type is primarily a value carrier with stable components, value semantics, and no identity-bearing lifecycle.
 
-Record with invariants vs regular class:
+Record with compact invariant validation:
 
 ```java
-// Record with compact invariant validation
 record Percentage(int value) {
     Percentage {
         if (value < 0 || value > 100) {
@@ -66,8 +65,9 @@ record Percentage(int value) {
 }
 ```
 
+Regular class with evolving state:
+
 ```java
-// Regular class with evolving state
 final class RetryBudget {
     private int remaining;
 
@@ -83,10 +83,9 @@ final class RetryBudget {
 
 Use when: a record still fits if the invariant is construction-time only; stay with a regular class once the type owns evolving state or identity-bearing behavior.
 
-Sealed hierarchy vs open interface:
+Sealed hierarchy: the compiler can enforce the closed set of permitted implementations.
 
 ```java
-// Sealed: compiler-enforced closed hierarchy
 sealed interface PaymentResult permits Approved, Rejected {
 }
 
@@ -97,8 +96,9 @@ record Rejected(String reason) implements PaymentResult {
 }
 ```
 
+Open interface: implementations can come from other packages or modules.
+
 ```java
-// Open: extensible across packages
 public interface PaymentResult {
 }
 
@@ -121,10 +121,9 @@ public final class Rejected implements PaymentResult {
 
 Use when: sealed types fit a closed domain owned by the module, while an open interface with externally defined implementations fits a model that must remain extensible across package or module boundaries.
 
-Enum vs sealed variants:
+Enum: singleton states with no per-variant payload.
 
 ```java
-// Enum: singleton states, no per-variant payload
 enum JobState {
     QUEUED,
     RUNNING,
@@ -133,10 +132,11 @@ enum JobState {
 }
 ```
 
+Sealed variants: each branch can carry a different data shape.
+
 ```java
 import java.time.Duration;
 
-// Sealed: each branch carries different data
 sealed interface JobOutcome permits Success, Failure {
 }
 
@@ -151,10 +151,11 @@ Use when: enum fits singleton states with no per-variant payload, while sealed v
 
 Preview feature gate:
 
+Use a placeholder instead of copying preview-sensitive syntax into ordinary examples.
+
 ```java
-// preview-sensitive primitive pattern example intentionally omitted from common guidance
 switch (value) {
-    // Preview constructs go here only after explicit team decision
+    default -> handleDefault(value);
 }
 ```
 

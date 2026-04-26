@@ -19,7 +19,6 @@ Open this when ordinary factory methods are no longer enough and the source must
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
 import reactor.core.publisher.Flux;
-
 final class GeneratedIds {
     Flux<String> nextIds() {
         AtomicInteger state = new AtomicInteger();
@@ -42,7 +41,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
-
 final class CallbackBridge {
     Flux<String> events() {
         return Flux.create(sink -> {
@@ -62,7 +60,6 @@ final class CallbackBridge {
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class PushBridge {
     Flux<String> singleThreadEvents() {
         return Flux.push(sink -> {
@@ -78,7 +75,6 @@ final class PushBridge {
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class ResourceBoundRead {
     Flux<String> lines() {
         return Flux.using(
@@ -87,12 +83,10 @@ final class ResourceBoundRead {
             SampleResource::close
         );
     }
-
     static final class SampleResource {
         String[] lines() {
             return new String[] {"a", "b"};
         }
-
         void close() {
         }
     }

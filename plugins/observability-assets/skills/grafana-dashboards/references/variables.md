@@ -3,11 +3,13 @@ title: Complete Variable Reference
 description: "Open this when you need the full variable type catalog, syntax formats, global variables, format options, or advanced variable patterns."
 ---
 
-# Complete Variable Reference
+## Complete Variable Reference
 
-Use this reference when you need to understand every variable type in detail, how variable substitution works across different contexts, what global variables are available, and how to build advanced variable patterns like cascading variables and multi-variable repeats.
+Use this reference when you need to understand every variable type in detail, how variable substitution works across different contexts, what global variables are available, and how to build advanced variable patterns like cascading variables and repeat composition.
 
-## All 9 Variable Types
+## Standard Classic Dashboard Variable Types
+
+This reference covers the standard variable types used in classic dashboard JSON (`templating.list`) for the dashboard model this skill defaults to. The standard catalog here is Query, Custom, Text box, Constant, Data source, Interval, and Ad hoc filters. Global variables are built in and chained variables are a usage pattern, not separate selectable types in dashboard JSON.
 
 ### 1. Query Variable (`type: "query"`)
 
@@ -31,7 +33,7 @@ Queries a datasource at runtime to populate options. The most commonly used vari
 }
 ```
 
-**Field reference:**
+Field reference:
 
 | Field | Type | Default | Purpose |
 | --- | --- | --- | --- |
@@ -45,26 +47,23 @@ Queries a datasource at runtime to populate options. The most commonly used vari
 | `current` | object | required | Currently selected value(s) |
 | `hide` | integer | `0` | Visibility: 0=visible, 1=label only, 2=hidden |
 
-**Prometheus query functions for query variables:**
+Prometheus query functions for query variables:
 
 ```promql
-# List all values of a label
 label_values(metric_name, label_name)
 
-# List values matching a filter
 label_values({job="api"}, instance)
 
-# List metric names matching a regex
 metrics(.*_total)
 
-# Query result (returns a single-column table)
 query_result(up{job="api"})
 
-# Label_values with regex filtering on results
 label_values(http_requests_total{code=~"5.."}, method)
 ```
 
-**Regex extraction from query results:**
+These examples list all label values, list values matching a filter, list metric names matching a regex, return a single-column query result, and filter `label_values` by status code.
+
+Regex extraction from query results:
 
 When `regex` is set, Grafana applies it to each result row and uses capture groups to produce the option value. The first capture group becomes the value; if there are two groups, group 1 is value and group 2 is display text.
 
@@ -100,12 +99,14 @@ Static list of options defined at authoring time.
 ```
 
 The `query` field serves as the source text. When it contains commas, Grafana splits on comma to create options. Each option gets:
+
 - `text`: display label shown in the dropdown
 - `value`: actual value used in `${var}` substitution
 
 If no `options` array is provided, Grafana auto-generates one from the `query` string where both text and value are identical to the split segments. Provide explicit `options` when display labels differ from substitution values.
 
 Use custom variables when:
+
 - The set of values is small (under ~20 items)
 - Values are stable and change rarely
 - Display labels should differ from query values
@@ -130,12 +131,12 @@ Free-text input field for arbitrary user-entered values.
 Security consideration: textbox values are interpolated directly into queries. Always use parameterized patterns where the datasource supports them, or apply regex escaping. For PromQL, wrap textbox values appropriately:
 
 ```promql
-# Safer: use regex match with escaped input
 {job=~".*${search}.*"}
 
-# Dangerous: direct interpolation can break query syntax
 ${search}
 ```
+
+The first form keeps the textbox value inside a matcher context. The second form is dangerous because direct interpolation can break query syntax.
 
 ### 4. Constant Variable (`type: "constant"`)
 
@@ -154,6 +155,7 @@ Hidden constant injected into all queries without appearing in the dashboard UI.
 ```
 
 Key behavior:
+
 - `hide: 2` means fully hidden -- not visible anywhere in the dashboard UI
 - The value is always active and substituted wherever `${cluster_id}` appears
 - Cannot be changed by operators through the dashboard interface
@@ -190,7 +192,7 @@ Runtime datasource selector that lets operators switch between datasources.
 }
 ```
 
-**Query filter types:**
+Query filter types:
 
 | Query Value | Matches |
 | --- | --- |
@@ -201,7 +203,7 @@ Runtime datasource selector that lets operators switch between datasources.
 | `""` (empty) | All datasources |
 | `"grafana-cloud-watch"` | Specific plugin by ID |
 
-**Using datasource variables in panels:**
+Using datasource variables in panels:
 
 ```json
 {
@@ -238,24 +240,25 @@ Predefined time interval choices for controlling query granularity.
 }
 ```
 
-**Auto-calculation logic:**
+Auto-calculation logic:
+
 When `auto` is `true` and the operator selects "Auto", Grafana computes:
 
-```
+```text
 interval = (time_range_width) / auto_count
 ```
 
 For example, with `time_range` of 1 hour and `auto_count` of 30, the auto interval is 120 seconds (rounded to the nearest supported step). The computed value replaces `$__interval` and `$__interval_ms` in all queries.
 
-**Usage in PromQL:**
+Usage in PromQL:
 
 ```promql
-# Use $__interval for automatic rate/scrape alignment
 rate(http_requests_total[$__interval])
 
-# Use the named interval variable for manual override
 rate(http_requests_total[${resolution}])
 ```
+
+Use `$__interval` for automatic rate/scrape alignment. Use a named interval variable when operators need a manual override.
 
 ### 7. Ad Hoc Filters Variable (`type: "adhoc"`)
 
@@ -271,6 +274,7 @@ Dynamic tag-key/tag-value filter builder. Creates a UI element where operators a
 ```
 
 How ad hoc filters work:
+
 1. The UI shows an "Add filter" button next to other variables
 2. Operator selects a label key from the available set (queried from the datasource)
 3. Operator chooses an operator (=, !=, =~, !~)
@@ -281,14 +285,14 @@ Example: if the operator adds `job = api` and `environment != test`, every query
 
 No `$variable` syntax is needed in queries -- filters apply automatically through the datasource query system.
 
-### 8. Switch Variable (`type: "switch"`)
+## Boolean Toggle Convention (`type: "custom"`)
 
-Boolean-like toggle between two states.
+If you want a simple on/off toggle in classic dashboard JSON, model it as a two-option custom variable instead of using a separate `switch` type.
 
 ```json
 {
   "name": "verbose",
-  "type": "switch",
+  "type": "custom",
   "label": "Verbose Mode",
   "query": "false,true",
   "current": { "selected": true, "text": "Off", "value": "false" },
@@ -301,10 +305,11 @@ Boolean-like toggle between two states.
 ```
 
 Common use cases:
+
 - Toggle between summary and detailed views
-- Enable/disable debug information
+- Enable or disable debug information
 - Switch between production and staging context
-- Control whether hidden/debug panels appear
+- Control whether optional panels or queries are included through variable interpolation
 
 ## Global Variables
 
@@ -331,19 +336,16 @@ Grafana provides these built-in variables without any declaration in `templating
 **Practical usage examples:**
 
 ```promql
-# Safe rate calculation using $__rate_interval
-# This accounts for potential scrapes missed within the range
 rate(http_requests_total[$__rate_interval])
 
-# Use $__from/$__to for external API calls in data links
 https://external-api.example.com/metrics?start=${__from}&end=${__to}
 
-# Use $__user.login for per-user scoping
 {owner="${__user.login}"}
 
-# Use $__range_s for adaptive window sizing
 histogram_quantile(0.99, sum(rate(request_duration_seconds_bucket[$__range_s])) by (le))
 ```
+
+These examples show safe rate calculation with `$__rate_interval`, external API time bounds with `$__from` and `$__to`, per-user scoping with `$__user.login`, and adaptive window sizing with `$__range_s`.
 
 ## Variable Syntax Formats
 
@@ -360,9 +362,9 @@ Every format modifier changes how multi-value variables expand into query string
 
 | Modifier | Output Format | Example with `[a, b, c]` |
 | --- | --- | --- |
-| *(none)* | Context-dependent (PromQL: pipe-separated) | `a\|b\|c` |
+| *(none)* | Context-dependent (PromQL multi-value: regex alternation) | `(a\|b\|c)` |
 | `:raw` | No quoting or wrapping | `a,b,c` |
-| `:csv` | Comma-separated, quoted | `"a","b","c"` |
+| `:csv` | Comma-separated, unquoted | `a,b,c` |
 | `:doublequote` | Double-quoted, comma-separated | `"a","b","c"` |
 | `:singlequote` | Single-quoted, comma-separated | `'a','b','c'` |
 | `:json` | JSON array | `["a","b","c"]` |
@@ -380,7 +382,7 @@ When no format modifier is specified, Grafana picks a default based on where the
 
 | Context | Default Format | Reason |
 | --- | --- | --- |
-| PromQL expression | `pipe` | PromQL uses `\|` for alternation |
+| PromQL expression | datasource-specific regex alternation for multi-values | PromQL multi-value label matching must use `=~` or `!~` |
 | InfluxQL | `regex` | InfluxQL uses regex for tag matching |
 | URL parameter | `percentencode` | URLs need encoding |
 | Panel title | `glob` | Human-readable |
@@ -392,22 +394,28 @@ When no format modifier is specified, Grafana picks a default based on where the
 **PromQL label matcher (multi-value):**
 
 ```promql
-# CORRECT: csv format wraps each value in quotes
-http_requests_total{instance~"${instances:csv}"}
+http_requests_total{instance=~"${instances:regex}"}
 
-# WRONG: raw format breaks on special characters
-http_requests_total{instance=~$instances}
+http_requests_total{instance!~"${instances:regex}"}
 
-# CORRECT: pipe format works for simple alphanumeric values
-http_requests_total{instance=~${instances:pipe}}
+http_requests_total{instance=~"$instances"}
 ```
+
+Use `=~` or `!~` for Prometheus multi-value variables because Grafana formats multiple selected values as a regular-expression alternation. Avoid `instance="$instances"`, which asks Prometheus to match one literal label value and fails for multiple selections. Prefer `${instances:regex}` when you want the query to show the intended escaping explicitly.
+
+```promql
+http_requests_total{instance=~"${instances:raw}"}
+```
+
+Use `:raw` only when the variable's custom All value or option values are already valid PromQL regex fragments, such as `.+`.
 
 **InfluxQL tag filter:**
 
 ```influxql
-# CORRECT: regex format matches InfluxQL expectations
 SELECT * FROM metrics WHERE tag =~ /${tags:regex}/
 ```
+
+The `:regex` format matches InfluxQL regex filter expectations.
 
 **Data link URL:**
 
@@ -417,13 +425,15 @@ SELECT * FROM metrics WHERE tag =~ /${tags:regex}/
 }
 ```
 
-**Panel title with conditional text:**
+**Panel title interpolation:**
 
 ```json
 {
-  "title": "Metrics ${if verbose then '(Detailed)' else ''}"
+  "title": "Metrics - ${service} (${env})"
 }
 ```
+
+Keep panel titles to plain `${var}` interpolation. Use documented format modifiers only in contexts that need them, such as `${instances:regex}` for regex matchers, `${instances:raw}` for prebuilt fragments, or `${search:percentencode}` for URLs.
 
 ## Advanced Variable Patterns
 
@@ -460,7 +470,7 @@ Chain variables so that selecting one filters the options of another. Each downs
 }
 ```
 
-Set `refresh` to `1` on dependent variables so they re-query when upstream variables change. Refresh modes: `0`=on dashboard load, `1`=on time range change, `2`=never (manual refresh only).
+Set `refresh` to `1` on dependent variables as the normal chained-variable default when the query depends on upstream selections. Move to `2` only when the variable query also depends on the active time range. Refresh modes: `0`=never, `1`=on dashboard load, `2`=on time range change.
 
 ### Interpolation in Panel Titles
 
@@ -472,31 +482,31 @@ Use variables directly in panel titles for dynamic labeling:
 }
 ```
 
-Available template functions in titles:
+Supported interpolation forms used in this reference:
 
 | Function | Example | Result |
 | --- | --- | --- |
 | `${var}` | `${service}` | Variable value |
-| `${var:upper}` | `${service:upper}` | Uppercase |
-| `${var:lower}` | `${service:lower}` | Lowercase |
-| `${if cond then x else y}` | `${if env='prod' then 'PROD' else 'TEST'}` | Conditional |
+| `${var:regex}` | `${instances:regex}` | Regex-safe multi-value expansion |
+| `${var:raw}` | `${instances:raw}` | Unescaped value or fragment |
+| `${var:percentencode}` | `${search:percentencode}` | URL-encoded value |
 | `${__cell_N}` | `${__cell_0}` | Table cell value (row-repeated panels) |
 | `${__data.fields.F}` | `${__data.fields.method}` | Field value from data frame |
 
-### Repeating Across Multiple Variables
+### Repeat Composition
 
-Panels can repeat over multiple variables simultaneously using nested repeat containers or comma-separated variable names:
+Each repeating panel or row should use a single variable name in `repeat`:
 
 ```json
 {
-  "repeat": "instance, job",
+  "repeat": "instance",
   "repeatDirection": "h",
   "maxPerRow": 4,
   "title": "CPU - ${instance} (${job})"
 }
 ```
 
-This creates a cartesian product: every combination of `instance` and `job` values generates a repeated panel. Use sparingly -- the panel count grows multiplicatively.
+If you need a second dimension, compose the layout from supported pieces instead of comma-separating variable names in one `repeat` field. Common patterns are a repeated row for the outer variable with regular `${job}` interpolation inside panel titles and queries, or separate dashboards when the cartesian product would be too large.
 
 ### Variable Hiding Levels
 

@@ -37,11 +37,12 @@ Use this file to finish one of these jobs:
 
 Mutable collection leak:
 
+Broken: returns the mutable internal list.
+
 ```java
 import java.util.ArrayList;
 import java.util.List;
 
-// Broken: returns mutable internal list
 final class UserDirectory {
     private final ArrayList<User> users = new ArrayList<>();
 
@@ -51,11 +52,12 @@ final class UserDirectory {
 }
 ```
 
+Correct: returns an immutable copy with the interface type.
+
 ```java
 import java.util.ArrayList;
 import java.util.List;
 
-// Correct: returns immutable copy with interface type
 final class UserDirectory {
     private final ArrayList<User> users = new ArrayList<>();
 
@@ -69,17 +71,19 @@ Use when: reviewing whether a public getter leaks mutability or overcommits call
 
 Ambiguous absence contract:
 
+Broken: callers must guess whether `null` is possible.
+
 ```java
-// Broken: callers must guess whether null is possible
 interface SessionRepository {
     Session findByToken(String token);
 }
 ```
 
+Correct: absence is explicit in the return type.
+
 ```java
 import java.util.Optional;
 
-// Correct: absence is explicit in the return type
 interface SessionRepository {
     Optional<Session> findByToken(String token);
 }
@@ -89,8 +93,9 @@ Use when: callers need to distinguish ordinary absence from an error instead of 
 
 Named factory for invariant-heavy construction:
 
+Broken: the constructor hides the meaning of parameters and invariants.
+
 ```java
-// Broken: constructor hides the meaning of parameters and invariants
 final class PortRange {
     private final int lo;
     private final int hi;
@@ -105,8 +110,9 @@ final class PortRange {
 }
 ```
 
+Correct: the named factory makes the invariant and units visible at the call site.
+
 ```java
-// Correct: named factory makes the invariant and units visible at the call site
 final class PortRange {
     private final int lo;
     private final int hi;
@@ -129,17 +135,19 @@ Use when: constructor overloads would hide invariants, units, or naming that mat
 
 Recoverable vs programming-error exceptions:
 
+Broken: no distinction between recoverable and programming errors.
+
 ```java
-// Broken: no distinction between recoverable and programming errors
 interface DocumentStore {
     Document load(DocumentId id);
 }
 ```
 
+Correct: checked exception for recoverable I/O failure, unchecked exception for programming error.
+
 ```java
 import java.io.IOException;
 
-// Correct: checked exception for recoverable I/O failure, unchecked for programming error
 interface DocumentStore {
     Document load(DocumentId id) throws IOException;
 }
@@ -158,8 +166,9 @@ Use when: deciding whether the caller can reasonably recover from a boundary fai
 
 Capability interface with hidden implementation:
 
+Broken: callers depend on a concrete class.
+
 ```java
-// Broken: callers depend on concrete class
 public final class EmailValidator {
     public boolean isValid(String value) {
         return value.contains("@");
@@ -167,8 +176,9 @@ public final class EmailValidator {
 }
 ```
 
+Correct: callers depend on capability, and implementation stays hidden.
+
 ```java
-// Correct: callers depend on capability, implementation stays hidden
 public interface EmailValidationService {
     boolean isValid(String value);
 }

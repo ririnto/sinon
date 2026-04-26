@@ -11,7 +11,7 @@ metadata:
   version: "1.x"
 ---
 
-# Reactor Netty
+## Reactor Netty
 
 Build one Reactor Netty application path end to end: pick the transport, configure the builder, compose inbound and outbound flow, and shut resources down cleanly without dropping into low-level Netty internals.
 
@@ -20,7 +20,7 @@ Build one Reactor Netty application path end to end: pick the transport, configu
 - Keep the common path on Reactor Netty builders and reactive flow: `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, and `UdpClient`.
 - Treat `.handle((inbound, outbound) -> ...)` and HTTP route handlers as the main composition points.
 - Do not block inside reactive handlers. Use blocking only at process boundaries such as `bindNow()`, `connectNow()`, terminal response retrieval in top-level sample code, or `onDispose().block()`.
-- Keep low-level Netty details out of the common path. If the task needs `ChannelPipeline`, `ByteBuf.release()`, `ChannelFuture`, or custom codecs, move the answer to those lower-level Netty APIs directly instead of the builder surface.
+- Keep low-level Netty details out of the common path. If the task needs `ChannelPipeline`, `ByteBuf.release()`, `ChannelFuture`, or custom codecs, use the lower-level Netty API model rather than forcing the builder surface.
 - Dispose custom resources explicitly when you create them.
 
 ## When this skill fits
@@ -128,16 +128,17 @@ List<String> chunks = HttpClient.create()
 
 ### Error handling in reactive handlers
 
-Use `onErrorResume` for per-route fallback logic and let unexpected errors propagate to the subscriber:
+Use `onErrorResume` when a handler must convert a reactive failure into an HTTP response, and let unexpected errors propagate when the caller should observe the failure:
 
-Route-level fallback (return an error response for 500):
+Route-level fallback (compose the `500` response inside the handler):
 
 ```java
 .route(routes -> routes
     .get("/hello", (req, res) -> res.sendString(Mono.just("Hello")))
-    .get("/fail", (req, res) -> Mono.error(new RuntimeException("boom")))
-    .errorHandler(500, (req, res) -> res.sendString(
-        Mono.just("Error: " + req.uri()))))
+    .get("/fail", (req, res) -> Mono.error(new RuntimeException("boom"))
+        .onErrorResume(error -> res.status(500)
+            .sendString(Mono.just("Error: " + req.uri()))
+            .then())))
 ```
 
 Handler-level recovery (map errors to fallback values):
@@ -185,7 +186,7 @@ server.onDispose().block();
 
 HTTP client:
 
-`ByteBufFlux.fromString` converts a `String` publisher into a `Flux<ByteBuf>` — the idiomatic way to send string bodies with Reactor Netty HTTP. It is provided by the `reactor-netty-http` artifact.
+`ByteBufFlux.fromString` converts a `String` publisher into a `Flux<ByteBuf>` for request body sends. `ByteBufFlux` is defined in Reactor Netty core and is available transitively when using `reactor-netty-http`.
 
 ```java
 import reactor.netty.ByteBufFlux;
@@ -296,7 +297,7 @@ HttpServer.create()
 | HTTP vs TCP vs UDP | choose the builder that matches the application protocol | the task needs low-level Netty framing or codecs |
 | HTTP routing vs `.handle(...)` | use `.route(...)` for standard HTTP endpoints | use `.handle(...)` when you need lower-level response composition |
 | `.responseSingle()` vs `.responseContent()` | `.responseSingle()` for status + aggregated body | use `.responseContent()` for streaming/chunked response processing |
-| error handling strategy | propagate errors to subscriber; use `errorHandler` for route-level fallbacks | per-handler `onErrorResume` recovery is needed for specific exception types |
+| error handling strategy | propagate errors to the subscriber unless the handler must compose a fallback response with `onErrorResume` | per-handler recovery or explicit `500` response composition is needed for specific exception types |
 | default resources vs custom resources | stay on defaults first | open [`event-loop-and-resources.md`](./references/event-loop-and-resources.md) for isolation or custom sizing |
 | plain text vs TLS | start plain for local flow | open [`ssl-tls.md`](./references/ssl-tls.md) when certificates or HTTPS are required |
 | simple lifecycle vs operational tuning | start with bind/connect + dispose | open [`timeouts-and-pool-tuning.md`](./references/timeouts-and-pool-tuning.md) or [`metrics-and-observability.md`](./references/metrics-and-observability.md) when production tuning appears |
@@ -309,7 +310,7 @@ HttpServer.create()
 - [ ] reactive handlers do not block internally
 - [ ] lifecycle hooks are attached only where they affect behavior
 - [ ] low-level Netty pipeline or buffer ownership details are not required for the common path
-- [ ] error handling uses reactive operators (`onErrorResume`, `errorHandler`) rather than blocking try/catch inside lambdas
+- [ ] error handling uses reactive operators such as `onErrorResume` or explicit response composition rather than blocking try/catch inside lambdas
 - [ ] response consumption shape (`.responseSingle()` vs `.responseContent()`) matches the use case
 
 ## Common pitfalls
@@ -321,7 +322,7 @@ HttpServer.create()
 | creating custom loop resources for every server or client by default | resource churn and disposal complexity rise without a clear benefit | stay on shared defaults first and open the resource reference only when isolation is required |
 | adding lifecycle hooks everywhere | startup and connection flow become noisy without changing behavior | attach `doOn...` hooks only where they affect diagnostics, setup, or teardown |
 | turning on wiretap or metrics as permanent defaults | noise or overhead grows in paths that do not need it | enable operational features deliberately for diagnostics or an existing observability strategy |
-| using Reactor Netty when the real problem is codec or buffer ownership | the builder API stops being the main abstraction and guidance becomes misleading | move the answer to framing, codecs, buffer ownership, and other lower-level Netty APIs directly |
+| using Reactor Netty when the real problem is codec or buffer ownership | the builder API stops being the main abstraction and guidance becomes misleading | address framing, codecs, buffer ownership, and other lower-level Netty APIs directly |
 
 ## Blocker references
 

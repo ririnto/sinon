@@ -9,13 +9,17 @@ Open this when `take(n).toList()` is too coarse and you need item-by-item Flow i
 ## Dependency
 
 ```kotlin
-testImplementation("app.cash.turbine:turbine")
+dependencies {
+    testImplementation("app.cash.turbine:turbine:1.2.1")
+}
 ```
+
+Pin Turbine explicitly unless your project already centralizes versions in a version catalog. The current documented Flow API uses `test { }` for one Flow and `testIn(backgroundScope)` inside `turbineScope { }` for multiple concurrent Flow probes.
 
 ## Basic item inspection
 
 ```kotlin
-import app.cash.turbine.turbine
+import app.cash.turbine.test
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,7 +27,7 @@ import kotlin.test.assertEquals
 class UiStateRepositoryTest {
     @Test
     fun emitsLoadingThenDataThenIdle() = runTest {
-        repository.observe().turbine {
+        repository.observe().test {
             assertEquals(UiState.Loading, awaitItem())
             assertEquals(UiState.Data(userId = "u-1"), awaitItem())
             assertEquals(UiState.Idle, awaitItem())
@@ -38,8 +42,9 @@ class UiStateRepositoryTest {
 ```kotlin
 @Test
 fun emitsNothingWhenIdle() = runTest {
-    repository.observe().turbine {
+    repository.observe().test {
         expectNoEvents()
+        cancelAndIgnoreRemainingEvents()
     }
 }
 ```
@@ -49,7 +54,7 @@ fun emitsNothingWhenIdle() = runTest {
 ```kotlin
 @Test
 fun cancelsSubscriptionOnStop() = runTest {
-    repository.observe().turbine {
+    repository.observe().test {
         assertEquals(UiState.Loading, awaitItem())
         cancelAndIgnoreRemainingEvents()
     }
@@ -59,12 +64,48 @@ fun cancelsSubscriptionOnStop() = runTest {
 ## Error terminal state
 
 ```kotlin
-@Test
-fun propagatesNetworkError() = runTest {
-    val failingFlow: Flow<Data> = flow { throw IOException("connection refused") }
+import app.cash.turbine.test
+import java.io.IOException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
 
-    failingFlow.turbine {
-        awaitError()
+class DataRepositoryTest {
+    @Test
+    fun propagatesNetworkError() = runTest {
+        val failingFlow: Flow<Data> = flow { throw IOException("connection refused") }
+
+        failingFlow.test {
+            awaitError()
+        }
+    }
+}
+```
+
+## Multiple flows
+
+```kotlin
+import app.cash.turbine.testIn
+import app.cash.turbine.turbineScope
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class DashboardRepositoryTest {
+    @Test
+    fun observesStateAndEventsTogether() = runTest {
+        turbineScope {
+            val states = repository.observeState().testIn(backgroundScope)
+            val events = repository.observeEvents().testIn(backgroundScope)
+
+            repository.refresh()
+
+            assertEquals(UiState.Loading, states.awaitItem())
+            assertEquals(UiEvent.RefreshStarted, events.awaitItem())
+            states.cancelAndIgnoreRemainingEvents()
+            events.cancelAndIgnoreRemainingEvents()
+        }
     }
 }
 ```
@@ -72,7 +113,8 @@ fun propagatesNetworkError() = runTest {
 ## Rules
 
 - always consume the turbine fully (`awaitComplete()`, `awaitError()`, `cancelAndIgnoreRemainingEvents()`, or `cancel()`)
-- prefer `turbine { }` over `take(n).toList()` when emission order or terminal state is part of the contract
+- prefer `test { }` over `take(n).toList()` when emission order or terminal state is part of the contract
+- prefer `testIn(backgroundScope)` inside `turbineScope { }` when coordinating multiple flows in one test
 - use `expectNoEvents()` to assert silence rather than assuming no emission means success
 
 ## Pitfalls

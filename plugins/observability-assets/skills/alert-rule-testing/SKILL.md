@@ -85,26 +85,24 @@ Each entry in `input_series` defines one synthetic time series. The `values` fie
 
 ### Counter Notation (Most Common)
 
-Syntax: `<start>+<increment>x<count>`
+Syntax: `<start>+<increment>x<steps>`
 
-Generates `count` samples starting from `start`, each incremented by `increment`, spaced at the configured `interval`.
+Generates `steps + 1` samples: the first sample is `start`, followed by `steps` additional samples incremented by `increment` at the configured `interval`.
+
+For example, `0+6x20` expands to 21 samples: `0, 6, 12, ... 120`.
 
 ```yaml
-# Starts at 0, increments by 6 every interval, generates 20 samples
-# Samples: 0, 6, 12, 18, 24, ..., 114
 - series: 'http_requests_total{job="api",status="500"}'
   values: '0+6x20'
 
-# Starts at 1000, increments by 50, generates 10 samples
-# Samples: 1000, 1050, 1100, ..., 1450
 - series: 'node_cpu_seconds_total{mode="idle"}'
   values: '1000+50x10'
 
-# Zero increment -- flat line of constant values
-# Samples: 1, 1, 1, 1, 1
 - series: 'up{job="api"}'
   values: '1+0x5'
 ```
+
+The examples expand to `0, 6, 12, ... 120`; `1000, 1050, 1100, ... 1500`; and six constant `1` samples.
 
 Use when: modeling counter-like metrics that increase monotonically over time.
 
@@ -113,14 +111,14 @@ Use when: modeling counter-like metrics that increase monotonically over time.
 Space-separated literal sample values:
 
 ```yaml
-# Five explicit samples at each evaluation interval
 - series: 'temperature_celsius{room="server-room"}'
   values: '22.5 23.0 23.5 24.0 25.0'
 
-# Mix of integers and floats
 - series: 'memory_usage_percent{host="db-1"}'
   values: '60 62 65 70 78 85'
 ```
+
+The first series has five explicit samples. The second mixes integer-looking and float-compatible values.
 
 Use when: you need precise control over individual sample values, such as testing threshold boundaries exactly.
 
@@ -129,16 +127,17 @@ Use when: you need precise control over individual sample values, such as testin
 Use `_` for a missing sample and `stale` to mark a series as stale from that point onward:
 
 ```yaml
-# One missing sample at position 3, then stale from position 5 onward
 - series: 'up{job="api",instance="api-1"}'
   values: '1 1 1 _ 1 stale'
 
-# All stale after first three samples
 - series: 'http_requests_total{job="api"}'
   values: '10 12 14 stale'
 ```
 
+The first sequence has one missing sample at position 3, then a stale marker from position 5 onward. The second becomes stale after its first three samples.
+
 Staleness semantics in tests mirror Prometheus production behavior:
+
 - `_` produces a missing sample at that timestamp (the series has no value).
 - `stale` marks the series as stale; subsequent evaluations treat it as if it does not exist until a new non-stale sample appears.
 - A stale series is excluded from range vector calculations and does not appear in instant query results.
@@ -147,21 +146,21 @@ Use when: testing scrape gaps, target downtime, or staleness-dependent expressio
 
 ### Native Histogram Notation
 
-Syntax for native histogram samples (Prometheus >= 2.40):
+Minimal native histogram sample syntax (Prometheus >= 2.40):
 
 ```yaml
 - series: 'http_request_duration_seconds{job="api"}'
   values: '{{schema:1 count:10 sum:2.5 buckets:[1 3 6]}} {{schema:1 count:12 sum:3.0 buckets:[1 4 7]}}'
 ```
 
-Each histogram sample is enclosed in `{{ }}` and contains:
+Each histogram sample is enclosed in `{{ }}`. The minimal fields shown above are enough for compact examples, but promtool supports additional optional fields such as `z_bucket`, `z_bucket_w`, `offset`, `n_buckets`, `n_offset`, `counter_reset_hint`, and `custom_values`.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `schema` | integer | Native histogram schema (power-of-2 bucket base). |
-| `count` | integer | Total observation count for this sample. |
+| `schema` | integer | Native histogram schema. Valid values are `-53` for custom buckets or `-4` through `8` for standard schemas. |
+| `count` | non-negative float | Total observation count for this sample. |
 | `sum` | float | Sum of all observations. |
-| `buckets` | list of integers | Bucket counts for each schema-defined bucket. |
+| `buckets` | list of non-negative floats | Positive bucket counts represented as absolute counts. |
 
 Use when: the rule under test depends on histogram-native structure rather than a float-only approximation. See [`./references/fixture-edge-cases.md`](./references/fixture-edge-cases.md) for more detail.
 
@@ -181,13 +180,13 @@ Each entry in `exp_alerts:` describes one expected firing alert instance:
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `exp_labels` | map | no | `{}` | Labels the firing alert instance MUST have. Only listed labels are checked; extra labels on the actual alert are ignored. |
-| `exp_annotations` | map | no | `{}` | Annotations the firing alert instance MUST have. Checked as rendered template output. |
+| `exp_labels` | map | no | `{}` | Full expanded label set expected for this firing alert instance, excluding `__name__` and the top-level `alertname`. |
+| `exp_annotations` | map | no | `{}` | Full rendered annotation set expected for this firing alert instance. |
 
 Important semantics:
 
 - `alertname` is NOT automatically added to `exp_labels`. If your rule sets `alertname` via labels (unusual), include it explicitly.
-- The check is subset-based: the actual alert must contain all keys/values in `exp_labels`/`exp_annotations`, but may have additional ones.
+- `exp_labels` and `exp_annotations` are exact expected maps for the alert instance. Include every label and annotation the rule emits and do not rely on extra actual keys being ignored.
 - An empty `exp_alerts: []` means "this alert should not be firing at this eval time." This covers both truly-inactive and pending states.
 
 Example with full assertion:
@@ -227,14 +226,12 @@ Example:
 
 ```yaml
 promql_expr_test:
-  # Verify intermediate recording rule output
   - expr: job:http_requests:rate5m{job="api"}
     eval_time: 16m
     exp_samples:
       - labels: '{}'
         value: 94
 
-  # Verify aggregated rate calculation
   - expr: sum(rate(http_requests_total{job="api"}[5m]))
     eval_time: 16m
     exp_samples:
@@ -309,15 +306,15 @@ Failure output example:
 ```text
 FAIL  alerts/api-errors.test.yaml   0.004s
 
-# Expected alert Api5xxRatioAbove5Percent to be firing but it was not firing at 16m0s
-# Test: api-error-firing
-# Expr: 5 < round(100 * sum(...) / sum(...), 0.001)
-# EvalTime: 16m0s
-# Expected:
-#   - alertname: Api5xxRatioAbove5Percent
-#     labels: {severity="page", service="api"}
-# Actual:
-#   (no alerts)
+Expected alert Api5xxRatioAbove5Percent to be firing but it was not firing at 16m0s
+Test: api-error-firing
+Expr: 5 < round(100 * sum(...) / sum(...), 0.001)
+EvalTime: 16m0s
+Expected:
+  - alertname: Api5xxRatioAbove5Percent
+    labels: {severity="page", service="api"}
+Actual:
+  (no alerts)
 ```
 
 Common failure messages and their causes:
@@ -393,35 +390,30 @@ Resolved-state interpretation rule:
 
 Full lifecycle test covering all four states:
 
+The fixture uses low error rate samples for 0-8m, high error rate samples for 8-20m, and recovery samples for 20-28m. The assertions then check below-threshold, pending, firing, and resolved behavior in order.
+
 ```yaml
 tests:
   - name: api-error-full-lifecycle
     interval: 1m
     input_series:
       - series: 'http_requests_total{job="api",status="500"}'
-        # 0-8m: low error rate (below threshold)
-        # 8-20m: high error rate (above threshold)
-        # 20-28m: back to low (recovery)
         values: '0+2x8 0+15x12 0+2x8'
       - series: 'http_requests_total{job="api",status="200"}'
         values: '0+98x8 0+85x12 0+98x8'
     alert_rule_test:
-      # Below threshold -- not firing
       - eval_time: 4m
         alertname: Api5xxRatioAbove5Percent
         exp_alerts: []
-      # Threshold crossed but for=10m not yet satisfied -- pending (not firing)
       - eval_time: 14m
         alertname: Api5xxRatioAbove5Percent
         exp_alerts: []
-      # for=10m satisfied -- firing with expected labels
       - eval_time: 20m
         alertname: Api5xxRatioAbove5Percent
         exp_alerts:
           - exp_labels:
               severity: page
               service: api
-      # Recovered -- resolved (not firing)
       - eval_time: 26m
         alertname: Api5xxRatioAbove5Percent
         exp_alerts: []
@@ -515,6 +507,6 @@ Return:
   - fixture design, eval timing, and expected alert-state checks
   - test YAML schema, input_series notation, and output interpretation
 - Do not activate for:
-  - full alert-rule design (use `prometheus-alert-rules`)
+  - full alert-rule design
   - Alertmanager routing behavior
   - Grafana dashboard authoring or provisioning

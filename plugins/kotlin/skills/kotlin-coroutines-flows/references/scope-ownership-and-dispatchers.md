@@ -38,7 +38,45 @@ val applicationScope = CoroutineScope(
 )
 ```
 
-Invariant: `CoroutineExceptionHandler` installed on a child scope does NOT catch exceptions from sibling coroutines. Install it only at the root scope or directly on `launch`/`async`.
+Invariant: `CoroutineExceptionHandler` observes uncaught exceptions from root coroutines, most commonly a root `launch` or an application scope context. It does not rescue child coroutines from structured-concurrency failure propagation, and it does not handle `async` failures because `async` captures them in `Deferred` until `await()`.
+
+Root `launch` with local exception reporting:
+
+```kotlin
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+fun launchBackgroundRefresh(scope: CoroutineScope) {
+    val handler = CoroutineExceptionHandler { _, throwable ->
+        logger.error("Background refresh failed", throwable)
+    }
+
+    scope.launch(Dispatchers.Default + handler) {
+        refreshCache()
+    }
+}
+```
+
+Use `try/catch` around `await()` when the caller owns an `async` result:
+
+```kotlin
+import java.io.IOException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+
+suspend fun loadDashboardSafely(): DashboardResult = coroutineScope {
+    val summary = async { summaryService.load() }
+    val alerts = async { alertService.load() }
+
+    try {
+        DashboardResult.Ready(summary.await(), alerts.await())
+    } catch (error: IOException) {
+        DashboardResult.Unavailable(error.message.orEmpty())
+    }
+}
+```
 
 ## Patterns
 

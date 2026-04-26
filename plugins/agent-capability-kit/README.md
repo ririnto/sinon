@@ -1,20 +1,46 @@
 # Agent Capability Kit
 
-This package is a Claude Code plugin that teaches four distinct authoring domains:
+This package is a dual-runtime authoring plugin that teaches four distinct domains:
 
-- Claude Code plugin authoring
+- Claude Code and Codex plugin-root authoring for Sinon-style packages
 - Claude Code agent authoring
 - Claude Code command and prompt authoring
 - cross-platform Agent Skill authoring
 
 All content in this package is written in English.
 
-## Scope
+## Purpose
 
-Covered topics:
+- Provide reusable authoring guidance for plugin roots, agents, commands, prompt files, and portable Agent Skills.
+- Keep authoring rules usable from local files alone, without requiring live marketplace or SDK documentation.
+- Share one capability kit across Claude Code and Codex-style plugin packaging while keeping runtime manifests thin.
 
-- plugin root structure and `plugin.json`
-- hooks, MCP, LSP, monitors, output-styles, and settings configuration
+## Included Skills
+
+- `plugin-authoring`: build or refactor a plugin root with paired Claude/Codex manifests, a plugin README, and only the runtime surfaces the plugin actually ships.
+- `agent-authoring`: build or refactor reusable Claude Code agents.
+- `command-authoring`: build or refactor reusable Claude Code commands and prompt files.
+- `skill-authoring`: build or refactor cross-platform Agent Skills.
+
+## Included Agents
+
+This plugin ships no plugin-root `agents/` directory. Agent examples and templates live inside the authoring skill assets instead of being exposed as runtime agents.
+
+## Runtime Model
+
+This plugin uses one shared plugin root with two thin runtime manifests:
+
+- `.claude-plugin/plugin.json`
+- `.codex-plugin/plugin.json`
+
+Both manifests point at the same shared `skills/` content. The plugin root intentionally exposes skills only; it does not ship commands, hooks, MCP servers, LSP servers, monitors, or plugin-root agents.
+
+## Scope Notes
+
+Covered authoring topics:
+
+- plugin root structure, paired runtime manifests, and plugin README content
+- optional runtime-surface configuration for hooks, MCP, LSP, monitors, output styles, and settings when a target plugin actually ships those surfaces
 - authoring guidance for reusable agents under `skills/agent-authoring/`
 - authoring guidance for reusable commands and prompt files under `skills/command-authoring/`
 - cross-platform Agent Skill structure under `skills/`
@@ -39,7 +65,7 @@ Explicitly excluded:
 
 ## Skill index
 
-- `plugin-authoring`: build or refactor a Claude Code plugin root, including hooks, MCP, LSP, settings, and output styles.
+- `plugin-authoring`: build or refactor a plugin root with paired Claude/Codex manifests, a plugin README, and minimal runtime surfaces.
 - `agent-authoring`: build or refactor reusable Claude Code agents.
 - `command-authoring`: build or refactor reusable Claude Code commands and prompt files.
 - `skill-authoring`: build or refactor cross-platform Agent Skills.
@@ -75,6 +101,8 @@ Copy the files you need from each skill's `assets/` directory:
 ```text
 agent-capability-kit/
 ├── .claude-plugin/
+│   └── plugin.json
+├── .codex-plugin/
 │   └── plugin.json
 ├── README.md
 └── skills/

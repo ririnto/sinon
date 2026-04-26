@@ -18,32 +18,42 @@ Open this when Linux or macOS deployment needs native transport features, lower 
 
 ## Dependency pattern
 
+Linux epoll on x86_64:
+
 ```xml
-<!-- Linux epoll (x86_64) -->
 <dependency>
     <groupId>io.netty</groupId>
     <artifactId>netty-transport-native-epoll</artifactId>
     <version>${netty.version}</version>
     <classifier>linux-x86_64</classifier>
 </dependency>
+```
 
-<!-- Linux epoll (aarch64 / ARM64) -->
+Linux epoll on aarch64 or ARM64:
+
+```xml
 <dependency>
     <groupId>io.netty</groupId>
     <artifactId>netty-transport-native-epoll</artifactId>
     <version>${netty.version}</version>
     <classifier>linux-aarch_64</classifier>
 </dependency>
+```
 
-<!-- macOS / BSD kqueue -->
+macOS or BSD kqueue:
+
+```xml
 <dependency>
     <groupId>io.netty</groupId>
     <artifactId>netty-transport-native-kqueue</artifactId>
     <version>${netty.version}</version>
     <classifier>osx-x86_64</classifier>
 </dependency>
+```
 
-<!-- Linux io_uring (JDK 21+, kernel 5.11+) -->
+Linux io_uring on JDK 21+ and kernel 5.11+:
+
+```xml
 <dependency>
     <groupId>io.netty</groupId>
     <artifactId>netty-transport-native-io_uring</artifactId>

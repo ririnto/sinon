@@ -11,7 +11,6 @@ Open this when the blocker is no longer scheduler choice but scheduler construct
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 import java.util.concurrent.ThreadFactory;
-
 final class ReplaceSharedSchedulers {
     void installFactory() {
         Schedulers.setFactory(new Schedulers.Factory() {
@@ -49,14 +48,13 @@ Use shared-scheduler replacement only when scheduler policy must change applicat
 | integrate an existing executor | `Schedulers.fromExecutorService(...)` | bridge existing infrastructure deliberately |
 
 > [!NOTE]
-> `Schedulers.fromExecutor(Executor)` is deprecated in Reactor 3.7+. Use `Schedulers.fromExecutorService(ExecutorService)` instead, which provides proper lifecycle management and disposal semantics.
+> `Schedulers.fromExecutor(Executor)` remains available in Reactor 3.7.18, but Reactor's scheduler guide discourages it when an `ExecutorService` is available. Prefer `Schedulers.fromExecutorService(ExecutorService)` for clearer lifecycle management and disposal semantics.
 
 ## Dedicated scheduler factory methods
 
 ```java
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-
 final class CustomSchedulerFactory {
     Scheduler cpuScheduler() {
         return Schedulers.newParallel("reactor-cpu", 4);
@@ -74,7 +72,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-
 final class ExecutorBridge {
     Scheduler customScheduler() {
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(4);
@@ -83,13 +80,22 @@ final class ExecutorBridge {
 }
 ```
 
+## Shared `boundedElastic()` on virtual threads
+
+On Java 21+, the shared `Schedulers.boundedElastic()` can use a thread-per-task implementation backed by virtual threads when the JVM starts with the Reactor system property set to `true`:
+
+```bash
+java -Dreactor.schedulers.defaultBoundedElasticOnVirtualThreads=true -jar app.jar
+```
+
+Use this shared path when the whole application should run bounded-elastic tasks on virtual threads. Keep the normal `Mono.fromCallable(...).subscribeOn(Schedulers.boundedElastic())` bridge shape; only the scheduler backing changes.
+
 ## Lifecycle and disposal
 
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-
 final class SchedulerLifecycle {
     void run() {
         Scheduler scheduler = Schedulers.newSingle("reactor-worker");
@@ -114,7 +120,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-
 final class GracefulShutdown {
     Mono<Void> shutdown(Scheduler scheduler) {
         return Flux.range(1, 3)
@@ -133,7 +138,7 @@ final class GracefulShutdown {
 - Replace shared defaults with `Schedulers.setFactory(...)` only when the policy must change globally.
 - Tune `newBoundedElastic(...)` only when thread cap or queue cap is the actual blocker.
 - Prefer naming dedicated schedulers so thread dumps and logs are readable.
-- If the application is on Java 21+, virtual-thread-backed bounded elastic is a deployment concern, not an ordinary scheduling default.
+- If the application is on Java 21+, virtual-thread-backed bounded elastic is enabled by `reactor.schedulers.defaultBoundedElasticOnVirtualThreads=true`, not by changing each call site.
 
 ## Observability boundary
 

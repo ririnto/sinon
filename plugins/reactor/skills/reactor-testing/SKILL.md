@@ -4,19 +4,21 @@ description: >-
   Test Reactor publishers with reactor-test using StepVerifier, virtual time, TestPublisher, and PublisherProbe. Use this skill when designing or reviewing Reactor tests with reactor-test: StepVerifier workflow, virtual time, request and cancellation assertions, TestPublisher, PublisherProbe, and ordinary post-verification checks.
 metadata:
   title: "Reactor Testing"
-  official_project_url: "https://projectreactor.io/docs/test/release/reference/"
+  official_project_url: "https://projectreactor.io/docs/core/3.7.18/reference/testing.html"
   reference_doc_urls:
-    - "https://projectreactor.io/docs/test/release/reference/"
-    - "https://projectreactor.io/docs/test/release/api/"
-  version: "3.7"
+    - "https://projectreactor.io/docs/core/3.7.18/reference/testing.html"
+    - "https://projectreactor.io/docs/test/3.7.18/api/"
+  version: "3.7.18"
   dependencies:
-    - "io.projectreactor:reactor-core:3.7.x"
-    - "io.projectreactor:reactor-test:3.7.x"
+    - "io.projectreactor:reactor-core:3.7.18"
+    - "io.projectreactor:reactor-test:3.7.18"
 ---
 
 Test Reactor publishers with the ordinary `reactor-test` path.
 
 This skill covers everyday `StepVerifier` flow, success/empty/error assertions, virtual time, request and cancellation assertions, `TestPublisher`, `PublisherProbe`, and ordinary post-verification checks. Keep advanced `StepVerifierOptions`, context-specific expectations, timeout-heavy scenarios, and noncompliant publishers in blocker references.
+
+Use `consumeRecordedWith(...)` only after `recordWith(...)` and before terminal verification in the verifier chain.
 
 ## Use this skill when
 
@@ -99,7 +101,7 @@ This skill covers everyday `StepVerifier` flow, success/empty/error assertions, 
 | manual upstream source | `TestPublisher.create()` | emits signals on demand |
 | branch selection check | `PublisherProbe.empty()` or `PublisherProbe.of(...)` | verifies subscription path |
 | dropped/discarded checks | `verifyThenAssertThat()` | post-execution assertions |
-| recorded-signal inspection | `verifyThenAssertThat().consumeRecordedWith(...)` | inspect all recorded signals after verification |
+| recorded-value inspection | `recordWith(...).consumeRecordedWith(...)` before terminal verification | inspect recorded `onNext` values during the scenario |
 
 ## Ready-to-adapt examples
 
@@ -109,12 +111,10 @@ This skill covers everyday `StepVerifier` flow, success/empty/error assertions, 
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
-
 class BasicStepVerifierTest {
     @Test
     void verifiesValuesAndCompletion() {
         Flux<String> flux = Flux.just("alpha", "beta", "gamma");
-
         StepVerifier.create(flux)
             .expectNext("alpha", "beta", "gamma")
             .verifyComplete();
@@ -129,7 +129,6 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 class VirtualTimeTest {
     @Test
     void verifiesDelayedSignalWithoutWaiting() {
@@ -148,12 +147,10 @@ class VirtualTimeTest {
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.TestPublisher;
-
 class TestPublisherExample {
     @Test
     void emitsOnDemand() {
         TestPublisher<String> publisher = TestPublisher.create();
-
         StepVerifier.create(publisher.flux())
             .then(() -> publisher.emit("first", "second"))
             .expectNext("first", "second")
@@ -169,16 +166,13 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.test.publisher.PublisherProbe;
-
 class PublisherProbeExample {
     @Test
     void verifiesFallbackSubscription() {
         PublisherProbe<String> fallback = PublisherProbe.empty();
         Mono<String> result = Mono.<String>empty().switchIfEmpty(fallback.mono());
-
         StepVerifier.create(result)
             .verifyComplete();
-
         fallback.assertWasSubscribed();
     }
 }
@@ -190,7 +184,6 @@ class PublisherProbeExample {
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
-
 class RequestAndCancellationExample {
     @Test
     void controlsDemandExplicitly() {
@@ -211,7 +204,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
-
 class PostVerificationExample {
     @Test
     void checksExecutionTime() {
@@ -232,7 +224,6 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 import static org.assertj.core.api.Assertions.assertThat;
-
 class AssertNextExample {
     @Test
     void assertsMultiplePropertiesPerValue() {
@@ -252,19 +243,19 @@ class AssertNextExample {
 
 ### Virtual time and `delayElement` caveat
 
-`delayElement` uses `Schedulers.parallel()` by default, which bypasses virtual time just like `subscribeOn`. Use `delaySubscription` instead when working inside `withVirtualTime`, or ensure no real-scheduler call appears in the publisher chain.
+`withVirtualTime` replaces Reactor's scheduler factory before the supplier runs, so default-timed operators such as `delayElement(Duration)` are compatible when the publisher is created lazily inside the supplier. The failure mode is creating the delayed publisher before `withVirtualTime(...)`, or passing an explicit real scheduler to a timed operator.
 
 ```java
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 class DelayElementVirtualTimeTest {
     @Test
-    void badDelayElementInVirtualTime() {
+    void badEagerDelayElementInVirtualTime() {
+        Mono<String> delayed = Mono.just("value").delayElement(Duration.ofSeconds(5));
         StepVerifier.withVirtualTime(() ->
-            Mono.just("value").delayElement(Duration.ofSeconds(5))
+            delayed
         )
             .expectSubscription()
             .expectNoEvent(Duration.ofSeconds(5))
@@ -272,9 +263,9 @@ class DelayElementVirtualTimeTest {
             .verifyComplete();
     }
     @Test
-    void goodVirtualTimeWithoutDelayElement() {
+    void goodLazyDelayElementInVirtualTime() {
         StepVerifier.withVirtualTime(() ->
-            Mono.just("value").delaySubscription(Duration.ofSeconds(5))
+            Mono.just("value").delayElement(Duration.ofSeconds(5))
         )
             .expectSubscription()
             .expectNoEvent(Duration.ofSeconds(5))
@@ -284,7 +275,7 @@ class DelayElementVirtualTimeTest {
 }
 ```
 
-The first test may hang or fail because `delayElement` uses the real `parallel()` scheduler. The second test uses `delaySubscription` which is compatible with virtual time.
+The first test may hang or fail because the scheduler was captured before virtual time was installed. The second test creates the `delayElement` publisher inside the supplier, allowing virtual time to replace the default timed scheduler.
 
 ## Common pitfalls
 

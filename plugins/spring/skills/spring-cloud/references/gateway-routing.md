@@ -10,9 +10,7 @@ Use Gateway when the service itself must own a routing boundary, edge policy, or
 @Bean
 RouteLocator routes(RouteLocatorBuilder builder) {
     return builder.routes()
-        .route("catalog", route -> route.path("/catalog/**")
-            .filters(filters -> filters.stripPrefix(1).retry(3))
-            .uri("lb://catalog-service"))
+        .route("catalog", route -> route.path("/catalog/**").filters(filters -> filters.stripPrefix(1).retry(3)).uri("lb://catalog-service"))
         .build();
 }
 ```

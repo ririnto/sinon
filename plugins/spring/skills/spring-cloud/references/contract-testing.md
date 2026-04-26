@@ -9,7 +9,9 @@ This is a testing and compatibility surface, not ordinary remote-call wiring.
 ### Groovy DSL
 
 ```groovy
-org.springframework.cloud.contract.spec.Contract.make {
+import org.springframework.cloud.contract.spec.Contract
+
+Contract.make {
     request {
         method 'GET'
         url '/orders/1'

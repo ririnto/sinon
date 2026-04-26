@@ -34,7 +34,7 @@ description: >-
   </example>
 model: inherit
 color: green
-tools: ["Read", "Write", "Bash", "Glob"]
+tools: ["Read", "Write", "Edit", "Bash", "Glob"]
 ---
 
 # End-to-End Driver

@@ -1,7 +1,7 @@
 ---
 name: grafana-dashboards
 description: >-
-  Author and review Grafana dashboards as version-controlled JSON assets with stable uid, deliberate datasource handling, and operator-centric panel layout. Use this skill when creating or reviewing Grafana dashboards, editing dashboard JSON, authoring panel queries and visualization config, using Grafana variables (all 9 types), configuring transformations, field config, thresholds, overrides, and value mappings, stabilizing dashboard uid, applying USE/RED/Golden Signals frameworks, setting up repeat behavior and links, using a Grafana mixin or Jsonnet generation workflow, or needing guidance on Grafana dashboard asset structure and panel JSON schema.
+  Author and review Grafana dashboards as version-controlled JSON assets with stable uid, deliberate datasource handling, and operator-centric panel layout. Use this skill when creating or reviewing Grafana dashboards, editing classic dashboard JSON, authoring panel queries and visualization config, using Grafana variables (7 standard classic templating types plus global variables), configuring transformations, field config, thresholds, overrides, and value mappings, stabilizing dashboard uid, applying USE/RED/Golden Signals frameworks, setting up repeat behavior and links, using a Grafana mixin or Jsonnet generation workflow, or needing guidance on Grafana dashboard asset structure and panel JSON schema.
 ---
 
 # Grafana Dashboards
@@ -132,7 +132,7 @@ Merge this fragment into the full dashboard shell to drive repeated panels from 
 
 Use when: one panel shape should repeat across a bounded variable set without copying panel JSON by hand. This is a fragment to merge into the full dashboard shell, not a standalone importable dashboard.
 
-For the full variable type reference (all 9 types, syntax formats, global variables), see [`./references/variables.md`](./references/variables.md).
+For the full variable type reference (7 standard classic variable types, plus global variables and a boolean-toggle convention), see [`./references/variables.md`](./references/variables.md).
 
 ### Transformations and Field Config
 
@@ -348,7 +348,7 @@ For complete JSON schemas covering all remaining panel types (gauge, barchart, h
 
 ## Variable Types Reference (Common Path)
 
-The three most common variable types. For all 9 types with complete JSON schemas, global variables, format modifier catalog, cascading patterns, and transformation types, see [`./references/variables.md`](./references/variables.md).
+The three most common variable types. For all 7 standard classic variable types with complete JSON schemas, global variables, format modifier catalog, cascading patterns, and a boolean-toggle convention, see [`./references/variables.md`](./references/variables.md).
 
 ### Query Variable (Most Common)
 
@@ -572,7 +572,7 @@ Attach clickable URLs to data points that open external resources with interpola
       "links": [
         {
           "title": "View Traces",
-          "url": "https://jaeger.example.com/search?service=${__data.fields.service}&start=${__url_time_range}",
+          "url": "https://jaeger.example.com/search${__url_time_range}&service=${__data.fields.service}",
           "targetBlank": true,
           "tooltip": "Open in Jaeger"
         }
@@ -732,12 +732,7 @@ Control how repeated panels lay out across the dashboard.
 {
   "repeat": "instance",
   "repeatDirection": "h",
-  "maxPerRow": 3,
-  "repeatOptions": {
-    "repeatingPattern": {
-      "variables": ["instance"]
-    }
-  }
+  "maxPerRow": 3
 }
 ```
 
@@ -746,9 +741,8 @@ Control how repeated panels lay out across the dashboard.
 | `repeat` | variable name | Which variable drives repetition |
 | `repeatDirection` | `"h"`, `"v"` | Horizontal or vertical layout |
 | `maxPerRow` | integer | Max panels per row (horizontal mode only) |
-| `repeatOptions.repeatingPattern.variables` | array | For multi-variable repeats (tabs/rows) |
 
-When `repeatDirection` is `"h"`, panels fill left-to-right, wrapping to the next row after `maxPerRow`. When `"v"`, panels stack top-to-bottom. A repeating parent panel can also create tabs instead of grids by setting `repeatDirection` to `"h"` and using a row-level repeat container.
+When `repeatDirection` is `"h"`, panels fill left-to-right, wrapping to the next row after `maxPerRow`. When `"v"`, panels stack top-to-bottom. Keep one repeat driver per repeating panel or row. If you still need a two-dimensional layout, compose it from supported building blocks such as a repeated row for the outer dimension and panels inside that row using regular variable interpolation for titles and queries.
 
 ## JSON Model Boundary
 
@@ -807,7 +801,7 @@ Return:
 | If the blocker is... | Read... |
 | --- | --- |
 | Complete JSON schema for ALL panel types (bar gauge, candlestick, trend, XY chart, node graph, traces, flame graph, canvas, geomap, dashboard list, alert list, annotations list, text/news) | [`./references/panel-types.md`](./references/panel-types.md) |
-| Complete variable reference: all 9 types, syntax formats, global vars, format options, advanced patterns | [`./references/variables.md`](./references/variables.md) |
+| Complete variable reference: 7 standard classic variable types, global vars, format options, advanced patterns, boolean-toggle convention | [`./references/variables.md`](./references/variables.md) |
 | Complete field config, all override property IDs, value mappings, data link variables, data link builder patterns | [`./references/field-config.md`](./references/field-config.md) |
 | Grafana mixin or Jsonnet-oriented dashboard generation, source-vs-rendered handoff, render commands | [`./references/grafana-mixin.md`](./references/grafana-mixin.md) |
 | Export cleanup decisions, normalization targets, ownership boundaries after UI edits or rendering | [`./references/dashboard-structure.md`](./references/dashboard-structure.md) |
@@ -835,7 +829,7 @@ Return:
 | mixing unrelated panels into one dashboard | operators cannot read the story quickly | group panels by one question such as traffic, latency, and errors |
 | leaving datasource references implicit or environment-specific without review | dashboards break when moved between environments | make datasource references explicit in the dashboard asset itself |
 | using timeseries panels for everything regardless of the question | single values look wrong on line charts, categorical data looks wrong on time axes | pick the panel type that matches the data shape and operator question |
-| using `$var` syntax for multi-value variables in PromQL label matchers | unquoted values break queries when values contain special characters | use `${var:csv}` for PromQL label matchers with multi-select variables |
+| using `$var` syntax with `=` for multi-value variables in PromQL label matchers | multi-value selections expand as a regex alternation, not as one literal label value | use `=~"${var:regex}"` and set a safe custom All value such as `.+` when needed |
 | forgetting to handle null/NaN in value mappings | missing data shows as ugly raw values or breaks visualizations | always include a `special` mapping for `null` and `NaN` |
 | putting thresholds on a field without setting min/max when using percentage mode | percentage thresholds have no basis and behave unpredictably | either use absolute mode, or set explicit `min` and `max` for percentage mode |
 | overriding by name on auto-generated field names like "Value #A" | field names change when queries are edited, breaking overrides | use `byRegexp` or `byFrameRefID` matchers for query-derived fields |

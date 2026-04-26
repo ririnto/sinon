@@ -9,7 +9,6 @@ Open this when the sink type is already correct but emission outcomes and retry 
 
 ```java
 import reactor.core.publisher.Sinks;
-
 final class EmitResultBranching {
     void publish(Sinks.Many<String> sink, String value) {
         Sinks.EmitResult result = sink.tryEmitNext(value);
@@ -17,7 +16,6 @@ final class EmitResultBranching {
             handleFailure(result);
         }
     }
-
     private void handleFailure(Sinks.EmitResult result) {
         switch (result) {
             case FAIL_OVERFLOW -> System.err.println("downstream cannot keep up -- consider backpressure policy change");
@@ -48,7 +46,6 @@ Each `EmitResult` variant requires a different recovery strategy. Branching on t
 
 ```java
 import reactor.core.publisher.Sinks;
-
 final class RetriedEmission {
     void publish(Sinks.Many<String> sink, String value) {
         sink.emitNext(value, (signalType, emitResult) -> emitResult == Sinks.EmitResult.FAIL_NON_SERIALIZED);
@@ -60,7 +57,6 @@ Use `FAIL_FAST` when no retry should happen.
 
 ```java
 import reactor.core.publisher.Sinks;
-
 final class FailFastEmission {
     void publish(Sinks.Many<String> sink, String value) {
         sink.emitNext(value, Sinks.EmitFailureHandler.FAIL_FAST);

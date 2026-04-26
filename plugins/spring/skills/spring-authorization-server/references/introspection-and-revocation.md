@@ -30,10 +30,8 @@ Revocation changes token lifecycle semantics. Treat it as part of the client com
 
 ```java
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-    .tokenIntrospectionEndpoint(introspection -> {
-    })
-    .tokenRevocationEndpoint(revocation -> {
-    });
+    .tokenIntrospectionEndpoint(introspection -> {})
+    .tokenRevocationEndpoint(revocation -> {});
 ```
 
 ## Decision points

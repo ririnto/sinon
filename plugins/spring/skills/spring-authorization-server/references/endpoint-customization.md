@@ -24,12 +24,7 @@ The token endpoint uses `AuthenticationConverter` and `AuthenticationProvider` c
 AuthenticationProvider customAuthenticationProvider = new CustomExtensionGrantAuthenticationProvider(authorizationService, tokenGenerator);
 
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-    .tokenEndpoint(token -> token
-        .accessTokenRequestConverter(this::configureAccessTokenRequestConverters)
-        .authenticationProvider(customAuthenticationProvider)
-        .accessTokenResponseHandler(this::handleAccessTokenResponse)
-        .errorResponseHandler(this::handleErrorResponse)
-    );
+    .tokenEndpoint(token -> token.accessTokenRequestConverter(this::configureAccessTokenRequestConverters).authenticationProvider(customAuthenticationProvider).accessTokenResponseHandler(this::handleAccessTokenResponse).errorResponseHandler(this::handleErrorResponse));
 ```
 
 ## Authorization-request validator hook
@@ -37,22 +32,20 @@ http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 For request validation, prefer the official provider validator hooks rather than inventing a token-endpoint validator abstraction.
 
 ```java
-Consumer<List<AuthenticationProvider>> configureAuthenticationProviders = authenticationProviders ->
-    authenticationProviders.forEach(authenticationProvider -> {
-        if (authenticationProvider instanceof OAuth2AuthorizationCodeRequestAuthenticationProvider authorizationCodeRequestAuthenticationProvider) {
-            authorizationCodeRequestAuthenticationProvider.setAuthenticationValidator(customValidator);
-        }
-    });
+Consumer<AuthenticationProvider> configureAuthenticationProvider = authenticationProvider -> {
+    if (authenticationProvider instanceof OAuth2AuthorizationCodeRequestAuthenticationProvider authorizationCodeRequestAuthenticationProvider) {
+        authorizationCodeRequestAuthenticationProvider.setAuthenticationValidator(customValidator);
+    }
+};
+
+Consumer<List<AuthenticationProvider>> configureAuthenticationProviders = authenticationProviders -> authenticationProviders.forEach(configureAuthenticationProvider);
 ```
 
 ## Authorization endpoint customization
 
 ```java
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-    .authorizationEndpoint(authorization -> authorization
-        .consentPage("/custom-consent")
-        .authorizationRequestConverter(this::configureAuthorizationRequestConverter)
-    );
+    .authorizationEndpoint(authorization -> authorization.consentPage("/custom-consent").authorizationRequestConverter(this::configureAuthorizationRequestConverter));
 ```
 
 ## Decision rules

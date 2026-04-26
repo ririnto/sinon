@@ -15,9 +15,9 @@ Provision Grafana dashboards as reviewed files instead of relying on long-lived 
 3. Decide how each environment applies the same dashboard source: shared provider path, separate provider files, or environment-specific directories with the same review rules.
 4. Decide whether the path maps to a fixed folder or to `foldersFromFilesStructure`.
 5. Keep `allowUiUpdates` and `updateIntervalSeconds` deliberate so operators understand whether UI edits are temporary or part of the delivery path.
-6. Review the dashboard JSON wrapper structure: `dashboard` key, `overwrite: true`, `id: null`, and optional `folderUid` inside each JSON file.
+6. Review the raw dashboard JSON source files for stable `uid`, deliberate `title`, expected `schemaVersion`, and instance-specific cleanup such as removing or nulling `id` before the file becomes Git-owned source.
 7. Place the provider YAML where Grafana actually loads provisioning config for the target environment, and ensure the referenced dashboard path is mounted or copied into the Grafana runtime before expecting the dashboards to appear.
-8. Check the provider YAML itself for path, folder strategy, environment application, and file-wins behavior before treating the dashboard delivery workflow as ready.
+8. Check the provider YAML and dashboard source files themselves for path, folder strategy, environment application, and file-wins behavior before treating the dashboard delivery workflow as ready.
 
 ## Grafana Config File Locations
 
@@ -62,36 +62,19 @@ Complete provider config -- every field with type, default, and description:
 ```yaml
 apiVersion: 1
 providers:
-  # Required. Human-readable identifier for this provider.
   - name: observability-dashboards
-    # Optional. Grafana organization ID. Default: 1 (default org).
     orgId: 1
-    # Optional. Fixed Grafana folder name for all dashboards from this provider.
-    # Mutually exclusive with options.foldersFromFilesStructure.
-    # If omitted and foldersFromFilesStructure is false, dashboards go to Grafana root.
     folder: Operations
-    # Required. Must be "file" for filesystem-based provisioning.
     type: file
-    # Optional. Prevent deletion of provisioned dashboards when source file is removed.
-    # Default: false (removing the source file deletes the dashboard).
     disableDeletion: false
-    # Optional. How often Grafana rescans the dashboard directory.
-    # >10 seconds: polling-based reload.
-    # <=10 seconds: filesystem watch events (inotify / FSEvents).
-    # Default: 30.
     updateIntervalSeconds: 30
-    # Optional. Allow UI edits on provisioned dashboards.
-    # Default: false.
     allowUiUpdates: false
     options:
-      # Required. Filesystem path to the directory containing dashboard JSON files.
       path: /var/lib/grafana/dashboards/operations
-      # Optional. Mirror top-level subdirectories into Grafana folders.
-      # When true: folder and folderUid at provider level MUST be unset.
-      # When true: only one level of nesting is supported (no nested folders).
-      # Default: false.
       foldersFromFilesStructure: false
 ```
+
+Field meanings: `name` is the provider identifier; `orgId` defaults to `1`; `folder` fixes the target folder and is mutually exclusive with `options.foldersFromFilesStructure`; `type` must be `file`; `disableDeletion` defaults to `false`; `updateIntervalSeconds` defaults to `30`; `allowUiUpdates` defaults to `false`; `options.path` must point at the dashboard JSON directory; `options.foldersFromFilesStructure` mirrors one directory level into Grafana folders when no provider-level folder is set.
 
 Use when: you need one stable provider file for dashboard JSON already tracked in Git, with all fields explicitly documented.
 
@@ -105,11 +88,46 @@ python3 -c "import yaml; yaml.safe_load(open('grafana/provisioning/dashboards.ya
 
 Use when: the provider config was just edited and you need a fast syntax check before treating it as ready for deployment. Replace the path with your actual provider file location.
 
-## Dashboard JSON Wrapper Schema
+## Dashboard Source File Shape
 
-Every dashboard source file MUST use the Grafana provisioning wrapper format. The raw panel JSON exported from the UI is not sufficient by itself.
+Legacy file provisioning reads raw dashboard JSON files from the provider `options.path`. Keep the source files as plain dashboard definitions rather than API import payloads.
 
-Required wrapper structure:
+Representative source file:
+
+```json
+{
+  "id": null,
+  "uid": "team-api-overview",
+  "title": "API Overview",
+  "tags": ["operations", "api"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "panels": []
+}
+```
+
+Field semantics in the source file:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | integer/null | recommended | Remove it or set it to `null` before committing cross-instance source. Numeric IDs are database-local and should not be treated as portable identifiers. |
+| `uid` | string | recommended | Stable identifier for this dashboard. Used in URLs (`/d/<uid>/...`) and cross-dashboard links. Auto-generated if omitted, but explicit UIDs are strongly recommended for reproducible deployments. |
+| `title` | string | yes | Human-readable dashboard title. |
+| `schemaVersion` | integer | yes | Classic dashboard JSON schema version for the file. |
+| `version` | integer | no | Dashboard revision metadata. Grafana ignores it as a conflict gate during file provisioning. |
+| `panels` | array | yes | Panel definitions that make up the dashboard. |
+
+The provider YAML controls placement and sync behavior. Keep `folder`, provider-level `folderUid`, `disableDeletion`, `allowUiUpdates`, and `updateIntervalSeconds` in the provider config instead of mixing API-only wrapper fields into the dashboard source file.
+
+Use when: you need the correct on-disk shape for dashboard files that Grafana loads from a provider path.
+
+## API and Resource Payload Boundary
+
+Do not confuse raw file-provisioning source files with API or resource envelopes.
+
+Dashboard import-style payloads use a separate outer object:
 
 ```json
 {
@@ -117,33 +135,19 @@ Required wrapper structure:
     "id": null,
     "uid": "team-api-overview",
     "title": "API Overview",
-    "tags": ["operations", "api"],
-    "timezone": "browser",
     "schemaVersion": 39,
     "version": 1,
-    "refresh": "30s",
     "panels": []
   },
-  "folderUid": "",
+  "folderUid": "operations",
   "overwrite": true,
-  "message": ""
+  "message": "sync from automation"
 }
 ```
 
-Field semantics inside the wrapper:
+Use this envelope only for API-driven or resource-specific workflows that explicitly ask for it. Do not commit this wrapper as the raw dashboard file under a legacy provider `options.path`.
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `dashboard` | object | yes | The actual dashboard definition. Always nested under this key. |
-| `dashboard.id` | integer/null | recommended | Set to `null` for provisioning. Grafana auto-assigns a new ID on first import; subsequent updates match by uid. Never hardcode an ID from another instance. |
-| `dashboard.uid` | string | recommended | Stable identifier for this dashboard. Used in URLs (`/d/<uid>/...`) and cross-dashboard links. Auto-generated if omitted, but explicit UIDs are strongly recommended for reproducible deployments. |
-| `folderUid` | string | no | UID of the target Grafana folder. Only needed when using fixed-folder mode and you want to reference a specific folder by UID rather than name. Auto-resolved from the provider's `folder` name if omitted. |
-| `overwrite` | boolean | **yes** | Must be `true`. Without this, Grafana will import the dashboard once and never update it on subsequent syncs even if the file content changes. This is the most common provisioning gotcha. |
-| `message` | string | no | Change message shown in the dashboard version history when the dashboard is updated. Leave empty for automated provisioning. |
-
-**Critical invariant**: The `version` property inside `dashboard` is ignored by Grafana during provisioning. Even if the file contains `"version": 1` and the database has `"version": 15`, Grafana uses the file content regardless. Do not attempt to manage version numbers in source files.
-
-Use when: you need the exact wrapper shape that Grafana expects for file-based provisioning, including why `overwrite: true` and `id: null` are non-negotiable.
+Use when: the blocker is translating between provider-path source files and API or resource payloads that add `dashboard`, `folderUid`, `overwrite`, or `message` fields.
 
 ## Ready-to-Adapt Templates
 
@@ -177,40 +181,36 @@ providers:
 
 Use when: repository directories already model the folder split and nested folder trees are not required.
 
-Dashboard JSON file with explicit uid and overwrite -- correct provisioning shape:
+Dashboard JSON source file with explicit uid -- correct legacy file-provisioning shape:
 
 ```json
 {
-  "dashboard": {
-    "id": null,
-    "uid": "ops-api-overview",
-    "title": "API Overview",
-    "tags": ["generated"],
-    "timezone": "browser",
-    "schemaVersion": 39,
-    "version": 1,
-    "refresh": "30s",
-    "panels": [
-      {
-        "id": 1,
-        "title": "Request Rate",
-        "type": "timeseries",
-        "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
-        "targets": [
-          {
-            "expr": "sum(rate(http_requests_total[5m])) by (method)",
-            "legendFormat": "{{method}}"
-          }
-        ]
-      }
-    ]
-  },
-  "folderUid": "",
-  "overwrite": true
+  "id": null,
+  "uid": "ops-api-overview",
+  "title": "API Overview",
+  "tags": ["generated"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Request Rate",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[5m])) by (method)",
+          "legendFormat": "{{method}}"
+        }
+      ]
+    }
+  ]
 }
 ```
 
-Use when: you need a complete, copy-adaptable dashboard JSON file that follows all provisioning conventions.
+Use when: you need a complete, copy-adaptable dashboard JSON file that can live directly under the provider path.
 
 Environment application split -- keep one reviewed dashboard source with environment-specific provider paths:
 
@@ -247,22 +247,23 @@ Syntax rules:
 
 | Syntax | Behavior |
 | --- | --- |
-| `$ENV_VAR` | Replaced with value of `ENV_VAR`. |
-| `${ENV_VAR}` | Same as above; use when adjacent text would consume the name. |
-| `$$` | Literal dollar sign. Produces `$` in the resolved value. |
-| `${ENV_VAR:-default}` | Use `default` if `ENV_VAR` is unset or empty. |
+| `$ENV_VAR` | Replaced with value of `ENV_VAR`. Prefer this form when the resolved value itself may contain `$`. |
+| `${ENV_VAR}` | Replaced with value of `ENV_VAR`. Use this form only when adjacent literal text would otherwise be parsed as part of the variable name. |
+| `$$` | Escapes a literal dollar sign. Produces `$` in the resolved value. |
 
 Two-pass replacement order:
 
-1. First pass: replace `${...}` and `$VAR` patterns with environment variable values.
-2. Second pass: replace `$$` with literal `$`.
+1. First pass: replace `${ENV_VAR}` patterns with environment variable values.
+2. Second pass: replace `$ENV_VAR` patterns.
+
+This means `${ENV_VAR}` can be reinterpreted if the substituted value itself contains `$`. Use `$ENV_VAR` for those cases because Grafana resolves it in the second pass and does not run a third substitution pass over the inserted value.
 
 Example provider using environment variables:
 
 ```yaml
 apiVersion: 1
 providers:
-  - name: '${DASHBOARD_PROVIDER_NAME}'
+  - name: '$DASHBOARD_PROVIDER_NAME'
     type: file
     options:
       path: '${DASHBOARD_PATH}/dashboards'
@@ -282,23 +283,23 @@ providers:
 Constraints:
 
 - Substitution only occurs in provider YAML values, never in dashboard `.json` files.
-- Unresolved variables (no default, env var missing) produce an error at Grafana startup.
-- Use `$$` when a config value must contain a literal `$` character.
+- Use `$ENV_VAR` instead of `${ENV_VAR}` when the resolved value may itself contain `$`.
+- Example: if `DASHBOARD_PROVIDER_NAME=ops$team`, `name: $DASHBOARD_PROVIDER_NAME` resolves to `ops$team`, but `name: ${DASHBOARD_PROVIDER_NAME}` resolves to `ops` when `team` is unset because the second pass treats `$team` as another variable.
+- Use `$$` only when the YAML value itself must contain a literal `$` character.
 
 Use when: the blocker is parameterizing provider configs across environments without maintaining duplicate YAML files.
 
-## Update Interval and Filesystem Watch Behavior
+## Update Interval and Runtime Filesystem Behavior
 
-The `updateIntervalSeconds` value controls how Grafana detects changes to dashboard source files:
+Treat `updateIntervalSeconds` as the configured rescan interval for provisioned dashboard files.
 
-| Value range | Detection method | Typical use |
-| --- | --- | --- |
-| `> 10` seconds | Polling (directory scan on interval) | Docker bind mounts, NFS, any filesystem without reliable event notification |
-| `<= 10` seconds | Filesystem watch events (inotify on Linux, FSEvents on macOS) | Local filesystems with native event support |
+Choose the value based on how quickly file changes need to appear and how predictable the deployment filesystem is:
 
-Gotcha: Docker bind mounts and NFS shares do not reliably forward filesystem watch events to the container/host. When running Grafana in Docker with bind-mounted dashboard directories, always use `updateIntervalSeconds: 30` or higher. Values of 10 or below will silently fail to detect file changes because the watch events never arrive.
+- lower values shorten the time between Grafana rescan attempts
+- higher values reduce scan frequency and can be easier to reason about on slower or indirect filesystem paths
+- Docker bind mounts, network filesystems, and other non-local paths should be validated in the real runtime path instead of relying on an assumed watch-versus-poll threshold
 
-Example safe Docker provider:
+Example Docker provider with a 30-second rescan interval:
 
 ```yaml
 apiVersion: 1
@@ -341,11 +342,11 @@ UI export workflows for moving a dashboard into provisioning:
 
 | Export method | Post-export step required |
 | --- | --- |
-| Dashboard menu -> **Save JSON to file** | Wrap the output in `{ "dashboard": <output>, "overwrite": true }`; set `id: null` |
-| Dashboard menu -> **Copy JSON to clipboard** | Paste into a new file, wrap as above, strip the `id` field |
-| API `GET /api/dashboards/uid/<uid>` | Extract the `dashboard` object from the response, wrap as above |
+| Dashboard menu -> **Save JSON to file** | Keep the raw dashboard JSON; normalize instance-specific fields such as `id` before committing |
+| Dashboard menu -> **Copy JSON to clipboard** | Paste the raw dashboard JSON into the source file and normalize `id` if present |
+| API `GET /api/dashboards/uid/<uid>` | Extract the `dashboard` object from the response and save that raw object as the source file |
 
-All three export methods produce raw dashboard JSON that lacks the required provisioning wrapper. The `id` field from the export MUST be set to `null` or removed entirely; keeping the original ID from one Grafana instance causes conflicts when provisioning to a different instance.
+UI export methods already produce raw dashboard JSON. API responses and import payloads add extra envelope fields such as `dashboard`, `meta`, `folderUid`, or `overwrite`; strip those envelopes before storing a file under the legacy provider path. The `id` field from one Grafana instance SHOULD be removed or set to `null` before the file becomes shared source.
 
 Use when: the blocker is understanding what happens when dashboard files are added, modified, or removed from the source directory.
 
@@ -358,13 +359,13 @@ Validate the common case with these checks:
 - environment-specific application is explicit and does not hide which file each environment loads
 - `allowUiUpdates` matches the intended workflow for UI edits versus Git-owned changes
 - reviewers can tell whether file content or Grafana UI state wins after drift
-- dashboard JSON source files use the correct wrapper schema (`dashboard` key, `overwrite: true`, `id: null`)
-- `folderUid` is used correctly when stable cross-instance folder references are needed
-- `updateIntervalSeconds` accounts for Docker bind mount or NFS constraints
+- dashboard source files are raw dashboard JSON objects rather than API import payloads
+- fixed-folder providers use `folder` or provider-level `folderUid` deliberately when stable folder targeting is needed
+- `updateIntervalSeconds` matches the intended rescan cadence for the actual runtime filesystem
 - `foldersFromFilesStructure` providers do not also set `folder` or `folderUid` at the provider level
 - dashboard JSON files are reviewable and not just opaque exports dropped into the tree
 - the provider YAML is internally consistent about path, folder mapping, and update behavior
-- environment variables in provider YAML use correct syntax and have fallback defaults where appropriate
+- environment variables in provider YAML use only supported Grafana substitution syntax: `$ENV_VAR`, `${ENV_VAR}`, and `$$`
 
 ## Output contract
 
@@ -381,14 +382,14 @@ Return:
 | --- | --- |
 | folder mirroring, file layout, or `foldersFromFilesStructure` tradeoffs | [`./references/folder-organization.md`](./references/folder-organization.md) |
 | UI edits, file-wins behavior, delete-on-remove, version property, or drift debugging | [`./references/drift-and-ui-updates.md`](./references/drift-and-ui-updates.md) |
-| Git Sync, K8s resource shapes, newer observability-as-code features, or datasource provisioning reference | [`./references/newer-provisioning-features.md`](./references/newer-provisioning-features.md) |
+| Git Sync, K8s resource shapes, or newer observability-as-code features | [`./references/newer-provisioning-features.md`](./references/newer-provisioning-features.md) |
 
 ## Invariants
 
 - A provider MUST specify exactly one of `folder` or `options.foldersFromFilesStructure`, not both.
 - A provider using `foldersFromFilesStructure: true` MUST NOT set `folder` or `folderUid` at the provider level.
-- Every dashboard JSON file MUST contain the `dashboard` wrapper key with `overwrite: true`.
-- `dashboard.id` MUST be `null` in provisioning context; never hardcode IDs from other instances.
+- Legacy file-provisioning source files MUST be raw dashboard JSON objects, not API import payloads.
+- Dashboard `id` SHOULD be removed or set to `null` before a source file is reused across Grafana instances.
 - `options.path` MUST resolve to a readable directory at Grafana runtime.
 - `allowUiUpdates: true` MUST be accompanied by a documented merge-back workflow.
 - The ordinary dashboard provisioning path MUST remain understandable from this file alone.
@@ -396,15 +397,16 @@ Return:
 - File content SHOULD remain the reviewable source of truth over UI state.
 - Drift behavior SHOULD be obvious before enabling UI edits.
 - Environment variable substitution MUST NOT be relied upon inside dashboard JSON files.
+- API or resource payloads that use `dashboard`, `folderUid`, `overwrite`, or `message` MUST stay in API-specific sections and MUST NOT be documented as raw provider-path file content.
 
 ## Common Pitfalls
 
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
-| omitting `overwrite: true` from the dashboard JSON wrapper | Grafana imports once and never updates on subsequent syncs | always include `"overwrite": true` in every dashboard source file |
-| leaving `dashboard.id` set to a numeric value from a UI export | ID conflicts between instances; provisioning cannot reliably match by ID | set `"id": null` in every provisioning source file |
+| storing API import payloads under the provider path | legacy file provisioning expects raw dashboard JSON files, not API envelopes with `dashboard` / `overwrite` / `folderUid` | commit the raw dashboard object itself as the source file |
+| leaving `id` set to a numeric value from a UI export | numeric IDs are instance-local and create portability problems across Grafana instances | remove `id` or set it to `null` before committing the shared source file |
 | managing `version` numbers in dashboard JSON files | Grafana ignores the `version` property during provisioning entirely | leave version as-is from export; do not attempt to bump it |
-| using `updateIntervalSeconds: 5` with Docker bind mounts | Filesystem watch events do not traverse bind mounts; changes go undetected | use `>= 30` for any containerized or network-mounted path |
+| choosing `updateIntervalSeconds` by assumed watch-versus-poll cutoffs | hard-coded thresholds are deployment-specific and may not match the actual runtime filesystem behavior | set the interval as the desired rescan cadence and verify change pickup on the real path Grafana reads |
 | mixing dashboard authoring guidance into provisioning docs | users lose the distinction between dashboard content and dashboard delivery | keep panel design and visualization authoring out of this skill, and keep file delivery here |
 | enabling `allowUiUpdates` without a clear merge-back workflow | UI edits appear to work and are later overwritten by files | document file-wins behavior and keep Git as the source of truth |
 | using `foldersFromFilesStructure` without unsetting `folder` | Grafana rejects the provider config at startup | ensure `folder` and `folderUid` are absent when `foldersFromFilesStructure: true` |
@@ -425,4 +427,4 @@ Return:
   - dashboard panel authoring and visualization design
   - Prometheus alert-rule authoring or testing
   - Alertmanager routing and notification design
-  - datasource provisioning configuration (see references for pointer)
+  - datasource provisioning configuration

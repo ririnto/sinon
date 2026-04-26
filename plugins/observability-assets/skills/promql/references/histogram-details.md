@@ -20,7 +20,7 @@ Use this reference when the query involves histograms and the blocker is underst
 
 Buckets must be monotonically non-decreasing. The `_bucket` series must have an `le="+Inf"` bucket.
 
-```
+```text
 http_request_duration_seconds_bucket{le="0.1"}   => 10
 http_request_duration_seconds_bucket{le="0.5"}   => 30
 http_request_duration_seconds_bucket{le="1"}     => 50
@@ -58,6 +58,7 @@ Forgetting `le` in the classic `by` clause is the most common histogram aggregat
 Assumes **linear interpolation** (uniform distribution of observations within the bucket).
 
 Given buckets `{le="1": 50, le="5": 70}` and asking for phi=0.5 (median):
+
 - The quantile falls between 1 and 5.
 - 50 observations are at or below 1. 20 observations are between 1 and 5.
 - The median is the 35th observation (50% of 70).

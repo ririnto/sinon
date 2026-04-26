@@ -17,7 +17,7 @@ Open this reference when the question is no longer just "is this syntax valid?" 
 
 Use when: the code question is about runtime structure, reflection, or module-aware behavior rather than packaging or tooling.
 
-Representative example:
+Representative example (JDK 21+):
 
 ```java
 Thread.ofVirtual().name("worker").start(() -> processTask());

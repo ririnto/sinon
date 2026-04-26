@@ -13,7 +13,6 @@ Open this when the ordinary `expectError(Class)` path is not enough and you need
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 class ErrorTypeTest {
     @Test
     void verifiesErrorType() {
@@ -32,7 +31,6 @@ Use `expectErrorMatches` when the error condition is more specific than type alo
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 class ErrorPredicateTest {
     @Test
     void matchesErrorMessage() {
@@ -53,7 +51,6 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import static org.assertj.core.api.Assertions.assertThat;
-
 class ErrorSatisfiesTest {
     @Test
     void assertsMultipleErrorProperties() {
@@ -84,7 +81,6 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 class RetryAndTimeoutTest {
     @Test
     void verifiesTimeout() {
@@ -97,7 +93,7 @@ class RetryAndTimeoutTest {
 }
 ```
 
-`expectTimeout(duration)` asserts that no signal arrives within the specified window. The publisher under test may continue running after the timeout -- this only checks that the verifier's expectation window expired without a matching signal.
+`expectTimeout(duration)` asserts that the publisher does not terminate within the specified window and that the verifier times out by cancelling the subscription. Per the StepVerifier Javadoc, this is equivalent to appending `timeout(duration)`, expecting a `TimeoutException`, and waiting long enough to detect unexpected signals.
 
 ## Virtual-time failure modes
 
@@ -107,21 +103,19 @@ If a delayed publisher inside `withVirtualTime` never emits, check that:
 
 - The publisher is created inside the supplier lambda, not before.
 - The delay uses `VirtualTimeScheduler` (automatic inside `withVirtualTime`) rather than a real scheduler.
-- No `subscribeOn(Schedulers.parallel())` or similar real-scheduler call bypasses virtual time.
+- No explicit real scheduler is passed to timed operators such as `delayElement(Duration, Scheduler)`.
 
 ```java
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
-
 class VirtualTimeSchedulerBypassTest {
     @Test
-    void badRealSchedulerInVirtualTime() {
+    void badEagerPublisherInVirtualTime() {
+        Mono<Long> delayed = Mono.delay(Duration.ofSeconds(5));
         StepVerifier.withVirtualTime(() ->
-            Mono.delay(Duration.ofSeconds(5))
-                .subscribeOn(Schedulers.parallel())
+            delayed
         )
             .expectSubscription()
             .expectNoEvent(Duration.ofSeconds(5))
@@ -139,7 +133,7 @@ class VirtualTimeSchedulerBypassTest {
 }
 ```
 
-The first test uses `subscribeOn(Schedulers.parallel())` which introduces a real scheduler that bypasses virtual time. The test may hang or fail. The second test avoids any real scheduler call inside the `withVirtualTime` block.
+The first test creates the delayed publisher before virtual time can replace Reactor's default schedulers. The test may hang or fail. The second test creates the timed publisher inside the `withVirtualTime` supplier.
 
 ### `expectNoEvent` includes subscription
 
@@ -150,7 +144,6 @@ import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 class ExpectNoEventEdgeCase {
     @Test
     void subscriptionIsAnEvent() {

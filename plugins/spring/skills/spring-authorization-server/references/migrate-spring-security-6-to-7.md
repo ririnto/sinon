@@ -12,10 +12,7 @@ Open this reference when the task is specifically migrating the authorization se
 @Bean
 @Order(Ordered.HIGHEST_PRECEDENCE)
 SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.oauth2AuthorizationServer(authorizationServer -> {
-        http.securityMatcher(authorizationServer.getEndpointsMatcher());
-        authorizationServer.oidc(Customizer.withDefaults());
-    });
+    http.oauth2AuthorizationServer(authorizationServer -> { http.securityMatcher(authorizationServer.getEndpointsMatcher()); authorizationServer.oidc(Customizer.withDefaults()); });
     return http.exceptionHandling(exceptions -> exceptions.defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"), new MediaTypeRequestMatcher(MediaType.TEXT_HTML))).build();
 }
 ```

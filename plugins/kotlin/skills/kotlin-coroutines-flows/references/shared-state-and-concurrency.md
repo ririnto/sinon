@@ -19,20 +19,27 @@ Open this when concurrent mutation is the design problem rather than API shape a
 Thread confinement through one owner -- the simplest shared-state pattern. Confine all mutations to a single coroutine and expose state read-only:
 
 ```kotlin
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+
 class OrderProcessor(private val scope: CoroutineScope) {
+    private val commands = Channel<Order>(capacity = 64)
     private val _state = MutableStateFlow(emptyList<Order>())
     val state: StateFlow<List<Order>> = _state
 
     fun start() {
         scope.launch {
-            for (order in orderSource) {
+            for (order in commands) {
                 _state.value = _state.value + order
             }
         }
     }
 
     suspend fun submit(order: Order) {
-        _commands.emit(order)
+        commands.send(order)
     }
 }
 ```
@@ -40,13 +47,17 @@ class OrderProcessor(private val scope: CoroutineScope) {
 Actor pattern (single coroutine as exclusive state owner) with explicit message channel -- use when multiple callers must submit commands to one stateful processor and ordering matters:
 
 ```kotlin
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
 class OrderAccumulator {
     private val updates = Channel<Order>(capacity = 64)
     private val _state = MutableStateFlow(emptyList<Order>())
     val state: StateFlow<List<Order>> = _state
 
     suspend fun run() {
-        updates.collect { order ->
+        for (order in updates) {
             _state.value = _state.value + order
         }
     }

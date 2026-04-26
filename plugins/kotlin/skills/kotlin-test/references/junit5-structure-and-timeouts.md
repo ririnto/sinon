@@ -17,10 +17,10 @@ Open this when plain `kotlin.test` structure is no longer enough and the suite a
 Nested scenario tree:
 
 ```kotlin
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 
 class BillingPolicyTest {
     @Nested
@@ -37,9 +37,9 @@ class BillingPolicyTest {
 Grouped assertions for one observable behavior:
 
 ```kotlin
-import kotlin.test.Test
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.Assertions.assertAll
+import org.junit.jupiter.api.Test
 
 class OrderSummaryTest {
     @Test
@@ -58,7 +58,7 @@ Declarative timeout when the contract is just a time budget:
 
 ```kotlin
 import java.util.concurrent.TimeUnit
-import kotlin.test.Test
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 
 class FeedRefreshTest {
@@ -73,8 +73,8 @@ class FeedRefreshTest {
 Preemptive timeout only when aborting the work matters:
 
 ```kotlin
-import kotlin.test.Test
 import org.junit.jupiter.api.Assertions.assertTimeoutPreemptively
+import org.junit.jupiter.api.Test
 import java.time.Duration
 
 class RemotePricingTest {
@@ -103,7 +103,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
-import kotlin.test.Test
 import kotlin.test.assertTrue
 import java.nio.file.Path
 
@@ -135,7 +134,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.Arguments
-import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class DiscountCalculatorTest {
@@ -176,6 +174,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle
+import kotlin.test.assertEquals
 
 @TestInstance(Lifecycle.PER_CLASS)
 class DatabaseIntegrationTest {
@@ -192,9 +191,14 @@ class DatabaseIntegrationTest {
     }
 
     @Test
-    fun insertsRow() { /* ... */ }
+    fun insertsRow() {
+        repository.insert(Row(id = "1"))
+    }
 
     @Test
-    fun queriesRow() { /* ... */ }
+    fun queriesRow() {
+        repository.insert(Row(id = "1"))
+        assertEquals(Row(id = "1"), repository.find("1"))
+    }
 }
 ```

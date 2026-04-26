@@ -40,6 +40,7 @@ Before you edit anything:
 - Do not rely on web pages or external documentation as required inputs for ordinary authoring.
 - Do not make external CLIs, hosted validators, or host-specific behaviors part of the required workflow.
 - Do not add guidance about evaluating skill output quality; that is outside this skill's scope.
+- Ordinary authoring remains offline, but maintainers writing or modifying skill content should verify against official reference documentation when available and record any verification blocker.
 
 ## Local loading model
 

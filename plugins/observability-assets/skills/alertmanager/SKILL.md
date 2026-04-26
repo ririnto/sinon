@@ -109,6 +109,8 @@ An empty `group_by: []` puts every alert into a single group per route. Useful w
 
 ### Complete Route Example
 
+This route tree sends critical node and instance pages to a fast pager, allows team API alerts to continue into a nested critical route, isolates staging warnings during off-hours, and sends one warning route only during business hours.
+
 ```yaml
 route:
   receiver: platform-default
@@ -119,7 +121,6 @@ route:
   group_interval: 5m
   repeat_interval: 4h
   routes:
-    # Critical pages go to on-call with tight grouping
     - receiver: critical-pager
       group_wait: 10s
       group_interval: 1m
@@ -128,7 +129,6 @@ route:
         - severity="critical"
         - alertname=~"NodeDown|InstanceDown"
 
-    # Team-based routing with continue to allow severity override
     - receiver: team-api
       continue: true
       matchers:
@@ -138,14 +138,12 @@ route:
           matchers:
             - severity="critical"
 
-    # Environment isolation
     - receiver: staging-notify
       matchers:
         - environment="staging"
       mute_time_intervals:
         - offhours
 
-    # Active only during business hours
     - receiver: business-hours-only
       active_time_intervals:
         - business-hours
@@ -167,7 +165,7 @@ The most commonly-used global fields:
 | `smtp_smarthost` | host:port | -- | SMTP server address for email notifications |
 | `smtp_from` | string | -- | Sender email address for SMTP |
 | `slack_api_url` | URL | -- | Slack API URL (for webhook-based Slack) |
-| `pagerduty_url` | URL | https://events.pagerduty.com/v2/enqueue | PagerDuty Events API v2 endpoint |
+| `pagerduty_url` | URL | <https://events.pagerduty.com/v2/enqueue> | PagerDuty Events API v2 endpoint |
 | `http_config` | http_config | -- | Default HTTP client config for all receivers |
 | `templates` | list of string | -- | Glob patterns for template file paths |
 
@@ -278,10 +276,12 @@ A top-level `time_intervals:` block contains named entries:
 
 ```yaml
 time_intervals:
-  - name: <string>              # required, unique identifier
-    time_intervals:             # required, list of interval specs
+  - name: <string>
+    time_intervals:
       - <TimeIntervalSpec>
 ```
+
+`name` is the required unique identifier, and the nested `time_intervals` key is the required list of interval specs.
 
 ### TimeIntervalSpec Fields
 
@@ -351,12 +351,12 @@ A receiver is a named destination that sends notifications through one or more c
 
 ```yaml
 receivers:
-  - name: <string>              # required, unique identifier
-    <type>_configs:             # one or more notification type blocks
+  - name: <string>
+    <type>_configs:
       - ...
 ```
 
-Every receiver MUST have a unique `name`. This name is referenced by `receiver:` in route blocks. A receiver with no notification configs is valid (acts as a null sink).
+Every receiver MUST have a unique `name`. This name is referenced by `receiver:` in route blocks. Each `<type>_configs` key contains one or more notification type blocks. A receiver with no notification configs is valid (acts as a null sink).
 
 ### Shared Inline Fields (NotifierConfig)
 
@@ -528,7 +528,7 @@ receivers:
         group: platform
 ```
 
-Webhook receiver with custom payload:
+Webhook receiver using Alertmanager's fixed JSON body:
 
 ```yaml
 receivers:
@@ -537,9 +537,9 @@ receivers:
       - url: https://hooks.example.com/alertmanager
         send_resolved: true
         max_alerts: 0
-        payload:
-          text: '{{ template "slack.default.text" . }}'
 ```
+
+Generic webhook receivers always receive Alertmanager's fixed JSON body built from the notification `Data` object. If the downstream service needs a different payload shape, put that transformation in the HTTP receiver or an intermediary adapter.
 
 For complete receiver configurations covering all 18 types (Telegram, Discord, Mattermost, Jira, OpsGenie, VictorOps, SNS, WeChat, Pushover, Rocket.Chat, Webex, MS Teams, incident.io, and email with full SMTP auth), see [`./references/receiver-types.md`](./references/receiver-types.md).
 
@@ -568,7 +568,6 @@ The root template data object (`.`) provides these top-level fields:
 - `.Alerts` -- container with `.Firing` and `.Resolved` alert lists
 - `.GroupLabels` / `.CommonLabels` / `.CommonAnnotations` -- shared label/annotation KV sets
 - `.ExternalURL` -- Alertmanager instance URL
-- `.NotificationReason` -- why the notification was sent
 
 Each alert within `.Alerts.Firing` / `.Alerts.Resolved` exposes `.Labels`, `.Annotations`, `.StartsAt`, `.EndsAt`, `.GeneratorURL`, and `.Fingerprint`. KV objects support `.SortedPairs()`, `.Names()`, `.Values()`, `.Remove(keys)`, and `.String()`.
 

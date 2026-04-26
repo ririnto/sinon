@@ -155,22 +155,38 @@ Use when: the project explicitly chooses this newer module-oriented style. Do no
 
 ### Flexible constructor body `(JDK 25+)`
 
-```java
-class Account {
-    private final String id;
+JEP 513 finalizes flexible constructor bodies in JDK 25. Statements may appear before an explicit `super(...)` or `this(...)` call, but the early construction context cannot use the instance under construction except for simple assignments to uninitialized fields declared in the same class.
 
-    Account(String id) {
-        if (id.isBlank()) {
-            throw new IllegalArgumentException("id must not be blank");
+```java
+class Person {
+    Person(String name) {
+        if (name.isBlank()) {
+            throw new IllegalArgumentException("name must not be blank");
         }
-        this.id = id;
+    }
+}
+
+class Employee extends Person {
+    private final String role;
+
+    Employee(String name, String role) {
+        if (role.isBlank()) {
+            throw new IllegalArgumentException("role must not be blank");
+        }
+        this.role = role;
+        super(name);
     }
 }
 ```
 
-Use when: earlier validation or setup reads more clearly before all field assignments complete.
+Use when: validation, argument preparation, or field initialization is safer before calling an explicit constructor invocation. Do not call instance methods, read instance fields, or assign fields that already have initializers from the prologue.
 
 ## Preview and withdrawn notes
 
 - Primitive-type patterns still need explicit preview framing even on Java 25.
 - String templates should not be presented as default guidance because they were previewed in JDK 21-23 and then withdrawn instead of being finalized.
+
+## Official verification notes
+
+- OpenJDK JEP 513 (`Flexible Constructor Bodies`) is delivered in release 25 and states that constructor prologue statements may appear before explicit constructor invocations.
+- JEP 513 also defines the early construction context: code before `super(...)` or `this(...)` must not use `this`, `super`, instance methods, or instance fields except for simple assignment to uninitialized fields declared in the same class.

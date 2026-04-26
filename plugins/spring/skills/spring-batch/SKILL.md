@@ -15,8 +15,8 @@ Use this skill when building or operating Spring Batch jobs with job and step co
 
 Use `spring-batch` for scheduled or launched batch jobs, chunk and tasklet steps, restart semantics, metadata-backed execution, and large-scale record processing.
 
-- Use `spring-integration` for general message-driven integration flows rather than batch job orchestration.
-- Use `spring-data` when the main task is repository design rather than batch orchestration.
+- General message-driven integration flows are outside this skill's scope unless they launch or coordinate batch jobs.
+- Repository design is outside this skill's scope unless the repository is part of batch reader, writer, or metadata behavior.
 - Keep domain logic in readers, processors, writers, tasklets, or delegated services. Batch configuration should orchestrate steps, not embed the business model.
 
 ## Common path
@@ -34,7 +34,7 @@ The ordinary Spring Batch job is:
 
 Use the Boot starter for application code and the Batch test module for job and step tests.
 
-For the latest released line, Spring Batch itself is 6.0.3. The stable Spring Boot 3.4.x line still manages Spring Batch 5.2.x, so Batch 6-specific APIs require either a direct Spring Batch 6.x path or a Spring Boot line that has moved to Batch 6.
+For the latest released line, Spring Batch itself is 6.0.3. The current Boot-managed path is Spring Boot 4.0.x with Spring Batch 6.0.x. Spring Boot 3.4.x and 3.5.x applications remain on the Spring Batch 5.2.x compatibility branch, so Batch 6-specific APIs require either the Boot 4.0.x path or an intentional direct Spring Batch 6.x path.
 
 ```xml
 <dependencies>
@@ -77,7 +77,7 @@ The minimum Spring Batch model is `Job -> Step -> chunk or tasklet`.
 
 ### Infrastructure shape
 
-On Spring Boot's Batch 5.2.x path (current Boot 3.x), `@EnableBatchProcessing` alone provides the framework-managed `JobRepository` and transaction manager backed by the Boot `DataSource`:
+On Spring Boot's Batch 5.2.x compatibility path (Boot 3.4.x and 3.5.x), `@EnableBatchProcessing` alone provides the framework-managed `JobRepository` and transaction manager backed by the Boot `DataSource`:
 
 ```java
 @Configuration

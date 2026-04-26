@@ -4,18 +4,18 @@ description: >-
   Design Reactor execution context with explicit scheduler choice, publishOn/subscribeOn placement, and blocking-boundary decisions. Use this skill when designing or reviewing Reactor execution context decisions: scheduler choice, publishOn/subscribeOn placement, blocking offload, thread-affinity boundaries, and ordinary scheduling diagnostics.
 metadata:
   title: "Reactor Scheduling"
-  official_project_url: "https://projectreactor.io/docs/core/release/reference/"
+  official_project_url: "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures/schedulers.html"
   reference_doc_urls:
-    - "https://projectreactor.io/docs/core/release/reference/"
-    - "https://projectreactor.io/docs/core/release/api/"
-  version: "3.7"
+    - "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures/schedulers.html"
+    - "https://projectreactor.io/docs/core/3.7.18/api/"
+  version: "3.7.18"
   dependencies:
-    - "io.projectreactor:reactor-core:3.7.x"
+    - "io.projectreactor:reactor-core:3.7.18"
 ---
 
 Choose execution context deliberately in Reactor.
 
-This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `subscribeOn(...)`, blocking offload, thread-affinity boundaries, and local scheduling diagnostics. Keep custom scheduler factories, automatic context propagation, global hooks, and test-only virtual-time work in blocker references or sibling skills.
+This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `subscribeOn(...)`, blocking offload, thread-affinity boundaries, and local scheduling diagnostics. Keep custom scheduler factories, automatic context propagation, global hooks, and test-only virtual-time work in blocker references or dedicated Reactor test guidance.
 
 ## Use this skill when
 
@@ -106,7 +106,6 @@ This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `s
 ```java
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
 final class BlockingLookup {
     Mono<String> readUser(String userId) {
         return Mono.fromCallable(() -> blockingLookup(userId))
@@ -124,7 +123,6 @@ final class BlockingLookup {
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
-
 final class PublishOnExample {
     Flux<String> process() {
         return Flux.just("a", "b", "c")
@@ -140,7 +138,6 @@ final class PublishOnExample {
 ```java
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
 final class MixedExecutionExample {
     Mono<String> loadAndTransform(String userId) {
         return Mono.fromCallable(() -> blockingLookup(userId))
@@ -160,7 +157,6 @@ final class MixedExecutionExample {
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.context.Context;
-
 final class ContextAcrossThreads {
     Mono<String> handle(String input) {
         return Mono.deferContextual(context -> Mono.just(context.get("requestId") + ":" + input))

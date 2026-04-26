@@ -10,10 +10,7 @@ Open this reference when relaxed payload documentation is required.
 | Extra payload fields exist but are intentionally undocumented | `relaxedResponseFields(...)` |
 
 ```java
-relaxedResponseFields(
-    fieldWithPath("id").description("Order id"),
-    fieldWithPath("status").description("Order status")
-)
+relaxedResponseFields(fieldWithPath("id").description("Order id"), fieldWithPath("status").description("Order status"))
 ```
 
 Use this only when extra payload fields should not fail the documentation test.

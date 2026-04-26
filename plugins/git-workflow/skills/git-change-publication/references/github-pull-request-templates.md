@@ -51,12 +51,14 @@ Rules:
 1. Inspect the default branch on the remote without cloning the whole tree.
 2. Check the owner's community-health `.hosted-service` repository for a fallback template.
 
-```bash
-# Requires host-cli CLI; skip if unavailable or offline.
-# Path 1: list template files on the remote default branch.
-    || echo "NO_REMOTE_TEMPLATE"
 
-# Path 2: check owner's community-health .hosted-service repository.
+```bash
+    || echo "NO_REMOTE_TEMPLATE"
+```
+
+Then check the owner's community-health `.hosted-service` repository:
+
+```bash
     || echo "NO_COMMUNITY_HEALTH_TEMPLATE"
 ```
 
@@ -309,4 +311,4 @@ The broken version injects fallback content into a repository that already has a
 | --- | --- | --- |
 | deleting template sections that look empty | reviewers expect those sections to be present | fill relevant sections; leave others with placeholder text |
 | merging content from multiple named templates | each named template serves a different PR category | apply only the confirmed named template |
-| using fallback when API discovers a web-ui-only template | the repo has a template that is not on disk | use the API-discovered template structure |
+| using fallback when remote or community-health discovery finds a template | the repo or owner account has a template that is not in the local checkout | use the discovered template structure |

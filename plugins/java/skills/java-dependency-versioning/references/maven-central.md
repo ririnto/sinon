@@ -50,9 +50,10 @@ curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22org.awaitility%22+
 When the default summary looks wrong (artifact is not a library, or `latestVersion` sorts unexpectedly):
 
 ```bash
-# Switch to core=gav to get per-GAV-row data:
 curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22org.springframework%22+AND+a:%22spring-core%22&core=gav&rows=20&wt=json&sort=v%20desc"
 ```
+
+This switches to `core=gav` to get per-GAV-row data instead of one summary document.
 
 Lookup for a BOM (Bill of Materials) artifact:
 

@@ -40,9 +40,7 @@ Register it in the token endpoint:
 CustomCodeGrantAuthenticationConverter converter = new CustomCodeGrantAuthenticationConverter();
 
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-    .tokenEndpoint(token -> token
-        .accessTokenRequestConverter(converter)
-    );
+    .tokenEndpoint(token -> token.accessTokenRequestConverter(converter));
 ```
 
 ## AuthenticationProvider pattern

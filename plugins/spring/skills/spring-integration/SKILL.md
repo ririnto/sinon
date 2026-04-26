@@ -23,8 +23,8 @@ Use this skill when building message-driven application flows with Spring Integr
 
 Use `spring-integration` for Enterprise Integration Patterns inside or at the edge of a Spring application.
 
-- Use `spring-kafka`, `spring-amqp`, or `spring-pulsar` when you only need direct broker APIs without an Integration flow.
-- Use `spring-cloud` for distributed-system infrastructure such as Config, Gateway, or general service-to-service wiring.
+- Direct broker APIs without an Integration flow are outside this skill's scope.
+- Distributed-system infrastructure such as Config, Gateway, or general service-to-service wiring is outside this skill's scope.
 - Keep domain logic out of the flow graph. Flows should orchestrate message movement, routing, and adaptation.
 
 ## Common path
@@ -40,14 +40,14 @@ The ordinary Spring Integration job is:
 
 ## Core flow decisions
 
-| Situation                                              | Use                       |
+| Situation | Use |
 | --- | --- |
-| One caller hands off to one handler inline             | `DirectChannel`           |
-| The flow needs buffering between producer and consumer | `QueueChannel`            |
-| One message fans out to several subscribers            | publish-subscribe channel |
-| Application code sends into the flow                   | messaging gateway         |
-| External system sends one-way events                   | inbound adapter           |
-| External system expects request-reply behavior         | inbound gateway           |
+| One caller hands off to one handler inline | `DirectChannel` |
+| The flow needs buffering between producer and consumer | `QueueChannel` |
+| One message fans out to several subscribers | publish-subscribe channel |
+| Application code sends into the flow | messaging gateway |
+| External system sends one-way events | inbound adapter |
+| External system expects request-reply behavior | inbound gateway |
 
 Choose the simplest channel and endpoint pair that matches the delivery semantics. Add pollers only for sources that do not naturally push messages.
 
@@ -55,7 +55,7 @@ Choose the simplest channel and endpoint pair that matches the delivery semantic
 
 Use the Boot starter for core Integration features and add only the protocol modules the flow actually needs.
 
-For the current stable line, Spring Integration is 7.0.4. The latest released Spring Boot line, 4.0.5, already manages Spring Integration 7.0.4. Older Boot 3.5.x applications still manage Spring Integration 6.5.8 and therefore remain a separate compatibility branch.
+For the current stable line, Spring Integration is 7.0.4. The latest released Spring Boot line, 4.0.6, already manages Spring Integration 7.0.4. Older Boot 3.5.x applications still manage Spring Integration 6.5.8 and therefore remain a separate compatibility branch.
 
 ### Core baseline
 
@@ -199,9 +199,7 @@ Use this annotation shape only when the surrounding application already standard
 IntegrationFlow.from("orders.batches")
     .split()
     .channel("orders.parts")
-    .aggregate(aggregator -> aggregator
-        .correlationStrategy(message -> message.getHeaders().get("batchId"))
-        .releaseStrategy(group -> group.size() >= 10))
+    .aggregate(aggregator -> aggregator.correlationStrategy(message -> message.getHeaders().get("batchId")).releaseStrategy(group -> group.size() >= 10))
 ```
 
 ### Poller shape
@@ -213,9 +211,7 @@ Pollers.fixedDelay(Duration.ofSeconds(5)).maxMessagesPerPoll(10)
 ### Router shape
 
 ```java
-.route(OrderCommand::priority, mapping -> mapping
-    .channelMapping(Priority.HIGH.name(), "orders.priority")
-    .channelMapping(Priority.NORMAL.name(), "orders.standard"))
+.route(OrderCommand::priority, mapping -> mapping.channelMapping(Priority.HIGH.name(), "orders.priority").channelMapping(Priority.NORMAL.name(), "orders.standard"))
 ```
 
 ## Output and configuration shapes

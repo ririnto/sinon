@@ -48,7 +48,7 @@ Escape sequences in single/double quotes: `\a`, `\b`, `\f`, `\n`, `\r`, `\t`, `\
 
 ### Float literals
 
-```
+```text
 23          -2.43    3.4e-9    0x8f    -Inf    NaN
 1_000_000   .123_456_789   0x_53_AB_F3_82
 ```
@@ -81,12 +81,14 @@ Invalid: `0xABm` (no hex suffix), `1.5h` (no float suffix), `+Infd` (no Inf/NaN 
 
 Returns the most recent sample at-or-before evaluation time for each matched series. Series are returned only if their most recent sample falls within the lookback delta (default 5 minutes).
 
+These examples show, in order, a metric-name-only selector, exact-match filtering, regex plus negation, regex matching on `__name__`, and the `__name__` workaround for reserved keywords.
+
 ```promql
-http_requests_total                                    # all series with this name
-http_requests_total{job="api", method="GET"}           # exact match filter
-http_requests_total{env=~"staging|dev", method!="GET"} # regex + negation
-{__name__=~"http_.*"}                                  # match on __name__ via regex
-{__name__="on"}                                        # keyword escape via __name__
+http_requests_total
+http_requests_total{job="api", method="GET"}
+http_requests_total{env=~"staging|dev", method!="GET"}
+{__name__=~"http_.*"}
+{__name__="on"}
 ```
 
 Label matcher operators:
@@ -105,6 +107,7 @@ Regex matches are fully anchored: `env=~"foo"` means `env=~"^foo$"`. RE2 syntax.
 **Multiple matchers on same label**: All must pass (AND semantics).
 
 **Selector validity rules**:
+
 - Must specify a metric name OR at least one non-empty-matching label matcher.
 - `{job=~".*"}` is illegal (matches empty). Use `{job=~".+"}` or add a second matcher like `{method="get"}`.
 - Metric name MUST NOT be a reserved keyword: `bool`, `on`, `ignoring`, `group_left`, `group_right`.
@@ -114,9 +117,11 @@ Regex matches are fully anchored: `env=~"foo"` means `env=~"^foo$"`. RE2 syntax.
 
 Appends `[<duration>]` to an instant vector selector. Returns a range of samples for each matched series. The interval is left-open, right-closed: samples at the left boundary are excluded; samples at the right boundary are included.
 
+These examples show a five-minute range selector on a filtered metric and the common pattern of wrapping a range selector in `rate()`.
+
 ```promql
-http_requests_total{job="api"}[5m]       # last 5 minutes
-rate(http_requests_total[5m])            # typical usage inside a function
+http_requests_total{job="api"}[5m]
+rate(http_requests_total[5m])
 ```
 
 ## Modifiers
@@ -125,17 +130,15 @@ rate(http_requests_total[5m])            # typical usage inside a function
 
 Shifts the evaluation time of an instant or range vector. **Must follow the selector immediately**, before any aggregation or function wrapping.
 
+The examples below show, in order, valid placement inside an aggregation, invalid placement outside the aggregation, range-vector use, and a negative offset that looks forward in time.
+
 ```promql
-# CORRECT - offset inside the aggregation
 sum(http_requests_total{method="GET"} offset 5m)
 
-# INCORRECT - offset outside the aggregation
 sum(http_requests_total{method="GET"}) offset 5m
 
-# Works with range vectors too
 rate(http_requests_total[5m] offset 1w)
 
-# Negative offset looks forward in time
 rate(http_requests_total[5m] offset -1w)
 ```
 
@@ -143,15 +146,16 @@ rate(http_requests_total[5m] offset -1w)
 
 Overrides the evaluation timestamp for individual instant or range vectors. Accepts a Unix timestamp (float literal), `start()`, or `end()`. **Must follow the selector immediately**, same placement rule as `offset`.
 
-```promql
-http_requests_total @ 1609746000                          # specific Unix timestamp
-sum(http_requests_total{method="GET"} @ 1609746000)        # correct placement
-rate(http_requests_total[5m] @ 1609746000)                # with range vector
-http_requests_total @ start()                             # range-query start
-rate(http_requests_total[5m] @ end())                     # range-query end
+The examples below show a fixed Unix timestamp, placement inside an aggregation, range-vector use, range-query start and end pinning, and the equivalent `@`/`offset` orderings.
 
-# @ and offset commute; order does not matter
-http_requests_total @ 1609746000 offset 5m                 # same result as:
+```promql
+http_requests_total @ 1609746000
+sum(http_requests_total{method="GET"} @ 1609746000)
+rate(http_requests_total[5m] @ 1609746000)
+http_requests_total @ start()
+rate(http_requests_total[5m] @ end())
+
+http_requests_total @ 1609746000 offset 5m
 http_requests_total offset 5m @ 1609746000
 ```
 
@@ -161,17 +165,17 @@ For range queries: `start()` resolves to the range start, `end()` to the range e
 
 Runs an instant query over a range at a given resolution, producing a range vector.
 
-```
+```text
 <instant_query> '[' <range> ':' [<resolution> ']' [ @ <float_literal> ] [ offset <float_literal> ]
 ```
 
 Resolution defaults to the global evaluation interval if omitted.
 
+The examples below show a subquery sampled every minute over a five-minute rate window and a subquery pinned with `@ start()`.
+
 ```promql
-# Average rate over 5m, sampled every 1m, evaluated 1h ago
 avg_over_time(rate(http_requests_total[5m:1m])[1h:])
 
-# Subquery with @ modifier
 sum by (job) (increase(http_requests_total[1m:30s] @ start()))
 ```
 
@@ -200,6 +204,7 @@ Negative histograms are intermediate-only; they cannot be ingested or exchanged 
 Defined between: scalar/scalar, vector/scalar, vector/vector (with vector matching).
 
 **Histogram behavior in arithmetic**:
+
 - `* scalar`: multiplies buckets, count, sum. Negative scalar produces gauge histogram.
 - `/ scalar` (histogram on LHS): divides buckets, count, sum. Division by zero yields Inf/NaN per component. Negative scalar produces gauge histogram.
 - All other scalar/histogram combinations: element removed (info annotation).
@@ -273,7 +278,7 @@ The `by`/`without` clause may appear before or after the expression.
 | `quantile(phi, v)` | phi-quantile (0..1) | Float only. Ignores histograms (info). NaN is smallest possible. `phi=NaN` -> NaN; `phi<0` -> -Inf; `phi>1` -> +Inf. |
 | `topk(k, v)` | Largest k elements | Preserves original labels. `by`/`without` only bucket input. Float only. NaN farthest from top. |
 | `bottomk(k, v)` | Smallest k elements | Same rules as `topk`, ascending order. |
-| `limitk(k, v)` | Sample k elements (experimental) | Deterministic pseudo-random subset. Works for floats and histograms. Requires feature flag. |
+| `limitk(k, v)` | Sample k elements (experimental) | Deterministic pseudo-random selection. Works for floats and histograms. Requires feature flag. |
 | `limit_ratio(r, v)` | Sample ratio r (experimental) | Pseudo-random; abs(r) is ratio, negative r inverts selection. Requires feature flag. |
 
 `without` removes listed labels (keeps everything else). `by` keeps only listed labels (drops everything else).
@@ -292,7 +297,7 @@ The `by`/`without` clause may appear before or after the expression.
 | `idelta(v range-vector)` | Last-two-sample difference | No reset adjustment. Use with gauges only. |
 | `deriv(v range-vector)` | Per-second derivative (linear regression) | Needs >= 2 float samples. Gauges only. Float only. |
 | `predict_linear(v, t)` | Predict value t seconds ahead | Linear regression. Gauges only. Float only. |
-| `double_exponential_smoothing(v, sf, tf)` | Holt linear smoothing (experimental) | sf, tf in [0,1]. Gauges only. Float only. Feature flag required. Formerly `holt_winters`. |
+| `double_exponential_smoothing(v, sf, tf)` | Holt linear smoothing (experimental) | `sf` is the smoothing factor; lower values give more weight to older data. `tf` is the trend factor; higher values consider trends more strongly. Both are in [0,1]. Gauges only. Float only. Feature flag required. Formerly `holt_winters`. |
 
 ### Histogram functions
 
@@ -395,7 +400,7 @@ Each aggregates all samples in the range per series, returning an instant vector
 | `quantile_over_time(phi, v)` | phi-quantile | Float only. |
 | `stddev_over_time(v)` | Population std dev | Float only. |
 | `stdvar_over_time(v)` | Population variance | Float only. |
-| `last_over_time(v)` | Most recent sample | Float only. |
+| `last_over_time(v)` | Most recent sample | Float and histogram. |
 | `present_over_time(v)` | 1 if any sample exists | Float and histogram. |
 | `absent_over_time(v)` | 1 if range empty, else empty | Like `absent` but for a time window. |
 | `first_over_time(v)` | Oldest sample (experimental) | Float and histogram. Feature flag required. |
@@ -415,14 +420,13 @@ Binary operations between two instant vectors find matching entries by label set
 
 Entries match when they share the same label set (default), or when they match on a reduced label set.
 
+The examples below show default label-set matching, dropping `code` during comparison, and restricting the join key to `method` only.
+
 ```promql
-# Default: match on all labels
 method_code:http_errors:rate5m / method:http_requests:rate5m
 
-# Ignore specific labels during matching
 method_code:http_errors:rate5m{code="500"} / ignoring(code) method:http_requests:rate5m
 
-# Match only on specific labels
 method_code:http_errors:rate5m on(method) method:http_requests:rate5m
 ```
 
@@ -430,11 +434,11 @@ method_code:http_errors:rate5m on(method) method:http_requests:rate5m
 
 Required when one side has higher cardinality than the other per join key. Must use `group_left` or `group_right`.
 
+The first example keeps the higher-cardinality left-hand series; the second also propagates `instance` from the lower-cardinality side into the result.
+
 ```promql
-# Left side has higher cardinality (multiple codes per method)
 method_code:http_errors:rate5m / ignoring(code) group_left method:http_requests:rate5m
 
-# Include extra labels from the "one" side in the result
 method_code:http_errors:rate5m / ignoring(code) group_left(instance) method:http_requests:rate5m
 ```
 
@@ -444,18 +448,16 @@ The optional label list after `group_left`/`group_right` specifies labels from t
 
 Override default behavior of dropping unmatched elements. Requires `--enable-feature=promql-binop-fill-modifiers`.
 
+These examples show filling missing matches on both sides, only on the left, only on the right, and on both sides with explicit defaults.
+
 ```promql
-# Fill missing matches on either side with 0
 expr1 / fill(0) expr2
 
-# Fill only left-side misses with 0
-fill_left(0)
+expr1 / fill_left(0) expr2
 
-# Fill only right-side misses with 0
-fill_right(0)
+expr1 / fill_right(0) expr2
 
-# Combined
-fill_left(0) fill_right(0)
+expr1 / fill_left(0) fill_right(0) expr2
 ```
 
 Fill modifiers go last, after `bool`, `on`, `ignoring`, `group_left`, `group_right`. Not supported for set operators (`and`, `or`, `unless`). Only float samples supported (no histograms).

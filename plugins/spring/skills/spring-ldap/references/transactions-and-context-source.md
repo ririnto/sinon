@@ -19,11 +19,7 @@ class GroupMembershipService {
     @Transactional
     void addMemberToGroups(String userDn, List<String> groupDns) {
         for (String groupDn : groupDns) {
-            ldap.modifyAttributes(LdapNameBuilder.newInstance(groupDn).build(),
-                new ModificationItem[]{
-                    new ModificationItem(DirContext.ADD_ATTRIBUTE,
-                        new BasicAttribute("member", userDn))
-                });
+            ldap.modifyAttributes(LdapNameBuilder.newInstance(groupDn).build(), new ModificationItem[]{new ModificationItem(DirContext.ADD_ATTRIBUTE, new BasicAttribute("member", userDn))});
         }
     }
 }
@@ -59,10 +55,7 @@ ContextSource contextSource() {
     contextSource.setUserDn("cn=admin,dc=example,dc=com");
     contextSource.setPassword(password);
     contextSource.setPooled(true);
-    contextSource.setBaseEnvironmentProperties(Map.of(
-        "com.sun.jndi.ldap.connect.timeout", "3000",
-        "com.sun.jndi.ldap.read.timeout", "5000"
-    ));
+    contextSource.setBaseEnvironmentProperties(Map.of("com.sun.jndi.ldap.connect.timeout", "3000", "com.sun.jndi.ldap.read.timeout", "5000"));
     contextSource.afterPropertiesSet();
     return contextSource;
 }

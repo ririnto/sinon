@@ -11,10 +11,7 @@ Open this reference when the ordinary vision path in [SKILL.md](../SKILL.md) is 
 ```java
 UserMessage userMessage = UserMessage.builder()
     .text("Compare the two architecture diagrams and list only the new components.")
-    .media(
-        new Media(MimeTypeUtils.IMAGE_PNG, new ClassPathResource("/before.png")),
-        new Media(MimeTypeUtils.IMAGE_PNG, new ClassPathResource("/after.png"))
-    )
+    .media(new Media(MimeTypeUtils.IMAGE_PNG, new ClassPathResource("/before.png")), new Media(MimeTypeUtils.IMAGE_PNG, new ClassPathResource("/after.png")))
     .build();
 ```
 

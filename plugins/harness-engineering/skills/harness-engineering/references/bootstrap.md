@@ -46,7 +46,7 @@ Deliver, in order:
    follows Types -> Config -> Repo -> Service -> Runtime -> UI and a
    providers/ subtree exposing a single interface module.
 4. A structural test that fails when any domain lacks the required layer
-   directories or when any import reverses the forward-only layer rule.
+   directories or when any import violates the declared layer model.
 5. Custom linters for import direction, structured logging, and file
    size limits, with error messages that include remediation instructions.
 6. A CI pipeline for {ci-provider} that runs the structural test, the

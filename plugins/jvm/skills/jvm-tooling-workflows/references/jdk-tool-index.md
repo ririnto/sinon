@@ -29,7 +29,25 @@ Choose the smallest tool that directly solves the problem, then explain how late
 
 ## Output Shape Reference
 
-Core tool output shapes (`javac`, `java --version`, `jdeps`, `jlink`, `jpackage`, `jshell`, `javadoc`) are documented in the parent SKILL.md **Format-Critical Output Shapes** section. This reference covers the wider tool index, version gates, and extended selection guidance beyond the primary tools.
+Use these minimal output shapes to identify the common tool results before narrowing the workflow.
+
+`java --version`:
+
+```text
+openjdk 25.0Internal 2026-04-20
+OpenJDK Runtime Environment (build 25.0Internal+12-adhoc.ririnto)
+OpenJDK 64-Bit Server VM (build 25.0Internal+12-adhoc.ririnto, mixed mode, sharing)
+```
+
+`jdeps --print-module-deps app.jar`:
+
+```text
+java.base
+java.net.http
+java.sql
+```
+
+`jpackage --type app-image ...` app-image outputs are platform-specific: macOS creates `DemoApp.app/`, Linux creates `DemoApp/`, and Windows creates `DemoApp\` with a native launcher and bundled runtime.
 
 ## Version Gate Quick Reference
 

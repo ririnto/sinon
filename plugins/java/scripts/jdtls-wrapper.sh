@@ -1,11 +1,6 @@
 #!/bin/sh
 set -eu
 
-# :description: Launch JDTLS with automatic Lombok jar selection.
-#     Reads override or project-resolved Lombok jar, injects it as -javaagent,
-#     then execs jdtls with the original arguments.
-# :return: Does not return; execs into jdtls.
-
 script_dir=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
 lombok_override_jar="${JAVA_ASSISTANT_LOMBOK_JAR:-${JDK_ASSISTANT_LOMBOK_JAR:-${LOMBOK_JAR:-}}}"
 lombok_support_enabled="${JAVA_ASSISTANT_LOMBOK_ENABLED:-${JDK_ASSISTANT_LOMBOK_ENABLED:-true}}"

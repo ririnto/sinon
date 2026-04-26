@@ -56,11 +56,7 @@ When the UserInfo response itself must be shaped directly, customize the officia
 
 ```java
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-    .oidc(oidc -> oidc
-        .userInfoEndpoint(userInfo -> userInfo
-            .userInfoMapper(context -> new OidcUserInfo(Map.of("sub", context.getAuthentication().getName())))
-        )
-    );
+    .oidc(oidc -> oidc.userInfoEndpoint(userInfo -> userInfo.userInfoMapper(context -> new OidcUserInfo(Map.of("sub", context.getAuthentication().getName())))));
 ```
 
 ## Logout endpoint

@@ -35,7 +35,7 @@ class OrderServiceTest : DescribeSpec({
 class CartTest : BehaviorSpec({
     given("an empty cart") {
         `when`("an item is added") {
-            then("size becomes 1") { /* ... */ }
+            then("size becomes 1") { cart.size shouldBe 1 }
         }
     }
 })

@@ -17,9 +17,7 @@ Use this file only after the application already has a clear Spring AI seam and 
 
 ```java
 String response = ChatClient.create(chatModel).prompt()
-    .user(user -> user
-        .text("Explain the deployment risk shown in this screenshot.")
-        .media(MimeTypeUtils.IMAGE_PNG, new ClassPathResource("/release-risk.png")))
+    .user(user -> user.text("Explain the deployment risk shown in this screenshot.").media(MimeTypeUtils.IMAGE_PNG, new ClassPathResource("/release-risk.png")))
     .call()
     .content();
 ```
