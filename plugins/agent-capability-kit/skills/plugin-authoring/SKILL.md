@@ -142,7 +142,7 @@ Add optional keys only when the plugin needs the corresponding runtime surface. 
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
-  "description": "Plugin for a clearly bounded workflow.",
+  "description": "Claude Code plugin for a clearly bounded workflow.",
   "author": {
     "name": "your-handle"
   },
