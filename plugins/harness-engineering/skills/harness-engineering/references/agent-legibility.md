@@ -270,3 +270,4 @@ Each line is one JSON object and is appended atomically. A resuming agent reads 
 - Skipping teardown. Ephemeral resources must be cleaned up after task completion to avoid resource exhaustion.
 - Requiring manual browser testing. If the agent cannot drive the UI programmatically, it cannot validate visual or interaction behavior.
 - Using production observability infrastructure for agent validation. Agent worktrees must use isolated, ephemeral stacks.
+

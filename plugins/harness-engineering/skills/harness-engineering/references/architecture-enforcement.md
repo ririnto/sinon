@@ -174,3 +174,4 @@ When human reviewers flag a pattern repeatedly, promote it from a comment conven
 - Enforcing style preferences that do not affect correctness, maintainability, or agent legibility. Focus on what matters.
 - Allowing exceptions without encoding them. If a rule has legitimate exceptions, add the exception to the lint logic, not to a comment.
 - Postponing linter creation until the codebase grows large. In agent-first development, linters are an early prerequisite for speed.
+

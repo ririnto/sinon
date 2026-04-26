@@ -1,8 +1,4 @@
----
-title: Harness Engineering
-description: >-
-  Overview of the Harness Engineering plugin, its agent-first repository skill, and the autonomous agents that enforce structure, review code, and drive end-to-end work.
----
+# Harness Engineering
 
 Harness Engineering is a shared, skill-first plugin for designing and maintaining agent-first repositories with progressive disclosure, architecture enforcement, and entropy management.
 
@@ -100,3 +96,6 @@ This plugin intentionally focuses on agent-first repository structure, mechanica
 - language- or framework-specific coding style
 - release management or deployment tooling
 - general-purpose CI pipeline authoring beyond integrating the harness's structural checks
+
+Structures, layouts, tool integrations, and workflow patterns not documented in `skills/harness-engineering/references/` MUST NOT be introduced into a harness-engineering repository. If a pattern is needed but missing from the references, add the reference first and link from `SKILL.md`.
+

@@ -130,3 +130,4 @@ Dedicated linters and CI jobs validate the knowledge base:
 - Storing knowledge in external systems (Slack, Google Docs, wikis) without mirroring it into the repository. If it is not in the repo, it does not exist for the agent.
 - Skipping index files. Without indexes, agents cannot discover relevant documents efficiently.
 - Allowing generated and authored documentation to mix without clear separation. Generated artifacts belong in `generated/`.
+
