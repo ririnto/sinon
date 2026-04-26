@@ -131,3 +131,4 @@ If any check fails, fix the harness before merging the bootstrap PR. The harness
 - Shipping a monolithic `CLAUDE.md` that embeds guidance instead of pointing to `docs/`. See `references/repository-knowledge-structure.md` for the progressive disclosure model.
 - Skipping CI wiring. Without CI, the structural test and linters are advisory only, and drift starts on day one.
 - Skipping the first execution plan. Future agents cannot reason about why the bootstrap looks the way it does if the decisions are not checked in.
+

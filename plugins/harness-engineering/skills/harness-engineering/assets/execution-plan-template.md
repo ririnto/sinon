@@ -55,3 +55,4 @@ Copy this template when writing execution plans for complex work. Place active p
 - Complex work MUST use the full template with decision log and progress tracking.
 - Plans are checked into the repository so agents can operate without external context.
 - When a plan is completed, move it to `docs/exec-plans/completed/` and update the status field.
+

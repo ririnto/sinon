@@ -1,10 +1,7 @@
 ---
 name: e2e-driver
 description: >-
-  Use this agent when a task needs autonomous end-to-end execution in an
-  agent-first repository: reproduce a bug, implement a fix or feature, validate
-  behavior through a running application, and back the result with observable
-  evidence. Examples:
+  Reproduce bugs, implement fixes and features, and validate behavior through a running application with observable evidence in agent-first repositories. Use this agent when a task needs autonomous end-to-end execution: reproduce a bug, implement a fix or feature, validate behavior through a running application, and back the result with observable evidence. Examples:
 
   <example>
   Context: A reported bug needs reproduction, repair, and proof
@@ -76,3 +73,4 @@ Return:
 4. The review-loop status, listing each agent reviewer and whether its blocking comments are cleared
 5. The pull request URL or identifier when one was requested, otherwise the review-ready handoff status
 6. Any remaining risks, gaps, or scenarios not yet verified
+

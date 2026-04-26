@@ -1,7 +1,7 @@
 ---
 name: harness-engineering
 description: >-
-  Set up and maintain an agent-first repository with progressive disclosure, architecture enforcement, and entropy management. Use when designing repository structure for AI agent development, creating CLAUDE.md as a table of contents, enforcing layer constraints with custom linters, or managing technical debt in agent-generated codebases.
+  Design and maintain an agent-first repository with progressive disclosure, architecture enforcement, and entropy management. Use this skill when designing repository structure for AI agent development, creating CLAUDE.md as a table of contents, enforcing layer constraints with custom linters, or managing technical debt in agent-generated codebases.
 ---
 
 # Harness Engineering
@@ -15,6 +15,7 @@ Design and maintain a repository optimized for AI agent throughput and coherence
 - Enforce architecture mechanically with linters and structural tests; do not rely on convention alone.
 - Encode human taste as rules and tooling, not inline corrections. When documentation falls short, promote the rule into code.
 - Keep the ordinary path in this file; open `references/` only for named blockers.
+- Repository structures, directory layouts, tool integrations, and workflow patterns not documented in `references/` MUST NOT be introduced. If a pattern is missing, add it to `references/` first and link from here.
 
 ## Procedure
 
@@ -244,3 +245,4 @@ Return:
 - `assets/claude-md-template.md` -- copy when creating `CLAUDE.md` from scratch
 - `assets/docs-directory-scaffold.md` -- copy when scaffolding the `docs/` directory
 - `assets/execution-plan-template.md` -- copy when writing execution plans
+

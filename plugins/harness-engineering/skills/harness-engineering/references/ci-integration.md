@@ -146,3 +146,4 @@ merge_queue:
 - Letting the doc-gardening job run without permissions to open pull requests. The job produces reports but cannot act on them, so drift accumulates.
 - Allowing manual merge overrides without recording the reason. Overrides become ambient permission to bypass the harness.
 - Treating auto-merge as a convenience toggle. Without a declared line budget and a reviewer verdict gate, auto-merge turns into unreviewed merge.
+

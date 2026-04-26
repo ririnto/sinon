@@ -53,7 +53,8 @@ Other optional frontmatter fields may be kept only when the host actually suppor
 
 The description is the main trigger surface. It should do all of the following:
 
-- start with `Use this agent when...`
+- open with an imperative capability clause that names what the agent does (for example "Enforce…", "Review…", "Detect…", "Author…", "Reproduce…")
+- follow with a trigger clause such as `Use this agent when...`
 - name the job, inputs, or system clearly
 - include 2 to 4 concrete `<example>` blocks
 - make it obvious why this agent is the right fit
@@ -69,7 +70,7 @@ description: Helps with schemas.
 Stronger:
 
 ```markdown
-description: Use this agent when a schema, contract, or config file needs focused review. Examples:
+description: Inspect schemas, contracts, and config files for defects, risks, and missing structure. Use this agent when a schema, contract, or config file needs focused review. Examples:
 
   <example>
   Context: API contract review before release
@@ -176,7 +177,7 @@ Return:
 3. Check that the role is narrow enough to be discoverable and autonomous.
 4. Draft or revise frontmatter:
    - `name` matches the file basename and is stable and role-based
-   - `description` says when to use the agent and includes concrete `<example>` blocks
+   - `description` opens with an imperative capability clause, then says when to use the agent, and includes concrete `<example>` blocks
    - `model` defaults to `inherit`
    - `color` is stable and distinguishable
    - `tools` appears only when a bounded tool surface is needed
@@ -258,7 +259,7 @@ Use this as a smallest useful agent starting point:
 ```markdown
 ---
 name: schema-reviewer
-description: Use this agent when a schema, contract, or config file needs focused review. Examples:
+description: Inspect schemas, contracts, and config files for defects, risks, and missing structure. Use this agent when a schema, contract, or config file needs focused review. Examples:
 
   <example>
   Context: API contract review before release
@@ -342,3 +343,4 @@ Return:
 - `references/agent-execution.md` - open when the agent needs exceptional autonomy, a non-obvious tool boundary, or a more specialized execution pattern
 - `assets/agent-template.md` - copy when creating a new agent from scratch
 - `assets/agent-frontmatter-patterns.md` - copy when you need more frontmatter examples for different role shapes
+

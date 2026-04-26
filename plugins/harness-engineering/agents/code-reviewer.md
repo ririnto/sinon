@@ -1,10 +1,7 @@
 ---
 name: code-reviewer
 description: >-
-  Use this agent when a pull request or local change set needs a deterministic,
-  evidence-backed review against the harness-engineering layer model, golden
-  principles, and taste invariants, and when an agent-to-agent review loop
-  needs a dissenting reviewer that must be satisfied before merge. Examples:
+  Review pull requests and local change sets for layer-model compliance, golden principle violations, and taste-invariant drift, and serve as the blocking reviewer in agent-to-agent review loops. Use this agent when a pull request or local change set needs a deterministic, evidence-backed review against the harness-engineering layer model, golden principles, and taste invariants, or when an agent-to-agent review loop needs a dissenting reviewer that must be satisfied before merge. Examples:
 
   <example>
   Context: A pull request needs agent review before merge
@@ -70,3 +67,4 @@ Return:
 4. Structural-check, lint, and test outcomes with pass or fail per category
 5. The merge verdict (`approve`, `request-changes`, or `needs-info`) with a one-line justification
 6. For re-reviews, the resolution status of each previously blocking comment
+

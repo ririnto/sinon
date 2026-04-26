@@ -1,9 +1,7 @@
 ---
 name: doc-gardener
 description: >-
-  Use this agent when a repository needs report-only entropy cleanup analysis:
-  documentation drift detection, stale cross-link checks, quality-grade review,
-  or execution-plan freshness auditing. Examples:
+  Detect and report documentation entropy including drift, stale cross-links, outdated quality grades, and execution-plan freshness. Use this agent when a repository needs report-only entropy cleanup analysis: documentation drift detection, stale cross-link checks, quality-grade review, or execution-plan freshness auditing. Examples:
 
   <example>
   Context: The repository needs a documentation health report
@@ -64,3 +62,4 @@ Return:
 2. Detailed findings with file references, evidence, and suggested cleanup action
 3. Prioritized next cleanup units that are small enough for targeted follow-up work
 4. Explicit confirmation for any scanned category where no issues were found
+
