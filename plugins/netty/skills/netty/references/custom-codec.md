@@ -21,6 +21,8 @@ Length-prefixed and other framing choices belong in [framing.md](./framing.md). 
 
 ## Stateful decoder pattern
 
+Minimum JDK for this example: Java 17. It uses `case ... ->` switch rules.
+
 ```java
 final class CommandDecoder extends ByteToMessageDecoder {
     private enum State {

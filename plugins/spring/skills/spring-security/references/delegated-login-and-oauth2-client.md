@@ -55,7 +55,6 @@ ClientRegistrationRepository clientRegistrationRepository() {
         .clientSecret("google-client-secret")
         .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
         .build();
-
     return new InMemoryClientRegistrationRepository(registration);
 }
 ```
@@ -86,14 +85,11 @@ OAuth2AuthorizedClientRepository authorizedClientRepository() {
 }
 
 @Bean
-OAuth2AuthorizedClientManager authorizedClientManager(
-        ClientRegistrationRepository clients,
-        OAuth2AuthorizedClientRepository authorizedClientRepository) {
+OAuth2AuthorizedClientManager authorizedClientManager(ClientRegistrationRepository clients, OAuth2AuthorizedClientRepository authorizedClientRepository) {
     OAuth2AuthorizedClientProvider provider = OAuth2AuthorizedClientProviderBuilder.builder()
         .authorizationCode()
         .refreshToken()
         .build();
-
     DefaultOAuth2AuthorizedClientManager manager =
         new DefaultOAuth2AuthorizedClientManager(clients, authorizedClientRepository);
     manager.setAuthorizedClientProvider(provider);
@@ -122,19 +118,15 @@ Use this shape when there is no `HttpServletRequest`, such as a scheduled job or
 
 ```java
 @Bean
-OAuth2AuthorizedClientService authorizedClientService(
-        ClientRegistrationRepository clients) {
+OAuth2AuthorizedClientService authorizedClientService(ClientRegistrationRepository clients) {
     return new InMemoryOAuth2AuthorizedClientService(clients);
 }
 
 @Bean
-OAuth2AuthorizedClientManager authorizedClientManager(
-        ClientRegistrationRepository clients,
-        OAuth2AuthorizedClientService authorizedClientService) {
+OAuth2AuthorizedClientManager authorizedClientManager(ClientRegistrationRepository clients, OAuth2AuthorizedClientService authorizedClientService) {
     OAuth2AuthorizedClientProvider provider = OAuth2AuthorizedClientProviderBuilder.builder()
         .clientCredentials()
         .build();
-
     AuthorizedClientServiceOAuth2AuthorizedClientManager manager =
         new AuthorizedClientServiceOAuth2AuthorizedClientManager(clients, authorizedClientService);
     manager.setAuthorizedClientProvider(provider);
@@ -145,11 +137,7 @@ OAuth2AuthorizedClientManager authorizedClientManager(
 Use this manager for service-to-service client-credentials flows:
 
 ```java
-Authentication systemPrincipal = new AnonymousAuthenticationToken(
-    "key",
-    "system",
-    AuthorityUtils.createAuthorityList("ROLE_SYSTEM")
-);
+Authentication systemPrincipal = new AnonymousAuthenticationToken("key", "system", AuthorityUtils.createAuthorityList("ROLE_SYSTEM"));
 
 OAuth2AuthorizeRequest authorizeRequest = OAuth2AuthorizeRequest.withClientRegistrationId("invoices")
     .principal(systemPrincipal)

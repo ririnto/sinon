@@ -21,7 +21,6 @@ Open this when the blocker is combination semantics rather than the business log
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class ConcatExample {
     Flux<String> orderedAuditTrail() {
         return Flux.concat(Flux.just("load"), Flux.just("transform"), Flux.just("store"));
@@ -34,7 +33,6 @@ final class ConcatExample {
 ```java
 import java.time.Duration;
 import reactor.core.publisher.Flux;
-
 final class MergeExample {
     Flux<String> liveFeed() {
         Flux<String> notifications = Flux.just("notice-1", "notice-2").delayElements(Duration.ofMillis(20));
@@ -48,7 +46,6 @@ final class MergeExample {
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class ZipExample {
     Flux<String> labeledUsers() {
         return Flux.zip(Flux.just("A", "B"), Flux.just(1, 2), (name, rank) -> name + "-" + rank);
@@ -61,7 +58,6 @@ final class ZipExample {
 ```java
 import java.time.Duration;
 import reactor.core.publisher.Flux;
-
 final class CombineLatestExample {
     Flux<String> dashboard() {
         Flux<String> status = Flux.just("GREEN", "YELLOW").delayElements(Duration.ofMillis(30));
@@ -75,7 +71,6 @@ final class CombineLatestExample {
 
 ```java
 import reactor.core.publisher.Mono;
-
 final class ThenExample {
     Mono<String> writeAndConfirm() {
         return Mono.fromRunnable(() -> {})

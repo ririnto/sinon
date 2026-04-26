@@ -12,17 +12,17 @@ Open this when declaring test dependencies, configuring the Gradle test task, or
 ```kotlin
 dependencies {
     testImplementation(kotlin("test"))
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:${kotlinVersion}")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:1.9.25")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
-    testImplementation("io.mockk:mockk")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("io.mockk:mockk:1.14.6")
 }
 ```
 
 Optional libraries that may be added based on project needs: `kotest-runner-junit5`, `turbine`, `awaitility-kotlin`, `junit-jupiter` (Testcontainers).
 
-Pin versions through a `libs.versions.toml` catalog or the project's dependency management strategy rather than hardcoding them here. The libraries above resolve their latest compatible versions from Maven Central at configuration time.
+Pin versions through a `libs.versions.toml` catalog or the project's dependency management strategy. The raw coordinates above are directly usable; update versions deliberately when the module's Kotlin baseline changes.
 
 ## Test task configuration
 
@@ -46,12 +46,12 @@ tasks.test {
 
 | Need | Library | Dependency |
 | --- | --- | --- |
-| Baseline assertions + JUnit 5 runner | `kotlin.test` + `kotlin-test-junit5` | `testImplementation(kotlin("test"))` |
-| Coroutine test control | `kotlinx-coroutines-test` | see above |
-| Mocking | MockK | `io.mockk:mockk` |
-| Rich matchers + spec styles | Kotest | `io.kotest:kotest-runner-junit5` |
-| Step-by-step Flow inspection | Turbine | `app.cash.turbine:turbine` |
-| Polling / eventual consistency | Awaitility | `org.awaitility:awaitility-kotlin` |
+| Baseline assertions + JUnit 5 runner | `kotlin.test` + `kotlin-test-junit5` | `org.jetbrains.kotlin:kotlin-test-junit5:1.9.25` |
+| Coroutine test control | `kotlinx-coroutines-test` | `org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2` |
+| Mocking | MockK | `io.mockk:mockk:1.14.6` |
+| Rich matchers + spec styles | Kotest | `io.kotest:kotest-runner-junit5:6.0.3` |
+| Step-by-step Flow inspection | Turbine | `app.cash.turbine:turbine:1.2.1` |
+| Polling / eventual consistency | Awaitility | `org.awaitility:awaitility-kotlin:4.3.0` |
 | Docker-based integration tests | Testcontainers | `org.testcontainers:*` |
 
 ## Rules

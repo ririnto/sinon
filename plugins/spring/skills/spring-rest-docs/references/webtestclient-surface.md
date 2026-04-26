@@ -28,14 +28,7 @@ this.webTestClient.get().uri("/orders/{id}", 42)
     .exchange()
     .expectStatus().isOk()
     .expectBody()
-    .consumeWith(document("orders-get",
-        pathParameters(
-            parameterWithName("id").description("Order identifier")
-        ),
-        responseFields(
-            fieldWithPath("id").description("Order id"),
-            fieldWithPath("status").description("Order status")
-        )));
+    .consumeWith(document("orders-get", pathParameters(parameterWithName("id").description("Order identifier")), responseFields(fieldWithPath("id").description("Order id"), fieldWithPath("status").description("Order status"))));
 ```
 
 Attach `document(...)` to the WebTestClient response consumption path rather than trying to reuse the MockMvc `andDo(...)` shape.

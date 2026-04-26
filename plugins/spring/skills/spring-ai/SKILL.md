@@ -24,7 +24,7 @@ Use this skill when building Spring AI application features with `ChatClient`, p
 
 Use `spring-ai` for model-facing application seams, retrieval flow, Spring-managed AI integration, and provider-neutral model abstractions.
 
-- Use `spring-integration` for non-AI message routing, adapters, and Enterprise Integration Patterns.
+- Non-AI message routing, adapters, and Enterprise Integration Patterns are outside this skill's scope.
 - Keep provider SDK details at the configuration edge. Application services should depend on Spring AI abstractions such as `ChatClient`, `EmbeddingModel`, `VectorStore`, `ImageModel`, `TranscriptionModel`, `TextToSpeechModel`, or `ModerationModel`.
 - Keep business rules outside prompts and outside tool implementations. Spring AI should orchestrate model interaction, not replace core domain logic.
 
@@ -140,9 +140,7 @@ class ReleaseSummaryService {
 
     ReleaseSummary summarize(String releaseNotes) {
         return chatClient.prompt()
-            .user(user -> user
-                .text("Summarize the release notes and list required migration actions. Notes: {notes}")
-                .param("notes", releaseNotes))
+            .user(user -> user.text("Summarize the release notes and list required migration actions. Notes: {notes}").param("notes", releaseNotes))
             .call()
             .entity(ReleaseSummary.class);
     }

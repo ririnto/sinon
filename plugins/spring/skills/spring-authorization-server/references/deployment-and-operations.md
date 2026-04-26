@@ -82,7 +82,6 @@ The official requirement is shared key material, not a specific built-in JDBC JW
 JWKSource<SecurityContext> jwkSource() {
     RSAKey currentKey = generateRsa("current-key-id");
     RSAKey nextKey = generateRsa("next-key-id");
-
     JWKSet jwkSet = new JWKSet(List.of(currentKey, nextKey));
     return (selector, context) -> selector.select(jwkSet);
 }

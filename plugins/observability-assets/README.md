@@ -50,6 +50,37 @@ These topics fall outside Observability Assets' scope:
 - application-framework-specific instrumentation and metrics emission details
 - generic incident response or on-call process design not tied to alert-rule or dashboard assets
 
+## Runtime Model
+
+This plugin uses one shared plugin root with two thin runtime manifests:
+
+- `.claude-plugin/plugin.json`
+- `.codex-plugin/plugin.json`
+
+The actual reusable content lives beside those manifests at the plugin root.
+
+## Plugin Layout
+
+```text
+plugins/observability-assets/
+├── .claude-plugin/plugin.json
+├── .codex-plugin/plugin.json
+├── README.md
+└── skills/
+    ├── alert-rule-testing/
+    ├── alertmanager/
+    ├── dashboard-provisioning/
+    ├── grafana-dashboards/
+    ├── prometheus-alert-rules/
+    └── promql/
+```
+
+## Shipped Surfaces
+
+- The plugin ships six reusable observability-asset skills under `skills/`.
+- The plugin ships no plugin-root `agents/` directory.
+- The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
+
 ## Design Principles
 
 - Prefer version-controlled monitoring assets over UI-only drift.
@@ -69,5 +100,5 @@ Install from Sinon:
 For local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/observability-assets
+claude --plugin-dir /path/to/sinon/plugins/observability-assets
 ```

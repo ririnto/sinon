@@ -17,7 +17,7 @@ The current stable Spring CredHub line is 4.0.1. Use the official Spring CredHub
 
 Use `spring-credhub` for application-side CredHub client usage, credential naming, typed credential reads, credential generation requests, and secure client configuration.
 
-- Use `spring-vault` for HashiCorp Vault integration, lease handling, and Vault-specific secret backends.
+- HashiCorp Vault integration, lease handling, and Vault-specific secret backends are outside this skill's scope.
 - Keep this skill focused on consuming the CredHub API from an application, not on platform-level CredHub operator procedures.
 
 ## Common path

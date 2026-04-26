@@ -4,11 +4,13 @@ description: >-
   Write idiomatic Kotlin with null safety, value types, extensions, collections, string handling, and standard-library boundary choices. Use this skill when the user asks to "write idiomatic Kotlin", "refactor Java to Kotlin", "use Kotlin null safety", "choose data class vs sealed class", "use Kotlin serialization", "model Path or date-time values in Kotlin", "choose collection vs sequence", "use scope functions", "use runCatching or Result", "parse text with Regex", or needs guidance on Kotlin language and standard-library patterns.
 ---
 
+# Kotlin Language Patterns
+
 ## Goal
 
 Write idiomatic Kotlin by choosing the smallest language construct or stdlib path that keeps meaning obvious.
 
-**Minimum Kotlin version: 1.9** -- examples use `kotlin.time.Instant`, `value class` with `@JvmInline`, `kotlin.io.path.*`, and `fun interface`. Some APIs referenced (e.g., `kotlin.uuid`, `kotlin.io.encoding`) require Kotlin 2.0+ and are marked as experimental where applicable. Library versions (`kotlinx.serialization`, `kotlinx-datetime`) are managed through the project's dependency catalog; pin versions when adopting features from specific releases. Keep the common path focused on null safety, type modeling, extensions, collection shaping, string handling, boundary error flow, Java interop, and Kotlin-native boundary choices such as serialization, date-time, and JVM filesystem paths, then open a blocker reference only when deeper modeling or adjacent platform topics actually matter.
+**Minimum Kotlin version: 1.9** -- examples use `kotlinx.datetime.Instant`, `value class` with `@JvmInline`, `kotlin.io.path.*`, and `fun interface`. Some APIs referenced (e.g., `kotlin.uuid`, `kotlin.io.encoding`) require Kotlin 2.0+ and are marked as experimental where applicable; the stdlib Instant API requires a newer Kotlin baseline and is not used in Kotlin 1.9 examples. Library versions (`kotlinx.serialization`, `kotlinx-datetime`) are managed through the project's dependency catalog; pin versions when adopting features from specific releases. Keep the common path focused on null safety, type modeling, extensions, collection shaping, string handling, boundary error flow, Java interop, and Kotlin-native boundary choices such as serialization, date-time, and JVM filesystem paths, then open a blocker reference only when deeper modeling or adjacent platform topics actually matter.
 
 ## Operating Rules
 
@@ -126,7 +128,7 @@ fun String.normalizedIssueKey(): String = trim().uppercase()
 Member dispatch is virtual; extension dispatch is static. The resolved implementation depends on the actual runtime type for members but on the declared compile-time type for extensions:
 
 ```kotlin
-open class Base { fun greet() = "Base" }
+open class Base { open fun greet() = "Base" }
 class Derived : Base() { override fun greet() = "Derived" }
 
 fun Base.greetExt() = "Base-ext"
@@ -216,7 +218,9 @@ interface Sink<in T> {
     fun accept(value: T)
 }
 
-val source: Source<String> = /* ... */
+val source: Source<String> = object : Source<String> {
+    override fun next(): String? = "value"
+}
 val ref: Source<Any> = source
 ```
 
@@ -367,9 +371,11 @@ Use `recover()` to transform specific failures into success values while letting
 ```kotlin
 parsePort(portStr).recover { ex ->
     if (ex is NumberFormatException) DEFAULT_PORT
-    else throw ex // re-throw unexpected failures
+    else throw ex
 }
 ```
+
+Unexpected failures should be re-thrown so `recover` does not hide unrelated errors.
 
 Prefer `try/catch` over `Result` when you need different handling per exception type, `finally` blocks, or resource cleanup -- `Result` cannot distinguish exception classes natively and does not support `finally`.
 
@@ -435,7 +441,7 @@ Without `@Throws`, Java sees the method as `throws nothing` and cannot catch the
 Keep adjacent Kotlin-native boundaries in this skill even when their detailed implementation moves to references.
 
 - use `kotlinx.serialization` when the boundary is Kotlin-first model encoding or decoding
-- use `kotlin.time.Instant` for real moments in time, and keep `LocalDate`, `LocalDateTime`, and `TimeZone` in `kotlinx-datetime`
+- use `kotlinx.datetime.Instant` for real moments in time on the Kotlin 1.9 baseline, and keep `LocalDate`, `LocalDateTime`, and `TimeZone` in `kotlinx-datetime`
 - use `java.nio.file.Path` plus `kotlin.io.path.*` on JVM when filesystem semantics matter more than raw strings
 
 ### Keep member ordering predictable
@@ -542,4 +548,4 @@ Use this skill for Kotlin language and stdlib common-path work: null safety, typ
 
 It also owns Kotlin-native boundary choices for serialization, date-time modeling, JVM filesystem paths, and predictable member ordering when those questions are still Kotlin language or API-shape decisions.
 
-Do not use this skill as the primary source for coroutine or Flow API design (use `kotlin-coroutines-flows` for that), Kotlin testing strategy (use `kotlin-test`), or runtime-specific diagnostics.
+Coroutine or Flow API design, Kotlin testing strategy, and runtime-specific diagnostics are adjacent domains outside this language-and-stdlib scope.

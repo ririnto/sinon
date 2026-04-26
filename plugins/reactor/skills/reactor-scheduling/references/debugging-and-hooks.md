@@ -5,7 +5,7 @@ description: "Open when local log and checkpoint diagnostics are not enough and 
 
 Open when a few local probes are not enough to explain where execution moved, where assembly happened, or why scheduling behavior differs across chains.
 
-For signal-level inspection (checkpoint, log, doOnEach) without assembly tracing or thread debugging, see [Signal-Level Diagnostics](../../reactor-core/references/debugging-and-observability.md) in the `reactor-core` skill.
+For signal-level inspection (`checkpoint`, `log`, `doOnEach`) without assembly tracing or thread debugging, keep the work in [Signal-Level Diagnostics](../../reactor-core/references/debugging-and-observability.md); this reference covers execution-tracing tools only.
 
 ## Start with the narrowest advanced tool
 
@@ -16,14 +16,13 @@ For signal-level inspection (checkpoint, log, doOnEach) without assembly tracing
 | visible thread logging at each stage | `doOnNext` with thread name output | low |
 
 > [!NOTE]
-> For `checkpoint("label")` and `log("category")`, see the `reactor-core` skill's signal-level diagnostics reference. This reference covers execution-tracing tools only.
+> For `checkpoint("label")` and `log("category")`, stay with signal-level diagnostics. This reference covers execution-tracing tools only.
 
 ## Global assembly tracing
 
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Hooks;
-
 final class OperatorDebugExample {
     Flux<Integer> values() {
         Hooks.onOperatorDebug();
@@ -41,7 +40,6 @@ final class OperatorDebugExample {
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
-
 final class ThreadLoggingExample {
     Flux<Integer> values() {
         return Flux.range(1, 3)
@@ -62,33 +60,30 @@ Use this pattern to verify that `publishOn(...)` actually switches threads at th
 ```java
 import reactor.core.publisher.Flux;
 import reactor.tools.agent.ReactorDebugAgent;
-
 final class DebugAgentExample {
     void instrument() {
         ReactorDebugAgent.init();
+        ReactorDebugAgent.processExistingClasses();
     }
     Flux<Integer> values() {
         return Flux.range(1, 3)
             .map(value -> value * 2)
             .checkpoint("after-map");
     }
-    void shutdown() {
-        ReactorDebugAgent.processErrors();
-    }
 }
 ```
 
-`ReactorDebugAgent` provides assembly tracing with lower steady-state overhead than `Hooks.onOperatorDebug()` because it defers processing until explicitly requested. Call `init()` once during initialization and `processErrors()` when you need to dump collected assembly traces. Requires `io.projectreactor:reactor-tools` as a dependency.
+`ReactorDebugAgent` provides assembly tracing with lower steady-state overhead than `Hooks.onOperatorDebug()` because it instruments operator call sites rather than capturing a stack trace for every assembly. Call `init()` as early as possible. Use `processExistingClasses()` only when eager initialization was not possible and already-loaded classes must be reprocessed. Requires `io.projectreactor:reactor-tools` as a dependency.
 
 ## Guardrails
 
-- Prefer named `checkpoint(...)` and local `log(...)` from the core skill's diagnostics before enabling global hooks.
+- Prefer named `checkpoint(...)` and local `log(...)` signal diagnostics before enabling global hooks.
 - Remove broad debug instrumentation once the root cause is known.
 - `Hooks.onOperatorDebug()` is powerful but expensive because it captures assembly details globally.
 - If the real problem is scheduler construction or lifecycle, open [Scheduler Tuning and Custom Schedulers](scheduler-tuning.md).
 
 ## When this reference is the wrong tool
 
-- If you need signal-level inspection (what values flow through which operator), see [Signal-Level Diagnostics](../../reactor-core/references/debugging-and-observability.md) in the `reactor-core` skill.
+- If you need signal-level inspection (what values flow through which operator), use [Signal-Level Diagnostics](../../reactor-core/references/debugging-and-observability.md) before applying execution-tracing tools.
 - If the chain is correct but `ThreadLocal`-backed data disappears, open [ThreadLocal Context Bridging](threadlocal-context-bridging.md).
-- If the main need is virtual time or scheduler replacement inside tests, use the testing skill instead.
+- If the main need is virtual time or scheduler replacement inside tests, keep the work in test determinism rather than runtime execution tracing.

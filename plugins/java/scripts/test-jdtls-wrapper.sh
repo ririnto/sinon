@@ -1,11 +1,6 @@
 #!/bin/sh
 set -eu
 
-# :description: Test suite for jdtls-wrapper.sh Lombok selection logic.
-#     Creates fake workspaces and asserts correct -javaagent injection behavior
-#     across Maven, Gradle, plain, multimodule, classpath, incompatible, missing-jar,
-#     unsafe-path, and disabled scenarios.
-
 script_dir=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
 wrapper_path="${script_dir}/jdtls-wrapper.sh"
 resolver_path="${script_dir}/has-lombok.sh"

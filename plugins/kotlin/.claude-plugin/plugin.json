@@ -9,6 +9,7 @@
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
   "skills": "./skills/",
+  "lspServers": "./.lsp.json",
   "keywords": [
     "kotlin",
     "kotlin-lsp",

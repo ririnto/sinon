@@ -14,7 +14,7 @@ metadata:
   recommended_version: "4.2.x.Final (current stable); 4.1.x.Final remains supported for existing deployments"
 ---
 
-# Netty
+## Netty
 
 Build one Netty 4.x application path end to end: choose transport, configure bootstrap, assemble the pipeline, handle lifecycle events, and keep buffer ownership correct.
 
@@ -112,14 +112,18 @@ clientBootstrap.group(group)
   - `ByteToMessageDecoder`: bytes to higher-level messages
   - `MessageToByteEncoder<T>`: messages to bytes
 
+### Java syntax baseline for examples
+
+- Netty 4.x itself supports older JDKs, but reference examples in this skill explicitly call out when they rely on Java 17+ syntax such as `instanceof` pattern variables or `case ... ->` switch rules.
+- When that note is absent, treat the example as ordinary Netty API guidance rather than a Java-version-specific syntax showcase.
+
 ## First safe commands
 
 Dependency entrypoint:
 
+Use `netty-all` for development convenience or individual modules for production. Prefer 4.2.x.Final for new work; 4.1.x.Final remains supported for existing deployments and is largely binary-compatible except for the changes listed in the Netty 4.2 migration guide.
+
 ```xml
-<!-- Use netty-all for development convenience or individual modules for production.
-     Recommended: 4.2.x.Final (current stable); 4.1.x.Final remains supported for existing deployments
-     and is largely binary-compatible except for the changes listed in the Netty 4.2 migration guide. -->
 <dependency>
     <groupId>io.netty</groupId>
     <artifactId>netty-all</artifactId>

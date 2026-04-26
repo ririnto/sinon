@@ -20,7 +20,7 @@ Use this skill to guide tasks that depend on official JDK command-line tools and
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and call out when a tool or packaging behavior changes across those releases.
 
-Do not describe the full tooling surface as uniformly available across that whole line. In this skill's framing, `javac`, `java`, `javadoc`, and `jdeps` span the supported LTS line, while `jshell` and `jlink` are JDK 9+ workflows and `jpackage` is a JDK 14+ workflow.
+Do not describe the full tooling surface as uniformly available across that whole line. In this skill's framing, `javac`, `java`, `javadoc`, and `jdeps` span the supported LTS line, `jshell` and `jlink` are JDK 9+ workflows, and `jpackage` is standard from JDK 16. JDK 14-15 shipped `jpackage` as an incubating tool (`jdk.incubator.jpackage`), so treat that era as a caveat rather than the normal production baseline.
 
 ## Common-Case Workflow
 
@@ -44,7 +44,7 @@ Tool availability baseline:
 
 - `javac`, `java`, `javadoc`, `jdeps`: available across the supported LTS line used by this plugin
 - `jshell`, `jlink`: JDK 9+
-- `jpackage`: JDK 14+
+- `jpackage`: standard from JDK 16; incubating in JDK 14-15
 
 Confirm the target JDK version before recommending `jshell`, `jlink`, or `jpackage`.
 
@@ -112,7 +112,7 @@ jpackage \
 
 Use when: you want to validate the packaged launch shape before choosing a platform-specific installer type.
 
-Version note: `jpackage` is a JDK 14+ workflow. Do not present it as an option on the JDK 8 or JDK 11 baseline.
+Version note: `jpackage` is a standard JDK 16+ workflow. JDK 14-15 shipped an incubating `jpackage` module (`jdk.incubator.jpackage`); do not present that incubator form as the normal production baseline, and do not present `jpackage` as an option on the JDK 8 or JDK 11 baseline.
 
 > [!NOTE]
 > On JDK 25 and later (JDK-8345185), `jpackage` no longer adds `--bind-services` to its default `jlink` options. The default now resolves to `--strip-native-commands --strip-debug --no-man-pages --no-header-files`, so the generated runtime image drops providers that were previously included by service-loader binding. When the application uses `java.util.ServiceLoader`, restore the old behavior by passing a quoted `--jlink-options` string that re-includes `--bind-services`:
@@ -256,7 +256,7 @@ Entry point is `index.html`. Verify generation succeeded when this file exists a
 
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
-| treating every listed tool as available on every supported LTS release | users on JDK 8 or JDK 11 can be sent to tools that do not exist there | state the version gate first: `jshell`/`jlink` on JDK 9+, `jpackage` on JDK 14+ |
+| treating every listed tool as available on every supported LTS release | users on JDK 8 or JDK 11 can be sent to tools that do not exist there | state the version gate first: `jshell`/`jlink` on JDK 9+, standard `jpackage` on JDK 16+ with JDK 14-15 incubator caveat |
 | starting `jshell` without the real class path | the REPL cannot load the project classes you actually want to inspect | build or point at the compiled output first, then launch `jshell --class-path ...` |
 | starting with `jpackage` | packaging too early hides runtime and module problems | inspect with `jdeps` first, then build the runtime/image chain |
 | using `jlink` without explicit module knowledge | the image can miss required modules or stay larger than necessary | run `jdeps --print-module-deps` first |

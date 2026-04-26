@@ -5,7 +5,7 @@ description: "Open this when one blocking boundary is not enough and you need mu
 
 Open this when a single `Mono.fromCallable(...)` + `subscribeOn(boundedElastic())` bridge is no longer sufficient and the pipeline requires multi-boundary blocking integration, future-based handoff patterns, or terminal bridge semantics.
 
-For one ordinary blocking boundary, see the `reactor-scheduling` skill which covers the default bridge pattern in its ordinary path.
+For one ordinary blocking boundary, keep the default `Mono.fromCallable(...)` plus `subscribeOn(Schedulers.boundedElastic())` pattern from `SKILL.md`; this reference covers deeper bridge variants only.
 
 ## Multiple blocking boundaries
 
@@ -15,7 +15,6 @@ When two or more independent blocking calls must each run on separate bounded-el
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
 final class MultiBoundaryPipeline {
     Flux<String> process(String userId) {
         return Mono.fromCallable(() -> fetchProfile(userId))
@@ -47,7 +46,6 @@ Use `fromRunnable` when the blocking call produces no value but must complete be
 ```java
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
 final class BlockingSideEffect {
     Mono<String> execute() {
         return Mono.fromRunnable(this::blockingInit)
@@ -68,13 +66,11 @@ When an external API already returns a `CompletableFuture`, use `fromFuture` to 
 ```java
 import reactor.core.publisher.Mono;
 import java.util.concurrent.CompletableFuture;
-
 final class FutureBridge {
     Mono<String> loadAsync(String key) {
         CompletableFuture<String> future = asyncLookup(key);
         return Mono.fromFuture(future);
     }
-
     private CompletableFuture<String> asyncLookup(String key) {
         return CompletableFuture.completedFuture("value:" + key);
     }
@@ -93,7 +89,6 @@ Placing blocking work inside `map(...)` occupies the reactive worker thread invi
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
 final class BadBlockingInChain {
     Flux<String> broken() {
         return Flux.just("a", "b")
@@ -104,7 +99,6 @@ final class BadBlockingInChain {
         return "result";
     }
 }
-
 final class GoodBoundaryIsolation {
     Mono<String> correct() {
         return Mono.fromCallable(() -> "result:" + slowSyncCall())
@@ -121,16 +115,21 @@ final class GoodBoundaryIsolation {
 
 ## Virtual-thread considerations (Java 21+)
 
-On Java 21+, Reactor does not use virtual threads by default. To back `boundedElastic()` with virtual threads, you must pass a virtual-thread `ThreadFactory` to `Schedulers.newBoundedElastic(...)` or replace the default factory via `Schedulers.setFactory(...)`. This does not change the bridge pattern but affects concurrency behavior:
+On Java 21+, Reactor does not use virtual threads by default. To back the shared `Schedulers.boundedElastic()` with virtual threads, start the JVM with the Reactor system property `reactor.schedulers.defaultBoundedElasticOnVirtualThreads=true`:
+
+```bash
+java -Dreactor.schedulers.defaultBoundedElasticOnVirtualThreads=true -jar app.jar
+```
+
+This does not change the bridge pattern but affects concurrency behavior:
 
 - Virtual threads still block their carrier when calling pinning-sensitive APIs (`synchronized`, native methods).
 - A high volume of `fromCallable` bridges on a virtual-thread-backed pool can create many virtual threads.
-- For pinning-sensitive blocking calls, prefer a dedicated `newBoundedElastic(...)` with explicit capacity tuning and a platform-thread factory.
+- For pinning-sensitive blocking calls, prefer a dedicated `newBoundedElastic(...)` with explicit capacity tuning rather than enabling virtual threads globally.
 
 ```java
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
 final class PinnedBlockingBridge {
     Mono<byte[]> readResource(String path) {
         return Mono.fromCallable(() -> pinnedRead(path))
@@ -146,4 +145,4 @@ final class PinnedBlockingBridge {
 
 - Do not scatter multiple `subscribeOn(...)` calls and expect each one to matter independently -- place each at the real source boundary.
 - Do not hide blocking work inside `map(...)` or `flatMap(...)` without a visible `fromCallable` wrapper.
-- If the real blocker is scheduler policy, worker selection, or execution tracing, treat that as a scheduling problem and open the `reactor-scheduling` skill.
+- If the real blocker is scheduler policy, worker selection, or execution tracing, treat that as a scheduling problem rather than a core blocking-bridge problem.

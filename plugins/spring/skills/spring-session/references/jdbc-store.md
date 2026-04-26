@@ -68,9 +68,7 @@ class JdbcSessionFlowTest {
                 .content("{\"sku\":\"SKU-1\"}"))
             .andExpect(status().isOk())
             .andReturn();
-
         Cookie sessionCookie = first.getResponse().getCookie("SESSION");
-
         ResultActions secondRequest = mockMvc.perform(post("/cart/items")
                 .cookie(sessionCookie)
                 .contentType(MediaType.APPLICATION_JSON)

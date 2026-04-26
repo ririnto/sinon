@@ -29,9 +29,11 @@ tests:
 ```yaml
 tests:
   - name: my-test
-    interval: 30s           # override evaluation_interval for this test only
+    interval: 30s
     start_timestamp: 2026-06-15T12:00:00Z
 ```
+
+The per-test `interval` overrides the top-level `evaluation_interval` for that test only.
 
 Use these controls when:
 
@@ -47,11 +49,9 @@ When alert rules consume recording rules, the recording rule's group must evalua
 rule_files:
   - rules/api.rules.yaml
 
-# Without explicit order, promtool may evaluate groups in file declaration order,
-# but explicit ordering is safer when cross-group dependencies exist
 group_eval_order:
-  - api-recording   # must evaluate first -- produces job:http_requests:rate5m
-  - api-alerts      # consumes job:http_requests:rate5m
+  - api-recording
+  - api-alerts
 
 tests:
   - input_series:
@@ -63,13 +63,15 @@ tests:
         exp_alerts: []
 ```
 
+Without explicit order, promtool may evaluate groups in file declaration order, but explicit ordering is safer when cross-group dependencies exist. In this example, `api-recording` must evaluate first because it produces `job:http_requests:rate5m`, and `api-alerts` consumes that recording rule.
+
 Use when: the rule file contains multiple groups and alerts in one group depend on recording rules in another.
 
 `start_timestamp`, `fuzzy_compare`, `group_eval_order`, and per-test `interval` are version-sensitive features. Verify the deployed Prometheus/promtool version supports them before relying on these controls.
 
 ## Filtered Execution
 
-Run one named subset of tests during focused iteration:
+Run one named test selection during focused iteration:
 
 ```bash
 promtool test rules --run '^api-error-rate$' alerts/api-errors.test.yaml
@@ -78,17 +80,16 @@ promtool test rules --run '^api-error-rate$' alerts/api-errors.test.yaml
 The `--run` argument is a regex matched against test case `name` fields. Examples:
 
 ```bash
-# Run all tests with names starting with "api-error"
 promtool test rules --run '^api-error' tests/
 
-# Run all tests with "firing" in the name
 promtool test rules --run 'firing' tests/
 
-# Run all tests except "slow" ones
 promtool test rules --run '(?!.*slow)' tests/
 ```
 
-Use when: you need to run one named subset of tests during focused iteration.
+These commands run all tests whose names start with `api-error`, all tests whose names contain `firing`, and all tests except names containing `slow`.
+
+Use when: you need to run one named test selection during focused iteration.
 
 ## Time Precision and eval_time Alignment
 
@@ -99,24 +100,26 @@ Use when: you need to run one named subset of tests during focused iteration.
 ```yaml
 tests:
   - interval: 1m
-    # These are all valid: multiples of 1m
     alert_rule_test:
-      - eval_time: 0m     # initial evaluation
-      - eval_time: 5m     # after 5 evaluations
-      - eval_time: 10m    # exactly at the for boundary
-      - eval_time: 16m    # well past the for boundary
+      - eval_time: 0m
+      - eval_time: 5m
+      - eval_time: 10m
+      - eval_time: 16m
 ```
+
+The values are all valid multiples of `1m`: initial evaluation, after 5 evaluations, exactly at a `for: 10m` boundary, and well past that boundary.
 
 **Misaligned (will cause problems):**
 
 ```yaml
 tests:
   - interval: 1m
-    # These are NOT clean multiples of 1m
     alert_rule_test:
-      - eval_time: 30s    # falls between evaluation points
-      - eval_time: 7m30s  # falls between evaluation points
+      - eval_time: 30s
+      - eval_time: 7m30s
 ```
+
+These values are not clean multiples of `1m`; both fall between evaluation points.
 
 When `eval_time` does not land on an evaluation boundary, promtool evaluates at the last boundary before the requested time. An `eval_time: 7m30s` with `interval: 1m` actually evaluates at `7m`. This can make tests appear to fail or pass for unclear reasons.
 
@@ -141,17 +144,15 @@ When `fuzzy_compare: true` is set, promtool uses approximate comparison for nume
 Example showing the difference:
 
 ```yaml
-# WITHOUT fuzzy_compare -- this FAILS if actual value is 5.000000000001
 promql_expr_test:
   - expr: sum(rate(http_requests_total{status="500"}[5m])) / sum(rate(http_requests_total[5m]))
     eval_time: 10m
     exp_samples:
       - labels: '{}'
         value: 0.05
-
-# WITH fuzzy_compare: true at top level -- this PASSES
-# because 0.0500000000001 is "close enough" to 0.05
 ```
+
+Without `fuzzy_compare`, this fails if the actual value is `0.0500000000001`. With `fuzzy_compare: true` at the top level, that small difference is close enough to `0.05`.
 
 ## start_timestamp Use Cases
 
@@ -162,7 +163,7 @@ Most tests work fine with the default epoch-zero start time. Set `start_timestam
 ```yaml
 tests:
   - name: hour-based-routing-check
-    start_timestamp: 2026-06-15T03:00:00Z   # 3 AM
+    start_timestamp: 2026-06-15T03:00:00Z
     input_series:
       - series: 'error_count{job="batch"}'
         values: '100+10x5'
@@ -175,14 +176,18 @@ tests:
                 Batch job failed during off-hours run at 03:02 UTC
 ```
 
+The timestamp starts the fixture at 03:00 UTC.
+
 **Verifying behavior across daylight saving transitions (rare):**
 
 ```yaml
 tests:
   - name: dst-transition
-    start_timestamp: 2026-03-08T01:59:00Z   # just before spring-forward
+    start_timestamp: 2026-03-08T01:59:00Z
     ...
 ```
+
+The timestamp lands just before a spring-forward transition.
 
 ## Review Questions
 

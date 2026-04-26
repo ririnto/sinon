@@ -10,9 +10,7 @@ Open this reference when the contract depends on cookies.
 | The cookie is framework-internal or deployment-specific | keep it out of published docs |
 
 ```java
-requestCookies(
-    cookieWithName("SESSION").description("Session identifier")
-)
+requestCookies(cookieWithName("SESSION").description("Session identifier"))
 ```
 
 Use cookie documentation only when cookies are part of the published contract.

@@ -70,10 +70,7 @@ LdapAuthoritiesPopulator authorities(BaseLdapPathContextSource contextSource) {
 ```java
 @Bean
 AuthenticationProvider activeDirectoryAuthenticationProvider() {
-    return new ActiveDirectoryLdapAuthenticationProvider(
-        "example.com",
-        "ldap://company.example.com/"
-    );
+    return new ActiveDirectoryLdapAuthenticationProvider("example.com", "ldap://company.example.com/");
 }
 ```
 

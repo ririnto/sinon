@@ -4,7 +4,7 @@ description: >-
   Overview of the Spring plugin, its included skills, and practical Spring application workflow coverage.
 ---
 
-Spring is a shared, skill-first plugin for Spring Boot and Spring Framework application work in the Sinon universal marketplace.
+Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and the broader Spring portfolio in the Sinon universal marketplace.
 
 ## Purpose
 
@@ -67,7 +67,7 @@ Typical workflow:
 1. Establish the application shape first using `spring-boot` and `spring-framework`.
 2. Add Spring-aware tests when behavior needs to be locked with framework context.
 3. Bring in `spring-security` guidance when authentication, authorization, or filter-chain concerns are in scope.
-4. Use `spring-integration`, `spring-kafka`, `spring-amqp`, or `spring-pulsar` when consistency crosses messaging boundaries.
+4. Add Spring messaging guidance when consistency crosses Integration, Kafka, AMQP, or Pulsar boundaries.
 5. Choose the concrete web, data, messaging, or cloud guidance for the active subsystem.
 6. Java syntax, JVM diagnostics, and JDK packaging questions belong in Java- or JVM-focused guidance.
 
@@ -78,6 +78,8 @@ Testing boundary:
 - Pure unit tests that do not need Spring context belong in language- or platform-level testing guidance.
 
 ## Scope Boundaries
+
+Spring Cloud Data Flow coverage is for maintaining, operating, and migrating existing SCDF stream/task estates. Treat new greenfield orchestration decisions as platform architecture work and verify the current SCDF maintenance status before recommending new adoption.
 
 Spring stays responsible for Spring-specific annotations, configuration, repository abstractions, messaging integration, cloud integration, and Spring testing patterns.
 
@@ -94,6 +96,57 @@ Scheduling boundary:
 - App-local scheduled work with `@Scheduled`, `TaskScheduler`, and dynamic trigger registration belongs in `spring-framework` guidance.
 - `spring-batch` covers job identity, restart survival, and batch job state management.
 - Pipeline composition, task scheduling, and runtime operations belong in `spring-cloud-data-flow` guidance.
+
+## Runtime Model
+
+This plugin uses one shared plugin root with two thin runtime manifests:
+
+- `.claude-plugin/plugin.json`
+- `.codex-plugin/plugin.json`
+
+The actual reusable content lives beside those manifests at the plugin root.
+
+## Plugin Layout
+
+```text
+plugins/spring/
+├── .claude-plugin/plugin.json
+├── .codex-plugin/plugin.json
+├── README.md
+└── skills/
+    ├── spring-ai/
+    ├── spring-amqp/
+    ├── spring-authorization-server/
+    ├── spring-batch/
+    ├── spring-boot/
+    ├── spring-cloud/
+    ├── spring-cloud-data-flow/
+    ├── spring-credhub/
+    ├── spring-data/
+    ├── spring-framework/
+    ├── spring-graphql/
+    ├── spring-grpc/
+    ├── spring-hateoas/
+    ├── spring-integration/
+    ├── spring-kafka/
+    ├── spring-ldap/
+    ├── spring-modulith/
+    ├── spring-pulsar/
+    ├── spring-rest-docs/
+    ├── spring-security/
+    ├── spring-session/
+    ├── spring-shell/
+    ├── spring-statemachine/
+    ├── spring-vault/
+    ├── spring-web-flow/
+    └── spring-web-services/
+```
+
+## Shipped Surfaces
+
+- The plugin ships twenty-six reusable Spring skills under `skills/`.
+- The plugin ships no plugin-root `agents/` directory.
+- The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 
@@ -114,5 +167,5 @@ Install from Sinon:
 For local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/spring
+claude --plugin-dir /path/to/sinon/plugins/spring
 ```

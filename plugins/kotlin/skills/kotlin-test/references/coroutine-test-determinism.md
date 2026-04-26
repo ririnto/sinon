@@ -74,6 +74,7 @@ Stepwise virtual-time control:
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -87,9 +88,11 @@ class RetryClockTest {
         }
 
         advanceTimeBy(999)
+        runCurrent()
         assertEquals(false, deferred.isCompleted)
 
         advanceTimeBy(1)
+        runCurrent()
         assertEquals("done", deferred.await())
     }
 }
@@ -157,8 +160,8 @@ Use when: the coroutine path should fail fast and the test needs to prove the th
 UnconfinedTestDispatcher (eager execution):
 
 ```kotlin
-import kotlinx.coroutines.UnconfinedTestDispatcher
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

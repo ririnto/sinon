@@ -3,7 +3,7 @@ title: "Alertmanager Shared Infrastructure Types"
 description: "Open this when configuring http_config, tls_config, oauth2, or tracing_config for Alertmanager receivers or global settings."
 ---
 
-# Alertmanager Shared Infrastructure Types
+## Alertmanager Shared Infrastructure Types
 
 Use this reference when you need the complete schema for `http_config`, `tls_config`, `oauth2`, and `tracing_config` -- the shared infrastructure types used by receiver configs, global config, and top-level Alertmanager settings.
 
@@ -39,8 +39,9 @@ Configures the HTTP client used by all receiver types that make outbound HTTP ca
 
 ### Complete Example
 
+Use the same `http_config` structure under `global:` or inside a specific receiver.
+
 ```yaml
-# In global: or within a specific receiver's http_config:
 http_config:
   tls_config:
     insecure_skip_verify: false

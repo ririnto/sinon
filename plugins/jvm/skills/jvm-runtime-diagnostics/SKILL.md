@@ -173,7 +173,7 @@ jcmd <pid> JFR.check
 ```
 
 - `Thread.print -l` completes and produces thread state plus lock detail.
-- `JFR.check` confirms the recording state before claiming JFR is running.
+- `JFR.check` confirms the recording name and `(running)` status before claiming JFR is active.
 - `GC.class_histogram` reflects the expected process, not the wrong PID.
 - `VM.native_memory` confirmed Native Memory Tracking was enabled at startup; comparing like-for-like captures.
 
@@ -289,13 +289,10 @@ Read: If total committed approaches container limit but Java Heap is small, non-
 ### `JFR.check` Output
 
 ```text
-Recording 1: name=gc-baseline maxsize=0 (unlimited) duration=0 (unlimited) disk=true
-  Recording: to=true size=48 KiB maxsize=0 (unlimited) duration=2 h (2 h)
-  Dump on exit: false
-  Path: /tmp/gc-baseline_12345_2026-04-20_101530.jfr
+Recording 1: name=baseline maxage=6 h (running)
 ```
 
-Read: Confirm `to=true` (recording active), check `size` growth rate, verify `duration` matches your `maxage` setting.
+Read: Match the recording `name`, confirm `(running)` before claiming the capture is active, and verify `maxage` matches the intended retention window. If the runtime also reports a destination or path, confirm it points to the restricted diagnostics location you intended.
 
 ## Deep References
 

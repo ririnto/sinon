@@ -10,6 +10,9 @@ Use these when the plugin ships multiple optional surfaces and the simple starte
 your-plugin/
 ├── .claude-plugin/
 │   └── plugin.json
+├── .codex-plugin/
+│   └── plugin.json
+├── README.md
 ├── commands/
 ├── agents/
 ├── skills/
@@ -31,6 +34,11 @@ Some surfaces need adjacent helper files that do not fit the bare root list:
 
 ```text
 your-plugin/
+├── .claude-plugin/
+│   └── plugin.json
+├── .codex-plugin/
+│   └── plugin.json
+├── README.md
 ├── hooks/
 │   ├── check.sh
 │   └── hooks.json

@@ -21,7 +21,7 @@ The current Boot 4.x Spring Cloud release-train line is 2025.1.1 (Oakwood). Spri
 
 Use `spring-cloud` for release-train-aligned distributed application wiring, external configuration through ConfigData, refresh-aware configuration, service discovery, load-balanced downstream calls, and resilience patterns.
 
-- Use `spring-cloud-data-flow` for SCDF stream and task orchestration.
+- SCDF stream and task orchestration are outside this skill's scope.
 - Use narrower Spring Cloud branches when the task is specifically about Gateway, OpenFeign, Stream binders, Contract, Bus, Kubernetes, or Vault behavior.
 
 ## Surface map

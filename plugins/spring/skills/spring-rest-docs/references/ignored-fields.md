@@ -3,9 +3,7 @@
 Open this reference when a field must exist in the payload but should stay out of published docs.
 
 ```java
-responseFields(
-    fieldWithPath("_internal").ignored()
-)
+responseFields(fieldWithPath("_internal").ignored())
 ```
 
 Use ignored fields when a field must exist in the payload but should not appear in published docs.

@@ -12,14 +12,12 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 import reactor.test.StepVerifierOptions;
-
 class ScenarioOptionsTest {
     @Test
     void namesScenarioAndControlsRequest() {
         StepVerifierOptions options = StepVerifierOptions.create()
             .scenarioName("range verification")
             .initialRequest(2);
-
         StepVerifier.create(Flux.range(1, 5), options)
             .expectNext(1, 2)
             .thenRequest(3)
@@ -37,7 +35,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import reactor.test.StepVerifierOptions;
 import reactor.util.context.Context;
-
 class ContextExpectationTest {
     @Test
     void verifiesAccessibleContext() {
@@ -54,13 +51,36 @@ class ContextExpectationTest {
 }
 ```
 
+## `consumeRecordedWith(...)` for recorded value inspection
+
+Use `recordWith(...)` to start collecting `onNext` values, then place `consumeRecordedWith(...)` before the terminal expectation. This is part of the scenario, not a post-verification assertion.
+
+```java
+import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
+import static org.assertj.core.api.Assertions.assertThat;
+class RecordedSignalsTest {
+    @Test
+    void inspectsRecordedValuesBeforeCompletion() {
+        StepVerifier.create(Flux.just("a", "b", "c"))
+            .recordWith(ArrayList::new)
+            .expectNextCount(3)
+            .consumeRecordedWith(values -> {
+                assertThat(values).containsExactly("a", "b", "c");
+            })
+            .verifyComplete();
+    }
+}
+```
+
 ## Advanced post-verification assertions
 
 ```java
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
-
 class PostVerificationAssertionsTest {
     @Test
     void verifiesDroppedElements() {
@@ -81,7 +101,6 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 import static org.assertj.core.api.Assertions.assertThat;
-
 class AssertNextAdvancedTest {
     @Test
     void inspectsMultipleValueProperties() {
@@ -99,31 +118,9 @@ class AssertNextAdvancedTest {
 }
 ```
 
-## `consumeRecordedWith(...)` for full signal inspection
-
-After verification, `consumeRecordedWith(...)` gives access to the complete list of recorded signals (onNext, onError, onComplete) for complex post-hoc assertions.
-
-```java
-import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Flux;
-import reactor.test.StepVerifier;
-import static org.assertj.core.api.Assertions.assertThat;
-
-class RecordedSignalsTest {
-    @Test
-    void inspectsAllRecordedSignals() {
-        StepVerifier.create(Flux.just("a", "b"))
-            .expectNext("a", "b")
-            .verifyThenAssertThat()
-            .consumeRecordedWith(signals -> {
-                assertThat(signals).hasSize(3);
-            });
-    }
-}
-```
-
 ## Guardrails
 
 - Use `StepVerifierOptions` only when scenario naming, initial request, or initial context is the real blocker.
 - Use `expectAccessibleContext()` only when context behavior is the thing being tested.
 - Keep `verifyThenAssertThat()` for post-execution conditions, not as a replacement for ordinary signal assertions.
+- Keep `consumeRecordedWith(...)` before terminal expectations such as `expectComplete()` or `verifyComplete()`.

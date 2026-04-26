@@ -16,10 +16,7 @@ Use the official endpoint configurer when PAR request validation or handling mus
 
 ```java
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-    .pushedAuthorizationRequestEndpoint(par -> par
-        .authenticationProviders(providers -> {
-        })
-    );
+    .pushedAuthorizationRequestEndpoint(par -> par.authenticationProviders(providers -> {}));
 ```
 
 Keep PAR-specific validation on the PAR endpoint seam instead of duplicating the logic in unrelated authorization filters.

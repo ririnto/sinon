@@ -18,6 +18,7 @@ Use official Java and OpenJDK materials for version-specific behavior and limita
 
 ## Version-sensitive guidance
 
+- Java 21+: `Thread.ofVirtual()` and `Executors.newVirtualThreadPerTaskExecutor()` are stable virtual-thread APIs.
 - Java 21-23: review `synchronized` sections carefully because virtual threads can still pin to carrier threads in those baselines.
 - Java 24+: JEP 491 removes `synchronized`-driven pinning as the default concern, but native or JNI-heavy paths can still pin virtual threads.
 - Treat `ScopedValue` as version-sensitive rather than a universal default: it is preview on Java 21-24 and finalized in Java 25.
@@ -65,15 +66,17 @@ final class RequestContextHandler {
 }
 ```
 
-Pinning diagnosis on JDK 21-23 (look for carrier-thread blocking in thread dumps):
+Pinning diagnosis on JDK 21-23: look for carrier-thread blocking in thread dumps.
 
-```bash
-# Thread.dump shows virtual thread in RUNNABLE state while carrier is parked:
-# "VirtualThread #123" prio=5 state=RUNNABLE
-#   at java.base/java.lang.Continuation.enter()
+```text
+"VirtualThread #123" prio=5 state=RUNNABLE
+  at java.base/java.lang.Continuation.enter()
+```
 
-# Synchronized block that pins the carrier:
-synchronized(lock) {   # pins virtual thread to carrier on JDK 21-23
+On JDK 21-23, a synchronized block can pin the virtual thread to its carrier while the monitor is held:
+
+```java
+synchronized (lock) {
     doWork();
 }
 ```
@@ -81,9 +84,10 @@ synchronized(lock) {   # pins virtual thread to carrier on JDK 21-23
 Avoid broad `ThreadLocal` in virtual-thread workloads; use `ThreadLocal` only for thread-specific caches that tolerate per-task storage:
 
 ```java
-// Caution: each virtual thread carries its own ThreadLocal copy
 static final ThreadLocal<int[]> buffer = ThreadLocal.withInitial(() -> new int[256]);
 ```
+
+Caution: each virtual thread carries its own `ThreadLocal` copy, so broad request context or large per-thread buffers can multiply memory use.
 
 ## Review questions
 

@@ -5,6 +5,8 @@ description: Stable repository rules for plugin packaging and skill authoring in
 
 Sinon is a marketplace repository for Claude Code plugins and Agent Skills. These rules govern repository layout, skill authoring, and documentation posture. Normative keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) follow BCP 14. All repository-level and agent-facing rules documents MUST be written in English.
 
+The agentskills.io loading model is the top-level governing basis for skill structure and progressive disclosure. Runtime-specific packaging rules for Claude Code and Codex extend that model but do not override it.
+
 ## Canonical files and symlinks
 
 - `CLAUDE.md` is the canonical root rules document. `AGENTS.md` is a symlink to it; treat them as one document, not parallel copies.
@@ -26,24 +28,35 @@ Sinon is a marketplace repository for Claude Code plugins and Agent Skills. Thes
 
 ## Plugin manifests
 
-Each plugin root ships both `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`. Non-runtime-specific fields MUST stay aligned across the two manifests within the same plugin.
+Each plugin root ships both `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`. Fields that describe the plugin itself MUST stay identical across both manifests. Runtime-specific packaging metadata lives only in the manifest for that runtime.
 
-- `name` and `description` MUST match across both manifests in a pair.
-- `author` MUST use the object form (for example, `"author": { "name": "ririnto" }`) and MUST match across the two manifests.
-- `repository`, `homepage`, and `license` MUST match across the two manifests.
+Shared fields that MUST match across both manifests in a pair:
+
+- `name` and `description`
+- `author`, using the object form (for example, `"author": { "name": "ririnto" }`)
+- `repository`, `homepage`, and `license`
 - `skills`, when present, MUST use the directory form `"./skills/"` with a trailing slash. Array-of-paths form MUST NOT be used.
-- `agents` MUST NOT appear in plugin manifests. When a plugin ships agents, keep the `agents/` directory at the plugin root and describe that runtime surface in the plugin README instead of declaring an `agents` manifest key.
+- `agents` MUST NOT appear in either manifest. When a plugin ships agents, keep the `agents/` directory at the plugin root and describe that runtime surface in the plugin README instead of declaring an `agents` manifest key.
+- `version` MUST NOT appear in any plugin manifest.
+
+Claude Code packaging rules:
+
 - `.claude-plugin/plugin.json` MUST include the `$schema` field `"https://anthropic.com/claude-code/plugin.schema.json"`.
 - `.claude-plugin/plugin.json` MUST NOT include an `interface` block.
+
+Codex packaging rules:
+
 - `.codex-plugin/plugin.json` MUST include an `interface` block with at least `displayName`, `shortDescription`, `longDescription`, `developerName`, `category`, `capabilities`, `defaultPrompt`, and `websiteURL`.
-- `version` MUST NOT appear in any plugin manifest.
+
+Plugin structure rule:
+
 - Plugins with agents MUST ship an `agents/` directory at the plugin root with one `.md` file per agent whose frontmatter `name` matches the file basename.
 
 ## Authoring Agent Skills
 
 When the task is to create, edit, review, refactor, validate, or package an Agent Skill for this repository, **YOU MUST** load the local `skill-authoring` skill from `plugins/agent-capability-kit/skills/skill-authoring/`. The mirrored path `.claude/skills/skill-authoring/` resolves to the same source content, and `.agents/skills/skill-authoring/` resolves through the `.agents/skills/` symlink to that same mirrored entry.
 
-Sinon treats the **agentskills.io loading model** as the top-level basis for local skill rules. Progressive disclosure applies at three levels:
+Progressive disclosure applies at three levels:
 
 1. Skill `description` metadata is the activation trigger. It MUST open with a capability statement written as an imperative clause that names what the skill does (for example, "Design…", "Write…", "Build…", "Author…", "Triage…", "Integrate…"), followed by a user-intent trigger clause such as "Use this skill when…". Starting the description with the trigger clause alone, without an opening capability statement, is PROHIBITED.
 2. `SKILL.md` is the common-path entrypoint loaded at activation and MUST be self-sufficient for the ordinary task.
@@ -109,7 +122,7 @@ When a skill documents multiple valid workflows for the same asset class, each w
 - Blank lines MUST NOT appear inside function bodies in example code.
 - Fenced code blocks MUST specify a language.
 - Example code MUST use import statements over fully qualified names (FQN).
-- Authors MUST verify against the official reference documentation before writing or modifying any skill content.
+- Authors MUST verify against the official reference documentation before writing or modifying any skill content. Verification means checking command syntax, API signatures, and configuration formats against the authoritative source rather than secondary summaries.
 - When example code depends on a specific version of a library, framework, language, or tool, the minimum supported version MUST be explicitly stated.
 - If a review results in modifications, a follow-up review MUST be performed to verify the changes.
 

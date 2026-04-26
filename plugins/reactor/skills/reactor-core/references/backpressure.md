@@ -30,7 +30,6 @@ Open this when the pipeline is functionally correct but producer speed, request 
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
-
 final class DemandControlledConsumer {
     void consume() {
         Flux.range(1, 10).subscribe(new BaseSubscriber<>() {
@@ -38,7 +37,6 @@ final class DemandControlledConsumer {
             protected void hookOnSubscribe(Subscription subscription) {
                 request(2);
             }
-
             @Override
             protected void hookOnNext(Integer value) {
                 request(1);
@@ -52,7 +50,6 @@ final class DemandControlledConsumer {
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class RateLimitedPipeline {
     Flux<Integer> values() {
         return Flux.range(1, 500).limitRate(64);
@@ -65,7 +62,6 @@ final class RateLimitedPipeline {
 ```java
 import java.time.Duration;
 import reactor.core.publisher.Flux;
-
 final class OverflowPolicy {
     Flux<Long> latestTicks() {
         return Flux.interval(Duration.ofMillis(5))

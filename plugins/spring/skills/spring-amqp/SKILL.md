@@ -22,7 +22,7 @@ The latest released Spring AMQP line is 4.0.3. Keep this skill on the 4.0.x stab
 
 Use `spring-amqp` for RabbitMQ-oriented producers, consumers, listener containers, queue and exchange topology, delivery retries, dead-letter flows, and RabbitMQ-specific operational seams.
 
-- Use `spring-kafka` or `spring-pulsar` for Kafka or Pulsar semantics and client APIs.
+- Kafka or Pulsar semantics and client APIs are outside this skill's scope.
 - Keep business logic outside listeners. Listeners should deserialize, validate, and delegate.
 - Keep queue, exchange, routing-key, and delivery-policy names stable once publishers and consumers are deployed.
 

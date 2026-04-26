@@ -11,26 +11,34 @@ Use this file to finish one of these jobs:
 - choose between `Instant`, `LocalDate`, and `LocalDateTime`
 - decide when a civil-time value should stay local instead of becoming an `Instant`
 - convert between scheduled local time and a zoned instant deliberately
-- keep Kotlin stdlib time support and `kotlinx-datetime` responsibilities separate
+- keep Kotlin 1.9 stdlib duration support and `kotlinx-datetime` date-time responsibilities separate
 
 Date-time rules:
 
-- use `kotlin.time.Instant` for a real moment in time
+- use `kotlinx.datetime.Instant` for a real moment in time on the Kotlin 1.9 baseline
 - use `LocalDate` for a date-only concept such as a birthday or due date
 - use `LocalDateTime` for civil or scheduled wall-clock concepts and keep the `TimeZone` separately
 - do not convert far-future scheduled civil times into `Instant` too early because time-zone rules can change
-- keep `kotlinx-datetime` for `LocalDate`, `LocalDateTime`, and `TimeZone` even when `Instant` and `Clock` come from the Kotlin standard library
+- keep `Instant`, `Clock`, `LocalDate`, `LocalDateTime`, and `TimeZone` in `kotlinx-datetime` unless the module intentionally raises its Kotlin baseline to one that supports stdlib Instant
 
-Migration note:
+Version note:
 
-- newer `kotlinx-datetime` releases move `Instant` and `Clock` usage toward `kotlin.time.*`
-- current `kotlinx-datetime` releases keep type aliases to ease migration, but new code should prefer `kotlin.time.Instant` and `Clock.System.now()`
+- Kotlin 1.9 does not provide stdlib Instant; use `kotlinx.datetime.Instant` with `org.jetbrains.kotlinx:kotlinx-datetime`
+- when a project deliberately raises its Kotlin baseline to a version with stdlib Instant, keep one timestamp representation per boundary and migrate deliberately
+
+Gradle dependency:
+
+```kotlin
+dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
+}
+```
 
 Example:
 
 ```kotlin
-import kotlin.time.Clock
-import kotlin.time.Instant
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone

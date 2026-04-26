@@ -37,6 +37,8 @@ Toggle meanings:
 
 When `kubernetesDashboards` is enabled, dashboards can be defined as Kubernetes custom resources instead of filesystem-based JSON files.
 
+Within `spec`, `folder` controls Grafana placement, and the remaining fields are the raw dashboard definition rather than an API import wrapper.
+
 Complete resource example:
 
 ```yaml
@@ -48,11 +50,7 @@ metadata:
   labels:
     team: platform
 spec:
-  # Folder placement for this dashboard inside Grafana.
-  # Resolved by folder name or folderUid at sync time.
   folder: Operations
-  # The dashboard definition. Same schema as the inner "dashboard" object
-  # from the JSON wrapper -- no outer wrapper needed in K8s format.
   title: API Overview
   uid: k8s-api-overview
   timezone: browser
@@ -80,11 +78,11 @@ Key differences from legacy file provisioning:
 | Aspect | Legacy (file) | K8s (CRD) |
 | --- | --- | --- |
 | Config location | Provider YAML + JSON files on disk | Kubernetes Custom Resources in cluster |
-| Wrapper needed | Yes (`{ "dashboard": ..., "overwrite": true }`) | No (fields go directly into `.spec`) |
-| ID management | Must set `id: null` manually | Handled by controller |
-| Folder assignment | Provider-level `folder` or per-file `folderUid` | `.spec.folder` or `.spec.folderUid` on the resource |
+| Source file shape | Raw dashboard JSON file on disk | Fields go directly into `.spec` |
+| ID management | Remove `id` or set it to `null` before committing shared source | Handled in the resource flow |
+| Folder assignment | Provider-level `folder` or provider-level `folderUid` | `.spec.folder` or `.spec.folderUid` on the resource |
 | Update detection | Filesystem poll or watch | K8s watcher / reconciliation loop |
-| Overwrite behavior | Explicit `overwrite: true` required | Always overwrites by default (controller manages state) |
+| API import envelope | Separate concern; do not store API payload wrappers on disk | Not applicable |
 
 Minimal K8s resource shape:
 
@@ -98,6 +96,30 @@ spec:
 ```
 
 Use when: the blocker is understanding the minimum config shape that distinguishes the newer K8s provisioning path from legacy provider YAML.
+
+## HTTP API Payload Boundary
+
+Legacy file provisioning and K8s resources both differ from HTTP API import payloads.
+
+Representative API payload:
+
+```json
+{
+  "dashboard": {
+    "id": null,
+    "uid": "api-overview",
+    "title": "API Overview",
+    "schemaVersion": 39,
+    "version": 1,
+    "panels": []
+  },
+  "folderUid": "operations",
+  "overwrite": true,
+  "message": "sync from automation"
+}
+```
+
+Use when: the blocker is an HTTP API workflow that explicitly requires `dashboard`, `folderUid`, `overwrite`, or `message`. Keep this payload shape out of legacy provider-path source directories.
 
 ## Datasource Provisioning Reference
 
@@ -132,7 +154,7 @@ Key differences from dashboard provisioning:
 | --- | --- | --- |
 | Config directory | `provisioning/dashboards/` | `provisioning/datasources/` |
 | Top-level key | `providers:` | `datasources:` |
-| Source files | JSON with wrapper schema | Not applicable (YAML-only definitions) |
+| Source files | Raw dashboard JSON files on disk | Not applicable (YAML-only definitions) |
 | Delete behavior | Controlled per-provider | Datasource deletion always allowed unless restricted by org policy |
 | UI edit support | `allowUiUpdates` toggle | Datasource edits in UI persist independently of YAML |
 

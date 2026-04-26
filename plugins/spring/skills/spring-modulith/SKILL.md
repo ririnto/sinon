@@ -6,7 +6,7 @@ metadata:
   official_project_url: "https://spring.io/projects/spring-modulith"
   reference_doc_urls:
     - "https://docs.spring.io/spring-modulith/reference/index.html"
-  version: "2.0.5"
+  version: "2.0.6"
 ---
 
 Use this skill when structuring a Spring Boot application as explicit application modules, verifying module boundaries, publishing module events, and testing module interactions with Spring Modulith.
@@ -45,7 +45,7 @@ When one module may depend on only specific neighbors, make that dependency rule
 
 Import the BOM and use the core and test starters for the common path.
 
-The current stable Spring Modulith line is `2.0.5`. The `2.1.x` line is still milestone-only and should be treated as upcoming until it reaches GA.
+The current GA Spring Modulith BOM is `2.0.6`. Keep the ordinary dependency path on that released line; it matches the current GA project and docs guidance, while separately published RC artifacts for newer pre-release lines do not change the baseline for this skill.
 
 ```xml
 <dependencyManagement>
@@ -53,7 +53,7 @@ The current stable Spring Modulith line is `2.0.5`. The `2.1.x` line is still mi
         <dependency>
             <groupId>org.springframework.modulith</groupId>
             <artifactId>spring-modulith-bom</artifactId>
-            <version>2.0.5</version>
+            <version>2.0.6</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>

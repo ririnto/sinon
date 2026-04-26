@@ -84,9 +84,10 @@ Use this reference for pattern choice, not for ordinary rule anatomy. Baseline g
 
 Keep recording rules in their own group so they evaluate independently from alerts that consume them:
 
+Place the recording-rule group first so the alert group reads already-computed series from the earlier evaluation step.
+
 ```yaml
 groups:
-  # Recording rules first -- other groups depend on these outputs
   - name: api-recording
     interval: 30s
     rules:
@@ -97,7 +98,6 @@ groups:
         expr: >-
           sum by (job) (rate(http_requests_total{status=~"5.."}[5m]))
 
-  # Alerts consume recording rules above
   - name: api-alerts
     interval: 1m
     rules:

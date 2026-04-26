@@ -6,7 +6,7 @@ metadata:
   official_project_url: "https://spring.io/projects/spring-pulsar"
   reference_doc_urls:
     - "https://docs.spring.io/spring-pulsar/reference/"
-  version: "2.0.4"
+  version: "2.0.5"
 ---
 
 Use this skill when building Apache Pulsar producers, consumers, or readers in Spring with `PulsarTemplate`, `@PulsarListener`, schema mapping, subscription type and DLQ decisions, customizers, transactions, or Pulsar-specific testing and administration.
@@ -15,7 +15,7 @@ Use this skill when building Apache Pulsar producers, consumers, or readers in S
 
 Use `spring-pulsar` for Pulsar producer and consumer code, listeners, readers, topic naming, partitions, and Pulsar-specific admin or transaction decisions.
 
-- Use `spring-kafka` or `spring-amqp` for Kafka or RabbitMQ semantics.
+- Kafka or RabbitMQ producer and consumer semantics are outside this skill's scope.
 - Keep transport concerns in Pulsar-facing services and listeners. Domain logic should not know about subscriptions or topic partitions.
 
 ## Common path

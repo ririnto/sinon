@@ -6,7 +6,7 @@ metadata:
   official_project_url: "https://spring.io/projects/spring-kafka"
   reference_doc_urls:
     - "https://docs.spring.io/spring-kafka/reference/index.html"
-  version: "4.0.4"
+  version: "4.0.5"
 ---
 
 Use this skill when building Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, and embedded Kafka tests.
@@ -15,7 +15,7 @@ Use this skill when building Kafka producers and consumers in Spring with `Kafka
 
 Use `spring-kafka` for Kafka producers, consumers, listener containers, offsets, retry topics, dead-letter topics, and Kafka-specific testing.
 
-- Use `spring-amqp` or `spring-pulsar` for RabbitMQ or Pulsar semantics and client APIs.
+- RabbitMQ or Pulsar semantics and client APIs are outside this skill's scope.
 - Keep transport concerns in producer and listener boundaries. Domain logic should not know about offsets or Kafka headers.
 
 ## Common path
@@ -45,7 +45,7 @@ Keep the default path small: one producer, one listener, one serialization strat
 
 Use Spring Kafka for application code and the Kafka test module for integration tests.
 
-The current stable Spring Kafka line is `4.0.4`. The `4.1.x` line is still milestone-only and should be treated as upcoming until it reaches GA. Spring Boot `4.0.x` manages Spring Kafka `4.0.x`; older Spring Boot `3.5.x` and `3.4.x` applications remain on the `3.3.x` line and should be treated as a separate compatibility branch.
+The current stable Spring Kafka line is `4.0.5`. The `4.1.x` line is still milestone-only and should be treated as upcoming until it reaches GA. Spring Boot `4.0.x` manages Spring Kafka `4.0.x`; older Spring Boot `3.5.x` and `3.4.x` applications remain on the `3.3.x` line and should be treated as a separate compatibility branch.
 
 ```xml
 <dependencies>

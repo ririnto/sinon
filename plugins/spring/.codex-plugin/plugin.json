@@ -1,6 +1,6 @@
 {
   "name": "spring",
-  "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.",
+  "description": "Spring development plugin with practical skills for Boot, Framework, AI, Security, Data, GraphQL, messaging, Batch, Cloud, Session, and SOAP workflows.",
   "author": {
     "name": "ririnto"
   },
@@ -13,15 +13,21 @@
     "spring-web",
     "spring-data",
     "spring-cloud",
+    "spring-ai",
+    "spring-security",
+    "spring-graphql",
     "kafka",
+    "pulsar",
+    "amqp",
     "observability",
-    "transactions"
+    "transactions",
+    "soap"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Spring",
-    "shortDescription": "Practical Spring Boot, Web, Data, transaction, observability, Batch, Integration, Cloud, and Kafka skills.",
-    "longDescription": "Install a shared Spring plugin with example-driven skills for Spring Boot application structure, MVC and reactive web stacks, transaction boundaries, observability, data access, messaging, batch processing, and Spring Cloud infrastructure patterns.",
+    "shortDescription": "Practical Spring skills for Boot, Framework, AI, Security, Data, GraphQL, messaging, Batch, Cloud, Session, and SOAP workflows.",
+    "longDescription": "Install a shared Spring plugin with 26 example-driven skills for Spring Boot and Framework application shape, AI and vector-store integration, Spring Security and Authorization Server, Spring Data, GraphQL, REST Docs, HATEOAS, gRPC, AMQP, Kafka, Pulsar, Integration, Batch, Cloud, Cloud Data Flow, Session, SOAP Web Services, Shell, LDAP, Vault, CredHub, Statemachine, Web Flow, and Modulith workflows.",
     "developerName": "ririnto",
     "category": "Coding",
     "capabilities": [
@@ -30,9 +36,9 @@
       "Write"
     ],
     "defaultPrompt": [
-      "Show me the Spring Boot shape for this application.",
-      "Explain how to structure this Spring Web or WebFlux endpoint.",
-      "Review this Spring transaction, observability, Data, Batch, Kafka, or Cloud configuration."
+      "Show me the Spring Boot or Framework shape for this application.",
+      "Explain how to structure this Spring Security, Data, GraphQL, messaging, or Session workflow.",
+      "Review this Spring AI, Batch, Cloud, Kafka, Pulsar, SOAP, or Integration configuration."
     ],
     "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/spring"
   }

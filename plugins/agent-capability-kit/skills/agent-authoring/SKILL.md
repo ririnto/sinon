@@ -24,6 +24,7 @@ Keep the scope on one agent role per file. Preserve the existing job the agent c
 7. State the output shape explicitly so the caller can use the result without guessing.
 8. Keep the ordinary path self-sufficient inside the agent file; do not require the caller to load another skill, hidden prompt, or external document just to execute the agent's main workflow.
 9. Make process verbs and declared tools agree. A report-only agent MUST NOT claim file edits, and an editing agent MUST have the mutation tools its process requires.
+10. Ordinary authoring remains offline, but maintainers changing host-specific agent behavior should verify against official host documentation when available and record any verification blocker.
 
 ## Required frontmatter
 
@@ -43,6 +44,7 @@ Other optional frontmatter fields may be kept only when the host actually suppor
 ### `name`
 
 - Use kebab-case.
+- Match the agent file basename exactly; `agents/schema-reviewer.md` must use `name: schema-reviewer`.
 - Make it role-oriented, not task-ticket-oriented.
 - Prefer stable names such as `schema-reviewer`, `docs-refiner`, or `release-checker`.
 - Do not encode one temporary request into the name.
@@ -173,7 +175,7 @@ Return:
 2. Define the agent role in one sentence.
 3. Check that the role is narrow enough to be discoverable and autonomous.
 4. Draft or revise frontmatter:
-   - `name` is stable and role-based
+   - `name` matches the file basename and is stable and role-based
    - `description` says when to use the agent and includes concrete `<example>` blocks
    - `model` defaults to `inherit`
    - `color` is stable and distinguishable
@@ -247,6 +249,7 @@ Use simple local checks first:
 3. Confirm that the body contains a role statement plus `Responsibilities`, `Process`, and `Output` sections.
 4. Confirm that the `description` examples and `tools` choice match the role.
 5. Confirm that the process does not require hidden skill loading or contradict the tool boundary.
+6. Confirm that the `name` value matches the file basename without `.md`.
 
 ## Minimal example
 

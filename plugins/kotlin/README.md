@@ -9,7 +9,7 @@ Kotlin is a shared, skill-first plugin for Kotlin application and library work i
 ## Purpose
 
 - Provide reusable Kotlin workflows that remain portable across Claude Code and Codex-style plugin systems.
-- Keep skills practical, example-driven, and focused on writing or reviewing real Kotlin code rather than routing users elsewhere.
+- Keep skills practical, example-driven, and focused on writing or reviewing real Kotlin code in the smallest matching Kotlin domain.
 - Separate Kotlin language, coroutine, and Kotlin-native testing concerns from Java language, JVM tooling, and framework-specific Spring behavior.
 
 ## Included Skills
@@ -54,7 +54,7 @@ Spring-specific coroutine endpoints, reactive controllers, and `WebClient` usage
 
 - Prefer working code shapes over generic language summaries.
 - Keep examples minimal but directly adaptable to production code.
-- Route to the smallest Kotlin skill that matches the task.
+- Choose the smallest Kotlin skill that matches the task.
 - Keep `SKILL.md` self-contained and usable on its own; use `references/` only for supplemental decision aids and longer notes.
 - Unnecessary blank lines inside function bodies SHOULD be removed.
 - Variables used only once SHOULD be inlined when their names and extraction order do not add meaning.
@@ -72,6 +72,28 @@ This plugin uses one shared plugin root with two thin runtime manifests:
 - `.codex-plugin/plugin.json`
 
 The actual reusable content lives beside those manifests at the plugin root.
+
+## Plugin Layout
+
+```text
+plugins/kotlin/
+├── .claude-plugin/plugin.json
+├── .codex-plugin/plugin.json
+├── .lsp.json
+├── README.md
+└── skills/
+    ├── kotlin-coroutines-flows/
+    ├── kotlin-language-patterns/
+    └── kotlin-test/
+```
+
+## Shipped Surfaces
+
+- The plugin ships three reusable Kotlin skills under `skills/`.
+- Each skill may include skill-local `agents/openai.yaml` metadata for Codex/OpenAI packaging. These files are metadata attached to the skill directories, not plugin-root agents.
+- `.lsp.json` exposes the Kotlin language-server surface for Claude-compatible local development.
+- The plugin ships no plugin-root `agents/` directory.
+- The plugin does not ship commands, hooks, MCP servers, or custom runtime data surfaces.
 
 ## Kotlin LSP Setup
 
@@ -94,5 +116,13 @@ Install from Sinon:
 For local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/kotlin
+claude --plugin-dir /path/to/sinon/plugins/kotlin
 ```
+
+## Scope Notes
+
+This plugin intentionally focuses on Kotlin-native language patterns, coroutine and Flow design, and Kotlin testing guidance. It does not cover:
+
+- Java syntax, Java API design, or JVM runtime diagnostics
+- Spring framework wiring or Spring-managed reactive behavior
+- application-framework-specific testing beyond Kotlin-native test structure

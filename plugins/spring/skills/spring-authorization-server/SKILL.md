@@ -18,7 +18,7 @@ Use this skill when implementing an OAuth2 or OpenID Connect provider with Sprin
 
 Use `spring-authorization-server` for provider-side OAuth2 or OIDC endpoints, token issuance, registered client configuration, JWK publication, authorization consent, and issuer configuration.
 
-- Use `spring-security` for application login, resource-server token validation, or ordinary web security that does not issue OAuth2 tokens.
+- Application login, resource-server token validation, and ordinary web security that does not issue OAuth2 tokens are Spring Security application concerns outside this provider scope.
 - Keep provider concerns separate from client application concerns. This skill is for the issuer, not for the consuming OAuth2 client.
 - Keep the ordinary path focused on one issuer, one registered-client baseline, one signing-key source, and authorization code with PKCE before adding persistence, federation, device flows, PAR, custom grants, or multitenancy.
 

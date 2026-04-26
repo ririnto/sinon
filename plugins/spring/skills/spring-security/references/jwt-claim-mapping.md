@@ -14,7 +14,6 @@ Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter
     JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter();
     authorities.setAuthoritiesClaimName("roles");
     authorities.setAuthorityPrefix("ROLE_");
-
     JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
     converter.setJwtGrantedAuthoritiesConverter(authorities);
     converter.setPrincipalClaimName("preferred_username");
@@ -36,13 +35,8 @@ Use an explicit decoder when issuer, audience, or algorithm requirements are par
 @Bean
 JwtDecoder jwtDecoder() {
     NimbusJwtDecoder decoder = JwtDecoders.fromIssuerLocation("https://issuer.example.com");
-
     OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer("https://issuer.example.com");
-    OAuth2TokenValidator<Jwt> withAudience = new JwtClaimValidator<List<String>>(
-        "aud",
-        audience -> audience != null && audience.contains("invoices-api")
-    );
-
+    OAuth2TokenValidator<Jwt> withAudience = new JwtClaimValidator<List<String>>("aud", audience -> audience != null && audience.contains("invoices-api"));
     decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(withIssuer, withAudience));
     return decoder;
 }

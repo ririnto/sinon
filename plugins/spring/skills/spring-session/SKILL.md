@@ -6,7 +6,7 @@ metadata:
   official_project_url: "https://spring.io/projects/spring-session"
   reference_doc_urls:
     - "https://docs.spring.io/spring-session/reference/index.html"
-  version: "4.0.2"
+  version: "4.0.3"
 ---
 
 Use this skill when replacing container-local sessions with Spring-managed shared sessions, choosing a backing store, customizing session id transport, or wiring shared sessions into Spring Security and related web behavior.
@@ -173,7 +173,6 @@ class SessionAdministrationService {
     void expireAllSessionsFor(String username) {
         Map<String, ? extends Session> sessions =
             sessionRepository.findByPrincipalName(username);
-
         for (String sessionId : sessions.keySet()) {
             sessionRepository.deleteById(sessionId);
         }
@@ -192,18 +191,13 @@ class SessionFlowTest {
 
     @Test
     void sessionStateIsReusedAcrossRequests() throws Exception {
-        MvcResult first = mockMvc.perform(post("/cart/items")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"sku\":\"SKU-1\"}"))
+        MockHttpServletRequestBuilder firstRequest = post("/cart/items").contentType(MediaType.APPLICATION_JSON).content("{\"sku\":\"SKU-1\"}");
+        MvcResult first = mockMvc.perform(firstRequest)
             .andExpect(status().isOk())
             .andReturn();
-
         Cookie sessionCookie = first.getResponse().getCookie("SESSION");
-
-        ResultActions secondRequest = mockMvc.perform(post("/cart/items")
-                .cookie(sessionCookie)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"sku\":\"SKU-2\"}"));
+        MockHttpServletRequestBuilder secondRequestBuilder = post("/cart/items").cookie(sessionCookie).contentType(MediaType.APPLICATION_JSON).content("{\"sku\":\"SKU-2\"}");
+        ResultActions secondRequest = mockMvc.perform(secondRequestBuilder);
         assertAll(
             () -> secondRequest.andExpect(status().isOk()),
             () -> secondRequest.andExpect(jsonPath("$.itemCount").value(2))

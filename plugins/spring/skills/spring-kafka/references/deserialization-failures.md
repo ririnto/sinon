@@ -23,16 +23,11 @@ spring:
 
 ```java
 @Bean
-ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-        ConsumerFactory<String, Object> consumerFactory,
-        KafkaTemplate<String, Object> kafkaTemplate) {
+ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(ConsumerFactory<String, Object> consumerFactory, KafkaTemplate<String, Object> kafkaTemplate) {
     ConcurrentKafkaListenerContainerFactory<String, Object> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(consumerFactory);
-    factory.setCommonErrorHandler(new DefaultErrorHandler(
-        new DeadLetterPublishingRecoverer(kafkaTemplate),
-        new FixedBackOff(0L, 0L)
-    ));
+    factory.setCommonErrorHandler(new DefaultErrorHandler(new DeadLetterPublishingRecoverer(kafkaTemplate), new FixedBackOff(0L, 0L)));
     return factory;
 }
 ```

@@ -10,9 +10,7 @@ Open this reference when the contract depends on URI template variables.
 | The segment is an internal routing detail only | keep it out of the public descriptor set |
 
 ```java
-pathParameters(
-    parameterWithName("orderId").description("Order identifier")
-)
+pathParameters(parameterWithName("orderId").description("Order identifier"))
 ```
 
 Verify the documented path variable names match the URI template exactly.

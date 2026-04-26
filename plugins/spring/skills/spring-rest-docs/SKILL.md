@@ -199,9 +199,8 @@ class OrderDocumentationTests {
 
     @Test
     void createOrder() throws Exception {
-        mvc.perform(post("/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"sku\":\"ABC\",\"quantity\":2}"))
+        MockHttpServletRequestBuilder createOrderRequest = post("/orders").contentType(MediaType.APPLICATION_JSON).content("{\"sku\":\"ABC\",\"quantity\":2}");
+        mvc.perform(createOrderRequest)
             .andExpect(status().isCreated())
             .andDo(document("orders-create", preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()), requestFields(fieldWithPath("sku").description("Stock keeping unit"), fieldWithPath("quantity").description("Quantity requested")), responseFields(fieldWithPath("id").description("Created order id"), fieldWithPath("status").description("Order status"))));
     }

@@ -5,7 +5,7 @@ description: "Open this when you need to inspect signal flow, value propagation,
 
 Open this when the pipeline is conceptually correct but you need to see what signals flow through which stage, what values each operator sees, or how Context propagates per-signal.
 
-For assembly tracing, global hooks, or thread-hop debugging, see the `reactor-scheduling` skill's debugging reference.
+Assembly tracing, global hooks, and thread-hop debugging are execution-tracing concerns outside this signal-level diagnostic reference.
 
 ## Start with the narrowest tool
 
@@ -20,7 +20,6 @@ For assembly tracing, global hooks, or thread-hop debugging, see the `reactor-sc
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class CheckpointedPipeline {
     Flux<Integer> values() {
         return Flux.range(1, 3)
@@ -40,7 +39,6 @@ When an error occurs downstream, the checkpoint label appears in the stack trace
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class LoggedPipeline {
     Flux<Integer> values() {
         return Flux.range(1, 3).log("reactor.core.example");
@@ -54,7 +52,6 @@ The category string appears in every logged line. Filter logs by category to iso
 
 ```java
 import reactor.core.publisher.Mono;
-
 final class ContextLogging {
     Mono<String> value() {
         return Mono.just("payload")
@@ -78,7 +75,6 @@ Use `doOnNext(...)` for value-only inspection when error or completion handling 
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class InspectedPipeline {
     Flux<String> processed() {
         return Flux.just("a", "b", "c")
@@ -95,4 +91,4 @@ final class InspectedPipeline {
 - Prefer a local checkpoint before enabling any global debug instrumentation.
 - Remove diagnostic operators once the root cause is known -- they add overhead in production.
 - If the problem is demand rather than signal content, open [Backpressure and Demand](backpressure.md).
-- If the problem is where execution moves rather than what signals flow, open the `reactor-scheduling` skill's debugging reference.
+- If the problem is where execution moves rather than what signals flow, switch to execution-tracing diagnostics instead of signal inspection.

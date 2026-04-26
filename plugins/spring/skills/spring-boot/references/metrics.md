@@ -48,7 +48,7 @@ meterRegistry.counter("catalog.requests", "endpoint", "greetings").increment();
 ```java
 Timer.Sample sample = Timer.start(meterRegistry);
 try {
-    // work
+    catalogService.search(region);
 } finally {
     sample.stop(Timer.builder("catalog.search").tag("region", catalogProperties.region()).register(meterRegistry));
 }

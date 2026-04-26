@@ -23,20 +23,20 @@ Every Prometheus rules file follows this hierarchy:
 
 ```text
 groups:
-  - name: <group-name>          # required
-    interval: <duration>         # optional, default = global eval interval
-    limit: <int>                 # optional, max rules per group
-    concurrency: <int>           # optional, experimental, parallelism
+  - name: <group-name>
+    interval: <duration>
+    limit: <int>
+    concurrency: <int>
     rules:
       - alert: <name> | record: <name>
-        expr: <promql>           # required
-        for: <duration>          # optional (alerts only)
-        keep_firing_for: <duration>  # optional (alerts only)
-        labels: { ... }          # optional
-        annotations: { ... }     # optional
+        expr: <promql>
+        for: <duration>
+        keep_firing_for: <duration>
+        labels: { ... }
+        annotations: { ... }
 ```
 
-The top-level key is always `groups`. It holds an ordered list of groups. Each group has a `name` and a list of `rules`. Each rule is either an `alert:` rule or a `record:` rule.
+The top-level key is always `groups`. It holds an ordered list of groups. Each group requires `name` and `rules`; `interval`, `limit`, and `concurrency` remain optional. Each rule is either an `alert:` rule or a `record:` rule, and every rule requires `expr` while `for`, `keep_firing_for`, `labels`, and `annotations` stay optional as described in the schema tables below.
 
 ## Rule Group Schema
 
@@ -50,11 +50,13 @@ The top-level key is always `groups`. It holds an ordered list of groups. Each g
 
 Group naming convention:
 
+Use domain-plus-purpose or domain-plus-type names, as shown below.
+
 ```yaml
 groups:
-  - name: api-alerts       # domain + purpose
+  - name: api-alerts
     rules: [...]
-  - name: infra-recording  # domain + type
+  - name: infra-recording
     rules: [...]
 ```
 
@@ -65,7 +67,7 @@ groups:
 | `alert` | string | yes | -- | Alert identifier. Must be unique across all loaded rules files. |
 | `expr` | PromQL | yes | -- | Boolean expression. When true, the alert activates. |
 | `for` | duration | no | `0s` | Time the expression must hold true before transitioning from pending to firing. |
-| `keep_firing_for` | duration | no | `0s` | Time to keep firing after the expression becomes false. Requires Prometheus >= 2.98.0 / >= 3.0. |
+| `keep_firing_for` | duration | no | `0s` | Time to keep firing after the expression becomes false. Use it only after confirming the deployed Prometheus version supports it. |
 | `labels` | map | no | `{}` | Extra labels attached to the firing alert. Merged with `$labels` from the expression result. |
 | `annotations` | map | no | `{}` | Human-readable text attached to each firing alert instance. Supports Go templating. |
 
@@ -144,12 +146,14 @@ inactive --> pending --> firing
 **Inactive**: The expression evaluates to false (or produces no series). No alert state exists.
 
 **Pending**: The expression first evaluates to true. A timer starts for the `for` duration. During pending:
+
 - The alert is visible in the UI as "pending"
 - No notification is sent to Alertmanager
 - If the expression becomes false before `for` elapses, the alert reverts to **inactive**
 - If the expression stays true for the full `for` duration, the alert transitions to **firing**
 
 **Firing**: The `for` duration has been satisfied while the expression remains true.
+
 - Alert instances are sent to Alertmanager
 - Notifications are dispatched according to Alertmanager routing
 - If the expression becomes false:
@@ -178,22 +182,18 @@ These variables are available inside `{{ }}` template expressions in annotation 
 | `$externalLabels` | map | External labels configured on the Prometheus server (`prometheus.yml` -> `global.external_labels`). |
 | `$externalURL` | string | Configured external URL of the Prometheus server (`prometheus.yml` -> `global.external_url`). |
 
-Template syntax reference:
+Template syntax reference. The examples below cover plain variable interpolation in `summary`, value rendering in `description`, conditional rendering with `if`, and dashboard-link composition with `$externalURL`:
 
 ```yaml
 annotations:
-  # Simple variable interpolation
   summary: 'High error rate on {{ $labels.job }}'
 
-  # Value formatting
   description: 'Error rate is {{ $value }} over the last 5 minutes.'
 
-  # Conditional rendering
   description: >-
     {{ if gt (parseFloat $value) 50 }}Critical{{ else }}Warning{{ end }}:
     value is {{ $value }}
 
-  # External URL for dashboard links
   dashboard: '{{ $externalURL }}/d/my-dashboard?var-job={{ $labels.job }}'
 ```
 
@@ -275,17 +275,27 @@ rules/api-latency.rules.yaml SUCCESS: 1 rules found
 
 Error output examples:
 
+Syntax error in the PromQL expression:
+
 ```text
-# Syntax error in PromQL expression
 rules/api-latency.rules.yaml FAILED: parsing YAML file rules/api-latency.rules.yaml: error parsing rules: 1:13: parse error
+```
 
-# Duplicate alert name across files
+Duplicate alert name across files:
+
+```text
 rules/api-latency.rules.yaml FAILED: alert "ApiP95LatencyAbove750ms" is defined twice
+```
 
-# Invalid duration format
+Invalid duration format:
+
+```text
 rules/api-latency.rules.yaml FAILED: error parsing rules: invalid duration "10"
+```
 
-# Missing required field
+Missing required field:
+
+```text
 rules/api-latency.rules.yaml FAILED: error parsing rules: missing required field 'expr'
 ```
 

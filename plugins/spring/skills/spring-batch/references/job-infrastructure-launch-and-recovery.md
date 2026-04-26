@@ -37,7 +37,7 @@ JobExecution recoveredExecution = jobOperator.recover(jobExplorer.getJobExecutio
 JobExecution restartedExecution = jobOperator.restart(recoveredExecution);
 ```
 
-Use recovery only when reader, writer, and execution-context state are compatible with continued processing. Recovery does not resume work by itself; it makes the stuck execution restartable so a later `restart(...)` can continue the logical instance. On the stable Spring Boot 3.4.x path with Spring Batch 5.2.x, prefer restart and rerun guidance unless the application has intentionally moved to a Batch 6 line that exposes recovery support.
+Use recovery only when reader, writer, and execution-context state are compatible with continued processing. Recovery does not resume work by itself; it makes the stuck execution restartable so a later `restart(...)` can continue the logical instance. On the Spring Boot 3.4.x and 3.5.x compatibility path with Spring Batch 5.2.x, prefer restart and rerun guidance unless the application has intentionally moved to a Batch 6 line that exposes recovery support.
 
 ## Repository choices
 
@@ -52,7 +52,7 @@ class BatchInfrastructureConfiguration {
 
 Use a Mongo-backed repository only when the platform already standardizes on Mongo for operational metadata and the Batch 6 repository model fits the deployment.
 
-Stable Spring Boot 3.4.x still manages Spring Batch 5.2.x. Open the Batch 6 migration reference before copying 6.x-specific repository annotations or operator behavior into a Boot-managed application.
+Spring Boot 3.4.x and 3.5.x still use the Spring Batch 5.2.x compatibility branch. Open the Batch 6 migration reference before copying 6.x-specific repository annotations or operator behavior into a Boot-managed application.
 
 ## Graceful shutdown blocker
 

@@ -3,13 +3,13 @@ name: reactor-core
 description: Author Reactor pipelines with Flux and Mono. Use this skill when designing or reviewing Flux/Mono source creation, operator composition, combination, empty/error behavior, ordinary backpressure choices, and everyday Context usage in Project Reactor.
 metadata:
   title: Reactor Core
-  official_project_url: "https://projectreactor.io/docs/core/release/reference/"
+  official_project_url: "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures.html"
   reference_doc_urls:
-    - "https://projectreactor.io/docs/core/release/reference/"
-    - "https://projectreactor.io/docs/core/release/api/"
-  version: "3.7"
+    - "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures.html"
+    - "https://projectreactor.io/docs/core/3.7.18/api/"
+  version: "3.7.18"
   dependencies:
-    - "io.projectreactor:reactor-core:3.7.x"
+    - "io.projectreactor:reactor-core:3.7.18"
 ---
 
 Author the ordinary Reactor path with `Flux` and `Mono`.
@@ -142,7 +142,6 @@ This skill covers source selection, operator composition, combination, empty/err
 import java.io.IOException;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
 final class UserLookupService {
     Mono<UserView> loadUser(String userId) {
         return Mono.fromCallable(() -> fetchUser(userId))
@@ -159,14 +158,13 @@ final class UserLookupService {
 }
 ```
 
-One scheduler hop offloads the blocking call to `boundedElastic`. For multi-hop or custom scheduler design, see the `reactor-scheduling` skill.
+One scheduler hop offloads the blocking call to `boundedElastic`. Multi-hop placement or custom scheduler design is scheduler-specific work outside this core pipeline path.
 
 ### `Flux` pipeline with ordered async fan-out and empty fallback
 
 ```java
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 final class ActivityService {
     Flux<String> recentActions(String userId) {
         return findActionIds(userId)
@@ -188,7 +186,6 @@ final class ActivityService {
 ```java
 import reactor.core.publisher.Mono;
 import reactor.util.context.Context;
-
 final class TraceAwareHandler {
     Mono<String> handle(String input) {
         return Mono.deferContextual(context -> Mono.just(context.get("traceId") + ":" + input))
@@ -202,7 +199,6 @@ final class TraceAwareHandler {
 ```java
 import reactor.core.publisher.Flux;
 import java.time.Duration;
-
 final class SearchAsYouType {
     Flux<String> search(Flux<String> queries) {
         return queries.switchMap(query ->
@@ -222,7 +218,6 @@ final class SearchAsYouType {
 ```java
 import java.time.Duration;
 import reactor.core.publisher.Mono;
-
 final class BoundedCall {
     Mono<String> fetchWithTimeout() {
         return remoteCall()
@@ -237,8 +232,8 @@ final class BoundedCall {
 ### `repeat` for completion-side re-subscription
 
 ```java
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 final class PollingService {
     Flux<String> pollUntilCondition() {
         return fetchStatus()
@@ -258,7 +253,6 @@ final class PollingService {
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class ConditionalEmission {
     Flux<Integer> expand(Flux<Integer> source) {
         return source.handle((value, sink) -> {
@@ -281,7 +275,6 @@ final class ConditionalEmission {
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import java.util.List;
-
 final class BatchExpand {
     Flux<String> expandBatch(Mono<List<String>> batchLoader) {
         return batchLoader.flatMapMany(Flux::fromIterable);

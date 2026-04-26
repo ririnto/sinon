@@ -31,9 +31,7 @@ Use `JdbcMessageStore` for aggregators, resequencers, and other correlation-stat
 ## Aggregator store shape
 
 ```java
-.aggregate(aggregator -> aggregator
-    .messageStore(messageStore)
-    .expireGroupsUponCompletion(true))
+.aggregate(aggregator -> aggregator.messageStore(messageStore).expireGroupsUponCompletion(true))
 ```
 
 ## Fan-out and rejoin rules

@@ -58,9 +58,7 @@ class NarrationService {
 
 ```java
 ChatResponse response = chatClient.prompt()
-    .user(user -> user
-        .text("Transcribe this call and extract action items.")
-        .media(new MimeType("audio", "mp3"), new ClassPathResource("/call.mp3")))
+    .user(user -> user.text("Transcribe this call and extract action items.").media(new MimeType("audio", "mp3"), new ClassPathResource("/call.mp3")))
     .call()
     .chatResponse();
 ```

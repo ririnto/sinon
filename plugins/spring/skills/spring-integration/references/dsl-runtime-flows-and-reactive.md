@@ -21,9 +21,7 @@ MessageChannel reactiveChannel() {
 ## Subflow composition shape
 
 ```java
-.route(OrderCommand::type, mapping -> mapping
-    .subFlowMapping(OrderType.STANDARD, sf -> sf.channel("orders.standard"))
-    .subFlowMapping(OrderType.EXPRESS, sf -> sf.channel("orders.express")))
+.route(OrderCommand::type, mapping -> mapping.subFlowMapping(OrderType.STANDARD, sf -> sf.channel("orders.standard")).subFlowMapping(OrderType.EXPRESS, sf -> sf.channel("orders.express")))
 ```
 
 ## Decision points

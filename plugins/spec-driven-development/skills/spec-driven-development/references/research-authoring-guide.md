@@ -135,7 +135,7 @@ Before using research in SPEC decisions:
 - Frontmatter MUST be valid against `assets/schemas/research-frontmatter.schema.json`.
 - TODO markers MUST NOT remain.
 - Unresolved placeholders MUST NOT remain.
-- `"${SKILL_ROOT}/scripts/verify-spec.sh" ./spec` MUST be run, and failures MUST be resolved.
+- `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` MUST be run when `uv` can resolve its runtime and dependency/build artifacts from local cache or local files, and failures MUST be resolved. When the validator cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
 - If the consuming repository already uses markdownlint, maintainers MAY run `npx -y markdownlint-cli2 <touched-markdown-files>`.
 
 ## Refresh Rules

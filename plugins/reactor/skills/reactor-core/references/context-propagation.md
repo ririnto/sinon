@@ -17,13 +17,11 @@ Open this when the blocker is no longer 'how do I carry request metadata' but 'h
 
 ```java
 import reactor.core.publisher.Mono;
-
 final class WritePlacement {
     Mono<String> correct() {
         return Mono.deferContextual(context -> Mono.just(context.get("requestId")))
             .contextWrite(context -> context.put("requestId", "req-1"));
     }
-
     Mono<String> nested() {
         return Mono.just("value")
             .flatMap(value -> Mono.deferContextual(context -> Mono.just(context.get("requestId") + ":" + value)))
@@ -36,7 +34,6 @@ final class WritePlacement {
 
 ```java
 import reactor.core.publisher.Mono;
-
 final class ContextAwareOperator {
     Mono<String> audit(String value) {
         return Mono.just(value)
@@ -61,7 +58,6 @@ Use `contextCapture()` when you need to snapshot thread-local state (such as MDC
 
 ```java
 import reactor.core.publisher.Mono;
-
 final class ContextCaptureExample {
     Mono<String> withCapturedContext() {
         return Mono.just("value")
@@ -70,7 +66,7 @@ final class ContextCaptureExample {
 }
 ```
 
-`contextCapture()` snapshots available `ThreadLocal` values (such as MDC or security context) into the Reactor `Context` at subscription time. This requires the Micrometer `context-propagation` library on the classpath and `Hooks.enableAutomaticContextPropagation()` to be enabled. For explicit manual Context writes, prefer `contextWrite(...)` and `deferContextual(...)`.
+`contextCapture()` snapshots available `ThreadLocal` values (such as MDC or security context) into the Reactor `Context` at subscription time. This requires the Micrometer `context-propagation` library on the classpath. `Hooks.enableAutomaticContextPropagation()` enables Reactor's optional automatic propagation mode, but it is not required for calling `contextCapture()` itself. For explicit manual `Context` writes, prefer `contextWrite(...)` and `deferContextual(...)`.
 
 ## Failure checks
 

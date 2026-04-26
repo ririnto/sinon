@@ -3,7 +3,7 @@ title: "Alertmanager Receiver Types"
 description: "Open this when configuring any notification receiver and need the complete field schema for a specific receiver type."
 ---
 
-# Alertmanager Receiver Types
+## Alertmanager Receiver Types
 
 Use this reference when you need the complete field schema, required fields, defaults, and validation rules for any of the 18 supported receiver types. Every field is documented with its type, default value (if applicable), and whether it is required.
 
@@ -304,7 +304,6 @@ receivers:
 | `url_file` | string | cond.* | -- | Path to file containing webhook URL |
 | `max_alerts` | uint64 | no | 0 (unlimited) | Maximum alerts per request (0 = unlimited) |
 | `timeout` | duration | no | -- | Max time for HTTP call (0 = no limit) |
-| `payload` | any | no | -- | Custom JSON payload (templates rendered before sending) |
 
 \* Exactly one of `url` or `url_file` is required.
 
@@ -312,6 +311,7 @@ receivers:
 
 - Exactly one of `url` / `url_file` must be provided.
 - The `url` field supports Go template syntax for dynamic URLs.
+- Alertmanager sends the fixed webhook JSON body described by the notification template `Data` object; `webhook_configs` does not support a custom body field.
 - Default `send_resolved`: `true`.
 
 ### Complete Example
@@ -324,9 +324,39 @@ receivers:
         max_alerts: 10
         timeout: 10s
         send_resolved: true
-        payload:
-          text: '{{ template "slack.default.text" . }}'
 ```
+
+The receiver must adapt Alertmanager's fixed JSON body. A minimal receiver-side adapter can transform the incoming group into the downstream shape while requiring a shared bearer token:
+
+```python
+import os
+
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+WEBHOOK_TOKEN = os.environ["ALERTMANAGER_WEBHOOK_TOKEN"]
+
+
+@app.post("/alertmanager")
+def alertmanager_webhook():
+    """Translate Alertmanager webhook JSON into a downstream incident body."""
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header != f"Bearer {WEBHOOK_TOKEN}":
+        return jsonify({"error": "unauthorized"}), 401
+    data = request.get_json(silent=True)
+    if data is None:
+        return jsonify({"error": "invalid json"}), 400
+    incident = {
+        "title": data["commonLabels"].get("alertname", "Alertmanager notification"),
+        "status": data["status"],
+        "severity": data["commonLabels"].get("severity", "unknown"),
+        "alert_count": len(data.get("alerts", [])),
+        "source": data.get("externalURL", ""),
+    }
+    return jsonify(incident), 202
+```
+
+Use an adapter like this when the downstream service requires a custom payload, different field names, or per-receiver business logic that Alertmanager's generic webhook body cannot express. Keep the endpoint behind a trusted/private path (for example, internal network access, ingress auth, or mTLS) and provision `ALERTMANAGER_WEBHOOK_TOKEN` out of band.
 
 ---
 

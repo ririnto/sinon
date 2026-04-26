@@ -7,7 +7,7 @@ metadata:
   reference_doc_urls:
     - "https://docs.spring.io/spring-ws/docs/current/reference/html/"
   compatibility_note: "When the reference page and project listing disagree, align examples to the Spring Web Services version already selected in the build."
-  version: "4.0.11"
+  version: "5.0.1"
 ---
 
 Use this skill when building contract-first SOAP services or clients in Spring with XSD or WSDL contracts, `@Endpoint` handlers, XML marshalling, `WebServiceTemplate`, SOAP faults, and WS-Security-aware integration.
@@ -16,7 +16,7 @@ Use this skill when building contract-first SOAP services or clients in Spring w
 
 Use `spring-web-services` for SOAP transport, XML contract publication, endpoint mapping, SOAP client calls, and SOAP-specific testing.
 
-- Use ordinary HTTP JSON or GraphQL API guidance when the task is not actually SOAP or XML-contract driven.
+- Ordinary HTTP JSON APIs and GraphQL APIs are outside this skill's scope unless the task is SOAP or XML-contract driven.
 - Keep business logic outside endpoint handlers. SOAP endpoints should translate XML payloads to application services and back.
 - Keep WS-Security, XPath-centric payload parsing, and specialized client transports out of the ordinary path unless those are the actual blocker.
 
@@ -253,7 +253,6 @@ class HolidayClientTests {
         MockWebServiceServer server = MockWebServiceServer.createServer(template);
         server.expect(payload(new StringSource("<HolidayRequest xmlns='http://example.com/hr'/>")))
             .andRespond(withPayload(new StringSource("<HolidayResponse xmlns='http://example.com/hr'><status>OK</status></HolidayResponse>")));
-
         client.book(new HolidayRequest());
         server.verify();
     }

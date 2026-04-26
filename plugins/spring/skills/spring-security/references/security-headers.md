@@ -7,13 +7,7 @@ Stay with defaults unless a concrete browser or embedding requirement forces a c
 ## Common customizations
 
 ```java
-.headers(headers -> headers
-    .contentSecurityPolicy(csp -> csp
-        .policyDirectives("default-src 'self'; frame-ancestors 'none'; object-src 'none'"))
-    .frameOptions(frame -> frame.sameOrigin())
-    .httpStrictTransportSecurity(hsts -> hsts
-        .includeSubDomains(true)
-        .maxAgeInSeconds(31536000)))
+.headers(headers -> headers.contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; frame-ancestors 'none'; object-src 'none'")).frameOptions(frame -> frame.sameOrigin()).httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000)))
 ```
 
 ## Decision points

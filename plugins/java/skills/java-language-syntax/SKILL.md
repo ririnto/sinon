@@ -157,7 +157,7 @@ Supplier<ArrayList<String>> newList = ArrayList::new;
 ArrayList<String> buffer = newList.get();
 ```
 
-### Stream pipeline `(JDK 8+, `.toList()` requires JDK 17+)`
+### Stream pipeline (JDK 8+, `.toList()` requires JDK 17+)
 
 Basic filter-map-collect using the unmodifiable `toList()` terminator `(JDK 17+)`:
 

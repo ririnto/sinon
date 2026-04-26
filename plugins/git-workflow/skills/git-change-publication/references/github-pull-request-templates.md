@@ -56,14 +56,17 @@ GitHub pull request templates are always files on the repository's default branc
 1. Inspect the default branch on the remote without cloning the whole tree.
 2. Check the owner's community-health `.github` repository for a fallback template.
 
+Requires the `gh` CLI; skip this command when `gh` is unavailable or the environment is offline. First list template files on the remote default branch:
+
 ```bash
-# Requires gh CLI; skip if unavailable or offline.
-# Path 1: list template files on the remote default branch.
 gh api repos/{owner}/{repo}/contents/.github/PULL_REQUEST_TEMPLATE 2>/dev/null \
     || gh api repos/{owner}/{repo}/contents/.github/pull_request_template.md 2>/dev/null \
     || echo "NO_REMOTE_TEMPLATE"
+```
 
-# Path 2: check owner's community-health .github repository.
+Then check the owner's community-health `.github` repository:
+
+```bash
 gh api repos/{owner}/.github/contents/.github/PULL_REQUEST_TEMPLATE 2>/dev/null \
     || gh api repos/{owner}/.github/contents/.github/pull_request_template.md 2>/dev/null \
     || echo "NO_COMMUNITY_HEALTH_TEMPLATE"
@@ -323,4 +326,4 @@ The broken version injects fallback content into a repository that already has a
 | ignoring an existing GitHub pull request template | repository review expectations get broken | preserve the template headings, order, and checklists |
 | deleting template sections that look empty | reviewers expect those sections to be present | fill relevant sections; leave others with placeholder text |
 | merging content from multiple named templates | each named template serves a different PR category | apply only the confirmed named template |
-| using fallback when API discovers a web-ui-only template | the repo has a template that is not on disk | use the API-discovered template structure |
+| using fallback when remote or community-health discovery finds a template | the repo or owner account has a template that is not in the local checkout | use the discovered template structure |

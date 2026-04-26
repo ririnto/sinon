@@ -2,10 +2,20 @@
 title: jcmd Command Reference
 description: >-
   Reference for extended jcmd command families, version-sensitive options, and operational
-  constraints beyond the common-case commands in the parent SKILL.md.
+  constraints for live JVM runtime diagnostics.
 ---
 
-Use this reference when the base discovery and core VM identity commands from the parent SKILL.md are not sufficient and the remaining blocker is which extended `jcmd` variant or option to apply.
+Use this reference when the remaining blocker is which extended `jcmd` variant or option to apply after you have identified the target JVM.
+
+Start by confirming the target process and command availability on the exact runtime:
+
+```bash
+jcmd -l
+jcmd <pid> help
+jcmd <pid> VM.version
+jcmd <pid> VM.command_line
+jcmd <pid> VM.flags
+```
 
 ## Extended Thread Inspection
 
@@ -13,8 +23,14 @@ Use this reference when the base discovery and core VM identity commands from th
 jcmd <pid> Thread.print -e
 ```
 
-- use `Thread.print -l` (documented in parent SKILL.md) as the standard diagnostic default because it includes ownable synchronizers and lock detail
+- use `Thread.print -l` as the standard diagnostic default because it includes ownable synchronizers and lock detail
 - use `-e` only when extended thread information is worth the extra output
+
+Standard thread-dump shape:
+
+```bash
+jcmd <pid> Thread.print -l > thread-dump.txt
+```
 
 ## Extended Heap and Object Inspection
 

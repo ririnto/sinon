@@ -11,6 +11,8 @@ Use reactive security only when the application is actually reactive end to end.
 
 Use `ServerHttpSecurity`, not `HttpSecurity`, in reactive applications.
 
+The `{noop}` password encoder marker is for local smoke tests only.
+
 ```java
 @Configuration
 @EnableWebFluxSecurity
@@ -19,7 +21,6 @@ class WebFluxSecurityConfig {
     @Bean
     ReactiveUserDetailsService reactiveUserDetailsService() {
         UserDetails user = User.withUsername("user")
-            // `{noop}` is for local smoke tests only.
             .password("{noop}password")
             .roles("USER")
             .build();

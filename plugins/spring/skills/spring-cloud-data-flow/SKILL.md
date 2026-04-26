@@ -1,6 +1,6 @@
 ---
 name: "spring-cloud-data-flow"
-description: "Design, deploy, and operate Spring Cloud Data Flow streams and tasks with app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations. Use this skill when designing, deploying, and operating Spring Cloud Data Flow streams or tasks, including app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations."
+description: "Maintain, deploy, and operate Spring Cloud Data Flow streams and tasks with app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations. Use this skill when maintaining, deploying, and operating existing Spring Cloud Data Flow streams or tasks, including app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations."
 metadata:
   title: "Spring Cloud Data Flow"
   official_project_url: "https://spring.io/projects/spring-cloud-dataflow"
@@ -10,16 +10,17 @@ metadata:
   version: "2.11.5"
 ---
 
-Use this skill when designing, deploying, and operating Spring Cloud Data Flow streams or tasks, including app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations.
+Use this skill when maintaining, deploying, and operating Spring Cloud Data Flow streams or tasks, including app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations.
 
 ## Boundaries
 
-Use `spring-cloud-data-flow` for SCDF server and shell workflows, stream and task topology design, app registration, deployment properties, and runtime pipeline operations.
+Use `spring-cloud-data-flow` for existing SCDF server and shell workflows, stream and task topology maintenance, app registration, deployment properties, and runtime pipeline operations.
 
-- Use `spring-integration` for in-process integration flows inside one application.
-- Use batch-job or launchable-task guidance for the internals of a task app itself. SCDF is the orchestration and platform layer around those apps.
+- In-process integration flows inside one application are outside this skill's scope.
+- Batch-job or launchable-task internals are outside this skill's scope. SCDF is the orchestration and platform layer around those apps.
 - Skipper is the stream-package runtime inside SCDF; use it for stream update and rollback across versions rather than for ordinary task launches.
 - Tooling surfaces are the SCDF shell, the SCDF UI, and the SCDF REST API. Pick one consistent surface per operational workflow so deploy, inspect, and rollback steps stay reproducible.
+- Spring Cloud Data Flow is in maintenance mode. Prefer this skill for existing SCDF estates; verify the current project status before recommending SCDF for greenfield orchestration.
 
 ## Common path
 
@@ -36,7 +37,7 @@ The ordinary Spring Cloud Data Flow job is:
 
 SCDF is primarily an external orchestration platform, not a business-app dependency. Custom apps normally depend on Spring Cloud Stream or Spring Cloud Task rather than an SCDF library.
 
-The current stable SCDF server line is `2.11.5`. Keep examples on the stable GA line unless the task explicitly targets a newer milestone or snapshot.
+The current stable SCDF server line is `2.11.5`. Keep examples on the stable GA line unless the task explicitly targets a newer milestone or snapshot, and treat that stable line as maintenance-oriented rather than a default greenfield recommendation.
 
 ```text
 SCDF server and shell are operated outside the business application.

@@ -93,7 +93,7 @@ If the flag is not present, Shenandoah is not available in that build.
 
 ```text
 Symptom identified as GC-driven?
-├── No → use jvm-runtime-diagnostics instead
+├── No → switch to non-GC runtime triage and collect thread, CPU, I/O, or application evidence
 ├── Yes → What is the primary goal?
 │   ├── Lowest pause time → consider ZGC or Shenandoah
 │   ├── Maximum throughput → Parallel or G1 (default)

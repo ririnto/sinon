@@ -15,7 +15,6 @@ Reactor `Context` travels with the subscription, not with the current thread.
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.context.Context;
-
 final class ExplicitContextFlow {
     Mono<String> value() {
         return Mono.deferContextual(context -> Mono.just(context.get("requestId")))
@@ -31,7 +30,6 @@ Use this only when the Micrometer `context-propagation` library is present and y
 
 ```java
 import reactor.core.publisher.Hooks;
-
 final class AutomaticPropagation {
     void enable() {
         Hooks.enableAutomaticContextPropagation();

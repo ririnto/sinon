@@ -88,7 +88,7 @@ When `@ConfigurationProperties` does not bind as expected:
 logging.level.org.springframework.boot.context.properties=DEBUG
 ```
 
-4. Inspect the config properties actuator endpoint if available.
+1. Inspect the config properties actuator endpoint if available.
 
 ```properties
 management.endpoints.web.exposure.include=configprops

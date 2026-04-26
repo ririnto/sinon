@@ -260,7 +260,7 @@ Subject line rules:
 Body rules:
 
 - Blank line between subject and body.
-- Body is free-form; MAY consist of paragraphs or bullet points (`- `).
+- Body is free-form; MAY consist of paragraphs or bullet points using `-` markers.
 - Body lines wrapped at 72 characters (soft limit matching git convention).
 - Body MUST explain WHY, not WHAT (WHAT is in the diff).
 - One blank line between body paragraphs.
@@ -297,7 +297,7 @@ Standard footer format: `<token><separator><value>`. Footers go after a blank li
 Footer format rules:
 
 - Each footer: `<token><separator><value>`.
-- Separator is either `: ` (colon + space) or ` #` (space + hash).
+- Separator is either `:` followed by a space, or a space followed by `#`.
 - Token MUST use `-` instead of spaces (e.g., `Acked-by`, `Reviewed-by`).
 - Exception: `BREAKING CHANGE` MAY contain a space.
 - Footer values MAY span multiple lines; parsing terminates at the next valid token/separator pair.
@@ -669,33 +669,26 @@ Return:
 
 Validate the result with these executable checks:
 
+- The staged stat must show at least one file; if it is empty, the result is blocked.
+- Compare unstaged stat output to staged stat output and flag mismatches to the user.
+- The type check must exit 0.
+- When the host is known, re-run the discovery command from Host Detection or the host-specific reference and confirm sections match the discovered template.
+
 ```bash
-# 1. Staged changes exist
 echo "=== Staged changes ==="
 git diff --cached --stat
-# Must show at least one file; if empty, result is blocked
 
-# 2. Unstaged drift awareness
 echo "=== Unstaged changes (excluded from commit) ==="
 git diff --stat
-# Compare to staged stat; flag mismatches to user
 
-# 3. Subject length check
 echo "=== Subject length (must be <= 72) ==="
 echo -n "<proposed subject>" | wc -c
 
-# 4. Type validity
 echo "=== Type check ==="
 echo "<proposed type>" | grep -E '^(feat|fix|docs|style|test|refactor|perf|build|ci|chore|revert)$'
-# Must exit 0
 
-# 5. Recent history consistency
 echo "=== Recent history (style consistency check) ==="
 git log -5 --oneline
-
-# 6. Template preservation (when host is known)
-# Re-run discovery command from Host Detection or host-specific reference
-# Confirm sections match the discovered template
 ```
 
 Pass/fail criteria:

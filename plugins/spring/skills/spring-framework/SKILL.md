@@ -28,6 +28,26 @@ The ordinary Spring Framework job is:
 4. Keep bean lifecycle, events, transactions, conversion, validation, and scheduling behavior explicit.
 5. Add a focused TestContext-based or plain Spring test that proves the framework integration works.
 
+## First safe commands
+
+Start with the narrowest local TestContext-backed test that proves the wiring or HTTP layer you are changing.
+
+```bash
+./mvnw test -Dtest=AppConfigTests
+```
+
+```bash
+./gradlew test --tests AppConfigTests
+```
+
+```bash
+./mvnw test -Dtest=OrderControllerTests,ItemControllerTests
+```
+
+```bash
+./gradlew test --tests OrderControllerTests --tests ItemControllerTests
+```
+
 ## Module selection
 
 Use only the Spring Framework modules the application actually needs.
@@ -115,9 +135,9 @@ Use the environment to externalize configuration and profiles to control which b
 
 ## Bean scopes
 
-| Scope       | Use when                                      |
+| Scope | Use when |
 | --- | --- |
-| `singleton` | one shared instance per container (default)   |
+| `singleton` | one shared instance per container (default) |
 | `prototype` | new instance every time the bean is requested |
 | custom scope | lifecycle is neither singleton nor prototype and requires explicit scope registration |
 

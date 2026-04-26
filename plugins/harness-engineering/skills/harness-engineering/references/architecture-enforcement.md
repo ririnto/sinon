@@ -4,7 +4,7 @@ Open this reference when implementing custom linters, structural tests, or taste
 
 ## Layer model in detail
 
-See SKILL.md Step 3 for the layer model overview and enforcement approach. This reference provides the allowed-edge matrix and implementation patterns.
+See SKILL.md Step 3 for the layer model overview and enforcement approach. This reference provides the allowed-target matrix and implementation patterns.
 
 | Source | Allowed targets |
 | --- | --- |
@@ -21,14 +21,14 @@ Cross-cutting providers (auth, connectors, telemetry, feature flags) are injecte
 
 ### Import direction linter
 
-Reject imports that violate the forward-only rule.
+Reject imports that violate the inward-only dependency rule shown in the allowed-target matrix.
 
 ```python
 """
-Linter: enforce forward-only layer imports within each domain.
+Linter: enforce inward-only layer imports within each domain.
 
 Scans each domain directory for import statements that reference
-a layer with a lower precedence than the importing layer.
+a layer above the importing layer in the dependency stack.
 """
 LAYERS = ["types", "config", "repo", "service", "runtime", "ui"]
 
@@ -36,16 +36,16 @@ def check_layer_imports(domain_path, file_path, imports):
     file_layer = detect_layer(file_path)
     for imp in imports:
         target_layer = detect_layer(imp)
-        if target_layer and LAYERS.index(target_layer) < LAYERS.index(file_layer):
+        if target_layer and LAYERS.index(target_layer) > LAYERS.index(file_layer):
             yield LintError(
                 file=file_path,
                 line=imp.line,
                 message=(
                     f"Layer violation: {file_layer} imports {target_layer}. "
-                    f"Dependency direction must be forward: "
+                    "Dependencies must point only toward earlier layers: "
                     + " → ".join(LAYERS)
-                    + ". Move the shared logic to {target_layer} or "
-                    f"refactor {file_layer} to depend on a higher layer."
+                    + f". Move the shared logic to {file_layer}, "
+                    + f"depend on an allowed lower layer, or introduce a provider interface for {target_layer}."
                 ),
             )
 ```

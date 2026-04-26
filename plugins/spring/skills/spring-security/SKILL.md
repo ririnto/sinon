@@ -170,7 +170,6 @@ class SecurityConfig {
         JwtGrantedAuthoritiesConverter authorities = new JwtGrantedAuthoritiesConverter();
         authorities.setAuthorityPrefix("SCOPE_");
         authorities.setAuthoritiesClaimName("scope");
-
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(authorities);
         converter.setPrincipalClaimName("sub");
@@ -212,11 +211,15 @@ Spring Security 6 and 7 tighten session behavior. Key changes to keep explicit:
 - Since Spring Security 6, `SessionManagementFilter` no longer reads the session on every request just to detect a newly authenticated user.
 - If authentication is performed manually in a controller or service, save the resulting `SecurityContext` explicitly through the chosen `SecurityContextRepository`.
 
-```java
-// Bearer-token API
-.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+Bearer-token API:
 
-// Browser login
+```java
+.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+```
+
+Browser login:
+
+```java
 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 ```
 
@@ -232,7 +235,6 @@ CorsConfigurationSource corsConfigurationSource() {
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
     configuration.setAllowCredentials(true);
-
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
     return source;
@@ -272,12 +274,10 @@ For applications that need a specific hash without the delegating wrapper, use t
 @Bean
 PasswordEncoder passwordEncoder() {
     return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
-    // return new BCryptPasswordEncoder();
-    // return Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();
 }
 ```
 
-Use the documented defaults when selecting a concrete encoder directly. When migrating from weaker hashes, store the old encoder prefix alongside hashes and delegate to the new encoder.
+Use the documented defaults when selecting a concrete encoder directly. `BCryptPasswordEncoder` and `Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8()` are also valid concrete encoder choices when the storage and migration policy intentionally selects those algorithms. When migrating from weaker hashes, store the old encoder prefix alongside hashes and delegate to the new encoder.
 
 Keep the OAuth2 and OIDC branch explicit. Open [references/delegated-login-and-oauth2-client.md](references/delegated-login-and-oauth2-client.md) when the application delegates browser login to an external IdP or manages outbound OAuth2 client tokens for downstream calls.
 

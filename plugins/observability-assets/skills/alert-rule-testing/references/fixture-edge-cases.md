@@ -14,43 +14,36 @@ Use `_` for a missing sample and `stale` when the test must model Prometheus sta
 A missing sample means the series has no value at that specific timestamp. The series still exists for evaluation purposes -- it simply has a gap.
 
 ```yaml
-# One gap at position 3; the series continues after
 - series: 'up{job="api",instance="api-1"}'
   values: '1 1 1 _ 1 1'
 ```
 
+This sequence has one gap at position 3, then the series continues afterward.
+
 Effect on PromQL functions:
 
 ```yaml
-# rate() interpolates across the gap (treats it as if the value continued)
-# increase() similarly interpolates
-# The gap does NOT cause the series to disappear from results
 input_series:
   - series: 'http_requests_total{job="api"}'
     values: '100 _ 120 140'
-
-# rate(http_requests_total[2m]) at sample 4 sees roughly (140-100)/4m = 10/s
 ```
+
+`rate()` and `increase()` interpolate across the gap. The gap does not cause the series to disappear from results; at sample 4, `rate(http_requests_total[2m])` sees roughly `(140 - 100) / 4m = 10/s`.
 
 ### Stale Marker (`stale`)
 
 The `stale` marker causes the series to be treated as nonexistent from that point onward. This is different from `_`:
 
 ```yaml
-# Series goes stale at position 5
 - series: 'up{job="api",instance="api-1"}'
   values: '1 1 1 1 stale'
 ```
 
+This sequence marks the series stale at position 5.
+
 Effect on PromQL functions:
 
-```yaml
-# After the stale marker:
-# - instant queries return no sample for this series
-# - range vectors exclude this series entirely
-# - absent(up{instance="api-1"}) returns true (a sample)
-# - count(up) decreases because the series is gone
-```
+After the stale marker, instant queries return no sample for this series, range vectors exclude it, `absent(up{instance="api-1"})` returns a sample, and `count(up)` decreases because the series is gone.
 
 Example testing staleness-dependent alert:
 
@@ -62,14 +55,11 @@ tests:
   - interval: 30s
     input_series:
       - series: 'up{job="api",instance="api-1"}'
-        values: '1 1 1 1 stale'   # target goes away after 90s
+        values: '1 1 1 1 stale'
     alert_rule_test:
-      # Before staleness -- target is up, alert should not fire
       - eval_time: 1m
         alertname: TargetDown
         exp_alerts: []
-      # After staleness + for:5m satisfied -- alert fires
-      # Note: eval_time must account for both the stale point AND the for window
       - eval_time: 7m
         alertname: TargetDown
         exp_alerts:
@@ -87,10 +77,8 @@ When an expression references a metric name that has no corresponding `input_ser
 **Intentional absent test:**
 
 ```yaml
-# Rule uses: expr: absent(up{job="nonexistent"})
-# No input_series entry for job="nonexistent" -- that IS the test
 tests:
-  - input_series: []    # empty -- no data at all
+  - input_series: []
     alert_rule_test:
       - eval_time: 5m
         alertname: NoTargetForJob
@@ -102,14 +90,12 @@ tests:
 **Accidental missing series -- common failure mode:**
 
 ```yaml
-# BROKEN: forgot to include the 200-status series that the denominator needs
 input_series:
   - series: 'http_requests_total{job="api",status="500"}'
     values: '0+10x20'
-  # MISSING: http_requests_total{job="api",status="200"}
-# Result: division by zero in the expression -> no alert ever fires
-# Fix: add the missing series
 ```
+
+This is broken when the rule denominator needs `http_requests_total{job="api",status="200"}`. The missing series can produce division by zero or an empty result, so add the denominator series explicitly.
 
 ## Native Histogram Fixtures
 
@@ -137,6 +123,7 @@ Schema defines the bucket resolution:
 | 3 | 8 |
 
 Schema 0 with buckets `[3 5 2]` means:
+
 - Bucket [0, 1): 3 observations
 - Bucket [1, 2): 5 observations
 - Bucket [2, +inf): 2 observations
@@ -147,15 +134,11 @@ Schema 0 with buckets `[3 5 2]` means:
 ```yaml
 rule_files:
   - alerts/latency.rules.yaml
-# Rule: alert: HighLatencyP99
-#       expr: 0.5 < histogram_quantile(0.99, rate(http_request_duration_seconds[5m]))
 
 tests:
   - interval: 1m
     input_series:
       - series: 'http_request_duration_seconds{job="api"}'
-        # Each sample is a native histogram with schema=0
-        # P99 of these samples will be in the highest bucket (>2s)
         values: >-
           {{schema:0 count:100 sum:200 buckets:[10 20 30 40]}}
           {{schema:0 count:100 sum:250 buckets:[5 15 35 45]}}
@@ -193,13 +176,11 @@ Use when: the rule depends on histogram-native structure rather than a float-onl
 Prometheus counters reset when a process restarts. Simulate this in fixtures by including a decreasing value, which promtool interprets as a counter reset:
 
 ```yaml
-# Normal increase, then a drop (simulating process restart), then normal again
 - series: 'process_cpu_seconds_total{job="api"}'
   values: '100+10x5 50+10x5'
-
-# rate() automatically handles the reset between sample 5 and 6
-# increase() also handles it correctly
 ```
+
+This sequence increases normally, drops to simulate a process restart, then increases again. `rate()` and `increase()` handle the reset between sample 5 and 6.
 
 Use when: the alert depends on `rate()` or `increase()` over counters and you need to verify reset handling.
 
@@ -221,12 +202,13 @@ tests:
               severity: page
 ```
 
-**Strategy 2: Round in the rule expression**
+### Strategy 2: Round in the rule expression
 
 ```yaml
-# In the RULE file (not the test file):
 expr: 5 < round(100 * errors / total, 0.001)
 ```
+
+Apply rounding in the rule file rather than the test file when the production expression should also avoid boundary precision noise.
 
 See [`./test-execution-controls.md`](./test-execution-controls.md) for more on `fuzzy_compare`.
 

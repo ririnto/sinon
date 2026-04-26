@@ -18,6 +18,7 @@ Best-practice rules:
 - treat the Kotlin stdlib docs as versioned and platform-filtered; examples should read as `Common` first unless the code is intentionally runtime-specific
 - `kotlin.io.path.*` is JVM-only and some APIs are marked `ExperimentalPathApi`; use it only when the module is explicitly on JVM and real filesystem `Path` behavior matters
 - `kotlin.io.encoding` is experimental; use it only when encoding support is actually required, and remember that stream helpers there are JVM-only
+- stdlib Instant is not available on the Kotlin 1.9 baseline; use `kotlinx.datetime.Instant` unless the module intentionally raises its Kotlin baseline
 - `kotlin.uuid` is experimental since Kotlin 2.0; use it only when UUID generation or parsing is genuinely needed
 - `kotlin.contracts` is experimental and is not a common-path recommendation for ordinary application code
 - `Regex` exists across platforms, but options and behavior can differ because JS uses the host `RegExp` behavior with stricter Unicode parsing
@@ -47,12 +48,14 @@ private val orderPattern = Regex("""\w+-\d+""")
 
 Use when: the example is multiplatform in principle, but callers should not assume every engine behaves identically.
 
-Experimental API with inline warning:
+Experimental API with explicit boundary:
+
+The experimental status belongs in prose before imports or on a declaration KDoc, not as a detached KDoc before an import.
 
 ```kotlin
-/** Experimental stdlib API: reevaluate availability before using as a default. */
 import kotlin.uuid.Uuid
 
+/** Creates an experimental UUID value; reevaluate API stability before using as a default. */
 fun createExperimentalId(): Uuid = Uuid.random()
 ```
 
@@ -60,11 +63,13 @@ Use when: the API surface is still experimental and callers need to know the exa
 
 Experimental contracts with explicit non-default framing:
 
+The opt-in caveat should appear in prose before the snippet and on the declaration that owns the behavior.
+
 ```kotlin
-/** Experimental contracts API: use only when simpler null checks are not enough. */
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
+/** Requires a non-null name with contracts; use only when simpler checks are not enough. */
 @OptIn(ExperimentalContracts::class)
 fun requireNotNullName(name: String?) {
     contract { returns() implies (name != null) }
@@ -76,10 +81,12 @@ Use when: the team is intentionally opting into contracts and the example must m
 
 Experimental encoding helper with explicit status:
 
+Encoding remains an experimental API; stream helpers are JVM-only.
+
 ```kotlin
-/** Experimental encoding API; stream helpers are JVM-only. */
 import kotlin.io.encoding.Base64
 
+/** Encodes bytes with the experimental stdlib encoding API. */
 fun encodeExperimental(raw: ByteArray): String = Base64.encode(raw)
 ```
 

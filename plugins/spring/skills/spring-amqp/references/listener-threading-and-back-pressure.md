@@ -10,11 +10,7 @@ Open this reference when the ordinary listener-container path in [SKILL.md](../S
 
 ```java
 @Bean
-SimpleRabbitListenerContainerFactory threadedFactory(
-    SimpleRabbitListenerContainerFactoryConfigurer configurer,
-    ConnectionFactory connectionFactory,
-    TaskExecutor taskExecutor
-) {
+SimpleRabbitListenerContainerFactory threadedFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer, ConnectionFactory connectionFactory, TaskExecutor taskExecutor) {
     SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
     configurer.configure(factory, connectionFactory);
     factory.setTaskExecutor(taskExecutor);

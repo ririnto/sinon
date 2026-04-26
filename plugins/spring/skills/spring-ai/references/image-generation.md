@@ -18,10 +18,7 @@ class ReleaseBannerService {
     }
 
     String generateBannerUrl(String releaseName) {
-        ImageResponse response = imageModel.call(new ImagePrompt(
-            "Create a release banner for " + releaseName,
-            OpenAiImageOptions.builder().withModel("dall-e-3").withWidth(1024).withHeight(1024).build()
-        ));
+        ImageResponse response = imageModel.call(new ImagePrompt("Create a release banner for " + releaseName, OpenAiImageOptions.builder().withModel("dall-e-3").withWidth(1024).withHeight(1024).build()));
         return response.getResult().getOutput().getUrl();
     }
 }

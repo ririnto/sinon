@@ -42,12 +42,10 @@ boot_isolated() {
     port=$(assign_free_port)
     data_dir="${worktree_path}/.runtime/data"
     mkdir -p "${data_dir}"
-
     APP_PORT="${port}" \
     APP_DATA_DIR="${data_dir}" \
     APP_LOG_DIR="${worktree_path}/.runtime/logs" \
     "${worktree_path}/scripts/start-app" &
-
     wait_for_health "http://localhost:${port}/health"
     echo "http://localhost:${port}"
 }
@@ -74,6 +72,9 @@ Connect browser automation so the agent can validate UI behavior directly.
 ### Integration pattern
 
 ```python
+from playwright.async_api import async_playwright
+
+
 """
 Agent skill: capture a DOM snapshot of the current page.
 
@@ -84,17 +85,28 @@ Agent skill: capture a DOM snapshot of the current page.
 async def capture_dom_snapshot(page_url, selector=None):
     async with async_playwright() as p:
         browser = await p.chromium.launch()
-        page = await browser.new_page()
-        await page.goto(page_url)
-        if selector:
-            element = await page.query_selector(selector)
-            return await element.inner_html()
-        return await page.content()
+        try:
+            page = await browser.new_page()
+            await page.goto(page_url)
+            if selector:
+                element = await page.query_selector(selector)
+                if element is None:
+                    raise ValueError(f"Selector not found: {selector}")
+                return await element.inner_html()
+            return await page.content()
+        finally:
+            await browser.close()
 ```
 
 ### Video recording for bug reproduction
 
 ```python
+from pathlib import Path
+from shutil import copyfile
+
+from playwright.async_api import async_playwright
+
+
 """
 Agent skill: record a video demonstrating a bug or its fix.
 
@@ -104,25 +116,34 @@ Agent skill: record a video demonstrating a bug or its fix.
 :return: Path to the recorded video.
 """
 async def record_video(page_url, actions, output_path):
+    video_dir = Path(output_path).parent
+    video_dir.mkdir(parents=True, exist_ok=True)
     async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            record_video_dir=str(Path(output_path).parent)
-        )
-        context = await browser.new_context()
-        page = await context.new_page()
-        await page.goto(page_url)
-
-        for action, target in actions:
-            if action == "click":
-                await page.click(target)
-            elif action == "type":
-                await page.type(target[0], target[1])
-            elif action == "wait":
-                await page.wait_for_selector(target)
-
-        await context.close()
+        browser = await p.chromium.launch()
+        context = await browser.new_context(record_video_dir=str(video_dir))
+        video = None
+        try:
+            page = await context.new_page()
+            await page.goto(page_url)
+            for action, target in actions:
+                if action == "click":
+                    await page.click(target)
+                elif action == "type":
+                    await page.type(target[0], target[1])
+                elif action == "wait":
+                    await page.wait_for_selector(target)
+            video = page.video
+        finally:
+            await context.close()
+            await browser.close()
+        if video is None:
+            raise RuntimeError("Video was not created before the browser context closed")
+        saved_video_path = await video.path()
+        copyfile(saved_video_path, output_path)
         return output_path
 ```
+
+Playwright for Python records video at the browser-context level: pass `record_video_dir` to `browser.new_context(...)`, close the context so the file is written, then read `page.video.path()` after closure.
 
 ## Local observability stack
 
@@ -139,8 +160,8 @@ Expose logs, metrics, and traces through an ephemeral local stack per worktree.
 ### Configuration pattern
 
 ```yaml
-# Ephemeral observability config per worktree.
-# Each worktree gets its own instance on isolated ports.
+description: Ephemeral observability config per worktree
+isolation: Each worktree gets its own instance on isolated ports
 
 logs:
   backend: loki

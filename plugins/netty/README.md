@@ -39,13 +39,40 @@ These topics fall outside Netty's scope:
 - JDK tools, JVM diagnostics, and GC analysis.
 - General HTTP/WebSocket protocol knowledge.
 
-Netty-specific reactive programming and backpressure handling belong in Netty guidance. General reactive programming outside the Netty ecosystem belongs elsewhere.
+Netty-specific reactive programming and backpressure handling stay in this plugin. General reactive programming outside the Netty ecosystem is outside this plugin's scope.
+
+## Runtime Model
+
+This plugin uses one shared plugin root with two thin runtime manifests:
+
+- `.claude-plugin/plugin.json`
+- `.codex-plugin/plugin.json`
+
+The actual reusable content lives beside those manifests at the plugin root.
+
+## Plugin Layout
+
+```text
+plugins/netty/
+├── .claude-plugin/plugin.json
+├── .codex-plugin/plugin.json
+├── README.md
+└── skills/
+    ├── netty/
+    └── reactor-netty/
+```
+
+## Shipped Surfaces
+
+- The plugin ships two reusable networking skills under `skills/`.
+- The plugin ships no plugin-root `agents/` directory.
+- The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 
 - Prefer working network application examples over isolated API documentation.
 - Keep examples minimal but runnable in spirit.
-- Route to the smallest Netty skill that matches the task.
+- Choose the smallest Netty skill that matches the task.
 - Keep `SKILL.md` self-contained and usable on its own; use `references/` only for supplemental decision aids and longer notes.
 - Netty reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries; prose explains the example, the example proves the rule.
 
@@ -60,5 +87,5 @@ Install from Sinon:
 For local development:
 
 ```bash
-cc --plugin-dir /path/to/sinon/plugins/netty
+claude --plugin-dir /path/to/sinon/plugins/netty
 ```

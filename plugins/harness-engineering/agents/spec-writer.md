@@ -32,7 +32,7 @@ description: >-
   </example>
 model: inherit
 color: blue
-tools: ["Read", "Write", "Glob", "Bash"]
+tools: ["Read", "Write", "Edit", "Glob", "Bash"]
 ---
 
 # Spec Writer

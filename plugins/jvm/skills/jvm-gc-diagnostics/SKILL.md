@@ -196,12 +196,14 @@ jcmd <pid> VM.flags
 Look for these flag lines to identify the active collector:
 
 ```bash
--XX:G1HeapRegionSize=4M          ← G1 is active
--XX:+UseG1GC                     ← G1 explicitly set (or default)
--XX:+UseZGC                      ← ZGC is active
--XX:+UseParallelGC               ← Parallel GC is active
--XX:+UseSerialGC                 ← Serial GC is active
+-XX:G1HeapRegionSize=4M
+-XX:+UseG1GC
+-XX:+UseZGC
+-XX:+UseParallelGC
+-XX:+UseSerialGC
 ```
+
+Read: `G1HeapRegionSize` or `UseG1GC` indicates G1, `UseZGC` indicates ZGC, `UseParallelGC` indicates Parallel GC, and `UseSerialGC` indicates Serial GC.
 
 If none of these appear, the default collector for that LTS applies (G1 for 11+, Parallel for 8 server-class).
 
@@ -211,16 +213,13 @@ If none of these appear, the default collector for that LTS applies (G1 for 11+,
 jcmd <pid> JFR.check
 ```
 
-Sample output:
+Supported output cues to confirm:
 
 ```text
-Recording 1: name=gc-baseline maxsize=0 (unlimited) duration=0 (unlimited) disk=true
-  Recording: to=true size=48 KiB (48 KiB) maxsize=0 (unlimited) duration=2 h (2 h)
-  Dump on exit: false
-  Path: /tmp/gc-baseline_12345_2026-04-20_101530.jfr
+Recording 1: name=gc-baseline maxage=2 h (running)
 ```
 
-Read: Recording is active, has captured 48KB so far, max age 2h, writing to disk. Confirm `maxage` reflects the intended retention window. A `duration` of `0 (unlimited)` is expected when only `maxage` is set — these are independent parameters.
+Read: Match the recording `name`, confirm `(running)` before claiming the capture is active, and verify `maxage` matches the intended retention window. If the runtime also reports a destination or path, confirm it points to the restricted diagnostics location you intended.
 
 ### Unified GC Log Line Shape (JDK 9+)
 
@@ -239,10 +238,10 @@ Read each event: timestamp → log level → tag(s) → GC ID + phase → detail
 
 Read: datestamp → uptime → GC type → total heap Before->After(Max) → pause seconds. The value before `secs` is the wall-clock pause duration.
 
-### `jfr print --summary` Output
+### `jfr summary` Output
 
 ```bash
-jfr print --summary /path/to/recording.jfr
+jfr summary /path/to/recording.jfr
 ```
 
 Shows event counts grouped by type. Look for:

@@ -59,12 +59,11 @@ recording rule evaluates first
 
 These are mistakes made while writing the alert rule itself that make testing harder or impossible:
 
-**Expression depends on external data not available in tests**
+### Expression depends on external data not available in tests
 
 Broken -- references a metric that cannot be easily synthesized:
 
 ```yaml
-# Hard to test: depends on real cluster topology
 expr: count(up{job="api"}) < count(kube_node_info)
 ```
 
@@ -74,7 +73,7 @@ Better -- self-contained within the scrape target:
 expr: count(up{job="api"} == 0) > 0
 ```
 
-**Expression uses `time()` or other non-deterministic functions**
+### Expression uses `time()` or other non-deterministic functions
 
 Broken -- test results vary by wall-clock time:
 
@@ -88,7 +87,7 @@ Better -- use relative durations that work at any eval_time:
 expr: some_metric offset 1h == 0
 ```
 
-**Overly broad label matchers that produce many series**
+### Overly broad label matchers that produce many series
 
 Broken -- test needs dozens of input_series entries:
 

@@ -17,14 +17,14 @@ Configured `Json` instance:
 
 ```kotlin
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 @Serializable
 data class Note(
@@ -57,12 +57,12 @@ Important rules:
 - default values are not encoded by default
 - `@Transient` properties need a default value
 - only properties with backing fields are serialized
-- `kotlin.time.Instant` works as the preferred precise timestamp type on current Kotlin baselines, while `kotlinx-datetime` still owns `LocalDate`, `LocalDateTime`, and `TimeZone`
+- use `kotlinx.datetime.Instant` for precise timestamps on the Kotlin 1.9 baseline; stdlib Instant requires a newer Kotlin baseline
 
 Instant note:
 
-- prefer `kotlin.time.Instant` in new models when the module baseline already supports it cleanly
-- use one timestamp representation per boundary instead of mixing `kotlin.time.Instant`, `kotlinx.datetime.Instant`, and `java.time.Instant` casually
+- prefer `kotlinx.datetime.Instant` in Kotlin 1.9 models that need portable date-time serialization
+- use one timestamp representation per boundary instead of mixing `kotlinx.datetime.Instant`, newer stdlib Instant, and `java.time.Instant` casually
 
 Contextual serializer shape:
 

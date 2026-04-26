@@ -5,7 +5,7 @@ description: "Open this when shared subscriptions, replay, or late-subscriber be
 
 Open this when identical subscriptions must not repeat the same work or when late subscribers must see shared or replayed signals.
 
-Keep this reference at the boundary-recognition level. If the real work is choosing concrete `publish()`, `replay()`, `autoConnect(...)`, or `refCount(...)` patterns for a shared cold source, open the sinks skill's connectable-patterns reference instead.
+Keep this reference at the boundary-recognition level. If the real work is choosing concrete `publish()`, `replay()`, `autoConnect(...)`, or `refCount(...)` patterns for a shared cold source, treat that as concrete connectable-source design rather than conceptual hot/cold classification.
 
 ## Core distinctions
 
@@ -20,7 +20,6 @@ Keep this reference at the boundary-recognition level. If the real work is choos
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class ColdSourceExample {
     Flux<Integer> coldSource() {
         return Flux.create(sink -> {
@@ -30,7 +29,6 @@ final class ColdSourceExample {
             sink.complete();
         });
     }
-
     void demonstrate() {
         Flux<Integer> source = coldSource();
         source.subscribe(v -> System.out.println("sub1: " + v));
@@ -54,7 +52,6 @@ sub2: 2
 
 ```java
 import reactor.core.publisher.Flux;
-
 final class HotShareExample {
     Flux<Integer> hotSource() {
         return Flux.create(sink -> {
@@ -64,7 +61,6 @@ final class HotShareExample {
             sink.complete();
         }).share();
     }
-
     void demonstrate() {
         Flux<Integer> source = hotSource();
         source.subscribe(v -> System.out.println("sub1: " + v));
@@ -89,7 +85,6 @@ sub2:   (may see nothing if source completed before sub2 arrived)
 ```java
 import reactor.core.publisher.Flux;
 import java.time.Duration;
-
 final class AutoConnectExample {
     Flux<Integer> coordinatedSource() {
         return Flux.interval(Duration.ofMillis(100))
@@ -107,7 +102,7 @@ Use `autoConnect(n)` when the source is expensive and should not run until enoug
 - `defer(...)` keeps source creation cold and subscription-specific.
 - `share()` is the shortest move when one live subscription is enough and replay is not needed.
 - If the design requires manual emission semantics rather than shared subscription semantics, treat it as a sink problem.
-- If you need concrete ConnectableFlux lifecycle recipes, use the sinks skill's dedicated reference for those patterns.
+- If you need concrete ConnectableFlux lifecycle recipes, shift from boundary recognition to connectable-source lifecycle design.
 
 ## Failure checks
 

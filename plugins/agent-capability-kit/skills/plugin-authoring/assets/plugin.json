@@ -1,9 +1,10 @@
 {
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
-  "description": "Claude Code plugin for a clearly bounded workflow.",
+  "description": "Plugin for a clearly bounded workflow.",
   "author": {
     "name": "your-handle"
   },
-  "commands": "./commands",
-  "skills": "./skills"
+  "commands": "./commands/",
+  "skills": "./skills/"
 }

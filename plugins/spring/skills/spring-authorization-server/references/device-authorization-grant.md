@@ -21,10 +21,8 @@ Use the official configurer only when device-flow request handling must change.
 
 ```java
 http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
-    .deviceAuthorizationEndpoint(deviceAuthorization -> {
-    })
-    .deviceVerificationEndpoint(deviceVerification -> {
-    });
+    .deviceAuthorizationEndpoint(deviceAuthorization -> {})
+    .deviceVerificationEndpoint(deviceVerification -> {});
 ```
 
 ## Decision points

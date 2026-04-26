@@ -3,7 +3,7 @@ title: Complete Panel Type Reference
 description: "Open this when you need the full JSON schema for a specific panel type, or when deciding which panel type to use for a given data shape."
 ---
 
-# Complete Panel Type Reference
+## Complete Panel Type Reference
 
 Use this reference when you need the complete JSON structure for any Grafana panel type, including options fields unique to each type. The common panel types (timeseries, stat, gauge, barchart, table, heatmap, statetimeline, logs, piechart, histogram) are summarized in [`../SKILL.md`](../SKILL.md). This file covers ALL 23+ panel types with their complete option schemas.
 
@@ -967,6 +967,7 @@ All panels use `gridPos` to define position and size within the 24-column grid s
 | `y` | Vertical offset from top edge (0-based) |
 
 Common sizes:
+
 - Full-width row: `{ "w": 24, "h": 8 }`
 - Half-width: `{ "w": 12, "h": 8 }`
 - Quarter-width (stat/gauge): `{ "w": 6, "h": 4 }`

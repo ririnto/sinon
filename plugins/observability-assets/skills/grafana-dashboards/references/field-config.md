@@ -3,7 +3,7 @@ title: Field Config, Overrides, Value Mappings, and Data Links Reference
 description: "Open this when you need the complete field config option catalog, all override property IDs per panel type, value mapping patterns, data link variable reference, or data link builder patterns."
 ---
 
-# Field Config, Overrides, Value Mappings, and Data Links Reference
+## Field Config, Overrides, Value Mappings, and Data Links Reference
 
 Use this reference when you need complete details on how to configure field appearance, target specific fields for different visual treatment, map raw values to display text/colors, or attach clickable URLs to data points.
 
@@ -89,7 +89,7 @@ Named schemes: `"Classic"`, `"Green Orange"`, `"Yellow to Red"`, `"Blue to Yello
 
 ### Complete Unit Catalog
 
-**Time units:**
+Time units:
 
 | Specifier | Example Output | Meaning |
 | --- | --- | --- |
@@ -98,7 +98,7 @@ Named schemes: `"Classic"`, `"Green Orange"`, `"Yellow to Red"`, `"Blue to Yello
 | `"us"` | `123 us` | Microseconds |
 | `"ns"` | `123 ns` | Nanoseconds |
 
-**Data rate units:**
+Data rate units:
 
 | Specifier | Example Output | Meaning |
 | --- | --- | --- |
@@ -111,7 +111,7 @@ Named schemes: `"Classic"`, `"Green Orange"`, `"Yellow to Red"`, `"Blue to Yello
 | `"cpm"` | `1.23 cpm` | Counts per minute |
 | `"count:ps"` | `1.23 /sec` | Generic count per second |
 
-**Data size units:**
+Data size units:
 
 | Specifier | Example Output | Meaning |
 | --- | --- | --- |
@@ -119,14 +119,14 @@ Named schemes: `"Classic"`, `"Green Orange"`, `"Yellow to Red"`, `"Blue to Yello
 | `"bits"` | `1.23 Gbit` | Bits (auto SI) |
 | `"si:Y"` through `"si:y"` | varies | Explicit SI prefix (Y, Z, E, P, T, G, M, k, m, u, n, p, f, a, z, y) |
 
-**Percent units:**
+Percent units:
 
 | Specifier | Example Output | Meaning |
 | --- | --- | --- |
 | `"percent"` | `12.3 %` | Percentage (0-100) |
 | `"percentunit"` | `0.123` | Fractional (0-1) |
 
-**Miscellaneous units:**
+Miscellaneous units:
 
 | Specifier | Example Output | Meaning |
 | --- | --- | --- |
@@ -143,7 +143,7 @@ Named schemes: `"Classic"`, `"Green Orange"`, `"Yellow to Red"`, `"Blue to Yello
 | `"pH"` | `7.4 pH` | pH level |
 | `"misc"` | raw | No formatting |
 
-**Date/time units:**
+Date/time units:
 
 | Specifier | Format | Example |
 | --- | --- | --- |
@@ -159,7 +159,8 @@ Named schemes: `"Classic"`, `"Green Orange"`, `"Yellow to Red"`, `"Blue to Yello
 | `"d:seconds"` | Seconds | `93784 s` |
 | `"d:milliseconds"` | Milliseconds | `93784000 ms` |
 
-**Custom units:** Use `"prefix:suffix"` syntax. For example:
+Custom units use `"prefix:suffix"` syntax. For example:
+
 - `"$:USD"` displays as `$123 USD`
 - `"%:used"` displays as `75% used`
 - `"°C:temp"` displays as `23°C temp`
@@ -186,6 +187,7 @@ The default and most common mode. Steps trigger at exact numeric values.
 ```
 
 Rules:
+
 - The **first step** MUST have `"value": null`. This is the base/default color.
 - Subsequent steps define boundaries where the color changes.
 - A value of `50` means: values from 50 up to the next step boundary get yellow.
@@ -221,10 +223,12 @@ Steps trigger at percentages of the `(min, max)` range. Requires both `min` and 
 Calculation: `trigger_value = min + (percentage * (max - min)) / 100`.
 
 With `min: 0`, `max: 100`:
+
 - yellow triggers at `0 + (70 * 100 / 100) = 70`
 - red triggers at `0 + (90 * 100 / 100) = 90`
 
 With `min: 0`, `max: 200`:
+
 - yellow triggers at `0 + (70 * 200 / 100) = 140`
 - red triggers at `0 + (90 * 200 / 100) = 180`
 
@@ -264,11 +268,11 @@ Common useful patterns:
 
 | Pattern | Matches |
 | --- | --- |
-| `/^p(50|90|95|99)$/` | Percentile fields |
+| `/^p(50&#124;90&#124;95&#124;99)$/` | Percentile fields |
 | `/_total$/` | Counter metrics ending in `_total` |
 | `/_bucket$/` | Histogram bucket metrics |
 | `/^Value #[A-Z]$/` | Auto-generated series values |
-| `/^(Time\|__name__)$/` | Metadata columns |
+| `/^(Time&#124;__name__)$/` | Metadata columns |
 
 #### byType -- Semantic Type Match
 
@@ -541,7 +545,7 @@ Data links attach clickable URLs to data points. When an operator clicks a data 
       "links": [
         {
           "title": "View Traces",
-          "url": "https://jaeger.example.com/search?service=${__data.fields.service}&start=${__url_time_range}",
+          "url": "https://jaeger.example.com/search${__url_time_range}&service=${__data.fields.service}",
           "targetBlank": true,
           "tooltip": "Open trace view in Jaeger"
         },
@@ -615,7 +619,7 @@ Available when clicking a specific data point (not just hovering over a series).
 
 | Variable | Expands To | Example |
 | --- | --- | --- |
-| `${__url_time_range}` | URL-encoded dashboard time range | `now-30m%20to%20now` |
+| `${__url_time_range}` | Current dashboard time range as query parameters, including leading `?` | `?from=now-30m&to=now` |
 | `${__from}` | Dashboard start time (epoch ms) | `1713556800000` |
 | `${__to}` | Dashboard end time (epoch ms) | `1713558600000` |
 | `${__dashboard.uid}` | Current dashboard UID | `api-overview` |
@@ -623,17 +627,17 @@ Available when clicking a specific data point (not just hovering over a series).
 
 ### Data Link Builder Patterns
 
-**Pattern 1: Drill-down to tracing backend**
+#### Pattern 1: Drill-down to tracing backend
 
 ```json
 {
   "title": "View Trace",
-  "url": "https://jaeger.example.com/search?service=${__data.fields.service}&operation=${__data.fields.operation}&lookback=${__url_time_range}",
+  "url": "https://jaeger.example.com/search${__url_time_range}&service=${__data.fields.service}&operation=${__data.fields.operation}",
   "targetBlank": true
 }
 ```
 
-**Pattern 2: Open runbook for alert**
+#### Pattern 2: Open runbook for alert
 
 ```json
 {
@@ -643,7 +647,7 @@ Available when clicking a specific data point (not just hovering over a series).
 }
 ```
 
-**Pattern 3: Filter downstream dashboard by clicked value**
+#### Pattern 3: Filter downstream dashboard by clicked value
 
 ```json
 {
@@ -654,7 +658,7 @@ Available when clicking a specific data point (not just hovering over a series).
 
 Note: internal dashboard links use relative paths starting with `/d/<uid>` or `/d-solo/<uid>`.
 
-**Pattern 4: External monitoring tool with time context**
+#### Pattern 4: External monitoring tool with time context
 
 ```json
 {
@@ -664,7 +668,7 @@ Note: internal dashboard links use relative paths starting with `/d/<uid>` or `/
 }
 ```
 
-**Pattern 5: Source code lookup with instance context**
+#### Pattern 5: Source code lookup with instance context
 
 ```json
 {

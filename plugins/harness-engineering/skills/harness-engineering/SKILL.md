@@ -97,7 +97,7 @@ Open `references/repository-knowledge-structure.md` for detailed indexing patter
 
 ### 3. Define and enforce the layer model
 
-Within each business domain, restrict dependency direction through a fixed set of layers:
+Within each business domain, restrict dependency direction through a fixed set of layers. Outer layers may import earlier layers; earlier layers must not import later layers:
 
 ```text
 Types → Config → Repo → Service → Runtime → UI
@@ -109,17 +109,17 @@ Enforce with custom linters and structural tests:
 
 ```python
 """
-Structural test: assert no domain violates the forward-only layer rule.
+Structural test: assert no domain violates the inward-only layer rule.
 
-Each domain directory MUST follow the fixed layer set. Imports that skip
-or reverse layer direction MUST be rejected.
+Each domain directory MUST follow the fixed layer set. Imports from an
+earlier layer to a later layer MUST be rejected.
 """
 def test_layer_dependencies(domain_path):
     layers = ["types", "config", "repo", "service", "runtime", "ui"]
-    violations = scan_imports(domain_path, allowed_direction="forward")
+    violations = scan_imports(domain_path, allowed_direction="inward")
     assert not violations, (
         f"Layer violations in {domain_path}: {violations}. "
-        "Imports must flow forward through: "
+        "Imports may only point toward earlier layers in: "
         + " → ".join(layers)
     )
 ```
@@ -210,7 +210,7 @@ Keep the list of declared reviewers in a committed file (for example `docs/desig
 ## Edge cases
 
 - If the existing repository has a monolithic `CLAUDE.md`, refactor it into the table-of-contents pattern before adding new documentation.
-- If agents struggle with a task, treat it as a signal: identify what capability is missing (tools, guardrails, documentation) and add it to the repository, always by having the agent itself write the fix.
+- If agents struggle with a task, treat it as a signal: identify what capability is missing (tools, guardrails, documentation) and add it to the repository through the agent workflow when practical.
 - If agent output does not match human stylistic preferences but is correct, maintainable, and legible to future agent runs, accept it. Encode taste as rules, not as inline corrections.
 - If documentation falls short, promote the rule into code or linting.
 - If the codebase has no architecture constraints yet, add them before scaling agent throughput. Constraints are a prerequisite for speed, not a deferred cleanup task.
@@ -230,7 +230,7 @@ Return:
 
 - Do not treat `CLAUDE.md` as the encyclopedia; it is the map, not the territory.
 - Do not postpone architecture enforcement until the codebase grows large; in agent-first development, constraints enable speed.
-- Do not let humans write code directly; if something breaks, fix it by adding capability to the agent environment.
+- Prefer agent-authored code changes; when humans must intervene, capture the missing capability as documentation, tooling, or guardrails for the next agent run.
 - Do not rely on Slack threads, shared documents, or verbal agreements as sources of truth; if it is not in the repository, it does not exist for the agent.
 
 ## Support files

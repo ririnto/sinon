@@ -28,17 +28,15 @@ If you cannot answer those questions, the query is not ready for refactoring.
 
 ## Worked Example: One-to-One Matching with `ignoring`
 
-**Input data** (two metrics with different label sets):
+**Input data** (two metrics with different label sets): the first five series are left-hand-side error counts by method and status code, and the last three series are right-hand-side total requests by method.
 
-```
-# LHS: error counts by method and HTTP status code
+```text
 method_code:http_errors:rate5m{method="get", code="500"}  => 24
 method_code:http_errors:rate5m{method="get", code="404"}  => 30
 method_code:http_errors:rate5m{method="put", code="501"}  => 3
 method_code:http_errors:rate5m{method="post", code="500"} => 6
 method_code:http_errors:rate5m{method="post", code="404"} => 21
 
-# RHS: total requests by method
 method:http_requests:rate5m{method="get"}   => 600
 method:http_requests:rate5m{method="del"}    => 34
 method:http_requests:rate5m{method="post"}  => 120
@@ -55,11 +53,11 @@ method:http_requests:rate5m
 
 **Matching process**: `ignoring(code)` drops `code` from LHS labels before comparison. LHS becomes `{method="get"}` (value 24) and `{method="post"}` (value 6). These match RHS `{method="get"}` (600) and `{method="post"}` (120). The `{method="put"}` entry on LHS has no match (code=501 was filtered out) and `{method="del"}` on RHS has no match.
 
-**Output**:
+**Output**: the `get` series is `24 / 600 = 0.04`, and the `post` series is `6 / 120 = 0.05`.
 
-```
-{method="get"}  0.04     # 24 / 600
-{method="post"} 0.05     # 6  / 120
+```text
+{method="get"}  0.04
+{method="post"} 0.05
 ```
 
 Entries with no match on either side are dropped (default behavior).
@@ -80,13 +78,13 @@ method:http_requests:rate5m
 
 **Matching process**: LHS has multiple entries per `method` value (one per `code`). RHS has one entry per `method`. `group_left` declares that LHS is the "many" side. Each RHS entry matches against all LHS entries sharing the same `method`.
 
-**Output**:
+**Output**: the results keep each left-hand-side `code` label, producing `24 / 600 = 0.04`, `30 / 600 = 0.05`, `6 / 120 = 0.05`, and `21 / 120 = 0.175`.
 
-```
-{method="get",  code="500"} 0.04    # 24 / 600
-{method="get",  code="404"} 0.05    # 30 / 600
-{method="post", code="500"} 0.05    # 6  / 120
-{method="post", code="404"} 0.175   # 21 / 120
+```text
+{method="get",  code="500"} 0.04
+{method="get",  code="404"} 0.05
+{method="post", code="500"} 0.05
+{method="post", code="404"} 0.175
 ```
 
 All LHS labels survive in the output because `group_left` propagates the "many"-side identity.
@@ -105,44 +103,43 @@ kube_pod_info
 Here `kube_pod_info` (the "one" side) carries the `node` label that does not exist on the CPU metric. `group_left(node)` pulls `node` into each output series. Without it, the `node` label would be dropped during matching.
 
 **Before using this pattern**, verify:
+
 - the right-hand metric (`kube_pod_info`) has exactly one series per `(namespace, pod)` pair within the query scope
 - in federated or multi-cluster setups, add provenance labels (e.g., `cluster`) to ensure uniqueness
 
 ## Worked Example: Set Operator Behavior
 
-**Input data**:
+**Input data**: Vector A contains three series, and Vector B contains the two comparison series below.
 
-```
-# Vector A
+```text
 up{job="api", instance="a"}      => 1
 up{job="api", instance="b"}      => 0
 up{job="db",  instance="c"}      => 1
 
-# Vector B
 up{job="api", instance="a"}      => 1
 up{job="db",  instance="d"}      => 0
 ```
 
-**`A and B`** -- intersection by exact label set:
+**`A and B`** -- intersection by exact label set: only the exact `{job="api", instance="a"}` match survives, and the output keeps the value from Vector A.
 
-```
-{job="api", instance="a"} => 1   # only exact label-set match survives; value from A
-```
-
-**`A or B`** -- union (all of A plus non-matching from B):
-
-```
-{job="api", instance="a"} => 1   # from A (also in B)
-{job="api", instance="b"} => 0   # from A only
-{job="db",  instance="c"} => 1   # from A only
-{job="db",  instance="d"} => 0   # from B only (no match in A)
+```text
+{job="api", instance="a"} => 1
 ```
 
-**`A unless B`** -- complement (A minus matching B):
+**`A or B`** -- union (all of A plus non-matching from B): the first three entries come from Vector A, and the final `db` series is added from Vector B because it has no match in A.
 
+```text
+{job="api", instance="a"} => 1
+{job="api", instance="b"} => 0
+{job="db",  instance="c"} => 1
+{job="db",  instance="d"} => 0
 ```
-{job="api", instance="b"} => 0   # in A, not in B
-{job="db",  instance="c"} => 1   # in A, not in B
+
+**`A unless B`** -- complement (A minus matching B): the output keeps only the Vector A entries that do not have exact-label-set matches in Vector B.
+
+```text
+{job="api", instance="b"} => 0
+{job="db",  instance="c"} => 1
 ```
 
 The `{job="api", instance="a"}` entry is dropped because it exists in both vectors.

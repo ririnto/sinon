@@ -25,10 +25,11 @@ PY
 
 GitLab supports instance-level and project-level templates that may not be visible via filesystem alone.
 
+Requires the `glab` CLI or `curl` with a token; skip this command when the environment is offline or credentials are unavailable.
+
 ```bash
-# Requires glab CLI or curl with token; skip if offline
 curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-  "$GITLAB_API_URL/projects/$PROJECT_ID/templates/mergerequests" 2>/dev/null \
+  "$GITLAB_API_URL/projects/$PROJECT_ID/templates/merge_requests" 2>/dev/null \
   || echo "NO_API_ACCESS"
 ```
 
@@ -102,11 +103,11 @@ Detect instance-level template (API, maintainer/owner permissions required):
 
 ```bash
 curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-    "$GITLAB_API_URL/templates/merge_request_templates" 2>/dev/null \
+    "$GITLAB_API_URL/templates/merge_requests" 2>/dev/null \
     || echo "NO_INSTANCE_TEMPLATE"
 
 curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-    "$GITLAB_API_URL/templates/merge_request_templates/Default" 2>/dev/null \
+    "$GITLAB_API_URL/templates/merge_requests/Default" 2>/dev/null \
     || echo "NO_INSTANCE_DEFAULT_TEMPLATE"
 ```
 
@@ -148,8 +149,11 @@ If the template already contains any of these variables, keep them verbatim. Do 
 GitLab quick actions are processed when the MR is created, not during template rendering:
 
 ```text
-/label ~backend      /assign @username      /milestone %"1.0"
-/target_branch master      /title "Fix: "
+/label ~backend
+/assign @username
+/milestone %"1.0"
+/target_branch master
+/title "Fix: "
 ```
 
 These are not comments. If the template already uses quick actions, preserve them. Dropping quick actions breaks CI automation, label routing, or reviewer assignment that the template encodes.
@@ -159,19 +163,18 @@ Quick action reference:
 | Action | Effect | When to preserve |
 | --- | --- | --- |
 | `/label ~label_name` | Applies label at MR creation | Template encodes required labels |
-| `/assign @user` | Assigns reviewer at creation | Template specifies default assignee |
+| `/assign @user` | Assigns an assignee at creation | Template specifies default assignee |
 | `/reviewer @user` | Requests review from user | Template sets default reviewer (distinct from assign) |
 | `/milestone %"name"` | Sets milestone | Template ties MR to a release milestone |
 | `/target_branch name` | Overrides default target branch | Feature branches target non-default branch |
 | `/title "text"` | Sets MR title prefix | Template enforces title convention |
-| `/cc @user` | Adds CC participant | Template includes stakeholder CC |
 | `/due_date` | Sets due date | Template ties MR to a deadline |
 | `/unlabel ~label_name` | Removes a label | Template manages label lifecycle |
 | `/copy_metadata` | Copies metadata from a linked issue | Template pulls issue metadata |
 | `/shrink` | Collapses the MR description | Template optimizes for lengthy descriptions |
 | `/todo` | Creates a todo item | Template tracks follow-up tasks |
 
-Note: Quick actions execute only if the user submitting the MR has the permissions to perform the relevant action.
+Note: Quick actions execute only if the user submitting the MR has the permissions to perform the relevant action. The `/cc` quick action was removed in GitLab 18.3; preserve it only in legacy templates after confirming the target instance still supports it.
 
 ## MR Options Interaction
 
@@ -179,28 +182,29 @@ Note: Quick actions execute only if the user submitting the MR has the permissio
 
 When a template contains `/label`, `/assign`, or `/milestone`, these execute before any reviewer sees the MR. The rendered MR description will not show the quick action lines (GitLab processes and removes them), but their effects persist.
 
-Example: template with quick actions before and after rendering:
+Example: template source before MR creation:
 
 ```text
-# Before MR creation (template source)
 ## Summary
 - <fill with the actual change>
 
 /label ~backend
 /assign @reviewer
 /milestone %"Sprint 5"
+```
 
-# After MR creation (rendered MR)
+Rendered MR description after creation:
+
+```text
 ## Summary
 - Fix auth token validation
-
-# (quick actions consumed; label ~backend applied,
-#  @reviewer assigned, milestone set to Sprint 5)
 ```
+
+The quick-action lines are consumed; label `~backend` is applied, `@reviewer` is assigned, and milestone `Sprint 5` is set when permissions allow.
 
 ### Variable Substitution Timing
 
-Variables are substituted at MR creation time, simultaneously with quick action processing. The order is: variables replaced first, then quick actions executed.
+GitLab documents variable substitution on first save and quick action execution when the description is submitted. Do not rely on relative processing order unless it has been verified in the target GitLab instance.
 
 ### Combined Example: Variables + Quick Actions + Content
 
@@ -234,9 +238,9 @@ Source: `fix/auth-tokens` -> `main`
 ## Validation
 - Unit tests added for login.ts and session.ts
 - Manual verification performed
-
-# (label ~backend applied, @team-lead assigned)
 ```
+
+The quick-action lines are consumed; label `~backend` is applied and `@team-lead` is assigned when permissions allow.
 
 ## Complete Template Examples
 

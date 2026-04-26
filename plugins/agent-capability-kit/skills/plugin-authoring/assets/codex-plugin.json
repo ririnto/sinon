@@ -1,0 +1,24 @@
+{
+  "name": "your-plugin-name",
+  "description": "Plugin for a clearly bounded workflow.",
+  "author": {
+    "name": "your-handle"
+  },
+  "commands": "./commands/",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Your Plugin",
+    "shortDescription": "One-line summary for marketplace listings.",
+    "longDescription": "Longer marketplace copy that matches the plugin content.",
+    "developerName": "your-handle",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
+    "defaultPrompt": [
+      "First representative prompt."
+    ],
+    "websiteURL": "https://example.com/your-plugin"
+  }
+}

@@ -259,11 +259,11 @@ class Customer {
     Long id;
 }
 
-Optional<Customer> findById(Long id);     // targets pk
-Optional<Customer> findCustomerById(Long id); // targets property named id
+Optional<Customer> findById(Long id);
+Optional<Customer> findCustomerById(Long id);
 ```
 
-Prefer explicit derived query names when a domain property could be confused with the identifier.
+`findById` targets the declared identifier property, while `findCustomerById` targets the property named `id`. Prefer explicit derived query names when a domain property could be confused with the identifier.
 
 ### Paging and scrolling shapes
 
@@ -276,19 +276,15 @@ Choose the return type that matches what callers actually need:
 | `Window` | callers need scroll-based iteration and a window they can extract the next position from | can be offset- or keyset-backed |
 
 ```java
-// Page: caller needs total count
 Page<CustomerView> findByAddressCity(String city, Pageable pageable);
-
-// Slice: caller scrolls through unknown-length feed
 Slice<CustomerView> findByAddressCity(String city, Pageable pageable);
-
-// Window: caller scrolls with deterministic ordering and extracts the next position from the current window
 Window<CustomerView> findFirst20ByAddressCityOrderByIdAsc(String city, ScrollPosition position);
 ```
 
-`Page` is the heaviest because it runs a separate count query. `Slice` avoids the count but still uses pageable offset traversal. `Window` represents scroll-based iteration, and callers extract the next `ScrollPosition` from the current window with `window.positionAt(...)`; the underlying scroll can be offset- or keyset-based depending on the repository method and store support.
+Use `Page` when the caller needs total count, `Slice` when the caller scrolls through an unknown-length feed, and `Window` when the caller scrolls with deterministic ordering and extracts the next position from the current window. `Page` is the heaviest because it runs a separate count query. `Slice` avoids the count but still uses pageable offset traversal. `Window` represents scroll-based iteration, and callers extract the next `ScrollPosition` from the current window with `window.positionAt(...)`; the underlying scroll can be offset- or keyset-based depending on the repository method and store support.
 
 Keyset scrolling constraints:
+
 - The query must project the keyset columns used for positioning.
 - Null keys in the keyset column make row positioning unstable.
 - The `ScrollPosition` must be carried forward from the previous Window result.

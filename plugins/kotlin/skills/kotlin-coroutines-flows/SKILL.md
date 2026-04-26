@@ -4,6 +4,8 @@ description: >-
   Design Kotlin coroutine and Flow APIs with explicit ownership, honest async semantics, and cancellation-safe behavior. Use this skill when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
 ---
 
+# Kotlin Coroutines Flows
+
 ## Goal
 
 Design Kotlin coroutine and Flow code with honest async semantics, explicit ownership, and cancellation-safe behavior.
@@ -20,7 +22,7 @@ Design Kotlin coroutine and Flow code with honest async semantics, explicit owne
 - SHOULD treat ordinary `Flow` as cold and sequential unless sharing or buffering is chosen intentionally.
 - SHOULD choose `StateFlow` for current state and `SharedFlow` for events or broadcasts.
 - MUST choose `launch` for fire-and-forget work and `async` only when the caller awaits the result.
-- MUST install `CoroutineExceptionHandler` only at a root scope or direct coroutine builder, never on child scopes.
+- MUST install `CoroutineExceptionHandler` only on root coroutine contexts or root `launch` builders where uncaught exceptions are reported; do not rely on it for child coroutines or `async` results.
 - MUST keep code inside `flow { }` sequential and free of external context-switching calls.
 - SHOULD use `MutableStateFlow.update { }` for atomic state transitions.
 - MUST avoid `GlobalScope`, `GlobalScope.launch`, and detached work unless explicitly about background ownership.
@@ -64,7 +66,7 @@ class OrdersPresenter(private val presenterScope: CoroutineScope) {
 }
 ```
 
-Use `async` only when the caller must await and compose results from multiple parallel operations. Always call `await`; uncaught exceptions in orphaned `async` propagate as unhandled errors.
+Use `async` only when the caller must await and compose results from multiple parallel operations. Always call `await`; `CoroutineExceptionHandler` does not handle `async` failures because `async` captures them in the returned `Deferred`.
 
 ```kotlin
 suspend fun loadOrderWithItems(orderId: OrderId): Pair<Order, List<Item>> =
@@ -219,7 +221,7 @@ Check these pass/fail conditions before you stop:
 - stream APIs describe real ongoing delivery rather than single-response work
 - `launch` is used for fire-and-forget and `async` only when the result is awaited
 - `GlobalScope` is not used anywhere
-- `CoroutineExceptionHandler` is installed only at root scope or direct coroutine builder
+- `CoroutineExceptionHandler` is installed only on a root coroutine context or root `launch` where uncaught exceptions are reported
 - code inside `flow { }` is sequential with no context-switching calls
 - `StateFlow` and `SharedFlow` are chosen for clear state or event semantics; when using `SharedFlow`, imports include `BufferOverflow`
 - scope ownership is visible and launched work is not detached by accident
@@ -241,7 +243,7 @@ Check these pass/fail conditions before you stop:
 | using `GlobalScope` | escapes structured concurrency; work cannot be cancelled as a group | inject `CoroutineScope` |
 | catching broad `Exception` in coroutine body | catches `CancellationException` and breaks cancellation | catch specific exceptions or rethrow `CancellationException` |
 | using `async` without `await` | uncaught exceptions propagate as unhandled errors | use `launch` for fire-and-forget |
-| installing `CoroutineExceptionHandler` on child scope | child handlers do not catch sibling failures | install only at root scope or direct builder |
+| installing `CoroutineExceptionHandler` on child scope or expecting it to handle `async` failures | child handlers do not catch sibling failures, and `async` captures failures in `Deferred` | install handlers only at root contexts or root `launch`; handle `async` with `await` |
 | calling `withContext` inside `flow { }` | violates context-preservation invariant of Flow | move the context switch to `flowOn()` |
 | assuming `StateFlow` emits every value | `StateFlow` conflates fast updates; intermediate values are dropped | use `SharedFlow` if every value matters |
 
@@ -264,7 +266,7 @@ Open these only when the named blocker is the real issue.
 | you are debugging cancellation, timeouts, failure propagation, or cleanup semantics | `./references/cancellation-timeouts-and-failures.md` |
 | you need to justify `Flow`, choose `StateFlow` or `SharedFlow`, or shape hot sharing and buffering | `./references/flow-selection-hot-sharing-and-buffering.md` |
 | you are coordinating mutable state across coroutines, or need fan-in/fan-out, Channel handoff, work queues, or `select` expressions | `./references/shared-state-and-concurrency.md` |
-| you are writing or debugging tests for coroutine or Flow code | `./references/testing.md` |
+| you are checking coroutine behavior from this skill and need a minimal testing bridge | `./references/testing.md` |
 
 ## Scope Boundaries
 
