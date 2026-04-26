@@ -71,3 +71,4 @@ ln -s CLAUDE.md AGENTS.md
 ```
 
 `AGENTS.md` is a symlink that resolves to `CLAUDE.md`. Both names provide the same content to their respective agent runtimes. Do not create separate files.
+

@@ -1,9 +1,7 @@
 ---
 name: architecture-guard
 description: >-
-  Use this agent when a repository needs mechanical architecture enforcement,
-  layer-dependency auditing, structural-test validation, or taste-invariant
-  checks. Examples:
+  Enforce mechanical architecture rules, audit layer dependencies, validate structural tests, and check taste invariants in agent-first repositories. Use this agent when a repository needs mechanical architecture enforcement, layer-dependency auditing, structural-test validation, or taste-invariant checks. Examples:
 
   <example>
   Context: A change may have crossed forbidden layer boundaries
@@ -64,3 +62,4 @@ Return:
 2. Structural-enforcement results covering missing layers, unexpected directories, and provider interface gaps
 3. Taste-invariant findings with file references, rule names, and remediation guidance
 4. A summary of which checks passed cleanly and which categories still need verification
+

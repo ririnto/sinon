@@ -1,8 +1,7 @@
 ---
 name: spec-writer
 description: >-
-  Use this agent when an execution plan needs authoring, lifecycle management,
-  progress updates, or completion handling in `docs/exec-plans/`. Examples:
+  Author, update, and complete execution plans in docs/exec-plans/ with structured lifecycle management. Use this agent when an execution plan needs authoring, lifecycle management, progress updates, or completion handling in `docs/exec-plans/`. Examples:
 
   <example>
   Context: Complex work needs a durable execution plan before implementation
@@ -65,3 +64,4 @@ Return:
 3. Any progress or decision-log entries added during this run
 4. Any technical-debt tracker updates made or still required
 5. Explicit remaining risks, blockers, or missing dependencies
+
