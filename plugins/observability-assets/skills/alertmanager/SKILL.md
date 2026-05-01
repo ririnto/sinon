@@ -602,7 +602,7 @@ Return:
 3. validation results, including whether `amtool check-config` ran or is blocked by missing local tooling
 4. remaining risks, assumptions, or upstream label-contract dependencies
 
-## Deep References
+## References
 
 | If the blocker is... | Read... |
 | --- | --- |

@@ -236,7 +236,7 @@ build/docs/
 
 Entry point is `index.html`. Verify generation succeeded when this file exists and contains the expected package/class listing.
 
-## Deep References
+## References
 
 | If the blocker is... | Read... |
 | --- | --- |

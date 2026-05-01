@@ -1,6 +1,6 @@
 {
   "name": "spring",
-  "description": "Spring development plugin with practical skills for Boot, Framework, AI, Security, Data, GraphQL, messaging, Batch, Cloud, Session, and SOAP workflows.",
+  "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.",
   "author": {
     "name": "ririnto"
   },

@@ -376,7 +376,7 @@ Return:
 3. validation or deployment checks, including how Grafana will discover the provider file and dashboard path
 4. remaining risks, assumptions, or drift-related caveats
 
-## Deep References
+## References
 
 | If the blocker is... | Read... |
 | --- | --- |

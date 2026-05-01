@@ -528,7 +528,7 @@ Return:
 3. any Java-interop caveats that still matter
 4. any blocker references needed for deeper branches
 
-## Blocker References
+## References
 
 Open only the reference that matches the remaining blocker.
 

@@ -1,6 +1,6 @@
 {
   "name": "java",
-  "description": "Java development plugin with practical skills for LTS syntax boundaries, foundational java.base guidance, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
+  "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
   "author": {
     "name": "ririnto"
   },

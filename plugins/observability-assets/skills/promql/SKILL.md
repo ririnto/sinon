@@ -711,7 +711,7 @@ Return:
 3. any required label-set, vector-matching, or function-choice rationale
 4. remaining blockers, assumptions, or follow-up query risks
 
-## Deep References
+## References
 
 | If the blocker is... | Read... |
 | --- | --- |
