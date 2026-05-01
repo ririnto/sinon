@@ -256,7 +256,7 @@ Return:
 3. any dispatcher, sharing, or buffering decisions that affect behavior
 4. any blocker references needed for deeper branches
 
-## Blocker References
+## References
 
 Open these only when the named blocker is the real issue.
 

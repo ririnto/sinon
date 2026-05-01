@@ -796,7 +796,7 @@ Return:
 3. validation results for JSON structure, datasource explicitness, and layout/readability checks
 4. any remaining blockers, risks, or follow-up review points
 
-## Deep References
+## References
 
 | If the blocker is... | Read... |
 | --- | --- |

@@ -205,7 +205,7 @@ Return:
 3. any exception or mocking decisions that affect the contract
 4. any blocker references needed for deeper branches
 
-## Blocker References
+## References
 
 Open only the reference that matches the remaining blocker.
 

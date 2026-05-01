@@ -70,7 +70,7 @@ Import the Spring Cloud BOM once and keep Spring Cloud modules versionless under
 | --- | --- |
 | ConfigData client import | `spring-cloud-starter-config` |
 | Service discovery client | the discovery implementation starter used by the platform |
-| Load-balanced `RestClient` or `RestTemplate` | `spring-cloud-starter-loadbalancer` |
+| Load-balanced `RestClient` (preferred) or `RestTemplate` (maintenance) | `spring-cloud-starter-loadbalancer` |
 | Circuit-breaker boundary with Resilience4j | `spring-cloud-starter-circuitbreaker-resilience4j` |
 | Edge routing | add the Gateway starter from [references/gateway-routing.md](references/gateway-routing.md) |
 | Declarative HTTP clients | add the OpenFeign starter from [references/openfeign-clients.md](references/openfeign-clients.md) |

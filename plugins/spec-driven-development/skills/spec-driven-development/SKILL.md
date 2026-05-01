@@ -223,7 +223,7 @@ If you need per-file Markdown linting for maintainer hygiene, run it separately 
 npx -y markdownlint-cli2 <touched-markdown-files>
 ```
 
-## Optional references
+## References
 
 Open a reference only for the named blocker:
 

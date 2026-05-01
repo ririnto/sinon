@@ -472,7 +472,7 @@ Return:
 3. Validation results, including whether `promtool test rules` ran or is blocked by missing local tooling.
 4. Remaining risks, assumptions, or uncovered alert behaviors.
 
-## Deep References
+## References
 
 | If the blocker is... | Read... |
 | --- | --- |

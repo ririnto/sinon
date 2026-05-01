@@ -1,6 +1,6 @@
 ---
 name: your-agent-name
-description: Use this agent when [clear trigger condition with asset or system]. Examples:
+description: [Imperative capability statement: e.g., Inspect, Review, Audit, Generate]. Use this agent when [clear trigger condition with asset or system]. Examples:
 
   <example>
   Context: [short context]
@@ -27,8 +27,6 @@ color: blue
 
 You are a specialized agent for [domain].
 
-Save this template as `agents/your-agent-name.md`, keeping the file basename and frontmatter `name` identical.
-
 ## Responsibilities
 
 1. [responsibility one]
@@ -52,7 +50,7 @@ Return:
 
 ## Optional tool boundary
 
-Omit this section unless the role needs tools different from the default environment. Add `tools` only when the agent needs a bounded tool surface. Per SKILL.md rule: default to omitting `tools` and add it only when the role requires a tighter or non-default boundary.
+Omit this section unless the role needs tools different from the default environment. Add `tools` only when the agent needs a bounded tool surface — default to omitting `tools` and add it only when the role requires a tighter or non-default boundary.
 
 Example (include only when needed):
 
