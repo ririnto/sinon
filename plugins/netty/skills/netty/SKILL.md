@@ -16,6 +16,8 @@ metadata:
 
 ## Netty
 
+Netty 5 is in development with breaking changes (notably ByteBuf API and lifecycle); this skill documents the stable 4.x line. Plan migration when Netty 5 stabilizes.
+
 Build one Netty 4.x application path end to end: choose transport, configure bootstrap, assemble the pipeline, handle lifecycle events, and keep buffer ownership correct.
 
 ## Operating rules
@@ -362,7 +364,7 @@ TCP and UDP imply different Netty shapes:
 | mixing framing, decoding, and business logic in one handler too early | ownership and ordering bugs become hard to reason about | separate framing, decode or encode, and business handlers by responsibility |
 | retaining or forwarding buffers without an ownership rule | retain or release mismatches create leaks or use-after-release bugs | decide who owns the message at each boundary and document the handoff |
 
-## Blocker references
+## References
 
 Open these only when the common path is no longer enough:
 

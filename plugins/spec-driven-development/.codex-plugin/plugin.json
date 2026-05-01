@@ -23,7 +23,8 @@
     "category": "Coding",
     "capabilities": [
       "Interactive",
-      "Read"
+      "Read",
+      "Write"
     ],
     "defaultPrompt": [
       "Follow the spec-driven development workflow to plan and implement this change.",

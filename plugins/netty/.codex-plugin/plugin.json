@@ -1,6 +1,6 @@
 {
   "name": "netty",
-  "description": "Netty and Reactor Netty skills for building high-performance network applications with non-blocking I/O.",
+  "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.",
   "author": {
     "name": "ririnto"
   },

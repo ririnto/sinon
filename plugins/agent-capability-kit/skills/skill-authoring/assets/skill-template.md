@@ -1,6 +1,6 @@
 ---
 name: your-skill-name
-description: State the capability and the trigger condition. Use when the task, inputs, systems, file types, or user intent clearly matches this workflow.
+description: [Imperative capability statement: e.g., Write, Author, Review, Build, Triage]. Use when the task, inputs, systems, file types, or user intent clearly matches this workflow.
 # Optional:
 # license: Proprietary. LICENSE has complete terms
 # compatibility: Requires python3 and jq

@@ -4,7 +4,7 @@ Open this reference when the ordinary blocking unary path in `SKILL.md` is not e
 
 ## Future-style client
 
-Use future stubs when the caller must overlap multiple remote calls without blocking the current thread.
+Use future stubs when the caller must overlap multiple remote calls without blocking the current thread. On the stable spring-grpc 1.0.3 line, async stubs return `ListenableFuture`. The 1.1.0-M1 milestone tracks possible reactive return types; pin to 1.0.3 for production until 1.1 stabilizes.
 
 ```java
 @Service

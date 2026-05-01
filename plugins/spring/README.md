@@ -37,7 +37,7 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 - `spring-session`: HTTP session abstraction, Redis/JDBC store, and WebSocket session integration.
 - `spring-shell`: Interactive CLI shells, command registration, and terminal UI styling.
 - `spring-statemachine`: State machine setup, transitions, pseudo-states, and persistence.
-- `spring-vault`: Vault secret handling, lease renewal, and secrets-as-code patterns.
+- `spring-vault`: Vault secret handling, KV property-source loading, and transit encryption patterns.
 - `spring-web-flow`: Flow-scoped web sessions, conversation management, and stateful navigation.
 - `spring-web-services`: SOAP endpoints, WS-Security, and client-variant patterns.
 

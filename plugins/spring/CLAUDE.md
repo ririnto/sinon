@@ -54,7 +54,7 @@ Normative keywords such as MUST, MUST NOT, SHOULD, and MAY are to be interpreted
 - Java method and constructor parameter definitions MUST stay on a single line.
 - Java method and constructor call arguments MUST stay on a single line.
 - Line breaks inside function or method bodies MUST be minimized.
-- Consecutive blank lines inside function or method bodies MUST NOT appear.
+- Blank lines MUST NOT appear inside function or method bodies, in alignment with the repository-root rule.
 - Test examples MUST use JUnit 5 style.
 - When multiple assertions are evaluated together, they MUST be wrapped in `assertAll`.
 - Inside `assertAll`, each line MUST contain exactly one assertion.

@@ -1,5 +1,5 @@
 ---
-name: spring-data
+name: "spring-data"
 description: "Design Spring Data repositories, derived queries, projections, auditing, paging, and scrolling across multiple Spring Data modules. Use this skill when designing Spring Data repositories, derived queries, projections, auditing, paging, scrolling, and repository-based persistence patterns that span multiple Spring Data modules."
 metadata:
   title: Spring Data

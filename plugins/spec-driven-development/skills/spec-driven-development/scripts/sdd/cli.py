@@ -41,26 +41,34 @@ URL_SCHEME_RE = r"^[a-zA-Z][a-zA-Z0-9+.\-]*:"
 
 
 def cli_name() -> str:
-    # :description: Returns the program name from SDD_CLI_NAME env or default.
-    # :return: Program name string.
+    """Return the program name from SDD_CLI_NAME env or default.
+
+    :return: Program name string.
+    """
     return os.environ.get("SDD_CLI_NAME", "sdd")
 
 
 def emit_fail(message: str) -> None:
-    # :description: Writes an error message to stderr.
-    # :param message: Error text to emit.
+    """Write an error message to stderr.
+
+    :param message: Error text to emit.
+    """
     print(message, file=sys.stderr)
 
 
 def emit_warn(message: str) -> None:
-    # :description: Writes a warning message to stderr.
-    # :param message: Warning text to emit.
+    """Write a warning message to stderr.
+
+    :param message: Warning text to emit.
+    """
     print(f"WARN: {message}", file=sys.stderr)
 
 
 def resolve_default_spec_path() -> str | None:
-    # :description: Resolves the default spec path from ./spec or SDD_SPEC_DIR env var.
-    # :return: Path string or None if no default found.
+    """Resolve the default spec path from ./spec or SDD_SPEC_DIR env var.
+
+    :return: Path string or None if no default found.
+    """
     if os.path.isdir("spec"):
         return "spec"
     env_path = os.environ.get("SDD_SPEC_DIR")
@@ -70,20 +78,25 @@ def resolve_default_spec_path() -> str | None:
 
 
 def script_dir() -> str:
-    # :description: Returns the scripts directory containing the sdd package.
-    # :return: Absolute path to the scripts directory (parent of sdd/).
+    """Return the scripts directory containing the sdd package.
+
+    :return: Absolute path to the scripts directory (parent of sdd/).
+    """
     return str(Path(__file__).resolve().parent.parent)
 
 
 def skill_root() -> str:
-    # :description: Returns the resolved skill root directory that owns assets/ and scripts/.
-    #     When ``SDD_SKILL_ROOT`` is set, its value wins. This lets ``sdd.sh`` pass the
-    #     original skill-installed location even when ``__file__`` resolves inside a uvx
-    #     cache that does not ship the sibling assets/ directory. The env override is
-    #     passed through ``Path.resolve()``, which follows symlinks; if the caller mounts
-    #     the skill under a symlink and expects the skill root to remain logical, set
-    #     ``SDD_SKILL_ROOT`` to the already-resolved absolute path.
-    # :return: Absolute path to the skill root directory.
+    """Return the resolved skill root directory that owns assets/ and scripts/.
+
+    When ``SDD_SKILL_ROOT`` is set, its value wins. This lets ``sdd.sh`` pass the
+    original skill-installed location even when ``__file__`` resolves inside a uvx
+    cache that does not ship the sibling assets/ directory. The env override is
+    passed through ``Path.resolve()``, which follows symlinks; if the caller mounts
+    the skill under a symlink and expects the skill root to remain logical, set
+    ``SDD_SKILL_ROOT`` to the already-resolved absolute path.
+
+    :return: Absolute path to the skill root directory.
+    """
     env_override = os.environ.get("SDD_SKILL_ROOT")
     if env_override:
         return str(Path(env_override).resolve())
@@ -91,16 +104,20 @@ def skill_root() -> str:
 
 
 def is_record(value: object) -> bool:
-    # :description: Checks whether a value is a non-null dict-like object.
-    # :param value: Value to test.
-    # :return: True if value is a dict (not list, not None).
+    """Check whether a value is a non-null dict-like object.
+
+    :param value: Value to test.
+    :return: True if value is a dict (not list, not None).
+    """
     return value is not None and isinstance(value, dict) and not isinstance(value, list)
 
 
 def yaml_to_record(frontmatter_yaml: str) -> dict | None:
-    # :description: Parses YAML frontmatter text into a Python dict.
-    # :param frontmatter_yaml: Raw YAML frontmatter string.
-    # :return: Parsed dict or None on failure.
+    """Parse YAML frontmatter text into a Python dict.
+
+    :param frontmatter_yaml: Raw YAML frontmatter string.
+    :return: Parsed dict or None on failure.
+    """
     data, error = parse_yaml_document(frontmatter_yaml)
     if error is not None:
         return None
@@ -108,9 +125,11 @@ def yaml_to_record(frontmatter_yaml: str) -> dict | None:
 
 
 def normalize_tag(value: object) -> list[str]:
-    # :description: Normalizes a tag field value into a list of strings.
-    # :param value: Raw tag value (string, list, or other).
-    # :return: List of non-empty trimmed tag strings.
+    """Normalize a tag field value into a list of strings.
+
+    :param value: Raw tag value (string, list, or other).
+    :return: List of non-empty trimmed tag strings.
+    """
     if value is None:
         return []
     if isinstance(value, list):
@@ -120,10 +139,12 @@ def normalize_tag(value: object) -> list[str]:
 
 
 def json_stringify_ascii(value: object, indent: int | None = None) -> str:
-    # :description: Serializes a value to JSON with non-ASCII characters escaped.
-    # :param value: Object to serialize.
-    # :param indent: Indentation level (None for compact).
-    # :return: JSON string with \\uXXXX escapes for non-ASCII.
+    """Serialize a value to JSON with non-ASCII characters escaped.
+
+    :param value: Object to serialize.
+    :param indent: Indentation level (None for compact).
+    :return: JSON string with \\uXXXX escapes for non-ASCII.
+    """
     raw = json.dumps(value, ensure_ascii=False, indent=indent)
     result: list[str] = []
     for ch in raw:
@@ -136,9 +157,11 @@ def json_stringify_ascii(value: object, indent: int | None = None) -> str:
 
 
 def parse_fields(raw_fields: str | None) -> list[str] | None:
-    # :description: Parses a comma-separated field list, applying alias mapping.
-    # :param raw_fields: Comma-separated field string or None.
-    # :return: List of normalized field names or None.
+    """Parse a comma-separated field list, applying alias mapping.
+
+    :param raw_fields: Comma-separated field string or None.
+    :return: List of normalized field names or None.
+    """
     if not raw_fields:
         return None
     alias = {"tags": "tag"}
@@ -251,9 +274,11 @@ def cmd_get_frontmatter(args) -> int:
 
 
 def collect_markdown_files(root: str) -> list[str]:
-    # :description: Recursively collects all .md files under a root directory.
-    # :param root: Directory to scan.
-    # :return: Sorted list of absolute paths.
+    """Recursively collect all .md files under a root directory.
+
+    :param root: Directory to scan.
+    :return: Sorted list of absolute paths.
+    """
     files: list[str] = []
 
     def walk(dir_path: str) -> None:
@@ -278,10 +303,12 @@ def collect_markdown_files(root: str) -> list[str]:
 
 
 def matches_kind(file_path: str, kind: str) -> bool:
-    # :description: Checks whether a file matches the given document kind.
-    # :param file_path: Path to check.
-    # :param kind: Kind filter (any, spec, research, contract).
-    # :return: True if the file matches the kind filter.
+    """Check whether a file matches the given document kind.
+
+    :param file_path: Path to check.
+    :param kind: Kind filter (any, spec, research, contract).
+    :return: True if the file matches the kind filter.
+    """
     if kind == "any":
         return True
     name = os.path.basename(file_path)
@@ -289,9 +316,11 @@ def matches_kind(file_path: str, kind: str) -> bool:
 
 
 def sanitize_tsv_cell(value: object) -> str:
-    # :description: Sanitizes a value for TSV table cell output.
-    # :param value: Value to sanitize.
-    # :return: String with tabs, CR, and LF replaced by spaces.
+    """Sanitize a value for TSV table cell output.
+
+    :param value: Value to sanitize.
+    :return: String with tabs, CR, and LF replaced by spaces.
+    """
     if value is None:
         return ""
     text: str
@@ -305,9 +334,11 @@ def sanitize_tsv_cell(value: object) -> str:
 
 
 def to_kind_label(file_path: str) -> str:
-    # :description: Derives the kind label from a file's basename.
-    # :param file_path: File path.
-    # :return: Kind label string (spec, research, contract, or empty).
+    """Derive the kind label from a file's basename.
+
+    :param file_path: File path.
+    :return: Kind label string (spec, research, contract, or empty).
+    """
     base = os.path.basename(file_path)
     for label, fname in DOC_FILE_NAMES.items():
         if base == fname:
@@ -316,9 +347,11 @@ def to_kind_label(file_path: str) -> str:
 
 
 def to_subject_str(data: dict) -> tuple[dict | None, str]:
-    # :description: Extracts subject info as object and versioned string.
-    # :param data: Frontmatter data dict.
-    # :return: Tuple of (subject_obj_or_None, subject_version_string).
+    """Extract subject info as object and versioned string.
+
+    :param data: Frontmatter data dict.
+    :return: Tuple of (subject_obj_or_None, subject_version_string).
+    """
     subject = data.get("subject")
     if not isinstance(subject, dict):
         return (None, "")
@@ -329,9 +362,11 @@ def to_subject_str(data: dict) -> tuple[dict | None, str]:
 
 
 def to_tag_list(data: dict) -> list[str]:
-    # :description: Normalizes tags from frontmatter data into a string list.
-    # :param data: Frontmatter data dict.
-    # :return: List of tag strings.
+    """Normalize tags from frontmatter data into a string list.
+
+    :param data: Frontmatter data dict.
+    :return: List of tag strings.
+    """
     raw = data.get("tag", data.get("tags", []))
     if isinstance(raw, list):
         return [str(v) for v in raw]
@@ -347,13 +382,15 @@ def build_record_map(
     subject_str: str,
     tags: list[str],
 ) -> dict:
-    # :description: Builds a flat record map from parsed frontmatter data.
-    # :param file_path: Absolute file path.
-    # :param data: Parsed frontmatter dict.
-    # :param end_line: Frontmatter end line number.
-    # :param subject_str: Subject version string.
-    # :param tags: Tag list.
-    # :return: Dict with standard record fields.
+    """Build a flat record map from parsed frontmatter data.
+
+    :param file_path: Absolute file path.
+    :param data: Parsed frontmatter dict.
+    :param end_line: Frontmatter end line number.
+    :param subject_str: Subject version string.
+    :param tags: Tag list.
+    :return: Dict with standard record fields.
+    """
     return {
         "file": file_path,
         "kind": to_kind_label(file_path),
@@ -373,10 +410,12 @@ def extract_link_targets(
     data: dict,
     source_file: str,
 ) -> list[tuple[str, str]]:
-    # :description: Extracts resolved SPEC.md call-link targets from frontmatter data.
-    # :param data: Parsed frontmatter dict.
-    # :param source_file: Source file path for resolving relative links.
-    # :return: List of (resolved_absolute_path, raw_link_text) tuples.
+    """Extract resolved SPEC.md call-link targets from frontmatter data.
+
+    :param data: Parsed frontmatter dict.
+    :param source_file: Source file path for resolving relative links.
+    :return: List of (resolved_absolute_path, raw_link_text) tuples.
+    """
     raw_calls = data.get("call")
     if not isinstance(raw_calls, list):
         return []
@@ -417,10 +456,12 @@ def resolve_target_paths(
     value: str,
     base_dir: str,
 ) -> set[str]:
-    # :description: Resolves a link target value into candidate absolute paths.
-    # :param value: Raw target value (may contain fragment).
-    # :param base_dir: Base directory for relative resolution.
-    # :return: Set of resolved absolute path candidates.
+    """Resolve a link target value into candidate absolute paths.
+
+    :param value: Raw target value (may contain fragment).
+    :param base_dir: Base directory for relative resolution.
+    :return: Set of resolved absolute path candidates.
+    """
     stripped = value.split("#", 1)[0].strip() if "#" in value else value.strip()
     if not stripped:
         return set()
@@ -454,11 +495,13 @@ def matches_filters(
     frontmatter: dict,
     filters: list[tuple[str, list[str]]],
 ) -> bool:
-    # :description: Tests whether a record passes all filter predicates.
-    # :param record: Flat record map.
-    # :param frontmatter: Original frontmatter dict.
-    # :param filters: List of (key, allowed_values) filter pairs.
-    # :return: True if all filters pass.
+    """Test whether a record passes all filter predicates.
+
+    :param record: Flat record map.
+    :param frontmatter: Original frontmatter dict.
+    :param filters: List of (key, allowed_values) filter pairs.
+    :return: True if all filters pass.
+    """
     for key, values in filters:
         current = record.get(key) if key in record else frontmatter.get(key)
         if key == "tag":
@@ -478,9 +521,11 @@ def matches_filters(
 
 
 def load_frontmatter_entry(file_path: str) -> dict | str | None:
-    # :description: Loads and parses frontmatter from a single file.
-    # :param file_path: Absolute path to the Markdown file.
-    # :return: Entry dict on success, error string on failure, None if no frontmatter.
+    """Load and parse frontmatter from a single file.
+
+    :param file_path: Absolute path to the Markdown file.
+    :return: Entry dict on success, error string on failure, None if no frontmatter.
+    """
     try:
         extracted = extract_frontmatter_from_file(file_path)
     except Exception as exc:
@@ -828,8 +873,10 @@ def cmd_validate(args) -> int:
 
 
 def build_parser() -> "argparse.ArgumentParser":
-    # :description: Constructs the top-level argparse parser with all subcommands.
-    # :return: Configured ArgumentParser instance.
+    """Construct the top-level argparse parser with all subcommands.
+
+    :return: Configured ArgumentParser instance.
+    """
     prog = cli_name()
     parser = argparse.ArgumentParser(
         prog=prog,

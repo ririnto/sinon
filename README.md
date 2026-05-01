@@ -39,7 +39,7 @@ Optional assets such as `README.md`, `commands/`, `agents/`, `skills/`, `hooks/`
 
 The following plugins are listed in both `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json`. For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
-- `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, commands, and cross-platform Agent Skills.
+- `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.
 - `plugins/git-workflow`: Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.
 - `plugins/harness-engineering`: Agent-first repository design with progressive disclosure, architecture enforcement, and entropy management for AI agent development.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.

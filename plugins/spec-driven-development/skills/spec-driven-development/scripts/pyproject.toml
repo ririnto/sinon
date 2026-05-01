@@ -1,5 +1,5 @@
 [project]
-name = "sdd-cli"
+name = "sdd"
 version = "0.1.0"
 description = "Spec-Driven Development CLI tools"
 requires-python = ">=3.11"

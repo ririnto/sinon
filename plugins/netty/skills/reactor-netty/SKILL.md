@@ -324,7 +324,7 @@ HttpServer.create()
 | turning on wiretap or metrics as permanent defaults | noise or overhead grows in paths that do not need it | enable operational features deliberately for diagnostics or an existing observability strategy |
 | using Reactor Netty when the real problem is codec or buffer ownership | the builder API stops being the main abstraction and guidance becomes misleading | address framing, codecs, buffer ownership, and other lower-level Netty APIs directly |
 
-## Blocker references
+## References
 
 Open these only when the common path is no longer enough:
 

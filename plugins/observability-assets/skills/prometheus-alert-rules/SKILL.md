@@ -440,7 +440,7 @@ Return:
 3. Validation results for syntax, label/annotation contract, and recording-rule usage
 4. Any remaining blockers, follow-up test needs, or Alertmanager handoff risks
 
-## Deep References
+## References
 
 | If the blocker is... | Read... |
 | --- | --- |

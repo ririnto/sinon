@@ -502,7 +502,7 @@ Fallback hosted review body when no repository template exists:
 - <follow-up risks, rollout notes, or `None`>
 ```
 
-## Deep References
+## References
 
 | If the blocker is... | Read... |
 | --- | --- |

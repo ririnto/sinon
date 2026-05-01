@@ -294,7 +294,7 @@ Recording 1: name=baseline maxage=6 h (running)
 
 Read: Match the recording `name`, confirm `(running)` before claiming the capture is active, and verify `maxage` matches the intended retention window. If the runtime also reports a destination or path, confirm it points to the restricted diagnostics location you intended.
 
-## Deep References
+## References
 
 | If the blocker is... | Read... |
 | --- | --- |

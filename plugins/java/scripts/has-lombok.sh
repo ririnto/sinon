@@ -19,6 +19,7 @@ project_root=${1:-$PWD}
 
 contains_lombok_dependency() {
     # :description: Check whether a single build file declares a Lombok dependency.
+    #     Requires grep with -E (GNU grep on Linux, BSD grep on macOS — both support -E).
     # :param file_path: Path to the build file to inspect.
     # :return: 0 if Lombok dependency is found, 1 otherwise.
     file_path="$1"

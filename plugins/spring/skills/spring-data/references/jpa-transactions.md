@@ -2,6 +2,8 @@
 
 Open this reference when the blocker is declared `@Query` transaction behavior, `@Modifying`, or a facade-level transaction boundary around JPA repositories.
 
+For container-level `@Transactional` setup (`@EnableTransactionManagement`, transaction manager wiring), see the spring-framework skill — this reference focuses on JPA repository specifics.
+
 ## Repository method inheritance blocker
 
 Repository methods inherited from `SimpleJpaRepository` already carry the standard transaction defaults: reads are `readOnly = true`, writes use a regular transactional boundary.

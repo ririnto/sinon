@@ -52,7 +52,7 @@ try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 ```
 
 > [!IMPORTANT]
-> `StructuredTaskScope` is a preview API through JDK 25 (`JEP 505: Structured Concurrency (Fifth Preview)`). Compile with `--enable-preview --release <n>` and accept that the API surface MAY still move before finalization. Call `scope.fork()` which returns `StructuredTaskScope.Subtask<T>`; read values only after `join()` (and `throwIfFailed()` when using `ShutdownOnFailure`) has returned.
+> `StructuredTaskScope` is a preview API through JDK 25 (`JEP 505: Structured Concurrency (Fifth Preview)`). As of Java 25, Structured Concurrency is in JEP 505 (Fifth Preview); production use requires `--enable-preview`. Compile with `--enable-preview --release <n>` and accept that the API surface MAY still move before finalization. Call `scope.fork()` which returns `StructuredTaskScope.Subtask<T>`; read values only after `join()` (and `throwIfFailed()` when using `ShutdownOnFailure`) has returned.
 
 ScopedValue for immutable request context (preview on JDK 21-24, finalized in JDK 25):
 

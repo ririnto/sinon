@@ -1,6 +1,6 @@
 {
   "name": "reactor",
-  "description": "Project Reactor skills for reactive programming with Flux, Mono, operators, schedulers, sinks, and reactor-test.",
+  "description": "Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.",
   "author": {
     "name": "ririnto"
   },

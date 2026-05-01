@@ -250,7 +250,7 @@ Shows event counts grouped by type. Look for:
 - `jdk.GCPhasePause` — individual pause phases; check max duration
 - `jdk.ObjectAllocationInNewTLAB` count — very high counts indicate allocation pressure
 
-## Deep References
+## References
 
 | If the blocker is... | Read... |
 | --- | --- |
