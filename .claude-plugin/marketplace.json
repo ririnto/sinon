@@ -82,7 +82,7 @@
     },
     {
       "name": "harness-engineering",
-      "description": "Agent-first repository design with progressive disclosure, architecture enforcement, and entropy management for AI agent development.",
+      "description": "Apply staged setup-time harness guardrails with OpenAI-style repo layout defaults and flexible project profiles.",
       "source": "./plugins/harness-engineering",
       "author": {
         "name": "ririnto"

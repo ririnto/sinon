@@ -164,7 +164,7 @@
     },
     {
       "name": "harness-engineering",
-      "description": "Agent-first repository design with progressive disclosure, architecture enforcement, and entropy management for AI agent development.",
+      "description": "Apply staged setup-time harness guardrails with OpenAI-style repo layout defaults and flexible project profiles.",
       "source": {
         "source": "local",
         "path": "./plugins/harness-engineering"
@@ -175,7 +175,7 @@
       },
       "interface": {
         "displayName": "Harness Engineering",
-        "shortDescription": "Agent-first repository design with progressive disclosure, architecture enforcement, and entropy management."
+        "shortDescription": "Apply staged setup-time guardrails to target repositories."
       },
       "policy": {
         "installation": "AVAILABLE",

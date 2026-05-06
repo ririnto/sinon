@@ -1,6 +1,6 @@
 # Execution Plan Template
 
-Copy this template when writing execution plans for complex work. Place active plans in `docs/exec-plans/active/` and move completed plans to `docs/exec-plans/completed/`.
+Copy this template when writing execution plans for complex work. Use the plan paths declared in `docs/harness-engineering/harness-engineering.json`; the default is `docs/exec-plans/active/` for active plans and `docs/exec-plans/completed/` for completed plans.
 
 ```markdown
 # {Plan Title}
@@ -55,4 +55,4 @@ Copy this template when writing execution plans for complex work. Place active p
 - Complex work MUST use the full template with decision log and progress tracking.
 - Plans are checked into the repository so agents can operate without external context.
 - When a plan is completed, move it to `docs/exec-plans/completed/` and update the status field.
-
+- When the work changes harness docs, scripts, CI, hooks, build integrations, user requirement rules, or source roots, update `docs/harness-engineering/harness-engineering.json` and record the docs/script alignment in the same change set.

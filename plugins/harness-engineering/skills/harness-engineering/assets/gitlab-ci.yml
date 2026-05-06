@@ -1,0 +1,17 @@
+stages: [check]
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^(develop|main|master)$/'
+    - when: never
+
+harness:
+  stage: check
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH =~ /^(develop|main|master)$/'
+  before_script:
+    - uvx --version
+  script:
+    - sh scripts/harness/validate_harness.sh

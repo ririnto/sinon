@@ -1,10 +1,20 @@
 # Agent Legibility
 
-Open this reference when configuring per-worktree isolation, browser automation, or observability stacks beyond the common-path guidance in `SKILL.md`.
+Open this reference when the target repository needs runtime evidence, per-worktree isolation, browser automation, observability, or project-specific agents beyond the common install/update path.
 
 ## Why agent legibility matters
 
-From the agent's point of view, anything it cannot access in-context while running effectively does not exist. The application UI, logs, metrics, and traces must be directly observable by the agent for it to reproduce bugs, validate fixes, and reason about behavior.
+From the agent's point of view, anything it cannot access in-context while running effectively does not exist. The target repository should document the runtime, logs, metrics, traces, and evidence commands in configured docs paths so agents can validate behavior without hidden setup.
+
+The OpenAI harness article shows the practical target: Codex drives Chrome DevTools MCP, selects browser targets, snapshots before and after UI paths, observes runtime events, applies fixes, restarts, and loops until clean. It also shows local observability as first-class context: logs, metrics, and traces flow through Vector into Victoria logs, metrics, and traces, then agents query them with LogQL, PromQL, and TraceQL.
+
+The same article's knowledge-boundary image is the guardrail: Google Docs, Slack messages, and tacit human knowledge are invisible unless encoded into repository Markdown, code, schemas, or execution plans.
+
+## Project agents
+
+When the target repo needs project-specific agents, place them under `.claude/agents/` and make each agent read `docs/harness-engineering/harness-engineering.json` plus the configured docs before applying architecture, review, or runtime rules. Do not assume this plugin's default layer model inside project agents.
+
+If the target repo also exposes skills through both host naming surfaces, preserve `.agents/skills -> ../.claude/skills` as a symlink rather than maintaining duplicate skill directories.
 
 ## Per-worktree isolation
 
@@ -270,4 +280,3 @@ Each line is one JSON object and is appended atomically. A resuming agent reads 
 - Skipping teardown. Ephemeral resources must be cleaned up after task completion to avoid resource exhaustion.
 - Requiring manual browser testing. If the agent cannot drive the UI programmatically, it cannot validate visual or interaction behavior.
 - Using production observability infrastructure for agent validation. Agent worktrees must use isolated, ephemeral stacks.
-

@@ -58,7 +58,7 @@ When the task is to create, edit, review, refactor, validate, or package an Agen
 
 Progressive disclosure applies at three levels:
 
-1. Skill `description` metadata is the activation trigger. It MUST open with a capability statement written as an imperative clause that names what the skill does (for example, "Design…", "Write…", "Build…", "Author…", "Triage…", "Integrate…"), followed by a user-intent trigger clause such as "Use this skill when…". Starting the description with the trigger clause alone, without an opening capability statement, is PROHIBITED.
+1. Skill `description` metadata is the activation trigger. It MUST open with a capability statement written as an imperative clause that names what the skill does (for example, "Design...", "Write...", "Build...", "Author...", "Triage...", "Integrate..."), followed by a user-intent trigger clause such as "Use this skill when...". Starting the description with the trigger clause alone, without an opening capability statement, is PROHIBITED.
 2. `SKILL.md` is the common-path entrypoint loaded at activation and MUST be self-sufficient for the ordinary task.
 3. `references/`, `assets/`, and `scripts/` hold on-demand additive depth and MUST NOT be treated as always-loaded context.
 
@@ -81,10 +81,10 @@ A skill MUST remain usable when installed by itself and MUST NOT require another
 `SKILL.md` MUST NOT:
 
 - Move common-case guidance to `references/` solely to shrink `SKILL.md`.
-- Describe adjacent-domain exclusions as "jump to skill X" — state them in domain terms.
+- Describe adjacent-domain exclusions as "jump to skill X"; state them in domain terms.
 - Degrade into a generic essay or background article.
 
-`SKILL.md` SHOULD favor direct, imperative guidance over tutorial narration and SHOULD keep a shallow directory structure so agents can discover material quickly. Skill documentation MUST be self-contained enough to enable productive offline development — it MUST NOT assume the reader has live internet access to external documentation, registries, or remote services during ordinary use.
+`SKILL.md` SHOULD favor direct, imperative guidance over tutorial narration and SHOULD keep a shallow directory structure so agents can discover material quickly. Skill documentation MUST be self-contained enough to enable productive offline development; it MUST NOT assume the reader has live internet access to external documentation, registries, or remote services during ordinary use.
 
 ## `references/` contract
 
