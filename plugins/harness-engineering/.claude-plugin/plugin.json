@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "harness-engineering",
-  "description": "Agent-first repository design with progressive disclosure, architecture enforcement, and entropy management for AI agent development.",
+  "description": "Apply staged setup-time harness guardrails with OpenAI-style repo layout defaults and flexible project profiles.",
   "author": {
     "name": "ririnto"
   },
@@ -13,10 +13,17 @@
     "agent-first",
     "architecture",
     "codex",
+    "ci",
     "documentation",
     "harness",
+    "hooks",
     "linting",
     "progressive-disclosure",
-    "repository-structure"
+    "readiness",
+    "repository-application",
+    "repository-structure",
+    "scaffolding",
+    "spring-boot",
+    "staged-guardrails"
   ]
 }

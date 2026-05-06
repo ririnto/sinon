@@ -1,0 +1,327 @@
+{
+  "schemaVersion": 1,
+  "projectProfile": {
+    "name": "generic",
+    "description": "OpenAI-style default repo harness; switch to spring-boot or another profile when the project type needs different paths."
+  },
+  "stage": {
+    "current": 1,
+    "target": 3,
+    "mode": "advisory",
+    "exitGate": "Config, docs, validator, and known-violation ledger exist before CI treats error-level findings as failures."
+  },
+  "docs": {
+    "harnessRoot": "docs/harness-engineering",
+    "config": "docs/harness-engineering/harness-engineering.json",
+    "guardrails": "docs/harness-engineering/guardrails.md",
+    "knownViolations": "docs/harness-engineering/known-violations.md",
+    "readiness": "docs/harness-engineering/readiness.md",
+    "updates": "docs/harness-engineering/updates.md",
+    "entrypoint": "CLAUDE.md",
+    "compatibilitySymlink": "AGENTS.md",
+    "compatibilitySymlinkTarget": "CLAUDE.md",
+    "compatibilitySymlinkStatus": "required",
+    "root": "docs",
+    "architecture": "ARCHITECTURE.md",
+    "design": "docs/DESIGN.md",
+    "frontend": "docs/FRONTEND.md",
+    "plansDoc": "docs/PLANS.md",
+    "productSense": "docs/PRODUCT_SENSE.md",
+    "reliability": "docs/RELIABILITY.md",
+    "security": "docs/SECURITY.md",
+    "quality": "docs/QUALITY_SCORE.md",
+    "designDocs": "docs/design-docs",
+    "productSpecs": "docs/product-specs",
+    "plans": {
+      "active": "docs/exec-plans/active",
+      "completed": "docs/exec-plans/completed",
+      "debt": "docs/exec-plans/tech-debt-tracker.md"
+    },
+    "generated": "docs/generated",
+    "references": "docs/references"
+  },
+  "scripts": {
+    "root": "scripts/harness",
+    "validator": "scripts/harness/validate_harness.py",
+    "wrapper": "scripts/harness/validate_harness.sh"
+  },
+  "sourceRoots": [
+    "src"
+  ],
+  "testRoots": [
+    "test",
+    "tests"
+  ],
+  "schemaSources": [
+    {
+      "kind": "generic",
+      "paths": [
+        "schema.graphqls",
+        "prisma/schema.prisma",
+        "src/schema"
+      ]
+    }
+  ],
+  "generatedArtifacts": [
+    {
+      "path": "docs/generated/db-schema.md",
+      "sources": [
+        "src/schema"
+      ],
+      "regenerate": "sh scripts/harness/validate_harness.sh",
+      "policy": "Derived documentation only; source schemas remain in project-specific source roots."
+    }
+  ],
+  "generatedPolicy": {
+    "root": "docs/generated",
+    "requiresProvenance": true,
+    "requiresRegenerationCommand": true,
+    "sourceSchemasStayOutsideGeneratedDocs": true
+  },
+  "projectProfiles": {
+    "generic": {
+      "sourceRoots": [
+        "src"
+      ],
+      "buildIntegration": [
+        "standalone",
+        "node"
+      ],
+      "schemaSources": [
+        "schema.graphqls",
+        "prisma/schema.prisma",
+        "src/schema"
+      ]
+    },
+    "spring-boot": {
+      "sourceRoots": [
+        "src/main/java",
+        "src/main/kotlin"
+      ],
+      "testRoots": [
+        "src/test/java",
+        "src/test/kotlin"
+      ],
+      "buildIntegration": [
+        "gradle",
+        "node"
+      ],
+      "schemaSources": [
+        "src/main/resources/db/migration",
+        "src/main/resources/db/changelog",
+        "src/main/resources/openapi",
+        "src/main/proto",
+        "src/main/resources/graphql/schema.graphqls",
+        "src/main/java/**/entity",
+        "src/main/kotlin/**/entity"
+      ],
+      "generatedArtifacts": [
+        "docs/generated/db-schema.md",
+        "docs/generated/api-schema.md",
+        "docs/generated/runtime-config.md"
+      ]
+    }
+  },
+  "scopedPathRules": [
+    {
+      "path": "src/domains/**",
+      "rule": "Follow the configured layer model and ADR constraints."
+    }
+  ],
+  "layerModel": {
+    "name": "default-domain-layers",
+    "roots": [
+      "src/domains"
+    ],
+    "layers": [
+      "types",
+      "config",
+      "repo",
+      "providers",
+      "service",
+      "runtime",
+      "ui"
+    ],
+    "allowedEdges": {
+      "types": [],
+      "config": [
+        "types"
+      ],
+      "repo": [
+        "config",
+        "types"
+      ],
+      "providers": [
+        "repo",
+        "config",
+        "types"
+      ],
+      "service": [
+        "providers",
+        "repo",
+        "config",
+        "types"
+      ],
+      "runtime": [
+        "service",
+        "providers",
+        "repo",
+        "config",
+        "types"
+      ],
+      "ui": [
+        "runtime",
+        "service",
+        "providers",
+        "types"
+      ]
+    },
+    "crossCutting": {
+      "path": "src/providers",
+      "interfaceFile": "interface"
+    }
+  },
+  "checks": {
+    "requiredCommands": [
+      "sh scripts/harness/validate_harness.sh"
+    ],
+    "optionalCommands": [],
+    "allowedCommandPrefixes": [
+      "sh scripts/harness/validate_harness.sh",
+      "uvx --offline --no-python-downloads python scripts/harness/validate_harness.py",
+      "./gradlew harnessCheck",
+      "npm run harness:validate",
+      "pnpm run harness:validate",
+      "yarn run harness:validate",
+      "bun run harness:validate"
+    ],
+    "allowedCommandPrefixesNote": "Informational only. The validator enforces exact argv matches for required and optional commands: `sh scripts/harness/validate_harness.sh`, `uvx --offline --no-python-downloads python scripts/harness/validate_harness.py --config docs/harness-engineering/harness-engineering.json`, `./gradlew harnessCheck`, and the Node package-manager `run harness:validate` forms.",
+    "docs": true,
+    "architecture": true,
+    "links": true,
+    "noOverwrite": true
+  },
+  "enforcement": {
+    "defaultSeverity": "warn",
+    "allowedSeverities": [
+      "warn",
+      "error"
+    ],
+    "settings": {
+      "docs": "warn",
+      "architecture": "warn",
+      "links": "warn",
+      "noOverwrite": "error",
+      "generatedPolicy": "error",
+      "userRequirementRules": "warn",
+      "ci": "warn",
+      "hooks": "warn",
+      "gradle": "warn",
+      "node": "warn",
+      "standalone": "warn"
+    }
+  },
+  "readiness": {
+    "maturityLevel": 1,
+    "minimumBlockingLevel": 3,
+    "scorePath": "docs/harness-engineering/readiness.md",
+    "knownViolations": "docs/harness-engineering/known-violations.md",
+    "ratchet": {
+      "mode": "warn",
+      "newViolations": "error",
+      "knownViolationBudget": 100,
+      "reduceBudgetBy": 5
+    },
+    "freshness": {
+      "docsMaxAgeDays": 30,
+      "adrRequiredForScopedRules": true,
+      "specRequiredForChangedBehavior": true
+    }
+  },
+  "ci": {
+    "provider": "github-actions",
+    "githubWorkflow": ".github/workflows/harness-checks.yml",
+    "gitlabConfig": ".gitlab-ci.yml",
+    "branches": {
+      "push": [
+        "develop",
+        "main",
+        "master"
+      ],
+      "pullRequest": [
+        "develop",
+        "main",
+        "master"
+      ],
+      "mergeRequest": [
+        "develop",
+        "main",
+        "master"
+      ]
+    },
+    "customizationNote": "Default CI runs on merge requests or pull requests and pushes to develop, main, and master. Adjust branch lists, path filters, or provider rules to match user preference before enabling error gates."
+  },
+  "hooks": {
+    "enabled": true,
+    "path": ".githooks",
+    "commitMsg": ".githooks/commit-msg",
+    "prePush": ".githooks/pre-push"
+  },
+  "gradle": {
+    "enabled": false,
+    "buildFile": "build.gradle.kts",
+    "taskName": "harnessCheck"
+  },
+  "node": {
+    "enabled": false,
+    "packageFile": "package.json",
+    "packageManager": "auto",
+    "scriptName": "harness:validate",
+    "installCommand": "auto",
+    "runCommand": "auto run harness:validate",
+    "workspaceMode": "root-or-workspace",
+    "packageManagerDetection": [
+      "packageManager field",
+      "pnpm-lock.yaml",
+      "yarn.lock",
+      "bun.lock",
+      "bun.lockb",
+      "package-lock.json"
+    ],
+    "recommendedScripts": {
+      "harness:validate": "sh scripts/harness/validate_harness.sh",
+      "harness:check": "sh scripts/harness/validate_harness.sh"
+    }
+  },
+  "standalone": {
+    "enabled": false,
+    "entrypoint": "scripts/harness/validate_harness.sh",
+    "commands": [
+      "sh scripts/harness/validate_harness.sh"
+    ],
+    "description": "Standalone shell/script lane for repositories without a CI or build-system integration."
+  },
+  "userRequirementRules": [
+    {
+      "name": "document-user-requirements",
+      "type": "documentation-link",
+      "severity": "warn",
+      "scope": "docs/product-specs/**/*.md",
+      "description": "User-facing requirements must name their source, acceptance criteria, and validation surface.",
+      "validation": "review docs/product-specs and configured checks before promoting to error"
+    },
+    {
+      "name": "protect-generated-sources",
+      "type": "generated-boundary",
+      "severity": "error",
+      "scope": "docs/generated/**",
+      "description": "Generated docs are derived artifacts only and must not become source schemas.",
+      "validation": "sh scripts/harness/validate_harness.sh"
+    }
+  ],
+  "yamlStyle": {
+    "literalMultiline": "|-",
+    "foldedMultiline": ">-",
+    "note": "Use `|-` for multiline YAML command blocks and `>-` for folded scalar text so trailing newlines are stripped."
+  }
+}

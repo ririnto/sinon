@@ -1,25 +1,28 @@
 # Harness Engineering
 
-Harness Engineering is a shared, skill-first plugin for designing and maintaining agent-first repositories with progressive disclosure, architecture enforcement, and entropy management.
+Harness Engineering is a portable plugin for staged setup-time guardrails in target repositories.
 
 ## Purpose
 
-- Provide reusable guidance for structuring repositories that AI agents can navigate through progressive disclosure rather than dense global context.
-- Keep architectural invariants machine-checkable with custom linters and structural tests rather than review-time opinion.
-- Track documentation drift, stale cross-links, and execution-plan freshness before they compound into unmanageable entropy.
-- Drive autonomous implementation, review, and structure enforcement through a focused set of agents that share the same repository-first mental model.
+- Inspect an existing repository and create or update `docs/harness-engineering/harness-engineering.json` as the visible target-specific source of truth.
+- Default to the OpenAI article's harness structure while preserving dependency direction: root `CLAUDE.md`, `AGENTS.md -> CLAUDE.md`, root `ARCHITECTURE.md`, and `docs/` for design docs, execution plans, generated docs, product specs, references, and topic docs.
+- Install or update docs, scripts, CI templates, git hook templates, optional Gradle and Node wiring, readiness scoring, customizable `warn`/`error` user requirement rules, and validation checks without assuming one framework or layer model.
+- Stage guardrails from discovery to advisory checks to `error` CI, Gradle, Node, or standalone gates, then ratchet maturity with known-violation and doc-freshness controls.
+- Support project profiles such as `generic` and `spring-boot` so source roots, schema sources, generated artifact policy, build integration, and layer enforcement details can differ by project type.
+- Keep implementation, repository docs, specs, ADR constraints, and deterministic checks evolving together so agents follow documented information instead of hidden convention.
+- Provide bundled agents that read the target repository's harness configuration and docs before enforcing architecture, reviewing changes, gardening docs, driving end-to-end work, or maintaining execution plans.
 
 ## Included Skill
 
-- `harness-engineering`: repository layout, CLAUDE.md as a table of contents, layer-dependency enforcement, doc gardening, and technical-debt tracking for agent-generated codebases.
+- `harness-engineering`: inspect, configure, install, validate, and update staged repository guardrails declared in `docs/harness-engineering/harness-engineering.json`.
 
 ## Included Agents
 
-- `architecture-guard`: mechanical architecture enforcement, layer-dependency auditing, structural-test validation, and taste-invariant checks.
-- `code-reviewer`: confidence-filtered review for bugs, security issues, and project-convention drift on changed code.
-- `doc-gardener`: report-only entropy cleanup covering documentation drift, stale cross-links, quality grades, and execution-plan freshness.
-- `e2e-driver`: autonomous end-to-end execution for reproducing a bug, implementing a fix or feature, and validating results with observability evidence.
-- `spec-writer`: execution-plan authoring, progress tracking, and completion handling under `docs/exec-plans/`.
+- `architecture-guard`: mechanical architecture auditing against the target repository's declared source roots, scoped path rules, layer model, checks, and docs.
+- `code-reviewer`: evidence-backed review against the target harness configuration, documented principles, readiness gates, and configured validation commands.
+- `doc-gardener`: report-only entropy cleanup using configured docs paths, freshness expectations, generated artifacts, readiness score, and link checks.
+- `e2e-driver`: autonomous end-to-end execution that discovers the target repository's runtime, validation, and evidence expectations from harness docs.
+- `spec-writer`: execution-plan authoring and lifecycle management under the configured plan paths.
 
 ## Runtime Model
 
@@ -28,7 +31,76 @@ This plugin uses one shared plugin root with two thin runtime manifests:
 - `.claude-plugin/plugin.json`
 - `.codex-plugin/plugin.json`
 
-Both manifests point to the same shared plugin root content, while the actual reusable surfaces live under `skills/` and `agents/` beside those manifests.
+Both manifests point to the same shared plugin root content. The reusable surfaces live under `skills/` and `agents/` beside those manifests. Agents are intentionally not declared in either manifest because the plugin packaging schema rejects an `agents` key; target repositories may still copy or adapt project-specific agents into `.claude/agents/` when needed.
+
+## Target Repository Layout
+
+The plugin creates or maintains this staged setup shape in a target repository, subject to config and no-overwrite conflict handling.
+
+```text
+target-repo/
+├── CLAUDE.md
+├── AGENTS.md -> CLAUDE.md
+├── ARCHITECTURE.md
+├── .claude/
+│   ├── agents/
+│   └── skills/
+├── .agents/
+│   └── skills -> ../.claude/skills
+├── docs/
+│   ├── harness-engineering/
+│   │   ├── harness-engineering.json
+│   │   ├── guardrails.md
+│   │   ├── known-violations.md
+│   │   ├── readiness.md
+│   │   └── updates.md
+│   ├── design-docs/
+│   │   ├── index.md
+│   │   └── core-beliefs.md
+│   ├── exec-plans/
+│   │   ├── active/
+│   │   ├── completed/
+│   │   └── tech-debt-tracker.md
+│   ├── generated/
+│   │   └── db-schema.md
+│   ├── product-specs/
+│   │   ├── index.md
+│   │   └── new-user-onboarding.md
+│   ├── references/
+│   │   ├── design-system-reference-llms.txt
+│   │   ├── nixpacks-llms.txt
+│   │   └── uv-llms.txt
+│   ├── DESIGN.md
+│   ├── FRONTEND.md
+│   ├── PLANS.md
+│   ├── PRODUCT_SENSE.md
+│   ├── QUALITY_SCORE.md
+│   ├── RELIABILITY.md
+│   └── SECURITY.md
+├── scripts/
+│   └── harness/
+│       ├── validate_harness.py
+│       └── validate_harness.sh
+├── .github/workflows/harness-checks.yml
+├── .gitlab-ci.yml
+├── .githooks/
+│   ├── commit-msg
+│   └── pre-push
+├── build.gradle.kts
+└── package.json
+```
+
+GitHub Actions, GitLab CI, git hooks, Gradle, Node package scripts, and standalone shell/script lanes are optional integration surfaces. Install only the surfaces declared by the target repository config.
+
+## Staged Guardrail Model
+
+| Stage | Purpose | Exit gate |
+| --- | --- | --- |
+| Stage 0 discovery | Inventory current docs, scripts, source roots, CI, hooks, build files, and known violations | Existing surfaces and conflicts are listed |
+| Stage 1 visibility/docs/config | Put repository configuration under `docs/harness-engineering/` | Config, guardrails, readiness, updates, and entrypoint docs validate |
+| Stage 2 advisory scripts/hooks | Add local `warn` checks and hooks | Validator runs locally and records known violations without failing legacy debt |
+| Stage 3 error shared gates | Promote agreed checks to shared enforcement | Required commands pass in CI, Gradle `check`, Node package scripts, or standalone scripts, and `error` findings fail |
+| Stage 4 ratchet/freshness/maturity hardening | Tighten readiness score, doc freshness, and known-violation budgets | New `error` findings fail and known violations trend down |
 
 ## Plugin Layout
 
@@ -48,30 +120,53 @@ plugins/harness-engineering/
         ├── SKILL.md
         ├── assets/
         │   ├── claude-md-template.md
+        │   ├── config-template.json
         │   ├── docs-directory-scaffold.md
-        │   └── execution-plan-template.md
+        │   ├── execution-plan-template.md
+        │   ├── gitignore-template.md
+        │   ├── git-hooks.md
+        │   ├── github-actions.yml
+        │   ├── gitlab-ci.yml
+        │   ├── gradle-integration.gradle.kts
+        │   ├── node-integration-package-json.md
+        │   └── harness-docs-update.md
+        ├── scripts/
+        │   ├── validate_harness.sh
+        │   └── validate_harness.py
         └── references/
             ├── agent-legibility.md
             ├── architecture-enforcement.md
-            ├── bootstrap.md
-            ├── ci-integration.md
+            ├── bootstrap-apply-flow.md
+            ├── ci-hooks-gradle-integration.md
+            ├── docs-as-context.md
             ├── entropy-management.md
-            └── repository-knowledge-structure.md
+            └── source-verification.md
 ```
 
 - `.claude-plugin/plugin.json` carries thin Claude-facing marketplace metadata with the declared `skills` entry point and shared plugin metadata.
-- `.codex-plugin/plugin.json` carries thin Codex-facing marketplace metadata pointing at the same shared plugin root.
-- `skills/harness-engineering/SKILL.md` holds the common path for repository layout, progressive disclosure, architecture enforcement, and entropy management.
-- `skills/harness-engineering/assets/` holds copyable CLAUDE.md, docs scaffold, and execution-plan templates.
-- `skills/harness-engineering/references/` holds additive depth for agent legibility, architecture enforcement, bootstrap, CI integration, entropy management, and repository-knowledge structure.
-- `agents/*.md` define the autonomous agents with explicit triggers, bounded tools, and self-contained system prompts.
+- `.codex-plugin/plugin.json` carries thin Codex-facing marketplace metadata pointing at the same shared plugin root and the Codex interface block.
+- `skills/harness-engineering/SKILL.md` holds the common setup path: inspect, configure, install stage-appropriate guardrails, validate gates, and update/ratchet.
+- `skills/harness-engineering/assets/` holds copyable target-repository templates for visible config, docs, CI, hooks, Gradle, Node, and update records.
+- `skills/harness-engineering/scripts/` holds the offline deterministic validator and direct `sh` wrapper that may be copied into target repositories.
+- `skills/harness-engineering/references/` holds additive depth for bootstrap/apply flow, architecture enforcement, CI/hooks/build integration, docs-as-context, entropy management, and agent legibility.
+- `agents/*.md` define autonomous agents with explicit triggers, bounded tools, and prompts that read target repository configuration before enforcing rules.
+
+## Source Verification
+
+The OpenAI article was rechecked from `https://openai.com/ko-KR/index/harness-engineering/` on 2026-05-07 before this refactor. The encoded source mapping lives in `skills/harness-engineering/references/source-verification.md`.
 
 ## Design Principles
 
-- Prefer one coherent user job per skill and one coherent responsibility per agent.
-- Keep the common path self-sufficient inside `SKILL.md` and move only on-demand depth into `references/`.
-- Enforce layer direction and structural invariants mechanically rather than through human-only review.
-- Treat documentation, execution plans, and quality grades as first-class entropy surfaces that must stay aligned with the code.
+- Treat `docs/harness-engineering/harness-engineering.json` as authoritative for the target repository. Root `.harness-engineering.json` is legacy fallback only.
+- Use root `CLAUDE.md` as the repository-level instruction map for agent rules and create `AGENTS.md -> CLAUDE.md` for AGENTS.md readers. Do not create `CLAUDE.md -> AGENTS.md`.
+- Keep root `ARCHITECTURE.md` as the default architecture path. Do not default to `docs/ARCHITECTURE.md`.
+- Keep the plugin a setup/update/validation skill, not an always-on universal operating skill.
+- Install non-destructively: dry-run first, report conflicts, and never overwrite target files without an explicit replace decision.
+- Keep `docs/` and `scripts/` evolving together so documented behavior is backed by executable checks.
+- Support GitHub Actions, GitLab CI, git commit/push hooks, optional Gradle `check` integration, Node package scripts, standalone script lanes, and user-customized requirement rules without requiring any one provider.
+- Use readiness/maturity scoring, `warn`-to-`error` ratchets, known-violation ledgers, ADR/spec constraints, doc freshness, and scoped path rules as practical config fields and gates.
+- Keep source schemas in checked-in project roots, not `docs/generated/`. Use `docs/generated/` for reproducible derived docs with provenance, source paths, and regeneration commands.
+- Let project profiles change defaults: Spring Boot may use Gradle checks, Node frontends may use npm/pnpm/Yarn/Bun package scripts, standalone repos may use shell/Python/Make/Taskfile lanes, and all profiles may add user requirement rules with `warn` or `error` severity.
 
 ## Installation
 
@@ -91,11 +186,11 @@ Codex-facing marketplace metadata ships through `.codex-plugin/plugin.json`, and
 
 ## Scope Notes
 
-This plugin intentionally focuses on agent-first repository structure, mechanical enforcement, entropy management, and autonomous execution. It does not cover:
+This plugin intentionally focuses on applying and maintaining staged setup-time guardrails. It does not cover:
 
-- language- or framework-specific coding style
+- language- or framework-specific coding style beyond configured checks
 - release management or deployment tooling
-- general-purpose CI pipeline authoring beyond integrating the harness's structural checks
+- general-purpose CI pipeline authoring beyond integrating configured harness checks
+- destructive repository migrations or automatic overwrites
 
-Structures, layouts, tool integrations, and workflow patterns not documented in `skills/harness-engineering/references/` MUST NOT be introduced into a harness-engineering repository. If a pattern is needed but missing from the references, add the reference first and link from `SKILL.md`.
-
+Target repositories SHOULD preserve `AGENTS.md -> CLAUDE.md` and `.agents/skills -> ../.claude/skills` when they use both naming surfaces. Target repositories that need project-specific agents MAY add `.claude/agents/` and document those agents in the harness docs.
