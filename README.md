@@ -41,7 +41,7 @@ The following plugins are listed in both `.claude-plugin/marketplace.json` and `
 
 - `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.
 - `plugins/git-workflow`: Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.
-- `plugins/harness-engineering`: Agent-first repository design with progressive disclosure, architecture enforcement, and entropy management for AI agent development.
+- `plugins/harness-engineering`: Staged setup-time harness guardrails with OpenAI-style repo layout defaults and flexible project profiles.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
 - `plugins/jvm`: JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
 - `plugins/kotlin`: Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.

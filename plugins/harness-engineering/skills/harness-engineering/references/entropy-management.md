@@ -1,143 +1,89 @@
 # Entropy Management
 
-Open this reference when setting up doc-gardening, quality grading, or cleanup automation beyond the common-path guidance in `SKILL.md`.
+Open this reference when configuring recurring doc gardening, quality tracking, or cleanup automation for a target repository that already has a harness config.
 
-## Why entropy management matters
+## Inputs
 
-See SKILL.md Step 5 for the core entropy management workflow. This reference provides the detailed cadence, grading rubrics, and automation patterns. Agents replicate existing patterns including suboptimal ones; without continuous correction, drift compounds like a high-interest loan.
+Read these fields first:
 
-## Doc-gardening
+- `docs.root`
+- `docs.plans.active`
+- `docs.plans.completed`
+- `docs.plans.debt`
+- `docs.quality`
+- `checks.requiredCommands`
+- `sourceRoots`
+- `readiness.maturityLevel`
+- `readiness.knownViolations`
+- `readiness.ratchet`
+- `readiness.freshness`
 
-Schedule a recurring agent task that scans the repository for documentation drift.
+## Gardening cadence
 
-### Cadence
-
-Run doc-gardening at least once per day in active development periods. The gardening agent performs these checks:
-
-1. Scan `docs/design-docs/index.md` for entries marked `stale` or older than 30 days since last review.
-2. Compare documented interfaces against actual code exports. Flag mismatches.
-3. Verify cross-links in `CLAUDE.md` and index files resolve to existing files.
-4. Check `docs/exec-plans/active/` for plans with no progress updates in the past 7 days.
-5. Open targeted fix-up pull requests for each issue found.
-
-### Gardening agent prompt sketch
+Run lightweight gardening during active development and full gardening before releases.
 
 ```text
-Scan the docs/ directory for stale or obsolete documentation:
-
-1. Check every index.md entry where status is not "verified".
-2. For each design doc, verify that referenced code paths still exist.
-3. For each execution plan in active/, check for a progress update within
-   the last 7 days.
-4. For each generated artifact, verify the generation script is still
-   present and passing.
-5. Open one pull request per issue with a clear description of what drifted
-   and the recommended fix.
+Daily: link check, active plan freshness, generated-doc provenance
+Weekly: quality score update, tech debt review, docs/script alignment
+Release: full harness validation plus architecture and runtime evidence checks
 ```
 
-### Fix-up PR contract
+## Readiness and ratchets
 
-Each fix-up pull request MUST:
+Use readiness to decide whether guardrails report `warn` findings or fail on `error` findings.
 
-- Contain a single focused change (one doc or one set of related docs).
-- Include a description explaining what drifted and why.
-- Be reviewable in under one minute.
-- Be eligible for auto-merge if no human objects within a set window.
+| Maturity | Meaning | Gate behavior |
+| --- | --- | --- |
+| 0 | Discovery only | Report inventory and conflicts |
+| 1 | Visible config and docs | Validate shape and required docs |
+| 2 | Advisory local checks | Warn locally and record known violations |
+| 3 | Shared error gates | Fail new error-level violations in CI, Gradle, Node, or standalone lanes |
+| 4 | Ratcheted maturity | Reduce known-violation budget and enforce freshness |
 
-## Quality grading
+The known-violation ledger should list legacy issues that are allowed temporarily. New `error` findings should fail once Stage 3 is active.
 
-Maintain per-domain and per-layer quality grades in `docs/QUALITY_SCORE.md`.
+## Quality score shape
 
-### Grading scale
-
-| Grade | Meaning |
-| --- | --- |
-| A | Fully documented, tested, and lint-clean. No known debt. |
-| B | Documented and tested. Minor debt items tracked. |
-| C | Partially documented or tested. Debt items present. |
-| D | Undocumented or undertested. Significant debt. |
-| F | No documentation or tests. Critical debt. |
-
-### Grade tracking
+Use the target repo's configured layers or quality categories. The default domain-layer table is only an example.
 
 ```markdown
 # Quality Score
 
-| Domain | Types | Config | Repo | Service | Runtime | UI | Overall |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| App Settings | A | A | B | B | A | B | B |
-| Auth | A | A | A | B | B | C | B |
-| Connectors | B | B | C | C | D | D | C |
+| Area | Docs | Tests | Checks | Debt | Overall |
+| --- | --- | --- | --- | --- | --- |
+| Auth | B | A | A | B | B |
+| Billing | C | B | B | C | C |
 ```
 
-The grading agent updates this table on each run. Domains at C or below are prioritized for cleanup.
-
-### Grading criteria
-
-- **Types**: schema completeness, validation coverage, naming conventions.
-- **Config**: environment variable documentation, default values, type safety.
-- **Repo**: query coverage, migration status, index documentation.
-- **Service**: error handling, boundary validation, structured logging.
-- **Runtime**: observability hooks, health checks, graceful shutdown.
-- **UI**: accessibility, design system compliance, test coverage.
-
-## Golden principles enforcement
-
-On each gardening run, scan for violations of the golden principles:
-
-1. **Shared utilities over hand-rolled helpers** -- flag duplicate logic that should be centralized.
-2. **Parse at boundaries** -- flag raw data access without schema validation.
-3. **Structured logging** -- flag string-formatted log calls.
-4. **Naming conventions** -- flag types missing the `*Schema` or `*Type` suffix where required.
-5. **File size limits** -- flag files exceeding the configured maximum.
-6. **Internalizable dependencies** -- flag opaque third-party packages that could be replaced with a simple internal implementation.
-
-When a violation is found, open a targeted refactoring pull request rather than a broad cleanup. Keep changes small and reviewable.
-
 ## Technical debt tracker
-
-Maintain `docs/exec-plans/tech-debt-tracker.md` as a living document.
 
 ```markdown
 # Technical Debt Tracker
 
 ## Active
 
-| ID | Description | Domain | Priority | Owner | Added |
+| ID | Description | Area | Priority | Validation Gap | Added |
 | --- | --- | --- | --- | --- | --- |
-| TD-001 | Missing validation on connector input | Connectors | High | agent | 2026-04-15 |
-| TD-002 | Log formatting inconsistent in Runtime | Runtime | Medium | agent | 2026-04-18 |
+| TD-001 | Checkout spec lacks hook coverage | Checkout | High | pre-push skips checkout journey | 2026-05-07 |
 
 ## Resolved
 
 | ID | Description | Resolution | Resolved |
 | --- | --- | --- | --- |
-| TD-003 | Duplicate string helpers in Service | Extracted to shared util | 2026-04-20 |
+| TD-000 | Missing harness config | Added docs/harness-engineering/harness-engineering.json | 2026-05-07 |
 ```
 
-Debt items are reviewed on each gardening run. Items at High priority are scheduled for the next cleanup cycle. Items at Medium or Low are addressed as capacity allows.
+## Cleanup units
 
-## Cleanup automation pattern
-
-```text
-Schedule:
-  - Daily: doc-gardening scan + quality grade update
-  - Weekly: golden principles scan + tech debt review
-  - Per-release: full architecture compliance check
-
-Each run:
-  1. Scan for violations.
-  2. Open targeted fix-up PRs.
-  3. Update quality grades.
-  4. Update tech debt tracker.
-  5. Merge auto-eligible PRs after review window.
-```
+- One stale doc and its matching script update.
+- One broken link class under configured docs paths.
+- One quality grade update with evidence.
+- One debt item creation or closure.
+- One CI, hook, build integration, or user requirement rule drift fix.
 
 ## Common mistakes
 
-- Spending a fixed day (e.g., "Fix-it Friday") on cleanup instead of continuous gardening. Dedicated cleanup days do not scale.
-- Opening large refactoring PRs instead of small targeted fixes. Keep each PR reviewable in under one minute.
-- Tracking debt in an external system. The tracker MUST live in the repository so agents can access it.
-- Updating quality grades manually. Automate the grading so it stays current.
-- Ignoring C-grade domains. A domain at C degrades quickly; prioritize it before it drops to D.
-
+- Gardening docs without updating scripts or checks.
+- Tracking debt outside the repository.
+- Updating quality grades without citing validation evidence.
+- Treating generated docs as authored docs instead of regenerating them from their declared scripts.

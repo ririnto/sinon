@@ -1,74 +1,67 @@
 # CLAUDE.md Template
 
-Copy this template when creating `CLAUDE.md` from scratch. Adjust section titles and file paths to match the repository. Keep the total under 150 lines. After creating `CLAUDE.md`, create `AGENTS.md` as a symlink pointing to it.
+Copy this template when creating root `CLAUDE.md` in a target repository. Keep it as a table of contents that points to configured docs paths. Create `AGENTS.md -> CLAUDE.md` so Codex and other AGENTS.md readers see the same map.
 
 ```markdown
 # CLAUDE.md
 
-This file is the table of contents for agent context. It points to deeper sources of truth in `docs/`. Do not add inline guidance here; update the referenced files instead.
+This file is the repository-level rule map for agent context. The harness source of truth is `docs/harness-engineering/harness-engineering.json`. Update the referenced docs and scripts instead of adding long guidance here.
+
+## Harness Config
+
+See `docs/harness-engineering/harness-engineering.json` for project profile, docs paths, scripts paths, source roots, schema sources, generated artifact policy, layer model, checks, per-setting `warn`/`error` enforcement levels, readiness, staged gates, CI provider, hooks, and build integration.
+
+## Guardrails
+
+See `docs/harness-engineering/guardrails.md` for setup-time repository guardrails and scoped path rules.
+
+## Readiness
+
+See `docs/harness-engineering/readiness.md` for maturity level, known violations, ratchet budget, and doc freshness status.
+
+## Harness Updates
+
+See `docs/harness-engineering/updates.md` for guardrail changes and docs/script alignment records.
 
 ## Architecture
 
-See `docs/ARCHITECTURE.md` for the top-level domain map and package layering.
+See `ARCHITECTURE.md` for the target repository's source roots, layer model, allowed dependencies, ADR constraints, profile-specific rules, and architecture checks.
 
-## Design
+## Full Specs
 
-See `docs/DESIGN.md` for design system patterns and conventions.
+See `docs/product-specs/` for durable product, feature, and system specifications. Implementation changes should update the relevant spec and validation script together.
 
-## Frontend
+## Generated Docs
 
-See `docs/FRONTEND.md` for frontend architecture.
+See `docs/generated/` for derived artifacts with provenance, source paths, and regeneration commands. Source schemas stay in checked-in project roots such as migrations, OpenAPI/protobuf/GraphQL specs, Prisma schema, or entity packages.
 
-## Product
-
-See `docs/product-specs/index.md` for feature specifications and user stories.
-
-## Active work
+## Active Work
 
 See `docs/exec-plans/active/` for in-progress execution plans.
 
-## Completed work
+## Completed Work
 
-See `docs/exec-plans/completed/` for merged and retired execution plans.
+See `docs/exec-plans/completed/` for completed execution plans and decision logs.
 
-## Design decisions
+## Quality And Debt
 
-See `docs/design-docs/index.md` for the design decision catalog with verification status.
+See `docs/QUALITY_SCORE.md` and `docs/exec-plans/tech-debt-tracker.md` for quality tracking and known follow-up work.
 
-## Core beliefs
+## Validation
 
-See `docs/design-docs/core-beliefs.md` for agent-first operating principles.
-
-## Quality
-
-See `docs/QUALITY_SCORE.md` for per-domain and per-layer quality grades.
-
-## Technical debt
-
-See `docs/exec-plans/tech-debt-tracker.md` for known debt items.
-
-## Reliability
-
-See `docs/RELIABILITY.md` for SLOs and reliability requirements.
-
-## Security
-
-See `docs/SECURITY.md` for the security model and threat boundaries.
+Run `sh scripts/harness/validate_harness.sh` before changing harness docs, scripts, CI, hooks, or architecture rules. The wrapper must call `uvx --offline --no-python-downloads python scripts/harness/validate_harness.py` internally.
 
 ## References
 
-See `docs/references/` for third-party documentation repackaged for agent context.
-
-## Generated artifacts
-
-See `docs/generated/` for auto-generated documentation (schemas, API docs).
+See `docs/references/` for third-party or generated reference material packaged for offline agent use.
 ```
 
 ## Symlink setup
 
-```sh
+```bash
 ln -s CLAUDE.md AGENTS.md
+mkdir -p .agents .claude/skills
+ln -s ../.claude/skills .agents/skills
 ```
 
-`AGENTS.md` is a symlink that resolves to `CLAUDE.md`. Both names provide the same content to their respective agent runtimes. Do not create separate files.
-
+Use `.agents/skills -> ../.claude/skills` only after creating `.agents/` and `.claude/skills`. Do not maintain duplicate skill inventories. `AGENTS.md` should remain a symlink to `CLAUDE.md`, not a separate instruction file.

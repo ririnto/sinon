@@ -1,17 +1,18 @@
 # Docs Directory Scaffold
 
-Copy this structure when scaffolding the `docs/` directory for an agent-first repository. Create only the directories and files the repository needs; omit sections that do not apply.
+Copy this structure into target repositories that do not already have harness docs. Match paths to `docs/harness-engineering/harness-engineering.json`; omit files the target repo does not need.
 
 ```text
+CLAUDE.md
+AGENTS.md -> CLAUDE.md
+ARCHITECTURE.md
 docs/
-├── ARCHITECTURE.md
-├── DESIGN.md
-├── FRONTEND.md
-├── PLANS.md
-├── PRODUCT_SENSE.md
-├── QUALITY_SCORE.md
-├── RELIABILITY.md
-├── SECURITY.md
+├── harness-engineering/
+│   ├── harness-engineering.json
+│   ├── guardrails.md
+│   ├── readiness.md
+│   ├── updates.md
+│   └── known-violations.md
 ├── design-docs/
 │   ├── index.md
 │   └── core-beliefs.md
@@ -22,91 +23,149 @@ docs/
 ├── generated/
 │   └── db-schema.md
 ├── product-specs/
-│   └── index.md
-└── references/
+│   ├── index.md
+│   └── new-user-onboarding.md
+├── references/
+│   ├── design-system-reference-llms.txt
+│   ├── nixpacks-llms.txt
+│   └── uv-llms.txt
+├── DESIGN.md
+├── FRONTEND.md
+├── PLANS.md
+├── PRODUCT_SENSE.md
+├── QUALITY_SCORE.md
+├── RELIABILITY.md
+└── SECURITY.md
+scripts/
+└── harness/
+    ├── validate_harness.py
+    └── validate_harness.sh
 ```
 
-## File contents
+## harness-engineering/guardrails.md
 
-### ARCHITECTURE.md
+```markdown
+# Harness Guardrails
+
+The authoritative harness config is `docs/harness-engineering/harness-engineering.json`.
+
+`CLAUDE.md` is the repository-level rule map. `AGENTS.md -> CLAUDE.md` is required unless `docs.compatibilitySymlinkStatus` records a pending no-overwrite conflict.
+
+## Staged Gates
+
+| Stage | Mode | Exit Gate |
+| --- | --- | --- |
+| 0 discovery | report | Inventory complete |
+| 1 visibility | advisory | Config and docs validate |
+| 2 local guardrails | warn | Local validator runs |
+| 3 shared gates | error | CI, Gradle, Node, or standalone lane passes and error findings fail |
+| 4 ratchet | error new debt | Known violations trend down |
+
+## Scoped Path Rules
+
+| Path | Rule | Source |
+| --- | --- | --- |
+| src/domains/** | Follow configured layer model | ARCHITECTURE.md |
+| docs/product-specs/**/*.md | User requirements name source, acceptance criteria, and validation surface | userRequirementRules |
+```
+
+## harness-engineering/readiness.md
+
+```markdown
+# Harness Readiness
+
+| Signal | Score | Evidence |
+| --- | --- | --- |
+| Config visible | 1 | docs/harness-engineering/harness-engineering.json |
+| Validator installed | 1 | scripts/harness/validate_harness.py and scripts/harness/validate_harness.sh |
+| CI gate enabled | 0 | Pending Stage 3 |
+
+## Known Violations
+
+See `docs/harness-engineering/known-violations.md`.
+```
+
+## ARCHITECTURE.md
 
 ```markdown
 # Architecture
 
-Top-level map of business domains and package layering.
+The authoritative harness config is `docs/harness-engineering/harness-engineering.json`.
 
-## Domains
+## Source Roots
 
-| Domain | Description | Path |
+| Root | Purpose |
+| --- | --- |
+| src | Application source |
+
+## Layer Model
+
+This repository uses the layer model declared in `docs/harness-engineering/harness-engineering.json`. The default example is `types -> config -> repo -> service -> runtime -> ui`; replace it when the repository uses a different model.
+
+## Project Profiles
+
+Project-specific profiles may change source roots, test roots, schema source paths, generated artifact policy, build integration, and enforcement details. Spring Boot examples include `src/main/java`, `src/main/kotlin`, `src/main/resources/db/migration`, `src/main/resources/db/changelog`, `src/main/resources/openapi`, `src/main/proto`, GraphQL schemas, and JPA/entity packages.
+
+## Enforcement Levels
+
+Each setting-level rule uses `warn` or `error` from `enforcement.settings`. User-specific rules use `userRequirementRules[].severity`.
+
+## Checks
+
+| Check | Command | Scope |
 | --- | --- | --- |
-| ... | ... | ... |
-
-## Layer model
-
-Each domain follows: Types → Config → Repo → Service → Runtime → UI
-
-Cross-cutting concerns enter through Providers.
+| Harness validation | `sh scripts/harness/validate_harness.sh` | Config, docs, scripts, CI, hooks, Gradle, Node, standalone lanes |
+| User requirement rules | configured rule validation | Product specs, acceptance criteria, generated boundaries |
 ```
 
-### QUALITY_SCORE.md
-
-```markdown
-# Quality Score
-
-| Domain | Types | Config | Repo | Service | Runtime | UI | Overall |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| ... | ... | ... | ... | ... | ... | ... | ... |
-```
-
-### design-docs/index.md
-
-```markdown
-# Design Docs
-
-| Title | Summary | Status | Last Reviewed |
-| --- | --- | --- | --- |
-| ... | ... | ... | ... |
-```
-
-### product-specs/index.md
+## product-specs/index.md
 
 ```markdown
 # Product Specs
 
-| Title | Summary | Status | Last Reviewed |
+| Spec | Implementation | Validation | Status |
 | --- | --- | --- | --- |
-| ... | ... | ... | ... |
+| Example | src/example | scripts/harness/validate_harness.py | draft |
 ```
 
-### generated/db-schema.md
-
-Generated artifacts are created by tooling, not authored manually. Do not edit these files directly; update the generation script instead.
+## generated/db-schema.md
 
 ```markdown
 # Database Schema
 
-<!-- Auto-generated by scripts/generate-schema-docs.sh. Do not edit. -->
+## Provenance
 
-| Table | Columns | Description |
-| --- | --- | --- |
-| ... | ... | ... |
+| Field | Value |
+| --- | --- |
+| Source paths | src/main/resources/db/migration |
+| Generated by | `sh scripts/harness/validate_harness.sh` |
+| Regenerate | `sh scripts/harness/validate_harness.sh` |
+
+This file is derived documentation. Do not store source schemas under `docs/generated/`.
 ```
 
-### exec-plans/tech-debt-tracker.md
+## QUALITY_SCORE.md
+
+```markdown
+# Quality Score
+
+| Area | Docs | Tests | Checks | Debt | Overall |
+| --- | --- | --- | --- | --- | --- |
+| Example | B | B | B | B | B |
+```
+
+## exec-plans/tech-debt-tracker.md
 
 ```markdown
 # Technical Debt Tracker
 
 ## Active
 
-| ID | Description | Domain | Priority | Owner | Added |
+| ID | Description | Area | Priority | Validation Gap | Added |
 | --- | --- | --- | --- | --- | --- |
-| ... | ... | ... | ... | ... | ... |
 
 ## Resolved
 
 | ID | Description | Resolution | Resolved |
 | --- | --- | --- | --- |
-| ... | ... | ... | ... |
 ```
-
