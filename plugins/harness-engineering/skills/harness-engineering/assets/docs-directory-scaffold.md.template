@@ -1,6 +1,6 @@
 # Docs Directory Scaffold
 
-Copy this structure into target repositories that do not already have harness docs. Match paths to `docs/harness-engineering/harness-engineering.json`; omit files the target repo does not need.
+Copy this baseline structure into target repositories that do not already have harness docs. Match paths to `docs/harness-engineering/harness-engineering.json`, this plugin's docs-adjacent metadata convention; omit files the target repo does not need. Additional operational resources may live under `docs/harness-engineering/` when they support the harness config, readiness, updates, or validation workflow.
 
 ```text
 CLAUDE.md
@@ -47,7 +47,7 @@ scripts/
 ```markdown
 # Harness Guardrails
 
-The authoritative harness config is `docs/harness-engineering/harness-engineering.json`.
+The authoritative harness config is this plugin's docs-adjacent metadata file at `docs/harness-engineering/harness-engineering.json`.
 
 `CLAUDE.md` is the repository-level rule map. `AGENTS.md -> CLAUDE.md` is required unless `docs.compatibilitySymlinkStatus` records a pending no-overwrite conflict.
 
@@ -58,7 +58,7 @@ The authoritative harness config is `docs/harness-engineering/harness-engineerin
 | 0 discovery | report | Inventory complete |
 | 1 visibility | advisory | Config and docs validate |
 | 2 local guardrails | warn | Local validator runs |
-| 3 shared gates | error | CI, Gradle, Node, or standalone lane passes and error findings fail |
+| 3 shared gates | error | CI or hook wrapper command passes and error findings fail |
 | 4 ratchet | error new debt | Known violations trend down |
 
 ## Scoped Path Rules
@@ -66,7 +66,13 @@ The authoritative harness config is `docs/harness-engineering/harness-engineerin
 | Path | Rule | Source |
 | --- | --- | --- |
 | src/domains/** | Follow configured layer model | ARCHITECTURE.md |
-| docs/product-specs/**/*.md | User requirements name source, acceptance criteria, and validation surface | userRequirementRules |
+| docs/product-specs/**/*.md | User requirements name source, acceptance criteria, and validation surface | product specs and checks |
+
+## Lifecycle
+
+Every harness configuration, validation script, wrapper command, CI/hook template, and allowed command form is a lifecycle artifact that evolves with the project. Update the harness config, scripts, CI, and hooks together and keep them documented and validated as a unit.
+
+Stages, hooks, required commands, and optional commands are declarative lifecycle gates. The config names each gate, enforcement mode, and command surface before CI or hooks enforce it.
 ```
 
 ## harness-engineering/readiness.md
@@ -90,7 +96,7 @@ See `docs/harness-engineering/known-violations.md`.
 ```markdown
 # Architecture
 
-The authoritative harness config is `docs/harness-engineering/harness-engineering.json`.
+The authoritative harness config is this plugin's docs-adjacent metadata file at `docs/harness-engineering/harness-engineering.json`.
 
 ## Source Roots
 
@@ -100,21 +106,21 @@ The authoritative harness config is `docs/harness-engineering/harness-engineerin
 
 ## Layer Model
 
-This repository uses the layer model declared in `docs/harness-engineering/harness-engineering.json`. The default example is `types -> config -> repo -> service -> runtime -> ui`; replace it when the repository uses a different model.
+This repository documents its layer model here. The default example is `types -> config -> repo -> service -> runtime -> ui`; replace it when the repository uses a different model.
 
 ## Project Profiles
 
-Project-specific profiles may change source roots, test roots, schema source paths, generated artifact policy, build integration, and enforcement details. Spring Boot examples include `src/main/java`, `src/main/kotlin`, `src/main/resources/db/migration`, `src/main/resources/db/changelog`, `src/main/resources/openapi`, `src/main/proto`, GraphQL schemas, and JPA/entity packages.
+Project-specific docs may name source roots, test roots, schema source paths, generated artifact policy, and enforcement details. Keep that metadata in this architecture doc, guardrail docs, or a target-specific integration file unless a separate integration pack owns a machine-readable extension.
 
 ## Enforcement Levels
 
-Each setting-level rule uses `warn` or `error` from `enforcement.settings`. User-specific rules use `userRequirementRules[].severity`.
+Each setting-level rule names its severity, evidence path, and validator surface in the docs that own that rule.
 
 ## Checks
 
 | Check | Command | Scope |
 | --- | --- | --- |
-| Harness validation | `sh scripts/harness/validate_harness.sh` | Config, docs, scripts, CI, hooks, Gradle, Node, standalone lanes |
+| Harness validation | `sh scripts/harness/validate_harness.sh` | Config, docs, scripts, CI, hooks, readiness, and generated-doc provenance |
 | User requirement rules | configured rule validation | Product specs, acceptance criteria, generated boundaries |
 ```
 
