@@ -55,4 +55,4 @@ Copy this template when writing execution plans for complex work. Use the plan p
 - Complex work MUST use the full template with decision log and progress tracking.
 - Plans are checked into the repository so agents can operate without external context.
 - When a plan is completed, move it to `docs/exec-plans/completed/` and update the status field.
-- When the work changes harness docs, scripts, CI, hooks, build integrations, user requirement rules, or source roots, update `docs/harness-engineering/harness-engineering.json` and record the docs/script alignment in the same change set.
+- When the work changes harness docs, scripts, CI, hooks, or validation commands, update `docs/harness-engineering/harness-engineering.json` and record the docs/script alignment in the same change set. When work changes source roots or project-specific requirement rules, update the architecture or guardrail docs that own those rules.

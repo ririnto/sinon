@@ -4,19 +4,16 @@ Open this reference when configuring recurring doc gardening, quality tracking, 
 
 ## Inputs
 
-Read these fields first:
+Read these surfaces first:
 
-- `docs.root`
-- `docs.plans.active`
-- `docs.plans.completed`
-- `docs.plans.debt`
-- `docs.quality`
+- root `CLAUDE.md`
+- root `ARCHITECTURE.md`
+- `docs.harnessRoot`
+- `docs.guardrails`
+- `docs.knownViolations`
+- `docs.readiness`
+- `docs.updates`
 - `checks.requiredCommands`
-- `sourceRoots`
-- `readiness.maturityLevel`
-- `readiness.knownViolations`
-- `readiness.ratchet`
-- `readiness.freshness`
 
 ## Gardening cadence
 
@@ -37,7 +34,7 @@ Use readiness to decide whether guardrails report `warn` findings or fail on `er
 | 0 | Discovery only | Report inventory and conflicts |
 | 1 | Visible config and docs | Validate shape and required docs |
 | 2 | Advisory local checks | Warn locally and record known violations |
-| 3 | Shared error gates | Fail new error-level violations in CI, Gradle, Node, or standalone lanes |
+| 3 | Shared error gates | Fail new error-level violations in CI or configured hooks |
 | 4 | Ratcheted maturity | Reduce known-violation budget and enforce freshness |
 
 The known-violation ledger should list legacy issues that are allowed temporarily. New `error` findings should fail once Stage 3 is active.
@@ -79,7 +76,7 @@ Use the target repo's configured layers or quality categories. The default domai
 - One broken link class under configured docs paths.
 - One quality grade update with evidence.
 - One debt item creation or closure.
-- One CI, hook, build integration, or user requirement rule drift fix.
+- One CI, hook, or user requirement rule drift fix.
 
 ## Common mistakes
 
