@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "harness-engineering",
-  "description": "Apply staged setup-time harness guardrails with OpenAI-style repo layout defaults and flexible project profiles.",
+  "description": "Apply staged setup-time docs and configuration guardrails with docs-adjacent metadata.",
   "author": {
     "name": "ririnto"
   },
@@ -17,13 +17,11 @@
     "documentation",
     "harness",
     "hooks",
-    "linting",
     "progressive-disclosure",
     "readiness",
     "repository-application",
     "repository-structure",
     "scaffolding",
-    "spring-boot",
     "staged-guardrails"
   ]
 }

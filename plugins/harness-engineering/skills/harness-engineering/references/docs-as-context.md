@@ -49,8 +49,8 @@ When implementation changes, update this spec and the related validation script 
 - Every scoped path rule cites a spec, ADR, architecture section, or guardrail record.
 - Every generated doc names the generation script and output path.
 - Every generated doc is reproducible from checked-in source schema paths and does not become the source schema itself.
-- Every script described in docs exists and is called by CI, hooks, Gradle, Node package scripts, standalone lanes, or a documented manual command.
-- Every architectural rule in docs maps to `layerModel`, `checks`, or a target-specific check entry.
+- Every script described in docs exists and is called by CI, hooks, the harness shell wrapper, or a documented manual command.
+- Every architectural rule in docs maps to `checks`, `ARCHITECTURE.md`, or a target-specific check entry.
 - Every docs freshness threshold appears in `docs/harness-engineering/readiness.md` with current status.
 
 ## Common drift fixes

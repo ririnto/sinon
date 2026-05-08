@@ -5,11 +5,11 @@ Copy this template when creating root `CLAUDE.md` in a target repository. Keep i
 ```markdown
 # CLAUDE.md
 
-This file is the repository-level rule map for agent context. The harness source of truth is `docs/harness-engineering/harness-engineering.json`. Update the referenced docs and scripts instead of adding long guidance here.
+This file is the repository-level rule map for agent context. The harness source of truth is this plugin's docs-adjacent metadata file at `docs/harness-engineering/harness-engineering.json`. Update the referenced docs and scripts instead of adding long guidance here.
 
 ## Harness Config
 
-See `docs/harness-engineering/harness-engineering.json` for project profile, docs paths, scripts paths, source roots, schema sources, generated artifact policy, layer model, checks, per-setting `warn`/`error` enforcement levels, readiness, staged gates, CI provider, hooks, and build integration.
+See `docs/harness-engineering/harness-engineering.json` for docs paths, scripts paths, checks, staged gates, CI provider, and hooks.
 
 ## Guardrails
 
@@ -33,7 +33,7 @@ See `docs/product-specs/` for durable product, feature, and system specification
 
 ## Generated Docs
 
-See `docs/generated/` for derived artifacts with provenance, source paths, and regeneration commands. Source schemas stay in checked-in project roots such as migrations, OpenAPI/protobuf/GraphQL specs, Prisma schema, or entity packages.
+See `docs/generated/` for derived artifacts with provenance, source paths, and regeneration commands. Source schemas stay in checked-in project roots such as migrations, OpenAPI/protobuf/GraphQL specs, or Prisma schema.
 
 ## Active Work
 
@@ -49,7 +49,9 @@ See `docs/QUALITY_SCORE.md` and `docs/exec-plans/tech-debt-tracker.md` for quali
 
 ## Validation
 
-Run `sh scripts/harness/validate_harness.sh` before changing harness docs, scripts, CI, hooks, or architecture rules. The wrapper must call `uvx --offline --no-python-downloads python scripts/harness/validate_harness.py` internally.
+Run `sh scripts/harness/validate_harness.sh` before changing harness docs, scripts, CI, hooks, or architecture rules. The wrapper should use local Python when available and may fall back to `uvx --offline --no-python-downloads python` when the target environment lacks a Python command.
+
+Every harness configuration, validation script, wrapper command, CI/hook template, and allowed command form is a lifecycle artifact. When the project matures, update the harness config, scripts, CI, and hooks together and keep them documented and validated as a unit.
 
 ## References
 

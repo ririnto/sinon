@@ -1,6 +1,6 @@
 # Harness Update Record
 
-Copy this file when changing harness docs, scripts, CI, hooks, build integrations, user requirement rules, readiness gates, guardrail stages, or the layer model.
+Copy this file when changing harness docs, scripts, CI, hooks, project-specific requirement docs, readiness gates, guardrail stages, or the documented layer model.
 
 ````markdown
 # Harness Update: {Title}

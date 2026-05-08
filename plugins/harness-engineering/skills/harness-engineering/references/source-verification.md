@@ -1,6 +1,6 @@
 # Source Verification
 
-Open this reference when updating the OpenAI Harness Engineering source mapping, CI/build/script templates, YAML style guidance, or Claude/Codex compatibility rules.
+Open this reference when updating the OpenAI Harness Engineering source mapping, CI/script templates, YAML style guidance, or Claude/Codex compatibility rules.
 
 ## Verified source
 
@@ -22,31 +22,32 @@ Open this reference when updating the OpenAI Harness Engineering source mapping,
 - Architecture rules use mechanically enforced layer boundaries and taste invariants rather than prose-only guidance.
 - Execution plans, agent review loops, CI checks, and entropy cleanup are first-class repository systems that support higher autonomy over time.
 
+## Plugin-specific conventions layered on top
+
+- The OpenAI article informs the repository knowledge-base shape and enforcement posture; it does not define `docs/harness-engineering/harness-engineering.json`, root `.harness-engineering.json`, staged config fields, or validator command forms.
+- `docs/harness-engineering/harness-engineering.json` is this plugin's stable convention for target-specific, machine-readable, docs-adjacent harness metadata.
+- The path is namespaced under `docs/harness-engineering/` so operational metadata can sit beside guardrails, readiness, known-violation, update, and validation resources without crowding root `CLAUDE.md`, `AGENTS.md`, or `ARCHITECTURE.md`.
+- Root `.harness-engineering.json` is manual migration input only when an existing repository already has one; it is not a supported fallback path for new setup or validation.
+- The plugin adds staged fields, readiness scoring, user requirement rules, validators, CI/hooks templates, and harness engineering checks on top of the article-derived knowledge-base posture.
+
 ## Supporting official references
 
 | Surface | Reference | Encoded guidance |
 | --- | --- | --- |
 | GitHub Actions events and branch filters | `https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions` | `push`, `pull_request`, `workflow_dispatch`, branch filters, minimal workflow permissions |
 | GitLab CI rules | `https://docs.gitlab.com/ee/ci/yaml/` | `workflow: rules`, job `rules`, `merge_request_event`, branch-push conditions |
-| YAML block chomping | `https://yaml.org/spec/1.2.2/#8111-block-chomping-indicator` | `|-` strips the final newline for literal command blocks |
+| YAML block chomping | `https://yaml.org/spec/1.2.2/#8111-block-chomping-indicator` | `\|-` strips the final newline for literal command blocks |
 | YAML folded style | `https://yaml.org/spec/1.2.2/#812-folded-style` | `>-` folds scalar text and strips the final newline |
-| npm scripts | `https://docs.npmjs.com/cli/using-npm/scripts` | `npm run harness:validate` as the npm entrypoint |
-| pnpm scripts | `https://pnpm.io/cli/run` | `pnpm run harness:validate` as the pnpm entrypoint |
-| Yarn script command | `https://yarnpkg.com/cli/run` | `yarn run harness:validate` as the Yarn entrypoint |
-| Bun package scripts | `https://bun.sh/docs/cli/run` | `bun run harness:validate` as the Bun entrypoint |
-| Gradle Exec task | `https://docs.gradle.org/current/dsl/org.gradle.api.tasks.Exec.html` | `tasks.register<Exec>("harnessCheck")` with `commandLine(...)` |
-| Gradle lifecycle check task | `https://docs.gradle.org/current/userguide/base_plugin.html` | Wire `harnessCheck` into `check` only when Gradle integration is enabled |
 | uvx command | `https://docs.astral.sh/uv/reference/cli/#uvx` | `uvx --offline --no-python-downloads python ...` for the direct wrapper when `uvx` is provisioned |
 | Claude Code memory | `https://docs.anthropic.com/en/docs/claude-code/memory` | `CLAUDE.md` is the Claude Code project memory entrypoint |
 | Claude Code agents | `https://docs.anthropic.com/en/docs/claude-code/sub-agents` | Project-specific agents can live under `.claude/agents/` when copied into target repos |
-| Playwright Python API | `https://playwright.dev/python/docs/api/class-page` and `https://playwright.dev/python/docs/videos` | `page.video.path()` and context-level video recording examples in `references/agent-legibility.md` |
 
-Re-check these sources when changing command syntax, event rules, package-manager script forms, YAML scalar style, or Claude ecosystem paths.
+Re-check these sources when changing command syntax, event rules, YAML scalar style, or Claude ecosystem paths.
 
 ## Local adaptations
 
 - This repository keeps `CLAUDE.md` as the canonical root map and exposes `AGENTS.md -> CLAUDE.md` for compatibility.
 - `ARCHITECTURE.md` remains root-level, not under `docs/`.
 - `.agents/skills -> ../.claude/skills` remains the compatibility direction when both skill surfaces exist.
-- `docs/harness-engineering/harness-engineering.json` is the target repository's visible config source of truth.
+- `docs/harness-engineering/harness-engineering.json` is this plugin's visible config source of truth for target repositories.
 - `docs/generated/` holds reproducible derived documentation only; source schemas remain in project-specific source roots.

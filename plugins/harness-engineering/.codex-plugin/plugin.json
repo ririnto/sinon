@@ -1,6 +1,6 @@
 {
   "name": "harness-engineering",
-  "description": "Apply staged setup-time harness guardrails with OpenAI-style repo layout defaults and flexible project profiles.",
+  "description": "Apply staged setup-time docs and configuration guardrails with docs-adjacent metadata.",
   "author": {
     "name": "ririnto"
   },
@@ -16,19 +16,17 @@
     "documentation",
     "harness",
     "hooks",
-    "linting",
     "progressive-disclosure",
     "readiness",
     "repository-application",
     "repository-structure",
     "scaffolding",
-    "spring-boot",
     "staged-guardrails"
   ],
   "interface": {
     "displayName": "Harness Engineering",
-    "shortDescription": "Apply staged setup-time guardrails to target repositories.",
-    "longDescription": "Install the Harness Engineering plugin to inspect a target repository, generate docs/harness-engineering/harness-engineering.json, apply the OpenAI-style default layout with root CLAUDE.md plus AGENTS.md -> CLAUDE.md, root ARCHITECTURE.md, staged guardrail docs, scripts, CI, git hooks, readiness scoring, generated-doc provenance, and optional build integration, then adapt paths through project profiles such as Spring Boot.",
+    "shortDescription": "Apply staged docs/config guardrails to target repositories.",
+    "longDescription": "Install the Harness Engineering plugin to inspect a target repository, generate docs/harness-engineering/harness-engineering.json as visible docs-adjacent harness metadata, apply root CLAUDE.md plus AGENTS.md -> CLAUDE.md, root ARCHITECTURE.md, staged guardrail docs, scripts, CI, git hooks, readiness scoring, generated-doc provenance, and harness engineering validation. The core scope stays narrow; project-specific build or runtime integration packs may layer additional surfaces separately.",
     "developerName": "ririnto",
     "category": "Coding",
     "capabilities": [
@@ -40,7 +38,7 @@
       "Inspect this repository and draft docs/harness-engineering/harness-engineering.json with staged guardrails, root CLAUDE.md, AGENTS.md -> CLAUDE.md, and root ARCHITECTURE.md defaults.",
       "Install the configured docs, scripts, advisory hooks, CI gates, and readiness scaffolding without overwriting existing files.",
       "Validate this repository's harness against docs/harness-engineering/harness-engineering.json and report conflicts or drift.",
-      "Update the staged guardrails after this repo changed its project profile, schema sources, generated docs, CI provider, readiness level, or layer model."
+      "Update the staged guardrails after this repo changed its schema sources, generated docs, CI provider, readiness level, user requirement rules, or layer model."
     ],
     "websiteURL": "https://github.com/ririnto/sinon/tree/main/plugins/harness-engineering"
   }

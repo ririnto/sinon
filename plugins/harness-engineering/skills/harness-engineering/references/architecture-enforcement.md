@@ -1,31 +1,35 @@
 # Architecture Enforcement
 
-Open this reference when translating the target repository's configured `layerModel`, source roots, and checks into deterministic architecture enforcement.
+Open this reference when translating the target repository's documented layer model, source roots, and checks into deterministic architecture enforcement.
 
 ## Config-first rule
 
-The target repo's `docs/harness-engineering/harness-engineering.json` and root `ARCHITECTURE.md` are authoritative. The layer sequence below follows the OpenAI article's default business-domain model as an example only: `types -> config -> repo`, Providers feeding `service -> runtime -> ui`, and app wiring, UI, and utilities outside the domain boundary.
+The target repo's `docs/harness-engineering/harness-engineering.json` is this plugin's six-field machine-readable config convention, and root `ARCHITECTURE.md` is the human architecture source. The optional layer sequence below follows the OpenAI article's default business-domain model as an example only: `types -> config -> repo`, Providers feeding `service -> runtime -> ui`, and app wiring, UI, and utilities outside the domain boundary.
 
-```json
-{
-  "layerModel": {
-    "name": "default-domain-layers",
-    "roots": ["src/domains"],
-    "layers": ["types", "config", "repo", "providers", "service", "runtime", "ui"],
-    "allowedEdges": {
-      "types": [],
-      "config": ["types"],
-      "repo": ["config", "types"],
-      "providers": ["repo", "config", "types"],
-      "service": ["providers", "repo", "config", "types"],
-      "runtime": ["service", "providers", "repo", "config", "types"],
-      "ui": ["runtime", "service", "providers", "types"]
-    }
-  }
-}
+```yaml
+layer_model:
+  name: default-domain-layers
+  roots:
+    - src/domains
+  layers:
+    - types
+    - config
+    - repo
+    - providers
+    - service
+    - runtime
+    - ui
+  allowed_edges:
+    types: []
+    config: [types]
+    repo: [config, types]
+    providers: [repo, config, types]
+    service: [providers, repo, config, types]
+    runtime: [service, providers, repo, config, types]
+    ui: [runtime, service, providers, types]
 ```
 
-If the repo uses Spring Boot packages, `domain -> application -> infrastructure`, hexagonal ports, modules, or another model, encode that model instead of forcing the default.
+If the repo uses `domain -> application -> infrastructure`, hexagonal ports, modules, or another model, encode that model instead of forcing the default.
 
 ## Structural check shape
 
@@ -36,12 +40,12 @@ from pathlib import Path
 """
 Validate configured domain layer directories.
 
-:param config: Loaded docs/harness-engineering/harness-engineering.json document.
+:param architecture: Parsed architecture-doc model block.
 :return: List of human-readable violations.
 """
-def validate_layer_directories(config):
+def validate_layer_directories(architecture):
     violations = []
-    layer_model = config.get("layerModel", {})
+    layer_model = architecture.get("layer_model", {})
     layers = set(layer_model.get("layers", []))
     for root in layer_model.get("roots", []):
         root_path = Path(root)
@@ -77,11 +81,11 @@ def check_edge(source_layer, target_layer, allowed_edges):
 
 ## Taste invariants
 
-Place target-specific taste rules under `userRequirementRules`, `checks`, or a referenced docs file. Good candidates are file size, generated-file boundaries, structured logging, boundary parsing, naming conventions, and internal dependency rules. Do not call a preference mandatory unless a script, CI job, hook, Gradle task, Node package script, standalone lane, or documented review policy can verify it.
+Place target-specific taste rules under `checks` or a referenced docs file. Good candidates are file size, generated-file boundaries, structured logging, boundary parsing, naming conventions, and internal dependency rules. Do not call a preference mandatory unless a script, CI job, hook, shell-wrapper check, or documented review policy can verify it.
 
 ## Completion checks
 
-- `sourceRoots` and `layerModel.roots` exist or are reported as explicit pending scaffold actions.
+- Documented source roots and layer roots exist or are reported as explicit pending scaffold actions.
 - Every declared layer has a clear allowed-edge policy.
-- Architecture docs describe the same layer model as config.
-- CI, hooks, Gradle, Node package scripts, or standalone lanes run the validator or target-specific architecture check.
+- Architecture docs describe the same layer model used by structural checks.
+- CI or hooks run the validator or target-specific architecture check.

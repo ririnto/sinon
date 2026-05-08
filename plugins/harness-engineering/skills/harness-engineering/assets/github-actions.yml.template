@@ -2,9 +2,15 @@ name: harness-checks
 
 on:
   push:
-    branches: [develop, main, master]
+    branches:
+      - develop
+      - main
+      - master
   pull_request:
-    branches: [develop, main, master]
+    branches:
+      - develop
+      - main
+      - master
   workflow_dispatch:
 
 permissions: {}
@@ -26,7 +32,7 @@ jobs:
           git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
           git fetch --depth=1 origin "$GITHUB_SHA"
           git checkout --detach FETCH_HEAD
-      - name: Verify uvx is provisioned
-        run: uvx --version
+      - name: Verify local Python or uvx fallback is provisioned
+        run: python3 --version || python --version || uvx --offline --no-python-downloads python --version
       - name: Validate harness
         run: sh scripts/harness/validate_harness.sh
