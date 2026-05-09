@@ -4,13 +4,13 @@ description: >-
   Overview of the JVM plugin, its included skills, and JVM tooling and diagnostics workflows.
 ---
 
-JVM is a shared, skill-first plugin for standard JDK tooling, JVM runtime diagnostics, and garbage-collection workflows in the Sinon universal marketplace.
+JVM is a shared, skill-first plugin for standard JDK tooling, JVM runtime diagnostics, and garbage-collection workflows in the Sinon Claude marketplace.
 
 This plugin treats JDK 8, 11, 17, 21, and 25 as the supported LTS reference line.
 
 ## Purpose
 
-- Provide reusable JVM workflows that remain portable across Claude Code and Codex-style plugin systems.
+- Provide reusable JVM workflows that remain portable across Claude Code plugin installations.
 - Keep the portable value surface in `skills/` and avoid coupling the plugin to Java-language-server setup.
 - Ground guidance in official JDK, JVM, and HotSpot tooling references instead of ad-hoc advice.
 
@@ -34,39 +34,33 @@ Typical workflow:
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with two thin runtime manifests:
+This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
-- `.codex-plugin/plugin.json`
 
-The actual reusable content lives beside those manifests at the plugin root.
+The actual reusable content lives beside the manifest at the plugin root.
 
 ## Plugin Layout
 
 ```text
 plugins/jvm/
 ├── .claude-plugin/plugin.json
-├── .codex-plugin/plugin.json
 ├── README.md
 └── skills/
     ├── jvm-gc-diagnostics/
     │   ├── SKILL.md
-    │   ├── agents/openai.yaml
     │   └── references/
     ├── jvm-runtime-diagnostics/
     │   ├── SKILL.md
-    │   ├── agents/openai.yaml
     │   └── references/
     └── jvm-tooling-workflows/
         ├── SKILL.md
-        ├── agents/openai.yaml
         └── references/
 ```
 
 ## Shipped Surfaces
 
 - The plugin ships three reusable skills under `skills/`.
-- Each skill ships focused `references/` for blocker-specific JVM details and an `agents/openai.yaml` runtime surface for OpenAI-style agent packaging.
 - The plugin ships no plugin-root `agents/` directory.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 

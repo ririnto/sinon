@@ -1,4 +1,0 @@
-interface:
-  display_name: "Java Performance Concurrency"
-  short_description: "Java performance, profiling, and concurrency review"
-  default_prompt: "Use $java-performance-concurrency for Java bottlenecks, profiling strategy, contention, and virtual thread tradeoffs."

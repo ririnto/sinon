@@ -4,13 +4,11 @@ Open this file when `SKILL.md` already covers the baseline shape and you need a 
 
 ## Composite roots
 
-Use these when the plugin ships multiple optional surfaces and the simple starter tree is no longer descriptive.
+Use this when a Claude Code plugin ships multiple optional surfaces and the simple starter tree is no longer descriptive.
 
 ```text
 your-plugin/
 ├── .claude-plugin/
-│   └── plugin.json
-├── .codex-plugin/
 │   └── plugin.json
 ├── README.md
 ├── commands/
@@ -26,7 +24,7 @@ your-plugin/
     └── executive-summary.md
 ```
 
-This shape is useful when command, policy, server, and formatting surfaces all ship together.
+This shape is useful when command, policy, server, and formatting surfaces all ship together for Claude Code.
 
 ## Surface-specific helper directories
 
@@ -35,8 +33,6 @@ Some surfaces need adjacent helper files that do not fit the bare root list:
 ```text
 your-plugin/
 ├── .claude-plugin/
-│   └── plugin.json
-├── .codex-plugin/
 │   └── plugin.json
 ├── README.md
 ├── hooks/

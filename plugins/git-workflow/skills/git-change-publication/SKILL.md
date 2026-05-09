@@ -128,8 +128,8 @@ Detect the repository host before branching into host-specific references:
 
 ```bash
 git remote -v
-ls -d .hosted-service 2>/dev/null && echo "HAS_hosted-service_DIR"
-ls -d .hosted-service 2>/dev/null && echo "HAS_hosted-service_DIR"
+[ -d .hosted-service ] && echo "HAS_hosted-service_DIR"
+[ -d .hosted-service ] && echo "HAS_hosted-service_DIR"
 ```
 
 ### Detection Rules

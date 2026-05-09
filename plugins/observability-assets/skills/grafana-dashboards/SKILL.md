@@ -46,7 +46,7 @@ Use when: you need a minimal valid dashboard shell to validate JSON syntax befor
 Start by validating the JSON structure before the file is treated as a Git-owned dashboard asset:
 
 ```bash
-python3 -m json.tool grafana/dashboards/api-overview.json
+uv run -m json.tool grafana/dashboards/api-overview.json
 ```
 
 Use when: the dashboard JSON was edited manually and you need the first fast syntax check.
