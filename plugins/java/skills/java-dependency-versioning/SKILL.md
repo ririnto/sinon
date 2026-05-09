@@ -39,7 +39,9 @@ Resolve Java dependency coordinates without hardcoding stale version numbers int
 Start with one local coordinate check:
 
 ```bash
-grep -nE 'org\.awaitility|awaitility' pom.xml build.gradle build.gradle.kts gradle/libs.versions.toml 2>/dev/null
+for file in pom.xml build.gradle build.gradle.kts gradle/libs.versions.toml; do
+    [ -f "${file}" ] && grep -nE 'org\.awaitility|awaitility' "${file}"
+done
 ```
 
 Use when: you need to confirm whether the repository already declares the dependency or version reference locally.

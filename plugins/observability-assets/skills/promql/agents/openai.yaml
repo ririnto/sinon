@@ -1,4 +1,0 @@
-interface:
-  display_name: "PromQL"
-  short_description: "PromQL queries, matching, aggregation, and function choice"
-  default_prompt: "Use $promql for PromQL query design, aggregation, vector matching, and alert-vs-dashboard query review."

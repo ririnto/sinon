@@ -1,4 +1,0 @@
-interface:
-  display_name: "Git Change integration handoff"
-  short_description: "Commit readiness checks, split decisions, Conventional Commit drafting from real repository state, and hosted review body preparation"
-  default_prompt: "Use $git-change-integration handoff to decide whether changes are ready to commit, whether they should be split, draft a Conventional Commit message from the real diff, prepare hosted review body text, and branch into repository-specific template handling only when needed."

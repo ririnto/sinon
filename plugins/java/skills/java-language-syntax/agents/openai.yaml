@@ -1,4 +1,0 @@
-interface:
-  display_name: "Java Language Syntax"
-  short_description: "Java LTS syntax and foundational java.base guidance"
-  default_prompt: "Use $java-language-syntax for Java LTS syntax changes, feature comparisons, and baseline-safe java.base choices."

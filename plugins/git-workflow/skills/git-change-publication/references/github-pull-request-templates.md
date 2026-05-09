@@ -7,7 +7,7 @@ description: >-
 
 
 ```bash
-python - <<'PY'
+uv run python - <<'PY'
 from pathlib import Path
 
 paths = [

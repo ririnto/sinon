@@ -1,0 +1,26 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "harness",
+  "description": "Apply staged setup-time docs and configuration guardrails with docs-adjacent metadata.",
+  "author": {
+    "name": "ririnto"
+  },
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness",
+  "repository": "https://github.com/ririnto/sinon",
+  "license": "MIT",
+  "skills": "./skills/",
+  "keywords": [
+    "agent-first",
+    "architecture",
+    "ci",
+    "documentation",
+    "harness",
+    "hooks",
+    "progressive-disclosure",
+    "readiness",
+    "repository-application",
+    "repository-structure",
+    "scaffolding",
+    "staged-guardrails"
+  ]
+}

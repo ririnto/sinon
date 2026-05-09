@@ -62,7 +62,7 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 - [ ] String `call` entries use relative paths
 - [ ] No reverse-direction points (backlinks / "called by" lists) are maintained in spec bodies
 - [ ] Deprecated link-maintenance sections are absent (for example, `Link Maintenance`)
-- [ ] Inbound references are queryable from frontmatter call (`"${SKILL_ROOT}/scripts/sdd.sh" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md`)
+- [ ] Inbound references are queryable from frontmatter call (`"${SKILL_ROOT}/scripts/sdd.py" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md`)
 - [ ] No broken links
 
 ### Contract
@@ -117,5 +117,5 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 - [ ] `spec/CHANGELOG.md` includes only behavior changes, configuration additions or changes, and contract changes
 - [ ] `spec/CHANGELOG.md` excludes research, initialization, planning, and future-reservation content
 - [ ] Frontmatter `call` updated if dependencies changed
-- [ ] `"${SKILL_ROOT}/scripts/sdd.sh" validate ./spec` re-run after the final spec sync when `uv` can resolve its runtime and dependency/build artifacts from local cache or local files; otherwise the runtime blocker is documented and applicable checks are completed manually
+- [ ] `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` re-run after the final spec sync when `uv` can resolve its runtime and dependencies from local cache or local files; otherwise the runtime blocker is documented and applicable checks are completed manually
 - [ ] If the consuming repository already uses markdownlint, maintainers MAY re-run `npx -y markdownlint-cli2 <touched-markdown-files>` after the final Markdown sync

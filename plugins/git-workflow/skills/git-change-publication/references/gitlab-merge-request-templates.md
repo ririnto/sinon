@@ -7,7 +7,7 @@ description: >-
 
 
 ```bash
-python - <<'PY'
+uv run python - <<'PY'
 from pathlib import Path
 
 template_dir = Path('.hosted-service/merge_request_templates')
@@ -23,7 +23,7 @@ PY
 
 ```bash
 curl --header "PRIVATE-TOKEN: $hosted-service_TOKEN" \
-  "$hosted-service_API_URL/projects/$PROJECT_ID/templates/merge_requests" 2>/dev/null \
+  "$hosted-service_API_URL/projects/$PROJECT_ID/templates/merge_requests" \
   || echo "NO_API_ACCESS"
 ```
 
@@ -92,11 +92,11 @@ Detect instance-level template (API, maintainer/owner permissions required):
 
 ```bash
 curl --header "PRIVATE-TOKEN: $hosted-service_TOKEN" \
-    "$hosted-service_API_URL/templates/merge_requests" 2>/dev/null \
+    "$hosted-service_API_URL/templates/merge_requests" \
     || echo "NO_INSTANCE_TEMPLATE"
 
 curl --header "PRIVATE-TOKEN: $hosted-service_TOKEN" \
-    "$hosted-service_API_URL/templates/merge_requests/Default" 2>/dev/null \
+    "$hosted-service_API_URL/templates/merge_requests/Default" \
     || echo "NO_INSTANCE_DEFAULT_TEMPLATE"
 ```
 
