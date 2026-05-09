@@ -166,7 +166,7 @@ resolve_project_lombok_jar() {
     for metadata_file in "${project_root}/.classpath" "${project_root}/.factorypath"; do
         if [ -f "${metadata_file}" ]; then
             while IFS= read -r candidate_path; do
-                resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}" 2>/dev/null || true)
+                resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}" || true)
                 if [ -n "${resolved_path}" ]; then
                     candidate_version=$(version_from_lombok_path "${resolved_path}")
                     if [ -n "${candidate_version}" ] && is_compatible_lombok_version "${candidate_version}"; then
@@ -175,7 +175,7 @@ resolve_project_lombok_jar() {
                     fi
                 fi
             done <<EOF
-$(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}" 2>/dev/null || true)
+$(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}" || true)
 EOF
         fi
     done
@@ -184,7 +184,7 @@ EOF
         case "${metadata_file}" in
         */.classpath | */.factorypath)
             while IFS= read -r candidate_path; do
-                resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}" 2>/dev/null || true)
+                resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}" || true)
                 if [ -n "${resolved_path}" ]; then
                     candidate_version=$(version_from_lombok_path "${resolved_path}")
                     if [ -n "${candidate_version}" ] && is_compatible_lombok_version "${candidate_version}"; then
@@ -193,7 +193,7 @@ EOF
                     fi
                 fi
             done <<EOF
-$(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}" 2>/dev/null || true)
+$(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}" || true)
 EOF
             ;;
         esac

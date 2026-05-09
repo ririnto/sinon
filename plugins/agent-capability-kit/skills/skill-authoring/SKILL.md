@@ -282,6 +282,9 @@ Scripts are optional. Add `scripts/` only when code is safer than prose for a re
 - Bad candidates: interactive workflows, host-specific wrappers, web-required setup, one-off convenience commands
 - A script MUST stay non-interactive and SHOULD use tooling that is already common for the target environment
 - The ordinary path MUST still be understandable without reading the script source first
+- Python scripts in `scripts/` that run directly SHOULD declare PEP 723 inline metadata before imports. Use PEP 508 major-compatible dependency ranges for external packages, such as `package>=1.2.3,<2`, and use `dependencies = []` for stdlib-only direct scripts when an explicit declaration is needed.
+- JavaScript and TypeScript scripts in `scripts/` that run directly SHOULD use `#!/usr/bin/env bun`. Declare external dependencies with major-compatible import specifiers, such as `import * as cheerio from "cheerio@^1.0.0";`. Scripts that use only the JavaScript standard library or Bun built-ins need no dependency metadata block.
+- Shell scripts have no equivalent dependency metadata block. Document required commands beside the shell invocation or in `SKILL.md`.
 
 Open `references/scripts-guidance.md` only when you are unsure whether a script belongs in the skill or how to document it without making it mandatory.
 

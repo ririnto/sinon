@@ -4,11 +4,11 @@ description: >-
   Overview of the Spring plugin, its included skills, and practical Spring application workflow coverage.
 ---
 
-Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and the broader Spring portfolio in the Sinon universal marketplace.
+Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and the broader Spring portfolio in the Sinon Claude marketplace.
 
 ## Purpose
 
-- Provide reusable Spring workflows that remain portable across Claude Code and Codex-style plugin systems.
+- Provide reusable Spring workflows that remain portable across Claude Code plugin installations.
 - Keep skills practical, example-driven, and focused on real application tasks rather than framework trivia.
 - Separate Spring application concerns from Java language, JDK tooling, and Kotlin language concerns.
 
@@ -99,19 +99,17 @@ Scheduling boundary:
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with two thin runtime manifests:
+This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
-- `.codex-plugin/plugin.json`
 
-The actual reusable content lives beside those manifests at the plugin root.
+The actual reusable content lives beside the manifest at the plugin root.
 
 ## Plugin Layout
 
 ```text
 plugins/spring/
 ├── .claude-plugin/plugin.json
-├── .codex-plugin/plugin.json
 ├── README.md
 └── skills/
     ├── spring-ai/

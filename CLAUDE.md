@@ -5,14 +5,14 @@ description: Stable repository rules for plugin packaging and skill authoring in
 
 Sinon is a marketplace repository for Claude Code plugins and Agent Skills. These rules govern repository layout, skill authoring, and documentation posture. Normative keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) follow BCP 14. All repository-level and agent-facing rules documents MUST be written in English.
 
-The agentskills.io loading model is the top-level governing basis for skill structure and progressive disclosure. Runtime-specific packaging rules for Claude Code and Codex extend that model but do not override it.
+The agentskills.io loading model is the top-level governing basis for skill structure and progressive disclosure. Claude Code plugin packaging rules extend that model but do not override it.
 
 ## Canonical files and symlinks
 
 - `CLAUDE.md` is the canonical root rules document. `AGENTS.md` is a symlink to it; treat them as one document, not parallel copies.
 - `plugins/agent-capability-kit/skills/` is the canonical repository-local source for the shared authoring skills in this repository.
 - `.claude/skills/` contains mirrored symlink entries that resolve to `plugins/agent-capability-kit/skills/`.
-- `.agents/skills/` is a symlink to `.claude/skills/`; treat all three paths as one inventory, not separate sources.
+- `.agents/skills/` is a symlink to `.claude/skills/`; treat all three paths as one generic Agent Skills inventory, not separate sources.
 - Root-level documentation MUST describe repository-wide structure and rules, not fast-changing plugin details.
 
 ## Versioning
@@ -22,31 +22,23 @@ The agentskills.io loading model is the top-level governing basis for skill stru
 ## Repository layout
 
 - Plugins MUST live under `plugins/`.
-- Each plugin MAY expose multiple runtime manifests from the same plugin root.
-- Runtime-specific marketplace metadata MUST stay aligned with the plugin content it publishes.
+- Each plugin MAY expose a Claude Code runtime manifest from its plugin root.
+- Runtime marketplace metadata MUST stay aligned with the plugin content it publishes.
+- Runtime catalogs MUST publish only plugin roots that include the matching runtime manifest.
 - Each plugin root MUST ship a `README.md` that describes the plugin's purpose, included skills and agents, runtime model, layout, and scope notes.
 
 ## Plugin manifests
 
-Each plugin root ships both `.claude-plugin/plugin.json` and `.codex-plugin/plugin.json`. Fields that describe the plugin itself MUST stay identical across both manifests. Runtime-specific packaging metadata lives only in the manifest for that runtime.
+Plugin roots MAY ship `.claude-plugin/plugin.json` for Claude Code publication.
 
-Shared fields that MUST match across both manifests in a pair:
-
-- `name` and `description`
-- `author`, using the object form (for example, `"author": { "name": "ririnto" }`)
-- `repository`, `homepage`, and `license`
-- `skills`, when present, MUST use the directory form `"./skills/"` with a trailing slash. Array-of-paths form MUST NOT be used.
-- `agents` MUST NOT appear in either manifest. When a plugin ships agents, keep the `agents/` directory at the plugin root and describe that runtime surface in the plugin README instead of declaring an `agents` manifest key.
-- `version` MUST NOT appear in any plugin manifest.
-
-Claude Code packaging rules:
+Claude Code plugin manifest rules:
 
 - `.claude-plugin/plugin.json` MUST include the `$schema` field `"https://anthropic.com/claude-code/plugin.schema.json"`.
+- `author` MUST use the object form (for example, `"author": { "name": "ririnto" }`).
+- `skills`, when present, MUST use the directory form `"./skills/"` with a trailing slash. Array-of-paths form MUST NOT be used.
+- `agents` MUST NOT appear in the manifest. When a plugin ships agents, keep the `agents/` directory at the plugin root and describe that runtime surface in the plugin README instead of declaring an `agents` manifest key.
+- `version` MUST NOT appear in any plugin manifest.
 - `.claude-plugin/plugin.json` MUST NOT include an `interface` block.
-
-Codex packaging rules:
-
-- `.codex-plugin/plugin.json` MUST include an `interface` block with at least `displayName`, `shortDescription`, `longDescription`, `developerName`, `category`, `capabilities`, `defaultPrompt`, and `websiteURL`.
 
 Plugin structure rule:
 

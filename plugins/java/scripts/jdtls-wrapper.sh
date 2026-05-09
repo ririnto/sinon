@@ -48,7 +48,7 @@ resolve_project_lombok_jar() {
     # :description: Resolve the project-local Lombok jar path using has-lombok.sh.
     # :param project_root: Project root directory to scan.
     # :return: Prints the resolved jar path, or nothing if not found.
-    "${script_dir}/has-lombok.sh" --resolve-project-jar "$1" 2>/dev/null || true
+    "${script_dir}/has-lombok.sh" --resolve-project-jar "$1" || true
 }
 
 strip_existing_lombok_agents() {
@@ -146,11 +146,11 @@ maybe_enable_lombok_agent() {
     warn_optional_lombok_support "java: Enabled Lombok support from ${selected_source} source (${selected_jar})."
 }
 
-if ! command -v jdtls >/dev/null 2>&1; then
+if ! jdtls_path=$(command -v jdtls); then
     printf '%s\n' 'java: jdtls executable not found on PATH. Install jdtls first.' >&2
     exit 127
 fi
 
 maybe_enable_lombok_agent
 
-exec jdtls "$@"
+exec "${jdtls_path}" "$@"

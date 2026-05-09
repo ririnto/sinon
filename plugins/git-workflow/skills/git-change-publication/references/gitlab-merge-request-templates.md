@@ -11,7 +11,7 @@ Use this reference when the repository is hosted on GitLab and the blocker is ex
 Check whether the repository already ships a GitLab template before drafting a fallback body.
 
 ```bash
-python - <<'PY'
+uv run python - <<'PY'
 from pathlib import Path
 
 template_dir = Path('.gitlab/merge_request_templates')
@@ -29,7 +29,7 @@ Requires the `glab` CLI or `curl` with a token; skip this command when the envir
 
 ```bash
 curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-  "$GITLAB_API_URL/projects/$PROJECT_ID/templates/merge_requests" 2>/dev/null \
+  "$GITLAB_API_URL/projects/$PROJECT_ID/templates/merge_requests" \
   || echo "NO_API_ACCESS"
 ```
 
@@ -103,11 +103,11 @@ Detect instance-level template (API, maintainer/owner permissions required):
 
 ```bash
 curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-    "$GITLAB_API_URL/templates/merge_requests" 2>/dev/null \
+    "$GITLAB_API_URL/templates/merge_requests" \
     || echo "NO_INSTANCE_TEMPLATE"
 
 curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-    "$GITLAB_API_URL/templates/merge_requests/Default" 2>/dev/null \
+    "$GITLAB_API_URL/templates/merge_requests/Default" \
     || echo "NO_INSTANCE_DEFAULT_TEMPLATE"
 ```
 

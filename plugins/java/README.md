@@ -5,11 +5,11 @@ description: >-
   skill selection guidance, and Java LSP setup guidance.
 ---
 
-Java is a shared, skill-first plugin for Java language work in the Sinon universal marketplace.
+Java is a shared, skill-first plugin for Java language work in the Sinon Claude marketplace.
 
 ## Purpose
 
-- Provide reusable Java workflows that remain portable across Claude Code and Codex-style plugin systems.
+- Provide reusable Java workflows that remain portable across Claude Code plugin installations.
 - Keep the portable value surface in `skills/`, with Java-specific language-server integration kept separate from the shared skill corpus.
 - Keep skills practical, example-driven, and focused on direct Java implementation work rather than directory-style guidance.
 - Ground guidance in plugin-local skills, wrapper behavior, and stable Java ecosystem conventions instead of ad-hoc advice.
@@ -54,19 +54,17 @@ Each skill states its own scope and exclusions. When work lands on a boundary, k
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with two thin runtime manifests:
+This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
-- `.codex-plugin/plugin.json`
 
-The actual reusable content lives beside those manifests at the plugin root.
+The actual reusable content lives beside the manifest at the plugin root.
 
 ## Plugin Layout
 
 ```text
 plugins/java/
 ├── .claude-plugin/plugin.json
-├── .codex-plugin/plugin.json
 ├── .lsp.json
 ├── README.md
 ├── scripts/

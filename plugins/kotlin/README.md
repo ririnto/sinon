@@ -4,11 +4,11 @@ description: >-
   Overview of the Kotlin plugin, its included skills, and practical Kotlin workflow coverage.
 ---
 
-Kotlin is a shared, skill-first plugin for Kotlin application and library work in the Sinon universal marketplace.
+Kotlin is a shared, skill-first plugin for Kotlin application and library work in the Sinon Claude marketplace.
 
 ## Purpose
 
-- Provide reusable Kotlin workflows that remain portable across Claude Code and Codex-style plugin systems.
+- Provide reusable Kotlin workflows that remain portable across Claude Code plugin installations.
 - Keep skills practical, example-driven, and focused on writing or reviewing real Kotlin code in the smallest matching Kotlin domain.
 - Separate Kotlin language, coroutine, and Kotlin-native testing concerns from Java language, JVM tooling, and framework-specific Spring behavior.
 
@@ -66,19 +66,17 @@ Spring-specific coroutine endpoints, reactive controllers, and `WebClient` usage
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with two thin runtime manifests:
+This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
-- `.codex-plugin/plugin.json`
 
-The actual reusable content lives beside those manifests at the plugin root.
+The actual reusable content lives beside the manifest at the plugin root.
 
 ## Plugin Layout
 
 ```text
 plugins/kotlin/
 ├── .claude-plugin/plugin.json
-├── .codex-plugin/plugin.json
 ├── .lsp.json
 ├── README.md
 └── skills/
@@ -90,7 +88,6 @@ plugins/kotlin/
 ## Shipped Surfaces
 
 - The plugin ships three reusable Kotlin skills under `skills/`.
-- Each skill may include skill-local `agents/openai.yaml` metadata for Codex/OpenAI packaging. These files are metadata attached to the skill directories, not plugin-root agents.
 - `.lsp.json` exposes the Kotlin language-server surface for Claude-compatible local development.
 - The plugin ships no plugin-root `agents/` directory.
 - The plugin does not ship commands, hooks, MCP servers, or custom runtime data surfaces.

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Java Dependency Versioning"
-  short_description: "Java dependency coordinates and Maven Central checks"
-  default_prompt: "Use $java-dependency-versioning for Java artifact coordinates, Maven Central release checks, and Maven or Gradle install guidance."

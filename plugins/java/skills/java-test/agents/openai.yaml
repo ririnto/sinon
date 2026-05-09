@@ -1,4 +1,0 @@
-interface:
-  display_name: "Java Test"
-  short_description: "JUnit-driven Java testing and red-green-refactor flows"
-  default_prompt: "Use $java-test for Java tests, failing-test fixes, TDD scope, and JUnit-centered workflow choices."

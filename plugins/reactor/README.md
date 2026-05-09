@@ -3,11 +3,11 @@ title: Reactor
 description: Overview of the Reactor plugin, its included skills, selection guidance, and reactive programming workflow coverage.
 ---
 
-Reactor is a shared, skill-first plugin for Project Reactor reactive programming work in the Sinon universal marketplace.
+Reactor is a shared, skill-first plugin for Project Reactor reactive programming work in the Sinon Claude marketplace.
 
 ## Purpose
 
-- Provide reusable Reactor workflows that remain portable across Claude Code and Codex-style plugin systems.
+- Provide reusable Reactor workflows that remain portable across Claude Code plugin installations.
 - Keep skills practical, example-driven, and focused on real reactive programming tasks rather than framework trivia.
 - Separate reactive programming concerns from Java language, Spring framework, and general concurrency concerns.
 - Document the primary skill for each Reactor task while keeping secondary concerns explicit.
@@ -89,19 +89,17 @@ Reactor-specific reactive programming and operator composition belong in Reactor
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with two thin runtime manifests:
+This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
-- `.codex-plugin/plugin.json`
 
-The actual reusable content lives beside those manifests at the plugin root.
+The actual reusable content lives beside the manifest at the plugin root.
 
 ## Plugin Layout
 
 ```text
 plugins/reactor/
 ├── .claude-plugin/plugin.json
-├── .codex-plugin/plugin.json
 ├── README.md
 └── skills/
     ├── reactor-core/
@@ -114,7 +112,6 @@ plugins/reactor/
 
 - The plugin ships four reusable Reactor skills under `skills/`.
 - The plugin ships no plugin-root `agents/` directory.
-- Each skill may ship a skill-local `agents/openai.yaml` surface for runtimes that consume agent metadata next to the skill.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or plugin-root custom runtime data surfaces.
 
 ## Design Principles

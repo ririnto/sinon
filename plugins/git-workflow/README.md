@@ -4,11 +4,11 @@ description: >-
   Overview of the Git Workflow plugin, its merged skill, and template-aware GitHub/GitLab review workflow guidance.
 ---
 
-Git Workflow is a shared, skill-first plugin for repository-state-driven commit and review publication work in the Sinon universal marketplace.
+Git Workflow is a shared, skill-first plugin for repository-state-driven commit and review publication work in the Sinon Claude marketplace.
 
 ## Purpose
 
-- Provide reusable Git workflow guidance that remains portable across Claude Code and Codex-style plugin systems.
+- Provide reusable Git workflow guidance that remains portable across Claude Code plugin installations.
 - Keep the portable value surface in `skills/`, with the common path centered on real repository state rather than generic commit, PR, or MR text.
 - Ground guidance in staged diffs, working-tree status, recent history, and repository templates instead of ad-hoc wording.
 - Keep commit, pull request, and merge request guidance procedural, template-backed, and focused on quality gates before publication.
@@ -34,38 +34,32 @@ Typical workflow:
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with two thin runtime manifests:
+This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
-- `.codex-plugin/plugin.json`
 
-The actual reusable content lives beside those manifests at the plugin root.
+The actual reusable content lives beside the manifest at the plugin root.
 
 ## Plugin Layout
 
 ```text
 plugins/git-workflow/
 ├── .claude-plugin/plugin.json
-├── .codex-plugin/plugin.json
 ├── README.md
 └── skills/
     └── git-change-publication/
         ├── SKILL.md
-        ├── agents/openai.yaml
         └── references/
             ├── github-pull-request-templates.md
             └── gitlab-merge-request-templates.md
 ```
 
 - `.claude-plugin/plugin.json` carries thin Claude-facing marketplace metadata.
-- `.codex-plugin/plugin.json` carries thin Codex-facing marketplace metadata plus the `./skills/` entry point.
 - `skills/git-change-publication/SKILL.md` is the common path for commit readiness, split-vs-single decisions, Conventional Commit drafting, fallback hosted review text, and validation phrasing.
 - `skills/git-change-publication/references/` holds additive host-specific depth only.
-- `skills/git-change-publication/agents/openai.yaml` is skill-local Codex/OpenAI interface metadata for the same skill, not a root-level agent definition or second workflow.
 
 ## Shipped Surfaces
 
-- The plugin ships one reusable skill under `skills/` plus skill-local Codex/OpenAI interface metadata at `skills/git-change-publication/agents/openai.yaml`; it does not ship root-level `agents/*.md` definitions.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 - Host-specific GitHub and GitLab mechanics stay inside the skill references rather than the manifests or plugin root README.
 
@@ -90,7 +84,6 @@ For Claude Code local development:
 claude --plugin-dir /path/to/sinon/plugins/git-workflow
 ```
 
-Codex-facing marketplace metadata ships through `.codex-plugin/plugin.json`, but it points to the same shared `skills/` content at this plugin root.
 
 ## Scope Notes
 

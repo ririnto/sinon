@@ -4,11 +4,11 @@ description: >-
   Overview of the Observability Assets plugin, its included skills, and practical observability configuration workflow coverage.
 ---
 
-Observability Assets is a shared, skill-first plugin for Prometheus and Grafana asset authoring, routing, testing, and provisioning work in the Sinon universal marketplace.
+Observability Assets is a shared, skill-first plugin for Prometheus and Grafana asset authoring, routing, testing, and provisioning work in the Sinon Claude marketplace.
 
 ## Purpose
 
-- Provide reusable observability workflows that remain portable across Claude Code and Codex-style plugin systems.
+- Provide reusable observability workflows that remain portable across Claude Code plugin installations.
 - Keep skills practical, example-driven, and focused on version-controlled monitoring assets rather than UI-only click paths.
 - Separate Prometheus and Grafana operator workflows from application-framework-specific observability guidance.
 
@@ -52,19 +52,17 @@ These topics fall outside Observability Assets' scope:
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with two thin runtime manifests:
+This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
-- `.codex-plugin/plugin.json`
 
-The actual reusable content lives beside those manifests at the plugin root.
+The actual reusable content lives beside the manifest at the plugin root.
 
 ## Plugin Layout
 
 ```text
 plugins/observability-assets/
 ├── .claude-plugin/plugin.json
-├── .codex-plugin/plugin.json
 ├── README.md
 └── skills/
     ├── alert-rule-testing/

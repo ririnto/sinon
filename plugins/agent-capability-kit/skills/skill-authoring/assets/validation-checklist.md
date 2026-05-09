@@ -49,6 +49,7 @@ Use this checklist as a final verification pass, not as a gate that blocks compl
 - [ ] If scripts exist, they support a deterministic task better expressed as code
 - [ ] No script is a hidden prerequisite for understanding the ordinary path
 - [ ] Script guidance does not assume host-specific wrappers or required external services
+- [ ] Runtime-specific dependency guidance is correct: Python direct scripts use PEP 723 when needed, Bun JS/TS scripts use version-pinned import specifiers for external dependencies, and stdlib or built-in-only scripts do not invent metadata blocks
 
 ## Cross-platform [repo]
 

@@ -64,7 +64,7 @@ run_case() {
             JDTLS_CAPTURE_DIR="${capture_dir}" \
             JAVA_ASSISTANT_LOMBOK_JAR="${jar_path}" \
             JAVA_ASSISTANT_LOMBOK_ENABLED="${support_enabled}" \
-            "${wrapper_path}" >/dev/null 2>"${stderr_file}"
+            "${wrapper_path}" >"${capture_dir}/stdout.txt" 2>"${stderr_file}"
     )
     printf '%s\n' "${capture_dir}|${stderr_file}"
 }

@@ -129,8 +129,8 @@ Detect the repository host before branching into host-specific references:
 
 ```bash
 git remote -v
-ls -d .github 2>/dev/null && echo "HAS_GITHUB_DIR"
-ls -d .gitlab 2>/dev/null && echo "HAS_GITLAB_DIR"
+[ -d .github ] && echo "HAS_GITHUB_DIR"
+[ -d .gitlab ] && echo "HAS_GITLAB_DIR"
 ```
 
 ### Detection Rules

@@ -5,11 +5,11 @@ description: >-
   review gates, and verification.
 ---
 
-Spec-Driven Development is a skill-first plugin for spec-first development workflow in the Sinon universal marketplace.
+Spec-Driven Development is a skill-first plugin for spec-first development workflow in the Sinon Claude marketplace.
 
 ## Purpose
 
-Provide reusable spec-driven development guidance that remains portable across Claude Code and Codex-style plugin systems.
+Provide reusable spec-driven development guidance that remains portable across Claude Code plugin installations.
 
 ## Included Skill
 
@@ -27,26 +27,23 @@ Use `spec-driven-development` when the user explicitly asks to follow a spec-fir
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with two runtime manifests:
+This plugin uses one shared plugin root with a Claude manifest:
 
 - `.claude-plugin/plugin.json`
-- `.codex-plugin/plugin.json`
 
-The actual reusable content lives beside those manifests at the plugin root.
+The actual reusable content lives beside the manifest at the plugin root.
 
 ## Plugin Layout
 
 ```text
 plugins/spec-driven-development/
 ├── .claude-plugin/plugin.json
-├── .codex-plugin/plugin.json
 ├── README.md
 ├── agents/
 │   └── spec-driven-development.md
 └── skills/
     └── spec-driven-development/
         ├── SKILL.md
-        ├── agents/openai.yaml
         ├── references/
         │   ├── workflow.md
         │   ├── spec-authoring-guide.md
@@ -55,9 +52,7 @@ plugins/spec-driven-development/
         │   ├── review-checklist.md
         │   └── examples/
         ├── scripts/
-        │   ├── sdd.sh
-        │   ├── sdd/            # Python package backing the CLI
-        │   └── pyproject.toml
+        │   └── sdd.py          # Single CLI entrypoint and Python toolkit
         ├── assets/
         │   ├── templates/
         │   └── schemas/
@@ -68,8 +63,7 @@ plugins/spec-driven-development/
 
 - The plugin ships one reusable skill under `skills/`.
 - `agents/` contains the Claude-facing agent trigger surface.
-- `skills/spec-driven-development/agents/openai.yaml` contains skill-local OpenAI metadata.
-- `skills/spec-driven-development/scripts/sdd.sh` is the single CLI entrypoint; it dispatches all SDD subcommands (`validate`, `list-frontmatter`, `get-frontmatter`, `generate-diagram`, `list-tags`) via `uvx` against the bundled `sdd` Python package.
+- `skills/spec-driven-development/scripts/sdd.py` is the single CLI entrypoint for all SDD subcommands (`validate`, `list-frontmatter`, `get-frontmatter`, `generate-diagram`, `list-tags`).
 - `assets/templates/` contains scaffolds for SPEC.md, RESEARCH.md, CONTRACT.md, CHANGELOG.md, and openapi.yaml.
 - `assets/schemas/` contains JSON Schema definitions for frontmatter validation.
 
@@ -82,11 +76,11 @@ plugins/spec-driven-development/
 
 ## Offline-Capable Runtime
 
-The packaged skill is usable offline only when [uv](https://github.com/astral-sh/uv) is installed and the Python interpreter plus required dependency/build artifacts are already cached or otherwise available locally.
-`skills/spec-driven-development/scripts/sdd.sh` invokes the bundled Python package through `uvx --from "${script_dir}"`, which resolves the local `pyproject.toml` and runs the `sdd` console script.
-If uv must download Python, dependency metadata, dependencies, or build artifacts, network access may be required unless those inputs are already cached.
+The packaged skill is usable offline only when [uv](https://github.com/astral-sh/uv) is installed and the Python interpreter plus dependencies declared by the bundled CLI entrypoint are already cached or otherwise available locally.
+`skills/spec-driven-development/scripts/sdd.py` uses a `uv run` shebang and PEP 723 metadata to declare the required Python dependencies.
+If uv must download Python or dependencies, network access may be required unless those inputs are already cached.
 
-Maintainers update the runtime by editing the Python sources under `skills/spec-driven-development/scripts/sdd/` and the accompanying `pyproject.toml`.
+Maintainers update the runtime by editing `skills/spec-driven-development/scripts/sdd.py` and its dependency metadata.
 
 ## Installation
 
@@ -102,7 +96,6 @@ For current local development:
 claude --plugin-dir /path/to/sinon/plugins/spec-driven-development
 ```
 
-Codex-facing marketplace metadata ships through `.codex-plugin/plugin.json`, but it points to the same shared `skills/` content at this plugin root.
 
 ## Scope Notes
 

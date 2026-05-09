@@ -11,7 +11,7 @@ Use this reference when the repository is hosted on GitHub and the blocker is ex
 Check whether the repository already ships a GitHub template before drafting a fallback body.
 
 ```bash
-python - <<'PY'
+uv run python - <<'PY'
 from pathlib import Path
 
 paths = [
@@ -59,16 +59,16 @@ GitHub pull request templates are always files on the repository's default branc
 Requires the `gh` CLI; skip this command when `gh` is unavailable or the environment is offline. First list template files on the remote default branch:
 
 ```bash
-gh api repos/{owner}/{repo}/contents/.github/PULL_REQUEST_TEMPLATE 2>/dev/null \
-    || gh api repos/{owner}/{repo}/contents/.github/pull_request_template.md 2>/dev/null \
+gh api repos/{owner}/{repo}/contents/.github/PULL_REQUEST_TEMPLATE \
+    || gh api repos/{owner}/{repo}/contents/.github/pull_request_template.md \
     || echo "NO_REMOTE_TEMPLATE"
 ```
 
 Then check the owner's community-health `.github` repository:
 
 ```bash
-gh api repos/{owner}/.github/contents/.github/PULL_REQUEST_TEMPLATE 2>/dev/null \
-    || gh api repos/{owner}/.github/contents/.github/pull_request_template.md 2>/dev/null \
+gh api repos/{owner}/.github/contents/.github/PULL_REQUEST_TEMPLATE \
+    || gh api repos/{owner}/.github/contents/.github/pull_request_template.md \
     || echo "NO_COMMUNITY_HEALTH_TEMPLATE"
 ```
 

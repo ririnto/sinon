@@ -1,0 +1,58 @@
+# Workflow Template
+
+Copy this template when a target repository needs a durable, repository-local workflow for agent or human execution. Keep the workflow tied to `docs/harness-engineering/harness-engineering.json`, but keep project-specific paths and commands in the document body.
+
+````markdown
+# {Workflow Name} Workflow
+
+## Purpose
+
+{One paragraph describing the repeated job this workflow makes safe and observable.}
+
+## Profile
+
+| Field | Value |
+| --- | --- |
+| Harness config | `docs/harness-engineering/harness-engineering.json` |
+| Owner | {team, agent, or role} |
+| Applies to | {repo area, package, service, or docs path} |
+| Trigger | {manual request, pull request, release, scheduled check} |
+| Exit signal | {observable result that means the workflow is complete} |
+
+## Inputs
+
+| Input | Path Or Command | Required |
+| --- | --- | --- |
+| Context map | `CLAUDE.md` | yes |
+| Architecture | `ARCHITECTURE.md` | yes |
+| Spec | `docs/product-specs/{spec}.md` | yes |
+| Validation | `{command}` | yes |
+
+## Steps
+
+1. Read the harness config and the listed inputs before editing.
+2. Record the intended change and affected surfaces.
+3. Make the smallest coherent change across docs, code, and checks.
+4. Run the validation commands listed in this workflow.
+5. Write or update the proof packet for the completed run.
+
+## Validation
+
+```bash
+{command}
+```
+
+## Proof Packet
+
+| Evidence | Path Or Command | Result |
+| --- | --- | --- |
+| Config validation | `sh scripts/harness/validate_harness.sh` | {pass, warn, or fail} |
+| Behavior check | `{command}` | {observed result} |
+| Changed surfaces | `{path}` | {summary} |
+
+## Boundaries
+
+- Do not add external service dependencies to complete this workflow.
+- Do not add daemon, ticketing, or hosted runtime assumptions unless a separate integration owns them.
+- Do not expand the harness config contract from this workflow; update the owning docs or integration pack instead.
+````

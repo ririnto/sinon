@@ -14,7 +14,13 @@ Keep the enforcement path local to the plugin root. If the check needs helper mo
 
 The main blocker is usually state handling: caches, indexes, and logs belong under `${CLAUDE_PLUGIN_DATA}`, while bundled code and resources stay under `${CLAUDE_PLUGIN_ROOT}`. If the server needs helper modules, keep them bundled with the plugin so the stdio entrypoint remains self-contained.
 
-The starter `.mcp.json` uses `python3` plus a local script under `${CLAUDE_PLUGIN_ROOT}`. The starter server (`assets/servers/example-mcp.py`) exposes one example tool (`read_plugin_paths`) and keeps the transport local. Extend it by renaming the server entry, adding more tools inside the Python file, or adding arguments and environment variables while keeping generated state under `${CLAUDE_PLUGIN_DATA}`.
+The starter `.mcp.json` uses `uv run` plus a local script under `${CLAUDE_PLUGIN_ROOT}`. The starter server (`assets/servers/example-mcp.py`) exposes one example tool (`read_plugin_paths`) and keeps the transport local. Extend it by renaming the server entry, adding more tools inside the Python file, or adding arguments and environment variables while keeping generated state under `${CLAUDE_PLUGIN_DATA}`.
+
+Python runtime scripts that run directly should start with `#!/usr/bin/env -S uv run`, then a PEP 723 metadata block before imports. Use PEP 508 major-compatible dependency ranges for external packages, such as `package>=1.2.3,<2`, and use `dependencies = []` for stdlib-only direct scripts when an explicit declaration is needed.
+
+JavaScript and TypeScript runtime scripts that run directly should start with `#!/usr/bin/env bun`. Declare external dependencies with major-compatible import specifiers, such as `import * as cheerio from "cheerio@^1.0.0";`. Scripts that use only the JavaScript standard library or Bun built-ins need no dependency metadata block.
+
+Shell runtime scripts have no equivalent metadata block, so document required commands beside the command or in the plugin README.
 
 Only widen the server surface when the client actually needs it. Advertising extra tools or environment inputs without a real consumer makes the plugin harder to reason about.
 
@@ -22,7 +28,7 @@ Only widen the server surface when the client actually needs it. Advertising ext
 
 The useful depth here is in capability negotiation and transport choice. Add only the handlers the server can genuinely satisfy, and prefer stdio unless another transport is a hard requirement.
 
-The starter `.lsp.json` uses `python3` plus a local stdio server (`assets/lsp/example-lsp.py`). The example server handles `initialize`, `shutdown`, `exit`, and a simple `textDocument/hover` response so you have a working shape to extend offline. Replace the hover logic or add more LSP methods in the same file.
+The starter `.lsp.json` uses `uv run` plus a local stdio server (`assets/lsp/example-lsp.py`). The example server handles `initialize`, `shutdown`, `exit`, and a simple `textDocument/hover` response so you have a working shape to extend offline. Replace the hover logic or add more LSP methods in the same file.
 
 Avoid placeholder executables or names that do not correspond to bundled code. The server entrypoint should point at something the plugin ships.
 

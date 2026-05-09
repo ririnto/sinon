@@ -83,7 +83,7 @@ Use when: you need one stable provider file for dashboard JSON already tracked i
 Start by validating the provider YAML structure:
 
 ```bash
-python3 -c "import yaml; yaml.safe_load(open('grafana/provisioning/dashboards.yaml'))"
+uv run --with 'pyyaml>=6,<7' python -c "import yaml; yaml.safe_load(open('grafana/provisioning/dashboards.yaml'))"
 ```
 
 Use when: the provider config was just edited and you need a fast syntax check before treating it as ready for deployment. Replace the path with your actual provider file location.

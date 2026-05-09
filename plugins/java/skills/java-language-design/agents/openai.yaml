@@ -1,4 +1,0 @@
-interface:
-  display_name: "Java Language Design"
-  short_description: "Java API, type model, and exception design guidance"
-  default_prompt: "Use $java-language-design for Java API review, type modeling, exception boundaries, and contract design."

@@ -1,19 +1,19 @@
 ---
 title: Sinon
 description: >-
-  Repository overview for the Sinon universal AI plugin marketplace, including structure, marketplace layout, and publishing model.
+  Repository overview for the Sinon Claude Code plugin marketplace, including structure, marketplace layout, and publishing model.
 ---
 
-Sinon is a universal AI plugin marketplace repository. It publishes curated plugins for Claude Code and Codex from a single source tree.
+Sinon is a Claude Code plugin marketplace repository. It publishes curated plugins from a single source tree.
 
-Plugins live under `plugins/`. Runtime-specific marketplace catalogs live at the repository root. Stable repository rules, layout policies, and skill-authoring contracts are in `CLAUDE.md`.
+Plugins live under `plugins/`. The Claude marketplace catalog lives at the repository root. Stable repository rules, layout policies, and skill-authoring contracts are in `CLAUDE.md`.
 
 ## Purpose
 
-- Publish curated marketplace catalogs from a Git repository.
-- Represent plugins for multiple AI runtimes without splitting plugin source trees.
+- Publish a curated Claude Code marketplace catalog from a Git repository.
 - Store installable plugin packages in a consistent directory layout.
-- Keep runtime-specific marketplace metadata and plugin manifests aligned.
+- Keep marketplace metadata and plugin manifests aligned.
+- Keep generic Agent Skills mirrored through `.claude/skills/` and `.agents/skills/` without treating those paths as plugin marketplace catalogs.
 
 ## Repository Structure
 
@@ -22,26 +22,24 @@ Plugins live under `plugins/`. Runtime-specific marketplace catalogs live at the
 - `.gitignore`: development ignore rules.
 - `.markdownlint.jsonc`: Markdown lint configuration.
 - `.claude-plugin/marketplace.json`: Claude marketplace catalog.
-- `.agents/plugins/marketplace.json`: Codex marketplace catalog.
 - `.claude/skills/` and `.agents/skills/`: mirrored symlink entries that resolve to `plugins/agent-capability-kit/skills/`.
 - `plugins/`: plugins maintained in this repository.
 
 ## Plugin Layout
 
-Each plugin directory exposes one or more runtime manifests from the same plugin root:
+Each plugin directory may expose a Claude Code manifest from the same plugin root:
 
 - `.claude-plugin/plugin.json`: Claude plugin manifest.
-- `.codex-plugin/plugin.json`: Codex plugin manifest.
 
-Optional assets such as `README.md`, `commands/`, `agents/`, `skills/`, `hooks/`, `.mcp.json`, and `settings.json` live beside those manifests at the plugin root. Plugin-specific details belong in each plugin's own `README.md`, not in this root document.
+Optional assets such as `README.md`, `commands/`, `agents/`, `skills/`, `hooks/`, `.mcp.json`, and `settings.json` live beside the manifest at the plugin root. Plugin-specific details belong in each plugin's own `README.md`, not in this root document.
 
 ## Current Plugins
 
-The following plugins are listed in both `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json`. For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
+The following plugins are maintained in this repository and may be published to the Claude marketplace catalog. For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
 - `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.
 - `plugins/git-workflow`: Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.
-- `plugins/harness-engineering`: Staged setup-time harness guardrails with OpenAI-style repo layout defaults and flexible project profiles.
+- `plugins/harness`: Staged setup-time harness guardrails with OpenAI-style repo layout defaults and flexible project profiles.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
 - `plugins/jvm`: JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
 - `plugins/kotlin`: Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.
@@ -51,14 +49,14 @@ The following plugins are listed in both `.claude-plugin/marketplace.json` and `
 - `plugins/spec-driven-development`: Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.
 - `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.
 
+
 ## Publishing Model
 
-The repository maintains one marketplace catalog per runtime:
+The repository maintains one marketplace catalog:
 
 - `.claude-plugin/marketplace.json` for Claude Code.
-- `.agents/plugins/marketplace.json` for Codex.
 
-Individual plugin directories remain the source of truth for plugin-specific runtime manifests and bundled assets. Bundled upstream plugins may support only a subset of runtimes; in those cases, the repository adds minimal runtime metadata without altering upstream content.
+Individual plugin directories remain the source of truth for plugin-specific runtime manifests and bundled assets. The marketplace catalog lists plugin roots that ship the Claude manifest.
 
 ## Registering This Marketplace in Claude Code
 
@@ -101,7 +99,7 @@ Examples:
 ```bash
 /plugin install agent-capability-kit@sinon
 /plugin install git-workflow@sinon
-/plugin install harness-engineering@sinon
+/plugin install harness@sinon
 /plugin install java@sinon
 /plugin install jvm@sinon
 /plugin install kotlin@sinon

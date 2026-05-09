@@ -3,11 +3,11 @@ title: Netty
 description: Overview of the Netty plugin, its included skills, and high-performance network application workflow coverage.
 ---
 
-Netty is a shared, skill-first plugin for Netty core API and Reactor Netty reactive application work in the Sinon universal marketplace.
+Netty is a shared, skill-first plugin for Netty core API and Reactor Netty reactive application work in the Sinon Claude marketplace.
 
 ## Purpose
 
-- Provide reusable Netty workflows that remain portable across Claude Code and Codex-style plugin systems.
+- Provide reusable Netty workflows that remain portable across Claude Code plugin installations.
 - Keep skills practical, example-driven, and focused on real network application tasks rather than framework trivia.
 - Separate network application concerns from Java language, JDK tooling, and general I/O concerns.
 
@@ -43,19 +43,17 @@ Netty-specific reactive programming and backpressure handling stay in this plugi
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with two thin runtime manifests:
+This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
-- `.codex-plugin/plugin.json`
 
-The actual reusable content lives beside those manifests at the plugin root.
+The actual reusable content lives beside the manifest at the plugin root.
 
 ## Plugin Layout
 
 ```text
 plugins/netty/
 ├── .claude-plugin/plugin.json
-├── .codex-plugin/plugin.json
 ├── README.md
 └── skills/
     ├── netty/
