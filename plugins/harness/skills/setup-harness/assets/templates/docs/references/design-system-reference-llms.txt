@@ -1,0 +1,24 @@
+# Design System Reference
+
+Paste or generate design-system guidance for agents here when {project-name} has a design system. Include component names, tokens, layout rules, accessibility constraints, and examples.
+
+## Tokens
+
+| Token | Value | Usage |
+| --- | --- | --- |
+| {token-name} | {value} | {usage context} |
+
+## Components
+
+| Component | Purpose | Props |
+| --- | --- | --- |
+| {component-name} | {purpose} | {key props} |
+
+## Layout Rules
+
+- {layout rule or constraint}
+- {layout rule or constraint}
+
+## Accessibility
+
+{accessibility constraints and ARIA requirements.}
