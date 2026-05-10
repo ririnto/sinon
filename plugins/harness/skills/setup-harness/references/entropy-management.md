@@ -67,7 +67,7 @@ Use the target repo's configured layers or quality categories. The default domai
 
 | ID | Description | Resolution | Resolved |
 | --- | --- | --- | --- |
-| TD-000 | Missing harness config | Added docs/harness-engineering/harness-engineering.json | 2026-05-07 |
+| TD-000 | Missing harness config | Added docs/harness/config.json | 2026-05-07 |
 ```
 
 ## Cleanup units

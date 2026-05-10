@@ -1,0 +1,20 @@
+# uv Reference
+
+Paste or generate uv command and Python environment guidance for agents here when {project-name} uses uv.
+
+## Setup
+
+```bash
+{uv install or sync command}
+```
+
+## Commands
+
+```bash
+{common uv run command}
+{common uv run command}
+```
+
+## Python Version
+
+{python-version}

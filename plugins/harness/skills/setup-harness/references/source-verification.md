@@ -37,12 +37,40 @@ Open this reference when updating the OpenAI Harness Engineering source mapping,
 - Symphony's runner launches a coding-agent app-server client, with app-server examples; protocol schemas, payloads, framing, and method names are owned by the targeted app-server version.
 - Symphony includes Linear-compatible issue tracker semantics, GraphQL authentication, pagination, and issue-state refresh behavior for `tracker.kind == "linear"`.
 
+## Related `revfactory/harness` facts
+
+| Field | Value |
+| --- | --- |
+| Source | `revfactory/harness` repository |
+| URLs | `https://github.com/revfactory/harness`, `https://github.com/revfactory/harness/blob/main/skills/harness/SKILL.md` |
+| Retrieval date | 2026-05-09 |
+| Retrieval method | GitHub repository inspection |
+| Status | Repository, README, docs, and skill references available |
+
+- `revfactory/harness` is a Claude Code team-architecture factory that turns a domain description into agents, skills, and an orchestrator skill.
+- Its transferable patterns are pipeline, fan-out/fan-in, expert pool, producer-reviewer, supervisor, and hierarchical delegation.
+- The local setup-harness skill uses those patterns only as target-owned workflow guidance. It does not generate agents, install orchestrators, or add runtime scheduling behavior by default.
+
+## agentskills.io loading model
+
+| Field | Value |
+| --- | --- |
+| Source | agentskills.io skill loading model |
+| URL | `https://agentskills.io/llms-full.txt` |
+| Local basis | `plugins/agent-capability-kit/README.md` |
+| Retrieval date | 2026-05-09 |
+| Status | Referenced as top-level governing basis for skill structure and progressive disclosure in this repository |
+
+- The agentskills.io loading model governs skill structure: `SKILL.md` as the always-loaded entrypoint, `references/` for additive depth opened on demand, and `assets/` for templates and scripts.
+- Progressive disclosure applies at three levels: skill `description` metadata as the activation trigger, `SKILL.md` as the common-path entrypoint, and `references/`/`assets/` for on-demand depth.
+- This plugin's setup-harness skill follows that model: `SKILL.md` contains the ordinary path, while `references/` hold host-specific, platform-specific, or edge-case material.
+
 ## Plugin-specific conventions layered on top
 
-- The OpenAI article informs the repository knowledge-base shape and enforcement posture; it does not define `docs/harness-engineering/harness-engineering.json`, root `.harness-engineering.json`, staged config fields, or validator command forms.
-- `docs/harness-engineering/harness-engineering.json` is this plugin's stable convention for target-specific, machine-readable, docs-adjacent harness metadata.
-- The path is namespaced under `docs/harness-engineering/` so operational metadata can sit beside guardrails, readiness, known-violation, update, and validation resources without crowding root `CLAUDE.md`, `AGENTS.md`, or `ARCHITECTURE.md`.
-- Root `.harness-engineering.json` is manual migration input only when an existing repository already has one; it is not a supported fallback path for new setup or validation.
+- The OpenAI article informs the repository knowledge-base shape and enforcement posture; it does not define `docs/harness/config.json`, root `.config.json`, staged config fields, or validator command forms.
+- `docs/harness/config.json` is this plugin's stable convention for target-specific, machine-readable, docs-adjacent harness metadata.
+- The path is namespaced under `docs/harness/` so operational metadata can sit beside guardrails, readiness, known-violation, update, and validation resources without crowding root `CLAUDE.md`, `AGENTS.md`, or `ARCHITECTURE.md`.
+- Root `.config.json` is manual migration input only when an existing repository already has one; it is not a supported fallback path for new setup or validation.
 - The plugin adds staged fields, readiness scoring, user requirement rules, validators, CI/hooks templates, and harness engineering checks on top of the article-derived knowledge-base posture.
 - This plugin treats `CLAUDE.md` as the target repository's canonical root instruction map because Claude Code reads project `CLAUDE.md` files. It exposes `AGENTS.md -> CLAUDE.md` as the compatibility profile for AGENTS.md readers rather than reversing the direction.
 - This plugin may document agent-readable runtime evidence such as browser automation, logs, metrics, traces, screenshots, and validation commands, but it does not provision a Symphony daemon, Linear integration, app-server client, agent runtime stack, or always-on scheduler.
@@ -53,7 +81,7 @@ Open this reference when updating the OpenAI Harness Engineering source mapping,
 - Harness Engineering is the setup-time repository visibility and guardrail layer. It prepares a target repository so agents can find instructions, architecture, docs, validation commands, readiness state, known violations, and evidence paths.
 - Symphony is a runtime orchestration layer above individual coding-agent sessions. It coordinates issue polling, dispatch, workspaces, retries, agent app-server execution, and operator-visible runtime state.
 - Do not describe this plugin as a Symphony implementation, a Linear integration, an app-server client, an OpenAI runtime stack installer, or an always-on scheduler.
-- If a target repository adopts Symphony or another orchestrator, record that integration in target-specific docs or execution plans and keep `docs/harness-engineering/harness-engineering.json` focused on docs, scripts, checks, CI, and hooks.
+- If a target repository adopts Symphony or another orchestrator, record that integration in target-specific docs or execution plans and keep `docs/harness/config.json` focused on docs, scripts, checks, CI, and hooks.
 
 ## Supporting official references
 
@@ -74,5 +102,5 @@ Re-check these sources when changing command syntax, event rules, YAML scalar st
 - This repository keeps `CLAUDE.md` as the canonical root map and exposes `AGENTS.md -> CLAUDE.md` for compatibility.
 - `ARCHITECTURE.md` remains root-level, not under `docs/`.
 - `.agents/skills -> ../.claude/skills` remains the compatibility direction when both skill surfaces exist.
-- `docs/harness-engineering/harness-engineering.json` is this plugin's visible config source of truth for target repositories.
+- `docs/harness/config.json` is this plugin's visible config source of truth for target repositories.
 - `docs/generated/` holds reproducible derived documentation only; source schemas remain in project-specific source roots.
