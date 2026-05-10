@@ -4,7 +4,7 @@ Open this reference when translating the target repository's documented layer mo
 
 ## Config-first rule
 
-The target repo's `docs/harness-engineering/harness-engineering.json` is this plugin's versioned machine-readable config convention, and root `ARCHITECTURE.md` is the human architecture source. The optional layer sequence below follows the OpenAI article's default business-domain model as an example only: `types -> config -> repo`, Providers feeding `service -> runtime -> ui`, and app wiring, UI, and utilities outside the domain boundary.
+The target repo's `docs/harness/config.json` is this plugin's versioned machine-readable config convention, and root `ARCHITECTURE.md` is the human architecture source. The optional layer sequence below follows the OpenAI article's default business-domain model as an example only: `types -> config -> repo`, Providers feeding `service -> runtime -> ui`, and app wiring, UI, and utilities outside the domain boundary.
 
 ```yaml
 layer_model:

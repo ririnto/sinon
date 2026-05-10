@@ -10,7 +10,7 @@ The target repository should let an agent move from intent to implementation wit
 CLAUDE.md -> ARCHITECTURE.md or docs index -> full spec or design doc -> source root -> validation script -> CI or hook
 ```
 
-Each arrow should be represented by a real path in `docs/harness-engineering/harness-engineering.json` or a linked document.
+Each arrow should be represented by a real path in `docs/harness/config.json` or a linked document.
 `AGENTS.md` should expose the same first step by symlinking to `CLAUDE.md`.
 
 ## Full spec contract
@@ -51,7 +51,7 @@ When implementation changes, update this spec and the related validation script 
 - Every generated doc is reproducible from checked-in source schema paths and does not become the source schema itself.
 - Every script described in docs exists and is called by CI, hooks, the harness shell wrapper, or a documented manual command.
 - Every architectural rule in docs maps to `checks`, `ARCHITECTURE.md`, or a target-specific check entry.
-- Every docs freshness threshold appears in `docs/harness-engineering/readiness.md` with current status.
+- Every docs freshness threshold appears in `docs/harness/readiness.md` with current status.
 
 ## Common drift fixes
 

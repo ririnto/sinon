@@ -1,11 +1,13 @@
-#!/bin/sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+
 # :description: Run the harness validator through uv-managed Python.
 #     Exits 0 when validation passes, exits 1 on validation failure or missing uv.
 # :param config_path: Repository-relative harness config path, overridden by HARNESS_CONFIG.
 # :param root_path: Repository root directory, overridden by HARNESS_ROOT.
-set -eu
 
-config_path="${HARNESS_CONFIG:-docs/harness-engineering/harness-engineering.json}"
+config_path="${HARNESS_CONFIG:-docs/harness/config.json}"
 root_path="${HARNESS_ROOT:-.}"
 script_dir="$(CDPATH= cd "$(dirname "$0")" && pwd)"
 validator_path="${script_dir}/validate_harness.py"

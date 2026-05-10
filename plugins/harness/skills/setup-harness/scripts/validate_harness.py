@@ -18,7 +18,7 @@ from typing import Any
 
 
 CONTRACT_VERSION = 1
-DEFAULT_CONFIG_PATH = "docs/harness-engineering/harness-engineering.json"
+DEFAULT_CONFIG_PATH = "docs/harness/config.json"
 SKILLS_ALIAS_PATH = ".agents/skills"
 SKILLS_ALIAS_TARGET = "../.claude/skills"
 REQUIRED_TOP_LEVEL = (
@@ -39,21 +39,22 @@ REQUIRED_PATHS = (
     "scriptsRoot",
     "validator",
     "wrapper",
+    "agentsRoot",
     "agentContextAlias",
     "agentContextAliasTarget",
     "githubWorkflow",
     "gitlabConfig",
     "hooksRoot",
-    "commitMsgHook",
-    "prePushHook",
+    "preCommitHook",
+    "hookInstaller",
 )
-REQUIRED_DOCS = ("agentContext", "architecture", "guardrails", "updates")
+REQUIRED_DOCS = ("agentContext", "architecture", "guardrails", "readiness", "updates")
 REQUIRED_COMMANDS = ("required", "optional")
 REQUIRED_GATES = ("ci", "hooks")
 REQUIRED_CI_GATE = ("provider", "stage", "branches")
 REQUIRED_HOOKS_GATE = ("enabled", "stage")
 REQUIRED_EVIDENCE = ("readiness", "knownViolations", "generatedDocs")
-REQUIRED_ABSENCE = ("agentContextAlias", "ci", "hooks", "packs")
+REQUIRED_ABSENCE = ("agentContextAlias", "targetAgents", "ci", "hooks", "packs")
 REQUIRED_CI_PROVIDERS = ("github-actions", "gitlab-ci", "none")
 REQUIRED_BRANCH_SETS = ("push", "pullRequest", "mergeRequest")
 ENFORCEMENT_LEVELS = ("warn", "error")
@@ -239,8 +240,10 @@ def validate_paths_section(paths: dict[str, Any]) -> list[str]:
     errors.extend(validate_path_mapping(paths, REQUIRED_PATHS, "paths"))
     if paths.get("config") != DEFAULT_CONFIG_PATH:
         errors.append(f"paths.config must be {DEFAULT_CONFIG_PATH}")
-    if paths.get("harnessRoot") != "docs/harness-engineering":
-        errors.append("paths.harnessRoot must be docs/harness-engineering")
+    if paths.get("harnessRoot") != "docs/harness":
+        errors.append("paths.harnessRoot must be docs/harness")
+    if paths.get("agentsRoot") != ".claude/agents":
+        errors.append("paths.agentsRoot must be .claude/agents")
     if paths.get("agentContextAlias") != "AGENTS.md":
         errors.append("paths.agentContextAlias must be AGENTS.md")
     if paths.get("agentContextAliasTarget") != "CLAUDE.md":
@@ -368,6 +371,9 @@ def validate_absence_section(
         errors.append(
             f"absence.agentContextAlias must be one of: {', '.join(REQUIRED_ALIAS_STATES)}"
         )
+    agents_state = absence.get("targetAgents")
+    if agents_state not in ABSENCE_STATES:
+        errors.append(f"absence.targetAgents must be one of: {', '.join(ABSENCE_STATES)}")
     ci = gates.get("ci")
     if isinstance(ci, dict):
         provider = ci.get("provider")
@@ -454,8 +460,8 @@ def validate_required_installed_paths(
         "docs.agentContext",
         "docs.architecture",
         "docs.guardrails",
+        "docs.readiness",
         "docs.updates",
-        "evidence.readiness",
         "evidence.knownViolations",
     )
     for field_name in required_fields:
@@ -488,7 +494,7 @@ def validate_gate_paths(
     if isinstance(hooks, dict) and absence.get("hooks") in ACTIVE_ABSENCE_STATES:
         hooks_stage = hooks.get("stage", 0)
         if hooks.get("enabled") is True and isinstance(hooks_stage, int) and current_stage >= hooks_stage:
-            for key in ("hooksRoot", "commitMsgHook", "prePushHook"):
+            for key in ("hooksRoot", "preCommitHook", "hookInstaller"):
                 validate_resolved_declared_path(
                     root, resolved_root, paths.get(key), f"paths.{key}", errors
                 )
@@ -518,6 +524,66 @@ def validate_pack_paths(
             )
 
 
+def validate_target_agent_paths(
+    config: dict[str, Any], root: Path, resolved_root: str, errors: list[str]
+) -> None:
+    """Validate the target-owned Claude agent directory when it is declared active."""
+    absence = require_mapping(config, "absence")
+    if absence.get("targetAgents") not in ACTIVE_ABSENCE_STATES:
+        return
+    paths = require_mapping(config, "paths")
+    agents_root = paths.get("agentsRoot")
+    validate_resolved_declared_path(root, resolved_root, agents_root, "paths.agentsRoot", errors)
+    if not isinstance(agents_root, str) or not is_repo_relative_path(agents_root):
+        return
+    agents_path = root / agents_root
+    if not agents_path.is_dir():
+        errors.append(f"paths.agentsRoot must be a directory when target agents are active: {agents_root}")
+        return
+    agent_files = sorted(agents_path.glob("*.md"))
+    if absence.get("targetAgents") == "required" and not agent_files:
+        errors.append("paths.agentsRoot must contain at least one .md agent when absence.targetAgents is required")
+    for agent_file in agent_files:
+        errors.extend(validate_target_agent_file(agent_file, agents_root))
+
+
+def validate_target_agent_file(agent_file: Path, agents_root: str) -> list[str]:
+    """Validate target-owned Claude agent frontmatter fields."""
+    relative = f"{agents_root}/{agent_file.name}"
+    try:
+        lines = agent_file.read_text().splitlines()
+    except OSError as error:
+        return [f"cannot read target agent {relative}: {error}"]
+    if not lines or lines[0] != "---":
+        return [f"target agent missing frontmatter: {relative}"]
+    fields: dict[str, str] = {}
+    for line in lines[1:]:
+        if line == "---":
+            break
+        if ":" in line and not line.startswith((" ", "\t")):
+            key, value = line.split(":", 1)
+            fields[key.strip()] = value.strip()
+    else:
+        return [f"target agent frontmatter is not closed: {relative}"]
+    errors: list[str] = []
+    required_fields = ("name", "description", "model")
+    allowed_fields = set(required_fields)
+    for field in required_fields:
+        if field not in fields:
+            errors.append(f"target agent missing frontmatter field {field}: {relative}")
+    extra_fields = sorted(set(fields) - allowed_fields)
+    if extra_fields:
+        errors.append(
+            "target agent frontmatter fields must be exactly name, description, model: "
+            f"{relative} has {', '.join(sorted(fields))}"
+        )
+    expected_name = agent_file.stem
+    actual_name = fields.get("name")
+    if actual_name and actual_name != expected_name:
+        errors.append(f"target agent name must match file basename: {relative}")
+    return errors
+
+
 def validate_paths(
     config: dict[str, Any], root: Path, template_mode: bool
 ) -> list[str]:
@@ -530,6 +596,7 @@ def validate_paths(
     validate_required_installed_paths(config, root, resolved_root, errors)
     validate_gate_paths(config, root, resolved_root, errors)
     validate_pack_paths(config, root, resolved_root, errors)
+    validate_target_agent_paths(config, root, resolved_root, errors)
     return errors
 
 

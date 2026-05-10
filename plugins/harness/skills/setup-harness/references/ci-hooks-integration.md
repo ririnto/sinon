@@ -4,12 +4,12 @@ Open this reference when wiring configured harness checks into GitHub Actions, G
 
 ## Provider selection
 
-Use `gates.ci.provider` from `docs/harness-engineering/harness-engineering.json`.
+Use `gates.ci.provider` from `docs/harness/config.json`.
 
 | Provider | File | Asset |
 | --- | --- | --- |
-| `github-actions` | `.github/workflows/harness-checks.yml` | `assets/github-actions.yml.template` |
-| `gitlab-ci` | `.gitlab-ci.yml` | `assets/gitlab-ci.yml.template` |
+| `github-actions` | `.github/workflows/harness-checks.yml` | `assets/github-actions.yml` |
+| `gitlab-ci` | `.gitlab-ci.yml` | `assets/gitlab-ci.yml` |
 | `none` | none | skip CI install |
 
 Do not install both provider files unless the target config explicitly declares both as project-specific checks.
@@ -22,7 +22,7 @@ Do not install both provider files unless the target config explicitly declares 
 
 ## GitHub Actions wiring
 
-Copy `assets/github-actions.yml.template` and keep the validator command aligned with `commands.required`.
+Copy `assets/github-actions.yml` and keep the validator command aligned with `commands.required`.
 
 ```yaml
 name: harness-checks
@@ -67,7 +67,7 @@ jobs:
 
 ## GitLab CI wiring
 
-Copy `assets/gitlab-ci.yml.template` and keep it provider-neutral except for GitLab syntax.
+Copy `assets/gitlab-ci.yml` and keep it provider-neutral except for GitLab syntax.
 
 ```yaml
 stages:
@@ -99,7 +99,7 @@ The default branch list is `develop`, `main`, and `master`. Adjust branch lists,
 Use hooks as fast local guardrails, not as the only source of enforcement.
 
 ```bash
-git config core.hooksPath .githooks
+sh scripts/harness/setup-hooks.sh
 ```
 
 Commit hooks should validate commit-message shape only when the target repo declares that policy. Pre-push hooks should run the offline validator and any fast configured checks. Hooks must not require network access.
@@ -110,7 +110,7 @@ The core validator has one trusted default command: `sh scripts/harness/validate
 
 | Pack | Asset path | Target entrypoint |
 | --- | --- | --- |
-| Bun validator | `assets/bun-validator/validate-harness.mjs.template` | `bun scripts/harness/validate-harness.mjs` |
+| Bun validator | `assets/bun-validator/validate-harness.mjs` | `bun scripts/harness/validate-harness.mjs` |
 | Gradle plugin | `assets/gradle-plugin/` | `./gradlew harnessCheck` |
 | Maven plugin | `assets/maven-plugin/` | `mvn local.harness:harness-maven-plugin:harness-check` |
 
