@@ -1,26 +1,22 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "harness",
-  "description": "Apply staged setup-time docs and configuration guardrails with docs-adjacent metadata.",
+  "description": "Install, validate, and evolve repository-owned harness assets for agent instructions, docs, templates, project agents, project skills, stack validators, CI snippets, and opt-in Git hook templates.",
   "author": {
     "name": "ririnto"
   },
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness",
   "repository": "https://github.com/ririnto/sinon",
-  "license": "MIT",
-  "skills": "./skills/",
+  "license": "Apache-2.0",
   "keywords": [
-    "agent-first",
-    "architecture",
-    "ci",
-    "documentation",
     "harness",
-    "hooks",
-    "progressive-disclosure",
-    "readiness",
-    "repository-application",
-    "repository-structure",
-    "scaffolding",
-    "staged-guardrails"
-  ]
+    "claude-code",
+    "automation",
+    "skills",
+    "ci",
+    "validation",
+    "docs",
+    "repository-harness"
+  ],
+  "skills": "./skills/"
 }
