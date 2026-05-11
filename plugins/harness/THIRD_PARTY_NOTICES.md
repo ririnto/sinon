@@ -1,6 +1,15 @@
 # Third Party Notices
 
-This plugin includes documentation concepts adapted from external public sources. The local plugin remains a repository harness setup and validation plugin; external sources are used only as attributed references for design posture and optional workflow guidance.
+Harness includes local documentation concepts and taxonomy adapted from public sources. The plugin remains a repository harness installer and validator; external sources are used only as attributed design posture and optional workflow guidance.
+
+## OpenAI Harness Engineering
+
+| Field | Value |
+| --- | --- |
+| Source | OpenAI Harness Engineering article |
+| URL | `https://openai.com/ko-KR/index/harness-engineering/` |
+| Retrieved | 2026-05-09 |
+| Local use | Repository knowledge-base posture, staged validation posture, and harness-evolution framing |
 
 ## revfactory/harness
 
@@ -10,6 +19,6 @@ This plugin includes documentation concepts adapted from external public sources
 | URL | `https://github.com/revfactory/harness` |
 | License | Apache License 2.0 |
 | Retrieved | 2026-05-09 |
-| Local use | Team-architecture pattern taxonomy and optional workflow guidance in `skills/setup-harness/references/team-harness-patterns.md` |
+| Local use | Team-pattern taxonomy names in installed harness metadata |
 
-The upstream project is a Claude Code team-architecture factory. This plugin does not redistribute upstream runtime assets, marketplace metadata, images, generated examples, or public website files. Any adapted ideas are framed as target-owned repository workflow guidance and must not replace this plugin's setup-time harness configuration purpose.
+The upstream project is a Claude Code team-architecture factory. This plugin does not redistribute upstream runtime assets, marketplace metadata, images, generated examples, or public website files.

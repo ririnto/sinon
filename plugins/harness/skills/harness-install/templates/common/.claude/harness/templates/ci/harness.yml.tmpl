@@ -1,0 +1,15 @@
+name: {{ci_workflow_name}}
+
+on:
+  pull_request:
+  push:
+    branches:
+      - {{default_branch}}
+
+jobs:
+  harness:
+    runs-on: {{runner}}
+    steps:
+      - uses: actions/checkout@{{checkout_version}}
+      - name: Run harness validation
+        run: {{validation_command}}

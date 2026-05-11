@@ -1,204 +1,172 @@
 # Harness
 
-Harness is a portable plugin for staged setup-time docs, configuration, and validator guardrails in target repositories.
+Harness is a Claude Code plugin for installing, validating, and evolving repository-owned agent development scaffolding. It combines the v6 archive structure with this repository's plugin packaging rules: skills are the declared runtime surface, root agents are host-dependent and undeclared in the manifest, and target repositories own the files copied into them.
 
 ## Purpose
 
-- Inspect an existing repository and create or update `docs/harness/config.json` as this plugin's visible, target-specific docs-system metadata convention.
-- Use the OpenAI Harness Engineering article as knowledge-base posture, not as the source for the JSON path or filename: root `CLAUDE.md`, `optional AGENTS.md -> CLAUDE.md`, root `ARCHITECTURE.md`, and `docs/` preserve design docs, execution plans, generated docs, product specs, references, and topic docs.
-- Keep Symphony-style orchestration facts out of the core product surface: this plugin can prepare repository knowledge, guardrails, and evidence paths, but it does not run a daemon, poll Linear, launch an app-server client, or manage per-issue workspaces.
-- Install or update docs, scripts, CI templates, git hook templates, and harness engineering validation without assuming one framework or build system.
-- Stage guardrails from discovery to advisory checks to shared `error` gates, then ratchet maturity with known-violation and doc-freshness controls.
-- Keep implementation, repository docs, specs, ADR constraints, and deterministic checks evolving together so agents follow documented information instead of hidden convention.
-- Support target-owned agent scaffolding under `.claude/agents/*.md` for Claude Code when a repository chooses to copy, edit, rename, or delete role definitions in its own runtime surface.
-- Reference `revfactory/harness` for agent-team architecture patterns only as target-owned workflow guidance; this plugin remains a setup-time docs, validation, and guardrail harness rather than a generated team factory.
+- Install a repository harness with `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, a structured `docs/` tree, `.claude/` project agents, `.claude/` project skills, templates, validation adapters, CI snippets, and opt-in Git hook templates.
+- Keep implementation, repository docs, product specs, execution plans, generated references, and deterministic checks evolving together so agents work from versioned context rather than hidden convention.
+- Preserve harness-only development readiness: the scaffold gives agents a working operating surface, but target repositories still supply product requirements, architecture decisions, source code, runtime configuration, secrets, and domain references.
+- Provide workflow templates with bounded concurrency, handoff states, workspace policies, prompt contracts, and proof-of-work expectations so agents can participate in ticket-level orchestration without requiring a daemon or issue poller.
+
+## Lifecycle
+
+1. Install repository-owned harness files into a target repository.
+2. Validate the installed context with the target repository's matching stack command.
+3. Evolve templates, docs, agents, skills, generated-artifact policy, and validation rules as project reality changes.
+
+## Install in Claude Code
+
+Install from this repository checkout:
+
+```sh
+claude plugin install ./plugins/harness --scope project
+```
+
+## Runtime Surface
+
+- Skills: `harness-install`, `harness-validate`, and `harness-evolve`.
+- Agents: `harness-architect`, `harness-reviewer`, and `harness-validator` under `agents/` for host runtimes that load plugin agents from the plugin root. Hosts that do not load plugin-root agents still receive the skill surface.
+- Scripts: `scripts/plugin-self-check.sh` for local plugin package validation.
+- Target templates: repository-owned files under `skills/harness-install/templates/`, including `.claude/agents`, `.claude/skills`, `.claude/harness`, docs, CI, validation adapters, and Git hook scaffolds.
+
+The Claude Code manifest declares only `./skills/`. Agents remain at the plugin root and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. The archive's empty top-level `hooks` surface is intentionally omitted; the packaged hook scaffold lives under `skills/harness-install/templates/common/.claude/harness/git-hooks/`, and the installer generates the target hook template from the selected mode.
 
 ## Target Ownership
 
-Target repositories own every installed harness file. The plugin provides starting scaffolds under `assets/`; copied config, docs, scripts, CI, hooks, and agents MAY be added, modified, renamed, or deleted to fit the target repository. Guidance that is read for decisions lives under `references/`.
+Target repositories own every installed harness file. Copied docs, scripts, CI files, hooks, agents, skills, templates, and validation adapters MAY be edited, renamed, or removed to fit the target project. The installed `.claude/harness/manifest.json` is the target-local harness metadata contract; it replaces the old `docs/harness/config.json` convention used by earlier drafts of this plugin.
 
-## Included Skill
+## Install Harness Assets
 
-- `setup-harness`: install, update, audit, ratchet, and validate staged repository guardrails declared in `docs/harness/config.json`.
-
-## Target-Ready Lifecycle Agents
-
-`assets/agents/` contains target-owned agent starting points for harness lifecycle jobs: agent-pool curation, config curation, CI/hooks integration, architecture audit, code review, docs-only entropy, docs-vs-implementation drift audit, end-to-end evidence, quality ratcheting, and spec/plan maintenance. It intentionally avoids separate `author` and `writer` variants for the same job.
-
-## Runtime Model
-
-This plugin is packaged for Claude Code from one shared plugin root:
-
-- `.claude-plugin/plugin.json`
-
-The manifest points to the shared plugin root content. The reusable runtime surface lives under `skills/`; target-ready agent files are copyable assets under `skills/setup-harness/assets/agents/`.
-
-**Target-owned agents** (`.claude/agents/*.md`) are repository-local Claude Code sub-agent definitions. These are created by copying target-ready files from `assets/agents/*.md`, adapting role-specific scope, and committing under `.claude/agents/` as target-owned runtime configuration. Target agents are declared through `paths.agentsRoot`, read the repository's harness config and docs, and are not plugin configuration.
-
-## Target Repository Layout
-
-The plugin creates or maintains this staged setup shape in a target repository, subject to config and no-overwrite conflict handling.
+From a target repository, use the `harness-install` skill with a stack argument:
 
 ```text
-target-repo/
-├── CLAUDE.md
-├── optional AGENTS.md -> CLAUDE.md
-├── ARCHITECTURE.md
-├── .claude/
-│   ├── agents/
-│   │   └── {agent-name}.md  (target-owned, copied from assets/agents/*.md)
-│   └── skills/
-├── .agents/
-│   └── skills -> ../.claude/skills
-├── docs/
-│   ├── harness/
-│   │   ├── config.json
-│   │   ├── guardrails.md
-│   │   ├── known-violations.md
-│   │   ├── readiness.md
-│   │   └── updates.md
-│   ├── design-docs/
-│   │   ├── index.md
-│   │   └── core-beliefs.md
-│   ├── exec-plans/
-│   │   ├── active/
-│   │   ├── completed/
-│   │   └── tech-debt-tracker.md
-│   ├── generated/
-│   │   └── db-schema.md  (optional generated artifact example)
-│   ├── product-specs/
-│   │   ├── index.md
-│   │   └── new-user-onboarding.md
-│   ├── references/
-│   │   ├── design-system-reference-llms.txt
-│   │   ├── nixpacks-llms.txt
-│   │   └── uv-llms.txt
-│   ├── DESIGN.md
-│   ├── FRONTEND.md
-│   ├── PLANS.md
-│   ├── PRODUCT_SENSE.md
-│   ├── QUALITY_SCORE.md
-│   ├── RELIABILITY.md
-│   └── SECURITY.md
-├── scripts/
-│   └── harness/
-│       ├── validate_harness.py
-│       ├── validate_harness.sh
-│       └── setup-hooks.sh
-├── .github/workflows/harness-checks.yml
-├── .gitlab-ci.yml
-└── .git/hooks/
-    └── pre-commit  (generated by setup-hooks.sh)
+auto
 ```
 
-GitHub Actions, GitLab CI, and git hooks are optional integration surfaces. Project-specific build or runtime integration packs may layer additional surfaces separately, but they are not part of this core plugin scope.
+The skill invokes `skills/harness-install/scripts/install-harness.sh` with the target repository as `--target`, detects or accepts the stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command. Supported modes are `auto`, `gradle`, `maven`, `uv`, and `bun`.
 
-## Staged Guardrail Model
+By default the installer writes both GitHub Actions and GitLab CI examples for the selected stack: `.github/workflows/harness.yml` and `.gitlab-ci.yml`. Both CI snippets are rendered from templates and run the same selected validation command printed by the installer. Pass `--no-ci` to skip both CI files.
 
-Stages, hooks, required commands, and optional commands are declarative lifecycle gates. Keep the target config as the place that names each gate, its enforcement mode, and the command surface that satisfies it; do not hide lifecycle behavior in ad hoc CI or hook scripts.
+To run the installer directly, pass the target repository explicitly:
 
-| Stage | Purpose | Exit gate |
+```sh
+sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.sh --target /path/to/target-repo --mode auto --hooks none
+```
+
+## Required Repository Structure
+
+The installer creates and validators require this repository context structure:
+
+```text
+AGENTS.md
+ARCHITECTURE.md
+CLAUDE.md
+.claude/
+├── agents/
+│   ├── harness-implementation-agent.md
+│   ├── harness-orchestrator.md
+│   └── harness-review-agent.md
+├── skills/
+│   ├── harness-orchestrate/
+│   │   └── SKILL.md
+│   ├── harness-review/
+│   │   └── SKILL.md
+│   └── harness-validate/
+│       └── SKILL.md
+└── harness/
+    ├── git-hooks/
+    │   └── pre-commit
+    ├── manifest.json
+    └── templates/
+docs/
+├── design-docs/
+│   ├── index.md
+│   └── core-beliefs.md
+├── exec-plans/
+│   ├── active/
+│   │   └── .gitkeep
+│   ├── completed/
+│   │   └── .gitkeep
+│   └── tech-debt-tracker.md
+├── generated/
+│   └── .gitkeep
+├── product-specs/
+│   ├── index.md
+│   └── new-user-onboarding.md
+├── references/
+│   ├── design-system-reference-llms.txt
+│   ├── nixpacks-llms.txt
+│   └── uv-llms.txt
+├── DESIGN.md
+├── FRONTEND.md
+├── PLANS.md
+├── PRODUCT_SENSE.md
+├── QUALITY_SCORE.md
+├── RELIABILITY.md
+└── SECURITY.md
+```
+
+Empty required directories are kept in version control with `.gitkeep`. `.claude/harness/git-hooks/pre-commit` is a generated, target-owned hook template containing the selected validation command, not an active Git hook unless the target repository opts in. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
+
+In installed target repositories, `AGENTS.md` is the primary harness contract. `CLAUDE.md` is retained as the Claude Code entry point and points back to `AGENTS.md`.
+
+## Validation Adapters
+
+| Stack | Detection | Validation command |
 | --- | --- | --- |
-| Stage 0 discovery | Inventory current docs, scripts, source roots, CI, hooks, and known violations | Existing surfaces and conflicts are listed |
-| Stage 1 visibility/docs/config | Put repository configuration under `docs/harness/` | Config, guardrails, readiness, updates, and entrypoint docs validate |
-| Stage 2 advisory scripts/hooks | Add local `warn` checks and hooks | Validator runs locally and records known violations without failing legacy debt |
-| Stage 3 error shared gates | Promote agreed checks to shared enforcement | Required commands pass through the shell wrapper in CI or hooks, and `error` findings fail |
-| Stage 4 ratchet/freshness/maturity hardening | Tighten readiness score, doc freshness, and known-violation budgets | New `error` findings fail and known violations trend down |
+| Gradle | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
+| Maven | `pom.xml` | `mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
+| uv | `uv.lock` or Python `pyproject.toml` | `uv run python .claude/harness/uv/harness_validate.py` |
+| bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun run .claude/harness/bun/harness-validate.ts` |
 
-## Plugin Layout
+Run validation commands from the target repository root. The uv, bun, and Maven validators bind that current directory as the target root, and native validators compare the installed `.claude/harness/manifest.json` fields that this plugin writes.
+
+Gradle installer wiring prepends a composite build include for `.claude/harness/gradle-plugin`. Complex existing `settings.gradle(.kts)` files, especially those with custom plugin management or composite builds, SHOULD be reviewed manually after installation.
+
+## Git Hooks
+
+The installer writes a selected-mode hook template in `.claude/harness/git-hooks/` on fresh install and preserves an existing target-owned template on refresh unless `--force` is used. Git hook activation is opt-in because it modifies local Git behavior outside version control.
+
+```sh
+sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.sh --target /path/to/target-repo --mode auto --hooks copy
+```
+
+Use `--hooks none` or omit the flag to skip Git hook activation. Use `--hooks copy` only when the target should activate the generated pre-commit check.
+
+Copy mode keeps an existing active hook unless `--force` is used. With `--force`, the installer replaces the active hook with installer-generated content for the selected mode. Use `--hooks copy --force` only with explicit approval because it changes local Git behavior.
+
+## Metadata and Attribution
+
+- Manifest author: `ririnto`, matching the repository owner metadata.
+- Plugin license: Apache-2.0, recorded in `LICENSE`.
+- External inspiration and adapted taxonomy are documented in `THIRD_PARTY_NOTICES.md`.
+- Marketplace releases are versioned at `.claude-plugin/marketplace.json`; plugin manifests intentionally omit `version`.
+
+## Harness Evolution
+
+The installed harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active target contract. Use `harness-evolve` when repeated validation or review failures show that templates, docs, agents, skills, generated-artifact locations, or validation rules should change.
+
+## Layout
 
 ```text
 plugins/harness/
 ├── .claude-plugin/plugin.json
-├── .gitignore
+├── LICENSE
 ├── README.md
+├── THIRD_PARTY_NOTICES.md
+├── agents/
+├── scripts/
 └── skills/
-    └── setup-harness/
-        ├── SKILL.md
-        ├── assets/
-        │   ├── agents/
-        │   ├── bun-validator/
-        │   │   └── validate-harness.mjs
-        │   ├── config.json
-        │   ├── github-actions.yml
-        │   ├── gitlab-ci.yml
-        │   ├── gradle-plugin/
-        │   ├── maven-plugin/
-        │   ├── setup-harness.sh
-        │   ├── setup-hooks.sh
-        │   └── templates/
-        │       ├── CLAUDE.md
-        │       ├── ARCHITECTURE.md
-        │       └── docs/
-        ├── references/
-        └── scripts/
-            ├── install_harness.py
-            ├── validate_harness.py
-            └── validate_harness.sh
+    ├── harness-evolve/
+    ├── harness-install/
+    └── harness-validate/
 ```
-
-- `.claude-plugin/plugin.json` carries thin Claude-facing marketplace metadata with the declared `skills` entry point and shared plugin metadata.
-- `skills/setup-harness/SKILL.md` holds the common setup path: inspect, configure, install stage-appropriate docs/target-agent/scripts/CI/hooks guardrails, validate gates, and update/ratchet.
-- `skills/setup-harness/assets/` holds raw copy/adapt assets, including the placeholder-rich `assets/templates/` knowledge-base tree, target-owned agent assets, CI and hook assets, installer scripts, plus optional Bun, Gradle, and Maven integration packs that run language-native harness validation.
-- `skills/setup-harness/scripts/` holds the full Python validator and direct `sh` wrapper that may be copied into target repositories.
-- `skills/setup-harness/references/` holds additive depth for bootstrap/apply flow, architecture enforcement, CI/hooks integration, docs-as-context, entropy management, source verification, team-harness patterns, and the original Symphony service specification artifact.
-
-## Integration Packs
-
-The common path installs docs, config, scripts, CI, and hooks only. These copy/adapt packs are available when a target repository wants an existing toolchain to validate the versioned harness contract natively:
-
-| Pack | Asset path | Purpose |
-| --- | --- | --- |
-| Bun validator | `skills/setup-harness/assets/bun-validator/validate-harness.mjs` | Bun no-dependency validator for package scripts or Bun-based tooling |
-| Gradle plugin | `skills/setup-harness/assets/gradle-plugin/` | Included build-logic convention plugin that registers `harnessCheck` with Gradle-native validation; `buildSrc` is an alternative target shape |
-| Maven plugin | `skills/setup-harness/assets/maven-plugin/` | Maven Mojo that exposes a `harness-check` goal with Maven-native validation |
-
-Do not treat these packs as always-on validator lanes. Adopt one only after the target repository documents the target files and command surface in its harness docs.
-
-## Source Verification
-
-The OpenAI Harness Engineering article was rechecked from `https://openai.com/ko-KR/index/harness-engineering/` on 2026-05-09 before this update. It informs the repository knowledge-base shape and enforcement posture, while this plugin adds the `docs/harness/config.json` metadata convention, staged fields, validators, and harness checks. `revfactory/harness` was checked on 2026-05-09 as a team-architecture reference for pipeline, fan-out/fan-in, expert-pool, producer-reviewer, supervisor, and hierarchical delegation patterns. The related Symphony article and public spec were checked on 2026-05-09 only to define product boundaries. The encoded source mapping lives in `skills/setup-harness/references/source-verification.md`, and upstream attribution lives in `THIRD_PARTY_NOTICES.md`.
-
-## Design Principles
-
-- Treat `docs/harness/config.json` as this plugin's stable docs-adjacent metadata convention: target-specific, machine-readable, namespaced, and separate from root `CLAUDE.md`, `AGENTS.md`, and `ARCHITECTURE.md`. Root `.config.json` is manual migration input only, not a validator-supported fallback.
-- Use root `CLAUDE.md` as the repository-level instruction map because Claude Code reads project `CLAUDE.md` files, and create `optional AGENTS.md -> CLAUDE.md` for AGENTS.md readers. Do not create `CLAUDE.md -> AGENTS.md`.
-- Keep root `ARCHITECTURE.md` as the default architecture path. Do not default to `docs/ARCHITECTURE.md`.
-- Keep the plugin a setup/update/validation skill, not an always-on universal operating skill.
-- Install non-destructively: dry-run first, report conflicts, and never overwrite target files without an explicit replace decision.
-- Keep `docs/` and `scripts/` evolving together so documented behavior is backed by executable checks.
-- Support GitHub Actions, GitLab CI, git commit/push hooks, and user-customized requirement rules without requiring any one provider or build system.
-- Use the shell wrapper as the trusted default command form. The wrapper executes Python only through `uv run`, so target repositories must provision `uv`.
-- Use readiness/maturity scoring, `warn`-to-`error` ratchets, known-violation ledgers, ADR/spec constraints, doc freshness, and scoped path rules as practical config fields and gates.
-- Keep source schemas in checked-in project roots, not `docs/generated/`. Use `docs/generated/` for reproducible derived docs with provenance, source paths, and regeneration commands.
-- Keep project-specific build/runtime integrations outside the core validator. Use the optional Bun, Gradle, or Maven packs only when a target repository explicitly adopts that entrypoint.
-- Keep Symphony daemon behavior, Linear issue tracking, per-issue workspace scheduling, app-server protocol handling, and OpenAI runtime-stack provisioning outside this plugin. Document those as separate target-specific orchestration integrations when needed.
-
-## Installation
-
-Install from the Sinon marketplace:
-
-```bash
-/plugin install harness@sinon
-```
-
-For Claude Code local development:
-
-```bash
-claude --plugin-dir /path/to/sinon/plugins/harness
-```
-
 
 ## Scope Notes
 
-This plugin intentionally focuses on applying and maintaining staged setup-time docs/config guardrails. It does not cover:
-
-- language- or framework-specific coding style beyond configured checks
-- mandatory project build-system lane management
-- release management or deployment tooling
-- general-purpose CI pipeline authoring beyond integrating configured harness checks
-- Symphony daemon implementation, Linear polling, app-server clients, or per-issue workspace orchestration
-- OpenAI runtime stack provisioning, observability backend provisioning, or browser automation service hosting
-- destructive repository migrations or automatic overwrites
-
-Target repositories SHOULD preserve `optional AGENTS.md -> CLAUDE.md` and `.agents/skills -> ../.claude/skills` when they use both naming surfaces. Target repositories that need project-specific agents MAY add `.claude/agents/` and document those agents in the harness docs.
+- This plugin prepares repository knowledge, guardrails, templates, and validation paths. It does not run background services or manage issue queues.
+- Target-owned agents are starting points, not immutable plugin internals.
+- Target-local `.claude/skills/harness-validate` is installed as a project skill. If a host exposes both plugin skills and project skills with the same name, follow the host's normal project-local precedence or rename the target-local skill after installation.
+- GitHub Actions and GitLab CI templates use ordinary version tags from the archive; projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.
+- Maven and Gradle self-checks may create IDE/build metadata under template directories; repository `.gitignore`, installer filters, and plugin self-checks exclude `.classpath`, `.project`, `.factorypath`, `.settings/`, `.gradle/`, `bin/`, `build/`, and `target/` while leaving source template files trackable.

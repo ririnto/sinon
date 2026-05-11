@@ -1,0 +1,8 @@
+stages:
+  - validate
+
+harness:
+  stage: validate
+  image: eclipse-temurin:17
+  script:
+    - {{validation_command}}

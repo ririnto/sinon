@@ -1,6 +1,0 @@
-# Ignore generated and temporary files for {project-name}
-
-{generated-docs-temp-dir}/
-{local-harness-temp-dir}/
-*.tmp
-*.generated.tmp

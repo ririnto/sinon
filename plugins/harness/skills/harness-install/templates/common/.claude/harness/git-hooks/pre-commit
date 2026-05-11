@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -e
+
+printf '%s\n' 'This packaged placeholder is replaced during harness installation.' >&2
+printf '%s\n' 'Run install-harness.sh so the target hook contains one selected validation command.' >&2
+exit 1
