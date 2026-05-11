@@ -39,7 +39,7 @@ The following plugins are maintained in this repository and may be published to 
 
 - `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.
 - `plugins/git-workflow`: Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.
-- `plugins/harness`: Staged setup-time harness guardrails with OpenAI-style repo layout defaults and flexible project profiles.
+- `plugins/harness`: Repository harness plugin for installing, validating, and evolving agent instructions, docs structure, project agents, project skills, templates, stack validators, CI snippets, and opt-in Git hook templates.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
 - `plugins/jvm`: JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
 - `plugins/kotlin`: Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.
@@ -48,7 +48,6 @@ The following plugins are maintained in this repository and may be published to 
 - `plugins/reactor`: Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.
 - `plugins/spec-driven-development`: Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.
 - `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.
-
 
 ## Publishing Model
 
@@ -171,4 +170,4 @@ claude --plugin-dir /path/to/sinon/plugins/java
 
 ## License
 
-This repository is distributed under the MIT License. See [LICENSE](./LICENSE).
+This repository is distributed under the MIT License. See [LICENSE](./LICENSE). The harness plugin is distributed under Apache-2.0 and includes attribution notes under [plugins/harness/THIRD_PARTY_NOTICES.md](./plugins/harness/THIRD_PARTY_NOTICES.md).
