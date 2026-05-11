@@ -1,0 +1,88 @@
+# Repository Harness Contract
+
+This repository uses a versioned harness so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution.
+
+## Invariants
+
+- The repository MUST keep agent instructions, skills, templates, documentation structure, and validation adapters in versioned files.
+- `AGENTS.md` MUST be the primary repository harness contract for coding agents.
+- `CLAUDE.md` MUST remain a Claude Code entry point and MUST refer to `AGENTS.md`.
+- `ARCHITECTURE.md` MUST describe system boundaries, major components, data flow, and validation surfaces.
+- `.claude/agents/` MUST contain specialized project agents with `name` and `description` frontmatter.
+- `.claude/skills/*/SKILL.md` MUST contain focused procedures with `description` frontmatter.
+- `.claude/harness/templates/` MUST contain structured templates for agents, skills, workflows, CI integration, and repository documentation.
+- `.claude/harness/git-hooks/pre-commit` MUST remain executable and use `/usr/bin/env sh`.
+- Empty required directories MUST be kept in version control with `.gitkeep` until they contain project files.
+- `docs/generated/` MUST contain actual generated repository artifacts when they exist. `docs/generated/db-schema.md` is an example of a possible generated database schema summary and MUST NOT be treated as a required scaffold file.
+- Validation SHOULD run through the repository's native build/runtime ecosystem.
+- CI SHOULD run the same harness validation command used by local development.
+
+## Required Repository Structure
+
+```text
+AGENTS.md
+ARCHITECTURE.md
+CLAUDE.md
+docs/
+├── design-docs/
+│   ├── index.md
+│   └── core-beliefs.md
+├── exec-plans/
+│   ├── active/
+│   │   └── .gitkeep  (or real active plans)
+│   ├── completed/
+│   │   └── .gitkeep  (or real completed plans)
+│   └── tech-debt-tracker.md
+├── generated/
+│   └── .gitkeep  (or real generated artifacts)
+├── product-specs/
+│   ├── index.md
+│   └── optional product specs, such as new-user-onboarding.md
+├── references/
+│   └── optional replaceable LLM reference seeds
+├── DESIGN.md
+├── FRONTEND.md
+├── PLANS.md
+├── PRODUCT_SENSE.md
+├── QUALITY_SCORE.md
+├── RELIABILITY.md
+└── SECURITY.md
+```
+
+`docs/generated/` is reserved for artifacts produced by commands, schemas, build tools, migrations, reports, or other deterministic generation. Keep `.gitkeep` only while the directory has no real generated artifacts. `docs/generated/db-schema.md` is only an example of a possible output and MUST NOT be treated as a required file. Actual generated items SHOULD document their source command, input files, freshness, and regeneration trigger.
+
+## Optional Seed Files
+
+The harness may install replaceable seed files under `docs/product-specs/` and `docs/references/`. These files are examples of where project-owned context can live; replace, rename, or remove them when they do not match the target repository.
+
+## Operating Model
+
+Humans define intent, constraints, review criteria, and acceptance gates. Agents perform bounded implementation work and use validators as feedback loops.
+
+Agent work MUST start by reading `AGENTS.md`, `ARCHITECTURE.md`, and the relevant `docs/**` file for the task domain.
+
+The harness is sufficient as the development operating surface when the project-specific context is present or explicitly created during the task. The scaffold MUST NOT be treated as a substitute for missing product requirements, source-of-truth schemas, tests, implementation code, runtime configuration, secrets, or domain references.
+
+For an underspecified repository, agents MUST first create or update the relevant product spec, design document, architecture note, and active execution plan before implementation work.
+
+## Harness Evolution
+
+The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance phases.
+
+Harness changes MUST be versioned, reviewable, and validated. When repeated failures reveal a better policy, template, agent role, skill procedure, validation rule, generated-artifact inventory, or documentation structure, update the harness rather than relying on chat-only instructions.
+
+The current committed harness is the active contract. Do not treat the original plugin defaults as permanent.
+
+## Required Validation
+
+Run the stack-specific harness validation command before merging changes that alter:
+
+- `AGENTS.md`
+- `CLAUDE.md`
+- `ARCHITECTURE.md`
+- `docs/**`
+- `.claude/agents/`
+- `.claude/skills/`
+- `.claude/harness/`
+- `.git/hooks/` installation instructions
+- CI harness jobs

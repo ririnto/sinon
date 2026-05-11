@@ -1,0 +1,86 @@
+---
+name: harness-install
+description: Install repository harness assets: AGENTS.md contract, ARCHITECTURE.md, docs structure, Claude entry point, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use this skill when setting up or refreshing a repository harness, adding Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, or bun projects.
+argument-hint: '[auto|gradle|maven|uv|bun] [--target DIR] [--hooks none|copy] [--force] [--no-ci]'
+allowed-tools: Bash(sh */skills/harness-install/scripts/install-harness.sh *) Bash(git *) Bash(./gradlew *) Bash(gradle *) Bash(mvn *) Bash(uv *) Bash(bun *) Read Grep Glob LS
+---
+
+# Harness Install
+
+Install or refresh target-owned repository harness files from this plugin. The plugin skill installs the scaffold; after installation, target repositories own the copied contracts, docs, agents, skills, templates, validators, CI snippets, and generated hook templates.
+
+## First Safe Checks
+
+1. Read the target repository root files if present: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `.claude/harness/README.md`, and `.claude/harness/manifest.json`.
+2. Detect the target stack from repository files, or use the explicit stack argument supplied by the user.
+3. Decide hook behavior before running the installer: `--hooks none` skips hook installation, and `--hooks copy` writes `.git/hooks/pre-commit`.
+4. Use `--force` only when the user explicitly wants existing target harness files replaced.
+5. Keep plugin files separate from target files: edit this plugin only when improving the installer; edit target `.claude/**` files only after installation in the target repository.
+
+## Workflow
+
+1. Choose a mode.
+
+    ```text
+    auto
+    gradle
+    maven
+    uv
+    bun
+    ```
+
+2. Run the installer with the target repository as `--target`.
+
+    ```sh
+    sh "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.sh" --target "$PWD" --mode auto --hooks none
+    ```
+
+3. Use explicit mode when auto-detection is ambiguous or when the user supplied a stack.
+
+    ```sh
+    sh "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.sh" --target "$PWD" --mode gradle --hooks none
+    ```
+
+4. Run the validation command printed by the installer before reporting completion.
+5. Inspect changed files and distinguish kept files from written files in the final report.
+6. Report hook behavior, validation status, and any target-owned files the user must fill with project truth.
+
+## Decisions
+
+| Situation | Action |
+| --- | --- |
+| Target has no obvious stack files | Ask for `gradle`, `maven`, `uv`, or `bun`; do not guess. |
+| Existing harness files are present | Preserve them unless `--force` was requested. |
+| Existing Git hook is present | Prefer `--hooks none`; use `--hooks copy --force` only with explicit approval to replace the active local hook with installer-generated selected-mode content. |
+| Target repository forbids CI snippets | Pass `--no-ci` and report that CI templates were skipped. |
+| Complex Gradle settings already exist | Review `settings.gradle(.kts)` after installer wiring; composite build or plugin-management blocks may need manual adjustment. |
+| Installed placeholders are still generic | Treat installation as incomplete readiness and tell the user which docs need target content. |
+
+## Invariants
+
+- The installed harness is target-owned after copying.
+- The hook template is generated on fresh install and preserved on refresh unless `--force` was requested.
+- `AGENTS.md` is the primary target repository harness contract.
+- `CLAUDE.md` remains the Claude Code entry point and points back to `AGENTS.md`.
+- `.claude/harness/manifest.json` is the installed harness inventory and contract.
+- `docs/generated/` is a generated-artifact location; it MUST NOT require a fake `db-schema.md` file.
+- Plugin skills install and validate the harness package; installed target skills guide day-to-day work inside the target repository.
+
+## Pitfalls
+
+- Do not edit `scripts/install-harness.sh` during ordinary installation.
+- Do not claim harness-only readiness when product specs, architecture decisions, acceptance criteria, or generated artifacts are still placeholders.
+- Do not activate or force-replace Git hooks without explicit approval for that local repository.
+- Do not treat seed references as universal target truth; they are replaceable starting points.
+- Do not make the plugin responsible for runtime services, issue queues, workspace management, or team generation.
+
+## Output Contract
+
+Report these fields:
+
+- `mode`: detected or explicit stack mode.
+- `installer command`: the command that ran.
+- `files`: written, kept, and skipped file groups.
+- `hooks`: `none` or `copy` and whether the hook file was written, kept, or force-replaced.
+- `validation`: command run and result.
+- `target follow-up`: placeholders or seed references that require project-specific content.

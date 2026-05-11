@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "0.3.0",
+  "name": "repository-harness",
+  "requiredFiles": [
+    "AGENTS.md",
+    "ARCHITECTURE.md",
+    "CLAUDE.md",
+    "docs/design-docs/index.md",
+    "docs/design-docs/core-beliefs.md",
+    "docs/exec-plans/tech-debt-tracker.md",
+    "docs/product-specs/index.md",
+    "docs/DESIGN.md",
+    "docs/FRONTEND.md",
+    "docs/PLANS.md",
+    "docs/PRODUCT_SENSE.md",
+    "docs/QUALITY_SCORE.md",
+    "docs/RELIABILITY.md",
+    "docs/SECURITY.md",
+    ".claude/harness/git-hooks/pre-commit"
+  ],
+  "requiredDirectories": [
+    ".claude/agents",
+    ".claude/skills",
+    ".claude/harness/templates",
+    "docs",
+    "docs/design-docs",
+    "docs/exec-plans",
+    "docs/exec-plans/active",
+    "docs/exec-plans/completed",
+    "docs/generated",
+    "docs/product-specs",
+    "docs/references"
+  ],
+  "emptyDirectoryKeepFiles": [
+    "docs/exec-plans/active/.gitkeep",
+    "docs/exec-plans/completed/.gitkeep",
+    "docs/generated/.gitkeep"
+  ],
+  "generatedArtifacts": {
+    "path": "docs/generated/",
+    "placeholder": "docs/generated/.gitkeep",
+    "policy": "Place actual generated repository artifacts here. docs/generated/db-schema.md is an example output, not a required scaffold file.",
+    "metadata": [
+      "source command",
+      "source inputs",
+      "freshness",
+      "regeneration trigger"
+    ]
+  },
+  "harnessEvolution": {
+    "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract.",
+    "log": ".claude/harness/evolution-log.md"
+  },
+  "templateGroups": [
+    "agent",
+    "skill",
+    "workflow",
+    "ci",
+    "docs"
+  ],
+  "teamPatterns": [
+    "pipeline",
+    "fan-out-fan-in",
+    "expert-pool",
+    "producer-reviewer",
+    "supervisor",
+    "hierarchical-delegation"
+  ],
+  "optionalSeedFiles": [
+    "docs/product-specs/new-user-onboarding.md",
+    "docs/references/design-system-reference-llms.txt",
+    "docs/references/nixpacks-llms.txt",
+    "docs/references/uv-llms.txt"
+  ]
+}

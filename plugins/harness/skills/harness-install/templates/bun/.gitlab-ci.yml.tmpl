@@ -1,0 +1,8 @@
+stages:
+  - validate
+
+harness:
+  stage: validate
+  image: oven/bun:1
+  script:
+    - {{validation_command}}
