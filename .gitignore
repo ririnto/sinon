@@ -102,6 +102,7 @@ __pycache__/
 venv/
 env/
 ENV/
+.uv-cache/
 pip-wheel-metadata/
 *.egg-info/
 .eggs/
@@ -111,6 +112,15 @@ pip-wheel-metadata/
 gradle-app.setting
 !gradle-wrapper.jar
 *.class
+.classpath
+.project
+.factorypath
+.settings/
+
+# Harness local generated scratch paths
+**/docs/generated/.tmp/
+**/scripts/harness/.tmp/
+plugins/harness/skills/harness-install/templates/**/bin/
 
 # Packaged artifacts
 *.tgz
