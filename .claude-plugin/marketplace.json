@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "sinon",
-  "version": "2026.04.24",
+  "version": "2026.05.11",
   "description": "Claude catalog view for the Sinon marketplace.",
   "owner": {
     "name": "ririnto",
@@ -82,7 +82,7 @@
     },
     {
       "name": "harness",
-      "description": "Apply staged setup-time docs and configuration guardrails with docs-adjacent metadata.",
+      "description": "Install, validate, and evolve repository-owned harness assets for agent instructions, docs, templates, project agents, project skills, stack validators, CI snippets, and opt-in Git hook templates.",
       "source": "./plugins/harness",
       "author": {
         "name": "ririnto"
