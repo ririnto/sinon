@@ -26,8 +26,8 @@ Check these support surfaces before running the stack command.
 | --- | --- | --- |
 | `.claude/harness/README.md` | Selected validation command and stack notes | `.claude/harness/README.md: missing harness file - run harness-install or restore target-owned README` |
 | `.claude/harness/manifest.json` | Required files, optional seeds, empty directories, generated-artifact policy | `.claude/harness/manifest.json: missing harness file - run harness-install or restore target-owned manifest` |
-| `.github/workflows/harness.yml` | GitHub Actions command parity | `.github/workflows/harness.yml: CI command mismatch - expected installed validation command` |
-| `.gitlab-ci.yml` | GitLab CI command parity | `.gitlab-ci.yml: CI command mismatch - expected installed validation command` |
+| `.github/workflows/harness.yml` | GitHub Actions command parity | `.github/workflows/harness.yml: CI command mismatch - expected generated pre-push final check command` |
+| `.gitlab-ci.yml` | GitLab CI command parity | `.gitlab-ci.yml: CI command mismatch - expected generated pre-push final check command` |
 
 ## Mode Detection
 
@@ -45,12 +45,13 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 
 | Mode | Use when | Command |
 | --- | --- | --- |
-| `gradle` | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
+| `gradle` harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
+| `gradle` final check | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
 | `maven` | `pom.xml` exists | `mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
 | `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run python .claude/harness/uv/harness_validate.py` |
 | `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun run .claude/harness/bun/harness-validate.ts` |
 
-The installed README command is the selected command. If a future target installs `.claude/harness/validate.sh`, prefer `sh .claude/harness/validate.sh` and treat direct stack commands as fallback commands only when the selected command is absent.
+The installed README command is the local harness validation command. The generated `.claude/harness/git-hooks/pre-push` command marker is the final check command; for Gradle that command is `check`, while `pre-commit` runs `harnessValidate`. Do not introduce `.claude/harness/validate.sh` as a dispatcher unless the installer, CI templates, hook generation, validators, and self-check all adopt that dispatcher contract together.
 
 ## Command Examples
 
@@ -92,7 +93,7 @@ uv run python .claude/harness/uv/harness_validate.py
 
 1. Detect mode when the argument is empty or `auto`.
 2. Run exactly one stack command from the table.
-3. If validation fails, classify the failure as missing file, stale placeholder, script permission, hook wiring, CI command mismatch, or stack-tool failure.
+3. If validation fails, classify the failure using the table below, including manifest, directory, docs, agent, skill, hook, CI, generated-artifact, symlink, shebang, and stack-tool failures.
 4. Fix only issues in the user's requested scope; otherwise report the failing contract and the owning file.
 5. Re-run the same validation command after any fix.
 
@@ -121,20 +122,28 @@ failures:
 | Category | Evidence | Smallest valid action |
 | --- | --- | --- |
 | Missing harness file | Validator names an absent `AGENTS.md`, `.claude/harness/**`, docs file, agent, or skill | Re-run installation or restore the missing target-owned file. |
+| Manifest drift | Manifest JSON is invalid or manifest lists differ from validator constants | Restore `.claude/harness/manifest.json` or update validators and manifest together. |
+| Missing harness directory | Validator names an absent docs, `.claude/agents`, `.claude/skills`, or template directory | Restore the directory and required `.gitkeep` files when empty. |
 | Stale placeholder | File exists but still contains generic scaffold content | Replace placeholder with target truth; do not invent product facts. |
-| Script permission | Hook or validator exists but is not executable where execution is required | Restore executable bit on the target-owned script. |
-| Hook wiring | `.claude/harness/git-hooks/pre-commit` or `.git/hooks/pre-commit` runs the wrong command | Regenerate selected-mode hook content only with explicit hook approval. |
-| CI command mismatch | `.github/workflows/harness.yml` or `.gitlab-ci.yml` uses a different validation command | Align CI with the installed README command for the selected mode. |
+| Agent or skill metadata | Agent or skill frontmatter lacks required `name` or `description` | Fix the specific agent or skill metadata. |
+| Documentation contract | Required doc headings, generated-artifact semantics, or harness evolution wording is missing | Restore the documented contract in the named file. |
+| Generated artifact metadata | A file under `docs/generated/` lacks source command, source inputs, freshness, or regeneration trigger metadata | Add metadata or remove the invalid generated artifact from scope. |
+| Symlink safety | Validator reports symlink scan entries under protected harness paths | Replace symlinks with regular files or directories owned by the target. |
+| Script permission | Generated hook or validator exists but is not executable where execution is required | Restore executable bit on the target-owned script. |
+| Script shebang | Executable script does not use `/usr/bin/env` shebang | Update the executable script shebang. |
+| Unsupported validation command | Generated `pre-push` declares a command outside the installer allow-list | Regenerate selected-mode hook content from the installer. |
+| Hook wiring | Generated `pre-commit` does not match the stack-specific hook contract, generated `pre-push` lacks the selected final check command, or CI drifts from generated `pre-push` | Regenerate selected-mode hook content only with explicit hook approval. |
+| CI command mismatch | `.github/workflows/harness.yml` or `.gitlab-ci.yml` uses a different validation command | Align CI with the generated pre-push final check command for the selected mode. |
 | Stack-tool failure | The native tool exits before harness checks run | Report the tool failure separately from harness contract health. |
 
 ## CI Checks
 
-Local validation is the source of truth. CI files are examples that should run the same selected command.
+Local validation is the source of truth. CI files are examples that should run the generated pre-push final check command.
 
 | CI file | Expected validation shape |
 | --- | --- |
-| `.github/workflows/harness.yml` | One harness job whose run step matches the installed validation command. |
-| `.gitlab-ci.yml` | One `harness` job whose script entry matches the installed validation command. |
+| `.github/workflows/harness.yml` | One harness job whose run step matches the generated pre-push final check command. |
+| `.gitlab-ci.yml` | One `harness` job whose script entry matches the generated pre-push final check command. |
 
 If CI is skipped during install, report that local validation passed and CI snippets were intentionally absent.
 
@@ -151,7 +160,7 @@ ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv 
 - Native validators support the installed `.claude/harness/manifest.json` schema and compare the known list fields from that schema.
 - File presence alone does not prove project readiness when placeholders still lack project-specific content.
 - Generated artifacts are valid only when they document source command, source inputs, freshness, and regeneration trigger.
-- GitHub Actions and GitLab CI snippets MUST remain examples of the same selected validation command, not independent validation contracts.
+- GitHub Actions, GitLab CI, and the generated pre-push hook MUST remain examples of the same final check command. Gradle pre-commit runs `harnessValidate`; non-Gradle pre-commit remains compliance-only.
 
 ## Pitfalls
 

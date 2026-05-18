@@ -17,9 +17,13 @@ class HarnessValidationPlugin : Plugin<Project> {
      */
     override fun apply(project: Project) {
         if (project == project.rootProject) {
-            project.tasks.register("harnessValidate", HarnessValidationTask::class.java) { task ->
+            val harnessValidate = project.tasks.register("harnessValidate", HarnessValidationTask::class.java) { task ->
                 task.group = "verification"
                 task.description = "Validate Claude repository harness assets."
+            }
+            project.pluginManager.apply("base")
+            project.tasks.named("check") { task ->
+                task.dependsOn(harnessValidate)
             }
         }
     }
@@ -69,7 +73,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                 }
             }
             validateActiveAssets(root, failures)
-            validateHook(root, failures)
+            validateHooks(root, failures)
             validateEnvShebangs(root, failures)
             if (failures.isNotEmpty()) {
                 throw GradleException(
@@ -282,18 +286,69 @@ class HarnessValidationPlugin : Plugin<Project> {
             }
         }
 
-        private fun validateHook(root: File, failures: MutableList<String>) {
-            val hook = File(root, ".claude/harness/git-hooks/pre-commit")
+        private fun hookCommand(prePushText: String): String = prePushText
+            .lineSequence()
+            .firstOrNull { line ->
+                line.startsWith("# Harness validation command: ")
+            }
+            ?.removePrefix("# Harness validation command: ")
+            ?.trim()
+            .orEmpty()
+
+        private fun validateOneHook(
+            root: File,
+            name: String,
+            stage: String,
+            failures: MutableList<String>,
+        ): String {
+            val hook = File(root, ".claude/harness/git-hooks/$name")
+            var hookText = ""
             if (isSafeFile(root, hook, failures)) {
-                val hookText = hook.readText()
+                hookText = hook.readText()
                 if (hookText.lineSequence().firstOrNull() != "#!/usr/bin/env sh") {
-                    failures += "pre-commit hook must use #!/usr/bin/env sh"
+                    failures += "$name hook must use #!/usr/bin/env sh"
                 }
                 if (!hook.canExecute()) {
-                    failures += "pre-commit hook must be executable: ${hook.relativeTo(root)}"
+                    failures += "$name hook must be executable: ${hook.relativeTo(root)}"
+                }
+                if (!hookText.contains("Harness generated hook: $name")) {
+                    failures += "$name hook must contain generated marker"
+                }
+                if (!hookText.contains("Harness stage: $stage")) {
+                    failures += "$name hook must contain $stage stage marker"
                 }
                 if (hookText.contains("packaged placeholder is replaced during harness installation")) {
-                    failures += "pre-commit hook must be installer-generated selected-mode content"
+                    failures += "$name hook must be installer-generated selected-mode content"
+                }
+            }
+            return hookText
+        }
+
+        private fun validateHooks(root: File, failures: MutableList<String>) {
+            val preCommitText = validateOneHook(root, "pre-commit", "harness-validation", failures)
+            val prePushText = validateOneHook(root, "pre-push", "full-validation", failures)
+            val preCommitCommand = hookCommand(preCommitText)
+            if (preCommitCommand !in allowedPreCommitCommands) {
+                failures += "pre-commit hook must declare Gradle harness validation command"
+            } else if (preCommitCommand !in preCommitText.lineSequence().toSet()) {
+                failures += "pre-commit hook must run the declared validation command"
+            }
+            val command = hookCommand(prePushText)
+            if (command.isBlank()) {
+                failures += "pre-push hook must declare Harness validation command"
+                return
+            }
+            if (command !in allowedValidationCommands) {
+                failures += "pre-push hook declares unsupported validation command: $command"
+                return
+            }
+            if (command !in prePushText.lineSequence().toSet()) {
+                failures += "pre-push hook must run the declared validation command"
+            }
+            listOf(".github/workflows/harness.yml", ".gitlab-ci.yml").forEach { ciFile ->
+                val path = File(root, ciFile)
+                if (path.exists() && isSafeFile(root, path, failures) && !path.readText().contains(command)) {
+                    failures += "$ciFile: CI command mismatch - expected $command"
                 }
             }
         }
@@ -401,6 +456,14 @@ class HarnessValidationPlugin : Plugin<Project> {
         }
 
         private companion object {
+            private val allowedPreCommitCommands = setOf(
+                "./gradlew harnessValidate",
+                "gradle harnessValidate",
+            )
+            private val allowedValidationCommands = setOf(
+                "./gradlew check",
+                "gradle check",
+            )
             private val requiredFiles = listOf(
                 "AGENTS.md",
                 "ARCHITECTURE.md",
@@ -417,6 +480,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                 "docs/RELIABILITY.md",
                 "docs/SECURITY.md",
                 ".claude/harness/git-hooks/pre-commit",
+                ".claude/harness/git-hooks/pre-push",
             )
             private val requiredDirectories = listOf(
                 "docs",

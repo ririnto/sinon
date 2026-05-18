@@ -28,7 +28,7 @@ Review changes in this target repository against the installed harness. Findings
 - Contract drift between `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, docs, and `.claude/harness/**`.
 - Missing acceptance criteria, execution plans, or architecture updates.
 - Required fake product content or obsolete seed references.
-- Inconsistent validation commands across docs, hooks, and CI.
+- Inconsistent final check commands across docs, pre-push, and CI, or pre-commit violating its stack-specific hook contract.
 - Target agents or skills with unclear trigger descriptions or unsupported scope.
 
 ## Output Contract

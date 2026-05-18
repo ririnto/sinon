@@ -11,11 +11,13 @@ This repository uses a versioned harness so coding agents can work from stable p
 - `.claude/agents/` MUST contain specialized project agents with `name` and `description` frontmatter.
 - `.claude/skills/*/SKILL.md` MUST contain focused procedures with `description` frontmatter.
 - `.claude/harness/templates/` MUST contain structured templates for agents, skills, workflows, CI integration, and repository documentation.
-- `.claude/harness/git-hooks/pre-commit` MUST remain executable and use `/usr/bin/env sh`.
+- `.claude/harness/git-hooks/pre-commit` and `.claude/harness/git-hooks/pre-push` MUST remain executable and use `/usr/bin/env sh`.
 - Empty required directories MUST be kept in version control with `.gitkeep` until they contain project files.
 - `docs/generated/` MUST contain actual generated repository artifacts when they exist. `docs/generated/db-schema.md` is an example of a possible generated database schema summary and MUST NOT be treated as a required scaffold file.
 - Validation SHOULD run through the repository's native build/runtime ecosystem.
-- CI SHOULD run the same harness validation command used by local development.
+- `.claude/harness/git-hooks/pre-commit` MUST follow the stack-specific intermediate gate: Gradle runs `harnessValidate`, and non-Gradle stacks run lightweight harness-rule compliance.
+- `.claude/harness/git-hooks/pre-push` SHOULD run the same final check command used by CI; for Gradle this is `check`.
+- CI SHOULD run the same final check command used by generated pre-push.
 
 ## Required Repository Structure
 
