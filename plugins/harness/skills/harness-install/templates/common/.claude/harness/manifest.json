@@ -16,7 +16,8 @@
     "docs/QUALITY_SCORE.md",
     "docs/RELIABILITY.md",
     "docs/SECURITY.md",
-    ".claude/harness/git-hooks/pre-commit"
+    ".claude/harness/git-hooks/pre-commit",
+    ".claude/harness/git-hooks/pre-push"
   ],
   "requiredDirectories": [
     ".claude/agents",

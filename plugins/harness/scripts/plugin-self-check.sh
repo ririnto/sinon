@@ -76,10 +76,30 @@ reject_text_in_paths() {
 # :param paths: File or directory paths.
 reject_hooks_path_setters() {
   for path in "$@"; do
-    if grep -R -E 'git[[:space:]].*config[[:space:]].*core[.]hooksPath' "$path" | grep -F -v 'git config --get core.hooksPath'; then
+    if grep -R -E 'git[[:space:]].*config[[:space:]].*core[.]hooksPath' "$path" | grep -F -v 'git config --get core.hooksPath' | grep -F -v 'git config --path --get core.hooksPath' | grep -F -v 'git config --local --get core.hooksPath'; then
       fail "forbidden Git hooks path setter under $path"
     fi
   done
+}
+
+# :description: Print files tracked by Git.
+# :param path: File or directory path to scan.
+package_files() {
+  path=$1
+  if [ "$path" = "$root" ]; then
+    rel=.
+  else
+    rel=${path#"$root"/}
+  fi
+  if git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    files=$(git -C "$root" ls-files --cached -- "$rel") || fail "cannot enumerate package files: $path"
+    printf '%s\n' "$files" | while IFS= read -r file; do
+      [ -n "$file" ] || continue
+      printf '%s/%s\n' "$root" "$file"
+    done
+  else
+    find "$path" -type f -print
+  fi
 }
 
 for path in \
@@ -102,6 +122,7 @@ for path in \
   "$root/skills/harness-install/templates/common/.claude/harness/manifest.json" \
   "$root/skills/harness-install/templates/common/.claude/harness/README.md" \
   "$root/skills/harness-install/templates/common/.claude/harness/git-hooks/pre-commit" \
+  "$root/skills/harness-install/templates/common/.claude/harness/git-hooks/pre-push" \
   "$root/skills/harness-install/templates/common/docs/generated/.gitkeep" \
   "$root/skills/harness-install/templates/common/docs/exec-plans/active/.gitkeep" \
   "$root/skills/harness-install/templates/common/docs/exec-plans/completed/.gitkeep" \
@@ -150,47 +171,23 @@ require_executable "$root/scripts/plugin-self-check.sh"
 require_executable "$root/skills/harness-install/scripts/install-harness.sh"
 require_executable "$root/skills/harness-install/scripts/detect-stack.sh"
 require_executable "$root/skills/harness-install/templates/common/.claude/harness/git-hooks/pre-commit"
+require_executable "$root/skills/harness-install/templates/common/.claude/harness/git-hooks/pre-push"
 
-require_absent "$root/hooks/hooks.json" 'empty top-level Claude hooks surface must not be packaged'
-if [ -d "$root/hooks" ] && find "$root/hooks" -type f | grep .; then
-  fail 'top-level hooks directory must not contain packaged files'
+require_absent "$root/hooks" 'top-level Claude hooks runtime surface must not be packaged'
+
+bak_part=bak
+backup_suffix=.harness.$bak_part
+package_file_list=$(package_files "$root")
+if printf '%s\n' "$package_file_list" | grep -F "$backup_suffix"; then
+  fail 'raw v6 backup artifact must not be packaged'
 fi
 
-for path in \
-  "$root/pre-commit.harness.bak" \
-  "$root/.git/hooks/pre-commit.harness.bak" \
-  "$root/AGENTS.md.harness.bak" \
-  "$root/.agents/skills.harness.bak"; do
-  require_absent "$path" 'raw v6 backup artifact must not be packaged'
-done
-
-for path in \
-  "$root/skills/harness-install/templates/common/docs/generated/db-schema.md" \
-  "$root/skills/harness-install/templates/uv/.claude/harness/uv/__pycache__" \
-  "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/target" \
-  "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/build" \
-  "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/bin" \
-  "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/.gradle" \
-  "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/.factorypath" \
-  "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/.classpath" \
-  "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/.project" \
-  "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/.settings" \
-  "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/target" \
-  "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/build" \
-  "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/bin" \
-  "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/.gradle" \
-  "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/.factorypath" \
-  "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/.classpath" \
-  "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/.project" \
-  "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/.settings"; do
-  require_absent "$path" 'generated or IDE artifact must not be packaged'
-done
-
-if find "$root/skills/harness-install/templates" \( -name __pycache__ -o -name '*.pyc' -o -name target -o -name build -o -name bin -o -name .gradle -o -name .factorypath -o -name .classpath -o -name .project -o -name .settings \) -print | grep .; then
-  fail 'template tree contains generated or IDE artifacts'
+template_package_file_list=$(package_files "$root/skills/harness-install/templates")
+if printf '%s\n' "$template_package_file_list" | grep -E '(^|/)(db-schema[.]md|__pycache__|target|build|bin|[.]gradle|[.]factorypath|[.]classpath|[.]project|[.]settings)(/|$)|[.]pyc$'; then
+  fail 'template tree contains packaged generated or IDE artifacts'
 fi
 
-if find "$root" -path '*/.claude/harness/validate.sh' -type f -print | grep .; then
+if printf '%s\n' "$package_file_list" | grep -F '/.claude/harness/validate.sh'; then
   fail 'raw v6 generic harness validate.sh must not be packaged'
 fi
 
@@ -249,15 +246,27 @@ require_text "$root/README.md" 'harness-validate'
 require_text "$root/README.md" 'harness-evolve'
 require_text "$root/README.md" 'host runtimes that load plugin agents'
 require_text "$root/README.md" 'hook template'
+require_text "$root/README.md" 'Gradle `pre-commit` runs `harnessValidate`'
+require_text "$root/README.md" 'Gradle `pre-push` runs `check`'
 require_text "$root/README.md" 'THIRD_PARTY_NOTICES.md'
 require_text "$root/README.md" 'skills/harness-install/templates/common/.claude/harness/git-hooks/'
 require_text "$root/README.md" 'v6 archive structure'
+require_text "$root/skills/harness-install/SKILL.md" 'Gradle pre-commit runs `harnessValidate`, Gradle pre-push runs `check`'
+require_text "$root/skills/harness-validate/SKILL.md" 'generated `.claude/harness/git-hooks/pre-push` command marker'
+require_text "$root/skills/harness-validate/SKILL.md" 'Manifest drift'
+require_text "$root/skills/harness-validate/SKILL.md" 'Generated artifact metadata'
+require_text "$root/skills/harness-validate/SKILL.md" 'Unsupported validation command'
+require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'manifest drift'
+require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'generated-artifact metadata'
+require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'unsupported pre-push validation command'
+require_text "$root/skills/harness-evolve/SKILL.md" 'active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target-local'
 
-if find "$root/skills/harness-install/templates/common/docs/generated" -name 'db-schema.md' -type f | grep .; then
+generated_doc_package_file_list=$(package_files "$root/skills/harness-install/templates/common/docs/generated")
+if printf '%s\n' "$generated_doc_package_file_list" | grep -F '/db-schema.md'; then
   fail 'harness scaffold must not install docs/generated/db-schema.md'
 fi
 
-require_absent "$root/hooks/hooks.json" 'top-level Claude hooks surface must not be packaged'
+require_absent "$root/hooks" 'top-level Claude hooks runtime surface must not be packaged'
 reject_text '"hooks"' "$root/.claude-plugin/plugin.json"
 reject_text 'https://json.schemastore.org/claude-code-plugin.json' "$root/.claude-plugin/plugin.json"
 reject_text 'https://json.schemastore.org/claude-code-plugin-manifest.json' "$root/.claude-plugin/plugin.json"
@@ -276,27 +285,7 @@ reject_text_in_paths '--hooks path' \
 reject_hooks_path_setters \
   "$root/skills/harness-install/scripts/install-harness.sh" \
   "$root/skills/harness-install/SKILL.md"
-reject_text_in_paths '.harness.bak' \
-  "$root/skills/harness-install/scripts/install-harness.sh" \
-  "$root/skills/harness-install/SKILL.md" \
-  "$root/README.md" \
-  "$root/skills/harness-install/templates/common"
-reject_text_in_paths '.pre-commit.harness.bak' \
-  "$root/skills/harness-install/scripts/install-harness.sh" \
-  "$root/skills/harness-install/SKILL.md" \
-  "$root/README.md" \
-  "$root/skills/harness-install/templates/common"
-reject_text_in_paths 'pre-commit.harness.bak' \
-  "$root/skills/harness-install/scripts/install-harness.sh" \
-  "$root/skills/harness-install/SKILL.md" \
-  "$root/README.md" \
-  "$root/skills/harness-install/templates/common"
-reject_text_in_paths 'AGENTS.md.harness.bak' \
-  "$root/skills/harness-install/scripts/install-harness.sh" \
-  "$root/skills/harness-install/SKILL.md" \
-  "$root/README.md" \
-  "$root/skills/harness-install/templates/common"
-reject_text_in_paths '.agents/skills.harness.bak' \
+reject_text_in_paths "$backup_suffix" \
   "$root/skills/harness-install/scripts/install-harness.sh" \
   "$root/skills/harness-install/SKILL.md" \
   "$root/README.md" \
@@ -304,6 +293,30 @@ reject_text_in_paths '.agents/skills.harness.bak' \
 reject_text_in_paths 'install_git_hook_path' \
   "$root/skills/harness-install/scripts/install-harness.sh" \
   "$root/skills/harness-install/SKILL.md"
+
+require_text "$root/skills/harness-install/scripts/install-harness.sh" 'Harness generated hook: pre-commit'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" 'Harness stage: compliance'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" 'Harness generated hook: pre-push'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" 'Harness stage: full-validation'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" 'Harness validation command:'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradlew check'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradlew harnessValidate'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" 'resolve_existing_hooks_path'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" 'refusing to copy non-generated hook source'
+require_text "$root/skills/harness-install/templates/uv/.claude/harness/uv/harness_validate.py" 'pre-commit hook must not run full stack validation commands'
+require_text "$root/skills/harness-install/templates/bun/.claude/harness/bun/harness-validate.ts" 'pre-commit hook must not run full stack validation commands'
+require_text "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" 'pre-commit hook must declare Gradle harness validation command'
+require_text "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java" 'pre-commit hook must not run full stack validation commands'
+require_text "$root/skills/harness-install/templates/uv/.claude/harness/uv/harness_validate.py" 'pre-push hook declares unsupported validation command'
+require_text "$root/skills/harness-install/templates/bun/.claude/harness/bun/harness-validate.ts" 'pre-push hook declares unsupported validation command'
+require_text "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" 'pre-push hook declares unsupported validation command'
+require_text "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java" 'pre-push hook declares unsupported validation command'
+require_text "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" './gradlew check'
+require_text "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" './gradlew harnessValidate'
+require_text "$root/skills/harness-install/templates/uv/.claude/harness/uv/harness_validate.py" 'pre-push hook must declare Harness validation command'
+require_text "$root/skills/harness-install/templates/bun/.claude/harness/bun/harness-validate.ts" 'pre-push hook must declare Harness validation command'
+require_text "$root/skills/harness-install/templates/gradle/.claude/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" 'pre-push hook must declare Harness validation command'
+require_text "$root/skills/harness-install/templates/maven/.claude/harness/maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java" 'pre-push hook must declare Harness validation command'
 
 template_roots="
 $root/skills/harness-install/templates/common
@@ -314,7 +327,8 @@ $root/skills/harness-install/templates/uv
 "
 
 for template_root in $template_roots; do
-  for path in $(find "$template_root" -type f ! -name '*.tmpl' -print); do
+  template_root_files=$(package_files "$template_root")
+  for path in $(printf '%s\n' "$template_root_files" | grep -F -v '.tmpl'); do
     if grep -E '\{\{[^}]+\}\}' "$path"; then
       fail "unresolved template token outside .tmpl asset: $path"
     fi
@@ -323,7 +337,8 @@ done
 
 for text in 'example-' 'Describe ' 'Describe...' 'TODO' 'TBD' 'replace-with-stack-specific'; do
   for template_root in $template_roots; do
-    for path in $(find "$template_root" -type f ! -name '*.tmpl' -print); do
+    template_root_files=$(package_files "$template_root")
+    for path in $(printf '%s\n' "$template_root_files" | grep -F -v '.tmpl'); do
       case "$path" in
         */harness_validate.py|*/harness-validate.ts|*/HarnessValidationPlugin.kt|*/HarnessValidateMojo.java)
           continue
