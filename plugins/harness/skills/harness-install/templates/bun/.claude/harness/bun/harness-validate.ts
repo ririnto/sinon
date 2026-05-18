@@ -4,7 +4,8 @@ import { dirname, join } from "node:path";
 
 const root = process.cwd();
 const failures: string[] = [];
-const requiredFiles = ["AGENTS.md", "ARCHITECTURE.md", "CLAUDE.md", "docs/design-docs/index.md", "docs/design-docs/core-beliefs.md", "docs/exec-plans/tech-debt-tracker.md", "docs/product-specs/index.md", "docs/DESIGN.md", "docs/FRONTEND.md", "docs/PLANS.md", "docs/PRODUCT_SENSE.md", "docs/QUALITY_SCORE.md", "docs/RELIABILITY.md", "docs/SECURITY.md", ".claude/harness/git-hooks/pre-commit"];
+const expectedValidationCommand = "bun run .claude/harness/bun/harness-validate.ts";
+const requiredFiles = ["AGENTS.md", "ARCHITECTURE.md", "CLAUDE.md", "docs/design-docs/index.md", "docs/design-docs/core-beliefs.md", "docs/exec-plans/tech-debt-tracker.md", "docs/product-specs/index.md", "docs/DESIGN.md", "docs/FRONTEND.md", "docs/PLANS.md", "docs/PRODUCT_SENSE.md", "docs/QUALITY_SCORE.md", "docs/RELIABILITY.md", "docs/SECURITY.md", ".claude/harness/git-hooks/pre-commit", ".claude/harness/git-hooks/pre-push"];
 const requiredDirectories = ["docs", "docs/design-docs", "docs/exec-plans", "docs/exec-plans/active", "docs/exec-plans/completed", "docs/generated", "docs/product-specs", "docs/references", ".claude/agents", ".claude/skills", ".claude/harness/templates"];
 const emptyDirectoryKeepFiles = ["docs/exec-plans/active/.gitkeep", "docs/exec-plans/completed/.gitkeep", "docs/generated/.gitkeep"];
 const optionalSeedFiles = ["docs/product-specs/new-user-onboarding.md", "docs/references/design-system-reference-llms.txt", "docs/references/nixpacks-llms.txt", "docs/references/uv-llms.txt"];
@@ -229,17 +230,57 @@ for (const base of ["AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md", "docs", ".claud
     }
   }
 }
-const hook = ".claude/harness/git-hooks/pre-commit";
-if (isSafeFile(hook)) {
-  const hookText = read(hook);
-  if (firstLine(hook) !== "#!/usr/bin/env sh") {
-    failures.push("pre-commit hook must use #!/usr/bin/env sh");
+function hookCommand(prePushText: string): string {
+  for (const line of prePushText.split(/\r?\n/)) {
+    if (line.startsWith("# Harness validation command: ")) {
+      return line.replace("# Harness validation command: ", "").trim();
+    }
   }
-  if (!isExecutablePath(hook)) {
-    failures.push(`pre-commit hook must be executable: ${hook}`);
+  return "";
+}
+function validateOneHook(name: string, stage: string): string {
+  const hook = `.claude/harness/git-hooks/${name}`;
+  let hookText = "";
+  if (isSafeFile(hook)) {
+    hookText = read(hook);
+    if (firstLine(hook) !== "#!/usr/bin/env sh") {
+      failures.push(`${name} hook must use #!/usr/bin/env sh`);
+    }
+    if (!isExecutablePath(hook)) {
+      failures.push(`${name} hook must be executable: ${hook}`);
+    }
+    if (!hookText.includes(`Harness generated hook: ${name}`)) {
+      failures.push(`${name} hook must contain generated marker`);
+    }
+    if (!hookText.includes(`Harness stage: ${stage}`)) {
+      failures.push(`${name} hook must contain ${stage} stage marker`);
+    }
+    if (hookText.includes("packaged placeholder is replaced during harness installation")) {
+      failures.push(`${name} hook must be installer-generated selected-mode content`);
+    }
   }
-  if (hookText.includes("packaged placeholder is replaced during harness installation")) {
-    failures.push("pre-commit hook must be installer-generated selected-mode content");
+  return hookText;
+}
+const preCommitText = validateOneHook("pre-commit", "compliance");
+const prePushText = validateOneHook("pre-push", "full-validation");
+if (/(^|\s)(uv|bun|gradle|mvn)(\s|$)|\.\/gradlew|harnessValidate|harness_validate\.py|harness-validate\.ts/.test(preCommitText)) {
+  failures.push("pre-commit hook must not run full stack validation commands");
+}
+const validationCommand = hookCommand(prePushText);
+if (validationCommand.length === 0) {
+  failures.push("pre-push hook must declare Harness validation command");
+} else {
+  if (validationCommand !== expectedValidationCommand) {
+    failures.push(`pre-push hook declares unsupported validation command: ${validationCommand}`);
+  } else {
+    if (!prePushText.split(/\r?\n/).includes(validationCommand)) {
+      failures.push("pre-push hook must run the declared validation command");
+    }
+    for (const ciFile of [".github/workflows/harness.yml", ".gitlab-ci.yml"]) {
+      if (isFile(ciFile) && isSafeFile(ciFile) && !read(ciFile).includes(validationCommand)) {
+        failures.push(`${ciFile}: CI command mismatch - expected ${validationCommand}`);
+      }
+    }
   }
 }
 for (const base of [".claude/harness", ".claude/skills"]) {

@@ -13,7 +13,7 @@ Install or refresh target-owned repository harness files from this plugin. The p
 
 1. Read the target repository root files if present: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `.claude/harness/README.md`, and `.claude/harness/manifest.json`.
 2. Detect the target stack from repository files, or use the explicit stack argument supplied by the user.
-3. Decide hook behavior before running the installer: `--hooks none` skips hook installation, and `--hooks copy` writes `.git/hooks/pre-commit`.
+3. Decide hook behavior before running the installer: `--hooks none` skips active hook installation, and `--hooks copy` writes `.git/hooks/pre-commit` and `.git/hooks/pre-push` only when they are absent unless `--force` is used.
 4. Use `--force` only when the user explicitly wants existing target harness files replaced.
 5. Keep plugin files separate from target files: edit this plugin only when improving the installer; edit target `.claude/**` files only after installation in the target repository.
 
@@ -51,7 +51,7 @@ Install or refresh target-owned repository harness files from this plugin. The p
 | --- | --- |
 | Target has no obvious stack files | Ask for `gradle`, `maven`, `uv`, or `bun`; do not guess. |
 | Existing harness files are present | Preserve them unless `--force` was requested. |
-| Existing Git hook is present | Prefer `--hooks none`; use `--hooks copy --force` only with explicit approval to replace the active local hook with installer-generated selected-mode content. |
+| Existing Git hook is present | Prefer `--hooks none`; use `--hooks copy --force` only with explicit approval to replace active local pre-commit and pre-push hooks with installer-generated content. |
 | Target repository forbids CI snippets | Pass `--no-ci` and report that CI templates were skipped. |
 | Complex Gradle settings already exist | Review `settings.gradle(.kts)` after installer wiring; composite build or plugin-management blocks may need manual adjustment. |
 | Installed placeholders are still generic | Treat installation as incomplete readiness and tell the user which docs need target content. |
@@ -59,7 +59,7 @@ Install or refresh target-owned repository harness files from this plugin. The p
 ## Invariants
 
 - The installed harness is target-owned after copying.
-- The hook template is generated on fresh install and preserved on refresh unless `--force` was requested.
+- The generated hook templates are target-owned: Gradle pre-commit runs `harnessValidate`, Gradle pre-push runs `check`, non-Gradle pre-commit checks harness-rule compliance only, non-Gradle pre-push runs selected validation, and custom templates are preserved unless `--force` was requested.
 - `AGENTS.md` is the primary target repository harness contract.
 - `CLAUDE.md` remains the Claude Code entry point and points back to `AGENTS.md`.
 - `.claude/harness/manifest.json` is the installed harness inventory and contract.
@@ -81,6 +81,6 @@ Report these fields:
 - `mode`: detected or explicit stack mode.
 - `installer command`: the command that ran.
 - `files`: written, kept, and skipped file groups.
-- `hooks`: `none` or `copy` and whether the hook file was written, kept, or force-replaced.
+- `hooks`: `none` or `copy` and whether pre-commit and pre-push files were written, kept, refreshed, or force-replaced.
 - `validation`: command run and result.
 - `target follow-up`: placeholders or seed references that require project-specific content.

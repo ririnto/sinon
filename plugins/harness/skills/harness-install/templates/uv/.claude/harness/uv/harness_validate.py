@@ -9,7 +9,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path.cwd()
-REQUIRED_FILES = ["AGENTS.md", "ARCHITECTURE.md", "CLAUDE.md", "docs/design-docs/index.md", "docs/design-docs/core-beliefs.md", "docs/exec-plans/tech-debt-tracker.md", "docs/product-specs/index.md", "docs/DESIGN.md", "docs/FRONTEND.md", "docs/PLANS.md", "docs/PRODUCT_SENSE.md", "docs/QUALITY_SCORE.md", "docs/RELIABILITY.md", "docs/SECURITY.md", ".claude/harness/git-hooks/pre-commit"]
+EXPECTED_VALIDATION_COMMAND = "uv run python .claude/harness/uv/harness_validate.py"
+REQUIRED_FILES = ["AGENTS.md", "ARCHITECTURE.md", "CLAUDE.md", "docs/design-docs/index.md", "docs/design-docs/core-beliefs.md", "docs/exec-plans/tech-debt-tracker.md", "docs/product-specs/index.md", "docs/DESIGN.md", "docs/FRONTEND.md", "docs/PLANS.md", "docs/PRODUCT_SENSE.md", "docs/QUALITY_SCORE.md", "docs/RELIABILITY.md", "docs/SECURITY.md", ".claude/harness/git-hooks/pre-commit", ".claude/harness/git-hooks/pre-push"]
 REQUIRED_DIRECTORIES = ["docs", "docs/design-docs", "docs/exec-plans", "docs/exec-plans/active", "docs/exec-plans/completed", "docs/generated", "docs/product-specs", "docs/references", ".claude/agents", ".claude/skills", ".claude/harness/templates"]
 EMPTY_DIRECTORY_KEEP_FILES = ["docs/exec-plans/active/.gitkeep", "docs/exec-plans/completed/.gitkeep", "docs/generated/.gitkeep"]
 OPTIONAL_SEED_FILES = ["docs/product-specs/new-user-onboarding.md", "docs/references/design-system-reference-llms.txt", "docs/references/nixpacks-llms.txt", "docs/references/uv-llms.txt"]
@@ -189,7 +190,7 @@ def validate() -> list[str]:
     validate_skills(failures)
     validate_templates(failures)
     validate_active_assets(failures)
-    validate_hook(failures)
+    validate_hooks(failures)
     validate_env_shebangs(failures)
     return failures
 
@@ -264,16 +265,49 @@ def validate_active_assets(failures: list[str]) -> None:
                     failures.append(f"{label} in active asset: {relative(path)}")
 
 
-def validate_hook(failures: list[str]) -> None:
-    hook = ROOT / ".claude/harness/git-hooks/pre-commit"
+def hook_command(pre_push_text: str) -> str:
+    for line in pre_push_text.splitlines():
+        if line.startswith("# Harness validation command: "):
+            return line.removeprefix("# Harness validation command: ").strip()
+    return ""
+
+
+def validate_one_hook(failures: list[str], name: str, stage: str) -> str:
+    hook = ROOT / f".claude/harness/git-hooks/{name}"
+    hook_text = ""
     if is_safe_file(hook, failures):
         hook_text = read_text(hook)
         if first_line(hook) != "#!/usr/bin/env sh":
-            failures.append("pre-commit hook must use #!/usr/bin/env sh")
+            failures.append(f"{name} hook must use #!/usr/bin/env sh")
         if not is_executable(hook):
-            failures.append(f"pre-commit hook must be executable: {relative(hook)}")
+            failures.append(f"{name} hook must be executable: {relative(hook)}")
+        if f"Harness generated hook: {name}" not in hook_text:
+            failures.append(f"{name} hook must contain generated marker")
+        if f"Harness stage: {stage}" not in hook_text:
+            failures.append(f"{name} hook must contain {stage} stage marker")
         if "packaged placeholder is replaced during harness installation" in hook_text:
-            failures.append("pre-commit hook must be installer-generated selected-mode content")
+            failures.append(f"{name} hook must be installer-generated selected-mode content")
+    return hook_text
+
+
+def validate_hooks(failures: list[str]) -> None:
+    pre_commit_text = validate_one_hook(failures, "pre-commit", "compliance")
+    pre_push_text = validate_one_hook(failures, "pre-push", "full-validation")
+    if re.search(r"(^|\s)(uv|bun|gradle|mvn)(\s|$)|\./gradlew|harnessValidate|harness_validate\.py|harness-validate\.ts", pre_commit_text):
+        failures.append("pre-commit hook must not run full stack validation commands")
+    command = hook_command(pre_push_text)
+    if not command:
+        failures.append("pre-push hook must declare Harness validation command")
+        return
+    if command != EXPECTED_VALIDATION_COMMAND:
+        failures.append(f"pre-push hook declares unsupported validation command: {command}")
+        return
+    if command not in pre_push_text.splitlines():
+        failures.append("pre-push hook must run the declared validation command")
+    for ci_file in [".github/workflows/harness.yml", ".gitlab-ci.yml"]:
+        path = ROOT / ci_file
+        if path.exists() and is_safe_file(path, failures) and command not in read_text(path):
+            failures.append(f"{ci_file}: CI command mismatch - expected {command}")
 
 
 def validate_env_shebangs(failures: list[str]) -> None:

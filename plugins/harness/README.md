@@ -30,7 +30,7 @@ claude plugin install ./plugins/harness --scope project
 - Scripts: `scripts/plugin-self-check.sh` for local plugin package validation.
 - Target templates: repository-owned files under `skills/harness-install/templates/`, including `.claude/agents`, `.claude/skills`, `.claude/harness`, docs, CI, validation adapters, and Git hook scaffolds.
 
-The Claude Code manifest declares only `./skills/`. Agents remain at the plugin root and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. The archive's empty top-level `hooks` surface is intentionally omitted; the packaged hook scaffold lives under `skills/harness-install/templates/common/.claude/harness/git-hooks/`, and the installer generates the target hook template from the selected mode.
+The Claude Code manifest declares only `./skills/`. Agents remain at the plugin root and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. The archive's empty top-level `hooks` surface is intentionally omitted; the packaged hook scaffolds live under `skills/harness-install/templates/common/.claude/harness/git-hooks/`, and the installer generates target-owned pre-commit and pre-push hook templates from the selected mode.
 
 ## Target Ownership
 
@@ -46,7 +46,7 @@ auto
 
 The skill invokes `skills/harness-install/scripts/install-harness.sh` with the target repository as `--target`, detects or accepts the stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command. Supported modes are `auto`, `gradle`, `maven`, `uv`, and `bun`.
 
-By default the installer writes both GitHub Actions and GitLab CI examples for the selected stack: `.github/workflows/harness.yml` and `.gitlab-ci.yml`. Both CI snippets are rendered from templates and run the same selected validation command printed by the installer. Pass `--no-ci` to skip both CI files.
+By default the installer writes both GitHub Actions and GitLab CI examples for the selected stack: `.github/workflows/harness.yml` and `.gitlab-ci.yml`. Both CI snippets are rendered from templates and run the same final check command as generated `pre-push`; for Gradle this is `check`, not `harnessValidate`. Pass `--no-ci` to skip both CI files.
 
 To run the installer directly, pass the target repository explicitly:
 
@@ -76,7 +76,8 @@ CLAUDE.md
 │       └── SKILL.md
 └── harness/
     ├── git-hooks/
-    │   └── pre-commit
+    │   ├── pre-commit
+    │   └── pre-push
     ├── manifest.json
     └── templates/
 docs/
@@ -107,7 +108,7 @@ docs/
 └── SECURITY.md
 ```
 
-Empty required directories are kept in version control with `.gitkeep`. `.claude/harness/git-hooks/pre-commit` is a generated, target-owned hook template containing the selected validation command, not an active Git hook unless the target repository opts in. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
+Empty required directories are kept in version control with `.gitkeep`. `.claude/harness/git-hooks/pre-commit` is a generated, target-owned hook template: Gradle uses it for `harnessValidate`, while non-Gradle stacks use it for compliance checks. `.claude/harness/git-hooks/pre-push` is the generated final-check hook template: Gradle uses `check`, while non-Gradle stacks use the selected validation command. Neither is an active Git hook unless the target repository opts in. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
 In installed target repositories, `AGENTS.md` is the primary harness contract. `CLAUDE.md` is retained as the Claude Code entry point and points back to `AGENTS.md`.
 
@@ -115,7 +116,8 @@ In installed target repositories, `AGENTS.md` is the primary harness contract. `
 
 | Stack | Detection | Validation command |
 | --- | --- | --- |
-| Gradle | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
+| Gradle local harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
+| Gradle final check | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
 | Maven | `pom.xml` | `mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
 | uv | `uv.lock` or Python `pyproject.toml` | `uv run python .claude/harness/uv/harness_validate.py` |
 | bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun run .claude/harness/bun/harness-validate.ts` |
@@ -126,15 +128,15 @@ Gradle installer wiring prepends a composite build include for `.claude/harness/
 
 ## Git Hooks
 
-The installer writes a selected-mode hook template in `.claude/harness/git-hooks/` on fresh install and preserves an existing target-owned template on refresh unless `--force` is used. Git hook activation is opt-in because it modifies local Git behavior outside version control.
+The installer writes two selected-mode hook templates in `.claude/harness/git-hooks/` on fresh install. Gradle `pre-commit` runs `harnessValidate` for intermediate harness feedback, and Gradle `pre-push` runs `check` for the final push gate. Non-Gradle `pre-commit` performs lightweight harness-rule compliance checks, and non-Gradle `pre-push` runs the selected validation command. Managed generated templates refresh with the selected intermediate and final commands; custom target-owned templates are preserved unless `--force` is used. Git hook activation is opt-in because it modifies local Git behavior outside version control.
 
 ```sh
 sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.sh --target /path/to/target-repo --mode auto --hooks copy
 ```
 
-Use `--hooks none` or omit the flag to skip Git hook activation. Use `--hooks copy` only when the target should activate the generated pre-commit check.
+Use `--hooks none` or omit the flag to skip Git hook activation. Use `--hooks copy` only when the target should copy both generated hooks to `.git/hooks/pre-commit` and `.git/hooks/pre-push`.
 
-Copy mode keeps an existing active hook unless `--force` is used. With `--force`, the installer replaces the active hook with installer-generated content for the selected mode. Use `--hooks copy --force` only with explicit approval because it changes local Git behavior.
+Copy mode keeps existing active local hooks unless `--force` is used. With `--force`, the installer replaces both active local hooks with installer-generated content for the selected mode. Use `--hooks copy --force` only with explicit approval because it changes local Git behavior.
 
 ## Metadata and Attribution
 

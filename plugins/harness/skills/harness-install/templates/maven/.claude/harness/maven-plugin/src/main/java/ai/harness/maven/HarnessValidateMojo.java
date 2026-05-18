@@ -19,6 +19,8 @@ import java.util.stream.Stream;
  */
 @Mojo(name = "validate", threadSafe = true)
 public final class HarnessValidateMojo extends AbstractMojo {
+    private static final String EXPECTED_VALIDATION_COMMAND =
+        "mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate";
     private static final List<String> REQUIRED_FILES = List.of(
         "AGENTS.md",
         "ARCHITECTURE.md",
@@ -34,7 +36,8 @@ public final class HarnessValidateMojo extends AbstractMojo {
         "docs/QUALITY_SCORE.md",
         "docs/RELIABILITY.md",
         "docs/SECURITY.md",
-        ".claude/harness/git-hooks/pre-commit"
+        ".claude/harness/git-hooks/pre-commit",
+        ".claude/harness/git-hooks/pre-push"
     );
     private static final List<String> REQUIRED_DIRECTORIES = List.of(
         "docs",
@@ -132,7 +135,7 @@ public final class HarnessValidateMojo extends AbstractMojo {
             }
         }
         validateActiveAssets(root, failures);
-        validateHook(root, failures);
+        validateHooks(root, failures);
         validateEnvShebangs(root, failures);
         if (!failures.isEmpty()) {
             throw new MojoExecutionException(
@@ -342,21 +345,72 @@ public final class HarnessValidateMojo extends AbstractMojo {
         }
     }
 
-    private static void validateHook(Path root, List<String> failures) throws MojoExecutionException {
-        Path hook = root.resolve(".claude/harness/git-hooks/pre-commit");
+    private static String hookCommand(String prePushText) {
+        for (String line : prePushText.split("\\R")) {
+            if (line.startsWith("# Harness validation command: ")) {
+                return line.replace("# Harness validation command: ", "").trim();
+            }
+        }
+        return "";
+    }
+
+    private static String validateOneHook(Path root, String name, String stage, List<String> failures)
+        throws MojoExecutionException {
+        Path hook = root.resolve(".claude/harness/git-hooks/" + name);
+        String hookText = "";
         if (isSafeRegularFile(root, hook, failures)) {
-            String hookText = read(hook);
+            hookText = read(hook);
             if (!"#!/usr/bin/env sh".equals(firstLine(hook))) {
-                failures.add("pre-commit hook must use #!/usr/bin/env sh");
+                failures.add(name + " hook must use #!/usr/bin/env sh");
             }
             if (!Files.isExecutable(hook)) {
-                failures.add("pre-commit hook must be executable: " + root.relativize(hook));
+                failures.add(name + " hook must be executable: " + root.relativize(hook));
+            }
+            if (!hookText.contains("Harness generated hook: " + name)) {
+                failures.add(name + " hook must contain generated marker");
+            }
+            if (!hookText.contains("Harness stage: " + stage)) {
+                failures.add(name + " hook must contain " + stage + " stage marker");
             }
             if (hookText.contains("packaged placeholder is replaced during harness installation")) {
-                failures.add("pre-commit hook must be installer-generated selected-mode content");
+                failures.add(name + " hook must be installer-generated selected-mode content");
+            }
+        }
+        return hookText;
+    }
+
+    private static void validateHooks(Path root, List<String> failures) throws MojoExecutionException {
+        String preCommitText = validateOneHook(root, "pre-commit", "compliance", failures);
+        String prePushText = validateOneHook(root, "pre-push", "full-validation", failures);
+        if (
+            Pattern.compile("(^|\\s)(uv|bun|gradle|mvn)(\\s|$)|\\./gradlew|harnessValidate|harness_validate\\.py|harness-validate\\.ts")
+                .matcher(preCommitText)
+                .find()
+        ) {
+            failures.add("pre-commit hook must not run full stack validation commands");
+        }
+        String command = hookCommand(prePushText);
+        if (command.isBlank()) {
+            failures.add("pre-push hook must declare Harness validation command");
+            return;
+        }
+        if (!EXPECTED_VALIDATION_COMMAND.equals(command)) {
+            failures.add("pre-push hook declares unsupported validation command: " + command);
+            return;
+        }
+        if (!List.of(prePushText.split("\\R")).contains(command)) {
+            failures.add("pre-push hook must run the declared validation command");
+        }
+        for (String ciFile : List.of(".github/workflows/harness.yml", ".gitlab-ci.yml")) {
+            Path path = root.resolve(ciFile);
+            if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)
+                && isSafeRegularFile(root, path, failures)
+                && !read(path).contains(command)) {
+                failures.add(ciFile + ": CI command mismatch - expected " + command);
             }
         }
     }
+
 
     private static void validateEnvShebangs(Path root, List<String> failures) throws MojoExecutionException {
         for (String baseName : List.of(

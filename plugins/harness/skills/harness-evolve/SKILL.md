@@ -52,7 +52,7 @@ Use the stack validation command from `.claude/harness/README.md`; do not guess 
 | --- | --- | --- |
 | Product architecture changed and docs are stale | evolve | Update `ARCHITECTURE.md`, relevant design docs, and validation expectations together. |
 | A generated artifact moved or was renamed | evolve | Update `.claude/harness/manifest.json`, generated-artifact docs, and any template references. |
-| CI should run the same harness command on a new platform | evolve | Add or update CI template examples while preserving the selected validation command. |
+| CI should run the same final check command on a new platform | evolve | Add or update CI template examples while preserving the selected pre-push command. |
 | Validation fails because a required file was deleted accidentally | reject as drift | Restore the file or re-run installation; do not weaken the contract. |
 | Placeholder content is still generic after installation | defer | Ask for target truth or create the relevant spec/design task first. |
 | A seed reference no longer fits the target stack | evolve | Replace the seed reference and record why the new source is target-specific. |
@@ -81,7 +81,7 @@ Use this checklist before proposing or applying harness evolution.
 - `.claude/harness/manifest.json` matches required files, optional seed files, empty directory keep files, and generated-artifact policy.
 - `.claude/agents/**` and `.claude/skills/**` remain self-sufficient for target-local use.
 - `.claude/harness/templates/**` still contain placeholders only where the template renderer or human copy step expects them.
-- `.github/workflows/harness.yml` and `.gitlab-ci.yml`, when present, run the selected validation command.
+- `.github/workflows/harness.yml` and `.gitlab-ci.yml`, when present, run the selected final check command.
 - `docs/generated/**` contains real generated artifacts or `.gitkeep`, not fake readiness files.
 - `.claude/harness/evolution-log.md` records the reason, files changed, validation command, and remaining follow-up.
 
@@ -106,8 +106,8 @@ Append or propose an entry in `.claude/harness/evolution-log.md` using this shap
 ```text
 delta: Target repository needs GitLab CI in addition to GitHub Actions.
 decision: evolve
-contract updates: add `.gitlab-ci.yml` harness job that runs the same installed validation command.
-validation impact: local harness validation stays unchanged; CI mirrors the selected command.
+contract updates: add `.gitlab-ci.yml` harness job that runs the same generated pre-push final check command.
+validation impact: local harness validation stays unchanged; CI mirrors the generated pre-push final check command.
 risks: image tags may need pinning under strict supply-chain policy.
 ```
 
@@ -145,11 +145,11 @@ risks: downstream docs may still link to the old artifact.
 ### Rejected drift
 
 ```text
-delta: `.claude/harness/git-hooks/pre-commit` was deleted because hook validation failed.
+delta: `.claude/harness/git-hooks/pre-push` was deleted because hook validation failed.
 decision: reject as drift
-contract updates: restore or regenerate the selected-mode hook template.
+contract updates: restore or regenerate the selected-mode two-stage hook templates.
 validation impact: rerun the selected stack command and inspect hook docs.
-risks: active `.git/hooks/pre-commit` remains target-local and requires explicit approval to replace.
+risks: active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target-local and require explicit approval to replace.
 ```
 
 ### Deferred dispatcher migration
@@ -167,7 +167,8 @@ risks: adding the dispatcher early creates a second validation source of truth.
 Use `harness-validate` after implementing an evolution. The expected stack commands are:
 
 ```text
-Gradle: ./gradlew harnessValidate or gradle harnessValidate
+Gradle harness validation: ./gradlew harnessValidate or gradle harnessValidate
+Gradle final check: ./gradlew check or gradle check
 Maven: mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate
 uv: uv run python .claude/harness/uv/harness_validate.py
 bun: bun run .claude/harness/bun/harness-validate.ts
@@ -189,10 +190,10 @@ bun: bun run .claude/harness/bun/harness-validate.ts
 - Validation must remain runnable after the evolution.
 - Placeholder changes must guide target truth without inventing fake product content.
 - Seed references may be replaced when the target stack or domain changes.
-- CI additions MUST mirror the selected validation command rather than creating a second source of truth.
+- CI additions and the generated pre-push hook MUST mirror the selected final check command rather than creating a second source of truth.
 - Generated-artifact policy MUST distinguish source templates, generated outputs, and keep files.
 - Plugin evolution MUST keep the Claude plugin manifest free of `hooks`, `agents`, `version`, and `interface` keys.
-- Hook evolution MUST NOT mutate `core.hooksPath` or create backup files such as `.harness.bak` or `pre-commit.harness.bak`.
+- Hook evolution MUST NOT mutate `core.hooksPath` or create harness-specific backup files.
 
 ## Pitfalls
 
