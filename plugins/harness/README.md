@@ -48,6 +48,17 @@ The skill invokes `skills/harness-install/scripts/install-harness.sh` with the t
 
 By default the installer writes both GitHub Actions and GitLab CI examples for the selected stack: `.github/workflows/harness.yml` and `.gitlab-ci.yml`. Both CI snippets are rendered from templates and run the same final check command as generated `pre-push`; for Gradle this is `check`, not `harnessValidate`. Pass `--no-ci` to skip both CI files.
 
+## CI Host Selection
+
+The installer ships both CI examples so it never has to guess where the target publishes builds. Pick the active host as a post-install step:
+
+- GitHub-only repositories SHOULD delete `.gitlab-ci.yml` after install and keep `.github/workflows/harness.yml`.
+- GitLab-only repositories SHOULD delete `.github/workflows/harness.yml` after install and keep `.gitlab-ci.yml`.
+- Repositories that mirror to both hosts MAY keep both files; the generated `pre-push` final check command must match both CI scripts so `harness-validate` does not report drift.
+- Targets that do not run CI at all SHOULD pass `--no-ci` on install and document the policy in the project README.
+
+`harness-validate` reports `.github/workflows/harness.yml` and `.gitlab-ci.yml` as missing rather than mismatched when they are intentionally absent for the selected host.
+
 To run the installer directly, pass the target repository explicitly:
 
 ```sh
@@ -134,9 +145,25 @@ The installer writes two selected-mode hook templates in `.claude/harness/git-ho
 sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.sh --target /path/to/target-repo --mode auto --hooks copy
 ```
 
-Use `--hooks none` or omit the flag to skip Git hook activation. Use `--hooks copy` only when the target should copy both generated hooks to `.git/hooks/pre-commit` and `.git/hooks/pre-push`.
+Use `--hooks none` or omit the flag to skip Git hook activation. Use `--hooks copy` only when the target should copy both generated hooks to `pre-commit` and `pre-push` in the active worktree hooks directory.
 
 Copy mode keeps existing active local hooks unless `--force` is used. With `--force`, the installer replaces both active local hooks with installer-generated content for the selected mode. Use `--hooks copy --force` only with explicit approval because it changes local Git behavior.
+
+### Worktree-aware hook installation
+
+`--hooks copy` resolves the active hooks directory through `git rev-parse --git-common-dir`. In a primary worktree this is `.git/hooks/`. In a linked worktree created by `git worktree add`, `.git` is a file that points back to the main worktree's `.git/worktrees/<name>/` directory; the installer still installs into the shared `<main>/.git/hooks/` so the same hooks fire from every worktree of the same repository. The installer refuses to write through a `.git` symlink or when the worktree is not initialized.
+
+### Recommended pattern: harness-tracked hooks via `core.hooksPath`
+
+The harness ships `pre-commit` and `pre-push` under `.claude/harness/git-hooks/`, which is committed to the repository. Point Git at that directory to activate the hooks for the current clone without copying anything:
+
+```sh
+git config core.hooksPath .claude/harness/git-hooks
+```
+
+With this config, generated hook content evolves through normal version control: every worktree of the same clone sees the same hooks, and `harness-install` refreshes the active hooks in place when re-run with `--hooks none`. The installer refuses `--hooks copy` while `core.hooksPath` already resolves to `.claude/harness/git-hooks/` because copying to the worktree hooks directory would not activate the worktree hooks.
+
+The harness itself never sets `core.hooksPath`; the target repository owner enables the recommended pattern explicitly. Unset it with `git config --unset core.hooksPath` to revert.
 
 ## Metadata and Attribution
 

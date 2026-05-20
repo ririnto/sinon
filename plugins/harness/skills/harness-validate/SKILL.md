@@ -156,6 +156,8 @@ Local validation is the source of truth. CI files are examples that should run t
 
 If CI is skipped during install, report that local validation passed and CI snippets were intentionally absent.
 
+GitHub-only and GitLab-only repositories may intentionally delete the unused CI file as a post-install step. When `git remote -v` shows only one host and the matching CI file is missing or out of sync with the generated pre-push command, report it as `not active` rather than `mismatch`; report the still-present CI file under the normal parity table.
+
 Report CI drift with the expected command.
 
 ```text

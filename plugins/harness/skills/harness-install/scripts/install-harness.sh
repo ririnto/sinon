@@ -454,15 +454,72 @@ install_gradle() {
 # :description: Return success when local .git hooks can be modified safely.
 # :return: Returns non-zero after writing a warning when hooks cannot be modified.
 ensure_git_dir_for_hooks() {
-  if [ ! -d .git ]; then
-    printf '%s\n' 'skip git hook install: .git directory not found' >&2
+  if [ ! -e .git ]; then
+    printf '%s\n' 'skip git hook install: .git not found' >&2
     return 1
   fi
   if [ -L .git ]; then
     printf '%s\n' 'skip git hook install: .git is a symlink' >&2
     return 1
   fi
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    printf '%s\n' 'skip git hook install: not inside a Git worktree' >&2
+    return 1
+  fi
   return 0
+}
+
+# :description: Resolve the worktree-aware Git hooks directory.
+# :return: Writes the absolute hooks directory path, or returns non-zero with a warning.
+resolve_git_hooks_dir() {
+  common_dir=$(git rev-parse --git-common-dir 2>/dev/null) || {
+    printf '%s\n' 'skip git hook install: cannot resolve git common dir' >&2
+    return 1
+  }
+  case "$common_dir" in
+    /*) ;;
+    *) common_dir=$target_root/$common_dir ;;
+  esac
+  common_dir=$(normalize_absolute_path "$common_dir")
+  if [ ! -d "$common_dir" ]; then
+    printf '%s\n' "skip git hook install: $common_dir not found" >&2
+    return 1
+  fi
+  hooks_dir=$common_dir/hooks
+  if [ ! -d "$hooks_dir" ]; then
+    mkdir -p "$hooks_dir" || {
+      printf '%s\n' "skip git hook install: cannot create $hooks_dir" >&2
+      return 1
+    }
+  fi
+  printf '%s\n' "$hooks_dir"
+}
+
+# :description: Ensure a generated Git hook destination outside the worktree is safe.
+# :param hook_file: Absolute Git hook destination path.
+# :return: Exits when the destination is unsafe.
+ensure_safe_hook_destination() {
+  hook_file=$1
+  case "$hook_file" in
+    /*) ;;
+    *) error "hook destination must be an absolute path: $hook_file" ;;
+  esac
+  parent=$(dirname "$hook_file")
+  name=$(basename "$hook_file")
+  case "$name" in
+    pre-commit|pre-push) ;;
+    *) error "unsupported git hook destination basename: $name" ;;
+  esac
+  case "$parent" in
+    */hooks) ;;
+    *) error "refusing hook destination outside a hooks directory: $hook_file" ;;
+  esac
+  if [ -L "$hook_file" ]; then
+    error "refusing symlink hook destination: $hook_file"
+  fi
+  if [ -d "$hook_file" ]; then
+    error "refusing directory hook destination: $hook_file"
+  fi
 }
 
 # :description: Return the target-local Git hooks path when one is configured.
@@ -616,29 +673,34 @@ resolve_existing_hooks_path() {
 }
 
 # :description: Fail when existing Git config would make hook activation ambiguous.
-# :return: Exits when configured hooks would bypass or activate generated hooks unexpectedly.
+# :return: Exits when configured hooks would bypass or duplicate generated hook activation.
 ensure_hook_activation_policy() {
   configured_path=$(configured_hooks_path)
-  normalized_path=$(normalize_hooks_path "$configured_path")
   case "$configured_path" in
     '') return 0 ;;
   esac
-  case "$normalized_path" in
-    .claude/harness/git-hooks)
-      error 'target Git config already points hooks at .claude/harness/git-hooks; refusing to install executable harness hooks without explicit config cleanup'
-      ;;
-  esac
+  normalized_path=$(normalize_hooks_path "$configured_path")
   harness_hooks_path=$(normalize_absolute_path "$target_root/.claude/harness/git-hooks")
   symlink_path=$(resolve_hooks_path_lexically "$configured_path" || true)
-  if [ -n "$symlink_path" ] && [ "$symlink_path" = "$harness_hooks_path" ]; then
-    error 'target Git config symlink resolves hooks to .claude/harness/git-hooks; refusing to install executable harness hooks without explicit config cleanup'
-  fi
   resolved_path=$(resolve_existing_hooks_path "$configured_path" || true)
+  points_at_harness_hooks=0
+  case "$normalized_path" in
+    .claude/harness/git-hooks) points_at_harness_hooks=1 ;;
+  esac
+  if [ -n "$symlink_path" ] && [ "$symlink_path" = "$harness_hooks_path" ]; then
+    points_at_harness_hooks=1
+  fi
   if [ -n "$resolved_path" ] && [ "$resolved_path" = "$harness_hooks_path" ]; then
-    error 'target Git config resolves hooks to .claude/harness/git-hooks; refusing to install executable harness hooks without explicit config cleanup'
+    points_at_harness_hooks=1
+  fi
+  if [ "$points_at_harness_hooks" -eq 1 ]; then
+    if [ "$hooks" = copy ]; then
+      error 'target Git config points hooks at .claude/harness/git-hooks; --hooks copy would write to the worktree hooks directory instead. Re-run with --hooks none to refresh harness-tracked hooks in place.'
+    fi
+    return 0
   fi
   if [ "$hooks" = copy ]; then
-    error "target Git config uses hooks path $configured_path; --hooks copy would not activate .git/hooks/pre-commit and .git/hooks/pre-push"
+    error "target Git config uses hooks path $configured_path; --hooks copy would not activate the worktree hooks. Either unset core.hooksPath or re-run with --hooks none."
   fi
 }
 
@@ -891,11 +953,13 @@ validate_generated_hook_source_for_copy() {
 }
 
 # :description: Validate all hook sources that copy mode will activate before writing any active hook.
+# :param hooks_dir: Absolute worktree hooks directory.
 # :return: Exits before partial active hook writes when a source is invalid.
 preflight_git_hook_copy_sources() {
+  hooks_dir=$1
   for name in pre-commit pre-push; do
-    dst=.git/hooks/$name
-    ensure_safe_file_destination "$dst"
+    dst=$hooks_dir/$name
+    ensure_safe_hook_destination "$dst"
     if [ -e "$dst" ] && [ "$force" -ne 1 ]; then
       continue
     fi
@@ -903,14 +967,16 @@ preflight_git_hook_copy_sources() {
   done
 }
 
-# :description: Copy one generated hook into .git/hooks.
+# :description: Copy one generated hook into the worktree-aware hooks directory.
 # :param name: Hook basename.
+# :param hooks_dir: Absolute worktree hooks directory.
 # :return: Writes hook installation status.
 copy_one_git_hook() {
   name=$1
+  hooks_dir=$2
   src=.claude/harness/git-hooks/$name
-  dst=.git/hooks/$name
-  ensure_safe_file_destination "$dst"
+  dst=$hooks_dir/$name
+  ensure_safe_hook_destination "$dst"
   if [ -e "$dst" ] && [ "$force" -ne 1 ]; then
     printf '%s\n' "keep existing hook: $dst; rerun with --force to replace"
     return 0
@@ -919,13 +985,12 @@ copy_one_git_hook() {
   if [ -e "$dst" ]; then
     had_dst=1
   fi
-  tmp_dir=$(dirname "$dst")/.harness-tmp-$$-$(basename "$dst").dir
-  ensure_safe_parent_dir "$tmp_dir"
+  tmp_dir=$hooks_dir/.harness-tmp-$$-$name.dir
   if [ -e "$tmp_dir" ]; then
     error "temporary hook directory already exists: $tmp_dir"
   fi
   mkdir "$tmp_dir"
-  tmp=$tmp_dir/$(basename "$dst")
+  tmp=$tmp_dir/$name
   cp "$src" "$tmp" || { rm -f "$tmp"; rmdir "$tmp_dir"; error "failed to copy generated hook: $src"; }
   chmod +x "$tmp" || { rm -f "$tmp"; rmdir "$tmp_dir"; error "failed to mark hook executable: $tmp"; }
   mv "$tmp" "$dst" || { rm -f "$tmp"; rmdir "$tmp_dir"; error "failed to install git hook: $dst"; }
@@ -937,13 +1002,15 @@ copy_one_git_hook() {
   fi
 }
 
-# :description: Copy generated pre-commit and pre-push hooks into .git/hooks.
+# :description: Copy generated pre-commit and pre-push hooks into the worktree-aware hooks directory.
 # :return: Writes hook installation status.
 install_git_hook_copy() {
   ensure_git_dir_for_hooks || return 0
-  preflight_git_hook_copy_sources
-  copy_one_git_hook pre-commit
-  copy_one_git_hook pre-push
+  hooks_dir=$(resolve_git_hooks_dir) || return 0
+  printf '%s\n' "git hooks directory: $hooks_dir"
+  preflight_git_hook_copy_sources "$hooks_dir"
+  copy_one_git_hook pre-commit "$hooks_dir"
+  copy_one_git_hook pre-push "$hooks_dir"
 }
 
 cmd=$(validation_command_for_mode "$mode")
