@@ -42,7 +42,7 @@ method:http_requests:rate5m{method="del"}    => 34
 method:http_requests:rate5m{method="post"}  => 120
 ```
 
-**Query**: fraction of requests that are 500 errors, per method.
+## Query: fraction of requests that are 500 errors, per method
 
 ```promql
 method_code:http_errors:rate5m{code="500"}
@@ -51,9 +51,9 @@ ignoring(code)
 method:http_requests:rate5m
 ```
 
-**Matching process**: `ignoring(code)` drops `code` from LHS labels before comparison. LHS becomes `{method="get"}` (value 24) and `{method="post"}` (value 6). These match RHS `{method="get"}` (600) and `{method="post"}` (120). The `{method="put"}` entry on LHS has no match (code=501 was filtered out) and `{method="del"}` on RHS has no match.
+## Matching process: `ignoring(code)` drops `code` from LHS labels before comparison. LHS becomes `{method="get"}` (value 24) and `{method="post"}` (value 6). These match RHS `{method="get"}` (600) and `{method="post"}` (120). The `{method="put"}` entry on LHS has no match (code=501 was filtered out) and `{method="del"}` on RHS has no match
 
-**Output**: the `get` series is `24 / 600 = 0.04`, and the `post` series is `6 / 120 = 0.05`.
+## Output: the `get` series is `24 / 600 = 0.04`, and the `post` series is `6 / 120 = 0.05`
 
 ```text
 {method="get"}  0.04
@@ -66,7 +66,7 @@ Entries with no match on either side are dropped (default behavior).
 
 Same input data as above. This time we want error rate **per status code**, not aggregated.
 
-**Query**: error count divided by total requests, keeping all codes.
+### Query: error count divided by total requests, keeping all codes
 
 ```promql
 method_code:http_errors:rate5m
@@ -76,9 +76,9 @@ group_left
 method:http_requests:rate5m
 ```
 
-**Matching process**: LHS has multiple entries per `method` value (one per `code`). RHS has one entry per `method`. `group_left` declares that LHS is the "many" side. Each RHS entry matches against all LHS entries sharing the same `method`.
+## Matching process: LHS has multiple entries per `method` value (one per `code`). RHS has one entry per `method`. `group_left` declares that LHS is the "many" side. Each RHS entry matches against all LHS entries sharing the same `method`
 
-**Output**: the results keep each left-hand-side `code` label, producing `24 / 600 = 0.04`, `30 / 600 = 0.05`, `6 / 120 = 0.05`, and `21 / 120 = 0.175`.
+## Output: the results keep each left-hand-side `code` label, producing `24 / 600 = 0.04`, `30 / 600 = 0.05`, `6 / 120 = 0.05`, and `21 / 120 = 0.175`
 
 ```text
 {method="get",  code="500"} 0.04
@@ -109,7 +109,7 @@ Here `kube_pod_info` (the "one" side) carries the `node` label that does not exi
 
 ## Worked Example: Set Operator Behavior
 
-**Input data**: Vector A contains three series, and Vector B contains the two comparison series below.
+### Input data: Vector A contains three series, and Vector B contains the two comparison series below
 
 ```text
 up{job="api", instance="a"}      => 1

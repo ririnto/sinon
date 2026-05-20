@@ -1,3 +1,9 @@
+---
+name: prompt-structure
+description: |-
+  Repair patterns and body-shape comparisons for multi-constraint commands, branching logic, and clarity upgrades.
+---
+
 # Prompt Structure Reference
 
 Open this file when a command body needs more than the ordinary structure in `../SKILL.md`, or when an existing command needs repair.
@@ -34,12 +40,12 @@ This command helps with documentation reviews. It should probably look at the fi
 
 The repaired version adds these structural elements that were missing from the loose original:
 
-- **Goal line**: `Review one documentation file and return a concise rewrite plan.` replaces the vague helper prose.
-- **`## Inputs` section**: makes the `$1` argument explicit as `file-path`.
-- **`## Constraints` section**: adds `Do not edit files` and `Do not infer repository policies that are not present in the file`.
-- **`## Procedure` as ordered steps**: replaces the single vague sentence with numbered actions.
-- **`## Ambiguity behavior`**: handles the missing-argument and out-of-scope cases explicitly.
-- **`## Output contract`**: states exactly what the response must contain.
+- `Goal line` — `Review one documentation file and return a concise rewrite plan.` replaces the vague helper prose.
+- `## Inputs` section — Makes the `$1` argument explicit as `file-path`.
+- `## Constraints` section — Adds `Do not edit files` and `Do not infer repository policies that are not present in the file`.
+- `## Procedure` as ordered steps — Replaces the single vague sentence with numbered actions.
+- `## Ambiguity behavior` — Handles the missing-argument and out-of-scope cases explicitly.
+- `## Output contract` — States exactly what the response must contain.
 
 The full repaired body follows the canonical order documented in `../SKILL.md` under Command body order. Use that section as the template; this reference shows only the structural delta between broken and repaired shapes.
 

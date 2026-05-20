@@ -1,10 +1,10 @@
 ---
-name: "spring-batch"
-description: "Build and operate Spring Batch jobs with job/step configuration, chunk or tasklet processing, restartability, reader or writer choices, and scaling patterns. Use this skill when building or operating Spring Batch jobs with job and step configuration, chunk or tasklet processing, job parameters, restartability, reader or writer choices, scaling patterns, and batch-focused tests."
+name: spring-batch
+description: Build and operate Spring Batch jobs with job/step configuration, chunk or tasklet processing, restartability, reader or writer choices, and scaling patterns. Use this skill when building or operating Spring Batch jobs with job and step configuration, chunk or tasklet processing, job parameters, restartability, reader or writer choices, scaling patterns, and batch-focused tests.
 metadata:
   title: "Spring Batch"
-  official_project_url: "https://spring.io/projects/spring-batch"
-  reference_doc_urls:
+  official-project-url: "https://spring.io/projects/spring-batch"
+  reference-doc-urls:
     - "https://docs.spring.io/spring-batch/reference/index.html"
   version: "6.0.x"
 ---

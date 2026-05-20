@@ -1,6 +1,6 @@
 ---
 name: agent-authoring
-description: Create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work. Use this skill when authoring or revising agent files offline.
+description: Create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work. Use this skill when authoring or refactoring agent files.
 ---
 
 # Agent Authoring
@@ -220,19 +220,28 @@ Choose the narrowest tool set that still lets the agent complete its ordinary jo
 Broken:
 
 ```markdown
-tools: ["Read", "Write", "Edit", "Bash", "Grep"]
+tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Grep
 ```
 
 Correct for a read-only reviewer:
 
 ```markdown
-tools: ["Read", "Grep"]
+tools:
+  - Read
+  - Grep
 ```
 
 Correct for a bounded editor:
 
 ```markdown
-tools: ["Read", "Write"]
+tools:
+  - Read
+  - Write
 ```
 
 Also keep the output contract consistent with the tools:
@@ -343,4 +352,3 @@ Return:
 - `references/agent-execution.md` - open when the agent needs exceptional autonomy, a non-obvious tool boundary, or a more specialized execution pattern
 - `assets/agent-template.md` - copy when creating a new agent from scratch
 - `assets/agent-frontmatter-patterns.md` - copy when you need more frontmatter examples for different role shapes
-

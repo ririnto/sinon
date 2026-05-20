@@ -1,12 +1,12 @@
 ---
-name: "spring-graphql"
-description: "Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests. Use this skill when building Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests."
+name: spring-graphql
+description: Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests. Use this skill when building Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests.
 metadata:
-    title: "Spring for GraphQL"
-    official_project_url: "https://spring.io/projects/spring-graphql"
-    reference_doc_urls:
-        - "https://docs.spring.io/spring-graphql/reference/index.html"
-    version: "2.0.3"
+  title: "Spring for GraphQL"
+  official-project-url: "https://spring.io/projects/spring-graphql"
+  reference-doc-urls:
+    - "https://docs.spring.io/spring-graphql/reference/index.html"
+  version: "2.0.3"
 ---
 
 Use this skill when building Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests.

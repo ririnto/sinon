@@ -1,10 +1,10 @@
 ---
-name: "spring-session"
-description: "Replace container-local sessions with Spring Session across Spring Security, WebFlux, and WebSocket endpoints using a chosen backing store and customized cookies or headers. Use this skill when replacing container-local sessions with Spring Session, choosing a backing session store, customizing session cookies or headers, and integrating shared sessions with Spring Security, WebFlux, or WebSocket endpoints."
+name: spring-session
+description: Replace container-local sessions with Spring Session across Spring Security, WebFlux, and WebSocket endpoints using a chosen backing store and customized cookies or headers. Use this skill when replacing container-local sessions with Spring Session, choosing a backing session store, customizing session cookies or headers, and integrating shared sessions with Spring Security, WebFlux, or WebSocket endpoints.
 metadata:
   title: "Spring Session"
-  official_project_url: "https://spring.io/projects/spring-session"
-  reference_doc_urls:
+  official-project-url: "https://spring.io/projects/spring-session"
+  reference-doc-urls:
     - "https://docs.spring.io/spring-session/reference/index.html"
   version: "4.0.3"
 ---

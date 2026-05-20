@@ -74,7 +74,7 @@ Use when: the blocker is showing the difference between a temporary missing scra
 
 When an expression references a metric name that has no corresponding `input_series` entry, promtool treats it as an empty result set. This is useful for testing `absent()` behavior but can also cause confusing failures if accidental.
 
-**Intentional absent test:**
+### Intentional absent test
 
 ```yaml
 tests:
@@ -87,7 +87,7 @@ tests:
               severity: warning
 ```
 
-**Accidental missing series -- common failure mode:**
+## Accidental missing series -- common failure mode
 
 ```yaml
 input_series:
@@ -188,7 +188,7 @@ Use when: the alert depends on `rate()` or `increase()` over counters and you ne
 
 Floating-point arithmetic in PromQL can produce values like `5.000000000001` instead of exactly `5`. Two strategies:
 
-**Strategy 1: Use `fuzzy_compare` at the top level**
+### Strategy 1: Use `fuzzy_compare` at the top level
 
 ```yaml
 fuzzy_compare: true

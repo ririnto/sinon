@@ -9,7 +9,9 @@ See the Minimal example in `SKILL.md` for a complete read-only analysis shape (`
 ```yaml
 model: inherit
 color: cyan
-tools: ["Read", "Grep"]
+tools:
+  - Read
+  - Grep
 ```
 
 Key traits: narrow inspection scope, no mutation tools, `description` starts with `Use this agent when...` and includes concrete `<example>` blocks showing trigger conditions.
@@ -40,7 +42,9 @@ description: Use this agent when a documentation file needs direct rewriting wit
   </example>
 model: inherit
 color: green
-tools: ["Read", "Write"]
+tools:
+  - Read
+  - Write
 ---
 ```
 
@@ -70,7 +74,10 @@ description: Use this agent when dependency versions, import paths, or API signa
   </example>
 model: inherit
 color: yellow
-tools: ["Read", "Write", "Edit", "Grep"]
+tools:
+  - Read
+  - Write
+  - Edit
+  - Grep
 ---
 ```
-

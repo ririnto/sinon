@@ -7,6 +7,8 @@ This package is a Claude Code authoring plugin that teaches four distinct domain
 - Claude Code command and prompt authoring
 - cross-platform Agent Skill authoring
 
+It also includes three runtime agents for validating, reviewing, and creating plugin components, plus a command for guiding plugin creation workflows.
+
 All content in this package is written in English.
 
 ## Purpose
@@ -17,14 +19,29 @@ All content in this package is written in English.
 
 ## Included Skills
 
+Seven reusable skills for authoring Claude Code plugins and portable Agent Skills.
+
 - `plugin-authoring`: build or refactor a plugin root with a Claude manifest, a plugin README, and only the runtime surfaces the plugin actually ships.
 - `agent-authoring`: build or refactor reusable Claude Code agents.
 - `command-authoring`: build or refactor reusable Claude Code commands and prompt files.
 - `skill-authoring`: build or refactor cross-platform Agent Skills.
+- `hook-authoring`: author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails.
+- `mcp-integration`: integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key.
+- `plugin-settings`: author plugin-level configuration via `settings.json` and per-project state with YAML frontmatter parsing patterns.
 
 ## Included Agents
 
-This plugin ships no plugin-root `agents/` directory. Agent examples and templates live inside the authoring skill assets instead of being exposed as runtime agents.
+Three runtime agents for validating, reviewing, and creating plugin components.
+
+- `plugin-validator`: validate a Claude Code plugin root against Sinon manifest, directory, agent, skill, and hook rules.
+- `skill-reviewer`: review Agent Skills for self-sufficiency, coherent sizing, progressive disclosure, and adherence to blocker-based reference organization.
+- `agent-creator`: create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work.
+
+## Included Commands
+
+One command for guiding plugin creation workflows.
+
+- `create-plugin`: end-to-end Claude Code plugin creation workflow with component design, implementation, and validation.
 
 ## Runtime Model
 
@@ -32,7 +49,7 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest points at the shared `skills/` content. The plugin root intentionally exposes skills only; it does not ship commands, hooks, MCP servers, LSP servers, monitors, or plugin-root agents.
+The manifest points at the shared `skills/`, `agents/`, and `commands/` content. The plugin root exposes skills, agents, and one command; it does not ship hooks, MCP servers, LSP servers, monitors, or custom runtime data surfaces.
 
 ## Scope Notes
 
@@ -62,12 +79,13 @@ Explicitly excluded:
 5. `description` explains both what the skill does and when to use it.
 6. Each skill keeps a flat layout under `SKILL.md`, `references/`, and `assets/`.
 
-## Skill index
+## Quick navigation
 
-- `plugin-authoring`: build or refactor a plugin root with a Claude manifest, a plugin README, and minimal runtime surfaces.
-- `agent-authoring`: build or refactor reusable Claude Code agents.
-- `command-authoring`: build or refactor reusable Claude Code commands and prompt files.
-- `skill-authoring`: build or refactor cross-platform Agent Skills.
+- Plugin and skill authoring: `/agent-capability-kit:plugin-authoring`, `/agent-capability-kit:skill-authoring`
+- Agent and command authoring: `/agent-capability-kit:agent-authoring`, `/agent-capability-kit:command-authoring`
+- Plugin infrastructure: `/agent-capability-kit:hook-authoring`, `/agent-capability-kit:mcp-integration`, `/agent-capability-kit:plugin-settings`
+- Validation and review: `plugin-validator` agent, `skill-reviewer` agent
+- Plugin creation guidance: `/create-plugin` command, `agent-creator` agent
 
 ## Quick start
 
@@ -102,9 +120,18 @@ agent-capability-kit/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── README.md
+├── agents/
+│   ├── agent-creator.md
+│   ├── plugin-validator.md
+│   └── skill-reviewer.md
+├── commands/
+│   └── create-plugin.md
 └── skills/
     ├── plugin-authoring/
     ├── agent-authoring/
     ├── command-authoring/
-    └── skill-authoring/
+    ├── skill-authoring/
+    ├── hook-authoring/
+    ├── mcp-integration/
+    └── plugin-settings/
 ```

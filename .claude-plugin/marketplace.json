@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "sinon",
-  "version": "2026.05.11",
+  "version": "2026.05.20",
   "description": "Claude catalog view for the Sinon marketplace.",
   "owner": {
     "name": "ririnto",
@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "git-workflow",
-      "description": "Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.",
+      "description": "Git workflow plugin with practical skill for commit readiness and change publication, plus agents for drafting Conventional Commits and pull request bodies from repository state.",
       "source": "./plugins/git-workflow",
       "author": {
         "name": "ririnto"
@@ -19,7 +19,7 @@
     },
     {
       "name": "java",
-      "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
+      "description": "Java development plugin with practical skills for syntax, language design, testing, dependency decisions, and performance analysis, plus an agent for architecture guidance and JDTLS-assisted editing.",
       "source": "./plugins/java",
       "author": {
         "name": "ririnto"
@@ -37,7 +37,7 @@
     },
     {
       "name": "kotlin",
-      "description": "Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.",
+      "description": "Kotlin development plugin with practical skills for language design, coroutines and Flow, testing workflows, and kotlin-lsp-assisted editing.",
       "source": "./plugins/kotlin",
       "author": {
         "name": "ririnto"
@@ -46,7 +46,7 @@
     },
     {
       "name": "spring",
-      "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.",
+      "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, messaging, Cloud, and Batch workflows, plus an agent for architecture and component design.",
       "source": "./plugins/spring",
       "author": {
         "name": "ririnto"
@@ -55,7 +55,7 @@
     },
     {
       "name": "observability-assets",
-      "description": "Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.",
+      "description": "Prometheus and Grafana plugin with practical skills for alert-rule design, PromQL composition, dashboard JSON authoring, Grafana provisioning, plus an agent for observability architecture decisions.",
       "source": "./plugins/observability-assets",
       "author": {
         "name": "ririnto"
@@ -64,7 +64,7 @@
     },
     {
       "name": "reactor",
-      "description": "Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.",
+      "description": "Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, hot-source design with Sinks, testing with StepVerifier, plus an agent for reactive architecture decisions.",
       "source": "./plugins/reactor",
       "author": {
         "name": "ririnto"
@@ -73,7 +73,7 @@
     },
     {
       "name": "netty",
-      "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.",
+      "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, core API bootstrap and pipelines, and reactive HTTP/TCP/UDP workflows.",
       "source": "./plugins/netty",
       "author": {
         "name": "ririnto"
@@ -100,7 +100,7 @@
     },
     {
       "name": "agent-capability-kit",
-      "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.",
+      "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, hooks, MCP servers, plugin settings, and cross-platform Agent Skills; includes agents for plugin validation and skill review, plus a command for guided plugin creation.",
       "source": "./plugins/agent-capability-kit",
       "author": {
         "name": "ririnto"

@@ -63,8 +63,7 @@ plugins/netty/
 ## Shipped Surfaces
 
 - The plugin ships two reusable networking skills under `skills/`.
-- The plugin ships no plugin-root `agents/` directory.
-- The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
+- The plugin does not ship commands, hooks, agents, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 

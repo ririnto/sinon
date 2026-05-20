@@ -1,3 +1,9 @@
+---
+name: progressive-disclosure
+description: |-
+  What belongs in SKILL.md, references/, assets/, and scripts/; context-budget test and good-vs-bad split examples.
+---
+
 # Progressive Disclosure
 
 Open this file when `SKILL.md` is getting crowded and you need to decide whether a section belongs in `SKILL.md`, `references/`, `assets/`, or `scripts/`.

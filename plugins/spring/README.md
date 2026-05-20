@@ -143,7 +143,7 @@ plugins/spring/
 ## Shipped Surfaces
 
 - The plugin ships twenty-six reusable Spring skills under `skills/`.
-- The plugin ships no plugin-root `agents/` directory.
+- The plugin ships one agent (`spring-architect`) for guiding Spring architecture decisions and component design.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles

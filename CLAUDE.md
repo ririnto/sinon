@@ -10,9 +10,9 @@ The agentskills.io loading model is the top-level governing basis for skill stru
 ## Canonical files and symlinks
 
 - `CLAUDE.md` is the canonical root rules document. `AGENTS.md` is a symlink to it; treat them as one document, not parallel copies.
-- `plugins/agent-capability-kit/skills/` is the canonical repository-local source for the shared authoring skills in this repository.
-- `.claude/skills/` contains mirrored symlink entries that resolve to `plugins/agent-capability-kit/skills/`.
-- `.agents/skills/` is a symlink to `.claude/skills/`; treat all three paths as one generic Agent Skills inventory, not separate sources.
+- `plugins/agent-capability-kit/` is the canonical repository-local source for the shared authoring skills, agents, and commands in this repository.
+- `.claude/skills/`, `.claude/agents/`, and `.claude/commands/` are directory symlinks that resolve to `plugins/agent-capability-kit/{skills,agents,commands}/` respectively.
+- `.agents` is a symlink to `.claude`; treat all paths that resolve to the same target as one inventory, not separate sources.
 - Root-level documentation MUST describe repository-wide structure and rules, not fast-changing plugin details.
 
 ## Versioning
@@ -46,7 +46,7 @@ Plugin structure rule:
 
 ## Authoring Agent Skills
 
-When the task is to create, edit, review, refactor, validate, or package an Agent Skill for this repository, **YOU MUST** load the local `skill-authoring` skill from `plugins/agent-capability-kit/skills/skill-authoring/`. The mirrored path `.claude/skills/skill-authoring/` resolves to the same source content, and `.agents/skills/skill-authoring/` resolves through the `.agents/skills/` symlink to that same mirrored entry.
+When the task is to create, edit, review, refactor, validate, or package an Agent Skill for this repository, **YOU MUST** load the local `skill-authoring` skill from `plugins/agent-capability-kit/skills/skill-authoring/`. The paths `.claude/skills/skill-authoring/` and `.agents/skills/skill-authoring/` resolve to the same source content through the directory-level symlinks (`.agents` → `.claude` → per-surface symlinks into `plugins/agent-capability-kit/`).
 
 Progressive disclosure applies at three levels:
 

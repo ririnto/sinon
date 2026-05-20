@@ -1,10 +1,10 @@
 ---
-name: "spring-kafka"
-description: "Build Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, and embedded Kafka tests. Use this skill when building Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, and embedded Kafka tests."
+name: spring-kafka
+description: Build Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, and embedded Kafka tests. Use this skill when building Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, and embedded Kafka tests.
 metadata:
   title: "Spring for Apache Kafka"
-  official_project_url: "https://spring.io/projects/spring-kafka"
-  reference_doc_urls:
+  official-project-url: "https://spring.io/projects/spring-kafka"
+  reference-doc-urls:
     - "https://docs.spring.io/spring-kafka/reference/index.html"
   version: "4.0.5"
 ---

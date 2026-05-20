@@ -172,8 +172,8 @@ Additionally, these URL fields have `_file` variants:
 
 Beyond pairing rules, some global fields are mutually exclusive:
 
-- **Slack**: Cannot configure both `slack_app_token`/`slack_app_token_file` AND `slack_api_url`/`slack_api_url_file` unless `slack_api_url` equals the default `slack_app_url` (the legacy workaround path).
-- **Slack**: Cannot configure both `slack_app_token` AND `slack_app_token_file`.
+- `Slack`: Cannot configure both `slack_app_token`/`slack_app_token_file` AND `slack_api_url`/`slack_api_url_file` unless `slack_api_url` equals the default `slack_app_url` (the legacy workaround path).
+- `Slack`: Cannot configure both `slack_app_token` AND `slack_app_token_file`.
 
 ## Inheritance Behavior
 

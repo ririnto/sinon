@@ -371,7 +371,7 @@ Each property that can be overridden has a unique ID string. Below is the organi
 
 ### Override Examples by Scenario
 
-**Hide a secondary query from the legend:**
+#### Hide a secondary query from the legend
 
 ```json
 {
@@ -382,7 +382,7 @@ Each property that can be overridden has a unique ID string. Below is the organi
 }
 ```
 
-**Make error counters red and dashed:**
+## Make error counters red and dashed
 
 ```json
 {
@@ -396,7 +396,7 @@ Each property that can be overridden has a unique ID string. Below is the organi
 }
 ```
 
-**Format all numeric fields as percent with 1 decimal:**
+## Format all numeric fields as percent with 1 decimal
 
 ```json
 {
@@ -408,7 +408,7 @@ Each property that can be overridden has a unique ID string. Below is the organi
 }
 ```
 
-**Color table cells by status code value:**
+## Color table cells by status code value
 
 ```json
 {

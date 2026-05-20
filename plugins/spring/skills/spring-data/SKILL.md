@@ -1,19 +1,21 @@
 ---
-name: "spring-data"
-description: "Design Spring Data repositories, derived queries, projections, auditing, paging, and scrolling across multiple Spring Data modules. Use this skill when designing Spring Data repositories, derived queries, projections, auditing, paging, scrolling, and repository-based persistence patterns that span multiple Spring Data modules."
+name: spring-data
+description: Design Spring Data repositories, derived queries, projections, auditing, paging, and scrolling across multiple Spring Data modules. Use this skill when designing Spring Data repositories, derived queries, projections, auditing, paging, scrolling, and repository-based persistence patterns that span multiple Spring Data modules.
 metadata:
-  title: Spring Data
-  official_project_url: https://spring.io/projects/spring-data
-  reference_doc_url_commons: https://docs.spring.io/spring-data/commons/reference/index.html
-  reference_doc_url_jpa: https://docs.spring.io/spring-data/jpa/reference/index.html
-  reference_doc_url_mongodb: https://docs.spring.io/spring-data/mongodb/reference/index.html
-  reference_doc_url_redis: https://docs.spring.io/spring-data/redis/reference/index.html
-  reference_doc_url_jdbc: https://docs.spring.io/spring-data/relational/reference/jdbc.html
-  reference_doc_url_r2dbc: https://docs.spring.io/spring-data/relational/reference/r2dbc.html
-  reference_doc_url_rest: https://docs.spring.io/spring-data/rest/reference/index.html
-  release_line_kind: stable-ga
-  release_train: "2025.1.5"
-  commons_version: "4.0.5"
+  title: "Spring Data"
+  official-project-url: "https://spring.io/projects/spring-data"
+  reference-doc-urls:
+    - "https://docs.spring.io/spring-data/commons/reference/index.html"
+    - "https://docs.spring.io/spring-data/jpa/reference/index.html"
+    - "https://docs.spring.io/spring-data/mongodb/reference/index.html"
+    - "https://docs.spring.io/spring-data/redis/reference/index.html"
+    - "https://docs.spring.io/spring-data/relational/reference/jdbc.html"
+    - "https://docs.spring.io/spring-data/relational/reference/r2dbc.html"
+    - "https://docs.spring.io/spring-data/rest/reference/index.html"
+  release-line-kind: "stable-ga"
+  release-train: "2025.1.5"
+  commons-version: "4.0.5"
+  version: "2025.1.5"
 ---
 
 Use this skill when designing Spring Data repositories, derived queries, projections, auditing, paging, scrolling, null-safe repository contracts, and repository-based persistence patterns that span multiple Spring Data modules.

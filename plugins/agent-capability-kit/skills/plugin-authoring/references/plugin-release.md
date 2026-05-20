@@ -1,3 +1,9 @@
+---
+name: plugin-release
+description: |-
+  Install scope, persistent data boundaries, and packaging review checklist. Open this file when the plugin work reaches installation, packaging review, or persistent-data decisions.
+---
+
 # Plugin Release
 
 Open this file when the plugin work reaches installation, packaging review, or persistent-data decisions.

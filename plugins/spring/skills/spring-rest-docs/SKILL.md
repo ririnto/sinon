@@ -1,10 +1,10 @@
 ---
-name: "spring-rest-docs"
-description: "Generate Spring REST API documentation from MockMvc or WebTestClient tests and publish snippets via Asciidoctor. Use this skill when generating REST API documentation from Spring tests with MockMvc or WebTestClient snippets, and publishing those snippets through Asciidoctor."
+name: spring-rest-docs
+description: Generate Spring REST API documentation from MockMvc or WebTestClient tests and publish snippets via Asciidoctor. Use this skill when generating REST API documentation from Spring tests with MockMvc or WebTestClient snippets, and publishing those snippets through Asciidoctor.
 metadata:
   title: "Spring REST Docs"
-  official_project_url: "https://spring.io/projects/spring-restdocs"
-  reference_doc_urls:
+  official-project-url: "https://spring.io/projects/spring-restdocs"
+  reference-doc-urls:
     - "https://docs.spring.io/spring-restdocs/"
     - "https://docs.spring.io/spring-restdocs/tutorial/getting-started/index.html"
   version: "4.0.0"

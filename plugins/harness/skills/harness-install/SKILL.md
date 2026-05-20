@@ -1,8 +1,20 @@
 ---
 name: harness-install
-description: Install repository harness assets: AGENTS.md contract, ARCHITECTURE.md, docs structure, Claude entry point, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use this skill when setting up or refreshing a repository harness, adding Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, or bun projects.
+description: |-
+  Install repository harness assets: AGENTS.md contract, ARCHITECTURE.md, docs structure, Claude entry point, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use this skill when setting up or refreshing a repository harness, adding Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, or bun projects.
 argument-hint: '[auto|gradle|maven|uv|bun] [--target DIR] [--hooks none|copy] [--force] [--no-ci]'
-allowed-tools: Bash(sh */skills/harness-install/scripts/install-harness.sh *) Bash(git *) Bash(./gradlew *) Bash(gradle *) Bash(mvn *) Bash(uv *) Bash(bun *) Read Grep Glob LS
+allowed-tools:
+  - Bash(sh */skills/harness-install/scripts/install-harness.sh *)
+  - Bash(git *)
+  - Bash(./gradlew *)
+  - Bash(gradle *)
+  - Bash(mvn *)
+  - Bash(uv *)
+  - Bash(bun *)
+  - Read
+  - Grep
+  - Glob
+  - LS
 ---
 
 # Harness Install

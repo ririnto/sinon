@@ -8,6 +8,7 @@
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/agent-capability-kit",
   "repository": "https://github.com/ririnto/sinon",
   "license": "MIT",
+  "commands": "./commands/",
   "skills": "./skills/",
   "keywords": [
     "claude-code",

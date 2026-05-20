@@ -1,3 +1,9 @@
+---
+name: scripts-guidance
+description: |-
+  Decide whether a helper belongs in a skill's `scripts/` directory and avoid making scripts hidden prerequisites. Open this file when planning helper scripts or auditing a draft script for skill self-sufficiency.
+---
+
 # Scripts Guidance
 
 Open this file when you are deciding whether a helper belongs in `scripts/`, or when a draft script risks becoming a hidden prerequisite for the skill.

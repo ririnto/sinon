@@ -88,7 +88,10 @@ Example with common optional fields:
 ---
 description: Review one pull request for risk, missing tests, and merge blockers. Use when preparing a merge recommendation.
 argument-hint: [pr-number]
-allowed-tools: Read, Grep, Bash(git *)
+allowed-tools:
+  - Read
+  - Grep
+  - Bash(git *)
 disable-model-invocation: true
 ---
 ```
@@ -158,7 +161,9 @@ Good:
 ---
 description: Summarize one log file for error clusters and likely causes. Use when triaging a local failure report.
 argument-hint: [log-file]
-allowed-tools: Read, Grep
+allowed-tools:
+  - Read
+  - Grep
 ---
 ```
 

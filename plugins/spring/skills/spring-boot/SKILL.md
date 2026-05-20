@@ -1,12 +1,13 @@
 ---
-name: "spring-boot"
-description: "Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging. Use this skill when the task is about Spring Boot application bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator operations, packaging, or Boot-level runtime wiring."
+name: spring-boot
+description: Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging. Use this skill when the task is about Spring Boot application bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator operations, packaging, or Boot-level runtime wiring.
 metadata:
   title: "Spring Boot"
-  official_project_url: "https://spring.io/projects/spring-boot"
-  reference_doc_url_home: "https://docs.spring.io/spring-boot/index.html"
-  reference_doc_url_system_requirements: "https://docs.spring.io/spring-boot/system-requirements.html"
-  reference_doc_url_reference: "https://docs.spring.io/spring-boot/reference/index.html"
+  official-project-url: "https://spring.io/projects/spring-boot"
+  reference-doc-urls:
+    - "https://docs.spring.io/spring-boot/index.html"
+    - "https://docs.spring.io/spring-boot/system-requirements.html"
+    - "https://docs.spring.io/spring-boot/reference/index.html"
   version: "4.0.6"
 ---
 

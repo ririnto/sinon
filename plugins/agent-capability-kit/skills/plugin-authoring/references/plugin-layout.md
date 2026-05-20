@@ -1,3 +1,9 @@
+---
+name: plugin-layout
+description: |-
+  Expanded plugin-root tree examples for composite surfaces, helper directories, and layout exceptions. Open this file when `SKILL.md` already covers the baseline shape and a richer tree is needed.
+---
+
 # Plugin Layout
 
 Open this file when `SKILL.md` already covers the baseline shape and you need a deeper layout for a plugin that combines surfaces, adds helper directories, or hits a layout exception.

@@ -96,7 +96,6 @@ For current local development:
 claude --plugin-dir /path/to/sinon/plugins/spec-driven-development
 ```
 
-
 ## Scope Notes
 
 This plugin focuses on spec-first development workflow guidance. It does not cover:

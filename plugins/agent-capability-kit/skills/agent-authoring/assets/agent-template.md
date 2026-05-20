@@ -55,6 +55,7 @@ Omit this section unless the role needs tools different from the default environ
 Example (include only when needed):
 
 ```markdown
-tools: ["Read", "Grep"]
+tools:
+  - Read
+  - Grep
 ```
-

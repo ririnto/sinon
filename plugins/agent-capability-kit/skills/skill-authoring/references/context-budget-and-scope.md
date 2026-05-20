@@ -1,3 +1,9 @@
+---
+name: context-budget-and-scope
+description: |-
+  Signals for scope that is too broad or too narrow; repair moves to split, narrow, or merge skills; context-budget heuristics.
+---
+
 # Context Budget and Coherent Scope
 
 Open this file when the skill feels too broad, `SKILL.md` keeps growing, or you are unsure whether one skill should be split into several coherent units.

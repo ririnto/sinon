@@ -333,7 +333,7 @@ Grafana provides these built-in variables without any declaration in `templating
 | `$__rate_interval` | string | Safe rate interval (4x interval) | `"20m"` |
 | `$__timezone` | string | Dashboard timezone setting | `"browser"` or `"UTC"` |
 
-**Practical usage examples:**
+## Practical usage examples
 
 ```promql
 rate(http_requests_total[$__rate_interval])
@@ -391,7 +391,7 @@ When no format modifier is specified, Grafana picks a default based on where the
 
 ### Correct Usage Patterns by Context
 
-**PromQL label matcher (multi-value):**
+#### PromQL label matcher (multi-value)
 
 ```promql
 http_requests_total{instance=~"${instances:regex}"}
@@ -409,7 +409,7 @@ http_requests_total{instance=~"${instances:raw}"}
 
 Use `:raw` only when the variable's custom All value or option values are already valid PromQL regex fragments, such as `.+`.
 
-**InfluxQL tag filter:**
+## InfluxQL tag filter
 
 ```influxql
 SELECT * FROM metrics WHERE tag =~ /${tags:regex}/
@@ -417,7 +417,7 @@ SELECT * FROM metrics WHERE tag =~ /${tags:regex}/
 
 The `:regex` format matches InfluxQL regex filter expectations.
 
-**Data link URL:**
+## Data link URL
 
 ```json
 {
@@ -425,7 +425,7 @@ The `:regex` format matches InfluxQL regex filter expectations.
 }
 ```
 
-**Panel title interpolation:**
+## Panel title interpolation
 
 ```json
 {
