@@ -1,10 +1,10 @@
 ---
-name: "spring-cloud-data-flow"
-description: "Maintain, deploy, and operate Spring Cloud Data Flow streams and tasks with app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations. Use this skill when maintaining, deploying, and operating existing Spring Cloud Data Flow streams or tasks, including app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations."
+name: spring-cloud-data-flow
+description: Maintain, deploy, and operate Spring Cloud Data Flow streams and tasks with app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations. Use this skill when maintaining, deploying, and operating existing Spring Cloud Data Flow streams or tasks, including app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations.
 metadata:
   title: "Spring Cloud Data Flow"
-  official_project_url: "https://spring.io/projects/spring-cloud-dataflow"
-  reference_doc_urls:
+  official-project-url: "https://spring.io/projects/spring-cloud-dataflow"
+  reference-doc-urls:
     - "https://dataflow.spring.io/docs/"
     - "https://dataflow.spring.io/docs/installation/local/"
   version: "2.11.5"

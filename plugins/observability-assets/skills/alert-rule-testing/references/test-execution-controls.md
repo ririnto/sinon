@@ -95,7 +95,7 @@ Use when: you need to run one named test selection during focused iteration.
 
 `eval_time` MUST be a multiple of the effective evaluation interval. Misaligned times produce confusing results because Prometheus evaluates at interval boundaries, not at arbitrary timestamps.
 
-**Correct alignment (interval: 1m):**
+### Correct alignment (interval: 1m)
 
 ```yaml
 tests:
@@ -109,7 +109,7 @@ tests:
 
 The values are all valid multiples of `1m`: initial evaluation, after 5 evaluations, exactly at a `for: 10m` boundary, and well past that boundary.
 
-**Misaligned (will cause problems):**
+## Misaligned (will cause problems)
 
 ```yaml
 tests:
@@ -129,13 +129,13 @@ Rule of thumb: always use integer multiples of the interval as `eval_time`.
 
 When `fuzzy_compare: true` is set, promtool uses approximate comparison for numeric assertions instead of exact equality. The tolerance is typically around 1e-6 relative to the expected value.
 
-**When to use it:**
+### When to use it
 
 - The expression involves division of rates (`rate(a) / rate(b)`) where floating-point rounding makes exact matches unlikely.
 - The expression uses `histogram_quantile()` which has inherent approximation error.
 - Tests flake intermittently between runs due to floating-point differences across platforms.
 
-**When NOT to use it:**
+## When NOT to use it
 
 - Testing exact threshold boundaries where a difference of 0.000001 changes the semantic result.
 - Integer-valued expressions (counters, `count()`, etc.) where exact comparison is reliable.
@@ -158,7 +158,7 @@ Without `fuzzy_compare`, this fails if the actual value is `0.0500000000001`. Wi
 
 Most tests work fine with the default epoch-zero start time. Set `start_timestamp` explicitly when:
 
-**Testing time-dependent template rendering:**
+### Testing time-dependent template rendering
 
 ```yaml
 tests:
@@ -178,7 +178,7 @@ tests:
 
 The timestamp starts the fixture at 03:00 UTC.
 
-**Verifying behavior across daylight saving transitions (rare):**
+## Verifying behavior across daylight saving transitions (rare)
 
 ```yaml
 tests:

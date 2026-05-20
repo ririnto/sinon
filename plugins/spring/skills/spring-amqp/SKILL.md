@@ -1,10 +1,10 @@
 ---
-name: "spring-amqp"
-description: "Build RabbitMQ or AMQP producers and consumers in Spring with RabbitTemplate, @RabbitListener, queue and exchange topology, message conversion, retry, and dead-letter handling. Use this skill when building RabbitMQ or AMQP producers and consumers in Spring with RabbitTemplate, @RabbitListener, queue and exchange topology, message conversion, listener containers, batching, retry, dead-letter handling, broker configuration, testing, observability, or stream and multi-broker variants."
+name: spring-amqp
+description: Build RabbitMQ or AMQP producers and consumers in Spring with RabbitTemplate, @RabbitListener, queue and exchange topology, message conversion, retry, and dead-letter handling. Use this skill when building RabbitMQ or AMQP producers and consumers in Spring with RabbitTemplate, @RabbitListener, queue and exchange topology, message conversion, listener containers, batching, retry, dead-letter handling, broker configuration, testing, observability, or stream and multi-broker variants.
 metadata:
   title: "Spring AMQP"
-  official_project_url: "https://spring.io/projects/spring-amqp"
-  reference_doc_urls:
+  official-project-url: "https://spring.io/projects/spring-amqp"
+  reference-doc-urls:
     - "https://docs.spring.io/spring-amqp/reference/index.html"
     - "https://docs.spring.io/spring-amqp/reference/amqp/template.html"
     - "https://docs.spring.io/spring-amqp/reference/amqp/receiving-messages/async-annotation-driven.html"

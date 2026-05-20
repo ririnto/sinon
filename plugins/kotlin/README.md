@@ -89,8 +89,7 @@ plugins/kotlin/
 
 - The plugin ships three reusable Kotlin skills under `skills/`.
 - `.lsp.json` exposes the Kotlin language-server surface for Claude-compatible local development.
-- The plugin ships no plugin-root `agents/` directory.
-- The plugin does not ship commands, hooks, MCP servers, or custom runtime data surfaces.
+- The plugin does not ship commands, hooks, agents, MCP servers, or custom runtime data surfaces.
 
 ## Kotlin LSP Setup
 

@@ -61,7 +61,7 @@ Use when: the blocker is deciding whether one provider should mirror top-level d
 
 Enabling `foldersFromFilesStructure: true` imposes strict requirements on the provider configuration.
 
-**Must unset both `folder` and `folderUid`:**
+### Must unset both `folder` and `folderUid`
 
 When `foldersFromFilesStructure` is active, the provider-level `folder` and `folderUid` fields MUST be absent. Grafana rejects the provider at startup if both are present.
 
@@ -92,7 +92,7 @@ providers:
       foldersFromFilesStructure: true
 ```
 
-**No nested folder support (one level only):**
+## No nested folder support (one level only)
 
 Only the first level of subdirectories under `options.path` maps to Grafana folders. Deeper nesting is ignored -- files in sub-subdirectories are not provisioned and produce no error or warning.
 
@@ -117,7 +117,7 @@ dashboards/
     dashboard-1.json        --> Grafana folder "team-a" (this one works)
 ```
 
-**Root-level dashboards go to Grafana root:**
+## Root-level dashboards go to Grafana root
 
 JSON files placed directly in `options.path` (not inside any subdirectory) are provisioned into the Grafana root folder (General / no parent folder).
 
@@ -128,7 +128,7 @@ dashboards/
     sprint.json              --> Grafana folder "team-a"
 ```
 
-**Folder UIDs are auto-generated:**
+## Folder UIDs are auto-generated
 
 When using `foldersFromFilesStructure`, Grafana creates folders with auto-generated UIDs. If you need stable, cross-instance folder references, use fixed-folder mode with provider-level `folderUid` instead.
 

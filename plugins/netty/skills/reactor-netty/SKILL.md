@@ -4,8 +4,8 @@ description: >-
   Build Reactor Netty HTTP, TCP, or UDP clients and servers with reactive request handling, lifecycle hooks, and resource-aware startup or shutdown. Use this skill when the work is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, or `UdpClient` rather than low-level Netty pipeline APIs.
 metadata:
   title: Reactor Netty
-  official_project_url: "https://projectreactor.io/docs/netty/release/reference/"
-  reference_doc_urls:
+  official-project-url: "https://projectreactor.io/docs/netty/release/reference/"
+  reference-doc-urls:
     - "https://projectreactor.io/docs/netty/release/reference/"
     - "https://projectreactor.io/docs/netty/release/api/"
   version: "1.x"

@@ -1,3 +1,9 @@
+---
+name: description-design
+description: |-
+  Patterns and specificity ladder for skill descriptions; offline trigger-testing method and common mistakes.
+---
+
 # Description Design
 
 Open this file when the skill already has the right scope but the `description` text is still too vague, too broad, or hard to trigger correctly.

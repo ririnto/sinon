@@ -1,3 +1,9 @@
+---
+name: agent-frontmatter
+description: |-
+  Decisions for tools, model, and extra fields; description upgrade patterns when the baseline feels weak.
+---
+
 # Agent Frontmatter
 
 Open this file when the ordinary `SKILL.md` rules are not enough to choose between multiple reasonable frontmatter shapes.
@@ -56,4 +62,3 @@ description: Use this agent when a Markdown guide, README, or handoff note needs
   </commentary>
   </example>
 ```
-

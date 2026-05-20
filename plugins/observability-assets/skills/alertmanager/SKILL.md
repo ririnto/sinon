@@ -300,15 +300,15 @@ All fields within a `TimeIntervalSpec` are ANDed together: an alert falls inside
 
 ### Sub-Field Types
 
-**TimeRange**: `{ start_time: "HH:MM", end_time: "HH:MM" }`. End is exclusive. Valid range: `00:00` to `24:00`.
+#### TimeRange: `{ start_time: "HH:MM", end_time: "HH:MM" }`. End is exclusive. Valid range: `00:00` to `24:00`
 
-**WeekdayRange**: String like `"monday"`, `"monday:friday"`, or `"sunday:saturday"`. Full names or colon-separated ranges.
+#### WeekdayRange: String like `"monday"`, `"monday:friday"`, or `"sunday:saturday"`. Full names or colon-separated ranges
 
-**DayOfMonthRange**: Integer range like `1`, `15`, `1:15`, or `-1:-3` (negative counts from month end). Range `-31` to `31`, excluding 0.
+#### DayOfMonthRange: Integer range like `1`, `15`, `1:15`, or `-1:-3` (negative counts from month end). Range `-31` to `31`, excluding 0
 
-**MonthRange**: String like `"january"`, `"march:may"`, or `"9:12"`. Full names or integer ranges 1-12.
+#### MonthRange: String like `"january"`, `"march:may"`, or `"9:12"`. Full names or integer ranges 1-12
 
-**YearRange**: Integer range like `"2024"`, `"2024:2026"`.
+## YearRange: Integer range like `"2024"`, `"2024:2026"`
 
 ### Time Interval Examples
 
