@@ -58,8 +58,8 @@ This means `Default.md` is the baseline only when it will actually be applied. A
 ## Project Settings Template
 
 
-- **Web UI:** Settings > change descriptions > Default description template
-- **REST API:** `merge_requests_template` attribute via Projects API
+- `Web UI`: Settings > change descriptions > Default description template
+- `REST API`: `merge_requests_template` attribute via Projects API
 
 This template has the highest precedence (above group-level and project-level `Default.md` files) when an author creates an MR without selecting a specific template.
 

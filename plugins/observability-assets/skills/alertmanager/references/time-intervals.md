@@ -29,7 +29,7 @@ Each entry within a named `time_intervals:` block defines one schedule window wi
 | **`years`** | list of YearRange | **Year constraints; all must be satisfied (OR within the list)** |
 | `location` | string | IANA timezone name (e.g., `"America/New_York"`) |
 
-**All specified fields are ANDed together**: an alert falls inside the interval only when it satisfies EVERY constraint type that is present. Omitted constraint types are unconstrained and always pass.
+## All specified fields are ANDed together: an alert falls inside the interval only when it satisfies EVERY constraint type that is present. Omitted constraint types are unconstrained and always pass
 
 Within each field's list, multiple entries are ORed together: the alert passes if it matches ANY entry in the list.
 

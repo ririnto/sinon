@@ -1,10 +1,10 @@
 ---
-name: "spring-statemachine"
-description: "Model explicit application lifecycles with Spring Statemachine states, events, guards, actions, extended state, persistence, and state-machine tests. Use this skill when modeling explicit application lifecycles with Spring Statemachine, including states, events, guards, actions, extended state, persistence, and state-machine tests."
+name: spring-statemachine
+description: Model explicit application lifecycles with Spring Statemachine states, events, guards, actions, extended state, persistence, and state-machine tests. Use this skill when modeling explicit application lifecycles with Spring Statemachine, including states, events, guards, actions, extended state, persistence, and state-machine tests.
 metadata:
   title: "Spring Statemachine"
-  official_project_url: "https://spring.io/projects/spring-statemachine"
-  reference_doc_urls:
+  official-project-url: "https://spring.io/projects/spring-statemachine"
+  reference-doc-urls:
     - "https://docs.spring.io/spring-statemachine/docs/current/reference/"
   version: "4.0.1"
 ---

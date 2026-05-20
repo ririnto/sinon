@@ -1,3 +1,9 @@
+---
+name: command-frontmatter
+description: |-
+  Decision guidance for optional frontmatter fields: argument-hint, allowed-tools, model, shell, and path scoping.
+---
+
 # Command Frontmatter Reference
 
 Open this file when the command needs a less common frontmatter choice or when several optional fields may overlap.

@@ -102,11 +102,11 @@ Label matcher operators:
 
 Regex matches are fully anchored: `env=~"foo"` means `env=~"^foo$"`. RE2 syntax.
 
-**Empty-value matching**: `{environment=""}` matches series where `environment` is absent OR set to empty string. This also selects series that do not have the label at all.
+## Empty-value matching: `{environment=""}` matches series where `environment` is absent OR set to empty string. This also selects series that do not have the label at all
 
-**Multiple matchers on same label**: All must pass (AND semantics).
+## Multiple matchers on same label: All must pass (AND semantics)
 
-**Selector validity rules**:
+## Selector validity rules
 
 - Must specify a metric name OR at least one non-empty-matching label matcher.
 - `{job=~".*"}` is illegal (matches empty). Use `{job=~".+"}` or add a second matcher like `{method="get"}`.
@@ -203,13 +203,13 @@ Negative histograms are intermediate-only; they cannot be ingested or exchanged 
 
 Defined between: scalar/scalar, vector/scalar, vector/vector (with vector matching).
 
-**Histogram behavior in arithmetic**:
+## Histogram behavior in arithmetic
 
 - `* scalar`: multiplies buckets, count, sum. Negative scalar produces gauge histogram.
 - `/ scalar` (histogram on LHS): divides buckets, count, sum. Division by zero yields Inf/NaN per component. Negative scalar produces gauge histogram.
 - All other scalar/histogram combinations: element removed (info annotation).
 - Vector/vector: only `+` and `-` valid between two histograms. All others remove element (info annotation).
-- **Metric name is always dropped** in any arithmetic operation involving vectors, even if `__name__` is in `on(...)`.
+- Metric name is always dropped in any arithmetic operation involving vectors, even if `__name__` is in `on(...)`.
 
 ### Histogram trim operators
 
@@ -498,9 +498,9 @@ Base path: `/api/v1`. All responses use this JSON envelope:
 | `/api/v1/format_query` | GET/POST | Pretty-format a PromQL expression |
 | `/api/v1/parse_query` | GET/POST | Parse expression to AST (experimental) |
 
-**Instant query parameters**: `query`, `time` (optional), `timeout` (optional), `limit` (optional), `lookback_delta` (optional), `stats` (optional).
+#### Instant query parameters: `query`, `time` (optional), `timeout` (optional), `limit` (optional), `lookback_delta` (optional), `stats` (optional)
 
-**Range query parameters**: `query`, `start`, `end`, `step`, `timeout` (optional), `limit` (optional), `lookback_delta` (optional), `stats` (optional).
+## Range query parameters: `query`, `start`, `end`, `step`, `timeout` (optional), `limit` (optional), `lookback_delta` (optional), `stats` (optional)
 
 Timestamps accept RFC3339 or Unix (seconds, optional decimals). Durations use PromQL time-unit syntax. POST accepts URL-encoded body for large queries.
 

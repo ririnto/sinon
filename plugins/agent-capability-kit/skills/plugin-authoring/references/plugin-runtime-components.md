@@ -1,3 +1,9 @@
+---
+name: plugin-runtime-components
+description: |-
+  Per-surface extension points, tradeoffs, and wiring details for hooks, MCP, LSP, settings, output styles, and monitors. Open this file only when `SKILL.md` leaves a blocker, tradeoff, or edge case unresolved for an already-chosen runtime surface.
+---
+
 # Plugin Runtime Components
 
 Open this file only when `SKILL.md` leaves a blocker, tradeoff, or edge case unresolved for an already-chosen runtime surface.

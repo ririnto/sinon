@@ -4,14 +4,14 @@ description: >-
   Build Netty TCP or UDP clients and servers with Bootstrap, ServerBootstrap, ChannelPipeline, handlers, ByteBuf, and codec basics. Use this skill when creating or debugging core Netty application flow, channel lifecycle, threading, or buffer ownership.
 metadata:
   title: Netty
-  official_project_url: "https://netty.io/"
-  reference_doc_urls:
+  official-project-url: "https://netty.io/"
+  reference-doc-urls:
     - "https://netty.io/wiki/user-guide-for-4.x.html"
     - "https://netty.io/wiki/netty-4.2-migration-guide.html"
     - "https://netty.io/4.2/api/"
     - "https://netty.io/4.1/api/"
   version: "4.x"
-  recommended_version: "4.2.x.Final (current stable); 4.1.x.Final remains supported for existing deployments"
+  recommended-version: "4.2.x.Final (current stable); 4.1.x.Final remains supported for existing deployments"
 ---
 
 ## Netty

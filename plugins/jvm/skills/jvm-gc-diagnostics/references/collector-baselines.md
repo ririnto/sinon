@@ -21,11 +21,11 @@ Use this reference when the blocker is confirming which collectors are available
 
 Shenandoah is not a default HotSpot collector on any LTS baseline. Its availability depends on the JDK vendor and build:
 
-- **OpenJDK builds**: included in many distributions but NOT in Oracle JDK
-- **Amazon Corretto**: ships Shenandoah
-- **Azul Zulu**: ships Shenandoah on some configurations
-- **Eclipse Temurin**: includes Shenandoah
-- **Oracle JDK**: does NOT ship Shenandoah
+- `OpenJDK builds`: included in many distributions but NOT in Oracle JDK
+- `Amazon Corretto`: ships Shenandoah
+- `Azul Zulu`: ships Shenandoah on some configurations
+- `Eclipse Temurin`: includes Shenandoah
+- `Oracle JDK`: does NOT ship Shenandoah
 
 Always confirm the actual distribution before recommending Shenandoah. Check with:
 

@@ -1,10 +1,10 @@
 ---
-name: "spring-cloud"
-description: "Implement Spring Cloud distributed-system building blocks for ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, and circuit-breaker boundaries. Use this skill when implementing Spring Cloud distributed-system building blocks such as ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, circuit-breaker boundaries, and release-train-aligned dependency management."
+name: spring-cloud
+description: Implement Spring Cloud distributed-system building blocks for ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, and circuit-breaker boundaries. Use this skill when implementing Spring Cloud distributed-system building blocks such as ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, circuit-breaker boundaries, and release-train-aligned dependency management.
 metadata:
   title: "Spring Cloud"
-  official_project_url: "https://spring.io/projects/spring-cloud"
-  reference_doc_urls:
+  official-project-url: "https://spring.io/projects/spring-cloud"
+  reference-doc-urls:
     - "https://docs.spring.io/spring-cloud-config/reference/"
     - "https://docs.spring.io/spring-cloud-gateway/reference/"
     - "https://docs.spring.io/spring-cloud-openfeign/reference/"

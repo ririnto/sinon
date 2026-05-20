@@ -1,10 +1,10 @@
 ---
-name: "spring-ai"
-description: "Build Spring AI application features with ChatClient, prompt templates, structured output, tool calling, advisors, chat memory, embeddings, vector stores, RAG, and MCP integration. Use this skill when building Spring AI application features with ChatClient, prompt templates, structured output, tool calling, advisors, chat memory, embeddings, vector stores, RAG, MCP, image or audio model flows, moderation, evaluation, or provider-neutral model integration in Spring."
+name: spring-ai
+description: Build Spring AI application features with ChatClient, prompt templates, structured output, tool calling, advisors, chat memory, embeddings, vector stores, RAG, and MCP integration. Use this skill when building Spring AI application features with ChatClient, prompt templates, structured output, tool calling, advisors, chat memory, embeddings, vector stores, RAG, MCP, image or audio model flows, moderation, evaluation, or provider-neutral model integration in Spring.
 metadata:
   title: "Spring AI"
-  official_project_url: "https://spring.io/projects/spring-ai"
-  reference_doc_urls:
+  official-project-url: "https://spring.io/projects/spring-ai"
+  reference-doc-urls:
     - "https://docs.spring.io/spring-ai/reference/"
     - "https://docs.spring.io/spring-ai/reference/api/chatclient.html"
     - "https://docs.spring.io/spring-ai/reference/api/tools.html"

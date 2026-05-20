@@ -17,6 +17,12 @@ Git Workflow is a shared, skill-first plugin for repository-state-driven commit 
 
 - `git-change-integration handoff`: commit readiness checks, staged-change hygiene, Conventional Commit selection, commit body drafting, fallback review-body generation, and template-aware repository body preservation guidance.
 
+## Included Agents
+
+Two runtime agents for crafting commit messages and change description bodies.
+
+- `commit-message-architect`: draft and refine Conventional Commit messages from staged changes, with rationale-focused bodies and scope validation.
+
 ## How the Skill Branches by Host
 
 Use `git-change-integration handoff` when the job is to decide commit readiness, draft a Conventional Commit from the real diff, and prepare hosted review text.
@@ -58,6 +64,8 @@ plugins/git-workflow/
 
 ## Shipped Surfaces
 
+- The plugin ships one reusable Git skill under `skills/`.
+- The plugin ships two agents (`commit-message-architect`, `pr-body-architect`) for repository-state-driven change integration handoff.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 - Host-specific hosted service and hosted service mechanics stay inside the skill references rather than the manifests or plugin root README.
 
@@ -81,7 +89,6 @@ For Claude Code local development:
 ```bash
 claude --plugin-dir /path/to/sinon/plugins/git-workflow
 ```
-
 
 ## Scope Notes
 
