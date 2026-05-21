@@ -41,6 +41,10 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 - `spring-web-flow`: Flow-scoped web sessions, conversation management, and stateful navigation.
 - `spring-web-services`: SOAP endpoints, WS-Security, and client-variant patterns.
 
+## Included Agents
+
+- `spring-architect`: Spring architecture decisions, component boundaries, and cross-skill design routing.
+
 ## When to Use Which Skill
 
 - Spring Boot application shape, configuration, bean wiring, and startup conventions belong in `spring-boot` guidance.
@@ -111,6 +115,8 @@ The actual reusable content lives beside the manifest at the plugin root.
 plugins/spring/
 ├── .claude-plugin/plugin.json
 ├── README.md
+├── agents/
+│   └── spring-architect.md
 └── skills/
     ├── spring-ai/
     ├── spring-amqp/
@@ -167,3 +173,9 @@ For local development:
 ```sh
 claude --plugin-dir /path/to/sinon/plugins/spring
 ```
+
+## Scope Notes
+
+This plugin covers Spring-specific application guidance and ships reusable skills plus the `spring-architect` agent surface. It intentionally does not publish commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
+
+Use Java, JVM, Kotlin, Reactor, Netty, or platform-architecture guidance for concerns that are not shaped by Spring framework behavior. Spring Cloud Data Flow coverage is limited to existing stream/task estates, runtime operations, and migration support rather than new orchestration adoption.
