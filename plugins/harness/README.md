@@ -29,14 +29,26 @@ Install from this repository checkout:
 claude plugin install ./plugins/harness --scope project
 ```
 
-## Runtime Surface
+## Included Skills
 
-- Skills: `harness-install`, `harness-validate`, and `harness-evolve`.
-- Agents: `harness-architect`, `harness-reviewer`, and `harness-validator` under `agents/` for host runtimes that load plugin agents from the plugin root. Hosts that do not load plugin-root agents still receive the skill surface.
-- Scripts: `scripts/plugin-self-check.sh` for local plugin package validation.
-- Target templates: repository-owned files under `skills/harness-install/templates/`, including `.claude/agents`, `.claude/skills`, `.claude/harness`, docs, CI, validation adapters, and Git hook scaffolds.
+- `harness-install`: install repository-owned harness assets into a target repository.
+- `harness-validate`: validate installed harness assets and stack adapters against the harness contract.
+- `harness-evolve`: update the harness contract after repeated project use exposes new template, validation, or workflow needs.
 
-The Claude Code manifest declares only `./skills/`. Agents remain at the plugin root and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. The archive's empty top-level `hooks` surface is intentionally omitted; the packaged hook scaffolds live under `skills/harness-install/templates/common/.claude/harness/git-hooks/`, and the installer generates target-owned pre-commit and pre-push hook templates from the selected mode.
+## Included Agents
+
+- `harness-architect`: plan harness structure and installation strategy.
+- `harness-reviewer`: review installed harness assets and evolution proposals.
+- `harness-validator`: diagnose validation output and readiness gates.
+
+## Packaged Scripts and Templates
+
+- `scripts/plugin-self-check.sh` validates packaged and tracked plugin files.
+- `skills/harness-install/templates/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `.claude/harness`, docs, CI, validation adapters, and Git hook scaffolds.
+
+## Runtime Model
+
+The Claude Code manifest declares only `./skills/`. Agents remain in the `agents/` directory at the plugin root and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. Agents are available to host runtimes that load plugin agents from the plugin root; hosts that do not load plugin-root agents still receive the skill surface. The plugin does not expose top-level hooks; packaged hook scaffolds live under `skills/harness-install/templates/common/.claude/harness/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
 
 ## Target Ownership
 
@@ -44,11 +56,7 @@ Target repositories own every installed harness file. Copied docs, scripts, CI f
 
 ## Install Harness Assets
 
-From a target repository, use the `harness-install` skill with a stack argument:
-
-```text
-auto
-```
+From a target repository, ask Claude Code to use the `harness-install` skill with stack mode `auto` or an explicit mode such as `gradle`, `maven`, `uv`, or `bun`.
 
 The skill invokes `skills/harness-install/scripts/install-harness.sh` with the target repository as `--target`, detects or accepts the stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command. Supported modes are `auto`, `gradle`, `maven`, `uv`, and `bun`.
 
@@ -73,7 +81,7 @@ sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness
 
 ## Required Repository Structure
 
-The installer creates and validators require this repository context structure:
+The installer creates this repository context structure, and validators require it:
 
 ```text
 AGENTS.md
@@ -202,6 +210,6 @@ plugins/harness/
 
 - This plugin prepares repository knowledge, guardrails, templates, and validation paths. It does not run background services or manage issue queues.
 - Target-owned agents are starting points, not immutable plugin internals.
-- The installed `.claude/skills/harness-validate` file is a project skill. If a host exposes both plugin skills and project skills with the same name, follow the host's normal project precedence or rename the installed skill after installation.
+- The installed `.claude/skills/harness-validate/` directory is a project skill. Prefer that project skill when validating an installed target repository. Use the plugin-provided `harness-validate` skill when working from this plugin checkout or before the target repository has its project copy. If a host cannot distinguish the project skill from the plugin skill, rename the installed project directory to `.claude/skills/project-harness-validate/`, update its `SKILL.md` `name` field to `project-harness-validate`, and update local project docs to use that name.
 - GitHub Actions and GitLab CI templates use ordinary version tags from the archive; projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.
 - Maven, Gradle, Python, and test self-checks may create cache, IDE, or build metadata under template directories. Repository `.gitignore` and installer filters exclude ignored byproducts such as `__pycache__/`, `.pytest_cache/`, `*.pyc`, `.classpath`, `.project`, `.factorypath`, `.settings/`, `.gradle/`, `bin/`, `build/`, and `target/`; plugin self-checks validate packaged/tracked template files rather than failing on ignored working-tree byproducts.
