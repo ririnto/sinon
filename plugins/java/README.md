@@ -12,7 +12,7 @@ Java is a shared, skill-first plugin for Java language work in the Sinon Claude 
 - Provide reusable Java workflows that remain portable across Claude Code plugin installations.
 - Keep the portable value surface in `skills/`, with Java-specific language-server integration kept separate from the shared skill corpus.
 - Keep skills practical, example-driven, and focused on direct Java implementation work rather than directory-style guidance.
-- Ground guidance in plugin-local skills, wrapper behavior, and stable Java ecosystem conventions instead of ad-hoc advice.
+- Ground guidance in plugin bundled skills, wrapper behavior, and stable Java ecosystem conventions instead of ad-hoc advice.
 
 ## Included Skills
 
@@ -167,7 +167,7 @@ To provide an explicit override jar, point one of these environment variables at
 
 The wrapper injects the selected jar through `JDK_JAVA_OPTIONS=-javaagent:...`.
 
-Project detection signals used to prefer a project-local jar when it can be resolved:
+Project detection signals used to prefer a project jar when it can be resolved:
 
 - `pom.xml` with `org.projectlombok` or `lombok`
 - `build.gradle` or `build.gradle.kts` with Lombok coordinates, Lombok plugins, or common Lombok dependency configurations

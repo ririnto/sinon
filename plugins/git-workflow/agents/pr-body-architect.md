@@ -171,7 +171,7 @@ Use this agent when:
 Do not use this agent for:
 
 - General GitHub or GitLab issue, CI, or project-management workflows.
-- Custom repository-local review workflow design beyond template preservation.
+- Custom repository review workflow design beyond template preservation.
 - Merge-conflict resolution.
 - Git history rewriting or force-push strategy.
 - Teaching GitHub or GitLab fundamentals to beginners.

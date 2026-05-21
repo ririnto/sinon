@@ -180,7 +180,7 @@ Open [references/application-context-runner.md](references/application-context-r
 - Externalize credentials and environment-specific settings.
 - Expose only the Actuator endpoints the operations team actually needs.
 - Keep profile, config import, Docker Compose, and deployment assumptions explicit.
-- Make startup, packaging, and local-service assumptions reproducible across local and deployment environments.
+- Make startup, packaging, and local service assumptions reproducible across local and deployment environments.
 
 ## Output contract
 
@@ -201,7 +201,7 @@ Return:
 - Open [references/application-context-runner.md](references/application-context-runner.md) when the blocker is Boot-specific wiring diagnosis without starting the whole app.
 - Open [references/testcontainers.md](references/testcontainers.md) when tests need a real backing service through Testcontainers.
 - Open [references/service-connections.md](references/service-connections.md) when Boot should derive test service connection properties automatically.
-- Open [references/docker-compose-local-wiring.md](references/docker-compose-local-wiring.md) when local development depends on Boot-managed Docker Compose lifecycle or explicit `spring.docker.compose.*` wiring.
+- Open [Docker Compose wiring](references/docker-compose-local-wiring.md) when local development depends on Boot-managed Docker Compose lifecycle or explicit `spring.docker.compose.*` wiring.
 - Open [references/health-groups.md](references/health-groups.md) when the task is about health groups.
 - Open [references/probes.md](references/probes.md) when the task is about liveness or readiness probe behavior.
 - Open [references/metrics.md](references/metrics.md) when the task is about metrics exports.

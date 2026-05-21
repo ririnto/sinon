@@ -168,7 +168,7 @@ ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv 
 ## Invariants
 
 - Validation checks the target repository harness, not this plugin package.
-- The installed manifest and installed README define the expected target-local contract.
+- The installed manifest and installed README define the expected target repository contract.
 - Native validators support the installed `.claude/harness/manifest.json` schema and compare the known list fields from that schema.
 - File presence alone does not prove project readiness when placeholders still lack project-specific content.
 - Generated artifacts are valid only when they document source command, source inputs, freshness, and regeneration trigger.

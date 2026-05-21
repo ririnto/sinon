@@ -93,7 +93,7 @@ Caution: each virtual thread carries its own `ThreadLocal` copy, so broad reques
 ## Review questions
 
 - Is the workload dominated by blocking I/O?
-- Are thread-local assumptions or pinning risks present?
+- Are ThreadLocal assumptions or pinning risks present?
 - Is the team already on a Java baseline that supports virtual threads cleanly?
 - Is the runtime on Java 21-23 or Java 24+ before discussing `synchronized` pinning?
 

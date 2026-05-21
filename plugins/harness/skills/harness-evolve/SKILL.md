@@ -86,7 +86,7 @@ Use this checklist before proposing or applying harness evolution.
 - `AGENTS.md` and `CLAUDE.md` still describe the same target contract.
 - `.claude/harness/README.md` names the current validation command.
 - `.claude/harness/manifest.json` matches required files, optional seed files, empty directory keep files, and generated-artifact policy.
-- `.claude/agents/**` and `.claude/skills/**` remain self-sufficient for target-local use.
+- `.claude/agents/**` and `.claude/skills/**` remain self-sufficient for target repository use.
 - `.claude/harness/templates/**` still contain placeholders only where the template renderer or human copy step expects them.
 - `.github/workflows/harness.yml` and `.gitlab-ci.yml`, when present, run the selected final check command.
 - `docs/generated/**` contains real generated artifacts or `.gitkeep`, not fake readiness files.
@@ -156,7 +156,7 @@ delta: `.claude/harness/git-hooks/pre-push` was deleted because hook validation 
 decision: reject as drift
 contract updates: restore or regenerate the selected-mode two-stage hook templates.
 validation impact: rerun the selected stack command and inspect hook docs.
-risks: active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target-local and require explicit approval to replace.
+risks: active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target repository files and require explicit approval to replace.
 ```
 
 ### Deferred dispatcher migration

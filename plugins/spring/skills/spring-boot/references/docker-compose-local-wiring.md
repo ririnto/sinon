@@ -50,7 +50,7 @@ Boot connects through the mapped host port that Docker Compose publishes for the
 
 - keep `compose.yaml` versioned with the application so the local service contract stays reviewable
 - let Boot manage service discovery and lifecycle only after the Compose project itself is stable
-- treat `spring.docker.compose.*` settings as explicit local-environment wiring, not hidden magic
+- treat `spring.docker.compose.*` settings as explicit local environment wiring, not hidden magic
 
 ## Gotchas
 

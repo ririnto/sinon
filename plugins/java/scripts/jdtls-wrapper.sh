@@ -48,7 +48,7 @@ find_project_root() {
 }
 
 resolve_project_lombok_jar() {
-    # Resolve the project-local Lombok jar path using has-lombok.sh.
+    # Resolve the project Lombok jar path using has-lombok.sh.
     #
     # @param project_root Project root directory to scan.
     # @return Prints the resolved jar path, or nothing if not found.

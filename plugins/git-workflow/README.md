@@ -99,7 +99,7 @@ This plugin intentionally focuses on portable, repository-state-driven change pu
 
 - custom MCP servers
 - hooks
-- custom repository-local GitHub or GitLab review workflow design beyond preserving an existing template during PR/MR drafting
+- custom repository GitHub or GitLab review workflow design beyond preserving an existing template during PR/MR drafting
 - Git history rewriting or force-push strategy
 - merge-conflict resolution
 - general GitHub or GitLab issue, CI, or project-management workflows

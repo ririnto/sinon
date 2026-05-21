@@ -36,7 +36,7 @@ Run the matching command:
 
 ## Invariants
 
-- The installed manifest is the target-local harness contract.
+- The installed manifest is the target repository harness contract.
 - Generated Gradle pre-commit runs `harnessValidate`; non-Gradle pre-commit checks harness-rule compliance only. Generated pre-push runs the selected final check command.
 - `docs/generated/` may be empty, but generated files that exist need regeneration metadata.
 - Seed references may be replaced when they do not match the target stack or domain.

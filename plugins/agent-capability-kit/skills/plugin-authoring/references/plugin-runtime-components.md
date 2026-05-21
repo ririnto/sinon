@@ -10,7 +10,7 @@ Open this file only when `SKILL.md` leaves a blocker, tradeoff, or edge case unr
 
 ## Hooks
 
-Add detail here only when the simple matcher-and-script pattern is not enough, such as when the policy depends on repo-local helper code, multiple lifecycle events, or state that must be evaluated before a tool runs.
+Add detail here only when the simple matcher-and-script pattern is not enough, such as when the policy depends on repository helper code, multiple lifecycle events, or state that must be evaluated before a tool runs.
 
 The starter hook in `assets/hooks.json` watches `Write|Edit` and runs `hooks/check.sh`. The starter script reads the JSON payload from stdin and blocks likely secret-file edits (`.env`, `credentials.json`, `secrets`). Extend it by changing the matcher, adding more hook groups, or replacing the shell command with another local executable under `${CLAUDE_PLUGIN_ROOT}`.
 

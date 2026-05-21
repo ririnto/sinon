@@ -11,7 +11,7 @@ Open this file when the plugin work reaches installation, packaging review, or p
 ## Install scope
 
 - use project scope when the plugin should travel with a repository
-- use user scope when the plugin is personal or machine-local
+- use user scope when the plugin is personal or machine scoped
 
 ## Persistent data example split
 

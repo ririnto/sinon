@@ -92,7 +92,7 @@ class RemotePricingTest {
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
 | adding JUnit 5 structure before a plain test works | the test shape grows faster than the behavior | start with `kotlin.test` and layer Jupiter features only when needed |
-| using `assertTimeoutPreemptively` in thread-local-sensitive code | the assertion runs work on another thread | prefer declarative `@Timeout` unless preemption is the actual contract |
+| using `assertTimeoutPreemptively` in ThreadLocal sensitive code | the assertion runs work on another thread | prefer declarative `@Timeout` unless preemption is the actual contract |
 
 ## Lifecycle hooks
 

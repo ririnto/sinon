@@ -233,7 +233,7 @@ Open a reference only for the named blocker:
 
 ## Packaged runtime maintenance
 
-Use this plugin-local guidance when maintaining the packaged runtime and documentation boundaries:
+Use this plugin guidance when maintaining the packaged runtime and documentation boundaries:
 
 - Keep `./scripts/sdd.py` as the only documented CLI entrypoint.
 - Keep subcommands documented as `"${SKILL_ROOT}/scripts/sdd.py" <subcommand> ...`; do not reference retired helper scripts.

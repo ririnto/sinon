@@ -53,9 +53,9 @@ final class ContextAwareOperator {
 | add one key | `put(...)` |
 | merge another context | `putAll(...)` |
 
-## Capturing current thread-local values at subscription time
+## Capturing current ThreadLocal values at subscription time
 
-Use `contextCapture()` when you need to snapshot thread-local state (such as MDC, security context) into the Reactor `Context` at subscription time rather than manually writing each key.
+Use `contextCapture()` when you need to snapshot ThreadLocal state (such as MDC, security context) into the Reactor `Context` at subscription time rather than manually writing each key.
 
 ```java
 import reactor.core.publisher.Mono;

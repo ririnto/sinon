@@ -112,7 +112,7 @@ Field semantics in the source file:
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `id` | integer/null | recommended | Remove it or set it to `null` before committing cross-instance source. Numeric IDs are database-local and should not be treated as portable identifiers. |
+| `id` | integer/null | recommended | Remove it or set it to `null` before committing cross-instance source. Numeric IDs are database scoped and should not be treated as portable identifiers. |
 | `uid` | string | recommended | Stable identifier for this dashboard. Used in URLs (`/d/<uid>/...`) and cross-dashboard links. Auto-generated if omitted, but explicit UIDs are strongly recommended for reproducible deployments. |
 | `title` | string | yes | Human-readable dashboard title. |
 | `schemaVersion` | integer | yes | Classic dashboard JSON schema version for the file. |
@@ -297,7 +297,7 @@ Choose the value based on how quickly file changes need to appear and how predic
 
 - lower values shorten the time between Grafana rescan attempts
 - higher values reduce scan frequency and can be easier to reason about on slower or indirect filesystem paths
-- Docker bind mounts, network filesystems, and other non-local paths should be validated in the real runtime path instead of relying on an assumed watch-versus-poll threshold
+- Docker bind mounts, network filesystems, and other paths outside the local filesystem should be validated in the real runtime path instead of relying on an assumed watch-versus-poll threshold
 
 Example Docker provider with a 30-second rescan interval:
 
@@ -404,7 +404,7 @@ Return:
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
 | storing API import payloads under the provider path | legacy file provisioning expects raw dashboard JSON files, not API envelopes with `dashboard` / `overwrite` / `folderUid` | commit the raw dashboard object itself as the source file |
-| leaving `id` set to a numeric value from a UI export | numeric IDs are instance-local and create portability problems across Grafana instances | remove `id` or set it to `null` before committing the shared source file |
+| leaving `id` set to a numeric value from a UI export | numeric IDs are instance scoped and create portability problems across Grafana instances | remove `id` or set it to `null` before committing the shared source file |
 | managing `version` numbers in dashboard JSON files | Grafana ignores the `version` property during provisioning entirely | leave version as-is from export; do not attempt to bump it |
 | choosing `updateIntervalSeconds` by assumed watch-versus-poll cutoffs | hard-coded thresholds are deployment-specific and may not match the actual runtime filesystem behavior | set the interval as the desired rescan cadence and verify change pickup on the real path Grafana reads |
 | mixing dashboard authoring guidance into provisioning docs | users lose the distinction between dashboard content and dashboard delivery | keep panel design and visualization authoring out of this skill, and keep file delivery here |

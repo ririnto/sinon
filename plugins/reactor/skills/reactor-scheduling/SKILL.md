@@ -23,7 +23,7 @@ This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `s
 - choosing among `Schedulers.parallel()`, `boundedElastic()`, `single()`, or `immediate()`
 - deciding whether `publishOn(...)` or `subscribeOn(...)` is the right move
 - isolating one blocking boundary without smearing thread switches across the chain
-- checking whether thread-local assumptions break once the pipeline becomes asynchronous
+- checking whether ThreadLocal assumptions break once the pipeline becomes asynchronous
 - diagnosing thread hops or execution placement with local Reactor tools
 
 ## Do not use this skill for
@@ -55,7 +55,7 @@ This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `s
 - Place `subscribeOn(...)` at the source boundary, especially for blocking bridges.
 - Use `Schedulers.parallel()` for fast non-blocking CPU work.
 - Use `Schedulers.boundedElastic()` for blocking I/O or thread-affine imperative code.
-- Treat `Context` as subscription metadata, not as a thread-local replacement by itself.
+- Treat `Context` as subscription metadata, not as a ThreadLocal replacement by itself.
 - Prefer the fewest scheduler hops that preserve correctness.
 
 ## Decision path
@@ -66,12 +66,12 @@ This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `s
    - CPU-bound and non-blocking: `Schedulers.parallel()`.
    - Blocking I/O or thread-affine bridge: `Schedulers.boundedElastic()`.
    - Single-thread affinity: `Schedulers.single()` or a dedicated custom scheduler.
-   - No-op handoff or test-local immediacy: `Schedulers.immediate()`.
+   - No-op handoff or test immediacy: `Schedulers.immediate()`.
 3. Choose the placement.
    - Upstream source or blocking bridge must move: `subscribeOn(...)`.
    - Downstream section must move: `publishOn(...)`.
    - Both are valid only when upstream and downstream need different contexts.
-4. Check thread-local assumptions.
+4. Check ThreadLocal assumptions.
    - If logic depends on request metadata, move it through `Context` rather than thread locals.
 5. Debug locally first.
    - Use `log(...)`, named `checkpoint(...)`, and explicit thread logging before reaching for global hooks.
@@ -97,7 +97,7 @@ This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `s
 | no real handoff (test or caller-thread only) | `Schedulers.immediate()` | runs on the current thread; avoid in production pipelines |
 | move source and subscription | `subscribeOn(...)` | affects upstream work |
 | move downstream operators | `publishOn(...)` | affects work after that operator |
-| request metadata across async boundaries | `contextWrite(...)` + `deferContextual(...)` | survives thread switches without thread-local assumptions |
+| request metadata across async boundaries | `contextWrite(...)` + `deferContextual(...)` | survives thread switches without ThreadLocal assumptions |
 
 ## Ready-to-adapt examples
 
@@ -185,7 +185,7 @@ final class ContextAcrossThreads {
 - [ ] Scheduler choice matches workload type and blocking behavior.
 - [ ] `publishOn(...)` and `subscribeOn(...)` are used for the correct direction of influence.
 - [ ] Blocking work is wrapped once and offloaded explicitly.
-- [ ] `Context` is described as subscription metadata rather than thread-local state.
+- [ ] `Context` is described as subscription metadata rather than ThreadLocal state.
 - [ ] Local diagnostics are enough to verify ordinary thread placement.
 - [ ] Advanced scheduler customization, automatic context propagation, and global debugging are routed to references.
 - [ ] The ordinary path is understandable from this file alone.

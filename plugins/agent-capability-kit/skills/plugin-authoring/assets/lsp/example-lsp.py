@@ -74,7 +74,7 @@ def handle_request(message: dict[str, Any]) -> dict[str, Any] | None:
                     "hoverProvider": True,
                 },
                 "serverInfo": {
-                    "name": "example-local-lsp",
+                    "name": "example-lsp",
                     "version": "0.1.0",
                 },
             },

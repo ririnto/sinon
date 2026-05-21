@@ -102,7 +102,7 @@ def handle_request(message: dict[str, Any]) -> dict[str, Any] | None:
             message_id,
             {
                 "protocolVersion": "2024-11-05",
-                "serverInfo": {"name": "example-local-mcp", "version": "0.1.0"},
+                "serverInfo": {"name": "example-mcp", "version": "0.1.0"},
                 "capabilities": {"tools": {}},
             },
         )

@@ -40,7 +40,7 @@ The Claude Code manifest declares only `./skills/`. Agents remain at the plugin 
 
 ## Target Ownership
 
-Target repositories own every installed harness file. Copied docs, scripts, CI files, hooks, agents, skills, templates, and validation adapters MAY be edited, renamed, or removed to fit the target project. The installed `.claude/harness/manifest.json` is the target-local harness metadata contract; it replaces the old `docs/harness/config.json` convention used by earlier drafts of this plugin.
+Target repositories own every installed harness file. Copied docs, scripts, CI files, hooks, agents, skills, templates, and validation adapters MAY be edited, renamed, or removed to fit the target project. The installed `.claude/harness/manifest.json` is the target repository harness metadata contract; it replaces the old `docs/harness/config.json` convention used by earlier drafts of this plugin.
 
 ## Install Harness Assets
 
@@ -202,6 +202,6 @@ plugins/harness/
 
 - This plugin prepares repository knowledge, guardrails, templates, and validation paths. It does not run background services or manage issue queues.
 - Target-owned agents are starting points, not immutable plugin internals.
-- Target-local `.claude/skills/harness-validate` is installed as a project skill. If a host exposes both plugin skills and project skills with the same name, follow the host's normal project-local precedence or rename the target-local skill after installation.
+- The installed `.claude/skills/harness-validate` file is a project skill. If a host exposes both plugin skills and project skills with the same name, follow the host's normal project precedence or rename the installed skill after installation.
 - GitHub Actions and GitLab CI templates use ordinary version tags from the archive; projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.
 - Maven, Gradle, Python, and test self-checks may create cache, IDE, or build metadata under template directories. Repository `.gitignore` and installer filters exclude ignored byproducts such as `__pycache__/`, `.pytest_cache/`, `*.pyc`, `.classpath`, `.project`, `.factorypath`, `.settings/`, `.gradle/`, `bin/`, `build/`, and `target/`; plugin self-checks validate packaged/tracked template files rather than failing on ignored working-tree byproducts.

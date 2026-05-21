@@ -1,7 +1,7 @@
 ---
 title: "Context Propagation Across Scheduler Boundaries"
 description: >-
-  Open this when ThreadLocal-backed data must cross scheduler hops or automatic context propagation becomes the blocker.
+  Open this when ThreadLocal data must cross scheduler hops or automatic context propagation becomes the blocker.
 ---
 
 Open this when execution moves correctly but request metadata, logging context, or security context does not survive the thread change.
@@ -46,7 +46,7 @@ Enable the hook during application startup. It affects only subscriptions create
 | --- | --- |
 | request metadata in Reactor-only code | explicit `Context` reads and writes |
 | `ThreadLocal`-backed library integration | automatic context propagation |
-| capturing current thread-local values at subscription time | `contextCapture()` |
+| capturing current ThreadLocal values at subscription time | `contextCapture()` |
 
 ## Guardrails
 

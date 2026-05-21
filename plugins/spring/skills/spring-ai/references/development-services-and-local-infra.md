@@ -35,5 +35,5 @@ If the same local runtime should expose both chat and embeddings, keep those mod
 
 - Do not assume local and production model behavior match exactly. Validate prompts and tool behavior again against the production provider.
 - Do not let local infra pick model names implicitly. Keep chat, embedding, and optional image or audio models explicit.
-- Open [local-vector-store-dev.md](local-vector-store-dev.md) when the blocker is a reproducible local vector store.
+- Open [local vector store setup](local-vector-store-dev.md) when the blocker is a reproducible local vector store.
 - Open [containerized-dev-environment.md](containerized-dev-environment.md) when the blocker is a full repeatable containerized development stack.

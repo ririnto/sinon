@@ -26,7 +26,7 @@ This skill covers two independent surfaces:
 
 ## Operating Rules
 
-1. Plugin-level settings are read-only artifacts bundled with the plugin; project-local state files are writable by end users.
+1. Plugin-level settings are read-only artifacts bundled with the plugin; project state files are writable by end users.
 2. State files use YAML frontmatter as the authoritative config layer; markdown body is secondary context.
 3. Hooks and agents MUST check file existence before parsing to avoid errors on first run.
 4. Changes to `.local.md` files require Claude Code restart before hooks recognize them.
@@ -315,7 +315,7 @@ fi
 
 ### Add to project .gitignore
 
-User-local state files MUST never be committed:
+User scope state files MUST never be committed:
 
 ```text
 .claude/*.local.md
@@ -449,11 +449,11 @@ When implementing settings support in a plugin, return:
 - DO: add `.claude/*.local.md` and `.claude/*.local.json` to `.gitignore`.
 - DO: document restart requirement clearly in plugin README.
 - DO: sanitize user input before writing to files (escape quotes, validate types).
-- DO: set file permissions to `chmod 600` for user-local state files.
+- DO: set file permissions to `chmod 600` for user scope state files.
 
 - DON'T: assume the settings file exists or is valid YAML; always check and provide defaults.
 - DON'T: put plugin-level settings in `.local.md` files; use `settings.json` in the plugin root instead.
-- DON'T: commit user-local files to git; rely on `.gitignore`.
+- DON'T: commit user scope files to git; rely on `.gitignore`.
 - DON'T: try to hot-reload hooks within the same Claude Code session; document the restart requirement.
 - DON'T: store secrets (API keys, tokens) in `.local.md` files without encryption; use Claude Code secrets or environment variables instead.
 - DON'T: allow arbitrary file paths in settings without validation; reject `..` and absolute paths when not explicitly intended.

@@ -184,7 +184,7 @@ Documented override rule (for the issue-template folder specifically):
 
 > "If a repository has any files in its own `.github/ISSUE_TEMPLATE` folder, such as issue templates or a `_config.yml` file, none of the contents of the default `.github/ISSUE_TEMPLATE` folder will be used."
 
-GitHub does not publish an equivalent, explicit override rule for the `PULL_REQUEST_TEMPLATE/` folder. When both an owner-level `.github` repository and a project-local PR template exist, prefer the project-local template; flag the interaction as "documented for issue templates only, applied here by analogy" in the output contract so downstream reviewers know the precedence is not spec-level confirmed.
+GitHub does not publish an equivalent, explicit override rule for the `PULL_REQUEST_TEMPLATE/` folder. When both an owner-level `.github` repository and a project PR template exist, prefer the project template; flag the interaction as "documented for issue templates only, applied here by analogy" in the output contract so downstream reviewers know the precedence is not spec-level confirmed.
 
 Owner-level `.github` repository constraints:
 

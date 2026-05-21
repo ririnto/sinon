@@ -11,7 +11,7 @@ The agentskills.io loading model is the top-level governing basis for skill stru
 ## Canonical files and symlinks
 
 - `CLAUDE.md` is the canonical root rules document. `AGENTS.md` is a symlink to it; treat them as one document, not parallel copies.
-- `plugins/agent-capability-kit/` is the canonical repository-local source for the shared authoring skills, agents, and commands in this repository.
+- `plugins/agent-capability-kit/` is the canonical repository source for the shared authoring skills, agents, and commands in this repository.
 - `.claude/skills/`, `.claude/agents/`, and `.claude/commands/` are directory symlinks that resolve to `plugins/agent-capability-kit/{skills,agents,commands}/` respectively.
 - `.agents` is a symlink to `.claude`; treat all paths that resolve to the same target as one inventory, not separate sources.
 - Root-level documentation MUST describe repository-wide structure and rules, not fast-changing plugin details.
