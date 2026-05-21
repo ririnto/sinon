@@ -14,17 +14,18 @@ Observability Assets is a shared, skill-first plugin for Prometheus and Grafana 
 
 ## Included Skills
 
-- `prometheus-alert-rules`: alert rule authoring, recording-rule support, `promtool` validation, alert annotations, and low-noise operational alert design.
-- `grafana-dashboards`: dashboard JSON structure, Grafana mixin and Jsonnet guidance, stable dashboard identity, panel/query organization, and Git-managed dashboard asset workflows.
-- `promql`: PromQL selector, aggregation, function choice, vector matching, and alert-vs-dashboard query review.
+- `prometheus-alert-rules`: alert rule authoring, recording-rule support, burn-rate and SLO page alerts, `promtool` validation, alert annotations, and low-noise operational alert design.
+- `grafana-dashboards`: dashboard JSON structure, SLO visibility panels, Grafana mixin and Jsonnet guidance, stable dashboard identity, panel/query organization, and Git-managed dashboard asset workflows.
+- `promql`: PromQL selector, SLI and error-budget queries, aggregation, function choice, vector matching, and alert-vs-dashboard query review.
 - `alertmanager`: Alertmanager route trees, receivers, grouping, inhibition, mute intervals, and notification templates.
-- `alert-rule-testing`: `promtool test rules`, fixture design, eval timing, and alert regression checks.
-- `dashboard-provisioning`: Grafana dashboard provider YAML, folder organization, file-wins behavior, and dashboard-as-code delivery.
+- `alert-rule-testing`: `promtool test rules`, fixture design, eval timing, SLO burn-rate alert regression, and alert correctness checks.
+- `dashboard-provisioning`: Grafana dashboard provider YAML, folder organization, SLO dashboard delivery, file-wins behavior, and dashboard-as-code delivery.
 
 ## When to Use Which Skill
 
 - PromQL expression design, aggregation, and vector matching belong in `promql`.
 - Prometheus alert rule design, severity labels, `for` windows, and `promtool check rules` belong in `prometheus-alert-rules`.
+- SLO work belongs in `promql` when shaping SLIs or error-budget queries, `prometheus-alert-rules` when burn-rate or page alerts should fire, `alert-rule-testing` when SLO alert correctness must be proven, and `grafana-dashboards` or `dashboard-provisioning` when the blocker is SLO visibility.
 - Alert routing, receivers, grouping, inhibition, mute intervals, and notification text belong in `alertmanager`.
 - `promtool test rules`, fixtures, eval timing, and regression checks belong in `alert-rule-testing`.
 - Dashboard JSON authoring, Grafana mixin usage, stable `uid` handling, and dashboard review belong in `grafana-dashboards`.
@@ -32,8 +33,8 @@ Observability Assets is a shared, skill-first plugin for Prometheus and Grafana 
 
 Typical workflow:
 
-1. Start with the operational question that needs an alert or dashboard.
-2. Use `promql` when the blocker is the query itself.
+1. Start with the operational question that needs an alert, dashboard, SLI, or SLO view.
+2. Use `promql` when the blocker is the query itself, including SLI or error-budget math.
 3. Use `prometheus-alert-rules` when the task is deciding what should fire.
 4. Use `alert-rule-testing` when the blocker is proving alert behavior stays correct.
 5. Use `alertmanager` when the blocker is routing or notification quality after the alert fires.
@@ -43,7 +44,7 @@ Typical workflow:
 
 ## Scope Boundaries
 
-Observability Assets stays responsible for PromQL, Prometheus rule files, alert-rule tests, Alertmanager config, Grafana dashboard JSON, Grafana mixin and Jsonnet-oriented dashboard generation, and Grafana dashboard provisioning.
+Observability Assets stays responsible for PromQL, Prometheus rule files, alert-rule tests, Alertmanager config, Grafana dashboard JSON, Grafana mixin and Jsonnet-oriented dashboard generation, Grafana dashboard provisioning, and SLO work expressed through those assets.
 
 These topics fall outside Observability Assets' scope:
 
@@ -64,6 +65,8 @@ The actual reusable content lives beside the manifest at the plugin root.
 plugins/observability-assets/
 ├── .claude-plugin/plugin.json
 ├── README.md
+├── agents/
+│   └── observability-architect.md
 └── skills/
     ├── alert-rule-testing/
     ├── alertmanager/
@@ -100,3 +103,7 @@ For local development:
 ```sh
 claude --plugin-dir /path/to/sinon/plugins/observability-assets
 ```
+
+## Scope Notes
+
+This plugin does not bundle ready-to-install Prometheus, Alertmanager, or Grafana asset files. Skill examples are authoring patterns that must be adapted into the target repository's monitoring asset tree.
