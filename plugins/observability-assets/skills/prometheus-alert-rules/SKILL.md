@@ -479,7 +479,7 @@ Return:
 
 - Activate this skill for:
   - Prometheus alert-rule and recording-rule files
-  - alert-local PromQL expressions as part of alert authoring
+  - alert scoped PromQL expressions as part of alert authoring
   - `for`, `keep_firing_for`, labels, annotations, templating, and recording-rule-aware alert design
   - `promtool check rules` validation and the rule-side label contract for Alertmanager handoff
   - rule group structure, evaluation intervals, and alert state machine behavior

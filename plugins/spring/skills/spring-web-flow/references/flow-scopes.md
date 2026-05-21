@@ -20,7 +20,7 @@ Prefer the narrowest scope that preserves the required state.
 
 ## Concrete scope example
 
-Use this flow when one booking wizard needs page-local hints, whole-flow form state, and one value shared with a nested payment subflow.
+Use this flow when one booking wizard needs page scoped hints, whole-flow form state, and one value shared with a nested payment subflow.
 
 ```xml
 <flow xmlns="http://www.springframework.org/schema/webflow"

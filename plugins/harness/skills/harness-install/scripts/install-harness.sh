@@ -577,7 +577,7 @@ ensure_safe_hook_destination() {
   fi
 }
 
-# Return the target-local Git hooks path when one is configured.
+# Return the target repository Git hooks path when one is configured.
 #
 # @return Writes the configured hooks path or nothing.
 configured_hooks_path() {
