@@ -4,11 +4,11 @@ Open this reference when the blocker is AOT generation or runtime hints.
 
 ## Run AOT processing
 
-```bash
+```sh
 ./mvnw -Pnative spring-boot:process-aot
 ```
 
-```bash
+```sh
 ./gradlew processAot
 ```
 

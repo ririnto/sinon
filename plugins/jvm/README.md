@@ -76,13 +76,13 @@ plugins/jvm/
 
 Install from Sinon:
 
-```bash
+```sh
 /plugin install jvm@sinon
 ```
 
 For local development:
 
-```bash
+```sh
 claude --plugin-dir /path/to/sinon/plugins/jvm
 ```
 

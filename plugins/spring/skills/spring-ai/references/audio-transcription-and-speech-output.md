@@ -8,9 +8,9 @@ Use this file only when the application must either transcribe audio into text o
 
 ## Audio transcription blocker
 
-**Problem:** the application receives audio and must convert it into text before any ordinary prompt or workflow can continue.
+Problem: the application receives audio and must convert it into text before any ordinary prompt or workflow can continue.
 
-**Solution:** keep transcription behind a `TranscriptionModel` seam and treat it as a separate step from the chat call.
+Solution: keep transcription behind a `TranscriptionModel` seam and treat it as a separate step from the chat call.
 
 ```java
 @Service
@@ -31,9 +31,9 @@ When runtime options matter, pass them explicitly through an `AudioTranscription
 
 ## Speech output blocker
 
-**Problem:** the feature must return spoken audio instead of only text.
+Problem: the feature must return spoken audio instead of only text.
 
-**Solution:** keep text-to-speech behind a `TextToSpeechModel` seam and return audio bytes or a streamed response from the application edge.
+Solution: keep text-to-speech behind a `TextToSpeechModel` seam and return audio bytes or a streamed response from the application edge.
 
 ```java
 @Service
@@ -52,9 +52,9 @@ class NarrationService {
 
 ## Audio-bearing chat input blocker
 
-**Problem:** the model must reason over an audio artifact inside a multimodal chat flow.
+Problem: the model must reason over an audio artifact inside a multimodal chat flow.
 
-**Solution:** keep the audio payload on the user message and keep the model choice explicit.
+Solution: keep the audio payload on the user message and keep the model choice explicit.
 
 ```java
 ChatResponse response = chatClient.prompt()

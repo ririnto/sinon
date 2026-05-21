@@ -1,6 +1,7 @@
 ---
 title: "Alertmanager Time Intervals"
-description: "Open this when mute schedules, active time intervals, or time-based routing constraints are the blocker."
+description: >-
+  Open this when mute schedules, active time intervals, or time-based routing constraints are the blocker.
 ---
 
 ## Alertmanager Time Intervals
@@ -26,7 +27,7 @@ Each entry within a named `time_intervals:` block defines one schedule window wi
 | `weekdays` | list of WeekdayRange | Day-of-week constraints; all must be satisfied (OR within the list) |
 | `days_of_month` | list of DayOfMonthRange | Day-of-month constraints; all must be satisfied (OR within the list) |
 | `months` | list of MonthRange | Month constraints; all must be satisfied (OR within the list) |
-| **`years`** | list of YearRange | **Year constraints; all must be satisfied (OR within the list)** |
+| `years` | list of YearRange | Year constraints; all must be satisfied (OR within the list) |
 | `location` | string | IANA timezone name (e.g., `"America/New_York"`) |
 
 ## All specified fields are ANDed together: an alert falls inside the interval only when it satisfies EVERY constraint type that is present. Omitted constraint types are unconstrained and always pass

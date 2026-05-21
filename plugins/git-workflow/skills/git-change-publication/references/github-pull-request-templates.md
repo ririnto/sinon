@@ -6,7 +6,7 @@ description: >-
 ## Template Discovery
 
 
-```bash
+```sh
 uv run python - <<'PY'
 from pathlib import Path
 
@@ -52,13 +52,13 @@ Rules:
 2. Check the owner's community-health `.hosted-service` repository for a fallback template.
 
 
-```bash
+```sh
     || echo "NO_REMOTE_TEMPLATE"
 ```
 
 Then check the owner's community-health `.hosted-service` repository:
 
-```bash
+```sh
     || echo "NO_COMMUNITY_HEALTH_TEMPLATE"
 ```
 
@@ -230,7 +230,7 @@ Fix auth module to reject invalid credentials and expired tokens before session 
 
 Repository has `.hosted-service/PULL_REQUEST_TEMPLATE/` with two templates:
 
-**bug-fix-template.md:**
+bug-fix-template.md:
 
 ```markdown
 ## Problem
@@ -244,7 +244,7 @@ How does this PR solve the problem?
 - [ ] No regression in related flows
 ```
 
-**feature-template.md:**
+feature-template.md:
 
 ```markdown
 ## Goal
@@ -282,7 +282,7 @@ Use the fallback workflow ONLY when template discovery (filesystem + API, if ava
 
 ## Broken vs Correct Example
 
-**Broken** -- wrong template priority applied:
+Broken -- wrong template priority applied:
 
 ```markdown
 <!-- `.hosted-service/PULL_REQUEST_TEMPLATE/feature.md` exists, but the skill wrote: -->
@@ -290,7 +290,7 @@ Use the fallback workflow ONLY when template discovery (filesystem + API, if ava
 <!-- this body came from the fallback, not the named feature template -->
 ```
 
-**Correct** -- named template respected:
+Correct -- named template respected:
 
 ```markdown
 <!-- `.hosted-service/PULL_REQUEST_TEMPLATE/feature.md` was detected and used -->

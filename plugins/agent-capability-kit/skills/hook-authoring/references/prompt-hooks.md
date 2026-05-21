@@ -72,9 +72,13 @@ Read project policy from `.claude/<plugin-name>.local.md` frontmatter and pass t
 ### Command Hook Example
 
 ```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+
 # Load plugin configuration and write policy to stdout.
+#
 # @return Outputs JSON hook decision with injected policy.
-set -euo pipefail
 POLICY_FILE="${CLAUDE_PLUGIN_ROOT}/.claude/plugin-name.local.md"
 if [ ! -f "$POLICY_FILE" ]; then
   echo '{"permissionDecision": "allow", "systemMessage": "No policy found"}' >&2

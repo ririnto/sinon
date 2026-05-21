@@ -22,9 +22,9 @@ Log model name, latency, token usage, retrieval count, and tool-call identity wi
 
 ## Usage handling blocker
 
-**Problem:** the application needs token accounting for cost control, debugging, or SLO review.
+Problem: the application needs token accounting for cost control, debugging, or SLO review.
 
-**Solution:** read `Usage` from the `ChatResponse` metadata and record prompt, completion, and total tokens as first-class telemetry.
+Solution: read `Usage` from the `ChatResponse` metadata and record prompt, completion, and total tokens as first-class telemetry.
 
 ```java
 ChatResponse response = chatClient.prompt()

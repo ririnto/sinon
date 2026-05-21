@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-# :description: Minimum Lombok version accepted for project-resolved jars.
+# Minimum Lombok version accepted for project-resolved jars.
 COMPATIBLE_VERSION="1.18.4"
 mode="uses-lombok"
 
@@ -18,15 +18,15 @@ esac
 project_root=${1:-$PWD}
 
 contains_lombok_dependency() {
-    # :description: Check whether a single build file declares a Lombok dependency.
+    # Check whether a single build file declares a Lombok dependency.
     #     Requires grep with -E (GNU grep on Linux, BSD grep on macOS — both support -E).
-    # :param file_path: Path to the build file to inspect.
-    # :return: 0 if Lombok dependency is found, 1 otherwise.
+    #
+    # @param file_path Path to the build file to inspect.
+    # @return 0 if Lombok dependency is found, 1 otherwise.
     file_path="$1"
     if [ ! -f "${file_path}" ]; then
         return 1
     fi
-
     case "${file_path}" in
     */pom.xml)
         grep -Eq 'org\.projectlombok|<artifactId>lombok</artifactId>' "${file_path}"
@@ -50,8 +50,9 @@ contains_lombok_dependency() {
 }
 
 find_project_files() {
-    # :description: Recursively find all build-system metadata files under a directory.
-    # :return: Prints one file path per line, excluding .git/, node_modules/, build/, target/.
+    # Recursively find all build-system metadata files under a directory.
+    #
+    # @return Prints one file path per line, excluding .git/, node_modules/, build/, target/.
     find "${project_root}" \
         -type f \
         \( -name pom.xml -o -name build.gradle -o -name build.gradle.kts -o -path '*/gradle/libs.versions.toml' -o -name .classpath -o -name .factorypath \) \
@@ -63,10 +64,11 @@ find_project_files() {
 }
 
 resolve_candidate_jar_path() {
-    # :description: Resolve a candidate jar path to an absolute filesystem path.
-    # :param candidate_path: Raw path string from metadata (may be relative or file:-prefixed).
-    # :param source_file: File that contains the candidate path for resolving relatives.
-    # :return: Prints the resolved absolute path if the file exists, or returns 1.
+    # Resolve a candidate jar path to an absolute filesystem path.
+    #
+    # @param candidate_path Raw path string from metadata (may be relative or file:-prefixed).
+    # @param source_file File that contains the candidate path for resolving relatives.
+    # @return Prints the resolved absolute path if the file exists, or returns 1.
     candidate_path="$1"
     source_file="$2"
     source_dir=$(dirname "${source_file}")
@@ -98,16 +100,18 @@ resolve_candidate_jar_path() {
 }
 
 version_from_lombok_path() {
-    # :description: Extract the version string from a lombok jar filename.
-    # :param jar_path: Path to a lombok-<version>.jar file.
-    # :return: Prints the version string, or nothing if the pattern does not match.
+    # Extract the version string from a lombok jar filename.
+    #
+    # @param jar_path Path to a lombok-<version>.jar file.
+    # @return Prints the version string, or nothing if the pattern does not match.
     basename "$1" | sed -n 's/^lombok-\([0-9][0-9A-Za-z._-]*\)\.jar$/\1/p'
 }
 
 is_compatible_lombok_version() {
-    # :description: Check whether a Lombok version meets the minimum compatibility threshold.
-    # :param current_version: Version string to check.
-    # :return: 0 if compatible, 1 if below minimum.
+    # Check whether a Lombok version meets the minimum compatibility threshold.
+    #
+    # @param current_version Version string to check.
+    # @exit 0 if compatible, 1 if below minimum.
     current_version="$1"
     awk -v current="${current_version}" -v minimum="${COMPATIBLE_VERSION}" '
         function parse(version, values,   parts, count, i, parsed) {
@@ -139,8 +143,9 @@ is_compatible_lombok_version() {
 }
 
 project_uses_lombok() {
-    # :description: Check whether the project root or any nested module uses Lombok.
-    # :return: 0 if Lombok usage is detected anywhere in the project, 1 otherwise.
+    # Check whether the project root or any nested module uses Lombok.
+    #
+    # @return 0 if Lombok usage is detected anywhere in the project, 1 otherwise.
     contains_lombok_dependency "${project_root}/pom.xml" && return 0
     contains_lombok_dependency "${project_root}/build.gradle" && return 0
     contains_lombok_dependency "${project_root}/build.gradle.kts" && return 0
@@ -160,9 +165,10 @@ EOF
 }
 
 resolve_project_lombok_jar() {
-    # :description: Find a compatible Lombok jar path from project metadata files.
+    # Find a compatible Lombok jar path from project metadata files.
     #     Searches .classpath/.factorypath first, then all discovered build files.
-    # :return: Prints the resolved jar path on success, or returns 1 if none found.
+    #
+    # @return Prints the resolved jar path on success, or returns 1 if none found.
     for metadata_file in "${project_root}/.classpath" "${project_root}/.factorypath"; do
         if [ -f "${metadata_file}" ]; then
             while IFS= read -r candidate_path; do

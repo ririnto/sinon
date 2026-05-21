@@ -4,9 +4,9 @@ Open this reference when the ordinary path in [SKILL.md](../SKILL.md) is not eno
 
 ## Containerized dev-services blocker
 
-**Problem:** the team needs a repeatable local environment for models and retrieval infrastructure.
+Problem: the team needs a repeatable local environment for models and retrieval infrastructure.
 
-**Solution:** keep the local runtime list short and explicit so every developer sees the same endpoints.
+Solution: keep the local runtime list short and explicit so every developer sees the same endpoints.
 
 ```yaml
 services:

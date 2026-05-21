@@ -1,6 +1,7 @@
 ---
 title: Timeouts and Pool Tuning
-description: Open this when Reactor Netty needs connect or response timeouts, retries, or connection pool tuning.
+description: >-
+  Open this when Reactor Netty needs connect or response timeouts, retries, or connection pool tuning.
 ---
 
 ## Open this when

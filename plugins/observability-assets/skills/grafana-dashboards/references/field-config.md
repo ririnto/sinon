@@ -1,6 +1,7 @@
 ---
 title: Field Config, Overrides, Value Mappings, and Data Links Reference
-description: "Open this when you need the complete field config option catalog, all override property IDs per panel type, value mapping patterns, data link variable reference, or data link builder patterns."
+description: >-
+  Open this when you need the complete field config option catalog, all override property IDs per panel type, value mapping patterns, data link variable reference, or data link builder patterns.
 ---
 
 ## Field Config, Overrides, Value Mappings, and Data Links Reference
@@ -11,8 +12,8 @@ Use this reference when you need complete details on how to configure field appe
 
 Field config is applied at two levels:
 
-1. **Defaults** (`fieldConfig.defaults`): applied to every field in the panel
-2. **Overrides** (`fieldConfig.overrides`): applied to matched fields after defaults
+1. Defaults (`fieldConfig.defaults`): applied to every field in the panel
+2. Overrides (`fieldConfig.overrides`): applied to matched fields after defaults
 
 Processing order: defaults first, then each override in array order. Later overrides win on conflicts.
 
@@ -188,7 +189,7 @@ The default and most common mode. Steps trigger at exact numeric values.
 
 Rules:
 
-- The **first step** MUST have `"value": null`. This is the base/default color.
+- The first step MUST have `"value": null`. This is the base/default color.
 - Subsequent steps define boundaries where the color changes.
 - A value of `50` means: values from 50 up to the next step boundary get yellow.
 - The last step's color applies to everything at or above its value.

@@ -4,9 +4,9 @@ Open this reference when the ordinary producer and consumer path in [SKILL.md](.
 
 ## Metrics blocker
 
-**Problem:** the team cannot explain queue lag, redelivery spikes, or listener latency from production signals.
+Problem: the team cannot explain queue lag, redelivery spikes, or listener latency from production signals.
 
-**Solution:** record listener latency, failure counts, and dead-letter outcomes as first-class metrics.
+Solution: record listener latency, failure counts, and dead-letter outcomes as first-class metrics.
 
 ```java
 long start = System.nanoTime();

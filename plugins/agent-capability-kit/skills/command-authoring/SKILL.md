@@ -1,6 +1,7 @@
 ---
 name: command-authoring
-description: Create or refactor Claude Code commands and prompt files with clear arguments, frontmatter, reusable prompt structure, and bounded tool expectations. Use this skill when authoring or reviewing `commands/*.md` files offline.
+description: >-
+  Create or refactor Claude Code commands and prompt files with clear arguments, frontmatter, reusable prompt structure, and bounded tool expectations. Use this skill when authoring or reviewing `commands/*.md` files offline.
 ---
 
 # Command Authoring
@@ -56,7 +57,8 @@ Example:
 
 ```yaml
 ---
-description: Review one Markdown file for structure, clarity, and missing sections. Use when a document needs a fast editorial quality pass.
+description: >-
+  Review one Markdown file for structure, clarity, and missing sections. Use when a document needs a fast editorial quality pass.
 ---
 ```
 
@@ -86,7 +88,8 @@ Example with common optional fields:
 
 ```yaml
 ---
-description: Review one pull request for risk, missing tests, and merge blockers. Use when preparing a merge recommendation.
+description: >-
+  Review one pull request for risk, missing tests, and merge blockers. Use when preparing a merge recommendation.
 argument-hint: [pr-number]
 allowed-tools:
   - Read
@@ -159,7 +162,8 @@ Good:
 
 ```yaml
 ---
-description: Summarize one log file for error clusters and likely causes. Use when triaging a local failure report.
+description: >-
+  Summarize one log file for error clusters and likely causes. Use when triaging a local failure report.
 argument-hint: [log-file]
 allowed-tools:
   - Read

@@ -1,6 +1,7 @@
 ---
 name: spring-shell
-description: Build Spring Shell command-line applications with validated commands, completion, availability rules, terminal prompts, and shell-focused tests. Use this skill when building Spring Shell command-line applications, interactive REPL workflows, validated commands, completion, command availability rules, terminal prompts, and shell-focused tests.
+description: >-
+  Build Spring Shell command-line applications with validated commands, completion, availability rules, terminal prompts, and shell-focused tests. Use this skill when building Spring Shell command-line applications, interactive REPL workflows, validated commands, completion, command availability rules, terminal prompts, and shell-focused tests.
 metadata:
   title: "Spring Shell"
   official-project-url: "https://spring.io/projects/spring-shell"
@@ -83,21 +84,21 @@ Use the starter for normal Spring Boot integration. Add the test module whenever
 
 ### First safe commands
 
-```bash
+```sh
 ./mvnw test -Dtest=CatalogCommandsTests
 ```
 
-```bash
+```sh
 ./gradlew test --tests CatalogCommandsTests
 ```
 
-```bash
+```sh
 printf 'help
 exit
 ' | java -jar build/libs/app.jar
 ```
 
-```bash
+```sh
 java -jar build/libs/app.jar --spring.shell.interactive.enabled=false catalog item add --sku SKU-1
 ```
 
@@ -312,7 +313,7 @@ exit code: 2
 
 ### Example command verification shape
 
-```bash
+```sh
 printf 'item add --sku SKU-1\nexit\n' | java -jar build/libs/app.jar
 ```
 

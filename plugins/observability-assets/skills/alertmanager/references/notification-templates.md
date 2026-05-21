@@ -1,6 +1,7 @@
 ---
 title: "Alertmanager Notification Templates"
-description: "Open this when notification message shape, template data structures, template functions, or template rendering behavior is the blocker."
+description: >-
+  Open this when notification message shape, template data structures, template functions, or template rendering behavior is the blocker.
 ---
 
 ## Alertmanager Notification Templates

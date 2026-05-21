@@ -1,6 +1,7 @@
 ---
 title: Alert Rule Test Execution Controls
-description: "Open this when custom test timestamps, fuzzy comparison, filtered test execution, group evaluation order, or time precision edge cases are the blocker."
+description: >-
+  Open this when custom test timestamps, fuzzy comparison, filtered test execution, group evaluation order, or time precision edge cases are the blocker.
 ---
 
 Use this reference when the main test shape is already correct, but execution controls or time context still need work.
@@ -73,13 +74,13 @@ Use when: the rule file contains multiple groups and alerts in one group depend 
 
 Run one named test selection during focused iteration:
 
-```bash
+```sh
 promtool test rules --run '^api-error-rate$' alerts/api-errors.test.yaml
 ```
 
 The `--run` argument is a regex matched against test case `name` fields. Examples:
 
-```bash
+```sh
 promtool test rules --run '^api-error' tests/
 
 promtool test rules --run 'firing' tests/

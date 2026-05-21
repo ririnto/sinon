@@ -1,6 +1,7 @@
 ---
 name: skill-authoring
-description: Write or refactor a cross-platform Agent Skill. Use this skill when the skill must stay self-sufficient in SKILL.md, easy to trigger from its description, and usable offline without mandatory external tooling.
+description: >-
+  Write or refactor a cross-platform Agent Skill. Use this skill when the skill must stay self-sufficient in SKILL.md, easy to trigger from its description, and usable offline without mandatory external tooling.
 ---
 
 # Skill Authoring
@@ -295,7 +296,8 @@ Use this as a smallest useful starting point:
 ```markdown
 ---
 name: markdown-review
-description: Review a Markdown document for structure, headings, and missing sections. Use when a document needs a fast quality pass before review or release.
+description: >-
+  Review a Markdown document for structure, headings, and missing sections. Use when a document needs a fast quality pass before review or release.
 ---
 
 # Markdown Review

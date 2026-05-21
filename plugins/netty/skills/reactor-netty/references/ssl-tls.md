@@ -1,6 +1,7 @@
 ---
 title: SSL and TLS
-description: Open this when Reactor Netty must serve HTTPS, trust custom certificates, or use mutual TLS.
+description: >-
+  Open this when Reactor Netty must serve HTTPS, trust custom certificates, or use mutual TLS.
 ---
 
 ## Open this when
@@ -22,6 +23,7 @@ server.onDispose().block();
 ```
 
 > [!CAUTION]
+>
 > `SelfSignedCertificate` is a Netty test utility (`io.netty.handler.ssl.util.SelfSignedCertificate`) intended for development and test code only. Never use it in production. For local development, replace the `File(...)` arguments above with `certificate.certificate()` / `certificate.privateKey()` from a `new SelfSignedCertificate()` instance.
 
 ## HTTPS client

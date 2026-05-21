@@ -4,9 +4,9 @@ Open this reference when the ordinary vision path in [SKILL.md](../SKILL.md) is 
 
 ## Image generation blocker
 
-**Problem:** the feature must return a generated image rather than plain text.
+Problem: the feature must return a generated image rather than plain text.
 
-**Solution:** use an `ImageModel` seam and keep image-model options explicit at the call site or configuration edge.
+Solution: use an `ImageModel` seam and keep image-model options explicit at the call site or configuration edge.
 
 ```java
 @Service

@@ -86,13 +86,13 @@ Maintainers update the runtime by editing `skills/spec-driven-development/script
 
 When this plugin is published in the Sinon marketplace, install it with:
 
-```bash
+```sh
 /plugin install spec-driven-development@sinon
 ```
 
 For current local development:
 
-```bash
+```sh
 claude --plugin-dir /path/to/sinon/plugins/spec-driven-development
 ```
 

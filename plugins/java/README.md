@@ -110,13 +110,13 @@ Claude Code gets Java language-server support through `.lsp.json` and `scripts/j
 
 Install from Sinon:
 
-```bash
+```sh
 /plugin install java@sinon
 ```
 
 For local development:
 
-```bash
+```sh
 claude --plugin-dir /path/to/sinon/plugins/java
 ```
 
@@ -156,6 +156,7 @@ The wrapper selects a Lombok source at startup in this order:
 The wrapper chooses the effective Lombok jar at startup and prefers a compatible project jar when it can resolve one. This plugin does not ship its own fallback Lombok jar.
 
 > [!WARNING]
+>
 > Project-discovered Lombok jars are **trusted executable code** loaded as a `-javaagent`. Only use this auto-discovery behavior in trusted repositories and workspaces. In untrusted environments, set `JAVA_ASSISTANT_LOMBOK_ENABLED=false` to disable it entirely. When Lombok support is needed in an untrusted context, prefer an explicit trusted override jar via one of the environment variables below.
 
 To provide an explicit override jar, point one of these environment variables at a local `lombok.jar`:

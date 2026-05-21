@@ -1,6 +1,7 @@
 ---
 title: Event Loop and Resources
-description: Open this when Reactor Netty needs custom LoopResources, shared ConnectionProvider instances, or explicit shutdown ordering.
+description: >-
+  Open this when Reactor Netty needs custom LoopResources, shared ConnectionProvider instances, or explicit shutdown ordering.
 ---
 
 ## Open this when

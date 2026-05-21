@@ -1,6 +1,7 @@
 ---
 title: "Advanced Blocking Bridges"
-description: "Open this when one blocking boundary is not enough and you need multiple blocking boundaries, fromRunnable/fromFuture bridging nuances, block() terminal edges, or virtual-thread considerations."
+description: >-
+  Open this when one blocking boundary is not enough and you need multiple blocking boundaries, fromRunnable/fromFuture bridging nuances, block() terminal edges, or virtual-thread considerations.
 ---
 
 Open this when a single `Mono.fromCallable(...)` + `subscribeOn(boundedElastic())` bridge is no longer sufficient and the pipeline requires multi-boundary blocking integration, future-based handoff patterns, or terminal bridge semantics.
@@ -117,7 +118,7 @@ final class GoodBoundaryIsolation {
 
 On Java 21+, Reactor does not use virtual threads by default. To back the shared `Schedulers.boundedElastic()` with virtual threads, start the JVM with the Reactor system property `reactor.schedulers.defaultBoundedElasticOnVirtualThreads=true`:
 
-```bash
+```sh
 java -Dreactor.schedulers.defaultBoundedElasticOnVirtualThreads=true -jar app.jar
 ```
 

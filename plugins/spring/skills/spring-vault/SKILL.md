@@ -1,6 +1,7 @@
 ---
 name: spring-vault
-description: Integrate Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, and transit encryption. Use this skill when integrating Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, or transit encryption.
+description: >-
+  Integrate Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, and transit encryption. Use this skill when integrating Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, or transit encryption.
 metadata:
   title: "Spring Vault"
   official-project-url: "https://spring.io/projects/spring-vault"
@@ -124,11 +125,11 @@ Prefer one auth mode per runtime profile so startup and renewal behavior stay ob
 
 ### First safe commands
 
-```bash
+```sh
 ./mvnw test -Dtest=SecretServiceTests
 ```
 
-```bash
+```sh
 ./gradlew test --tests SecretServiceTests
 ```
 

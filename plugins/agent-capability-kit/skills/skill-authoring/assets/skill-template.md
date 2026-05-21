@@ -1,6 +1,7 @@
 ---
 name: your-skill-name
-description: [Imperative capability statement: e.g., Write, Author, Review, Build, Triage]. Use when the task, inputs, systems, file types, or user intent clearly matches this workflow.
+description: >-
+  [Imperative capability statement: e.g., Write, Author, Review, Build, Triage]. Use when the task, inputs, systems, file types, or user intent clearly matches this workflow.
 # Optional:
 # license: Proprietary. LICENSE has complete terms
 # compatibility: Requires uv and jq

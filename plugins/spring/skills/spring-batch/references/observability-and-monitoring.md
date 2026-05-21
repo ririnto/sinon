@@ -32,7 +32,7 @@ JobExecutionListener metricsListener(MeterRegistry meterRegistry) {
 
 Use JFR when the task is production troubleshooting for throughput, lock contention, or unexpected retries.
 
-```bash
+```sh
 jcmd <pid> JFR.start name=batch-debug settings=profile filename=batch-debug.jfr duration=5m
 ```
 

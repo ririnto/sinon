@@ -6,7 +6,7 @@ description: >-
 ## Template Discovery
 
 
-```bash
+```sh
 uv run python - <<'PY'
 from pathlib import Path
 
@@ -21,7 +21,7 @@ PY
 
 
 
-```bash
+```sh
 curl --header "PRIVATE-TOKEN: $hosted-service_TOKEN" \
   "$hosted-service_API_URL/projects/$PROJECT_ID/templates/merge_requests" \
   || echo "NO_API_ACCESS"
@@ -84,13 +84,13 @@ If the MR author explicitly selects a named template that you cannot locate, rep
 | Project has `Default.md` + no group template | Project `Default.md` applies. |
 | No project or group default template + instance template repository is configured | Instance-level template is the remaining fallback; confirm via API before relying on it. |
 
-Documented default chain: **project settings** > **group `Default.md`** > **project `Default.md`**.
+Documented default chain: project settings > group `Default.md` > project `Default.md`.
 
 `Default.md` filename is case-insensitive across all levels.
 
 Detect instance-level template (API, maintainer/owner permissions required):
 
-```bash
+```sh
 curl --header "PRIVATE-TOKEN: $hosted-service_TOKEN" \
     "$hosted-service_API_URL/templates/merge_requests" \
     || echo "NO_INSTANCE_TEMPLATE"
@@ -113,6 +113,7 @@ If the API is unreachable or credentials are insufficient, report the inability 
 ### Variable Preservation
 
 > [!IMPORTANT]
+>
 
 
 | Variable | Description | When to leave as-is |
@@ -285,7 +286,7 @@ main
 
 Project has `.hosted-service/merge_request_templates/bug.md` and `feature.md`. Author selects `bug.md`:
 
-**bug.md template:**
+bug.md template:
 
 ```text
 ## Bug Summary

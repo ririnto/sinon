@@ -8,9 +8,9 @@ Use this file only when the application must explicitly decide whether content i
 
 ## Input moderation blocker
 
-**Problem:** the application must reject or route unsafe user content before calling the main model.
+Problem: the application must reject or route unsafe user content before calling the main model.
 
-**Solution:** call a `ModerationModel` first and branch on the moderation result before entering the normal chat path.
+Solution: call a `ModerationModel` first and branch on the moderation result before entering the normal chat path.
 
 ```java
 @Service
@@ -30,9 +30,9 @@ class InputSafetyService {
 
 ## Output moderation blocker
 
-**Problem:** generated content must be checked before it is shown to the user or sent to another system.
+Problem: generated content must be checked before it is shown to the user or sent to another system.
 
-**Solution:** moderate the generated text after the model call and block, redact, or route the result according to the application policy.
+Solution: moderate the generated text after the model call and block, redact, or route the result according to the application policy.
 
 ```java
 String answer = chatClient.prompt().user(question).call().content();
@@ -42,9 +42,9 @@ boolean blocked = moderation.getResult().getOutput().getResults().stream().anyMa
 
 ## Policy threshold blocker
 
-**Problem:** a simple flagged or not-flagged outcome is not enough for the business policy.
+Problem: a simple flagged or not-flagged outcome is not enough for the business policy.
 
-**Solution:** inspect moderation categories and scores at the application seam and keep the threshold policy explicit in code or configuration.
+Solution: inspect moderation categories and scores at the application seam and keep the threshold policy explicit in code or configuration.
 
 ```java
 Moderation moderation = moderationModel.call(new ModerationPrompt(text)).getResult().getOutput();

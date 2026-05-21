@@ -158,12 +158,12 @@ plugins/spring/
 
 Install from Sinon:
 
-```bash
+```sh
 /plugin install spring@sinon
 ```
 
 For local development:
 
-```bash
+```sh
 claude --plugin-dir /path/to/sinon/plugins/spring
 ```

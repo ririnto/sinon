@@ -1,6 +1,7 @@
 ---
 title: Backpressure and Flow Control
-description: Open this when a Netty handler must control inbound read rate, apply flow-controlled consumption, or manage AUTO_READ behavior.
+description: >-
+  Open this when a Netty handler must control inbound read rate, apply flow-controlled consumption, or manage AUTO_READ behavior.
 ---
 
 ## Open this when

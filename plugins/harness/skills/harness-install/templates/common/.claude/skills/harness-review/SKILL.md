@@ -1,6 +1,7 @@
 ---
 name: harness-review
-description: Review target repository changes against installed harness contracts, docs, validation commands, and placeholder policy. Use this skill before merging changes that alter implementation, docs, generated artifacts, agents, skills, hooks, CI, or harness metadata.
+description: >-
+  Review target repository changes against installed harness contracts, docs, validation commands, and placeholder policy. Use this skill before merging changes that alter implementation, docs, generated artifacts, agents, skills, hooks, CI, or harness metadata.
 ---
 
 # Harness Review

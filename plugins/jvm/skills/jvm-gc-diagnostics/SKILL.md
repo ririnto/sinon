@@ -34,7 +34,7 @@ Treat JFR-based GC evidence as the normal low-overhead path on JDK 11 and later.
 
 For a running JVM, confirm the process and current runtime first:
 
-```bash
+```sh
 jcmd -l
 jcmd <pid> VM.version
 jcmd <pid> VM.flags
@@ -42,7 +42,7 @@ jcmd <pid> VM.flags
 
 For the next deploy, enable bounded GC log output for basic pause visibility:
 
-```bash
+```sh
 java -Xlog:gc:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M ...
 ```
 
@@ -52,7 +52,7 @@ Version-specific logging syntax — JDK 8 and earlier use legacy GC log flags (`
 
 Start with the smallest GC evidence set:
 
-```bash
+```sh
 jcmd -l
 jcmd <pid> VM.flags
 jcmd <pid> VM.command_line
@@ -66,7 +66,7 @@ Use when: you have a live JVM and need first-line GC evidence before discussing 
 
 Live JVM GC first pass:
 
-```bash
+```sh
 jcmd <pid> VM.version
 jcmd <pid> VM.command_line
 jcmd <pid> VM.flags
@@ -79,7 +79,7 @@ Use when: the symptom is heap pressure, memory growth, or unexplained GC churn.
 
 Low-overhead JFR GC recording:
 
-```bash
+```sh
 jcmd <pid> JFR.start name=gc-baseline settings=default disk=true maxage=2h
 jcmd <pid> JFR.check
 jcmd <pid> JFR.dump name=gc-baseline filename=/path/to/private-diagnostics/gc-baseline-%p-%t.jfr
@@ -89,20 +89,21 @@ Use when: the pause or latency problem depends on runtime behavior over time.
 
 Startup-attached GC-oriented JFR:
 
-```bash
+```sh
 java -XX:StartFlightRecording=name=gc-startup,settings=profile,filename=/path/to/private-diagnostics/gc-startup.jfr,dumponexit=true -Xlog:gc=debug:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M -jar app.jar
 ```
 
 Use when: you need GC and allocation evidence from process start, not only after a later live attach.
 
 > [!IMPORTANT]
+>
 > GC-oriented JFR captures and GC log files can still expose sensitive runtime details. Prefer a private diagnostics directory with restrictive permissions, and keep retention only as long as the investigation needs.
 >
 > On JDK 8, do not present JFR as the routine default. Confirm Oracle JDK 8 Flight Recorder availability and policy first, or stay with GC logs plus `jcmd` evidence when that is uncertain.
 
 Bounded GC logging for the next deploy:
 
-```bash
+```sh
 java -Xlog:gc=debug:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M ...
 ```
 
@@ -110,7 +111,7 @@ Use when: you cannot diagnose the current issue from existing captures and need 
 
 Legacy JDK 8 GC logging:
 
-```bash
+```sh
 java -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xloggc:gc.log ...
 ```
 
@@ -118,7 +119,7 @@ Use when: the deployed runtime is JDK 8 or earlier and `-Xlog` is not available.
 
 Startup-time collector verification:
 
-```bash
+```sh
 java -XX:+PrintCommandLineFlags -version
 ```
 
@@ -126,7 +127,7 @@ Use when: you are validating a launch configuration or checking whether a propos
 
 Unified logging inspection:
 
-```bash
+```sh
 jcmd <pid> VM.log list
 ```
 
@@ -158,7 +159,7 @@ Validate the common case with these checks:
 
 ### `GC.heap_info` Output
 
-```bash
+```sh
 jcmd <pid> GC.heap_info
 ```
 
@@ -189,13 +190,13 @@ Read: Total heap = 1048576K (~1GB), 200 free regions (39% free). Young gen = 180
 
 ### `VM.flags` Output (Collector Identity)
 
-```bash
+```sh
 jcmd <pid> VM.flags
 ```
 
 Look for these flag lines to identify the active collector:
 
-```bash
+```sh
 -XX:G1HeapRegionSize=4M
 -XX:+UseG1GC
 -XX:+UseZGC
@@ -209,7 +210,7 @@ If none of these appear, the default collector for that LTS applies (G1 for 11+,
 
 ### `JFR.check` Output
 
-```bash
+```sh
 jcmd <pid> JFR.check
 ```
 
@@ -240,7 +241,7 @@ Read: datestamp → uptime → GC type → total heap Before->After(Max) → pau
 
 ### `jfr summary` Output
 
-```bash
+```sh
 jfr summary /path/to/recording.jfr
 ```
 

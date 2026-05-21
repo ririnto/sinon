@@ -1,6 +1,7 @@
 ---
 title: "Alertmanager Shared Infrastructure Types"
-description: "Open this when configuring http_config, tls_config, oauth2, or tracing_config for Alertmanager receivers or global settings."
+description: >-
+  Open this when configuring http_config, tls_config, oauth2, or tracing_config for Alertmanager receivers or global settings.
 ---
 
 ## Alertmanager Shared Infrastructure Types
@@ -62,7 +63,7 @@ Configures the `Authorization` header for HTTP requests.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `type` | string | **yes** | Auth scheme: `"Bearer"`, `"Basic"`, etc. |
+| `type` | string | yes | Auth scheme: `"Bearer"`, `"Basic"`, etc. |
 | `credentials` | Secret | cond.* | Credential value (inline) |
 | `credentials_file` | string | cond.* | Path to file containing credential value |
 
@@ -84,7 +85,7 @@ Configures HTTP Basic Authentication via the `Authorization: Basic ...` header.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `username` | string | **yes** | Basic auth username |
+| `username` | string | yes | Basic auth username |
 | `password` | Secret | cond.* | Basic auth password (inline) |
 | `password_file` | string | cond.* | Path to file containing password |
 
@@ -106,10 +107,10 @@ Configures OAuth2 client credentials grant flow for automatic token refresh.
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `client_id` | string | **yes** | OAuth2 client ID |
+| `client_id` | string | yes | OAuth2 client ID |
 | `client_secret` | Secret | cond.* | OAuth2 client secret (inline) |
 | `client_secret_file` | string | cond.* | Path to file containing client secret |
-| `token_url` | string | **yes** | OAuth2 token endpoint URL |
+| `token_url` | string | yes | OAuth2 token endpoint URL |
 | `scopes` | list of string | no | Scopes to request with the token |
 | `endpoint_params` | map[string]string | no | Additional parameters to include in token requests |
 

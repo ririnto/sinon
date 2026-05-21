@@ -1,6 +1,7 @@
 ---
 name: your-agent-name
-description: [Imperative capability statement: e.g., Inspect, Review, Audit, Generate]. Use this agent when [clear trigger condition with asset or system]. Examples:
+description: >-
+  [Imperative capability statement: e.g., Inspect, Review, Audit, Generate]. Use this agent when [clear trigger condition with asset or system]. Examples:
 
   <example>
   Context: [short context]

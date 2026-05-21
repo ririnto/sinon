@@ -1,6 +1,7 @@
 ---
 name: spring-hateoas
-description: Build Spring hypermedia representations with links, assemblers, HAL output, affordances, and paged models. Use this skill when building Spring hypermedia representations with links, assemblers, HAL output, affordances, and paged models for server responses.
+description: >-
+  Build Spring hypermedia representations with links, assemblers, HAL output, affordances, and paged models. Use this skill when building Spring hypermedia representations with links, assemblers, HAL output, affordances, and paged models for server responses.
 metadata:
   title: "Spring HATEOAS"
   official-project-url: "https://spring.io/projects/spring-hateoas"
@@ -78,11 +79,11 @@ The Boot starter is the ordinary activation path. Open the entity-links referenc
 
 ### First safe commands
 
-```bash
+```sh
 ./mvnw test -Dtest=OrderRepresentationTests
 ```
 
-```bash
+```sh
 ./gradlew test --tests OrderRepresentationTests
 ```
 

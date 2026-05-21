@@ -8,9 +8,9 @@ Use this file only when the remaining work is a local model runtime, not vector-
 
 ## Local model runtime blocker
 
-**Problem:** the team needs a local model runtime for development or offline testing.
+Problem: the team needs a local model runtime for development or offline testing.
 
-**Solution:** use an officially documented local provider path such as Ollama and keep the runtime URL explicit.
+Solution: use an officially documented local provider path such as Ollama and keep the runtime URL explicit.
 
 ```yaml
 spring:

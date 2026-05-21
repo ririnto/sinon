@@ -1,6 +1,7 @@
 ---
 name: mcp-integration
-description: Integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key with stdio, SSE, HTTP, or WebSocket transports. Use this skill when adding or refactoring MCP server configurations offline.
+description: >-
+  Integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key with stdio, SSE, HTTP, or WebSocket transports. Use this skill when adding or refactoring MCP server configurations offline.
 ---
 
 # MCP Integration
@@ -166,9 +167,9 @@ Plugin with multiple MCP servers in `.mcp.json`:
 
 ## Authentication patterns
 
-**OAuth (SSE/HTTP):** Handled automatically by Claude Code. User authenticates in browser on first use.
+OAuth (SSE/HTTP): Handled automatically by Claude Code. User authenticates in browser on first use.
 
-**Token (HTTP/WebSocket):** Pass via environment variables in headers:
+Token (HTTP/WebSocket): Pass via environment variables in headers:
 
 ```json
 {
@@ -179,7 +180,7 @@ Plugin with multiple MCP servers in `.mcp.json`:
 }
 ```
 
-**Environment variables (stdio):** Pass to server process:
+Environment variables (stdio): Pass to server process:
 
 ```json
 {
@@ -228,7 +229,7 @@ Document required environment variables in plugin README.
 
 Validate JSON syntax:
 
-```bash
+```sh
 python3 -m json.tool .mcp.json
 ```
 
@@ -244,7 +245,7 @@ Test a specific MCP server's connectivity and tools after plugin restart (requir
 /mcp test <server-name>
 ```
 
-**Distinction:** `/mcp` displays all configured servers and their tools. `/mcp test <server>` establishes a live connection to verify the server responds correctly and tool definitions are accessible.
+Distinction: `/mcp` displays all configured servers and their tools. `/mcp test <server>` establishes a live connection to verify the server responds correctly and tool definitions are accessible.
 
 ## Testing checklist
 
@@ -259,9 +260,9 @@ Test a specific MCP server's connectivity and tools after plugin restart (requir
 
 ## Pitfalls
 
-**DO:** Use `${CLAUDE_PLUGIN_ROOT}` for bundled paths, document required env vars, use HTTPS/WSS, pre-allow specific tools only, test with `/mcp` after config changes.
+DO: Use `${CLAUDE_PLUGIN_ROOT}` for bundled paths, document required env vars, use HTTPS/WSS, pre-allow specific tools only, test with `/mcp` after config changes.
 
-**DON'T:** Hardcode absolute paths, commit credentials, use HTTP instead of HTTPS, pre-allow all tools with `*`, skip error handling.
+DON'T: Hardcode absolute paths, commit credentials, use HTTP instead of HTTPS, pre-allow all tools with `*`, skip error handling.
 
 ## References
 

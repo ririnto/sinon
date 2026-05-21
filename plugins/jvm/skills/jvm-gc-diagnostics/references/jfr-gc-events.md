@@ -13,7 +13,7 @@ Use this reference when the blocker is analyzing GC behavior through JFR recordi
 
 Start on a running JVM:
 
-```bash
+```sh
 jcmd <pid> JFR.start name=gc-baseline settings=default disk=true maxage=2h
 ```
 
@@ -23,7 +23,7 @@ This uses the `default` preset, which Oracle documents as recommended for contin
 
 When you need detailed GC event breakdown:
 
-```bash
+```sh
 jcmd <pid> JFR.start name=gc-detail settings=profile disk=true maxage=1h
 ```
 
@@ -33,7 +33,7 @@ The `profile` preset adds allocation and CPU events useful for correlating GC pr
 
 Use this command when you need simultaneous GC + JFR evidence from process start:
 
-```bash
+```sh
 java \
   -XX:StartFlightRecording=name=gc-startup,settings=profile,\
 filename=/path/to/private-diagnostics/gc-startup.jfr,dumponexit=true \
@@ -86,7 +86,7 @@ These are the primary events to query when analyzing GC behavior from JFR data.
 
 ### Quick Summary Overview
 
-```bash
+```sh
 jfr summary /path/to/recording.jfr
 ```
 
@@ -96,25 +96,25 @@ This shows event counts and other high-level recording contents. Start here befo
 
 Show all GarbageCollection events with key fields:
 
-```bash
+```sh
 jfr print --events "jdk.GarbageCollection" /path/to/recording.jfr
 ```
 
 Show GC pause phases with durations:
 
-```bash
+```sh
 jfr print --events "jdk.GCPhasePause" /path/to/recording.jfr
 ```
 
 Show heap summaries to track occupancy changes:
 
-```bash
+```sh
 jfr print --events "jdk.GCHeapSummary" /path/to/recording.jfr
 ```
 
 Show GC configuration to confirm collector identity:
 
-```bash
+```sh
 jfr print --events "jdk.GCConfiguration" /path/to/recording.jfr
 ```
 
@@ -122,13 +122,13 @@ jfr print --events "jdk.GCConfiguration" /path/to/recording.jfr
 
 Portable note: do not use relative `--beginTime 60s --endTime 120s` examples here. For a known incident window, first extract the target event stream and then apply a separately verified time-slicing workflow for the target JDK/tooling stack.
 
-```bash
+```sh
 jfr print --events "jdk.GarbageCollection" /path/to/recording.jfr
 ```
 
 ### JSON Output for Programmatic Analysis
 
-```bash
+```sh
 jfr print --json --events "jdk.GCPhasePause" /path/to/recording.jfr
 ```
 
@@ -136,14 +136,14 @@ jfr print --json --events "jdk.GCPhasePause" /path/to/recording.jfr
 
 Which call sites trigger the most allocation:
 
-```bash
+```sh
 jfr print --events "jdk.ObjectAllocationInNewTLAB" \
   --stack-depth 5 /path/to/recording.jfr
 ```
 
 Thread context switches correlated with GC:
 
-```bash
+```sh
 jfr print --events "jdk.ThreadContextSwitchRate" /path/to/recording.jfr
 ```
 

@@ -38,7 +38,8 @@ This reference covers decision guidance and one pattern not included in the asse
 
 ```markdown
 ---
-description: Generate a shell snippet that assumes zsh array handling. Use when the command output must match zsh semantics.
+description: >-
+  Generate a shell snippet that assumes zsh array handling. Use when the command output must match zsh semantics.
 shell: zsh
 ---
 ```

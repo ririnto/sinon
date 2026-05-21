@@ -4,9 +4,9 @@ Open this reference when the ordinary `RabbitTemplate` publish path in [SKILL.md
 
 ## Publisher confirm blocker
 
-**Problem:** the producer must know whether the broker accepted the publish request.
+Problem: the producer must know whether the broker accepted the publish request.
 
-**Solution:** enable publisher confirms and treat the confirm outcome as a producer-side contract.
+Solution: enable publisher confirms and treat the confirm outcome as a producer-side contract.
 
 ```yaml
 spring:
@@ -18,9 +18,9 @@ Use confirms when the application must distinguish 'publish attempted' from 'bro
 
 ## Publisher return blocker
 
-**Problem:** the message reaches the exchange publish path but cannot be routed to any queue.
+Problem: the message reaches the exchange publish path but cannot be routed to any queue.
 
-**Solution:** enable returns and mandatory publishing so unroutable messages are surfaced explicitly.
+Solution: enable returns and mandatory publishing so unroutable messages are surfaced explicitly.
 
 ```yaml
 spring:
@@ -32,9 +32,9 @@ spring:
 
 ## Send-side failure blocker
 
-**Problem:** producer failures are being handled like consumer retry or DLQ failures, which hides the actual failure point.
+Problem: producer failures are being handled like consumer retry or DLQ failures, which hides the actual failure point.
 
-**Solution:** keep send-side publish reliability separate from consumer-side retry and dead-letter behavior.
+Solution: keep send-side publish reliability separate from consumer-side retry and dead-letter behavior.
 
 - Producer confirms and returns answer 'was the message accepted and routed?'
 - Consumer retry and DLQ answer 'what happened after a consumer received the message?'

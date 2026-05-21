@@ -1,6 +1,7 @@
 ---
 name: executive-summary
-description: Format responses as a short decision, key facts, risks, and next action.
+description: >-
+  Format responses as a short decision, key facts, risks, and next action.
 keep-coding-instructions: true
 ---
 
