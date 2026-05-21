@@ -507,7 +507,12 @@ require_text "$root/skills/harness-install/scripts/install-harness.sh" "# -*- co
 
 template_package_file_list=$(package_files "$root/skills/harness-install/templates")
 if printf '%s\n' "$template_package_file_list" | grep -E '(^|/)(db-schema[.]md|__pycache__|target|build|bin|[.]gradle|[.]factorypath|[.]classpath|[.]project|[.]settings)(/|$)|[.]pyc$'; then
-  printf '%s\n' "[generated_artifacts_check] template tree contains packaged generated or IDE artifacts" >&2
+  printf '%s\n' "[generated_artifacts_check] packaged template files contain generated or IDE artifacts" >&2
+  exit 1
+fi
+template_tree_file_list=$(find "$root/skills/harness-install/templates" -type f -print)
+if printf '%s\n' "$template_tree_file_list" | grep -E '(^|/)(db-schema[.]md|__pycache__|target|build|bin|[.]gradle|[.]factorypath|[.]classpath|[.]project|[.]settings)(/|$)|[.]pyc$'; then
+  printf '%s\n' "[generated_artifacts_check] working template tree contains ignored generated or IDE artifacts" >&2
   exit 1
 fi
 
