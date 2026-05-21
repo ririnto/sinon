@@ -112,7 +112,7 @@ plugins/reactor/
 ## Shipped Surfaces
 
 - The plugin ships four reusable Reactor skills under `skills/`.
-- The plugin ships no plugin-root `agents/` directory.
+- The plugin ships one plugin-root agent: `reactor-architect` for Flux/Mono composition, scheduler, hot-source, and testing workflow decisions.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or plugin-root custom runtime data surfaces.
 
 ## Design Principles
