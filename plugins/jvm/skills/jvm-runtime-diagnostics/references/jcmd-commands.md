@@ -9,7 +9,7 @@ Use this reference when the remaining blocker is which extended `jcmd` variant o
 
 Start by confirming the target process and command availability on the exact runtime:
 
-```bash
+```sh
 jcmd -l
 jcmd <pid> help
 jcmd <pid> VM.version
@@ -19,7 +19,7 @@ jcmd <pid> VM.flags
 
 ## Extended Thread Inspection
 
-```bash
+```sh
 jcmd <pid> Thread.print -e
 ```
 
@@ -28,18 +28,19 @@ jcmd <pid> Thread.print -e
 
 Standard thread-dump shape:
 
-```bash
+```sh
 jcmd <pid> Thread.print -l > thread-dump.txt
 ```
 
 ## Extended Heap and Object Inspection
 
-```bash
+```sh
 jcmd <pid> GC.class_histogram -all
 jcmd <pid> GC.heap_dump heap.hprof
 ```
 
 > [!WARNING]
+>
 > Heap dumps are highly sensitive artifacts. Use a restricted destination path, handle transfer and retention as sensitive-data operations, and prefer histograms or JFR first when they can answer the question with lower disclosure risk.
 
 Version-sensitive note:
@@ -48,11 +49,12 @@ Version-sensitive note:
 - use `jcmd <pid> help GC.heap_dump` and `jcmd <pid> help GC.class_histogram` on the target runtime before assuming they exist
 
 > [!WARNING]
+>
 > `GC.class_stats` was removed in JDK 15. Do not treat it as a modern default command.
 
 ## Native Memory Inspection
 
-```bash
+```sh
 jcmd <pid> VM.native_memory summary
 jcmd <pid> VM.native_memory detail
 jcmd <pid> VM.native_memory baseline
@@ -60,6 +62,7 @@ jcmd <pid> VM.native_memory summary.diff
 ```
 
 > [!IMPORTANT]
+>
 > Native Memory Tracking must be enabled at JVM startup with `-XX:NativeMemoryTracking=summary` or `-XX:NativeMemoryTracking=detail`.
 
 - use `summary` for the lowest-noise first look at non-heap memory categories

@@ -1,6 +1,7 @@
 ---
 title: "Noncompliant TestPublishers"
-description: "Open this when the blocker is a noncompliant TestPublisher or deliberate spec-edge behavior for operator testing."
+description: >-
+  Open this when the blocker is a noncompliant TestPublisher or deliberate spec-edge behavior for operator testing.
 ---
 
 Open this when ordinary `TestPublisher.create()` is not enough because the test must simulate spec-edge or intentionally invalid upstream behavior.

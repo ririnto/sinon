@@ -33,7 +33,7 @@ Do not describe the full tooling surface as uniformly available across that whol
 
 Confirm the local JDK toolchain first:
 
-```bash
+```sh
 java --version
 javac --version
 ```
@@ -52,7 +52,7 @@ Confirm the target JDK version before recommending `jshell`, `jlink`, or `jpacka
 
 Compile and run a single class directly:
 
-```bash
+```sh
 javac -d out src/main/java/com/example/demo/App.java
 java -cp out com.example.demo.App
 ```
@@ -61,7 +61,7 @@ Use when: you need the smallest direct JDK path before bringing in Maven or Grad
 
 Start a `jshell` session against compiled classes:
 
-```bash
+```sh
 jshell --class-path out
 ```
 
@@ -73,7 +73,7 @@ Version note: `jshell` is not part of JDK 8. Use this path only on JDK 9 and lat
 
 Dependency and module inspection with `jdeps`:
 
-```bash
+```sh
 jdeps --multi-release 21 --print-module-deps app.jar
 ```
 
@@ -81,7 +81,7 @@ Use when: you want to know whether `jlink` is even justified and which modules m
 
 `jshell` startup with startup script and imports:
 
-```bash
+```sh
 jshell --class-path out --startup DEFAULT --startup ./config/jshell-startup.jsh
 ```
 
@@ -89,7 +89,7 @@ Use when: the workflow depends on repeatable imports, helper methods, or a prepa
 
 Custom runtime image with `jlink`:
 
-```bash
+```sh
 jlink \
   --add-modules java.base,java.net.http \
   --output build/runtime
@@ -101,7 +101,7 @@ Version note: `jlink` is a JDK 9+ workflow because it depends on the module syst
 
 Native packaging with `jpackage`:
 
-```bash
+```sh
 jpackage \
   --name DemoApp \
   --input build/libs \
@@ -115,9 +115,10 @@ Use when: you want to validate the packaged launch shape before choosing a platf
 Version note: `jpackage` is a standard JDK 16+ workflow. JDK 14-15 shipped an incubating `jpackage` module (`jdk.incubator.jpackage`); do not present that incubator form as the normal production baseline, and do not present `jpackage` as an option on the JDK 8 or JDK 11 baseline.
 
 > [!NOTE]
+>
 > On JDK 25 and later (JDK-8345185), `jpackage` no longer adds `--bind-services` to its default `jlink` options. The default now resolves to `--strip-native-commands --strip-debug --no-man-pages --no-header-files`, so the generated runtime image drops providers that were previously included by service-loader binding. When the application uses `java.util.ServiceLoader`, restore the old behavior by passing a quoted `--jlink-options` string that re-includes `--bind-services`:
 >
-> ```bash
+> ```sh
 > jpackage \
 >     --name DemoApp \
 >     --input build/libs \
@@ -131,7 +132,7 @@ Version note: `jpackage` is a standard JDK 16+ workflow. JDK 14-15 shipped an in
 
 Javadoc generation:
 
-```bash
+```sh
 javadoc -d build/docs src/main/java/com/example/demo/*.java
 ```
 
@@ -141,7 +142,7 @@ Use when: the deliverable is documentation rather than packaging or runtime anal
 
 Use the smallest validation that matches the chosen tool:
 
-```bash
+```sh
 java --list-modules | grep java.base
 ```
 
@@ -198,9 +199,9 @@ build/runtime/
 
 ### `jpackage` App Image Structure (platform-specific)
 
-**macOS:** `DemoApp.app/Contents/MacOS/DemoApp` + bundled runtime in `Contents/runtime/`
-**Linux:** `DemoApp/bin/DemoApp` + runtime in `DemoApp/lib/runtime/`
-**Windows:** `DemoApp\DemoApp.exe` + runtime in `DemoApp\runtime\`
+macOS: `DemoApp.app/Contents/MacOS/DemoApp` + bundled runtime in `Contents/runtime/`
+Linux: `DemoApp/bin/DemoApp` + runtime in `DemoApp/lib/runtime/`
+Windows: `DemoApp\DemoApp.exe` + runtime in `DemoApp\runtime\`
 
 ### `jshell` Session Shape
 
@@ -215,7 +216,7 @@ Variable declarations show `name ==> value`. Expressions auto-assign `$N`. `/exi
 
 ### `javadoc` Output
 
-```bash
+```sh
 javadoc -d build/docs src/main/java/com/example/demo/*.java
 ```
 

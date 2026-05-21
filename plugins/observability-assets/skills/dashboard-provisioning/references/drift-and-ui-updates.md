@@ -1,6 +1,7 @@
 ---
 title: "Dashboard Provisioning Drift and UI Updates"
-description: "Open this when file-wins behavior, UI edits, delete-on-source-removal, version property behavior, export workflows, or drift debugging is the blocker."
+description: >-
+  Open this when file-wins behavior, UI edits, delete-on-source-removal, version property behavior, export workflows, or drift debugging is the blocker.
 ---
 
 Use this reference when the delivery path is mostly correct, but source-of-truth behavior is still ambiguous.
@@ -87,7 +88,7 @@ Use when: the blocker is deciding whether removing a source file should destroy 
 
 ## Version Property Behavior
 
-The `version` field inside a raw dashboard JSON source file is **ignored** by Grafana's file-provisioning update logic.
+The `version` field inside a raw dashboard JSON source file is ignored by Grafana's file-provisioning update logic.
 
 What actually happens:
 

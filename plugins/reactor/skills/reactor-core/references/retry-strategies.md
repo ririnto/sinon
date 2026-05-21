@@ -1,6 +1,7 @@
 ---
 title: "Retry and Repeat Strategies"
-description: "Open this when simple retry or repeat is not enough and you need backoff, filtering, retry exhaustion, repeat exhaustion, or explicit re-subscription policies."
+description: >-
+  Open this when simple retry or repeat is not enough and you need backoff, filtering, retry exhaustion, repeat exhaustion, or explicit re-subscription policies.
 ---
 
 Open this when failure recovery needs a deliberate retry policy rather than a plain `retry(n)`, or when completion-side re-subscription needs a termination condition.

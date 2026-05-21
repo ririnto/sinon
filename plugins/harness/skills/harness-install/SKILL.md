@@ -1,6 +1,6 @@
 ---
 name: harness-install
-description: |-
+description: >-
   Install repository harness assets: AGENTS.md contract, ARCHITECTURE.md, docs structure, Claude entry point, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use this skill when setting up or refreshing a repository harness, adding Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, or bun projects.
 argument-hint: '[auto|gradle|maven|uv|bun] [--target DIR] [--hooks none|copy] [--force] [--no-ci]'
 allowed-tools:
@@ -23,14 +23,15 @@ Install or refresh target-owned repository harness files from this plugin. The p
 
 ## First Safe Checks
 
-1. Read the target repository root files if present: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `.claude/harness/README.md`, and `.claude/harness/manifest.json`.
-2. Detect the target stack from repository files, or use the explicit stack argument supplied by the user.
-3. Identify the active CI host. Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither, so unused CI files can be removed as a post-install step.
-4. Detect whether the target is a linked Git worktree. `.git` as a file means the user is inside a `git worktree add` working copy; the installer resolves the worktree hooks directory through the shared common dir.
-5. Read the target's `core.hooksPath` Git config with `git config --get core.hooksPath`. When it already resolves to `.claude/harness/git-hooks`, prefer `--hooks none` so generated hook templates refresh in place; the installer refuses `--hooks copy` in that configuration.
-6. Decide hook behavior before running the installer: `--hooks none` skips active hook installation, and `--hooks copy` writes the generated `pre-commit` and `pre-push` files into the worktree hooks directory only when they are absent unless `--force` is used.
-7. Use `--force` only when the user explicitly wants existing target harness files replaced.
-8. Keep plugin files separate from target files: edit this plugin only when improving the installer; edit target `.claude/**` files only after installation in the target repository.
+1. Confirm the target repository working tree is clean before running the installer. Run `git status --short` in the target; if the output is non-empty, stop and ask the user to commit or stash first. The installer writes new files (and with `--force` overwrites existing ones), and any rollback or recovery action against the working tree afterwards will be indistinguishable from unrelated in-progress work. Commit-first keeps the harness change set isolated and reversible.
+2. Read the target repository root files if present: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `.claude/harness/README.md`, and `.claude/harness/manifest.json`.
+3. Detect the target stack from repository files, or use the explicit stack argument supplied by the user.
+4. Identify the active CI host. Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither, so unused CI files can be removed as a post-install step.
+5. Detect whether the target is a linked Git worktree. `.git` as a file means the user is inside a `git worktree add` working copy; the installer resolves the worktree hooks directory through the shared common dir.
+6. Read the target's `core.hooksPath` Git config with `git config --get core.hooksPath`. When it already resolves to `.claude/harness/git-hooks`, prefer `--hooks none` so generated hook templates refresh in place; the installer refuses `--hooks copy` in that configuration.
+7. Decide hook behavior before running the installer: `--hooks none` skips active hook installation, and `--hooks copy` writes the generated `pre-commit` and `pre-push` files into the worktree hooks directory only when they are absent unless `--force` is used.
+8. Use `--force` only when the user explicitly wants existing target harness files replaced.
+9. Keep plugin files separate from target files: edit this plugin only when improving the installer; edit target `.claude/**` files only after installation in the target repository.
 
 ## Workflow
 
@@ -88,6 +89,7 @@ Install or refresh target-owned repository harness files from this plugin. The p
 
 ## Pitfalls
 
+- Do not run the installer on a dirty working tree. Require the target repository to be committed or stashed first; `--force` overwrites tracked files, `--hooks copy` writes outside version control, and any post-install rollback against an unclean tree will entangle harness changes with unrelated edits.
 - Do not edit `scripts/install-harness.sh` during ordinary installation.
 - Do not claim harness-only readiness when product specs, architecture decisions, acceptance criteria, or generated artifacts are still placeholders.
 - Do not activate or force-replace Git hooks without explicit approval for that local repository.

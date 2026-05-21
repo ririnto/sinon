@@ -1,6 +1,7 @@
 ---
 title: "PromQL Query Shaping Reference"
-description: "Open this when vector matching, label-set alignment, complex query refactoring, or understanding exact matching output is the blocker."
+description: >-
+  Open this when vector matching, label-set alignment, complex query refactoring, or understanding exact matching output is the blocker.
 ---
 
 Use this reference when the query already has the right general goal, but the blocker is how to preserve meaning while changing shape.
@@ -28,7 +29,7 @@ If you cannot answer those questions, the query is not ready for refactoring.
 
 ## Worked Example: One-to-One Matching with `ignoring`
 
-**Input data** (two metrics with different label sets): the first five series are left-hand-side error counts by method and status code, and the last three series are right-hand-side total requests by method.
+Input data (two metrics with different label sets): the first five series are left-hand-side error counts by method and status code, and the last three series are right-hand-side total requests by method.
 
 ```text
 method_code:http_errors:rate5m{method="get", code="500"}  => 24
@@ -64,7 +65,7 @@ Entries with no match on either side are dropped (default behavior).
 
 ## Worked Example: Many-to-One Matching with `group_left`
 
-Same input data as above. This time we want error rate **per status code**, not aggregated.
+Same input data as above. This time we want error rate per status code, not aggregated.
 
 ### Query: error count divided by total requests, keeping all codes
 
@@ -102,7 +103,7 @@ kube_pod_info
 
 Here `kube_pod_info` (the "one" side) carries the `node` label that does not exist on the CPU metric. `group_left(node)` pulls `node` into each output series. Without it, the `node` label would be dropped during matching.
 
-**Before using this pattern**, verify:
+Before using this pattern, verify:
 
 - the right-hand metric (`kube_pod_info`) has exactly one series per `(namespace, pod)` pair within the query scope
 - in federated or multi-cluster setups, add provenance labels (e.g., `cluster`) to ensure uniqueness
@@ -120,13 +121,13 @@ up{job="api", instance="a"}      => 1
 up{job="db",  instance="d"}      => 0
 ```
 
-**`A and B`** -- intersection by exact label set: only the exact `{job="api", instance="a"}` match survives, and the output keeps the value from Vector A.
+`A and B` -- intersection by exact label set: only the exact `{job="api", instance="a"}` match survives, and the output keeps the value from Vector A.
 
 ```text
 {job="api", instance="a"} => 1
 ```
 
-**`A or B`** -- union (all of A plus non-matching from B): the first three entries come from Vector A, and the final `db` series is added from Vector B because it has no match in A.
+`A or B` -- union (all of A plus non-matching from B): the first three entries come from Vector A, and the final `db` series is added from Vector B because it has no match in A.
 
 ```text
 {job="api", instance="a"} => 1
@@ -135,7 +136,7 @@ up{job="db",  instance="d"}      => 0
 {job="db",  instance="d"} => 0
 ```
 
-**`A unless B`** -- complement (A minus matching B): the output keeps only the Vector A entries that do not have exact-label-set matches in Vector B.
+`A unless B` -- complement (A minus matching B): the output keeps only the Vector A entries that do not have exact-label-set matches in Vector B.
 
 ```text
 {job="api", instance="b"} => 0

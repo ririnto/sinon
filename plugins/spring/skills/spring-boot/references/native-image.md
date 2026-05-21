@@ -4,13 +4,13 @@ Open this reference when the blocker is native-image build or runtime behavior.
 
 ## Build with Maven
 
-```bash
+```sh
 ./mvnw -Pnative native:compile
 ```
 
 ## Build with Boot build-image
 
-```bash
+```sh
 ./mvnw spring-boot:build-image -Dspring-boot.build-image.environment.BP_NATIVE_IMAGE=true
 ```
 

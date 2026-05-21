@@ -1,6 +1,7 @@
 ---
 name: plugin-settings
-description: Author plugin-level configuration via `settings.json` and per-project state via `.claude/<plugin-name>.local.md` with YAML frontmatter parsing patterns. Use this skill when adding user-configurable plugin behavior offline.
+description: >-
+  Author plugin-level configuration via `settings.json` and per-project state via `.claude/<plugin-name>.local.md` with YAML frontmatter parsing patterns. Use this skill when adding user-configurable plugin behavior offline.
 ---
 
 # Plugin Settings
@@ -99,7 +100,7 @@ Hooks (bash scripts) that read settings follow a three-step pattern: existence c
 Pattern: Check file exists, extract frontmatter between `---` delimiters, parse individual fields with `grep` + `sed`:
 
 ```sh
-if [[ ! -f "$STATE_FILE" ]]; then
+if [ ! -f "$STATE_FILE" ]; then
     return 0
 fi
 FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
@@ -126,7 +127,8 @@ Agents reference settings in their instructions:
 ```markdown
 ---
 name: configured-agent
-description: Adapts behavior to project settings
+description: >-
+  Adapts behavior to project settings
 ---
 
 Check for plugin settings at `.claude/your-plugin.local.md`.
@@ -144,17 +146,21 @@ If the file is absent, use documented defaults.
 Use `enabled` flag to activate/deactivate hooks without editing `hooks.json` (which requires restart):
 
 ```sh
-# :description: Load plugin state and conditionally enable hook logic.
-# :param STATE_FILE: Path to .claude/your-plugin.local.md.
-# :return: Exits 0 if disabled or file missing; executes hook logic if enabled.
-set -euo pipefail
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+
+# Load plugin state and conditionally enable hook logic.
+#
+# @param STATE_FILE Path to .claude/your-plugin.local.md.
+# @return Exits 0 if disabled or file missing; executes hook logic if enabled.
 STATE_FILE=".claude/your-plugin.local.md"
-if [[ ! -f "$STATE_FILE" ]]; then
+if [ ! -f "$STATE_FILE" ]; then
     exit 0
 fi
 FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
 ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
-if [[ "$ENABLED" != "true" ]]; then
+if [ "$ENABLED" != "true" ]; then
     exit 0
 fi
 ```
@@ -165,7 +171,7 @@ Restart Claude Code after changing `enabled: true/false`.
 
 Store agent identity and coordinator session for multi-agent swarms:
 
-**.claude/multi-agent-swarm.local.md:**
+`.claude/multi-agent-swarm.local.md:`
 
 ```markdown
 ---
@@ -183,13 +189,14 @@ Coordinate with database-agent on schema changes.
 
 Hook reads fields and sends notifications to coordinator:
 
-```sh
+```bash
 # Validate tmux session name format.
+#
 # @param session Session name.
 # @return Exits 0 if valid; 1 otherwise.
 validate_tmux_session() {
-    local session="$1"
-    if [[ ! "$session" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+    session="$1"
+    if ! printf '%s' "$session" | grep -qE '^[a-zA-Z0-9_-]+$'; then
         return 1
     fi
     return 0
@@ -198,7 +205,6 @@ validate_tmux_session() {
 AGENT_NAME=$(echo "$FRONTMATTER" | grep '^agent_name:' | sed 's/agent_name: *//')
 COORDINATOR=$(echo "$FRONTMATTER" | grep '^coordinator_session:' | sed 's/coordinator_session: *//')
 if validate_tmux_session "$COORDINATOR"; then
-    local safe_agent
     safe_agent=$(printf '%q' "$AGENT_NAME")
     tmux send-keys -t "$COORDINATOR" "Agent $safe_agent completed task" Enter
 fi
@@ -208,7 +214,7 @@ fi
 
 Store validation policy and apply in hooks or commands:
 
-**.claude/security-plugin.local.md:**
+`.claude/security-plugin.local.md:`
 
 ```markdown
 ---
@@ -253,6 +259,7 @@ Commands can scaffold settings files when first run or requested by the user.
 
 ```sh
 # Write sanitized user input to plugin settings file.
+#
 # @param USER_INPUT Raw user input string.
 # @return Creates .claude/your-plugin.local.md with escaped values.
 USER_INPUT="$1"
@@ -272,25 +279,24 @@ Validate path fields to prevent path traversal:
 
 ```sh
 # Canonicalize and validate path against base directory.
+#
 # @param base_dir Base directory (e.g., ${CLAUDE_PROJECT_DIR}).
 # @param path_value User-provided path to validate.
 # @return Exits 2 if unsafe; exits 0 and echoes normalized path otherwise.
 validate_path_safe() {
-    local base_dir="$1"
-    local path_value="$2"
-    if [[ -z "$path_value" ]]; then
+    base_dir="$1"
+    path_value="$2"
+    if [ -z "$path_value" ]; then
         echo "⚠️ Empty path" >&2
         return 2
     fi
-    local normalized
-    normalized=$(realpath -m "$base_dir/$path_value" 2>/dev/null || echo "")
-    if [[ -z "$normalized" ]]; then
+    normalized=$(realpath -m "$base_dir/$path_value" || echo "")
+    if [ -z "$normalized" ]; then
         echo "⚠️ Invalid path" >&2
         return 2
     fi
-    local base_real
-    base_real=$(realpath -m "$base_dir" 2>/dev/null || echo "")
-    if [[ -z "$base_real" || ( "$normalized" != "$base_real" && "$normalized" != "$base_real"/* ) ]]; then
+    base_real=$(realpath -m "$base_dir" || echo "")
+    if [ -z "$base_real" ] || { [ "$normalized" != "$base_real" ] && ! printf '%s' "$normalized" | grep -qE "^${base_real}/"; }; then
         echo "⚠️ Path escapes base directory" >&2
         return 2
     fi
@@ -299,7 +305,7 @@ validate_path_safe() {
 }
 
 FILE_PATH=$(echo "$FRONTMATTER" | grep '^data_file:' | sed 's/data_file: *//')
-if ! SAFE_PATH=$(validate_path_safe "${CLAUDE_PROJECT_DIR}" "$FILE_PATH" 2>/dev/null); then
+if validate_path_safe "${CLAUDE_PROJECT_DIR}" "$FILE_PATH" > /dev/null; then
     echo "⚠️ Invalid path in settings" >&2
     exit 2
 fi
@@ -336,7 +342,7 @@ Note: This file is local to your project and should be added to `.gitignore`.
 ### Defaults when file is absent
 
 ```sh
-if [[ ! -f "$STATE_FILE" ]]; then
+if [ ! -f "$STATE_FILE" ]; then
     ENABLED=true
     MODE="standard"
     MAX_RETRIES=3
@@ -349,7 +355,7 @@ Validate numeric ranges:
 
 ```sh
 MAX=$(echo "$FRONTMATTER" | grep '^max_retries:' | sed 's/max_retries: *//')
-if ! [[ "$MAX" =~ ^[0-9]+$ ]] || [[ $MAX -lt 1 ]] || [[ $MAX -gt 100 ]]; then
+if ! printf '%s' "$MAX" | grep -qE '^[0-9]+$' || [ "$MAX" -lt 1 ] || [ "$MAX" -gt 100 ]; then
     echo "⚠️ Invalid max_retries (must be 1-100), using default 3" >&2
     MAX=3
 fi
@@ -357,7 +363,7 @@ fi
 
 ## Restart Requirement
 
-**Critical:** Changes to `.local.md` files require Claude Code restart before hooks reload them.
+Critical: Changes to `.local.md` files require Claude Code restart before hooks reload them.
 
 Document in plugin README:
 
@@ -390,7 +396,7 @@ Reject paths containing `..` or absolute paths when not intended:
 
 ```sh
 PATH_VALUE=$(echo "$FRONTMATTER" | grep '^output_dir:' | sed 's/output_dir: *//')
-if [[ "$PATH_VALUE" == /* ]] || [[ "$PATH_VALUE" == *".."* ]]; then
+if printf '%s' "$PATH_VALUE" | grep -qE '^/' || [ "$PATH_VALUE" != "${PATH_VALUE%..*}" ]; then
     echo "⚠️ Invalid path in settings" >&2
     PATH_VALUE="./output"
 fi
@@ -408,21 +414,21 @@ chmod 600 ".claude/your-plugin.local.md"
 
 Check that a settings file exists and is valid YAML:
 
-```bash
-if [[ -f ".claude/your-plugin.local.md" ]]; then
+```sh
+if [ -f ".claude/your-plugin.local.md" ]; then
     head -20 ".claude/your-plugin.local.md"
 fi
 ```
 
 Extract frontmatter without parsing:
 
-```bash
+```sh
 sed -n '/^---$/,/^---$/{ /^---$/d; p; }' ".claude/your-plugin.local.md"
 ```
 
 Read a single field:
 
-```bash
+```sh
 grep '^enabled:' ".claude/your-plugin.local.md" | sed 's/enabled: *//'
 ```
 
@@ -437,20 +443,20 @@ When implementing settings support in a plugin, return:
 
 ## Pitfalls
 
-- **DO** check file existence with `[[ -f "$FILE" ]]` before parsing to avoid parse errors on first run.
-- **DO** fallback to documented defaults when settings file is absent.
-- **DO** validate numeric ranges and string values; warn and use defaults on invalid input.
-- **DO** add `.claude/*.local.md` and `.claude/*.local.json` to `.gitignore`.
-- **DO** document restart requirement clearly in plugin README.
-- **DO** sanitize user input before writing to files (escape quotes, validate types).
-- **DO** set file permissions to `chmod 600` for user-local state files.
+- DO: check file existence with `[ -f "$FILE" ]` before parsing to avoid parse errors on first run.
+- DO: fallback to documented defaults when settings file is absent.
+- DO: validate numeric ranges and string values; warn and use defaults on invalid input.
+- DO: add `.claude/*.local.md` and `.claude/*.local.json` to `.gitignore`.
+- DO: document restart requirement clearly in plugin README.
+- DO: sanitize user input before writing to files (escape quotes, validate types).
+- DO: set file permissions to `chmod 600` for user-local state files.
 
-- **DON'T** assume the settings file exists or is valid YAML; always check and provide defaults.
-- **DON'T** put plugin-level settings in `.local.md` files; use `settings.json` in the plugin root instead.
-- **DON'T** commit user-local files to git; rely on `.gitignore`.
-- **DON'T** try to hot-reload hooks within the same Claude Code session; document the restart requirement.
-- **DON'T** store secrets (API keys, tokens) in `.local.md` files without encryption; use Claude Code secrets or environment variables instead.
-- **DON'T** allow arbitrary file paths in settings without validation; reject `..` and absolute paths when not explicitly intended.
+- DON'T: assume the settings file exists or is valid YAML; always check and provide defaults.
+- DON'T: put plugin-level settings in `.local.md` files; use `settings.json` in the plugin root instead.
+- DON'T: commit user-local files to git; rely on `.gitignore`.
+- DON'T: try to hot-reload hooks within the same Claude Code session; document the restart requirement.
+- DON'T: store secrets (API keys, tokens) in `.local.md` files without encryption; use Claude Code secrets or environment variables instead.
+- DON'T: allow arbitrary file paths in settings without validation; reject `..` and absolute paths when not explicitly intended.
 
 ## References
 

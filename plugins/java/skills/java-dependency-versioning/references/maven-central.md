@@ -30,26 +30,26 @@ Open this reference when the coordinate is verified but you still need one of th
 
 Parsing the current version from the JSON response:
 
-```bash
+```sh
 VERSION=$(curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22org.awaitility%22+AND+a:%22awaitility%22&rows=1&wt=json" | jq -r '.response.docs[0].latestVersion')
 echo "Latest: $VERSION"
 ```
 
 Paginated search for all artifacts matching a group:
 
-```bash
+```sh
 curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22org.awaitility%22&rows=20&wt=json"
 ```
 
 Sort by version descending to find the truly latest published release:
 
-```bash
+```sh
 curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22org.awaitility%22+AND+a:%22awaitility%22&core=gav&rows=20&wt=json&sort=v%20desc"
 ```
 
 When the default summary looks wrong (artifact is not a library, or `latestVersion` sorts unexpectedly):
 
-```bash
+```sh
 curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22org.springframework%22+AND+a:%22spring-core%22&core=gav&rows=20&wt=json&sort=v%20desc"
 ```
 
@@ -57,13 +57,13 @@ This switches to `core=gav` to get per-GAV-row data instead of one summary docum
 
 Lookup for a BOM (Bill of Materials) artifact:
 
-```bash
+```sh
 curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22io.quarkus%22+AND+a:%22quarkus-bom%22&rows=1&wt=json"
 ```
 
 Checking a plugin artifact:
 
-```bash
+```sh
 curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22org.apache.maven.plugins%22+AND+a:%22maven-compiler-plugin%22&rows=1&wt=json"
 ```
 

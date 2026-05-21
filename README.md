@@ -71,31 +71,31 @@ The Claude marketplace catalog for this repository is:
 
 Register this marketplace from a local checkout:
 
-```bash
+```sh
 /plugin marketplace add /path/to/sinon
 ```
 
 Register this marketplace from GitHub:
 
-```bash
+```sh
 /plugin marketplace add ririnto/sinon
 ```
 
 Register this marketplace from a generic git URL:
 
-```bash
+```sh
 /plugin marketplace add https://github.com/ririnto/sinon.git
 ```
 
 After Claude Code registers the `sinon` marketplace, install a plugin from it with:
 
-```bash
+```sh
 /plugin install <plugin>@sinon
 ```
 
 Examples:
 
-```bash
+```sh
 /plugin install agent-capability-kit@sinon
 /plugin install git-workflow@sinon
 /plugin install harness@sinon
@@ -164,7 +164,7 @@ For a local checkout, use a directory source instead:
 
 If you are working from a local checkout instead of a registered marketplace, you can also load a plugin directly from its plugin root:
 
-```bash
+```sh
 claude --plugin-dir /path/to/sinon/plugins/java
 ```
 

@@ -1,6 +1,7 @@
 ---
 title: "Scheduler Tuning and Custom Schedulers"
-description: "Open this when shared scheduler defaults are insufficient and you must create, tune, observe, or dispose schedulers deliberately."
+description: >-
+  Open this when shared scheduler defaults are insufficient and you must create, tune, observe, or dispose schedulers deliberately.
 ---
 
 Open this when the blocker is no longer scheduler choice but scheduler construction, capacity, lifecycle, or observability.
@@ -48,6 +49,7 @@ Use shared-scheduler replacement only when scheduler policy must change applicat
 | integrate an existing executor | `Schedulers.fromExecutorService(...)` | bridge existing infrastructure deliberately |
 
 > [!NOTE]
+>
 > `Schedulers.fromExecutor(Executor)` remains available in Reactor 3.7.18, but Reactor's scheduler guide discourages it when an `ExecutorService` is available. Prefer `Schedulers.fromExecutorService(ExecutorService)` for clearer lifecycle management and disposal semantics.
 
 ## Dedicated scheduler factory methods
@@ -84,7 +86,7 @@ final class ExecutorBridge {
 
 On Java 21+, the shared `Schedulers.boundedElastic()` can use a thread-per-task implementation backed by virtual threads when the JVM starts with the Reactor system property set to `true`:
 
-```bash
+```sh
 java -Dreactor.schedulers.defaultBoundedElasticOnVirtualThreads=true -jar app.jar
 ```
 

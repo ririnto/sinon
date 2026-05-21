@@ -4,9 +4,9 @@ Open this reference when the ordinary event-style path in [SKILL.md](../SKILL.md
 
 ## Request-reply blocker
 
-**Problem:** the caller truly needs a synchronous reply from a RabbitMQ-mediated interaction.
+Problem: the caller truly needs a synchronous reply from a RabbitMQ-mediated interaction.
 
-**Solution:** use request-reply explicitly and set a reply timeout.
+Solution: use request-reply explicitly and set a reply timeout.
 
 ```java
 Object reply = rabbitTemplate.convertSendAndReceive("rpc.exchange", "rpc.key", request);

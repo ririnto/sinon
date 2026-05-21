@@ -70,16 +70,18 @@ Only `SessionStart` hooks can write to `$CLAUDE_ENV_FILE` to persist environment
 }
 ```
 
-Hook script:
+Hook script (note: uses bash `printf %q` for safe quoting):
 
 ```bash
-#!/bin/bash
-set -euo pipefail
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -e
 
 # Initialize session environment from project config.
+#
 # @return Appends environment variables to CLAUDE_ENV_FILE.
 setup_env() {
-    if [[ ! -f "$CLAUDE_ENV_FILE" ]]; then
+    if [ ! -f "$CLAUDE_ENV_FILE" ]; then
         echo "Error: CLAUDE_ENV_FILE not set" >&2
         exit 1
     fi
@@ -120,7 +122,8 @@ Available in SessionStart command hooks only.
 
 All hook input fields accessible via `jq`:
 
-```bash
+```sh
+# shellcheck disable=SC2034
 tool_name=$(cat | jq -r '.tool_name')
 tool_input=$(cat | jq -r '.tool_input')
 cwd=$(cat | jq -r '.cwd')
@@ -128,7 +131,8 @@ cwd=$(cat | jq -r '.cwd')
 
 ### UserPromptSubmit
 
-```bash
+```sh
+# shellcheck disable=SC2034
 user_prompt=$(cat | jq -r '.user_prompt')
 ```
 
@@ -150,8 +154,8 @@ Resolves to: `/path/to/plugin/hooks/validate.sh` (absolute path from environment
 
 Project directory is the working directory where Claude Code was invoked. Use for relative path references:
 
-```bash
-cd "${CLAUDE_PROJECT_DIR}"
+```sh
+cd "${CLAUDE_PROJECT_DIR}" || exit
 ls ./src
 ```
 
@@ -159,7 +163,7 @@ ls ./src
 
 Relative paths are relative to current working directory, which is `${CLAUDE_PROJECT_DIR}`. Avoid relying on implicit paths:
 
-```bash
+```sh
 # Fragile: depends on current directory
 bash hooks/validate.sh
 # Robust: explicit path
@@ -172,8 +176,8 @@ Claude Code can run in remote context (ssh, cloud environments). Some operations
 
 ### Detect remote context
 
-```bash
-if [[ -n "${CLAUDE_CODE_REMOTE:-}" ]]; then
+```sh
+if [ -n "${CLAUDE_CODE_REMOTE:-}" ]; then
     echo "Running in remote context"
 else
     echo "Running locally"
@@ -190,15 +194,17 @@ Some operations are unsafe or unavailable in remote:
 
 Pattern: conditional behavior based on context
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Log results with context-aware I/O.
+#
 # @return Local: writes file; Remote: outputs to stdout.
 log_result() {
-    local message="$1"
-    if [[ -z "${CLAUDE_CODE_REMOTE:-}" ]]; then
+    message="$1"
+    if [ -z "${CLAUDE_CODE_REMOTE:-}" ]; then
         echo "$message" >> "${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
     else
         echo "$message"
@@ -230,28 +236,30 @@ Hook configuration:
 
 Hook script with flag file:
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Conditionally run validation based on flag file.
+#
 # @return Exits 0 if disabled; runs validation if enabled.
 conditional_validate() {
     FLAG_FILE="${CLAUDE_PROJECT_DIR}/.hook-validation-enabled"
-    if [[ ! -f "$FLAG_FILE" ]]; then
+    if [ ! -f "$FLAG_FILE" ]; then
         exit 0
     fi
     INPUT=$(cat)
-    TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name')
-    if [[ "$TOOL_NAME" != "Write" ]]; then
+    TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name')
+    if [ "$TOOL_NAME" != "Write" ]; then
         exit 0
     fi
-    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path')
-    if [[ "$FILE_PATH" =~ \.(env|aws|pem|key)$ ]]; then
-        echo '{"permissionDecision": "deny", "systemMessage": "Sensitive file"}' >&2
+    FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path')
+    if printf '%s' "$FILE_PATH" | grep -qE '\.(env|aws|pem|key)$'; then
+        printf '{"permissionDecision": "deny", "systemMessage": "Sensitive file"}\n' >&2
         exit 2
     fi
-    echo '{"permissionDecision": "allow"}'
+    printf '{"permissionDecision": "allow"}\n'
     exit 0
 }
 conditional_validate
@@ -259,7 +267,7 @@ conditional_validate
 
 User can toggle validation:
 
-```bash
+```sh
 touch .hook-validation-enabled      # Enable for this project
 rm .hook-validation-enabled         # Disable for this project
 # No session restart required
@@ -297,14 +305,17 @@ Example:
 
 Script:
 
-```bash
-#!/bin/bash
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Clean up session state and save logs.
+#
 # @return Removes temp files and archives logs.
 cleanup() {
     rm -f "${CLAUDE_PROJECT_DIR}/.hook-temp-*"
-    if [[ -d "${CLAUDE_PLUGIN_ROOT}/logs" ]]; then
+    if [ -d "${CLAUDE_PLUGIN_ROOT}/logs" ]; then
         tar -czf "${CLAUDE_PLUGIN_ROOT}/logs/session-$(date +%s).tar.gz" \
             "${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
         rm -f "${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
@@ -337,7 +348,7 @@ For `SessionEnd` hooks, timeouts are enforced at session close. Hook MUST comple
 
 Validate hook behavior with session restart:
 
-```bash
+```sh
 # 1. Edit hooks/hooks.json or hook scripts
 
 # 2. Exit current session

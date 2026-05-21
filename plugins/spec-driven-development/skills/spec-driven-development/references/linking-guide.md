@@ -56,7 +56,7 @@ When SPEC A references SPEC B:
 
    If callers of SPEC B are needed, they SHOULD be queried instead:
 
-    ```bash
+    ```sh
     "${SKILL_ROOT}/scripts/sdd.py" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
     ```
 
@@ -70,7 +70,7 @@ When deleting a spec, all links pointing to it MUST be removed from every refere
 
 To find those references, query inbound callers:
 
-```bash
+```sh
 "${SKILL_ROOT}/scripts/sdd.py" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
 ```
 
@@ -81,6 +81,7 @@ Relative paths from the current `SPEC.md` location MUST be used.
 These examples use canonical `spec/domain/...` paths for illustration.
 
 > [!NOTE]
+>
 > The examples below use canonical paths for clarity. They do not redefine canonical top-level SPEC structure policy.
 
 | Source | Target | Relative path in link |

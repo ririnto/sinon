@@ -1,6 +1,7 @@
 ---
 name: harness-implementation-agent
-description: Implement bounded target repository changes using installed harness contracts and execution plans. Use this agent when a scoped code, docs, template, generated-artifact, or harness-file change has clear acceptance criteria and validation commands.
+description: >-
+  Implement bounded target repository changes using installed harness contracts and execution plans. Use this agent when a scoped code, docs, template, generated-artifact, or harness-file change has clear acceptance criteria and validation commands.
 model: sonnet
 color: green
 ---

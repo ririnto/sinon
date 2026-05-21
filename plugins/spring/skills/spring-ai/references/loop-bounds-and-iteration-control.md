@@ -4,9 +4,9 @@ Open this reference when the ordinary path in [SKILL.md](../SKILL.md) is not eno
 
 ## Loop-bound blocker
 
-**Problem:** a multi-step agent loop can continue indefinitely without converging.
+Problem: a multi-step agent loop can continue indefinitely without converging.
 
-**Solution:** keep agent state explicit and enforce an iteration bound in application code.
+Solution: keep agent state explicit and enforce an iteration bound in application code.
 
 ```java
 @Service

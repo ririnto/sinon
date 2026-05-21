@@ -4,9 +4,9 @@ Open this reference when the ordinary listener path in [SKILL.md](../SKILL.md) i
 
 ## Async return blocker
 
-**Problem:** the listener must return asynchronously without blocking the consumer thread for the full downstream operation.
+Problem: the listener must return asynchronously without blocking the consumer thread for the full downstream operation.
 
-**Solution:** use an async return type deliberately and verify acknowledgment timing against the container policy.
+Solution: use an async return type deliberately and verify acknowledgment timing against the container policy.
 
 ```java
 @RabbitListener(queues = "orders")

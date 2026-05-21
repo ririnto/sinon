@@ -4,9 +4,9 @@ Open this reference when the common-path JSON payload listener in [SKILL.md](../
 
 ## Conversion blocker
 
-**Problem:** the listener does not receive the expected payload type, or producers and consumers do not agree on message shape.
+Problem: the listener does not receive the expected payload type, or producers and consumers do not agree on message shape.
 
-**Solution:** keep one converter strategy per contract and make the listener signature match that contract directly.
+Solution: keep one converter strategy per contract and make the listener signature match that contract directly.
 
 ```java
 @Bean
@@ -17,9 +17,9 @@ JacksonJsonMessageConverter jsonConverter() {
 
 ## Listener signature blocker
 
-**Problem:** the listener needs payload plus headers, raw `Message` access, or validation metadata.
+Problem: the listener needs payload plus headers, raw `Message` access, or validation metadata.
 
-**Solution:** add only the arguments the handler actually needs.
+Solution: add only the arguments the handler actually needs.
 
 ```java
 @RabbitListener(queues = "orders")
@@ -39,9 +39,9 @@ Use typed payload parameters for the ordinary path. Drop to raw `Message` only w
 
 ## Validation blocker
 
-**Problem:** messages deserialize but violate the business contract.
+Problem: messages deserialize but violate the business contract.
 
-**Solution:** validate immediately after conversion and fail fast before side effects.
+Solution: validate immediately after conversion and fail fast before side effects.
 
 - Validate required fields before delegating to application services.
 - Keep deserialization failure and business validation failure distinct in logs and retry handling.

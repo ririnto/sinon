@@ -16,7 +16,7 @@ logging.level.org.springframework.boot.autoconfigure=DEBUG
 
 Or start the application with:
 
-```bash
+```sh
 java -jar app.jar --debug
 ```
 

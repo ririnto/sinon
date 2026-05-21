@@ -91,7 +91,7 @@ Explicitly excluded:
 
 During local development, point Claude Code at the plugin root:
 
-```bash
+```sh
 claude --plugin-dir /absolute/path/to/agent-capability-kit
 ```
 

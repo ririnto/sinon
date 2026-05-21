@@ -1,6 +1,7 @@
 ---
 name: spring-credhub
-description: Integrate Spring applications with CredHub for credential reads, writes, generated passwords or certificates, interpolation, and mutual-TLS or OAuth2 authenticated client access. Use this skill when integrating a Spring application with CredHub for credential reads, writes, generated passwords or certificates, interpolation, and mutual-TLS or OAuth2 authenticated client access.
+description: >-
+  Integrate Spring applications with CredHub for credential reads, writes, generated passwords or certificates, interpolation, and mutual-TLS or OAuth2 authenticated client access. Use this skill when integrating a Spring application with CredHub for credential reads, writes, generated passwords or certificates, interpolation, and mutual-TLS or OAuth2 authenticated client access.
 metadata:
   title: "Spring CredHub"
   official-project-url: "https://spring.io/projects/spring-credhub"
@@ -58,11 +59,11 @@ Use the Spring CredHub starter for ordinary Boot-based integration.
 
 ### First safe commands
 
-```bash
+```sh
 ./mvnw test -Dtest=DatabaseCredentialServiceTests
 ```
 
-```bash
+```sh
 ./gradlew test --tests DatabaseCredentialServiceTests
 ```
 

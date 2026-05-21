@@ -13,7 +13,7 @@ Use this reference when the blocker is configuring GC logging for the next deplo
 
 Standard production GC log (recommended starting point):
 
-```bash
+```sh
 -Xlog:gc*:file=gc-%p-%t.log:uptime,level,tags:filecount=5,filesize=10M
 ```
 
@@ -31,19 +31,19 @@ Output fields explained:
 
 Pause-focused (for latency-sensitive workloads):
 
-```bash
+```sh
 -Xlog:gc+pause=debug:file=gc-pause.log:uptime,level:filecount=3,filesize=20M
 ```
 
 Heap-focused (for memory-pressure investigations):
 
-```bash
+```sh
 -Xlog:gc+heap=debug,gc+ref=debug:file=gc-heap.log:uptime,level:filecount=3,filesize=20M
 ```
 
 Full diagnostic (use temporarily, high volume):
 
-```bash
+```sh
 -Xlog:gc*=debug:file=gc-debug.log:uptime,level,tags:filecount=5,filesize=50M
 ```
 
@@ -77,19 +77,19 @@ Key fields to read from each event:
 | Phase | `Pause Young (Normal)` | Type of collection phase |
 | User time | `User=0.01s` | CPU time spent in user space |
 | System time | `Sys=0.00s` | CPU time spent in kernel space |
-| Real time | `Real=0.00s` | Wall-clock pause duration (**this is the pause metric**) |
+| Real time | `Real=0.00s` | Wall-clock pause duration (this is the pause metric) |
 
 ### Inspecting Active Logging at Runtime
 
 List currently configured log outputs:
 
-```bash
+```sh
 jcmd <pid> VM.log list
 ```
 
 Add a GC log output dynamically (JDK 9+):
 
-```bash
+```sh
 jcmd <pid> VM.log output=/path/to/gc-dynamic.log what="gc*=info"
 ```
 
@@ -106,7 +106,7 @@ Sample `VM.log list` output:
 
 Standard JDK 8 GC logging flags:
 
-```bash
+```sh
 -verbose:gc
 -XX:+PrintGCDetails
 -XX:+PrintGCTimeStamps

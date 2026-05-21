@@ -45,7 +45,7 @@ Use when: you need a minimal valid dashboard shell to validate JSON syntax befor
 
 Start by validating the JSON structure before the file is treated as a Git-owned dashboard asset:
 
-```bash
+```sh
 uv run -m json.tool grafana/dashboards/api-overview.json
 ```
 
@@ -518,7 +518,7 @@ For percentage mode (requires explicit `min`/`max` on the field), see [`./refere
 
 ### Overrides System
 
-Overrides let you apply different visual settings to specific fields or series within the same panel. An override consists of **matchers** (which fields to target) and **properties** (what to change).
+Overrides let you apply different visual settings to specific fields or series within the same panel. An override consists of matchers (which fields to target) and properties (what to change).
 
 ```json
 {
@@ -542,7 +542,7 @@ For all 5 matcher types (`byName`, `byRegexp`, `byType`, `byFrameRefID`, `byValu
 
 Map raw values to displayed text/colors without changing the underlying data.
 
-**Value mapping** (most common): exact match on specific values.
+Value mapping (most common): exact match on specific values.
 
 ```json
 {

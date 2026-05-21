@@ -4,9 +4,9 @@ Open this reference when the ordinary path in [SKILL.md](../SKILL.md) is not eno
 
 ## Chain workflow blocker
 
-**Problem:** the output of one model step must become the controlled input to the next step.
+Problem: the output of one model step must become the controlled input to the next step.
 
-**Solution:** keep the chain explicit in application code instead of asking one prompt to invent the whole process.
+Solution: keep the chain explicit in application code instead of asking one prompt to invent the whole process.
 
 ```java
 @Service

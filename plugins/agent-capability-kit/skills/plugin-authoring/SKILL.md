@@ -1,6 +1,7 @@
 ---
 name: plugin-authoring
-description: Create or refactor a Claude Code plugin root with a manifest, README, and only the runtime components the plugin actually uses. Use this skill when authoring or reorganizing a Claude Code plugin root offline.
+description: >-
+  Create or refactor a Claude Code plugin root with a manifest, README, and only the runtime components the plugin actually uses. Use this skill when authoring or reorganizing a Claude Code plugin root offline.
 ---
 
 # Plugin Authoring
@@ -180,13 +181,13 @@ Never treat `${CLAUDE_PLUGIN_ROOT}` as a writable data directory. Open `referenc
 
 Use this command first when checking a real plugin root:
 
-```bash
+```sh
 uv run -m json.tool .claude-plugin/plugin.json
 ```
 
 The command above validates JSON syntax offline. For runtime validation with a live Claude Code installation, use:
 
-```bash
+```sh
 claude --plugin-dir /absolute/path/to/your-plugin
 ```
 

@@ -1,6 +1,7 @@
 ---
 name: harness-orchestrator
-description: Coordinate target repository work from context gathering through implementation, review, and validation. Use this agent when a task needs sequencing across AGENTS.md, ARCHITECTURE.md, docs, target agents, target skills, and harness validation.
+description: >-
+  Coordinate target repository work from context gathering through implementation, review, and validation. Use this agent when a task needs sequencing across AGENTS.md, ARCHITECTURE.md, docs, target agents, target skills, and harness validation.
 model: sonnet
 color: blue
 ---

@@ -31,15 +31,17 @@ Multi-agent swarms need a coordinator process that tracks progress and distribut
 
 Coordinator runs in tmux session, receives messages from agents:
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Start coordinator session for multi-agent swarm.
+#
 # @param swarm_name Name of swarm (used as tmux session name).
 # @return Creates tmux session and starts listening loop.
 start_coordinator() {
-    local swarm_name="$1"
+    swarm_name="$1"
     tmux new-session -d -s "$swarm_name" -c "$(pwd)"
     tmux send-keys -t "$swarm_name" "while read msg; do echo \"[$(date)] \$msg\"; done" Enter
     echo "Coordinator '$swarm_name' ready"
@@ -48,15 +50,16 @@ start_coordinator() {
 
 Agents send messages to coordinator:
 
-```bash
+```sh
 #!/bin/bash
 
 # Validate coordinator session name for safety.
+#
 # @param session_name Tmux session identifier.
 # @return Exits 0 if valid (alphanumeric, hyphen, underscore); exits 1 otherwise.
 validate_session_name() {
-    local session_name="$1"
-    if [[ ! "$session_name" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+    session_name="$1"
+    if ! printf '%s' "$session_name" | grep -qE '^[a-zA-Z0-9_-]+$'; then
         echo "Error: invalid session name '$session_name'" >&2
         return 1
     fi
@@ -64,18 +67,18 @@ validate_session_name() {
 }
 
 # Report task completion to coordinator.
+#
 # @param coordinator_session Tmux session name (validated).
 # @param task_number Task identifier.
 # @param status Completion status.
 # @return Sends message to coordinator via tmux.
 report_to_coordinator() {
-    local coordinator_session="$1"
-    local task_number="$2"
-    local status="$3"
+    coordinator_session="$1"
+    task_number="$2"
+    status="$3"
     if ! validate_session_name "$coordinator_session"; then
         return 1
     fi
-    local safe_status
     safe_status=$(printf '%q' "$status")
     tmux send-keys -t "$coordinator_session" "Agent $HOSTNAME completed task $task_number: $safe_status" Enter
 }
@@ -85,22 +88,23 @@ report_to_coordinator() {
 
 Coordinator watches a shared directory for status files:
 
-```bash
+```sh
 #!/bin/bash
 
 # Write agent status to coordinator file.
+#
 # @param task_dir Shared directory for status files.
 # @param agent_name Name of this agent.
 # @param task_number Task identifier.
 # @param status Status message.
 # @return Creates status file in shared directory.
 write_status() {
-    local task_dir="$1"
-    local agent_name="$2"
-    local task_number="$3"
-    local status="$4"
+    task_dir="$1"
+    agent_name="$2"
+    task_number="$3"
+    status="$4"
     mkdir -p "$task_dir"
-    local status_file="${task_dir}/${agent_name}.${task_number}.status"
+    status_file="${task_dir}/${agent_name}.${task_number}.status"
     {
         echo "agent=$agent_name"
         echo "task=$task_number"
@@ -112,7 +116,7 @@ write_status() {
 
 Coordinator polls directory:
 
-```bash
+```sh
 watch -n 2 "ls -la /tmp/swarm-status/"
 ```
 
@@ -157,39 +161,37 @@ Fields:
 
 ### Hook reads settings and reports progress
 
+Bash is required for this example to use `printf %q` for safe quoting. For POSIX sh, use single-quote escaping or double-quote variables.
+
 ```bash
-#!/bin/bash
-set -euo pipefail
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -e
 
 # Report task progress to coordinator when tool completes.
+#
 # @param local_md Path to plugin state file.
 # @return Sends progress update to coordinator session.
 report_tool_completion() {
-    local local_md="$1"
-    if [[ ! -f "$local_md" ]]; then
+    local_md="$1"
+    if [ ! -f "$local_md" ]; then
         return 0
     fi
-    local fm
     fm=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$local_md")
-    local agent_name
     agent_name=$(echo "$fm" | grep '^agent_name:' | sed 's/agent_name: *//')
-    local task_number
     task_number=$(echo "$fm" | grep '^task_number:' | sed 's/task_number: *//')
-    local coordinator
     coordinator=$(echo "$fm" | grep '^coordinator_session:' | sed 's/coordinator_session: *//')
-    if [[ -z "$agent_name" ]] || [[ -z "$coordinator" ]]; then
+    if [ -z "$agent_name" ] || [ -z "$coordinator" ]; then
         return 0
     fi
     if ! validate_session_name "$coordinator"; then
         return 1
     fi
-    if [[ ! "$agent_name" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+    if ! printf '%s' "$agent_name" | grep -qE '^[a-zA-Z0-9_-]+$'; then
         echo "Error: invalid agent name '$agent_name'" >&2
         return 1
     fi
-    local safe_agent
     safe_agent=$(printf '%q' "$agent_name")
-    local safe_task
     safe_task=$(printf '%q' "$task_number")
     tmux send-keys -t "$coordinator" "UPDATE: agent=$safe_agent task=$safe_task status=working" Enter
 }
@@ -214,30 +216,28 @@ Hook checks if dependencies are complete:
 #!/bin/bash
 
 # Block work until prerequisite tasks complete.
+#
 # @param task_dir Directory containing status files.
 # @param dependencies Space-separated list of required tasks.
 # @return Exits 2 if any dependency incomplete; exits 0 otherwise.
 check_dependencies() {
-    local task_dir="$1"
+    task_dir="$1"
     shift
-    local dependencies=("$@")
-    for dep_task in "${dependencies[@]}"; do
-        local dep_status
-        dep_status=$(ls "$task_dir"/*.${dep_task}.status 2>/dev/null || echo "")
-        if [[ -z "$dep_status" ]]; then
+    for dep_task; do
+        dep_status=$(ls "$task_dir"/*.${dep_task}.status || echo "")
+        if [ -z "$dep_status" ]; then
             echo "Error: prerequisite task $dep_task not started" >&2
             return 2
         fi
-        local status
         status=$(grep '^status=' "$dep_status" | sed 's/^status=//')
-        if [[ "$status" != "complete" ]]; then
+        if [ "$status" != "complete" ]; then
             echo "Error: prerequisite task $dep_task not complete (status=$status)" >&2
             return 2
         fi
     done
     return 0
 }
-```
+``` 
 
 ## Real-world example: multi-agent swarm
 
@@ -245,7 +245,7 @@ Three agents working on interconnected tasks:
 
 ### Agent 1: Database schema agent (task 1)
 
-**.claude/db-agent.local.md:**
+`.claude/db-agent.local.md:`
 
 ```markdown
 ---
@@ -263,7 +263,7 @@ Create schema for user, token, and session tables.
 
 ### Agent 2: Auth service agent (task 2, depends on task 1)
 
-**.claude/auth-agent.local.md:**
+`.claude/auth-agent.local.md:`
 
 ```markdown
 ---
@@ -281,7 +281,7 @@ Requires task 1 schema to be complete.
 
 ### Agent 3: API gateway agent (task 3, depends on task 2)
 
-**.claude/gateway-agent.local.md:**
+`.claude/gateway-agent.local.md:`
 
 ```markdown
 ---
@@ -299,43 +299,43 @@ Integrate auth service from task 2.
 
 ### Hook: conditional execution on dependencies
 
+This example uses bash for robustness. For strict POSIX sh, replace `find` with globbing and avoid while-pipe subshells.
+
 ```bash
-#!/bin/bash
-set -euo pipefail
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -e
 
 # Check dependencies and allow task to proceed.
+#
 # @param local_md Path to agent state file.
 # @param status_dir Directory with status files from other agents.
 # @return Exits 0 if ready; exits 2 if blocked by dependency.
 conditional_start() {
-    local local_md="$1"
-    local status_dir="$2"
-    if [[ ! -f "$local_md" ]]; then
+    local_md="$1"
+    status_dir="$2"
+    if [ ! -f "$local_md" ]; then
         exit 0
     fi
-    local fm
     fm=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$local_md")
-    local deps_line
     deps_line=$(echo "$fm" | grep '^dependencies:' | sed 's/dependencies: *//')
-    if [[ -z "$deps_line" ]]; then
+    if [ -z "$deps_line" ]; then
         exit 0
     fi
-    local deps
     deps=$(echo "$deps_line" | sed 's/\[//;s/\]//' | tr ',' '\n' | sed 's/^ *"//' | sed 's/"$ *//')
     for dep in $deps; do
-        local status_file="${status_dir}/*.${dep}.status"
-        if ! ls $status_file 2>/dev/null | head -1 >/dev/null; then
-            echo '{"continue": false, "systemMessage": "Waiting for task '\"$dep\"' to complete"}' >&2
-            exit 2
+        status_files=$(find "$status_dir" -name "*.$dep.status" 2>/dev/null || true)
+        if [ -z "$status_files" ]; then
+            echo '{"continue": false, "systemMessage": "Waiting for task '"$dep"' to complete"}' >&2
+            return 2
         fi
-        local status
-        status=$(grep '^status=' $(ls $status_file | head -1) | sed 's/^status=//')
-        if [[ "$status" != "complete" ]]; then
-            echo '{"continue": false, "systemMessage": "Task '\"$dep\"' not complete (status='\"$status\"')"}' >&2
-            exit 2
+        status=$(grep '^status=' "$(echo "$status_files" | head -1)" | sed 's/^status=//')
+        if [ "$status" != "complete" ]; then
+            echo '{"continue": false, "systemMessage": "Task '"$dep"' not complete (status='"$status"')"}' >&2
+            return 2
         fi
     done
-    exit 0
+    return 0
 }
 ```
 
@@ -345,29 +345,29 @@ conditional_start() {
 
 All agents write state to `.claude/swarm-state/`:
 
-```bash
+```sh
 mkdir -p .claude/swarm-state
 
 # Agent 1 writes schema info
 echo "task_1_schema_version=1" > .claude/swarm-state/task-1.state
 
 # Agent 2 reads schema info
-source .claude/swarm-state/task-1.state
+. ./.claude/swarm-state/task-1.state
 ```
 
 ### Pattern 2: Completion notifications
 
 Agent writes "complete" file when done:
 
-```bash
+```sh
 # Agent 1 at end of task
 echo "task_1_completed_at=$(date +%s)" > .claude/swarm-state/task-1.complete
 ```
 
 Agent 2 waits for file:
 
-```bash
-while [[ ! -f .claude/swarm-state/task-1.complete ]]; do
+```sh
+while [ ! -f .claude/swarm-state/task-1.complete ]; do
     sleep 2
 done
 ```
@@ -387,7 +387,8 @@ generated_files:
 
 Agent 2 reads:
 
-```bash
+```sh
+# shellcheck disable=SC2034
 OUTPUT_FORMAT=$(grep '^output_format:' ".claude/db-agent.local.md" | sed 's/output_format: *//')
 ```
 
@@ -419,16 +420,17 @@ Three parallel sessions coordinated by backend-leader.
 
 Coordinator polls all sessions:
 
-```bash
+```sh
 #!/bin/bash
 
 # Aggregate status from multiple agent sessions.
+#
 # @return Outputs combined status across all sessions.
 aggregate_status() {
-    local agent_md=".claude/backend-team.local.md"
+    agent_md=".claude/backend-team.local.md"
     sessions=$(grep -A 20 '^sessions:' "$agent_md" | grep 'session_id:' | awk '{print $2}')
     for session in $sessions; do
-        local status
+        status
         status=$(tmux capture-pane -t "$session" -p | tail -1)
         echo "$session: $status"
     done
@@ -439,7 +441,7 @@ aggregate_status() {
 
 Simulate multi-agent swarm locally:
 
-```bash
+```sh
 # Start coordinator
 tmux new-session -d -s coordinator "while true; do sleep 1; done"
 

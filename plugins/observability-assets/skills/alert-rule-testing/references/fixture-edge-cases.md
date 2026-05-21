@@ -1,6 +1,7 @@
 ---
 title: Alert Rule Fixture Edge Cases
-description: "Open this when stale samples, missing samples, native histogram fixtures, or series-not-in-input edge cases are the blocker."
+description: >-
+  Open this when stale samples, missing samples, native histogram fixtures, or series-not-in-input edge cases are the blocker.
 ---
 
 Use this reference when ordinary counter or gauge sequences are no longer enough to express the behavior under test.

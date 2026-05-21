@@ -6,9 +6,9 @@ Keep the ordinary path in [SKILL.md](../SKILL.md). Use this file only when retri
 
 ## ETL and document ingestion blocker
 
-**Problem:** Spring AI `Document` ingestion fails silently or produces poor retrieval results downstream.
+Problem: Spring AI `Document` ingestion fails silently or produces poor retrieval results downstream.
 
-**Solution:** Always control the reader, transformer, and writer chain explicitly.
+Solution: Always control the reader, transformer, and writer chain explicitly.
 
 ```java
 PagePdfDocumentReader pdfReader = new PagePdfDocumentReader("classpath:/docs/reference.pdf");
@@ -23,9 +23,9 @@ Use Spring `Resource` inputs for static content and keep the reader choice expli
 
 ## Chunking strategy blocker
 
-**Problem:** Chunks are either too large (low precision) or too small (missing context and coherence).
+Problem: Chunks are either too large (low precision) or too small (missing context and coherence).
 
-**Solution:** Start with `TokenTextSplitter` and tune chunk size, minimum chunk size, and punctuation handling against representative retrieval queries.
+Solution: Start with `TokenTextSplitter` and tune chunk size, minimum chunk size, and punctuation handling against representative retrieval queries.
 
 | Strategy | Good for | Risk |
 | --- | --- | --- |
@@ -41,9 +41,9 @@ Verify retrieval quality with a representative question set before shipping. Do 
 
 ## Embedding model blocker
 
-**Problem:** Embeddings do not match the retrieval expectation or are slow to generate at scale.
+Problem: Embeddings do not match the retrieval expectation or are slow to generate at scale.
 
-**Solution:** Separate embedding generation from ingestion and align the model family with the vector store.
+Solution: Separate embedding generation from ingestion and align the model family with the vector store.
 
 ```java
 @Bean
@@ -61,9 +61,9 @@ Use `EmbeddingModel` interface so the embedding source can be swapped without ch
 
 ## Vector store selection blocker
 
-**Problem:** The chosen vector store does not fit the deployment environment or retrieval latency target.
+Problem: The chosen vector store does not fit the deployment environment or retrieval latency target.
 
-**Solution:** Match store characteristics to the deployment constraint.
+Solution: Match store characteristics to the deployment constraint.
 
 | Store | Best when | Limitation |
 | --- | --- | --- |
@@ -84,9 +84,9 @@ Prefer stores that align with existing infrastructure first. Treat in-memory sto
 
 ## Metadata filtering blocker
 
-**Problem:** Similarity search returns too many irrelevant results because no pre-filter is applied.
+Problem: Similarity search returns too many irrelevant results because no pre-filter is applied.
 
-**Solution:** Use `FilterExpression` at retrieval time to scope by document metadata.
+Solution: Use `FilterExpression` at retrieval time to scope by document metadata.
 
 ```java
 SearchRequest request = SearchRequest.builder()
@@ -100,9 +100,9 @@ Attach metadata during ingestion and keep it stable across re-indexing. When fil
 
 ## Retrieval tuning blocker
 
-**Problem:** `similaritySearch` returns wrong documents or the same documents regardless of query.
+Problem: `similaritySearch` returns wrong documents or the same documents regardless of query.
 
-**Solution:** Tune `topK` and `similarityThreshold` together and verify with a closed test set.
+Solution: Tune `topK` and `similarityThreshold` together and verify with a closed test set.
 
 ```java
 SearchRequest request = SearchRequest.builder().query(question).topK(5).similarityThreshold(0.72).build();
@@ -114,9 +114,9 @@ SearchRequest request = SearchRequest.builder().query(question).topK(5).similari
 
 ## RAG assembly blocker
 
-**Problem:** Retrieved documents are injected into the prompt without organization or deduplication, causing confusing or contradictory answers.
+Problem: Retrieved documents are injected into the prompt without organization or deduplication, causing confusing or contradictory answers.
 
-**Solution:** Separate retrieval, filtering, ordering, and prompt assembly.
+Solution: Separate retrieval, filtering, ordering, and prompt assembly.
 
 ```java
 List<Document> docs = vectorStore.similaritySearch(request);

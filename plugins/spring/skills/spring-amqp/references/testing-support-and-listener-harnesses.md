@@ -4,9 +4,9 @@ Open this reference when the minimal delivery test in [SKILL.md](../SKILL.md) is
 
 ## Fast listener harness
 
-**Problem:** the module needs fast feedback on listener behavior without manually driving a real broker for every check.
+Problem: the module needs fast feedback on listener behavior without manually driving a real broker for every check.
 
-**Solution:** use Spring Rabbit test support and keep assertions focused on delivery contract, conversion, and delegation.
+Solution: use Spring Rabbit test support and keep assertions focused on delivery contract, conversion, and delegation.
 
 ```java
 @SpringRabbitTest
@@ -18,9 +18,9 @@ Assert payload shape and the selected headers that the listener contract actuall
 
 ## Broker-backed routing verification
 
-**Problem:** unit-level harnesses are not enough because queue, exchange, retry, or DLQ wiring must be proven end to end.
+Problem: unit-level harnesses are not enough because queue, exchange, retry, or DLQ wiring must be proven end to end.
 
-**Solution:** run a broker-backed integration test and assert routing and failure outcomes explicitly.
+Solution: run a broker-backed integration test and assert routing and failure outcomes explicitly.
 
 ```java
 @SpringBootTest

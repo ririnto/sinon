@@ -4,13 +4,13 @@ Open this reference when container rebuild speed depends on jar layers.
 
 ## Inspect layers
 
-```bash
+```sh
 java -Djarmode=tools -jar app.jar list-layers
 ```
 
 ## Extract layers
 
-```bash
+```sh
 java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 ```
 

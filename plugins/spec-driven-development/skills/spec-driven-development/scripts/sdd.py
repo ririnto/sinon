@@ -317,24 +317,29 @@ RESEARCH_EXTERNAL_SUBJECT_NEGATIVE_PATTERN = re.compile(
 )
 
 # OpenAPI-specific patterns
-OPENAPI_SCHEMA_REF_RE = re.compile(
-    r"^#/components\/schemas\/(?P<name>[^/\s]+)$"
-)
+OPENAPI_SCHEMA_REF_RE = re.compile(r"^#/components\/schemas\/(?P<name>[^/\s]+)$")
 OPENAPI_REQUEST_BODY_REF_RE = re.compile(
     r"^#/components\/requestBodies\/(?P<name>[^/\s]+)$"
 )
-OPENAPI_RESPONSE_REF_RE = re.compile(
-    r"^#/components\/responses\/(?P<name>[^/\s]+)$"
-)
+OPENAPI_RESPONSE_REF_RE = re.compile(r"^#/components\/responses\/(?P<name>[^/\s]+)$")
 OPENAPI_ALL_OF_COMPOSITION_KEY = "allOf"
 OPENAPI_BRANCH_COMPOSITION_KEYS = ("oneOf", "anyOf")
 OPENAPI_STATUS_DEFAULT = "default"
 OPENAPI_STATUS_CODE_RE = re.compile(r"^[1-5]\d{2}$")
 OPENAPI_STATUS_RANGE_RE = re.compile(r"^[1-5]XX$")
 OPENAPI_NO_BODY_STATUS_CODES = frozenset([204, 205, 304])
-OPENAPI_HTTP_METHODS = frozenset([
-    "get", "put", "post", "delete", "options", "head", "patch", "trace",
-])
+OPENAPI_HTTP_METHODS = frozenset(
+    [
+        "get",
+        "put",
+        "post",
+        "delete",
+        "options",
+        "head",
+        "patch",
+        "trace",
+    ]
+)
 OPENAPI_FIELD_SCHEMA_COMPOSITION_KEYS = ("allOf", "oneOf", "anyOf", "not")
 
 # OpenAPI TODO detection patterns (same as validation module)
@@ -345,7 +350,9 @@ OPENAPI_TODO_COMMENT_PATTERNS = [
     re.compile(r"^[ \t]*#[ \t]*todo(?:\b|:)", re.IGNORECASE),
     re.compile(r"^[ \t]*--[ \t]*todo(?:\b|:)", re.IGNORECASE),
 ]
-OPENAPI_TEXT_TODO_MARKER_RE = re.compile(r"(?<![A-Za-z0-9_./#-])todo:(?!\/\/)", re.IGNORECASE)
+OPENAPI_TEXT_TODO_MARKER_RE = re.compile(
+    r"(?<![A-Za-z0-9_./#-])todo:(?!\/\/)", re.IGNORECASE
+)
 OPENAPI_PLACEHOLDER_RE = re.compile(r"\{\{[^}]+\}\}")
 OPENAPI_WHITESPACE_RE = re.compile(r"\s")
 OPENAPI_URL_WITH_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*://")
@@ -360,6 +367,7 @@ class FrontmatterBlock:
     :param end_line: One-based line number where the closing delimiter ends.
     :param yaml: Raw YAML content between the delimiters.
     """
+
     end_line: int
     yaml: str
 
@@ -371,6 +379,7 @@ class FileValidationResult:
     :param errors: List of validation error strings.
     :param passed: True when no errors were found.
     """
+
     errors: list[str]
     passed: bool
 
@@ -384,7 +393,6 @@ def is_frontmatter_delimiter(line: str) -> bool:
 
 def extract_markdown_body(text: str) -> str:
     """Extracts the Markdown body from text, removing YAML frontmatter.
-
     :param text: Raw Markdown text possibly containing frontmatter.
     :return: Markdown body with frontmatter removed.
     """
@@ -401,12 +409,11 @@ def extract_markdown_body(text: str) -> str:
             break
     if end_index == -1:
         return text
-    return "\n".join(lines[end_index + 1:])
+    return "\n".join(lines[end_index + 1 :])
 
 
 def escape_reg_exp(value: str) -> str:
     """Escapes special characters in a string for use in a regular expression.
-
     :param value: The string to escape.
     :return: The escaped string safe for use in regex patterns.
     """
@@ -415,7 +422,6 @@ def escape_reg_exp(value: str) -> str:
 
 def remove_fenced_code_blocks(text: str) -> str:
     """Removes fenced code blocks from Markdown text.
-
     :param text: Raw Markdown text.
     :return: Text with fenced code block contents removed.
     """
@@ -443,7 +449,6 @@ def remove_fenced_code_blocks(text: str) -> str:
 
 def extract_frontmatter_from_text(text: str) -> FrontmatterBlock | None:
     """Extracts the first YAML frontmatter block from Markdown text.
-
     :param text: Raw Markdown text.
     :return: FrontmatterBlock if found, None otherwise.
     """
@@ -470,7 +475,6 @@ def extract_frontmatter_from_text(text: str) -> FrontmatterBlock | None:
 
 def extract_frontmatter_from_file(file_path: str) -> FrontmatterBlock | None:
     """Reads a Markdown file and extracts its first YAML frontmatter block.
-
     :param file_path: Path to the Markdown file.
     :return: FrontmatterBlock if found, None otherwise.
     """
@@ -480,7 +484,6 @@ def extract_frontmatter_from_file(file_path: str) -> FrontmatterBlock | None:
 
 def parse_yaml_document(text: str) -> tuple[Any | None, str | None]:
     """Parses YAML text with the shared skill parser configuration.
-
     :param text: Raw YAML text.
     :return: Tuple of (parsed_data, error_message). error_message is None on success.
     """
@@ -493,7 +496,6 @@ def parse_yaml_document(text: str) -> tuple[Any | None, str | None]:
 
 def find_spec_root(input_path: str) -> str | None:
     """Finds the spec root directory by walking up from the given path.
-
     :param input_path: Starting directory or file path.
     :return: Path to the nearest directory named ``spec``, or None if not found.
     """
@@ -509,7 +511,6 @@ def find_spec_root(input_path: str) -> str | None:
 
 def resolve_validation_roots(spec_path: str) -> tuple[str, str] | None:
     """Resolves the validation roots for a given spec path.
-
     :param spec_path: The spec file or directory path.
     :return: Tuple of (specRoot, scanRoot) if found, None otherwise.
     """
@@ -525,12 +526,12 @@ def resolve_validation_roots(spec_path: str) -> tuple[str, str] | None:
 
 def collect_files_by_name(root: str, name: str) -> list[str]:
     """Recursively collects all files with a given name under a root directory.
-
     :param root: Root directory to search under.
     :param name: Exact filename to match.
     :return: Sorted list of absolute paths to matching files.
     """
     out: list[str] = []
+
     def walk(dir_path: str) -> None:
         entries = sorted(os.scandir(dir_path), key=lambda e: e.name)
         for entry in entries:
@@ -539,13 +540,13 @@ def collect_files_by_name(root: str, name: str) -> list[str]:
                 walk(full_path)
             elif entry.is_file() and entry.name == name:
                 out.append(str(Path(full_path).resolve()))
+
     walk(root)
     return out
 
 
 def list_by_basename(root: str, basename: str) -> list[str]:
     """Lists all files with a given basename under a root directory, sorted.
-
     :param root: Root directory to search under.
     :param basename: Basename (filename) to match.
     :return: Sorted list of absolute paths to matching files.
@@ -555,7 +556,6 @@ def list_by_basename(root: str, basename: str) -> list[str]:
 
 def find_unresolved_spec_scaffolding(text: str) -> list[str]:
     """Returns unresolved scaffold fingerprint lines in authored SPEC content.
-
     :param text: Raw SPEC Markdown text.
     :return: List of up to 3 unique unresolved scaffold instruction lines.
     """
@@ -585,8 +585,10 @@ def validate_frontmatter_links(
     :param spec_root: Spec root directory, or ``None`` to auto-detect.
     :return: List of error strings (empty when valid).
     """
+
     def has_own_linking(value: object, key: str) -> bool:
         return isinstance(value, dict) and key in value
+
     def extract_frontmatter_call_link(raw: object) -> str:
         if isinstance(raw, str):
             return raw.strip()
@@ -595,7 +597,10 @@ def validate_frontmatter_links(
             if isinstance(path_value, str):
                 return path_value.strip()
         return ""
-    def validate_frontmatter_link_target(link: str, link_target: str, effective_spec_root: str | None) -> str | None:
+
+    def validate_frontmatter_link_target(
+        link: str, link_target: str, effective_spec_root: str | None
+    ) -> str | None:
         if RELATIVE_LINK_SCHEME_RE.match(link_target):
             return (
                 f"FAIL [{file_path}]: Frontmatter link must be a relative path"
@@ -608,8 +613,7 @@ def validate_frontmatter_links(
             )
         if os.path.isabs(link_target) or WINDOWS_ABSOLUTE_PATH_RE.match(link_target):
             return (
-                f"FAIL [{file_path}]: Frontmatter link must be a relative path:"
-                f" {link}"
+                f"FAIL [{file_path}]: Frontmatter link must be a relative path: {link}"
             )
         resolved_target = str(
             Path(os.path.dirname(file_path)).joinpath(link_target).resolve()
@@ -622,19 +626,15 @@ def validate_frontmatter_links(
                     f" {link}"
                 )
         if not os.path.exists(resolved_target):
-            return (
-                f"FAIL [{file_path}]: Frontmatter link target not found: {link}"
-            )
+            return f"FAIL [{file_path}]: Frontmatter link target not found: {link}"
         if not os.path.isfile(resolved_target):
-            return (
-                f"FAIL [{file_path}]: Frontmatter link target is not a file: {link}"
-            )
+            return f"FAIL [{file_path}]: Frontmatter link target is not a file: {link}"
         if os.path.basename(resolved_target) != "SPEC.md":
             return (
-                f"FAIL [{file_path}]: Frontmatter link target must be SPEC.md:"
-                f" {link}"
+                f"FAIL [{file_path}]: Frontmatter link target must be SPEC.md: {link}"
             )
         return None
+
     if not has_own_linking(frontmatter, "call"):
         return [
             "FAIL [{}]: Frontmatter must include 'call'"
@@ -668,11 +668,9 @@ def validate_no_reverse_direction_points(
     text: str,
 ) -> list[str]:
     """Validate that reverse-direction link sections and bullets are absent.
-
     Scans text outside of fenced code blocks for headings such as
     ``## Called By`` or bullet items like ``- Called By: ...``, reporting up to
     three bullet violations before stopping.
-
     :param file_path: Absolute path of the file being validated.
     :param text: Full Markdown text of the file.
     :return: List of error strings (empty when valid).
@@ -682,14 +680,16 @@ def validate_no_reverse_direction_points(
     heading_match = REVERSE_LINKS_HEADING_RE.search(non_fenced_text)
     if heading_match:
         errors.append(
-            "FAIL [{}]: Reverse-direction link sections are prohibited:"
-            " {}".format(file_path, heading_match.group(0).strip())
+            "FAIL [{}]: Reverse-direction link sections are prohibited: {}".format(
+                file_path, heading_match.group(0).strip()
+            )
         )
     bullet_hits = 0
     for match in REVERSE_LINKS_BULLET_RE.finditer(non_fenced_text):
         errors.append(
-            "FAIL [{}]: Reverse-direction points are prohibited:"
-            " {}".format(file_path, match.group(0).strip())
+            "FAIL [{}]: Reverse-direction points are prohibited: {}".format(
+                file_path, match.group(0).strip()
+            )
         )
         bullet_hits += 1
         if bullet_hits >= MAX_BULLET_HITS:
@@ -702,10 +702,8 @@ def validate_deprecated_link_sections(
     text: str,
 ) -> list[str]:
     """Validate that deprecated link-maintenance sections are absent.
-
     Scans text outside of fenced code blocks for headings matching
     ``## Link Maintenance`` or its deprecated variants.
-
     :param file_path: Absolute path of the file being validated.
     :param text: Full Markdown text of the file.
     :return: List of error strings (empty when valid).
@@ -715,15 +713,15 @@ def validate_deprecated_link_sections(
     heading_match = DEPRECATED_LINK_MAINTENANCE_HEADING_RE.search(non_fenced_text)
     if heading_match:
         errors.append(
-            "FAIL [{}]: Deprecated link-maintenance section is prohibited:"
-            " {}".format(file_path, heading_match.group(0).strip())
+            "FAIL [{}]: Deprecated link-maintenance section is prohibited: {}".format(
+                file_path, heading_match.group(0).strip()
+            )
         )
     return errors
 
 
 def to_posix_path_for_validation(input_path: str) -> str:
     """Convert a filesystem path to POSIX-style forward-slash separators.
-
     :param input_path: Path string using platform-specific separators.
     :return: The same path with all separators normalized to ``/``.
     """
@@ -732,10 +730,8 @@ def to_posix_path_for_validation(input_path: str) -> str:
 
 def has_changelog_entry_heading(text: str) -> bool:
     """Check whether a changelog text contains at least one dated entry heading.
-
     Strips frontmatter and fenced code blocks before testing for the
     ``## YYYY-MM-DD - ...`` pattern.
-
     :param text: Raw Markdown text of the changelog file.
     :return: True when at least one dated entry heading is found.
     """
@@ -748,10 +744,8 @@ def validate_changelog_entry_order(
     text: str,
 ) -> list[str]:
     """Validate that changelog entries are ordered with the latest dates first.
-
     Extracts all ``## YYYY-MM-DD - ...`` headings from the body and confirms
     each successive date is not later than its predecessor.
-
     :param file_path: Absolute path of the changelog file.
     :param text: Raw Markdown text of the changelog file.
     :return: List of error strings (empty when dates are correctly ordered).
@@ -781,10 +775,8 @@ def validate_changelog_layout(
     spec_root: str,
 ) -> tuple[str | None, list[str]]:
     """Validate changelog layout constraints under a spec root directory.
-
     Checks that exactly one ``CHANGELOG.md`` exists at the spec root and that
     no other ``CHANGELOG.md`` files appear elsewhere under the spec tree.
-
     :param spec_root: Absolute path to the spec root directory.
     :return: Tuple of (root_changelog_path_or_None, error_list).
     """
@@ -792,10 +784,7 @@ def validate_changelog_layout(
     root_changelog = os.path.join(spec_root, "CHANGELOG.md")
     root_file: str | None
     if not os.path.exists(root_changelog):
-        errors.append(
-            "FAIL: Missing required root changelog file:"
-            f" {root_changelog}"
-        )
+        errors.append(f"FAIL: Missing required root changelog file: {root_changelog}")
         root_file = None
     elif os.path.isfile(root_changelog):
         root_file = root_changelog
@@ -837,20 +826,16 @@ def collect_contract_unit_order_errors(
         unit_name = (late_unit.group("unit_name") or "").strip()
         unit_label = unit_name or "(unnamed unit)"
         errors.append(
-            'FAIL [{}]: CONTRACT.md unit {} appears after'
+            "FAIL [{}]: CONTRACT.md unit {} appears after"
             " `## Examples by Unit and Scenario`".format(
                 contract_file, repr(unit_label)
             )
         )
-    filtered_units = [
-        m for m in unit_matches if m.start() <= examples_start
-    ]
+    filtered_units = [m for m in unit_matches if m.start() <= examples_start]
     if not filtered_units:
         errors.append(
             "FAIL [{}]: CONTRACT.md must define at least one `### Unit: ...`"
-            " section before `## Examples by Unit and Scenario`".format(
-                contract_file
-            )
+            " section before `## Examples by Unit and Scenario`".format(contract_file)
         )
     return (filtered_units, errors)
 
@@ -875,14 +860,13 @@ def collect_contract_unit_subsection_errors(
             else unit_block_limit
         )
         unit_block = non_fenced_body[
-            unit_match.start()
-            + len(unit_match.group(0)) : next_unit_start
+            unit_match.start() + len(unit_match.group(0)) : next_unit_start
         ]
         unit_label = label_contract_unit(unit_match, index)
         for section_name, section_pattern in CONTRACT_UNIT_REQUIRED_SUBSECTIONS:
             if not section_pattern.search(unit_block):
                 errors.append(
-                    'FAIL [{}]: CONTRACT.md unit {} must include'
+                    "FAIL [{}]: CONTRACT.md unit {} must include"
                     " `#### {}` (unit-specific suffixes are allowed)".format(
                         contract_file, repr(unit_label), section_name
                     )
@@ -907,8 +891,7 @@ def validate_contract_examples_section(
             " `## Examples by Unit and Scenario` section".format(contract_file)
         ]
     examples_block = non_fenced_body[
-        examples_match.start()
-        + len(examples_match.group(0)) :
+        examples_match.start() + len(examples_match.group(0)) :
     ]
     if CONTRACT_EXAMPLE_CASE_RE.search(examples_block):
         return []
@@ -923,9 +906,7 @@ def validate_contract_units_structure(
     text: str,
 ) -> list[str]:
     """Validate CONTRACT.md unit structure and examples section layout.
-
     Performs the following checks on the provided Markdown body:
-
     - Presence of a ``## Contract Units`` heading.
     - At least one ``### Unit: <name>`` section.
     - No unit sections appearing after ``## Examples by Unit and Scenario``.
@@ -934,10 +915,8 @@ def validate_contract_units_structure(
       Scenario Mapping).
     - An ``## Examples by Unit and Scenario`` section exists with at least
       one ``### <Example ID>: <Unit> / <Scenario>`` case.
-
     Frontmatter should already be stripped from *text* before calling this
     function.
-
     :param contract_file: Absolute path of the CONTRACT file being validated.
     :param text: Markdown body of the file (frontmatter already removed).
     :return: List of validation error strings (empty when fully valid).
@@ -948,8 +927,9 @@ def validate_contract_units_structure(
     examples_start = examples_match.start() if examples_match else -1
     if not CONTRACT_UNITS_SECTION_RE.search(non_fenced_body):
         errors.append(
-            "FAIL [{}]: CONTRACT.md must include a"
-            " `## Contract Units` section".format(contract_file)
+            "FAIL [{}]: CONTRACT.md must include a `## Contract Units` section".format(
+                contract_file
+            )
         )
     unit_matches = list(CONTRACT_UNIT_SECTION_RE.finditer(non_fenced_body))
     if not unit_matches:
@@ -967,9 +947,7 @@ def validate_contract_units_structure(
         else:
             unit_matches_for_structure = unit_matches
         unit_block_limit = (
-            examples_start
-            if examples_match is not None
-            else len(non_fenced_body)
+            examples_start if examples_match is not None else len(non_fenced_body)
         )
         errors.extend(
             collect_contract_unit_subsection_errors(
@@ -989,12 +967,10 @@ def validate_contract_units_structure(
 
 def validate_research_location(file_path: str) -> tuple[bool, str | None]:
     """Validates that a RESEARCH.md file resides under the required directory structure.
-
     The file must be located at
     ``spec/research/{framework|library|topic}/{name}/RESEARCH.md``
     relative to the repository root. Path resolution uses absolute paths
     converted to POSIX-style separators.
-
     :param file_path: Absolute or relative path to the RESEARCH.md file.
     :return: Tuple of (is_valid, error_message). error_message is None when valid.
     """
@@ -1007,7 +983,7 @@ def validate_research_location(file_path: str) -> tuple[bool, str | None]:
             f"FAIL [{file_path}]: RESEARCH.md must be under "
             "spec/research/{framework|library|topic}/{name}/RESEARCH.md",
         )
-    tail = resolved[marker_index + len(marker):]
+    tail = resolved[marker_index + len(marker) :]
     parts = [p for p in tail.split("/") if p]
     if len(parts) != 3:
         return (
@@ -1035,17 +1011,19 @@ def validate_research_subject_url(
     frontmatter: dict[str, Any],
 ) -> str | None:
     """Validates the ``subject.url`` field in RESEARCH frontmatter when present.
-
     If the frontmatter contains a ``subject`` object with a ``url`` field,
     this function validates that the URL is a well-formed URI.
     Absence of ``subject`` or ``subject.url`` is not an error.
-
     :param file_path: Path to the RESEARCH file for error messages.
     :param frontmatter: Parsed frontmatter dictionary.
     :return: An error message string, or None if validation passes or the field is absent.
     """
     subject = frontmatter.get("subject")
-    if not (subject is not None and isinstance(subject, dict) and not isinstance(subject, list)):
+    if not (
+        subject is not None
+        and isinstance(subject, dict)
+        and not isinstance(subject, list)
+    ):
         return None
     if "url" not in subject:
         return None
@@ -1126,7 +1104,7 @@ def validate_research_prose_segment(
         match = pattern.search(segment)
         if not match:
             continue
-        prefix = segment[:match.start()]
+        prefix = segment[: match.start()]
         if RESEARCH_BOUNDARY_NEGATION_RE.search(prefix):
             continue
         return push_bounded_error(
@@ -1151,9 +1129,7 @@ def validate_research_prose_boundaries(
         if not line or line.startswith("#"):
             continue
         segments = [
-            seg.strip()
-            for seg in SENTENCE_SEGMENT_SPLIT_RE.split(line)
-            if seg.strip()
+            seg.strip() for seg in SENTENCE_SEGMENT_SPLIT_RE.split(line) if seg.strip()
         ]
         for segment in segments:
             if validate_research_prose_segment(file_path, segment, errors):
@@ -1211,10 +1187,9 @@ def validate_research_subject_name_boundary(
         return
     if validate_research_frontmatter_field(file_path, "subject.name", text, errors):
         return
-    if (
-        RESEARCH_EXTERNAL_SUBJECT_NEGATIVE_PATTERN.search(text)
-        and not RESEARCH_SUBJECT_NAME_COMPOUND_EXEMPTION_RE.search(text)
-    ):
+    if RESEARCH_EXTERNAL_SUBJECT_NEGATIVE_PATTERN.search(
+        text
+    ) and not RESEARCH_SUBJECT_NAME_COMPOUND_EXEMPTION_RE.search(text):
         push_bounded_error(
             errors,
             f"FAIL [{file_path}]: RESEARCH.md frontmatter subject.name must identify "
@@ -1224,15 +1199,12 @@ def validate_research_subject_name_boundary(
 
 def validate_research_scope_boundaries(file_path: str, text: str) -> list[str]:
     """Validates RESEARCH body content against forbidden heading, label, and prose boundary patterns.
-
     This checks that the Markdown body (with fenced code blocks removed)
     does not contain headings or labels indicating project comparison,
     implementation/migration planning, task management, or repository audit
     scope. Prose segments are also scanned for these patterns with negation
     awareness so that sentences explicitly ruling out such scope are allowed.
-
     Validation stops after collecting up to 3 errors.
-
     :param file_path: Path to the RESEARCH file for error messages.
     :param text: Markdown body text with frontmatter already stripped.
     :return: List of error strings found during validation.
@@ -1268,25 +1240,28 @@ def validate_research_frontmatter_boundaries(
     frontmatter: dict[str, Any],
 ) -> list[str]:
     """Validates RESEARCH frontmatter fields against forbidden boundary patterns.
-
     Checks ``title``, ``description``, and ``subject.name`` fields for
     content that indicates project comparison, implementation planning,
     migration sequencing, or repository audit scope. Also validates that
     ``subject.name`` identifies an external subject rather than local
     repository context.
-
     Validation stops after collecting up to 3 errors.
-
     :param file_path: Path to the RESEARCH file for error messages.
     :param frontmatter: Parsed frontmatter dictionary.
     :return: List of error strings found during validation.
     """
     errors: list[str] = []
     for field in ("title", "description"):
-        if validate_research_frontmatter_field(file_path, field, frontmatter.get(field), errors):
+        if validate_research_frontmatter_field(
+            file_path, field, frontmatter.get(field), errors
+        ):
             return errors
     subject = frontmatter.get("subject")
-    if subject is not None and isinstance(subject, dict) and not isinstance(subject, list):
+    if (
+        subject is not None
+        and isinstance(subject, dict)
+        and not isinstance(subject, list)
+    ):
         subject_name = subject.get("name")
         if isinstance(subject_name, str):
             validate_research_subject_name_boundary(file_path, subject_name, errors)
@@ -1301,13 +1276,11 @@ def validate_research_positive_scope(
     frontmatter: dict[str, Any],
 ) -> list[str]:
     """Validates that the RESEARCH body references tokens from ``subject.name`` to maintain positive scope anchoring.
-
     When the frontmatter declares a ``subject.name``, this function checks
     that at least one token of length 4 or more from the normalized subject
     name appears in the body text (with fenced code blocks removed).
     This ensures the document stays anchored to its declared external
     investigation subject.
-
     :param file_path: Path to the RESEARCH file for error messages.
     :param text: Markdown body text with frontmatter already stripped.
     :param frontmatter: Parsed frontmatter dictionary.
@@ -1315,7 +1288,11 @@ def validate_research_positive_scope(
     """
     errors: list[str] = []
     subject = frontmatter.get("subject")
-    if not (subject is not None and isinstance(subject, dict) and not isinstance(subject, list)):
+    if not (
+        subject is not None
+        and isinstance(subject, dict)
+        and not isinstance(subject, list)
+    ):
         return errors
     subject_name = subject.get("name")
     if not isinstance(subject_name, str):
@@ -1425,7 +1402,9 @@ def openapi_has_unresolved_todo_marker(text: str) -> bool:
             if pattern.search(line):
                 return True
         for match in OPENAPI_TEXT_TODO_MARKER_RE.finditer(line):
-            if not openapi_is_url_or_query_todo_marker(line, match.start(), match.end()):
+            if not openapi_is_url_or_query_todo_marker(
+                line, match.start(), match.end()
+            ):
                 return True
     return False
 
@@ -1496,7 +1475,9 @@ def collect_request_all_of_chain(
                 [],
                 f"request schema {OPENAPI_ALL_OF_COMPOSITION_KEY}[{index}] must be an object",
             )
-        resolved_nested, nested_error = resolve_openapi_schema(nested_schema, openapi_doc)
+        resolved_nested, nested_error = resolve_openapi_schema(
+            nested_schema, openapi_doc
+        )
         if resolved_nested is None:
             return (
                 [],
@@ -1640,8 +1621,12 @@ def validate_request_schema_required_fields(
     # :param has_branch_composition: Whether the local chain contains oneOf/anyOf composition.
     # :return: An error message string, or None if validation passes.
     if len(required_fields) == 0:
-        return None if has_branch_composition else (
-            f"{branch_label} request schema must declare non-empty required fields"
+        return (
+            None
+            if has_branch_composition
+            else (
+                f"{branch_label} request schema must declare non-empty required fields"
+            )
         )
     if len(properties) == 0:
         return (
@@ -1749,8 +1734,10 @@ def validate_request_schema_branches(
             composition_value = schema_entry.get(composition_key)
             if composition_value is None:
                 continue
-            nested_schemas, composition_error = validate_request_schema_composition_value(
-                branch_label, composition_key, composition_value
+            nested_schemas, composition_error = (
+                validate_request_schema_composition_value(
+                    branch_label, composition_key, composition_value
+                )
             )
             if composition_error:
                 return composition_error
@@ -1858,13 +1845,20 @@ def resolve_openapi_component(
     components = openapi_doc.get("components")
     if not openapi_is_record(components):
         return (None, "components object is missing")
-    component_map = components.get(component_key) if isinstance(components, dict) else None
+    component_map = (
+        components.get(component_key) if isinstance(components, dict) else None
+    )
     if not openapi_is_record(component_map):
         return (None, f"components.{component_key} object is missing")
     component_name = match.group("name") or ""
-    resolved = component_map.get(component_name) if isinstance(component_map, dict) else None
+    resolved = (
+        component_map.get(component_name) if isinstance(component_map, dict) else None
+    )
     if not openapi_is_record(resolved):
-        return (None, f"components.{component_key}.{component_name} is missing or invalid")
+        return (
+            None,
+            f"components.{component_key}.{component_name} is missing or invalid",
+        )
     return (resolved, None)
 
 
@@ -1900,13 +1894,17 @@ def openapi_response_allows_no_body(method: str, status_code: Any) -> bool:
     if normalized_method == "head":
         return True
     if isinstance(status_code, int):
-        return (100 <= status_code <= 199) or status_code in OPENAPI_NO_BODY_STATUS_CODES
+        return (
+            100 <= status_code <= 199
+        ) or status_code in OPENAPI_NO_BODY_STATUS_CODES
     if not isinstance(status_code, str):
         return False
     normalized_status = status_code.strip().upper()
     if OPENAPI_STATUS_CODE_RE.match(normalized_status):
         numeric_status = int(normalized_status)
-        return (100 <= numeric_status <= 199) or numeric_status in OPENAPI_NO_BODY_STATUS_CODES
+        return (
+            100 <= numeric_status <= 199
+        ) or numeric_status in OPENAPI_NO_BODY_STATUS_CODES
     if OPENAPI_STATUS_RANGE_RE.match(normalized_status):
         return normalized_status.startswith("1")
     return False
@@ -1973,7 +1971,11 @@ def validate_openapi_request_body(
         return [
             f"FAIL [{openapi_file}]: Invalid requestBody in {operation_label}: {request_body_error}"
         ]
-    content = resolved_request_body.get("content") if isinstance(resolved_request_body, dict) else None
+    content = (
+        resolved_request_body.get("content")
+        if isinstance(resolved_request_body, dict)
+        else None
+    )
     if not isinstance(content, dict) or len(content) == 0:
         return [
             f"FAIL [{openapi_file}]: requestBody.content must be a non-empty object in {operation_label}"
@@ -2129,16 +2131,21 @@ def validate_openapi_operation(
     # :return: List of error strings found during validation.
     operation_label = f"{path_key} {method.upper()}"
     if not openapi_is_record(operation):
-        return [f"FAIL [{openapi_file}]: Operation must be an object: {operation_label}"]
+        return [
+            f"FAIL [{openapi_file}]: Operation must be an object: {operation_label}"
+        ]
     return [
-        *validate_openapi_request_body(openapi_file, openapi_doc, operation_label, operation),
-        *validate_openapi_responses(openapi_file, openapi_doc, operation_label, method, operation),
+        *validate_openapi_request_body(
+            openapi_file, openapi_doc, operation_label, operation
+        ),
+        *validate_openapi_responses(
+            openapi_file, openapi_doc, operation_label, method, operation
+        ),
     ]
 
 
 def validate_openapi_unresolved_markers(openapi_file: str) -> list[str]:
     """Validates an OpenAPI YAML file for unresolved TODO comment markers and template placeholders.
-
     :param openapi_file: Path to the OpenAPI YAML file to validate.
     :return: List of error strings. Empty list means no issues were found.
     """
@@ -2153,12 +2160,10 @@ def validate_openapi_unresolved_markers(openapi_file: str) -> list[str]:
 
 def validate_openapi_minimal_structure(openapi_file: str) -> list[str]:
     """Validates that an OpenAPI YAML file has minimal required structure including request/response schemas.
-
     This checks that the file parses as valid YAML with a top-level object,
     contains a non-empty ``paths`` object with at least one HTTP operation,
     and that each operation defines valid request body content schemas
     and response content schemas where applicable.
-
     :param openapi_file: Path to the OpenAPI YAML file to validate.
     :return: List of error strings. Empty list means the structure is valid.
     """
@@ -2185,7 +2190,11 @@ def validate_openapi_minimal_structure(openapi_file: str) -> list[str]:
             operation_count += 1
             errors.extend(
                 validate_openapi_operation(
-                    openapi_file, openapi_doc, str(path_key), normalized_method, operation
+                    openapi_file,
+                    openapi_doc,
+                    str(path_key),
+                    normalized_method,
+                    operation,
                 )
             )
     if operation_count == 0:
@@ -2206,10 +2215,7 @@ def extract_inline_token_validation(
     # :param end: End index of the match.
     # :return: The expanded token substring.
     token_start = start
-    while (
-        token_start > 0
-        and not WHITESPACE_RE.match(line[token_start - 1])
-    ):
+    while token_start > 0 and not WHITESPACE_RE.match(line[token_start - 1]):
         token_start -= 1
     token_end = end
     while token_end < len(line) and not WHITESPACE_RE.match(line[token_end]):
@@ -2267,11 +2273,7 @@ def is_iso_8601_date(value: Any) -> bool:
         parsed = datetime.date(year, month, day)
     except ValueError:
         return False
-    return (
-        parsed.year == year
-        and parsed.month == month
-        and parsed.day == day
-    )
+    return parsed.year == year and parsed.month == month and parsed.day == day
 
 
 def build_schema_error_message(
@@ -2289,9 +2291,7 @@ def build_schema_error_message(
     first = validation_errors[0]
     keyword = str(first.get("keyword", ""))
     message = str(first.get("message", "schema validation failed")).strip()
-    instance_path = (
-        str(first.get("instancePath", "")).strip() or "/"
-    )
+    instance_path = str(first.get("instancePath", "")).strip() or "/"
     detail = (
         f"FAIL [{file_path}]: Frontmatter does not match schema "
         f"{schema_name} at {instance_path}: {message}"
@@ -2308,11 +2308,7 @@ def build_schema_error_message(
             props.append(prop)
     is_research = "research" in schema_name.lower()
     if is_research:
-        suffix = (
-            f" Additional field(s): {', '.join(props)}."
-            if props
-            else ""
-        )
+        suffix = f" Additional field(s): {', '.join(props)}." if props else ""
         return (
             f"{detail}.{suffix} "
             "RESEARCH frontmatter does not allow additional fields. Remove unknown field(s)."
@@ -2333,7 +2329,6 @@ def build_schema_error_message(
 
 def parse_frontmatter_dict(file_path: str) -> tuple[Any | None, str | None]:
     """Parses and validates YAML frontmatter object from a Markdown file.
-
     :param file_path: Path to the Markdown file.
     :return: Tuple of (parsed_dict_or_None, error_message_or_None).
     """
@@ -2345,7 +2340,9 @@ def parse_frontmatter_dict(file_path: str) -> tuple[Any | None, str | None]:
         data, error = parse_yaml_document(f"{frontmatter}\n")
         if error is not None:
             return (None, error)
-        if not (data is not None and isinstance(data, dict) and not isinstance(data, list)):
+        if not (
+            data is not None and isinstance(data, dict) and not isinstance(data, list)
+        ):
             msg = (
                 "YAML frontmatter must be an object"
                 if data is not None
@@ -2364,7 +2361,6 @@ def validate_frontmatter_schema(
     frontmatter_dict: Any,
 ) -> tuple[bool, str | None]:
     """Validates a frontmatter dict against a compiled JSON Schema validator.
-
     :param file_path: Path of the file being validated (for error messages).
     :param schema_path: Path to the schema file (basename used in messages).
     :param validator: Compiled jsonschema Draft7Validator instance.
@@ -2393,7 +2389,6 @@ def validate_last_updated(
     frontmatter: Any,
 ) -> str | None:
     """Validates optional last_updated frontmatter date format.
-
     :param file_path: Path of the file being validated.
     :param frontmatter: Parsed frontmatter dictionary.
     :return: Error string if invalid, None if valid or absent.
@@ -2412,7 +2407,6 @@ def validate_markdownlint_inline_directives(
     text: str,
 ) -> list[str]:
     """Validates that inline markdownlint directives are prohibited.
-
     :param file_path: Path of the file being validated.
     :param text: Markdown body text to scan.
     :return: List of error strings (empty if no violations).
@@ -2432,7 +2426,6 @@ def validate_manual_numbered_headings(
     text: str,
 ) -> list[str]:
     """Validates that manual numeric heading prefixes are not used.
-
     :param file_path: Path of the file being validated.
     :param text: Markdown body text to scan.
     :return: List of error strings (up to 3, empty if no violations).
@@ -2451,11 +2444,9 @@ def validate_manual_numbered_headings(
 
 def has_unresolved_todo_marker(text: str) -> bool:
     """Checks for unresolved TODO comment markers in text.
-
     Scans for HTML comments, block comments, JS line comments,
     hash comments, double-dash comments, and bare ``todo:`` text patterns
     (excluding matches inside URLs).
-
     :param text: Non-fenced code-block text to scan.
     :return: True if any TODO marker is found.
     """
@@ -2471,7 +2462,6 @@ def has_unresolved_todo_marker(text: str) -> bool:
 
 def has_unresolved_placeholder(text: str) -> bool:
     """Checks for unresolved ``{{...}}`` template placeholder markers.
-
     :param text: Non-fenced code-block text to scan.
     :return: True if any placeholder is found.
     """
@@ -2483,7 +2473,6 @@ def collect_text_marker_errors(
     non_fenced_text: str,
 ) -> list[str]:
     """Collects unresolved TODO and placeholder marker failures.
-
     :param file_path: Path of the file being validated.
     :param non_fenced_text: Text with fenced code blocks already removed.
     :return: List of error strings for each type of unresolved marker found.
@@ -2498,7 +2487,6 @@ def collect_text_marker_errors(
 
 def push_errors(target: list[str], source: list[str]) -> None:
     """Appends all errors from source into target.
-
     :param target: Destination error list to extend.
     :param source: Source error list whose items are appended.
     """
@@ -2512,11 +2500,9 @@ def validate_spec_file(
     spec_root: str,
 ) -> FileValidationResult:
     """Validates one SPEC.md file with schema, content, and lint checks.
-
     Runs frontmatter parsing, schema validation, date format checking,
     link validation, content lint rules, scaffolding detection, and
     adjacent OpenAPI file validation.
-
     :param file_path: Absolute path to the SPEC.md file.
     :param spec_schema: Path to the SPEC JSON Schema file.
     :param spec_validator: Pre-compiled jsonschema Draft7Validator for SPEC.
@@ -2575,11 +2561,9 @@ def validate_research_file(
     research_validator: Any,
 ) -> FileValidationResult:
     """Validates one RESEARCH.md file with schema, scope, and lint checks.
-
     Runs location validation, frontmatter parsing, schema validation,
     date format, subject URL, scope boundaries, positive scope, and
     content lint rules.
-
     :param file_path: Absolute path to the RESEARCH.md file.
     :param research_schema: Path to the RESEARCH JSON Schema file.
     :param research_validator: Pre-compiled jsonschema Draft7Validator for RESEARCH.
@@ -2602,9 +2586,7 @@ def validate_research_file(
         date_error = validate_last_updated(file_path, frontmatter_dict)
         if date_error:
             errors.append(date_error)
-        subject_url_error = validate_research_subject_url(
-            file_path, frontmatter_dict
-        )
+        subject_url_error = validate_research_subject_url(file_path, frontmatter_dict)
         if subject_url_error:
             errors.append(subject_url_error)
         push_errors(
@@ -2620,7 +2602,9 @@ def validate_research_file(
     push_errors(
         errors,
         validate_research_positive_scope(
-            file_path, body_text, frontmatter_dict if frontmatter_dict is not None else {}
+            file_path,
+            body_text,
+            frontmatter_dict if frontmatter_dict is not None else {},
         ),
     )
     push_errors(
@@ -2636,10 +2620,8 @@ def validate_contract_file(
     contract_validator: Any,
 ) -> FileValidationResult:
     """Validates one CONTRACT.md file with schema, structure, and lint checks.
-
     Runs frontmatter parsing, schema validation, date format, contract
     units structure validation, and content lint rules.
-
     :param file_path: Absolute path to the CONTRACT file.
     :param contract_schema: Path to the CONTRACT JSON Schema file.
     :param contract_validator: Pre-compiled jsonschema Draft7Validator for CONTRACT.
@@ -2673,10 +2655,8 @@ def validate_contract_file(
 
 def validate_changelog_file(root_changelog_file: str) -> FileValidationResult:
     """Validates the root CHANGELOG.md document.
-
     Runs text marker detection, markdownlint directive checks, entry heading
     presence verification, and entry order validation.
-
     :param root_changelog_file: Absolute path to the root CHANGELOG file.
     :return: FileValidationResult with collected errors and pass/fail status.
     """
@@ -2828,6 +2808,7 @@ def parse_frontmatter_diagram(content: str, file_path: str) -> dict[str, Any]:
 
 def collect_spec_paths(root: str) -> list[str]:
     collected: list[str] = []
+
     def walk(dir_path: str) -> None:
         try:
             entries = sorted(os.scandir(dir_path), key=lambda e: e.name)
@@ -2839,6 +2820,7 @@ def collect_spec_paths(root: str) -> list[str]:
                 walk(full_path)
             elif entry.is_file() and entry.name == "SPEC.md":
                 collected.append(full_path)
+
     walk(root)
     collected.sort()
     return collected
@@ -2876,7 +2858,9 @@ def parse_spec_file(file_path: str) -> SpecInfo:
             continue
         if os.path.basename(raw_path) != "SPEC.md":
             continue
-        raw_links.append(LinkRef(target=os.path.realpath(os.path.join(spec_dir, raw_path))))
+        raw_links.append(
+            LinkRef(target=os.path.realpath(os.path.join(spec_dir, raw_path)))
+        )
     seen: set[str] = set()
     deduped: list[LinkRef] = []
     for link in raw_links:
@@ -3009,7 +2993,6 @@ def add_class_defs(lines: list[str]) -> None:
 
 def generate_mermaid(spec_root: str) -> str:
     """Generate a Mermaid flowchart TD diagram from all SPEC.md files under *spec_root*.
-
     :param spec_root: Absolute path to the spec root directory.
     :return: Complete Mermaid diagram source string.
     """
@@ -3041,7 +3024,6 @@ URL_SCHEME_RE = r"^[a-zA-Z][a-zA-Z0-9+.\-]*:"
 
 def cli_name() -> str:
     """Return the program name from SDD_CLI_NAME env or default.
-
     :return: Program name string.
     """
     return os.environ.get("SDD_CLI_NAME", "sdd")
@@ -3049,7 +3031,6 @@ def cli_name() -> str:
 
 def emit_fail(message: str) -> None:
     """Write an error message to stderr.
-
     :param message: Error text to emit.
     """
     print(message, file=sys.stderr)
@@ -3057,7 +3038,6 @@ def emit_fail(message: str) -> None:
 
 def emit_warn(message: str) -> None:
     """Write a warning message to stderr.
-
     :param message: Warning text to emit.
     """
     print(f"WARN: {message}", file=sys.stderr)
@@ -3065,7 +3045,6 @@ def emit_warn(message: str) -> None:
 
 def resolve_default_spec_path() -> str | None:
     """Resolve the default spec path from ./spec or SDD_SPEC_DIR env var.
-
     :return: Path string or None if no default found.
     """
     if os.path.isdir("spec"):
@@ -3078,7 +3057,6 @@ def resolve_default_spec_path() -> str | None:
 
 def script_dir() -> str:
     """Return the scripts directory containing this CLI.
-
     :return: Absolute path to the scripts directory.
     """
     return str(Path(__file__).resolve().parent)
@@ -3086,12 +3064,10 @@ def script_dir() -> str:
 
 def skill_root() -> str:
     """Return the resolved skill root directory that owns assets/ and scripts/.
-
     When ``SDD_SKILL_ROOT`` is set, its value wins. The env override is passed
     through ``Path.resolve()``, which follows symlinks; if the caller mounts the
     skill under a symlink and expects the skill root to remain logical, set
     ``SDD_SKILL_ROOT`` to the already-resolved absolute path.
-
     :return: Absolute path to the skill root directory.
     """
     env_override = os.environ.get("SDD_SKILL_ROOT")
@@ -3102,7 +3078,6 @@ def skill_root() -> str:
 
 def is_record(value: object) -> bool:
     """Check whether a value is a non-null dict-like object.
-
     :param value: Value to test.
     :return: True if value is a dict (not list, not None).
     """
@@ -3111,7 +3086,6 @@ def is_record(value: object) -> bool:
 
 def yaml_to_record(frontmatter_yaml: str) -> dict | None:
     """Parse YAML frontmatter text into a Python dict.
-
     :param frontmatter_yaml: Raw YAML frontmatter string.
     :return: Parsed dict or None on failure.
     """
@@ -3123,7 +3097,6 @@ def yaml_to_record(frontmatter_yaml: str) -> dict | None:
 
 def normalize_tag(value: object) -> list[str]:
     """Normalize a tag field value into a list of strings.
-
     :param value: Raw tag value (string, list, or other).
     :return: List of non-empty trimmed tag strings.
     """
@@ -3137,7 +3110,6 @@ def normalize_tag(value: object) -> list[str]:
 
 def json_stringify_ascii(value: object, indent: int | None = None) -> str:
     """Serialize a value to JSON with non-ASCII characters escaped.
-
     :param value: Object to serialize.
     :param indent: Indentation level (None for compact).
     :return: JSON string with \\uXXXX escapes for non-ASCII.
@@ -3155,7 +3127,6 @@ def json_stringify_ascii(value: object, indent: int | None = None) -> str:
 
 def parse_fields(raw_fields: str | None) -> list[str] | None:
     """Parse a comma-separated field list, applying alias mapping.
-
     :param raw_fields: Comma-separated field string or None.
     :return: List of normalized field names or None.
     """
@@ -3163,20 +3134,16 @@ def parse_fields(raw_fields: str | None) -> list[str] | None:
         return None
     alias = {"tags": "tag"}
     fields = [
-        alias.get(f.strip(), f.strip())
-        for f in raw_fields.split(",")
-        if f.strip()
+        alias.get(f.strip(), f.strip()) for f in raw_fields.split(",") if f.strip()
     ]
     return fields if fields else None
 
 
 def cmd_get_frontmatter(args) -> int:
     """Extract and output frontmatter from a single spec/research/contract document.
-
     Resolves the input path (appending the canonical filename when a directory
     is given), parses its YAML frontmatter, and prints the result in the
     requested format.
-
     :param args: Parsed argparse namespace for the get-frontmatter subcommand.
     :return: Exit code (0 success, 1 failure).
     """
@@ -3272,7 +3239,6 @@ def cmd_get_frontmatter(args) -> int:
 
 def collect_markdown_files(root: str) -> list[str]:
     """Recursively collect all .md files under a root directory.
-
     :param root: Directory to scan.
     :return: Sorted list of absolute paths.
     """
@@ -3301,7 +3267,6 @@ def collect_markdown_files(root: str) -> list[str]:
 
 def matches_kind(file_path: str, kind: str) -> bool:
     """Check whether a file matches the given document kind.
-
     :param file_path: Path to check.
     :param kind: Kind filter (any, spec, research, contract).
     :return: True if the file matches the kind filter.
@@ -3314,7 +3279,6 @@ def matches_kind(file_path: str, kind: str) -> bool:
 
 def sanitize_tsv_cell(value: object) -> str:
     """Sanitize a value for TSV table cell output.
-
     :param value: Value to sanitize.
     :return: String with tabs, CR, and LF replaced by spaces.
     """
@@ -3332,7 +3296,6 @@ def sanitize_tsv_cell(value: object) -> str:
 
 def to_kind_label(file_path: str) -> str:
     """Derive the kind label from a file's basename.
-
     :param file_path: File path.
     :return: Kind label string (spec, research, contract, or empty).
     """
@@ -3345,7 +3308,6 @@ def to_kind_label(file_path: str) -> str:
 
 def to_subject_str(data: dict) -> tuple[dict | None, str]:
     """Extract subject info as object and versioned string.
-
     :param data: Frontmatter data dict.
     :return: Tuple of (subject_obj_or_None, subject_version_string).
     """
@@ -3360,7 +3322,6 @@ def to_subject_str(data: dict) -> tuple[dict | None, str]:
 
 def to_tag_list(data: dict) -> list[str]:
     """Normalize tags from frontmatter data into a string list.
-
     :param data: Frontmatter data dict.
     :return: List of tag strings.
     """
@@ -3380,7 +3341,6 @@ def build_record_map(
     tags: list[str],
 ) -> dict:
     """Build a flat record map from parsed frontmatter data.
-
     :param file_path: Absolute file path.
     :param data: Parsed frontmatter dict.
     :param end_line: Frontmatter end line number.
@@ -3408,7 +3368,6 @@ def extract_link_targets(
     source_file: str,
 ) -> list[tuple[str, str]]:
     """Extract resolved SPEC.md call-link targets from frontmatter data.
-
     :param data: Parsed frontmatter dict.
     :param source_file: Source file path for resolving relative links.
     :return: List of (resolved_absolute_path, raw_link_text) tuples.
@@ -3439,9 +3398,7 @@ def extract_link_targets(
             continue
         if os.path.basename(stripped) != "SPEC.md":
             continue
-        resolved = str(
-            Path(os.path.dirname(source_file)).joinpath(stripped).resolve()
-        )
+        resolved = str(Path(os.path.dirname(source_file)).joinpath(stripped).resolve())
         if resolved in seen:
             continue
         seen.add(resolved)
@@ -3454,7 +3411,6 @@ def resolve_target_paths(
     base_dir: str,
 ) -> set[str]:
     """Resolve a link target value into candidate absolute paths.
-
     :param value: Raw target value (may contain fragment).
     :param base_dir: Base directory for relative resolution.
     :return: Set of resolved absolute path candidates.
@@ -3477,7 +3433,9 @@ def resolve_target_paths(
     spec_root = find_spec_root(base_dir)
     if parts and parts[0] == "spec":
         if spec_root and not has_parent:
-            resolved.add(str(Path(os.path.dirname(spec_root)).joinpath(*parts).resolve()))
+            resolved.add(
+                str(Path(os.path.dirname(spec_root)).joinpath(*parts).resolve())
+            )
         else:
             resolved.add(str(Path(base_dir).joinpath(*parts).resolve()))
         return resolved
@@ -3493,7 +3451,6 @@ def matches_filters(
     filters: list[tuple[str, list[str]]],
 ) -> bool:
     """Test whether a record passes all filter predicates.
-
     :param record: Flat record map.
     :param frontmatter: Original frontmatter dict.
     :param filters: List of (key, allowed_values) filter pairs.
@@ -3519,7 +3476,6 @@ def matches_filters(
 
 def load_frontmatter_entry(file_path: str) -> dict | str | None:
     """Load and parse frontmatter from a single file.
-
     :param file_path: Absolute path to the Markdown file.
     :return: Entry dict on success, error string on failure, None if no frontmatter.
     """
@@ -3551,11 +3507,9 @@ def load_frontmatter_entry(file_path: str) -> dict | str | None:
 
 def cmd_list_frontmatter(args) -> int:
     """List frontmatter from all matching documents under a spec path.
-
     Recursively scans for ``.md`` files matching the requested kind, parses
     each file's YAML frontmatter, applies optional filters, and outputs results
     as a TSV table (default) or JSONL records.
-
     :param args: Parsed argparse namespace for the list-frontmatter subcommand.
     :return: Exit code (0 success, 1 failure).
     """
@@ -3566,9 +3520,13 @@ def cmd_list_frontmatter(args) -> int:
     include_yaml = args.include_yaml
     best_effort = args.best_effort
     inbound_of = args.inbound_of
-    raw_filters: list[str] = list(args.filter or []) + [f"tag={v}" for v in (args.tag or [])]
+    raw_filters: list[str] = list(args.filter or []) + [
+        f"tag={v}" for v in (args.tag or [])
+    ]
     if include_yaml and not output_jsonl:
-        emit_warn("--include-yaml is ignored unless --jsonl is set (continuing in table mode)")
+        emit_warn(
+            "--include-yaml is ignored unless --jsonl is set (continuing in table mode)"
+        )
         include_yaml = False
     resolved_spec = str(Path(spec_path).resolve())
     try:
@@ -3584,7 +3542,7 @@ def cmd_list_frontmatter(args) -> int:
     for rule in raw_filters:
         idx = rule.index("=")
         key = rule[:idx].strip()
-        vals = [v.strip() for v in rule[idx + 1:].split(",") if v.strip()]
+        vals = [v.strip() for v in rule[idx + 1 :].split(",") if v.strip()]
         if key == "tags":
             key = "tag"
         if not vals:
@@ -3637,7 +3595,10 @@ def cmd_list_frontmatter(args) -> int:
                     output_lines.append(json_stringify_ascii(row))
                 else:
                     output_lines.append(
-                        "\t".join(sanitize_tsv_cell(v) for v in [inbound_of, file_path, raw_link])
+                        "\t".join(
+                            sanitize_tsv_cell(v)
+                            for v in [inbound_of, file_path, raw_link]
+                        )
                     )
             continue
         if output_jsonl:
@@ -3692,11 +3653,9 @@ def cmd_list_frontmatter(args) -> int:
 
 def cmd_list_tags(args) -> int:
     """Collect and output tags from all matching document frontmatter entries.
-
     Scans for ``.md`` files under *spec_path* matching the requested kind,
     extracts ``tag`` / ``tags`` values from each frontmatter, aggregates counts,
     and prints sorted tags (optionally with occurrence counts).
-
     :param args: Parsed argparse namespace for the list-tags subcommand.
     :return: Exit code (0 success, 1 failure).
     """
@@ -3751,11 +3710,9 @@ def cmd_list_tags(args) -> int:
 
 def cmd_generate_diagram(args) -> int:
     """Generate and print a Mermaid flowchart diagram from SPEC.md files.
-
     Walks *spec_root* recursively for all ``SPEC.md`` files, parses their
     frontmatter for title/status/call links, and renders a Mermaid ``flowchart TD``
     to stdout.
-
     :param args: Parsed argparse namespace for the generate-diagram subcommand.
     :return: Exit code (0 success, 1 failure).
     """
@@ -3869,7 +3826,6 @@ def cmd_validate(args) -> int:
 
 def build_parser() -> "argparse.ArgumentParser":
     """Construct the top-level argparse parser with all subcommands.
-
     :return: Configured ArgumentParser instance.
     """
     prog = cli_name()
@@ -3955,7 +3911,7 @@ def build_parser() -> "argparse.ArgumentParser":
     )
     lt.add_argument(
         "--kind",
-choices=LIST_KINDS,
+        choices=LIST_KINDS,
         default="any",
         help="Filter by document kind (default: any)",
     )
@@ -3988,14 +3944,11 @@ choices=LIST_KINDS,
 
 def main() -> int:
     """Parse command-line arguments and dispatch to the appropriate subcommand handler.
-
     Reads ``sys.argv``, constructs the argument parser, resolves default spec
     paths when positional arguments are omitted, invokes the handler for the
     selected subcommand, and returns the resulting exit code.
-
     The environment variable ``SDD_CLI_NAME`` overrides the program name shown
     in help text and usage messages.
-
     :return: Exit code (0 on success, 1 on failure).
     """
     parser = build_parser()

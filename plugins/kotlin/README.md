@@ -105,13 +105,13 @@ Use kotlin-lsp when the task needs symbol navigation, diagnostics, or safe refac
 
 Install from Sinon:
 
-```bash
+```sh
 /plugin install kotlin@sinon
 ```
 
 For local development:
 
-```bash
+```sh
 claude --plugin-dir /path/to/sinon/plugins/kotlin
 ```
 

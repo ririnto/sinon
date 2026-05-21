@@ -38,7 +38,7 @@ Version boundaries for this reference:
 
 Use this runnable sequence when you need to derive a module list and build a trimmed runtime image:
 
-```bash
+```sh
 jdeps --multi-release 21 --print-module-deps app.jar
 jlink \
     --add-modules java.base,java.net.http \
@@ -58,7 +58,7 @@ This path is a JDK 9+ workflow because it depends on `jlink` and the module syst
 
 Use this runnable shape when launcher inputs are already known and the goal is an app image before a platform-specific installer:
 
-```bash
+```sh
 jpackage \
     --name DemoApp \
     --input build/libs \
@@ -77,13 +77,13 @@ This path is a JDK 16+ workflow because `jpackage` is a standard tool only from 
 
 On JDK 25 and later, restore service binding with a single quoted `--jlink-options` argument. `--jlink-options` takes exactly one string; splitting the jlink flags into multiple positional arguments turns them back into `jpackage` arguments and fails. When you pass `--jlink-options`, it replaces the jpackage default list entirely, so include the four strip flags explicitly if a lean runtime image is still the goal:
 
-```bash
+```sh
 jpackage [...] \
     --jlink-options "--strip-native-commands --strip-debug --no-man-pages --no-header-files --bind-services"
 ```
 
 When the only goal is to restore service binding without asserting the strip defaults yourself, pass only that flag:
 
-```bash
+```sh
 jpackage [...] --jlink-options "--bind-services"
 ```

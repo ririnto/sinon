@@ -4,9 +4,9 @@ Open this reference when the ordinary browser-based authorization-code flow in [
 
 ## Device-flow blocker
 
-**Problem:** the client cannot drive a standard browser redirect flow directly and must ask the user to authorize on a second device.
+Problem: the client cannot drive a standard browser redirect flow directly and must ask the user to authorize on a second device.
 
-**Solution:** expose the device authorization and device verification endpoints as one coordinated protocol surface.
+Solution: expose the device authorization and device verification endpoints as one coordinated protocol surface.
 
 ```text
 device authorization: /oauth2/device_authorization

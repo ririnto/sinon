@@ -4,9 +4,9 @@ Open this reference when the default listener-container setup in [SKILL.md](../S
 
 ## Container choice blocker
 
-**Problem:** the default listener-container baseline works functionally, but throughput, latency, or broker-consumer control requires a different container model.
+Problem: the default listener-container baseline works functionally, but throughput, latency, or broker-consumer control requires a different container model.
 
-**Solution:** choose the container type by delivery behavior, not by preference.
+Solution: choose the container type by delivery behavior, not by preference.
 
 | Container | Use when |
 | --- | --- |
@@ -15,9 +15,9 @@ Open this reference when the default listener-container setup in [SKILL.md](../S
 
 ## Dedicated factory blocker
 
-**Problem:** one listener needs different acknowledgment, retry, or scaling rules than the rest of the application.
+Problem: one listener needs different acknowledgment, retry, or scaling rules than the rest of the application.
 
-**Solution:** create a dedicated factory only for the divergent listener path.
+Solution: create a dedicated factory only for the divergent listener path.
 
 ```java
 @Bean
@@ -36,9 +36,9 @@ Use dedicated factories sparingly. Copying near-identical factories for every li
 
 ## Concurrency and ordering blocker
 
-**Problem:** higher concurrency improves throughput but breaks ordering assumptions or overloads downstream services.
+Problem: higher concurrency improves throughput but breaks ordering assumptions or overloads downstream services.
 
-**Solution:** tune concurrency and prefetch together, then verify ordering and back-pressure behavior with realistic traffic.
+Solution: tune concurrency and prefetch together, then verify ordering and back-pressure behavior with realistic traffic.
 
 - Increase `concurrentConsumers` only after confirming the handler is idempotent and order-insensitive.
 - Keep `prefetchCount` low when message handling is slow or strict ordering matters.

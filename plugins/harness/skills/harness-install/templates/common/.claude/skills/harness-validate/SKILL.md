@@ -1,6 +1,7 @@
 ---
 name: harness-validate
-description: Run the installed target repository harness validator and report contract readiness. Use this skill after changing AGENTS.md, CLAUDE.md, ARCHITECTURE.md, docs, .claude agents, .claude skills, .claude/harness assets, hooks, CI, or generated artifacts.
+description: >-
+  Run the installed target repository harness validator and report contract readiness. Use this skill after changing AGENTS.md, CLAUDE.md, ARCHITECTURE.md, docs, .claude agents, .claude skills, .claude/harness assets, hooks, CI, or generated artifacts.
 ---
 
 # Harness Validate

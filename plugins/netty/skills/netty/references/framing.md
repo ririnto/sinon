@@ -1,6 +1,7 @@
 ---
 title: Frame Decoders and Message Boundaries
-description: Open this when a Netty byte stream must be split into complete messages before business handlers run.
+description: >-
+  Open this when a Netty byte stream must be split into complete messages before business handlers run.
 ---
 
 ## Open this when

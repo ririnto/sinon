@@ -114,7 +114,7 @@ Create the agent body (Markdown, under the frontmatter) as a self-sufficient sys
 4. Process: step-by-step workflow (numbered if sequential).
 5. Quality Standards: constraints, validation rules, output guarantees.
 6. Edge Cases: how to handle error conditions, missing data, invalid inputs.
-7. **Tool Usage** (optional): if agent has bounded tools, explain which tools are used for which task.
+7. Tool Usage (optional): if agent has bounded tools, explain which tools are used for which task.
 
 ### Style
 

@@ -125,7 +125,7 @@ If hook times out, it is logged and subsequent behavior depends on hook type:
 
 Monitor timeouts with:
 
-```bash
+```sh
 claude --debug 2>&1 | grep -i timeout
 ```
 
@@ -135,33 +135,30 @@ claude --debug 2>&1 | grep -i timeout
 
 Cache is written by one hook, read by others. Safe because hooks in same event run in parallel but file creation is atomic:
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Cache validation result to avoid repeated checks.
+#
 # @param input Hook input JSON.
 # @return Reads cached result if present; performs check and caches if not.
 cache_based_check() {
-    local input
     input=$(cat)
-    local cache_file="${CLAUDE_PLUGIN_ROOT}/.hook-cache/validation.json"
+    cache_file="${CLAUDE_PLUGIN_ROOT}/.hook-cache/validation.json"
     mkdir -p "${CLAUDE_PLUGIN_ROOT}/.hook-cache"
-    local file_path
-    file_path=$(echo "$input" | jq -r '.tool_input.file_path')
-    local cache_key
-    cache_key=$(echo -n "$file_path" | md5sum | awk '{print $1}')
-    if [[ -f "$cache_file" ]]; then
-        local cached_result
+    file_path=$(printf '%s' "$input" | jq -r '.tool_input.file_path')
+    cache_key=$(printf '%s' "$file_path" | md5sum | awk '{print $1}')
+    if [ -f "$cache_file" ]; then
         cached_result=$(grep "\"$cache_key\"" "$cache_file" || echo "")
-        if [[ -n "$cached_result" ]]; then
-            echo "$cached_result" | jq '.result'
+        if [ -n "$cached_result" ]; then
+            printf '%s' "$cached_result" | jq '.result'
             return 0
         fi
     fi
-    local result
     result=$(validate_path "$file_path")
-    echo "{\"$cache_key\": {\"result\": \"$result\", \"timestamp\": $(date +%s)}}" >> "$cache_file"
+    printf '{"%s": {"result": "%s", "timestamp": %s}}\n' "$cache_key" "$result" "$(date +%s)" >> "$cache_file"
     echo "$result"
 }
 ```
@@ -171,10 +168,12 @@ cache_based_check() {
 SessionStart hooks run sequentially in a single session. Computed values can be written to `$CLAUDE_ENV_FILE` for reuse:
 
 ```bash
-#!/bin/bash
-set -euo pipefail
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -e
 
 # Compute and cache project metadata for session.
+#
 # @return Exports PROJECT_TYPE and PROJECT_VERSION to env.
 cache_project_metadata() {
     PROJECT_TYPE=$(grep -r '^type:' .project.config | sed 's/type: *//' | head -1)
@@ -185,20 +184,21 @@ cache_project_metadata() {
 cache_project_metadata
 ```
 
+Note: This example uses bash for `printf %q` (argument escaping). If POSIX sh is required, use `sed` or `printf '%s'` escaping instead.
+
 All subsequent hooks and tools can access via `$PROJECT_TYPE` and `$PROJECT_VERSION`.
 
 ### Cache invalidation
 
 Add timestamps to cached data. If data is stale (> 1 hour), recompute:
 
-```bash
-timestamp=$(jq -r '.timestamp' "$cache_file" 2>/dev/null || echo "0")
+```sh
+timestamp=$(jq -r '.timestamp' "$cache_file" || echo "0")
 current=$(date +%s)
 age=$((current - timestamp))
-if [[ $age -gt 3600 ]]; then
-    # Cache is stale, recompute
+if [ "$age" -gt 3600 ]; then
     result=$(perform_expensive_check)
-    echo "{\"result\": \"$result\", \"timestamp\": $current}" > "$cache_file"
+    printf '{"result": "%s", "timestamp": %s}\n' "$result" "$current" > "$cache_file"
 else
     result=$(jq -r '.result' "$cache_file")
 fi
@@ -210,23 +210,23 @@ Hooks on critical paths (`PreToolUse` with `Write|Edit|Bash` matchers) should be
 
 ### Example: fast-path + fallback pattern
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Quick check with fallback to detailed validation.
+#
 # @param input Hook input JSON.
 # @return Fast deny for obvious cases; prompt hook for edge cases.
 quick_validation() {
-    local input
     input=$(cat)
-    local file_path
-    file_path=$(echo "$input" | jq -r '.tool_input.file_path')
-    if [[ "$file_path" == *".."* ]] || [[ "$file_path" =~ \.(env|aws|pem)$ ]]; then
-        echo '{"permissionDecision": "deny", "systemMessage": "Obvious security issue"}' >&2
+    file_path=$(printf '%s' "$input" | jq -r '.tool_input.file_path')
+    if [ "$file_path" != "${file_path%..*}" ] || printf '%s' "$file_path" | grep -qE '\.(env|aws|pem)$'; then
+        printf '{"permissionDecision": "deny", "systemMessage": "Obvious security issue"}\n' >&2
         exit 2
     fi
-    echo '{"permissionDecision": "allow", "systemMessage": "Passed quick check"}' >&2
+    printf '{"permissionDecision": "allow", "systemMessage": "Passed quick check"}\n' >&2
     exit 0
 }
 quick_validation
@@ -262,12 +262,12 @@ First hook blocks obvious issues quickly. Second hook runs in parallel and can t
 
 #### Broken
 
-```bash
+```sh
 # PreToolUse hook
 input=$(cat)
-file_path=$(echo "$input" | jq -r '.tool_input.file_path')
+file_path=$(printf '%s' "$input" | jq -r '.tool_input.file_path')
 # Expensive: network call on every tool use
-api_response=$(curl -s "https://api.example.com/check?path=$file_path")
+curl -s "https://api.example.com/check?path=$file_path"
 ```
 
 #### Correct
@@ -329,7 +329,7 @@ Loaded hooks (session abc123):
 
 Run Claude Code with debug output:
 
-```bash
+```sh
 claude --debug
 ```
 
@@ -347,7 +347,7 @@ Look for hook-related output:
 
 Create test input and run hook directly:
 
-```bash
+```sh
 cat > /tmp/test-input.json << 'EOF'
 {
   "session_id": "test",
@@ -357,38 +357,38 @@ cat > /tmp/test-input.json << 'EOF'
 }
 EOF
 
-bash hooks/validate.sh < /tmp/test-input.json
+sh hooks/validate.sh < /tmp/test-input.json
 echo "Exit code: $?"
 ```
 
 Verify output is valid JSON:
 
-```bash
-bash hooks/validate.sh < /tmp/test-input.json | python3 -m json.tool
+```sh
+sh hooks/validate.sh < /tmp/test-input.json | python3 -m json.tool
 ```
 
 ### Logging from hooks
 
 Write logs to file for debugging:
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Perform check and log results.
+#
 # @param input Hook input JSON.
 # @return Outputs hook decision; logs to file.
 check_with_logging() {
-    local input
     input=$(cat)
-    local log_file="${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
+    log_file="${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
     mkdir -p "$(dirname "$log_file")"
-    echo "[$(date)] Hook input: $input" >> "$log_file"
-    local tool_name
-    tool_name=$(echo "$input" | jq -r '.tool_name')
-    if [[ "$tool_name" == "Write" ]]; then
-        echo "[$(date)] Validating write..." >> "$log_file"
-        echo '{"permissionDecision": "allow"}' >&2
+    printf '[%s] Hook input: %s\n' "$(date)" "$input" >> "$log_file"
+    tool_name=$(printf '%s' "$input" | jq -r '.tool_name')
+    if [ "$tool_name" = "Write" ]; then
+        printf '[%s] Validating write...\n' "$(date)" >> "$log_file"
+        printf '{"permissionDecision": "allow"}\n' >&2
         exit 0
     fi
 }
@@ -397,8 +397,8 @@ check_with_logging
 
 View logs:
 
-```bash
-tail -f ${CLAUDE_PLUGIN_ROOT}/logs/hook.log
+```sh
+tail -f "${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
 ```
 
 ## Parallel execution guarantee

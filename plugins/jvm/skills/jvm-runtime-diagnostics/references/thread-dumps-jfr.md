@@ -21,9 +21,9 @@ Use this reference when the issue needs either repeated snapshot comparison or t
 
 When blocking or contention is suspected, capture three snapshots and compare:
 
-```bash
+```sh
 for i in 1 2 3; do
-    jcmd <pid> Thread.print -l > "thread-$i.txt"
+    jcmd $PID Thread.print -l > "thread-$i.txt"
     sleep 5
 done
 diff thread-1.txt thread-3.txt
@@ -38,7 +38,7 @@ What to look for in the diff:
 
 ## JFR Analysis Commands
 
-```bash
+```sh
 jfr summary /path/to/private-diagnostics/baseline.jfr
 jfr print --json --events "jdk.JavaMonitorEnter" /path/to/private-diagnostics/baseline.jfr
 ```
@@ -101,7 +101,7 @@ Diagnosis: Circular wait — classic deadlock. Stack trace shows exactly which o
 
 Use this shape when evidence must start before later attach would be possible:
 
-```bash
+```sh
 java -XX:StartFlightRecording=name=startup,settings=profile,filename=/path/to/private-diagnostics/startup.jfr,dumponexit=true -jar app.jar
 ```
 

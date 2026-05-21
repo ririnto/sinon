@@ -1,6 +1,7 @@
 ---
 title: WebSocket
-description: Open this when Reactor Netty must upgrade HTTP connections to WebSocket or exchange frames reactively.
+description: >-
+  Open this when Reactor Netty must upgrade HTTP connections to WebSocket or exchange frames reactively.
 ---
 
 ## Open this when

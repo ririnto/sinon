@@ -4,9 +4,9 @@ Open this reference when the task is specifically migrating the authorization se
 
 ## Spring Security migration blocker
 
-**Problem:** filter-chain APIs or session behavior changed and the authorization server no longer behaves the same across login and authorization redirects.
+Problem: filter-chain APIs or session behavior changed and the authorization server no longer behaves the same across login and authorization redirects.
 
-**Solution:** update the filter-chain configuration and verify session behavior explicitly on the authorization path.
+Solution: update the filter-chain configuration and verify session behavior explicitly on the authorization path.
 
 ```java
 @Bean

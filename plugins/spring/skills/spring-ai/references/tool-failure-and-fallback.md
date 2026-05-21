@@ -4,9 +4,9 @@ Open this reference when the ordinary tool path in [SKILL.md](../SKILL.md) is no
 
 ## Tool-failure blocker
 
-**Problem:** tool execution fails, and the workflow must degrade explicitly instead of retrying blindly.
+Problem: tool execution fails, and the workflow must degrade explicitly instead of retrying blindly.
 
-**Solution:** enable thrown tool execution failures at the application seam, then choose a fallback deliberately.
+Solution: enable thrown tool execution failures at the application seam, then choose a fallback deliberately.
 
 Set `spring.ai.tools.throw-exception-on-error=true` or install a custom `ToolExecutionExceptionProcessor` before using this pattern.
 

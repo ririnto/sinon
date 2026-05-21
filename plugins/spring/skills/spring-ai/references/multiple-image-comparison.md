@@ -4,9 +4,9 @@ Open this reference when the ordinary vision path in [SKILL.md](../SKILL.md) is 
 
 ## Multiple image blocker
 
-**Problem:** the model must compare or cross-reference more than one image.
+Problem: the model must compare or cross-reference more than one image.
 
-**Solution:** attach multiple image payloads in a single user message and keep the comparison question explicit.
+Solution: attach multiple image payloads in a single user message and keep the comparison question explicit.
 
 ```java
 UserMessage userMessage = UserMessage.builder()

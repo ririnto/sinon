@@ -1,6 +1,7 @@
 ---
 title: TLS and SSL Pipeline Setup
-description: Open this when a Netty client or server must add TLS, trust configuration, or handshake-aware pipeline setup.
+description: >-
+  Open this when a Netty client or server must add TLS, trust configuration, or handshake-aware pipeline setup.
 ---
 
 ## Open this when
@@ -62,6 +63,7 @@ SslContext sslContext = SslContextBuilder.forServer(new File("server.crt"), new 
 Use `SslProvider.OPENSSL` with `netty-tcnative` for higher throughput on Linux.
 
 > [!NOTE]
+>
 > `netty-tcnative-boringssl-static` bundles BoringSSL statically — no external OpenSSL installation is required. Use the non-`static` variant (`netty-tcnative-boringssl`) when the system OpenSSL library must be used instead.
 
 ## Guidance

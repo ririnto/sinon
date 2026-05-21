@@ -1,6 +1,7 @@
 ---
 name: harness-review-agent
-description: Review target repository changes against harness contracts, project docs, and validation evidence. Use this agent when a change needs findings on correctness, placeholder readiness, generated artifacts, CI/hooks, or agent/skill contract drift.
+description: >-
+  Review target repository changes against harness contracts, project docs, and validation evidence. Use this agent when a change needs findings on correctness, placeholder readiness, generated artifacts, CI/hooks, or agent/skill contract drift.
 model: sonnet
 color: yellow
 ---

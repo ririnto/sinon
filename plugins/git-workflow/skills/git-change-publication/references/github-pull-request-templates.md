@@ -10,7 +10,7 @@ Use this reference when the repository is hosted on GitHub and the blocker is ex
 
 Check whether the repository already ships a GitHub template before drafting a fallback body.
 
-```bash
+```sh
 uv run python - <<'PY'
 from pathlib import Path
 
@@ -58,7 +58,7 @@ GitHub pull request templates are always files on the repository's default branc
 
 Requires the `gh` CLI; skip this command when `gh` is unavailable or the environment is offline. First list template files on the remote default branch:
 
-```bash
+```sh
 gh api repos/{owner}/{repo}/contents/.github/PULL_REQUEST_TEMPLATE \
     || gh api repos/{owner}/{repo}/contents/.github/pull_request_template.md \
     || echo "NO_REMOTE_TEMPLATE"
@@ -66,7 +66,7 @@ gh api repos/{owner}/{repo}/contents/.github/PULL_REQUEST_TEMPLATE \
 
 Then check the owner's community-health `.github` repository:
 
-```bash
+```sh
 gh api repos/{owner}/.github/contents/.github/PULL_REQUEST_TEMPLATE \
     || gh api repos/{owner}/.github/contents/.github/pull_request_template.md \
     || echo "NO_COMMUNITY_HEALTH_TEMPLATE"
@@ -243,7 +243,7 @@ Fix auth module to reject invalid credentials and expired tokens before session 
 
 Repository has `.github/PULL_REQUEST_TEMPLATE/` with two templates:
 
-**bug-fix-template.md:**
+bug-fix-template.md:
 
 ```markdown
 ## Problem
@@ -257,7 +257,7 @@ How does this PR solve the problem?
 - [ ] No regression in related flows
 ```
 
-**feature-template.md:**
+feature-template.md:
 
 ```markdown
 ## Goal
@@ -296,7 +296,7 @@ When any GitHub-managed template is found, skip the fallback entirely. The fallb
 
 ## Broken vs Correct Example
 
-**Broken** -- wrong template priority applied:
+Broken -- wrong template priority applied:
 
 ```markdown
 <!-- `.github/PULL_REQUEST_TEMPLATE/feature.md` exists, but the skill wrote: -->
@@ -304,7 +304,7 @@ When any GitHub-managed template is found, skip the fallback entirely. The fallb
 <!-- this body came from the fallback, not the named feature template -->
 ```
 
-**Correct** -- named template respected:
+Correct -- named template respected:
 
 ```markdown
 <!-- `.github/PULL_REQUEST_TEMPLATE/feature.md` was detected and used -->

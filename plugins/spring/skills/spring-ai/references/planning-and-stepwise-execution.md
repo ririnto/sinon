@@ -4,9 +4,9 @@ Open this reference when the ordinary path in [SKILL.md](../SKILL.md) is not eno
 
 ## Planning blocker
 
-**Problem:** the request is too large to execute safely in one pass.
+Problem: the request is too large to execute safely in one pass.
 
-**Solution:** generate a bounded plan first, then execute one step at a time through ordinary application seams.
+Solution: generate a bounded plan first, then execute one step at a time through ordinary application seams.
 
 ```java
 @Service

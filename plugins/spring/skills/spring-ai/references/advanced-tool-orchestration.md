@@ -8,9 +8,9 @@ Use this file only when the workflow needs explicit sequential choreography in a
 
 ## Sequential tool blocker
 
-**Problem:** one tool call must produce an intermediate result before the next tool can run.
+Problem: one tool call must produce an intermediate result before the next tool can run.
 
-**Solution:** keep sequencing explicit in application code instead of assuming a single prompt should infer the whole workflow.
+Solution: keep sequencing explicit in application code instead of assuming a single prompt should infer the whole workflow.
 
 ```java
 @Service

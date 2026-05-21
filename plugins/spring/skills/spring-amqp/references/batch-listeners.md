@@ -4,9 +4,9 @@ Open this reference when the ordinary one-message-per-listener path in [SKILL.md
 
 ## Batch listener blocker
 
-**Problem:** one-by-one listener handling is too expensive and the workload should be processed in batches.
+Problem: one-by-one listener handling is too expensive and the workload should be processed in batches.
 
-**Solution:** make batching explicit in the listener contract and verify ordering plus partial-failure behavior.
+Solution: make batching explicit in the listener contract and verify ordering plus partial-failure behavior.
 
 ```java
 @RabbitListener(queues = "orders.batch")

@@ -4,9 +4,9 @@ Open this reference when the ordinary listener-container path in [SKILL.md](../S
 
 ## Consumer-threading blocker
 
-**Problem:** consumer threading, back pressure, or callback execution shape is the real bottleneck rather than broker topology.
+Problem: consumer threading, back pressure, or callback execution shape is the real bottleneck rather than broker topology.
 
-**Solution:** treat threading decisions as part of listener-container design, not business logic.
+Solution: treat threading decisions as part of listener-container design, not business logic.
 
 ```java
 @Bean

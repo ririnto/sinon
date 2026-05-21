@@ -11,9 +11,9 @@ Use this file only after the application already has a clear Spring AI seam and 
 
 ## Vision input blocker
 
-**Problem:** the prompt needs non-text input and the application does not yet know how to attach image data safely.
+Problem: the prompt needs non-text input and the application does not yet know how to attach image data safely.
 
-**Solution:** keep text in the `UserMessage` text field and pass image content through `media(...)` on the user side only.
+Solution: keep text in the `UserMessage` text field and pass image content through `media(...)` on the user side only.
 
 ```java
 String response = ChatClient.create(chatModel).prompt()

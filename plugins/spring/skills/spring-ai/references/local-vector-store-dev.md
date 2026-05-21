@@ -4,9 +4,9 @@ Open this reference when the ordinary path in [SKILL.md](../SKILL.md) is not eno
 
 ## Local vector-store blocker
 
-**Problem:** retrieval work needs a reproducible vector store in development.
+Problem: retrieval work needs a reproducible vector store in development.
 
-**Solution:** provision the store explicitly and keep the store choice aligned with the deployment path.
+Solution: provision the store explicitly and keep the store choice aligned with the deployment path.
 
 ```yaml
 services:

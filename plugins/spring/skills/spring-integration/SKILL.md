@@ -1,6 +1,7 @@
 ---
 name: spring-integration
-description: Build message-driven application flows with Spring Integration channels, routers, filters, splitters, aggregators, gateways, pollers, and protocol adapters. Use this skill when building message-driven application flows with Spring Integration using channels, routers, filters, splitters, aggregators, gateways, pollers, and protocol adapters.
+description: >-
+  Build message-driven application flows with Spring Integration channels, routers, filters, splitters, aggregators, gateways, pollers, and protocol adapters. Use this skill when building message-driven application flows with Spring Integration using channels, routers, filters, splitters, aggregators, gateways, pollers, and protocol adapters.
 metadata:
   title: "Spring Integration"
   official-project-url: "https://spring.io/projects/spring-integration"

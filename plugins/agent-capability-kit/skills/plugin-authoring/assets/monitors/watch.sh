@@ -1,6 +1,5 @@
 #!/bin/sh
 set -eu
-
 data_dir="${CLAUDE_PLUGIN_DATA:-.}"
 state_dir="$data_dir/monitor-state"
 state_file="$state_dir/example-monitor.txt"

@@ -10,7 +10,7 @@ Use this reference when the repository is hosted on GitLab and the blocker is ex
 
 Check whether the repository already ships a GitLab template before drafting a fallback body.
 
-```bash
+```sh
 uv run python - <<'PY'
 from pathlib import Path
 
@@ -27,7 +27,7 @@ GitLab supports instance-level and project-level templates that may not be visib
 
 Requires the `glab` CLI or `curl` with a token; skip this command when the environment is offline or credentials are unavailable.
 
-```bash
+```sh
 curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
   "$GITLAB_API_URL/projects/$PROJECT_ID/templates/merge_requests" \
   || echo "NO_API_ACCESS"
@@ -95,13 +95,13 @@ GitLab administrators MAY publish instance-level templates through an instance t
 | Project has `Default.md` + no group template | Project `Default.md` applies. |
 | No project or group default template + instance template repository is configured | Instance-level template is the remaining fallback; confirm via API before relying on it. |
 
-Documented default chain: **project settings** > **group `Default.md`** > **project `Default.md`**.
+Documented default chain: project settings > group `Default.md` > project `Default.md`.
 
 `Default.md` filename is case-insensitive across all levels.
 
 Detect instance-level template (API, maintainer/owner permissions required):
 
-```bash
+```sh
 curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
     "$GITLAB_API_URL/templates/merge_requests" \
     || echo "NO_INSTANCE_TEMPLATE"
@@ -126,6 +126,7 @@ If the API is unreachable or credentials are insufficient, report the inability 
 ### Variable Preservation
 
 > [!IMPORTANT]
+>
 > GitLab variable substitution applies only to the configured default template (either the project-settings default template or `Default.md`). Named templates keep the same `%{...}` text as literal body content, so verbatim preservation matters more when you cannot confirm that the MR will be opened with the default template.
 
 GitLab substitutes these variables at MR creation time (the official documentation lists them in lowercase; treat `%{...}` tokens as case-sensitive and keep the exact casing used by the template):
@@ -304,7 +305,7 @@ main
 
 Project has `.gitlab/merge_request_templates/bug.md` and `feature.md`. Author selects `bug.md`:
 
-**bug.md template:**
+bug.md template:
 
 ```text
 ## Bug Summary

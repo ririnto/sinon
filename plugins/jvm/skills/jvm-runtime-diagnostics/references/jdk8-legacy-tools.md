@@ -11,14 +11,14 @@ Use this reference when the target workflow explicitly requires classic JDK 8-er
 
 Typical shapes:
 
-```bash
+```sh
 jstack <pid>
 jstack -l <pid>
 ```
 
 Legacy/older-doc shapes:
 
-```bash
+```sh
 jstack -m <pid>
 jstack -F <pid>
 ```
@@ -31,7 +31,7 @@ jstack -F <pid>
 
 Typical shapes:
 
-```bash
+```sh
 jmap -histo <pid>
 jmap -histo:live <pid>
 jmap -dump:live,format=b,file=heap.hprof <pid>
@@ -42,7 +42,7 @@ jmap -finalizerinfo <pid>
 
 Legacy/older-doc shapes:
 
-```bash
+```sh
 jmap -heap <pid>
 jmap -F -histo <pid>
 jmap -F -dump:format=b,file=heap.hprof <pid>
@@ -78,7 +78,7 @@ Diagnostic output:
 
 On Oracle JDK 8, Flight Recorder is a commercial feature:
 
-```bash
+```sh
 java -XX:+UnlockCommercialFeatures -XX:+FlightRecorder ...
 ```
 
@@ -90,7 +90,7 @@ java -XX:+UnlockCommercialFeatures -XX:+FlightRecorder ...
 
 JDK 8 uses legacy GC logging flags, not unified logging:
 
-```bash
+```sh
 java -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintGCTenuringDistribution -Xloggc:gc.log ...
 ```
 

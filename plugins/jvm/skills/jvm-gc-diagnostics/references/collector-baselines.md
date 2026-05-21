@@ -29,7 +29,7 @@ Shenandoah is not a default HotSpot collector on any LTS baseline. Its availabil
 
 Always confirm the actual distribution before recommending Shenandoah. Check with:
 
-```bash
+```sh
 java -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal -version 2>&1 | grep UseShenandoahGC
 ```
 
@@ -110,7 +110,7 @@ Symptom identified as GC-driven?
 
 G1 tuning entry points:
 
-```bash
+```text
 -XX:MaxGCPauseMillis=200
 -Xms2g -Xmx4g
 -XX:+DisableExplicitGC
@@ -122,7 +122,7 @@ G1 tuning entry points:
 
 ZGC tuning entry points:
 
-```bash
+```text
 -Xms4g -Xmx4g
 -XX:+UseZGC
 -XX:SoftMaxHeapSize=3g
@@ -134,7 +134,7 @@ ZGC tuning entry points:
 
 Parallel GC tuning entry points:
 
-```bash
+```text
 -XX:ParallelGCThreads=4
 -XX:NewSize=512m -XX:MaxNewSize=1g
 ```

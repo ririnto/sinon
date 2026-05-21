@@ -1,6 +1,7 @@
 ---
 name: spring-statemachine
-description: Model explicit application lifecycles with Spring Statemachine states, events, guards, actions, extended state, persistence, and state-machine tests. Use this skill when modeling explicit application lifecycles with Spring Statemachine, including states, events, guards, actions, extended state, persistence, and state-machine tests.
+description: >-
+  Model explicit application lifecycles with Spring Statemachine states, events, guards, actions, extended state, persistence, and state-machine tests. Use this skill when modeling explicit application lifecycles with Spring Statemachine, including states, events, guards, actions, extended state, persistence, and state-machine tests.
 metadata:
   title: "Spring Statemachine"
   official-project-url: "https://spring.io/projects/spring-statemachine"
@@ -91,11 +92,11 @@ Use the starter for ordinary Boot-based state machine work and the test module f
 
 ### First safe commands
 
-```bash
+```sh
 ./mvnw test -Dtest=OrderStateMachineTests
 ```
 
-```bash
+```sh
 ./gradlew test --tests OrderStateMachineTests
 ```
 

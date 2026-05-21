@@ -1,6 +1,7 @@
 ---
 title: "PromQL Histogram Details"
-description: "Open this when working with histogram_quantile, histogram_fraction, native vs classic histograms, bucket interpolation, or monotonicity issues."
+description: >-
+  Open this when working with histogram_quantile, histogram_fraction, native vs classic histograms, bucket interpolation, or monotonicity issues.
 ---
 
 Use this reference when the query involves histograms and the blocker is understanding interpolation behavior, native vs classic differences, or debugging `histogram_quantile` results.
@@ -31,7 +32,7 @@ If the highest bucket is not `+Inf`, `histogram_quantile` returns NaN.
 
 ## Aggregation Pattern Difference
 
-**Classic** -- must preserve `le` label:
+Classic -- must preserve `le` label:
 
 ```promql
 histogram_quantile(
@@ -40,7 +41,7 @@ histogram_quantile(
 )
 ```
 
-**Native** -- normal aggregation:
+Native -- normal aggregation:
 
 ```promql
 histogram_quantile(
@@ -55,7 +56,7 @@ Forgetting `le` in the classic `by` clause is the most common histogram aggregat
 
 ### Classic histograms and custom-boundary native buckets
 
-Assumes **linear interpolation** (uniform distribution of observations within the bucket).
+Assumes linear interpolation (uniform distribution of observations within the bucket).
 
 Given buckets `{le="1": 50, le="5": 70}` and asking for phi=0.5 (median):
 
@@ -68,7 +69,7 @@ This example shows why picking boundaries far from actual bucket edges produces 
 
 ### Standard exponential native buckets
 
-Uses **exponential interpolation**: assumes observations would uniformly populate a hypothetical higher-resolution histogram. This produces more accurate results for skewed distributions but is computationally more complex.
+Uses exponential interpolation: assumes observations would uniformly populate a hypothetical higher-resolution histogram. This produces more accurate results for skewed distributions but is computationally more complex.
 
 ### Zero bucket behavior
 

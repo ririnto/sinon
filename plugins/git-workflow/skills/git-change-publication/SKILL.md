@@ -79,7 +79,7 @@ Rule: NEVER execute `git commit` autonomously; always present the draft and wait
 
 Inspect the repository state before choosing wording:
 
-```bash
+```sh
 git status
 git diff --cached
 git diff
@@ -127,10 +127,10 @@ Use when: you need to anchor commit or hosted-review text to the real repository
 
 Detect the repository host before branching into host-specific references:
 
-```bash
+```sh
 git remote -v
-[ -d .github ] && echo "HAS_GITHUB_DIR"
-[ -d .gitlab ] && echo "HAS_GITLAB_DIR"
+if [ -d .github ]; then echo "HAS_GITHUB_DIR"; fi
+if [ -d .gitlab ]; then echo "HAS_GITLAB_DIR"; fi
 ```
 
 ### Detection Rules
@@ -174,7 +174,7 @@ If `git diff --cached` and `git diff` show different concerns, write the commit 
 
 Single logical change ready for one commit:
 
-```bash
+```sh
 git status
 git diff --cached
 git commit -m "fix(auth): reject expired refresh tokens" -m "- Prevent expired refresh tokens from creating new sessions.
@@ -517,7 +517,7 @@ Starting state: a repository with mixed staged and unstaged changes in the auth 
 
 Step 1: Inspect repository state
 
-```bash
+```sh
 $ git status
 On branch feature/auth-token-cleanup
 Changes to be committed:
@@ -599,7 +599,7 @@ fix(auth): validate credentials and token before session creation
 
 Step 5: Detect host
 
-```bash
+```sh
 $ git remote -v
 origin  https://github.com/example/webapp.git (fetch)
 -> Host: GitHub
@@ -633,11 +633,11 @@ Step 7: Validate result
 
 Step 8: Output contract fulfillment
 
-1. **Publication decision:** one commit (staged changes form one logical unit).
-2. **Proposed commit:** `fix(auth): validate credentials and token before session creation` (ready-to-run).
-3. **Review body:** fallback template filled above.
-4. **Host/template assumption:** GitHub; template missing (fallback used).
-5. **Validation statement:** unit tests added for both changed files; manual verification performed; unstaged middleware change excluded.
+1. Publication decision: one commit (staged changes form one logical unit).
+2. Proposed commit: `fix(auth): validate credentials and token before session creation` (ready-to-run).
+3. Review body: fallback template filled above.
+4. Host/template assumption: GitHub; template missing (fallback used).
+5. Validation statement: unit tests added for both changed files; manual verification performed; unstaged middleware change excluded.
 
 ## Edge Cases
 
@@ -674,7 +674,7 @@ Validate the result with these executable checks:
 - The type check must exit 0.
 - When the host is known, re-run the discovery command from Host Detection or the host-specific reference and confirm sections match the discovered template.
 
-```bash
+```sh
 echo "=== Staged changes ==="
 git diff --cached --stat
 

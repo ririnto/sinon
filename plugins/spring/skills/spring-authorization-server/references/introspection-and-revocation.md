@@ -4,9 +4,9 @@ Open this reference when the ordinary issuer, authorization, token, metadata, an
 
 ## Introspection blocker
 
-**Problem:** a relying party or resource server must ask the authorization server whether an opaque or reference-style token is still active.
+Problem: a relying party or resource server must ask the authorization server whether an opaque or reference-style token is still active.
 
-**Solution:** expose and test the token introspection endpoint as a server-to-server contract.
+Solution: expose and test the token introspection endpoint as a server-to-server contract.
 
 ```text
 introspection: /oauth2/introspect
@@ -16,9 +16,9 @@ Use introspection when token validity cannot be decided from local signature ver
 
 ## Revocation blocker
 
-**Problem:** clients must explicitly invalidate an issued token before natural expiration.
+Problem: clients must explicitly invalidate an issued token before natural expiration.
 
-**Solution:** expose and test the token revocation endpoint as a deliberate client capability.
+Solution: expose and test the token revocation endpoint as a deliberate client capability.
 
 ```text
 revocation: /oauth2/revoke

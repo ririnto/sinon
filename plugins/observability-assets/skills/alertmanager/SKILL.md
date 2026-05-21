@@ -49,7 +49,7 @@ This skill uses modern `matchers` array syntax as the baseline. For version-sens
 
 Start by validating the configuration file that will actually ship:
 
-```bash
+```sh
 amtool check-config alertmanager.yml
 ```
 
@@ -78,8 +78,8 @@ The root route MUST satisfy these constraints (enforced by config validation):
 | `group_interval` | duration | no | 5m | Minimum interval between notifications for the same group |
 | `repeat_interval` | duration | no | 4h | Minimum interval before re-sending a notification for the same group |
 | `matchers` | list of string | no | -- | Modern matcher expressions (e.g., `severity="page"`) |
-| `match` | map[string]string | no | -- | **Deprecated**. Exact label equality matching |
-| `match_re` | map[string]string | no | -- | **Deprecated**. Regex label matching |
+| `match` | map[string]string | no | -- | Deprecated. Exact label equality matching |
+| `match_re` | map[string]string | no | -- | Deprecated. Regex label matching |
 | `continue` | bool | no | false | If true, continue matching child routes after this route matches |
 | `routes` | list of route | no | -- | Child routes evaluated in order after parent matches |
 | `mute_time_intervals` | list of string | no | -- | Named time intervals during which this route is muted |
@@ -202,10 +202,10 @@ Inhibition mutes target alerts when a source alert is already firing and both sh
 | `source_matchers` | list of string | yes* | -- | Matchers that identify source alerts (modern syntax) |
 | `target_matchers` | list of string | yes* | -- | Matchers that identify target alerts (modern syntax) |
 | `equal` | list of string | yes | -- | Labels that must be identical between source and target |
-| `source_match` | map[string]string | no | -- | **Deprecated**. Exact source label matching |
-| `source_match_re` | map[string]string | no | -- | **Deprecated**. Regex source label matching |
-| `target_match` | map[string]string | no | -- | **Deprecated**. Exact target label matching |
-| `target_match_re` | map[string]string | no | -- | **Deprecated**. Regex target label matching |
+| `source_match` | map[string]string | no | -- | Deprecated. Exact source label matching |
+| `source_match_re` | map[string]string | no | -- | Deprecated. Regex source label matching |
+| `target_match` | map[string]string | no | -- | Deprecated. Exact target label matching |
+| `target_match_re` | map[string]string | no | -- | Deprecated. Regex target label matching |
 
 At least one of `source_matchers`/`source_match`/`source_match_re` must be provided (same for target). Prefer `source_matchers` and `target_matchers`.
 

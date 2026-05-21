@@ -1,6 +1,7 @@
 ---
 title: Grafana Mixin Reference
-description: "Open this when generated dashboards, Jsonnet source review, or source-vs-rendered handoff is the blocker."
+description: >-
+  Open this when generated dashboards, Jsonnet source review, or source-vs-rendered handoff is the blocker.
 ---
 
 Use this reference when the team already uses Grafana mixin or Jsonnet and the blocker is understanding how source files and rendered dashboard assets should relate to each other.
@@ -123,7 +124,7 @@ Keep Jsonnet or mixin sources trusted and reviewed; repository presence alone is
 
 Minimal render step — render mixin or Jsonnet source into a reviewed dashboard asset:
 
-```bash
+```sh
 jsonnet -m grafana/rendered/dashboards grafana/mixin/dashboards.libsonnet
 ```
 

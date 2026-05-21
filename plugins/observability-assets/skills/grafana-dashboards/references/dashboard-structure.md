@@ -1,6 +1,7 @@
 ---
 title: Grafana Dashboard Structure Reference
-description: "Open this when export cleanup, JSON ownership, or normalization after UI edits or rendering is the blocker."
+description: >-
+  Open this when export cleanup, JSON ownership, or normalization after UI edits or rendering is the blocker.
 ---
 
 Use this reference when the main blocker is understanding what to keep or remove in dashboard JSON after an export, a manual edit, or a Grafana mixin render.

@@ -1,6 +1,7 @@
 ---
 title: "Combining Operators"
-description: "Open this when the exact choice among concat, merge, zip, combineLatest, or then determines correctness, ordering, or completion behavior."
+description: >-
+  Open this when the exact choice among concat, merge, zip, combineLatest, or then determines correctness, ordering, or completion behavior.
 ---
 
 Open this when the blocker is combination semantics rather than the business logic inside each publisher.

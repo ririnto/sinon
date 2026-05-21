@@ -82,7 +82,7 @@ Use when: you need one stable provider file for dashboard JSON already tracked i
 
 Start by validating the provider YAML structure:
 
-```bash
+```sh
 uv run --with 'pyyaml>=6,<7' python -c "import yaml; yaml.safe_load(open('grafana/provisioning/dashboards.yaml'))"
 ```
 
@@ -241,7 +241,7 @@ Use when: you need one repository layout that makes provider config and provisio
 
 ## Environment Variable Syntax
 
-Environment variable substitution works in **provider YAML config values only**, not inside dashboard JSON definition files.
+Environment variable substitution works in provider YAML config values only, not inside dashboard JSON definition files.
 
 Syntax rules:
 
@@ -342,8 +342,8 @@ UI export workflows for moving a dashboard into provisioning:
 
 | Export method | Post-export step required |
 | --- | --- |
-| Dashboard menu -> **Save JSON to file** | Keep the raw dashboard JSON; normalize instance-specific fields such as `id` before committing |
-| Dashboard menu -> **Copy JSON to clipboard** | Paste the raw dashboard JSON into the source file and normalize `id` if present |
+| Dashboard menu -> Save JSON to file | Keep the raw dashboard JSON; normalize instance-specific fields such as `id` before committing |
+| Dashboard menu -> Copy JSON to clipboard | Paste the raw dashboard JSON into the source file and normalize `id` if present |
 | API `GET /api/dashboards/uid/<uid>` | Extract the `dashboard` object from the response and save that raw object as the source file |
 
 UI export methods already produce raw dashboard JSON. API responses and import payloads add extra envelope fields such as `dashboard`, `meta`, `folderUid`, or `overwrite`; strip those envelopes before storing a file under the legacy provider path. The `id` field from one Grafana instance SHOULD be removed or set to `null` before the file becomes shared source.

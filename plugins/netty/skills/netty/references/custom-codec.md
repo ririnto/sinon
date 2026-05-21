@@ -1,6 +1,7 @@
 ---
 title: Custom Codec Development
-description: Open this when a Netty protocol needs custom decoding, encoding, stateful parsing, or handler sharability decisions.
+description: >-
+  Open this when a Netty protocol needs custom decoding, encoding, stateful parsing, or handler sharability decisions.
 ---
 
 ## Open this when
@@ -73,6 +74,7 @@ final class TimeDecoder extends ReplayingDecoder<Void> {
 ```
 
 > [!WARNING]
+>
 > `ReplayingDecoder` is slightly slower than `ByteToMessageDecoder` due to try/catch overhead. Use it for readability on simple protocols; switch to `ByteToMessageDecoder` for hot paths where decode throughput matters.
 
 ## Stateful decoder with `handlerAdded` / `handlerRemoved`

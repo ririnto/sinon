@@ -273,7 +273,7 @@ Use when: you need one minimal `promtool` test that exercises a real alert rule 
 
 Start by running the exact test file that matches the rule under review:
 
-```bash
+```sh
 promtool test rules alerts/api-errors.test.yaml
 ```
 
@@ -282,13 +282,13 @@ If `promtool` is unavailable, stop at a blocked validation state instead of clai
 
 Run a single named test case:
 
-```bash
+```sh
 promtool test rules --run '^api-error-firing$' alerts/api-errors.test.yaml
 ```
 
 Run all test files in a directory:
 
-```bash
+```sh
 promtool test rules tests/
 ```
 

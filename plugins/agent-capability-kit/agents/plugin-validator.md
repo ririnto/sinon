@@ -88,21 +88,21 @@ If `skills/` directory exists:
 
 Report findings in three categories:
 
-**Critical** (publication blocking):
+Critical (publication blocking):
 
 - Missing or invalid `$schema`.
 - `version`, `agents`, or `interface` keys present.
 - `skills` using array-of-paths form.
 - Agent or skill `name` mismatch with basename.
 
-**Major** (strongly recommended fixes):
+Major (strongly recommended fixes):
 
 - Missing required frontmatter fields in agents.
 - HTTP or WS URLs in `.mcp.json` (HTTPS/WSS required).
 - Missing `SKILL.md` in skill directories.
 - Malformed JSON in `.mcp.json`, `hooks/hooks.json`, or `settings.json`.
 
-**Minor** (informational):
+Minor (informational):
 
 - Missing optional fields.
 - Empty directories.

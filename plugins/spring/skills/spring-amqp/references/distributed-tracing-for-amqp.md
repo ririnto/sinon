@@ -4,9 +4,9 @@ Open this reference when the ordinary producer and consumer path in [SKILL.md](.
 
 ## Observation blocker
 
-**Problem:** the application needs end-to-end traces for publish and consume paths.
+Problem: the application needs end-to-end traces for publish and consume paths.
 
-**Solution:** enable observations and keep queue, exchange, and routing-key identifiers visible in telemetry.
+Solution: enable observations and keep queue, exchange, and routing-key identifiers visible in telemetry.
 
 ```xml
 <dependencies>

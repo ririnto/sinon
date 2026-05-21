@@ -1,6 +1,7 @@
 ---
 title: "Connectable Flux Patterns"
-description: "Open this when the real problem is connect, disconnect, replay, or subscriber rendezvous for a shared cold source rather than manual sink emission."
+description: >-
+  Open this when the real problem is connect, disconnect, replay, or subscriber rendezvous for a shared cold source rather than manual sink emission.
 ---
 
 Open this when a cold source already exists and the blocker is how multiple subscribers share, trigger, or replay it.
@@ -53,7 +54,7 @@ Output: both subscribers receive all values (`sub1: 1..3`, `sub2: 1..3`). The fi
 
 ## `refCount(n)`: automatic connect and disconnect
 
-`refCount(n)` connects when the Nth subscriber arrives **and disconnects (cancels the upstream)** when subscriber count drops below N. This is the primary reason to choose `refCount` over `autoConnect`.
+`refCount(n)` connects when the Nth subscriber arrives and disconnects (cancels the upstream) when subscriber count drops below N. This is the primary reason to choose `refCount` over `autoConnect`.
 
 ```java
 import reactor.core.publisher.Flux;

@@ -38,9 +38,9 @@ Resolve Java dependency coordinates without hardcoding stale version numbers int
 
 Start with one local coordinate check:
 
-```bash
+```sh
 for file in pom.xml build.gradle build.gradle.kts gradle/libs.versions.toml; do
-    [ -f "${file}" ] && grep -nE 'org\.awaitility|awaitility' "${file}"
+    if [ -f "${file}" ]; then grep -nE 'org\.awaitility|awaitility' "${file}"; fi
 done
 ```
 
@@ -135,13 +135,13 @@ Open this branch only when the user explicitly needs a current public release an
 
 ### Coordinate verification request
 
-```bash
+```sh
 curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22<groupId>%22+AND+a:%22<artifactId>%22&rows=1&wt=json"
 ```
 
 ### Safer query when `latestVersion` looks suspicious
 
-```bash
+```sh
 curl -fsSL "https://search.maven.org/solrsearch/select?q=g:%22<groupId>%22+AND+a:%22<artifactId>%22&core=gav&rows=20&wt=json&sort=v%20desc"
 ```
 

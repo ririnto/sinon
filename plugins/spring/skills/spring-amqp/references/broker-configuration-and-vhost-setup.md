@@ -4,9 +4,9 @@ Open this reference when the common-path topology declarations in [SKILL.md](../
 
 ## Broker configuration blocker
 
-**Problem:** the application needs explicit broker credentials, virtual-host selection, or custom connection settings before messaging can work predictably.
+Problem: the application needs explicit broker credentials, virtual-host selection, or custom connection settings before messaging can work predictably.
 
-**Solution:** keep broker connection properties explicit and environment-backed.
+Solution: keep broker connection properties explicit and environment-backed.
 
 ```yaml
 spring:

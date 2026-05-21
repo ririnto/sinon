@@ -4,9 +4,9 @@ Open this reference when the ordinary queue-based RabbitMQ path in [SKILL.md](..
 
 ## Stream plugin blocker
 
-**Problem:** queue semantics are not enough because throughput, replay, or stream-specific delivery behavior is required.
+Problem: queue semantics are not enough because throughput, replay, or stream-specific delivery behavior is required.
 
-**Solution:** use the RabbitMQ stream plugin explicitly and keep stream semantics separate from ordinary queue semantics.
+Solution: use the RabbitMQ stream plugin explicitly and keep stream semantics separate from ordinary queue semantics.
 
 Use this path only when the broker has the RabbitMQ stream plugin enabled and the module intentionally depends on stream semantics such as replay or higher-throughput append-only consumption.
 

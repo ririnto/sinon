@@ -123,7 +123,7 @@ Create plugin directory structure and manifest following sinon rules.
 2. Choose plugin location
 3. Create directory structure using bash:
 
-   ```bash
+   ```sh
    mkdir -p plugin-name/.claude-plugin
    mkdir -p plugin-name/skills/<skill-name>   # one dir per skill, each with a SKILL.md
    mkdir -p plugin-name/agents                # if agents are needed
@@ -288,7 +288,7 @@ Test plugin functionality in Claude Code.
 1. Installation instructions:
    - Show user how to test locally:
 
-     ```bash
+     ```sh
      claude --plugin-dir /absolute/path/to/plugin-name
      ```
 

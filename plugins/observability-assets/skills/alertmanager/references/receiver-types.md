@@ -1,6 +1,7 @@
 ---
 title: "Alertmanager Receiver Types"
-description: "Open this when configuring any notification receiver and need the complete field schema for a specific receiver type."
+description: >-
+  Open this when configuring any notification receiver and need the complete field schema for a specific receiver type.
 ---
 
 ## Alertmanager Receiver Types
@@ -28,7 +29,7 @@ receivers:
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `to` | string | **yes** | -- | Recipient email address |
+| `to` | string | yes | -- | Recipient email address |
 | `from` | string | no | global `smtp_from` | Sender email address override |
 | `hello` | string | no | global `smtp_hello` | HELO/EHLO hostname override |
 | `smarthost` | host:port | no | global `smtp_smarthost` | SMTP server address override |
@@ -131,8 +132,8 @@ receivers:
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `type` | string | **yes** | -- | Action type (e.g., `"button"`) |
-| `text` | string | **yes** | -- | Button/element label text |
+| `type` | string | yes | -- | Action type (e.g., `"button"`) |
+| `text` | string | yes | -- | Button/element label text |
 | `url` | string | cond.* | -- | URL for link buttons (excludes name/value) |
 | `name` | string | cond.* | -- | Action name (required if no url) |
 | `value` | string | no | -- | Action value |
@@ -145,7 +146,7 @@ receivers:
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `text` | string | **yes** | -- | Confirmation dialog text |
+| `text` | string | yes | -- | Confirmation dialog text |
 | `title` | string | no | -- | Dialog title |
 | `ok_text` | string | no | -- | Confirm button text |
 | `dismiss_text` | string | no | -- | Dismiss button text |
@@ -154,8 +155,8 @@ receivers:
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `title` | string | **yes** | -- | Field title |
-| `value` | string | **yes** | -- | Field value |
+| `title` | string | yes | -- | Field title |
+| `value` | string | yes | -- | Field value |
 | `short` | bool | no | -- | Display inline (true) or full-width (false) |
 
 ### Validation Rules
@@ -210,8 +211,8 @@ receivers:
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `http_config` | http_config | no | global `http_config` | HTTP client configuration |
-| `service_key` | secret | cond.* | -- | **Deprecated**. Events API v1 service key |
-| `service_key_file` | string | cond.* | -- | **Deprecated**. Path to v1 service key file |
+| `service_key` | secret | cond.* | -- | Deprecated. Events API v1 service key |
+| `service_key_file` | string | cond.* | -- | Deprecated. Path to v1 service key file |
 | `routing_key` | secret | cond.* | -- | Events API v2 routing key (inline) |
 | `routing_key_file` | string | cond.* | -- | Path to v2 routing key file |
 | `url` | URL | no | global `pagerduty_url` | PagerDuty Events API endpoint |
@@ -451,8 +452,8 @@ receivers:
 | `http_config` | http_config | no | global `http_config` | HTTP client configuration |
 | `api_key` | secret | cond.* | global `victorops_api_key` | VictorOps API key (inline) |
 | `api_key_file` | string | cond.* | global `victorops_api_key_file` | Path to API key file |
-| `api_url` | URL | **yes** | global `victorops_api_url` | VictorOps integration API URL |
-| `routing_key` | string | **yes** | -- | Routing key for the VictorOps integration |
+| `api_url` | URL | yes | global `victorops_api_url` | VictorOps integration API URL |
+| `routing_key` | string | yes | -- | Routing key for the VictorOps integration |
 | `message_type` | string | no | `"CRITICAL"` | Incident message type |
 | `state_message` | string | no | `'{{ template "victorops.default.state_message" . }}'` | State message body |
 | `entity_display_name` | string | no | `'{{ template "victorops.default.entity_display_name" . }}'` | Display name for the entity |
@@ -683,7 +684,7 @@ receivers:
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
 | `http_config` | http_config | no | global `http_config` | HTTP client configuration |
-| `api_url` | URL | **yes** | global `telegram_api_url` | Telegram Bot API base URL |
+| `api_url` | URL | yes | global `telegram_api_url` | Telegram Bot API base URL |
 | `bot_token` | secret | cond.* | global `telegram_bot_token` | Bot token (inline) |
 | `bot_token_file` | string | cond.* | global `telegram_bot_token_file` | Path to bot token file |
 | `chat_id` | int64 | cond.* | -- | Target chat ID (integer) |
@@ -867,12 +868,12 @@ receivers:
 | `http_config` | http_config | no | global `http_config` | HTTP client configuration |
 | `api_url` | URL | yes* | global `jira_api_url` | Jira Cloud/Data Center API base URL |
 | `api_type` | string | no | `"auto"` | API type: `"auto"`, `"cloud"`, or `"datacenter"` |
-| `project` | string | **yes** | -- | Jira project key |
+| `project` | string | yes | -- | Jira project key |
 | `summary` | JiraFieldConfig | no | (template) | Issue summary field |
 | `description` | JiraFieldConfig | no | (template) | Issue description field |
 | `labels` | list of string | no | -- | Labels to apply |
 | `priority` | string | no | (template) | Priority field value |
-| `issue_type` | string | **yes** | -- | Issue type name |
+| `issue_type` | string | yes | -- | Issue type name |
 | `reopen_transition` | string | no | -- | Transition name for reopening resolved issues |
 | `resolve_transition` | string | no | -- | Transition name for resolving open issues |
 | `wont_fix_resolution` | string | no | -- | Resolution name for wont-fix |
@@ -970,8 +971,8 @@ receivers:
 
 | Field | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `title` | string | **yes** | -- | Field title |
-| `value` | string | **yes** | -- | Field value |
+| `title` | string | yes | -- | Field title |
+| `value` | string | yes | -- | Field value |
 | `short` | bool | no | -- | Display inline |
 
 ### RocketchatAttachmentAction Sub-fields
@@ -1059,8 +1060,8 @@ receivers:
 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `title` | string | **yes** | Field title |
-| `value` | string | **yes** | Field value |
+| `title` | string | yes | Field title |
+| `value` | string | yes | Field value |
 | `short` | bool | no | Display inline |
 
 ### MattermostAttachment Sub-fields
@@ -1136,7 +1137,7 @@ receivers:
 | `http_config` | http_config | no | global `http_config` | HTTP client configuration |
 | `api_url` | URL | yes* | global `webex_api_url` | Webex Messages API URL |
 | `message` | string | no | `'{{ template "webex.default.message" . }}'` | Message body |
-| `room_id` | string | **yes** | -- | Target room ID |
+| `room_id` | string | yes | -- | Target room ID |
 
 \* Required globally or locally.
 

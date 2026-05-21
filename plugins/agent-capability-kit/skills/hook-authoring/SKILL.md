@@ -1,6 +1,7 @@
 ---
 name: hook-authoring
-description: Author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails. Use this skill when authoring or refactoring `hooks/hooks.json` and hook scripts offline.
+description: >-
+  Author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails. Use this skill when authoring or refactoring `hooks/hooks.json` and hook scripts offline.
 ---
 
 # Hook Authoring
@@ -276,7 +277,7 @@ Execute when Claude Code session begins. Load project context, set environment v
 
 Special: command hooks can write to `$CLAUDE_ENV_FILE` to persist environment variables across the session:
 
-```bash
+```sh
 echo "export PROJECT_TYPE=nodejs" >> "$CLAUDE_ENV_FILE"
 ```
 
@@ -363,7 +364,7 @@ Common patterns:
 
 Matchers are case-sensitive and match against the full tool name.
 
-**Matcher evaluation precedence:** Exact-match patterns are tried first, then pipe-separated alternations left-to-right, then regex (as a fallback). Wildcard `*` matches unconditionally if no prior pattern matched. Configure more specific matchers first to ensure they take precedence over broader patterns.
+Matcher evaluation precedence: Exact-match patterns are tried first, then pipe-separated alternations left-to-right, then regex (as a fallback). Wildcard `*` matches unconditionally if no prior pattern matched. Configure more specific matchers first to ensure they take precedence over broader patterns.
 
 ## Hook Input/Output Contract
 
@@ -497,7 +498,7 @@ Claude Code validates hooks when session starts:
 
 Validate hook configuration offline:
 
-```bash
+```sh
 python3 -m json.tool hooks/hooks.json
 ```
 
@@ -505,7 +506,7 @@ This validates JSON syntax. If output shows no errors, the file is structurally 
 
 Test a command hook script with sample input:
 
-```bash
+```sh
 cat > /tmp/test-input.json << 'EOF'
 {
   "session_id": "test",
@@ -520,7 +521,7 @@ bash hooks/validate.sh < /tmp/test-input.json
 
 Verify output is valid JSON:
 
-```bash
+```sh
 bash hooks/validate.sh < /tmp/test-input.json | python3 -m json.tool
 ```
 

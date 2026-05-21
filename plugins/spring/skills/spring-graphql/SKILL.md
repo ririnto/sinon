@@ -1,6 +1,7 @@
 ---
 name: spring-graphql
-description: Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests. Use this skill when building Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests.
+description: >-
+  Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests. Use this skill when building Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests.
 metadata:
   title: "Spring for GraphQL"
   official-project-url: "https://spring.io/projects/spring-graphql"
@@ -71,11 +72,11 @@ Use the Boot starter for application code and the GraphQL test module for focuse
 
 ### First safe commands
 
-```bash
+```sh
 ./mvnw test -Dtest=BookGraphQlControllerTests
 ```
 
-```bash
+```sh
 ./gradlew test --tests BookGraphQlControllerTests
 ```
 
@@ -97,11 +98,11 @@ Start with a single schema resource set and one HTTP endpoint. Add WebSocket or 
 
 ## Build and run path
 
-```bash
+```sh
 ./mvnw spring-boot:run
 ```
 
-```bash
+```sh
 ./gradlew bootRun
 ```
 

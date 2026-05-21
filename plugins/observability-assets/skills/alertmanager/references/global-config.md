@@ -1,6 +1,7 @@
 ---
 title: "Alertmanager Global Configuration"
-description: "Open this when you need the complete global configuration reference, including all fields, defaults, credential pairing rules, and interaction with receiver-level overrides."
+description: >-
+  Open this when you need the complete global configuration reference, including all fields, defaults, credential pairing rules, and interaction with receiver-level overrides.
 ---
 
 ## Alertmanager Global Configuration
@@ -130,7 +131,7 @@ For the complete `http_config` schema, see [`./shared-types.md`](./shared-types.
 
 Many global fields come in inline/file pairs. These rules apply universally:
 
-1. **At most one** of each pair may be configured. Configuring both causes config load failure.
+1. At most one of each pair may be configured. Configuring both causes config load failure.
 2. The `*_file` variant reads the value from a filesystem path at config load time.
 3. If neither variant is set globally, receivers must provide their own value.
 4. If only the global inline value is set, receivers inherit it unless they override locally.

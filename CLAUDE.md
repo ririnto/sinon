@@ -1,6 +1,7 @@
 ---
 title: Sinon Project Rules
-description: Stable repository rules for plugin packaging and skill authoring in the Sinon marketplace.
+description: >-
+  Stable repository rules for plugin packaging and skill authoring in the Sinon marketplace.
 ---
 
 Sinon is a marketplace repository for Claude Code plugins and Agent Skills. These rules govern repository layout, skill authoring, and documentation posture. Normative keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) follow BCP 14. All repository-level and agent-facing rules documents MUST be written in English.
@@ -46,7 +47,7 @@ Plugin structure rule:
 
 ## Authoring Agent Skills
 
-When the task is to create, edit, review, refactor, validate, or package an Agent Skill for this repository, **YOU MUST** load the local `skill-authoring` skill from `plugins/agent-capability-kit/skills/skill-authoring/`. The paths `.claude/skills/skill-authoring/` and `.agents/skills/skill-authoring/` resolve to the same source content through the directory-level symlinks (`.agents` → `.claude` → per-surface symlinks into `plugins/agent-capability-kit/`).
+When the task is to create, edit, review, refactor, validate, or package an Agent Skill for this repository, you MUST load the local `skill-authoring` skill from `plugins/agent-capability-kit/skills/skill-authoring/`. The paths `.claude/skills/skill-authoring/` and `.agents/skills/skill-authoring/` resolve to the same source content through the directory-level symlinks (`.agents` → `.claude` → per-surface symlinks into `plugins/agent-capability-kit/`).
 
 Progressive disclosure applies at three levels:
 
@@ -117,6 +118,103 @@ When a skill documents multiple valid workflows for the same asset class, each w
 - Authors MUST verify against the official reference documentation before writing or modifying any skill content. Verification means checking command syntax, API signatures, and configuration formats against the authoritative source rather than secondary summaries.
 - When example code depends on a specific version of a library, framework, language, or tool, the minimum supported version MUST be explicitly stated.
 - If a review results in modifications, a follow-up review MUST be performed to verify the changes.
+
+## Shell script conventions
+
+All POSIX shell scripts MUST begin with this exact three-line header (in this order, no insertions):
+
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+```
+
+- Shell scripts MUST NOT use `set -u` (or any form including it: `set -eu`, `set -ue`, `set -euo pipefail`).
+- Shell scripts MUST NOT use the bash/ksh extension `[[ ]]`. Tests MUST use POSIX `[ ]`. Pattern matching MUST use `case` instead of `[[ x == y* ]]`. Regex matching MUST use `grep -qE` instead of `[[ x =~ ... ]]`.
+- Shell scripts MUST NOT contain standalone bracket conditional statements such as `[ -f x ] || cmd` or `[ -n "$x" ] && cmd`. Every bracket test MUST appear as the predicate of `if`, `elif`, `while`, or `until`.
+- Shell scripts MUST NOT redirect any output stream to `/dev/null` (any form: `>`, `>>`, `2>`, `&>`, `1>` to `/dev/null`). Discarding output via `/dev/null` only delays the user's ability to diagnose errors. Use variable capture (e.g., `var=$(cmd 2>&1)`) or `grep -q` instead. Using `/dev/null` as an argument or input redirect (e.g., `curl -o /dev/null`, `cmd < /dev/null`) is allowed.
+- Function docstrings MUST follow the JSDoc form: a description block, a blank `#` separator line, then any tag block (`@param <n>`, `@return`, `@exit`, `@throws`, `@deprecated`, `@since`, `@see`, and any other `@<word>` form). The separator MUST appear before the first tag, regardless of which tag begins the block. Comment styles other than docstrings (and the encoding marker above) MUST NOT be used in new code.
+- Blank lines MUST NOT appear inside function bodies.
+- Constants MUST use uppercase names; variables MUST use lowercase names.
+
+Example canonical header with a JSDoc-style function:
+
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+
+# Ensure the given path exists.
+#
+# @param path Filesystem path to check.
+# @return Returns 1 if the path is missing.
+ensure_path() {
+    path="$1"
+    if [ ! -e "$path" ]; then
+        echo "error: '$path' not found" >&2
+        return 1
+    fi
+}
+```
+
+## Single-file script runtime conventions
+
+Scripts in non-shell runtimes SHOULD declare runtime dependencies inline. Each runtime has a standard mechanism for inline dependency declarations.
+
+### Python
+
+Python scripts SHOULD declare runtime dependencies inline using PEP 723 metadata.
+
+```python
+# /// script
+# dependencies = [
+#   "beautifulsoup4",
+# ]
+# ///
+
+from bs4 import BeautifulSoup
+```
+
+### Deno
+
+Deno scripts SHOULD declare dependencies using `npm:` specifiers for direct npm package consumption.
+
+```ts
+#!/usr/bin/env -S deno run
+
+import * as cheerio from "npm:cheerio@1.0.0";
+```
+
+### Bun
+
+Bun scripts SHOULD declare dependencies using direct npm package imports.
+
+```ts
+#!/usr/bin/env bun
+
+import * as cheerio from "cheerio@1.0.0";
+```
+
+### Ruby
+
+Ruby scripts SHOULD declare dependencies inline using Bundler inline gemfiles.
+
+```ruby
+require 'bundler/inline'
+
+gemfile do
+  source 'https://rubygems.org'
+  gem 'nokogiri'
+end
+```
+
+## AST-based modification
+
+When modifying source files, agents and tooling SHOULD use a language-appropriate AST or PSI (Program Structure Interface) representation whenever a parser is reasonably available — for example Python's `ast`/`libcst`, TypeScript's `ts-morph`/compiler API, IntelliJ Platform's PSI for Kotlin/Java, `tree-sitter` for shell/Markdown, `roslyn` for C#, etc.
+
+- Regex- or string-based edits MUST be a last resort. They are permitted only when (a) no robust parser is available for the language, (b) the change is purely lexical (e.g., whitespace), or (c) the file is too small for parser overhead to be worth it.
+- When string-based edits are used, the agent MUST identify the exact node being modified (function name, declaration, etc.) so that a reviewer can confirm scope without re-parsing.
+- Existing implementations that rely on regex or string surgery SHOULD be migrated to AST-based equivalents when feasible.
 
 ## Review checklist
 
