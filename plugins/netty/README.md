@@ -10,7 +10,7 @@ Netty is a shared, skill-first plugin for Netty core API and Reactor Netty react
 
 - Provide reusable Netty workflows that remain portable across Claude Code plugin installations.
 - Keep skills practical, example-driven, and focused on real network application tasks rather than framework trivia.
-- Separate network application concerns from Java language, JDK tooling, and general I/O concerns.
+- Clarify handoffs between low-level Netty APIs and Reactor Netty application patterns.
 
 ## Included Skills
 
@@ -28,11 +28,11 @@ Typical workflow:
 2. Add reactive behavior when stream processing or backpressure is required.
 3. Use Netty core guidance for low-level channel and pipeline concerns.
 4. Use Reactor Netty guidance for HTTP/WebSocket with reactive patterns.
-5. Java syntax, JVM diagnostics, and general I/O questions belong in Java- or JVM-focused guidance.
+5. When the blocker is not Netty or Reactor Netty behavior, stop at Scope Boundaries before choosing another plugin.
 
 ## Scope Boundaries
 
-Netty stays responsible for Netty-specific API, reactive programming with Project Reactor, and network application patterns.
+Netty stays responsible for Netty-specific API, Project Reactor integration through Reactor Netty, and network application patterns.
 
 These topics fall outside Netty's scope:
 
@@ -40,7 +40,7 @@ These topics fall outside Netty's scope:
 - JDK tools, JVM diagnostics, and GC analysis.
 - General HTTP/WebSocket protocol knowledge.
 
-Netty-specific reactive programming and backpressure handling stay in this plugin. General reactive programming outside the Netty ecosystem is outside this plugin's scope.
+Netty-specific reactive programming and backpressure handling stay in this plugin. Project Reactor patterns without Netty or Reactor Netty context belong in the Reactor plugin.
 
 ## Runtime Model
 
@@ -87,3 +87,7 @@ For local development:
 ```sh
 claude --plugin-dir /path/to/sinon/plugins/netty
 ```
+
+## Scope Notes
+
+This plugin does not bundle ready-to-run server templates. Skill examples are authoring patterns that must be adapted to the target application's transport, protocol, and resource-management constraints.
