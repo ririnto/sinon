@@ -88,6 +88,8 @@ These topics fall outside Reactor's scope:
 
 Reactor-specific reactive programming and operator composition belong in Reactor guidance. General concurrency patterns outside the Reactor ecosystem belong elsewhere.
 
+WebFlux event-loop safety belongs here only when the task is Reactor operator placement, blocking offload, or scheduler selection inside a pipeline. WebFlux server configuration, handler setup, and transport wiring belong outside this plugin.
+
 ## Runtime Model
 
 This plugin uses one shared plugin root with a thin Claude manifest:
@@ -102,6 +104,8 @@ The actual reusable content lives beside the manifest at the plugin root.
 plugins/reactor/
 ├── .claude-plugin/plugin.json
 ├── README.md
+├── agents/
+│   └── reactor-architect.md
 └── skills/
     ├── reactor-core/
     ├── reactor-scheduling/
@@ -136,3 +140,7 @@ For local development:
 ```sh
 claude --plugin-dir /path/to/sinon/plugins/reactor
 ```
+
+## Scope Notes
+
+This plugin does not bundle ready-to-run reactive services. Skill examples are operator, scheduler, sink, and test patterns that must be adapted to the target pipeline's data source, lifecycle, and execution context.
