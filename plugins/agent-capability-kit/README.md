@@ -1,3 +1,9 @@
+---
+title: Agent Capability Kit
+description: >-
+  Overview of the Agent Capability Kit plugin, its authoring skills, runtime agents, command surface, and plugin packaging guidance.
+---
+
 # Agent Capability Kit
 
 This package is a Claude Code authoring plugin that teaches four distinct domains:

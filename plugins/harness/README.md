@@ -1,3 +1,9 @@
+---
+title: Harness
+description: >-
+  Overview of the Harness plugin, its install, validation, evolution, templates, agents, skills, CI, and Git hook scaffolding workflow.
+---
+
 # Harness
 
 Harness is a Claude Code plugin for installing, validating, and evolving repository-owned agent development scaffolding. It combines the v6 archive structure with this repository's plugin packaging rules: skills are the declared runtime surface, root agents are host-dependent and undeclared in the manifest, and target repositories own the files copied into them.
