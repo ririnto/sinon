@@ -83,7 +83,7 @@ plugins/java/
 
 - The plugin ships five reusable Java skills under `skills/`.
 - `.lsp.json` and `scripts/jdtls-wrapper.sh` expose the Java language-server surface for Claude-compatible local development.
-- The plugin ships no plugin-root `agents/` directory.
+- The plugin ships one plugin-root agent: `java-architect` for Java language, testing, dependency, performance, and API design decisions.
 - The plugin does not ship commands, hooks, MCP servers, or custom runtime data surfaces.
 
 ## Claude-Specific Surfaces
