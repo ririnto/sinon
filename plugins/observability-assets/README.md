@@ -76,7 +76,7 @@ plugins/observability-assets/
 ## Shipped Surfaces
 
 - The plugin ships six reusable observability-asset skills under `skills/`.
-- The plugin ships no plugin-root `agents/` directory.
+- The plugin ships one plugin-root agent: `observability-architect` for alerting, dashboard, SLO, and metrics architecture decisions.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
