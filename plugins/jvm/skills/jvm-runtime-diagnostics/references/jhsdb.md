@@ -21,31 +21,32 @@ Do not make it the default for normal live-process triage. Official docs warn th
 
 Live process:
 
-```bash
+```sh
 jhsdb <subcommand> --pid <pid>
 ```
 
 Core file:
 
-```bash
+```sh
 jhsdb <subcommand> --exe "$JAVA_HOME/bin/java" --core /path/to/core
 ```
 
 Remote SA debug server:
 
-```bash
+```sh
 jhsdb debugd --pid <pid>
 jhsdb <subcommand> --connect host
 ```
 
 > [!WARNING]
+>
 > Remote SA debug-server flows are admin-only diagnostics. Keep them on trusted networks or behind SSH tunneling, never expose them to the public internet, and shut them down immediately after the investigation.
 
 ## jhsdb jstack
 
 Typical shapes:
 
-```bash
+```sh
 jhsdb jstack --pid <pid>
 jhsdb jstack --pid <pid> --locks
 jhsdb jstack --pid <pid> --mixed
@@ -62,7 +63,7 @@ Use:
 
 Typical shapes:
 
-```bash
+```sh
 jhsdb jmap --pid <pid> --heap
 jhsdb jmap --pid <pid> --histo
 jhsdb jmap --pid <pid> --clstats
@@ -82,7 +83,7 @@ Use:
 
 Typical shapes:
 
-```bash
+```sh
 jhsdb jinfo --pid <pid> --flags
 jhsdb jinfo --pid <pid> --sysprops
 ```
@@ -96,7 +97,7 @@ Use:
 
 Typical shapes:
 
-```bash
+```sh
 jhsdb jsnap --pid <pid>
 jhsdb jsnap --pid <pid> --all
 ```
@@ -110,7 +111,7 @@ Use:
 
 Typical shapes:
 
-```bash
+```sh
 jhsdb clhsdb --pid <pid>
 jhsdb hsdb --pid <pid>
 ```

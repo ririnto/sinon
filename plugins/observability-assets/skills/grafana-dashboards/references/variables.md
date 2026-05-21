@@ -1,6 +1,7 @@
 ---
 title: Complete Variable Reference
-description: "Open this when you need the full variable type catalog, syntax formats, global variables, format options, or advanced variable patterns."
+description: >-
+  Open this when you need the full variable type catalog, syntax formats, global variables, format options, or advanced variable patterns.
 ---
 
 ## Complete Variable Reference
@@ -279,7 +280,7 @@ How ad hoc filters work:
 2. Operator selects a label key from the available set (queried from the datasource)
 3. Operator chooses an operator (=, !=, =~, !~)
 4. Operator enters a value
-5. Grafana appends the resulting matcher to **every** PromQL query in the dashboard
+5. Grafana appends the resulting matcher to every PromQL query in the dashboard
 
 Example: if the operator adds `job = api` and `environment != test`, every query gains `{job="api", environment!="test"}` as additional label matchers.
 

@@ -4,9 +4,9 @@ Open this reference when the ordinary event-driven listener path in [SKILL.md](.
 
 ## Polling consumer blocker
 
-**Problem:** the caller needs pull-style receive behavior instead of container-managed asynchronous consumption.
+Problem: the caller needs pull-style receive behavior instead of container-managed asynchronous consumption.
 
-**Solution:** use `RabbitTemplate` receive operations only when the consumer really is synchronous or scheduled.
+Solution: use `RabbitTemplate` receive operations only when the consumer really is synchronous or scheduled.
 
 ```java
 Message message = rabbitTemplate.receive("orders", 5000);

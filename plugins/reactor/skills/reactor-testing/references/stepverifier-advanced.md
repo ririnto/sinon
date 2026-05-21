@@ -1,6 +1,7 @@
 ---
 title: "Advanced StepVerifier"
-description: "Open this when basic StepVerifier flow is not enough and you need scenario options, context expectations, or richer post-verification assertions."
+description: >-
+  Open this when basic StepVerifier flow is not enough and you need scenario options, context expectations, or richer post-verification assertions.
 ---
 
 Open this when the test is still primarily a `StepVerifier` scenario, but the ordinary path is no longer expressive enough.

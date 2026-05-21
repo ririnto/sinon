@@ -1,6 +1,7 @@
 ---
 name: reactor-core
-description: Author Reactor pipelines with Flux and Mono. Use this skill when designing or reviewing Flux/Mono source creation, operator composition, combination, empty/error behavior, ordinary backpressure choices, and everyday Context usage in Project Reactor.
+description: >-
+  Author Reactor pipelines with Flux and Mono. Use this skill when designing or reviewing Flux/Mono source creation, operator composition, combination, empty/error behavior, ordinary backpressure choices, and everyday Context usage in Project Reactor.
 metadata:
   title: Reactor Core
   official_project_url: "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures.html"

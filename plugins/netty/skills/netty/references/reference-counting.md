@@ -1,6 +1,7 @@
 ---
 title: Reference Counting and Memory Ownership
-description: Open this when a Netty handler must retain, release, pass downstream, or debug leaked ByteBuf instances.
+description: >-
+  Open this when a Netty handler must retain, release, pass downstream, or debug leaked ByteBuf instances.
 ---
 
 ## Open this when
@@ -20,6 +21,7 @@ Open this when you are seeing `IllegalReferenceCountException`, leak detector ou
 ## Safe release patterns
 
 > [!NOTE]
+>
 > The manual release pattern for `ChannelInboundHandlerAdapter` is covered in the SKILL.md common path (`ManualReleaseHandler`). This reference focuses on ownership handoff patterns that go beyond single-handler release.
 
 Pass downstream from `SimpleChannelInboundHandler`:
@@ -65,6 +67,7 @@ final class AsyncHandler extends ChannelInboundHandlerAdapter {
 ```
 
 > [!WARNING]
+>
 > This pattern is correct only for `ChannelInboundHandlerAdapter`. If you extend `SimpleChannelInboundHandler` instead, it auto-releases after `channelRead0` returns, and releasing `msg` again in the executor causes an `IllegalReferenceCountException`. In that case, retain once and release only the retained reference in the executor.
 
 Use a real external executor for blocking or CPU-heavy work. If you stay on the channel's event loop, you did not actually offload anything.

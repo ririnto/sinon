@@ -23,10 +23,10 @@ PromQL expressions evaluate to one of four types:
 
 | Type | Definition | Where it appears |
 | --- | --- | --- |
-| **Instant vector** | Set of time series, each with a single sample at the same timestamp | Result of instant-vector selectors, most functions, binary operators |
-| **Range vector** | Set of time series, each with a range of samples over time | Result of range-vector selectors (e.g., `metric[5m]`), subqueries |
-| **Scalar** | A single numeric floating-point value | Literal numbers, `scalar()`, `vector()`, some function results |
-| **String** | A simple string value | String literals; currently unused as a standalone result type |
+| Instant vector | Set of time series, each with a single sample at the same timestamp | Result of instant-vector selectors, most functions, binary operators |
+| Range vector | Set of time series, each with a range of samples over time | Result of range-vector selectors (e.g., `metric[5m]`), subqueries |
+| Scalar | A single numeric floating-point value | Literal numbers, `scalar()`, `vector()`, some function results |
+| String | A simple string value | String literals; currently unused as a standalone result type |
 
 Instant queries accept any type as root. Range queries only accept scalar or instant vector as root result type.
 
@@ -128,7 +128,7 @@ rate(http_requests_total[5m])
 
 ### Offset modifier
 
-Shifts the evaluation time of an instant or range vector. **Must follow the selector immediately**, before any aggregation or function wrapping.
+Shifts the evaluation time of an instant or range vector. Must follow the selector immediately, before any aggregation or function wrapping.
 
 The examples below show, in order, valid placement inside an aggregation, invalid placement outside the aggregation, range-vector use, and a negative offset that looks forward in time.
 
@@ -144,7 +144,7 @@ rate(http_requests_total[5m] offset -1w)
 
 ### @ modifier (evaluation-time override)
 
-Overrides the evaluation timestamp for individual instant or range vectors. Accepts a Unix timestamp (float literal), `start()`, or `end()`. **Must follow the selector immediately**, same placement rule as `offset`.
+Overrides the evaluation timestamp for individual instant or range vectors. Accepts a Unix timestamp (float literal), `start()`, or `end()`. Must follow the selector immediately, same placement rule as `offset`.
 
 The examples below show a fixed Unix timestamp, placement inside an aggregation, range-vector use, range-query start and end pinning, and the equivalent `@`/`offset` orderings.
 
@@ -464,11 +464,11 @@ Fill modifiers go last, after `bool`, `on`, `ignoring`, `group_left`, `group_rig
 
 ## Staleness Model
 
-Prometheus assigns values at query-evaluation timestamps independently of actual sample timestamps. It takes the newest sample within the **lookback delta** (default 5 minutes; configurable via `--query.lookback-delta` flag or per-query `lookback_delta` parameter).
+Prometheus assigns values at query-evaluation timestamps independently of actual sample timestamps. It takes the newest sample within the lookback delta (default 5 minutes; configurable via `--query.lookback-delta` flag or per-query `lookback_delta` parameter).
 
 Key behaviors:
 
-- When a target stops exporting a series, the series is marked **stale**.
+- When a target stops exporting a series, the series is marked stale.
 - Stale series disappear from graphs at their latest sample timestamp.
 - After staleness marking, queries return no value for that series until new samples arrive.
 - Exporters with self-assigned timestamps behave differently: stale series hold their last value for the lookback delta before disappearing (configurable via `track_timestamps_staleness`).

@@ -4,13 +4,13 @@ Open this reference when the application should produce an OCI image without a D
 
 ## Build with Maven
 
-```bash
+```sh
 ./mvnw spring-boot:build-image
 ```
 
 ## Build with Gradle
 
-```bash
+```sh
 ./gradlew bootBuildImage
 ```
 
@@ -18,7 +18,7 @@ Open this reference when the application should produce an OCI image without a D
 
 Default image name follows `docker.io/library/{artifact-name}:{version}`. Override with:
 
-```bash
+```sh
 ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=myregistry/myapp:latest
 ```
 

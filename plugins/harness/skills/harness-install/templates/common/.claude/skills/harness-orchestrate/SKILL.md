@@ -1,6 +1,7 @@
 ---
 name: harness-orchestrate
-description: Coordinate target repository work through the installed harness lifecycle. Use this skill when planning or sequencing work that must read AGENTS.md, update project context, delegate implementation/review, and finish with the stack-specific harness validator.
+description: >-
+  Coordinate target repository work through the installed harness lifecycle. Use this skill when planning or sequencing work that must read AGENTS.md, update project context, delegate implementation/review, and finish with the stack-specific harness validator.
 ---
 
 # Harness Orchestrate

@@ -4,9 +4,9 @@ Open this reference when the baseline retry and dead-letter path in [SKILL.md](.
 
 ## Exhausted-message outcome
 
-**Problem:** the listener fails repeatedly, and the application needs a deliberate exhausted-message outcome.
+Problem: the listener fails repeatedly, and the application needs a deliberate exhausted-message outcome.
 
-**Solution:** choose the exhausted-message destination first, then pair it with one retry strategy.
+Solution: choose the exhausted-message destination first, then pair it with one retry strategy.
 
 - Use `RejectAndDontRequeueRecoverer` when the broker DLX or DLQ path already owns exhausted-message handling.
 - Use `RepublishMessageRecoverer` when the application must republish failed messages to an explicit error exchange.
@@ -31,9 +31,9 @@ Use `RejectAndDontRequeueRecoverer` only when the broker DLX path already owns d
 
 ## Transactional listener path
 
-**Problem:** the listener must coordinate broker acknowledgment with local transactional work.
+Problem: the listener must coordinate broker acknowledgment with local transactional work.
 
-**Solution:** enable transacted channels only on the paths that truly need them.
+Solution: enable transacted channels only on the paths that truly need them.
 
 ```java
 factory.setChannelTransacted(true);

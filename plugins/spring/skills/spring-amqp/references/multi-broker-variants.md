@@ -4,9 +4,9 @@ Open this reference when the ordinary single-broker path in [SKILL.md](../SKILL.
 
 ## Multi-broker blocker
 
-**Problem:** different workloads must publish to or consume from different broker connections.
+Problem: different workloads must publish to or consume from different broker connections.
 
-**Solution:** isolate connection factories, templates, and listener factories by broker role.
+Solution: isolate connection factories, templates, and listener factories by broker role.
 
 - Keep each broker path explicit in bean naming and configuration.
 - Avoid sharing routing-key or queue-name assumptions across brokers unless the contract is truly identical.

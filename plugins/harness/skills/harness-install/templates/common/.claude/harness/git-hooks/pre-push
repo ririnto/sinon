@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+# -*- coding: utf-8 -*-
 set -e
 
 printf '%s\n' 'This packaged placeholder is replaced during harness installation.' >&2

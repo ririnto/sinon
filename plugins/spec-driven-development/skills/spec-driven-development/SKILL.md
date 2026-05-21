@@ -15,7 +15,7 @@ Use the installed skill root only as the source for bundled scripts and template
 
 When this skill is installed as a plugin, resolve the installed paths like this:
 
-```bash
+```sh
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
 SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
 ```
@@ -69,7 +69,7 @@ Follow this path unless a named blocker sends you to an optional reference.
    - Skip research when the capability can be specified from already-known product behavior.
 2. Create the required scaffolds in the current working repository without overwriting existing authored files.
 
-   ```bash
+   ```sh
     PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
     SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
 
@@ -82,7 +82,7 @@ Follow this path unless a named blocker sends you to an optional reference.
    Adjust `service` to the real ownership path.
 3. Create optional scaffolds only when they materially improve clarity.
 
-   ```bash
+   ```sh
     PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
     SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
 
@@ -119,7 +119,7 @@ Follow this path unless a named blocker sends you to an optional reference.
    - Apply the inline review checklist in this file.
    - Validate the authored tree.
 
-   ```bash
+   ```sh
    "${SKILL_ROOT}/scripts/sdd.py" validate ./spec
    ```
 
@@ -135,7 +135,7 @@ Follow this path unless a named blocker sends you to an optional reference.
     - Keep relevant `RESEARCH.md`, `CONTRACT.md`, `openapi.yaml`, and `spec/CHANGELOG.md` synchronized with the implemented state.
     - Re-run validation after the final spec sync.
 
-    ```bash
+    ```sh
     "${SKILL_ROOT}/scripts/sdd.py" validate ./spec
     ```
 
@@ -206,7 +206,7 @@ Each review record MUST include:
 
 Use these from the consuming repository after setting `SKILL_ROOT`:
 
-```bash
+```sh
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:?CLAUDE_PLUGIN_ROOT must point to the installed plugin root}"
 SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
 
@@ -217,7 +217,7 @@ SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
 
 If you need per-file Markdown linting for maintainer hygiene, run it separately and treat it as optional:
 
-```bash
+```sh
 npx -y markdownlint-cli2 <touched-markdown-files>
 ```
 

@@ -1,6 +1,7 @@
 ---
 name: spring-batch
-description: Build and operate Spring Batch jobs with job/step configuration, chunk or tasklet processing, restartability, reader or writer choices, and scaling patterns. Use this skill when building or operating Spring Batch jobs with job and step configuration, chunk or tasklet processing, job parameters, restartability, reader or writer choices, scaling patterns, and batch-focused tests.
+description: >-
+  Build and operate Spring Batch jobs with job/step configuration, chunk or tasklet processing, restartability, reader or writer choices, and scaling patterns. Use this skill when building or operating Spring Batch jobs with job and step configuration, chunk or tasklet processing, job parameters, restartability, reader or writer choices, scaling patterns, and batch-focused tests.
 metadata:
   title: "Spring Batch"
   official-project-url: "https://spring.io/projects/spring-batch"
@@ -69,8 +70,8 @@ Keep the batch runtime vocabulary explicit:
 
 The minimum Spring Batch model is `Job -> Step -> chunk or tasklet`.
 
-- Use a **chunk step** for item-oriented work: read, optionally process, then write in transactions.
-- Use a **tasklet step** for inherently one-shot work such as cleanup, archive, trigger, or command execution.
+- Use a chunk step for item-oriented work: read, optionally process, then write in transactions.
+- Use a tasklet step for inherently one-shot work such as cleanup, archive, trigger, or command execution.
 - Keep one linear job path until a real branching or scaling need exists.
 
 ## First safe configuration
@@ -161,8 +162,8 @@ Make restart behavior explicit before tuning performance.
 
 - Decide which job parameters identify a `JobInstance` and which are only operational knobs.
 - Keep restart-sensitive state in `ExecutionContext` or restart-safe `ItemStream` implementations.
-- Use **skip** for bad input that should be recorded and bypassed.
-- Use **retry** for transient failures that may succeed on a later attempt.
+- Use skip for bad input that should be recorded and bypassed.
+- Use retry for transient failures that may succeed on a later attempt.
 
 ```java
 .faultTolerant()

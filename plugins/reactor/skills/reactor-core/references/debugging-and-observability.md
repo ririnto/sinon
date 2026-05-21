@@ -1,6 +1,7 @@
 ---
 title: "Signal-Level Diagnostics"
-description: "Open this when you need to inspect signal flow, value propagation, or Context at individual pipeline stages without changing execution context or tracing assembly."
+description: >-
+  Open this when you need to inspect signal flow, value propagation, or Context at individual pipeline stages without changing execution context or tracing assembly.
 ---
 
 Open this when the pipeline is conceptually correct but you need to see what signals flow through which stage, what values each operator sees, or how Context propagates per-signal.

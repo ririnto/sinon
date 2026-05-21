@@ -1,6 +1,7 @@
 ---
 title: Reactor
-description: Overview of the Reactor plugin, its included skills, selection guidance, and reactive programming workflow coverage.
+description: >-
+  Overview of the Reactor plugin, its included skills, selection guidance, and reactive programming workflow coverage.
 ---
 
 Reactor is a shared, skill-first plugin for Project Reactor reactive programming work in the Sinon Claude marketplace.
@@ -126,12 +127,12 @@ plugins/reactor/
 
 Install from Sinon:
 
-```bash
+```sh
 /plugin install reactor@sinon
 ```
 
 For local development:
 
-```bash
+```sh
 claude --plugin-dir /path/to/sinon/plugins/reactor
 ```

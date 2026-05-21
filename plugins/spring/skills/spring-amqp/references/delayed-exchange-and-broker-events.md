@@ -4,9 +4,9 @@ Open this reference when the common-path topology in [SKILL.md](../SKILL.md) is 
 
 ## Delayed exchange blocker
 
-**Problem:** the business flow needs delayed delivery rather than immediate routing or ad hoc sleep-based retry logic.
+Problem: the business flow needs delayed delivery rather than immediate routing or ad hoc sleep-based retry logic.
 
-**Solution:** use an explicit delayed exchange instead of burying delay behavior in listener code.
+Solution: use an explicit delayed exchange instead of burying delay behavior in listener code.
 
 ```java
 @Bean
@@ -17,9 +17,9 @@ CustomExchange delayedExchange() {
 
 ## Broker events blocker
 
-**Problem:** the application must observe broker-side availability or topology-related signals.
+Problem: the application must observe broker-side availability or topology-related signals.
 
-**Solution:** wire broker event handling explicitly and keep those listeners operational, not business-facing.
+Solution: wire broker event handling explicitly and keep those listeners operational, not business-facing.
 
 ```java
 @EventListener

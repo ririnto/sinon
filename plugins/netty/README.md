@@ -1,6 +1,7 @@
 ---
 title: Netty
-description: Overview of the Netty plugin, its included skills, and high-performance network application workflow coverage.
+description: >-
+  Overview of the Netty plugin, its included skills, and high-performance network application workflow coverage.
 ---
 
 Netty is a shared, skill-first plugin for Netty core API and Reactor Netty reactive application work in the Sinon Claude marketplace.
@@ -77,12 +78,12 @@ plugins/netty/
 
 Install from Sinon:
 
-```bash
+```sh
 /plugin install netty@sinon
 ```
 
 For local development:
 
-```bash
+```sh
 claude --plugin-dir /path/to/sinon/plugins/netty
 ```

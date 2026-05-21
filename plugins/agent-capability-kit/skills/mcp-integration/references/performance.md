@@ -29,17 +29,19 @@ Session startup latency: 5-10 seconds (one OAuth handshake per server).
 
 Load servers only when tool is called:
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Lazy-load MCP server on first tool invocation.
+#
 # @param server_name Name of server to activate.
 # @return Activates server; subsequent calls use cached connection.
 lazy_load_mcp_server() {
-    local server_name="$1"
-    local loaded_file="${CLAUDE_PLUGIN_ROOT}/.mcp-loaded-${server_name}"
-    if [[ -f "$loaded_file" ]]; then
+    server_name="$1"
+    loaded_file="${CLAUDE_PLUGIN_ROOT}/.mcp-loaded-${server_name}"
+    if [ -f "$loaded_file" ]; then
         return 0
     fi
     echo "Initializing $server_name server..." >&2
@@ -82,7 +84,7 @@ MCP runtime maintains connection pool automatically for HTTP/WebSocket. No confi
 
 Verify pooling is active:
 
-```bash
+```sh
 claude --debug 2>&1 | grep -i "pool\|connection"
 ```
 
@@ -98,7 +100,7 @@ Expected output:
 
 For high-volume tool use, tune pool size in hook:
 
-**.claude/`<plugin-name>`.local.md:**
+`.claude/<plugin-name>.local.md:`
 
 ```markdown
 ---
@@ -109,7 +111,7 @@ mcp_max_requests_per_connection: 100
 
 Hook reads and applies:
 
-```bash
+```sh
 POOL_SIZE=$(grep '^mcp_pool_size:' "$SETTINGS_FILE" | sed 's/mcp_pool_size: *//')
 export MCP_POOL_SIZE="$POOL_SIZE"
 ```
@@ -126,7 +128,8 @@ When using multiple MCP tools in sequence, batch them if server supports it.
 
 ### Problem: sequential calls
 
-```bash
+```sh
+# shellcheck disable=SC2034
 # Three separate tool calls, three separate requests
 REPO1=$(call_tool list_repositories --user alice)
 REPO2=$(call_tool list_repositories --user bob)
@@ -141,14 +144,13 @@ Some servers support batch API (e.g., GitHub GraphQL can query multiple users in
 
 ```bash
 #!/bin/bash
-set -euo pipefail
 
 # Batch repository queries for multiple users.
+#
 # @param users Space-separated list of usernames.
 # @return Outputs all repositories in one tool call.
 batch_list_repositories() {
-    local users=("$@")
-    local query
+    users=("$@")
     query="
     {
         $(for user in "${users[@]}"; do
@@ -166,21 +168,22 @@ Latency: single request for all users, 100ms total.
 
 Post to multiple channels in one batch call:
 
-```bash
+```sh
 #!/bin/bash
 
 # Post message to multiple Slack channels.
+#
 # @param message Message text.
 # @param channels Space-separated list of channel IDs.
 # @return Posts to all channels in batched requests.
 batch_slack_post() {
-    local message="$1"
+    message="$1"
     shift
-    local channels=("$@")
-    local batch_size=10
-    local i=0
-    while [[ $i -lt ${#channels[@]} ]]; do
-        local batch=("${channels[@]:$i:$batch_size}")
+    channels=("$@")
+    batch_size=10
+    i=0
+    while [ "$i" -lt "${#channels[@]}" ]; do
+        batch=("${channels[@]:$i:$batch_size}")
         for channel in "${batch[@]}"; do
             call_tool send_message --channel "$channel" --text "$message" &
         done
@@ -206,25 +209,23 @@ Measure each:
 #!/bin/bash
 
 # Measure MCP tool call latency with breakdown.
+#
 # @param tool_name Name of MCP tool.
 # @return Outputs latency breakdown.
 measure_mcp_latency() {
-    local tool_name="$1"
-    local start_ns
+    tool_name="$1"
     start_ns=$(date +%s%N)
-    local result
     result=$(call_tool "$tool_name" --arg1 value1)
-    local end_ns
     end_ns=$(date +%s%N)
-    local total_ms=$(( (end_ns - start_ns) / 1000000 ))
+    total_ms=$(( (end_ns - start_ns) / 1000000 ))
     echo "Tool '$tool_name' latency: ${total_ms}ms"
-    echo "Result size: $(echo "$result" | wc -c) bytes"
+    echo "Result size: ${#result} bytes"
 }
 ```
 
 Debug output shows per-tool stats:
 
-```bash
+```sh
 claude --debug 2>&1 | grep "mcp\|latency"
 ```
 
@@ -240,14 +241,15 @@ Output:
 
 If tool consistently takes > 500ms:
 
-```bash
+```sh
 #!/bin/bash
 
 # Identify slow MCP tools in use.
+#
 # @param threshold_ms Latency threshold in milliseconds.
 # @return Logs tools exceeding threshold.
 detect_slow_tools() {
-    local threshold_ms="${1:-500}"
+    threshold_ms="${1:-500}"
     claude --debug 2>&1 | grep "Tool.*ms" | awk -v t="$threshold_ms" '{
         if ($NF > t) print "SLOW: " $0
     }'
@@ -270,29 +272,27 @@ Cache expensive tool results locally to avoid repeated calls.
 #!/bin/bash
 
 # Cache MCP tool result with TTL.
+#
 # @param tool_name Name of tool to call.
 # @param args Arguments to tool.
 # @param ttl_seconds Cache time-to-live.
 # @return Returns cached result if fresh; calls tool and caches otherwise.
 cached_mcp_call() {
-    local tool_name="$1"
-    local args="$2"
-    local ttl_seconds="${3:-3600}"
-    local cache_dir="${CLAUDE_PLUGIN_ROOT}/.mcp-cache"
+    tool_name="$1"
+    args="$2"
+    ttl_seconds="${3:-3600}"
+    cache_dir="${CLAUDE_PLUGIN_ROOT}/.mcp-cache"
     mkdir -p "$cache_dir"
-    local cache_key
     cache_key=$(echo -n "${tool_name}:${args}" | md5sum | awk '{print $1}')
-    local cache_file="${cache_dir}/${cache_key}"
-    if [[ -f "$cache_file" ]]; then
-        local cache_age
-        cache_age=$(( $(date +%s) - $(stat -f%m "$cache_file" 2>/dev/null || date +%s) ))
-        if [[ $cache_age -lt $ttl_seconds ]]; then
+    cache_file="${cache_dir}/${cache_key}"
+    if [ -f "$cache_file" ]; then
+        cache_age=$(( $(date +%s) - $(stat -f%m "$cache_file" || date +%s) ))
+        if [ "$cache_age" -lt "$ttl_seconds" ]; then
             cat "$cache_file"
             return 0
         fi
     fi
-    local result
-    result=$(call_tool "$tool_name" $args)
+    result=$(call_tool "$tool_name" "$args")
     echo "$result" > "$cache_file"
     echo "$result"
 }
@@ -300,7 +300,7 @@ cached_mcp_call() {
 
 Usage:
 
-```bash
+```sh
 # Cache GitHub user data for 1 hour
 GITHUB_USER=$(cached_mcp_call get_user --username alice 3600)
 ```
@@ -309,15 +309,16 @@ GITHUB_USER=$(cached_mcp_call get_user --username alice 3600)
 
 Invalidate cache when data changes:
 
-```bash
+```sh
 #!/bin/bash
 
 # Clear MCP cache for a specific tool.
+#
 # @param tool_name Tool to invalidate.
 # @return Removes cached entries.
 invalidate_mcp_cache() {
-    local tool_name="$1"
-    local cache_dir="${CLAUDE_PLUGIN_ROOT}/.mcp-cache"
+    tool_name="$1"
+    cache_dir="${CLAUDE_PLUGIN_ROOT}/.mcp-cache"
     rm -f "${cache_dir}/${tool_name}:*"
     echo "Cache cleared for $tool_name"
 }
@@ -381,7 +382,7 @@ Browser opens to GitHub OAuth, user approves, token updated.
 
 Run with debug output filtered to MCP:
 
-```bash
+```sh
 claude --debug 2>&1 | grep -E "^\[mcp\]"
 ```
 
@@ -400,13 +401,13 @@ Output:
 
 Claude Code writes detailed MCP logs to:
 
-```bash
+```sh
 ~/.claude/logs/mcp.log
 ```
 
 View recent logs:
 
-```bash
+```sh
 tail -50 ~/.claude/logs/mcp.log
 ```
 

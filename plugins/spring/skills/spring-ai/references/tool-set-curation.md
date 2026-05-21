@@ -4,9 +4,9 @@ Open this reference when the ordinary tool path in [SKILL.md](../SKILL.md) is no
 
 ## Multi-tool blocker
 
-**Problem:** the same request may require several tools, but the application must still control which tool set is exposed.
+Problem: the same request may require several tools, but the application must still control which tool set is exposed.
 
-**Solution:** register only the tool callbacks relevant to that workflow and keep the allowed tool surface narrow.
+Solution: register only the tool callbacks relevant to that workflow and keep the allowed tool surface narrow.
 
 ```java
 @Service

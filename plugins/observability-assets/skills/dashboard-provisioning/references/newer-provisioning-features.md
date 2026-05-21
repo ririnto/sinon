@@ -1,6 +1,7 @@
 ---
 title: "Newer Grafana Provisioning Features"
-description: "Open this when Git Sync, newer on-prem file provisioning, Grafana provisioning toggles, K8s resource shapes, or datasource provisioning reference is the blocker."
+description: >-
+  Open this when Git Sync, newer on-prem file provisioning, Grafana provisioning toggles, K8s resource shapes, or datasource provisioning reference is the blocker.
 ---
 
 Use this reference when legacy provider YAML is not the whole story and the deployment is explicitly using newer Grafana observability-as-code features.
@@ -123,7 +124,7 @@ Use when: the blocker is an HTTP API workflow that explicitly requires `dashboar
 
 ## Datasource Provisioning Reference
 
-Datasource provisioning is scope-adjacent to dashboard provisioning but is **not covered** by this skill. Use this section as a pointer to the correct adjacent domain.
+Datasource provisioning is scope-adjacent to dashboard provisioning but is not covered by this skill. Use this section as a pointer to the correct adjacent domain.
 
 What datasource provisioning covers:
 

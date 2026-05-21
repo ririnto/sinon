@@ -1,5 +1,6 @@
 ---
-description: [what the command does and when to use it]
+description: >-
+  [what the command does and when to use it]
 # Optional:
 # argument-hint: [arg1] [arg2]
 # allowed-tools: Read, Grep

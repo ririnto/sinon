@@ -12,13 +12,13 @@ Open this reference when the minimal JWT customizer in [SKILL.md](../SKILL.md) i
 
 ## JWT vs opaque decision
 
-**JWT format** embeds claims in the token itself. Use JWT when:
+JWT format embeds claims in the token itself. Use JWT when:
 
 - The resource server can validate the signature directly.
 - Claims must be inspected without a database round-trip.
 - Token integrity must be verifiable offline.
 
-**Opaque format** requires a token introspection call. Use opaque when:
+Opaque format requires a token introspection call. Use opaque when:
 
 - Tokens must be revocable without signature change.
 - Token size must be minimal.

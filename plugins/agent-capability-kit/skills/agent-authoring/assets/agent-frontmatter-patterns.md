@@ -21,7 +21,8 @@ Key traits: narrow inspection scope, no mutation tools, `description` starts wit
 ```markdown
 ---
 name: docs-refiner
-description: Use this agent when a documentation file needs direct rewriting with consistent structure and tone. Examples:
+description: >-
+  Use this agent when a documentation file needs direct rewriting with consistent structure and tone. Examples:
 
   <example>
   Context: markdown cleanup before release
@@ -53,7 +54,8 @@ tools:
 ```markdown
 ---
 name: dependency-updater
-description: Use this agent when dependency versions, import paths, or API signatures need coordinated updates across multiple files. Examples:
+description: >-
+  Use this agent when dependency versions, import paths, or API signatures need coordinated updates across multiple files. Examples:
 
   <example>
   Context: library version bump after security advisory

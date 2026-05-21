@@ -16,27 +16,27 @@ See SKILL.md for foundational rules: JSON validation via jq, path traversal/sens
 
 Parse JSON inputs with `jq` and validate field presence:
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Validate JSON input before processing.
+#
 # @param input Raw JSON from stdin.
 # @return Extracts validated fields or exits with error.
 validate_input() {
-    local input
     input=$(cat)
-    local tool_name
-    if ! tool_name=$(echo "$input" | jq --exit-status -r '.tool_name // empty' 2>/dev/null); then
-        echo '{"decision": "deny", "reason": "Invalid JSON or parse failure"}' >&2
+    if ! tool_name=$(printf '%s' "$input" | jq --exit-status -r '.tool_name // empty'); then
+        printf '{"decision": "deny", "reason": "Invalid JSON or parse failure"}\n' >&2
         exit 2
     fi
-    if [[ -z "$tool_name" ]]; then
-        echo '{"decision": "deny", "reason": "Missing tool_name field"}' >&2
+    if [ -z "$tool_name" ]; then
+        printf '{"decision": "deny", "reason": "Missing tool_name field"}\n' >&2
         exit 2
     fi
-    if ! [[ "$tool_name" =~ ^[a-zA-Z0-9_]+$ ]]; then
-        echo '{"decision": "deny", "reason": "Invalid tool_name format"}' >&2
+    if ! printf '%s' "$tool_name" | grep -qE '^[a-zA-Z0-9_]+$'; then
+        printf '{"decision": "deny", "reason": "Invalid tool_name format"}\n' >&2
         exit 2
     fi
     echo "$tool_name"
@@ -54,10 +54,10 @@ Rules:
 
 Trusting input without validation:
 
-```bash
-#!/bin/bash
+```sh
+#!/bin/sh
 input=$(cat)
-tool_name=$(echo "$input" | jq -r '.tool_name')
+tool_name=$(printf '%s' "$input" | jq -r '.tool_name')
 # Dangerous: no validation of format or presence
 rm -rf "/projects/$tool_name"
 ```
@@ -68,37 +68,39 @@ Risk: `tool_name` could be `..` or `/tmp` or contain spaces, leading to unintend
 
 ### Correct: reject traversal and sensitive paths
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Validate file paths for safety before processing.
+#
 # @param file_path File path to validate.
 # @return Exits 0 if safe; exits 2 with error JSON if unsafe.
 validate_path() {
-    local file_path="$1"
-    if [[ -z "$file_path" ]]; then
-        echo '{"decision": "deny", "reason": "Missing file path"}' >&2
+    file_path="$1"
+    if [ -z "$file_path" ]; then
+        printf '{"decision": "deny", "reason": "Missing file path"}\n' >&2
         exit 2
     fi
-    if [[ "$file_path" == *".."* ]]; then
-        echo '{"decision": "deny", "reason": "Path traversal (..) detected"}' >&2
+    if [ "$file_path" != "${file_path%..*}" ]; then
+        printf '{"decision": "deny", "reason": "Path traversal (..) detected"}\n' >&2
         exit 2
     fi
-    if [[ "$file_path" =~ ^/ ]]; then
-        echo '{"decision": "deny", "reason": "Absolute paths not allowed"}' >&2
+    if printf '%s' "$file_path" | grep -qE '^/'; then
+        printf '{"decision": "deny", "reason": "Absolute paths not allowed"}\n' >&2
         exit 2
     fi
-    if [[ "$file_path" =~ \.(env|aws|pem|key|ssh)$ ]]; then
-        echo '{"decision": "deny", "reason": "Sensitive file extension"}' >&2
+    if printf '%s' "$file_path" | grep -qE '\.(env|aws|pem|key|ssh)$'; then
+        printf '{"decision": "deny", "reason": "Sensitive file extension"}\n' >&2
         exit 2
     fi
-    if [[ "$file_path" =~ (secring\.gpg|\.gpg\.key|\.gnupg/.*)$ ]]; then
-        echo '{"decision": "deny", "reason": "GPG secret key file"}' >&2
+    if printf '%s' "$file_path" | grep -qE '(secring\.gpg|\.gpg\.key|\.gnupg/.*)$'; then
+        printf '{"decision": "deny", "reason": "GPG secret key file"}\n' >&2
         exit 2
     fi
-    if [[ "$file_path" =~ ^(node_modules|\.git|\.env\..*) ]]; then
-        echo '{"decision": "deny", "reason": "Protected directory"}' >&2
+    if printf '%s' "$file_path" | grep -qE '^(node_modules|\.git|\.env\..*)'; then
+        printf '{"decision": "deny", "reason": "Protected directory"}\n' >&2
         exit 2
     fi
     return 0
@@ -114,20 +116,22 @@ Patterns to reject:
 
 ### Correct: system path detection
 
-```bash
-#!/bin/bash
+```sh
+#!/bin/sh
 
 # Reject writes to system directories.
+#
 # @param file_path Path to validate.
 # @return Exits 2 if system path; exits 0 otherwise.
 reject_system_paths() {
-    local file_path="$1"
-    local system_prefixes=("/bin" "/usr" "/etc" "/sys" "/var" "/opt" "/boot" "/proc" "/dev")
-    for prefix in "${system_prefixes[@]}"; do
-        if [[ "$file_path" == "$prefix"* ]]; then
-            echo '{"decision": "deny", "reason": "System path"}' >&2
-            exit 2
-        fi
+    file_path="$1"
+    for prefix in "/bin" "/usr" "/etc" "/sys" "/var" "/opt" "/boot" "/proc" "/dev"; do
+        case "$file_path" in
+            "$prefix"*)
+                printf '{"decision": "deny", "reason": "System path"}\n' >&2
+                exit 2
+                ;;
+        esac
     done
     return 0
 }
@@ -135,11 +139,11 @@ reject_system_paths() {
 
 ### Broken: insufficient path validation
 
-```bash
-#!/bin/bash
+```sh
+#!/bin/sh
 file_path=$(cat | jq -r '.tool_input.file_path')
 # Only checks for ..
-if [[ "$file_path" != *".."* ]]; then
+if [ "$file_path" = "${file_path%..*}" ]; then
     cp "$file_path" /tmp/upload
 fi
 # Risk: allows absolute paths like /etc/passwd
@@ -149,29 +153,28 @@ fi
 
 ### Correct: multi-layer detection
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Comprehensive sensitive file detection.
+#
 # @param file_path Path to check.
 # @return Exits 2 if sensitive; exits 0 otherwise.
 detect_sensitive_files() {
-    local file_path="$1"
-    local basename
+    file_path="$1"
     basename=$(basename "$file_path")
-    local dirname
-    dirname=$(dirname "$file_path")
     case "$basename" in
         .env|.env.local|.env.*|.aws|.npmrc|.yarnrc|*.pem|*.key|*.gpg|*.ssh|id_rsa|id_ed25519|*.crt|*.cer|*.p12|*.pfx|.gitignore|.dockerignore)
-            echo '{"decision": "deny", "reason": "Sensitive file detected"}' >&2
+            printf '{"decision": "deny", "reason": "Sensitive file detected"}\n' >&2
             exit 2
             ;;
     esac
     case "$basename" in
         package-lock.json|yarn.lock|composer.lock|Gemfile.lock)
-            if [[ "$file_path" != *".."* ]] && [[ "$file_path" != /* ]]; then
-                echo '{"decision": "deny", "reason": "Lock file modifications dangerous"}' >&2
+            if [ "$file_path" = "${file_path%..*}" ] && ! printf '%s' "$file_path" | grep -qE '^/'; then
+                printf '{"decision": "deny", "reason": "Lock file modifications dangerous"}\n' >&2
                 exit 2
             fi
             ;;
@@ -191,10 +194,10 @@ Categories:
 
 ### Broken: name-only detection
 
-```bash
+```sh
 basename=$(basename "$file_path")
-if [[ "$basename" == ".env" ]]; then
-    echo "deny" >&2
+if [ "$basename" = ".env" ]; then
+    printf 'deny\n' >&2
 fi
 # Allows /tmp/.env or /other/path/.env without checking
 ```
@@ -203,19 +206,21 @@ fi
 
 ### Correct: safe command construction
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Build and execute safe shell commands.
+#
 # @param command Command name to run.
 # @param arg Command argument.
 # @return Executes command safely.
 run_command() {
-    local command="$1"
-    local arg="$2"
-    if ! [[ "$command" =~ ^(grep|find|ls|cat)$ ]]; then
-        echo '{"decision": "deny", "reason": "Unsafe command"}' >&2
+    command="$1"
+    arg="$2"
+    if ! printf '%s' "$command" | grep -qE '^(grep|find|ls|cat)$'; then
+        printf '{"decision": "deny", "reason": "Unsafe command"}\n' >&2
         exit 2
     fi
     "$command" "$arg"
@@ -230,8 +235,8 @@ Safe patterns:
 
 ### Broken: command injection via variable
 
-```bash
-#!/bin/bash
+```sh
+#!/bin/sh
 search_term=$(cat | jq -r '.search_term')
 # Dangerous: search_term could be '; rm -rf /'
 grep "$search_term" /tmp/file.txt
@@ -241,21 +246,23 @@ grep "$search_term" /tmp/file.txt
 
 ### Correct: type and range checking
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Validate numeric input with range constraints.
+#
 # @param max_value Numeric string to validate.
 # @return Exits 2 if invalid; sets MAX on success.
 validate_numeric() {
-    local max_value="$1"
-    if ! [[ "$max_value" =~ ^[0-9]+$ ]]; then
-        echo '{"decision": "deny", "reason": "max_value must be numeric"}' >&2
+    max_value="$1"
+    if ! printf '%s' "$max_value" | grep -qE '^[0-9]+$'; then
+        printf '{"decision": "deny", "reason": "max_value must be numeric"}\n' >&2
         exit 2
     fi
-    if [[ $max_value -lt 1 ]] || [[ $max_value -gt 1000 ]]; then
-        echo '{"decision": "deny", "reason": "max_value must be 1-1000"}' >&2
+    if [ "$max_value" -lt 1 ] || [ "$max_value" -gt 1000 ]; then
+        printf '{"decision": "deny", "reason": "max_value must be 1-1000"}\n' >&2
         exit 2
     fi
     echo "$max_value"
@@ -264,54 +271,55 @@ validate_numeric() {
 
 ### Broken: trusting numeric input
 
-```bash
+```sh
 max_value=$(cat | jq -r '.max_value')
-if [[ $max_value -gt 100 ]]; then
+if [ "$max_value" -gt 100 ]; then
     # Risk: max_value could be non-numeric or contain operators
 fi
 ```
 
 ## Complete example: hardened PreToolUse hook
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+# shellcheck disable=SC2034
+set -e
 
 # Comprehensive file write validation hook.
+#
 # @return JSON output with permissionDecision and systemMessage.
 main() {
-    local input
     input=$(cat)
-    local tool_name file_path
-    if ! tool_name=$(echo "$input" | jq --exit-status -r '.tool_name // empty' 2>/dev/null); then
-        echo '{"permissionDecision": "deny", "systemMessage": "JSON parse failure"}' >&2
+    if ! tool_name=$(printf '%s' "$input" | jq --exit-status -r '.tool_name // empty'); then
+        printf '{"permissionDecision": "deny", "systemMessage": "JSON parse failure"}\n' >&2
         exit 2
     fi
-    if ! file_path=$(echo "$input" | jq --exit-status -r '.tool_input.file_path // empty' 2>/dev/null); then
-        echo '{"permissionDecision": "deny", "systemMessage": "JSON parse failure"}' >&2
+    if ! file_path=$(printf '%s' "$input" | jq --exit-status -r '.tool_input.file_path // empty'); then
+        printf '{"permissionDecision": "deny", "systemMessage": "JSON parse failure"}\n' >&2
         exit 2
     fi
-    if [[ -z "$tool_name" ]] || [[ -z "$file_path" ]]; then
-        echo '{"permissionDecision": "deny", "systemMessage": "Missing required fields"}' >&2
+    if [ -z "$tool_name" ] || [ -z "$file_path" ]; then
+        printf '{"permissionDecision": "deny", "systemMessage": "Missing required fields"}\n' >&2
         exit 2
     fi
-    if ! [[ "$tool_name" =~ ^[a-zA-Z0-9_]+$ ]]; then
-        echo '{"permissionDecision": "deny", "systemMessage": "Invalid tool_name"}' >&2
+    if ! printf '%s' "$tool_name" | grep -qE '^[a-zA-Z0-9_]+$'; then
+        printf '{"permissionDecision": "deny", "systemMessage": "Invalid tool_name"}\n' >&2
         exit 2
     fi
-    if [[ "$file_path" == *".."* ]]; then
-        echo '{"permissionDecision": "deny", "systemMessage": "Path traversal detected"}' >&2
+    if [ "$file_path" != "${file_path%..*}" ]; then
+        printf '{"permissionDecision": "deny", "systemMessage": "Path traversal detected"}\n' >&2
         exit 2
     fi
-    if [[ "$file_path" =~ \.(env|aws|pem|key)$ ]]; then
-        echo '{"permissionDecision": "deny", "systemMessage": "Sensitive file"}' >&2
+    if printf '%s' "$file_path" | grep -qE '\.(env|aws|pem|key)$'; then
+        printf '{"permissionDecision": "deny", "systemMessage": "Sensitive file"}\n' >&2
         exit 2
     fi
-    if [[ "$file_path" =~ ^/ ]]; then
-        echo '{"permissionDecision": "deny", "systemMessage": "Absolute paths not allowed"}' >&2
+    if printf '%s' "$file_path" | grep -qE '^/'; then
+        printf '{"permissionDecision": "deny", "systemMessage": "Absolute paths not allowed"}\n' >&2
         exit 2
     fi
-    echo '{"permissionDecision": "allow", "systemMessage": "Path validation passed"}'
+    printf '{"permissionDecision": "allow", "systemMessage": "Path validation passed"}\n'
     exit 0
 }
 main
@@ -321,7 +329,7 @@ main
 
 Validate hook script with sample attack payloads:
 
-```bash
+```sh
 cat > /tmp/test-attack.json << 'EOF'
 {
   "tool_name": "Write",
@@ -331,24 +339,24 @@ cat > /tmp/test-attack.json << 'EOF'
 }
 EOF
 
-bash hooks/validate.sh < /tmp/test-attack.json
+sh hooks/validate.sh < /tmp/test-attack.json
 # Expected: deny output on stderr, exit 2
 ```
 
 Test with various paths:
 
-```bash
+```sh
 # Path traversal
-echo '{"tool_name":"Write","tool_input":{"file_path":"../../../etc/passwd"}}' | bash hooks/validate.sh
+echo '{"tool_name":"Write","tool_input":{"file_path":"../../../etc/passwd"}}' | sh hooks/validate.sh
 
 # Sensitive file
-echo '{"tool_name":"Write","tool_input":{"file_path":".env"}}' | bash hooks/validate.sh
+echo '{"tool_name":"Write","tool_input":{"file_path":".env"}}' | sh hooks/validate.sh
 
 # System path
-echo '{"tool_name":"Write","tool_input":{"file_path":"/usr/bin/malware"}}' | bash hooks/validate.sh
+echo '{"tool_name":"Write","tool_input":{"file_path":"/usr/bin/malware"}}' | sh hooks/validate.sh
 
 # Safe path (should succeed)
-echo '{"tool_name":"Write","tool_input":{"file_path":"src/index.js"}}' | bash hooks/validate.sh
+echo '{"tool_name":"Write","tool_input":{"file_path":"src/index.js"}}' | sh hooks/validate.sh
 ```
 
 ## References

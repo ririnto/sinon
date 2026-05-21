@@ -34,34 +34,36 @@ This is body content.
 
 Extract raw frontmatter without parsing:
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Extract frontmatter between --- delimiters.
+#
 # @param file_path Path to .local.md file.
 # @return Outputs frontmatter lines; exits 1 if file absent or malformed.
 extract_frontmatter() {
-    local file_path="$1"
-    if [[ ! -f "$file_path" ]]; then
+    file_path="$1"
+    if [ ! -f "$file_path" ]; then
         return 1
     fi
-    local in_frontmatter=0
-    local line_num=0
+    in_frontmatter=0
+    line_num=0
     while IFS= read -r line; do
         line_num=$((line_num + 1))
-        if [[ $line_num -eq 1 ]]; then
-            if [[ "$line" != "---" ]]; then
+        if [ "$line_num" -eq 1 ]; then
+            if [ "$line" != "---" ]; then
                 echo "Error: file does not start with ---" >&2
                 return 1
             fi
             in_frontmatter=1
             continue
         fi
-        if [[ $in_frontmatter -eq 1 ]] && [[ "$line" == "---" ]]; then
+        if [ "$in_frontmatter" -eq 1 ] && [ "$line" = "---" ]; then
             break
         fi
-        if [[ $in_frontmatter -eq 1 ]]; then
+        if [ "$in_frontmatter" -eq 1 ]; then
             echo "$line"
         fi
     done < "$file_path"
@@ -75,18 +77,17 @@ extract_frontmatter() {
 YAML boolean values: `true`, `false` (case-insensitive).
 
 ```bash
-#!/bin/bash
 
 # Parse boolean field with strict type checking.
+#
 # @param frontmatter Frontmatter content as multi-line string.
 # @param field_name Field name to extract.
 # @return Outputs "true" or "false"; exits 1 if invalid.
 parse_boolean() {
-    local frontmatter="$1"
-    local field_name="$2"
-    local value
+    frontmatter="$1"
+    field_name="$2"
     value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//")
-    if [[ -z "$value" ]]; then
+    if [ -z "$value" ]; then
         return 1
     fi
     case "$value" in
@@ -106,10 +107,11 @@ parse_boolean() {
 
 Usage:
 
-```bash
+```sh
+# shellcheck disable=SC2034
 FRONTMATTER=$(extract_frontmatter ".claude/plugin.local.md")
 ENABLED=$(parse_boolean "$FRONTMATTER" "enabled")
-if [[ "$ENABLED" == "true" ]]; then
+if [ "$ENABLED" = "true" ]; then
     echo "Plugin enabled"
 fi
 ```
@@ -119,35 +121,38 @@ fi
 Integer and floating-point numbers.
 
 ```bash
-#!/bin/bash
 
 # Parse numeric field with range validation.
+#
 # @param frontmatter Frontmatter content.
 # @param field_name Field name to extract.
 # @param min_value Minimum allowed value.
 # @param max_value Maximum allowed value.
 # @return Outputs numeric value; exits 1 if invalid.
 parse_numeric() {
-    local frontmatter="$1"
-    local field_name="$2"
-    local min_value="${3:-}"
-    local max_value="${4:-}"
-    local value
+    frontmatter="$1"
+    field_name="$2"
+    min_value="${3:-}"
+    max_value="${4:-}"
     value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//")
-    if [[ -z "$value" ]]; then
+    if [ -z "$value" ]; then
         return 1
     fi
-    if ! [[ "$value" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
+    if ! printf '%s' "$value" | grep -qE '^-?[0-9]+(\.[0-9]+)?$'; then
         echo "Error: $field_name must be numeric, got: $value" >&2
         return 1
     fi
-    if [[ -n "$min_value" ]] && (( $(echo "$value < $min_value" | bc -l) )); then
-        echo "Error: $field_name must be >= $min_value, got: $value" >&2
-        return 1
+    if [ -n "$min_value" ]; then
+        if echo "$value < $min_value" | bc -l | grep -qE '^1$'; then
+            echo "Error: $field_name must be >= $min_value, got: $value" >&2
+            return 1
+        fi
     fi
-    if [[ -n "$max_value" ]] && (( $(echo "$value > $max_value" | bc -l) )); then
-        echo "Error: $field_name must be <= $max_value, got: $value" >&2
-        return 1
+    if [ -n "$max_value" ]; then
+        if echo "$value > $max_value" | bc -l | grep -qE '^1$'; then
+            echo "Error: $field_name must be <= $max_value, got: $value" >&2
+            return 1
+        fi
     fi
     echo "$value"
 }
@@ -155,7 +160,8 @@ parse_numeric() {
 
 Usage:
 
-```bash
+```sh
+# shellcheck disable=SC2034
 RETRY_COUNT=$(parse_numeric "$FRONTMATTER" "max_retries" 1 100)
 ```
 
@@ -164,21 +170,20 @@ RETRY_COUNT=$(parse_numeric "$FRONTMATTER" "max_retries" 1 100)
 Simple unquoted strings up to end of line.
 
 ```bash
-#!/bin/bash
 
 # Parse unquoted string field.
+#
 # @param frontmatter Frontmatter content.
 # @param field_name Field name to extract.
 # @param default_value Default if field absent (optional).
 # @return Outputs string value.
 parse_string_unquoted() {
-    local frontmatter="$1"
-    local field_name="$2"
-    local default_value="${3:-}"
-    local value
+    frontmatter="$1"
+    field_name="$2"
+    default_value="${3:-}"
     value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//" | sed 's/ *$//')
-    if [[ -z "$value" ]]; then
-        if [[ -n "$default_value" ]]; then
+    if [ -z "$value" ]; then
+        if [ -n "$default_value" ]; then
             echo "$default_value"
         fi
         return 1
@@ -192,21 +197,20 @@ parse_string_unquoted() {
 Quoted strings with escaped quotes.
 
 ```bash
-#!/bin/bash
 
 # Parse quoted string field with quote unescaping.
+#
 # @param frontmatter Frontmatter content.
 # @param field_name Field name to extract.
 # @return Outputs unquoted string value.
 parse_string_quoted() {
-    local frontmatter="$1"
-    local field_name="$2"
-    local value
+    frontmatter="$1"
+    field_name="$2"
     value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//")
-    if [[ -z "$value" ]]; then
+    if [ -z "$value" ]; then
         return 1
     fi
-    if [[ "$value" == \"* ]] && [[ "$value" == *\" ]]; then
+    if [ "${value#\"}" != "$value" ] && [ "${value%\"}" != "$value" ]; then
         value="${value%\"}"
         value="${value#\"}"
         value=$(echo "$value" | sed 's/\\"/"/g' | sed "s/\\\\'/'/g")
@@ -220,21 +224,20 @@ parse_string_quoted() {
 YAML arrays in `[item1, item2]` syntax.
 
 ```bash
-#!/bin/bash
 
 # Parse array field into bash array.
+#
 # @param frontmatter Frontmatter content.
 # @param field_name Field name to extract.
 # @return Outputs array items one per line.
 parse_array() {
-    local frontmatter="$1"
-    local field_name="$2"
-    local value
+    frontmatter="$1"
+    field_name="$2"
     value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//")
-    if [[ -z "$value" ]]; then
+    if [ -z "$value" ]; then
         return 1
     fi
-    if [[ ! "$value" =~ ^\[ ]] || [[ ! "$value" =~ \]$ ]]; then
+    if ! printf '%s' "$value" | grep -qE '^\[' || ! printf '%s' "$value" | grep -qE '\]$'; then
         echo "Error: $field_name must be array syntax [item1, item2]" >&2
         return 1
     fi
@@ -258,32 +261,32 @@ done
 YAML literal (`|`) or folded (`>`) scalars spanning multiple lines.
 
 ```bash
-#!/bin/bash
 
 # Extract multi-line string (literal or folded).
+#
 # @param frontmatter Frontmatter content.
 # @param field_name Field name to extract.
 # @return Outputs multi-line string.
 parse_multiline() {
-    local frontmatter="$1"
-    local field_name="$2"
-    local in_multiline=0
-    local result=""
+    frontmatter="$1"
+    field_name="$2"
+    in_multiline=0
+    result=""
     while IFS= read -r line; do
-        if [[ "$line" =~ ^${field_name}:\ *\| ]] || [[ "$line" =~ ^${field_name}:\ *\> ]]; then
+        if printf '%s' "$line" | grep -qE "^${field_name}:\ *(\||>)" ; then
             in_multiline=1
             continue
         fi
-        if [[ $in_multiline -eq 1 ]]; then
-            if [[ "$line" =~ ^[a-zA-Z_] ]]; then
+        if [ "$in_multiline" -eq 1 ]; then
+            if printf '%s' "$line" | grep -qE '^[a-zA-Z_]'; then
                 break
             fi
-            if [[ -n "$line" ]]; then
+            if [ -n "$line" ]; then
                 result="$result$(echo "$line" | sed 's/^  //')"$'\n'
             fi
         fi
     done <<< "$frontmatter"
-    echo -n "$result"
+    printf '%s' "$result"
 }
 ```
 
@@ -293,7 +296,8 @@ parse_multiline() {
 
 Field not present in frontmatter:
 
-```bash
+```sh
+# shellcheck disable=SC2034
 OPTIONAL_FIELD=$(parse_string_unquoted "$FRONTMATTER" "optional_field" "default_value")
 ```
 
@@ -311,9 +315,9 @@ empty_field:
 
 Parsing:
 
-```bash
+```sh
 VALUE=$(echo "$FRONTMATTER" | grep '^empty_field:' | sed 's/^empty_field: *//')
-if [[ -z "$VALUE" ]]; then
+if [ -z "$VALUE" ]; then
     VALUE="default"
 fi
 ```
@@ -335,16 +339,15 @@ Some content
 Extraction will read until EOF instead of second `---`. Validate strictly:
 
 ```bash
-#!/bin/bash
 
 # Validate frontmatter has proper delimiters.
+#
 # @param file_path Path to .local.md file.
 # @return Exits 0 if valid; exits 1 if malformed.
 validate_frontmatter() {
-    local file_path="$1"
-    local delimiter_count
+    file_path="$1"
     delimiter_count=$(grep -c "^---$" "$file_path" || true)
-    if [[ $delimiter_count -lt 2 ]]; then
+    if [ "$delimiter_count" -lt 2 ]; then
         echo "Error: frontmatter missing closing --- delimiter" >&2
         return 1
     fi
@@ -365,7 +368,8 @@ field: value2
 
 `grep` returns both lines. First match wins:
 
-```bash
+```sh
+# shellcheck disable=SC2034
 VALUE=$(echo "$FRONTMATTER" | grep "^field:" | head -1 | sed 's/^field: *//')
 ```
 
@@ -383,7 +387,8 @@ message: "He said \"hello\""
 
 Parsing:
 
-```bash
+```sh
+# shellcheck disable=SC2034
 MESSAGE=$(parse_string_quoted "$FRONTMATTER" "message")
 # Result: He said "hello"
 ```
@@ -416,7 +421,7 @@ field3: value3
 
 Indented field2 is treated as nested (incorrect for flat structure). Validate strict formatting:
 
-```bash
+```sh
 grep "^[^ ]" "$FRONTMATTER"  # Lines starting with non-space (no indentation)
 ```
 
@@ -433,7 +438,8 @@ mode: strict   # Validation level
 
 Parsing removes comments:
 
-```bash
+```sh
+# shellcheck disable=SC2034
 VALUE=$(echo "$FRONTMATTER" | grep "^mode:" | sed 's/ *#.*//' | sed 's/^mode: *//')
 ```
 
@@ -442,9 +448,9 @@ VALUE=$(echo "$FRONTMATTER" | grep "^mode:" | sed 's/ *#.*//' | sed 's/^mode: */
 ### Numeric range validation
 
 ```bash
-#!/bin/bash
 
 # Parse and validate numeric field within range.
+#
 # @param frontmatter Frontmatter content.
 # @param field_name Field name.
 # @param min Minimum allowed value.
@@ -452,18 +458,17 @@ VALUE=$(echo "$FRONTMATTER" | grep "^mode:" | sed 's/ *#.*//' | sed 's/^mode: */
 # @param default Default if absent or invalid.
 # @return Outputs validated value.
 parse_numeric_safe() {
-    local frontmatter="$1"
-    local field_name="$2"
-    local min="$3"
-    local max="$4"
-    local default="$5"
-    local value
+    frontmatter="$1"
+    field_name="$2"
+    min="$3"
+    max="$4"
+    default="$5"
     value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//" || echo "")
-    if [[ -z "$value" ]]; then
+    if [ -z "$value" ]; then
         echo "$default"
         return 0
     fi
-    if ! [[ "$value" =~ ^[0-9]+$ ]] || [[ $value -lt $min ]] || [[ $value -gt $max ]]; then
+    if ! printf '%s' "$value" | grep -qE '^[0-9]+$' || [ "$value" -lt "$min" ] || [ "$value" -gt "$max" ]; then
         echo "Warning: $field_name out of range [$min, $max], using default $default" >&2
         echo "$default"
         return 0
@@ -474,35 +479,35 @@ parse_numeric_safe() {
 
 Usage:
 
-```bash
+```sh
+# shellcheck disable=SC2034
 RETRIES=$(parse_numeric_safe "$FRONTMATTER" "max_retries" 1 100 3)
 ```
 
 ### String enum validation
 
 ```bash
-#!/bin/bash
 
 # Parse and validate string from allowed set.
+#
 # @param frontmatter Frontmatter content.
 # @param field_name Field name.
 # @param default Default value.
 # @param allowed_values Space-separated list of allowed values.
 # @return Outputs validated value or default.
 parse_enum() {
-    local frontmatter="$1"
-    local field_name="$2"
-    local default="$3"
+    frontmatter="$1"
+    field_name="$2"
+    default="$3"
     shift 3
-    local allowed_values=("$@")
-    local value
+    allowed_values=("$@")
     value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//" || echo "")
-    if [[ -z "$value" ]]; then
+    if [ -z "$value" ]; then
         echo "$default"
         return 0
     fi
     for allowed in "${allowed_values[@]}"; do
-        if [[ "$value" == "$allowed" ]]; then
+        if [ "$value" = "$allowed" ]; then
             echo "$value"
             return 0
         fi
@@ -514,14 +519,16 @@ parse_enum() {
 
 Usage:
 
-```bash
+```sh
+# shellcheck disable=SC2034
 LEVEL=$(parse_enum "$FRONTMATTER" "validation_level" "standard" "strict" "standard" "lenient")
 ```
 
 ### Default when file absent or invalid
 
-```bash
-if [[ ! -f ".claude/plugin.local.md" ]] || ! validate_frontmatter ".claude/plugin.local.md"; then
+```sh
+# shellcheck disable=SC2034
+if [ ! -f ".claude/plugin.local.md" ] || ! validate_frontmatter ".claude/plugin.local.md"; then
     ENABLED=true
     MODE="standard"
     MAX_RETRIES=3
@@ -537,23 +544,26 @@ fi
 
 Composite script using per-field parsing functions defined earlier:
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 load_settings() {
-    local state_file="$1"
-    if [[ ! -f "$state_file" ]]; then
+    state_file="$1"
+    if [ ! -f "$state_file" ]; then
         export ENABLED=true
         export MODE="standard"
         export MAX_RETRIES=3
         return 0
     fi
-    local frontmatter
     frontmatter=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$state_file")
-    export ENABLED=$(parse_boolean "$frontmatter" "enabled" || echo "true")
-    export MODE=$(parse_enum "$frontmatter" "mode" "standard" "strict" "standard" "lenient")
-    export MAX_RETRIES=$(parse_numeric_safe "$frontmatter" "max_retries" 1 100 3)
+    export ENABLED
+    ENABLED=$(parse_boolean "$frontmatter" "enabled" || echo "true")
+    export MODE
+    MODE=$(parse_enum "$frontmatter" "mode" "standard" "strict" "standard" "lenient")
+    export MAX_RETRIES
+    MAX_RETRIES=$(parse_numeric_safe "$frontmatter" "max_retries" 1 100 3)
 }
 
 load_settings ".claude/plugin.local.md"

@@ -20,9 +20,9 @@ Advisors wrap the model call. The outermost advisor runs first on the request pa
 
 ## Advisor ordering blocker
 
-**Problem:** history, retrieval context, or token limits are applied in the wrong order, so the prompt seen by the model is not the prompt you expected.
+Problem: history, retrieval context, or token limits are applied in the wrong order, so the prompt seen by the model is not the prompt you expected.
 
-**Solution:** register advisors in the order you want them to wrap the model call, then trace that order explicitly.
+Solution: register advisors in the order you want them to wrap the model call, then trace that order explicitly.
 
 ```java
 @Bean
@@ -47,9 +47,9 @@ Put history assembly and truncation policy in the same memory strategy so the mo
 
 ## Memory strategy blocker
 
-**Problem:** the application needs conversation continuity, but the chosen memory store does not fit the deployment model.
+Problem: the application needs conversation continuity, but the chosen memory store does not fit the deployment model.
 
-**Solution:** choose memory persistence based on session scope, restart behavior, and instance topology.
+Solution: choose memory persistence based on session scope, restart behavior, and instance topology.
 
 | Strategy | Use when | Risk |
 | --- | --- | --- |
@@ -82,9 +82,9 @@ Use repository-backed memory when the same conversation must survive restarts, m
 
 ## Conversation isolation blocker
 
-**Problem:** one user sees another user's context, or resumed conversations do not load the expected history.
+Problem: one user sees another user's context, or resumed conversations do not load the expected history.
 
-**Solution:** pass the conversation identifier explicitly through advisor parameters and keep the memory repository keyed by that identifier.
+Solution: pass the conversation identifier explicitly through advisor parameters and keep the memory repository keyed by that identifier.
 
 ```java
 String conversationId = "customer-42";
@@ -100,9 +100,9 @@ Keep the conversation ID explicit at the call site. Do not rely on mutable per-u
 
 ## Context budget blocker
 
-**Problem:** memory injection makes prompts exceed the model context window.
+Problem: memory injection makes prompts exceed the model context window.
 
-**Solution:** bound the memory window explicitly and keep the conversation identifier stable.
+Solution: bound the memory window explicitly and keep the conversation identifier stable.
 
 ```java
 @Bean

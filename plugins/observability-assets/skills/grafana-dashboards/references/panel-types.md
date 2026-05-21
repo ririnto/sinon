@@ -1,6 +1,7 @@
 ---
 title: Complete Panel Type Reference
-description: "Open this when you need the full JSON schema for a specific panel type, or when deciding which panel type to use for a given data shape."
+description: >-
+  Open this when you need the full JSON schema for a specific panel type, or when deciding which panel type to use for a given data shape.
 ---
 
 ## Complete Panel Type Reference

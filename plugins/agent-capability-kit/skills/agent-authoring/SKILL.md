@@ -1,6 +1,7 @@
 ---
 name: agent-authoring
-description: Create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work. Use this skill when authoring or refactoring agent files.
+description: >-
+  Create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work. Use this skill when authoring or refactoring agent files.
 ---
 
 # Agent Authoring
@@ -64,13 +65,15 @@ Use examples that look like realistic user intent, not abstract labels.
 Weak:
 
 ```markdown
-description: Helps with schemas.
+description: >-
+  Helps with schemas.
 ```
 
 Stronger:
 
 ```markdown
-description: Inspect schemas, contracts, and config files for defects, risks, and missing structure. Use this agent when a schema, contract, or config file needs focused review. Examples:
+description: >-
+  Inspect schemas, contracts, and config files for defects, risks, and missing structure. Use this agent when a schema, contract, or config file needs focused review. Examples:
 
   <example>
   Context: API contract review before release
@@ -268,7 +271,8 @@ Use this as a smallest useful agent starting point:
 ```markdown
 ---
 name: schema-reviewer
-description: Inspect schemas, contracts, and config files for defects, risks, and missing structure. Use this agent when a schema, contract, or config file needs focused review. Examples:
+description: >-
+  Inspect schemas, contracts, and config files for defects, risks, and missing structure. Use this agent when a schema, contract, or config file needs focused review. Examples:
 
   <example>
   Context: API contract review before release

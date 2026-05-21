@@ -1,6 +1,7 @@
 ---
 title: "PromQL Experimental Features"
-description: "Open this when using experimental functions, feature flags, fill modifiers, or bleeding-edge PromQL capabilities."
+description: >-
+  Open this when using experimental functions, feature flags, fill modifiers, or bleeding-edge PromQL capabilities.
 ---
 
 Use this reference when the query requires a function or operator that is gated behind a Prometheus feature flag, or when you need to know which features may change or be removed in future versions.
@@ -83,11 +84,11 @@ Constraints:
 
 ## Stability Caveats
 
-- **`info()`**: Explicitly documented as an experiment whose behavior may change, including removal. The current limitation (only `target_info`, fixed identifying labels `instance`+`job`) is acknowledged as partially defeating the purpose.
-- **`parse_query` endpoint**: Documented as experimental, intended for Prometheus web UI use only. Endpoint name and format may change between versions.
-- **`query_exemplars` endpoint**: Experimental; format may change.
-- **`targets/relabel_steps` endpoint**: Experimental; intended for UI use only.
-- **`targets/metadata` endpoint**: Experimental; may change.
+- `info()`: Explicitly documented as an experiment whose behavior may change, including removal. The current limitation (only `target_info`, fixed identifying labels `instance`+`job`) is acknowledged as partially defeating the purpose.
+- `parse_query` endpoint: Documented as experimental, intended for Prometheus web UI use only. Endpoint name and format may change between versions.
+- `query_exemplars` endpoint: Experimental; format may change.
+- `targets/relabel_steps` endpoint: Experimental; intended for UI use only.
+- `targets/metadata` endpoint: Experimental; may change.
 - All experimental functions require their respective feature flags and may change behavior or be removed in future releases.
 
 Function-family tradeoffs and general query patterns are covered in [`../SKILL.md`](../SKILL.md). Use this reference only when you need to determine whether a function is stable, which flag enables it, or what caveats apply to experimental features.

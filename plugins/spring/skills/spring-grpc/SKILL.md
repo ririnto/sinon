@@ -1,6 +1,7 @@
 ---
 name: spring-grpc
-description: Implement protobuf-first gRPC servers and clients in Spring with generated stubs, configured channels, interceptors, and explicit deadlines, metadata, and reflection. Use this skill when implementing protobuf-first gRPC servers or clients in a Spring application, generating stubs, configuring channels, applying interceptors, and controlling deadlines, metadata, and reflection.
+description: >-
+  Implement protobuf-first gRPC servers and clients in Spring with generated stubs, configured channels, interceptors, and explicit deadlines, metadata, and reflection. Use this skill when implementing protobuf-first gRPC servers or clients in a Spring application, generating stubs, configuring channels, applying interceptors, and controlling deadlines, metadata, and reflection.
 metadata:
   title: "Spring gRPC"
   official-project-url: "https://spring.io/projects/spring-grpc"
@@ -170,11 +171,11 @@ The 1.1.0-M1 BOM and `spring-grpc-core` are published, but the dedicated server 
 
 ### First safe commands
 
-```bash
+```sh
 ./mvnw test -Dtest=GreeterServiceIntegrationTests
 ```
 
-```bash
+```sh
 ./gradlew test --tests GreeterServiceIntegrationTests
 ```
 

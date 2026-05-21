@@ -1,69 +1,95 @@
 #!/usr/bin/env sh
+# -*- coding: utf-8 -*-
 set -e
 
-root=${CLAUDE_PLUGIN_ROOT:-$(CDPATH= cd "$(dirname "$0")/.." && pwd)}
+root=${CLAUDE_PLUGIN_ROOT:-$(CDPATH='' cd "$(dirname "$0")/.." && pwd)}
 
-# :description: Exit with a self-check failure message.
-# :param message: Failure message.
-fail() {
-  message=$1
-  printf '%s\n' "$message" >&2
-  exit 1
-}
-
-# :description: Require a regular file in the plugin package.
-# :param path: File path to check.
+# Require a regular file in the plugin package.
+#
+# @param path File path to check.
+# @exit Exits with status 1 when file is missing.
 require_file() {
   path=$1
-  [ -f "$path" ] || fail "harness plugin missing required file: $path"
+  if [ ! -f "$path" ]; then
+    printf '%s\n' "[require_file] missing required file: $path" >&2
+    printf '%s\n' "  hint: ensure the file is committed and at the expected path" >&2
+    exit 1
+  fi
 }
 
-# :description: Require a directory in the plugin package.
-# :param path: Directory path to check.
+# Require a directory in the plugin package.
+#
+# @param path Directory path to check.
+# @exit Exits with status 1 when directory is missing.
 require_dir() {
   path=$1
-  [ -d "$path" ] || fail "harness plugin missing required directory: $path"
+  if [ ! -d "$path" ]; then
+    printf '%s\n' "[require_dir] missing required directory: $path" >&2
+    printf '%s\n' "  hint: ensure the directory is created and committed" >&2
+    exit 1
+  fi
 }
 
-# :description: Require a file to be executable.
-# :param path: Executable file path to check.
+# Require a file to be executable.
+#
+# @param path Executable file path to check.
+# @exit Exits with status 1 when file is not executable.
 require_executable() {
   path=$1
-  [ -x "$path" ] || fail "harness plugin file must be executable: $path"
+  if [ ! -x "$path" ]; then
+    printf '%s\n' "[require_executable] file must be executable: $path" >&2
+    printf '%s\n' "  hint: run 'git add -u' or 'git add --chmod=+x' to fix permissions" >&2
+    exit 1
+  fi
 }
 
-# :description: Require a file tree to be absent.
-# :param path: Path that must be absent.
-# :param message: Failure message.
+# Require a file tree to be absent.
+#
+# @param path Path that must be absent.
+# @param message Failure message.
+# @exit Exits with status 1 when path exists.
 require_absent() {
   path=$1
   message=$2
-  [ ! -e "$path" ] || fail "$message: $path"
+  if [ -e "$path" ]; then
+    printf '%s\n' "$message: $path" >&2
+    exit 1
+  fi
 }
 
-# :description: Require a file to contain a fixed string.
-# :param path: File path to search.
-# :param text: Fixed string to require.
+# Require a file to contain a fixed string.
+#
+# @param path File path to search.
+# @param text Fixed string to require.
+# @exit Exits with status 1 when text is not found.
 require_text() {
   path=$1
   text=$2
-  grep -Fq "$text" "$path" || fail "missing required text in $path: $text"
+  if ! grep -Fq "$text" "$path"; then
+    printf '%s\n' "[require_text] missing required text in $path: $text" >&2
+    exit 1
+  fi
 }
 
-# :description: Require a file tree to not contain a fixed string.
-# :param text: Fixed string to reject.
-# :param path: File or directory path to search.
+# Require a file tree to not contain a fixed string.
+#
+# @param text Fixed string to reject.
+# @param path File or directory path to search.
+# @exit Exits with status 1 when text is found.
 reject_text() {
   text=$1
   path=$2
   if grep -R -F -e "$text" "$path"; then
-    fail "forbidden text found under $path: $text"
+    printf '%s\n' "[reject_text] forbidden text found under $path: $text" >&2
+    exit 1
   fi
 }
 
-# :description: Require a list of file paths to not contain a fixed string.
-# :param text: Fixed string to reject.
-# :param paths: File or directory paths.
+# Require a list of file paths to not contain a fixed string.
+#
+# @param text Fixed string to reject.
+# @param paths File or directory paths.
+# @exit Exits with status 1 when text is found.
 reject_text_in_paths() {
   text=$1
   shift
@@ -72,18 +98,23 @@ reject_text_in_paths() {
   done
 }
 
-# :description: Reject Git hooks path setters while allowing read-only queries.
-# :param paths: File or directory paths.
+# Reject Git hooks path setters while allowing read-only queries.
+#
+# @param paths File or directory paths.
+# @exit Exits with status 1 when setter is found.
 reject_hooks_path_setters() {
   for path in "$@"; do
     if grep -R -E 'git[[:space:]].*config[[:space:]].*core[.]hooksPath' "$path" | grep -F -v 'git config --get core.hooksPath' | grep -F -v 'git config --path --get core.hooksPath' | grep -F -v 'git config --local --get core.hooksPath'; then
-      fail "forbidden Git hooks path setter under $path"
+      printf '%s\n' "[reject_hooks_path_setters] forbidden Git hooks path setter under $path" >&2
+      exit 1
     fi
   done
 }
 
-# :description: Print files tracked by Git.
-# :param path: File or directory path to scan.
+# Print files tracked by Git.
+#
+# @param path File or directory path to scan.
+# @return Writes full paths of tracked files.
 package_files() {
   path=$1
   if [ "$path" = "$root" ]; then
@@ -91,15 +122,282 @@ package_files() {
   else
     rel=${path#"$root"/}
   fi
-  if git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    files=$(git -C "$root" ls-files --cached -- "$rel") || fail "cannot enumerate package files: $path"
+  git_probe=$(git -C "$root" rev-parse --is-inside-work-tree 2>&1)
+  if [ -n "$git_probe" ]; then
+    unset git_probe
+    files=$(git -C "$root" ls-files --cached -- "$rel") || { printf '%s\n' "[package_files] cannot enumerate package files: $path" >&2; exit 1; }
     printf '%s\n' "$files" | while IFS= read -r file; do
-      [ -n "$file" ] || continue
-      printf '%s/%s\n' "$root" "$file"
+      if [ -n "$file" ]; then
+        printf '%s/%s\n' "$root" "$file"
+      fi
     done
   else
+    unset git_probe
     find "$path" -type f -print
   fi
+}
+
+# Require a shell file to begin with the canonical harness header.
+#
+# @param path Shell file path to check.
+# @exit Exits with status 1 when header is invalid.
+require_shell_header() {
+  path=$1
+  line1=$(sed -n '1p' "$path")
+  line2=$(sed -n '2p' "$path")
+  line3=$(sed -n '3p' "$path")
+  if [ "$line1" != '#!/usr/bin/env sh' ]; then
+    printf '%s\n' "[require_shell_header] missing #!/usr/bin/env sh on line 1: $path" >&2
+    exit 1
+  fi
+  if [ "$line2" != '# -*- coding: utf-8 -*-' ]; then
+    printf '%s\n' "[require_shell_header] missing utf-8 coding declaration on line 2: $path" >&2
+    exit 1
+  fi
+  if [ "$line3" != 'set -e' ]; then
+    printf '%s\n' "[require_shell_header] missing set -e on line 3: $path" >&2
+    exit 1
+  fi
+}
+
+# Reject any 'set -u' family usage inside a shell file.
+#
+# @param path Shell file path to check.
+# @exit Exits with status 1 when set -u is found.
+reject_set_u_in_shell() {
+  path=$1
+  if grep -qE '^[[:space:]]*set[[:space:]]+-[A-Za-z]*u' "$path"; then
+    printf '%s\n' "[reject_set_u_in_shell] shell file must not use 'set -u': $path" >&2
+    exit 1
+  fi
+}
+
+# Reject bare bracket conditionals not inside an 'if' or 'while' construct.
+#
+# @param path Shell file path to check.
+# @exit Exits with status 1 when bare bracket test is found.
+reject_bare_test_in_shell() {
+  path=$1
+  if grep -qnE '^[[:space:]]*\[' "$path"; then
+    match=$(grep -nE '^[[:space:]]*\[' "$path" | head -n 1)
+    printf '%s\n' "[reject_bare_test_in_shell] bare bracket test (use 'if' instead): $path:$match" >&2
+    exit 1
+  fi
+}
+
+# Reject the legacy ':description:' or ':param X:' docstring style.
+#
+# @param path Shell file path to check.
+# @exit Exits with status 1 when legacy docstring is found.
+reject_legacy_docstring_in_shell() {
+  path=$1
+  if grep -qnE '^#[[:space:]]*:(description|param|return)' "$path"; then
+    printf '%s\n' "[reject_legacy_docstring_in_shell] uses legacy ':description:'/':param:' docstring (use JSDoc @param/@return): $path" >&2
+    exit 1
+  fi
+}
+
+# Reject output redirects targeting /dev/null.
+#
+# @param path Shell file path to check.
+# @exit Exits with status 1 when /dev/null redirect is found.
+reject_devnull_redirect_in_shell() {
+  path=$1
+  if grep -qnE '([12]?>|&>|>>)[[:space:]]*/dev/null' "$path"; then
+    printf '%s\n' "[reject_devnull_redirect_in_shell] must not redirect output to /dev/null: $path" >&2
+    exit 1
+  fi
+}
+
+# Reject bash-extension '[[ ]]' tests; require POSIX '[ ]'.
+#
+# @param path Shell file path to check.
+# @exit Exits with status 1 when [[ ]] is found.
+reject_double_bracket_in_shell() {
+  path=$1
+  awk '/^[[:space:]]*(if|elif|while|until)[[:space:]]+\[\[/ { print FILENAME":"NR":"$0; exit 1; }' "$path" && return 0
+  printf '%s\n' "[reject_double_bracket_in_shell] uses non-POSIX '[[ ]]' (use POSIX '[ ]' or 'case'): $path" >&2
+  exit 1
+}
+
+# Reject blank lines inside any function body in a shell file.
+#
+#     Uses a Python helper to parse the file with shfmt (AST-based) if available,
+#     or falls back to the original improved heuristic that tracks brace depth
+#     and heredoc state. Blank lines inside heredocs are skipped.
+#
+# @param path Shell file path to check.
+# @exit Exits with status 1 when blank line in function is found.
+reject_blank_line_in_function() {
+  path=$1
+  shfmt_probe=$(command -v shfmt 2>&1 || true)
+  if [ -n "$shfmt_probe" ]; then
+    unset shfmt_probe
+    python3 - "$path" <<'PYAST'
+import json
+import sys
+import subprocess
+try:
+  path = sys.argv[1]
+  try:
+    ast_json = subprocess.check_output(['shfmt', '-tojson'], stdin=open(path, 'rb'), stderr=subprocess.PIPE, text=True)
+    ast = json.loads(ast_json)
+  except subprocess.CalledProcessError:
+    sys.exit(0)
+  def check_func(node):
+    violations = []
+    if node.get('Type') == 'FuncDecl':
+      body = node.get('Body', {})
+      stmts = body.get('Stmts', [])
+      if len(stmts) < 2:
+        return violations
+      for i in range(len(stmts) - 1):
+        start_line = stmts[i].get('End', {}).get('Line', 0)
+        end_line = stmts[i+1].get('Pos', {}).get('Line', 0)
+        if start_line < end_line:
+          for blank_line_num in range(start_line + 1, end_line):
+            violations.append((path, blank_line_num))
+    for key, val in node.items():
+      if isinstance(val, dict):
+        violations.extend(check_func(val))
+      elif isinstance(val, list):
+        for item in val:
+          if isinstance(item, dict):
+            violations.extend(check_func(item))
+    return violations
+  violations = check_func(ast)
+  if violations:
+    for file, line in violations:
+      print(f"{file}:{line}: blank line inside function body", file=sys.stderr)
+    sys.exit(1)
+except Exception:
+  sys.exit(0)
+PYAST
+    return $?
+  fi
+  unset shfmt_probe
+  state=outside
+  brace_depth=0
+  heredoc_tag=
+  heredoc_strip=0
+  line_no=0
+  while IFS= read -r line || [ -n "$line" ]; do
+    line_no=$((line_no + 1))
+    if [ -n "$heredoc_tag" ]; then
+      compare=$line
+      if [ "$heredoc_strip" -eq 1 ]; then
+        compare=$(printf '%s' "$compare" | sed 's/^	*//')
+      fi
+      if [ "$compare" = "$heredoc_tag" ]; then
+        heredoc_tag=
+        heredoc_strip=0
+      fi
+      continue
+    fi
+    case "$line" in
+      *'<<'*)
+        opener=$(printf '%s' "$line" | sed -nE 's/.*<<(-?)[ \t]*([\x27"]?)([A-Za-z_][A-Za-z0-9_]*)\2.*/\1|\3/p')
+        if [ -z "$opener" ]; then
+          opener=$(printf '%s' "$line" | sed -nE "s/.*<<(-?)[ \t]*'([A-Za-z_][A-Za-z0-9_]*)'$/\1|\2/p")
+        fi
+        if [ -z "$opener" ]; then
+          opener=$(printf '%s' "$line" | sed -nE 's/.*<<(-?)[ \t]*([A-Za-z_][A-Za-z0-9_]*)[ \t]*$/\1|\2/p')
+        fi
+        if [ -n "$opener" ]; then
+          dash=${opener%%|*}
+          tag=${opener##*|}
+          heredoc_tag=$tag
+          if [ "$dash" = '-' ]; then
+            heredoc_strip=1
+          else
+            heredoc_strip=0
+          fi
+        fi
+        ;;
+    esac
+    case "$line" in
+      *'() {'*|*'(){')
+        state=enter
+        ;;
+    esac
+    if [ "$state" = enter ]; then
+      brace_depth=1
+      state=inside
+      continue
+    fi
+    if [ "$state" = inside ]; then
+      case "$line" in
+        *'{'*)
+          brace_depth=$((brace_depth + 1))
+          ;;
+      esac
+      trimmed=$(printf '%s' "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      if [ -z "$trimmed" ]; then
+        printf '%s\n' "[reject_blank_line_in_function] blank line inside function body at line $line_no: $path" >&2
+        exit 1
+      fi
+      case "$line" in
+        *'}'*)
+          brace_depth=$((brace_depth - 1))
+          if [ "$brace_depth" -le 0 ]; then
+            state=outside
+            brace_depth=0
+          fi
+          ;;
+      esac
+    fi
+  done < "$path"
+}
+
+# Reject docstrings missing the blank `#` separator between description and tag block.
+#
+# @param path Shell file path to check.
+# @exit Exits with status 1 when separator is missing.
+reject_missing_doc_separator_in_shell() {
+  path=$1
+  if awk '
+    function classify(l) {
+      if (l ~ /^#[[:space:]]+@[A-Za-z_][A-Za-z0-9_]*\b/) return "tag";
+      if (l ~ /^#$/) return "sep";
+      if (l ~ /^#[[:space:]]/) return "desc";
+      return "other";
+    }
+    {
+      cls = classify($0);
+      if (cls == "tag" && prev_cls == "desc") {
+        printf "%d:%s\n", NR, $0;
+        exit 1;
+      }
+      prev_cls = cls;
+    }
+  ' "$path"; then
+    return 0
+  fi
+  printf '%s\n' "[reject_missing_doc_separator_in_shell] docstring missing blank '#' separator between description and tag block: $path" >&2
+  exit 1
+}
+
+# Reject shellcheck violations in a packaged shell file.
+#
+#     Runs `shellcheck -s sh -f gcc` against the file; fails on any violation.
+#     Requires `shellcheck` in PATH; gracefully skips with a warning otherwise.
+#
+# @param path Shell file path to check.
+# @exit Exits with status 1 when shellcheck violation is found.
+reject_shellcheck_violations_in_shell() {
+  path=$1
+  shellcheck_probe=$(command -v shellcheck 2>&1)
+  if [ -z "$shellcheck_probe" ]; then
+    printf 'warning: shellcheck not in PATH; skipping shellcheck enforcement for %s\n' "$path" >&2
+    unset shellcheck_probe
+    return 0
+  fi
+  if ! shellcheck_output=$(shellcheck -s sh -f gcc "$path" 2>&1); then
+    printf '%s\n' "$shellcheck_output" >&2
+    printf '%s\n' "[reject_shellcheck_violations_in_shell] fails shellcheck: $path" >&2
+    exit 1
+  fi
+  unset shellcheck_probe
 }
 
 for path in \
@@ -178,17 +476,44 @@ require_absent "$root/hooks" 'top-level Claude hooks runtime surface must not be
 bak_part=bak
 backup_suffix=.harness.$bak_part
 package_file_list=$(package_files "$root")
+
+for packaged_file in $package_file_list; do
+  if [ -z "$packaged_file" ]; then
+    continue
+  fi
+  if [ ! -f "$packaged_file" ]; then
+    continue
+  fi
+  first_line=$(sed -n '1p' "$packaged_file")
+  if [ "$first_line" != '#!/usr/bin/env sh' ]; then
+    continue
+  fi
+  require_shell_header "$packaged_file"
+  reject_set_u_in_shell "$packaged_file"
+  reject_bare_test_in_shell "$packaged_file"
+  reject_double_bracket_in_shell "$packaged_file"
+  reject_legacy_docstring_in_shell "$packaged_file"
+  reject_devnull_redirect_in_shell "$packaged_file"
+  reject_blank_line_in_function "$packaged_file"
+  reject_shellcheck_violations_in_shell "$packaged_file"
+  reject_missing_doc_separator_in_shell "$packaged_file"
+done
 if printf '%s\n' "$package_file_list" | grep -F "$backup_suffix"; then
-  fail 'raw v6 backup artifact must not be packaged'
+  printf '%s\n' "[backup_artifact_check] raw v6 backup artifact must not be packaged" >&2
+  exit 1
 fi
+
+require_text "$root/skills/harness-install/scripts/install-harness.sh" "# -*- coding: utf-8 -*-"
 
 template_package_file_list=$(package_files "$root/skills/harness-install/templates")
 if printf '%s\n' "$template_package_file_list" | grep -E '(^|/)(db-schema[.]md|__pycache__|target|build|bin|[.]gradle|[.]factorypath|[.]classpath|[.]project|[.]settings)(/|$)|[.]pyc$'; then
-  fail 'template tree contains packaged generated or IDE artifacts'
+  printf '%s\n' "[generated_artifacts_check] template tree contains packaged generated or IDE artifacts" >&2
+  exit 1
 fi
 
 if printf '%s\n' "$package_file_list" | grep -F '/.claude/harness/validate.sh'; then
-  fail 'raw v6 generic harness validate.sh must not be packaged'
+  printf '%s\n' "[legacy_validate_check] raw v6 generic harness validate.sh must not be packaged" >&2
+  exit 1
 fi
 
 python3 - "$root" <<'PY'
@@ -234,11 +559,15 @@ if errors:
 PY
 
 for path in "$root"/skills/*/SKILL.md; do
-  require_text "$path" 'name:'
-  require_text "$path" 'description:'
+  if [ -f "$path" ]; then
+    require_text "$path" 'name:'
+    require_text "$path" 'description:'
+  fi
 done
 for path in "$root"/agents/*.md; do
-  require_text "$path" 'description:'
+  if [ -f "$path" ]; then
+    require_text "$path" 'description:'
+  fi
 done
 
 require_text "$root/README.md" 'harness-install'
@@ -246,12 +575,16 @@ require_text "$root/README.md" 'harness-validate'
 require_text "$root/README.md" 'harness-evolve'
 require_text "$root/README.md" 'host runtimes that load plugin agents'
 require_text "$root/README.md" 'hook template'
+# shellcheck disable=SC2016
 require_text "$root/README.md" 'Gradle `pre-commit` runs `harnessValidate`'
+# shellcheck disable=SC2016
 require_text "$root/README.md" 'Gradle `pre-push` runs `check`'
 require_text "$root/README.md" 'THIRD_PARTY_NOTICES.md'
 require_text "$root/README.md" 'skills/harness-install/templates/common/.claude/harness/git-hooks/'
 require_text "$root/README.md" 'v6 archive structure'
+# shellcheck disable=SC2016
 require_text "$root/skills/harness-install/SKILL.md" 'Gradle pre-commit runs `harnessValidate`, Gradle pre-push runs `check`'
+# shellcheck disable=SC2016
 require_text "$root/skills/harness-validate/SKILL.md" 'generated `.claude/harness/git-hooks/pre-push` command marker'
 require_text "$root/skills/harness-validate/SKILL.md" 'Manifest drift'
 require_text "$root/skills/harness-validate/SKILL.md" 'Generated artifact metadata'
@@ -259,11 +592,13 @@ require_text "$root/skills/harness-validate/SKILL.md" 'Unsupported validation co
 require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'manifest drift'
 require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'generated-artifact metadata'
 require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'unsupported pre-push validation command'
+# shellcheck disable=SC2016
 require_text "$root/skills/harness-evolve/SKILL.md" 'active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target-local'
 
 generated_doc_package_file_list=$(package_files "$root/skills/harness-install/templates/common/docs/generated")
 if printf '%s\n' "$generated_doc_package_file_list" | grep -F '/db-schema.md'; then
-  fail 'harness scaffold must not install docs/generated/db-schema.md'
+  printf '%s\n' "harness scaffold must not install docs/generated/db-schema.md" >&2
+  exit 1
 fi
 
 require_absent "$root/hooks" 'top-level Claude hooks runtime surface must not be packaged'
@@ -329,8 +664,11 @@ $root/skills/harness-install/templates/uv
 for template_root in $template_roots; do
   template_root_files=$(package_files "$template_root")
   for path in $(printf '%s\n' "$template_root_files" | grep -F -v '.tmpl'); do
-    if grep -E '\{\{[^}]+\}\}' "$path"; then
-      fail "unresolved template token outside .tmpl asset: $path"
+    if [ -f "$path" ]; then
+      if grep -E '\{\{[^}]+\}\}' "$path"; then
+        printf '%s\n' "[unresolved_template_tokens] unresolved template token outside .tmpl asset: $path" >&2
+        exit 1
+      fi
     fi
   done
 done
@@ -344,8 +682,11 @@ for text in 'example-' 'Describe ' 'Describe...' 'TODO' 'TBD' 'replace-with-stac
           continue
           ;;
       esac
-      if grep -F "$text" "$path"; then
-        fail "forbidden template marker in template asset: $text"
+      if [ -f "$path" ]; then
+        if grep -F "$text" "$path"; then
+          printf '%s\n' "[template_marker_check] forbidden template marker in template asset: $text" >&2
+          exit 1
+        fi
       fi
     done
   done

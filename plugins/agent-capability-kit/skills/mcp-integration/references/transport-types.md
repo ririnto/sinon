@@ -47,7 +47,7 @@ Stdio spawns a local process and communicates via stdin/stdout.
 
 ### Failure modes
 
-**Process crash:** Server exits unexpectedly.
+Process crash: Server exits unexpectedly.
 
 ```text
 Error: MCP process exited with code 1
@@ -63,7 +63,7 @@ Mitigation: Log server output, add error recovery:
 }
 ```
 
-**Stdin/stdout deadlock:** Server blocks waiting for input.
+Stdin/stdout deadlock: Server blocks waiting for input.
 
 ```text
 Timeout: Tool call hangs indefinitely
@@ -71,7 +71,7 @@ Timeout: Tool call hangs indefinitely
 
 Mitigation: Set explicit timeout in command hook that uses tool.
 
-**Environment variable mismatch:** Server expects env var not set.
+Environment variable mismatch: Server expects env var not set.
 
 ```text
 Error: DATABASE_URL not set
@@ -133,7 +133,7 @@ First use of SSE server triggers OAuth:
 
 ### Failure modes
 
-**OAuth denied:** User denies permission in browser.
+OAuth denied: User denies permission in browser.
 
 ```text
 Error: User denied access to GitHub
@@ -142,7 +142,7 @@ Tool calls fail for this session
 
 Mitigation: User can retry with `/mcp authorize github`.
 
-**Token expired:** Stored OAuth token is stale.
+Token expired: Stored OAuth token is stale.
 
 ```text
 Error: Token expired, attempting refresh
@@ -151,7 +151,7 @@ Automatic retry with new token
 
 Claude Code handles refresh automatically. No user action needed.
 
-**Network timeout:** Remote server unreachable.
+Network timeout: Remote server unreachable.
 
 ```text
 Error: Connection timeout to https://mcp.github.com/sse
@@ -159,7 +159,7 @@ Error: Connection timeout to https://mcp.github.com/sse
 
 Mitigation: Check network, verify server is online. Retry with `/mcp test github`.
 
-**Unimplemented tool:** Server lists tool but `/call` endpoint returns error.
+Unimplemented tool: Server lists tool but `/call` endpoint returns error.
 
 ```text
 Error: Tool 'create_issue' not supported
@@ -204,7 +204,7 @@ HTTP: stateless requests with bearer token in headers.
 
 ### Failure modes
 
-**Invalid token:** Token in env var is wrong or expired.
+Invalid token: Token in env var is wrong or expired.
 
 ```text
 {
@@ -215,7 +215,7 @@ HTTP: stateless requests with bearer token in headers.
 
 Fix: Verify `${API_TOKEN}` env var contains valid token. Refresh if expired.
 
-**Server error:** Remote server returns 500.
+Server error: Remote server returns 500.
 
 ```text
 Error: Server error (500)
@@ -223,7 +223,7 @@ Error: Server error (500)
 
 Mitigation: Check server logs, retry after server recovery.
 
-**Malformed response:** Server returns invalid JSON.
+Malformed response: Server returns invalid JSON.
 
 ```text
 Error: Failed to parse MCP response
@@ -231,11 +231,11 @@ Error: Failed to parse MCP response
 
 Fix: Verify server sends valid JSON. Test with:
 
-```bash
+```sh
 curl -H "Authorization: Bearer $API_TOKEN" https://api.example.com/mcp | jq .
 ```
 
-**Rate limiting:** Server enforces rate limits.
+Rate limiting: Server enforces rate limits.
 
 ```text
 Error: Rate limit exceeded
@@ -247,12 +247,14 @@ Mitigation: Add exponential backoff to hooks that call tools:
 ```bash
 #!/bin/bash
 for attempt in 1 2 3; do
-    result=$(call_mcp_tool) && break
+    call_mcp_tool && break
     sleep $((2 ** attempt))
 done
 ```
 
-**Header injection:** Custom headers passed incorrectly.
+Note: This block uses `bash` due to exponential operators, which are not available in POSIX sh.
+
+Header injection: Custom headers passed incorrectly.
 
 ```text
 Error: Invalid Authorization header
@@ -314,7 +316,7 @@ WebSocket: persistent connection with bidirectional message flow.
 
 ### Failure modes
 
-**Connection refused:** Server not listening or port wrong.
+Connection refused: Server not listening or port wrong.
 
 ```text
 Error: WebSocket connection refused
@@ -322,7 +324,7 @@ Error: WebSocket connection refused
 
 Fix: Verify server is running, port is correct.
 
-**TLS certificate error:** Server cert invalid or self-signed.
+TLS certificate error: Server cert invalid or self-signed.
 
 ```text
 Error: Certificate verification failed
@@ -338,7 +340,7 @@ Mitigation: For self-signed certs in dev, configure trust (not recommended for p
 }
 ```
 
-**Protocol mismatch:** Server doesn't speak MCP protocol.
+Protocol mismatch: Server doesn't speak MCP protocol.
 
 ```text
 Error: Invalid MCP message received
@@ -346,7 +348,7 @@ Error: Invalid MCP message received
 
 Fix: Verify server implements MCP protocol correctly.
 
-**Message timeout:** Server doesn't respond within timeout.
+Message timeout: Server doesn't respond within timeout.
 
 ```text
 Error: Tool call timeout after 30s
@@ -362,7 +364,7 @@ tool_timeout: 120
 ---
 ```
 
-**Connection drop:** Network interruption mid-call.
+Connection drop: Network interruption mid-call.
 
 ```text
 Error: Connection lost, reconnecting...
@@ -377,6 +379,8 @@ for attempt in $(seq 1 $max_retries); do
     sleep $((2 ** attempt))
 done
 ```
+
+Note: This block uses `bash` due to exponential operators, which are not available in POSIX sh.
 
 ### Streaming example
 

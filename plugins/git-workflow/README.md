@@ -80,13 +80,13 @@ plugins/git-workflow/
 
 Install from Sinon:
 
-```bash
+```sh
 /plugin install git-workflow@sinon
 ```
 
 For Claude Code local development:
 
-```bash
+```sh
 claude --plugin-dir /path/to/sinon/plugins/git-workflow
 ```
 

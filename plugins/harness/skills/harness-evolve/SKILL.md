@@ -1,6 +1,7 @@
 ---
 name: harness-evolve
-description: Reconcile an installed repository harness after real project use changes docs, templates, agents, skills, validators, generated-artifact policy, CI, hooks, or readiness gates. Use this skill when repeated validation or review failures or committed harness drift show the target harness contract should evolve and produce a versioned evolution plan with validation impact.
+description: >-
+  Reconcile an installed repository harness after real project use changes docs, templates, agents, skills, validators, generated-artifact policy, CI, hooks, or readiness gates. Use this skill when repeated validation or review failures or committed harness drift show the target harness contract should evolve and produce a versioned evolution plan with validation impact.
 argument-hint: '[summary-of-delta]'
 allowed-tools:
   - Read

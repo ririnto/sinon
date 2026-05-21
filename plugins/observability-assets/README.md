@@ -91,12 +91,12 @@ plugins/observability-assets/
 
 Install from Sinon:
 
-```bash
+```sh
 /plugin install observability-assets@sinon
 ```
 
 For local development:
 
-```bash
+```sh
 claude --plugin-dir /path/to/sinon/plugins/observability-assets
 ```

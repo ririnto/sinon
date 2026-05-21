@@ -1,8 +1,9 @@
 #!/usr/bin/env sh
+# -*- coding: utf-8 -*-
 set -e
 
-script_dir=$(CDPATH= cd "$(dirname "$0")" && pwd)
-skill_dir=$(CDPATH= cd "$script_dir/.." && pwd)
+script_dir=$(CDPATH='' cd "$(dirname "$0")" && pwd)
+skill_dir=$(CDPATH='' cd "$script_dir/.." && pwd)
 template_dir="$skill_dir/templates"
 mode=auto
 hooks=none
@@ -11,8 +12,10 @@ ci=1
 target_root=${HARNESS_TARGET_ROOT:-.}
 root_contract_conflicts=0
 
-# :description: Print command usage.
-# :return: Writes usage text to standard output.
+# Print command usage.
+#
+# @return Writes usage text to standard output.
+# @exit Exits with status 0 when invoked with -h or --help.
 usage() {
   cat <<'EOF'
 usage: install-harness.sh [--target DIR] [--mode auto|gradle|maven|uv|bun] [--hooks none|copy] [--force] [--no-ci]
@@ -21,23 +24,42 @@ HARNESS_TARGET_ROOT may be used instead of --target.
 EOF
 }
 
-# :description: Print an error and exit.
-# :param message: Error message.
-# :return: Exits with status 1.
+# Print an error and exit.
+#
+# @param message Error message.
+# @exit Exits with status 1.
 error() {
   message=$1
-  printf '%s\n' "error: $message" >&2
+  printf '%s\n' "[error] $message" >&2
   exit 1
 }
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --target) [ $# -ge 2 ] || error '--target requires a directory'; target_root=$2; shift 2 ;;
+    --target)
+      if [ $# -lt 2 ]; then
+        error '--target requires a directory'
+      fi
+      target_root=$2
+      shift 2
+      ;;
     --target=*) target_root=${1#--target=}; shift ;;
-    --mode) [ $# -ge 2 ] || error '--mode requires auto|gradle|maven|uv|bun'; mode=$2; shift 2 ;;
+    --mode)
+      if [ $# -lt 2 ]; then
+        error '--mode requires auto|gradle|maven|uv|bun'
+      fi
+      mode=$2
+      shift 2
+      ;;
     --mode=*) mode=${1#--mode=}; shift ;;
     auto|gradle|maven|uv|bun) mode=$1; shift ;;
-    --hooks) [ $# -ge 2 ] || error '--hooks requires none|copy'; hooks=$2; shift 2 ;;
+    --hooks)
+      if [ $# -lt 2 ]; then
+        error '--hooks requires none|copy'
+      fi
+      hooks=$2
+      shift 2
+      ;;
     --hooks=*) hooks=${1#--hooks=}; shift ;;
     --force) force=1; shift ;;
     --no-ci) ci=0; shift ;;
@@ -48,12 +70,17 @@ done
 
 case "$mode" in auto|gradle|maven|uv|bun) ;; *) printf '%s\n' "invalid mode: $mode" >&2; exit 2 ;; esac
 case "$hooks" in copy|none) ;; *) printf '%s\n' "invalid hooks mode: $hooks" >&2; exit 2 ;; esac
-[ -n "$target_root" ] || error 'target root must not be empty'
-[ -d "$target_root" ] || error "target root is not a directory: $target_root"
-target_root=$(CDPATH= cd "$target_root" && pwd -P) || error "cannot resolve target root: $target_root"
+if [ -z "$target_root" ]; then
+  error 'target root must not be empty'
+fi
+if [ ! -d "$target_root" ]; then
+  error "target root is not a directory: $target_root"
+fi
+target_root=$(CDPATH='' cd "$target_root" && pwd -P) || error "cannot resolve target root: $target_root"
 cd "$target_root"
 
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+if ! git_probe=$(git rev-parse --is-inside-work-tree 2>&1); then
+  unset git_probe
   printf '%s\n' 'warning: target root is not a Git worktree; git hook activation will be skipped' >&2
 fi
 
@@ -65,27 +92,31 @@ if [ "$mode" = unknown ]; then
   exit 2
 fi
 
-# :description: Reject a path that is not a safe target-relative path.
-# :param path: Repository-relative path.
-# :return: Exits when the path is unsafe.
+# Reject a path that is not a safe target-relative path.
+#
+# @param path Repository-relative path.
+# @exit Exits via 'error' when path is unsafe.
 reject_unsafe_relative_path() {
   unsafe_path=$1
   case "$unsafe_path" in
     ./*) unsafe_path=${unsafe_path#./} ;;
   esac
   case "$unsafe_path" in
-    ''|.|/*|..|../*|*/..|*/../*) error "unsafe target path: $unsafe_path" ;;
+    ''|.|/*|..|../*|*/..|*/../*) error "unsafe target path: $unsafe_path (must be relative, non-empty, no .. references)" ;;
   esac
 }
 
-# :description: Ensure a destination parent has no symlink components.
-# :param path: Repository-relative destination path.
-# :return: Creates the parent directory when it is safe.
+# Ensure a destination parent has no symlink components.
+#
+# @param path Repository-relative destination path.
+# @exit Exits via 'error' when symlink or non-directory component is found.
 ensure_safe_parent_dir() {
   parent_path=$1
   dir=$(dirname "$parent_path")
   case "$dir" in ./*) dir=${dir#./} ;; esac
-  [ "$dir" = . ] && return 0
+  if [ "$dir" = . ]; then
+    return 0
+  fi
   reject_unsafe_relative_path "$dir"
   current=
   rest=$dir
@@ -94,38 +125,42 @@ ensure_safe_parent_dir() {
       */*) part=${rest%%/*}; rest=${rest#*/} ;;
       *) part=$rest; rest= ;;
     esac
-    [ -n "$part" ] || continue
+    if [ -z "$part" ]; then
+      continue
+    fi
     current=${current:+$current/}$part
     if [ -L "$current" ]; then
-      error "refusing symlink directory component: $current"
+      error "[safe_parent] refusing symlink directory component: $current"
     fi
     if [ -e "$current" ] && [ ! -d "$current" ]; then
-      error "parent component is not a directory: $current"
+      error "[safe_parent] parent component is not a directory: $current"
     fi
   done
   mkdir -p "$dir"
 }
 
-# :description: Ensure a file destination can be written safely.
-# :param path: Repository-relative destination path.
-# :return: Creates the parent directory when it is safe.
+# Ensure a file destination can be written safely.
+#
+# @param path Repository-relative destination path.
+# @exit Exits via 'error' when destination is unsafe.
 ensure_safe_file_destination() {
   file_path=$1
   case "$file_path" in ./*) file_path=${file_path#./} ;; esac
   reject_unsafe_relative_path "$file_path"
   ensure_safe_parent_dir "$file_path"
   if [ -L "$file_path" ]; then
-    error "refusing symlink file destination: $file_path"
+    error "[safe_destination] refusing symlink file destination: $file_path"
   fi
   if [ -d "$file_path" ]; then
-    error "refusing directory file destination: $file_path"
+    error "[safe_destination] refusing directory file destination: $file_path"
   fi
 }
 
-# :description: Copy one file while preserving executable permission.
-# :param src: Source file path.
-# :param dst: Target-relative destination file path.
-# :return: Writes copied, overwritten, or skipped path.
+# Copy one file while preserving executable permission.
+#
+# @param src Source file path.
+# @param dst Target-relative destination file path.
+# @return Writes copied, overwritten, or skipped path.
 copy_file() {
   src=$1
   dst=$2
@@ -137,7 +172,7 @@ copy_file() {
   tmp=$(dirname "$dst")/.harness-tmp-$$-$(basename "$dst")
   ensure_safe_file_destination "$tmp"
   if [ -e "$tmp" ]; then
-    error "temporary destination already exists: $tmp"
+    error "[copy_file] temporary destination already exists: $tmp (cleanup or retry)"
   fi
   cp "$src" "$tmp"
   if [ -x "$src" ]; then
@@ -152,18 +187,20 @@ copy_file() {
   fi
 }
 
-# :description: Escape text for use as a sed replacement value.
-# :param value: Raw replacement text.
-# :return: Prints escaped replacement text.
+# Escape text for use as a sed replacement value.
+#
+# @param value Raw replacement text.
+# @return Prints escaped replacement text.
 escape_sed_replacement() {
   value=$1
   printf '%s' "$value" | sed 's/[\\&|]/\\&/g'
 }
 
-# :description: Replace validation command placeholders in a copied target file.
-# :param file: Target-relative file path.
-# :param validation_command: Validation command selected at install time.
-# :return: Writes rendered file content when placeholders are present.
+# Replace validation command placeholders in a copied target file.
+#
+# @param file Target-relative file path.
+# @param validation_command Validation command selected at install time.
+# @return Writes rendered file content when placeholders are present.
 render_validation_placeholders() {
   file=$1
   validation_command=$2
@@ -178,14 +215,17 @@ render_validation_placeholders() {
   printf '%s\n' "render validation command: $file"
 }
 
-# :description: Copy all files from one directory tree except root contracts.
-# :param src_dir: Source directory path.
-# :param dst_dir: Target-relative destination directory path.
-# :return: Writes copied or skipped paths.
+# Copy all files from one directory tree except root contracts.
+#
+# @param src_dir Source directory path.
+# @param dst_dir Target-relative destination directory path.
+# @return Writes copied or skipped paths.
 copy_tree() {
   src_dir=$1
   dst_dir=$2
-  [ -d "$src_dir" ] || return 0
+  if [ ! -d "$src_dir" ]; then
+    return 0
+  fi
   find "$src_dir" -type f | while IFS= read -r src; do
     rel=${src#"$src_dir"/}
     case "$rel" in
@@ -195,11 +235,12 @@ copy_tree() {
   done
 }
 
-# :description: Create, skip, or force-update one root contract file.
-# :param file: Target root contract file.
-# :param marker: Marker string used for idempotency.
-# :param template_file: Template file path.
-# :return: Writes create, update, skip, or conflict status.
+# Create, skip, or force-update one root contract file.
+#
+# @param file Target root contract file.
+# @param marker Marker string used for idempotency.
+# @param template_file Template file path.
+# @return Writes create, update, skip, or conflict status.
 ensure_root_contract() {
   file=$1
   marker=$2
@@ -229,10 +270,10 @@ ensure_root_contract() {
   printf '%s\n' "update root contract (--force): $file"
 }
 
-
-# :description: Create, skip, or force-update a shared root contract file atomically.
-# :param file: Shared target root contract file.
-# :return: Writes create, update, or skip status.
+# Create, skip, or force-update a shared root contract file atomically.
+#
+# @param file Shared target root contract file.
+# @return Writes create, update, or skip status.
 ensure_shared_root_contract() {
   file=$1
   ensure_safe_file_destination "$file"
@@ -279,22 +320,24 @@ ensure_shared_root_contract() {
   fi
 }
 
-# :description: Return a supported root-contract symlink target.
-# :param file: Root contract symlink path.
-# :return: Writes the canonical target or exits on unsupported symlink.
+# Return a supported root-contract symlink target.
+#
+# @param file Root contract symlink path.
+# @exit Exits via 'error' when symlink is unsupported.
 root_contract_symlink_target() {
   file=$1
   target=$(readlink "$file")
   case "$file:$target" in
     AGENTS.md:CLAUDE.md|CLAUDE.md:AGENTS.md) printf '%s\n' "$target" ;;
-    *) error "unsupported root contract symlink: $file -> $target" ;;
+    *) error "[root_contract_symlink] unsupported symlink target (must be AGENTS.md <-> CLAUDE.md): $file -> $target" ;;
   esac
 }
 
-# :description: Record a root contract conflict before any root contracts are written.
-# :param file: Target root contract file.
-# :param marker: Marker string used for idempotency.
-# :return: Writes conflict status when the file needs explicit force.
+# Record a root contract conflict before any root contracts are written.
+#
+# @param file Target root contract file.
+# @param marker Marker string used for idempotency.
+# @return Writes conflict status when the file needs explicit force.
 check_root_contract_conflict() {
   file=$1
   marker=$2
@@ -305,8 +348,9 @@ check_root_contract_conflict() {
   fi
 }
 
-# :description: Ensure existing root files contain the minimum harness contract.
-# :return: Writes root contract status.
+# Ensure existing root files contain the minimum harness contract.
+#
+# @return Writes root contract status.
 ensure_root_contracts() {
   agents_target=AGENTS.md
   claude_target=CLAUDE.md
@@ -329,8 +373,9 @@ ensure_root_contracts() {
   fi
 }
 
-# :description: Preserve required empty repository paths with .gitkeep files.
-# :return: Writes created .gitkeep paths.
+# Preserve required empty repository paths with .gitkeep files.
+#
+# @return Writes created .gitkeep paths.
 ensure_gitkeep_paths() {
   for dir in docs/exec-plans/active docs/exec-plans/completed docs/generated; do
     keep=$dir/.gitkeep
@@ -342,14 +387,17 @@ ensure_gitkeep_paths() {
   done
 }
 
-# :description: Copy stack-specific templates, honoring CI inclusion settings.
-# :param src_dir: Stack template directory path.
-# :param dst_dir: Target-relative destination directory path.
-# :return: Writes copied or skipped paths.
+# Copy stack-specific templates, honoring CI inclusion settings.
+#
+# @param src_dir Stack template directory path.
+# @param dst_dir Target-relative destination directory path.
+# @return Writes copied or skipped paths.
 copy_stack_tree() {
   src_dir=$1
   dst_dir=$2
-  [ -d "$src_dir" ] || return 0
+  if [ ! -d "$src_dir" ]; then
+    return 0
+  fi
   find "$src_dir" -type f | while IFS= read -r src; do
     rel=${src#"$src_dir"/}
     case "$rel" in
@@ -381,11 +429,12 @@ copy_stack_tree() {
   done
 }
 
-# :description: Append one line to a file when a marker is absent.
-# :param file: Target-relative file path.
-# :param marker: Marker string used for idempotency.
-# :param line: Line to append.
-# :return: Writes appended or skipped status.
+# Append one line to a file when a marker is absent.
+#
+# @param file Target-relative file path.
+# @param marker Marker string used for idempotency.
+# @param line Line to append.
+# @return Writes appended or skipped status.
 append_line_once() {
   file=$1
   marker=$2
@@ -408,9 +457,10 @@ append_line_once() {
   printf '%s\n' "append line: $file"
 }
 
-# :description: Ensure Gradle settings includes the local harness plugin build.
-# :param file: Gradle settings file path.
-# :return: Writes modified status.
+# Ensure Gradle settings includes the local harness plugin build.
+#
+# @param file Gradle settings file path.
+# @return Writes modified status.
 ensure_gradle_settings_include() {
   file=$1
   include='includeBuild(".claude/harness/gradle-plugin")'
@@ -432,8 +482,9 @@ ensure_gradle_settings_include() {
   printf '%s\n' "prepend Gradle plugin include: $file"
 }
 
-# :description: Install Gradle plugin wiring into settings and root build files.
-# :return: Writes modified Gradle integration files.
+# Install Gradle plugin wiring into settings and root build files.
+#
+# @return Writes modified Gradle integration files.
 install_gradle() {
   settings_file=settings.gradle.kts
   build_file=build.gradle.kts
@@ -451,8 +502,9 @@ install_gradle() {
   fi
 }
 
-# :description: Return success when local .git hooks can be modified safely.
-# :return: Returns non-zero after writing a warning when hooks cannot be modified.
+# Return success when local .git hooks can be modified safely.
+#
+# @return Returns non-zero after writing a warning when hooks cannot be modified.
 ensure_git_dir_for_hooks() {
   if [ ! -e .git ]; then
     printf '%s\n' 'skip git hook install: .git not found' >&2
@@ -462,70 +514,76 @@ ensure_git_dir_for_hooks() {
     printf '%s\n' 'skip git hook install: .git is a symlink' >&2
     return 1
   fi
-  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  if ! git_probe=$(git rev-parse --is-inside-work-tree 2>&1); then
+    unset git_probe
     printf '%s\n' 'skip git hook install: not inside a Git worktree' >&2
     return 1
   fi
   return 0
 }
 
-# :description: Resolve the worktree-aware Git hooks directory.
-# :return: Writes the absolute hooks directory path, or returns non-zero with a warning.
+# Resolve the worktree-aware Git hooks directory.
+#
+# @return Writes the absolute hooks directory path, or returns non-zero with a warning.
 resolve_git_hooks_dir() {
-  common_dir=$(git rev-parse --git-common-dir 2>/dev/null) || {
+  if ! common_dir=$(git rev-parse --git-common-dir 2>&1); then
     printf '%s\n' 'skip git hook install: cannot resolve git common dir' >&2
     return 1
-  }
+  fi
   case "$common_dir" in
     /*) ;;
     *) common_dir=$target_root/$common_dir ;;
   esac
   common_dir=$(normalize_absolute_path "$common_dir")
   if [ ! -d "$common_dir" ]; then
-    printf '%s\n' "skip git hook install: $common_dir not found" >&2
+    printf '%s\n' "[resolve_git_hooks] skip git hook install: $common_dir not found" >&2
     return 1
   fi
   hooks_dir=$common_dir/hooks
   if [ ! -d "$hooks_dir" ]; then
     mkdir -p "$hooks_dir" || {
-      printf '%s\n' "skip git hook install: cannot create $hooks_dir" >&2
+      printf '%s\n' "[resolve_git_hooks] skip git hook install: cannot create $hooks_dir" >&2
       return 1
     }
   fi
   printf '%s\n' "$hooks_dir"
 }
 
-# :description: Ensure a generated Git hook destination outside the worktree is safe.
-# :param hook_file: Absolute Git hook destination path.
-# :return: Exits when the destination is unsafe.
+# Ensure a generated Git hook destination outside the worktree is safe.
+#
+# @param hook_file Absolute Git hook destination path.
+# @exit Exits via 'error' when destination is unsafe.
 ensure_safe_hook_destination() {
   hook_file=$1
   case "$hook_file" in
     /*) ;;
-    *) error "hook destination must be an absolute path: $hook_file" ;;
+    *) error "[safe_hook_destination] hook destination must be an absolute path: $hook_file" ;;
   esac
   parent=$(dirname "$hook_file")
   name=$(basename "$hook_file")
   case "$name" in
     pre-commit|pre-push) ;;
-    *) error "unsupported git hook destination basename: $name" ;;
+    *) error "[safe_hook_destination] unsupported hook name (must be pre-commit or pre-push): $name" ;;
   esac
   case "$parent" in
     */hooks) ;;
-    *) error "refusing hook destination outside a hooks directory: $hook_file" ;;
+    *) error "[safe_hook_destination] refusing hook destination outside a hooks directory: $hook_file" ;;
   esac
   if [ -L "$hook_file" ]; then
-    error "refusing symlink hook destination: $hook_file"
+    error "[safe_hook_destination] refusing symlink hook destination: $hook_file"
   fi
   if [ -d "$hook_file" ]; then
-    error "refusing directory hook destination: $hook_file"
+    error "[safe_hook_destination] refusing directory hook destination: $hook_file"
   fi
 }
 
-# :description: Return the target-local Git hooks path when one is configured.
-# :return: Writes the configured hooks path or nothing.
+# Return the target-local Git hooks path when one is configured.
+#
+# @return Writes the configured hooks path or nothing.
 configured_hooks_path() {
-  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  # shellcheck disable=SC2034
+  if ! git_probe=$(git rev-parse --is-inside-work-tree 2>&1); then
+    unset git_probe
     return 0
   fi
   if git config --path --get core.hooksPath; then
@@ -534,9 +592,10 @@ configured_hooks_path() {
   return 0
 }
 
-# :description: Normalize a hooks path for comparison without requiring it to exist.
-# :param path: Configured Git hooks path.
-# :return: Writes a target-relative normalized path when possible.
+# Normalize a hooks path for comparison without requiring it to exist.
+#
+# @param path Configured Git hooks path.
+# @return Writes a target-relative normalized path when possible.
 normalize_hooks_path() {
   hooks_path=$1
   case "$hooks_path" in
@@ -565,9 +624,10 @@ normalize_hooks_path() {
   printf '%s\n' "$normalized_path"
 }
 
-# :description: Strip trailing slashes while preserving root.
-# :param path: Path to normalize.
-# :return: Writes path without trailing slashes.
+# Strip trailing slashes while preserving root.
+#
+# @param path Path to normalize.
+# @return Writes path without trailing slashes.
 strip_trailing_slashes() {
   slash_path=$1
   while [ "$slash_path" != / ]; do
@@ -579,9 +639,10 @@ strip_trailing_slashes() {
   printf '%s\n' "$slash_path"
 }
 
-# :description: Normalize an absolute path lexically without requiring it to exist.
-# :param path: Absolute or target-relative path.
-# :return: Writes a normalized absolute path.
+# Normalize an absolute path lexically without requiring it to exist.
+#
+# @param path Absolute or target-relative path.
+# @return Writes a normalized absolute path.
 normalize_absolute_path() {
   absolute_path=$1
   case "$absolute_path" in
@@ -610,9 +671,10 @@ normalize_absolute_path() {
   printf '/%s\n' "$normalized_path"
 }
 
-# :description: Return a configured hooks path as an absolute lexical path.
-# :param path: Configured Git hooks path.
-# :return: Writes an absolute lexical path.
+# Return a configured hooks path as an absolute lexical path.
+#
+# @param path Configured Git hooks path.
+# @return Writes an absolute lexical path.
 absolute_hooks_path() {
   hooks_path=$1
   case "$hooks_path" in
@@ -622,9 +684,11 @@ absolute_hooks_path() {
   esac
 }
 
-# :description: Resolve existing symlink components in a hooks path without requiring the final target to exist.
-# :param path: Configured Git hooks path.
-# :return: Writes a normalized absolute path after lexical symlink expansion.
+# Resolve existing symlink components in a hooks path without requiring the final
+#     target to exist.
+#
+# @param path Configured Git hooks path.
+# @return Writes a normalized absolute path after lexical symlink expansion.
 resolve_hooks_path_lexically() {
   current_path=$(absolute_hooks_path "$1") || return 1
   iterations=0
@@ -638,7 +702,9 @@ resolve_hooks_path_lexically() {
         */*) part=${rest%%/*}; rest=${rest#*/} ;;
         *) part=$rest; rest= ;;
       esac
-      [ -n "$part" ] || continue
+      if [ -z "$part" ]; then
+        continue
+      fi
       candidate=/${resolved_parts:+$resolved_parts/}$part
       if [ -L "$candidate" ]; then
         link_target=$(readlink "$candidate") || return 1
@@ -660,20 +726,24 @@ resolve_hooks_path_lexically() {
       return 0
     fi
   done
-  error 'configured hooks path contains too many symlink expansions'
+  error '[resolve_hooks_path] configured hooks path contains too many symlink expansions (circular links?)'
 }
 
-# :description: Resolve an existing configured hooks path through symlinks.
-# :param path: Configured Git hooks path.
-# :return: Writes the physical absolute path when it exists as a directory.
+# Resolve an existing configured hooks path through symlinks.
+#
+# @param path Configured Git hooks path.
+# @return Writes the physical absolute path when it exists as a directory.
 resolve_existing_hooks_path() {
   candidate=$(absolute_hooks_path "$1") || return 1
-  [ -d "$candidate" ] || return 1
-  CDPATH= cd "$candidate" && pwd -P
+  if [ ! -d "$candidate" ]; then
+    return 1
+  fi
+  CDPATH='' cd "$candidate" && pwd -P
 }
 
-# :description: Fail when existing Git config would make hook activation ambiguous.
-# :return: Exits when configured hooks would bypass or duplicate generated hook activation.
+# Fail when existing Git config would make hook activation ambiguous.
+#
+# @exit Exits via 'error' when configured hooks would bypass or duplicate activation.
 ensure_hook_activation_policy() {
   configured_path=$(configured_hooks_path)
   case "$configured_path" in
@@ -695,18 +765,19 @@ ensure_hook_activation_policy() {
   fi
   if [ "$points_at_harness_hooks" -eq 1 ]; then
     if [ "$hooks" = copy ]; then
-      error 'target Git config points hooks at .claude/harness/git-hooks; --hooks copy would write to the worktree hooks directory instead. Re-run with --hooks none to refresh harness-tracked hooks in place.'
+      error '[hook_activation_policy] target Git config points hooks at .claude/harness/git-hooks; --hooks copy would write to the worktree hooks directory instead. Re-run with --hooks none to refresh harness-tracked hooks in place.'
     fi
     return 0
   fi
   if [ "$hooks" = copy ]; then
-    error "target Git config uses hooks path $configured_path; --hooks copy would not activate the worktree hooks. Either unset core.hooksPath or re-run with --hooks none."
+    error "[hook_activation_policy] target Git config uses hooks path $configured_path; --hooks copy would not activate the worktree hooks. Either unset core.hooksPath or re-run with --hooks none."
   fi
 }
 
-# :description: Return the validation command for the selected stack mode.
-# :param selected_mode: Resolved harness stack mode.
-# :return: Writes one shell command to standard output.
+# Return the validation command for the selected stack mode.
+#
+# @param selected_mode Resolved harness stack mode.
+# @exit Exits via 'error' when mode is unsupported.
 validation_command_for_mode() {
   selected_mode=$1
   case "$selected_mode" in
@@ -720,13 +791,14 @@ validation_command_for_mode() {
     maven) printf '%s\n' 'mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate' ;;
     uv) printf '%s\n' 'uv run python .claude/harness/uv/harness_validate.py' ;;
     bun) printf '%s\n' 'bun run .claude/harness/bun/harness-validate.ts' ;;
-    *) error "unsupported mode for validation command: $selected_mode" ;;
+    *) error "[validation_command] unsupported mode (must be gradle|maven|uv|bun): $selected_mode" ;;
   esac
 }
 
-# :description: Return the generated pre-commit command for modes that run one.
-# :param selected_mode: Resolved harness stack mode.
-# :return: Writes one shell command, or nothing for compliance-only modes.
+# Return the generated pre-commit command for modes that run one.
+#
+# @param selected_mode Resolved harness stack mode.
+# @exit Exits via 'error' when mode is unsupported.
 pre_commit_command_for_mode() {
   selected_mode=$1
   case "$selected_mode" in
@@ -738,13 +810,14 @@ pre_commit_command_for_mode() {
       fi
       ;;
     maven|uv|bun) ;;
-    *) error "unsupported mode for pre-commit command: $selected_mode" ;;
+    *) error "[pre_commit_command] unsupported mode (must be gradle|maven|uv|bun): $selected_mode" ;;
   esac
 }
 
-# :description: Return the generated pre-push and CI command for the selected stack mode.
-# :param selected_mode: Resolved harness stack mode.
-# :return: Writes one shell command to standard output.
+# Return the generated pre-push and CI command for the selected stack mode.
+#
+# @param selected_mode Resolved harness stack mode.
+# @exit Exits via 'error' when mode is unsupported.
 pre_push_command_for_mode() {
   selected_mode=$1
   case "$selected_mode" in
@@ -756,75 +829,89 @@ pre_push_command_for_mode() {
       fi
       ;;
     maven|uv|bun) validation_command_for_mode "$selected_mode" ;;
-    *) error "unsupported mode for pre-push command: $selected_mode" ;;
+    *) error "[pre_push_command] unsupported mode (must be gradle|maven|uv|bun): $selected_mode" ;;
   esac
 }
 
-# :description: Write a lightweight generated pre-commit compliance hook.
-# :param file: Target-relative hook path.
-# :return: Writes an executable hook file.
+# Write a lightweight generated pre-commit compliance hook.
+#
+# @param file Target-relative hook path.
+# @exit Exits via 'error' when destination already exists or hook write fails.
 write_new_pre_commit_hook() {
   file=$1
   ensure_safe_file_destination "$file"
   (
     set -C
     cat > "$file" <<'HOOK'
+
 #!/usr/bin/env sh
+# -*- coding: utf-8 -*-
 # Harness generated hook: pre-commit
 # Harness stage: compliance
 set -e
-
-fail() {
-  printf '%s\n' "harness pre-commit: $1" >&2
-  exit 1
-}
-
 require_file() {
-  [ -f "$1" ] || fail "missing required file: $1"
+  if [ ! -f "$1" ]; then
+    printf '%s\n' "harness pre-commit: missing required file: $1" >&2
+    exit 1
+  fi
 }
-
 require_executable_hook() {
   hook=$1
   marker=$2
   stage=$3
   require_file "$hook"
-  [ -x "$hook" ] || fail "hook must be executable: $hook"
+  if [ ! -x "$hook" ]; then
+    printf '%s\n' "[require_executable_hook] hook must be executable: $hook" >&2
+    exit 1
+  fi
   first_line=$(sed -n '1p' "$hook")
-  [ "$first_line" = '#!/usr/bin/env sh' ] || fail "hook must use #!/usr/bin/env sh: $hook"
-  grep -Fq "$marker" "$hook" || fail "hook missing generated marker: $hook"
-  grep -Fq "$stage" "$hook" || fail "hook missing stage marker: $hook"
+  if [ "$first_line" != '#!/usr/bin/env sh' ]; then
+    printf '%s\n' "[require_executable_hook] hook must use #!/usr/bin/env sh: $hook" >&2
+    exit 1
+  fi
+  second_line=$(sed -n '2p' "$hook")
+  if [ "$second_line" != '# -*- coding: utf-8 -*-' ]; then
+    printf '%s\n' "[require_executable_hook] hook must declare utf-8 coding on line 2: $hook" >&2
+    exit 1
+  fi
+  grep -Fq "$marker" "$hook" || { printf '%s\n' "[require_executable_hook] hook missing generated marker: $hook" >&2; exit 1; }
+  grep -Fq "$stage" "$hook" || { printf '%s\n' "[require_executable_hook] hook missing stage marker: $hook" >&2; exit 1; }
   placeholder='packaged placeholder is replaced during harness'
   placeholder="$placeholder installation"
   if grep -Fq "$placeholder" "$hook"; then
-    fail "hook still contains packaged placeholder text: $hook"
+    printf '%s\n' "[require_executable_hook] hook still contains packaged placeholder text: $hook" >&2
+    exit 1
   fi
 }
-
 require_file AGENTS.md
 require_file CLAUDE.md
 require_file ARCHITECTURE.md
 require_file .claude/harness/manifest.json
 require_executable_hook .claude/harness/git-hooks/pre-commit 'Harness generated hook: pre-commit' 'Harness stage: compliance'
 require_executable_hook .claude/harness/git-hooks/pre-push 'Harness generated hook: pre-push' 'Harness stage: full-validation'
-
 validation_command=$(sed -n 's/^# Harness validation command: //p' .claude/harness/git-hooks/pre-push | head -n 1)
-[ -n "$validation_command" ] || fail 'pre-push hook missing validation command marker'
-
+if [ -z "$validation_command" ]; then
+  printf '%s\n' "[pre_commit_hook] pre-push hook missing validation command marker" >&2
+  exit 1
+fi
 if [ -f .github/workflows/harness.yml ] && ! grep -Fq "$validation_command" .github/workflows/harness.yml; then
-  fail '.github/workflows/harness.yml does not match pre-push validation command'
+  printf '%s\n' "[pre_commit_hook] .github/workflows/harness.yml does not match pre-push validation command" >&2
+  exit 1
 fi
 if [ -f .gitlab-ci.yml ] && ! grep -Fq "$validation_command" .gitlab-ci.yml; then
-  fail '.gitlab-ci.yml does not match pre-push validation command'
+  printf '%s\n' "[pre_commit_hook] .gitlab-ci.yml does not match pre-push validation command" >&2
+  exit 1
 fi
 HOOK
-  ) || error "temporary hook destination already exists: $file"
+  ) || error "[write_pre_commit_hook] temporary hook destination already exists: $file (cleanup or retry)"
   chmod +x "$file"
 }
 
-# :description: Write a generated pre-commit hook that runs a harness validation command.
-# :param file: Target-relative hook path.
-# :param validation_command: Pre-commit validation command selected at install time.
-# :return: Writes an executable hook file.
+# Write a generated pre-commit hook that runs a harness validation command.
+#
+# @param file Target-relative hook path.
+# @param validation_command Pre-commit validation command selected at install time.
+# @exit Exits via 'error' when destination already exists or hook write fails.
 write_new_pre_commit_command_hook() {
   file=$1
   validation_command=$2
@@ -833,6 +920,7 @@ write_new_pre_commit_command_hook() {
     set -C
     {
       printf '%s\n' '#!/usr/bin/env sh'
+      printf '%s\n' '# -*- coding: utf-8 -*-'
       printf '%s\n' '# Harness generated hook: pre-commit'
       printf '%s\n' '# Harness stage: harness-validation'
       printf '%s\n' "# Harness validation command: $validation_command"
@@ -840,14 +928,15 @@ write_new_pre_commit_command_hook() {
       printf '\n'
       printf '%s\n' "$validation_command"
     } > "$file"
-  ) || error "temporary hook destination already exists: $file"
+  ) || error "[write_pre_commit_command_hook] temporary hook destination already exists: $file (cleanup or retry)"
   chmod +x "$file"
 }
 
-# :description: Write a generated pre-push hook that runs the selected final check command.
-# :param file: Target-relative hook path.
-# :param validation_command: Validation command selected at install time.
-# :return: Writes an executable hook file.
+# Write a generated pre-push hook that runs the selected final check command.
+#
+# @param file Target-relative hook path.
+# @param validation_command Validation command selected at install time.
+# @exit Exits via 'error' when destination already exists or hook write fails.
 write_new_pre_push_hook() {
   file=$1
   validation_command=$2
@@ -856,6 +945,7 @@ write_new_pre_push_hook() {
     set -C
     {
       printf '%s\n' '#!/usr/bin/env sh'
+      printf '%s\n' '# -*- coding: utf-8 -*-'
       printf '%s\n' '# Harness generated hook: pre-push'
       printf '%s\n' '# Harness stage: full-validation'
       printf '%s\n' "# Harness validation command: $validation_command"
@@ -863,26 +953,31 @@ write_new_pre_push_hook() {
       printf '\n'
       printf '%s\n' "$validation_command"
     } > "$file"
-  ) || error "temporary hook destination already exists: $file"
+  ) || error "[write_pre_push_hook] temporary hook destination already exists: $file (cleanup or retry)"
   chmod +x "$file"
 }
 
-# :description: Return success when an existing generated hook can be refreshed without force.
-# :param file: Target-relative hook path.
-# :param marker: Generated hook marker.
-# :return: Returns zero for managed generated hooks.
+# Return success when an existing generated hook can be refreshed without force.
+#
+# @param file Target-relative hook path.
+# @param marker Generated hook marker.
+# @return Returns zero for managed generated hooks.
 is_managed_generated_hook() {
   file=$1
   marker=$2
-  [ -f "$file" ] && grep -Fq "$marker" "$file"
+  if [ ! -f "$file" ]; then
+    return 1
+  fi
+  grep -Fq "$marker" "$file"
 }
 
-# :description: Install one target-owned generated hook template.
-# :param dst: Target-relative hook path.
-# :param marker: Generated hook marker.
-# :param stage_label: Human-readable hook stage.
-# :param validation_command: Validation command selected at install time.
-# :return: Writes or skips the target hook template.
+# Install one target-owned generated hook template.
+#
+# @param dst Target-relative hook path.
+# @param marker Generated hook marker.
+# @param stage_label Human-readable hook stage.
+# @param validation_command Validation command selected at install time.
+# @exit Exits via 'error' when hook type is unsupported or placeholder detected.
 install_one_target_hook_template() {
   dst=$1
   marker=$2
@@ -891,7 +986,7 @@ install_one_target_hook_template() {
   ensure_safe_file_destination "$dst"
   if [ -e "$dst" ] && [ "$force" -ne 1 ] && ! is_managed_generated_hook "$dst" "$marker"; then
     if grep -Fq 'packaged placeholder is replaced during harness installation' "$dst"; then
-      error "existing harness hook placeholder is not selected-mode content: $dst; rerun with --force to replace"
+      error "[install_target_hook_template] existing harness hook placeholder is not selected-mode content: $dst; rerun with --force to replace"
     fi
     printf '%s\n' "keep existing: $dst"
     return 0
@@ -907,7 +1002,7 @@ install_one_target_hook_template() {
       fi
       ;;
     */pre-push) write_new_pre_push_hook "$tmp" "$validation_command" ;;
-    *) error "unsupported harness hook template: $dst" ;;
+    *) error "[install_target_hook_template] unsupported harness hook template (must be pre-commit or pre-push): $dst" ;;
   esac
   if [ -e "$dst" ]; then
     mv "$tmp" "$dst"
@@ -922,9 +1017,10 @@ install_one_target_hook_template() {
   fi
 }
 
-# :description: Install target-owned harness hook templates.
-# :param validation_command: Validation command selected at install time.
-# :return: Writes or skips target hook templates.
+# Install target-owned harness hook templates.
+#
+# @param validation_command Validation command selected at install time.
+# @return Writes or skips target hook templates.
 install_target_hook_templates() {
   pre_commit_command=$1
   pre_push_command=$2
@@ -932,9 +1028,10 @@ install_target_hook_templates() {
   install_one_target_hook_template .claude/harness/git-hooks/pre-push 'Harness generated hook: pre-push' pre-push "$pre_push_command"
 }
 
-# :description: Copy one generated hook into .git/hooks.
-# :param name: Hook basename.
-# :return: Validates hook source or exits with an error.
+# Copy one generated hook into .git/hooks.
+#
+# @param name Hook basename.
+# @exit Exits via 'error' when hook source is invalid.
 validate_generated_hook_source_for_copy() {
   name=$1
   src=.claude/harness/git-hooks/$name
@@ -944,17 +1041,21 @@ validate_generated_hook_source_for_copy() {
     *) error "unsupported git hook copy: $name" ;;
   esac
   require_file_marker="Harness generated hook: $name"
-  [ -f "$src" ] || error "missing generated hook source: $src"
-  grep -Fq "$require_file_marker" "$src" || error "refusing to copy non-generated hook source: $src; rerun with --force to regenerate"
-  grep -Fq "$stage" "$src" || error "refusing to copy hook source with wrong stage: $src; rerun with --force to regenerate"
+  if [ ! -f "$src" ]; then
+    error "[validate_hook_source] missing generated hook source: $src"
+  fi
+  grep -Fq "$require_file_marker" "$src" || error "[validate_hook_source] refusing to copy non-generated hook source: $src; rerun with --force to regenerate"
+  grep -Fq "$stage" "$src" || error "[validate_hook_source] refusing to copy hook source with wrong stage: $src; rerun with --force to regenerate"
   if grep -Fq 'packaged placeholder is replaced during harness installation' "$src"; then
-    error "refusing to copy placeholder hook source: $src; rerun with --force to regenerate"
+    error "[validate_hook_source] refusing to copy placeholder hook source: $src; rerun with --force to regenerate"
   fi
 }
 
-# :description: Validate all hook sources that copy mode will activate before writing any active hook.
-# :param hooks_dir: Absolute worktree hooks directory.
-# :return: Exits before partial active hook writes when a source is invalid.
+# Validate all hook sources that copy mode will activate before writing any active
+#     hook.
+#
+# @param hooks_dir Absolute worktree hooks directory.
+# @exit Exits via 'error' before partial writes when source is invalid.
 preflight_git_hook_copy_sources() {
   hooks_dir=$1
   for name in pre-commit pre-push; do
@@ -967,10 +1068,11 @@ preflight_git_hook_copy_sources() {
   done
 }
 
-# :description: Copy one generated hook into the worktree-aware hooks directory.
-# :param name: Hook basename.
-# :param hooks_dir: Absolute worktree hooks directory.
-# :return: Writes hook installation status.
+# Copy one generated hook into the worktree-aware hooks directory.
+#
+# @param name Hook basename.
+# @param hooks_dir Absolute worktree hooks directory.
+# @exit Exits via 'error' when copy or permission operations fail.
 copy_one_git_hook() {
   name=$1
   hooks_dir=$2
@@ -987,13 +1089,13 @@ copy_one_git_hook() {
   fi
   tmp_dir=$hooks_dir/.harness-tmp-$$-$name.dir
   if [ -e "$tmp_dir" ]; then
-    error "temporary hook directory already exists: $tmp_dir"
+    error "[copy_git_hook] temporary hook directory already exists: $tmp_dir (cleanup or retry)"
   fi
   mkdir "$tmp_dir"
   tmp=$tmp_dir/$name
-  cp "$src" "$tmp" || { rm -f "$tmp"; rmdir "$tmp_dir"; error "failed to copy generated hook: $src"; }
-  chmod +x "$tmp" || { rm -f "$tmp"; rmdir "$tmp_dir"; error "failed to mark hook executable: $tmp"; }
-  mv "$tmp" "$dst" || { rm -f "$tmp"; rmdir "$tmp_dir"; error "failed to install git hook: $dst"; }
+  cp "$src" "$tmp" || { rm -f "$tmp"; rmdir "$tmp_dir"; error "[copy_git_hook] failed to copy generated hook: $src"; }
+  chmod +x "$tmp" || { rm -f "$tmp"; rmdir "$tmp_dir"; error "[copy_git_hook] failed to mark hook executable: $tmp"; }
+  mv "$tmp" "$dst" || { rm -f "$tmp"; rmdir "$tmp_dir"; error "[copy_git_hook] failed to install git hook: $dst"; }
   rmdir "$tmp_dir"
   if [ "$force" -eq 1 ] && [ "$had_dst" -eq 1 ]; then
     printf '%s\n' "install git hook (--force): $dst"
@@ -1002,8 +1104,10 @@ copy_one_git_hook() {
   fi
 }
 
-# :description: Copy generated pre-commit and pre-push hooks into the worktree-aware hooks directory.
-# :return: Writes hook installation status.
+# Copy generated pre-commit and pre-push hooks into the worktree-aware hooks
+#     directory.
+#
+# @return Writes hook installation status.
 install_git_hook_copy() {
   ensure_git_dir_for_hooks || return 0
   hooks_dir=$(resolve_git_hooks_dir) || return 0

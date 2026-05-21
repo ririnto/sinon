@@ -68,20 +68,20 @@ Store API token in environment variable; reference in MCP config:
 
 Set token in shell environment:
 
-```bash
+```sh
 export API_TOKEN="sk_live_abc123xyz..."
 claude
 ```
 
 Or in user's shell profile (`~/.zshrc` or `~/.bashrc`):
 
-```bash
+```sh
 export API_TOKEN="sk_live_abc123xyz..."
 ```
 
 > [!CAUTION]
 >
-> Bearer tokens via env var are **not** the same as OAuth scoping. An env-var token carries whatever permissions were issued at creation; revocation requires manual rotation of the token across all consumers. OAuth (especially with refresh tokens and per-scope grants) supports per-resource, time-bound, and user-attributable scoping. Prefer OAuth where the upstream MCP server supports it; use env-var bearer tokens only when OAuth is unavailable or the token is explicitly scoped at issuance.
+> Bearer tokens via env var are not the same as OAuth scoping. An env-var token carries whatever permissions were issued at creation; revocation requires manual rotation of the token across all consumers. OAuth (especially with refresh tokens and per-scope grants) supports per-resource, time-bound, and user-attributable scoping. Prefer OAuth where the upstream MCP server supports it; use env-var bearer tokens only when OAuth is unavailable or the token is explicitly scoped at issuance.
 
 ### Multiple servers, different credentials
 
@@ -117,11 +117,11 @@ Separation ensures compromise of one service doesn't affect others.
 
 ### Env var expansion timing
 
-Variables are expanded at **session start**, not at config parse time.
+Variables are expanded at session start, not at config parse time.
 
 If env var changes during session, change is not reflected:
 
-```bash
+```sh
 # Session 1: API_TOKEN=old_token
 claude
 # ... session running ...
@@ -135,7 +135,7 @@ export API_TOKEN=new_token
 claude          # New session: uses new_token
 ```
 
-Changing credentials requires **session restart**.
+Changing credentials requires session restart.
 
 ## Token storage and encryption
 
@@ -252,13 +252,13 @@ Each server's credentials:
 - Asana: Stored in `~/.claude/mcp_tokens.json[asana]`, OAuth-managed
 - Internal API: Stored in `$INTERNAL_API_TOKEN` env var, user-managed
 
-Compromise of GitHub token does **not** expose Asana or Internal API credentials.
+Compromise of GitHub token does not expose Asana or Internal API credentials.
 
 ### Credential rotation schedule
 
 Rotate tokens periodically (recommended: every 90 days):
 
-```bash
+```sh
 # 1. Generate new token at service
 # 2. Update env var
 export INTERNAL_API_TOKEN=new_token_xyz
@@ -292,24 +292,24 @@ Use PROJECT_SPECIFIC_TOKEN instead of GLOBAL_TOKEN.
 
 Hook reads settings and adjusts:
 
-```bash
-#!/bin/bash
-set -euo pipefail
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Load project-specific token override.
+#
 # @param settings_file .claude/<plugin-name>.local.md
 # @return Exports adjusted API_TOKEN.
 load_project_token() {
-    local settings_file="$1"
-    if [[ ! -f "$settings_file" ]]; then
+    settings_file="$1"
+    if [ ! -f "$settings_file" ]; then
         return 0
     fi
-    local fm
     fm=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$settings_file")
-    local token_env
     token_env=$(echo "$fm" | grep '^api_token_env_var:' | sed 's/api_token_env_var: *//')
-    if [[ -n "$token_env" ]]; then
-        export API_TOKEN="${!token_env}"
+    if [ -n "$token_env" ]; then
+        export API_TOKEN="$(eval echo \"\$$token_env\")"
     fi
 }
 ```
@@ -383,7 +383,7 @@ Request only what tool needs.
 
 Validate token without running main tool:
 
-```bash
+```sh
 # Test HTTP with bearer token
 curl -H "Authorization: Bearer $API_TOKEN" https://api.example.com/mcp/tools | jq .
 
@@ -398,7 +398,7 @@ ls -la ~/.claude/mcp_tokens.json
 
 Enable debug output to see token-related messages:
 
-```bash
+```sh
 claude --debug 2>&1 | grep -i token
 ```
 
@@ -411,7 +411,7 @@ Output:
 [mcp] New token obtained, expiration: ...
 ```
 
-Do **not** log actual token values (only metadata).
+Do not log actual token values (only metadata).
 
 ## References
 

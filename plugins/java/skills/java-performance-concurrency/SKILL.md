@@ -36,7 +36,7 @@ Review Java performance and concurrency decisions with emphasis on evidence, wor
 
 Start with a profiler-ready JVM launch shape:
 
-```bash
+```sh
 java -XX:StartFlightRecording=duration=60s,filename=profile.jfr,settings=profile -jar app.jar
 ```
 
@@ -233,19 +233,19 @@ synchronized Result parse(byte[] payload) {
 
 On out-of-memory:
 
-```bash
+```sh
 java -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/heap.hprof -jar app.jar
 ```
 
 On demand:
 
-```bash
+```sh
 jcmd <pid> GC.heap_dump /tmp/heap.hprof
 ```
 
 Analyze with Eclipse MAT or `jhsdb`:
 
-```bash
+```sh
 jhsdb hat dump --heap-dump-file /tmp/heap.hprof
 ```
 

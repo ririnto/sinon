@@ -18,14 +18,14 @@ Open this reference when the bottleneck type is already classified and you still
 
 Attach JFR to a live JVM when the process is already running:
 
-```bash
+```sh
 jcmd <pid> JFR.start name=profile settings=profile disk=true maxage=10m
 jcmd <pid> JFR.dump name=profile filename=/tmp/profile.jfr
 ```
 
 List available JFR events and filters, then dump the recording for later analysis:
 
-```bash
+```sh
 jcmd <pid> JFR.check
 jcmd <pid> JFR.dump name=profile filename=/tmp/profile.jfr
 ```
@@ -34,13 +34,13 @@ Allocation-heavy path diagnosis (look for `java.lang.String` or byte-buffers in 
 
 Class histogram to find top allocators:
 
-```bash
+```sh
 jcmd <pid> GC.class_histogram | head -50
 ```
 
 Live histogram; this stops the world briefly, so use it with care in production:
 
-```bash
+```sh
 jcmd <pid> GC.class_histogram -all
 ```
 
@@ -48,13 +48,13 @@ Lock contention diagnosis:
 
 Thread dump with lock detail:
 
-```bash
+```sh
 jcmd <pid> Thread.print -l
 ```
 
 Run the dump three times 5 seconds apart, then compare for blocked threads:
 
-```bash
+```sh
 for i in 1 2 3; do jcmd <pid> Thread.print -l > thread-$i.txt; sleep 5; done
 ```
 
@@ -62,13 +62,13 @@ Throughput vs latency baseline:
 
 Verify selected JVM flags at startup:
 
-```bash
+```sh
 java -XX:+PrintCommandLineFlags -version
 ```
 
 Capture a short JFR recording to get allocation rate and thread states, then dump it after the workload runs:
 
-```bash
+```sh
 jcmd <pid> JFR.start name=baseline settings=default disk=true maxage=2h
 jcmd <pid> JFR.dump name=baseline filename=/tmp/baseline.jfr
 ```

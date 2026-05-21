@@ -90,7 +90,7 @@ Target ratio: code+examples > explanatory prose for coding skills.
 
 ### Documentation style checks
 
-- All code fences MUST have language tags (e.g., `` ```bash ``, `` ```json ``).
+- All code fences MUST have language tags (e.g., `` ```sh ``, `` ```json ``).
 - Example code MUST use documentation comments only (JSDoc, reStructuredText, etc.); no inline comments.
 - No blank lines inside function bodies in example code.
 - BCP 14 normative keywords SHOULD be used in stable rules sections.
@@ -99,36 +99,36 @@ Target ratio: code+examples > explanatory prose for coding skills.
 
 Report as structured audit with category scores and priority fix list:
 
-**Description Quality** (0-100):
+Description Quality (0-100):
 
 - Capability statement present and clear.
 - Trigger clause included.
 - Concise and discoverable.
 
-**Self-Sufficiency** (0-100):
+Self-Sufficiency (0-100):
 
 - All common-case workflows cover common paths.
 - No mandatory cross-skill dependencies.
 - Offline-workable examples present.
 
-**Progressive Disclosure** (0-100):
+Progressive Disclosure (0-100):
 
 - SKILL.md contains common case only.
 - references/ contains additive depth only.
 - No material misplaced between levels.
 
-**Code Weight** (for coding skills, 0-100):
+Code Weight (for coding skills, 0-100):
 
 - Code examples vs. prose ratio.
 - Templates and runnable examples present.
 
-**Documentation Style** (0-100):
+Documentation Style (0-100):
 
 - Language tags on all code fences.
 - Comment style compliance.
 - BCP 14 normative keywords used appropriately.
 
-**Recommended Fixes** (priority-ordered list):
+Recommended Fixes (priority-ordered list):
 
 1. Critical: description pattern, self-sufficiency, progressive disclosure violations.
 2. Major: missing language tags, incorrect comment styles, misplaced material.

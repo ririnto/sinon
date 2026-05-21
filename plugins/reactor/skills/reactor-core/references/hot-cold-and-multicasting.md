@@ -1,6 +1,7 @@
 ---
 title: "Hot, Cold, and Multicasting"
-description: "Open this when shared subscriptions, replay, or late-subscriber behavior changes the design and you need to reason about cold versus hot Reactor sources."
+description: >-
+  Open this when shared subscriptions, replay, or late-subscriber behavior changes the design and you need to reason about cold versus hot Reactor sources.
 ---
 
 Open this when identical subscriptions must not repeat the same work or when late subscribers must see shared or replayed signals.

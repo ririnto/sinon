@@ -4,9 +4,9 @@ Open this reference when the task involves upgrading Spring Authorization Server
 
 ## Authorization-server upgrade blocker
 
-**Problem:** a version upgrade changes endpoint behavior, JWK handling, claims, or redirect compatibility.
+Problem: a version upgrade changes endpoint behavior, JWK handling, claims, or redirect compatibility.
 
-**Solution:** treat the dependency upgrade as a compatibility review across issuer, keys, claims, and registered-client data.
+Solution: treat the dependency upgrade as a compatibility review across issuer, keys, claims, and registered-client data.
 
 Spring Authorization Server `1.5.7` is the final standalone generation. The current active line is `7.0.5`, where authorization-server work continues under Spring Security 7.
 

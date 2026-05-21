@@ -2,7 +2,7 @@
 
 Open this reference when conflicting values across property sources are the blocker.
 
-```bash
+```sh
 java -jar app.jar --catalog.region=eu-west-1
 ```
 

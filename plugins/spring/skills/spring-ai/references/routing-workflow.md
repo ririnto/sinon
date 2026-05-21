@@ -8,9 +8,9 @@ Use this file only when the application must classify a request and hand it to o
 
 ## Routing workflow blocker
 
-**Problem:** one user request must be dispatched to different specialist flows instead of one shared prompt path.
+Problem: one user request must be dispatched to different specialist flows instead of one shared prompt path.
 
-**Solution:** keep routing explicit and let the router choose among bounded downstream seams.
+Solution: keep routing explicit and let the router choose among bounded downstream seams.
 
 ```java
 @Service

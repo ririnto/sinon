@@ -4,9 +4,9 @@ Open this reference when the ordinary authorization request redirect in [SKILL.m
 
 ## PAR blocker
 
-**Problem:** the client must submit authorization parameters directly to the authorization server before redirecting the browser.
+Problem: the client must submit authorization parameters directly to the authorization server before redirecting the browser.
 
-**Solution:** enable and treat `/oauth2/par` as part of the provider contract rather than as a UI-level redirect detail.
+Solution: enable and treat `/oauth2/par` as part of the provider contract rather than as a UI-level redirect detail.
 
 PAR is useful when request parameters are large, signed, sensitive, or must be validated before the user-agent redirect happens.
 

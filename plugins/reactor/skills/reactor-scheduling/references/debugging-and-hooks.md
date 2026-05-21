@@ -1,6 +1,7 @@
 ---
 title: "Debugging and Hooks"
-description: "Open when local log and checkpoint diagnostics are not enough and you need assembly tracing, global hooks, or scheduler-level debugging aids."
+description: >-
+  Open when local log and checkpoint diagnostics are not enough and you need assembly tracing, global hooks, or scheduler-level debugging aids.
 ---
 
 Open when a few local probes are not enough to explain where execution moved, where assembly happened, or why scheduling behavior differs across chains.
@@ -16,6 +17,7 @@ For signal-level inspection (`checkpoint`, `log`, `doOnEach`) without assembly t
 | visible thread logging at each stage | `doOnNext` with thread name output | low |
 
 > [!NOTE]
+>
 > For `checkpoint("label")` and `log("category")`, stay with signal-level diagnostics. This reference covers execution-tracing tools only.
 
 ## Global assembly tracing

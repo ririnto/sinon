@@ -151,16 +151,16 @@ The expression first evaluates to true. A timer starts for the `for` duration. D
 
 - The alert is visible in the UI as "pending"
 - No notification is sent to Alertmanager
-- If the expression becomes false before `for` elapses, the alert reverts to **inactive**
-- If the expression stays true for the full `for` duration, the alert transitions to **firing**
+- If the expression becomes false before `for` elapses, the alert reverts to inactive
+- If the expression stays true for the full `for` duration, the alert transitions to firing
 
 ## Firing: The `for` duration has been satisfied while the expression remains true
 
 - Alert instances are sent to Alertmanager
 - Notifications are dispatched according to Alertmanager routing
 - If the expression becomes false:
-  - Without `keep_firing_for`: the alert immediately returns to **inactive**
-  - With `keep_firing_for`: the alert stays in **firing** for the configured hold-open duration, then returns to **inactive**
+  - Without `keep_firing_for`: the alert immediately returns to inactive
+  - With `keep_firing_for`: the alert stays in firing for the configured hold-open duration, then returns to inactive
 
 ## Flapping behavior: An alert that oscillates around the threshold resets its pending timer each time it drops back to inactive. Only a continuous `for` window of true evaluations causes a transition to firing
 
@@ -249,7 +249,7 @@ Use when: you need one minimal valid Prometheus rules file with a complete alert
 
 Start with syntax validation against the actual rule file:
 
-```bash
+```sh
 promtool check rules alerts/api-latency.rules.yaml
 ```
 
@@ -257,13 +257,13 @@ Use when: the rule is newly added or edited, `promtool` is available in `PATH`, 
 
 Validate multiple files at once:
 
-```bash
+```sh
 promtool check rules rules/*.yaml
 ```
 
 Strict mode (fail on warnings):
 
-```bash
+```sh
 promtool check --strict rules alerts/api-latency.rules.yaml
 ```
 

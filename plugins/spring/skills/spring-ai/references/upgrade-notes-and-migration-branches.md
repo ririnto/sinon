@@ -35,7 +35,7 @@ Replace `1.1.4` with the target Spring AI version during the upgrade and review 
 
 Not every provider starter is available in every Spring AI release. Check the reference documentation for the target version before changing the BOM.
 
-```bash
+```sh
 mvn dependency:list | grep spring-ai-starter-model
 ```
 
