@@ -22,9 +22,13 @@ Java is a shared, skill-first plugin for Java language work in the Sinon Claude 
 | `java-language-design` | API shape, type modeling, immutability, exception contracts, collection exposure | "design a Java API", "review class structure", "records vs sealed classes" |
 | `java-test` | JUnit 5 TDD, Mockito boundaries, Awaitility async, build-tool test wiring | "write a JUnit test", "follow TDD in Java", "fix failing test" |
 | `java-performance-concurrency` | Profiling strategy, virtual-thread fit, contention analysis, bottleneck classification | "optimize Java performance", "use virtual threads", "profile Java code" |
-| `java-dependency-versioning` | Maven Central coordinate lookup, current-release verification, install snippets | "find latest version", "look up artifact coordinate", "check Maven Central" |
+| `java-dependency-versioning` | Maven Central coordinate lookup, release-verification path, install snippets; live registry access is required for current-release confirmation | "find latest version", "look up artifact coordinate", "check Maven Central" |
 
 These skills are meant to help complete Java work directly inside the current repository. They should not stop at pointing toward other repositories or documentation when the local task can already be unblocked with stable Java guidance.
+
+## Included Agents
+
+- `java-architect`: coordinates Java language, testing, dependency, performance, and API design decisions when a task crosses multiple Java skills or needs architecture-level tradeoff review.
 
 ## Skill Selection
 
@@ -32,21 +36,22 @@ Start here when the Java work could fit more than one skill:
 
 ### Syntax vs design vs test vs performance vs dependency
 
-- Use **syntax** when the question is "can this Java baseline compile or express it?".
-- Use **syntax** and the `java-base-family-map` reference when the question is "which foundational `java.base` API family should I reach for?".
-- Use **design** when the question is "should this type or API be modeled this way?".
-- Use **design** for type modeling, immutability, exception boundaries, or collection exposure.
-- Use **test** for JUnit structure, red-green-refactor sequencing, or test execution setup.
-- Use **performance** for virtual-thread fit, contention, profiling-driven bottleneck review.
-- Use **dependency** for Maven coordinate lookup or current dependency-release checks.
+- Use `java-language-syntax` when the question is "can this Java baseline compile or express it?".
+- Use `java-language-syntax` when the question is "which foundational `java.base` API family should I reach for?".
+- Use `java-language-design` when the question is "should this type or API be modeled this way?".
+- Use `java-language-design` for type modeling, immutability, exception boundaries, or collection exposure.
+- Use `java-test` for JUnit structure, red-green-refactor sequencing, or test execution setup.
+- Use `java-performance-concurrency` for virtual-thread fit, contention, profiling-driven bottleneck review.
+- Use `java-dependency-versioning` for Maven coordinate lookup or current dependency-release checks.
+- Use `java-architect` when the task crosses several Java skill areas or needs an architecture-level decision before implementation.
 
 ### Typical workflow
 
-1. Confirm what the current Java LTS baseline allows before changing syntax or recommending newer foundational APIs (**syntax**).
-2. Shape the API or type model before broad refactors (**design**).
-3. Lock behavior with tests before or while changing implementation (**test**).
-4. Review concurrency and performance only after there is real evidence of a bottleneck (**performance**).
-5. Check dependency coordinates and current releases before hardcoding version text (**dependency**).
+1. Confirm what the current Java LTS baseline allows before changing syntax or recommending newer foundational APIs with `java-language-syntax`.
+2. Shape the API or type model before broad refactors with `java-language-design`.
+3. Lock behavior with tests before or while changing implementation with `java-test`.
+4. Review concurrency and performance only after there is real evidence of a bottleneck with `java-performance-concurrency`.
+5. Check dependency coordinates and current releases before hardcoding version text with `java-dependency-versioning`; current-release confirmation requires live registry access.
 
 ### Scope boundaries
 
@@ -67,6 +72,8 @@ plugins/java/
 ├── .claude-plugin/plugin.json
 ├── .lsp.json
 ├── README.md
+├── agents/
+│   └── java-architect.md
 ├── scripts/
 │   ├── has-lombok.sh
 │   ├── jdtls-wrapper.sh
@@ -83,28 +90,16 @@ plugins/java/
 
 - The plugin ships five reusable Java skills under `skills/`.
 - `.lsp.json` and `scripts/jdtls-wrapper.sh` expose the Java language-server surface for Claude-compatible local development.
+- `scripts/has-lombok.sh` supports Lombok source selection for the wrapper, and `scripts/test-jdtls-wrapper.sh` verifies wrapper behavior.
 - The plugin ships one plugin-root agent: `java-architect` for Java language, testing, dependency, performance, and API design decisions.
 - The plugin does not ship commands, hooks, MCP servers, or custom runtime data surfaces.
 
-## Claude-Specific Surfaces
-
-Claude Code gets Java language-server support through `.lsp.json` and `scripts/jdtls-wrapper.sh`.
-
-- The wrapper expects `jdtls` to be installed on `PATH`.
-- Use a Java runtime compatible with your local `jdtls` installation.
-- Built-in Lombok selection happens at startup, but this plugin does not vendor a fallback Lombok jar.
-
 ## Design Principles
 
-- Prefer one job per skill.
-- Keep `SKILL.md` concise and procedural.
-- Keep skill guidance directly actionable, with examples or decision rules that unblock implementation in the current task.
-- Move dense material into `references/`.
-- Unnecessary blank lines inside function bodies SHOULD be removed.
-- Variables used only once SHOULD be inlined when their names and extraction order do not add meaning.
-- For Java declaration ordering, treat Kotlin-style reading order as an optional codebase convention rather than a Java language rule.
-- Avoid runtime-specific fragmentation unless a platform truly requires it.
-- Keep manifests thin and let marketplace catalogs describe distribution.
+- Keep Java guidance LTS-aware while still naming current-language behavior when it changes implementation choices.
+- Prefer implementation-ready examples for core Java, tests, dependencies, and performance work over catalog-style API summaries.
+- Route framework-specific behavior to Spring, Jakarta EE, or other plugin guidance instead of hiding framework assumptions in shared Java skills.
+- Use `java-architect` for cross-skill tradeoffs rather than duplicating architecture guidance inside every Java skill.
 
 ## Installation
 
@@ -128,9 +123,9 @@ This plugin intentionally focuses on shared, implementation-oriented skill cover
 - hooks
 - framework-specific Spring or Jakarta EE specializations
 
-## Java LSP Setup
+Dependency lookup guidance can identify the artifact and verification path offline, but current-release claims require a live registry check before hardcoding version text.
 
-The plugin ships a Claude-compatible `.lsp.json` entry for `jdtls`.
+## Java LSP Setup
 
 Use JDTLS when the task needs Java symbol navigation, diagnostics, or refactors. Do not treat it as a substitute for the skills above: the skills explain how to reason about Java work, while JDTLS provides editor intelligence for `.java` files.
 
@@ -139,7 +134,7 @@ Use JDTLS when the task needs Java symbol navigation, diagnostics, or refactors.
 - `jdtls` executable available on `PATH`
 - Java runtime compatible with the local `jdtls` installation
 
-## Java 25 and LTS Framing
+## LTS Version Framing
 
 - Treat Java version-difference guidance in this plugin as LTS-first: `8`, `11`, `17`, `21`, and `25`.
 - Treat `java.base` coverage here as foundational Java SE standard-library guidance rather than as a claim about broader `jdk.*` tooling or diagnostics.
