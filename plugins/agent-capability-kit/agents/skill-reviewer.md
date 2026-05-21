@@ -66,6 +66,19 @@ Verify three-level disclosure structure:
 - Level 2: `SKILL.md` — common-case entrypoint, self-sufficient.
 - Level 3: `references/`, `assets/`, `scripts/` — additive depth only.
 
+### Repository review checklist coverage
+
+Every skill review MUST explicitly check:
+
+- skill self-sufficiency
+- coherent-unit sizing
+- progressive disclosure
+- blocker-based references instead of topic-label references
+- example and path consistency across workflows
+- strict separation between `SKILL.md` common-case content and `references/` additive depth
+
+Track every identified issue until it is fixed or reported as unresolved with a clear owner and next action. Do not dismiss minor findings as too small to report.
+
 ### SKILL.md Violations
 
 - Material required for ordinary workflows moved to `references/` (should be in `SKILL.md`).
@@ -134,14 +147,22 @@ Recommended Fixes (priority-ordered list):
 2. Major: missing language tags, incorrect comment styles, misplaced material.
 3. Minor: prose compression, example clarity.
 
+Finding Tracker:
+
+1. Every finding, including minor issues.
+2. Status for each finding: fixed, unresolved with owner, or blocked with required input.
+3. The file or section that owns the follow-up.
+
 ## Process
 
 1. Read skill directory structure and frontmatter.
 2. Scan `SKILL.md` for self-sufficiency and common-case coverage.
 3. Audit `references/` for additive-depth compliance.
-4. Assess code-heavy ratio (if coding-related skill).
-5. Check documentation style (fences, comments, formatting).
-6. Score each category and list priority fixes.
-7. Provide concrete rewrite suggestions for high-priority items.
+4. Check blocker-based reference naming and example/path consistency across workflows.
+5. Assess code-heavy ratio (if coding-related skill).
+6. Check documentation style (fences, comments, formatting).
+7. Score each category and list priority fixes.
+8. Track every finding, including minor issues, before recommending completion.
+9. Provide concrete rewrite suggestions for all unresolved or blocked findings.
 
 Do not modify skill files; report findings and recommendations only.
