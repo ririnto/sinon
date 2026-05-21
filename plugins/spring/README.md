@@ -93,7 +93,7 @@ Spring-specific coroutine controllers, `WebClient` usage, and reactive request h
 
 Scheduling boundary:
 
-- App-local scheduled work with `@Scheduled`, `TaskScheduler`, and dynamic trigger registration belongs in `spring-framework` guidance.
+- Application local scheduled work with `@Scheduled`, `TaskScheduler`, and dynamic trigger registration belongs in `spring-framework` guidance.
 - `spring-batch` covers job identity, restart survival, and batch job state management.
 - Pipeline composition, task scheduling, and runtime operations belong in `spring-cloud-data-flow` guidance.
 

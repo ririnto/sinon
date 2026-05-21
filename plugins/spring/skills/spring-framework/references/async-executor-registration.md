@@ -1,6 +1,6 @@
 # Spring Framework async executor registration
 
-Open this reference when the common path in `SKILL.md` is not enough and the blocker is async exception handling, completion coordination, or `TaskDecorator` for thread-local propagation.
+Open this reference when the common path in `SKILL.md` is not enough and the blocker is async exception handling, completion coordination, or `TaskDecorator` for ThreadLocal propagation.
 
 ## Async exception handling
 
@@ -41,9 +41,9 @@ Item item = future.get(10, TimeUnit.SECONDS);
 
 Use `thenCompose` or `thenApply` to chain follow-up work without blocking the caller thread.
 
-## TaskDecorator for thread-local propagation
+## TaskDecorator for ThreadLocal propagation
 
-Use a `TaskDecorator` when MDC, security context, or other thread-local state must cross the executor boundary:
+Use a `TaskDecorator` when MDC, security context, or other ThreadLocal state must cross the executor boundary:
 
 ```java
 @Bean

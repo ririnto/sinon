@@ -96,7 +96,7 @@ This plugin intentionally focuses on portable, repository-state-driven change in
 
 - custom MCP servers
 - hooks
-- custom repository-local repository review workflow design beyond preserving an existing template during change description drafting
+- custom repository repository review workflow design beyond preserving an existing template during change description drafting
 - Git history rewriting or force-push strategy
 - merge-conflict resolution
 - general repository issue, CI, or project-management workflows

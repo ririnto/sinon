@@ -155,7 +155,7 @@ Plugin with multiple MCP servers in `.mcp.json`:
     "type": "sse",
     "url": "https://mcp.slack.com/sse"
   },
-  "local-db": {
+  "dev-db": {
     "command": "python3",
     "args": ["-m", "postgres_mcp"],
     "env": {

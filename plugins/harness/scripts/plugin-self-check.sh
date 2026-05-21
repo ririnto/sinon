@@ -593,7 +593,7 @@ require_text "$root/skills/harness-install/templates/common/.claude/skills/harne
 require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'generated-artifact metadata'
 require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'unsupported pre-push validation command'
 # shellcheck disable=SC2016
-require_text "$root/skills/harness-evolve/SKILL.md" 'active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target-local'
+require_text "$root/skills/harness-evolve/SKILL.md" 'active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target repository files'
 
 generated_doc_package_file_list=$(package_files "$root/skills/harness-install/templates/common/docs/generated")
 if printf '%s\n' "$generated_doc_package_file_list" | grep -F '/db-schema.md'; then
