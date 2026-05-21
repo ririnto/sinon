@@ -26,18 +26,7 @@ Two runtime agents for crafting commit messages and pull request bodies.
 
 ## How the Skill Branches by Host
 
-Use `git-change-publication` when the job is to decide commit readiness, draft a Conventional Commit from the real diff, and prepare hosted review text.
-
-- Stay in `SKILL.md` for the common path: inspect the repo state, decide split vs single commit, draft the Conventional Commit, and prepare a generic hosted-review fallback body.
-- Open the GitHub reference when you need exact pull request template detection, named template handling, or GitHub-specific preservation rules.
-- Open the GitLab reference when you need exact merge request template detection, `Default.md` handling, or GitLab variable/quick-action preservation rules.
-
-Typical workflow:
-
-1. Inspect `git status`, staged diffs, unstaged diffs, and recent commit history.
-2. Decide whether the current changes represent one logical commit or should be split.
-3. Draft a Conventional Commit subject and a short rationale-focused body from the real diff.
-4. Branch to the host-specific reference only when exact GitHub or GitLab template mechanics matter.
+Use `git-change-publication` when the job is to decide commit readiness, draft a Conventional Commit from the real diff, and prepare hosted review text. The skill owns the detailed common path and host-specific reference routing.
 
 ## Runtime Model
 
@@ -46,6 +35,7 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 - `.claude-plugin/plugin.json`
 
 The actual reusable content lives beside the manifest at the plugin root.
+Agents are shipped from the plugin-root `agents/` directory and are intentionally not declared in the manifest because plugin manifest rules prohibit an `agents` key.
 
 ## Plugin Layout
 
@@ -53,6 +43,9 @@ The actual reusable content lives beside the manifest at the plugin root.
 plugins/git-workflow/
 ├── .claude-plugin/plugin.json
 ├── README.md
+├── agents/
+│   ├── commit-message-architect.md
+│   └── pr-body-architect.md
 └── skills/
     └── git-change-publication/
         ├── SKILL.md
@@ -62,6 +55,7 @@ plugins/git-workflow/
 ```
 
 - `.claude-plugin/plugin.json` carries thin Claude-facing marketplace metadata.
+- `agents/` holds the commit-message and pull-request body drafting agents.
 - `skills/git-change-publication/SKILL.md` is the common path for commit readiness, split-vs-single decisions, Conventional Commit drafting, fallback hosted review text, and validation phrasing.
 - `skills/git-change-publication/references/` holds additive host-specific depth only.
 
