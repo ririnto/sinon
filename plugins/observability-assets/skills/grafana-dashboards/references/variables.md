@@ -32,6 +32,7 @@ Queries a datasource at runtime to populate options. The most commonly used vari
   "hide": 0,
   "options": []
 }
+
 ```
 
 Field reference:
@@ -60,6 +61,7 @@ metrics(.*_total)
 query_result(up{job="api"})
 
 label_values(http_requests_total{code=~"5.."}, method)
+
 ```
 
 These examples list all label values, list values matching a filter, list metric names matching a regex, return a single-column query result, and filter `label_values` by status code.
@@ -77,6 +79,7 @@ When `regex` is set, Grafana applies it to each result row and uses capture grou
   "regex": "/pod=\"([^\"]+)\"/",
   "sort": 3
 }
+
 ```
 
 ### 2. Custom Variable (`type: "custom"`)
@@ -97,6 +100,7 @@ Static list of options defined at authoring time.
   ],
   "hide": 0
 }
+
 ```
 
 The `query` field serves as the source text. When it contains commas, Grafana splits on comma to create options. Each option gets:
@@ -127,6 +131,7 @@ Free-text input field for arbitrary user-entered values.
   "hide": 0,
   "default": ""
 }
+
 ```
 
 Security consideration: textbox values are interpolated directly into queries. Always use parameterized patterns where the datasource supports them, or apply regex escaping. For PromQL, wrap textbox values appropriately:
@@ -135,6 +140,7 @@ Security consideration: textbox values are interpolated directly into queries. A
 {job=~".*${search}.*"}
 
 ${search}
+
 ```
 
 The first form keeps the textbox value inside a matcher context. The second form is dangerous because direct interpolation can break query syntax.
@@ -153,6 +159,7 @@ Hidden constant injected into all queries without appearing in the dashboard UI.
   "hide": 2,
   "options": [ { "selected": true, "text": "", "value": "us-east-1-prod" } ]
 }
+
 ```
 
 Key behavior:
@@ -173,6 +180,7 @@ Common pattern -- use constants alongside query variables to scope dashboards:
     ]
   }
 }
+
 ```
 
 ### 5. Datasource Variable (`type: "datasource"`)
@@ -191,6 +199,7 @@ Runtime datasource selector that lets operators switch between datasources.
   "isMulti": false,
   "pluginVersion": ""
 }
+
 ```
 
 Query filter types:
@@ -213,6 +222,7 @@ Using datasource variables in panels:
     "uid": "${ds_prometheus}"
   }
 }
+
 ```
 
 The `type` must still match the expected plugin type. The `uid` field receives the variable substitution. This allows operators to switch between Prometheus instances without editing panel JSON.
@@ -239,6 +249,7 @@ Predefined time interval choices for controlling query granularity.
     { "selected": false, "text": "5 minutes", "value": "5m" }
   ]
 }
+
 ```
 
 Auto-calculation logic:
@@ -247,6 +258,7 @@ When `auto` is `true` and the operator selects "Auto", Grafana computes:
 
 ```text
 interval = (time_range_width) / auto_count
+
 ```
 
 For example, with `time_range` of 1 hour and `auto_count` of 30, the auto interval is 120 seconds (rounded to the nearest supported step). The computed value replaces `$__interval` and `$__interval_ms` in all queries.
@@ -257,6 +269,7 @@ Usage in PromQL:
 rate(http_requests_total[$__interval])
 
 rate(http_requests_total[${resolution}])
+
 ```
 
 Use `$__interval` for automatic rate/scrape alignment. Use a named interval variable when operators need a manual override.
@@ -272,6 +285,7 @@ Dynamic tag-key/tag-value filter builder. Creates a UI element where operators a
   "datasource": { "type": "prometheus", "uid": "prometheus" },
   "hide": 0
 }
+
 ```
 
 How ad hoc filters work:
@@ -303,6 +317,7 @@ If you want a simple on/off toggle in classic dashboard JSON, model it as a two-
   ],
   "hide": 0
 }
+
 ```
 
 Common use cases:
@@ -344,6 +359,7 @@ https://external-api.example.com/metrics?start=${__from}&end=${__to}
 {owner="${__user.login}"}
 
 histogram_quantile(0.99, sum(rate(request_duration_seconds_bucket[$__range_s])) by (le))
+
 ```
 
 These examples show safe rate calculation with `$__rate_interval`, external API time bounds with `$__from` and `$__to`, per-user scoping with `$__user.login`, and adaptive window sizing with `$__range_s`.
@@ -400,12 +416,14 @@ http_requests_total{instance=~"${instances:regex}"}
 http_requests_total{instance!~"${instances:regex}"}
 
 http_requests_total{instance=~"$instances"}
+
 ```
 
 Use `=~` or `!~` for Prometheus multi-value variables because Grafana formats multiple selected values as a regular-expression alternation. Avoid `instance="$instances"`, which asks Prometheus to match one literal label value and fails for multiple selections. Prefer `${instances:regex}` when you want the query to show the intended escaping explicitly.
 
 ```promql
 http_requests_total{instance=~"${instances:raw}"}
+
 ```
 
 Use `:raw` only when the variable's custom All value or option values are already valid PromQL regex fragments, such as `.+`.
@@ -414,6 +432,7 @@ Use `:raw` only when the variable's custom All value or option values are alread
 
 ```influxql
 SELECT * FROM metrics WHERE tag =~ /${tags:regex}/
+
 ```
 
 The `:regex` format matches InfluxQL regex filter expectations.
@@ -424,6 +443,7 @@ The `:regex` format matches InfluxQL regex filter expectations.
 {
   "url": "https://example.com/search?q=${search:percentencode}"
 }
+
 ```
 
 ## Panel title interpolation
@@ -432,6 +452,7 @@ The `:regex` format matches InfluxQL regex filter expectations.
 {
   "title": "Metrics - ${service} (${env})"
 }
+
 ```
 
 Keep panel titles to plain `${var}` interpolation. Use documented format modifiers only in contexts that need them, such as `${instances:regex}` for regex matchers, `${instances:raw}` for prebuilt fragments, or `${search:percentencode}` for URLs.
@@ -469,6 +490,7 @@ Chain variables so that selecting one filters the options of another. Each downs
     ]
   }
 }
+
 ```
 
 Set `refresh` to `1` on dependent variables as the normal chained-variable default when the query depends on upstream selections. Move to `2` only when the variable query also depends on the active time range. Refresh modes: `0`=never, `1`=on dashboard load, `2`=on time range change.
@@ -481,6 +503,7 @@ Use variables directly in panel titles for dynamic labeling:
 {
   "title": "${service} - Request Rate (${env})"
 }
+
 ```
 
 Supported interpolation forms used in this reference:
@@ -505,6 +528,7 @@ Each repeating panel or row should use a single variable name in `repeat`:
   "maxPerRow": 4,
   "title": "CPU - ${instance} (${job})"
 }
+
 ```
 
 If you need a second dimension, compose the layout from supported pieces instead of comma-separating variable names in one `repeat` field. Common patterns are a repeated row for the outer variable with regular `${job}` interpolation inside panel titles and queries, or separate dashboards when the cartesian product would be too large.
@@ -525,6 +549,7 @@ Pattern: hide intermediate cascade variables that operators should not change in
   { "name": "region_filter", "type": "constant", "query": "us-eu", "hide": 2 },
   { "name": "cluster", "type": "query", "query": "...", "hide": 0 }
 ]
+
 ```
 
 ## Complete Transformation Catalog
@@ -571,6 +596,7 @@ Left-join two data frames on a shared field value.
     "field": "instance"
   }
 }
+
 ```
 
 All fields from both frames are included in the output. Rows from the left frame without a matching right-frame row keep null values for right-side fields.
@@ -586,6 +612,7 @@ Full outer join -- keeps all rows from both frames regardless of match.
     "byField": "timestamp"
   }
 }
+
 ```
 
 #### Labels to Fields
@@ -597,6 +624,7 @@ Convert Prometheus label pairs into separate columns. Essential when working wit
   "id": "labelsToFields",
   "options": {}
 }
+
 ```
 
 Input: one row with labels `{method: "GET", status: "200"}`, value: `42`.
@@ -614,6 +642,7 @@ Parse structured string fields into sub-fields. Supports JSON and logfmt formats
     "format": "json"
   }
 }
+
 ```
 
 Supported formats: `"json"`, `"logfmt"`. When format is `"json"`, nested objects create dot-delimited field names (e.g., `request.headers.user-agent`).
@@ -631,6 +660,7 @@ Join multiple field values into a single string field.
     "targetField": "full_name"
   }
 }
+
 ```
 
 #### Prepare Time Series
@@ -645,6 +675,7 @@ Align time series to regular intervals and fill gaps.
     "stepCalculation": "auto"
   }
 }
+
 ```
 
 Fill modes: `"null"`, `"previous"`, `"value"` (with `fillValue`), `"delta"`, `"difference"`.
@@ -668,6 +699,7 @@ Apply printf-style formatting to a field's values.
     }
   }
 }
+
 ```
 
 #### Config From Query Results
@@ -689,6 +721,7 @@ Use one query's results to dynamically configure field properties (thresholds, u
     ]
   }
 }
+
 ```
 
 #### Filter by Query Ref
@@ -702,6 +735,7 @@ Keep only rows produced by a specific query (identified by refId).
     "refId": "A"
   }
 }
+
 ```
 
 #### Filter Fields by Name
@@ -716,6 +750,7 @@ Show or hide entire columns by name pattern.
     "exclude": {}
   }
 }
+
 ```
 
 #### Grouping to Matrix
@@ -731,4 +766,5 @@ Convert grouped/bucketed data into a matrix layout suitable for heatmap renderin
     "labelField": "method"
   }
 }
+
 ```

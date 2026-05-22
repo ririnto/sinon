@@ -23,6 +23,7 @@ receivers:
   - name: example-email
     email_configs:
       - to: oncall@example.org
+
 ```
 
 ### Fields
@@ -80,6 +81,7 @@ receivers:
         threading:
           enabled: true
           thread_by_date: daily
+
 ```
 
 ---
@@ -93,6 +95,7 @@ receivers:
   - name: example-slack
     slack_configs:
       - channel: "#alerts"
+
 ```
 
 ### Fields
@@ -191,6 +194,7 @@ receivers:
             text: "Acknowledge"
             url: "https://example.com/ack"
             style: danger
+
 ```
 
 ---
@@ -204,6 +208,7 @@ receivers:
   - name: example-pagerduty
     pagerduty_configs:
       - routing_key: <key>
+
 ```
 
 ### Fields
@@ -281,6 +286,7 @@ receivers:
         details:
           playbook: "https://runbook.example.com/{{ .CommonLabels.alertname }}"
         send_resolved: true
+
 ```
 
 ---
@@ -294,6 +300,7 @@ receivers:
   - name: example-webhook
     webhook_configs:
       - url: https://example.com/webhook
+
 ```
 
 ### Fields
@@ -325,6 +332,7 @@ receivers:
         max_alerts: 10
         timeout: 10s
         send_resolved: true
+
 ```
 
 The receiver must adapt Alertmanager's fixed JSON body. A minimal receiver-side adapter can transform the incoming group into the downstream shape while requiring a shared bearer token:
@@ -355,6 +363,7 @@ def alertmanager_webhook():
         "source": data.get("externalURL", ""),
     }
     return jsonify(incident), 202
+
 ```
 
 Use an adapter like this when the downstream service requires a custom payload, different field names, or per-receiver business logic that Alertmanager's generic webhook body cannot express. Keep the endpoint behind a trusted/private path (for example, internal network access, ingress auth, or mTLS) and provision `ALERTMANAGER_WEBHOOK_TOKEN` out of band.
@@ -370,6 +379,7 @@ receivers:
   - name: example-opsgenie
     opsgenie_configs:
       - api_key: <key>
+
 ```
 
 ### Fields
@@ -429,6 +439,7 @@ receivers:
             type: user
         tags: prometheus,alertmanager
         send_resolved: true
+
 ```
 
 ---
@@ -443,6 +454,7 @@ receivers:
     victorops_configs:
       - api_key: <key>
         routing_key: <key>
+
 ```
 
 ### Fields
@@ -486,6 +498,7 @@ receivers:
         custom_fields:
           environment: production
           team: platform
+
 ```
 
 ---
@@ -500,6 +513,7 @@ receivers:
     pushover_configs:
       - user_key: <key>
         token: <token>
+
 ```
 
 ### Fields
@@ -545,6 +559,7 @@ receivers:
         expire: 1h
         sound: siren
         html: true
+
 ```
 
 ---
@@ -560,6 +575,7 @@ receivers:
       - corp_id: <corp-id>
         api_secret: <secret>
         agent_id: <agent-id>
+
 ```
 
 ### Fields
@@ -598,6 +614,7 @@ receivers:
         to_user: "@all"
         message_type: markdown
         message: '**Alert:** {{ .CommonLabels.alertname }}\n**Severity:** {{ .CommonLabels.severity }}'
+
 ```
 
 ---
@@ -613,6 +630,7 @@ receivers:
       - topic_arn: arn:aws:sns:...
       - sigv4:
           region: us-east-1
+
 ```
 
 ### Fields
@@ -663,6 +681,7 @@ receivers:
         subject: '[{{ .Status }}] {{ .CommonLabels.alertname }}'
         attributes:
           severity: "{{ .CommonLabels.severity }}"
+
 ```
 
 ---
@@ -677,6 +696,7 @@ receivers:
     telegram_configs:
       - bot_token: <token>
         chat_id: <id>
+
 ```
 
 ### Fields
@@ -716,6 +736,7 @@ receivers:
         message: '{{ template "telegram.default.message" . }}'
         parse_mode: HTML
         disable_notifications: false
+
 ```
 
 ---
@@ -729,6 +750,7 @@ receivers:
   - name: example-discord
     discord_configs:
       - webhook_url: https://discord.com/api/webhooks/xxx/yyy
+
 ```
 
 ### Fields
@@ -761,6 +783,7 @@ receivers:
         title: '{{ template "discord.default.title" . }}'
         message: '{{ template "discord.default.message" . }}'
         username: "Alertmanager"
+
 ```
 
 ---
@@ -774,6 +797,7 @@ receivers:
   - name: example-msteams
     msteams_configs:
       - webhook_url: https://outlook.office.com/webhook/...
+
 ```
 
 ### Fields
@@ -804,6 +828,7 @@ receivers:
         title: '{{ template "msteams.default.title" . }}'
         summary: '{{ .CommonLabels.alertname }} - {{ .CommonLabels.severity }}'
         text: '{{ template "msteams.default.text" . }}'
+
 ```
 
 ---
@@ -817,6 +842,7 @@ receivers:
   - name: example-msteamsv2
     msteamsv2_configs:
       - webhook_url: https://<tenant>.office.com/webhookbot/...
+
 ```
 
 ### Fields
@@ -845,6 +871,7 @@ receivers:
       - webhook_url: https://mytenant.office.com/webhookbot/xxx
         title: '{{ template "msteamsv2.default.title" . }}'
         text: '{{ template "msteamsv2.default.text" . }}'
+
 ```
 
 ---
@@ -859,6 +886,7 @@ receivers:
     jira_configs:
       - project: OPS
         issue_type: Bug
+
 ```
 
 ### Fields
@@ -926,6 +954,7 @@ receivers:
         fields:
           components:
             - name: Platform
+
 ```
 
 ---
@@ -939,6 +968,7 @@ receivers:
   - name: example-rocketchat
     rocketchat_configs:
       - channel: "#alerts"
+
 ```
 
 ### Fields
@@ -1009,6 +1039,7 @@ receivers:
           - title: Severity
             value: "{{ .CommonLabels.severity }}"
             short: true
+
 ```
 
 ---
@@ -1022,6 +1053,7 @@ receivers:
   - name: example-mattermost
     mattermost_configs:
       - webhook_url: https://mattermost.example.com/hooks/xxx
+
 ```
 
 ### Fields
@@ -1115,6 +1147,7 @@ receivers:
         priority:
           priority: urgent
           requested_ack: true
+
 ```
 
 ---
@@ -1128,6 +1161,7 @@ receivers:
   - name: example-webex
     webex_configs:
       - room_id: <room-id>
+
 ```
 
 ### Fields
@@ -1159,6 +1193,7 @@ receivers:
           authorization:
             type: Bearer
             credentials_file: /etc/alertmanager/webex-token
+
 ```
 
 ---
@@ -1173,6 +1208,7 @@ receivers:
     incidentio_configs:
       - url: https://api.incident.io/...
         alert_source_token: <token>
+
 ```
 
 ### Fields
@@ -1207,4 +1243,5 @@ receivers:
         alert_source_token_file: /etc/alertmanager/incidentio-token
         max_alerts: 50
         timeout: 30s
+
 ```

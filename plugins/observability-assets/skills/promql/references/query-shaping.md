@@ -41,6 +41,7 @@ method_code:http_errors:rate5m{method="post", code="404"} => 21
 method:http_requests:rate5m{method="get"}   => 600
 method:http_requests:rate5m{method="del"}    => 34
 method:http_requests:rate5m{method="post"}  => 120
+
 ```
 
 ## Query: fraction of requests that are 500 errors, per method
@@ -50,6 +51,7 @@ method_code:http_errors:rate5m{code="500"}
 /
 ignoring(code)
 method:http_requests:rate5m
+
 ```
 
 ## Matching process: `ignoring(code)` drops `code` from LHS labels before comparison. LHS becomes `{method="get"}` (value 24) and `{method="post"}` (value 6). These match RHS `{method="get"}` (600) and `{method="post"}` (120). The `{method="put"}` entry on LHS has no match (code=501 was filtered out) and `{method="del"}` on RHS has no match
@@ -59,6 +61,7 @@ method:http_requests:rate5m
 ```text
 {method="get"}  0.04
 {method="post"} 0.05
+
 ```
 
 Entries with no match on either side are dropped (default behavior).
@@ -75,6 +78,7 @@ method_code:http_errors:rate5m
 ignoring(code)
 group_left
 method:http_requests:rate5m
+
 ```
 
 ## Matching process: LHS has multiple entries per `method` value (one per `code`). RHS has one entry per `method`. `group_left` declares that LHS is the "many" side. Each RHS entry matches against all LHS entries sharing the same `method`
@@ -86,6 +90,7 @@ method:http_requests:rate5m
 {method="get",  code="404"} 0.05
 {method="post", code="500"} 0.05
 {method="post", code="404"} 0.175
+
 ```
 
 All LHS labels survive in the output because `group_left` propagates the "many"-side identity.
@@ -99,6 +104,7 @@ rate(container_cpu_usage_seconds_total{job="kubelet"}[5m])
 * on (namespace, pod)
 group_left(node)
 kube_pod_info
+
 ```
 
 Here `kube_pod_info` (the "one" side) carries the `node` label that does not exist on the CPU metric. `group_left(node)` pulls `node` into each output series. Without it, the `node` label would be dropped during matching.
@@ -119,12 +125,14 @@ up{job="db",  instance="c"}      => 1
 
 up{job="api", instance="a"}      => 1
 up{job="db",  instance="d"}      => 0
+
 ```
 
 `A and B` -- intersection by exact label set: only the exact `{job="api", instance="a"}` match survives, and the output keeps the value from Vector A.
 
 ```text
 {job="api", instance="a"} => 1
+
 ```
 
 `A or B` -- union (all of A plus non-matching from B): the first three entries come from Vector A, and the final `db` series is added from Vector B because it has no match in A.
@@ -134,6 +142,7 @@ up{job="db",  instance="d"}      => 0
 {job="api", instance="b"} => 0
 {job="db",  instance="c"} => 1
 {job="db",  instance="d"} => 0
+
 ```
 
 `A unless B` -- complement (A minus matching B): the output keeps only the Vector A entries that do not have exact-label-set matches in Vector B.
@@ -141,6 +150,7 @@ up{job="db",  instance="d"}      => 0
 ```text
 {job="api", instance="b"} => 0
 {job="db",  instance="c"} => 1
+
 ```
 
 The `{job="api", instance="a"}` entry is dropped because it exists in both vectors.
@@ -158,6 +168,7 @@ Broken:
 
 ```promql
 sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))/sum(rate(http_requests_total{job="api"}[5m]))
+
 ```
 
 Better:
@@ -166,6 +177,7 @@ Better:
 sum(rate(http_requests_total{job="api",status=~"5.."}[5m]))
 /
 sum(rate(http_requests_total{job="api"}[5m]))
+
 ```
 
 ## When `group_left` or `group_right` Is Justified

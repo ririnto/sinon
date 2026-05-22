@@ -16,6 +16,7 @@ Decision sketch:
 ```text
 short and one-off expression -> direct alert
 expensive or reused expression -> recording rule first, alert second
+
 ```
 
 Use this when the blocker is deciding whether the alert should stay direct or split through one reusable recorded metric.
@@ -43,6 +44,7 @@ Recording-rule split pattern:
       sum(job:http_requests:rate5m{job="api"}),
       0.001
     )
+
 ```
 
 Use this when the blocker is deciding whether one repeated expression deserves its own reusable recorded metric.
@@ -55,6 +57,7 @@ Broken:
 - alert: CpuUsageAbove90Percent
   expr: >-
     0.9 < round(rate(node_cpu_seconds_total{mode!="idle"}[1m]), 0.001)
+
 ```
 
 Better -- symptom-oriented with explicit `for` window and actionable annotations:
@@ -73,6 +76,7 @@ Better -- symptom-oriented with explicit `for` window and actionable annotations
     description: |-
       API 5xx ratio stayed above 5% for 10 minutes.
       Current value: {{ $value }}%.
+
 ```
 
 The full template with labels and runbook is in [`../SKILL.md`](../SKILL.md). This reference focuses on pattern choice: the second alert maps more directly to user-visible impact than a low-level saturation signal.
@@ -111,6 +115,7 @@ groups:
         labels:
           severity: page
           service: api
+
 ```
 
 Use when: multiple alerts share expensive base queries and you want one canonical evaluation point.
@@ -144,6 +149,7 @@ groups:
         labels:
           severity: warning
           team: platform
+
 ```
 
 Use when: different teams own different domains and group-level intervals differ per domain's natural timescale.
@@ -170,6 +176,7 @@ Alert on both the presence of a condition AND the absence of expected data:
     severity: critical
   annotations:
     summary: 'No scrape targets found for job=api'
+
 ```
 
 Use when: silent data loss (no samples at all) is as dangerous as an explicit failure signal.
@@ -196,6 +203,7 @@ Compare current values against a rolling baseline rather than a fixed threshold:
     description: >-
       Current rate deviates more than 200% from the 1-hour average.
       Current: {{ $value }}.
+
 ```
 
 Use when: traffic patterns vary by time of day and fixed thresholds produce false positives during low-traffic periods.
@@ -226,6 +234,7 @@ Distinguish total failure from degraded performance in probe-based alerts:
         summary: 'Blackbox probe slow for {{ $labels.instance }}'
         description: >-
           Probe response time is {{ $value }}s (threshold: 2s).
+
 ```
 
 Use when: you need separate urgency levels for "completely broken" versus "working but slow."

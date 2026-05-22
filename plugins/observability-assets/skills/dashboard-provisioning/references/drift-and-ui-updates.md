@@ -25,6 +25,7 @@ providers:
     allowUiUpdates: true
     options:
       path: /var/lib/grafana/dashboards/operations
+
 ```
 
 Drift example:
@@ -34,6 +35,7 @@ Drift example:
 2. reviewed JSON in Git remains unchanged
 3. next file sync reloads the provisioned JSON
 4. UI-only edit disappears because file content still wins
+
 ```
 
 Use when: the blocker is explaining why a UI change seemed to work temporarily but did not become the durable dashboard state.
@@ -51,6 +53,7 @@ Default flow (`disableDeletion: false`, the default):
 4. next sync cycle detects the file is missing
 5. Grafana deletes the dashboard from its database
 6. any bookmarks or linked alert rules that referenced this dashboard break
+
 ```
 
 With deletion blocked (`disableDeletion: true`):
@@ -63,6 +66,7 @@ With deletion blocked (`disableDeletion: true`):
 5. Grafana retains the dashboard; deletion is suppressed
 6. re-adding the file later resumes normal overwrite behavior
 7. the dashboard receives whatever content is now in the re-added file
+
 ```
 
 When to use `disableDeletion: true`:
@@ -82,6 +86,7 @@ providers:
     updateIntervalSeconds: 30
     options:
       path: /var/lib/grafana/dashboards/operations
+
 ```
 
 Use when: the blocker is deciding whether removing a source file should destroy the corresponding Grafana dashboard.
@@ -99,6 +104,7 @@ What actually happens:
 4. source file still says "version": 1
 5. Grafana syncs: reads the file, applies all changes, increments internal version to 16
 6. the "version": 1 in the file is never compared or enforced
+
 ```
 
 Practical consequence:
@@ -137,6 +143,7 @@ Response shape:
   "dashboard": { ... },
   "meta": { ... }
 }
+
 ```
 
 The response is an API object, not a raw file-provisioning source file. For a dashboard file under `options.path`:
@@ -161,6 +168,7 @@ Before (API response fragment -- not a raw provider-path file):
   "title": "API Overview",
   ...
 }
+
 ```
 
 After (raw file-provisioning source):
@@ -172,6 +180,7 @@ After (raw file-provisioning source):
   "title": "API Overview",
   ...
 }
+
 ```
 
 Use when: the blocker is converting a UI-exported dashboard into a valid provisioning source file.
