@@ -1,25 +1,42 @@
-# {{plan_title}}
+# {{yyyy-MM-dd}}-{{plan-slug}}
 
-## Purpose
+Status: active
+Created: {{yyyy-MM-dd}}
+Owner: {{owner}}
 
-{{plan_purpose}}
+## File Naming Convention
+
+Execution plan filenames MUST use the form `yyyy-MM-dd-<slug>.md` where the date is the creation date in the project's timezone. Active plans live under `docs/exec-plans/active/`. The slug MUST be kebab-case and describe the work, not the author.
 
 ## Goal
 
-{{plan_goal}}
+{{single-sentence-outcome}}
 
-## Steps
+## Non-Goals
 
-{{plan_steps}}
+- {{out-of-scope-item}}
 
-## Required Evidence
+## Phases
 
-{{required_evidence}}
+Phases MUST run sequentially. Tasks inside a single phase MAY run in parallel and SHOULD be scoped to fit one subagent invocation each. A task is the smallest reviewable unit of work.
 
-## Validation Link
+### Phase 1: {{phase-1-title}}
 
-Run `{{validation_command}}` before closing the plan.
+- [ ] Task 1.1 — {{task-description}} (subagent: {{agent-type-or-main}})
+- [ ] Task 1.2 — {{task-description}} (subagent: {{agent-type-or-main}})
+
+### Phase 2: {{phase-2-title}}
+
+- [ ] Task 2.1 — {{task-description}} (subagent: {{agent-type-or-main}})
+
+## Validation
+
+Run the stack-specific harness validation command after each phase that touches required harness assets. Record the command and result in the relevant task checkbox.
 
 ## Rollback Criteria
 
-{{rollback_criteria}}
+{{rollback-criteria}}
+
+## Completion
+
+When every task is checked, move this file from `docs/exec-plans/active/` to `docs/exec-plans/completed/` without renaming, then change `Status: active` to `Status: completed` and append a `Completed: yyyy-MM-dd` line. The filename date stays the original creation date.
