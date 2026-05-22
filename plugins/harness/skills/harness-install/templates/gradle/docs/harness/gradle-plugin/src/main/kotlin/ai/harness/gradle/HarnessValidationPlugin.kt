@@ -91,52 +91,6 @@ class HarnessValidationPlugin : Plugin<Project> {
 			}
 		}
 
-		private fun severityOf(manifest: JsonObject, category: String): Severity {
-			val severity = manifest[category]
-				?.jsonObject
-				?.get("severity")
-				?.jsonPrimitive
-				?.contentOrNull
-				?: return Severity.ERROR
-
-			return try {
-				Severity.valueOf(severity.uppercase())
-			} catch (_: Exception) {
-				Severity.ERROR
-			}
-		}
-
-		private fun readSafe(root: java.io.File, path: String): String {
-			val p = java.io.File(root, path)
-			return when {
-				p.toPath().isSymbolicLink() && isAllowedRootContractSymlink(root, p) -> {
-					val target = if (p.name == "AGENTS.md") "CLAUDE.md" else "AGENTS.md"
-					val resolved = java.io.File(root, target)
-					if (resolved.isFile) resolved.readText() else ""
-				}
-				p.toPath().isSymbolicLink() -> ""
-				p.isFile -> p.readText()
-				else -> ""
-			}
-		}
-
-		private fun isAllowedRootContractSymlink(root: java.io.File, p: java.io.File): Boolean {
-			if (p.parentFile != root || p.name !in setOf("AGENTS.md", "CLAUDE.md")) return false
-			val expected = if (p.name == "AGENTS.md") "CLAUDE.md" else "AGENTS.md"
-			return try {
-				p.toPath().readSymbolicLink().toString() == expected && java.io.File(root, expected).isFile
-			} catch (_: Exception) {
-				false
-			}
-		}
-
-		private fun stringArrayFrom(obj: JsonObject?, key: String): List<String> {
-			return obj?.get(key)?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
-		}
-
-		private fun stringFrom(obj: JsonObject?, key: String): String {
-			return obj?.get(key)?.jsonPrimitive?.contentOrNull ?: ""
-		}
 
 	}
 }
