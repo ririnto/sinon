@@ -6,6 +6,8 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
+import com.github.javaparser.JavaToken;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -633,6 +635,7 @@ enum HarnessCheck {
         private List<Finding> validateGreaterThanComparison(Path root, Path file, String severity) {
             try {
                 CompilationUnit cu = StaticJavaParser.parse(file);
+                LexicalPreservingPrinter.setup(cu);
                 List<Finding> findings = new java.util.ArrayList<>();
                 cu.walk(BinaryExpr.class, expr -> {
                     if (expr.getOperator() == BinaryExpr.Operator.GREATER || expr.getOperator() == BinaryExpr.Operator.GREATER_EQUALS) {
@@ -666,22 +669,32 @@ enum HarnessCheck {
         private List<Finding> validateBlankLinesInLeafFunctions(Path root, Path file, String severity) {
             try {
                 CompilationUnit cu = StaticJavaParser.parse(file);
-                List<String> sourceLines = Files.readAllLines(file);
+                LexicalPreservingPrinter.setup(cu);
                 List<Finding> findings = new java.util.ArrayList<>();
                 cu.walk(MethodDeclaration.class, method -> {
                     if (isLeafMethod(method)) {
                         method.getBody().ifPresent(body -> {
-                            body.getBegin().ifPresent(beginPos -> {
-                                body.getEnd().ifPresent(endPos -> {
-                                    int startLine = beginPos.line - 1;
-                                    int endLine = endPos.line;
-                                    for (int i = startLine; i < endLine && i < sourceLines.size(); i++) {
-                                        if (sourceLines.get(i).trim().isEmpty()) {
-                                            findings.add(new Finding(severity, category(), root.relativize(file) + ":" + (i + 1) + ": blank line in leaf function"));
+                            var tokenRange = body.getTokenRange();
+                            if (tokenRange.isPresent()) {
+                                var tokens = tokenRange.get();
+                                int lastNewlineCount = 0;
+                                for (JavaToken token : tokens) {
+                                    String text = token.getText();
+                                    if (token.getKind() == JavaToken.Kind.NEWLINE) {
+                                        lastNewlineCount++;
+                                    } else if (!text.trim().isEmpty() && !text.matches("\\s+")) {
+                                        if (lastNewlineCount > 1) {
+                                            int line = token.getRange().map(r -> r.begin.line).orElse(-1);
+                                            if (line > 0) {
+                                                findings.add(new Finding(severity, category(), root.relativize(file) + ":" + (line - 1) + ": blank line in leaf function"));
+                                            }
                                         }
+                                        lastNewlineCount = 0;
+                                    } else if (text.matches("\\s+") && text.contains("\n")) {
+                                        lastNewlineCount += text.chars().filter(c -> c == '\n').count();
                                     }
-                                });
-                            });
+                                }
+                            }
                         });
                     }
                 });

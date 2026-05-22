@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run
 # /// script
 # requires-python = ">=3.11"
-# dependencies = []
+# dependencies = ["libcst>=1.8.6"]
 # ///
 """Validate repository harness installation and structure."""
 

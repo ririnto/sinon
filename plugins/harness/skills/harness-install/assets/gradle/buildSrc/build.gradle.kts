@@ -6,7 +6,15 @@ plugins {
 dependencies {
     implementation(platform(libs.kotlinx.serialization.bom))
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlin.compiler.embeddable)
+}
+
+val kotlinCompiler: Configuration by configurations.creating {
+    isCanBeResolved = true
+    isCanBeConsumed = false
+}
+
+dependencies {
+    kotlinCompiler(libs.kotlin.compiler.embeddable)
 }
 
 gradlePlugin {

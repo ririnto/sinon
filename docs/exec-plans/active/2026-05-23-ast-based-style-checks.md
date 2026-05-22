@@ -427,10 +427,19 @@ class Violation {
 - [x] `.gitignore`에 `.kotlin/` 추가
 - [x] `.gitignore`의 `plugins/harness/skills/harness-install/templates/**/bin/` → `assets/**/bin/` 갱신 (templates → assets rename 후속)
 
-### [ ] Phase 7: 검증
+### [ ] Phase 7: AST → CST 전환 (병렬, 4 stack)
 
-- [ ] Task 7.1 — plugin-self-check.sh + shellcheck PASS (이미 확인됨)
-- [ ] Task 7.2 — 4 stack native validator 실행 (사용자 환경에서 mvn / gradle / uv / bun 의존성 설치 후 직접 검증 필요)
+CST(Concrete Syntax Tree)는 주석/공백/트리비아를 보존하므로 스타일 검사 정확도가 더 높다. 각 stack-native CST 도구로 전환.
+
+- [ ] Task 7.1 — Python: `ast` → `libcst` (1.8.6). PEP 723 dep 추가. visitor `cst.CSTVisitor` / `cst.CSTTransformer` 사용.
+- [ ] Task 7.2 — TypeScript: `typescript` compiler API의 *full-fidelity* 모드(`setParentNodes=true`, `getLeadingTriviaWidth`, `getFullText`) 활용. SourceFile의 leading/trailing trivia 포함된 비교.
+- [ ] Task 7.3 — Java: JavaParser의 `LexicalPreservingPrinter.setup(cu)` 호출 후 lexical-preserving 모드로 AST 검사. comment/whitespace tokens 포함.
+- [ ] Task 7.4 — Kotlin: PSI는 이미 CST 수준(주석/공백 보존). 추가 변경 없음. *검증만*: 기존 PSI visitor가 PsiWhiteSpace / PsiComment 노드를 처리하는지 확인.
+
+### [ ] Phase 8: 검증
+
+- [ ] Task 8.1 — plugin-self-check.sh + shellcheck PASS
+- [ ] Task 8.2 — 4 stack native validator 실행 (사용자 환경에서 mvn / gradle / uv / bun)
 
 ### [ ] Phase 7: 9개 disabled add-on 활성화 (별도 후속 작업, 본 plan 범위 외)
 
