@@ -6,7 +6,9 @@ description: |-
 
 # Prompt-Based Hooks: LLM-Driven Validation
 
-Reference: advanced patterns for prompt hook decision logic, variable substitution mechanics, policy injection, and multi-step evaluation flows. See `SKILL.md` for basic hook structure and the 9 event types.
+Open this reference when implementing LLM-driven validation, using variable substitution in prompts, injecting policies into hooks, or designing multi-step decision flows.
+
+See `SKILL.md` for basic hook structure and the 9 event types.
 
 ## Variable substitution in prompts
 

@@ -6,6 +6,8 @@ description: |-
 
 # YAML Frontmatter Parsing: Complete Patterns and Edge Cases
 
+Open this reference when parsing YAML frontmatter from `.local.md` files, handling edge cases like missing fields or malformed input, or validating numeric ranges and enums.
+
 This reference covers exhaustive YAML frontmatter parsing patterns for `.claude/<plugin-name>.local.md` files, including all data types, edge cases, malformed input handling, and validation.
 
 ## Frontmatter structure

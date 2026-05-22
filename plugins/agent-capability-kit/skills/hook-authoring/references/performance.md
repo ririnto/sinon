@@ -6,6 +6,8 @@ description: |-
 
 # Hook Performance: Execution Model, Caching, and Debugging
 
+Open this reference when tuning hook timeouts, implementing caching patterns, optimizing hot-path hooks for latency, or debugging hook execution behavior.
+
 Hooks run in parallel by default with no guaranteed order. This reference covers execution semantics, timeout tuning, caching patterns, hot-path optimization, and debugging strategies.
 
 ## Parallel execution model
