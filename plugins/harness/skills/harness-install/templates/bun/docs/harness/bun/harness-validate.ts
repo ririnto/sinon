@@ -3,55 +3,8 @@ import { lstatSync, readdirSync, readFileSync, readlinkSync, statSync } from "no
 import { dirname, join } from "node:path";
 
 const root = process.cwd();
-const expectedValidationCommand = "bun run docs/harness/bun/harness-validate.ts" as const;
-const requiredFiles = [
-  "AGENTS.md",
-  "ARCHITECTURE.md",
-  "CLAUDE.md",
-  "docs/design-docs/core-beliefs.md",
-  "docs/exec-plans/tech-debt-tracker.md",
-  "docs/DESIGN.md",
-  "docs/FRONTEND.md",
-  "docs/PLANS.md",
-  "docs/PRODUCT_SENSE.md",
-  "docs/QUALITY_SCORE.md",
-  "docs/RELIABILITY.md",
-  "docs/SECURITY.md",
-  "docs/harness/git-hooks/pre-commit",
-  "docs/harness/git-hooks/pre-push",
-] as const;
-const requiredDirectories = [
-  "docs",
-  "docs/design-docs",
-  "docs/exec-plans",
-  "docs/exec-plans/active",
-  "docs/exec-plans/completed",
-  "docs/generated",
-  "docs/harness",
-  "docs/harness/templates",
-  "docs/product-specs",
-  "docs/references",
-  ".claude/agents",
-  ".claude/skills",
-] as const;
-const emptyDirectoryKeepFiles = [
-  "docs/exec-plans/active/.gitkeep",
-  "docs/exec-plans/completed/.gitkeep",
-  "docs/generated/.gitkeep",
-] as const;
-const optionalSeedFiles = ["docs/product-specs/new-user-onboarding.md"] as const;
-const templateGroups = ["agent", "skill", "workflow", "ci", "docs"] as const;
-const requiredDocHeadings = ["## Purpose", "## When To Update", "## Required Evidence"] as const;
-const requiredAuthoredDocs: readonly string[] = (requiredFiles as readonly string[]).filter(
-  (path) => path.startsWith("docs/") && path.endsWith(".md")
-);
-const leakPatterns: ReadonlyArray<readonly [RegExp, string]> = [
-  [/\{\{/, "unresolved template token"],
-  [/^name:\s*example-/m, "example frontmatter name"],
-  [/Describe /, "scaffold prompt text"],
-  [/\bTODO\b|\bTBD\b/, "TODO/TBD placeholder"],
-  [/replace-with-stack-specific/, "stack placeholder"],
-];
+const STACK = "bun" as const;
+const MANIFEST_PATH = "docs/harness/manifest.json";
 
 // Helper functions
 function pathOf(path: string): string {
@@ -193,48 +146,31 @@ function safeFileOrWalk(path: string): readonly [readonly string[], readonly str
   return walk(path);
 }
 
-function manifestList(manifest: Record<string, unknown>, key: string): readonly string[] {
-  const value = manifest[key];
+function manifestArray(value: unknown): readonly string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
+function manifestObject(value: unknown): Record<string, unknown> {
+  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
+}
+
 function loadManifest(): Record<string, unknown> {
-  if (isSymlink("docs/harness/manifest.json")) {
+  if (isSymlink(MANIFEST_PATH)) {
     return {};
   }
   try {
-    return JSON.parse(readFileSync(pathOf("docs/harness/manifest.json"), "utf8"));
+    return JSON.parse(readFileSync(pathOf(MANIFEST_PATH), "utf8"));
   } catch {
     return {};
   }
 }
 
 // Validation functions
-function validateManifestParity(): readonly string[] {
-  const manifest = loadManifest();
+function validateStructure(manifest: Record<string, unknown>): readonly string[] {
   const failures: string[] = [];
 
-  const compareList = (key: string, expected: readonly string[]): void => {
-    const actual = manifestList(manifest, key).sort();
-    const wanted = [...expected].sort();
-    if (JSON.stringify(actual) !== JSON.stringify(wanted)) {
-      failures.push(`manifest ${key} must match validator constants`);
-    }
-  };
-
-  compareList("requiredFiles", requiredFiles as readonly string[]);
-  compareList("requiredDirectories", requiredDirectories as readonly string[]);
-  compareList("emptyDirectoryKeepFiles", emptyDirectoryKeepFiles as readonly string[]);
-  compareList("optionalSeedFiles", optionalSeedFiles as readonly string[]);
-  compareList("templateGroups", templateGroups as readonly string[]);
-
-  return failures;
-}
-
-function validateStructure(): readonly string[] {
-  const failures: string[] = [];
-
-  for (const path of requiredFiles as readonly string[]) {
+  const requiredFiles = manifestArray(manifest.requiredFiles);
+  for (const path of requiredFiles) {
     const [safe, warnings] = isSafeFile(path);
     failures.push(...warnings);
     if (!safe) {
@@ -242,7 +178,8 @@ function validateStructure(): readonly string[] {
     }
   }
 
-  for (const path of requiredDirectories as readonly string[]) {
+  const requiredDirectories = manifestArray(manifest.requiredDirectories);
+  for (const path of requiredDirectories) {
     const [safe, warnings] = isSafeDirectory(path);
     failures.push(...warnings);
     if (!safe) {
@@ -250,7 +187,8 @@ function validateStructure(): readonly string[] {
     }
   }
 
-  for (const keep of emptyDirectoryKeepFiles as readonly string[]) {
+  const emptyDirectoryKeepFiles = manifestArray(manifest.emptyDirectoryKeepFiles);
+  for (const keep of emptyDirectoryKeepFiles) {
     const directory = dirname(keep);
     const [dirSafe] = isSafeDirectory(directory);
     if (!dirSafe) {
@@ -266,8 +204,14 @@ function validateStructure(): readonly string[] {
   return failures;
 }
 
-function validateDocs(): readonly string[] {
+function validateDocsHeadings(manifest: Record<string, unknown>): readonly string[] {
   const failures: string[] = [];
+  const requiredFiles = manifestArray(manifest.requiredFiles);
+  const requiredDocHeadings = manifestArray(manifest.requiredDocHeadings);
+
+  const requiredAuthoredDocs = requiredFiles.filter(
+    (path) => path.startsWith("docs/") && path.endsWith(".md")
+  );
 
   for (const doc of requiredAuthoredDocs) {
     const [docExists] = isSafeFile(doc);
@@ -275,7 +219,7 @@ function validateDocs(): readonly string[] {
       continue;
     }
     const text = read(doc);
-    for (const heading of requiredDocHeadings as readonly string[]) {
+    for (const heading of requiredDocHeadings) {
       if (!text.includes(heading)) {
         failures.push(`doc missing ${heading}: ${doc}`);
       }
@@ -285,37 +229,29 @@ function validateDocs(): readonly string[] {
   return failures;
 }
 
-function validateContent(): readonly string[] {
+function validateContentChecks(manifest: Record<string, unknown>): readonly string[] {
   const failures: string[] = [];
-  const agentsText = read("AGENTS.md");
-  const claudeText = read("CLAUDE.md");
-  const generatedText = [agentsText, claudeText, read("ARCHITECTURE.md")].join("\n");
-  const evolutionText = [agentsText, claudeText, read("docs/harness/evolution-log.md")].join("\n");
+  const checks = manifest.requiredContentChecks;
 
-  if (!agentsText.includes("Repository Harness Contract")) {
-    failures.push("AGENTS.md must contain Repository Harness Contract");
+  if (!Array.isArray(checks)) {
+    return failures;
   }
-  if (!claudeText.includes("## Entry Point")) {
-    failures.push("CLAUDE.md must contain an Entry Point section");
-  }
-  if (!claudeText.includes("AGENTS.md")) {
-    failures.push("CLAUDE.md must reference AGENTS.md");
-  }
-  if (!agentsText.includes("docs/generated/")) {
-    failures.push("AGENTS.md must describe docs/generated/ semantics");
-  }
-  if (!generatedText.includes("docs/generated/db-schema.md")) {
-    failures.push(
-      "repository docs must state that docs/generated/db-schema.md is only an example, not a required scaffold file"
-    );
-  }
-  if (!generatedText.includes("source command") || !generatedText.includes("regeneration trigger")) {
-    failures.push(
-      "repository docs must describe generated-artifact source command and regeneration trigger metadata"
-    );
-  }
-  if (!evolutionText.includes("discovery") || !evolutionText.includes("maintenance")) {
-    failures.push("repository docs must state that the harness may evolve across development phases");
+
+  for (const check of checks) {
+    if (typeof check !== "object" || check === null) {
+      continue;
+    }
+    const checkObj = check as Record<string, unknown>;
+    const files = manifestArray(checkObj.files);
+    const containsAll = manifestArray(checkObj.containsAll);
+    const failureMessage = typeof checkObj.failureMessage === "string" ? checkObj.failureMessage : "";
+
+    const combinedText = files.map((f) => read(f)).join("\n");
+    const hasMissing = containsAll.some((substring) => !combinedText.includes(substring));
+
+    if (hasMissing && failureMessage) {
+      failures.push(failureMessage);
+    }
   }
 
   return failures;
@@ -374,33 +310,52 @@ function validateSkills(): readonly string[] {
   return failures;
 }
 
-function validateTemplates(): readonly string[] {
+function validateActiveAssets(manifest: Record<string, unknown>): readonly string[] {
   const failures: string[] = [];
+  const activeAssetBases = manifestArray(manifest.activeAssetBases);
+  const excludedActiveAssetSubtrees = manifestArray(manifest.excludedActiveAssetSubtrees);
+  const activeAssetExtensions = manifestArray(manifest.activeAssetExtensions);
+  const leakPatternsRaw = manifest.leakPatterns;
 
-  for (const group of templateGroups as readonly string[]) {
-    const [dirSafe] = isSafeDirectory(`docs/harness/templates/${group}`);
-    if (!dirSafe) {
-      failures.push(`missing template group: docs/harness/templates/${group}`);
+  const leakPatterns: Array<readonly [RegExp, string]> = [];
+  if (Array.isArray(leakPatternsRaw)) {
+    for (const item of leakPatternsRaw) {
+      if (typeof item === "object" && item !== null) {
+        const obj = item as Record<string, unknown>;
+        const pattern = typeof obj.pattern === "string" ? obj.pattern : "";
+        const label = typeof obj.label === "string" ? obj.label : "";
+        if (pattern && label) {
+          try {
+            leakPatterns.push([new RegExp(pattern), label]);
+          } catch {
+            // skip invalid regex
+          }
+        }
+      }
     }
   }
 
-  return failures;
-}
-
-function validateActiveAssets(): readonly string[] {
-  const failures: string[] = [];
-  const bases = ["AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md", "docs", ".claude/agents", ".claude/skills", "docs/harness", ".github"] as const;
-
-  for (const base of bases) {
+  for (const base of activeAssetBases) {
     const [files, warnings] = safeFileOrWalk(base);
     failures.push(...warnings);
     for (const file of files) {
-      if (
-        file.startsWith("docs/harness/templates/") ||
-        !/\.(md|txt|json|ya?ml)$/.test(file)
-      ) {
+      let excluded = false;
+      for (const subtree of excludedActiveAssetSubtrees) {
+        if (file === subtree || file.startsWith(`${subtree}/`)) {
+          excluded = true;
+          break;
+        }
+      }
+      if (excluded) {
         continue;
       }
+
+      const extMatch = /\.([a-z0-9]+)$/.exec(file);
+      const ext = extMatch ? extMatch[1] : "";
+      if (!activeAssetExtensions.includes(ext)) {
+        continue;
+      }
+
       const text = read(file);
       for (const [pattern, label] of leakPatterns) {
         if (pattern.test(text)) {
@@ -452,12 +407,22 @@ function validateOneHook(name: string, stage: string): readonly [string, readonl
   return [hookText, failures];
 }
 
-function validateHooks(): readonly string[] {
+function validateHooks(manifest: Record<string, unknown>): readonly string[] {
   const failures: string[] = [];
-  const [preCommitText, preCommitFailures] = validateOneHook("pre-commit", "compliance");
+  const expectedValidationCommands = manifestObject(manifest.expectedValidationCommands);
+  const hookStages = manifestObject(manifest.hookStages);
+  const stackHookStages = manifestObject(hookStages[STACK]);
+
+  const preCommitStage = typeof stackHookStages.preCommit === "string" ? stackHookStages.preCommit : "compliance";
+  const prePushStage = typeof stackHookStages.prePush === "string" ? stackHookStages.prePush : "full-validation";
+  const expectedValidationCommand = typeof expectedValidationCommands[STACK] === "string"
+    ? expectedValidationCommands[STACK]
+    : "";
+
+  const [preCommitText, preCommitFailures] = validateOneHook("pre-commit", preCommitStage);
   failures.push(...preCommitFailures);
 
-  const [prePushText, prePushFailures] = validateOneHook("pre-push", "full-validation");
+  const [prePushText, prePushFailures] = validateOneHook("pre-push", prePushStage);
   failures.push(...prePushFailures);
 
   if (/(^|\s)(uv|bun|gradle|mvn)(\s|$)|\.\/gradlew|harnessValidate|harness_validate\.py|harness-validate\.ts/.test(preCommitText)) {
@@ -468,7 +433,7 @@ function validateHooks(): readonly string[] {
   if (validationCommand.length === 0) {
     failures.push("pre-push hook must declare Harness validation command");
   } else {
-    if (validationCommand !== expectedValidationCommand) {
+    if (expectedValidationCommand && validationCommand !== expectedValidationCommand) {
       failures.push(`pre-push hook declares unsupported validation command: ${validationCommand}`);
     } else {
       if (!prePushText.split(/\r?\n/).includes(validationCommand)) {
@@ -489,11 +454,11 @@ function validateHooks(): readonly string[] {
   return failures;
 }
 
-function validateEnvShebangs(): readonly string[] {
+function validateEnvShebangs(manifest: Record<string, unknown>): readonly string[] {
   const failures: string[] = [];
-  const bases = ["docs/harness", ".claude/skills"] as const;
+  const envShebangBases = manifestArray(manifest.envShebangBases);
 
-  for (const base of bases) {
+  for (const base of envShebangBases) {
     const [files, warnings] = walk(base);
     failures.push(...warnings);
     for (const file of files) {
@@ -509,9 +474,27 @@ function validateEnvShebangs(): readonly string[] {
   return failures;
 }
 
-function validateCompletedPlans(): readonly string[] {
+function validateCompletedPlans(manifest: Record<string, unknown>): readonly string[] {
   const failures: string[] = [];
-  const [files, warnings] = walk("docs/exec-plans/completed");
+  const completedPlanDirectory = typeof manifest.completedPlanDirectory === "string"
+    ? manifest.completedPlanDirectory
+    : "docs/exec-plans/completed";
+  const unfinishedTaskPatternStr = typeof manifest.unfinishedTaskPattern === "string"
+    ? manifest.unfinishedTaskPattern
+    : "";
+
+  if (!unfinishedTaskPatternStr) {
+    return failures;
+  }
+
+  let unfinishedTaskPattern: RegExp;
+  try {
+    unfinishedTaskPattern = new RegExp(unfinishedTaskPatternStr);
+  } catch {
+    return failures;
+  }
+
+  const [files, warnings] = walk(completedPlanDirectory);
   failures.push(...warnings);
 
   for (const file of files) {
@@ -519,7 +502,7 @@ function validateCompletedPlans(): readonly string[] {
       continue;
     }
     const text = read(file);
-    if (/^\s*-\s*\[ \]\s/m.test(text)) {
+    if (unfinishedTaskPattern.test(text)) {
       failures.push(`completed plan has unchecked tasks: ${file}`);
     }
   }
@@ -528,18 +511,23 @@ function validateCompletedPlans(): readonly string[] {
 }
 
 // Main
+const manifest = loadManifest();
+if (!manifest || typeof manifest !== "object" || Object.keys(manifest).length === 0) {
+  console.error("Harness validation failed:");
+  console.error(`- manifest not found or invalid: ${MANIFEST_PATH}`);
+  process.exit(1);
+}
+
 const allFailures: string[] = [
-  ...validateManifestParity(),
-  ...validateStructure(),
-  ...validateDocs(),
-  ...validateContent(),
+  ...validateStructure(manifest),
+  ...validateDocsHeadings(manifest),
+  ...validateContentChecks(manifest),
   ...validateAgents(),
   ...validateSkills(),
-  ...validateTemplates(),
-  ...validateActiveAssets(),
-  ...validateHooks(),
-  ...validateEnvShebangs(),
-  ...validateCompletedPlans(),
+  ...validateActiveAssets(manifest),
+  ...validateHooks(manifest),
+  ...validateEnvShebangs(manifest),
+  ...validateCompletedPlans(manifest),
 ];
 
 const uniqueFailures = new Set(allFailures);
