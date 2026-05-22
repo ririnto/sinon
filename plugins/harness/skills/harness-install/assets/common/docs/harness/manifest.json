@@ -808,7 +808,7 @@
     }
   },
   "requireImportOverFqn": {
-    "description": "Code under parameters.directoriesPerStack[<stack>] MUST reach external symbols via `import` rather than inline fully qualified names. Validators implement this via AST: emit a finding when a qualified type reference appears in code while the same simple name has no matching import (heuristic for FQN-as-shortcut).",
+    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST reach external symbols via `import` rather than inline fully qualified names, EXCEPT when the simple name is already taken by another import in the same file (i.e. the FQN is required to disambiguate). Validators implement this via AST/CST: collect every imported simple name first, then emit a finding when a qualified type reference appears in code AND the qualified name's simple form is NOT already imported under a different qualified name.",
     "enabled": false,
     "severity": "WARN",
     "messages": {
@@ -921,6 +921,48 @@
           "**/src",
           "src"
         ],
+        "typescript": [
+          "docs/harness/bun",
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "kotlin": [
+          "kt",
+          "kts"
+        ],
+        "java": [
+          "java"
+        ],
+        "python": [
+          "py"
+        ],
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "requireBracesOnIf": {
+    "description": "Every `if` / `else if` / `else` clause under parameters.sourceRootsPerStack[<stack>] MUST use a braced block (`{ ... }`), even for single-statement bodies. Validators implement this via AST/CST.",
+    "enabled": false,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: if/else without braces; wrap the body in `{ ... }`"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "kotlin": [
+          "buildSrc/src/main/kotlin",
+          "**/src/main/kotlin"
+        ],
+        "java": [
+          "harness-maven-plugin/src/main/java",
+          "**/src/main/java"
+        ],
+        "python": [],
         "typescript": [
           "docs/harness/bun",
           "**/src",
