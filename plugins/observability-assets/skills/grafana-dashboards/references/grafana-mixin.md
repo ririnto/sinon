@@ -47,6 +47,7 @@ Example source snippet to inspect:
     ],
   },
 }
+
 ```
 
 Use this when the blocker is deciding whether an operator-facing rule such as time range or rounding lives in source Jsonnet or was applied later only in rendered JSON.
@@ -64,6 +65,7 @@ grafana/mixin/dashboards.libsonnet
   -> jsonnet render
   -> grafana/rendered/dashboards/api-overview.json
   -> reviewed rendered dashboard asset
+
 ```
 
 Example review question:
@@ -82,6 +84,7 @@ grafana/
   rendered/
     dashboards/
       api-overview.json
+
 ```
 
 Use when: dashboards are generated from Grafana mixin or adjacent Jsonnet tooling and reviewers need to understand both source and rendered dashboard assets.
@@ -117,6 +120,7 @@ Minimal mixin source — keep the generated dashboard traceable back to one smal
     ],
   },
 }
+
 ```
 
 Use when: the team already keeps dashboard source in Jsonnet or Grafana mixin form and needs one minimal source example instead of raw rendered JSON only.
@@ -126,6 +130,7 @@ Minimal render step — render mixin or Jsonnet source into a reviewed dashboard
 
 ```sh
 jsonnet -m grafana/rendered/dashboards grafana/mixin/dashboards.libsonnet
+
 ```
 
 Use when: reviewers need one concrete command that turns source mixin files into reviewed dashboard artifacts.

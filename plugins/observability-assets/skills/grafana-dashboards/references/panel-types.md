@@ -99,6 +99,7 @@ Full options schema for the most commonly used panel type.
     "nullPointMode": "connected"
   }
 }
+
 ```
 
 Key `options.drawStyle` values: `"line"`, `"bars"`, `"points"`.
@@ -137,6 +138,7 @@ Key `options.showPoints`: `"never"`, `"auto"`, `"always"`.
     "wideLayout": true
   }
 }
+
 ```
 
 Key `options.textMode`: `"auto"`, `"name"`, `"none"`, `"value"`, `"name_value"`.
@@ -163,6 +165,7 @@ Key `options.justifyMode`: `"auto"`, `"center"`.
     "minVizWidth": 0
   }
 }
+
 ```
 
 ## Bar Gauge (`bargauge`)
@@ -182,6 +185,7 @@ Displays one bar per category, oriented horizontally. Good for comparing a small
     "justifyMode": "auto"
   }
 }
+
 ```
 
 Key `options.orientation`: `"horizontal"`, `"vertical"`.
@@ -227,6 +231,7 @@ Key `options.calculation`: same reducer names as reduce transformation.
     }
   }
 }
+
 ```
 
 Key `options.orientation`: `"auto"`, `"vertical"`, `"horizontal"`.
@@ -256,6 +261,7 @@ Key `options.drawStyle`: `"bars"`, `"line"`.
     "histogramBase": 10
   }
 }
+
 ```
 
 When `bucketSize` is 0 (default), Grafana auto-calculates bucket boundaries. Set it explicitly (e.g., `100`) for fixed-width buckets. `histogramBase` controls logarithmic bucketing: `2` for binary histogram buckets, `10` for decimal.
@@ -312,6 +318,7 @@ When `bucketSize` is 0 (default), Grafana auto-calculates bucket boundaries. Set
     "valuesInReverseOrder": false
   }
 }
+
 ```
 
 Key `options.color.mode`: `"opacity-spectrum"`, `"palette-classic"`, `"continuous-GrYlRd"`, `"continuous-RdYlGr"`, `"continuous-blues"`, `"continuous-reds"`, `"continuous-greens"`, `"continuous-purples"`, `"scheme"`.
@@ -351,6 +358,7 @@ Key `options.dataFormat`: `"timeSeriesBuckets"`, `"timeSeries"`. Use `"timeSerie
     "borderRadius": 0
   }
 }
+
 ```
 
 Key `options.pieType`: `"pie"`, `"donut"`, `"half-pie"`.
@@ -375,6 +383,7 @@ Key `options.emptyDataMode`: `"zero"`, `"hide"`, `"nothing"`.
     }
   }
 }
+
 ```
 
 Table column customization lives inside `fieldConfig.defaults.custom` per field:
@@ -396,6 +405,7 @@ Table column customization lives inside `fieldConfig.defaults.custom` per field:
     }
   }
 }
+
 ```
 
 Key `custom.align`: `"auto"`, `"left"`, `"center"`, `"right"`.
@@ -425,6 +435,7 @@ Key `options.cellHeight`: `"sm"`, `"md"`, `"lg"`.
     ]
   }
 }
+
 ```
 
 Key `options.dedupStrategy`: `"none"`, `"exact"`, `"numbers"`, `"signature"`.
@@ -453,6 +464,7 @@ Key `options.sortOrder`: `"Descending"`, `"Ascending"`.
     "colorMode": "thresholds"
   }
 }
+
 ```
 
 Key `options.showValue`: `"always"`, `"never"`.
@@ -482,6 +494,7 @@ Similar to state timeline but optimized for discrete status change events rather
     "colorMode": "thresholds"
   }
 }
+
 ```
 
 Use status history when events are point-in-time changes rather than continuous states. The difference from state timeline is primarily in how gaps between events are rendered -- status history shows no-state gaps explicitly.
@@ -520,6 +533,7 @@ For Open-High-Low-Close style data. Commonly used for financial data but applica
     "showAxis": true
   }
 }
+
 ```
 
 Data requirements: queries must return open, high, low, close fields per time period. This is not a standard Prometheus output shape; typically requires transformations or a datasource that natively produces OHLC data.
@@ -559,6 +573,7 @@ Shows a single value with a directional trend indicator (arrow + sparkline). Mor
     "legendCalcs": ["mean", "max", "min"]
   }
 }
+
 ```
 
 ## XY Chart (`xychart`)
@@ -613,6 +628,7 @@ Scatter plot or line chart where X is an arbitrary field (not necessarily time).
     }
   }
 }
+
 ```
 
 Key `options.resultMode`: `"scatter"`, `"lines"`.
@@ -654,6 +670,7 @@ Visualize nodes and edges as a force-directed graph. Useful for service dependen
     }
   }
 }
+
 ```
 
 Node graph requires structured node/edge data. Queries must return frames with `id`, `title`, and optionally `mainStat`, `subTitle`, `color` for nodes, and `source`, `target`, `mainStat` for edges. This is typically produced by specialized datasources or transformations, not raw Prometheus queries.
@@ -701,6 +718,7 @@ Distributed tracing viewer showing span waterfall and duration breakdown.
     "sortOrder": "descending-longest-first"
   }
 }
+
 ```
 
 Requires a tracing datasource (Jaeger, Tempo, Zipkin, X-Ray). Query structure depends on the specific tracing backend.
@@ -731,6 +749,7 @@ Hierarchical flame graph for profiling data. Shows call stacks with width propor
     "sortDirection": "descending"
   }
 }
+
 ```
 
 Key `options.type`: `"flame"`, `"icicle"`, `"tree"`, `"table"`, `"both"`.
@@ -778,6 +797,7 @@ Free-form canvas with positioned elements. Use for custom dashboards that do not
   ],
   "options": {}
 }
+
 ```
 
 Canvas element types: `"text"`, `"row"`, `"image"`, `"ellipse"`, `"rect"`, `"arc"`, `"line"`, `"path"`, `"iframe"`, `"metricText"`, `"nodeGraph"`, `"heatmap"`, `"timeseries"`, `"stat"`, `"bargauge"`, `"table"`, `"logs"`, `"alertGraph"`, `"alertList"`, `"annolist"`, `"news"`, `"debug"`. Each element has its own `config` schema matching the standalone panel's options.
@@ -838,6 +858,7 @@ Geographic visualization using latitude/longitude coordinates.
     }
   }
 }
+
 ```
 
 Key `options.basemap.type`: `"osm-standard"`, `"osm-dark"`, `"carto-db-positron"`, `"carto-db-dark-matter"`, `"esri-world-imagery"`, `"esri-standard"`, `"esri-dark-gray"`, `"esri-topographic"`, `"here-container"`, `"here-nav"`, `"here-basic"`, `"here-satellite"`, `"maptiler-basic"`, `"maptiler-hybrid"`, `"maptiler-topo"`, `"maptiler-toner"`, `"maptiler-backdrop"`, `"maptiler-satellite"`, `"maptiler-terrain"`, `"maptiler-streets"`, `"custom"`.
@@ -866,6 +887,7 @@ Shows links to other dashboards, filtered by tag, folder, or search term.
     "sortField": 0
   }
 }
+
 ```
 
 Key `options.sortField`: `0` (Alpha), `1` (Last Viewed), `2` (Last Updated).
@@ -898,6 +920,7 @@ Shows active alert instances with state, labels, and duration.
     }
   }
 }
+
 ```
 
 Key `options.stateFilter.*`: boolean toggles for which alert states to display.
@@ -924,6 +947,7 @@ Shows annotation events on a timeline with details.
     }
   }
 }
+
 ```
 
 ## Text / News (`text`)
@@ -938,6 +962,7 @@ Static text content for documentation, instructions, or context panels. Supports
     "content": "## Service Overview\n\n**Environment:** ${env}\n\n> [!NOTE]\n> This dashboard follows the RED method.\n\n### Quick Links\n\n- [Runbook](https://wiki.example.com/runbooks/api)\n- [SLA Definition](https://wiki.example.com/sla/api)"
   }
 }
+
 ```
 
 Key `options.mode`: `"markdown"`, `"html"`, `"text"`.
@@ -958,6 +983,7 @@ All panels use `gridPos` to define position and size within the 24-column grid s
     "y": 0
   }
 }
+
 ```
 
 | Field | Description |

@@ -36,6 +36,7 @@ Recording-rule-backed timing reminder:
 recording rule evaluates first
 -> alert expression consumes the recorded series later
 -> regression checks should allow for both steps before interpreting firing behavior
+
 ```
 
 ## Test Coverage Matrix by Alert Type
@@ -66,12 +67,14 @@ Broken -- references a metric that cannot be easily synthesized:
 
 ```yaml
 expr: count(up{job="api"}) < count(kube_node_info)
+
 ```
 
 Better -- self-contained within the scrape target:
 
 ```yaml
 expr: count(up{job="api"} == 0) > 0
+
 ```
 
 ### Expression uses `time()` or other non-deterministic functions
@@ -80,12 +83,14 @@ Broken -- test results vary by wall-clock time:
 
 ```yaml
 expr: time() - timestamp(some_metric[1h]) > 3600
+
 ```
 
 Better -- use relative durations that work at any eval_time:
 
 ```yaml
 expr: some_metric offset 1h == 0
+
 ```
 
 ### Overly broad label matchers that produce many series
@@ -94,10 +99,12 @@ Broken -- test needs dozens of input_series entries:
 
 ```yaml
 expr: sum(rate(http_requests_total[5m])) by (job) > 100
+
 ```
 
 Better -- constrain the scope so a minimal fixture proves the point:
 
 ```yaml
 expr: sum(rate(http_requests_total{job="api"}[5m])) > 100
+
 ```

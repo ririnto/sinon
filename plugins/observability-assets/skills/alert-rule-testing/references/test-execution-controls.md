@@ -17,6 +17,7 @@ fuzzy_compare: true
 tests:
   - name: api-error-rate
     start_timestamp: 2026-01-01T00:00:00Z
+
 ```
 
 | Control | Type | Default | Effect |
@@ -32,6 +33,7 @@ tests:
   - name: my-test
     interval: 30s
     start_timestamp: 2026-06-15T12:00:00Z
+
 ```
 
 The per-test `interval` overrides the top-level `evaluation_interval` for that test only.
@@ -62,6 +64,7 @@ tests:
       - eval_time: 10m
         alertname: Api5xxRatioAbove5Percent
         exp_alerts: []
+
 ```
 
 Without explicit order, promtool may evaluate groups in file declaration order, but explicit ordering is safer when cross-group dependencies exist. In this example, `api-recording` must evaluate first because it produces `job:http_requests:rate5m`, and `api-alerts` consumes that recording rule.
@@ -76,6 +79,7 @@ Run one named test selection during focused iteration:
 
 ```sh
 promtool test rules --run '^api-error-rate$' alerts/api-errors.test.yaml
+
 ```
 
 The `--run` argument is a regex matched against test case `name` fields. Examples:
@@ -86,6 +90,7 @@ promtool test rules --run '^api-error' tests/
 promtool test rules --run 'firing' tests/
 
 promtool test rules --run '(?!.*slow)' tests/
+
 ```
 
 These commands run all tests whose names start with `api-error`, all tests whose names contain `firing`, and all tests except names containing `slow`.
@@ -106,6 +111,7 @@ tests:
       - eval_time: 5m
       - eval_time: 10m
       - eval_time: 16m
+
 ```
 
 The values are all valid multiples of `1m`: initial evaluation, after 5 evaluations, exactly at a `for: 10m` boundary, and well past that boundary.
@@ -118,6 +124,7 @@ tests:
     alert_rule_test:
       - eval_time: 30s
       - eval_time: 7m30s
+
 ```
 
 These values are not clean multiples of `1m`; both fall between evaluation points.
@@ -151,6 +158,7 @@ promql_expr_test:
     exp_samples:
       - labels: '{}'
         value: 0.05
+
 ```
 
 Without `fuzzy_compare`, this fails if the actual value is `0.0500000000001`. With `fuzzy_compare: true` at the top level, that small difference is close enough to `0.05`.
@@ -175,6 +183,7 @@ tests:
           - exp_annotations:
               summary: >-
                 Batch job failed during off-hours run at 03:02 UTC
+
 ```
 
 The timestamp starts the fixture at 03:00 UTC.
@@ -186,6 +195,7 @@ tests:
   - name: dst-transition
     start_timestamp: 2026-03-08T01:59:00Z
     ...
+
 ```
 
 The timestamp lands just before a spring-forward transition.

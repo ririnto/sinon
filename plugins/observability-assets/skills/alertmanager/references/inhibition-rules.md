@@ -28,6 +28,7 @@ Safe pattern:
 equal:
   - cluster
   - service
+
 ```
 
 Over-broad pattern that can suppress across unrelated environments:
@@ -35,6 +36,7 @@ Over-broad pattern that can suppress across unrelated environments:
 ```yaml
 equal:
   - service
+
 ```
 
 Over-narrow pattern that prevents intended inhibition because the labels differ:
@@ -44,6 +46,7 @@ equal:
   - cluster
   - service
   - severity
+
 ```
 
 ## Source and Target Shape Check

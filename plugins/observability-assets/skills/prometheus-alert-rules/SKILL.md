@@ -34,6 +34,7 @@ groups:
         keep_firing_for: <duration>
         labels: { ... }
         annotations: { ... }
+
 ```
 
 The top-level key is always `groups`. It holds an ordered list of groups. Each group requires `name` and `rules`; `interval`, `limit`, and `concurrency` remain optional. Each rule is either an `alert:` rule or a `record:` rule, and every rule requires `expr` while `for`, `keep_firing_for`, `labels`, and `annotations` stay optional as described in the schema tables below.
@@ -58,6 +59,7 @@ groups:
     rules: [...]
   - name: infra-recording
     rules: [...]
+
 ```
 
 ## Alert Rule Schema
@@ -100,6 +102,7 @@ groups:
             Current value: {{ $value }}s.
             Service: {{ $labels.job }}
           runbook_url: https://runbooks.example.com/api-high-latency
+
 ```
 
 ## Recording Rule Schema
@@ -122,6 +125,7 @@ groups:
           round(sum by (job) (rate(http_requests_total[5m])), 0.001)
         labels:
           environment: production
+
 ```
 
 Recording-rule naming convention:
@@ -141,6 +145,7 @@ inactive --> pending --> firing
    ^                    |
    |____________________|
            resolves
+
 ```
 
 ## Inactive: The expression evaluates to false (or produces no series). No alert state exists
@@ -171,6 +176,7 @@ Time   0m   5m   10m  15m  20m  25m
 Expr   T    T    T    T    F    F
 State  pen  pen  fire fire fire inactive
                         ^--keep_firing_for holds here
+
 ```
 
 ## Go Template Variables in Annotations and Labels
@@ -197,6 +203,7 @@ annotations:
     value is {{ $value }}
 
   dashboard: '{{ $externalURL }}/d/my-dashboard?var-job={{ $labels.job }}'
+
 ```
 
 Template rules:
@@ -241,6 +248,7 @@ groups:
             API p95 latency stayed above 750ms for 10 minutes.
             Current value: {{ $value }}s.
           runbook_url: https://runbooks.example.com/api-high-latency
+
 ```
 
 Use when: you need one minimal valid Prometheus rules file with a complete alert definition.
@@ -251,6 +259,7 @@ Start with syntax validation against the actual rule file:
 
 ```sh
 promtool check rules alerts/api-latency.rules.yaml
+
 ```
 
 Use when: the rule is newly added or edited, `promtool` is available in `PATH`, and you need the first safe correctness check before deeper review.
@@ -259,12 +268,14 @@ Validate multiple files at once:
 
 ```sh
 promtool check rules rules/*.yaml
+
 ```
 
 Strict mode (fail on warnings):
 
 ```sh
 promtool check --strict rules alerts/api-latency.rules.yaml
+
 ```
 
 ### promtool Output Interpretation
@@ -273,6 +284,7 @@ Successful output:
 
 ```text
 rules/api-latency.rules.yaml SUCCESS: 1 rules found
+
 ```
 
 Error output examples:
@@ -281,24 +293,28 @@ Syntax error in the PromQL expression:
 
 ```text
 rules/api-latency.rules.yaml FAILED: parsing YAML file rules/api-latency.rules.yaml: error parsing rules: 1:13: parse error
+
 ```
 
 Duplicate alert name across files:
 
 ```text
 rules/api-latency.rules.yaml FAILED: alert "ApiP95LatencyAbove750ms" is defined twice
+
 ```
 
 Invalid duration format:
 
 ```text
 rules/api-latency.rules.yaml FAILED: error parsing rules: invalid duration "10"
+
 ```
 
 Missing required field:
 
 ```text
 rules/api-latency.rules.yaml FAILED: error parsing rules: missing required field 'expr'
+
 ```
 
 YAML scalar rule:
@@ -342,6 +358,7 @@ groups:
             API 5xx ratio stayed above 5% for 10 minutes.
             Current value: {{ $value }}%.
           runbook_url: https://runbooks.example.com/api-high-error-rate
+
 ```
 
 Use when: user-visible failures matter more than one host-level saturation signal.
@@ -375,6 +392,7 @@ groups:
           description: |-
             API 5xx ratio stayed above 5% for 10 minutes.
             Current value: {{ $value }}%.
+
 ```
 
 Use when: the alert expression is reused or expensive enough to deserve one stable recording layer.
@@ -413,6 +431,7 @@ groups:
           description: >-
             Disk usage is above 95% on {{ $labels.instance }} (device {{ $labels.device }}).
             Current: {{ $value }}%.
+
 ```
 
 Use when: the same symptom needs different urgency levels at different thresholds.

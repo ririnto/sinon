@@ -36,6 +36,7 @@ Processing order: defaults first, then each override in array order. Later overr
     ]
   }
 }
+
 ```
 
 ## Complete Default Field Config Options
@@ -69,6 +70,7 @@ These options apply to `fieldConfig.defaults`. Not all options are meaningful fo
     }
   }
 }
+
 ```
 
 Color modes: `"palette-classic"`, `"palette-spectral"`, `"continuous-GrYlRd"`, `"continuous-RdYlGr"`, `"continuous-blues"`, `"continuous-reds"`, `"continuous-greens"`, `"continuous-purples"`, `"scheme"`, `"thresholds"`, `"fixed"`.
@@ -84,6 +86,7 @@ When mode is `"scheme"`, specify which color scheme:
     }
   }
 }
+
 ```
 
 Named schemes: `"Classic"`, `"Green Orange"`, `"Yellow to Red"`, `"Blue to Yellow"`, `"Cool to Warm"`, `"Purple Blue Green"`, `"Warm Colors"`, `"Spectrum"`, `"Red Shades"`, `"Orange Shades"`, `"Blue Shades"`, `"Green Shades"`, `"Gray Monochrome"`, `"Palette Classic"`, `"Palette Spectral"`, `"Dark"`, `"From Thresholds"`, `"State"`, `"Twilight"`, `"System"`.
@@ -185,6 +188,7 @@ The default and most common mode. Steps trigger at exact numeric values.
     ]
   }
 }
+
 ```
 
 Rules:
@@ -219,6 +223,7 @@ Steps trigger at percentages of the `(min, max)` range. Requires both `min` and 
     }
   }
 }
+
 ```
 
 Calculation: `trigger_value = min + (percentage * (max - min)) / 100`.
@@ -249,6 +254,7 @@ Matches fields whose name exactly equals the given string.
 {
   "matcher": { "id": "byName", "options": "errors" }
 }
+
 ```
 
 Best for: well-known field names that are stable across query edits. Avoid using with auto-generated names like `"Value #A"` since these change when query order changes.
@@ -261,6 +267,7 @@ Matches fields whose name matches the regex pattern.
 {
   "matcher": { "id": "byRegexp", "options": "/_total$/" }
 }
+
 ```
 
 Best for: matching groups of related fields (e.g., all counter suffixes, all percentile fields). More robust than `byName` when query structure evolves.
@@ -283,6 +290,7 @@ Matches fields by their data type.
 {
   "matcher": { "id": "byType", "options": "number" }
 }
+
 ```
 
 Types: `"number"`, `"string"`, `"time"`, `"boolean"`. Best for applying consistent formatting to all numeric or all string fields regardless of their names.
@@ -295,6 +303,7 @@ Matches all fields produced by a specific query (identified by refId).
 {
   "matcher": { "id": "byFrameRefID", "options": "B" }
 }
+
 ```
 
 Best for: hiding a secondary query's output from the legend while keeping it available for calculations, or applying different styling to data from different datasources.
@@ -307,6 +316,7 @@ Matches fields where the field's value equals (or does not equal) a specific val
 {
   "matcher": { "id": "byValue", "options": { "op": "=", "value": "200" } }
 }
+
 ```
 
 Operators: `"="`, `"!="`, `">"`, `"<"`, `">="`, `"<="`, `"regex"`, `"!regex"`.
@@ -381,6 +391,7 @@ Each property that can be overridden has a unique ID string. Below is the organi
     { "id": "custom.hideFrom", "value": { "legend": true, "tooltip": false, "viz": false } }
   ]
 }
+
 ```
 
 ## Make error counters red and dashed
@@ -395,6 +406,7 @@ Each property that can be overridden has a unique ID string. Below is the organi
     { "id": "custom.fillOpacity", "value": 0 }
   ]
 }
+
 ```
 
 ## Format all numeric fields as percent with 1 decimal
@@ -407,6 +419,7 @@ Each property that can be overridden has a unique ID string. Below is the organi
     { "id": "decimals", "value": 1 }
   ]
 }
+
 ```
 
 ## Color table cells by status code value
@@ -419,6 +432,7 @@ Each property that can be overridden has a unique ID string. Below is the organi
     { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "red", "value": null }] } }
   ]
 }
+
 ```
 
 ## Value Mappings -- Complete Reference
@@ -441,6 +455,7 @@ Exact match on specific scalar values.
     "3": { "text": "UNKNOWN", "color": "gray" }
   }
 }
+
 ```
 
 Key-value pairs where keys are the raw values (as strings) and values contain optional `text` (display label) and `color` (display color). Both `text` and `color` are optional within each result.
@@ -458,6 +473,7 @@ Map numeric ranges to labels. Ranges are inclusive on both ends.
     { "from": 500, "to": 999999, "result": { "text": "Down", "color": "red" } }
   ]
 }
+
 ```
 
 Ranges must not overlap. Order does not matter for range evaluation -- Grafana finds the matching range by checking which range contains the value.
@@ -477,6 +493,7 @@ Pattern-based matching against string values.
     { "pattern": ".*", "result": { "text": "Unknown", "color": "gray" } }
   ]
 }
+
 ```
 
 Patterns are evaluated in array order. Use `.*` as a catch-all fallback at the end of the list.
@@ -496,6 +513,7 @@ Handle sentinel values that have no regular representation: null, NaN, boolean s
     "": { "text": "(empty)", "color": "light-gray" }
   }
 }
+
 ```
 
 Always include special mappings when your data source can produce null or NaN values. Without them, stat panels show ugly raw values like `"null"` or `"NaN"`.
@@ -529,6 +547,7 @@ Real-world pattern combining multiple mapping types:
     }
   ]
 }
+
 ```
 
 Evaluation order: special checks first (null/NaN), then exact value match, then regex pattern match.
@@ -560,6 +579,7 @@ Data links attach clickable URLs to data points. When an operator clicks a data 
     }
   }
 }
+
 ```
 
 Link fields:
@@ -636,6 +656,7 @@ Available when clicking a specific data point (not just hovering over a series).
   "url": "https://jaeger.example.com/search${__url_time_range}&service=${__data.fields.service}&operation=${__data.fields.operation}",
   "targetBlank": true
 }
+
 ```
 
 #### Pattern 2: Open runbook for alert
@@ -646,6 +667,7 @@ Available when clicking a specific data point (not just hovering over a series).
   "url": "https://wiki.example.com/runbooks/${__data.fields.alertname}",
   "targetBlank": true
 }
+
 ```
 
 #### Pattern 3: Filter downstream dashboard by clicked value
@@ -655,6 +677,7 @@ Available when clicking a specific data point (not just hovering over a series).
   "title": "Drill into Service",
   "url": "/d/service-detail?var-service=${__data.fields.service}&from=${__from}&to=${__to}"
 }
+
 ```
 
 Note: internal dashboard links use relative paths starting with `/d/<uid>` or `/d-solo/<uid>`.
@@ -667,6 +690,7 @@ Note: internal dashboard links use relative paths starting with `/d/<uid>` or `/
   "url": "https://app.datadoghq.com/metric/explorer?query=${__series.name:percentencode}&from=${__from}&to=${__to}",
   "targetBlank": true
 }
+
 ```
 
 #### Pattern 5: Source code lookup with instance context
@@ -677,6 +701,7 @@ Note: internal dashboard links use relative paths starting with `/d/<uid>` or `/
   "url": "https://github.example.com/org/repo/search?q=instance:${__data.fields.instance:percentencode}",
   "targetBlank": true
 }
+
 ```
 
 ### Per-Field vs Per-Default Links
@@ -707,6 +732,7 @@ Links can be set at the default level (apply to all fields) or via overrides (ap
     ]
   }
 }
+
 ```
 
 Override links replace (do not merge with) default links for matched fields. Include all needed links in the override if you want to preserve default links alongside additional ones.

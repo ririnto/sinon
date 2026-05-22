@@ -30,6 +30,7 @@ providers:
     type: file
     options:
       path: /var/lib/grafana/dashboards/operations
+
 ```
 
 Example filesystem-mirror provider:
@@ -42,6 +43,7 @@ providers:
     options:
       path: /var/lib/grafana/dashboards
       foldersFromFilesStructure: true
+
 ```
 
 Example tree for filesystem mirroring:
@@ -52,6 +54,7 @@ Example tree for filesystem mirroring:
     overview.json
   platform/
     capacity.json
+
 ```
 
 This produces two Grafana folders: `api` (containing overview) and `platform` (containing capacity).
@@ -79,6 +82,7 @@ providers:
     options:
       path: /var/lib/grafana/dashboards
       foldersFromFilesStructure: true
+
 ```
 
 Valid -- folder is omitted:
@@ -91,6 +95,7 @@ providers:
     options:
       path: /var/lib/grafana/dashboards
       foldersFromFilesStructure: true
+
 ```
 
 ## No nested folder support (one level only)
@@ -106,6 +111,7 @@ dashboards/
   team-b/
     dashboard-2.json        --> Grafana folder "team-b"
   root-dashboard.json       --> Grafana root (no folder)
+
 ```
 
 Tree with ignored nesting:
@@ -116,6 +122,7 @@ dashboards/
     subproject/
       dashboard-3.json      --> NOT provisioned (too deep)
     dashboard-1.json        --> Grafana folder "team-a" (this one works)
+
 ```
 
 ## Root-level dashboards go to Grafana root
@@ -127,6 +134,7 @@ dashboards/
   global-overview.json       --> Grafana root folder
   team-a/
     sprint.json              --> Grafana folder "team-a"
+
 ```
 
 ## Folder UIDs are auto-generated
@@ -151,6 +159,7 @@ providers:
     type: file
     options:
       path: /var/lib/grafana/dashboards/target
+
 ```
 
 Use when: the folder name might change but the UID must remain stable across deployments.
@@ -174,6 +183,7 @@ Representative API payload:
   "folderUid": "xyz789ghi",
   "overwrite": true
 }
+
 ```
 
 Use when: the blocker is translating a dashboard between provider-path files and an API or resource workflow that explicitly asks for `folderUid`. Keep this envelope out of legacy file-provisioning source directories.

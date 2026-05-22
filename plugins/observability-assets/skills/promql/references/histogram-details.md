@@ -26,6 +26,7 @@ http_request_duration_seconds_bucket{le="0.1"}   => 10
 http_request_duration_seconds_bucket{le="0.5"}   => 30
 http_request_duration_seconds_bucket{le="1"}     => 50
 http_request_duration_seconds_bucket{le="+Inf"}  => 50
+
 ```
 
 If the highest bucket is not `+Inf`, `histogram_quantile` returns NaN.
@@ -39,6 +40,7 @@ histogram_quantile(
   0.99,
   sum by (job, le) (rate(http_request_duration_seconds_bucket[5m]))
 )
+
 ```
 
 Native -- normal aggregation:
@@ -48,6 +50,7 @@ histogram_quantile(
   0.99,
   sum by (job) (rate(http_request_duration_seconds[5m]))
 )
+
 ```
 
 Forgetting `le` in the classic `by` clause is the most common histogram aggregation mistake. It collapses all buckets into one, making quantiles meaningless.

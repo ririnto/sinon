@@ -25,6 +25,7 @@ Enable newer provisioning paths in `grafana.ini`:
 ```ini
 [feature_toggles]
 enable = provisioning,kubernetesDashboards
+
 ```
 
 Toggle meanings:
@@ -72,6 +73,7 @@ spec:
       targets:
         - expr: sum(rate(http_requests_total[5m])) by (method)
           legendFormat: "{{method}}"
+
 ```
 
 Key differences from legacy file provisioning:
@@ -94,6 +96,7 @@ metadata:
   name: my-dashboard
 spec:
   title: My Dashboard
+
 ```
 
 Use when: the blocker is understanding the minimum config shape that distinguishes the newer K8s provisioning path from legacy provider YAML.
@@ -118,6 +121,7 @@ Representative API payload:
   "overwrite": true,
   "message": "sync from automation"
 }
+
 ```
 
 Use when: the blocker is an HTTP API workflow that explicitly requires `dashboard`, `folderUid`, `overwrite`, or `message`. Keep this payload shape out of legacy provider-path source directories.
@@ -147,6 +151,7 @@ datasources:
       httpMethod: POST
       manageAlerts: true
       prometheusType: Prometheus
+
 ```
 
 Key differences from dashboard provisioning:

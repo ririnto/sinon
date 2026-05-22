@@ -38,6 +38,7 @@ Broken — raw UI export with unstable fields:
     }
   ]
 }
+
 ```
 
 Better — cleaned, Git-owned JSON with stable identity:
@@ -63,6 +64,7 @@ Better — cleaned, Git-owned JSON with stable identity:
     }
   ]
 }
+
 ```
 
 Use this when the blocker is deciding what the cleaned, Git-owned JSON should still preserve after unstable export fields are removed.
@@ -84,6 +86,7 @@ Rendered JSON only changed:
 
 Source Jsonnet only changed:
 - check whether rendered artifacts were intentionally deferred
+
 ```
 
 Use this reference for ownership boundaries, not for ordinary dashboard review. Normal decisions about variables, legends, thresholds, links, annotations, or panel readability stay in [`../SKILL.md`](../SKILL.md).

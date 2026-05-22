@@ -16,6 +16,7 @@ Template files are loaded from paths listed under the top-level `templates:` key
 templates:
   - '/etc/alertmanager/templates/*.tmpl'
   - '/etc/alertmanager/templates/custom/*.tmpl'
+
 ```
 
 Paths are resolved relative to the config file location directory. Globs are supported. Alertmanager ships two built-in templates that are always loaded:
@@ -225,6 +226,7 @@ Defensive pattern for optional labels:
 {{ define "alert.summary" }}
 {{ .CommonLabels.alertname }}{{ with .CommonLabels.service }} for {{ . }}{{ end }}
 {{ end }}
+
 ```
 
 Per-alert expansion pattern when grouped labels are insufficient:
@@ -235,6 +237,7 @@ Per-alert expansion pattern when grouped labels are insufficient:
 - {{ .Labels.instance }}: {{ .Annotations.summary }}
 {{ end -}}
 {{ end }}
+
 ```
 
 Receiver-side JSON shape for webhook integrations:
@@ -259,6 +262,7 @@ Receiver-side JSON shape for webhook integrations:
   "commonAnnotations": { "summary": "API is down" },
   "externalURL": "https://alertmanager.example.com"
 }
+
 ```
 
 Webhook receivers get Alertmanager's fixed JSON body based on the same `Data` fields; customize the outgoing format in the HTTP receiver or an intermediary service, not with a `webhook_configs` body field.
@@ -270,6 +274,7 @@ Time formatting with timezone conversion:
 Started: {{ date "2006-01-02 15:04:05 MST" (.StartsAt | tz "America/New_York") }}
 Duration: {{ humanizeDuration (since .StartsAt) }}
 {{ end }}
+
 ```
 
 Building structured data with `dict` for template reuse:
@@ -278,6 +283,7 @@ Building structured data with `dict` for template reuse:
 {{ define "custom.incident_json" }}
 {{ dict "alertname" .CommonLabels.alertname "status" .Status "count" (.Alerts.Firing | len) | toJson }}
 {{ end }}
+
 ```
 
 ## Review Questions
