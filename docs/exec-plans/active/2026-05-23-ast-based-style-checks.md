@@ -497,6 +497,67 @@ manifest의 9개 disabled add-on 모두를 red-green으로 활성화하고, 새 
 
 - [ ] Task 7.1 — manifest의 forbidEarlyReturn 등 9개 add-on enabled로 전환 + 각 stack에 구현 추가. *별도 plan으로 분리*.
 
+### [-] Phase 10: HarnessCheck enum → Rule strategy 분리 (4 stack, 진행 중)
+
+enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단일 파일이 됨. 구조 분리:
+
+- enum은 `(category, ruleInstance)` 쌍과 위임 메서드만 보유.
+- 새 `HarnessCheckRule` interface/ABC를 도입해 `applies` + `validate` 시그니처 통일.
+- 각 enum constant에 대응하는 `*Rule` class를 개별 파일로 분리.
+- 기존 외부 `*Result` DTO는 해당 Rule class의 nested class(static inner / namespace / dataclass nested / TS namespace)로 이동.
+
+진행 절차:
+
+- [x] Task 10.1 — Python (uv): 28개 Rule class + `rules/` 디렉터리 + `harness_check_rule.py` ABC. 완료.
+- [-] Task 10.2 — Kotlin (gradle/buildSrc): 25 enum 분리. orphan Result 7개와 그 visitor는 다음 add-on 활성화 단계에서 처리. 진행 중.
+- [x] Task 10.3 — Java (maven): enum 분리 완료 (31 Rule class, HarnessCheck.java 81줄). nested Result 이동은 별도 분기에서 처리 (현 enum이 사용하는 외부 Result 없음).
+- [x] Task 10.4 — TypeScript (bun): Rule class 분리 + namespace nested Result. 완료 (30 Rule class, harness-check.ts 356줄).
+- [ ] Task 10.5 — 4 stack 모두 `plugin-self-check.sh` PASS 확인 후 일괄 commit.
+
+### [ ] Phase 11: HarnessCheckRule.validate 반환형 List → Collection 일반화
+
+`validate`는 호출부에서 합치기/순회만 하면 충분하므로 반환형을 더 일반적인 `Collection`(JVM) / `Iterable`(Python) / `readonly Finding[]`(TS)로 확대.
+
+- [ ] Task 11.1 — JVM 두 stack: `Collection<Finding>`으로 시그니처 변경. 구현 클래스 반환형도 좁힘 없이 상위 타입 사용.
+- [ ] Task 11.2 — Python: `Iterable[Finding]` 또는 `Sequence[Finding]`로 변경. 호출부는 `list(...)`로 좁힘.
+- [ ] Task 11.3 — TypeScript: `Iterable<Finding>` 또는 `readonly Finding[]`로 변경.
+
+전제: Phase 10 완료 후 진행.
+
+### [ ] Phase 12: 중간 `return emptyList()` 제거
+
+각 Rule 본문 안의 early-return guard (예: `if (...) return emptyList()`, `return Collections.emptyList()`, `return []`)를 모두 제거하고 single-exit + buildList / Stream / list comprehension 패턴으로 통합. `forbidEarlyReturn` add-on과 자연스럽게 정합.
+
+- [ ] Task 12.1 — Kotlin: `buildList { ... }` 또는 `flatMap` 체이닝.
+- [ ] Task 12.2 — Java: `Stream.of(...).filter(...).collect(...)` 등.
+- [ ] Task 12.3 — Python: list comprehension / generator 변환.
+- [ ] Task 12.4 — TypeScript: `Array.from(...)` / `flatMap`.
+
+전제: Phase 10 완료 후 진행 (가능하면 Phase 11과 동시).
+
+### [ ] Phase 12b: `*Rule`을 class → object/singleton로 전환
+
+각 Rule 구현은 상태가 없으므로 인스턴스가 1개면 충분. 매번 `new XxxRule()` 하는 dispatch 등록을 singleton 참조로 단순화한다.
+
+- [ ] Task 12b.1 — Kotlin: `class XxxRule : HarnessCheckRule` → `object XxxRule : HarnessCheckRule`. `HarnessCheck` enum entry는 `XxxRule` 그대로 참조.
+- [ ] Task 12b.2 — Java: `class XxxRule implements HarnessCheckRule`를 enum singleton (`enum XxxRule implements HarnessCheckRule { INSTANCE; ... }`) 또는 private 생성자 + `public static final XxxRule INSTANCE`로 전환. `HarnessCheck` enum entry에는 `XxxRule.INSTANCE` 참조.
+- [ ] Task 12b.3 — Python: 모듈 레벨 singleton (`RULE = ForbidGreaterThanComparisonRule()`)을 export 하거나, 메서드를 `@classmethod`로 노출해 인스턴스 없이 호출.
+- [ ] Task 12b.4 — TypeScript: `class XxxRule` 대신 `export const xxxRule: HarnessCheckRule = { applies(...) {...}, validate(...) {...} }` object literal로. dispatch table은 instance 생성 없이 singleton 참조.
+
+전제: Phase 10 nested Result 이동 commit 후 진행.
+
+### [ ] Phase 13: Rule class 하위 패키지(rules/) 정리
+
+Rule class를 모아 관리할 전용 하위 네임스페이스를 둠. Python/TS는 Phase 10에서 이미 `rules/` 디렉터리로 분리됨. Kotlin/Java는 단일 패키지에 둔 상태이므로 추가 이동 필요.
+
+- [x] Task 13.1 — Python: `runtime/rules/`. Phase 10에서 완료.
+- [x] Task 13.2 — TypeScript: `runtime/rules/`. Phase 10에서 완료.
+- [ ] Task 13.3 — Kotlin: `ai.harness.gradle.rules` 하위 패키지로 이동.
+- [ ] Task 13.4 — Java: `ai.harness.maven.rules` 하위 패키지로 이동.
+- [ ] Task 13.5 — 각 import 경로/manifest validator 참조 갱신 + self-check.
+
+전제: Phase 10 완료 후 진행.
+
 ### [ ] Phase 8: Plan completion
 
 - [ ] Task 8.1 — 본 plan을 `docs/exec-plans/completed/`로 이동

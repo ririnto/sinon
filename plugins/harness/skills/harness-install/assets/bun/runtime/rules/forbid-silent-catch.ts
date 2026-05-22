@@ -1,0 +1,79 @@
+#!/usr/bin/env bun
+import { SyntaxKind, createSourceFile, forEachChild, isCatchClause, isIdentifier, isThrowStatement, type Node, type SourceFile } from "typescript@6.0.3";
+import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "../harness-check-rule";
+
+/**
+ * Forbid silent catch blocks without rethrow, throw, or logging.
+ */
+export class ForbidSilentCatchRule implements HarnessCheckRule {
+  static readonly category = "forbidSilentCatch";
+
+  constructor(private readonly ctx: RuleContext) {}
+
+  applies(_manifest: HarnessManifest): boolean {
+    return true;
+  }
+
+  validate(_root: string, manifest: HarnessManifest): Finding[] {
+    const sources = this.ctx.stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = this.ctx.read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: SourceFile;
+      try {
+        sourceFile = createSourceFile(file, text, SyntaxKind.LatestVersion, true);
+      } catch {
+        return [
+          {
+            severity: this.ctx.severityOf(manifest, ForbidSilentCatchRule.category),
+            category: ForbidSilentCatchRule.category,
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+
+      const hasSafeContent = (block: any): boolean => {
+        if (block.statements.length === 0) {
+          return false;
+        }
+
+        let hasThrowOrRethrow = false;
+
+        const visit = (node: Node): void => {
+          if (isThrowStatement(node)) {
+            hasThrowOrRethrow = true;
+          }
+          if (isIdentifier(node) && node.text && /^(console|logger|log)/.test(node.text)) {
+            hasThrowOrRethrow = true;
+          }
+          forEachChild(node, visit);
+        };
+
+        visit(block);
+        return hasThrowOrRethrow;
+      };
+
+      const visit = (node: Node): void => {
+        if (isCatchClause(node)) {
+          if (!hasSafeContent(node.block)) {
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+            findings.push({
+              severity: this.ctx.severityOf(manifest, ForbidSilentCatchRule.category),
+              category: ForbidSilentCatchRule.category,
+              message: `${file}:${line + 1}: silent catch; rethrow, translate to a Finding, or log via structured logger`,
+            });
+          }
+        }
+        forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  }
+}
