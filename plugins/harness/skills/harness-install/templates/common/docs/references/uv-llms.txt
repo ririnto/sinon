@@ -1,6 +1,0 @@
-Replaceable seed reference for uv/Python environment context.
-
-Purpose: provide LLM-readable Python package-management context only when the target repository uses uv.
-When to update: replace or remove this seed when the Python environment policy is known.
-Required evidence: cite pyproject.toml, uv.lock, scripts, or local toolchain notes used by agents.
-Validation link: run the stack-specific harness validation command listed in .claude/harness/README.md after replacing or removing this file.

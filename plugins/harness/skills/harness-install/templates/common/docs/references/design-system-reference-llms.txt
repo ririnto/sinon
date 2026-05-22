@@ -1,6 +1,0 @@
-Replaceable seed reference for design-system context.
-
-Purpose: provide LLM-readable design-system source material when the target repository has a design system.
-When to update: replace this seed with project-specific tokens, component rules, accessibility rules, and source links.
-Required evidence: cite the design-system source files, package, Figma export, or documentation snapshot used by agents.
-Validation link: run the stack-specific harness validation command listed in .claude/harness/README.md after replacing this file.
