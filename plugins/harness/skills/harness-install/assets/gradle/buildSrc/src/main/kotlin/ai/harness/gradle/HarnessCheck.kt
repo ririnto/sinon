@@ -18,6 +18,32 @@ import kotlin.io.path.name
 import kotlin.io.path.readSymbolicLink
 import kotlin.io.path.readText
 import kotlin.io.path.walk
+import ai.harness.gradle.rules.HarnessCheckRule
+import ai.harness.gradle.rules.RequireFilesExistRule
+import ai.harness.gradle.rules.RequireDirectoriesExistRule
+import ai.harness.gradle.rules.RequireKeefileInEmptyDirectoriesRule
+import ai.harness.gradle.rules.RequireTemplateGroupsRule
+import ai.harness.gradle.rules.RequireDocHeadingsRule
+import ai.harness.gradle.rules.RequireDocContentRule
+import ai.harness.gradle.rules.RequireAgentFrontmatterRule
+import ai.harness.gradle.rules.RequireSkillFrontmatterRule
+import ai.harness.gradle.rules.ForbidScaffoldLeaksRule
+import ai.harness.gradle.rules.RequireHookShebangRule
+import ai.harness.gradle.rules.RequireHookExecutableRule
+import ai.harness.gradle.rules.RequireHookGeneratedMarkerRule
+import ai.harness.gradle.rules.RequireHookStageRule
+import ai.harness.gradle.rules.RequireHookCommandRule
+import ai.harness.gradle.rules.RequireCiCommandMatchesHookRule
+import ai.harness.gradle.rules.RequireEnvShebangUnderRule
+import ai.harness.gradle.rules.ForbidUncheckedTasksUnderRule
+import ai.harness.gradle.rules.ForbidUnsafeSymlinksRule
+import ai.harness.gradle.rules.ForbidGreaterThanComparisonRule
+import ai.harness.gradle.rules.ForbidBlankLineInLeafFunctionRule
+import ai.harness.gradle.rules.ForbidImplicitLambdaItRule
+import ai.harness.gradle.rules.RequireSingleTopLevelKotlinDeclarationRule
+import ai.harness.gradle.rules.ForbidWildcardImportRule
+import ai.harness.gradle.rules.ForbidEmptyCatchBlockRule
+import ai.harness.gradle.rules.RequireBracesOnIfRule
 
 /**
  * Enumeration of all harness validation checks.

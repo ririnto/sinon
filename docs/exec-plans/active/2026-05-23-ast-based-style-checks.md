@@ -535,7 +535,7 @@ enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단�
 
 전제: Phase 10 완료 후 진행 (가능하면 Phase 11과 동시).
 
-### [ ] Phase 12b: `*Rule`을 class → object/singleton로 전환
+### [x] Phase 12b: `*Rule`을 class → object/singleton로 전환 (commit 1eb1b8f)
 
 각 Rule 구현은 상태가 없으므로 인스턴스가 1개면 충분. 매번 `new XxxRule()` 하는 dispatch 등록을 singleton 참조로 단순화한다.
 
@@ -574,6 +574,24 @@ Phase 12에서 처리한 early-return 제거의 후속 정리. guard `if (!cond)
 - [ ] Task 12d.4 — TypeScript: 동일 패턴. type narrowing이 깨지지 않게 union 처리 주의.
 
 전제: Phase 12c(filter/map 단순화) 완료 후 진행. 12c에서 선언형으로 바뀐 코드는 12d 대상이 아님.
+
+### [ ] Phase 12e: 단일 사용 지역 변수 inline 처리
+
+한 번만 사용되고 이름이 추가 의미를 더하지 않는 지역 변수는 사용처에 inline. 코드를 짧게 유지하고 잡음을 줄인다.
+
+기준:
+
+- 변수의 use site가 1곳이고, 그 use site가 같은 함수 안에 있으며, RHS 표현식이 짧다.
+- 변수 이름이 의미 부여 / 디버깅 편의를 위해 *필요한* 경우는 유지.
+- 부작용(IO, 예외, 카운터 증가)을 가진 표현식은 분리 보존.
+- type widening / explicit type assertion 목적이라면 유지.
+
+- [ ] Task 12e.1 — Kotlin: `val x = computeY(); return x` → `return computeY()`. `val tmp = a.b.c; tmp.doX()` → `a.b.c.doX()`. IDE Inline 사용 또는 수작업.
+- [ ] Task 12e.2 — Java: 동일. `var` / `final` 단일-사용 지역 변수 inline.
+- [ ] Task 12e.3 — Python: 동일. 단, type annotation 보존을 위해 inline 후 변수가 사라지면 RHS 표현식에 type hint를 옮길 수 있는 경우만.
+- [ ] Task 12e.4 — TypeScript: 동일. type inference로 안전하게 inline 가능한 경우만.
+
+전제: Phase 12d(조건 반전) 완료 후 진행 — 반전 과정에서 도입된 임시 boolean도 한 번 쓰는 경우 inline 후보가 됨.
 
 ### [ ] Phase 13: Rule class 하위 패키지(rules/) 정리
 

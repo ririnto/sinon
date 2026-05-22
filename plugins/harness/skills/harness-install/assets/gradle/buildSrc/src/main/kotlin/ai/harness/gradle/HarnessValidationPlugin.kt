@@ -37,6 +37,10 @@ import kotlin.io.path.name
 import kotlin.io.path.readText
 import kotlin.io.path.walk
 import kotlin.io.path.writeText
+import ai.harness.gradle.rules.ForbidGreaterThanComparisonRule
+import ai.harness.gradle.rules.ForbidBlankLineInLeafFunctionRule
+import ai.harness.gradle.rules.ForbidImplicitLambdaItRule
+import ai.harness.gradle.rules.RequireSingleTopLevelKotlinDeclarationRule
 
 /**
  * Registers the harness validation task on the root project.
