@@ -247,6 +247,15 @@
     "filenamePattern": "*.md",
     "uncheckedTaskPattern": "^\\s*-\\s*\\[ \\]\\s"
   },
+  "requireSingleTopLevelKotlinDeclaration": {
+    "description": "Each Kotlin source file under `directories` MUST declare exactly one top-level declaration, and that declaration MUST be one of `allowedDeclarations`. Catches accidental top-level `val`/`var`/`fun` declarations that bypass the per-file module boundary.",
+    "enabled": true,
+    "severity": "ERROR",
+    "failureMessageTemplate": "Kotlin file {file} has multiple top-level declarations or a disallowed declaration kind",
+    "directories": ["docs/harness/gradle-plugin/src/main/kotlin"],
+    "filenameSuffix": ".kt",
+    "allowedDeclarations": ["class", "interface", "enum class", "data class", "sealed class", "object", "abstract class"]
+  },
   "warnUnknownManifestKeys": {
     "description": "Emit a WARN finding for any top-level key in this manifest that is not listed in `knownKeys`. Lets new add-ons land without breaking older validators — the unknown key is reported and the validator continues. validator MUST treat this entry as enabled when present, regardless of severity (severity controls reporting level only).",
     "severity": "WARN",
@@ -273,6 +282,7 @@
       "requireEnvShebangUnder",
       "forbidUncheckedTasksUnder",
       "forbidUnsafeSymlinks",
+      "requireSingleTopLevelKotlinDeclaration",
       "warnUnknownManifestKeys",
       "seedFiles",
       "generatedArtifacts",
