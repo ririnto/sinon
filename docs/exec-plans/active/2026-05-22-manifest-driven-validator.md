@@ -140,22 +140,24 @@ harness는 versioning하지 않으며, manifest 자체가 self-documenting 문�
 
 검증: self-check PASS, shellcheck PASS, install --mode bun dry-run 성공.
 
-### [ ] Phase 10: 각 stack depth 평탄화 + buildSrc 이동 (병렬)
+### [x] Phase 10: 각 stack depth 평탄화 + buildSrc 이동
 
-각 task는 다른 stack 디렉토리. 서로 독립.
+- [x] Task 10.1 — Gradle: `assets/gradle/docs/harness/gradle-plugin/` → `assets/gradle/buildSrc/` git mv
+- [x] Task 10.2 — Maven: `assets/maven/docs/harness/maven-plugin/` → `assets/maven/harness-maven-plugin/` git mv
+- [x] Task 10.3 — uv: `assets/uv/docs/harness/uv/` 구조 유지 (target이 docs/harness/uv를 그대로 받음)
+- [x] Task 10.4 — bun: uv와 동일 형태 (변경 없음)
 
-- [ ] Task 10.1 — Gradle: `assets/gradle/docs/harness/gradle-plugin/` → `assets/gradle/buildSrc/`로 이동. 내부 구조(`src/main/kotlin/...`)는 buildSrc 자동 인식 형태로 정리. `settings.gradle.kts`는 buildSrc 내부에서는 trivial 또는 제거
-- [ ] Task 10.2 — Maven: `assets/maven/docs/harness/maven-plugin/` → `assets/maven/harness-maven-plugin/`로 1-depth 이동. target 설치 시 root submodule로 배치
-- [ ] Task 10.3 — uv: `assets/uv/docs/harness/uv/` 구조를 유지하되 `assets/uv/`를 1-depth 진입점으로 (필요시 `docs/harness/uv/` 그대로 사본 매핑은 install 스크립트에서 처리)
-- [ ] Task 10.4 — bun: uv와 동일 형태 정비
+### [x] Phase 11: stack 평탄화 후속 install/validate 갱신
 
-### [ ] Phase 11: stack 평탄화 후속 install/validate 갱신 (직렬)
+- [x] Task 11.1 — install-harness.sh: ensure_gradle_settings_include 제거, install_gradle은 build.gradle.kts에만 `apply(plugin)` append. Gradle buildSrc는 자동 인식이므로 settings.gradle.kts patch 불필요
+- [x] Task 11.2 — Maven validation command: `mvn -q -f harness-maven-plugin/pom.xml install ...`
+- [x] Task 11.3 — manifest.json 갱신: `directories`의 `docs/harness/gradle-plugin/src/main/kotlin` → `buildSrc/src/main/kotlin`, `allowedCommands.maven` → `harness-maven-plugin/pom.xml`
+- [x] Task 11.4 — plugin-self-check.sh require_file 경로 갱신
+- [x] Task 11.5 — plugins/harness/README.md + assets/common/docs/harness/README.md narrative 갱신 (buildSrc / harness-maven-plugin)
+- [x] Task 11.6 — Gradle dry-run: target/buildSrc/ 에 배치 확인, target/docs/harness/gradle-plugin/ 부재 확인
+- [x] Task 11.7 — Maven dry-run: target/harness-maven-plugin/ 에 배치 확인, target/docs/harness/maven-plugin/ 부재 확인
 
-Phase 10의 새 경로를 install-harness.sh와 stack-specific install 로직에 반영. Gradle의 경우 `buildSrc/`를 target root에 복사하도록 변경(기존 `includeBuild`/`apply false` 제거).
-
-- [ ] Task 11.1 — `install-harness.sh`의 stack copy 로직을 Phase 10 결과에 맞춰 갱신
-- [ ] Task 11.2 — Gradle target root에서 buildSrc 자동 인식이 되도록 settings.gradle.kts patch 로직 단순화
-- [ ] Task 11.3 — Gradle pre-commit/pre-push hook은 `gradlew harnessValidate` 그대로 동작 확인
+검증: self-check PASS, shellcheck PASS, gradle/maven dry-run 모두 성공.
 
 ### [ ] Phase 12: Shell stack adapter (병렬 가능 단계)
 

@@ -361,7 +361,7 @@
           "gradle check"
         ],
         "maven": [
-          "mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate"
+          "mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate"
         ],
         "uv": [
           "uv run python docs/harness/uv/harness_validate.py"
@@ -450,7 +450,7 @@
     },
     "parameters": {
       "directories": [
-        "docs/harness/gradle-plugin/src/main/kotlin"
+        "buildSrc/src/main/kotlin"
       ],
       "filenameSuffix": ".kt"
     }
@@ -464,7 +464,7 @@
     },
     "parameters": {
       "directories": [
-        "docs/harness/gradle-plugin/src/main/kotlin"
+        "buildSrc/src/main/kotlin"
       ],
       "filenameSuffix": ".kt",
       "allowedDeclarations": [

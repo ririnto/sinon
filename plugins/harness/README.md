@@ -147,13 +147,13 @@ In installed target repositories, `AGENTS.md` is the primary harness contract. `
 | --- | --- | --- |
 | Gradle local harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
 | Gradle final check | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| Maven | `pom.xml` | `mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
+| Maven | `pom.xml` | `mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
 | uv | `uv.lock` or Python `pyproject.toml` | `uv run python docs/harness/uv/harness_validate.py` |
 | bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun run docs/harness/bun/harness-validate.ts` |
 
 Run validation commands from the target repository root. The uv, bun, and Maven validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes.
 
-Gradle installer wiring prepends a composite build include for `docs/harness/gradle-plugin`. Complex existing `settings.gradle(.kts)` files, especially those with custom plugin management or composite builds, SHOULD be reviewed manually after installation.
+Gradle installer wiring prepends a `buildSrc/` directory. Existing `buildSrc/` directories in the target repo MUST be reviewed before install; the harness expects a fresh `buildSrc/` and will conflict otherwise.
 
 ## Git Hooks
 
