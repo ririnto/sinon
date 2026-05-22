@@ -1,84 +1,128 @@
 package ai.harness.gradle.rules
 
+import ai.harness.gradle.Finding
+import ai.harness.gradle.HarnessCheck
+import ai.harness.gradle.HarnessCheckRule
+import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.readText
-import ai.harness.gradle.Finding
-import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
-import ai.harness.gradle.HarnessPsiResults
 
 /**
  * Rule that requires hooks to declare and run validation commands.
  */
 object RequireHookCommandRule : HarnessCheckRule {
-	override fun applies(manifest: JsonObject): Boolean {
-		val category = "requireHookCommand"
-		val catObj = manifest[category]?.jsonObject ?: return false
-		val enabled = catObj["enabled"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: true
-		return enabled
-	}
+    override fun applies(manifest: JsonObject): Boolean {
+        val category = "requireHookCommand"
+        val catObj = manifest[category]?.jsonObject ?: return false
+        val enabled = catObj["enabled"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: true
+        return enabled
+    }
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
-		val category = "requireHookCommand"
-		val severity = HarnessCheck.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject
-		val parametersObj = catObj?.get("parameters")?.jsonObject
-		val messagesObj = catObj?.get("messages")?.jsonObject
-		return if (catObj == null || parametersObj == null || messagesObj == null) {
-			emptyList()
-		} else {
-			val allowedCmdObj = parametersObj["allowedCommands"]?.jsonObject
-			val allowedCmds = HarnessCheck.stringArrayFrom(allowedCmdObj, "gradle")
-			val allowedPreCommitCmdObj = parametersObj["allowedPreCommitCommands"]?.jsonObject
-			val allowedPreCommitCmds = HarnessCheck.stringArrayFrom(allowedPreCommitCmdObj, "gradle")
-			val prePushPath = HarnessCheck.stringFrom(parametersObj, "prePushHook")
-			val preCommitPath = HarnessCheck.stringFrom(parametersObj, "preCommitHook")
-			val prePushHook = root / prePushPath
-			val preCommitHook = root / preCommitPath
-			val prePushFindings = if (prePushHook.isRegularFile()) {
-				val text = prePushHook.readText()
-				val command = text.lineSequence().firstOrNull { it.startsWith("# Harness validation command: ") }?.removePrefix("# Harness validation command: ")?.trim() ?: ""
-				listOfNotNull(
-					if (command.isEmpty()) {
-						val msg = HarnessCheck.stringFrom(messagesObj, "missingDeclaration").takeIf { it.isNotEmpty() } ?: "pre-push hook must declare Harness validation command"
-						Finding(severity, category, msg)
-					} else null,
-					if (command.isNotEmpty() && command !in allowedCmds) {
-						val msg = HarnessCheck.stringFrom(messagesObj, "unsupportedCommand").takeIf { it.isNotEmpty() } ?: "pre-push hook declares unsupported validation command: $command"
-						Finding(severity, category, msg)
-					} else null,
-					if (command.isNotEmpty() && !text.contains(command)) {
-						val msg = HarnessCheck.stringFrom(messagesObj, "commandNotRun").takeIf { it.isNotEmpty() } ?: "pre-push hook must run the declared validation command"
-						Finding(severity, category, msg)
-					} else null
-				)
-			} else {
-				emptyList()
-			}
-			val preCommitFindings = if (preCommitHook.isRegularFile()) {
-				val text = preCommitHook.readText()
-				val command = text.lineSequence().firstOrNull { it.startsWith("# Harness validation command: ") }?.removePrefix("# Harness validation command: ")?.trim() ?: ""
-				listOfNotNull(
-					if (command.isEmpty() && allowedPreCommitCmds.isNotEmpty()) {
-						val msg = HarnessCheck.stringFrom(messagesObj, "missingDeclaration").takeIf { it.isNotEmpty() } ?: "pre-commit hook must declare validation command"
-						Finding(severity, category, msg)
-					} else null,
-					if (command.isNotEmpty() && command !in allowedPreCommitCmds) {
-						val msg = HarnessCheck.stringFrom(messagesObj, "unsupportedCommand").takeIf { it.isNotEmpty() } ?: "pre-commit hook declares unsupported validation command: $command"
-						Finding(severity, category, msg)
-					} else null,
-					if (command.isNotEmpty() && !text.contains(command)) {
-						val msg = HarnessCheck.stringFrom(messagesObj, "commandNotRun").takeIf { it.isNotEmpty() } ?: "pre-commit hook must run the declared validation command"
-						Finding(severity, category, msg)
-					} else null
-				)
-			} else {
-				emptyList()
-			}
-			prePushFindings + preCommitFindings
-		}
-	}
+    override fun validate(
+        manifest: JsonObject,
+        root: Path,
+        psiResults: HarnessPsiResults?,
+    ): Collection<Finding> {
+        val category = "requireHookCommand"
+        val severity = HarnessCheck.severityOf(manifest, category)
+        val catObj = manifest[category]?.jsonObject
+        val parametersObj = catObj?.get("parameters")?.jsonObject
+        val messagesObj = catObj?.get("messages")?.jsonObject
+        return if (catObj == null || parametersObj == null || messagesObj == null) {
+            emptyList()
+        } else {
+            val allowedCmdObj = parametersObj["allowedCommands"]?.jsonObject
+            val allowedCmds = HarnessCheck.stringArrayFrom(allowedCmdObj, "gradle")
+            val allowedPreCommitCmdObj = parametersObj["allowedPreCommitCommands"]?.jsonObject
+            val allowedPreCommitCmds = HarnessCheck.stringArrayFrom(allowedPreCommitCmdObj, "gradle")
+            val prePushPath = HarnessCheck.stringFrom(parametersObj, "prePushHook")
+            val preCommitPath = HarnessCheck.stringFrom(parametersObj, "preCommitHook")
+            val prePushHook = root / prePushPath
+            val preCommitHook = root / preCommitPath
+            val prePushFindings =
+                if (prePushHook.isRegularFile()) {
+                    val text = prePushHook.readText()
+                    val command =
+                        text
+                            .lineSequence()
+                            .firstOrNull {
+                                it.startsWith("# Harness validation command: ")
+                            }?.removePrefix("# Harness validation command: ")
+                            ?.trim()
+                            ?: ""
+                    listOfNotNull(
+                        if (command.isEmpty()) {
+                            val msg =
+                                HarnessCheck.stringFrom(messagesObj, "missingDeclaration").takeIf { it.isNotEmpty() }
+                                    ?: "pre-push hook must declare Harness validation command"
+                            Finding(severity, category, msg)
+                        } else {
+                            null
+                        },
+                        if (command.isNotEmpty() && command !in allowedCmds) {
+                            val msg =
+                                HarnessCheck.stringFrom(messagesObj, "unsupportedCommand").takeIf { it.isNotEmpty() }
+                                    ?: "pre-push hook declares unsupported validation command: $command"
+                            Finding(severity, category, msg)
+                        } else {
+                            null
+                        },
+                        if (command.isNotEmpty() && !text.contains(command)) {
+                            val msg =
+                                HarnessCheck.stringFrom(messagesObj, "commandNotRun").takeIf { it.isNotEmpty() }
+                                    ?: "pre-push hook must run the declared validation command"
+                            Finding(severity, category, msg)
+                        } else {
+                            null
+                        },
+                    )
+                } else {
+                    emptyList()
+                }
+            val preCommitFindings =
+                if (preCommitHook.isRegularFile()) {
+                    val text = preCommitHook.readText()
+                    val command =
+                        text
+                            .lineSequence()
+                            .firstOrNull {
+                                it.startsWith("# Harness validation command: ")
+                            }?.removePrefix("# Harness validation command: ")
+                            ?.trim()
+                            ?: ""
+                    listOfNotNull(
+                        if (command.isEmpty() && allowedPreCommitCmds.isNotEmpty()) {
+                            val msg =
+                                HarnessCheck.stringFrom(messagesObj, "missingDeclaration").takeIf { it.isNotEmpty() }
+                                    ?: "pre-commit hook must declare validation command"
+                            Finding(severity, category, msg)
+                        } else {
+                            null
+                        },
+                        if (command.isNotEmpty() && command !in allowedPreCommitCmds) {
+                            val msg =
+                                HarnessCheck.stringFrom(messagesObj, "unsupportedCommand").takeIf { it.isNotEmpty() }
+                                    ?: "pre-commit hook declares unsupported validation command: $command"
+                            Finding(severity, category, msg)
+                        } else {
+                            null
+                        },
+                        if (command.isNotEmpty() && !text.contains(command)) {
+                            val msg =
+                                HarnessCheck.stringFrom(messagesObj, "commandNotRun").takeIf { it.isNotEmpty() }
+                                    ?: "pre-commit hook must run the declared validation command"
+                            Finding(severity, category, msg)
+                        } else {
+                            null
+                        },
+                    )
+                } else {
+                    emptyList()
+                }
+            prePushFindings + preCommitFindings
+        }
+    }
 }

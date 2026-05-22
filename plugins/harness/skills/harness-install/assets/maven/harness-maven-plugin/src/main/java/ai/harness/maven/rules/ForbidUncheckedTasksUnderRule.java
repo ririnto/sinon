@@ -6,6 +6,7 @@ import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -28,11 +29,16 @@ public enum ForbidUncheckedTasksUnderRule implements HarnessCheckRule {
         final String uncheckedPattern = catNode.get("parameters").get("uncheckedTaskPattern").asText();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         final Path dirPath = root.resolve(directory);
-        if (!HarnessCheckHelper.isSafeDirectory(root, dirPath)) {
-            return List.of();
-        }
         final Pattern pattern = Pattern.compile(uncheckedPattern);
-        return HarnessCheckHelper.safeFileOrWalk(root, dirPath).stream()
+        return Stream.of(dirPath)
+                .filter(p -> HarnessCheckHelper.isSafeDirectory(root, p))
+                .flatMap(p -> {
+                    try {
+                        return HarnessCheckHelper.safeFileOrWalk(root, p).stream();
+                    } catch (MojoExecutionException e) {
+                        return Stream.empty();
+                    }
+                })
                 .filter(f -> f.getFileName().toString().endsWith(".md") && !f.getFileName().toString().equals(".gitkeep"))
                 .flatMap(file -> {
                     try {

@@ -167,10 +167,11 @@ public class HarnessCheckHelper {
      * @return list of string values; empty if node is null or not an array
      */
     public static List<String> extractPaths(JsonNode node) {
-        if (node == null || !node.isArray()) {
-            return List.of();
-        }
-        return Stream.of(node.spliterator(), false).map(JsonNode::asText).toList();
+        return Stream.ofNullable(node)
+                .filter(JsonNode::isArray)
+                .flatMap(n -> Stream.of(n.spliterator(), false))
+                .map(JsonNode::asText)
+                .toList();
     }
 
     /**
@@ -182,34 +183,36 @@ public class HarnessCheckHelper {
      * @throws IOException if walking fails
      */
     public static List<Path> stackSources(JsonNode manifest, String category) throws IOException {
-        final JsonNode catNode = manifest.get(category);
-        if (catNode == null) {
-            return Collections.emptyList();
-        }
-        final JsonNode params = catNode.get("parameters");
-        if (params == null) {
-            return Collections.emptyList();
-        }
-        final JsonNode rootsNode = params.get("sourceRootsPerStack");
-        final JsonNode extsNode = params.get("extensionsPerStack");
-        if (rootsNode == null || extsNode == null) {
-            return Collections.emptyList();
-        }
-        final JsonNode javaRoots = rootsNode.get("java");
-        final JsonNode javaExts = extsNode.get("java");
-        if (javaRoots == null || javaExts == null) {
-            return Collections.emptyList();
-        }
-        final Set<String> extensions = StreamSupport.stream(javaExts.spliterator(), false)
-                .map(JsonNode::asText)
-                .collect(Collectors.toSet());
-        final FileSystem fs = FileSystems.getDefault();
-        return StreamSupport.stream(javaRoots.spliterator(), false)
-                .map(JsonNode::asText)
-                .flatMap(rootEntry -> walkRoot(fs, Path.of("."), rootEntry, extensions).stream())
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
+        return java.util.Optional.ofNullable(manifest.get(category))
+                .map(catNode -> catNode.get("parameters"))
+                .filter(java.util.Objects::nonNull)
+                .map(params -> {
+                    final JsonNode rootsNode = params.get("sourceRootsPerStack");
+                    final JsonNode extsNode = params.get("extensionsPerStack");
+                    return rootsNode != null && extsNode != null ? new JsonNode[]{rootsNode, extsNode} : null;
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(nodes -> {
+                    final JsonNode javaRoots = nodes[0].get("java");
+                    final JsonNode javaExts = nodes[1].get("java");
+                    return javaRoots != null && javaExts != null ? new JsonNode[]{javaRoots, javaExts} : null;
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(nodes -> {
+                    final JsonNode javaRoots = nodes[0];
+                    final JsonNode javaExts = nodes[1];
+                    final Set<String> extensions = StreamSupport.stream(javaExts.spliterator(), false)
+                            .map(JsonNode::asText)
+                            .collect(Collectors.toSet());
+                    final FileSystem fs = FileSystems.getDefault();
+                    return StreamSupport.stream(javaRoots.spliterator(), false)
+                            .map(JsonNode::asText)
+                            .flatMap(rootEntry -> walkRoot(fs, Path.of("."), rootEntry, extensions).stream())
+                            .distinct()
+                            .sorted()
+                            .collect(Collectors.toList());
+                })
+                .orElse(Collections.emptyList());
     }
 
     /**

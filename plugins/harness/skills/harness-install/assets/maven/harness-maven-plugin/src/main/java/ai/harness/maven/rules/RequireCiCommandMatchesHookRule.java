@@ -33,24 +33,29 @@ public enum RequireCiCommandMatchesHookRule implements HarnessCheckRule {
         }
         final String refText = HarnessCheckHelper.readFile(root, refPath);
         final String expectedCmd = extractHookCommand(refText);
-        if (expectedCmd.isEmpty()) {
-            return List.of();
-        }
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("ciFiles")).stream()
-                .flatMap(ciFile -> validateCiFile(root, ciFile, expectedCmd, severity).stream())
+        return Stream.of(expectedCmd)
+                .filter(cmd -> !cmd.isEmpty())
+                .flatMap(cmd -> HarnessCheckHelper.extractPaths(catNode.get("parameters").get("ciFiles")).stream()
+                        .flatMap(ciFile -> validateCiFile(root, ciFile, cmd, severity).stream()))
                 .toList();
     }
 
     private List<Finding> validateCiFile(Path root, String ciFile, String expectedCmd, String severity) throws MojoExecutionException {
         final Path ciPath = root.resolve(ciFile);
-        if (Files.exists(ciPath, LinkOption.NOFOLLOW_LINKS) && HarnessCheckHelper.isSafeRegularFile(root, ciPath)) {
-            final String ciText = HarnessCheckHelper.readFile(root, ciPath);
-            return ciText.contains(expectedCmd)
-                    ? List.of()
-                    : List.of(new Finding(severity, CATEGORY, ciFile + ": CI command mismatch — expected " + expectedCmd));
-        }
-        return List.of();
+        return Stream.of(ciPath)
+                .filter(p -> Files.exists(p, LinkOption.NOFOLLOW_LINKS) && HarnessCheckHelper.isSafeRegularFile(root, p))
+                .flatMap(p -> {
+                    try {
+                        final String ciText = HarnessCheckHelper.readFile(root, p);
+                        return ciText.contains(expectedCmd)
+                                ? Stream.empty()
+                                : Stream.of(new Finding(severity, CATEGORY, ciFile + ": CI command mismatch — expected " + expectedCmd));
+                    } catch (MojoExecutionException e) {
+                        return Stream.empty();
+                    }
+                })
+                .toList();
     }
 
     private String extractHookCommand(String text) {

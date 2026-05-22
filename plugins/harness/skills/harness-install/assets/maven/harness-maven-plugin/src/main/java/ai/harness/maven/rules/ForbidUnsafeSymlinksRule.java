@@ -9,6 +9,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -35,8 +36,8 @@ public enum ForbidUnsafeSymlinksRule implements HarnessCheckRule {
         final List<String> rootBases = List.of("AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md", "docs", ".claude", ".github");
         return rootBases.stream()
                 .flatMap(baseName -> {
+                    final Path base = root.resolve(baseName);
                     try {
-                        final Path base = root.resolve(baseName);
                         return validateSymlinks(root, base, allowedNames, severity).stream();
                     } catch (MojoExecutionException e) {
                         return Stream.empty();

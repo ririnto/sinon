@@ -1,5 +1,10 @@
 #!/usr/bin/env bun
-import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "../harness-check-rule";
+import type {
+	Finding,
+	HarnessCheckRule,
+	HarnessManifest,
+	RuleContext,
+} from "../harness-check-rule";
 
 export const requireHookCommandRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(manifest: HarnessManifest): boolean {

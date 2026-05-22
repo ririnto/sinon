@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -30,21 +31,22 @@ public enum RequireAgentFrontmatterRule implements HarnessCheckRule {
         if (!HarnessCheckHelper.isSafeDirectory(root, directory)) {
             return List.of(new Finding(severity, CATEGORY, ".claude/agents must contain at least one .md agent"));
         }
+        final List<Path> files;
         try (final Stream<Path> stream = Files.list(directory)) {
-            final List<Path> files = stream
+            files = stream
                     .filter(f -> !Files.isSymbolicLink(f) && f.getFileName().toString().endsWith(".md"))
-                    .toList();
-            if (files.isEmpty()) {
-                return List.of(new Finding(severity, CATEGORY, ".claude/agents must contain at least one .md agent"));
-            }
-            final Pattern namePattern = Pattern.compile("(?m)^name:\\s*[-a-z0-9]+\\s*$");
-            final Pattern descPattern = Pattern.compile("(?m)^description:\\s*.+$");
-            return files.stream()
-                    .flatMap(f -> validateAgentFile(root, f, namePattern, descPattern, severity).stream())
                     .toList();
         } catch (IOException e) {
             return List.of();
         }
+        if (files.isEmpty()) {
+            return List.of(new Finding(severity, CATEGORY, ".claude/agents must contain at least one .md agent"));
+        }
+        final Pattern namePattern = Pattern.compile("(?m)^name:\\s*[-a-z0-9]+\\s*$");
+        final Pattern descPattern = Pattern.compile("(?m)^description:\\s*.+$");
+        return files.stream()
+                .flatMap(f -> validateAgentFile(root, f, namePattern, descPattern, severity).stream())
+                .toList();
     }
 
     private List<Finding> validateAgentFile(Path root, Path file, Pattern namePattern, Pattern descPattern, String severity) throws MojoExecutionException {
