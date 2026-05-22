@@ -220,7 +220,7 @@ bun: bun run docs/harness/bun/harness-validate.ts
 - Do not keep obsolete placeholder files as required readiness evidence.
 - Do not treat chat-only instructions as harness evolution.
 - Do not update templates without checking the installed docs or manifest they support.
-- Do not add backward-compatibility shims for unreleased harness drafts.
+- Do not version the harness; treat the current committed manifest and validators as the only authoritative shape. Do not add shims, deprecation paths, or "previous schema" handling — replace, don't layer.
 - Do not treat GitHub Actions and GitLab CI as separate validation definitions; they are renderings of the same command.
 - Do not edit product implementation code while performing harness evolution unless the user separately asked for that implementation.
 - Do not introduce top-level `hooks/hooks.json` for this plugin.

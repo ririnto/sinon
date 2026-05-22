@@ -1,5 +1,4 @@
 {
-  "schemaVersion": "0.5.0",
   "name": "repository-harness",
   "requiredFiles": {
     "severity": "ERROR",
@@ -73,34 +72,34 @@
     "severity": "ERROR",
     "items": [
       {
-        "files": ["AGENTS.md"],
+        "files": ["CLAUDE.md"],
         "containsAll": ["Repository Harness Contract"],
-        "failureMessage": "AGENTS.md must contain Repository Harness Contract"
+        "failureMessage": "root contract (CLAUDE.md, aliased as AGENTS.md) must contain Repository Harness Contract"
       },
       {
         "files": ["CLAUDE.md"],
         "containsAll": ["## Entry Point"],
-        "failureMessage": "CLAUDE.md must contain an Entry Point section"
+        "failureMessage": "root contract must contain an Entry Point section"
       },
       {
         "files": ["CLAUDE.md"],
         "containsAll": ["AGENTS.md"],
-        "failureMessage": "CLAUDE.md must reference AGENTS.md"
+        "failureMessage": "root contract must reference AGENTS.md so both filenames resolve to the same document"
       },
       {
-        "files": ["AGENTS.md"],
+        "files": ["CLAUDE.md"],
         "containsAll": ["docs/generated/"],
-        "failureMessage": "AGENTS.md must describe docs/generated/ semantics"
+        "failureMessage": "root contract must describe docs/generated/ semantics"
       },
       {
-        "files": ["AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md"],
+        "files": ["CLAUDE.md", "ARCHITECTURE.md"],
         "containsAll": ["source command", "regeneration trigger"],
         "failureMessage": "repository docs must describe generated-artifact source command and regeneration trigger metadata"
       },
       {
-        "files": ["AGENTS.md", "CLAUDE.md"],
+        "files": ["CLAUDE.md"],
         "containsAll": ["discovery", "maintenance"],
-        "failureMessage": "repository docs must state that the harness may evolve across development phases"
+        "failureMessage": "root contract must state that the harness may evolve across development phases"
       }
     ]
   },
