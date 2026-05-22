@@ -1,20 +1,16 @@
 # Quality Score
 
-Document quality rubric, thresholds, review evidence, and current readiness gaps.
+Grade each product domain and architectural layer; track gaps, remediation owners, and the validation evidence behind each grade.
 
 ## Purpose
 
-Explain the durable project context this document owns for agents and reviewers.
+Make uneven quality legible. Agents and reviewers SHOULD use this score to decide where new investment pays off and where shortcuts are tolerable.
 
 ## When To Update
 
-Update this document when the owned context changes, when validation points at stale guidance, or when a task depends on undocumented assumptions.
+Update after a domain or layer ships a measurable change to coverage, observability, error rate, or correctness checks; or when a graded gap is closed.
 
 ## Required Evidence
 
-- Link to the source decision, implementation path, command output, issue, or review note that supports the current guidance.
-- Record unknowns explicitly instead of encoding product-specific guesses in the harness scaffold.
-
-## Validation Link
-
-Run the stack-specific harness validation command listed in `docs/harness/README.md` after changing this document.
+- Cite the metric source (CI run, dashboard, audit) that justifies the grade.
+- When grading a gap, name the owner and the remediation criterion that retires it.
