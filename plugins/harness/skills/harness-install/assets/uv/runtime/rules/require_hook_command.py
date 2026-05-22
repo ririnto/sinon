@@ -90,15 +90,17 @@ class RequireHookCommandRule(HarnessCheckRule):
                                 self.category,
                                 messages.get("preCommitMustNotRunFullStack", "pre-commit hook must not run full stack validation commands"),
                             ))
-                        for ci_file in [".github/workflows/harness.yml", ".gitlab-ci.yml"]:
-                            ci_path = root / ci_file
-                            if is_safe_file(ci_path) and declared_command and declared_command not in read_text(ci_path):
-                                msg_template = messages.get("ciCommandMatch", "{}: CI command mismatch — expected {command}")
-                                result.append(Finding(
-                                    severity_for(manifest, self.category),
-                                    self.category,
-                                    msg_template.format(ci_file, command=declared_command),
-                                ))
+                        result.extend(
+                            Finding(
+                                severity_for(manifest, self.category),
+                                self.category,
+                                messages.get("ciCommandMatch", "{}: CI command mismatch — expected {command}").format(
+                                    ci_file, command=declared_command
+                                ),
+                            )
+                            for ci_file in [".github/workflows/harness.yml", ".gitlab-ci.yml"]
+                            if is_safe_file(root / ci_file) and declared_command and declared_command not in read_text(root / ci_file)
+                        )
                     else:
                         return [Finding("ERROR", self.category, f"validation command for stack '{STACK}' missing from manifest")]
         return result

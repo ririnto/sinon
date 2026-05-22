@@ -39,20 +39,20 @@ public enum ForbidSilentCatchRule implements HarnessCheckRule {
     private List<Finding> validateSilentCatch(Path root, Path file, String severity) {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
-            List<Finding> findings = new java.util.ArrayList<>();
-            cu.walk(CatchClause.class, catchClause -> {
-                String catchParam = catchClause.getParameter().getNameAsString();
-                var body = catchClause.getBody();
-                String bodyText = body.toString();
-                boolean hasParamRef = bodyText.contains(catchParam);
-                boolean hasThrow = bodyText.contains("throw ");
-                boolean hasLog = bodyText.matches("(?s).*\\b(getLog|logger|log)\\s*\\..*");
-                if (!hasParamRef && !hasThrow && !hasLog) {
-                    int line = catchClause.getBegin().map(p -> p.line).orElse(-1);
-                    findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": silent catch block"));
-                }
-            });
-            return findings;
+            return cu.findAll(CatchClause.class).stream()
+                    .filter(catchClause -> {
+                        String catchParam = catchClause.getParameter().getNameAsString();
+                        String bodyText = catchClause.getBody().toString();
+                        boolean hasParamRef = bodyText.contains(catchParam);
+                        boolean hasThrow = bodyText.contains("throw ");
+                        boolean hasLog = bodyText.matches("(?s).*\\b(getLog|logger|log)\\s*\\..*");
+                        return !hasParamRef && !hasThrow && !hasLog;
+                    })
+                    .map(catchClause -> {
+                        int line = catchClause.getBegin().map(p -> p.line).orElse(-1);
+                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": silent catch block");
+                    })
+                    .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }

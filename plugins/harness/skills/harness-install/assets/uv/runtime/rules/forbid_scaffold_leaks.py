@@ -63,26 +63,22 @@ class ForbidScaffoldLeaksRule(HarnessCheckRule):
         messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return []
-        result = []
-        for base in active_roots:
-            for path in safe_file_or_walk(base):
-                if not path.is_file():
-                    continue
-                if path.suffix not in extensions:
-                    continue
-                if any(path == ex or ex in path.parents for ex in excluded_paths):
-                    continue
-                text = read_text(path)
-                for pattern, label in compiled_patterns:
-                    if pattern.search(text):
-                        result.append(Finding(
-                            severity_for(manifest, self.category),
-                            self.category,
-                            messages.get("default", "{label} in active asset: {file}").format(
-                                label=label, file=relative(path)
-                            ),
-                        ))
-        return result
+        return [
+            Finding(
+                severity_for(manifest, self.category),
+                self.category,
+                messages.get("default", "{label} in active asset: {file}").format(
+                    label=label, file=relative(path)
+                ),
+            )
+            for base in active_roots
+            for path in safe_file_or_walk(base)
+            if path.is_file()
+            and path.suffix in extensions
+            and not any(path == ex or ex in path.parents for ex in excluded_paths)
+            for pattern, label in compiled_patterns
+            if pattern.search(read_text(path))
+        ]
 
 
 RULE: HarnessCheckRule = ForbidScaffoldLeaksRule()

@@ -42,49 +42,46 @@ public enum ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
             LexicalPreservingPrinter.setup(cu);
-            List<Finding> findings = new java.util.ArrayList<>();
-            cu.walk(MethodDeclaration.class, method -> {
-                if (isLeafMethod(method)) {
-                    method.getBody().ifPresent(body -> {
-                        var tokenRange = body.getTokenRange();
-                        if (tokenRange.isPresent()) {
-                            var tokens = tokenRange.get();
-                            int lastNewlineCount = 0;
-                            for (JavaToken token : tokens) {
-                                String text = token.getText();
-                                if (token.getKind() == JavaToken.Kind.NEWLINE) {
-                                    lastNewlineCount++;
-                                } else if (!text.trim().isEmpty() && !text.matches("\\s+")) {
-                                    if (lastNewlineCount > 1) {
-                                        int line = token.getRange().map(r -> r.begin.line).orElse(-1);
-                                        if (line > 0) {
-                                            findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + (line - 1) + ": blank line in leaf function"));
-                                        }
-                                    }
-                                    lastNewlineCount = 0;
-                                } else if (text.matches("\\s+") && text.contains("\n")) {
-                                    lastNewlineCount += text.chars().filter(c -> c == '\n').count();
-                                }
-                            }
-                        }
-                    });
-                }
-            });
-            return findings;
+            return cu.findAll(MethodDeclaration.class).stream()
+                    .filter(this::isLeafMethod)
+                    .flatMap(method -> method.getBody()
+                            .flatMap(body -> body.getTokenRange()
+                                    .map(tokenRange -> collectBlankLineFindings(root, file, tokenRange, severity))
+                                    .map(java.util.stream.Stream::of)
+                                    .orElse(java.util.stream.Stream.empty()))
+                            .orElse(java.util.stream.Stream.empty())
+                            .stream())
+                    .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }
     }
 
+    private java.util.List<Finding> collectBlankLineFindings(Path root, Path file, com.github.javaparser.TokenRange tokens, String severity) {
+        java.util.List<Finding> findings = new java.util.ArrayList<>();
+        int lastNewlineCount = 0;
+        for (JavaToken token : tokens) {
+            String text = token.getText();
+            if (token.getKind() == JavaToken.Kind.NEWLINE) {
+                lastNewlineCount++;
+            } else if (!text.trim().isEmpty() && !text.matches("\\s+")) {
+                if (lastNewlineCount > 1) {
+                    int line = token.getRange().map(r -> r.begin.line).orElse(-1);
+                    if (line > 0) {
+                        findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + (line - 1) + ": blank line in leaf function"));
+                    }
+                }
+                lastNewlineCount = 0;
+            } else if (text.matches("\\s+") && text.contains("\n")) {
+                lastNewlineCount += text.chars().filter(c -> c == '\n').count();
+            }
+        }
+        return findings;
+    }
+
     private boolean isLeafMethod(MethodDeclaration method) {
         return method.getBody()
-                .map(body -> {
-                    java.util.List<MethodDeclaration> nestedMethods = new java.util.ArrayList<>();
-                    java.util.List<com.github.javaparser.ast.expr.LambdaExpr> lambdas = new java.util.ArrayList<>();
-                    body.walk(MethodDeclaration.class, nestedMethods::add);
-                    body.walk(com.github.javaparser.ast.expr.LambdaExpr.class, lambdas::add);
-                    return nestedMethods.isEmpty() && lambdas.isEmpty();
-                })
+                .map(body -> body.findAll(MethodDeclaration.class).isEmpty() && body.findAll(com.github.javaparser.ast.expr.LambdaExpr.class).isEmpty())
                 .orElse(false);
     }
 }

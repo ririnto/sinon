@@ -39,28 +39,32 @@ class RequireHookGeneratedMarkerRule(HarnessCheckRule):
         messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return []
-        result = []
-        for hook in hooks:
-            if not isinstance(hook, str) or not is_safe_file(root / hook):
-                continue
-            text = read_text(root / hook)
-            hook_name = Path(hook).name
-            expected_marker = marker_template.format(name=hook_name)
-            if expected_marker not in text:
-                result.append(Finding(
-                    severity_for(manifest, self.category),
-                    self.category,
-                    messages.get("missingMarker", "{hook} must contain generated marker '{marker}'").format(
-                        hook=hook, marker=expected_marker
-                    ),
-                ))
-            if isinstance(placeholder_forbidden, str) and placeholder_forbidden in text:
-                result.append(Finding(
-                    severity_for(manifest, self.category),
-                    self.category,
-                    messages.get("placeholderPresent", "{hook} still contains packaging placeholder text").format(hook=hook),
-                ))
-        return result
+        valid_hooks = [
+            (hook, read_text(root / hook), Path(hook).name)
+            for hook in hooks
+            if isinstance(hook, str) and is_safe_file(root / hook)
+        ]
+        findings = [
+            Finding(
+                severity_for(manifest, self.category),
+                self.category,
+                messages.get("missingMarker", "{hook} must contain generated marker '{marker}'").format(
+                    hook=hook, marker=marker_template.format(name=hook_name)
+                ),
+            )
+            for hook, text, hook_name in valid_hooks
+            if marker_template.format(name=hook_name) not in text
+        ]
+        findings.extend(
+            Finding(
+                severity_for(manifest, self.category),
+                self.category,
+                messages.get("placeholderPresent", "{hook} still contains packaging placeholder text").format(hook=hook),
+            )
+            for hook, text, _ in valid_hooks
+            if isinstance(placeholder_forbidden, str) and placeholder_forbidden in text
+        )
+        return findings
 
 
 RULE: HarnessCheckRule = RequireHookGeneratedMarkerRule()

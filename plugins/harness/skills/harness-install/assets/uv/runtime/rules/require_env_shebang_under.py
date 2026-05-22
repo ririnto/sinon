@@ -39,25 +39,20 @@ class RequireEnvShebangUnderRule(HarnessCheckRule):
         if not isinstance(messages, dict):
             return []
         template = messages.get("default", "executable script should use /usr/bin/env shebang: {file}")
-        result = []
-        for directory in directories:
-            if not isinstance(directory, str):
-                continue
-            for path in safe_walk(root / directory):
-                if not path.is_file():
-                    continue
-                if not is_executable(path):
-                    continue
-                line = first_line(path)
-                if not line.startswith("#!"):
-                    continue
-                if not line.startswith(expected_prefix):
-                    result.append(Finding(
-                        severity_for(manifest, self.category),
-                        self.category,
-                        template.format(file=relative(path)),
-                    ))
-        return result
+        return [
+            Finding(
+                severity_for(manifest, self.category),
+                self.category,
+                template.format(file=relative(path)),
+            )
+            for directory in directories
+            if isinstance(directory, str)
+            for path in safe_walk(root / directory)
+            if path.is_file()
+            and is_executable(path)
+            and (line := first_line(path)).startswith("#!")
+            and not line.startswith(expected_prefix)
+        ]
 
 
 RULE: HarnessCheckRule = RequireEnvShebangUnderRule()

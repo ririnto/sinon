@@ -44,23 +44,18 @@ class RequireHookStageRule(HarnessCheckRule):
         if not isinstance(messages, dict):
             return []
         template = messages.get("default", "{hook} must contain stage marker '# Harness stage: {expectedStage}'")
-        result = []
-        for hook_name, expected_stage in stack_stages.items():
-            if not isinstance(hook_name, str):
-                continue
-            if not isinstance(expected_stage, str):
-                continue
-            path = root / f"docs/harness/git-hooks/{hook_name}"
-            if not is_safe_file(path):
-                continue
-            text = read_text(path)
-            if marker_template.format(stage=expected_stage) not in text:
-                result.append(Finding(
-                    severity_for(manifest, self.category),
-                    self.category,
-                    template.format(hook=hook_name, expectedStage=expected_stage),
-                ))
-        return result
+        return [
+            Finding(
+                severity_for(manifest, self.category),
+                self.category,
+                template.format(hook=hook_name, expectedStage=expected_stage),
+            )
+            for hook_name, expected_stage in stack_stages.items()
+            if isinstance(hook_name, str)
+            and isinstance(expected_stage, str)
+            and is_safe_file(root / f"docs/harness/git-hooks/{hook_name}")
+            and marker_template.format(stage=expected_stage) not in read_text(root / f"docs/harness/git-hooks/{hook_name}")
+        ]
 
 
 RULE: HarnessCheckRule = RequireHookStageRule()

@@ -164,26 +164,22 @@ def stack_sources(root: Path, manifest: dict, category: str) -> tuple[Path, ...]
             for resolved_path in root.glob(root_entry):
                 if resolved_path.is_dir() and not resolved_path.is_symlink():
                     for file_path in resolved_path.rglob("*"):
-                        if file_path.is_file() and not file_path.is_symlink():
-                            if "__pycache__" not in file_path.parts:
-                                suffix = file_path.suffix.lstrip(".")
-                                if suffix in ext_set:
-                                    abs_path = file_path.resolve()
-                                    if abs_path not in seen:
-                                        seen.add(abs_path)
-                                        result.append(abs_path)
+                        if (file_path.is_file() and not file_path.is_symlink()
+                                and "__pycache__" not in file_path.parts
+                                and (abs_path := file_path.resolve()) not in seen
+                                and file_path.suffix.lstrip(".") in ext_set):
+                            seen.add(abs_path)
+                            result.append(abs_path)
         else:
             dir_path = root / root_entry
             if dir_path.is_dir() and not dir_path.is_symlink():
                 for file_path in dir_path.rglob("*"):
-                    if file_path.is_file() and not file_path.is_symlink():
-                        if "__pycache__" not in file_path.parts:
-                            suffix = file_path.suffix.lstrip(".")
-                            if suffix in ext_set:
-                                abs_path = file_path.resolve()
-                                if abs_path not in seen:
-                                    seen.add(abs_path)
-                                    result.append(abs_path)
+                    if (file_path.is_file() and not file_path.is_symlink()
+                            and "__pycache__" not in file_path.parts
+                            and (abs_path := file_path.resolve()) not in seen
+                            and file_path.suffix.lstrip(".") in ext_set):
+                        seen.add(abs_path)
+                        result.append(abs_path)
     return tuple(sorted(result))
 
 

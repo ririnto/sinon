@@ -53,26 +53,24 @@ export const forbidBlankLineInLeafFunctionRule = (ctx: RuleContext): HarnessChec
           const trivia = text.slice(triviaStart, triviaEnd);
           const triviaLines = trivia.split(/\r?\n/);
           const triviaStartLine = sourceFile.getLineAndCharacterOfPosition(triviaStart).line;
-
-          for (let i = 0; i < triviaLines.length; i++) {
-            if (triviaLines[i].trim() === "") {
-              blankLineFindings.push({
+          blankLineFindings.push(
+            ...triviaLines
+              .map((line, i) => ({ line, index: i }))
+              .filter(({ line }) => line.trim() === "")
+              .map(({ index }) => ({
                 severity: ctx.severityOf(manifest, "forbidBlankLineInLeafFunction"),
                 category: "forbidBlankLineInLeafFunction",
-                message: `${file}:${triviaStartLine + i + 1}: leaf function \`${funcName}\` contains a blank line; remove or extract the section`,
-              });
-            }
-          }
+                message: `${file}:${triviaStartLine + index + 1}: leaf function \`${funcName}\` contains a blank line; remove or extract the section`,
+              }))
+          );
         };
 
         if (statements.length > 0) {
           checkTrivia(body.getStart(sourceFile, true), statements[0].getFullStart());
         }
-
-        for (let i = 0; i < statements.length - 1; i++) {
-          checkTrivia(statements[i].getEnd(), statements[i + 1].getFullStart());
-        }
-
+        statements.slice(0, -1).forEach((stmt, i) => {
+          checkTrivia(stmt.getEnd(), statements[i + 1].getFullStart());
+        });
         if (statements.length > 0) {
           checkTrivia(statements[statements.length - 1].getEnd(), body.getEnd());
         }

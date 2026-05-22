@@ -59,17 +59,17 @@ class RequireDocHeadingsRule(HarnessCheckRule):
         if not isinstance(messages, dict):
             return []
         template = messages.get("default", "doc missing {heading}: {file}")
-        result = []
-        for file_path in filtered_files:
-            if is_safe_file(root / file_path):
-                for heading in headings:
-                    if isinstance(heading, str) and heading not in read_text(root / file_path):
-                        result.append(Finding(
-                            severity_for(manifest, self.category),
-                            self.category,
-                            template.format(heading=heading, file=file_path),
-                        ))
-        return result
+        return [
+            Finding(
+                severity_for(manifest, self.category),
+                self.category,
+                template.format(heading=heading, file=file_path),
+            )
+            for file_path in filtered_files
+            if is_safe_file(root / file_path)
+            for heading in headings
+            if isinstance(heading, str) and heading not in read_text(root / file_path)
+        ]
 
 
 RULE: HarnessCheckRule = RequireDocHeadingsRule()

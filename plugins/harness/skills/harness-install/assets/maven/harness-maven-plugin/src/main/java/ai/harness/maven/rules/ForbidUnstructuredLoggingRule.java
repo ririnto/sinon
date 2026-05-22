@@ -39,16 +39,17 @@ public enum ForbidUnstructuredLoggingRule implements HarnessCheckRule {
     private List<Finding> validateUnstructuredLogging(Path root, Path file, String severity) {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
-            List<Finding> findings = new java.util.ArrayList<>();
-            cu.walk(MethodCallExpr.class, expr -> {
-                String methodStr = expr.toString();
-                if (methodStr.startsWith("System.out.println") || methodStr.startsWith("System.out.print") ||
-                    methodStr.startsWith("System.err.println") || methodStr.startsWith("System.err.print")) {
-                    int line = expr.getBegin().map(p -> p.line).orElse(-1);
-                    findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": unstructured logging; use structured logger"));
-                }
-            });
-            return findings;
+            return cu.findAll(MethodCallExpr.class).stream()
+                    .filter(expr -> {
+                        String methodStr = expr.toString();
+                        return methodStr.startsWith("System.out.println") || methodStr.startsWith("System.out.print") ||
+                                methodStr.startsWith("System.err.println") || methodStr.startsWith("System.err.print");
+                    })
+                    .map(expr -> {
+                        int line = expr.getBegin().map(p -> p.line).orElse(-1);
+                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": unstructured logging; use structured logger");
+                    })
+                    .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }

@@ -40,21 +40,22 @@ public enum RequireBracesOnIfRule implements HarnessCheckRule {
     private List<Finding> validateBracesOnIf(Path root, Path file, String severity) {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
-            List<Finding> findings = new java.util.ArrayList<>();
-            cu.walk(IfStmt.class, ifStmt -> {
-                if (!(ifStmt.getThenStmt() instanceof BlockStmt)) {
-                    int line = ifStmt.getBegin().map(p -> p.line).orElse(-1);
-                    findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": if without braces"));
-                }
-                if (ifStmt.getElseStmt().isPresent()) {
-                    com.github.javaparser.ast.stmt.Statement elseStmt = ifStmt.getElseStmt().get();
-                    if (!(elseStmt instanceof BlockStmt) && !(elseStmt instanceof IfStmt)) {
-                        int line = elseStmt.getBegin().map(p -> p.line).orElse(-1);
-                        findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": else without braces"));
-                    }
-                }
-            });
-            return findings;
+            return cu.findAll(IfStmt.class).stream()
+                    .flatMap(ifStmt -> {
+                        java.util.List<Finding> findings = new java.util.ArrayList<>();
+                        if (!(ifStmt.getThenStmt() instanceof BlockStmt)) {
+                            int line = ifStmt.getBegin().map(p -> p.line).orElse(-1);
+                            findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": if without braces"));
+                        }
+                        ifStmt.getElseStmt().ifPresent(elseStmt -> {
+                            if (!(elseStmt instanceof BlockStmt) && !(elseStmt instanceof IfStmt)) {
+                                int line = elseStmt.getBegin().map(p -> p.line).orElse(-1);
+                                findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": else without braces"));
+                            }
+                        });
+                        return findings.stream();
+                    })
+                    .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }

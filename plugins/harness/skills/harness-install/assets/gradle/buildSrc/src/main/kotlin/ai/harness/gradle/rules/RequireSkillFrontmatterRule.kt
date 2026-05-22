@@ -25,21 +25,19 @@ object RequireSkillFrontmatterRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireSkillFrontmatter"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return@buildSet
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
-		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
+		val catObj = manifest[category]?.jsonObject ?: return emptyList()
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 		val rootDirectory = HarnessCheck.Companion.stringFrom(parametersObj, "rootDirectory")
 		val filename = HarnessCheck.Companion.stringFrom(parametersObj, "filename")
-
 		val dirPath = root / rootDirectory
 		if (!dirPath.isDirectory()) {
 			val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingDirectory").takeIf { it.isNotEmpty() } ?: ".claude/skills must contain at least one SKILL.md"
 			return listOf(Finding(severity, category, msg))
 		}
-
 		val files = try {
 			dirPath.walk().filter { it.isRegularFile() && it.name == filename }.toList()
 		} catch (_: Exception) {
@@ -49,20 +47,19 @@ object RequireSkillFrontmatterRule : HarnessCheckRule {
 			val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingSkill").takeIf { it.isNotEmpty() } ?: ".claude/skills must contain at least one SKILL.md"
 			return listOf(Finding(severity, category, msg))
 		}
-
-		return buildSet<Finding> {
-			files.forEach { file ->
-				val text = file.readText()
-				if (!text.startsWith("---")) {
-					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingFrontmatter").takeIf { it.isNotEmpty() } ?: "skill missing frontmatter: ${file.relativeTo(root)}"
-					add(Finding(severity, category, msg))
-				} else {
+		return files.flatMap { file ->
+			val text = file.readText()
+			if (!text.startsWith("---")) {
+				val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingFrontmatter").takeIf { it.isNotEmpty() } ?: "skill missing frontmatter: ${file.relativeTo(root)}"
+				listOf(Finding(severity, category, msg))
+			} else {
+				listOfNotNull(
 					if (!"""(?m)^description:\s*.+$""".toRegex().containsMatchIn(text)) {
 						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingDescription").takeIf { it.isNotEmpty() } ?: "skill missing description: ${file.relativeTo(root)}"
-						add(Finding(severity, category, msg))
-					}
-				}
+						Finding(severity, category, msg)
+					} else null
+				)
 			}
-		}.toList()
+		}
 	}
 }

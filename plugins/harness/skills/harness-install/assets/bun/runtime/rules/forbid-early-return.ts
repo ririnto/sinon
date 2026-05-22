@@ -55,17 +55,19 @@ export const forbidEarlyReturnRule = (ctx: RuleContext): HarnessCheckRule => ({
         }
 
         const funcName = getFuncName(funcNode);
-
-        for (let i = 0; i < statements.length - 1; i++) {
-          if (isReturnStatement(statements[i])) {
-            const { line } = sourceFile.getLineAndCharacterOfPosition(statements[i].getStart(sourceFile));
-            findings.push({
-              severity: ctx.severityOf(manifest, "forbidEarlyReturn"),
-              category: "forbidEarlyReturn",
-              message: `${file}:${line + 1}: function \`${funcName}\` has an early return; restructure with single exit`,
-            });
-          }
-        }
+        findings.push(
+          ...statements
+            .slice(0, -1)
+            .filter(isReturnStatement)
+            .map((stmt) => {
+              const { line } = sourceFile.getLineAndCharacterOfPosition(stmt.getStart(sourceFile));
+              return {
+                severity: ctx.severityOf(manifest, "forbidEarlyReturn"),
+                category: "forbidEarlyReturn",
+                message: `${file}:${line + 1}: function \`${funcName}\` has an early return; restructure with single exit`,
+              };
+            })
+        );
       };
 
       const visit = (node: Node): void => {

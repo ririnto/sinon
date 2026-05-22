@@ -41,16 +41,15 @@ public enum ForbidGreaterThanComparisonRule implements HarnessCheckRule {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
             LexicalPreservingPrinter.setup(cu);
-            List<Finding> findings = new java.util.ArrayList<>();
-            cu.walk(BinaryExpr.class, expr -> {
-                if (expr.getOperator() == BinaryExpr.Operator.GREATER || expr.getOperator() == BinaryExpr.Operator.GREATER_EQUALS) {
-                    int line = expr.getBegin().map(p -> p.line).orElse(-1);
-                    String op = expr.getOperator() == BinaryExpr.Operator.GREATER ? ">" : ">=";
-                    String replacement = expr.getOperator() == BinaryExpr.Operator.GREATER ? "<" : "<=";
-                    findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": forbidden `" + op + "`; use `" + replacement + "`"));
-                }
-            });
-            return findings;
+            return cu.findAll(BinaryExpr.class).stream()
+                    .filter(expr -> expr.getOperator() == BinaryExpr.Operator.GREATER || expr.getOperator() == BinaryExpr.Operator.GREATER_EQUALS)
+                    .map(expr -> {
+                        int line = expr.getBegin().map(p -> p.line).orElse(-1);
+                        String op = expr.getOperator() == BinaryExpr.Operator.GREATER ? ">" : ">=";
+                        String replacement = expr.getOperator() == BinaryExpr.Operator.GREATER ? "<" : "<=";
+                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": forbidden `" + op + "`; use `" + replacement + "`");
+                    })
+                    .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }

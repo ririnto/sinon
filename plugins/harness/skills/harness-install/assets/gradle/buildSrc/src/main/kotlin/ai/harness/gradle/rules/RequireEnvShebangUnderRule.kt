@@ -23,31 +23,30 @@ object RequireEnvShebangUnderRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireEnvShebangUnder"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return@buildSet
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
-		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
+		val catObj = manifest[category]?.jsonObject ?: return emptyList()
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 		val directories = HarnessCheck.Companion.stringArrayFrom(parametersObj, "directories")
 		val expectedPrefix = HarnessCheck.Companion.stringFrom(parametersObj, "expectedPrefix")
-
-		return buildSet<Finding> {
-			directories.forEach { dirPath ->
-				val dir = root / dirPath
-				if (!dir.isDirectory()) {
-					return@forEach
-				}
-
+		return directories.flatMap { dirPath ->
+			val dir = root / dirPath
+			if (!dir.isDirectory()) {
+				emptyList()
+			} else {
 				val (files, _) = HarnessCheck.Companion.walkSafe(root, dir)
-				files.filter { it.isExecutable() }.forEach { file ->
+				files.filter { it.isExecutable() }.mapNotNull { file ->
 					val firstLine = file.readText().lineSequence().firstOrNull() ?: ""
 					if (firstLine.startsWith("#!") && !firstLine.startsWith(expectedPrefix)) {
 						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "executable script should use /usr/bin/env shebang: ${file.relativeTo(root)}"
-						add(Finding(severity, category, msg))
+						Finding(severity, category, msg)
+					} else {
+						null
 					}
 				}
 			}
-		}.toList()
+		}
 	}
 }

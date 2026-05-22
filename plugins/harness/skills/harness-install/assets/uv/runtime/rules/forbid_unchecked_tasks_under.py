@@ -50,22 +50,18 @@ class ForbidUncheckedTasksUnderRule(HarnessCheckRule):
         except re.error:
             return [Finding("ERROR", self.category, f"invalid uncheckedTaskPattern regex: {unchecked_pattern_str}")]
         pattern_glob = filename_pattern_str if isinstance(filename_pattern_str, str) else "*.md"
-        result = []
-        for path in sorted(dir_path.iterdir()):
-            if not path.is_file():
-                continue
-            if path.name == ".gitkeep":
-                continue
-            if not fnmatch.fnmatch(path.name, pattern_glob):
-                continue
-            text = read_text(path)
-            if unchecked_pattern.search(text):
-                result.append(Finding(
-                    severity_for(manifest, self.category),
-                    self.category,
-                    template.format(file=relative(path)),
-                ))
-        return result
+        return [
+            Finding(
+                severity_for(manifest, self.category),
+                self.category,
+                template.format(file=relative(path)),
+            )
+            for path in sorted(dir_path.iterdir())
+            if path.is_file()
+            and path.name != ".gitkeep"
+            and fnmatch.fnmatch(path.name, pattern_glob)
+            and unchecked_pattern.search(read_text(path))
+        ]
 
 
 RULE: HarnessCheckRule = ForbidUncheckedTasksUnderRule()

@@ -39,17 +39,19 @@ public enum ForbidMutableCollectionRule implements HarnessCheckRule {
     private List<Finding> validateMutableCollection(Path root, Path file, String severity) {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
-            List<Finding> findings = new java.util.ArrayList<>();
-            cu.walk(ObjectCreationExpr.class, expr -> {
-                String typeName = expr.getTypeAsString();
-                if (typeName.equals("ArrayList") || typeName.equals("HashMap") || typeName.equals("HashSet") ||
-                    typeName.equals("LinkedList") || typeName.equals("LinkedHashMap") || typeName.equals("LinkedHashSet") ||
-                    typeName.equals("TreeMap") || typeName.equals("TreeSet")) {
-                    int line = expr.getBegin().map(p -> p.line).orElse(-1);
-                    findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": mutable collection " + typeName + "; use immutable factory"));
-                }
-            });
-            return findings;
+            return cu.findAll(ObjectCreationExpr.class).stream()
+                    .filter(expr -> {
+                        String typeName = expr.getTypeAsString();
+                        return typeName.equals("ArrayList") || typeName.equals("HashMap") || typeName.equals("HashSet") ||
+                                typeName.equals("LinkedList") || typeName.equals("LinkedHashMap") || typeName.equals("LinkedHashSet") ||
+                                typeName.equals("TreeMap") || typeName.equals("TreeSet");
+                    })
+                    .map(expr -> {
+                        int line = expr.getBegin().map(p -> p.line).orElse(-1);
+                        String typeName = expr.getTypeAsString();
+                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": mutable collection " + typeName + "; use immutable factory");
+                    })
+                    .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }
