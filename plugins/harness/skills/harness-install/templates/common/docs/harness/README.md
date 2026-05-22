@@ -21,7 +21,7 @@ Keep `docs/generated/.gitkeep` only while the path has no real generated artifac
 
 ## Optional seed files
 
-Files such as `docs/product-specs/new-user-onboarding.md` and `docs/references/*-llms.txt` are replaceable seeds. Keep them only when they match the target repository, or replace them with project-specific context and evidence.
+Files such as `docs/product-specs/new-user-onboarding.md` are replaceable seeds. Keep them only when they match the target repository, or replace them with project-specific context and evidence.
 
 ## Harness-only development readiness
 
@@ -31,7 +31,7 @@ The harness alone does not define product requirements, domain rules, architectu
 
 ## Harness evolution
 
-The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active contract. When the harness changes, update this directory, `AGENTS.md`, validators, templates, and `.claude/harness/evolution-log.md` as needed.
+The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active contract. When the harness changes, update this directory, `AGENTS.md`, validators, templates, and `docs/harness/evolution-log.md` as needed.
 
 ## Validation
 
@@ -39,12 +39,12 @@ Run the command for the repository stack:
 
 - Gradle harness validation: `./gradlew harnessValidate`, or `gradle harnessValidate` when this repository uses system Gradle without a wrapper
 - Gradle final check: `./gradlew check`, or `gradle check` when this repository uses system Gradle without a wrapper
-- Maven: `mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate`
-- uv: `uv run python .claude/harness/uv/harness_validate.py`
-- bun: `bun run .claude/harness/bun/harness-validate.ts`
+- Maven: `mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate`
+- uv: `uv run python docs/harness/uv/harness_validate.py`
+- bun: `bun run docs/harness/bun/harness-validate.ts`
 
 The generated Gradle `pre-commit` hook runs `harnessValidate`; non-Gradle `pre-commit` hooks check lightweight harness-rule compliance only. The generated `pre-push` hook runs the selected final check command and should match CI when CI snippets are present.
 
-Run validation from the repository root. The uv, bun, and Maven validators bind the current working directory as the target root. Native validators support the installed `.claude/harness/manifest.json` schema and compare the list fields written by this harness.
+Run validation from the repository root. The uv, bun, and Maven validators bind the current working directory as the target root. Native validators support the installed `docs/harness/manifest.json` schema and compare the list fields written by this harness.
 
 If the installer wired Gradle into a complex existing `settings.gradle(.kts)`, review the resulting plugin management and composite build blocks manually before relying on `check` in CI.
