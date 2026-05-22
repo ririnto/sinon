@@ -1,12 +1,12 @@
 # Repository Harness Contract
 
-This repository uses a versioned harness so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution. The canonical pattern is `AGENTS.md` as a symlink to `CLAUDE.md` (or vice versa) so both filenames resolve to this single document, regardless of which agent runtime is running.
+This repository uses a versioned harness so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution. The canonical pattern is `CLAUDE.md` as the primary contract, with `AGENTS.md` as a symlink to `CLAUDE.md`, so both filenames resolve to this single document, regardless of which agent runtime is running.
 
 ## Entry Point
 
 Any coding agent runtime that loads `AGENTS.md` or `CLAUDE.md` MUST treat this document as its primary contract. Before making changes, an agent MUST read:
 
-1. `AGENTS.md` (this document; also resolvable as `CLAUDE.md`)
+1. `CLAUDE.md` (this document; also resolvable as `AGENTS.md`)
 2. `ARCHITECTURE.md`
 3. The relevant file under `docs/**` for the task domain
 
@@ -19,8 +19,9 @@ Harness changes MAY be made during development when the current harness no longe
 ## Invariants
 
 - The repository MUST keep agent instructions, skills, templates, documentation structure, and validation adapters in versioned files.
-- `AGENTS.md` MUST be the primary repository harness contract for coding agents.
-- `CLAUDE.md` MUST resolve to the same document as `AGENTS.md`, via a symlink in either direction.
+- `CLAUDE.md` MUST be the primary repository harness contract for coding agents.
+- `AGENTS.md` MUST resolve to the same document as `CLAUDE.md`, via a symlink.
+- `.agents/` MUST be a symlink to `.claude/`, mirroring the `CLAUDE.md` → `AGENTS.md` pattern, so that runtimes looking up either directory resolve to the same content.
 - `ARCHITECTURE.md` MUST describe system boundaries, major components, data flow, and validation surfaces.
 - `.claude/agents/` MUST contain specialized project agents with `name` and `description` frontmatter.
 - `.claude/skills/*/SKILL.md` MUST contain focused procedures with `description` frontmatter.
@@ -37,9 +38,9 @@ Harness changes MAY be made during development when the current harness no longe
 ## Required Repository Structure
 
 ```text
-AGENTS.md            (symlink to CLAUDE.md, or its own file)
-ARCHITECTURE.md
 CLAUDE.md
+AGENTS.md            (symlink to CLAUDE.md)
+ARCHITECTURE.md
 WORKFLOW.md
 docs/
 ├── design-docs/
@@ -82,7 +83,7 @@ The harness may install replaceable seed files under `docs/product-specs/` and `
 
 Humans define intent, constraints, review criteria, and acceptance gates. Agents perform bounded implementation work and use validators as feedback loops.
 
-Agent work MUST start by reading `AGENTS.md`, `ARCHITECTURE.md`, and the relevant `docs/**` file for the task domain.
+Agent work MUST start by reading `CLAUDE.md`, `ARCHITECTURE.md`, and the relevant `docs/**` file for the task domain.
 
 The harness is sufficient as the development operating surface when the project-specific context is present or explicitly created during the task. The scaffold MUST NOT be treated as a substitute for missing product requirements, source-of-truth schemas, tests, implementation code, runtime configuration, secrets, or domain references.
 
@@ -100,8 +101,8 @@ The current committed harness is the active contract. Do not treat the original 
 
 Run the stack-specific harness validation command before merging changes that alter:
 
-- `AGENTS.md`
 - `CLAUDE.md`
+- `AGENTS.md`
 - `ARCHITECTURE.md`
 - `docs/**`
 - `.claude/agents/`
