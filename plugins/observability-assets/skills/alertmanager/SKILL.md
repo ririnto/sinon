@@ -1,7 +1,7 @@
 ---
 name: alertmanager
 description: >-
-  Author and review Alertmanager configuration for routing, grouping, inhibition, mute intervals, notification receivers, and templates. Use this skill when writing or reviewing Alertmanager config, routing alerts to the right receiver, tuning group_wait or repeat_interval, adding inhibition or mute intervals, configuring any notification receiver type (email, slack, pagerduty, webhook, opsgenie, telegram, discord, msteams, jira, mattermost, and others), authoring notification templates, or needing guidance on alertmanager.yml authoring and notification routing quality.
+  Configure AlertManager routing, grouping, silencing, and notification flow. Use this skill when designing Alertmanager route trees and receiver mapping to match alert labels, tuning group batching and notification timing, implementing inhibition or mute schedules to suppress noise without hiding critical signals, configuring notification channels (email, Slack, PagerDuty, Webhook, OpsGenie, Telegram, Discord, MS Teams, Jira, Mattermost, and others), or needing guidance on alert routing quality and template-driven notification content.
 ---
 
 # Alertmanager
