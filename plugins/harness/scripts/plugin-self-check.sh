@@ -414,62 +414,62 @@ for path in \
   "$root/skills/harness-evolve/SKILL.md" \
   "$root/skills/harness-install/scripts/install-harness.sh" \
   "$root/skills/harness-install/scripts/detect-stack.sh" \
-  "$root/skills/harness-install/templates/common/AGENTS.md" \
-  "$root/skills/harness-install/templates/common/ARCHITECTURE.md" \
-  "$root/skills/harness-install/templates/common/CLAUDE.md" \
-  "$root/skills/harness-install/templates/common/docs/harness/manifest.json" \
-  "$root/skills/harness-install/templates/common/docs/harness/README.md" \
-  "$root/skills/harness-install/templates/common/docs/harness/git-hooks/pre-commit" \
-  "$root/skills/harness-install/templates/common/docs/harness/git-hooks/pre-push" \
-  "$root/skills/harness-install/templates/common/docs/generated/.gitkeep" \
-  "$root/skills/harness-install/templates/common/docs/exec-plans/active/.gitkeep" \
-  "$root/skills/harness-install/templates/common/docs/exec-plans/completed/.gitkeep" \
-  "$root/skills/harness-install/templates/common/docs/harness/templates/docs/generated-artifact.md" \
-  "$root/skills/harness-install/templates/bun/.github/workflows/harness.yml" \
-  "$root/skills/harness-install/templates/bun/.gitlab-ci.yml" \
-  "$root/skills/harness-install/templates/bun/docs/harness/bun/harness-validate.ts" \
-  "$root/skills/harness-install/templates/gradle/.github/workflows/harness.yml" \
-  "$root/skills/harness-install/templates/gradle/.gitlab-ci.yml" \
-  "$root/skills/harness-install/templates/maven/.github/workflows/harness.yml" \
-  "$root/skills/harness-install/templates/maven/.gitlab-ci.yml" \
-  "$root/skills/harness-install/templates/uv/docs/harness/uv/harness_validate.py" \
-  "$root/skills/harness-install/templates/uv/.github/workflows/harness.yml" \
-  "$root/skills/harness-install/templates/uv/.gitlab-ci.yml" \
-  "$root/skills/harness-install/templates/gradle/docs/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" \
-  "$root/skills/harness-install/templates/maven/docs/harness/maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java"; do
+  "$root/skills/harness-install/assets/common/AGENTS.md" \
+  "$root/skills/harness-install/assets/common/ARCHITECTURE.md" \
+  "$root/skills/harness-install/assets/common/CLAUDE.md" \
+  "$root/skills/harness-install/assets/common/docs/harness/manifest.json" \
+  "$root/skills/harness-install/assets/common/docs/harness/README.md" \
+  "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-commit" \
+  "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-push" \
+  "$root/skills/harness-install/assets/common/docs/generated/.gitkeep" \
+  "$root/skills/harness-install/assets/common/docs/exec-plans/active/.gitkeep" \
+  "$root/skills/harness-install/assets/common/docs/exec-plans/completed/.gitkeep" \
+  "$root/skills/harness-install/assets/common/docs/harness/templates/docs/generated-artifact.md" \
+  "$root/skills/harness-install/assets/bun/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/assets/bun/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/bun/docs/harness/bun/harness-validate.ts" \
+  "$root/skills/harness-install/assets/gradle/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/assets/gradle/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/maven/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/assets/maven/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/uv/docs/harness/uv/harness_validate.py" \
+  "$root/skills/harness-install/assets/uv/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/assets/uv/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/gradle/docs/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" \
+  "$root/skills/harness-install/assets/maven/docs/harness/maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java"; do
   require_file "$path"
 done
 
 for path in \
-  "$root/skills/harness-install/templates/bun/.github/workflows/harness.yml" \
-  "$root/skills/harness-install/templates/bun/.gitlab-ci.yml" \
-  "$root/skills/harness-install/templates/gradle/.github/workflows/harness.yml" \
-  "$root/skills/harness-install/templates/gradle/.gitlab-ci.yml" \
-  "$root/skills/harness-install/templates/maven/.github/workflows/harness.yml" \
-  "$root/skills/harness-install/templates/maven/.gitlab-ci.yml" \
-  "$root/skills/harness-install/templates/uv/.github/workflows/harness.yml" \
-  "$root/skills/harness-install/templates/uv/.gitlab-ci.yml"; do
+  "$root/skills/harness-install/assets/bun/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/assets/bun/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/gradle/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/assets/gradle/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/maven/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/assets/maven/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/uv/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/assets/uv/.gitlab-ci.yml"; do
   require_text "$path" '{{validation_command}}'
 done
 
 for path in \
   "$root/agents" \
   "$root/scripts" \
-  "$root/skills/harness-install/templates/common/.claude/agents" \
-  "$root/skills/harness-install/templates/common/.claude/skills" \
-  "$root/skills/harness-install/templates/common/docs/harness/templates/agent" \
-  "$root/skills/harness-install/templates/common/docs/harness/templates/skill" \
-  "$root/skills/harness-install/templates/common/docs/harness/templates/workflow" \
-  "$root/skills/harness-install/templates/common/docs/harness/templates/ci" \
-  "$root/skills/harness-install/templates/common/docs/harness/templates/docs"; do
+  "$root/skills/harness-install/assets/common/.claude/agents" \
+  "$root/skills/harness-install/assets/common/.claude/skills" \
+  "$root/skills/harness-install/assets/common/docs/harness/templates/agent" \
+  "$root/skills/harness-install/assets/common/docs/harness/templates/skill" \
+  "$root/skills/harness-install/assets/common/docs/harness/templates/workflow" \
+  "$root/skills/harness-install/assets/common/docs/harness/templates/ci" \
+  "$root/skills/harness-install/assets/common/docs/harness/templates/docs"; do
   require_dir "$path"
 done
 
 require_executable "$root/scripts/plugin-self-check.sh"
 require_executable "$root/skills/harness-install/scripts/install-harness.sh"
 require_executable "$root/skills/harness-install/scripts/detect-stack.sh"
-require_executable "$root/skills/harness-install/templates/common/docs/harness/git-hooks/pre-commit"
-require_executable "$root/skills/harness-install/templates/common/docs/harness/git-hooks/pre-push"
+require_executable "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-commit"
+require_executable "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-push"
 
 require_absent "$root/hooks" 'top-level Claude hooks runtime surface must not be packaged'
 
@@ -505,7 +505,7 @@ fi
 
 require_text "$root/skills/harness-install/scripts/install-harness.sh" "# -*- coding: utf-8 -*-"
 
-template_package_file_list=$(package_files "$root/skills/harness-install/templates")
+template_package_file_list=$(package_files "$root/skills/harness-install/assets")
 if printf '%s\n' "$template_package_file_list" | grep -E '(^|/)(db-schema[.]md|__pycache__|target|build|bin|[.]gradle|[.]factorypath|[.]classpath|[.]project|[.]settings)(/|$)|[.]pyc$'; then
   printf '%s\n' "[generated_artifacts_check] packaged template files contain generated or IDE artifacts" >&2
   exit 1
@@ -523,7 +523,7 @@ import sys
 
 root = pathlib.Path(sys.argv[1])
 plugin = json.loads((root / ".claude-plugin/plugin.json").read_text())
-manifest = json.loads((root / "skills/harness-install/templates/common/docs/harness/manifest.json").read_text())
+manifest = json.loads((root / "skills/harness-install/assets/common/docs/harness/manifest.json").read_text())
 errors = []
 if plugin.get("$schema") != "https://anthropic.com/claude-code/plugin.schema.json":
     errors.append("plugin manifest schema mismatch")
@@ -580,14 +580,14 @@ def manifest_items(manifest, key):
     return []
 
 for group in manifest_items(manifest, "templateGroups"):
-    if not (root / f"skills/harness-install/templates/common/docs/harness/templates/{group}").is_dir():
+    if not (root / f"skills/harness-install/assets/common/docs/harness/templates/{group}").is_dir():
         errors.append(f"manifest template group missing: {group}")
 for key in ("requiredFiles", "emptyDirectoryKeepFiles"):
     for item in manifest_items(manifest, key):
-        if not (root / "skills/harness-install/templates/common" / item).is_file():
+        if not (root / "skills/harness-install/assets/common" / item).is_file():
             errors.append(f"manifest {key} missing file: {item}")
 for item in manifest_items(manifest, "requiredDirectories"):
-    if not (root / "skills/harness-install/templates/common" / item).is_dir():
+    if not (root / "skills/harness-install/assets/common" / item).is_dir():
         errors.append(f"manifest requiredDirectories missing directory: {item}")
 if errors:
     for error in errors:
@@ -617,7 +617,7 @@ require_text "$root/README.md" 'Gradle `pre-commit` runs `harnessValidate`'
 # shellcheck disable=SC2016
 require_text "$root/README.md" 'Gradle `pre-push` runs `check`'
 require_text "$root/README.md" 'THIRD_PARTY_NOTICES.md'
-require_text "$root/README.md" 'skills/harness-install/templates/common/docs/harness/git-hooks/'
+require_text "$root/README.md" 'skills/harness-install/assets/common/docs/harness/git-hooks/'
 require_text "$root/README.md" 'v6 archive structure'
 # shellcheck disable=SC2016
 require_text "$root/skills/harness-install/SKILL.md" 'Gradle pre-commit runs `harnessValidate`, Gradle pre-push runs `check`'
@@ -626,13 +626,13 @@ require_text "$root/skills/harness-validate/SKILL.md" 'generated `docs/harness/g
 require_text "$root/skills/harness-validate/SKILL.md" 'Manifest drift'
 require_text "$root/skills/harness-validate/SKILL.md" 'Generated artifact metadata'
 require_text "$root/skills/harness-validate/SKILL.md" 'Unsupported validation command'
-require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'manifest drift'
-require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'generated-artifact metadata'
-require_text "$root/skills/harness-install/templates/common/.claude/skills/harness-validate/SKILL.md" 'unsupported pre-push validation command'
+require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'manifest drift'
+require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'generated-artifact metadata'
+require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'unsupported pre-push validation command'
 # shellcheck disable=SC2016
 require_text "$root/skills/harness-evolve/SKILL.md" 'active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target repository files'
 
-generated_doc_package_file_list=$(package_files "$root/skills/harness-install/templates/common/docs/generated")
+generated_doc_package_file_list=$(package_files "$root/skills/harness-install/assets/common/docs/generated")
 if printf '%s\n' "$generated_doc_package_file_list" | grep -F '/db-schema.md'; then
   printf '%s\n' "harness scaffold must not install docs/generated/db-schema.md" >&2
   exit 1
@@ -661,7 +661,7 @@ reject_text_in_paths "$backup_suffix" \
   "$root/skills/harness-install/scripts/install-harness.sh" \
   "$root/skills/harness-install/SKILL.md" \
   "$root/README.md" \
-  "$root/skills/harness-install/templates/common"
+  "$root/skills/harness-install/assets/common"
 reject_text_in_paths 'install_git_hook_path' \
   "$root/skills/harness-install/scripts/install-harness.sh" \
   "$root/skills/harness-install/SKILL.md"
@@ -675,7 +675,7 @@ require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradle
 require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradlew harnessValidate'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'resolve_existing_hooks_path'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'refusing to copy non-generated hook source'
-manifest_json="$root/skills/harness-install/templates/common/docs/harness/manifest.json"
+manifest_json="$root/skills/harness-install/assets/common/docs/harness/manifest.json"
 require_text "$manifest_json" 'pre-commit hook must not run full stack validation commands'
 require_text "$manifest_json" 'must declare Harness validation command'
 require_text "$manifest_json" 'declares unsupported validation command'
@@ -684,11 +684,11 @@ require_text "$manifest_json" './gradlew check'
 require_text "$manifest_json" './gradlew harnessValidate'
 
 template_roots="
-$root/skills/harness-install/templates/common
-$root/skills/harness-install/templates/bun
-$root/skills/harness-install/templates/gradle
-$root/skills/harness-install/templates/maven
-$root/skills/harness-install/templates/uv
+$root/skills/harness-install/assets/common
+$root/skills/harness-install/assets/bun
+$root/skills/harness-install/assets/gradle
+$root/skills/harness-install/assets/maven
+$root/skills/harness-install/assets/uv
 "
 
 for template_root in $template_roots; do
@@ -698,7 +698,7 @@ for template_root in $template_roots; do
       */harness_validate.py|*/harness_check.py|*/harness-validate.ts|*/harness-check.ts|*/HarnessValidationPlugin.kt|*/HarnessCheck.kt|*/HarnessValidateMojo.java|*/HarnessCheck.java|*/manifest.json|*/manifest.schema.json)
         continue
         ;;
-      */templates/common/ARCHITECTURE.md|*/templates/common/docs/DESIGN.md|*/templates/common/docs/PLANS.md|*/templates/common/docs/FRONTEND.md|*/templates/common/docs/PRODUCT_SENSE.md|*/templates/common/docs/QUALITY_SCORE.md|*/templates/common/docs/RELIABILITY.md|*/templates/common/docs/SECURITY.md|*/templates/common/docs/design-docs/core-beliefs.md|*/templates/common/docs/exec-plans/tech-debt-tracker.md|*/templates/common/docs/product-specs/*.md|*/templates/common/docs/references/*.md|*/templates/common/docs/harness/templates/*)
+      */assets/common/ARCHITECTURE.md|*/assets/common/docs/DESIGN.md|*/assets/common/docs/PLANS.md|*/assets/common/docs/FRONTEND.md|*/assets/common/docs/PRODUCT_SENSE.md|*/assets/common/docs/QUALITY_SCORE.md|*/assets/common/docs/RELIABILITY.md|*/assets/common/docs/SECURITY.md|*/assets/common/docs/design-docs/core-beliefs.md|*/assets/common/docs/exec-plans/tech-debt-tracker.md|*/assets/common/docs/product-specs/*.md|*/assets/common/docs/references/*.md|*/assets/common/docs/harness/templates/*)
         continue
         ;;
       */.github/workflows/harness.yml|*/.gitlab-ci.yml)
@@ -722,7 +722,7 @@ for text in 'example-' 'Describe ' 'Describe...' 'TODO' 'TBD' 'replace-with-stac
         */harness_validate.py|*/harness-validate.ts|*/HarnessValidationPlugin.kt|*/HarnessValidateMojo.java|*/manifest.json)
           continue
           ;;
-        */templates/common/ARCHITECTURE.md|*/templates/common/docs/DESIGN.md|*/templates/common/docs/PLANS.md|*/templates/common/docs/FRONTEND.md|*/templates/common/docs/PRODUCT_SENSE.md|*/templates/common/docs/QUALITY_SCORE.md|*/templates/common/docs/RELIABILITY.md|*/templates/common/docs/SECURITY.md|*/templates/common/docs/design-docs/core-beliefs.md|*/templates/common/docs/exec-plans/tech-debt-tracker.md|*/templates/common/docs/product-specs/*.md|*/templates/common/docs/references/*.md|*/templates/common/docs/harness/templates/*)
+        */assets/common/ARCHITECTURE.md|*/assets/common/docs/DESIGN.md|*/assets/common/docs/PLANS.md|*/assets/common/docs/FRONTEND.md|*/assets/common/docs/PRODUCT_SENSE.md|*/assets/common/docs/QUALITY_SCORE.md|*/assets/common/docs/RELIABILITY.md|*/assets/common/docs/SECURITY.md|*/assets/common/docs/design-docs/core-beliefs.md|*/assets/common/docs/exec-plans/tech-debt-tracker.md|*/assets/common/docs/product-specs/*.md|*/assets/common/docs/references/*.md|*/assets/common/docs/harness/templates/*)
           continue
           ;;
         */.github/workflows/harness.yml|*/.gitlab-ci.yml)

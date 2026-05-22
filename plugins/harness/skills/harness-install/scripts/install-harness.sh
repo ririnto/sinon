@@ -4,7 +4,7 @@ set -e
 
 script_dir=$(CDPATH='' cd "$(dirname "$0")" && pwd)
 skill_dir=$(CDPATH='' cd "$script_dir/.." && pwd)
-template_dir="$skill_dir/templates"
+template_dir="$skill_dir/assets"
 mode=auto
 hooks=none
 force=0
