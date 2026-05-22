@@ -40,6 +40,14 @@ Phases run sequentially. Tasks within a phase MAY run in parallel and SHOULD fit
 - [ ] Task 4.2 — `templates/common/AGENTS.md`의 모든 `.claude/harness/...` invariants/structure 다이어그램을 `docs/harness/...`로 갱신 (subagent: main)
 - [ ] Task 4.3 — `templates/common/CLAUDE.md`의 cross-ref 문구를 `docs/harness/README.md`로 갱신 (subagent: main)
 
+### Phase 4.5: Unify templates/common/{AGENTS.md,CLAUDE.md} via symlink
+
+sinon 루트는 `AGENTS.md → CLAUDE.md` symlink (sinon CLAUDE.md에 명시된 canonical 규칙). plugin templates도 같은 패턴으로 통일한다.
+
+- [ ] Task 4.5.1 — `templates/common/CLAUDE.md`를 단일 canonical 합본(harness contract 본문 + Claude entry-point 본문)으로 재작성 (subagent: main)
+- [ ] Task 4.5.2 — `templates/common/AGENTS.md`를 `CLAUDE.md`의 symlink로 교체 (`git rm` + `git add` symlink) (subagent: main)
+- [ ] Task 4.5.3 — `install-harness.sh`의 `ensure_shared_root_contract`가 두 template이 같은 본문(symlink)일 때 합본을 두 번 cat 하지 않도록 처리 (subagent: main)
+
 ### Phase 5: Update stack adapter internals
 
 - [ ] Task 5.1 — Maven adapter: `pom.xml`의 모듈/플러그인 경로, `HarnessValidateMojo.java`의 default path 상수 갱신 (subagent: general-purpose)

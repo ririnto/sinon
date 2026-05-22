@@ -8,7 +8,7 @@ Before making changes, read:
 2. `ARCHITECTURE.md`
 3. The relevant file under `docs/**` for the task domain
 
-Validation MUST use the stack-specific command documented in `.claude/harness/README.md`.
+Validation MUST use the stack-specific command documented in `docs/harness/README.md`.
 
 `docs/generated/` is for generated repository artifacts. It MAY be empty and retained by `.gitkeep` until generated outputs exist. `docs/generated/db-schema.md` is only an example of a possible generated artifact and MUST NOT be treated as a required file.
 
