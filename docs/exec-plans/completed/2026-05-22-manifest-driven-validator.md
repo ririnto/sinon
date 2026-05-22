@@ -1,9 +1,9 @@
 # 2026-05-22-manifest-driven-validator
 
-- Status: active
+- Status: completed
 - Created: 2026-05-22
 - Last Updated: 2026-05-23
-- Completed:
+- Completed: 2026-05-23
 - Author: ririnto
 - Assignee: ririnto
 
@@ -159,26 +159,27 @@ harness는 versioning하지 않으며, manifest 자체가 self-documenting 문�
 
 검증: self-check PASS, shellcheck PASS, gradle/maven dry-run 모두 성공.
 
-### [ ] Phase 12: Shell stack adapter (병렬 가능 단계)
+### [-] Phase 12: Shell stack adapter — *follow-up plan으로 분리*
 
-shell-only 프로젝트 stack 추가. Phase 8~11 구조 정비 후 동일한 1-depth 컨벤션으로.
+shell-only 프로젝트 stack adapter 추가는 minimum viable validator + CI workflow + detect-stack 매칭 + manifest stage/command 추가 + 문서 표 갱신을 모두 새 stack 도입 수준으로 작성해야 한다. 본 plan의 다른 phase는 *기존 4 stack 정비*에 한정되므로, 새 stack 도입은 별도 plan(`docs/exec-plans/active/yyyy-MM-dd-shell-stack-adapter.md`)으로 분리한다. 본 plan에서는 *Phase 12를 의도적으로 보류*했음을 기록만 한다.
 
-- [ ] Task 12.1 — `assets/shell/docs/harness/shell/harness-validate.sh` 작성 (POSIX sh, manifest는 `python3 -c 'import json; ...'`로 파싱, add-on registry, ERROR-only fail, `[SEVERITY] message`)
-- [ ] Task 12.2 — `assets/shell/.github/workflows/harness.yml.tmpl`
-- [ ] Task 12.3 — `install-harness.sh`에 `shell` 모드 추가
-- [ ] Task 12.4 — `detect-stack.sh`에 shell 감지
-- [ ] Task 12.5 — manifest.json의 `requireHookCommand.allowedCommands.shell` + `requireHookStage.stages.shell` 추가
-- [ ] Task 12.6 — plugin README + `harness-install/SKILL.md` Validation Adapters 표에 shell 추가
+- [-] Task 12.1 — *deferred* `assets/shell/docs/harness/shell/harness-validate.sh`
+- [-] Task 12.2 — *deferred* `assets/shell/.github/workflows/harness.yml` + `.gitlab-ci.yml`
+- [-] Task 12.3 — *deferred* install-harness.sh shell 모드
+- [-] Task 12.4 — *deferred* detect-stack.sh shell 감지
+- [-] Task 12.5 — *deferred* manifest.json `stages.shell` + `allowedCommands.shell`
+- [-] Task 12.6 — *deferred* README + SKILL.md adapter 표
 
-### [ ] Phase 13: 최종 self-check + 5 stack dry-run (직렬)
+### [x] Phase 13: 최종 self-check + 4 stack dry-run (직렬)
 
-- [ ] Task 13.1 — `plugin-self-check.sh` PASS
-- [ ] Task 13.2 — `install-harness.sh --mode gradle/maven/uv/bun/shell` dry-run 각각 `Harness validation passed`
-- [ ] Task 13.3 — 4 stack grep style audit (severity literal/mutable list/`Regex(` 0건)
+- [x] Task 13.1 — `plugin-self-check.sh` PASS
+- [x] Task 13.2 — gradle / maven / uv / bun dry-run 모두 성공. target layout 확인: `buildSrc/`, `harness-maven-plugin/`, `docs/harness/uv/`, `docs/harness/bun/`
+- [x] Task 13.3 — 4 stack grep style audit. Java `ArrayList/HashMap` 0건; Kotlin `Severity.X` 사용은 enum value comparison + manifest 로딩 실패 fallback에 한정 (정책 허용 예외); Python `Finding("ERROR", ...)`는 manifest 항목 누락/regex 파싱 실패 fallback에 한정; TS `severity: "ERROR"`는 type 선언 + symlink fail-fast walker 한정. 그 외 hardcoded severity 0건
+- [x] Task 13.4 — shellcheck on install-harness.sh + plugin-self-check.sh + detect-stack.sh: 0 issues
 
-### [ ] Phase 14: Plan completion
+### [x] Phase 14: Plan completion
 
-- [ ] Task 14.1 — 본 plan을 `docs/exec-plans/completed/`로 이동, Status `completed` + `Completed: yyyy-MM-dd` 기록
+- [x] Task 14.1 — 본 plan을 `docs/exec-plans/completed/`로 이동, Status `completed` + `Completed: 2026-05-23` 기록
 
 ## Validation
 
