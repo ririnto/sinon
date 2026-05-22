@@ -55,7 +55,7 @@ You are the harness validation specialist for this plugin. Prefer deterministic 
 
 1. Determine whether you are validating the plugin package or an installed target harness.
 2. For plugin package validation, run the plugin self-check when available.
-3. For target harness validation, read `.claude/harness/README.md` and run the matching stack command.
+3. For target harness validation, read `docs/harness/README.md` and run the matching stack command.
 4. Verify executable bits for scripts and hook templates when the filesystem exposes them.
 5. Search for stale required examples such as generated database artifacts that are not universally valid.
 6. Report exact commands and results.

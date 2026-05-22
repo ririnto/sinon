@@ -24,11 +24,11 @@ Install or refresh target-owned repository harness files from this plugin. The p
 ## First Safe Checks
 
 1. Confirm the target repository working tree is clean before running the installer. Run `git status --short` in the target; if the output is non-empty, stop and ask the user to commit or stash first. The installer writes new files (and with `--force` overwrites existing ones), and any rollback or recovery action against the working tree afterwards will be indistinguishable from unrelated in-progress work. Commit-first keeps the harness change set isolated and reversible.
-2. Read the target repository root files if present: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `.claude/harness/README.md`, and `.claude/harness/manifest.json`.
+2. Read the target repository root files if present: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and `docs/harness/manifest.json`.
 3. Detect the target stack from repository files, or use the explicit stack argument supplied by the user.
 4. Identify the active CI host. Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither, so unused CI files can be removed as a post-install step.
 5. Detect whether the target is a linked Git worktree. `.git` as a file means the user is inside a `git worktree add` working copy; the installer resolves the worktree hooks directory through the shared common dir.
-6. Read the target's `core.hooksPath` Git config with `git config --get core.hooksPath`. When it already resolves to `.claude/harness/git-hooks`, prefer `--hooks none` so generated hook templates refresh in place; the installer refuses `--hooks copy` in that configuration.
+6. Read the target's `core.hooksPath` Git config with `git config --get core.hooksPath`. When it already resolves to `docs/harness/git-hooks`, prefer `--hooks none` so generated hook templates refresh in place; the installer refuses `--hooks copy` in that configuration.
 7. Decide hook behavior before running the installer: `--hooks none` skips active hook installation, and `--hooks copy` writes the generated `pre-commit` and `pre-push` files into the worktree hooks directory only when they are absent unless `--force` is used.
 8. Use `--force` only when the user explicitly wants existing target harness files replaced.
 9. Keep plugin files separate from target files: edit this plugin only when improving the installer; edit target `.claude/**` files only after installation in the target repository.
@@ -72,7 +72,7 @@ Install or refresh target-owned repository harness files from this plugin. The p
 | Target uses only GitHub or only GitLab | Install both CI examples (default), then report the unused file (`.gitlab-ci.yml` or `.github/workflows/harness.yml`) as a target follow-up to delete. |
 | Target mirrors to GitHub and GitLab | Keep both CI files and report that the generated `pre-push` final check command must match both scripts. |
 | Linked Git worktree (`.git` is a file) | Document that `--hooks copy` installs into the shared worktree hooks directory resolved via `git rev-parse --git-common-dir`; do not assume `.git/hooks/` exists in the linked worktree itself. |
-| Existing `core.hooksPath` points at `.claude/harness/git-hooks` | Use `--hooks none`; the installer refuses `--hooks copy` in this configuration because Git already activates the harness-tracked hooks. |
+| Existing `core.hooksPath` points at `docs/harness/git-hooks` | Use `--hooks none`; the installer refuses `--hooks copy` in this configuration because Git already activates the harness-tracked hooks. |
 | Existing `core.hooksPath` points elsewhere | Use `--hooks none` and report that the target Git config bypasses the worktree hooks directory; `--hooks copy` will be rejected. |
 | Complex Gradle settings already exist | Review `settings.gradle(.kts)` after installer wiring; composite build or plugin-management blocks may need manual adjustment. |
 | Installed placeholders are still generic | Treat installation as incomplete readiness and tell the user which docs need target content. |
@@ -83,7 +83,7 @@ Install or refresh target-owned repository harness files from this plugin. The p
 - The generated hook templates are target-owned: Gradle pre-commit runs `harnessValidate`, Gradle pre-push runs `check`, non-Gradle pre-commit checks harness-rule compliance only, non-Gradle pre-push runs selected validation, and custom templates are preserved unless `--force` was requested.
 - `AGENTS.md` is the primary target repository harness contract.
 - `CLAUDE.md` remains the Claude Code entry point and points back to `AGENTS.md`.
-- `.claude/harness/manifest.json` is the installed harness inventory and contract.
+- `docs/harness/manifest.json` is the installed harness inventory and contract.
 - `docs/generated/` is a generated-artifact location; it MUST NOT require a fake `db-schema.md` file.
 - Plugin skills install and validate the harness package; installed target skills guide day-to-day work inside the target repository.
 

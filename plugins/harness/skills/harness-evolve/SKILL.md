@@ -20,7 +20,7 @@ This skill is report-only unless the user separately asks for implementation. Pr
 
 ## First Safe Checks
 
-1. Read `AGENTS.md`, `.claude/harness/README.md`, `.claude/harness/manifest.json`, and `.claude/harness/evolution-log.md` when present.
+1. Read `AGENTS.md`, `docs/harness/README.md`, `docs/harness/manifest.json`, and `docs/harness/evolution-log.md` when present.
 2. Inspect the user-provided delta summary and current `git diff` for harness-owned files.
 3. Separate product changes from harness changes.
 4. Confirm that every proposed harness change has a matching validation path or an explicit informational-only reason.
@@ -34,7 +34,7 @@ git status --short
 git diff -- AGENTS.md CLAUDE.md ARCHITECTURE.md docs .claude
 ```
 
-Use the stack validation command from `.claude/harness/README.md`; do not guess a command when the installed README already names one.
+Use the stack validation command from `docs/harness/README.md`; do not guess a command when the installed README already names one.
 
 ## Workflow
 
@@ -43,9 +43,9 @@ Use the stack validation command from `.claude/harness/README.md`; do not guess 
     | Change type | Typical files |
     | --- | --- |
     | Context contract | `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md` |
-    | Documentation structure | `docs/**`, `.claude/harness/templates/docs/**` |
+    | Documentation structure | `docs/**`, `docs/harness/templates/docs/**` |
     | Work surface | `.claude/agents/**`, `.claude/skills/**` |
-    | Validation surface | `.claude/harness/**`, CI snippets, hook templates |
+    | Validation surface | `docs/harness/**`, CI snippets, hook templates |
     | Generated artifacts | `docs/generated/**`, generated-artifact template, manifest policy |
 
 2. Decide whether the change is a legitimate evolution or a local drift.
@@ -58,7 +58,7 @@ Use the stack validation command from `.claude/harness/README.md`; do not guess 
 | Situation | Decision | Required action |
 | --- | --- | --- |
 | Product architecture changed and docs are stale | evolve | Update `ARCHITECTURE.md`, relevant design docs, and validation expectations together. |
-| A generated artifact moved or was renamed | evolve | Update `.claude/harness/manifest.json`, generated-artifact docs, and any template references. |
+| A generated artifact moved or was renamed | evolve | Update `docs/harness/manifest.json`, generated-artifact docs, and any template references. |
 | CI should run the same final check command on a new platform | evolve | Add or update CI template examples while preserving the selected pre-push command. |
 | Validation fails because a required file was deleted accidentally | reject as drift | Restore the file or re-run installation; do not weaken the contract. |
 | Placeholder content is still generic after installation | defer | Ask for target truth or create the relevant spec/design task first. |
@@ -84,17 +84,17 @@ Use the project phase to decide how strict the evolution should be.
 Use this checklist before proposing or applying harness evolution.
 
 - `AGENTS.md` and `CLAUDE.md` still describe the same target contract.
-- `.claude/harness/README.md` names the current validation command.
-- `.claude/harness/manifest.json` matches required files, optional seed files, empty directory keep files, and generated-artifact policy.
+- `docs/harness/README.md` names the current validation command.
+- `docs/harness/manifest.json` matches required files, optional seed files, empty directory keep files, and generated-artifact policy.
 - `.claude/agents/**` and `.claude/skills/**` remain self-sufficient for target repository use.
-- `.claude/harness/templates/**` still contain placeholders only where the template renderer or human copy step expects them.
+- `docs/harness/templates/**` still contain placeholders only where the template renderer or human copy step expects them.
 - `.github/workflows/harness.yml` and `.gitlab-ci.yml`, when present, run the selected final check command.
 - `docs/generated/**` contains real generated artifacts or `.gitkeep`, not fake readiness files.
-- `.claude/harness/evolution-log.md` records the reason, files changed, validation command, and remaining follow-up.
+- `docs/harness/evolution-log.md` records the reason, files changed, validation command, and remaining follow-up.
 
 ## Evolution Log Entry
 
-Append or propose an entry in `.claude/harness/evolution-log.md` using this shape.
+Append or propose an entry in `docs/harness/evolution-log.md` using this shape.
 
 ```markdown
 ## YYYY-MM-DD - <short title>
@@ -123,7 +123,7 @@ risks: image tags may need pinning under strict supply-chain policy.
 ```text
 delta: `docs/generated/api-schema.md` was deleted because the project no longer exposes that API.
 decision: evolve only if the manifest and generated-artifact docs also remove the requirement.
-contract updates: update `.claude/harness/manifest.json` and generated-artifact index.
+contract updates: update `docs/harness/manifest.json` and generated-artifact index.
 validation impact: selected stack command must pass without requiring the removed artifact.
 risks: downstream docs may still link to the old artifact.
 ```
@@ -152,7 +152,7 @@ risks: downstream docs may still link to the old artifact.
 ### Rejected drift
 
 ```text
-delta: `.claude/harness/git-hooks/pre-push` was deleted because hook validation failed.
+delta: `docs/harness/git-hooks/pre-push` was deleted because hook validation failed.
 decision: reject as drift
 contract updates: restore or regenerate the selected-mode two-stage hook templates.
 validation impact: rerun the selected stack command and inspect hook docs.
@@ -162,7 +162,7 @@ risks: active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target re
 ### Deferred dispatcher migration
 
 ```text
-delta: Adopt `.claude/harness/validate.sh` as a generic dispatcher.
+delta: Adopt `docs/harness/validate.sh` as a generic dispatcher.
 decision: defer until README, installer, CI templates, hook generation, validators, and self-check agree on the dispatcher contract.
 contract updates: none yet.
 validation impact: keep the current selected stack command.
@@ -176,15 +176,15 @@ Use `harness-validate` after implementing an evolution. The expected stack comma
 ```text
 Gradle harness validation: ./gradlew harnessValidate or gradle harnessValidate
 Gradle final check: ./gradlew check or gradle check
-Maven: mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate
-uv: uv run python .claude/harness/uv/harness_validate.py
-bun: bun run .claude/harness/bun/harness-validate.ts
+Maven: mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate
+uv: uv run python docs/harness/uv/harness_validate.py
+bun: bun run docs/harness/bun/harness-validate.ts
 ```
 
 ## Synchronization Checklist
 
 - If `AGENTS.md` changes, check `CLAUDE.md` symlink or shared-contract behavior.
-- If `.claude/harness/manifest.json` changes, update validators and self-checks.
+- If `docs/harness/manifest.json` changes, update validators and self-checks.
 - If templates move, update README, installer paths, and self-check required directories.
 - If stack commands change, update README, `harness-validate`, installed target `harness-validate`, CI templates, hook generation, and printed installer output.
 - If generated artifact policy changes, update `docs/generated` guidance and template examples.

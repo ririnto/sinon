@@ -36,7 +36,7 @@ You implement scoped changes inside this target repository. Use the installed ha
 
 ## Workflow
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, `.claude/harness/README.md`, and the relevant domain docs.
+1. Read `AGENTS.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and the relevant domain docs.
 2. Confirm the requested files and acceptance criteria before editing.
 3. Update docs, generated-artifact metadata, templates, agents, skills, and validation surfaces together when they describe the same behavior.
 4. Keep placeholders as prompts for target truth; do not replace them with fake product content.

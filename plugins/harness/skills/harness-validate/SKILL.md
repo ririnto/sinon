@@ -21,12 +21,12 @@ Run the native harness validation command for the target repository. This plugin
 
 ## First Safe Checks
 
-1. Read `.claude/harness/README.md` and `.claude/harness/manifest.json` when they exist.
+1. Read `docs/harness/README.md` and `docs/harness/manifest.json` when they exist.
 2. Confirm the target stack from the argument or repository files.
 3. Check that validation is being run from the target repository root; uv, bun, and Maven validators bind the current working directory as the target root.
-4. Prefer the stack command documented in `.claude/harness/README.md` over ad hoc checks.
+4. Prefer the stack command documented in `docs/harness/README.md` over ad hoc checks.
 5. Inspect `.github/workflows/harness.yml` or `.gitlab-ci.yml` when validation is being checked through CI, but run local validation from the target root first.
-6. Open `.claude/harness/README.md` when command selection is unclear; open `.claude/harness/manifest.json` when required files, directories, or generated-artifact policy are disputed.
+6. Open `docs/harness/README.md` when command selection is unclear; open `docs/harness/manifest.json` when required files, directories, or generated-artifact policy are disputed.
 
 ## Preflight
 
@@ -34,8 +34,8 @@ Check these support surfaces before running the stack command.
 
 | Path | Use it for | Failure example |
 | --- | --- | --- |
-| `.claude/harness/README.md` | Selected validation command and stack notes | `.claude/harness/README.md: missing harness file - run harness-install or restore target-owned README` |
-| `.claude/harness/manifest.json` | Required files, optional seeds, empty directories, generated-artifact policy | `.claude/harness/manifest.json: missing harness file - run harness-install or restore target-owned manifest` |
+| `docs/harness/README.md` | Selected validation command and stack notes | `docs/harness/README.md: missing harness file - run harness-install or restore target-owned README` |
+| `docs/harness/manifest.json` | Required files, optional seeds, empty directories, generated-artifact policy | `docs/harness/manifest.json: missing harness file - run harness-install or restore target-owned manifest` |
 | `.github/workflows/harness.yml` | GitHub Actions command parity | `.github/workflows/harness.yml: CI command mismatch - expected generated pre-push final check command` |
 | `.gitlab-ci.yml` | GitLab CI command parity | `.gitlab-ci.yml: CI command mismatch - expected generated pre-push final check command` |
 
@@ -46,7 +46,7 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | Evidence | Mode | Notes |
 | --- | --- | --- |
 | `settings.gradle`, `settings.gradle.kts`, `build.gradle`, or `build.gradle.kts` | `gradle` | Prefer `./gradlew` when executable. |
-| `pom.xml` | `maven` | The harness Maven plugin lives under `.claude/harness/maven-plugin/`. |
+| `pom.xml` | `maven` | The harness Maven plugin lives under `docs/harness/maven-plugin/`. |
 | `uv.lock` or Python `pyproject.toml` | `uv` | Run through `uv` so dependencies and Python version resolution stay target-owned. |
 | `bun.lock`, `bun.lockb`, or JavaScript `package.json` without a stronger stack signal | `bun` | Use only when Bun is the intended project runtime. |
 | Multiple stack signals | explicit user mode | Report ambiguous stack when non-interactive, or use the installed README command if present. |
@@ -57,11 +57,11 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | --- | --- | --- |
 | `gradle` harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
 | `gradle` final check | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| `maven` | `pom.xml` exists | `mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
-| `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run python .claude/harness/uv/harness_validate.py` |
-| `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun run .claude/harness/bun/harness-validate.ts` |
+| `maven` | `pom.xml` exists | `mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
+| `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run python docs/harness/uv/harness_validate.py` |
+| `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun run docs/harness/bun/harness-validate.ts` |
 
-The installed README command is the local harness validation command. The generated `.claude/harness/git-hooks/pre-push` command marker is the final check command; for Gradle that command is `check`, while `pre-commit` runs `harnessValidate`. Do not introduce `.claude/harness/validate.sh` as a dispatcher unless the installer, CI templates, hook generation, validators, and self-check all adopt that dispatcher contract together.
+The installed README command is the local harness validation command. The generated `docs/harness/git-hooks/pre-push` command marker is the final check command; for Gradle that command is `check`, while `pre-commit` runs `harnessValidate`. Do not introduce `docs/harness/validate.sh` as a dispatcher unless the installer, CI templates, hook generation, validators, and self-check all adopt that dispatcher contract together.
 
 ## Command Examples
 
@@ -76,27 +76,27 @@ gradle harnessValidate
 ```
 
 ```sh
-mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate
+mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate
 ```
 
 ```sh
-uv run python .claude/harness/uv/harness_validate.py
+uv run python docs/harness/uv/harness_validate.py
 ```
 
 ```sh
-bun run .claude/harness/bun/harness-validate.ts
+bun run docs/harness/bun/harness-validate.ts
 ```
 
 Do not suppress validator output.
 
 ```sh
-uv run python .claude/harness/uv/harness_validate.py
+uv run python docs/harness/uv/harness_validate.py
 ```
 
 Reject any pattern that discards validator output or forces a successful exit after failure because it hides diagnostics and turns failure into success.
 
 ```sh
-uv run python .claude/harness/uv/harness_validate.py
+uv run python docs/harness/uv/harness_validate.py
 ```
 
 ## Workflow
@@ -131,8 +131,8 @@ failures:
 
 | Category | Evidence | Smallest valid action |
 | --- | --- | --- |
-| Missing harness file | Validator names an absent `AGENTS.md`, `.claude/harness/**`, docs file, agent, or skill | Re-run installation or restore the missing target-owned file. |
-| Manifest drift | Manifest JSON is invalid or manifest lists differ from validator constants | Restore `.claude/harness/manifest.json` or update validators and manifest together. |
+| Missing harness file | Validator names an absent `AGENTS.md`, `docs/harness/**`, docs file, agent, or skill | Re-run installation or restore the missing target-owned file. |
+| Manifest drift | Manifest JSON is invalid or manifest lists differ from validator constants | Restore `docs/harness/manifest.json` or update validators and manifest together. |
 | Missing harness directory | Validator names an absent docs, `.claude/agents`, `.claude/skills`, or template directory | Restore the directory and required `.gitkeep` files when empty. |
 | Stale placeholder | File exists but still contains generic scaffold content | Replace placeholder with target truth; do not invent product facts. |
 | Agent or skill metadata | Agent or skill frontmatter lacks required `name` or `description` | Fix the specific agent or skill metadata. |
@@ -162,14 +162,14 @@ GitHub-only and GitLab-only repositories may intentionally delete the unused CI 
 Report CI drift with the expected command.
 
 ```text
-ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv run python .claude/harness/uv/harness_validate.py`
+ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv run python docs/harness/uv/harness_validate.py`
 ```
 
 ## Invariants
 
 - Validation checks the target repository harness, not this plugin package.
 - The installed manifest and installed README define the expected target repository contract.
-- Native validators support the installed `.claude/harness/manifest.json` schema and compare the known list fields from that schema.
+- Native validators support the installed `docs/harness/manifest.json` schema and compare the known list fields from that schema.
 - File presence alone does not prove project readiness when placeholders still lack project-specific content.
 - Generated artifacts are valid only when they document source command, source inputs, freshness, and regeneration trigger.
 - GitHub Actions, GitLab CI, and the generated pre-push hook MUST remain examples of the same final check command. Gradle pre-commit runs `harnessValidate`; non-Gradle pre-commit remains compliance-only.

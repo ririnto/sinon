@@ -1,3 +1,3 @@
 # uv Harness Validator
 
-Run `uv run python .claude/harness/uv/harness_validate.py`.
+Run `uv run python docs/harness/uv/harness_validate.py`.
