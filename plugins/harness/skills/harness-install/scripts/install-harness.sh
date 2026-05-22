@@ -849,7 +849,6 @@ write_new_pre_commit_hook() {
   (
     set -C
     cat > "$file" <<'HOOK'
-
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 # Harness generated hook: pre-commit
