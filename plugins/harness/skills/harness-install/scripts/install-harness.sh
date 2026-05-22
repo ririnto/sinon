@@ -20,6 +20,14 @@ usage() {
   cat <<'EOF'
 usage: install-harness.sh [--target DIR] [--mode auto|gradle|maven|uv|bun|shell] [--hooks none|copy] [--force] [--no-ci]
 
+modes:
+  auto    Detect the stack from files in the target repository (recommended).
+  gradle  JVM-family projects (Kotlin/Java/Groovy/Scala) using the Gradle build tool.
+  maven   JVM-family projects (Kotlin/Java/Groovy/Scala) using the Apache Maven build tool.
+  uv      Python-family projects managed by uv (pyproject.toml + uv.lock).
+  bun     Node-family projects (TypeScript/JavaScript) managed by bun (package.json, bun.lock).
+  shell   Shell-script-only or Makefile-driven projects. Requires python3 on PATH for manifest parsing.
+
 HARNESS_TARGET_ROOT may be used instead of --target.
 EOF
 }
