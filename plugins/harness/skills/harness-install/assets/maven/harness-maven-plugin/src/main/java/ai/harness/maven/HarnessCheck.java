@@ -6,8 +6,20 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.stmt.ReturnStmt;
+import com.github.javaparser.ast.stmt.CatchClause;
+import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.BlockStmt;
+import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import com.github.javaparser.JavaToken;
+import com.github.javaparser.javadoc.Javadoc;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +36,7 @@ import java.util.stream.StreamSupport;
 import java.util.regex.Pattern;
 import java.util.Collectors;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Enum of harness validation checks. Each value implements a validate method
@@ -714,6 +727,339 @@ enum HarnessCheck {
                         return nestedMethods.isEmpty() && lambdas.isEmpty();
                     })
                     .orElse(false);
+        }
+    },
+
+    FORBID_EARLY_RETURN("forbidEarlyReturn") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateEarlyReturn(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateEarlyReturn(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.walk(MethodDeclaration.class, method -> {
+                    method.getBody().ifPresent(body -> {
+                        List<ReturnStmt> returnStmts = new java.util.ArrayList<>();
+                        body.walk(ReturnStmt.class, returnStmts::add);
+                        if (!returnStmts.isEmpty()) {
+                            ReturnStmt lastReturn = returnStmts.get(returnStmts.size() - 1);
+                            List<ReturnStmt> nonLastReturns = returnStmts.stream()
+                                    .filter(ret -> !ret.equals(lastReturn))
+                                    .toList();
+                            for (ReturnStmt ret : nonLastReturns) {
+                                int line = ret.getBegin().map(p -> p.line).orElse(-1);
+                                findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": early return in function"));
+                            }
+                        }
+                    });
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
+        }
+    },
+
+    FORBID_SILENT_CATCH("forbidSilentCatch") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateSilentCatch(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateSilentCatch(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.walk(CatchClause.class, catchClause -> {
+                    String catchParam = catchClause.getParameter().getNameAsString();
+                    BlockStmt body = catchClause.getBody();
+                    String bodyText = body.toString();
+                    boolean hasParamRef = bodyText.contains(catchParam);
+                    boolean hasThrow = bodyText.contains("throw ");
+                    boolean hasLog = bodyText.matches("(?s).*\\b(getLog|logger|log)\\s*\\..*");
+                    if (!hasParamRef && !hasThrow && !hasLog) {
+                        int line = catchClause.getBegin().map(p -> p.line).orElse(-1);
+                        findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": silent catch block"));
+                    }
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
+        }
+    },
+
+    FORBID_MUTABLE_COLLECTION("forbidMutableCollection") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateMutableCollection(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateMutableCollection(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.walk(ObjectCreationExpr.class, expr -> {
+                    String typeName = expr.getTypeAsString();
+                    if (typeName.equals("ArrayList") || typeName.equals("HashMap") || typeName.equals("HashSet") ||
+                        typeName.equals("LinkedList") || typeName.equals("LinkedHashMap") || typeName.equals("LinkedHashSet") ||
+                        typeName.equals("TreeMap") || typeName.equals("TreeSet")) {
+                        int line = expr.getBegin().map(p -> p.line).orElse(-1);
+                        findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": mutable collection " + typeName + "; use immutable factory"));
+                    }
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
+        }
+    },
+
+    FORBID_UNSTRUCTURED_LOGGING("forbidUnstructuredLogging") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateUnstructuredLogging(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateUnstructuredLogging(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.walk(MethodCallExpr.class, expr -> {
+                    String methodStr = expr.toString();
+                    if (methodStr.startsWith("System.out.println") || methodStr.startsWith("System.out.print") ||
+                        methodStr.startsWith("System.err.println") || methodStr.startsWith("System.err.print")) {
+                        int line = expr.getBegin().map(p -> p.line).orElse(-1);
+                        findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": unstructured logging; use structured logger"));
+                    }
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
+        }
+    },
+
+    FORBID_WILDCARD_IMPORT("forbidWildcardImport") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateWildcardImport(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateWildcardImport(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.getImports().forEach(imp -> {
+                    if (imp.isAsterisk()) {
+                        int line = imp.getBegin().map(p -> p.line).orElse(-1);
+                        findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": wildcard import forbidden"));
+                    }
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
+        }
+    },
+
+    REQUIRE_IMPORT_OVER_FQN("requireImportOverFqn") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateImportOverFqn(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateImportOverFqn(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                Set<String> importedSimpleNames = new java.util.HashSet<>();
+                cu.getImports().forEach(imp -> {
+                    String name = imp.getNameAsString();
+                    if (!imp.isAsterisk()) {
+                        int lastDot = name.lastIndexOf('.');
+                        if (lastDot > 0) {
+                            importedSimpleNames.add(name.substring(lastDot + 1));
+                        }
+                    }
+                });
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.walk(FieldAccessExpr.class, expr -> {
+                    String scope = expr.getScope().toString();
+                    if (scope.contains(".") && scope.split("\\.").length >= 2) {
+                        String simple = expr.getNameAsString();
+                        if (!importedSimpleNames.contains(simple)) {
+                            int line = expr.getBegin().map(p -> p.line).orElse(-1);
+                            findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": use import instead of FQN"));
+                        }
+                    }
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
+        }
+    },
+
+    REQUIRE_DOC_COMMENT_ON_PUBLIC_DECLARATION("requireDocCommentOnPublicDeclaration") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateDocComments(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateDocComments(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.walk(ClassOrInterfaceDeclaration.class, cls -> {
+                    if (cls.isPublic() && !cls.getJavadoc().isPresent()) {
+                        int line = cls.getBegin().map(p -> p.line).orElse(-1);
+                        findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": public class missing Javadoc"));
+                    }
+                    cls.getMethods().forEach(m -> {
+                        if (m.isPublic() && !m.getJavadoc().isPresent()) {
+                            int line = m.getBegin().map(p -> p.line).orElse(-1);
+                            findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": public method missing Javadoc"));
+                        }
+                    });
+                    cls.getFields().forEach(f -> {
+                        if (f.isPublic() && !f.getJavadoc().isPresent()) {
+                            int line = f.getBegin().map(p -> p.line).orElse(-1);
+                            findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": public field missing Javadoc"));
+                        }
+                    });
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
+        }
+    },
+
+    FORBID_EMPTY_CATCH_BLOCK("forbidEmptyCatchBlock") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateEmptyCatch(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateEmptyCatch(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.walk(CatchClause.class, catchClause -> {
+                    if (catchClause.getBody().getStatements().isEmpty()) {
+                        int line = catchClause.getBegin().map(p -> p.line).orElse(-1);
+                        findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": empty catch block"));
+                    }
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
+        }
+    },
+
+    REQUIRE_BRACES_ON_IF("requireBracesOnIf") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateBracesOnIf(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateBracesOnIf(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.walk(IfStmt.class, ifStmt -> {
+                    if (!(ifStmt.getThenStmt() instanceof BlockStmt)) {
+                        int line = ifStmt.getBegin().map(p -> p.line).orElse(-1);
+                        findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": if without braces"));
+                    }
+                    if (ifStmt.getElseStmt().isPresent()) {
+                        com.github.javaparser.ast.stmt.Statement elseStmt = ifStmt.getElseStmt().get();
+                        if (!(elseStmt instanceof BlockStmt) && !(elseStmt instanceof IfStmt)) {
+                            int line = elseStmt.getBegin().map(p -> p.line).orElse(-1);
+                            findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": else without braces"));
+                        }
+                    }
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
         }
     };
 

@@ -3,10 +3,10 @@ package ai.harness.gradle
 import kotlinx.serialization.Serializable
 
 /**
- * Result of an implicit lambda parameter 'it' detection in Kotlin source.
+ * Result of a silent catch block: catch parameter in `file` is unused at `line`.
  */
 @Serializable
-data class ImplicitLambdaItResult(
+data class SilentCatchResult(
     val file: String,
     val line: Int,
 )

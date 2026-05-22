@@ -3,18 +3,16 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xwarning-level=K1_API_DEPRECATION_ERROR:warning")
+    }
+}
+
 dependencies {
     implementation(platform(libs.kotlinx.serialization.bom))
     implementation(libs.kotlinx.serialization.json)
-}
-
-val kotlinCompiler: Configuration by configurations.creating {
-    isCanBeResolved = true
-    isCanBeConsumed = false
-}
-
-dependencies {
-    kotlinCompiler(libs.kotlin.compiler.embeddable)
+    compileOnly(libs.kotlin.compiler.embeddable)
 }
 
 gradlePlugin {

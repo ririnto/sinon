@@ -11,8 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,12 +36,16 @@ public final class HarnessValidateMojo extends AbstractMojo {
             return;
         }
 
-        Set<Finding> allFindings = new LinkedHashSet<>();
-        for (HarnessCheck check : HarnessCheck.values()) {
-            if (check.applies(manifest)) {
-                allFindings.addAll(check.validate(root, manifest));
-            }
-        }
+        List<Finding> allFindings = Arrays.stream(HarnessCheck.values())
+                .filter(check -> check.applies(manifest))
+                .flatMap(check -> {
+                    try {
+                        return check.validate(root, manifest).stream();
+                    } catch (MojoExecutionException e) {
+                        return Stream.empty();
+                    }
+                })
+                .toList();
 
         Set<String> knownCategories = Arrays.stream(HarnessCheck.values())
                 .map(HarnessCheck::category)
