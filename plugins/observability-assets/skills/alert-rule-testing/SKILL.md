@@ -77,6 +77,7 @@ tests:
           - exp_labels:
               severity: page
               service: api
+
 ```
 
 ## input_series Notation Formats
@@ -100,6 +101,7 @@ For example, `0+6x20` expands to 21 samples: `0, 6, 12, ... 120`.
 
 - series: 'up{job="api"}'
   values: '1+0x5'
+
 ```
 
 The examples expand to `0, 6, 12, ... 120`; `1000, 1050, 1100, ... 1500`; and six constant `1` samples.
@@ -116,6 +118,7 @@ Space-separated literal sample values:
 
 - series: 'memory_usage_percent{host="db-1"}'
   values: '60 62 65 70 78 85'
+
 ```
 
 The first series has five explicit samples. The second mixes integer-looking and float-compatible values.
@@ -132,6 +135,7 @@ Use `_` for a missing sample and `stale` to mark a series as stale from that poi
 
 - series: 'http_requests_total{job="api"}'
   values: '10 12 14 stale'
+
 ```
 
 The first sequence has one missing sample at position 3, then a stale marker from position 5 onward. The second becomes stale after its first three samples.
@@ -151,6 +155,7 @@ Minimal native histogram sample syntax (Prometheus >= 2.40):
 ```yaml
 - series: 'http_request_duration_seconds{job="api"}'
   values: '{{schema:1 count:10 sum:2.5 buckets:[1 3 6]}} {{schema:1 count:12 sum:3.0 buckets:[1 4 7]}}'
+
 ```
 
 Each histogram sample is enclosed in `{{ }}`. The minimal fields shown above are enough for compact examples, but promtool supports additional optional fields such as `z_bucket`, `z_bucket_w`, `offset`, `n_buckets`, `n_offset`, `counter_reset_hint`, and `custom_values`.
@@ -201,6 +206,7 @@ alert_rule_test:
           service: api
         exp_annotations:
           summary: API 5xx ratio is high
+
 ```
 
 ## promql_expr_test Complete Schema
@@ -237,6 +243,7 @@ promql_expr_test:
     exp_samples:
       - labels: '{}'
         value: 100
+
 ```
 
 Use when: the blocker is an intermediate query shape rather than only the final alert state.
@@ -265,6 +272,7 @@ tests:
           - exp_labels:
               severity: page
               service: api
+
 ```
 
 Use when: you need one minimal `promtool` test that exercises a real alert rule with concrete fixture data.
@@ -275,6 +283,7 @@ Start by running the exact test file that matches the rule under review:
 
 ```sh
 promtool test rules alerts/api-errors.test.yaml
+
 ```
 
 Use when: the test file already exists or has just been edited and you need the first safe validation run.
@@ -284,12 +293,14 @@ Run a single named test case:
 
 ```sh
 promtool test rules --run '^api-error-firing$' alerts/api-errors.test.yaml
+
 ```
 
 Run all test files in a directory:
 
 ```sh
 promtool test rules tests/
+
 ```
 
 ### Test Output Interpretation
@@ -299,6 +310,7 @@ Successful run:
 ```text
 PASS  alerts/api-errors.test.yaml   0.003s
 PASS  alerts/latency.test.yaml      0.002s
+
 ```
 
 Failure output example:
@@ -315,6 +327,7 @@ Expected:
     labels: {severity="page", service="api"}
 Actual:
   (no alerts)
+
 ```
 
 Common failure messages and their causes:
@@ -336,6 +349,7 @@ alert_rule_test:
   - eval_time: 16m
     alertname: Api5xxRatioAbove5Percent
     exp_alerts: []
+
 ```
 
 Use when: you need a fast regression check for the non-firing case.
@@ -347,6 +361,7 @@ alert_rule_test:
   - eval_time: 8m
     alertname: Api5xxRatioAbove5Percent
     exp_alerts: []
+
 ```
 
 Use when: the alert has a `for` window and you need to prove it is not firing too early.
@@ -367,6 +382,7 @@ alert_rule_test:
       - exp_labels:
           severity: page
           service: api
+
 ```
 
 Use when: you need one stable contract for the actual firing state.
@@ -378,6 +394,7 @@ alert_rule_test:
   - eval_time: 25m
     alertname: Api5xxRatioAbove5Percent
     exp_alerts: []
+
 ```
 
 Use when: an earlier eval time already proved the alert fired, and a later eval time now proves the alert cleared after the input series recovered.
@@ -417,6 +434,7 @@ tests:
       - eval_time: 26m
         alertname: Api5xxRatioAbove5Percent
         exp_alerts: []
+
 ```
 
 Use when: you need one test that covers the entire inactive -> pending -> firing -> resolved lifecycle.
@@ -430,6 +448,7 @@ promql_expr_test:
     exp_samples:
       - labels: '{}'
         value: 500
+
 ```
 
 Use when: the blocker is an intermediate query shape rather than only the final alert state.
@@ -446,6 +465,7 @@ alert_rule_test:
           service: api
         exp_annotations:
           summary: API 5xx ratio is high
+
 ```
 
 Use when: the annotation template itself must stay stable, not just the firing condition.

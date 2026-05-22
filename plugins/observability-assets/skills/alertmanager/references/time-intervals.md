@@ -44,6 +44,7 @@ Defines a time-of-day window. End time is exclusive.
 times:
   - start_time: "09:00"
     end_time: "17:00"
+
 ```
 
 | Property | Format | Range | Notes |
@@ -61,6 +62,7 @@ Defines a day-of-week range using full lowercase names. Sunday = 0, Saturday = 6
 weekdays:
   - monday:friday
   - saturday
+
 ```
 
 This matches Monday through Friday plus Saturday.
@@ -77,6 +79,7 @@ Defines a day-of-month range. Supports positive (1-based from month start) and n
 days_of_month:
   - 1:15
   - -3:-1
+
 ```
 
 This matches the 1st through 15th of the month and the last 3 days of the month.
@@ -99,6 +102,7 @@ Defines a month range using full lowercase names or integers. January = 1, Decem
 months:
   - january:march
   - october:december
+
 ```
 
 This matches Q1 and Q4.
@@ -115,6 +119,7 @@ Defines a year range using positive integers only.
 years:
   - 2024:2026
   - 2024
+
 ```
 
 This matches 2024 through 2026 inclusive and the single year 2024.
@@ -129,6 +134,7 @@ IANA timezone identifier string. Controls which timezone is used for evaluating 
 location: America/New_York
 location: Europe/London
 location: Asia/Tokyo
+
 ```
 
 If omitted, times are evaluated in UTC.
@@ -156,6 +162,7 @@ time_intervals:
         times:
           - start_time: "09:00"
             end_time: "17:00"
+
 ```
 
 Split-window offhours pattern (before and after business hours + weekends):
@@ -177,6 +184,7 @@ time_intervals:
         times:
           - start_time: "00:00"
             end_time: "24:00"
+
 ```
 
 Month-specific maintenance window (first 3 days of Q1 months):
@@ -192,6 +200,7 @@ time_intervals:
         times:
           - start_time: "02:00"
             end_time: "06:00"
+
 ```
 
 End-of-quarter patching window (last 2 days of March, June, September, December):
@@ -210,6 +219,7 @@ time_intervals:
         times:
           - start_time: "22:00"
             end_time: "04:00"
+
 ```
 
 Year-limited schedule (specific years only):
@@ -224,6 +234,7 @@ time_intervals:
           - 2025
         months:
           - january:june
+
 ```
 
 Combined complex example (business hours during specific months):
@@ -242,6 +253,7 @@ time_intervals:
         times:
           - start_time: "08:00"
             end_time: "17:00"
+
 ```
 
 ## Usage in Routes
@@ -258,6 +270,7 @@ route:
   mute_time_intervals:
     - offhours
     - holidays
+
 ```
 
 During `offhours` or `holidays`, alerts matching this route still group and wait normally, but no notification is sent. When the interval ends, pending notifications fire immediately if their grouping timers have elapsed.
@@ -273,6 +286,7 @@ route:
     - business-hours
   matchers:
     - severity="warning"
+
 ```
 
 Outside `business-hours`, this route does not match at all. Alerts that would have matched fall through to the next matching route or the root route default receiver.

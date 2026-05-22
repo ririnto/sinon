@@ -53,6 +53,7 @@ http_config:
   follow_redirects: true
   enable_http2: true
   proxy_url: http://proxy.example.org:8080
+
 ```
 
 ## authorization
@@ -75,6 +76,7 @@ Configures the `Authorization` header for HTTP requests.
 authorization:
   type: Bearer
   credentials_file: /etc/alertmanager/bearer-token
+
 ```
 
 ## basic_auth
@@ -97,6 +99,7 @@ Configures HTTP Basic Authentication via the `Authorization: Basic ...` header.
 basic_auth:
   username: alertmanager
   password_file: /etc/alertmanager/http-password
+
 ```
 
 ## oauth2
@@ -126,6 +129,7 @@ oauth2:
   scopes:
     - alertmanager:write
     - alertmanager:read
+
 ```
 
 ## tls_config
@@ -159,6 +163,7 @@ tls_config:
   key_file: /etc/alertmanager/client.key
   min_version: TLS12
   server_name: alerts.example.org
+
 ```
 
 ## tracing_config
@@ -184,4 +189,5 @@ tracing:
   sampling_fraction: 0.5
   tls_config:
     insecure_skip_verify: true
+
 ```

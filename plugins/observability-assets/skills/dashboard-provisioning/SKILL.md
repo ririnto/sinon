@@ -37,6 +37,7 @@ Config file load order (later values override earlier):
 3. /etc/grafana/grafana.ini                   (system-level config)
 4. --config=<path> CLI flag                   (explicit override)
 5. GF_ environment variables                  (highest priority)
+
 ```
 
 Use when: you need to know exactly where Grafana reads its config and which file takes precedence for a given setting.
@@ -52,6 +53,7 @@ providers:
     type: file
     options:
       path: /var/lib/grafana/dashboards/operations
+
 ```
 
 Use when: you need the smallest safe provisioning shape before adding folder and update controls.
@@ -72,6 +74,7 @@ providers:
     options:
       path: /var/lib/grafana/dashboards/operations
       foldersFromFilesStructure: false
+
 ```
 
 Field meanings: `name` is the provider identifier; `orgId` defaults to `1`; `folder` fixes the target folder and is mutually exclusive with `options.foldersFromFilesStructure`; `type` must be `file`; `disableDeletion` defaults to `false`; `updateIntervalSeconds` defaults to `30`; `allowUiUpdates` defaults to `false`; `options.path` must point at the dashboard JSON directory; `options.foldersFromFilesStructure` mirrors one directory level into Grafana folders when no provider-level folder is set.
@@ -84,6 +87,7 @@ Start by validating the provider YAML structure:
 
 ```sh
 uv run --with 'pyyaml>=6,<7' python -c "import yaml; yaml.safe_load(open('grafana/provisioning/dashboards.yaml'))"
+
 ```
 
 Use when: the provider config was just edited and you need a fast syntax check before treating it as ready for deployment. Replace the path with your actual provider file location.
@@ -106,6 +110,7 @@ Representative source file:
   "refresh": "30s",
   "panels": []
 }
+
 ```
 
 Field semantics in the source file:
@@ -143,6 +148,7 @@ Dashboard import-style payloads use a separate outer object:
   "overwrite": true,
   "message": "sync from automation"
 }
+
 ```
 
 Use this envelope only for API-driven or resource-specific workflows that explicitly ask for it. Do not commit this wrapper as the raw dashboard file under a legacy provider `options.path`.
@@ -163,6 +169,7 @@ providers:
     allowUiUpdates: false
     options:
       path: /var/lib/grafana/dashboards/operations
+
 ```
 
 Use when: the dashboard set belongs in one explicit Grafana folder.
@@ -177,6 +184,7 @@ providers:
     options:
       path: /var/lib/grafana/dashboards
       foldersFromFilesStructure: true
+
 ```
 
 Use when: repository directories already model the folder split and nested folder trees are not required.
@@ -208,6 +216,7 @@ Dashboard JSON source file with explicit uid -- correct legacy file-provisioning
     }
   ]
 }
+
 ```
 
 Use when: you need a complete, copy-adaptable dashboard JSON file that can live directly under the provider path.
@@ -222,6 +231,7 @@ grafana/
   dashboards/
     operations/
       api-overview.json
+
 ```
 
 Use when: the same dashboard JSON should be reviewed once but applied through different provider files or paths per environment.
@@ -235,6 +245,7 @@ grafana/
   dashboards/
     operations/
       api-overview.json
+
 ```
 
 Use when: you need one repository layout that makes provider config and provisioned dashboard files reviewable together.
@@ -267,6 +278,7 @@ providers:
     type: file
     options:
       path: '${DASHBOARD_PATH}/dashboards'
+
 ```
 
 Resolved at runtime with `DASHBOARD_PROVIDER_NAME=prod-dashboards` and `DASHBOARD_PATH=/opt/grafana`:
@@ -278,6 +290,7 @@ providers:
     type: file
     options:
       path: '/opt/grafana/dashboards'
+
 ```
 
 Constraints:
@@ -309,6 +322,7 @@ providers:
     updateIntervalSeconds: 30
     options:
       path: /var/lib/grafana/dashboards
+
 ```
 
 Use when: the blocker is choosing an update interval or debugging why dashboard file changes are not picked up by a running Grafana instance.
@@ -325,6 +339,7 @@ Default behavior (`disableDeletion: false`):
 3. operator removes api-overview.json from the source directory
 4. next sync cycle detects the file is gone
 5. Grafana deletes the corresponding dashboard
+
 ```
 
 With deletion disabled (`disableDeletion: true`):
@@ -336,6 +351,7 @@ With deletion disabled (`disableDeletion: true`):
 4. next sync cycle detects the file is gone
 5. Grafana keeps the dashboard (deletion blocked)
 6. re-adding the file later resumes normal update behavior
+
 ```
 
 UI export workflows for moving a dashboard into provisioning:
