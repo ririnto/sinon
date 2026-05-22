@@ -16,12 +16,12 @@ interface HarnessCheckRule {
 	fun applies(manifest: JsonObject): Boolean
 
 	/**
-	 * Validate and return a list of findings.
+	 * Validate and return a collection of findings.
 	 *
 	 * @param manifest The harness validation manifest.
 	 * @param root The root path of the project.
 	 * @param psiResults PSI analysis results, may be null.
-	 * @return List of findings; empty list if no issues found.
+	 * @return Collection of findings; empty collection if no issues found.
 	 */
-	fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults? = null): List<Finding>
+	fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults? = null): Collection<Finding>
 }

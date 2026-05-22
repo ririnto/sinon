@@ -22,7 +22,7 @@ export class RequireCiCommandMatchesHookRule implements HarnessCheckRule {
     return typeof parameters.referenceHook === "string";
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireCiCommandMatchesHook);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const referenceHook = typeof parameters.referenceHook === "string" ? parameters.referenceHook : "";

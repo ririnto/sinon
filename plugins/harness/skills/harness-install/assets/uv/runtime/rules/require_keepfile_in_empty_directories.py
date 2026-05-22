@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 """Require keepfile in empty directories rule."""
 
+from collections.abc import Iterable
+
 from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
 
 from ._utils import is_safe_directory, is_safe_file, severity_for
-
 
 class RequireKeepleInEmptyDirectoriesRule(HarnessCheckRule):
     """Validate requireKeepfileInEmptyDirectories check."""
@@ -22,7 +23,7 @@ class RequireKeepleInEmptyDirectoriesRule(HarnessCheckRule):
         enabled = section.get("enabled", True)
         return enabled is not False
 
-    def validate(self, root: Path, manifest: dict) -> list[Finding]:
+    def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate requireKeepfileInEmptyDirectories check."""
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):

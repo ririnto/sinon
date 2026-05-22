@@ -22,7 +22,7 @@ export class RequireSingleTopLevelKotlinDeclarationRule implements HarnessCheckR
     return typeof parameters.directories === "object" && parameters.directories !== null;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireSingleTopLevelKotlinDeclaration);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const directories = Array.isArray(parameters.directories) ? parameters.directories : [];

@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 """Forbid unsafe symlinks rule."""
 
+from collections.abc import Iterable
+
 import os
 from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
 
 from ._utils import is_safe_directory, relative, safe_walk, severity_for
-
 
 class ForbidUnsafeSymlinksRule(HarnessCheckRule):
     """Validate forbidUnsafeSymlinks check."""
@@ -23,7 +24,7 @@ class ForbidUnsafeSymlinksRule(HarnessCheckRule):
         enabled = section.get("enabled", True)
         return enabled is not False
 
-    def validate(self, root: Path, manifest: dict) -> list[Finding]:
+    def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate forbidUnsafeSymlinks check."""
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):

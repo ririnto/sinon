@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 """Require hook executable rule."""
 
+from collections.abc import Iterable
+
 from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
 
 from ._utils import is_executable, severity_for
-
 
 class RequireHookExecutableRule(HarnessCheckRule):
     """Validate requireHookExecutable check."""
@@ -22,7 +23,7 @@ class RequireHookExecutableRule(HarnessCheckRule):
         enabled = section.get("enabled", True)
         return enabled is not False
 
-    def validate(self, root: Path, manifest: dict) -> list[Finding]:
+    def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate requireHookExecutable check."""
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):

@@ -3,7 +3,7 @@ package ai.harness.maven;
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Rule that requires specified directories to exist in the project.
@@ -17,7 +17,7 @@ public class RequireDirectoriesExistRule implements HarnessCheckRule {
     }
 
     @Override
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
         List<String> paths = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("paths"));
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);

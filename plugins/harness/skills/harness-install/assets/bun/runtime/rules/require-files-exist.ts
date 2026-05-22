@@ -22,7 +22,7 @@ export class RequireFilesExistRule implements HarnessCheckRule {
     return this.ctx.readStringArray(entry.paths).length > 0;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireFilesExist);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const paths = this.ctx.readStringArray(parameters.paths);

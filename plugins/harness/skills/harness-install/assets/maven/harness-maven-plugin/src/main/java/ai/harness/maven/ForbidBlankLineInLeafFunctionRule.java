@@ -9,7 +9,7 @@ import com.github.javaparser.JavaToken;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Rule that forbids blank lines in leaf function bodies.
@@ -23,7 +23,7 @@ public class ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
     }
 
     @Override
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
             List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);

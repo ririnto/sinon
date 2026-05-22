@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """Forbid unchecked tasks under rule."""
 
+from collections.abc import Iterable
+
 import fnmatch
 import re
 from pathlib import Path
@@ -9,7 +11,6 @@ from pathlib import Path
 from harness_check_rule import Finding, HarnessCheckRule
 
 from ._utils import is_safe_directory, read_text, relative, severity_for
-
 
 class ForbidUncheckedTasksUnderRule(HarnessCheckRule):
     """Validate forbidUncheckedTasksUnder check."""
@@ -24,7 +25,7 @@ class ForbidUncheckedTasksUnderRule(HarnessCheckRule):
         enabled = section.get("enabled", True)
         return enabled is not False
 
-    def validate(self, root: Path, manifest: dict) -> list[Finding]:
+    def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate forbidUncheckedTasksUnder check."""
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):

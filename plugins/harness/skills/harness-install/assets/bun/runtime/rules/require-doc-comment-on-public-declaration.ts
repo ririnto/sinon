@@ -14,7 +14,7 @@ export class RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRul
     return true;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const sources = this.ctx.stackSources(manifest, "typescript");
     return sources.flatMap((file) => {
       const text = this.ctx.read(file);

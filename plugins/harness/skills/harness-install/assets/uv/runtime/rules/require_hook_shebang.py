@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 """Require hook shebang rule."""
 
+from collections.abc import Iterable
+
 from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
 
 from ._utils import first_line, severity_for
-
 
 class RequireHookShebangRule(HarnessCheckRule):
     """Validate requireHookShebang check."""
@@ -22,7 +23,7 @@ class RequireHookShebangRule(HarnessCheckRule):
         enabled = section.get("enabled", True)
         return enabled is not False
 
-    def validate(self, root: Path, manifest: dict) -> list[Finding]:
+    def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate requireHookShebang check."""
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):

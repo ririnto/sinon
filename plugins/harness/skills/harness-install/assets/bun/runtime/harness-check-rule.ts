@@ -4,8 +4,16 @@
  * Strategy interface implemented by each harness check rule.
  */
 export interface HarnessCheckRule {
+  /**
+   * Determines whether this rule applies to the given manifest.
+   */
   applies(manifest: HarnessManifest): boolean;
-  validate(projectDir: string, manifest: HarnessManifest): Finding[];
+
+  /**
+   * Validates the project against this rule.
+   * Returns a read-only array of findings.
+   */
+  validate(projectDir: string, manifest: HarnessManifest): readonly Finding[];
 }
 
 export interface Finding {

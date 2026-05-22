@@ -3,7 +3,7 @@ package ai.harness.maven;
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Enum of harness validation checks. Each value holds a category name and a rule implementation.
@@ -72,10 +72,10 @@ enum HarnessCheck {
      *
      * @param root the project root directory
      * @param manifest the manifest JSON node
-     * @return a list of findings; empty if validation passes
+     * @return a collection of findings; empty if validation passes
      * @throws MojoExecutionException if validation fails
      */
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         return rule.validate(root, manifest);
     }
 }

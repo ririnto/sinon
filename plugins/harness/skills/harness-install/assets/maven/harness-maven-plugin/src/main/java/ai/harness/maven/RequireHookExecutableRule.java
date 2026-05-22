@@ -4,7 +4,7 @@ import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Rule that requires hook files to be executable.
@@ -18,7 +18,7 @@ public class RequireHookExecutableRule implements HarnessCheckRule {
     }
 
     @Override
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
         List<String> hooks = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks"));
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);

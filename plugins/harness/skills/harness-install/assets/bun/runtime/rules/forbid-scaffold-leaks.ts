@@ -23,7 +23,7 @@ export class ForbidScaffoldLeaksRule implements HarnessCheckRule {
     return this.ctx.readStringArray(scope.bases).length > 0;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.forbidScaffoldLeaks);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const scope = this.ctx.readJsonObject(parameters.scope);

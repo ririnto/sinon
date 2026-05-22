@@ -497,7 +497,7 @@ manifest의 9개 disabled add-on 모두를 red-green으로 활성화하고, 새 
 
 - [ ] Task 7.1 — manifest의 forbidEarlyReturn 등 9개 add-on enabled로 전환 + 각 stack에 구현 추가. *별도 plan으로 분리*.
 
-### [-] Phase 10: HarnessCheck enum → Rule strategy 분리 (4 stack, 진행 중)
+### [x] Phase 10: HarnessCheck enum → Rule strategy 분리 (4 stack, 완료)
 
 enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단일 파일이 됨. 구조 분리:
 
@@ -509,10 +509,10 @@ enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단�
 진행 절차:
 
 - [x] Task 10.1 — Python (uv): 28개 Rule class + `rules/` 디렉터리 + `harness_check_rule.py` ABC. 완료.
-- [-] Task 10.2 — Kotlin (gradle/buildSrc): 25 enum 분리. orphan Result 7개와 그 visitor는 다음 add-on 활성화 단계에서 처리. 진행 중.
+- [x] Task 10.2 — Kotlin (gradle/buildSrc): 25 enum 분리 + 7개 사용 중 Result nested 이동 완료 (HarnessCheck.kt 934 → 142줄). orphan Result 7개와 그 visitor는 다음 add-on 활성화 단계에서 신규 구조로 통합.
 - [x] Task 10.3 — Java (maven): enum 분리 완료 (31 Rule class, HarnessCheck.java 81줄). nested Result 이동은 별도 분기에서 처리 (현 enum이 사용하는 외부 Result 없음).
 - [x] Task 10.4 — TypeScript (bun): Rule class 분리 + namespace nested Result. 완료 (30 Rule class, harness-check.ts 356줄).
-- [ ] Task 10.5 — 4 stack 모두 `plugin-self-check.sh` PASS 확인 후 일괄 commit.
+- [x] Task 10.5 — 4 stack 모두 `plugin-self-check.sh` PASS 확인 후 일괄 commit (c9f9b94).
 
 ### [ ] Phase 11: HarnessCheckRule.validate 반환형 List → Collection 일반화
 
