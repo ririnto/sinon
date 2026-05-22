@@ -10,13 +10,13 @@ This repository uses a versioned harness so coding agents can work from stable p
 - `ARCHITECTURE.md` MUST describe system boundaries, major components, data flow, and validation surfaces.
 - `.claude/agents/` MUST contain specialized project agents with `name` and `description` frontmatter.
 - `.claude/skills/*/SKILL.md` MUST contain focused procedures with `description` frontmatter.
-- `.claude/harness/templates/` MUST contain structured templates for agents, skills, workflows, CI integration, and repository documentation.
-- `.claude/harness/git-hooks/pre-commit` and `.claude/harness/git-hooks/pre-push` MUST remain executable and use `/usr/bin/env sh`.
+- `docs/harness/templates/` MUST contain structured templates for agents, skills, workflows, CI integration, and repository documentation.
+- `docs/harness/git-hooks/pre-commit` and `docs/harness/git-hooks/pre-push` MUST remain executable and use `/usr/bin/env sh`.
 - Empty required directories MUST be kept in version control with `.gitkeep` until they contain project files.
 - `docs/generated/` MUST contain actual generated repository artifacts when they exist. `docs/generated/db-schema.md` is an example of a possible generated database schema summary and MUST NOT be treated as a required scaffold file.
 - Validation SHOULD run through the repository's native build/runtime ecosystem.
-- `.claude/harness/git-hooks/pre-commit` MUST follow the stack-specific intermediate gate: Gradle runs `harnessValidate`, and non-Gradle stacks run lightweight harness-rule compliance.
-- `.claude/harness/git-hooks/pre-push` SHOULD run the same final check command used by CI; for Gradle this is `check`.
+- `docs/harness/git-hooks/pre-commit` MUST follow the stack-specific intermediate gate: Gradle runs `harnessValidate`, and non-Gradle stacks run lightweight harness-rule compliance.
+- `docs/harness/git-hooks/pre-push` SHOULD run the same final check command used by CI; for Gradle this is `check`.
 - CI SHOULD run the same final check command used by generated pre-push.
 
 ## Required Repository Structure
@@ -27,21 +27,27 @@ ARCHITECTURE.md
 CLAUDE.md
 docs/
 ├── design-docs/
-│   ├── index.md
-│   └── core-beliefs.md
+│   └── core-beliefs.md  (or real design docs)
 ├── exec-plans/
 │   ├── active/
-│   │   └── .gitkeep  (or real active plans)
+│   │   └── .gitkeep  (or real active plans named yyyy-MM-dd-<slug>.md)
 │   ├── completed/
-│   │   └── .gitkeep  (or real completed plans)
+│   │   └── .gitkeep  (or completed plans moved here)
 │   └── tech-debt-tracker.md
 ├── generated/
 │   └── .gitkeep  (or real generated artifacts)
+├── harness/
+│   ├── README.md
+│   ├── manifest.json
+│   ├── evolution-log.md
+│   ├── git-hooks/
+│   │   ├── pre-commit
+│   │   └── pre-push
+│   └── templates/
 ├── product-specs/
-│   ├── index.md
-│   └── optional product specs, such as new-user-onboarding.md
+│   └── optional product specs such as new-user-onboarding.md
 ├── references/
-│   └── optional replaceable LLM reference seeds
+│   └── optional replaceable reference seeds
 ├── DESIGN.md
 ├── FRONTEND.md
 ├── PLANS.md
@@ -85,6 +91,6 @@ Run the stack-specific harness validation command before merging changes that al
 - `docs/**`
 - `.claude/agents/`
 - `.claude/skills/`
-- `.claude/harness/`
+- `docs/harness/`
 - `.git/hooks/` installation instructions
 - CI harness jobs

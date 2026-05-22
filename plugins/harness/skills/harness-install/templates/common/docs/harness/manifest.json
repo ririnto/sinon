@@ -16,19 +16,20 @@
     "docs/QUALITY_SCORE.md",
     "docs/RELIABILITY.md",
     "docs/SECURITY.md",
-    ".claude/harness/git-hooks/pre-commit",
-    ".claude/harness/git-hooks/pre-push"
+    "docs/harness/git-hooks/pre-commit",
+    "docs/harness/git-hooks/pre-push"
   ],
   "requiredDirectories": [
     ".claude/agents",
     ".claude/skills",
-    ".claude/harness/templates",
     "docs",
     "docs/design-docs",
     "docs/exec-plans",
     "docs/exec-plans/active",
     "docs/exec-plans/completed",
     "docs/generated",
+    "docs/harness",
+    "docs/harness/templates",
     "docs/product-specs",
     "docs/references"
   ],
@@ -50,7 +51,7 @@
   },
   "harnessEvolution": {
     "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract.",
-    "log": ".claude/harness/evolution-log.md"
+    "log": "docs/harness/evolution-log.md"
   },
   "templateGroups": [
     "agent",
