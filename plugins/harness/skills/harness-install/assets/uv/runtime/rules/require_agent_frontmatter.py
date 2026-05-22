@@ -52,28 +52,29 @@ class RequireAgentFrontmatterRule(HarnessCheckRule):
         files = tuple(sorted(p for p in safe_walk(dir_path) if p.parent == dir_path and p.suffix == ".md"))
         if not files:
             return [Finding(severity_for(manifest, self.category), self.category, missing_dir_msg)]
-        result = []
+        findings = []
         for path in files:
             text = read_text(path)
+            severity = severity_for(manifest, self.category)
             if not text.startswith("---"):
-                result.append(Finding(
-                    severity_for(manifest, self.category),
+                findings.append(Finding(
+                    severity,
                     self.category,
                     messages.get("missingFrontmatter", "agent missing frontmatter: {file}").format(file=relative(path)),
                 ))
             if text.startswith("---") and not name_pattern.search(text):
-                result.append(Finding(
-                    severity_for(manifest, self.category),
+                findings.append(Finding(
+                    severity,
                     self.category,
                     messages.get("missingName", "agent missing name: {file}").format(file=relative(path)),
                 ))
             if not re.search(r"(?m)^description:\s*.+$", text):
-                result.append(Finding(
-                    severity_for(manifest, self.category),
+                findings.append(Finding(
+                    severity,
                     self.category,
                     messages.get("missingDescription", "agent missing description: {file}").format(file=relative(path)),
                 ))
-        return result
+        return findings
 
 
 RULE: HarnessCheckRule = RequireAgentFrontmatterRule()

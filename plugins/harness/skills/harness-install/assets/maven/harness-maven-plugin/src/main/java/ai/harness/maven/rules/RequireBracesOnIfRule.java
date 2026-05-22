@@ -26,9 +26,9 @@ public enum RequireBracesOnIfRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
-            List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
             return sources.stream()
                     .flatMap(file -> validateBracesOnIf(root, file, severity).stream())
                     .toList();
@@ -39,10 +39,10 @@ public enum RequireBracesOnIfRule implements HarnessCheckRule {
 
     private List<Finding> validateBracesOnIf(Path root, Path file, String severity) {
         try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
+            final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(IfStmt.class).stream()
                     .flatMap(ifStmt -> {
-                        java.util.List<Finding> findings = new java.util.ArrayList<>();
+                        final java.util.List<Finding> findings = new java.util.ArrayList<>();
                         if (!(ifStmt.getThenStmt() instanceof BlockStmt)) {
                             findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + ifStmt.getBegin().map(p -> p.line).orElse(-1) + ": if without braces"));
                         }

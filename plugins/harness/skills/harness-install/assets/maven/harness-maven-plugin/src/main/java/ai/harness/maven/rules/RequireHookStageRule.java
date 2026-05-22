@@ -22,25 +22,25 @@ public enum RequireHookStageRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        JsonNode stages = catNode.get("parameters").get("stages");
-        JsonNode stackStages = stages.get("maven");
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final JsonNode stages = catNode.get("parameters").get("stages");
+        final JsonNode stackStages = stages.get("maven");
         if (stackStages == null) {
             return List.of();
         }
-        String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return Stream.of(stackStages.fieldNames().spliterator(), false)
                 .flatMap(hookName -> validateStage(root, hookName, stackStages.get(hookName).asText(), markerTemplate, severity).stream())
                 .toList();
     }
 
     private List<Finding> validateStage(Path root, String hookName, String expectedStage, String markerTemplate, String severity) throws MojoExecutionException {
-        String hookPath = "docs/harness/git-hooks/" + hookName;
-        Path hook = root.resolve(hookPath);
+        final String hookPath = "docs/harness/git-hooks/" + hookName;
+        final Path hook = root.resolve(hookPath);
         if (HarnessCheckHelper.isSafeRegularFile(root, hook)) {
-            String text = HarnessCheckHelper.readFile(root, hook);
-            String expectedMarker = markerTemplate.replace("{stage}", expectedStage);
+            final String text = HarnessCheckHelper.readFile(root, hook);
+            final String expectedMarker = markerTemplate.replace("{stage}", expectedStage);
             return text.contains(expectedMarker)
                     ? List.of()
                     : List.of(new Finding(severity, CATEGORY, hookPath + " must contain stage marker '" + expectedMarker + "'"));

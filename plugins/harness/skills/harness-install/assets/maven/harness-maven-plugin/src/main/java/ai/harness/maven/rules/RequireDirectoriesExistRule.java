@@ -21,8 +21,8 @@ public enum RequireDirectoriesExistRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("paths")).stream()
                 .filter(path -> !HarnessCheckHelper.isSafeDirectory(root, root.resolve(path)))
                 .map(path -> new Finding(severity, CATEGORY, "missing directory: " + path))

@@ -30,22 +30,22 @@ public final class HarnessValidateMojo extends AbstractMojo {
      */
     @Override
     public void execute() throws MojoExecutionException {
-        Path root = currentRoot();
-        JsonNode manifest = loadManifest(root);
+        final Path root = currentRoot();
+        final JsonNode manifest = loadManifest(root);
         if (manifest == null) {
             return;
         }
 
-        Set<String> knownCategories = Arrays.stream(HarnessCheck.values())
+        final Set<String> knownCategories = Arrays.stream(HarnessCheck.values())
                 .map(HarnessCheck::category)
                 .collect(Collectors.toUnmodifiableSet());
-        Set<String> knownMetadataKeys = Set.of("name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns");
+        final Set<String> knownMetadataKeys = Set.of("name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns");
 
         Stream.of(manifest.fieldNames().spliterator(), false)
                 .filter(key -> !knownCategories.contains(key) && !knownMetadataKeys.contains(key))
                 .forEach(key -> getLog().warn("unknown manifest key: " + key));
 
-        List<Finding> sorted = Arrays.stream(HarnessCheck.values())
+        final List<Finding> sorted = Arrays.stream(HarnessCheck.values())
                 .filter(check -> check.applies(manifest))
                 .flatMap(check -> {
                     try {
@@ -55,12 +55,12 @@ public final class HarnessValidateMojo extends AbstractMojo {
                     }
                 })
                 .sorted((a, b) -> {
-                    int severityOrder = severityRank(b.severity()) - severityRank(a.severity());
+                    final int severityOrder = severityRank(b.severity()) - severityRank(a.severity());
                     return severityOrder != 0 ? severityOrder : a.message().compareTo(b.message());
                 })
                 .toList();
 
-        for (Finding finding : sorted) {
+        for (final Finding finding : sorted) {
             if ("ERROR".equals(finding.severity())) {
                 getLog().error("[ERROR] " + finding.message());
             } else if ("WARN".equals(finding.severity())) {
@@ -103,12 +103,12 @@ public final class HarnessValidateMojo extends AbstractMojo {
      * Loads and parses manifest.json; returns null if not found or unparseable.
      */
     private static JsonNode loadManifest(Path root) throws MojoExecutionException {
-        Path manifestPath = root.resolve(MANIFEST_PATH);
+        final Path manifestPath = root.resolve(MANIFEST_PATH);
         if (!Files.isRegularFile(manifestPath, LinkOption.NOFOLLOW_LINKS)) {
             return null;
         }
         try {
-            String raw = Files.readString(manifestPath, StandardCharsets.UTF_8);
+            final String raw = Files.readString(manifestPath, StandardCharsets.UTF_8);
             return new ObjectMapper().readTree(raw);
         } catch (IOException e) {
             return null;

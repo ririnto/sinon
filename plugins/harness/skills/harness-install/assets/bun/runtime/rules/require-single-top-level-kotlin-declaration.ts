@@ -31,17 +31,17 @@ export const requireSingleTopLevelKotlinDeclarationRule = (ctx: RuleContext): Ha
           }
           const text = ctx.read(file);
           const declRegex = /^(class|interface|enum class|object|data class|sealed class|val|var|fun|typealias)\s/gm;
+          const matches: RegExpExecArray[] = [];
           let match: RegExpExecArray | null;
-          let count = 0;
           while ((match = declRegex.exec(text)) !== null) {
-            count++;
+            matches.push(match);
           }
-          return count !== 1
+          return matches.length !== 1
             ? [
                 {
                   severity: ctx.severityOf(manifest, "requireSingleTopLevelKotlinDeclaration"),
                   category: "requireSingleTopLevelKotlinDeclaration",
-                  message: `Kotlin file must have exactly 1 top-level declaration: ${file} (found ${count})`,
+                  message: `Kotlin file must have exactly 1 top-level declaration: ${file} (found ${matches.length})`,
                 },
               ]
             : [];

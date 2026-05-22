@@ -594,7 +594,7 @@ Phase 12에서 처리한 early-return 제거의 후속 정리. guard `if (!cond)
 
 전제: Phase 12d(조건 반전) 완료 후 진행. 12d에서 도입된 임시 boolean이 단일 사용이면 그 자리에서 inline.
 
-### [ ] Phase 12f: mutable 변수(var/let) → 불변(val/const) 전환
+### [x] Phase 12f: mutable 변수(var/let) → 불변(val/const) 전환 (commit pending)
 
 외부에 노출된 가변 변수를 모두 불변으로. `buildList { }` / `buildSet { }` 같은 *수신자 안의* mutable 컨텍스트는 범위 내에 갇혀 있으므로 허용. 다음 케이스가 제거 대상:
 

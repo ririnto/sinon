@@ -21,9 +21,9 @@ public enum RequireTemplateGroupsRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        String targetRoot = catNode.get("parameters").get("targetRoot").asText();
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final String targetRoot = catNode.get("parameters").get("targetRoot").asText();
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("groups")).stream()
                 .filter(g -> !HarnessCheckHelper.isSafeDirectory(root, root.resolve(targetRoot).resolve(g)))
                 .map(g -> new Finding(severity, CATEGORY, "missing template group: " + targetRoot + "/" + g))

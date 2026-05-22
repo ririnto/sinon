@@ -26,17 +26,17 @@ public enum ForbidUnsafeSymlinksRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        JsonNode allowedNode = catNode.get("parameters").get("allowedSymlinkPairs");
-        Set<String> allowedNames = java.util.stream.StreamSupport.stream(allowedNode.spliterator(), false)
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final JsonNode allowedNode = catNode.get("parameters").get("allowedSymlinkPairs");
+        final Set<String> allowedNames = java.util.stream.StreamSupport.stream(allowedNode.spliterator(), false)
                 .flatMap(pair -> java.util.stream.Stream.of(pair.get(0).asText(), pair.get(1).asText()))
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        List<String> rootBases = List.of("AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md", "docs", ".claude", ".github");
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final List<String> rootBases = List.of("AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md", "docs", ".claude", ".github");
         return rootBases.stream()
                 .flatMap(baseName -> {
                     try {
-                        Path base = root.resolve(baseName);
+                        final Path base = root.resolve(baseName);
                         return validateSymlinks(root, base, allowedNames, severity).stream();
                     } catch (MojoExecutionException e) {
                         return Stream.empty();
@@ -47,7 +47,7 @@ public enum ForbidUnsafeSymlinksRule implements HarnessCheckRule {
 
     private List<Finding> validateSymlinks(Path root, Path base, Set<String> allowedNames, String severity) throws MojoExecutionException {
         if (Files.isSymbolicLink(base)) {
-            String name = base.getFileName().toString();
+            final String name = base.getFileName().toString();
             return !allowedNames.contains(name) || HarnessCheckHelper.allowedRootContractTarget(root, base) == null
                     ? List.of(new Finding(severity, CATEGORY, "symlink scan root is not allowed: " + root.relativize(base)))
                     : List.of();
@@ -55,7 +55,7 @@ public enum ForbidUnsafeSymlinksRule implements HarnessCheckRule {
         return HarnessCheckHelper.safeFileOrWalk(root, base).stream()
                 .filter(Files::isSymbolicLink)
                 .flatMap(file -> {
-                    String name = file.getFileName().toString();
+                    final String name = file.getFileName().toString();
                     return !allowedNames.contains(name) || HarnessCheckHelper.allowedRootContractTarget(root, file) == null
                             ? Stream.of(new Finding(severity, CATEGORY, "symlink " + (Files.isDirectory(file, LinkOption.NOFOLLOW_LINKS) ? "directory" : "file") + " is not allowed: " + root.relativize(file)))
                             : Stream.empty();

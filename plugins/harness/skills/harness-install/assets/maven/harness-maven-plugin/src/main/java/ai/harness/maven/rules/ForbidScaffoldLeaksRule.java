@@ -23,19 +23,19 @@ public enum ForbidScaffoldLeaksRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        JsonNode scope = catNode.get("parameters").get("scope");
-        List<String> excluded = HarnessCheckHelper.extractPaths(scope.get("excludedSubtrees"));
-        List<String> extensions = HarnessCheckHelper.extractPaths(scope.get("extensions"));
-        JsonNode patternsNode = catNode.get("parameters").get("patterns");
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        List<Path> excludedPaths = excluded.stream().map(root::resolve).toList();
-        String extRegex = extensions.isEmpty() ? ".*" : ".*\\.(" + String.join("|", extensions.stream().map(Pattern::quote).toList()) + ")$";
-        Pattern extPattern = Pattern.compile(extRegex);
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final JsonNode scope = catNode.get("parameters").get("scope");
+        final List<String> excluded = HarnessCheckHelper.extractPaths(scope.get("excludedSubtrees"));
+        final List<String> extensions = HarnessCheckHelper.extractPaths(scope.get("extensions"));
+        final JsonNode patternsNode = catNode.get("parameters").get("patterns");
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final List<Path> excludedPaths = excluded.stream().map(root::resolve).toList();
+        final String extRegex = extensions.isEmpty() ? ".*" : ".*\\.(" + String.join("|", extensions.stream().map(Pattern::quote).toList()) + ")$";
+        final Pattern extPattern = Pattern.compile(extRegex);
         return HarnessCheckHelper.extractPaths(scope.get("bases")).stream()
                 .flatMap(baseName -> {
                     try {
-                        Path base = root.resolve(baseName);
+                        final Path base = root.resolve(baseName);
                         return HarnessCheckHelper.safeFileOrWalk(root, base).stream()
                                 .filter(file -> !excludedPaths.stream().anyMatch(file::startsWith))
                                 .filter(file -> extPattern.matcher(file.toString()).matches())
@@ -48,7 +48,7 @@ public enum ForbidScaffoldLeaksRule implements HarnessCheckRule {
     }
 
     private List<Finding> checkLeaks(Path root, Path file, JsonNode patternsNode, String severity) throws MojoExecutionException {
-        String text = HarnessCheckHelper.readFile(root, file);
+        final String text = HarnessCheckHelper.readFile(root, file);
         return Stream.of(patternsNode.spliterator(), false)
                 .filter(p -> Pattern.compile(p.get("pattern").asText()).matcher(text).find())
                 .map(p -> new Finding(severity, CATEGORY, p.get("label").asText() + " in active asset: " + root.relativize(file)))

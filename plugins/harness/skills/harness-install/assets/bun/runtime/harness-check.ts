@@ -40,13 +40,12 @@ function pathOf(path: string): string {
 }
 
 function read(path: string): string {
-  let content = "";
   try {
     const target = allowedRootContractTarget(path);
-    content = readFileSync(target ?? pathOf(path), "utf8");
+    return readFileSync(target ?? pathOf(path), "utf8");
   } catch {
+    return "";
   }
-  return content;
 }
 
 function firstLine(path: string): string {
@@ -54,60 +53,55 @@ function firstLine(path: string): string {
 }
 
 function isFile(path: string): boolean {
-  let result = false;
   try {
     if (!(isSymlink(path) && allowedRootContractTarget(path) === null)) {
-      result = statSync(pathOf(path)).isFile();
+      return statSync(pathOf(path)).isFile();
     }
   } catch {
   }
-  return result;
+  return false;
 }
 
 function isDirectory(path: string): boolean {
-  let result = false;
   try {
     if (!isSymlink(path)) {
-      result = statSync(pathOf(path)).isDirectory();
+      return statSync(pathOf(path)).isDirectory();
     }
   } catch {
   }
-  return result;
+  return false;
 }
 
 function isExecutablePath(path: string): boolean {
-  let result = false;
   try {
     const target = allowedRootContractTarget(path);
-    result = (statSync(target ?? pathOf(path)).mode & 0o100) !== 0;
+    return (statSync(target ?? pathOf(path)).mode & 0o100) !== 0;
   } catch {
+    return false;
   }
-  return result;
 }
 
 function isSymlink(path: string): boolean {
-  let result = false;
   try {
-    result = lstatSync(pathOf(path)).isSymbolicLink();
+    return lstatSync(pathOf(path)).isSymbolicLink();
   } catch {
+    return false;
   }
-  return result;
 }
 
 function allowedRootContractTarget(path: string): string | null {
-  let target: string | null = null;
   if (path === "AGENTS.md" || path === "CLAUDE.md") {
     try {
       const expected = path === "AGENTS.md" ? "CLAUDE.md" : "AGENTS.md";
       if (readlinkSync(pathOf(path)) === expected) {
         if (!lstatSync(pathOf(expected)).isSymbolicLink() && statSync(pathOf(expected)).isFile()) {
-          target = pathOf(expected);
+          return pathOf(expected);
         }
       }
     } catch {
     }
   }
-  return target;
+  return null;
 }
 
 function readStringArray(value: unknown): readonly string[] {
@@ -297,7 +291,7 @@ export const HARNESS_CHECKS: readonly { category: string; rule: HarnessCheckRule
 ] as const;
 
 async function main(): Promise<void> {
-  let manifest: HarnessManifest = {};
+  let manifest: HarnessManifest;
   try {
     manifest = JSON.parse(readFileSync(join(root, "harness.json"), "utf8"));
   } catch {

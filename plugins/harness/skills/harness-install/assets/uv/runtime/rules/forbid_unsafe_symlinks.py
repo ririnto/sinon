@@ -42,21 +42,22 @@ class ForbidUnsafeSymlinksRule(HarnessCheckRule):
             if isinstance(p, list) and len(p) == 2
         )
         scan_bases = (".claude", "docs", ".github", "AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md")
-        result = []
+        root_findings = [
+            Finding(
+                severity_for(manifest, self.category),
+                self.category,
+                messages.get("scanRootNotAllowed", "symlink scan root is not allowed: {path}").format(
+                    path=relative(base_path)
+                ),
+            )
+            for base in scan_bases
+            if (base_path := root / base).is_symlink()
+            and tuple(sorted((base_path.name, os.readlink(base_path).split("/")[-1]))) not in allowed_set
+        ]
+        file_findings = []
         for base in scan_bases:
             base_path = root / base
-            if base_path.is_symlink():
-                pair = tuple(sorted((base_path.name, os.readlink(base_path).split("/")[-1])))
-                if pair not in allowed_set:
-                    result.append(Finding(
-                        severity_for(manifest, self.category),
-                        self.category,
-                        messages.get("scanRootNotAllowed", "symlink scan root is not allowed: {path}").format(
-                            path=relative(base_path)
-                        ),
-                    ))
-                continue
-            if not is_safe_directory(base_path):
+            if base_path.is_symlink() or not is_safe_directory(base_path):
                 continue
             for path in safe_walk(base_path):
                 if not path.is_symlink():
@@ -65,7 +66,7 @@ class ForbidUnsafeSymlinksRule(HarnessCheckRule):
                     target_name = os.readlink(path)
                     pair = tuple(sorted((path.name, target_name)))
                     if pair not in allowed_set:
-                        result.append(Finding(
+                        file_findings.append(Finding(
                             severity_for(manifest, self.category),
                             self.category,
                             messages.get("fileNotAllowed", "symlink file is not allowed: {path}").format(
@@ -73,14 +74,14 @@ class ForbidUnsafeSymlinksRule(HarnessCheckRule):
                             ),
                         ))
                 else:
-                    result.append(Finding(
+                    file_findings.append(Finding(
                         severity_for(manifest, self.category),
                         self.category,
                         messages.get("pathNotAllowed", "symlink path is not allowed: {path}").format(
                             path=relative(path)
                         ),
                     ))
-        return result
+        return root_findings + file_findings
 
 
 RULE: HarnessCheckRule = ForbidUnsafeSymlinksRule()
