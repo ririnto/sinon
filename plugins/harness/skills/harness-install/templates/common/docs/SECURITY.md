@@ -17,4 +17,4 @@ Update this document when the owned context changes, when validation points at s
 
 ## Validation Link
 
-Run the stack-specific harness validation command listed in `.claude/harness/README.md` after changing this document.
+Run the stack-specific harness validation command listed in `docs/harness/README.md` after changing this document.

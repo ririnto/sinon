@@ -10,9 +10,9 @@ Review changes in this target repository against the installed harness. Findings
 
 ## First Safe Checks
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, `.claude/harness/README.md`, and `.claude/harness/manifest.json`.
+1. Read `AGENTS.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and `docs/harness/manifest.json`.
 2. Inspect the changed files and the relevant domain docs under `docs/**`.
-3. Identify the stack-specific validation command from `.claude/harness/README.md`.
+3. Identify the stack-specific validation command from `docs/harness/README.md`.
 4. Separate product-code findings from harness-contract findings.
 
 ## Workflow
@@ -26,7 +26,7 @@ Review changes in this target repository against the installed harness. Findings
 
 ## Review Focus
 
-- Contract drift between `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, docs, and `.claude/harness/**`.
+- Contract drift between `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, docs, and `docs/harness/**`.
 - Missing acceptance criteria, execution plans, or architecture updates.
 - Required fake product content or obsolete seed references.
 - Inconsistent final check commands across docs, pre-push, and CI, or pre-commit violating its stack-specific hook contract.

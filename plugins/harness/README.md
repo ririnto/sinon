@@ -48,15 +48,15 @@ This plugin ships no commands.
 ## Packaged Scripts and Templates
 
 - `scripts/plugin-self-check.sh` validates packaged and tracked plugin files.
-- `skills/harness-install/templates/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `.claude/harness`, docs, CI, validation adapters, and Git hook scaffolds.
+- `skills/harness-install/templates/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs/harness`, docs, CI, validation adapters, and Git hook scaffolds.
 
 ## Runtime Model
 
-The Claude Code manifest declares only `./skills/`. Agents remain in the `agents/` directory at the plugin root and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. Agents are available to host runtimes that load plugin agents from the plugin root; hosts that do not load plugin-root agents still receive the skill surface. The plugin does not expose top-level hooks; packaged hook scaffolds live under `skills/harness-install/templates/common/.claude/harness/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
+The Claude Code manifest declares only `./skills/`. Agents remain in the `agents/` directory at the plugin root and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. Agents are available to host runtimes that load plugin agents from the plugin root; hosts that do not load plugin-root agents still receive the skill surface. The plugin does not expose top-level hooks; packaged hook scaffolds live under `skills/harness-install/templates/common/docs/harness/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
 
 ## Target Ownership
 
-Target repositories own every installed harness file. Copied docs, scripts, CI files, hooks, agents, skills, templates, and validation adapters MAY be edited, renamed, or removed to fit the target project. The installed `.claude/harness/manifest.json` is the target repository harness metadata contract; it replaces the old `docs/harness/config.json` convention used by earlier drafts of this plugin.
+Target repositories own every installed harness file. Copied docs, scripts, CI files, hooks, agents, skills, templates, and validation adapters MAY be edited, renamed, or removed to fit the target project. The installed `docs/harness/manifest.json` is the target repository harness metadata contract; it replaces the old `docs/harness/config.json` convention used by earlier drafts of this plugin.
 
 ## Install Harness Assets
 
@@ -137,7 +137,7 @@ docs/
 └── SECURITY.md
 ```
 
-Empty required directories are kept in version control with `.gitkeep`. `.claude/harness/git-hooks/pre-commit` is a generated, target-owned hook template: Gradle uses it for `harnessValidate`, while non-Gradle stacks use it for compliance checks. `.claude/harness/git-hooks/pre-push` is the generated final-check hook template: Gradle uses `check`, while non-Gradle stacks use the selected validation command. Neither is an active Git hook unless the target repository opts in. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
+Empty required directories are kept in version control with `.gitkeep`. `docs/harness/git-hooks/pre-commit` is a generated, target-owned hook template: Gradle uses it for `harnessValidate`, while non-Gradle stacks use it for compliance checks. `docs/harness/git-hooks/pre-push` is the generated final-check hook template: Gradle uses `check`, while non-Gradle stacks use the selected validation command. Neither is an active Git hook unless the target repository opts in. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
 In installed target repositories, `AGENTS.md` is the primary harness contract. `CLAUDE.md` is retained as the Claude Code entry point and points back to `AGENTS.md`.
 
@@ -147,17 +147,17 @@ In installed target repositories, `AGENTS.md` is the primary harness contract. `
 | --- | --- | --- |
 | Gradle local harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
 | Gradle final check | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| Maven | `pom.xml` | `mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
-| uv | `uv.lock` or Python `pyproject.toml` | `uv run python .claude/harness/uv/harness_validate.py` |
-| bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun run .claude/harness/bun/harness-validate.ts` |
+| Maven | `pom.xml` | `mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
+| uv | `uv.lock` or Python `pyproject.toml` | `uv run python docs/harness/uv/harness_validate.py` |
+| bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun run docs/harness/bun/harness-validate.ts` |
 
-Run validation commands from the target repository root. The uv, bun, and Maven validators bind that current directory as the target root, and native validators compare the installed `.claude/harness/manifest.json` fields that this plugin writes.
+Run validation commands from the target repository root. The uv, bun, and Maven validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes.
 
-Gradle installer wiring prepends a composite build include for `.claude/harness/gradle-plugin`. Complex existing `settings.gradle(.kts)` files, especially those with custom plugin management or composite builds, SHOULD be reviewed manually after installation.
+Gradle installer wiring prepends a composite build include for `docs/harness/gradle-plugin`. Complex existing `settings.gradle(.kts)` files, especially those with custom plugin management or composite builds, SHOULD be reviewed manually after installation.
 
 ## Git Hooks
 
-The installer writes two selected-mode hook templates in `.claude/harness/git-hooks/` on fresh install. Gradle `pre-commit` runs `harnessValidate` for intermediate harness feedback, and Gradle `pre-push` runs `check` for the final push gate. Non-Gradle `pre-commit` performs lightweight harness-rule compliance checks, and non-Gradle `pre-push` runs the selected validation command. Managed generated templates refresh with the selected intermediate and final commands; custom target-owned templates are preserved unless `--force` is used. Git hook activation is opt-in because it modifies local Git behavior outside version control.
+The installer writes two selected-mode hook templates in `docs/harness/git-hooks/` on fresh install. Gradle `pre-commit` runs `harnessValidate` for intermediate harness feedback, and Gradle `pre-push` runs `check` for the final push gate. Non-Gradle `pre-commit` performs lightweight harness-rule compliance checks, and non-Gradle `pre-push` runs the selected validation command. Managed generated templates refresh with the selected intermediate and final commands; custom target-owned templates are preserved unless `--force` is used. Git hook activation is opt-in because it modifies local Git behavior outside version control.
 
 ```sh
 sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.sh --target /path/to/target-repo --mode auto --hooks copy
@@ -173,13 +173,13 @@ Copy mode keeps existing active local hooks unless `--force` is used. With `--fo
 
 ### Recommended pattern: harness-tracked hooks via `core.hooksPath`
 
-The harness ships `pre-commit` and `pre-push` under `.claude/harness/git-hooks/`, which is committed to the repository. Point Git at that directory to activate the hooks for the current clone without copying anything:
+The harness ships `pre-commit` and `pre-push` under `docs/harness/git-hooks/`, which is committed to the repository. Point Git at that directory to activate the hooks for the current clone without copying anything:
 
 ```sh
-git config core.hooksPath .claude/harness/git-hooks
+git config core.hooksPath docs/harness/git-hooks
 ```
 
-With this config, generated hook content evolves through normal version control: every worktree of the same clone sees the same hooks, and `harness-install` refreshes the active hooks in place when re-run with `--hooks none`. The installer refuses `--hooks copy` while `core.hooksPath` already resolves to `.claude/harness/git-hooks/` because copying to the worktree hooks directory would not activate the worktree hooks.
+With this config, generated hook content evolves through normal version control: every worktree of the same clone sees the same hooks, and `harness-install` refreshes the active hooks in place when re-run with `--hooks none`. The installer refuses `--hooks copy` while `core.hooksPath` already resolves to `docs/harness/git-hooks/` because copying to the worktree hooks directory would not activate the worktree hooks.
 
 The harness itself never sets `core.hooksPath`; the target repository owner enables the recommended pattern explicitly. Unset it with `git config --unset core.hooksPath` to revert.
 

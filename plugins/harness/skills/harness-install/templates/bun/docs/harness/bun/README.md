@@ -1,3 +1,3 @@
 # Bun Harness Validator
 
-Run `bun run .claude/harness/bun/harness-validate.ts`.
+Run `bun run docs/harness/bun/harness-validate.ts`.
