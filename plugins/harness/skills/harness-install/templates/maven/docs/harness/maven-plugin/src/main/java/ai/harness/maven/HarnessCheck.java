@@ -23,7 +23,7 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireFilesExist");
-            List<String> paths = extractPaths(catNode.get("paths"));
+            List<String> paths = extractPaths(catNode.get("parameters").get("paths"));
             String severity = getSeverity(manifest, category());
             return paths.stream()
                     .filter(path -> !isSafeRegularFile(root, root.resolve(path)))
@@ -36,7 +36,7 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireDirectoriesExist");
-            List<String> paths = extractPaths(catNode.get("paths"));
+            List<String> paths = extractPaths(catNode.get("parameters").get("paths"));
             String severity = getSeverity(manifest, category());
             return paths.stream()
                     .filter(path -> !isSafeDirectory(root, root.resolve(path)))
@@ -49,7 +49,7 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireKeepfileInEmptyDirectories");
-            List<String> directories = extractPaths(catNode.get("directories"));
+            List<String> directories = extractPaths(catNode.get("parameters").get("directories"));
             String severity = getSeverity(manifest, category());
             return directories.stream()
                     .flatMap(dir -> validateKeepFile(root, dir, severity).stream())
@@ -78,8 +78,8 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireTemplateGroups");
-            String targetRoot = catNode.get("targetRoot").asText();
-            List<String> groups = extractPaths(catNode.get("groups"));
+            String targetRoot = catNode.get("parameters").get("targetRoot").asText();
+            List<String> groups = extractPaths(catNode.get("parameters").get("groups"));
             String severity = getSeverity(manifest, category());
             return groups.stream()
                     .filter(g -> !isSafeDirectory(root, root.resolve(targetRoot).resolve(g)))
@@ -92,9 +92,9 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireDocHeadings");
-            List<String> requiredFiles = extractPaths(manifest.get("requireFilesExist").get("paths"));
-            List<String> headings = extractPaths(catNode.get("headings"));
-            JsonNode sourceFilter = catNode.get("sourceFilter");
+            List<String> requiredFiles = extractPaths(manifest.get("requireFilesExist").get("parameters").get("paths"));
+            List<String> headings = extractPaths(catNode.get("parameters").get("headings"));
+            JsonNode sourceFilter = catNode.get("parameters").get("sourceFilter");
             String prefix = sourceFilter.get("prefix").asText();
             String suffix = sourceFilter.get("suffix").asText();
 
@@ -123,7 +123,7 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireDocContent");
-            JsonNode checksNode = catNode.get("checks");
+            JsonNode checksNode = catNode.get("parameters").get("checks");
             String severity = getSeverity(manifest, category());
 
             return Stream.of(checksNode.spliterator(), false)
@@ -231,11 +231,11 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("forbidScaffoldLeaks");
-            JsonNode scope = catNode.get("scope");
+            JsonNode scope = catNode.get("parameters").get("scope");
             List<String> bases = extractPaths(scope.get("bases"));
             List<String> excluded = extractPaths(scope.get("excludedSubtrees"));
             List<String> extensions = extractPaths(scope.get("extensions"));
-            JsonNode patternsNode = catNode.get("patterns");
+            JsonNode patternsNode = catNode.get("parameters").get("patterns");
             String severity = getSeverity(manifest, category());
 
             List<Path> excludedPaths = excluded.stream().map(root::resolve).toList();
@@ -270,8 +270,8 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireHookShebang");
-            List<String> hooks = extractPaths(catNode.get("hooks"));
-            String expected = catNode.get("expectedShebang").asText();
+            List<String> hooks = extractPaths(catNode.get("parameters").get("hooks"));
+            String expected = catNode.get("parameters").get("expectedShebang").asText();
             String severity = getSeverity(manifest, category());
 
             return hooks.stream()
@@ -291,7 +291,7 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireHookExecutable");
-            List<String> hooks = extractPaths(catNode.get("hooks"));
+            List<String> hooks = extractPaths(catNode.get("parameters").get("hooks"));
             String severity = getSeverity(manifest, category());
 
             return hooks.stream()
@@ -305,9 +305,9 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireHookGeneratedMarker");
-            List<String> hooks = extractPaths(catNode.get("hooks"));
-            String markerTemplate = catNode.get("markerTemplate").asText();
-            String placeholderForbidden = catNode.get("placeholderForbidden").asText();
+            List<String> hooks = extractPaths(catNode.get("parameters").get("hooks"));
+            String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();
+            String placeholderForbidden = catNode.get("parameters").get("placeholderForbidden").asText();
             String severity = getSeverity(manifest, category());
 
             return hooks.stream()
@@ -333,13 +333,13 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireHookStage");
-            JsonNode stages = catNode.get("stages");
+            JsonNode stages = catNode.get("parameters").get("stages");
             JsonNode stackStages = stages.get("maven");
             if (stackStages == null) {
                 return List.of();
             }
 
-            String markerTemplate = catNode.get("markerTemplate").asText();
+            String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();
             String severity = getSeverity(manifest, category());
 
             return Stream.of(stackStages.fieldNames().spliterator(), false)
@@ -365,11 +365,11 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireHookCommand");
-            JsonNode allowedCmds = catNode.get("allowedCommands").get("maven");
+            JsonNode allowedCmds = catNode.get("parameters").get("allowedCommands").get("maven");
             String expectedCmd = allowedCmds == null || allowedCmds.size() == 0 ? "" : allowedCmds.get(0).asText();
             String severity = getSeverity(manifest, category());
 
-            String prePushPath = catNode.get("prePushHook").asText();
+            String prePushPath = catNode.get("parameters").get("prePushHook").asText();
             Path prePush = root.resolve(prePushPath);
             if (!isSafeRegularFile(root, prePush)) {
                 return List.of();
@@ -386,7 +386,7 @@ enum HarnessCheck {
                     ? List.of(new Finding(severity, category(), "pre-push hook must run the declared validation command"))
                     : List.of();
 
-            String preCommitPath = catNode.get("preCommitHook").asText();
+            String preCommitPath = catNode.get("parameters").get("preCommitHook").asText();
             Path preCommit = root.resolve(preCommitPath);
             if (!isSafeRegularFile(root, preCommit)) {
                 return prePushIssues;
@@ -415,7 +415,7 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireCiCommandMatchesHook");
-            String refHook = catNode.get("referenceHook").asText();
+            String refHook = catNode.get("parameters").get("referenceHook").asText();
             Path refPath = root.resolve(refHook);
 
             if (!isSafeRegularFile(root, refPath)) {
@@ -428,7 +428,7 @@ enum HarnessCheck {
                 return List.of();
             }
 
-            List<String> ciFiles = extractPaths(catNode.get("ciFiles"));
+            List<String> ciFiles = extractPaths(catNode.get("parameters").get("ciFiles"));
             String severity = getSeverity(manifest, category());
             final String cmd = expectedCmd;
 
@@ -462,8 +462,8 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireEnvShebangUnder");
-            List<String> directories = extractPaths(catNode.get("directories"));
-            String expectedPrefix = catNode.get("expectedPrefix").asText();
+            List<String> directories = extractPaths(catNode.get("parameters").get("directories"));
+            String expectedPrefix = catNode.get("parameters").get("expectedPrefix").asText();
             String severity = getSeverity(manifest, category());
 
             return directories.stream()
@@ -492,8 +492,8 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("forbidUncheckedTasksUnder");
-            String directory = catNode.get("directory").asText();
-            String uncheckedPattern = catNode.get("uncheckedTaskPattern").asText();
+            String directory = catNode.get("parameters").get("directory").asText();
+            String uncheckedPattern = catNode.get("parameters").get("uncheckedTaskPattern").asText();
             String severity = getSeverity(manifest, category());
 
             Path dirPath = root.resolve(directory);
@@ -526,7 +526,7 @@ enum HarnessCheck {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("forbidUnsafeSymlinks");
-            JsonNode allowedNode = catNode.get("allowedSymlinkPairs");
+            JsonNode allowedNode = catNode.get("parameters").get("allowedSymlinkPairs");
             Set<String> allowedNames = new LinkedHashSet<>();
 
             for (JsonNode pair : allowedNode) {
@@ -570,30 +570,11 @@ enum HarnessCheck {
         }
     },
 
-    WARN_UNKNOWN_MANIFEST_KEYS("warnUnknownManifestKeys") {
-        @Override
-        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-            Set<String> knownKeys = Set.of(
-                    "requireFilesExist", "requireDirectoriesExist", "requireKeepfileInEmptyDirectories",
-                    "requireTemplateGroups", "requireDocHeadings", "requireDocContent",
-                    "requireAgentFrontmatter", "requireSkillFrontmatter", "forbidScaffoldLeaks",
-                    "requireHookShebang", "requireHookExecutable", "requireHookGeneratedMarker",
-                    "requireHookStage", "requireHookCommand", "requireCiCommandMatchesHook",
-                    "requireEnvShebangUnder", "forbidUncheckedTasksUnder", "forbidUnsafeSymlinks"
-            );
-            String severity = getSeverity(manifest, category());
-            return Stream.of(manifest.fieldNames().spliterator(), false)
-                    .filter(key -> !knownKeys.contains(key))
-                    .map(key -> new Finding(severity, category(), "unknown manifest key: " + key))
-                    .toList();
-        }
-    },
-
     REQUIRE_SINGLE_TOP_LEVEL_KOTLIN_DECLARATION("requireSingleTopLevelKotlinDeclaration") {
         @Override
         public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
             JsonNode catNode = manifest.get("requireSingleTopLevelKotlinDeclaration");
-            List<String> directories = extractPaths(catNode.get("directories"));
+            List<String> directories = extractPaths(catNode.get("parameters").get("directories"));
             String severity = getSeverity(manifest, category());
 
             return directories.stream()
