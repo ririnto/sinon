@@ -495,8 +495,8 @@ manifest의 9개 disabled add-on 모두를 red-green으로 활성화하고, 새 
 
 ### [-] Phase 9: 검증
 
-- [x] Task 9.1 — plugin-self-check.sh PASS (반복 확인, 최근 commit 298a4c0 시점 exit 0)
-- [ ] Task 9.2 — gradle / mvn / uv / bun native validator 실행 (사용자 환경)
+- [x] Task 9.1 — plugin-self-check.sh + shellcheck PASS (commit 65d6620 시점 둘 다 exit 0).
+- [ ] Task 9.2 — gradle / mvn / uv / bun native validator 실행 (사용자 환경에서만 가능, agent 처리 범위 외).
 
 ### [x] Phase 7 (post-hoc): 9개 disabled add-on 활성화 (Phase 8c로 흡수)
 
