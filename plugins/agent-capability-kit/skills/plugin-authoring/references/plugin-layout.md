@@ -61,6 +61,12 @@ Use these helper directories only when the associated surface needs local code b
 - when a surface needs multiple files, group them under a directory named after the surface rather than scattering files at the root
 - keep runtime output and generated state outside the shipped surface files unless the specific component explicitly expects it
 
+## File-typed surfaces and the manifest
+
+Open this subsection whenever a composite-root tree contains one or more file-typed surfaces and the manifest entries for those surfaces need verification against their canonical exact paths.
+
+Each file-typed surface shown in the trees above (`hooks/hooks.json`, `.mcp.json`, `.lsp.json`, `settings.json`) MUST also be declared in `.claude-plugin/plugin.json` with its exact canonical path (`"./hooks/hooks.json"`, `"./.mcp.json"`, `"./.lsp.json"`, `"./settings.json"`). When the manifest declares one of these keys, the matching plugin-root file MUST exist; when one of these files exists at the plugin root, the manifest SHOULD declare the matching key so the runtime publishes the surface. See `SKILL.md` Operating rule 5 for the canonical bidirectional rule.
+
 ## When this file matters
 
 Open this file when you need to compare a combined plugin tree against the manifest, or when a surface needs extra files that would make the baseline tree misleading.
