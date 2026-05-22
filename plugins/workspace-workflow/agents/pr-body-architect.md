@@ -131,7 +131,7 @@ Per Sinon CLAUDE.md:
 - Example code MUST NOT contain non-documentation comments.
 - Blank lines MUST appear before every fenced code block and before every list.
 
-Per git-change-publication SKILL.md:
+Per pr-mr-convention SKILL.md:
 
 - MUST preserve an existing repository template when present.
 - MUST use the fallback review body structure only when no repository template exists.
