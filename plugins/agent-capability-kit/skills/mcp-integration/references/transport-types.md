@@ -6,6 +6,8 @@ description: |-
 
 # MCP Transport Types: Detailed Lifecycle, Failure Modes, and Selection
 
+Open this reference when choosing between stdio, SSE, HTTP, or WebSocket transports for an MCP server, or troubleshooting transport-specific failures.
+
 This reference covers the four MCP transport types (stdio, SSE, HTTP, WebSocket) with lifecycle details, failure modes, and decision tree for choosing the right transport.
 
 ## Transport overview

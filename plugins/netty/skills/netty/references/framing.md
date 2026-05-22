@@ -4,9 +4,7 @@ description: >-
   Open this when a Netty byte stream must be split into complete messages before business handlers run.
 ---
 
-## Open this when
-
-Open when TCP stream boundaries are the real problem and the application needs length-based, delimiter-based, or fixed-size framing before decoding business messages.
+Open this reference when a Netty byte stream must be split into complete messages before business handlers run, and TCP stream boundaries are the real problem requiring length-based, delimiter-based, or fixed-size framing.
 
 ## Why framing is required for TCP
 

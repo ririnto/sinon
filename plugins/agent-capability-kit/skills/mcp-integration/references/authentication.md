@@ -6,6 +6,8 @@ description: |-
 
 # MCP Authentication: OAuth Flow, Token Rotation, and Secret Hygiene
 
+Open this reference when configuring OAuth for SSE servers, managing bearer tokens, setting up per-server credential isolation, or implementing secret rotation.
+
 This reference covers OAuth authentication for SSE servers, bearer token management, env var injection, multi-server credential isolation, and secret storage patterns.
 
 ## OAuth flow: step-by-step

@@ -6,6 +6,8 @@ description: |-
 
 # MCP Performance: Lazy Loading, Connection Pooling, and Debugging
 
+Open this reference when optimizing MCP server startup time, tuning connection pooling, batching requests, measuring latency, or debugging slow tools.
+
 This reference covers performance optimization patterns for MCP servers: lazy loading, connection pooling, request batching, latency observability, and debugging with Claude Code built-in tools.
 
 ## Lazy loading: defer server startup

@@ -6,6 +6,8 @@ description: |-
 
 # Hook Lifecycle: Session Loading and Timing
 
+Open this reference when configuring hook timing, session lifecycle events, environment variable scope, or understanding when hook changes require session restart.
+
 Hooks are loaded at session start only. This reference covers exact session timing, when restart is required, environment variable scope, and conditional activation patterns.
 
 ## Session lifecycle overview
