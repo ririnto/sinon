@@ -39,11 +39,11 @@ class HarnessValidationPlugin : Plugin<Project> {
         @TaskAction
         fun validate() {
             val root = project.rootDir
-            val failures: List<String> =
+            val manifestLoad = loadManifest(root)
+            val manifest = manifestLoad.manifest
+            val findings: List<Finding> =
                 buildList {
-                    val manifestLoad = loadManifest(root)
-                    addAll(manifestLoad.failures)
-                    val manifest = manifestLoad.manifest
+                    addAll(manifestLoad.findings)
                     if (manifest == null) {
                         return@buildList
                     }
@@ -56,35 +56,49 @@ class HarnessValidationPlugin : Plugin<Project> {
                     addAll(validateHooks(root, manifest))
                     addAll(validateEnvShebangs(root, manifest))
                     addAll(validateCompletedPlans(root, manifest))
-                }
-            if (failures.isNotEmpty()) {
-                throw GradleException(
-                    "Harness validation failed:" +
-                        System.lineSeparator() +
-                        failures.distinct().joinToString(System.lineSeparator()),
-                )
+                }.distinct()
+            val sortedFindings = findings.sortedWith(compareBy({ it.severity.ordinal }, { findings.indexOf(it) }))
+            val errors = sortedFindings.filter { it.severity == Severity.ERROR }
+            sortedFindings.forEach { finding ->
+                System.err.println("[${finding.severity}] ${finding.message}")
             }
-            logger.lifecycle("Harness validation passed")
+            when {
+                errors.isNotEmpty() -> throw GradleException("Harness validation failed")
+                else -> logger.lifecycle("Harness validation passed")
+            }
         }
 
         private fun loadManifest(
             root: File,
         ): ManifestLoad {
             val manifestFile = File(root, "docs/harness/manifest.json")
-            val failuresList: List<String> =
-                if (Files.isSymbolicLink(manifestFile.toPath())) {
-                    listOf("symlink file is not allowed: docs/harness/manifest.json")
-                } else {
-                    emptyList()
+            val failuresList: List<Finding> =
+                when {
+                    Files.isSymbolicLink(manifestFile.toPath()) ->
+                        listOf(Finding(Severity.ERROR, "symlinkSafety", "symlink file is not allowed: docs/harness/manifest.json"))
+                    else -> emptyList()
                 }
             if (failuresList.isNotEmpty()) {
                 return ManifestLoad(null, failuresList)
             }
             val manifest = read(root, "docs/harness/manifest.json")
-            return if (manifest.isBlank()) {
-                ManifestLoad(null, listOf("missing file: docs/harness/manifest.json"))
-            } else {
-                ManifestLoad(manifest, emptyList())
+            return when {
+                manifest.isBlank() ->
+                    ManifestLoad(null, listOf(Finding(Severity.ERROR, "requiredFiles", "missing file: docs/harness/manifest.json")))
+                else -> ManifestLoad(manifest, emptyList())
+            }
+        }
+
+        private fun parseSeverity(manifest: String, category: String): Severity {
+            val severityStr = """"$category"\s*:\s*\{[^}]*?"severity"\s*:\s*"([^"\\]+)"""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                .find(manifest)
+                ?.groupValues
+                ?.get(1)
+                .orEmpty()
+            return try {
+                Severity.valueOf(severityStr)
+            } catch (_: Exception) {
+                Severity.ERROR
             }
         }
 
@@ -103,63 +117,85 @@ class HarnessValidationPlugin : Plugin<Project> {
                 }?.readText() ?: ""
         }
 
+        private fun extractObjectBody(manifest: String, key: String): String? =
+            """"$key"\s*:\s*\{((?:[^{}]|\{[^{}]*\})*)\}""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                .find(manifest)
+                ?.groupValues
+                ?.get(1)
+
         private fun parseStringArray(
             manifest: String,
             key: String,
-        ): List<String> =
-            Regex(
-                """"$key"\s*:\s*\[(.*?)]""",
-                RegexOption.DOT_MATCHES_ALL,
-            ).find(manifest)
+        ): List<String> {
+            val body = extractObjectBody(manifest, key)
+            if (body == null) {
+                return """"$key"\s*:\s*\[(.*?)]""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                    .find(manifest)
+                    ?.groupValues
+                    ?.get(1)
+                    ?.let { manifestListBody ->
+                        """"([^"\\]+)"""".toRegex()
+                            .findAll(manifestListBody)
+                            .map { it.groupValues[1] }
+                            .toList()
+                    }
+                    .orEmpty()
+            }
+            return """"items"\s*:\s*\[(.*?)]""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                .find(body)
                 ?.groupValues
                 ?.get(1)
-                ?.let { manifestListBody ->
-                    Regex(""""([^"\\]+)"""")
-                        .findAll(manifestListBody)
-                        .map { match ->
-                            match.groupValues[1]
-                        }.toList()
-                }.orEmpty()
+                ?.let { itemsBody ->
+                    """"([^"\\]+)"""".toRegex()
+                        .findAll(itemsBody)
+                        .map { it.groupValues[1] }
+                        .toList()
+                }
+                .orEmpty()
+        }
 
         private fun parseString(
             manifest: String,
             key: String,
-        ): String =
-            Regex(
-                """"$key"\s*:\s*"([^"\\]*)"""",
-            ).find(manifest)
+        ): String {
+            val body = extractObjectBody(manifest, key)
+            if (body == null) {
+                return """"$key"\s*:\s*"([^"\\]*)"""".toRegex()
+                    .find(manifest)
+                    ?.groupValues
+                    ?.get(1)
+                    .orEmpty()
+            }
+            return """"value"\s*:\s*"([^"\\]*)"""".toRegex()
+                .find(body)
                 ?.groupValues
                 ?.get(1)
                 .orEmpty()
+        }
 
         private fun parseContentChecks(
             manifest: String,
         ): List<ContentCheck> =
             buildList {
-                val checksBody =
-                    Regex(
-                        """"requiredContentChecks"\s*:\s*\[(.*?)]""",
-                        RegexOption.DOT_MATCHES_ALL,
-                    ).find(manifest)
+                extractObjectBody(manifest, "requiredContentChecks")?.let { checksBody ->
+                    """"items"\s*:\s*\[(.*?)]""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                        .find(checksBody)
                         ?.groupValues
                         ?.get(1)
-                        .orEmpty()
-                Regex(
-                    """\{[^{}]*?"files"\s*:\s*\[(.*?)]\s*,\s*"containsAll"\s*:\s*\[(.*?)]\s*,\s*"failureMessage"\s*:\s*"([^"\\]*)"""",
-                    RegexOption.DOT_MATCHES_ALL,
-                ).findAll(checksBody).forEach { match ->
-                    val files =
-                        Regex(""""([^"\\]+)"""")
-                            .findAll(match.groupValues[1])
-                            .map { it.groupValues[1] }
-                            .toList()
-                    val containsAll =
-                        Regex(""""([^"\\]+)"""")
-                            .findAll(match.groupValues[2])
-                            .map { it.groupValues[1] }
-                            .toList()
-                    val message = match.groupValues[3]
-                    add(ContentCheck(files, containsAll, message))
+                        ?.let { itemsBody ->
+                            """\{[^{}]*?"files"\s*:\s*\[(.*?)]\s*,\s*"containsAll"\s*:\s*\[(.*?)]\s*,\s*"failureMessage"\s*:\s*"([^"\\]*)"""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                                .findAll(itemsBody).forEach { match ->
+                                    val files = """"([^"\\]+)"""".toRegex()
+                                        .findAll(match.groupValues[1])
+                                        .map { it.groupValues[1] }
+                                        .toList()
+                                    val containsAll = """"([^"\\]+)"""".toRegex()
+                                        .findAll(match.groupValues[2])
+                                        .map { it.groupValues[1] }
+                                        .toList()
+                                    add(ContentCheck(files, containsAll, match.groupValues[3]))
+                                }
+                        }
                 }
             }
 
@@ -167,65 +203,52 @@ class HarnessValidationPlugin : Plugin<Project> {
             manifest: String,
         ): List<Pair<Regex, String>> =
             buildList {
-                val patternsBody =
-                    Regex(
-                        """"leakPatterns"\s*:\s*\[(.*?)]""",
-                        RegexOption.DOT_MATCHES_ALL,
-                    ).find(manifest)
+                extractObjectBody(manifest, "leakPatterns")?.let { patternsBody ->
+                    """"items"\s*:\s*\[(.*?)]""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                        .find(patternsBody)
                         ?.groupValues
                         ?.get(1)
-                        .orEmpty()
-                Regex(
-                    """\{\s*"pattern"\s*:\s*"([^"\\]*)"\s*,\s*"label"\s*:\s*"([^"\\]*)"""",
-                    RegexOption.DOT_MATCHES_ALL,
-                ).findAll(patternsBody).forEach { match ->
-                    val patternStr = match.groupValues[1]
-                    val label = match.groupValues[2]
-                    try {
-                        add(Regex(patternStr) to label)
-                    } catch (_: Exception) {
-                    }
+                        ?.let { itemsBody ->
+                            """\{\s*"pattern"\s*:\s*"([^"\\]*)"\s*,\s*"label"\s*:\s*"([^"\\]*)"""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                                .findAll(itemsBody).forEach { match ->
+                                    try {
+                                        add(match.groupValues[1].toRegex() to match.groupValues[2])
+                                    } catch (_: Exception) {
+                                    }
+                                }
+                        }
                 }
             }
 
         private fun parseHookStages(
             manifest: String,
         ): Pair<String, String> {
-            val stagesBody =
-                Regex(
-                    """"hookStages"\s*:\s*\{(.*?)}\s*,""",
-                    RegexOption.DOT_MATCHES_ALL,
-                ).find(manifest)
+            extractObjectBody(manifest, "hookStages")?.let { stagesBody ->
+                """"gradle"\s*:\s*\{(.*?)}""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                    .find(stagesBody)
                     ?.groupValues
                     ?.get(1)
-                    .orEmpty()
-            val gradleBody =
-                Regex(
-                    """"gradle"\s*:\s*\{(.*?)}""",
-                    RegexOption.DOT_MATCHES_ALL,
-                ).find(stagesBody)
-                    ?.groupValues
-                    ?.get(1)
-                    .orEmpty()
-            val preCommit =
-                Regex(""""preCommit"\s*:\s*"([^"\\]+)"""")
-                    .find(gradleBody)
-                    ?.groupValues
-                    ?.get(1)
-                    .orEmpty()
-            val prePush =
-                Regex(""""prePush"\s*:\s*"([^"\\]+)"""")
-                    .find(gradleBody)
-                    ?.groupValues
-                    ?.get(1)
-                    .orEmpty()
-            return preCommit to prePush
+                    ?.let { gradleBody ->
+                        val preCommit = """"preCommit"\s*:\s*"([^"\\]+)"""".toRegex()
+                            .find(gradleBody)
+                            ?.groupValues
+                            ?.get(1)
+                            .orEmpty()
+                        val prePush = """"prePush"\s*:\s*"([^"\\]+)"""".toRegex()
+                            .find(gradleBody)
+                            ?.groupValues
+                            ?.get(1)
+                            .orEmpty()
+                        return preCommit to prePush
+                    }
+            }
+            return "" to ""
         }
 
         private fun validateStructure(
             root: File,
             manifest: String,
-        ): List<String> =
+        ): List<Finding> =
             buildList {
                 val requiredFiles = parseStringArray(manifest, "requiredFiles")
                 val requiredDirectories = parseStringArray(manifest, "requiredDirectories")
@@ -235,14 +258,14 @@ class HarnessValidationPlugin : Plugin<Project> {
                     val check = isSafeFile(root, File(root, requiredFile))
                     addAll(check.warnings)
                     if (!check.ok) {
-                        add("missing file: $requiredFile")
+                        add(Finding(Severity.ERROR, "requiredFiles", "missing file: $requiredFile"))
                     }
                 }
                 requiredDirectories.forEach { requiredDirectory ->
                     val check = isSafeDirectory(root, File(root, requiredDirectory))
                     addAll(check.warnings)
                     if (!check.ok) {
-                        add("missing directory: $requiredDirectory")
+                        add(Finding(Severity.ERROR, "requiredDirectories", "missing directory: $requiredDirectory"))
                     }
                 }
                 emptyDirectoryKeepFiles.forEach { keepFilePath ->
@@ -267,8 +290,11 @@ class HarnessValidationPlugin : Plugin<Project> {
                         addAll(fileCheck.warnings)
                         if (!fileCheck.ok) {
                             add(
-                                "empty directory must keep placeholder or real files: " +
-                                    directory.relativeTo(root)
+                                Finding(
+                                    Severity.ERROR,
+                                    "emptyDirectoryKeepFiles",
+                                    "empty directory must keep placeholder or real files: ${directory.relativeTo(root)}"
+                                )
                             )
                         }
                     }
@@ -277,7 +303,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                     val check = isSafeDirectory(root, File(root, "docs/harness/templates/$templateGroup"))
                     addAll(check.warnings)
                     if (!check.ok) {
-                        add("missing template group: docs/harness/templates/$templateGroup")
+                        add(Finding(Severity.ERROR, "templateGroups", "missing template group: docs/harness/templates/$templateGroup"))
                     }
                 }
             }
@@ -285,7 +311,7 @@ class HarnessValidationPlugin : Plugin<Project> {
         private fun validateDocs(
             root: File,
             manifest: String,
-        ): List<String> =
+        ): List<Finding> =
             buildList {
                 val requiredFiles = parseStringArray(manifest, "requiredFiles")
                 val requiredDocHeadings = parseStringArray(manifest, "requiredDocHeadings")
@@ -304,7 +330,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                     val text = file.readText()
                     requiredDocHeadings.forEach { heading ->
                         if (!text.contains(heading)) {
-                            add("doc missing $heading: $authoredDocPath")
+                            add(Finding(Severity.ERROR, "requiredDocHeadings", "doc missing $heading: $authoredDocPath"))
                         }
                     }
                 }
@@ -313,7 +339,7 @@ class HarnessValidationPlugin : Plugin<Project> {
         private fun validateContentChecks(
             root: File,
             manifest: String,
-        ): List<String> =
+        ): List<Finding> =
             buildList {
                 val checks = parseContentChecks(manifest)
                 checks.forEach { check ->
@@ -326,60 +352,54 @@ class HarnessValidationPlugin : Plugin<Project> {
                         combined.contains(substring)
                     }
                     if (!allPresent) {
-                        add(check.failureMessage)
+                        add(Finding(Severity.ERROR, "requiredContentChecks", check.failureMessage))
                     }
                 }
             }
 
         private fun validateAgents(
             root: File,
-        ): List<String> =
+        ): List<Finding> =
             buildList {
                 val dir = File(root, ".claude/agents")
                 val scan = safeFiles(root, dir)
                 addAll(scan.warnings)
-                val files =
-                    scan.files
-                        .filter { candidateFile ->
-                            candidateFile.parentFile == dir && candidateFile.extension == "md"
-                        }
+                val files = scan.files.filter { it.parentFile == dir && it.extension == "md" }
                 if (files.isEmpty()) {
-                    add(".claude/agents must contain at least one .md agent")
+                    add(Finding(Severity.ERROR, "agentFrontmatter", ".claude/agents must contain at least one .md agent"))
                 }
                 files.forEach { file ->
                     val text = file.readText()
                     if (!text.startsWith("---")) {
-                        add("agent missing frontmatter: ${file.relativeTo(root)}")
+                        add(Finding(Severity.ERROR, "agentFrontmatter", "agent missing frontmatter: ${file.relativeTo(root)}"))
                     }
-                    if (!Regex("""(?m)^name:\s*[-a-z0-9]+\s*$""").containsMatchIn(text)) {
-                        add("agent missing name: ${file.relativeTo(root)}")
+                    if (!"""(?m)^name:\s*[-a-z0-9]+\s*$""".toRegex().containsMatchIn(text)) {
+                        add(Finding(Severity.ERROR, "agentFrontmatter", "agent missing name: ${file.relativeTo(root)}"))
                     }
-                    if (!Regex("""(?m)^description:\s*.+$""").containsMatchIn(text)) {
-                        add("agent missing description: ${file.relativeTo(root)}")
+                    if (!"""(?m)^description:\s*.+$""".toRegex().containsMatchIn(text)) {
+                        add(Finding(Severity.ERROR, "agentFrontmatter", "agent missing description: ${file.relativeTo(root)}"))
                     }
                 }
             }
 
         private fun validateSkills(
             root: File,
-        ): List<String> =
+        ): List<Finding> =
             buildList {
                 val dir = File(root, ".claude/skills")
                 val scan = safeFiles(root, dir)
                 addAll(scan.warnings)
-                val files = scan.files.filter { candidateFile ->
-                    candidateFile.name == "SKILL.md"
-                }
+                val files = scan.files.filter { it.name == "SKILL.md" }
                 if (files.isEmpty()) {
-                    add(".claude/skills must contain at least one SKILL.md")
+                    add(Finding(Severity.ERROR, "skillFrontmatter", ".claude/skills must contain at least one SKILL.md"))
                 }
                 files.forEach { file ->
                     val text = file.readText()
                     if (!text.startsWith("---")) {
-                        add("skill missing frontmatter: ${file.relativeTo(root)}")
+                        add(Finding(Severity.ERROR, "skillFrontmatter", "skill missing frontmatter: ${file.relativeTo(root)}"))
                     }
-                    if (!Regex("""(?m)^description:\s*.+$""").containsMatchIn(text)) {
-                        add("skill missing description: ${file.relativeTo(root)}")
+                    if (!"""(?m)^description:\s*.+$""".toRegex().containsMatchIn(text)) {
+                        add(Finding(Severity.ERROR, "skillFrontmatter", "skill missing description: ${file.relativeTo(root)}"))
                     }
                 }
             }
@@ -387,7 +407,7 @@ class HarnessValidationPlugin : Plugin<Project> {
         private fun validateActiveAssets(
             root: File,
             manifest: String,
-        ): List<String> =
+        ): List<Finding> =
             buildList {
                 val bases = parseStringArray(manifest, "activeAssetBases")
                 val excludedSubtrees = parseStringArray(manifest, "excludedActiveAssetSubtrees")
@@ -411,7 +431,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                             val text = file.readText()
                             leakPatterns.forEach { (pattern, label) ->
                                 if (pattern.containsMatchIn(text)) {
-                                    add("$label in active asset: ${file.relativeTo(root)}")
+                                    add(Finding(Severity.ERROR, "leakPatterns", "$label in active asset: ${file.relativeTo(root)}"))
                                 }
                             }
                         }
@@ -435,70 +455,61 @@ class HarnessValidationPlugin : Plugin<Project> {
             val hook = File(root, "docs/harness/git-hooks/$name")
             val check = isSafeFile(root, hook)
             var hookText = ""
-            val failures: List<String> =
+            val findings: List<Finding> =
                 buildList {
                     addAll(check.warnings)
                     if (check.ok) {
                         hookText = hook.readText()
                         if (hookText.lineSequence().firstOrNull() != "#!/usr/bin/env sh") {
-                            add("$name hook must use #!/usr/bin/env sh")
+                            add(Finding(Severity.ERROR, "hookFirstLine", "$name hook must use #!/usr/bin/env sh"))
                         }
                         if (!hook.canExecute()) {
-                            add("$name hook must be executable: ${hook.relativeTo(root)}")
+                            add(Finding(Severity.ERROR, "hookExecutable", "$name hook must be executable: ${hook.relativeTo(root)}"))
                         }
                         if (!hookText.contains("Harness generated hook: $name")) {
-                            add("$name hook must contain generated marker")
+                            add(Finding(Severity.ERROR, "hookGeneratedMarker", "$name hook must contain generated marker"))
                         }
                         if (!hookText.contains("Harness stage: $stage")) {
-                            add("$name hook must contain $stage stage marker")
+                            add(Finding(Severity.ERROR, "hookStage", "$name hook must contain $stage stage marker"))
                         }
                         if (hookText.contains("packaged placeholder is replaced during harness installation")) {
-                            add("$name hook must be installer-generated selected-mode content")
+                            add(Finding(Severity.ERROR, "hookValidationCommand", "$name hook must be installer-generated selected-mode content"))
                         }
                     }
                 }
-            return HookCheck(hookText, failures)
+            return HookCheck(hookText, findings)
         }
 
         private fun validateHooks(
             root: File,
             manifest: String,
-        ): List<String> =
+        ): List<Finding> =
             buildList {
                 val (preCommitStage, prePushStage) = parseHookStages(manifest)
-                val allowedPreCommitCommands = parseStringArray(manifest, "expectedValidationCommands")
-                    .firstOrNull { it.contains("harnessValidate") }
-                    ?.let { parseStringArray(manifest, "expectedValidationCommands") }
-                    .orEmpty()
-                    .filter { it.contains("harnessValidate") }
-                val allowedValidationCommands = parseStringArray(manifest, "expectedValidationCommands")
-                    .firstOrNull { it.contains("check") }
-                    ?.let { parseStringArray(manifest, "expectedValidationCommands") }
-                    .orEmpty()
-                    .filter { it.contains("check") }
+                val allCommands = parseStringArray(manifest, "expectedValidationCommands")
+                val allowedPreCommitCommands = allCommands.filter { it.contains("harnessValidate") }
+                val allowedValidationCommands = allCommands.filter { it.contains("check") }
                 val preCommitCheck = validateOneHook(root, "pre-commit", preCommitStage)
-                addAll(preCommitCheck.failures)
-                val preCommitText = preCommitCheck.text
+                addAll(preCommitCheck.findings)
                 val prePushCheck = validateOneHook(root, "pre-push", prePushStage)
-                addAll(prePushCheck.failures)
-                val prePushText = prePushCheck.text
-                val preCommitCommand = hookCommand(preCommitText)
+                addAll(prePushCheck.findings)
+                val preCommitCommand = hookCommand(preCommitCheck.text)
                 if (preCommitCommand.isNotEmpty() && preCommitCommand !in allowedPreCommitCommands) {
-                    add("pre-commit hook must declare Gradle harness validation command")
-                } else if (preCommitCommand.isNotEmpty() && preCommitCommand !in preCommitText.lineSequence().toSet()) {
-                    add("pre-commit hook must run the declared validation command")
+                    add(Finding(Severity.ERROR, "hookValidationCommand", "pre-commit hook must declare Gradle harness validation command"))
+                } else if (preCommitCommand.isNotEmpty() && preCommitCommand !in preCommitCheck.text.lineSequence().toSet()) {
+                    add(Finding(Severity.ERROR, "hookValidationCommand", "pre-commit hook must run the declared validation command"))
                 }
-                val command = hookCommand(prePushText)
+                val command = hookCommand(prePushCheck.text)
                 if (command.isBlank()) {
-                    add("pre-push hook must declare Harness validation command")
+                    add(Finding(Severity.ERROR, "hookValidationCommand", "pre-push hook must declare Harness validation command"))
                     return@buildList
                 }
                 if (command !in allowedValidationCommands) {
-                    add("pre-push hook declares unsupported validation command: $command")
+                    add(Finding(Severity.ERROR, "hookValidationCommand", "pre-push hook declares unsupported validation command: $command"))
                     return@buildList
                 }
-                if (command !in prePushText.lineSequence().toSet()) {
-                    add("pre-push hook must run the declared validation command")
+                if (command !in prePushCheck.text.lineSequence().toSet()) {
+                    add(Finding(Severity.ERROR, "hookValidationCommand", "pre-push hook must run the declared validation command"))
                 }
                 listOf(".github/workflows/harness.yml", ".gitlab-ci.yml").forEach { ciFile ->
                     val path = File(root, ciFile)
@@ -506,7 +517,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                         val check = isSafeFile(root, path)
                         addAll(check.warnings)
                         if (check.ok && !path.readText().contains(command)) {
-                            add("$ciFile: CI command mismatch - expected $command")
+                            add(Finding(Severity.ERROR, "ciCommandMatch", "$ciFile: CI command mismatch - expected $command"))
                         }
                     }
                 }
@@ -515,7 +526,7 @@ class HarnessValidationPlugin : Plugin<Project> {
         private fun validateEnvShebangs(
             root: File,
             manifest: String,
-        ): List<String> =
+        ): List<Finding> =
             buildList {
                 val envShebangBases = parseStringArray(manifest, "envShebangBases")
                 envShebangBases.forEach { basePath ->
@@ -534,8 +545,11 @@ class HarnessValidationPlugin : Plugin<Project> {
                             val line = file.readLines().firstOrNull() ?: ""
                             if (line.startsWith("#!") && !line.startsWith("#!/usr/bin/env ")) {
                                 add(
-                                    "executable script should use /usr/bin/env shebang: " +
-                                        file.relativeTo(root)
+                                    Finding(
+                                        Severity.ERROR,
+                                        "envShebang",
+                                        "executable script should use /usr/bin/env shebang: ${file.relativeTo(root)}"
+                                    )
                                 )
                             }
                         }
@@ -545,7 +559,7 @@ class HarnessValidationPlugin : Plugin<Project> {
         private fun validateCompletedPlans(
             root: File,
             manifest: String,
-        ): List<String> =
+        ): List<Finding> =
             buildList {
                 val completedDir = parseString(manifest, "completedPlanDirectory")
                 val unfinishedPattern = parseString(manifest, "unfinishedTaskPattern")
@@ -560,21 +574,14 @@ class HarnessValidationPlugin : Plugin<Project> {
                 }
                 val scan = safeFiles(root, dir)
                 addAll(scan.warnings)
-                val planFiles =
-                    scan.files
-                        .filter { candidateFile ->
-                            candidateFile.extension == "md"
-                        }
-                val regex =
-                    try {
-                        Regex(unfinishedPattern)
-                    } catch (_: Exception) {
-                        return@buildList
-                    }
-                planFiles.forEach { file ->
-                    val text = file.readText()
-                    if (regex.containsMatchIn(text)) {
-                        add("completed plan has unchecked tasks: ${file.relativeTo(root)}")
+                val regex = try {
+                    unfinishedPattern.toRegex()
+                } catch (_: Exception) {
+                    return@buildList
+                }
+                scan.files.filter { it.extension == "md" }.forEach { file ->
+                    if (regex.containsMatchIn(file.readText())) {
+                        add(Finding(Severity.ERROR, "completedPlanUnfinishedTask", "completed plan has unchecked tasks: ${file.relativeTo(root)}"))
                     }
                 }
             }
@@ -589,18 +596,18 @@ class HarnessValidationPlugin : Plugin<Project> {
             if (Files.isSymbolicLink(base.toPath())) {
                 return ScanResult(
                     emptyList(),
-                    listOf("symlink scan root is not allowed: ${base.relativeTo(root)}")
+                    listOf(Finding(Severity.WARN, "symlinkSafety", "symlink scan root is not allowed: ${base.relativeTo(root)}"))
                 )
             }
             if (base.isFile) {
                 return ScanResult(listOf(base), emptyList())
             }
             val children = base.listFiles().orEmpty()
-            val warnings: List<String> =
+            val warnings: List<Finding> =
                 buildList {
                     children.forEach { child ->
                         if (Files.isSymbolicLink(child.toPath())) {
-                            add("symlink scan entry is not allowed: ${child.relativeTo(root)}")
+                            add(Finding(Severity.WARN, "symlinkSafety", "symlink scan entry is not allowed: ${child.relativeTo(root)}"))
                         }
                     }
                 }
@@ -610,15 +617,13 @@ class HarnessValidationPlugin : Plugin<Project> {
                         !Files.isSymbolicLink(child.toPath())
                     }
                     .flatMap { child ->
-                        if (child.isDirectory) {
-                            safeFiles(root, child).files
-                        } else if (child.isFile) {
-                            listOf(child)
-                        } else {
-                            emptyList()
+                        when {
+                            child.isDirectory -> safeFiles(root, child).files
+                            child.isFile -> listOf(child)
+                            else -> emptyList()
                         }
                     }
-            val allWarnings: List<String> =
+            val allWarnings: List<Finding> =
                 buildList {
                     addAll(warnings)
                     children
@@ -642,7 +647,7 @@ class HarnessValidationPlugin : Plugin<Project> {
             ) {
                 return ScanResult(
                     emptyList(),
-                    listOf("symlink path is not allowed: ${base.relativeTo(root)}")
+                    listOf(Finding(Severity.WARN, "symlinkSafety", "symlink path is not allowed: ${base.relativeTo(root)}"))
                 )
             }
             val fileCheck = isSafeFile(root, base)
@@ -664,10 +669,9 @@ class HarnessValidationPlugin : Plugin<Project> {
                 return null
             }
             val expected =
-                if (file.name == "AGENTS.md") {
-                    "CLAUDE.md"
-                } else {
-                    "AGENTS.md"
+                when (file.name) {
+                    "AGENTS.md" -> "CLAUDE.md"
+                    else -> "AGENTS.md"
                 }
             val targetName =
                 try {
@@ -695,7 +699,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                 }
                 return SafetyCheck(
                     false,
-                    listOf("symlink file is not allowed: ${file.relativeTo(root)}")
+                    listOf(Finding(Severity.ERROR, "symlinkSafety", "symlink file is not allowed: ${file.relativeTo(root)}"))
                 )
             }
             return SafetyCheck(file.isFile, emptyList())
@@ -708,11 +712,23 @@ class HarnessValidationPlugin : Plugin<Project> {
             if (Files.isSymbolicLink(file.toPath())) {
                 return SafetyCheck(
                     false,
-                    listOf("symlink directory is not allowed: ${file.relativeTo(root)}")
+                    listOf(Finding(Severity.ERROR, "symlinkSafety", "symlink directory is not allowed: ${file.relativeTo(root)}"))
                 )
             }
             return SafetyCheck(file.isDirectory, emptyList())
         }
+
+        private enum class Severity {
+            ERROR,
+            WARN,
+            INFO,
+        }
+
+        private data class Finding(
+            val severity: Severity,
+            val category: String,
+            val message: String,
+        )
 
         private data class ContentCheck(
             val files: List<String>,
@@ -722,22 +738,22 @@ class HarnessValidationPlugin : Plugin<Project> {
 
         private data class SafetyCheck(
             val ok: Boolean,
-            val warnings: List<String>,
+            val warnings: List<Finding>,
         )
 
         private data class ScanResult(
             val files: List<File>,
-            val warnings: List<String>,
+            val warnings: List<Finding>,
         )
 
         private data class HookCheck(
             val text: String,
-            val failures: List<String>,
+            val findings: List<Finding>,
         )
 
         private data class ManifestLoad(
             val manifest: String?,
-            val failures: List<String>,
+            val findings: List<Finding>,
         )
     }
 }

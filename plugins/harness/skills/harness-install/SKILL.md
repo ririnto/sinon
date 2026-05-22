@@ -84,7 +84,7 @@ Install or refresh target-owned repository harness files from this plugin. The p
 - `AGENTS.md` is the primary target repository harness contract.
 - `CLAUDE.md` remains the Claude Code entry point and points back to `AGENTS.md`.
 - `docs/harness/manifest.json` is the installed harness inventory and contract.
-- `docs/generated/` is a generated-artifact location; it MUST NOT require a fake `db-schema.md` file.
+- `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
 - Plugin skills install and validate the harness package; installed target skills guide day-to-day work inside the target repository.
 
 ## Pitfalls
