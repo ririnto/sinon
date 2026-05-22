@@ -1,4 +1,5 @@
 {
+  "$schema": "./manifest.schema.json",
   "name": "repository-harness",
   "description": "Harness validation manifest. Each top-level entry is either a check add-on (description + severity + failure message templates + target paths/data) or metadata (description + data, no severity, not validated). validator는 이 manifest를 single source of truth로 사용한다. harness는 versioning하지 않으므로 schemaVersion / deprecated / legacy 키는 존재하지 않는다.",
   "requireFilesExist": {
