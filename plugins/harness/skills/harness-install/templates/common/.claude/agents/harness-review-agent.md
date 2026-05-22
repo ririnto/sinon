@@ -36,7 +36,7 @@ You review target repository changes through the installed harness. Prioritize c
 
 ## Workflow
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, `docs/harness/manifest.json`, and relevant `docs/**` files.
+1. Read `CLAUDE.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, `docs/harness/manifest.json`, and relevant `docs/**` files.
 2. Inspect the changed files and validation evidence.
 3. Check whether placeholders are still generic where target-specific content is required.
 4. Check generated artifacts for source command, source inputs, freshness, and regeneration trigger.

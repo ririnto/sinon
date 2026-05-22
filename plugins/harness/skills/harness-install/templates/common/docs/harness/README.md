@@ -6,8 +6,10 @@ This directory contains versioned harness assets used by local agents and CI val
 
 | Path | Purpose |
 | --- | --- |
-| `AGENTS.md` | Primary repository harness contract |
-| `CLAUDE.md` | Entry-point alias of `AGENTS.md` for agent runtimes that load `CLAUDE.md` |
+| `CLAUDE.md` | Primary repository harness contract |
+| `AGENTS.md` | Symlink alias of `CLAUDE.md` so runtimes that load `AGENTS.md` resolve to the same content |
+| `.claude/` | Primary directory for agents, skills, commands, and runtime state |
+| `.agents/` | Symlink alias of `.claude/` so runtimes that load `.agents/` resolve to the same content |
 | `ARCHITECTURE.md` | System architecture, boundaries, data flow, and validation surface |
 | `docs/exec-plans/active/` | Contains active execution plans, or `.gitkeep` until active plans exist |
 | `docs/exec-plans/completed/` | Contains completed execution plans, or `.gitkeep` until completed plans exist |
@@ -31,7 +33,7 @@ The harness alone does not define product requirements, domain rules, architectu
 
 ## Harness evolution
 
-The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active contract. When the harness changes, update this directory, `AGENTS.md`, validators, and templates as needed; record the evolution in the relevant `docs/exec-plans/` entry rather than in a separate log file.
+The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active contract. When the harness changes, update this directory, `CLAUDE.md`, validators, and templates as needed; record the evolution in the relevant `docs/exec-plans/` entry rather than in a separate log file.
 
 ## Validation
 

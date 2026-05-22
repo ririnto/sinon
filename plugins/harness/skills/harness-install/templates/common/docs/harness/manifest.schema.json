@@ -4,53 +4,127 @@
   "title": "RepositoryHarnessManifest",
   "description": "Schema for docs/harness/manifest.json. Every check add-on entry follows a uniform shape — { description, enabled, severity, messages, parameters }. metadata entries (seedFiles, generatedArtifacts, harnessEvolution, teamPatterns) carry description + data and are not validated by the harness. The harness is not versioned; the current committed manifest is the only authoritative shape. Unknown top-level keys are logged as WARN by the validator's main routine (no separate add-on entry).",
   "type": "object",
-  "additionalProperties": {"$ref": "#/$defs/addOn"},
-  "required": ["name", "description"],
+  "additionalProperties": {
+    "$ref": "#/$defs/addOn"
+  },
+  "required": [
+    "name",
+    "description"
+  ],
   "properties": {
-    "$schema": {"type": "string"},
-    "name": {"type": "string"},
-    "description": {"type": "string"},
-
-    "requireFilesExist": {"$ref": "#/$defs/addOn"},
-    "requireDirectoriesExist": {"$ref": "#/$defs/addOn"},
-    "requireKeepfileInEmptyDirectories": {"$ref": "#/$defs/addOn"},
-    "requireTemplateGroups": {"$ref": "#/$defs/addOn"},
-    "requireDocHeadings": {"$ref": "#/$defs/addOn"},
-    "requireDocContent": {"$ref": "#/$defs/addOn"},
-    "requireAgentFrontmatter": {"$ref": "#/$defs/addOn"},
-    "requireSkillFrontmatter": {"$ref": "#/$defs/addOn"},
-    "forbidScaffoldLeaks": {"$ref": "#/$defs/addOn"},
-    "requireHookShebang": {"$ref": "#/$defs/addOn"},
-    "requireHookExecutable": {"$ref": "#/$defs/addOn"},
-    "requireHookGeneratedMarker": {"$ref": "#/$defs/addOn"},
-    "requireHookStage": {"$ref": "#/$defs/addOn"},
-    "requireHookCommand": {"$ref": "#/$defs/addOn"},
-    "requireCiCommandMatchesHook": {"$ref": "#/$defs/addOn"},
-    "requireEnvShebangUnder": {"$ref": "#/$defs/addOn"},
-    "forbidUncheckedTasksUnder": {"$ref": "#/$defs/addOn"},
-    "forbidUnsafeSymlinks": {"$ref": "#/$defs/addOn"},
-    "forbidImplicitLambdaIt": {"$ref": "#/$defs/addOn"},
-    "requireSingleTopLevelKotlinDeclaration": {"$ref": "#/$defs/addOn"},
-
-    "seedFiles": {"$ref": "#/$defs/metadata"},
-    "generatedArtifacts": {"$ref": "#/$defs/metadata"},
-    "harnessEvolution": {"$ref": "#/$defs/metadata"},
-    "teamPatterns": {"$ref": "#/$defs/metadata"}
+    "$schema": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "requireFilesExist": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireDirectoriesExist": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireKeepfileInEmptyDirectories": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireTemplateGroups": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireDocHeadings": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireDocContent": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireAgentFrontmatter": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireSkillFrontmatter": {
+      "$ref": "#/$defs/addOn"
+    },
+    "forbidScaffoldLeaks": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireHookShebang": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireHookExecutable": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireHookGeneratedMarker": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireHookStage": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireHookCommand": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireCiCommandMatchesHook": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireEnvShebangUnder": {
+      "$ref": "#/$defs/addOn"
+    },
+    "forbidUncheckedTasksUnder": {
+      "$ref": "#/$defs/addOn"
+    },
+    "forbidUnsafeSymlinks": {
+      "$ref": "#/$defs/addOn"
+    },
+    "forbidImplicitLambdaIt": {
+      "$ref": "#/$defs/addOn"
+    },
+    "requireSingleTopLevelKotlinDeclaration": {
+      "$ref": "#/$defs/addOn"
+    },
+    "seedFiles": {
+      "$ref": "#/$defs/metadata"
+    },
+    "generatedArtifacts": {
+      "$ref": "#/$defs/metadata"
+    },
+    "harnessEvolution": {
+      "$ref": "#/$defs/metadata"
+    },
+    "teamPatterns": {
+      "$ref": "#/$defs/metadata"
+    }
   },
   "$defs": {
-    "severity": {"enum": ["ERROR", "WARN", "INFO"]},
+    "severity": {
+      "enum": [
+        "ERROR",
+        "WARN",
+        "INFO"
+      ]
+    },
     "addOn": {
       "type": "object",
       "description": "Uniform shape for every check add-on. `parameters` is free-form per add-on; `messages` maps named template keys to user-visible failure messages.",
-      "required": ["description"],
+      "required": [
+        "description"
+      ],
       "additionalProperties": false,
       "properties": {
-        "description": {"type": "string"},
-        "enabled": {"type": "boolean", "default": true},
-        "severity": {"$ref": "#/$defs/severity"},
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
         "messages": {
           "type": "object",
-          "additionalProperties": {"type": "string"}
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "parameters": {
           "type": "object",
@@ -61,9 +135,13 @@
     "metadata": {
       "type": "object",
       "description": "Informational metadata; not validated by the harness.",
-      "required": ["description"],
+      "required": [
+        "description"
+      ],
       "properties": {
-        "description": {"type": "string"}
+        "description": {
+          "type": "string"
+        }
       },
       "additionalProperties": true
     }

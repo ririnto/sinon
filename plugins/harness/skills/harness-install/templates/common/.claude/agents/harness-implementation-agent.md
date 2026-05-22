@@ -9,7 +9,7 @@ description: |-
   <example>
     <context>An orchestrator agent has created an execution plan for adding a new agent to the target repository with clear file scope and acceptance criteria.</context>
     <user>Implement this agent following the plan. Validate it afterward.</user>
-    <assistant>Reads AGENTS.md and the execution plan, confirms target files, creates the agent .md file in agents/ directory, updates ARCHITECTURE.md if needed, runs the stack validation command (e.g., npm run validate or pytest), reports changed files and validation results.</assistant>
+    <assistant>Reads CLAUDE.md and the execution plan, confirms target files, creates the agent .md file in agents/ directory, updates ARCHITECTURE.md if needed, runs the stack validation command (e.g., npm run validate or pytest), reports changed files and validation results.</assistant>
     <commentary>Implementation agent executes a well-scoped plan with clear acceptance criteria and confirms validation passes.</commentary>
   </example>
 
@@ -23,7 +23,7 @@ description: |-
   <example>
     <context>A generated artifact needs refresh based on a new source template, with clear regeneration trigger documented.</context>
     <user>Regenerate docs/generated/agent-index.md using scripts/generate-index.sh. Validate against AGENTS.md.</user>
-    <assistant>Reads the generation script and AGENTS.md, runs scripts/generate-index.sh to regenerate the artifact, checks that output is fresh and matches AGENTS.md structure, reports command run and validation evidence.</assistant>
+    <assistant>Reads the generation script and CLAUDE.md, runs scripts/generate-index.sh to regenerate the artifact, checks that output is fresh and matches CLAUDE.md structure, reports command run and validation evidence.</assistant>
     <commentary>Bounded regeneration with validation ensures the artifact stays in sync with source truth.</commentary>
   </example>
 model: sonnet
@@ -36,7 +36,7 @@ You implement scoped changes inside this target repository. Use the installed ha
 
 ## Workflow
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and the relevant domain docs.
+1. Read `CLAUDE.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and the relevant domain docs.
 2. Confirm the requested files and acceptance criteria before editing.
 3. Update docs, generated-artifact metadata, templates, agents, skills, and validation surfaces together when they describe the same behavior.
 4. Keep placeholders as prompts for target truth; do not replace them with fake product content.

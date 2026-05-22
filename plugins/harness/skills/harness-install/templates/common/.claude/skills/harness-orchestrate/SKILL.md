@@ -1,7 +1,7 @@
 ---
 name: harness-orchestrate
 description: >-
-  Coordinate target repository work through the installed harness lifecycle. Use this skill when planning or sequencing work that must read AGENTS.md, update project context, delegate implementation/review, and finish with the stack-specific harness validator.
+  Coordinate target repository work through the installed harness lifecycle. Use this skill when planning or sequencing work that must read CLAUDE.md, update project context, delegate implementation/review, and finish with the stack-specific harness validator.
 ---
 
 # Harness Orchestrate
@@ -10,7 +10,7 @@ Plan and coordinate work inside this target repository using the installed harne
 
 ## First Safe Checks
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and the relevant `docs/**` file for the task domain.
+1. Read `CLAUDE.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and the relevant `docs/**` file for the task domain.
 2. Read `docs/harness/manifest.json` when file or validation scope is unclear.
 3. Identify whether the task is implementation, documentation, validation, review, or harness evolution.
 4. Confirm the stack-specific validation command from `docs/harness/README.md`.
@@ -34,7 +34,7 @@ Plan and coordinate work inside this target repository using the installed harne
 
 ## Invariants
 
-- `AGENTS.md` is the primary target repository contract.
+- `CLAUDE.md` is the primary target repository contract.
 - The installed harness is target-owned and may evolve with the repository.
 - Placeholder docs are not project truth until populated with target-specific evidence.
 - Validation runs through the target stack, not through ad hoc inspection alone.

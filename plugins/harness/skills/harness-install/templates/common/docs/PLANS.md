@@ -1,18 +1,19 @@
 # Plans
 
-Document near-term sequencing of in-flight work — initiatives that are currently being built, paused, or about to start. This is the active counterpart of `docs/exec-plans/`: lightweight items that do not yet warrant a dedicated `yyyy-MM-dd-<slug>.md` plan file but still need to be visible.
+Document the project's overall development plan: the long-horizon roadmap, the milestones that compose it, and the rationale behind sequencing.
 
 ## Purpose
 
-Give agents a single page they can scan to learn what is in flight right now, what is paused (and why), and which checkpoint each item is waiting on. Heavyweight, multi-phase plans MUST live under `docs/exec-plans/active/` following the `yyyy-MM-dd-<slug>.md` convention.
+Give agents and humans a single page to scan for the *whole* development plan — strategic direction, milestone-level scope, target outcomes per milestone, and the dependencies between milestones. Heavyweight, multi-phase execution plans for individual milestones MUST live under `docs/exec-plans/active/` following the `yyyy-MM-dd-<slug>.md` convention.
 
-`docs/exec-plans/tech-debt-tracker.md` is a separate concern: it tracks consciously *deferred* work that the team chose NOT to do, with retirement criteria. PLANS.md tracks work that is *being done* or *staged to start*; the tech-debt tracker records work that is *intentionally postponed*.
+This document is the project-wide plan, not a list of currently in-flight tasks. `docs/exec-plans/active/` carries the concrete phase-by-phase execution. `docs/exec-plans/tech-debt-tracker.md` records work the team consciously deferred with retirement criteria. `WORKFLOW.md` documents *how* work moves through the repository, while `PLANS.md` documents *what* the project intends to build and in what order.
 
 ## When To Update
 
-Update when the scope of an in-flight initiative shifts, when a cross-team dependency forms, when a checkpoint passes, or when an item leaves the page (graduates into a tracked exec-plan file, ships, or is deferred into the tech-debt tracker).
+Update when the overall roadmap changes: a milestone is added, removed, reordered, or redefined; a target outcome shifts; a cross-milestone dependency appears or resolves; or the strategic direction of the project moves.
 
 ## Required Evidence
 
-- Link to the relevant `docs/exec-plans/active/` file when an item graduates into a tracked plan.
-- Cite the issue, PR, or message where the sequencing decision was made.
+- Cite the product spec, design document, or decision record that motivates each milestone.
+- Link to the matching `docs/exec-plans/active/` file when a milestone enters concrete execution.
+- Link to `docs/exec-plans/completed/` files when a milestone has shipped.
