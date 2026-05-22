@@ -387,7 +387,8 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                         override fun visitImportDirective(importDirective: org.jetbrains.kotlin.psi.KtImportDirective) {
                             super.visitImportDirective(importDirective)
                             if (importDirective.isAllUnder) {
-                                add(WildcardImportResult(fileName, lineOf(ktFile, importDirective.node?.startOffset)))
+                                add(WildcardImportResult(fileName, lineOf(ktFile, importDirective.node?.startOffset),
+                                    importDirective.importPath?.pathStr ?: ""))
                             }
                         }
                     })
