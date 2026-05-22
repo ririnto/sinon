@@ -2,17 +2,26 @@ package ai.harness.maven;
 
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.ast.body.MethodDeclaration;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.FileSystems;
+import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.regex.Pattern;
+import java.util.Collectors;
+import java.util.Collections;
 
 /**
  * Enum of harness validation checks. Each value implements a validate method
@@ -605,6 +614,94 @@ enum HarnessCheck {
                     ? List.of(new Finding(severity, category(), "Kotlin file must have exactly 1 top-level declaration: " + root.relativize(file)))
                     : List.of();
         }
+    },
+
+    FORBID_GREATER_THAN_COMPARISON("forbidGreaterThanComparison") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateGreaterThanComparison(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateGreaterThanComparison(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.walk(BinaryExpr.class, expr -> {
+                    if (expr.getOperator() == BinaryExpr.Operator.GREATER || expr.getOperator() == BinaryExpr.Operator.GREATER_EQUALS) {
+                        int line = expr.getBegin().map(p -> p.line).orElse(-1);
+                        String op = expr.getOperator() == BinaryExpr.Operator.GREATER ? ">" : ">=";
+                        String replacement = expr.getOperator() == BinaryExpr.Operator.GREATER ? "<" : "<=";
+                        findings.add(new Finding(severity, category(), root.relativize(file) + ":" + line + ": forbidden `" + op + "`; use `" + replacement + "`"));
+                    }
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
+        }
+    },
+
+    FORBID_BLANK_LINE_IN_LEAF_FUNCTION("forbidBlankLineInLeafFunction") {
+        @Override
+        public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+            String severity = getSeverity(manifest, category());
+            try {
+                List<Path> sources = stackSources(manifest, category());
+                return sources.stream()
+                        .flatMap(file -> validateBlankLinesInLeafFunctions(root, file, severity).stream())
+                        .toList();
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to enumerate Java sources: " + e.getMessage()));
+            }
+        }
+
+        private List<Finding> validateBlankLinesInLeafFunctions(Path root, Path file, String severity) {
+            try {
+                CompilationUnit cu = StaticJavaParser.parse(file);
+                List<String> sourceLines = Files.readAllLines(file);
+                List<Finding> findings = new java.util.ArrayList<>();
+                cu.walk(MethodDeclaration.class, method -> {
+                    if (isLeafMethod(method)) {
+                        method.getBody().ifPresent(body -> {
+                            body.getBegin().ifPresent(beginPos -> {
+                                body.getEnd().ifPresent(endPos -> {
+                                    int startLine = beginPos.line - 1;
+                                    int endLine = endPos.line;
+                                    for (int i = startLine; i < endLine && i < sourceLines.size(); i++) {
+                                        if (sourceLines.get(i).trim().isEmpty()) {
+                                            findings.add(new Finding(severity, category(), root.relativize(file) + ":" + (i + 1) + ": blank line in leaf function"));
+                                        }
+                                    }
+                                });
+                            });
+                        });
+                    }
+                });
+                return findings;
+            } catch (IOException e) {
+                return List.of(new Finding(severity, category(), "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+            }
+        }
+
+        private boolean isLeafMethod(MethodDeclaration method) {
+            return method.getBody()
+                    .map(body -> {
+                        java.util.List<MethodDeclaration> nestedMethods = new java.util.ArrayList<>();
+                        java.util.List<com.github.javaparser.ast.expr.LambdaExpr> lambdas = new java.util.ArrayList<>();
+                        body.walk(MethodDeclaration.class, nestedMethods::add);
+                        body.walk(com.github.javaparser.ast.expr.LambdaExpr.class, lambdas::add);
+                        return nestedMethods.isEmpty() && lambdas.isEmpty();
+                    })
+                    .orElse(false);
+        }
     };
 
     private final String category;
@@ -721,5 +818,77 @@ enum HarnessCheck {
             return List.of();
         }
         return Stream.of(node.spliterator(), false).map(JsonNode::asText).toList();
+    }
+
+    protected static List<Path> stackSources(JsonNode manifest, String category) throws IOException {
+        JsonNode catNode = manifest.get(category);
+        if (catNode == null) {
+            return Collections.emptyList();
+        }
+        JsonNode params = catNode.get("parameters");
+        if (params == null) {
+            return Collections.emptyList();
+        }
+        JsonNode rootsNode = params.get("sourceRootsPerStack");
+        JsonNode extsNode = params.get("extensionsPerStack");
+        if (rootsNode == null || extsNode == null) {
+            return Collections.emptyList();
+        }
+        JsonNode javaRoots = rootsNode.get("java");
+        JsonNode javaExts = extsNode.get("java");
+        if (javaRoots == null || javaExts == null) {
+            return Collections.emptyList();
+        }
+        Set<String> extensions = StreamSupport.stream(javaExts.spliterator(), false)
+                .map(JsonNode::asText)
+                .collect(Collectors.toSet());
+        FileSystem fs = FileSystems.getDefault();
+        return StreamSupport.stream(javaRoots.spliterator(), false)
+                .map(JsonNode::asText)
+                .flatMap(rootEntry -> walkRoot(fs, Path.of("."), rootEntry, extensions).stream())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    protected static List<Path> walkRoot(FileSystem fs, Path base, String rootEntry, Set<String> extensions) {
+        try {
+            if (rootEntry.contains("*")) {
+                String pattern = "glob:" + rootEntry + "/**/*";
+                var matcher = fs.getPathMatcher(pattern);
+                try (Stream<Path> stream = Files.walk(base)) {
+                    return stream
+                            .filter(p -> matcher.matches(p) && extensions.contains(extensionOf(p)) && !containsSegment(p, "target") && !containsSegment(p, "build"))
+                            .collect(Collectors.toList());
+                }
+            } else {
+                Path resolved = base.resolve(rootEntry);
+                if (!Files.exists(resolved)) {
+                    return Collections.emptyList();
+                }
+                try (Stream<Path> stream = Files.walk(resolved)) {
+                    return stream
+                            .filter(p -> extensions.contains(extensionOf(p)) && !containsSegment(p, "target") && !containsSegment(p, "build"))
+                            .collect(Collectors.toList());
+                }
+            }
+        } catch (IOException e) {
+            return Collections.emptyList();
+        }
+    }
+
+    protected static String extensionOf(Path p) {
+        String name = p.getFileName().toString();
+        int idx = name.lastIndexOf('.');
+        return idx < 0 ? "" : name.substring(idx + 1);
+    }
+
+    protected static boolean containsSegment(Path p, String segment) {
+        for (int i = 0; i < p.getNameCount(); i++) {
+            if (p.getName(i).toString().equals(segment)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

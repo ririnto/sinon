@@ -6,6 +6,7 @@ plugins {
 dependencies {
     implementation(platform(libs.kotlinx.serialization.bom))
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlin.compiler.embeddable)
 }
 
 gradlePlugin {

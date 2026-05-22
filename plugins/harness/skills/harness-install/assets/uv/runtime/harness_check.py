@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import ast
 import enum
 import fnmatch
 import json
@@ -909,6 +910,164 @@ def _validate_require_single_top_level_kotlin_declaration(root: Path, manifest: 
     return tuple(result)
 
 
+def _stack_sources(root: Path, manifest: dict, category: str) -> tuple[Path, ...]:
+    """Resolve source files for a check category based on stack roots and extensions."""
+    section = manifest.get(category, {})
+    if not isinstance(section, dict):
+        return ()
+    params = section.get("parameters", {})
+    if not isinstance(params, dict):
+        return ()
+    source_roots_per_stack = params.get("sourceRootsPerStack", {})
+    if not isinstance(source_roots_per_stack, dict):
+        return ()
+    extensions_per_stack = params.get("extensionsPerStack", {})
+    if not isinstance(extensions_per_stack, dict):
+        return ()
+
+    python_roots = source_roots_per_stack.get("python", [])
+    if not isinstance(python_roots, list):
+        return ()
+    python_exts = extensions_per_stack.get("python", [])
+    if not isinstance(python_exts, list):
+        return ()
+
+    ext_set = frozenset(e for e in python_exts if isinstance(e, str))
+    seen = set()
+    result = []
+
+    for root_entry in python_roots:
+        if not isinstance(root_entry, str):
+            continue
+        if "*" in root_entry:
+            for resolved_path in root.glob(root_entry):
+                if resolved_path.is_dir() and not resolved_path.is_symlink():
+                    for file_path in resolved_path.rglob("*"):
+                        if file_path.is_file() and not file_path.is_symlink():
+                            if "__pycache__" not in file_path.parts:
+                                suffix = file_path.suffix.lstrip(".")
+                                if suffix in ext_set:
+                                    abs_path = file_path.resolve()
+                                    if abs_path not in seen:
+                                        seen.add(abs_path)
+                                        result.append(abs_path)
+        else:
+            dir_path = root / root_entry
+            if dir_path.is_dir() and not dir_path.is_symlink():
+                for file_path in dir_path.rglob("*"):
+                    if file_path.is_file() and not file_path.is_symlink():
+                        if "__pycache__" not in file_path.parts:
+                            suffix = file_path.suffix.lstrip(".")
+                            if suffix in ext_set:
+                                abs_path = file_path.resolve()
+                                if abs_path not in seen:
+                                    seen.add(abs_path)
+                                    result.append(abs_path)
+
+    return tuple(sorted(result))
+
+
+def _parse_python(path: Path) -> tuple[ast.AST | None, str | None]:
+    """Parse a Python file and return AST or error message."""
+    try:
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        return (tree, None)
+    except SyntaxError as e:
+        return (None, str(e))
+
+
+def _has_nested_function(func_node: ast.AST) -> bool:
+    """Check if function body contains nested function or lambda."""
+    if not hasattr(func_node, "body"):
+        return False
+    for node in ast.walk(func_node):
+        if node is func_node:
+            continue
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+            return True
+    return False
+
+
+def _validate_forbid_greater_than_comparison(root: Path, manifest: dict) -> tuple[Finding, ...]:
+    """Validate forbidGreaterThanComparison check."""
+    category = "forbidGreaterThanComparison"
+    severity = severity_for(manifest, category)
+    sources = _stack_sources(root, manifest, category)
+
+    result = []
+    for path in sources:
+        tree, error = _parse_python(path)
+        if error is not None:
+            result.append(Finding(
+                severity,
+                category,
+                f"{relative(path)}: syntax error: {error}",
+            ))
+            continue
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Compare):
+                for op in node.ops:
+                    if isinstance(op, (ast.Gt, ast.GtE)):
+                        result.append(Finding(
+                            severity,
+                            category,
+                            f"{relative(path)}:{node.lineno}: forbidden `>`/`>=` comparison; rewrite with `<`/`<=` so the smaller value is on the left",
+                        ))
+
+    return tuple(result)
+
+
+def _validate_forbid_blank_line_in_leaf_function(root: Path, manifest: dict) -> tuple[Finding, ...]:
+    """Validate forbidBlankLineInLeafFunction check."""
+    category = "forbidBlankLineInLeafFunction"
+    severity = severity_for(manifest, category)
+    sources = _stack_sources(root, manifest, category)
+
+    result = []
+    for path in sources:
+        tree, error = _parse_python(path)
+        if error is not None:
+            result.append(Finding(
+                severity,
+                category,
+                f"{relative(path)}: syntax error: {error}",
+            ))
+            continue
+
+        try:
+            source_lines = path.read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeDecodeError):
+            continue
+
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                if _has_nested_function(node):
+                    continue
+
+                if not node.body or not hasattr(node, "end_lineno"):
+                    continue
+
+                start_line = node.body[0].lineno if hasattr(node.body[0], "lineno") else None
+                end_line = node.end_lineno
+
+                if start_line is None or end_line is None:
+                    continue
+
+                for line_no in range(start_line, end_line + 1):
+                    if 1 <= line_no <= len(source_lines):
+                        line_text = source_lines[line_no - 1]
+                        if line_text.strip() == "":
+                            result.append(Finding(
+                                severity,
+                                category,
+                                f"{relative(path)}:{line_no}: leaf function `{node.name}` contains a blank line; remove or extract the section",
+                            ))
+
+    return tuple(result)
+
+
 class HarnessCheck(enum.Enum):
     """Enumeration of harness checks with embedded validator functions."""
 
@@ -941,6 +1100,11 @@ class HarnessCheck(enum.Enum):
     REQUIRE_SINGLE_TOP_LEVEL_KOTLIN_DECLARATION = (
         "requireSingleTopLevelKotlinDeclaration",
         _validate_require_single_top_level_kotlin_declaration,
+    )
+    FORBID_GREATER_THAN_COMPARISON = ("forbidGreaterThanComparison", _validate_forbid_greater_than_comparison)
+    FORBID_BLANK_LINE_IN_LEAF_FUNCTION = (
+        "forbidBlankLineInLeafFunction",
+        _validate_forbid_blank_line_in_leaf_function,
     )
 
     def __init__(self, category: str, validator: Callable[[Path, dict], tuple[Finding, ...]]):
