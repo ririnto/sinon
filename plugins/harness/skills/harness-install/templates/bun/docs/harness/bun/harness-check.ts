@@ -826,49 +826,21 @@ const forbidUnsafeSymlinks: HarnessCheckSpec = {
 const warnUnknownManifestKeys: HarnessCheckSpec = {
   category: "warnUnknownManifestKeys",
   applies: (manifest) => {
-    const knownKeys = new Set<string>([
-      "requireFilesExist",
-      "requireDirectoriesExist",
-      "requireKeepfileInEmptyDirectories",
-      "requireTemplateGroups",
-      "requireDocHeadings",
-      "requireDocContent",
-      "requireAgentFrontmatter",
-      "requireSkillFrontmatter",
-      "forbidScaffoldLeaks",
-      "requireHookShebang",
-      "requireHookExecutable",
-      "requireHookGeneratedMarker",
-      "requireHookStage",
-      "requireHookCommand",
-      "requireCiCommandMatchesHook",
-      "requireEnvShebangUnder",
-      "forbidUncheckedTasksUnder",
-      "forbidUnsafeSymlinks",
-    ]);
-    return Object.keys(manifest).some((key) => !knownKeys.has(key));
+    const section = manifest[warnUnknownManifestKeys.category];
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    return enabled === undefined || enabled === true;
   },
   validate: (root, manifest) => {
-    const knownKeys = new Set<string>([
-      "requireFilesExist",
-      "requireDirectoriesExist",
-      "requireKeepfileInEmptyDirectories",
-      "requireTemplateGroups",
-      "requireDocHeadings",
-      "requireDocContent",
-      "requireAgentFrontmatter",
-      "requireSkillFrontmatter",
-      "forbidScaffoldLeaks",
-      "requireHookShebang",
-      "requireHookExecutable",
-      "requireHookGeneratedMarker",
-      "requireHookStage",
-      "requireHookCommand",
-      "requireCiCommandMatchesHook",
-      "requireEnvShebangUnder",
-      "forbidUncheckedTasksUnder",
-      "forbidUnsafeSymlinks",
-    ]);
+    const section = manifest[warnUnknownManifestKeys.category] as { knownKeys?: unknown };
+    const knownKeysRaw = section?.knownKeys;
+    const knownKeys = new Set<string>(
+      Array.isArray(knownKeysRaw)
+        ? knownKeysRaw.filter((item): item is string => typeof item === "string")
+        : [],
+    );
     const unknownKeys = Object.keys(manifest).filter((key) => !knownKeys.has(key));
     return unknownKeys.map((key) => ({
       severity: severityOf(manifest, "warnUnknownManifestKeys") as const,

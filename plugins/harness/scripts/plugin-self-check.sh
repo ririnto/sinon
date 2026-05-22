@@ -695,7 +695,7 @@ for template_root in $template_roots; do
   template_root_files=$(package_files "$template_root")
   for path in $(printf '%s\n' "$template_root_files" | grep -F -v '.tmpl'); do
     case "$path" in
-      */harness_validate.py|*/harness-validate.ts|*/HarnessValidationPlugin.kt|*/HarnessValidateMojo.java|*/manifest.json)
+      */harness_validate.py|*/harness_check.py|*/harness-validate.ts|*/harness-check.ts|*/HarnessValidationPlugin.kt|*/HarnessCheck.kt|*/HarnessValidateMojo.java|*/HarnessCheck.java|*/manifest.json|*/manifest.schema.json)
         continue
         ;;
     esac
