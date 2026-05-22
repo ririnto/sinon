@@ -1,5 +1,6 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 script_dir=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
 lombok_override_jar="${JAVA_ASSISTANT_LOMBOK_JAR:-${JDK_ASSISTANT_LOMBOK_JAR:-${LOMBOK_JAR:-}}}"

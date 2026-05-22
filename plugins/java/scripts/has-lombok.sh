@@ -1,5 +1,6 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Minimum Lombok version accepted for project-resolved jars.
 COMPATIBLE_VERSION="1.18.4"
