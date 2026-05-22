@@ -1,8 +1,8 @@
 ---
 name: harness-install
 description: >-
-  Install repository harness assets: AGENTS.md contract, ARCHITECTURE.md, docs structure, Claude entry point, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use this skill when setting up or refreshing a repository harness, adding Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, or bun projects.
-argument-hint: '[auto|gradle|maven|uv|bun] [--target DIR] [--hooks none|copy] [--force] [--no-ci]'
+  Install repository harness assets: AGENTS.md contract, ARCHITECTURE.md, docs structure, Claude entry point, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use this skill when setting up or refreshing a repository harness, adding Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
+argument-hint: '[auto|gradle|maven|uv|bun|shell] [--target DIR] [--hooks none|copy] [--force] [--no-ci]'
 allowed-tools:
   - Bash(sh */skills/harness-install/scripts/install-harness.sh *)
   - Bash(git *)
@@ -43,6 +43,7 @@ Install or refresh target-owned repository harness files from this plugin. The p
     maven
     uv
     bun
+    shell
     ```
 
 2. Run the installer with the target repository as `--target`.
@@ -65,7 +66,7 @@ Install or refresh target-owned repository harness files from this plugin. The p
 
 | Situation | Action |
 | --- | --- |
-| Target has no obvious stack files | Ask for `gradle`, `maven`, `uv`, or `bun`; do not guess. |
+| Target has no obvious stack files | Ask for `gradle`, `maven`, `uv`, `bun`, or `shell`; do not guess. |
 | Existing harness files are present | Preserve them unless `--force` was requested. |
 | Existing Git hook is present | Prefer `--hooks none`; use `--hooks copy --force` only with explicit approval to replace active worktree pre-commit and pre-push hooks with installer-generated content. |
 | Target repository forbids CI snippets | Pass `--no-ci` and report that CI templates were skipped. |

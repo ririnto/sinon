@@ -338,6 +338,10 @@
         "bun": {
           "pre-commit": "compliance",
           "pre-push": "full-validation"
+        },
+        "shell": {
+          "pre-commit": "compliance",
+          "pre-push": "full-validation"
         }
       }
     }
@@ -368,6 +372,9 @@
         ],
         "bun": [
           "bun run docs/harness/bun/harness-validate.ts"
+        ],
+        "shell": [
+          "sh docs/harness/shell/harness-validate.sh"
         ]
       },
       "allowedPreCommitCommands": {

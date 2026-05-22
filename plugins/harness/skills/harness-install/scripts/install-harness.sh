@@ -18,7 +18,7 @@ root_contract_conflicts=0
 # @exit Exits with status 0 when invoked with -h or --help.
 usage() {
   cat <<'EOF'
-usage: install-harness.sh [--target DIR] [--mode auto|gradle|maven|uv|bun] [--hooks none|copy] [--force] [--no-ci]
+usage: install-harness.sh [--target DIR] [--mode auto|gradle|maven|uv|bun|shell] [--hooks none|copy] [--force] [--no-ci]
 
 HARNESS_TARGET_ROOT may be used instead of --target.
 EOF
@@ -46,13 +46,13 @@ while [ $# -gt 0 ]; do
     --target=*) target_root=${1#--target=}; shift ;;
     --mode)
       if [ $# -lt 2 ]; then
-        error '--mode requires auto|gradle|maven|uv|bun'
+        error '--mode requires auto|gradle|maven|uv|bun|shell'
       fi
       mode=$2
       shift 2
       ;;
     --mode=*) mode=${1#--mode=}; shift ;;
-    auto|gradle|maven|uv|bun) mode=$1; shift ;;
+    auto|gradle|maven|uv|bun|shell) mode=$1; shift ;;
     --hooks)
       if [ $# -lt 2 ]; then
         error '--hooks requires none|copy'
@@ -68,7 +68,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-case "$mode" in auto|gradle|maven|uv|bun) ;; *) printf '%s\n' "invalid mode: $mode" >&2; exit 2 ;; esac
+case "$mode" in auto|gradle|maven|uv|bun|shell) ;; *) printf '%s\n' "invalid mode: $mode" >&2; exit 2 ;; esac
 case "$hooks" in copy|none) ;; *) printf '%s\n' "invalid hooks mode: $hooks" >&2; exit 2 ;; esac
 if [ -z "$target_root" ]; then
   error 'target root must not be empty'
@@ -88,7 +88,7 @@ if [ "$mode" = auto ]; then
   mode=$(sh "$script_dir/detect-stack.sh")
 fi
 if [ "$mode" = unknown ]; then
-  printf '%s\n' 'could not detect repository stack; pass --mode gradle|maven|uv|bun' >&2
+  printf '%s\n' 'could not detect repository stack; pass --mode gradle|maven|uv|bun|shell' >&2
   exit 2
 fi
 
@@ -427,6 +427,9 @@ copy_stack_tree() {
       .gitlab-ci.yml)
         copy_file "$src" "$dst_dir/$rel"
         render_validation_placeholders "$dst_dir/$rel" "$pre_push_cmd"
+        ;;
+      runtime/*)
+        copy_file "$src" "$dst_dir/docs/harness/$mode/${rel#runtime/}"
         ;;
       *) copy_file "$src" "$dst_dir/$rel" ;;
     esac
@@ -769,7 +772,8 @@ validation_command_for_mode() {
     maven) printf '%s\n' 'mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate' ;;
     uv) printf '%s\n' 'uv run python docs/harness/uv/harness_validate.py' ;;
     bun) printf '%s\n' 'bun run docs/harness/bun/harness-validate.ts' ;;
-    *) error "[validation_command] unsupported mode (must be gradle|maven|uv|bun): $selected_mode" ;;
+    shell) printf '%s\n' 'sh docs/harness/shell/harness-validate.sh' ;;
+    *) error "[validation_command] unsupported mode (must be gradle|maven|uv|bun|shell): $selected_mode" ;;
   esac
 }
 
@@ -787,8 +791,8 @@ pre_commit_command_for_mode() {
         printf '%s\n' 'gradle harnessValidate'
       fi
       ;;
-    maven|uv|bun) ;;
-    *) error "[pre_commit_command] unsupported mode (must be gradle|maven|uv|bun): $selected_mode" ;;
+    maven|uv|bun|shell) ;;
+    *) error "[pre_commit_command] unsupported mode (must be gradle|maven|uv|bun|shell): $selected_mode" ;;
   esac
 }
 
@@ -806,8 +810,8 @@ pre_push_command_for_mode() {
         printf '%s\n' 'gradle check'
       fi
       ;;
-    maven|uv|bun) validation_command_for_mode "$selected_mode" ;;
-    *) error "[pre_push_command] unsupported mode (must be gradle|maven|uv|bun): $selected_mode" ;;
+    maven|uv|bun|shell) validation_command_for_mode "$selected_mode" ;;
+    *) error "[pre_push_command] unsupported mode (must be gradle|maven|uv|bun|shell): $selected_mode" ;;
   esac
 }
 

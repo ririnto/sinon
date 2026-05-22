@@ -24,4 +24,13 @@ if [ -f bun.lock ] || [ -f bun.lockb ] || [ -f package.json ]; then
     printf '%s\n' bun
     exit 0
 fi
+if [ -f Makefile ]; then
+    printf '%s\n' shell
+    exit 0
+fi
+shell_match=$(find . -maxdepth 1 -name '*.sh' -type f | head -n 1)
+if [ -n "$shell_match" ]; then
+    printf '%s\n' shell
+    exit 0
+fi
 printf '%s\n' unknown
