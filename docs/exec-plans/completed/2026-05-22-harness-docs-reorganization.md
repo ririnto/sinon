@@ -1,9 +1,9 @@
 # 2026-05-22-harness-docs-reorganization
 
-Status: completed
-Created: 2026-05-22
-Completed: 2026-05-22
-Owner: ririnto
+- Status: completed
+- Created: 2026-05-22
+- Completed: 2026-05-22
+- Owner: ririnto
 
 ## Goal
 
