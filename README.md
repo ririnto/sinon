@@ -38,7 +38,6 @@ Optional assets such as `README.md`, `commands/`, `agents/`, `skills/`, `hooks/`
 The following plugins are maintained in this repository and may be published to the Claude marketplace catalog. For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
 - `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.
-- `plugins/git-workflow`: Git workflow plugin with practical guidance for commit readiness, Conventional Commit drafting, staged-change hygiene, and template-aware GitHub pull request or GitLab merge request body drafting.
 - `plugins/harness`: Repository harness plugin for installing, validating, and evolving agent instructions, docs structure, project agents, project skills, templates, stack validators, CI snippets, and opt-in Git hook templates.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
 - `plugins/jvm`: JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
@@ -48,6 +47,7 @@ The following plugins are maintained in this repository and may be published to 
 - `plugins/reactor`: Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.
 - `plugins/spec-driven-development`: Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.
 - `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.
+- `plugins/workspace-workflow`: Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.
 
 ## Publishing Model
 
@@ -97,7 +97,6 @@ Examples:
 
 ```sh
 /plugin install agent-capability-kit@sinon
-/plugin install git-workflow@sinon
 /plugin install harness@sinon
 /plugin install java@sinon
 /plugin install jvm@sinon
@@ -107,6 +106,7 @@ Examples:
 /plugin install reactor@sinon
 /plugin install spec-driven-development@sinon
 /plugin install spring@sinon
+/plugin install workspace-workflow@sinon
 ```
 
 ### `~/.claude/settings.json`
