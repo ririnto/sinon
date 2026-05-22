@@ -258,14 +258,14 @@ class HarnessValidationPlugin : Plugin<Project> {
                     val check = isSafeFile(root, File(root, requiredFile))
                     addAll(check.warnings)
                     if (!check.ok) {
-                        add(Finding(Severity.ERROR, "requiredFiles", "missing file: $requiredFile"))
+                        add(Finding(parseSeverity(manifest, "requiredFiles"), "requiredFiles", "missing file: $requiredFile"))
                     }
                 }
                 requiredDirectories.forEach { requiredDirectory ->
                     val check = isSafeDirectory(root, File(root, requiredDirectory))
                     addAll(check.warnings)
                     if (!check.ok) {
-                        add(Finding(Severity.ERROR, "requiredDirectories", "missing directory: $requiredDirectory"))
+                        add(Finding(parseSeverity(manifest, "requiredDirectories"), "requiredDirectories", "missing directory: $requiredDirectory"))
                     }
                 }
                 emptyDirectoryKeepFiles.forEach { keepFilePath ->
@@ -291,7 +291,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                         if (!fileCheck.ok) {
                             add(
                                 Finding(
-                                    Severity.ERROR,
+                                    parseSeverity(manifest, "emptyDirectoryKeepFiles"),
                                     "emptyDirectoryKeepFiles",
                                     "empty directory must keep placeholder or real files: ${directory.relativeTo(root)}"
                                 )
@@ -303,7 +303,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                     val check = isSafeDirectory(root, File(root, "docs/harness/templates/$templateGroup"))
                     addAll(check.warnings)
                     if (!check.ok) {
-                        add(Finding(Severity.ERROR, "templateGroups", "missing template group: docs/harness/templates/$templateGroup"))
+                        add(Finding(parseSeverity(manifest, "templateGroups"), "templateGroups", "missing template group: docs/harness/templates/$templateGroup"))
                     }
                 }
             }
@@ -330,7 +330,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                     val text = file.readText()
                     requiredDocHeadings.forEach { heading ->
                         if (!text.contains(heading)) {
-                            add(Finding(Severity.ERROR, "requiredDocHeadings", "doc missing $heading: $authoredDocPath"))
+                            add(Finding(parseSeverity(manifest, "requiredDocHeadings"), "requiredDocHeadings", "doc missing $heading: $authoredDocPath"))
                         }
                     }
                 }
@@ -352,7 +352,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                         combined.contains(substring)
                     }
                     if (!allPresent) {
-                        add(Finding(Severity.ERROR, "requiredContentChecks", check.failureMessage))
+                        add(Finding(parseSeverity(manifest, "requiredContentChecks"), "requiredContentChecks", check.failureMessage))
                     }
                 }
             }
@@ -366,18 +366,18 @@ class HarnessValidationPlugin : Plugin<Project> {
                 addAll(scan.warnings)
                 val files = scan.files.filter { it.parentFile == dir && it.extension == "md" }
                 if (files.isEmpty()) {
-                    add(Finding(Severity.ERROR, "agentFrontmatter", ".claude/agents must contain at least one .md agent"))
+                    add(Finding(parseSeverity(manifest, "agentFrontmatter"), "agentFrontmatter", ".claude/agents must contain at least one .md agent"))
                 }
                 files.forEach { file ->
                     val text = file.readText()
                     if (!text.startsWith("---")) {
-                        add(Finding(Severity.ERROR, "agentFrontmatter", "agent missing frontmatter: ${file.relativeTo(root)}"))
+                        add(Finding(parseSeverity(manifest, "agentFrontmatter"), "agentFrontmatter", "agent missing frontmatter: ${file.relativeTo(root)}"))
                     }
                     if (!"""(?m)^name:\s*[-a-z0-9]+\s*$""".toRegex().containsMatchIn(text)) {
-                        add(Finding(Severity.ERROR, "agentFrontmatter", "agent missing name: ${file.relativeTo(root)}"))
+                        add(Finding(parseSeverity(manifest, "agentFrontmatter"), "agentFrontmatter", "agent missing name: ${file.relativeTo(root)}"))
                     }
                     if (!"""(?m)^description:\s*.+$""".toRegex().containsMatchIn(text)) {
-                        add(Finding(Severity.ERROR, "agentFrontmatter", "agent missing description: ${file.relativeTo(root)}"))
+                        add(Finding(parseSeverity(manifest, "agentFrontmatter"), "agentFrontmatter", "agent missing description: ${file.relativeTo(root)}"))
                     }
                 }
             }
@@ -391,15 +391,15 @@ class HarnessValidationPlugin : Plugin<Project> {
                 addAll(scan.warnings)
                 val files = scan.files.filter { it.name == "SKILL.md" }
                 if (files.isEmpty()) {
-                    add(Finding(Severity.ERROR, "skillFrontmatter", ".claude/skills must contain at least one SKILL.md"))
+                    add(Finding(parseSeverity(manifest, "skillFrontmatter"), "skillFrontmatter", ".claude/skills must contain at least one SKILL.md"))
                 }
                 files.forEach { file ->
                     val text = file.readText()
                     if (!text.startsWith("---")) {
-                        add(Finding(Severity.ERROR, "skillFrontmatter", "skill missing frontmatter: ${file.relativeTo(root)}"))
+                        add(Finding(parseSeverity(manifest, "skillFrontmatter"), "skillFrontmatter", "skill missing frontmatter: ${file.relativeTo(root)}"))
                     }
                     if (!"""(?m)^description:\s*.+$""".toRegex().containsMatchIn(text)) {
-                        add(Finding(Severity.ERROR, "skillFrontmatter", "skill missing description: ${file.relativeTo(root)}"))
+                        add(Finding(parseSeverity(manifest, "skillFrontmatter"), "skillFrontmatter", "skill missing description: ${file.relativeTo(root)}"))
                     }
                 }
             }
@@ -431,7 +431,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                             val text = file.readText()
                             leakPatterns.forEach { (pattern, label) ->
                                 if (pattern.containsMatchIn(text)) {
-                                    add(Finding(Severity.ERROR, "leakPatterns", "$label in active asset: ${file.relativeTo(root)}"))
+                                    add(Finding(parseSeverity(manifest, "leakPatterns"), "leakPatterns", "$label in active asset: ${file.relativeTo(root)}"))
                                 }
                             }
                         }
@@ -461,19 +461,19 @@ class HarnessValidationPlugin : Plugin<Project> {
                     if (check.ok) {
                         hookText = hook.readText()
                         if (hookText.lineSequence().firstOrNull() != "#!/usr/bin/env sh") {
-                            add(Finding(Severity.ERROR, "hookFirstLine", "$name hook must use #!/usr/bin/env sh"))
+                            add(Finding(parseSeverity(manifest, "hookFirstLine"), "hookFirstLine", "$name hook must use #!/usr/bin/env sh"))
                         }
                         if (!hook.canExecute()) {
-                            add(Finding(Severity.ERROR, "hookExecutable", "$name hook must be executable: ${hook.relativeTo(root)}"))
+                            add(Finding(parseSeverity(manifest, "hookExecutable"), "hookExecutable", "$name hook must be executable: ${hook.relativeTo(root)}"))
                         }
                         if (!hookText.contains("Harness generated hook: $name")) {
-                            add(Finding(Severity.ERROR, "hookGeneratedMarker", "$name hook must contain generated marker"))
+                            add(Finding(parseSeverity(manifest, "hookGeneratedMarker"), "hookGeneratedMarker", "$name hook must contain generated marker"))
                         }
                         if (!hookText.contains("Harness stage: $stage")) {
-                            add(Finding(Severity.ERROR, "hookStage", "$name hook must contain $stage stage marker"))
+                            add(Finding(parseSeverity(manifest, "hookStage"), "hookStage", "$name hook must contain $stage stage marker"))
                         }
                         if (hookText.contains("packaged placeholder is replaced during harness installation")) {
-                            add(Finding(Severity.ERROR, "hookValidationCommand", "$name hook must be installer-generated selected-mode content"))
+                            add(Finding(parseSeverity(manifest, "hookValidationCommand"), "hookValidationCommand", "$name hook must be installer-generated selected-mode content"))
                         }
                     }
                 }
@@ -495,21 +495,21 @@ class HarnessValidationPlugin : Plugin<Project> {
                 addAll(prePushCheck.findings)
                 val preCommitCommand = hookCommand(preCommitCheck.text)
                 if (preCommitCommand.isNotEmpty() && preCommitCommand !in allowedPreCommitCommands) {
-                    add(Finding(Severity.ERROR, "hookValidationCommand", "pre-commit hook must declare Gradle harness validation command"))
+                    add(Finding(parseSeverity(manifest, "hookValidationCommand"), "hookValidationCommand", "pre-commit hook must declare Gradle harness validation command"))
                 } else if (preCommitCommand.isNotEmpty() && preCommitCommand !in preCommitCheck.text.lineSequence().toSet()) {
-                    add(Finding(Severity.ERROR, "hookValidationCommand", "pre-commit hook must run the declared validation command"))
+                    add(Finding(parseSeverity(manifest, "hookValidationCommand"), "hookValidationCommand", "pre-commit hook must run the declared validation command"))
                 }
                 val command = hookCommand(prePushCheck.text)
                 if (command.isBlank()) {
-                    add(Finding(Severity.ERROR, "hookValidationCommand", "pre-push hook must declare Harness validation command"))
+                    add(Finding(parseSeverity(manifest, "hookValidationCommand"), "hookValidationCommand", "pre-push hook must declare Harness validation command"))
                     return@buildList
                 }
                 if (command !in allowedValidationCommands) {
-                    add(Finding(Severity.ERROR, "hookValidationCommand", "pre-push hook declares unsupported validation command: $command"))
+                    add(Finding(parseSeverity(manifest, "hookValidationCommand"), "hookValidationCommand", "pre-push hook declares unsupported validation command: $command"))
                     return@buildList
                 }
                 if (command !in prePushCheck.text.lineSequence().toSet()) {
-                    add(Finding(Severity.ERROR, "hookValidationCommand", "pre-push hook must run the declared validation command"))
+                    add(Finding(parseSeverity(manifest, "hookValidationCommand"), "hookValidationCommand", "pre-push hook must run the declared validation command"))
                 }
                 listOf(".github/workflows/harness.yml", ".gitlab-ci.yml").forEach { ciFile ->
                     val path = File(root, ciFile)
@@ -517,7 +517,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                         val check = isSafeFile(root, path)
                         addAll(check.warnings)
                         if (check.ok && !path.readText().contains(command)) {
-                            add(Finding(Severity.ERROR, "ciCommandMatch", "$ciFile: CI command mismatch - expected $command"))
+                            add(Finding(parseSeverity(manifest, "ciCommandMatch"), "ciCommandMatch", "$ciFile: CI command mismatch - expected $command"))
                         }
                     }
                 }
@@ -546,7 +546,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                             if (line.startsWith("#!") && !line.startsWith("#!/usr/bin/env ")) {
                                 add(
                                     Finding(
-                                        Severity.ERROR,
+                                        parseSeverity(manifest, "envShebang"),
                                         "envShebang",
                                         "executable script should use /usr/bin/env shebang: ${file.relativeTo(root)}"
                                     )
@@ -581,7 +581,7 @@ class HarnessValidationPlugin : Plugin<Project> {
                 }
                 scan.files.filter { it.extension == "md" }.forEach { file ->
                     if (regex.containsMatchIn(file.readText())) {
-                        add(Finding(Severity.ERROR, "completedPlanUnfinishedTask", "completed plan has unchecked tasks: ${file.relativeTo(root)}"))
+                        add(Finding(parseSeverity(manifest, "completedPlanUnfinishedTask"), "completedPlanUnfinishedTask", "completed plan has unchecked tasks: ${file.relativeTo(root)}"))
                     }
                 }
             }
