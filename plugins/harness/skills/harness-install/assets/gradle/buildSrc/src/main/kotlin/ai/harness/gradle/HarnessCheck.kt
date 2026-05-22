@@ -5,6 +5,13 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
+import kotlin.io.path.extension
 import kotlin.io.path.isExecutable
 import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.readSymbolicLink
@@ -146,7 +153,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val directory = stringFrom(parametersObj, "directory")
 			val dirPath = java.io.File(root, directory)
 
@@ -187,7 +194,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val rootDirectory = stringFrom(parametersObj, "rootDirectory")
 			val filename = stringFrom(parametersObj, "filename")
 
@@ -225,7 +232,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val scopeObj = parametersObj["scope"]?.jsonObject ?: return emptyList()
 			val bases = stringArrayFrom(scopeObj, "bases")
 			val excludedSubtrees = stringArrayFrom(scopeObj, "excludedSubtrees")
@@ -272,7 +279,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val hooks = stringArrayFrom(parametersObj, "hooks")
 			val expectedShebang = stringFrom(parametersObj, "expectedShebang")
 
@@ -296,7 +303,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val hooks = stringArrayFrom(parametersObj, "hooks")
 
 			return buildSet<Finding> {
@@ -316,7 +323,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val hooks = stringArrayFrom(parametersObj, "hooks")
 			val markerTemplate = stringFrom(parametersObj, "markerTemplate")
 			val placeholderForbidden = stringFrom(parametersObj, "placeholderForbidden")
@@ -346,7 +353,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val markerTemplate = stringFrom(parametersObj, "markerTemplate")
 			val stagesObj = parametersObj["stages"]?.jsonObject ?: return emptyList()
 			val gradleStages = stagesObj["gradle"]?.jsonObject ?: return emptyList()
@@ -380,7 +387,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val allowedCmdObj = parametersObj["allowedCommands"]?.jsonObject
 			val allowedCmds = stringArrayFrom(allowedCmdObj, "gradle")
 			val allowedPreCommitCmdObj = parametersObj["allowedPreCommitCommands"]?.jsonObject
@@ -437,7 +444,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val ciFiles = stringArrayFrom(parametersObj, "ciFiles")
 			val referenceHookPath = stringFrom(parametersObj, "referenceHook")
 
@@ -467,7 +474,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val directories = stringArrayFrom(parametersObj, "directories")
 			val expectedPrefix = stringFrom(parametersObj, "expectedPrefix")
 
@@ -494,7 +501,7 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val directory = stringFrom(parametersObj, "directory")
 			val uncheckedTaskPattern = stringFrom(parametersObj, "uncheckedTaskPattern")
 
@@ -523,7 +530,7 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 			val allowedPairs = parametersObj["allowedSymlinkPairs"]?.jsonArray?.mapNotNull { pairElem ->
 				val pair = pairElem.jsonArray
 				if (pair.size < 2) null else {
@@ -556,27 +563,150 @@ enum class HarnessCheck {
 			}.toList()
 		}
 	},
+	FORBID_GREATER_THAN_COMPARISON {
+		override val category = "forbidGreaterThanComparison"
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+			val severity = severityOf(manifest, category)
+			val catObj = manifest[category]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+			val sourceRootsPerStack = parametersObj["sourceRootsPerStack"]?.jsonObject ?: return emptyList()
+			val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return emptyList()
+			val kotlinDirs = stringArrayFrom(sourceRootsPerStack, "kotlin")
+			val kotlinExts = stringArrayFrom(extensionsPerStack, "kotlin")
+
+			return buildSet<Finding> {
+				kotlinDirs.forEach { dirPattern ->
+					val dir = java.io.File(root, dirPattern)
+					if (!dir.exists()) return@forEach
+
+					val (files, _) = walkSafe(root, dir)
+					files.filter { file ->
+						val ext = file.toPath().extension
+						ext in kotlinExts
+					}.forEach { file ->
+						val ktFile = try {
+							PsiKotlin.parse(file.toPath())
+						} catch (_: Exception) {
+							return@forEach
+						}
+						val binExprs = mutableListOf<KtBinaryExpression>()
+						ktFile.accept(object : org.jetbrains.kotlin.psi.KtVisitor<Unit, Unit>() {
+							override fun visitBinaryExpression(expression: KtBinaryExpression, data: Unit) {
+								binExprs.add(expression)
+								super.visitBinaryExpression(expression, data)
+							}
+						})
+						binExprs.forEach { binExpr ->
+							if (binExpr.operationToken === KtTokens.GT || binExpr.operationToken === KtTokens.GTEQ) {
+								val lineNumber = (ktFile.viewProvider.document?.getLineNumber(binExpr.node.startOffset) ?: 0).plus(1)
+								val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:$lineNumber: forbidden `>`/`>=`; use `<`/`<=`"
+								add(Finding(severity, category, msg))
+							}
+						}
+					}
+				}
+			}.toList()
+		}
+	},
+	FORBID_BLANK_LINE_IN_LEAF_FUNCTION {
+		override val category = "forbidBlankLineInLeafFunction"
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+			val severity = severityOf(manifest, category)
+			val catObj = manifest[category]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+			val sourceRootsPerStack = parametersObj["sourceRootsPerStack"]?.jsonObject ?: return emptyList()
+			val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return emptyList()
+			val kotlinDirs = stringArrayFrom(sourceRootsPerStack, "kotlin")
+			val kotlinExts = stringArrayFrom(extensionsPerStack, "kotlin")
+
+			return buildSet<Finding> {
+				kotlinDirs.forEach { dirPattern ->
+					val dir = java.io.File(root, dirPattern)
+					if (!dir.exists()) return@forEach
+
+					val (files, _) = walkSafe(root, dir)
+					files.filter { file ->
+						val ext = file.toPath().extension
+						ext in kotlinExts
+					}.forEach { file ->
+						val ktFile = try {
+							PsiKotlin.parse(file.toPath())
+						} catch (_: Exception) {
+							return@forEach
+						}
+						val functions = mutableListOf<KtNamedFunction>()
+						ktFile.accept(object : org.jetbrains.kotlin.psi.KtVisitor<Unit, Unit>() {
+							override fun visitNamedFunction(function: KtNamedFunction, data: Unit) {
+								functions.add(function)
+								super.visitNamedFunction(function, data)
+							}
+						})
+						functions.forEach { func ->
+							val hasNestedFunc = func.findDescendantOfType<KtNamedFunction>() != null
+							val hasNestedLambda = func.findDescendantOfType<KtLambdaExpression>() != null
+							if (!hasNestedFunc && !hasNestedLambda) {
+								val bodyText = func.bodyExpression?.text ?: return@forEach
+								val lines = bodyText.split("\n")
+								lines.forEachIndexed { idx, line ->
+									if (line.trim().isEmpty()) {
+										val bodyOffset = func.bodyExpression?.node?.startOffset ?: 0
+										val lineNumber = (ktFile.viewProvider.document?.getLineNumber(bodyOffset + lines.take(idx).sumOf { it.length + 1 }) ?: 0).plus(1)
+										val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:$lineNumber: blank line in leaf function"
+										add(Finding(severity, category, msg))
+									}
+								}
+							}
+						}
+					}
+				}
+			}.toList()
+		}
+	},
 	FORBID_IMPLICIT_LAMBDA_IT {
 		override val category = "forbidImplicitLambdaIt"
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
-			val directories = stringArrayFrom(parametersObj, "directories")
-			val filenameSuffix = stringFrom(parametersObj, "filenameSuffix")
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+			val sourceRootsPerStack = parametersObj["sourceRootsPerStack"]?.jsonObject ?: return emptyList()
+			val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return emptyList()
+			val kotlinDirs = stringArrayFrom(sourceRootsPerStack, "kotlin")
+			val kotlinExts = stringArrayFrom(extensionsPerStack, "kotlin")
 
 			return buildSet<Finding> {
-				directories.forEach { dirPath ->
-					val dir = java.io.File(root, dirPath)
-					if (!dir.isDirectory) return@forEach
+				kotlinDirs.forEach { dirPattern ->
+					val dir = java.io.File(root, dirPattern)
+					if (!dir.exists()) return@forEach
 
 					val (files, _) = walkSafe(root, dir)
-					files.filter { it.name.endsWith(filenameSuffix) }.forEach { file ->
-						val content = file.readText()
-						if (content.contains(Regex("""\{\s*it\s*->""))) {
-							val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "implicit lambda parameter 'it' is forbidden: ${file.relativeTo(root)}"
-							add(Finding(severity, category, msg))
+					files.filter { file ->
+						val ext = file.toPath().extension
+						ext in kotlinExts
+					}.forEach { file ->
+						val ktFile = try {
+							PsiKotlin.parse(file.toPath())
+						} catch (_: Exception) {
+							return@forEach
+						}
+						val lambdas = mutableListOf<KtLambdaExpression>()
+						ktFile.accept(object : org.jetbrains.kotlin.psi.KtVisitor<Unit, Unit>() {
+							override fun visitLambdaExpression(expression: KtLambdaExpression, data: Unit) {
+								lambdas.add(expression)
+								super.visitLambdaExpression(expression, data)
+							}
+						})
+						lambdas.forEach { lambda ->
+							if (lambda.valueParameters.isEmpty()) {
+								val hasIt = lambda.findDescendantOfType<KtSimpleNameExpression> { it.text == "it" } != null
+								if (hasIt) {
+									val lineNumber = (ktFile.viewProvider.document?.getLineNumber(lambda.node.startOffset) ?: 0).plus(1)
+									val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:$lineNumber: implicit lambda parameter 'it' is forbidden"
+									add(Finding(severity, category, msg))
+								}
+							}
 						}
 					}
 				}
@@ -589,28 +719,47 @@ enum class HarnessCheck {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
-			val directories = stringArrayFrom(parametersObj, "directories")
-			val filenameSuffix = stringFrom(parametersObj, "filenameSuffix")
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+			val sourceRootsPerStack = parametersObj["sourceRootsPerStack"]?.jsonObject ?: return emptyList()
+			val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return emptyList()
+			val kotlinDirs = stringArrayFrom(sourceRootsPerStack, "kotlin")
+			val kotlinExts = stringArrayFrom(extensionsPerStack, "kotlin")
 			val allowedDeclarations = stringArrayFrom(parametersObj, "allowedDeclarations")
 
 			return buildSet<Finding> {
-				directories.forEach { dirPath ->
-					val dir = java.io.File(root, dirPath)
-					if (!dir.isDirectory) return@forEach
+				kotlinDirs.forEach { dirPattern ->
+					val dir = java.io.File(root, dirPattern)
+					if (!dir.exists()) return@forEach
 
 					val (files, _) = walkSafe(root, dir)
-					files.filter { it.name.endsWith(filenameSuffix) }.forEach { file ->
-						val content = file.readText()
-						val declCount = allowedDeclarations.sumOf { decl ->
-							content.split("\n").count { line ->
-								val trimmed = line.trim()
-								trimmed.startsWith(decl) && !trimmed.startsWith("//") && !trimmed.startsWith("/*")
-							}
+					files.filter { file ->
+						val ext = file.toPath().extension
+						ext in kotlinExts
+					}.forEach { file ->
+						val ktFile = try {
+							PsiKotlin.parse(file.toPath())
+						} catch (_: Exception) {
+							return@forEach
 						}
-						if (declCount > 1) {
-							val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "file must have single top-level declaration: ${file.relativeTo(root)}"
-							add(Finding(severity, category, msg))
+						val declarations = ktFile.declarations
+						when {
+							declarations.size != 1 -> {
+								val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}: file must have single top-level declaration, found ${declarations.size}"
+								add(Finding(severity, category, msg))
+							}
+							else -> {
+								val decl = declarations.first()
+								val declType = when {
+									decl::class.simpleName == "KtClass" -> "class"
+									decl::class.simpleName == "KtObjectDeclaration" -> "object"
+									decl::class.simpleName == "KtTypeAlias" -> "typealias"
+									else -> null
+								}
+								if (declType != null && declType !in allowedDeclarations) {
+									val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}: top-level $declType is not allowed"
+									add(Finding(severity, category, msg))
+								}
+							}
 						}
 					}
 				}
