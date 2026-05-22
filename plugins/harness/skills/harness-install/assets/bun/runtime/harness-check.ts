@@ -20,6 +20,7 @@ import { requireCiCommandMatchesHookRule } from "./rules/require-ci-command-matc
 import { requireEnvShebangUnderRule } from "./rules/require-env-shebang-under";
 import { forbidUncheckedTasksUnderRule } from "./rules/forbid-unchecked-tasks-under";
 import { forbidUnsafeSymlinksRule } from "./rules/forbid-unsafe-symlinks";
+import { requireImportOverFqnRule } from "./rules/require-import-over-fqn";
 import { forbidImplicitLambdaItRule } from "./rules/forbid-implicit-lambda-it";
 import { requireSingleTopLevelKotlinDeclarationRule } from "./rules/require-single-top-level-kotlin-declaration";
 import { forbidGreaterThanComparisonRule } from "./rules/forbid-greater-than-comparison";
@@ -276,6 +277,7 @@ export const HARNESS_CHECKS: readonly { category: string; rule: HarnessCheckRule
   { category: "requireEnvShebangUnder", rule: requireEnvShebangUnderRule(ruleContext) },
   { category: "forbidUncheckedTasksUnder", rule: forbidUncheckedTasksUnderRule(ruleContext) },
   { category: "forbidUnsafeSymlinks", rule: forbidUnsafeSymlinksRule(ruleContext) },
+  { category: "requireImportOverFqn", rule: requireImportOverFqnRule(ruleContext) },
   { category: "forbidImplicitLambdaIt", rule: forbidImplicitLambdaItRule(ruleContext) },
   { category: "requireSingleTopLevelKotlinDeclaration", rule: requireSingleTopLevelKotlinDeclarationRule(ruleContext) },
   { category: "forbidGreaterThanComparison", rule: forbidGreaterThanComparisonRule(ruleContext) },

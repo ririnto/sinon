@@ -29,11 +29,11 @@ object RequireHookExecutableRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null || messagesObj == null) {
 			emptyList()
 		} else {
-			val hooks = HarnessCheck.Companion.stringArrayFrom(parametersObj, "hooks")
+			val hooks = HarnessCheck.stringArrayFrom(parametersObj, "hooks")
 			hooks.mapNotNull { hookPath ->
 				val hook = root / hookPath
 				if (hook.isRegularFile() && !hook.isExecutable()) {
-					Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must be executable")
+					Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must be executable")
 				} else {
 					null
 				}

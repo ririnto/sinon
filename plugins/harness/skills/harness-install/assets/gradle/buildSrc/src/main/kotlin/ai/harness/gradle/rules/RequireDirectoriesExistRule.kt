@@ -29,12 +29,12 @@ object RequireDirectoriesExistRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null) {
 			emptyList()
 		} else {
-			val paths = HarnessCheck.Companion.stringArrayFrom(parametersObj, "paths")
+			val paths = HarnessCheck.stringArrayFrom(parametersObj, "paths")
 			paths.mapNotNull { path ->
 				val p = root / path
 				when {
 					p.isSymbolicLink() -> Finding(Severity.ERROR, category, "symlink directory is not allowed: $path")
-					!p.isDirectory() -> Finding(HarnessCheck.Companion.severityOf(manifest, category), category, "missing directory: $path")
+					!p.isDirectory() -> Finding(HarnessCheck.severityOf(manifest, category), category, "missing directory: $path")
 					else -> null
 				}
 			}

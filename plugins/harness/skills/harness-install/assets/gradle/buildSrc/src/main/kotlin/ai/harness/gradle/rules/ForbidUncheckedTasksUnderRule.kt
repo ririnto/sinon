@@ -30,13 +30,13 @@ object ForbidUncheckedTasksUnderRule : HarnessCheckRule {
 		if (catObj == null || parametersObj == null || messagesObj == null) {
 			return emptyList()
 		}
-		val directory = HarnessCheck.Companion.stringFrom(parametersObj, "directory")
-		val uncheckedTaskPattern = HarnessCheck.Companion.stringFrom(parametersObj, "uncheckedTaskPattern")
+		val directory = HarnessCheck.stringFrom(parametersObj, "directory")
+		val uncheckedTaskPattern = HarnessCheck.stringFrom(parametersObj, "uncheckedTaskPattern")
 		val dirPath = root / directory
 		if (!dirPath.isDirectory()) {
 			return emptyList()
 		}
-		val (files, _) = HarnessCheck.Companion.walkSafe(root, dirPath)
+		val (files, _) = HarnessCheck.walkSafe(root, dirPath)
 		val pattern = try {
 			uncheckedTaskPattern.toRegex()
 		} catch (_: Exception) {
@@ -44,7 +44,7 @@ object ForbidUncheckedTasksUnderRule : HarnessCheckRule {
 		}
 		return files.filter { it.name.endsWith(".md") }.mapNotNull { file ->
 			if (pattern.containsMatchIn(file.readText())) {
-				Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "completed plan has unchecked tasks: ${file.relativeTo(root)}")
+				Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "completed plan has unchecked tasks: ${file.relativeTo(root)}")
 			} else {
 				null
 			}

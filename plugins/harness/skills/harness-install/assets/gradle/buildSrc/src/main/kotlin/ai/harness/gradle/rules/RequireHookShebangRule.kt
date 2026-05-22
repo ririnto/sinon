@@ -29,14 +29,14 @@ object RequireHookShebangRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null || messagesObj == null) {
 			emptyList()
 		} else {
-			val hooks = HarnessCheck.Companion.stringArrayFrom(parametersObj, "hooks")
-			val expectedShebang = HarnessCheck.Companion.stringFrom(parametersObj, "expectedShebang")
+			val hooks = HarnessCheck.stringArrayFrom(parametersObj, "hooks")
+			val expectedShebang = HarnessCheck.stringFrom(parametersObj, "expectedShebang")
 			hooks.mapNotNull { hookPath ->
 				val hook = root / hookPath
 				if (hook.isRegularFile()) {
 					val first = hook.toFile().readLines().firstOrNull() ?: ""
 					if (first != expectedShebang) {
-						Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must start with $expectedShebang")
+						Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must start with $expectedShebang")
 					} else {
 						null
 					}
