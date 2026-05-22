@@ -54,6 +54,15 @@
 - [ ] Task 3.3 — Python `harness_validate.py`: 새 manifest schema 마이그레이션 + Style Policy(tuple, NamedTuple, list comprehension, no silent failure, no early return) + add-on architecture(`Protocol` 또는 `@dataclass(frozen=True)` HarnessCheck + 각 check 함수 또는 클래스 + registry tuple). (subagent: general-purpose)
 - [ ] Task 3.4 — TypeScript `harness-validate.ts`: 새 manifest schema 마이그레이션 + Style Policy(readonly arrays, spread, template literal, no silent failure, no early return) + add-on architecture(`interface HarnessCheck { category; applies; validate; }` + 각 check function + registry). bun helper 함수들이 module-level `manifest` closure에 의존하던 부분은 명시적 인자 전달로 정리. (subagent: general-purpose)
 
+### [ ] Phase 3.5: HarnessCheck를 enum + 별도 파일로 구성
+
+사용자 지침: "HarnessCheck를 enum으로 별도파일에 구성. 각각이 하나의 enum value." 4 stack 모두 적용:
+
+- [ ] Task 3.5.1 — Kotlin: `HarnessCheck.kt` 별도 파일에 `enum class HarnessCheck { REQUIRE_FILES_EXIST { override fun applies(...); override fun validate(...) }, ... }` 형태. abstract methods + value-per-class 패턴. `HarnessValidationPlugin.kt`는 enum value를 enumerate. (subagent: general-purpose)
+- [ ] Task 3.5.2 — Java: `HarnessCheck.java` 별도 enum file. interface 대신 enum implementing methods. (subagent: general-purpose)
+- [ ] Task 3.5.3 — Python: `harness_check.py` 별도 module + `enum.Enum` 또는 `IntEnum` + Protocol/dataclass. enum value 각각이 check 동작 정의. (subagent: general-purpose)
+- [ ] Task 3.5.4 — TypeScript: `harness-check.ts` 별도 file + `const enum` 또는 union literal + dispatch map. TS는 enum이 limited하므로 `const HarnessChecks = { REQUIRE_FILES_EXIST: { ... }, ... } as const` 형태가 적합. (subagent: general-purpose)
+
 ### [ ] Phase 4: AST/native parser 강화
 
 현재 Kotlin/Java validator는 manifest JSON을 정규식으로 파싱한다. 이는 fragile하고 사용자가 명시적으로 AST 기반으로 옮길 것을 요구했다. Python/TS는 이미 native JSON parser 사용 중.

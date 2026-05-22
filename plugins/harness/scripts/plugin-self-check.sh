@@ -675,20 +675,13 @@ require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradle
 require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradlew harnessValidate'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'resolve_existing_hooks_path'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'refusing to copy non-generated hook source'
-require_text "$root/skills/harness-install/templates/uv/docs/harness/uv/harness_validate.py" 'pre-commit hook must not run full stack validation commands'
-require_text "$root/skills/harness-install/templates/bun/docs/harness/bun/harness-validate.ts" 'pre-commit hook must not run full stack validation commands'
-require_text "$root/skills/harness-install/templates/gradle/docs/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" 'pre-commit hook must declare Gradle harness validation command'
-require_text "$root/skills/harness-install/templates/maven/docs/harness/maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java" 'pre-commit hook must not run full stack validation commands'
-require_text "$root/skills/harness-install/templates/uv/docs/harness/uv/harness_validate.py" 'pre-push hook declares unsupported validation command'
-require_text "$root/skills/harness-install/templates/bun/docs/harness/bun/harness-validate.ts" 'pre-push hook declares unsupported validation command'
-require_text "$root/skills/harness-install/templates/gradle/docs/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" 'pre-push hook declares unsupported validation command'
-require_text "$root/skills/harness-install/templates/maven/docs/harness/maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java" 'pre-push hook declares unsupported validation command'
-require_text "$root/skills/harness-install/templates/common/docs/harness/manifest.json" './gradlew check'
-require_text "$root/skills/harness-install/templates/common/docs/harness/manifest.json" './gradlew harnessValidate'
-require_text "$root/skills/harness-install/templates/uv/docs/harness/uv/harness_validate.py" 'pre-push hook must declare Harness validation command'
-require_text "$root/skills/harness-install/templates/bun/docs/harness/bun/harness-validate.ts" 'pre-push hook must declare Harness validation command'
-require_text "$root/skills/harness-install/templates/gradle/docs/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" 'pre-push hook must declare Harness validation command'
-require_text "$root/skills/harness-install/templates/maven/docs/harness/maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java" 'pre-push hook must declare Harness validation command'
+manifest_json="$root/skills/harness-install/templates/common/docs/harness/manifest.json"
+require_text "$manifest_json" 'pre-commit hook must not run full stack validation commands'
+require_text "$manifest_json" 'must declare Harness validation command'
+require_text "$manifest_json" 'declares unsupported validation command'
+require_text "$manifest_json" 'must run the declared validation command'
+require_text "$manifest_json" './gradlew check'
+require_text "$manifest_json" './gradlew harnessValidate'
 
 template_roots="
 $root/skills/harness-install/templates/common
@@ -701,6 +694,11 @@ $root/skills/harness-install/templates/uv
 for template_root in $template_roots; do
   template_root_files=$(package_files "$template_root")
   for path in $(printf '%s\n' "$template_root_files" | grep -F -v '.tmpl'); do
+    case "$path" in
+      */harness_validate.py|*/harness-validate.ts|*/HarnessValidationPlugin.kt|*/HarnessValidateMojo.java|*/manifest.json)
+        continue
+        ;;
+    esac
     if [ -f "$path" ]; then
       if grep -E '\{\{[^}]+\}\}' "$path"; then
         printf '%s\n' "[unresolved_template_tokens] unresolved template token outside .tmpl asset: $path" >&2
