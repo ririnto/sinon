@@ -35,106 +35,123 @@ class Finding(NamedTuple):
 
 def read_text(path: Path) -> str:
     """Read file text, resolving allowed root contract symlinks."""
+    resolved_path = path
     if path.is_symlink():
         target = allowed_root_contract_target(path)
-        if target is None:
-            return ""
-        path = target
-    try:
-        return path.read_text(encoding="utf-8")
-    except OSError:
-        return ""
+        if target is not None:
+            resolved_path = target
+        else:
+            resolved_path = None
+    if resolved_path is None:
+        result = ""
+    else:
+        try:
+            result = resolved_path.read_text(encoding="utf-8")
+        except OSError:
+            result = ""
+    return result
 
 
 def is_executable(path: Path) -> bool:
     """Check if file has executable bit, resolving allowed symlinks."""
+    resolved_path = path
     if path.is_symlink():
         target = allowed_root_contract_target(path)
-        if target is None:
-            return False
-        path = target
-    try:
-        return bool(path.stat().st_mode & stat.S_IXUSR)
-    except OSError:
-        return False
+        if target is not None:
+            resolved_path = target
+        else:
+            resolved_path = None
+    if resolved_path is None:
+        result = False
+    else:
+        try:
+            result = bool(resolved_path.stat().st_mode & stat.S_IXUSR)
+        except OSError:
+            result = False
+    return result
 
 
 def first_line(path: Path) -> str:
     """Get first line of file text."""
     lines = read_text(path).splitlines()
-    return lines[0] if lines else ""
+    result = lines[0] if lines else ""
+    return result
 
 
 def relative(path: Path) -> str:
     """Return path relative to ROOT or string representation."""
     try:
-        return path.relative_to(ROOT).as_posix()
+        result = path.relative_to(ROOT).as_posix()
     except ValueError:
-        return str(path)
+        result = str(path)
+    return result
 
 
 def allowed_root_contract_target(path: Path) -> Path | None:
     """Resolve root contract symlink (AGENTS.md <-> CLAUDE.md) if valid."""
-    if path.parent != ROOT or path.name not in {"AGENTS.md", "CLAUDE.md"}:
-        return None
-    try:
-        target_name = os.readlink(path)
-    except OSError:
-        return None
-    expected = "CLAUDE.md" if path.name == "AGENTS.md" else "AGENTS.md"
-    if target_name != expected:
-        return None
-    target = ROOT / target_name
-    return (
-        target
-        if target.parent == ROOT and not target.is_symlink() and target.is_file()
-        else None
-    )
+    result = None
+    if path.parent == ROOT and path.name in {"AGENTS.md", "CLAUDE.md"}:
+        try:
+            target_name = os.readlink(path)
+            expected = "CLAUDE.md" if path.name == "AGENTS.md" else "AGENTS.md"
+            if target_name == expected:
+                target = ROOT / target_name
+                if target.parent == ROOT and not target.is_symlink() and target.is_file():
+                    result = target
+        except OSError:
+            pass
+    return result
 
 
 def is_safe_file(path: Path) -> bool:
     """Check if path is a regular file or allowed root contract symlink."""
-    return (
-        allowed_root_contract_target(path) is not None
-        if path.is_symlink()
-        else path.is_file()
-    )
+    if path.is_symlink():
+        result = allowed_root_contract_target(path) is not None
+    else:
+        result = path.is_file()
+    return result
 
 
 def is_safe_directory(path: Path) -> bool:
     """Check if path is a directory (not a symlink)."""
-    return not path.is_symlink() and path.is_dir()
+    result = not path.is_symlink() and path.is_dir()
+    return result
 
 
 def safe_walk(base: Path) -> tuple[Path, ...]:
     """Walk directory tree, excluding symlinks."""
-    if base.is_symlink() or base.is_file():
-        return ()
-    if not base.is_dir():
-        return ()
-    output = []
-    for current, directories, files in os.walk(base, followlinks=False):
-        current_path = Path(current)
-        directories[:] = [name for name in directories if not (current_path / name).is_symlink()]
-        output.extend(child for name in files if not (child := current_path / name).is_symlink())
-    return tuple(output)
+    if base.is_symlink() or base.is_file() or not base.is_dir():
+        result = ()
+    else:
+        output = []
+        for current, directories, files in os.walk(base, followlinks=False):
+            current_path = Path(current)
+            directories[:] = [name for name in directories if not (current_path / name).is_symlink()]
+            output.extend(child for name in files if not (child := current_path / name).is_symlink())
+        result = tuple(output)
+    return result
 
 
 def safe_file_or_walk(base: Path) -> tuple[Path, ...]:
     """Return single file (if safe) or walk directory; no unsafe symlinks."""
     if base.is_symlink() and allowed_root_contract_target(base) is None:
-        return ()
-    return (base,) if is_safe_file(base) else safe_walk(base)
+        result = ()
+    elif is_safe_file(base):
+        result = (base,)
+    else:
+        result = safe_walk(base)
+    return result
 
 
 def severity_for(manifest: dict, category: str) -> str:
     """Get severity for category from manifest, default to ERROR."""
+    result = "ERROR"
     section = manifest.get(category)
     if isinstance(section, dict):
         value = section.get("severity")
         if value in ("ERROR", "WARN", "INFO"):
-            return value
-    return "ERROR"
+            result = value
+    return result
 
 
 def _validate_require_files_exist(root: Path, manifest: dict) -> tuple[Finding, ...]:
@@ -972,13 +989,15 @@ def _parse_python(path: Path) -> tuple[cst.Module | None, str | None]:
     """Parse a Python file and return Module or error message."""
     text = path.read_text(encoding="utf-8")
     try:
-        return cst.parse_module(text), None
+        module = cst.parse_module(text)
+        result = (module, None)
     except cst.ParserSyntaxError as err:
-        return None, str(err)
+        result = (None, str(err))
+    return result
 
 
 def _has_nested_function(func_node: cst.FunctionDef) -> bool:
-    """Check if function body contains nested function or lambda."""
+    """Check if function body contains nested function, class, or lambda."""
     class _NestedFinder(cst.CSTVisitor):
         def __init__(self) -> None:
             super().__init__()
@@ -989,6 +1008,11 @@ def _has_nested_function(func_node: cst.FunctionDef) -> bool:
                 self.found = True
                 return False
             self._depth += 1
+            return True
+        def visit_ClassDef(self, node: cst.ClassDef) -> bool:
+            if self._depth > 0:
+                self.found = True
+                return False
             return True
         def leave_FunctionDef(self, original: cst.FunctionDef) -> None:
             self._depth -= 1
@@ -1086,6 +1110,387 @@ def _validate_forbid_blank_line_in_leaf_function(root: Path, manifest: dict) -> 
     return tuple(result)
 
 
+def _validate_forbid_early_return(root: Path, manifest: dict) -> tuple[Finding, ...]:
+    """Validate forbidEarlyReturn check."""
+    category = "forbidEarlyReturn"
+    severity = severity_for(manifest, category)
+    sources = _stack_sources(root, manifest, category)
+
+    class _EarlyReturnFinder(cst.CSTVisitor):
+        def __init__(self, rel_path: str) -> None:
+            super().__init__()
+            self.findings: list[Finding] = []
+            self.rel_path = rel_path
+        def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
+            if _has_nested_function(node):
+                return False
+            if not isinstance(node.body, cst.IndentedBlock):
+                return True
+            func_name = node.name.value
+            body_stmts = node.body.body
+            if not body_stmts:
+                return True
+            for i, stmt in enumerate(body_stmts[:-1]):
+                if isinstance(stmt, cst.SimpleStatementLine):
+                    for inner_stmt in stmt.body:
+                        if isinstance(inner_stmt, cst.Return):
+                            pos = self.get_metadata(cst.metadata.PositionProvider, stmt)
+                            self.findings.append(Finding(
+                                severity,
+                                category,
+                                f"{self.rel_path}:{pos.start.line}: function `{func_name}` has an early/mid return; restructure with single exit",
+                            ))
+            return True
+
+    result = []
+    for path in sources:
+        tree, error = _parse_python(path)
+        if error is not None:
+            result.append(Finding(
+                severity,
+                category,
+                f"{relative(path)}: syntax error: {error}",
+            ))
+            continue
+
+        wrapper = cst.MetadataWrapper(tree)
+        visitor = _EarlyReturnFinder(relative(path))
+        wrapper.visit(visitor)
+        result.extend(visitor.findings)
+
+    return tuple(result)
+
+
+def _validate_forbid_silent_catch(root: Path, manifest: dict) -> tuple[Finding, ...]:
+    """Validate forbidSilentCatch check."""
+    category = "forbidSilentCatch"
+    severity = severity_for(manifest, category)
+    sources = _stack_sources(root, manifest, category)
+
+    class _SilentCatchFinder(cst.CSTVisitor):
+        def __init__(self, rel_path: str) -> None:
+            super().__init__()
+            self.findings: list[Finding] = []
+            self.rel_path = rel_path
+        def visit_Try(self, node: cst.Try) -> bool:
+            for handler in node.handlers:
+                if not isinstance(handler.body, cst.IndentedBlock):
+                    continue
+                body_stmts = handler.body.body
+                if not body_stmts:
+                    pos = self.get_metadata(cst.metadata.PositionProvider, handler)
+                    self.findings.append(Finding(
+                        severity,
+                        category,
+                        f"{self.rel_path}:{pos.start.line}: silent catch; rethrow, translate to a Finding, or log via structured logger",
+                    ))
+                    continue
+                if len(body_stmts) == 1:
+                    stmt = body_stmts[0]
+                    if isinstance(stmt, cst.SimpleStatementLine):
+                        if len(stmt.body) == 1 and isinstance(stmt.body[0], cst.Pass):
+                            pos = self.get_metadata(cst.metadata.PositionProvider, handler)
+                            self.findings.append(Finding(
+                                severity,
+                                category,
+                                f"{self.rel_path}:{pos.start.line}: silent catch; rethrow, translate to a Finding, or log via structured logger",
+                            ))
+            return True
+
+    result = []
+    for path in sources:
+        tree, error = _parse_python(path)
+        if error is not None:
+            result.append(Finding(
+                severity,
+                category,
+                f"{relative(path)}: syntax error: {error}",
+            ))
+            continue
+
+        wrapper = cst.MetadataWrapper(tree)
+        visitor = _SilentCatchFinder(relative(path))
+        wrapper.visit(visitor)
+        result.extend(visitor.findings)
+
+    return tuple(result)
+
+
+def _validate_forbid_unstructured_logging(root: Path, manifest: dict) -> tuple[Finding, ...]:
+    """Validate forbidUnstructuredLogging check."""
+    category = "forbidUnstructuredLogging"
+    severity = severity_for(manifest, category)
+    sources = _stack_sources(root, manifest, category)
+
+    class _PrintFinder(cst.CSTVisitor):
+        def __init__(self, rel_path: str) -> None:
+            super().__init__()
+            self.findings: list[Finding] = []
+            self.rel_path = rel_path
+        def visit_Call(self, node: cst.Call) -> bool:
+            if isinstance(node.func, cst.Name):
+                if node.func.value == "print":
+                    pos = self.get_metadata(cst.metadata.PositionProvider, node)
+                    self.findings.append(Finding(
+                        severity,
+                        category,
+                        f"{self.rel_path}:{pos.start.line}: unstructured logging `print`; use structured logger",
+                    ))
+            return True
+
+    result = []
+    for path in sources:
+        tree, error = _parse_python(path)
+        if error is not None:
+            result.append(Finding(
+                severity,
+                category,
+                f"{relative(path)}: syntax error: {error}",
+            ))
+            continue
+
+        wrapper = cst.MetadataWrapper(tree)
+        visitor = _PrintFinder(relative(path))
+        wrapper.visit(visitor)
+        result.extend(visitor.findings)
+
+    return tuple(result)
+
+
+def _validate_forbid_wildcard_import(root: Path, manifest: dict) -> tuple[Finding, ...]:
+    """Validate forbidWildcardImport check."""
+    category = "forbidWildcardImport"
+    severity = severity_for(manifest, category)
+    sources = _stack_sources(root, manifest, category)
+
+    class _WildcardFinder(cst.CSTVisitor):
+        def __init__(self, rel_path: str) -> None:
+            super().__init__()
+            self.findings: list[Finding] = []
+            self.rel_path = rel_path
+        def visit_ImportFrom(self, node: cst.ImportFrom) -> bool:
+            if isinstance(node.names, cst.ImportStar):
+                pos = self.get_metadata(cst.metadata.PositionProvider, node)
+                module_parts = []
+                if isinstance(node.module, cst.Attribute):
+                    current = node.module
+                    parts = [current.attr.value]
+                    while isinstance(current.value, cst.Attribute):
+                        current = current.value
+                        parts.append(current.attr.value)
+                    if isinstance(current.value, cst.Name):
+                        parts.append(current.value.value)
+                    module_parts = list(reversed(parts))
+                elif isinstance(node.module, cst.Name):
+                    module_parts = [node.module.value]
+                module_str = ".".join(module_parts) if module_parts else "?"
+                self.findings.append(Finding(
+                    severity,
+                    category,
+                    f"{self.rel_path}:{pos.start.line}: wildcard import `from {module_str} import *` forbidden; import explicit symbols",
+                ))
+            return True
+
+    result = []
+    for path in sources:
+        tree, error = _parse_python(path)
+        if error is not None:
+            result.append(Finding(
+                severity,
+                category,
+                f"{relative(path)}: syntax error: {error}",
+            ))
+            continue
+
+        wrapper = cst.MetadataWrapper(tree)
+        visitor = _WildcardFinder(relative(path))
+        wrapper.visit(visitor)
+        result.extend(visitor.findings)
+
+    return tuple(result)
+
+
+def _validate_require_import_over_fqn(root: Path, manifest: dict) -> tuple[Finding, ...]:
+    """Validate requireImportOverFqn check."""
+    category = "requireImportOverFqn"
+    severity = severity_for(manifest, category)
+    sources = _stack_sources(root, manifest, category)
+
+    class _FqnFinder(cst.CSTVisitor):
+        def __init__(self, rel_path: str) -> None:
+            super().__init__()
+            self.findings: list[Finding] = []
+            self.rel_path = rel_path
+            self.imported_names = set()
+        def visit_ImportFrom(self, node: cst.ImportFrom) -> bool:
+            if not isinstance(node.names, cst.ImportStar):
+                names_seq = node.names if isinstance(node.names, (list, tuple)) else [node.names]
+                for name_item in names_seq:
+                    if isinstance(name_item, cst.ImportAlias):
+                        self.imported_names.add(name_item.name.value if isinstance(name_item.name, cst.Name) else str(name_item.name))
+            return True
+        def visit_Attribute(self, node: cst.Attribute) -> bool:
+            depth = 0
+            current = node
+            while isinstance(current, cst.Attribute):
+                depth += 1
+                current = current.value
+            if depth >= 2 and isinstance(current, cst.Name):
+                fqn_parts = [current.value]
+                current = node
+                while isinstance(current, cst.Attribute):
+                    fqn_parts.append(current.attr.value)
+                    current = current.value
+                fqn_parts.reverse()
+                simple_name = fqn_parts[0]
+                if simple_name not in self.imported_names:
+                    fqn_str = ".".join(fqn_parts)
+                    pos = self.get_metadata(cst.metadata.PositionProvider, node)
+                    self.findings.append(Finding(
+                        severity,
+                        category,
+                        f"{self.rel_path}:{pos.start.line}: fully qualified name `{fqn_str}` used inline; add an import and use the simple name",
+                    ))
+            return True
+
+    result = []
+    for path in sources:
+        tree, error = _parse_python(path)
+        if error is not None:
+            result.append(Finding(
+                severity,
+                category,
+                f"{relative(path)}: syntax error: {error}",
+            ))
+            continue
+
+        wrapper = cst.MetadataWrapper(tree)
+        visitor = _FqnFinder(relative(path))
+        wrapper.visit(visitor)
+        result.extend(visitor.findings)
+
+    return tuple(result)
+
+
+def _validate_require_doc_comment_on_public_declaration(root: Path, manifest: dict) -> tuple[Finding, ...]:
+    """Validate requireDocCommentOnPublicDeclaration check."""
+    category = "requireDocCommentOnPublicDeclaration"
+    severity = severity_for(manifest, category)
+    sources = _stack_sources(root, manifest, category)
+
+    class _DocCommentFinder(cst.CSTVisitor):
+        def __init__(self, rel_path: str) -> None:
+            super().__init__()
+            self.findings: list[Finding] = []
+            self.rel_path = rel_path
+        def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
+            func_name = node.name.value
+            if not func_name.startswith("_"):
+                if not isinstance(node.body, cst.IndentedBlock):
+                    return True
+                if not node.body.body:
+                    return True
+                first_stmt = node.body.body[0]
+                has_docstring = False
+                if isinstance(first_stmt, cst.SimpleStatementLine):
+                    if first_stmt.body and isinstance(first_stmt.body[0], cst.Expr):
+                        expr_value = first_stmt.body[0].value
+                        if isinstance(expr_value, cst.SimpleString) or isinstance(expr_value, cst.ConcatenatedString):
+                            has_docstring = True
+                if not has_docstring:
+                    pos = self.get_metadata(cst.metadata.PositionProvider, node)
+                    self.findings.append(Finding(
+                        severity,
+                        category,
+                        f"{self.rel_path}:{pos.start.line}: public declaration `{func_name}` is missing a documentation comment",
+                    ))
+            return True
+        def visit_ClassDef(self, node: cst.ClassDef) -> bool:
+            class_name = node.name.value
+            if not class_name.startswith("_"):
+                if not isinstance(node.body, cst.IndentedBlock):
+                    return True
+                if not node.body.body:
+                    return True
+                first_stmt = node.body.body[0]
+                has_docstring = False
+                if isinstance(first_stmt, cst.SimpleStatementLine):
+                    if first_stmt.body and isinstance(first_stmt.body[0], cst.Expr):
+                        expr_value = first_stmt.body[0].value
+                        if isinstance(expr_value, cst.SimpleString) or isinstance(expr_value, cst.ConcatenatedString):
+                            has_docstring = True
+                if not has_docstring:
+                    pos = self.get_metadata(cst.metadata.PositionProvider, node)
+                    self.findings.append(Finding(
+                        severity,
+                        category,
+                        f"{self.rel_path}:{pos.start.line}: public declaration `{class_name}` is missing a documentation comment",
+                    ))
+            return True
+
+    result = []
+    for path in sources:
+        tree, error = _parse_python(path)
+        if error is not None:
+            result.append(Finding(
+                severity,
+                category,
+                f"{relative(path)}: syntax error: {error}",
+            ))
+            continue
+
+        wrapper = cst.MetadataWrapper(tree)
+        visitor = _DocCommentFinder(relative(path))
+        wrapper.visit(visitor)
+        result.extend(visitor.findings)
+
+    return tuple(result)
+
+
+def _validate_forbid_empty_catch_block(root: Path, manifest: dict) -> tuple[Finding, ...]:
+    """Validate forbidEmptyCatchBlock check."""
+    category = "forbidEmptyCatchBlock"
+    severity = severity_for(manifest, category)
+    sources = _stack_sources(root, manifest, category)
+
+    class _EmptyCatchFinder(cst.CSTVisitor):
+        def __init__(self, rel_path: str) -> None:
+            super().__init__()
+            self.findings: list[Finding] = []
+            self.rel_path = rel_path
+        def visit_Try(self, node: cst.Try) -> bool:
+            for handler in node.handlers:
+                if not isinstance(handler.body, cst.IndentedBlock):
+                    continue
+                body_stmts = handler.body.body
+                if not body_stmts:
+                    pos = self.get_metadata(cst.metadata.PositionProvider, handler)
+                    self.findings.append(Finding(
+                        severity,
+                        category,
+                        f"{self.rel_path}:{pos.start.line}: empty catch block; handle, rethrow, or convert to a Finding",
+                    ))
+            return True
+
+    result = []
+    for path in sources:
+        tree, error = _parse_python(path)
+        if error is not None:
+            result.append(Finding(
+                severity,
+                category,
+                f"{relative(path)}: syntax error: {error}",
+            ))
+            continue
+
+        wrapper = cst.MetadataWrapper(tree)
+        visitor = _EmptyCatchFinder(relative(path))
+        wrapper.visit(visitor)
+        result.extend(visitor.findings)
+
+    return tuple(result)
+
+
 class HarnessCheck(enum.Enum):
     """Enumeration of harness checks with embedded validator functions."""
 
@@ -1124,6 +1529,16 @@ class HarnessCheck(enum.Enum):
         "forbidBlankLineInLeafFunction",
         _validate_forbid_blank_line_in_leaf_function,
     )
+    FORBID_EARLY_RETURN = ("forbidEarlyReturn", _validate_forbid_early_return)
+    FORBID_SILENT_CATCH = ("forbidSilentCatch", _validate_forbid_silent_catch)
+    FORBID_UNSTRUCTURED_LOGGING = ("forbidUnstructuredLogging", _validate_forbid_unstructured_logging)
+    FORBID_WILDCARD_IMPORT = ("forbidWildcardImport", _validate_forbid_wildcard_import)
+    REQUIRE_IMPORT_OVER_FQN = ("requireImportOverFqn", _validate_require_import_over_fqn)
+    REQUIRE_DOC_COMMENT_ON_PUBLIC_DECLARATION = (
+        "requireDocCommentOnPublicDeclaration",
+        _validate_require_doc_comment_on_public_declaration,
+    )
+    FORBID_EMPTY_CATCH_BLOCK = ("forbidEmptyCatchBlock", _validate_forbid_empty_catch_block)
 
     def __init__(self, category: str, validator: Callable[[Path, dict], tuple[Finding, ...]]):
         """Initialize enum member with category name and validator function."""

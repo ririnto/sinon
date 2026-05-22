@@ -485,6 +485,28 @@
       ]
     }
   },
+  "requireCompanionObjectPosition": {
+    "description": "Kotlin class bodies under parameters.sourceRootsPerStack[kotlin] MUST place their `companion object` declaration at the configured position (`parameters.position`: \"top\" or \"bottom\"). Default \"top\".",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: companion object position violates parameters.position={position}"
+    },
+    "parameters": {
+      "position": "top",
+      "sourceRootsPerStack": {
+        "kotlin": [
+          "buildSrc/src/main/kotlin",
+          "**/src/main/kotlin"
+        ]
+      },
+      "extensionsPerStack": {
+        "kotlin": [
+          "kt"
+        ]
+      }
+    }
+  },
   "forbidGreaterThanComparison": {
     "description": "Source files under parameters.directoriesPerStack[<stack>] MUST NOT use `>` or `>=` comparison operators; smaller value always belongs on the left (`<` / `<=`). Validators implement this via AST: Kotlin PSI, Java JavaParser, Python ast, TypeScript compiler API.",
     "enabled": true,
@@ -579,7 +601,7 @@
   },
   "forbidEarlyReturn": {
     "description": "Functions under parameters.directoriesPerStack[<stack>] MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that throws).",
-    "enabled": false,
+    "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: function `{function}` has an early/mid return; restructure with single exit"
@@ -625,7 +647,7 @@
   },
   "forbidSilentCatch": {
     "description": "`try`/`catch` blocks under parameters.directoriesPerStack[<stack>] MUST NOT swallow exceptions. The catch block MUST either rethrow, translate to a `Finding`, or log via the structured logger. Empty or `pass`-only catch blocks are forbidden. Validators implement this via AST.",
-    "enabled": false,
+    "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: silent catch; rethrow, translate to a Finding, or log via structured logger"
@@ -671,7 +693,7 @@
   },
   "forbidMutableCollection": {
     "description": "Code under parameters.directoriesPerStack[<stack>] MUST prefer functional collection construction. Forbidden: Kotlin `mutableListOf` / `MutableList`, Java `new ArrayList` / `new HashMap`, Python `[].append` accumulation pattern, TypeScript `Array#push` accumulation. Use `buildList` / `Stream.toList()` / list comprehension / spread + `concat`. Validators implement this via AST: detect forbidden constructor calls and accumulation patterns.",
-    "enabled": false,
+    "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: mutable collection construction `{snippet}`; use functional alternative"
@@ -686,11 +708,7 @@
           "harness-maven-plugin/src/main/java",
           "**/src/main/java"
         ],
-        "python": [
-          "docs/harness/uv",
-          "**/src",
-          "src"
-        ],
+        "python": [],
         "typescript": [
           "docs/harness/bun",
           "**/src",
@@ -717,7 +735,7 @@
   },
   "forbidUnstructuredLogging": {
     "description": "Code under parameters.directoriesPerStack[<stack>] MUST log via the structured logger only. Forbidden: Kotlin `println`, Java `System.out.println` / `System.err.println`, Python `print(`, TypeScript `console.log` / `console.error` / `console.warn`. Use Slf4j / java.util.logging / Python `logging` / `pino` or equivalent. Validators implement this via AST.",
-    "enabled": false,
+    "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: unstructured logging `{snippet}`; use structured logger"
@@ -763,7 +781,7 @@
   },
   "forbidWildcardImport": {
     "description": "Code under parameters.directoriesPerStack[<stack>] MUST use explicit per-symbol imports. Forbidden: Kotlin `import foo.bar.*`, Java `import foo.bar.*`, Python `from foo import *`, TypeScript `import * as foo from 'foo'` outside of namespace re-export modules. Validators implement this via AST.",
-    "enabled": false,
+    "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: wildcard import `{import}` forbidden; import explicit symbols"
@@ -809,7 +827,7 @@
   },
   "requireImportOverFqn": {
     "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST reach external symbols via `import` rather than inline fully qualified names, EXCEPT when the simple name is already taken by another import in the same file (i.e. the FQN is required to disambiguate). Validators implement this via AST/CST: collect every imported simple name first, then emit a finding when a qualified type reference appears in code AND the qualified name's simple form is NOT already imported under a different qualified name.",
-    "enabled": false,
+    "enabled": true,
     "severity": "WARN",
     "messages": {
       "default": "{file}:{line}: fully qualified name `{name}` used inline; add an import and use the simple name"
@@ -855,7 +873,7 @@
   },
   "requireDocCommentOnPublicDeclaration": {
     "description": "Every externally visible declaration under parameters.directoriesPerStack[<stack>] MUST carry a documentation comment in the language-native form (KDoc, JavaDoc, reStructuredText docstring, TSDoc). Validators implement this via AST: walk top-level public/exported declarations and emit a finding for missing doc comments.",
-    "enabled": false,
+    "enabled": true,
     "severity": "WARN",
     "messages": {
       "default": "{file}:{line}: public declaration `{name}` is missing a documentation comment"
@@ -901,7 +919,7 @@
   },
   "forbidEmptyCatchBlock": {
     "description": "Catch handlers under parameters.directoriesPerStack[<stack>] MUST have a non-empty body. Empty catch handlers are a special case of forbidSilentCatch and are listed separately for clarity. Validators implement this via AST.",
-    "enabled": false,
+    "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: empty catch block; handle, rethrow, or convert to a Finding"
@@ -947,7 +965,7 @@
   },
   "requireBracesOnIf": {
     "description": "Every `if` / `else if` / `else` clause under parameters.sourceRootsPerStack[<stack>] MUST use a braced block (`{ ... }`), even for single-statement bodies. Validators implement this via AST/CST.",
-    "enabled": false,
+    "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: if/else without braces; wrap the body in `{ ... }`"

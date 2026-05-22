@@ -1,7 +1,37 @@
 #!/usr/bin/env bun
 import { lstatSync, readdirSync, readFileSync, readlinkSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
-import * as ts from "typescript@6.0.3";
+import {
+  Block,
+  ConciseBody,
+  Node,
+  ScriptTarget,
+  SyntaxKind,
+  createSourceFile,
+  forEachChild,
+  getLeadingCommentRanges,
+  isBinaryExpression,
+  isBlock,
+  isCallExpression,
+  isCatchClause,
+  isClassDeclaration,
+  isFunctionDeclaration,
+  isIdentifier,
+  isIfStatement,
+  isImportDeclaration,
+  isInterfaceDeclaration,
+  isMethodDeclaration,
+  isNamespaceImport,
+  isNewExpression,
+  isPropertyAccessExpression,
+  isReturnStatement,
+  isStringLiteral,
+  isThrowStatement,
+  isTypeAliasDeclaration,
+  isVariableStatement,
+  type FunctionLike,
+  type SourceFile,
+} from "typescript@6.0.3";
 
 const root = process.cwd();
 const STACK = "bun" as const;
@@ -200,30 +230,28 @@ function stackSources(manifest: Manifest, category: string): readonly string[] {
  * @param node Function-like node to inspect.
  * @return True if node contains nested functions or lambdas.
  */
-function hasNestedFunctions(node: ts.FunctionLike): boolean {
+function hasNestedFunctions(node: FunctionLike): boolean {
   let foundNested = false;
-
-  const visit = (child: ts.Node): void => {
+  const visit = (child: Node): void => {
     if (foundNested) {
       return;
     }
     if (child === node) {
-      ts.forEachChild(child, visit);
+      forEachChild(child, visit);
       return;
     }
     switch (child.kind) {
-      case ts.SyntaxKind.FunctionDeclaration:
-      case ts.SyntaxKind.MethodDeclaration:
-      case ts.SyntaxKind.FunctionExpression:
-      case ts.SyntaxKind.ArrowFunction:
-      case ts.SyntaxKind.Constructor:
+      case SyntaxKind.FunctionDeclaration:
+      case SyntaxKind.MethodDeclaration:
+      case SyntaxKind.FunctionExpression:
+      case SyntaxKind.ArrowFunction:
+      case SyntaxKind.Constructor:
         foundNested = true;
         return;
     }
-    ts.forEachChild(child, visit);
+    forEachChild(child, visit);
   };
-
-  ts.forEachChild(node, visit);
+  forEachChild(node, visit);
   return foundNested;
 }
 
@@ -1228,10 +1256,9 @@ const forbidGreaterThanComparison: HarnessCheckSpec = {
       if (!text) {
         return [];
       }
-
-      let sourceFile: ts.SourceFile;
+      let sourceFile: SourceFile;
       try {
-        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+        sourceFile = createSourceFile(file, text, ScriptTarget.Latest, true);
       } catch {
         return [
           {
@@ -1241,15 +1268,13 @@ const forbidGreaterThanComparison: HarnessCheckSpec = {
           },
         ];
       }
-
       const findings: Finding[] = [];
-
-      const visit = (node: ts.Node): void => {
-        if (ts.isBinaryExpression(node)) {
+      const visit = (node: Node): void => {
+        if (isBinaryExpression(node)) {
           const kind = node.operatorToken.kind;
-          if (kind === ts.SyntaxKind.GreaterThanToken || kind === ts.SyntaxKind.GreaterThanEqualsToken) {
+          if (kind === SyntaxKind.GreaterThanToken || kind === SyntaxKind.GreaterThanEqualsToken) {
             const { line } = sourceFile.getLineAndCharacterOfPosition(node.operatorToken.getStart(sourceFile));
-            const operator = kind === ts.SyntaxKind.GreaterThanToken ? ">" : ">=";
+            const operator = kind === SyntaxKind.GreaterThanToken ? ">" : ">=";
             findings.push({
               severity: severityOf(manifest, "forbidGreaterThanComparison"),
               category: "forbidGreaterThanComparison",
@@ -1257,9 +1282,8 @@ const forbidGreaterThanComparison: HarnessCheckSpec = {
             });
           }
         }
-        ts.forEachChild(node, visit);
+        forEachChild(node, visit);
       };
-
       visit(sourceFile);
       return findings;
     });
@@ -1376,6 +1400,612 @@ const forbidBlankLineInLeafFunction: HarnessCheckSpec = {
   },
 };
 
+/**
+ * Check for early return statements in functions.
+ *
+ * Return statements are only allowed as the final statement of a function body
+ * or nested function bodies (which are exempt). Nested function/arrow bodies
+ * are checked independently with their own last-statement rule.
+ */
+const forbidEarlyReturn: HarnessCheckSpec = {
+  category: "forbidEarlyReturn",
+  applies: (manifest) => {
+    const section = manifest.forbidEarlyReturn;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    return true;
+  },
+  validate: (root, manifest) => {
+    const sources = stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: ts.SourceFile;
+      try {
+        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      } catch {
+        return [
+          {
+            severity: severityOf(manifest, "forbidEarlyReturn"),
+            category: "forbidEarlyReturn",
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+
+      const getFuncName = (funcNode: ts.FunctionLike): string => {
+        if (ts.isFunctionDeclaration(funcNode) && funcNode.name) {
+          return funcNode.name.text;
+        }
+        if (ts.isMethodDeclaration(funcNode) && funcNode.name && ts.isIdentifier(funcNode.name)) {
+          return funcNode.name.text;
+        }
+        return "<anonymous>";
+      };
+
+      const checkFunc = (funcNode: ts.FunctionLike): void => {
+        if (!funcNode.body || !ts.isBlock(funcNode.body)) {
+          return;
+        }
+
+        const body = funcNode.body;
+        const statements = body.statements;
+        if (statements.length === 0) {
+          return;
+        }
+
+        const funcName = getFuncName(funcNode);
+
+        for (let i = 0; i < statements.length - 1; i++) {
+          if (ts.isReturnStatement(statements[i])) {
+            const { line } = sourceFile.getLineAndCharacterOfPosition(statements[i].getStart(sourceFile));
+            findings.push({
+              severity: severityOf(manifest, "forbidEarlyReturn"),
+              category: "forbidEarlyReturn",
+              message: `${file}:${line + 1}: function \`${funcName}\` has an early return; restructure with single exit`,
+            });
+          }
+        }
+      };
+
+      const visit = (node: ts.Node): void => {
+        switch (node.kind) {
+          case ts.SyntaxKind.FunctionDeclaration:
+          case ts.SyntaxKind.MethodDeclaration:
+          case ts.SyntaxKind.FunctionExpression:
+          case ts.SyntaxKind.ArrowFunction:
+          case ts.SyntaxKind.Constructor: {
+            checkFunc(node as ts.FunctionLike);
+            break;
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  },
+};
+
+/**
+ * Check for silent catch blocks.
+ *
+ * Catch block must not be empty and must contain either a rethrow,
+ * a throw statement, or a logger call. Blocks without any of these
+ * are considered silent and forbidden.
+ */
+const forbidSilentCatch: HarnessCheckSpec = {
+  category: "forbidSilentCatch",
+  applies: (manifest) => {
+    const section = manifest.forbidSilentCatch;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    return true;
+  },
+  validate: (root, manifest) => {
+    const sources = stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: ts.SourceFile;
+      try {
+        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      } catch {
+        return [
+          {
+            severity: severityOf(manifest, "forbidSilentCatch"),
+            category: "forbidSilentCatch",
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+
+      const hasSafeContent = (block: ts.Block): boolean => {
+        if (block.statements.length === 0) {
+          return false;
+        }
+
+        let hasThrowOrRethrow = false;
+        let hasCatchVar = false;
+        let catchVar = "";
+
+        const visit = (node: ts.Node): void => {
+          if (ts.isThrowStatement(node)) {
+            hasThrowOrRethrow = true;
+          }
+          if (ts.isIdentifier(node) && node.text && /^(console|logger|log)/.test(node.text)) {
+            hasThrowOrRethrow = true;
+          }
+          ts.forEachChild(node, visit);
+        };
+
+        visit(block);
+        return hasThrowOrRethrow;
+      };
+
+      const visit = (node: ts.Node): void => {
+        if (ts.isCatchClause(node)) {
+          if (!hasSafeContent(node.block)) {
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+            findings.push({
+              severity: severityOf(manifest, "forbidSilentCatch"),
+              category: "forbidSilentCatch",
+              message: `${file}:${line + 1}: silent catch; rethrow, translate to a Finding, or log via structured logger`,
+            });
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  },
+};
+
+/**
+ * Check for mutable collection constructors.
+ *
+ * Detects `new Array(...)`, `new Map(...)`, `new Set(...)` calls
+ * and suggests functional alternatives.
+ */
+const forbidMutableCollection: HarnessCheckSpec = {
+  category: "forbidMutableCollection",
+  applies: (manifest) => {
+    const section = manifest.forbidMutableCollection;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    return true;
+  },
+  validate: (root, manifest) => {
+    const sources = stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: ts.SourceFile;
+      try {
+        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      } catch {
+        return [
+          {
+            severity: severityOf(manifest, "forbidMutableCollection"),
+            category: "forbidMutableCollection",
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+
+      const visit = (node: ts.Node): void => {
+        if (ts.isNewExpression(node)) {
+          const expr = node.expression;
+          if (ts.isIdentifier(expr)) {
+            const name = expr.text;
+            if (name === "Array" || name === "Map" || name === "Set") {
+              const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+              findings.push({
+                severity: severityOf(manifest, "forbidMutableCollection"),
+                category: "forbidMutableCollection",
+                message: `${file}:${line + 1}: mutable collection construction \`new ${name}\`; use functional alternative`,
+              });
+            }
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  },
+};
+
+/**
+ * Check for unstructured logging calls.
+ *
+ * Detects console.log, console.error, console.warn, console.info, console.debug.
+ */
+const forbidUnstructuredLogging: HarnessCheckSpec = {
+  category: "forbidUnstructuredLogging",
+  applies: (manifest) => {
+    const section = manifest.forbidUnstructuredLogging;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    return true;
+  },
+  validate: (root, manifest) => {
+    const sources = stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: ts.SourceFile;
+      try {
+        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      } catch {
+        return [
+          {
+            severity: severityOf(manifest, "forbidUnstructuredLogging"),
+            category: "forbidUnstructuredLogging",
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+      const logMethods = ["log", "error", "warn", "info", "debug"];
+
+      const visit = (node: ts.Node): void => {
+        if (ts.isCallExpression(node)) {
+          const expr = node.expression;
+          if (ts.isPropertyAccessExpression(expr)) {
+            if (ts.isIdentifier(expr.expression) && expr.expression.text === "console") {
+              const methodName = expr.name?.text;
+              if (methodName && logMethods.includes(methodName)) {
+                const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+                findings.push({
+                  severity: severityOf(manifest, "forbidUnstructuredLogging"),
+                  category: "forbidUnstructuredLogging",
+                  message: `${file}:${line + 1}: unstructured logging \`console.${methodName}\`; use structured logger`,
+                });
+              }
+            }
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  },
+};
+
+/**
+ * Check for wildcard imports.
+ *
+ * Detects `import * as foo from 'module'` patterns.
+ */
+const forbidWildcardImport: HarnessCheckSpec = {
+  category: "forbidWildcardImport",
+  applies: (manifest) => {
+    const section = manifest.forbidWildcardImport;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    return true;
+  },
+  validate: (root, manifest) => {
+    const sources = stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: ts.SourceFile;
+      try {
+        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      } catch {
+        return [
+          {
+            severity: severityOf(manifest, "forbidWildcardImport"),
+            category: "forbidWildcardImport",
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+
+      const visit = (node: ts.Node): void => {
+        if (ts.isImportDeclaration(node)) {
+          if (node.importClause && node.importClause.namedBindings) {
+            const bindings = node.importClause.namedBindings;
+            if (ts.isNamespaceImport(bindings)) {
+              const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+              const module = node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier) ? node.moduleSpecifier.text : "module";
+              findings.push({
+                severity: severityOf(manifest, "forbidWildcardImport"),
+                category: "forbidWildcardImport",
+                message: `${file}:${line + 1}: wildcard import \`import * as\` forbidden; import explicit symbols`,
+              });
+            }
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  },
+};
+
+/**
+ * Check for empty catch blocks.
+ *
+ * Detects catch clauses with no statements.
+ */
+const forbidEmptyCatchBlock: HarnessCheckSpec = {
+  category: "forbidEmptyCatchBlock",
+  applies: (manifest) => {
+    const section = manifest.forbidEmptyCatchBlock;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    return true;
+  },
+  validate: (root, manifest) => {
+    const sources = stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: ts.SourceFile;
+      try {
+        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      } catch {
+        return [
+          {
+            severity: severityOf(manifest, "forbidEmptyCatchBlock"),
+            category: "forbidEmptyCatchBlock",
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+
+      const visit = (node: ts.Node): void => {
+        if (ts.isCatchClause(node)) {
+          if (node.block.statements.length === 0) {
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+            findings.push({
+              severity: severityOf(manifest, "forbidEmptyCatchBlock"),
+              category: "forbidEmptyCatchBlock",
+              message: `${file}:${line + 1}: empty catch block; handle, rethrow, or convert to a Finding`,
+            });
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  },
+};
+
+/**
+ * Check for unbraced if/else statements.
+ *
+ * All if/else statements must use braced blocks, even for single-statement bodies.
+ */
+const requireBracesOnIf: HarnessCheckSpec = {
+  category: "requireBracesOnIf",
+  applies: (manifest) => {
+    const section = manifest.requireBracesOnIf;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    return true;
+  },
+  validate: (root, manifest) => {
+    const sources = stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: ts.SourceFile;
+      try {
+        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      } catch {
+        return [
+          {
+            severity: severityOf(manifest, "requireBracesOnIf"),
+            category: "requireBracesOnIf",
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+
+      const visit = (node: ts.Node): void => {
+        if (ts.isIfStatement(node)) {
+          if (!ts.isBlock(node.thenStatement)) {
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+            findings.push({
+              severity: severityOf(manifest, "requireBracesOnIf"),
+              category: "requireBracesOnIf",
+              message: `${file}:${line + 1}: if/else without braces; wrap the body in \`{ ... }\``,
+            });
+          }
+          if (node.elseStatement && !ts.isBlock(node.elseStatement) && !ts.isIfStatement(node.elseStatement)) {
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.elseStatement.getStart(sourceFile));
+            findings.push({
+              severity: severityOf(manifest, "requireBracesOnIf"),
+              category: "requireBracesOnIf",
+              message: `${file}:${line + 1}: if/else without braces; wrap the body in \`{ ... }\``,
+            });
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  },
+};
+
+/**
+ * Check for doc comments on public declarations.
+ *
+ * All exported or top-level functions, classes, interfaces, type aliases,
+ * and variables must have JSDoc comments.
+ */
+const requireDocCommentOnPublicDeclaration: HarnessCheckSpec = {
+  category: "requireDocCommentOnPublicDeclaration",
+  applies: (manifest) => {
+    const section = manifest.requireDocCommentOnPublicDeclaration;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    return true;
+  },
+  validate: (root, manifest) => {
+    const sources = stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: ts.SourceFile;
+      try {
+        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      } catch {
+        return [
+          {
+            severity: severityOf(manifest, "requireDocCommentOnPublicDeclaration"),
+            category: "requireDocCommentOnPublicDeclaration",
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+
+      const hasJSDoc = (node: ts.Node): boolean => {
+        const fullText = sourceFile.getFullText();
+        const leadingComments = ts.getLeadingCommentRanges(fullText, node.getFullStart());
+        if (!leadingComments || leadingComments.length === 0) {
+          return false;
+        }
+        const lastComment = leadingComments[leadingComments.length - 1];
+        const commentText = fullText.slice(lastComment.pos, lastComment.end);
+        return commentText.includes("/**");
+      };
+
+      const checkDeclaration = (node: ts.Node, isExported: boolean): void => {
+        const name =
+          (ts.isFunctionDeclaration(node) && node.name?.text) ||
+          (ts.isClassDeclaration(node) && node.name?.text) ||
+          (ts.isInterfaceDeclaration(node) && node.name?.text) ||
+          (ts.isTypeAliasDeclaration(node) && node.name?.text) ||
+          (ts.isVariableStatement(node) && node.declarationList.declarations[0]?.name && ts.isIdentifier(node.declarationList.declarations[0].name) ? node.declarationList.declarations[0].name.text : "");
+
+        if (name && !hasJSDoc(node)) {
+          const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+          findings.push({
+            severity: severityOf(manifest, "requireDocCommentOnPublicDeclaration"),
+            category: "requireDocCommentOnPublicDeclaration",
+            message: `${file}:${line + 1}: public declaration \`${name}\` is missing a documentation comment`,
+          });
+        }
+      };
+
+      const visit = (node: ts.Node): void => {
+        const isExported = node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false;
+
+        if (isExported) {
+          switch (node.kind) {
+            case ts.SyntaxKind.FunctionDeclaration:
+            case ts.SyntaxKind.ClassDeclaration:
+            case ts.SyntaxKind.InterfaceDeclaration:
+            case ts.SyntaxKind.TypeAliasDeclaration:
+            case ts.SyntaxKind.VariableStatement:
+              checkDeclaration(node, true);
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  },
+};
+
 export const HARNESS_CHECKS: readonly HarnessCheckSpec[] = [
   requireFilesExist,
   requireDirectoriesExist,
@@ -1399,4 +2029,12 @@ export const HARNESS_CHECKS: readonly HarnessCheckSpec[] = [
   requireSingleTopLevelKotlinDeclaration,
   forbidGreaterThanComparison,
   forbidBlankLineInLeafFunction,
+  forbidEarlyReturn,
+  forbidSilentCatch,
+  forbidMutableCollection,
+  forbidUnstructuredLogging,
+  forbidWildcardImport,
+  forbidEmptyCatchBlock,
+  requireBracesOnIf,
+  requireDocCommentOnPublicDeclaration,
 ] as const;

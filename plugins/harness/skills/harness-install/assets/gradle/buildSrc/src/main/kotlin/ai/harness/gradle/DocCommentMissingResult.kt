@@ -3,10 +3,10 @@ package ai.harness.gradle
 import kotlinx.serialization.Serializable
 
 /**
- * Result of a blank line detection within a leaf function in Kotlin source.
+ * Result of a missing documentation comment on a public Kotlin declaration in `file` at `line`.
  */
 @Serializable
-data class BlankLineInFunctionResult(
+data class DocCommentMissingResult(
     val file: String,
     val name: String,
     val line: Int,

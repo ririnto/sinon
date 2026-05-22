@@ -3,10 +3,11 @@ package ai.harness.gradle
 import kotlinx.serialization.Serializable
 
 /**
- * Result of an implicit lambda parameter 'it' detection in Kotlin source.
+ * Result of a mutable collection factory or type usage in `file` at `line`.
  */
 @Serializable
-data class ImplicitLambdaItResult(
+data class MutableCollectionResult(
     val file: String,
+    val name: String,
     val line: Int,
 )
