@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { lstatSync, readdirSync, readFileSync, readlinkSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
+import * as ts from "typescript@6.0.3";
 
 const root = process.cwd();
 const STACK = "bun" as const;
@@ -104,6 +105,127 @@ function severityOf(manifest: Manifest, category: string): "ERROR" | "WARN" | "I
   const section = readJsonObject(manifest[category]);
   const sev = section.severity;
   return sev === "ERROR" || sev === "WARN" || sev === "INFO" ? sev : "ERROR";
+}
+
+/**
+ * Collect TypeScript/JavaScript source files matching stack configuration.
+ *
+ * Expands glob entries via Bun.Glob, treats literal paths as directories,
+ * filters by configured extensions, and skips node_modules and build directories.
+ *
+ * @param manifest Harness manifest with sourceRootsPerStack and extensionsPerStack.
+ * @param category Stack category (e.g., "typescript").
+ * @return Sorted unique list of source file paths relative to root.
+ */
+function stackSources(manifest: Manifest, category: string): readonly string[] {
+  const parameters = readJsonObject(manifest[category]);
+  const sourceRootsPerStack = readJsonObject(parameters.sourceRootsPerStack);
+  const extensionsPerStack = readJsonObject(parameters.extensionsPerStack);
+
+  const sourceDirs = readStringArray(sourceRootsPerStack[category]);
+  const extensions = new Set(readStringArray(extensionsPerStack[category]));
+
+  if (sourceDirs.length === 0 || extensions.size === 0) {
+    return [];
+  }
+
+  const collected = new Set<string>();
+
+  function* walkDirGen(dirPath: string): Generator<string> {
+    const skip = (name: string) => name === "node_modules" || name === "build";
+
+    if (isSymlink(dirPath)) {
+      return;
+    }
+    if (!isDirectory(dirPath)) {
+      return;
+    }
+
+    try {
+      const entries = readdirSync(pathOf(dirPath));
+      for (const entry of entries) {
+        if (skip(entry)) {
+          continue;
+        }
+        const child = `${dirPath}/${entry}`;
+        const full = pathOf(child);
+        if (lstatSync(full).isSymbolicLink()) {
+          continue;
+        }
+        const stat = statSync(full);
+        if (stat.isDirectory()) {
+          yield* walkDirGen(child);
+        } else if (stat.isFile()) {
+          const ext = child.split(".").pop() ?? "";
+          if (extensions.has(ext)) {
+            yield child;
+          }
+        }
+      }
+    } catch {
+      return;
+    }
+  }
+
+  for (const sourceDir of sourceDirs) {
+    if (sourceDir.includes("*")) {
+      try {
+        const glob = new Bun.Glob(sourceDir);
+        for (const match of glob.scanSync(".")) {
+          const normPath = `${sourceDir.split("/")[0]}/${match}`;
+          const ext = normPath.split(".").pop() ?? "";
+          if (extensions.has(ext)) {
+            collected.add(normPath);
+          }
+        }
+      } catch {
+        continue;
+      }
+    } else {
+      for (const file of walkDirGen(sourceDir)) {
+        collected.add(file);
+      }
+    }
+  }
+
+  return [...collected].sort();
+}
+
+/**
+ * Traverse TypeScript AST to check if a function node contains nested functions or lambdas.
+ *
+ * Uses depth-first visit of all child nodes; returns true if any nested function-like
+ * node is found (excluding the root function itself).
+ *
+ * @param node Function-like node to inspect.
+ * @return True if node contains nested functions or lambdas.
+ */
+function hasNestedFunctions(node: ts.FunctionLike): boolean {
+  let foundNested = false;
+
+  const visit = (child: ts.Node): void => {
+    if (foundNested) {
+      return;
+    }
+    if (child === node) {
+      ts.forEachChild(child, visit);
+      return;
+    }
+    if (
+      ts.isFunctionDeclaration(child) ||
+      ts.isMethodDeclaration(child) ||
+      ts.isFunctionExpression(child) ||
+      ts.isArrowFunction(child) ||
+      ts.isConstructorDeclaration(child)
+    ) {
+      foundNested = true;
+      return;
+    }
+    ts.forEachChild(child, visit);
+  };
+
+  ts.forEachChild(node, visit);
+  return foundNested;
 }
 
 function walkDirectory(path: string): readonly [readonly string[], readonly Finding[]] {
@@ -1087,6 +1209,141 @@ const requireSingleTopLevelKotlinDeclaration: HarnessCheckSpec = {
   },
 };
 
+const forbidGreaterThanComparison: HarnessCheckSpec = {
+  category: "forbidGreaterThanComparison",
+  applies: (manifest) => {
+    const section = manifest.forbidGreaterThanComparison;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    return true;
+  },
+  validate: (root, manifest) => {
+    const sources = stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: ts.SourceFile;
+      try {
+        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      } catch {
+        return [
+          {
+            severity: severityOf(manifest, "forbidGreaterThanComparison"),
+            category: "forbidGreaterThanComparison",
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+
+      const visit = (node: ts.Node): void => {
+        if (ts.isBinaryExpression(node)) {
+          const kind = node.operatorToken.kind;
+          if (kind === ts.SyntaxKind.GreaterThanToken || kind === ts.SyntaxKind.GreaterThanEqualsToken) {
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+            const operator = kind === ts.SyntaxKind.GreaterThanToken ? ">" : ">=";
+            findings.push({
+              severity: severityOf(manifest, "forbidGreaterThanComparison"),
+              category: "forbidGreaterThanComparison",
+              message: `${file}:${line + 1}: forbidden \`${operator}\`; use \`${operator === ">" ? "<" : "<="}\``,
+            });
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  },
+};
+
+const forbidBlankLineInLeafFunction: HarnessCheckSpec = {
+  category: "forbidBlankLineInLeafFunction",
+  applies: (manifest) => {
+    const section = manifest.forbidBlankLineInLeafFunction;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    return true;
+  },
+  validate: (root, manifest) => {
+    const sources = stackSources(manifest, "typescript");
+    return sources.flatMap((file) => {
+      const text = read(file);
+      if (!text) {
+        return [];
+      }
+
+      let sourceFile: ts.SourceFile;
+      try {
+        sourceFile = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      } catch {
+        return [
+          {
+            severity: severityOf(manifest, "forbidBlankLineInLeafFunction"),
+            category: "forbidBlankLineInLeafFunction",
+            message: `failed to parse TypeScript: ${file}`,
+          },
+        ];
+      }
+
+      const findings: Finding[] = [];
+      const lines = text.split(/\r?\n/);
+
+      const visit = (node: ts.Node): void => {
+        if (
+          ts.isFunctionDeclaration(node) ||
+          ts.isMethodDeclaration(node) ||
+          ts.isFunctionExpression(node) ||
+          ts.isArrowFunction(node) ||
+          ts.isConstructorDeclaration(node)
+        ) {
+          const funcLike = node as ts.FunctionLike;
+          if (funcLike.body && !hasNestedFunctions(funcLike)) {
+            const bodyStart = funcLike.body.getStart();
+            const bodyEnd = funcLike.body.getEnd();
+            const startLine = sourceFile.getLineAndCharacterOfPosition(bodyStart).line;
+            const endLine = sourceFile.getLineAndCharacterOfPosition(bodyEnd).line;
+
+            for (let lineIdx = startLine; lineIdx <= endLine; lineIdx++) {
+              const lineText = lines[lineIdx] ?? "";
+              if (lineText.trim() === "") {
+                const funcName =
+                  (ts.isFunctionDeclaration(node) && node.name?.text) ||
+                  (ts.isMethodDeclaration(node) && node.name && ts.isIdentifier(node.name) && node.name.text) ||
+                  "<anonymous>";
+                findings.push({
+                  severity: severityOf(manifest, "forbidBlankLineInLeafFunction"),
+                  category: "forbidBlankLineInLeafFunction",
+                  message: `${file}:${lineIdx + 1}: leaf function \`${funcName}\` contains a blank line; remove or extract the section`,
+                });
+              }
+            }
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+
+      visit(sourceFile);
+      return findings;
+    });
+  },
+};
+
 export const HARNESS_CHECKS: readonly HarnessCheckSpec[] = [
   requireFilesExist,
   requireDirectoriesExist,
@@ -1108,4 +1365,6 @@ export const HARNESS_CHECKS: readonly HarnessCheckSpec[] = [
   forbidUnsafeSymlinks,
   forbidImplicitLambdaIt,
   requireSingleTopLevelKotlinDeclaration,
+  forbidGreaterThanComparison,
+  forbidBlankLineInLeafFunction,
 ] as const;

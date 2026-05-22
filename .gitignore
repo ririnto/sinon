@@ -110,6 +110,7 @@ pip-wheel-metadata/
 
 # Java / Kotlin
 .gradle/
+.kotlin/
 gradle-app.setting
 !gradle-wrapper.jar
 *.class
@@ -121,7 +122,7 @@ gradle-app.setting
 # Harness local generated scratch paths
 **/docs/generated/.tmp/
 **/scripts/harness/.tmp/
-plugins/harness/skills/harness-install/templates/**/bin/
+plugins/harness/skills/harness-install/assets/**/bin/
 
 # Packaged artifacts
 *.tgz
