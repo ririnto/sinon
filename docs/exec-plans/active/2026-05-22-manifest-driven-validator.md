@@ -149,6 +149,16 @@ Metadata entries (severity 없음, validator는 검증 안 함):
 - Java: `safeFileOrWalk` → `collectFilesUnder`, `extractStringList`/`extractWrappedStringList` → `readStringArray`
 - Kotlin: `safeFileOrWalk` → `collectFilesUnder`, `parseStringArray` → `readStringArray`, `parseContentChecks` → `readContentChecks`, `parseLeakPatterns` → `readLeakPatterns`
 
+### Phase 13.5: 모든 stack에서 early/mid return 제거 (조건 reverse)
+
+사용자 지침: 함수 중간에서 `return`/`exit`로 빠져나가지 말고 조건을 reverse해서 single-exit 또는 when/if-else 구조로 표현. validator code가 early return으로 가득하므로 일괄 정리.
+
+- [ ] Task 13.5.1 — Kotlin `HarnessValidationPlugin.kt`: `if (...) return` / `if (...) return@forEach` / `if (...) return null` 패턴을 모두 reverse 조건 + when 표현식으로 교체. sub-validator 함수는 `buildList { if (...) { ... } }` 형태로 single-exit (subagent: general-purpose)
+- [ ] Task 13.5.2 — Java `HarnessValidateMojo.java`: early return 모두 reverse 조건. inner validator 함수가 mid-return 없이 single return List<Finding>으로 구성 (subagent: general-purpose)
+- [ ] Task 13.5.3 — Python `harness_validate.py`: `return ()` early return을 모두 reverse `if`로 교체하고 함수 끝에서 단일 return tuple (subagent: general-purpose)
+- [ ] Task 13.5.4 — TypeScript `harness-validate.ts`: early `return` 모두 reverse 조건 + single return 또는 nested if-else (subagent: general-purpose)
+- [ ] Task 13.5.5 — install-harness.sh의 helper 함수도 `return 0` early return 패턴을 검토. 단 shell script는 early return이 관용적이라 함수당 1건 정도는 허용. orchestrator가 직접 검토 (subagent: harness:harness-architect)
+
 ### Phase 14: Gradle buildSrc 재배치 + assets/ 디렉토리 컨벤션
 
 - [ ] Task 14.1 — skill 디렉토리 컨벤션 정리: `skills/harness-install/templates/` → `skills/harness-install/assets/` (sinon plugin authoring 컨벤션 — skills는 templates 아닌 assets). install-harness.sh가 새 위치를 가리키도록 갱신
