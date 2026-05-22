@@ -97,29 +97,57 @@ manifest의 각 옵션은 `HarnessValidationPlugin`(코어) 위에서 동작하�
 - [ ] Task 12.3 — main `validate()`는 registry를 enumerate해 `if (check.applies(manifest)) addAll(check.validate(root, manifest))` 형태로 호출 (subagent: general-purpose × 4)
 - [ ] Task 12.4 — bun TS의 helper 함수(`isSafeFile`, `walk` 등)가 module-level `manifest` closure에 의존하던 부분을 명시적 인자 전달로 정리 (subagent: general-purpose)
 
-### Phase 13: Manifest schema naming refactor (동작 명시 이름)
+### Phase 13: Self-documenting manifest schema + add-on vs metadata 분리
 
-- [ ] Task 13.1 — manifest.json의 카테고리 이름을 동작 명시 형태로 변경 (subagent: main):
-  - `completedPlanDirectory` + `unfinishedTaskPattern` → `forbidUncheckedTasksUnder { severity, directory, pattern }` (두 옵션 합침)
-  - `emptyDirectoryKeepFiles` → `requireKeepfileInEmptyDirectories`
-  - `templateGroups` → `requiredTemplateGroups`
-  - `requiredContentChecks` → `requiredContent`
-  - `leakPatterns` + `activeAssets` → `forbidScaffoldLeaks { severity, scope: {bases, excludedSubtrees, extensions}, patterns: [...] }` (합침)
-  - `expectedValidationCommands` → `requiredHookCommands`
-  - `hookStages` → `requiredHookStages`
-  - `envShebangBases` → `requireEnvShebangUnder`
-  - `agentFrontmatter` → `requireAgentFrontmatter`
-  - `skillFrontmatter` → `requireSkillFrontmatter`
-  - `hookFirstLine` → `requireHookShebang`
-  - `hookExecutable` → `requireHookExecutable`
-  - `hookGeneratedMarker` → `requireHookGeneratedMarker`
-  - `ciCommandMatch` → `requireCiCommandMatchesHook`
-  - `symlinkSafety` → `forbidUnsafeSymlinks`
-  - `manifestParity` → 옵션 자체 제거(add-on architecture로 자동 만족)
-  - `optionalSeedFiles` → `seedFiles` (검증 카테고리 아님; manifest 메타데이터로만)
-- [ ] Task 13.2 — schemaVersion `0.6.0` bump. 4 validator의 모든 category 문자열도 새 이름으로 일괄 치환 (subagent: general-purpose × 4)
-- [ ] Task 13.3 — bun TS의 함수명 정리: `validateContentChecks` → `validateRequiredContent`, `walk` → `walkDirectory`, `safeFileOrWalk` → `collectFilesUnder`, `manifestArray`/`manifestObject` → `readStringArray`/`readJsonObject` (subagent: general-purpose)
-- [ ] Task 13.4 — 4 stack 모두 함수명을 add-on 클래스 이름과 의미상 일치하게 정리 (subagent: general-purpose × 4)
+직전 schema(0.5.0)는 옵션마다 `severity` + items/value만 두고 동작은 validator 코드에 숨겨져 있었다. 사용자 지적: (a) `severity`가 붙은 옵션 중 일부는 add-on 단위가 아니다(예: `templateGroups`는 데이터 정의일 뿐, `requireTemplateGroups`라는 check가 따로 있어야 한다). (b) 대상 경로가 옵션 안에 명시되어야 한다. (c) manifest 자체가 self-documenting 문서여야 한다.
+
+이를 반영해 manifest를 두 종류 entry로 재구성한다:
+
+- **Check add-on**: `description`(무엇을 검증하는지), `severity`(ERROR|WARN|INFO; 미지정 시 ERROR), 그리고 검증 대상 경로/데이터를 명시한 sub-fields. 1 entry = 1 HarnessCheck add-on.
+- **Metadata / data**: `description`만 두고 severity 없음. validator는 이를 *읽지만 검증하지는 않는다* (예: `seedFiles`, `generatedArtifacts`, `harnessEvolution`, `teamPatterns`).
+
+#### Phase 13.1 — 새 manifest schema 0.6.0 작성 (subagent: main)
+
+Check add-on entries (각 entry는 description + severity + 대상 경로/데이터):
+
+- `requireFilesExist { description, severity, paths }` (← 기존 `requiredFiles`)
+- `requireDirectoriesExist { description, severity, paths }` (← `requiredDirectories`)
+- `requireKeepfileInEmptyDirectories { description, severity, directories }` (← `emptyDirectoryKeepFiles`)
+- `requireTemplateGroups { description, severity, targetRoot: "docs/harness/templates", groups }` (← `templateGroups`)
+- `requireDocHeadings { description, severity, sourceFilesFromCategory: "requireFilesExist", filter: { prefix, suffix }, headings }` (← `requiredDocHeadings`. 대상은 requireFilesExist 결과 중 docs/*.md)
+- `requireDocContent { description, severity, checks: [{ files, containsAll, failureMessage }] }` (← `requiredContentChecks`)
+- `requireAgentFrontmatter { description, severity, directory: ".claude/agents", filenamePattern: "*.md", requiredFields: ["name", "description"], namePattern: "^[-a-z0-9]+$" }`
+- `requireSkillFrontmatter { description, severity, rootDirectory: ".claude/skills", filename: "SKILL.md", requiredFields: ["description"] }`
+- `forbidScaffoldLeaks { description, severity, scope: { bases, excludedSubtrees, extensions }, patterns: [{pattern, label}] }` (← `leakPatterns` + `activeAssets`)
+- `requireHookShebang { description, severity, hooks, expectedShebang: "#!/usr/bin/env sh" }` (← `hookFirstLine`)
+- `requireHookExecutable { description, severity, hooks }`
+- `requireHookGeneratedMarker { description, severity, hooks, markerTemplate: "# Harness generated hook: {name}", placeholderForbidden: "packaged placeholder is replaced during harness installation" }`
+- `requireHookStage { description, severity, stages: { gradle: {pre-commit, pre-push}, maven: ..., uv: ..., bun: ... }, markerTemplate: "# Harness stage: {stage}" }`
+- `requireHookCommand { description, severity, prePushHook, preCommitHook, allowedCommands: { gradle, maven, uv, bun }, allowedPreCommitCommands: { gradle } }`
+- `requireCiCommandMatchesHook { description, severity, ciFiles: [...], referenceHook: "docs/harness/git-hooks/pre-push" }`
+- `requireEnvShebangUnder { description, severity, directories, expectedPrefix: "#!/usr/bin/env " }`
+- `forbidUncheckedTasksUnder { description, severity, directory: "docs/exec-plans/completed", filenamePattern: "*.md", uncheckedTaskPattern: "^\\s*-\\s*\\[ \\]\\s" }`
+- `forbidUnsafeSymlinks { description, severity, allowedSymlinkPairs: [["AGENTS.md", "CLAUDE.md"]] }`
+
+Metadata entries (severity 없음, validator는 검증 안 함):
+
+- `seedFiles { description, paths }` (← `optionalSeedFiles`)
+- `generatedArtifacts { description, path, placeholder, policy, metadata }`
+- `harnessEvolution { description, policy }`
+- `teamPatterns { description, patterns }`
+
+각 entry의 `description`은 그 add-on이 *무엇을, 어디에서, 어떻게* 검증/표현하는지 한 문장으로 명시. manifest를 읽는 사람이 코드를 보지 않고도 동작을 이해할 수 있어야 한다.
+
+#### Phase 13.2 — 4 validator를 새 schema에 맞춰 마이그레이션 (subagent: general-purpose × 4)
+
+각 stack validator는 새 카테고리 이름을 사용하고, 데이터-only entry는 검증 대상에서 제외한다. add-on registry는 Phase 12에서 도입한 인터페이스를 사용한다.
+
+#### Phase 13.3 — 코드 내 함수/식별자 이름 정리 (subagent: general-purpose × 4)
+
+- bun: `walk` → `walkDirectory`, `safeFileOrWalk` → `collectFilesUnder`, `manifestArray`/`manifestObject` → `readStringArray`/`readJsonObject`, `validateContentChecks` → `validateRequiredContent`
+- Python: `safe_walk` → `walk_directory`, `safe_file_or_walk` → `collect_files_under`, `manifest_list` → `read_string_array`
+- Java: `safeFileOrWalk` → `collectFilesUnder`, `extractStringList`/`extractWrappedStringList` → `readStringArray`
+- Kotlin: `safeFileOrWalk` → `collectFilesUnder`, `parseStringArray` → `readStringArray`, `parseContentChecks` → `readContentChecks`, `parseLeakPatterns` → `readLeakPatterns`
 
 ### Phase 14: Gradle buildSrc 재배치 + assets/ 디렉토리 컨벤션
 
