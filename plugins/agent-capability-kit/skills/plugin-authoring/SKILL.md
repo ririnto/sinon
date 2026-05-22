@@ -54,7 +54,7 @@ your-plugin/
 ├── README.md
 ├── commands/
 └── skills/
-```text
+```
 
 Use the matching subset when the plugin ships only one component type. Add `agents/` at the plugin root when the plugin ships agents or subagents, but keep it out of `plugin.json`. Remove any directory the plugin does not actually use, and add other runtime surfaces only when the plugin needs them.
 
@@ -84,7 +84,7 @@ Use the matching subset when the plugin ships only one component type. Add `agen
 
 Use this as the default `.claude-plugin/plugin.json` starting point:
 
-```json
+```
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
@@ -95,11 +95,11 @@ Use this as the default `.claude-plugin/plugin.json` starting point:
   "commands": "./commands/",
   "skills": "./skills/"
 }
-```text
+```
 
 If the plugin ships agents at the plugin root, keep the directory in the plugin tree but leave it out of the manifest:
 
-```json
+```
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
@@ -110,11 +110,11 @@ If the plugin ships agents at the plugin root, keep the directory in the plugin 
   "commands": "./commands/",
   "skills": "./skills/"
 }
-```text
+```
 
 Add optional keys only when the plugin needs the corresponding runtime surface. For example:
 
-```json
+```
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
@@ -127,7 +127,7 @@ Add optional keys only when the plugin needs the corresponding runtime surface. 
   "hooks": "./hooks/hooks.json",
   "settings": "./settings.json"
 }
-```text
+```
 
 This is valid only if `./hooks/hooks.json` and `./settings.json` exist and the plugin actually uses them.
 
@@ -188,15 +188,15 @@ Never treat `${CLAUDE_PLUGIN_ROOT}` as a writable data directory. Open `referenc
 
 Use this command first when checking a real plugin root:
 
-```sh
+```
 uv run -m json.tool .claude-plugin/plugin.json
-```text
+```
 
 The command above validates JSON syntax offline. For runtime validation with a live Claude Code installation, use:
 
-```sh
+```
 claude --plugin-dir /absolute/path/to/your-plugin
-```text
+```
 
 This second command requires a live Claude Code installation and is optional for ordinary offline authoring.
 

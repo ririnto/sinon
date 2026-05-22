@@ -43,7 +43,7 @@ validate_input() {
     fi
     echo "$tool_name"
 }
-```text
+```
 
 Rules:
 
@@ -56,13 +56,13 @@ Rules:
 
 Trusting input without validation:
 
-```sh
+```
 #!/bin/sh
 input=$(cat)
 tool_name=$(printf '%s' "$input" | jq -r '.tool_name')
 # Dangerous: no validation of format or presence
 rm -rf "/projects/$tool_name"
-```text
+```
 
 Risk: `tool_name` could be `..` or `/tmp` or contain spaces, leading to unintended deletions.
 
@@ -70,7 +70,7 @@ Risk: `tool_name` could be `..` or `/tmp` or contain spaces, leading to unintend
 
 ### Correct: reject traversal and sensitive paths
 
-```sh
+```
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -107,7 +107,7 @@ validate_path() {
     fi
     return 0
 }
-```text
+```
 
 Patterns to reject:
 
@@ -118,7 +118,7 @@ Patterns to reject:
 
 ### Correct: system path detection
 
-```sh
+```
 #!/bin/sh
 
 # Reject writes to system directories.
@@ -137,11 +137,11 @@ reject_system_paths() {
     done
     return 0
 }
-```text
+```
 
 ### Broken: insufficient path validation
 
-```sh
+```
 #!/bin/sh
 file_path=$(cat | jq -r '.tool_input.file_path')
 # Only checks for ..
@@ -149,13 +149,13 @@ if [ "$file_path" = "${file_path%..*}" ]; then
     cp "$file_path" /tmp/upload
 fi
 # Risk: allows absolute paths like /etc/passwd
-```text
+```
 
 ## Sensitive file detection
 
 ### Correct: multi-layer detection
 
-```sh
+```
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -183,7 +183,7 @@ detect_sensitive_files() {
     esac
     return 0
 }
-```text
+```
 
 Categories:
 
@@ -196,19 +196,19 @@ Categories:
 
 ### Broken: name-only detection
 
-```sh
+```
 basename=$(basename "$file_path")
 if [ "$basename" = ".env" ]; then
     printf 'deny\n' >&2
 fi
 # Allows /tmp/.env or /other/path/.env without checking
-```text
+```
 
 ## Shell injection prevention
 
 ### Correct: safe command construction
 
-```sh
+```
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -227,7 +227,7 @@ run_command() {
     fi
     "$command" "$arg"
 }
-```text
+```
 
 Safe patterns:
 
@@ -237,18 +237,18 @@ Safe patterns:
 
 ### Broken: command injection via variable
 
-```sh
+```
 #!/bin/sh
 search_term=$(cat | jq -r '.search_term')
 # Dangerous: search_term could be '; rm -rf /'
 grep "$search_term" /tmp/file.txt
-```text
+```
 
 ## Numeric validation
 
 ### Correct: type and range checking
 
-```sh
+```
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -269,20 +269,20 @@ validate_numeric() {
     fi
     echo "$max_value"
 }
-```text
+```
 
 ### Broken: trusting numeric input
 
-```sh
+```
 max_value=$(cat | jq -r '.max_value')
 if [ "$max_value" -gt 100 ]; then
     # Risk: max_value could be non-numeric or contain operators
 fi
-```text
+```
 
 ## Complete example: hardened PreToolUse hook
 
-```sh
+```
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 # shellcheck disable=SC2034
@@ -325,13 +325,13 @@ main() {
     exit 0
 }
 main
-```text
+```
 
 ## Testing security patterns
 
 Validate hook script with sample attack payloads:
 
-```sh
+```
 cat > /tmp/test-attack.json << 'EOF'
 {
   "tool_name": "Write",
@@ -343,11 +343,11 @@ EOF
 
 sh hooks/validate.sh < /tmp/test-attack.json
 # Expected: deny output on stderr, exit 2
-```text
+```
 
 Test with various paths:
 
-```sh
+```
 # Path traversal
 echo '{"tool_name":"Write","tool_input":{"file_path":"../../../etc/passwd"}}' | sh hooks/validate.sh
 
@@ -359,7 +359,7 @@ echo '{"tool_name":"Write","tool_input":{"file_path":"/usr/bin/malware"}}' | sh 
 
 # Safe path (should succeed)
 echo '{"tool_name":"Write","tool_input":{"file_path":"src/index.js"}}' | sh hooks/validate.sh
-```text
+```
 
 ## References
 

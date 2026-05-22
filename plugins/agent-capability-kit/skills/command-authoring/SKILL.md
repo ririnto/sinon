@@ -60,7 +60,7 @@ Example:
 description: >-
   Review one Markdown file for structure, clarity, and missing sections. Use when a document needs a fast editorial quality pass.
 ---
-```text
+```
 
 ### Common optional fields
 
@@ -86,7 +86,7 @@ Do not add frontmatter fields as decoration. If removing a field would not chang
 
 Example with common optional fields:
 
-```yaml
+```
 ---
 description: >-
   Review one pull request for risk, missing tests, and merge blockers. Use when preparing a merge recommendation.
@@ -97,7 +97,7 @@ allowed-tools:
   - Bash(git *)
 disable-model-invocation: true
 ---
-```text
+```
 
 ## Command body order
 
@@ -115,7 +115,7 @@ This order keeps commands readable during invocation and makes the runtime path 
 
 Example body shape:
 
-```markdown
+```
 # Review Markdown
 
 Review one Markdown file and return a concise rewrite plan.
@@ -147,7 +147,7 @@ Return:
 1. The main issues
 2. Recommended fixes
 3. Any remaining ambiguity
-```text
+```
 
 ## Argument handling rules
 
@@ -160,7 +160,7 @@ Return:
 
 Good:
 
-```yaml
+```
 ---
 description: >-
   Summarize one log file for error clusters and likely causes. Use when triaging a local failure report.
@@ -169,9 +169,9 @@ allowed-tools:
   - Read
   - Grep
 ---
-```text
+```
 
-```markdown
+```
 ## Inputs
 
 - `log-file`: path from `$1`
@@ -179,13 +179,13 @@ allowed-tools:
 ## Ambiguity behavior
 
 - If `$1` is missing, stop and request the log file path.
-```text
+```
 
 Avoid:
 
-```markdown
+```
 Review the file the user probably means and do the usual thing.
-```text
+```
 
 ## Ambiguity behavior
 
@@ -198,13 +198,13 @@ Commands should resolve ordinary cases without extra discussion. When ambiguity 
 
 Example:
 
-```markdown
+```
 ## Ambiguity behavior
 
 - If the target path contains multiple matching files, review only the file named in `$1`.
 - If `$1` points outside `docs/`, continue only if the command explicitly allows broader scope.
 - If required context is absent, report the blocker instead of guessing.
-```text
+```
 
 ## Output expectations
 
@@ -217,7 +217,7 @@ Every command should say what the final response must contain.
 
 Example:
 
-```markdown
+```
 ## Output contract
 
 Return:
@@ -226,18 +226,18 @@ Return:
 2. The full Markdown command
 3. A short note explaining the argument model
 4. A short note explaining any remaining blocker or risk
-```text
+```
 
 ## First safe local checks
 
 Use simple local inspection before deeper validation:
 
-```text
+```
 Read `commands/your-command.md` and confirm:
 - the frontmatter contains only needed fields
 - the body order is clear
 - arguments, ambiguity behavior, and output contract are explicit
-```text
+```
 
 If you need a starting point or comparison set, use the optional files in this skill directory.
 

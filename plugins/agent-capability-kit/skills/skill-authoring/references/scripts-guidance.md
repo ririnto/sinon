@@ -43,7 +43,7 @@ Mention the script in `SKILL.md` like this:
 
 ```markdown
 - `scripts/validate.py` - Run when a deterministic structure check is safer as code than prose.
-```text
+```
 
 Do not write the main workflow so that readers must inspect the script source before they can follow the ordinary path.
 
@@ -61,16 +61,16 @@ Shell scripts have no equivalent dependency metadata block. Document required co
 
 ### Good decision
 
-```text
+```
 Need: Verify that every example file contains required frontmatter keys.
 Choice: Add scripts/validate.py because the check is deterministic and repetitive.
-```text
+```
 
 ### Bad decision
 
-```text
+```
 Need: Explain how to choose a good description.
 Choice: Add a validator service or web-based scoring tool.
-```text
+```
 
 That second case belongs in prose and checklists, not in a mandatory script.

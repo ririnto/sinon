@@ -13,11 +13,11 @@ allowed-tools:
   - Read
   - Grep
 ---
-```text
+```
 
 ## Manual command with arguments
 
-```markdown
+```
 ---
 description: >-
   Review one pull request for risk, missing tests, and merge blockers. Use when preparing a merge recommendation.
@@ -28,11 +28,11 @@ allowed-tools:
   - Grep
   - Bash(git *)
 ---
-```text
+```
 
 ## Hidden helper command
 
-```markdown
+```
 ---
 description: >-
   Gather repository context for a later summarization step. Use when a hidden preparation command is needed before a visible review command runs.
@@ -41,11 +41,11 @@ allowed-tools:
   - Read
   - Grep
 ---
-```text
+```
 
 ## Path-scoped command
 
-```markdown
+```
 ---
 description: >-
   Review database migration files for locking and rollback safety. Use when changes are limited to SQL migrations.
