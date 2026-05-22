@@ -1,16 +1,49 @@
 # Quality Score
 
-Grade each product domain and architectural layer; track gaps, remediation owners, and the validation evidence behind each grade.
-
 ## Purpose
 
-Make uneven quality legible. Agents and reviewers SHOULD use this score to decide where new investment pays off and where shortcuts are tolerable.
+QUALITY_SCORE.md grades each product domain and architectural layer on an ordinal scale so that doc-gardening, refactoring, and tech-debt prioritization can be steered by current quality gaps rather than gut feel.
+
+## Grading Scale
+
+- A: meets every invariant; documentation, tests, and runtime contracts are complete and aligned.
+- B: minor gaps under a remediation plan; scheduled closure tracked in tech-debt-tracker.
+- C: meaningful gaps tracked in tech-debt-tracker; affects some new work but blocks nothing critical.
+- D: actively misaligned, blocks new work; requires immediate remediation before feature expansion.
+
+Target teams may adjust the labels and number of levels but MUST keep them ordinal and small.
+
+## Domain Scores
+
+Replace the example row below with entries for each product domain in this repository.
+
+| Domain | Score | Gaps | Retirement criteria | Owner |
+| --- | --- | --- | --- | --- |
+| Example Domain | B | docs/ARCHITECTURE.md sections need refresh | all-hands review; test coverage ≥ 90% | example-owner |
+
+## Layer Scores
+
+Replace the example row below with entries for each architectural layer.
+
+| Layer | Score | Gaps | Retirement criteria | Owner |
+| --- | --- | --- | --- | --- |
+| API Contract | A | none tracked | N/A | api-owner |
+
+## Gap Tracking
+
+Each gap MUST be either (a) linked to an entry in `docs/exec-plans/tech-debt-tracker.md` with retirement criteria, or (b) linked to an active execution plan that will close it.
+
+- Example: [docs/exec-plans/tech-debt-tracker.md#example-domain-docs](docs/exec-plans/tech-debt-tracker.md#example-domain-docs)
 
 ## When To Update
 
-Update after a domain or layer ships a measurable change to coverage, observability, error rate, or correctness checks; or when a graded gap is closed.
+- After each meaningful refactor that changes quality criteria or coverage.
+- When a new validation surface is added that changes grading requirements.
+- On a recurring doc-gardening cadence (for example quarterly).
+- When a gap is closed or a new gap is discovered.
 
 ## Required Evidence
 
-- Cite the metric source (CI run, dashboard, audit) that justifies the grade.
-- When grading a gap, name the owner and the remediation criterion that retires it.
+- Link to validator output, test report, or review comment that supports each score change.
+- Link to the matching entry in `docs/exec-plans/tech-debt-tracker.md` for any tracked gap.
+- Timestamp and author on each update so the gardening process can track velocity.
