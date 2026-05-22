@@ -1,5 +1,10 @@
 #!/usr/bin/env bun
-import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "../harness-check-rule";
+import type {
+	Finding,
+	HarnessCheckRule,
+	HarnessManifest,
+	RuleContext,
+} from "../harness-check-rule";
 
 /**
  * Require specified template groups to exist.

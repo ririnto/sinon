@@ -6,6 +6,7 @@ import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -34,12 +35,18 @@ public enum ForbidScaffoldLeaksRule implements HarnessCheckRule {
         final Pattern extPattern = Pattern.compile(extRegex);
         return HarnessCheckHelper.extractPaths(scope.get("bases")).stream()
                 .flatMap(baseName -> {
+                    final Path base = root.resolve(baseName);
                     try {
-                        final Path base = root.resolve(baseName);
-                        return HarnessCheckHelper.safeFileOrWalk(root, base).stream()
-                                .filter(file -> !excludedPaths.stream().anyMatch(file::startsWith))
-                                .filter(file -> extPattern.matcher(file.toString()).matches())
-                                .flatMap(file -> checkLeaks(root, file, patternsNode, severity).stream());
+                        return HarnessCheckHelper.safeFileOrWalk(root, base).stream();
+                    } catch (MojoExecutionException e) {
+                        return Stream.empty();
+                    }
+                })
+                .filter(file -> !excludedPaths.stream().anyMatch(file::startsWith))
+                .filter(file -> extPattern.matcher(file.toString()).matches())
+                .flatMap(file -> {
+                    try {
+                        return checkLeaks(root, file, patternsNode, severity).stream();
                     } catch (MojoExecutionException e) {
                         return Stream.empty();
                     }

@@ -7,6 +7,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -28,11 +29,17 @@ public enum RequireEnvShebangUnderRule implements HarnessCheckRule {
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("directories")).stream()
                 .flatMap(dir -> {
+                    final Path dirPath = root.resolve(dir);
                     try {
-                        final Path dirPath = root.resolve(dir);
-                        return HarnessCheckHelper.safeFileOrWalk(root, dirPath).stream()
-                                .filter(Files::isExecutable)
-                                .flatMap(file -> validateShebang(root, file, expectedPrefix, severity).stream());
+                        return HarnessCheckHelper.safeFileOrWalk(root, dirPath).stream();
+                    } catch (MojoExecutionException e) {
+                        return Stream.empty();
+                    }
+                })
+                .filter(Files::isExecutable)
+                .flatMap(file -> {
+                    try {
+                        return validateShebang(root, file, expectedPrefix, severity).stream();
                     } catch (MojoExecutionException e) {
                         return Stream.empty();
                     }

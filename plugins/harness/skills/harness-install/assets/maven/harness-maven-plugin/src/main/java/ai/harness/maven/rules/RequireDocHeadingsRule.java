@@ -6,6 +6,7 @@ import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -36,13 +37,18 @@ public enum RequireDocHeadingsRule implements HarnessCheckRule {
 
     private List<Finding> validateHeadings(Path root, String file, List<String> headings, String severity) throws MojoExecutionException {
         final Path filePath = root.resolve(file);
-        if (HarnessCheckHelper.isSafeRegularFile(root, filePath)) {
-            final String text = HarnessCheckHelper.readFile(root, filePath);
-            return headings.stream()
-                    .filter(h -> !text.contains(h))
-                    .map(h -> new Finding(severity, CATEGORY, "doc missing " + h + ": " + file))
-                    .toList();
-        }
-        return List.of();
+        return Stream.of(filePath)
+                .filter(p -> HarnessCheckHelper.isSafeRegularFile(root, p))
+                .map(p -> {
+                    try {
+                        return HarnessCheckHelper.readFile(root, p);
+                    } catch (MojoExecutionException e) {
+                        return "";
+                    }
+                })
+                .flatMap(text -> headings.stream()
+                        .filter(h -> !text.contains(h))
+                        .map(h -> new Finding(severity, CATEGORY, "doc missing " + h + ": " + file)))
+                .toList();
     }
 }
