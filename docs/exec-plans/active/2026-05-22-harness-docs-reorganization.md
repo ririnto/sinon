@@ -58,6 +58,15 @@ sinon 루트는 `AGENTS.md → CLAUDE.md` symlink (sinon CLAUDE.md에 명시된 
 - [ ] Task 5.3 — uv adapter: `harness_validate.py`의 default manifest path 갱신, 가변 list 사용을 list-comprehension/tuple/`itertools.chain`로 대체, validator를 별도 함수/dataclass로 분리, completed-plan checker, `uv/README.md` 사용 예시 갱신 (subagent: general-purpose)
 - [ ] Task 5.4 — bun adapter: `harness-validate.ts`의 default manifest path 갱신, `let arr: T[] = []; arr.push(...)` 패턴을 `const arr: readonly T[] = [...]` 또는 `flatMap`/`filter`로 대체, validator를 별도 module/function으로 분리, completed-plan checker, `bun/README.md` 사용 예시 갱신 (subagent: general-purpose)
 
+### Phase 5.9: Manifest-driven validator consolidation
+
+각 stack validator가 `REQUIRED_FILES`, `REQUIRED_DIRECTORIES`, `LEAK_PATTERNS`, `REQUIRED_DOC_HEADINGS`, `OPTIONAL_SEED_FILES`, `TEMPLATE_GROUPS`, `EXPECTED_VALIDATION_COMMAND`, active asset base 목록 등을 각자 hardcode하는 구조는 drift 위험과 코드 중복을 만든다. 이 모든 검증 대상을 `docs/harness/manifest.json`이 단일 source of truth로 보유하게 하고, 각 stack adapter는 manifest를 읽어 단순 loop만 돌도록 슬림화한다.
+
+- [ ] Task 5.9.1 — `templates/common/docs/harness/manifest.json` 스키마 확장: `requiredDocHeadings`, `leakPatterns`(객체 배열: pattern, label, multiline flag), `activeAssetBases`, `excludedActiveAssetSubtrees`, `requiredContentChecks`(객체 배열: file, mustContain, failureMessage), `expectedValidationCommands`(stack → command), `completedPlanDirectory`(고정 "docs/exec-plans/completed") 등을 추가 (subagent: main)
+- [ ] Task 5.9.2 — Gradle validator를 manifest 기반으로 슬림화. 검증 영역 분리는 manifest field 단위(예: StructureValidator, ContentValidator)로 축소하되 10+개 inner class까지 늘리지 않는다. (subagent: main)
+- [ ] Task 5.9.3 — Maven, uv, bun validator도 동일하게 manifest 기반으로 슬림화 (subagent: general-purpose × 3 또는 main)
+- [ ] Task 5.9.4 — 모든 validator의 hardcoded list가 사라졌는지 grep으로 검증 (subagent: main)
+
 ### Phase 6: Update SKILL.md and agent files
 
 - [ ] Task 6.1 — Plugin skills (`harness-install`, `harness-validate`, `harness-evolve`) SKILL.md의 모든 `.claude/harness/` 참조 갱신 (subagent: general-purpose)

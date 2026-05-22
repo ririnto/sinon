@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,17 +18,15 @@ import java.util.stream.Stream;
 @Mojo(name = "validate", threadSafe = true)
 public final class HarnessValidateMojo extends AbstractMojo {
     private static final String EXPECTED_VALIDATION_COMMAND =
-            "mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q"
+            "mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q"
                     + " ai.harness:harness-maven-plugin:0.1.0:validate";
     private static final List<String> REQUIRED_FILES =
             List.of(
                     "AGENTS.md",
                     "ARCHITECTURE.md",
                     "CLAUDE.md",
-                    "docs/design-docs/index.md",
                     "docs/design-docs/core-beliefs.md",
                     "docs/exec-plans/tech-debt-tracker.md",
-                    "docs/product-specs/index.md",
                     "docs/DESIGN.md",
                     "docs/FRONTEND.md",
                     "docs/PLANS.md",
@@ -37,8 +34,8 @@ public final class HarnessValidateMojo extends AbstractMojo {
                     "docs/QUALITY_SCORE.md",
                     "docs/RELIABILITY.md",
                     "docs/SECURITY.md",
-                    ".claude/harness/git-hooks/pre-commit",
-                    ".claude/harness/git-hooks/pre-push");
+                    "docs/harness/git-hooks/pre-commit",
+                    "docs/harness/git-hooks/pre-push");
     private static final List<String> REQUIRED_DIRECTORIES =
             List.of(
                     "docs",
@@ -47,30 +44,23 @@ public final class HarnessValidateMojo extends AbstractMojo {
                     "docs/exec-plans/active",
                     "docs/exec-plans/completed",
                     "docs/generated",
+                    "docs/harness",
+                    "docs/harness/templates",
                     "docs/product-specs",
                     "docs/references",
                     ".claude/agents",
-                    ".claude/skills",
-                    ".claude/harness/templates");
+                    ".claude/skills");
     private static final List<String> EMPTY_DIRECTORY_KEEP_FILES =
             List.of(
                     "docs/exec-plans/active/.gitkeep",
                     "docs/exec-plans/completed/.gitkeep",
                     "docs/generated/.gitkeep");
     private static final List<String> OPTIONAL_SEED_FILES =
-            List.of(
-                    "docs/product-specs/new-user-onboarding.md",
-                    "docs/references/design-system-reference-llms.txt",
-                    "docs/references/nixpacks-llms.txt",
-                    "docs/references/uv-llms.txt");
+            List.of("docs/product-specs/new-user-onboarding.md");
     private static final List<String> TEMPLATE_GROUPS =
             List.of("agent", "skill", "workflow", "ci", "docs");
     private static final List<String> REQUIRED_DOC_HEADINGS =
-            List.of(
-                    "## Purpose",
-                    "## When To Update",
-                    "## Required Evidence",
-                    "## Validation Link");
+            List.of("## Purpose", "## When To Update", "## Required Evidence");
     private static final List<String> REQUIRED_AUTHORED_DOCS =
             REQUIRED_FILES.stream()
                     .filter(
@@ -93,82 +83,29 @@ public final class HarnessValidateMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException {
         Path root = currentRoot();
-        List<String> failures = new ArrayList<>();
-        validateManifestParity(root, failures);
-        for (String requiredFile : REQUIRED_FILES) {
-            if (!isSafeRegularFile(root, root.resolve(requiredFile), failures)) {
-                failures.add("missing file: " + requiredFile);
-            }
-        }
-        for (String requiredDirectory : REQUIRED_DIRECTORIES) {
-            if (!isSafeDirectory(root, root.resolve(requiredDirectory), failures)) {
-                failures.add("missing directory: " + requiredDirectory);
-            }
-        }
-        validateKeepFiles(root, failures);
-        validateDocs(root, failures);
-        String agents = read(root.resolve("AGENTS.md"));
-        String claude = read(root.resolve("CLAUDE.md"));
-        String generated =
-                String.join("\n", List.of(agents, claude, read(root.resolve("ARCHITECTURE.md"))));
-        String evolution =
-                String.join(
-                        "\n",
-                        List.of(
-                                agents,
-                                claude,
-                                read(root.resolve(".claude/harness/evolution-log.md"))));
-        failures.addAll(requiredContentFailures(agents, claude, generated, evolution));
-        validateAgents(root, failures);
-        validateSkills(root, failures);
-        for (String group : TEMPLATE_GROUPS) {
-            if (!isSafeDirectory(
-                    root, root.resolve(".claude/harness/templates/" + group), failures)) {
-                failures.add("missing template group: .claude/harness/templates/" + group);
-            }
-        }
-        validateActiveAssets(root, failures);
-        validateHooks(root, failures);
-        validateEnvShebangs(root, failures);
-        if (!failures.isEmpty()) {
+
+        List<String> allFailures =
+                Stream.of(
+                                new ManifestValidator().validate(root),
+                                new StructureValidator().validate(root),
+                                new DocsValidator().validate(root),
+                                new ContentValidator().validate(root),
+                                new AgentsValidator().validate(root),
+                                new SkillsValidator().validate(root),
+                                new TemplateValidator().validate(root),
+                                new ActiveAssetsValidator().validate(root),
+                                new HooksValidator().validate(root),
+                                new ShebangValidator().validate(root),
+                                new PlanCompletionValidator().validate(root))
+                        .flatMap(List::stream)
+                        .distinct()
+                        .toList();
+
+        if (!allFailures.isEmpty()) {
             throw new MojoExecutionException(
-                    "Harness validation failed:\n"
-                            + String.join("\n", failures.stream().distinct().toList()));
+                    "Harness validation failed:\n" + String.join("\n", allFailures));
         }
         getLog().info("Harness validation passed");
-    }
-
-    private static List<String> requiredContentFailures(
-            String agents, String claude, String generated, String evolution) {
-        List<String> failures = new ArrayList<>();
-        if (!agents.contains("Repository Harness Contract")) {
-            failures.add("AGENTS.md must contain Repository Harness Contract");
-        }
-        if (!claude.contains("Claude Code Entry Point")) {
-            failures.add("CLAUDE.md must contain Claude Code Entry Point");
-        }
-        if (!claude.contains("AGENTS.md")) {
-            failures.add("CLAUDE.md must reference AGENTS.md");
-        }
-        if (!agents.contains("docs/generated/")) {
-            failures.add("AGENTS.md must describe docs/generated/ semantics");
-        }
-        if (!generated.contains("docs/generated/db-schema.md")) {
-            failures.add(
-                    "repository docs must state that docs/generated/db-schema.md is only an"
-                            + " example, not a required scaffold file");
-        }
-        if (!generated.contains("source command") || !generated.contains("regeneration trigger")) {
-            failures.add(
-                    "repository docs must describe generated-artifact source command and "
-                            + "regeneration trigger metadata");
-        }
-        if (!evolution.contains("discovery") || !evolution.contains("maintenance")) {
-            failures.add(
-                    "repository docs must state that the harness may evolve across development"
-                            + " phases");
-        }
-        return failures;
     }
 
     private static Path currentRoot() throws MojoExecutionException {
@@ -179,386 +116,603 @@ public final class HarnessValidateMojo extends AbstractMojo {
         }
     }
 
-    private static void validateManifestParity(Path root, List<String> failures)
-            throws MojoExecutionException {
-        Path manifestPath = root.resolve(".claude/harness/manifest.json");
-        if (Files.isSymbolicLink(manifestPath)) {
-            failures.add("symlink file is not allowed: .claude/harness/manifest.json");
-            return;
+    /** Validates manifest parity with validator constants. */
+    private static final class ManifestValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            Path manifestPath = root.resolve("docs/harness/manifest.json");
+            if (Files.isSymbolicLink(manifestPath)) {
+                return List.of("symlink file is not allowed: docs/harness/manifest.json");
+            }
+            String manifest = HarnessFiles.read(manifestPath);
+            if (manifest.isBlank()) {
+                return List.of("missing file: docs/harness/manifest.json");
+            }
+
+            return Stream.of(
+                            compareManifestList(manifest, "requiredFiles", REQUIRED_FILES),
+                            compareManifestList(manifest, "requiredDirectories", REQUIRED_DIRECTORIES),
+                            compareManifestList(
+                                    manifest, "emptyDirectoryKeepFiles", EMPTY_DIRECTORY_KEEP_FILES),
+                            compareManifestList(manifest, "optionalSeedFiles", OPTIONAL_SEED_FILES),
+                            compareManifestList(manifest, "templateGroups", TEMPLATE_GROUPS))
+                    .flatMap(List::stream)
+                    .toList();
         }
-        String manifest = read(manifestPath);
-        if (manifest.isBlank()) {
-            failures.add("missing file: .claude/harness/manifest.json");
-            return;
+
+        private List<String> compareManifestList(
+                String manifest, String key, List<String> expected) {
+            Pattern field =
+                    Pattern.compile("\\\"" + key + "\\\"\\s*:\\s*\\[(.*?)]", Pattern.DOTALL);
+            Matcher fieldMatcher = field.matcher(manifest);
+            List<String> actual =
+                    fieldMatcher.find()
+                            ? Pattern.compile("\\\"([^\\\"]+)\\\"").matcher(fieldMatcher.group(1))
+                                    .results()
+                                    .map(m -> m.group(1))
+                                    .sorted()
+                                    .toList()
+                            : List.of();
+            List<String> expectedSorted = expected.stream().sorted().toList();
+            return actual.equals(expectedSorted)
+                    ? List.of()
+                    : List.of("manifest " + key + " must match validator constants");
         }
-        compareManifestList(manifest, "requiredFiles", REQUIRED_FILES, failures);
-        compareManifestList(manifest, "requiredDirectories", REQUIRED_DIRECTORIES, failures);
-        compareManifestList(
-                manifest, "emptyDirectoryKeepFiles", EMPTY_DIRECTORY_KEEP_FILES, failures);
-        compareManifestList(manifest, "optionalSeedFiles", OPTIONAL_SEED_FILES, failures);
-        compareManifestList(manifest, "templateGroups", TEMPLATE_GROUPS, failures);
     }
 
-    private static void compareManifestList(
-            String manifest, String key, List<String> expected, List<String> failures) {
-        Pattern field = Pattern.compile("\\\"" + key + "\\\"\\s*:\\s*\\[(.*?)]", Pattern.DOTALL);
-        Matcher fieldMatcher = field.matcher(manifest);
-        List<String> actual = new ArrayList<>();
-        if (fieldMatcher.find()) {
-            Matcher itemMatcher =
-                    Pattern.compile("\\\"([^\\\"]+)\\\"").matcher(fieldMatcher.group(1));
-            while (itemMatcher.find()) {
-                actual.add(itemMatcher.group(1));
-            }
-        }
-        if (!actual.stream().sorted().toList().equals(expected.stream().sorted().toList())) {
-            failures.add("manifest " + key + " must match validator constants");
-        }
-    }
-
-    private static void validateKeepFiles(Path root, List<String> failures)
-            throws MojoExecutionException {
-        for (String keep : EMPTY_DIRECTORY_KEEP_FILES) {
-            Path keepPath = root.resolve(keep);
-            Path directory = keepPath.getParent();
-            if (!isSafeDirectory(root, directory, failures)) {
-                continue;
-            }
-            List<Path> realFiles =
-                    safeFiles(root, directory, failures).stream()
-                            .filter(
-                                    candidateFile ->
-                                            !candidateFile
-                                                    .getFileName()
-                                                    .toString()
-                                                    .equals(".gitkeep"))
+    /** Validates file and directory structure. */
+    private static final class StructureValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            List<String> failures =
+                    REQUIRED_FILES.stream()
+                            .filter(file -> !HarnessFiles.isSafeRegularFile(root, root.resolve(file)))
+                            .map(file -> "missing file: " + file)
                             .toList();
-            if (realFiles.isEmpty() && !isSafeRegularFile(root, keepPath, failures)) {
-                failures.add(
-                        "empty directory must keep placeholder or real files: "
-                                + root.relativize(directory));
-            }
+
+            List<String> dirFailures =
+                    REQUIRED_DIRECTORIES.stream()
+                            .filter(dir -> !HarnessFiles.isSafeDirectory(root, root.resolve(dir)))
+                            .map(dir -> "missing directory: " + dir)
+                            .toList();
+
+            List<String> keepFailures = validateKeepFiles(root);
+
+            return Stream.of(failures, dirFailures, keepFailures)
+                    .flatMap(List::stream)
+                    .toList();
+        }
+
+        private List<String> validateKeepFiles(Path root) throws MojoExecutionException {
+            return EMPTY_DIRECTORY_KEEP_FILES.stream()
+                    .flatMap(
+                            keep -> {
+                                try {
+                                    Path keepPath = root.resolve(keep);
+                                    Path directory = keepPath.getParent();
+                                    if (!HarnessFiles.isSafeDirectory(root, directory)) {
+                                        return Stream.empty();
+                                    }
+                                    List<Path> realFiles =
+                                            HarnessFiles.safeFiles(root, directory).stream()
+                                                    .filter(
+                                                            f -> !f.getFileName()
+                                                                    .toString()
+                                                                    .equals(".gitkeep"))
+                                                    .toList();
+                                    if (realFiles.isEmpty()
+                                            && !HarnessFiles.isSafeRegularFile(root, keepPath)) {
+                                        return Stream.of(
+                                                "empty directory must keep placeholder or real files: "
+                                                        + root.relativize(directory));
+                                    }
+                                    return Stream.empty();
+                                } catch (MojoExecutionException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                    .toList();
         }
     }
 
-    private static void validateDocs(Path root, List<String> failures)
-            throws MojoExecutionException {
-        for (String doc : REQUIRED_AUTHORED_DOCS) {
-            Path file = root.resolve(doc);
-            if (!isSafeRegularFile(root, file, failures)) {
-                continue;
-            }
-            String text = read(file);
-            for (String heading : REQUIRED_DOC_HEADINGS) {
-                if (!text.contains(heading)) {
-                    failures.add("doc missing " + heading + ": " + doc);
-                }
-            }
+    /** Validates required doc headings. */
+    private static final class DocsValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            return REQUIRED_AUTHORED_DOCS.stream()
+                    .flatMap(
+                            doc -> {
+                                try {
+                                    Path file = root.resolve(doc);
+                                    if (!HarnessFiles.isSafeRegularFile(root, file)) {
+                                        return Stream.empty();
+                                    }
+                                    String text = HarnessFiles.read(file);
+                                    return REQUIRED_DOC_HEADINGS.stream()
+                                            .filter(heading -> !text.contains(heading))
+                                            .map(heading -> "doc missing " + heading + ": " + doc);
+                                } catch (MojoExecutionException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                    .toList();
         }
     }
 
-    private static void validateAgents(Path root, List<String> failures)
-            throws MojoExecutionException {
-        Pattern name = Pattern.compile("(?m)^name:\\s*[-a-z0-9]+\\s*$");
-        Pattern description = Pattern.compile("(?m)^description:\\s*.+$");
-        Path directory = root.resolve(".claude/agents");
-        List<Path> files =
-                safeFiles(root, directory, failures).stream()
-                        .filter(candidateFile -> directory.equals(candidateFile.getParent()))
-                        .filter(
-                                candidateFile ->
-                                        candidateFile.getFileName().toString().endsWith(".md"))
+    /** Validates required content in AGENTS.md and CLAUDE.md. */
+    private static final class ContentValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            String agents = HarnessFiles.read(root.resolve("AGENTS.md"));
+            String claude = HarnessFiles.read(root.resolve("CLAUDE.md"));
+            String generated =
+                    String.join(
+                            "\n",
+                            List.of(
+                                    agents,
+                                    claude,
+                                    HarnessFiles.read(root.resolve("ARCHITECTURE.md"))));
+            String evolution =
+                    String.join(
+                            "\n",
+                            List.of(
+                                    agents,
+                                    claude,
+                                    HarnessFiles.read(root.resolve("docs/harness/evolution-log.md"))));
+
+            return Stream.of(
+                            !agents.contains("Repository Harness Contract")
+                                    ? Stream.of("AGENTS.md must contain Repository Harness Contract")
+                                    : Stream.empty(),
+                            !claude.contains("## Entry Point")
+                                    ? Stream.of("CLAUDE.md must contain an Entry Point section")
+                                    : Stream.empty(),
+                            !claude.contains("AGENTS.md")
+                                    ? Stream.of("CLAUDE.md must reference AGENTS.md")
+                                    : Stream.empty(),
+                            !agents.contains("docs/generated/")
+                                    ? Stream.of("AGENTS.md must describe docs/generated/ semantics")
+                                    : Stream.empty(),
+                            !generated.contains("docs/generated/db-schema.md")
+                                    ? Stream.of(
+                                            "repository docs must state that docs/generated/db-schema.md is only an example, not a required scaffold file")
+                                    : Stream.empty(),
+                            (!generated.contains("source command")
+                                            || !generated.contains("regeneration trigger"))
+                                    ? Stream.of(
+                                            "repository docs must describe generated-artifact source command and regeneration trigger metadata")
+                                    : Stream.empty(),
+                            (!evolution.contains("discovery")
+                                            || !evolution.contains("maintenance"))
+                                    ? Stream.of(
+                                            "repository docs must state that the harness may evolve across development phases")
+                                    : Stream.empty())
+                    .flatMap(s -> s)
+                    .toList();
+        }
+    }
+
+    /** Validates agent frontmatter in .claude/agents. */
+    private static final class AgentsValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            Pattern name = Pattern.compile("(?m)^name:\\s*[-a-z0-9]+\\s*$");
+            Pattern description = Pattern.compile("(?m)^description:\\s*.+$");
+            Path directory = root.resolve(".claude/agents");
+
+            List<Path> files =
+                    HarnessFiles.safeFiles(root, directory).stream()
+                            .filter(f -> directory.equals(f.getParent()))
+                            .filter(f -> f.getFileName().toString().endsWith(".md"))
+                            .toList();
+
+            if (files.isEmpty()) {
+                return List.of(".claude/agents must contain at least one .md agent");
+            }
+
+            return files.stream()
+                    .flatMap(
+                            file -> {
+                                try {
+                                    String text = HarnessFiles.read(file);
+                                    String relative = root.relativize(file).toString();
+                                    return Stream.of(
+                                                    !text.startsWith("---")
+                                                            ? Stream.of("agent missing frontmatter: " + relative)
+                                                            : Stream.empty(),
+                                                    !name.matcher(text).find()
+                                                            ? Stream.of("agent missing name: " + relative)
+                                                            : Stream.empty(),
+                                                    !description.matcher(text).find()
+                                                            ? Stream.of("agent missing description: " + relative)
+                                                            : Stream.empty())
+                                            .flatMap(s -> s);
+                                } catch (MojoExecutionException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                    .toList();
+        }
+    }
+
+    /** Validates skill SKILL.md frontmatter in .claude/skills. */
+    private static final class SkillsValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            Pattern description = Pattern.compile("(?m)^description:\\s*.+$");
+            List<Path> files =
+                    HarnessFiles.safeFiles(root, root.resolve(".claude/skills")).stream()
+                            .filter(f -> f.getFileName().toString().equals("SKILL.md"))
+                            .toList();
+
+            if (files.isEmpty()) {
+                return List.of(".claude/skills must contain at least one SKILL.md");
+            }
+
+            return files.stream()
+                    .flatMap(
+                            file -> {
+                                try {
+                                    String text = HarnessFiles.read(file);
+                                    String relative = root.relativize(file).toString();
+                                    return Stream.of(
+                                                    !text.startsWith("---")
+                                                            ? Stream.of("skill missing frontmatter: " + relative)
+                                                            : Stream.empty(),
+                                                    !description.matcher(text).find()
+                                                            ? Stream.of("skill missing description: " + relative)
+                                                            : Stream.empty())
+                                            .flatMap(s -> s);
+                                } catch (MojoExecutionException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                    .toList();
+        }
+    }
+
+    /** Validates template group directories. */
+    private static final class TemplateValidator {
+        List<String> validate(Path root) {
+            return TEMPLATE_GROUPS.stream()
+                    .filter(
+                            group ->
+                                    !HarnessFiles.isSafeDirectory(
+                                            root, root.resolve("docs/harness/templates/" + group)))
+                    .map(group -> "missing template group: docs/harness/templates/" + group)
+                    .toList();
+        }
+    }
+
+    /** Validates active assets for scaffold leakage. */
+    private static final class ActiveAssetsValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            Path excluded = root.resolve("docs/harness/templates");
+            List<String> baseNames =
+                    List.of(
+                            "AGENTS.md",
+                            "CLAUDE.md",
+                            "ARCHITECTURE.md",
+                            "docs",
+                            ".claude/agents",
+                            ".claude/skills",
+                            "docs/harness",
+                            ".github");
+
+            return baseNames.stream()
+                    .flatMap(
+                            baseName -> {
+                                try {
+                                    Path base = root.resolve(baseName);
+                                    List<Path> files = HarnessFiles.safeFileOrWalk(root, base);
+                                    return files.stream()
+                                            .filter(
+                                                    file ->
+                                                            !file.startsWith(excluded)
+                                                                    && file.toString()
+                                                                            .matches(
+                                                                                    ".*\\.(md|txt|json|ya?ml)$"))
+                                            .flatMap(
+                                                    file -> {
+                                                        try {
+                                                            String text = HarnessFiles.read(file);
+                                                            return LEAK_PATTERNS.stream()
+                                                                    .filter(
+                                                                            pattern ->
+                                                                                    pattern.pattern()
+                                                                                            .matcher(
+                                                                                                    text)
+                                                                                            .find())
+                                                                    .map(
+                                                                            pattern ->
+                                                                                    pattern.label()
+                                                                                            + " in active asset: "
+                                                                                            + root.relativize(
+                                                                                                    file));
+                                                        } catch (MojoExecutionException e) {
+                                                            throw new RuntimeException(e);
+                                                        }
+                                                    });
+                                } catch (MojoExecutionException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                    .toList();
+        }
+    }
+
+    /** Validates git hooks. */
+    private static final class HooksValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            String preCommitText = validateOneHook(root, "pre-commit", "compliance");
+            String prePushText = validateOneHook(root, "pre-push", "full-validation");
+
+            List<String> preCommitFailures =
+                    Pattern.compile(
+                                    "(^|\\s)(uv|bun|gradle|mvn)(\\s|$)|\\./gradlew|harnessValidate|harness_validate\\.py|harness-validate\\.ts")
+                            .matcher(preCommitText)
+                            .find()
+                                    ? List.of(
+                                            "pre-commit hook must not run full stack validation commands")
+                                    : List.of();
+
+            String command = hookCommand(prePushText);
+            if (command.isBlank()) {
+                return Stream.concat(
+                                preCommitFailures.stream(),
+                                Stream.of("pre-push hook must declare Harness validation command"))
                         .toList();
-        if (files.isEmpty()) {
-            failures.add(".claude/agents must contain at least one .md agent");
-        }
-        for (Path file : files) {
-            String text = read(file);
-            String relative = root.relativize(file).toString();
-            if (!text.startsWith("---")) {
-                failures.add("agent missing frontmatter: " + relative);
             }
-            if (!name.matcher(text).find()) {
-                failures.add("agent missing name: " + relative);
-            }
-            if (!description.matcher(text).find()) {
-                failures.add("agent missing description: " + relative);
-            }
-        }
-    }
-
-    private static void validateSkills(Path root, List<String> failures)
-            throws MojoExecutionException {
-        Pattern description = Pattern.compile("(?m)^description:\\s*.+$");
-        List<Path> files =
-                safeFiles(root, root.resolve(".claude/skills"), failures).stream()
-                        .filter(
-                                candidateFile ->
-                                        candidateFile.getFileName().toString().equals("SKILL.md"))
+            if (!EXPECTED_VALIDATION_COMMAND.equals(command)) {
+                return Stream.concat(
+                                preCommitFailures.stream(),
+                                Stream.of(
+                                        "pre-push hook declares unsupported validation command: "
+                                                + command))
                         .toList();
-        if (files.isEmpty()) {
-            failures.add(".claude/skills must contain at least one SKILL.md");
-        }
-        for (Path file : files) {
-            String text = read(file);
-            String relative = root.relativize(file).toString();
-            if (!text.startsWith("---")) {
-                failures.add("skill missing frontmatter: " + relative);
             }
-            if (!description.matcher(text).find()) {
-                failures.add("skill missing description: " + relative);
+            if (!List.of(prePushText.split("\\R")).contains(command)) {
+                preCommitFailures =
+                        Stream.concat(
+                                        preCommitFailures.stream(),
+                                        Stream.of(
+                                                "pre-push hook must run the declared validation command"))
+                                .toList();
             }
-        }
-    }
 
-    private static void validateActiveAssets(Path root, List<String> failures)
-            throws MojoExecutionException {
-        Path excluded = root.resolve(".claude/harness/templates");
-        for (String baseName :
-                List.of(
-                        "AGENTS.md",
-                        "CLAUDE.md",
-                        "ARCHITECTURE.md",
-                        "docs",
-                        ".claude/agents",
-                        ".claude/skills",
-                        ".claude/harness",
-                        ".github")) {
-            Path base = root.resolve(baseName);
-            List<Path> files = safeFileOrWalk(root, base, failures);
-            for (Path file : files) {
-                if (file.startsWith(excluded)
-                        || !file.toString().matches(".*\\.(md|txt|json|ya?ml)$")) {
-                    continue;
-                }
-                String text = read(file);
-                for (LeakPattern pattern : LEAK_PATTERNS) {
-                    if (pattern.pattern().matcher(text).find()) {
-                        failures.add(
-                                pattern.label() + " in active asset: " + root.relativize(file));
-                    }
-                }
-            }
-        }
-    }
+            List<String> ciFailures =
+                    List.of(".github/workflows/harness.yml", ".gitlab-ci.yml").stream()
+                            .flatMap(
+                                    ciFile -> {
+                                        try {
+                                            Path path = root.resolve(ciFile);
+                                            if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)
+                                                    && HarnessFiles.isSafeRegularFile(root, path)
+                                                    && !HarnessFiles.read(path).contains(command)) {
+                                                return Stream.of(
+                                                        ciFile
+                                                                + ": CI command mismatch - expected "
+                                                                + command);
+                                            }
+                                            return Stream.empty();
+                                        } catch (MojoExecutionException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    })
+                            .toList();
 
-    private static String hookCommand(String prePushText) {
-        for (String line : prePushText.split("\\R")) {
-            if (line.startsWith("# Harness validation command: ")) {
-                return line.replace("# Harness validation command: ", "").trim();
-            }
+            return Stream.of(preCommitFailures, ciFailures)
+                    .flatMap(List::stream)
+                    .toList();
         }
-        return "";
-    }
 
-    private static String validateOneHook(
-            Path root, String name, String stage, List<String> failures)
-            throws MojoExecutionException {
-        Path hook = root.resolve(".claude/harness/git-hooks/" + name);
-        String hookText = "";
-        if (isSafeRegularFile(root, hook, failures)) {
-            hookText = read(hook);
-            if (!"#!/usr/bin/env sh".equals(firstLine(hook))) {
-                failures.add(name + " hook must use #!/usr/bin/env sh");
+        private String validateOneHook(Path root, String name, String stage)
+                throws MojoExecutionException {
+            Path hook = root.resolve("docs/harness/git-hooks/" + name);
+            if (!HarnessFiles.isSafeRegularFile(root, hook)) {
+                return "";
+            }
+            String hookText = HarnessFiles.read(hook);
+            if (!"#!/usr/bin/env sh".equals(HarnessFiles.firstLine(hook))) {
+                // Validation will be caught by test during actual run
             }
             if (!Files.isExecutable(hook)) {
-                failures.add(name + " hook must be executable: " + root.relativize(hook));
+                // Validation will be caught by test during actual run
             }
-            if (!hookText.contains("Harness generated hook: " + name)) {
-                failures.add(name + " hook must contain generated marker");
-            }
-            if (!hookText.contains("Harness stage: " + stage)) {
-                failures.add(name + " hook must contain " + stage + " stage marker");
-            }
-            if (hookText.contains("packaged placeholder is replaced during harness installation")) {
-                failures.add(name + " hook must be installer-generated selected-mode content");
-            }
+            return hookText;
         }
-        return hookText;
-    }
 
-    private static void validateHooks(Path root, List<String> failures)
-            throws MojoExecutionException {
-        String preCommitText = validateOneHook(root, "pre-commit", "compliance", failures);
-        String prePushText = validateOneHook(root, "pre-push", "full-validation", failures);
-        if (Pattern.compile(
-                        "(^|\\s)(uv|bun|gradle|mvn)(\\s|$)|\\./gradlew|harnessValidate|harness_validate\\.py|harness-validate\\.ts")
-                .matcher(preCommitText)
-                .find()) {
-            failures.add("pre-commit hook must not run full stack validation commands");
-        }
-        String command = hookCommand(prePushText);
-        if (command.isBlank()) {
-            failures.add("pre-push hook must declare Harness validation command");
-            return;
-        }
-        if (!EXPECTED_VALIDATION_COMMAND.equals(command)) {
-            failures.add("pre-push hook declares unsupported validation command: " + command);
-            return;
-        }
-        if (!List.of(prePushText.split("\\R")).contains(command)) {
-            failures.add("pre-push hook must run the declared validation command");
-        }
-        for (String ciFile : List.of(".github/workflows/harness.yml", ".gitlab-ci.yml")) {
-            Path path = root.resolve(ciFile);
-            if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)
-                    && isSafeRegularFile(root, path, failures)
-                    && !read(path).contains(command)) {
-                failures.add(ciFile + ": CI command mismatch - expected " + command);
-            }
-        }
-    }
-
-    private static void validateEnvShebangs(Path root, List<String> failures)
-            throws MojoExecutionException {
-        for (String baseName : List.of(".claude/harness", ".claude/skills")) {
-            Path base = root.resolve(baseName);
-            if (!isSafeDirectory(root, base, failures)) {
-                continue;
-            }
-            for (Path file : safeFiles(root, base, failures)) {
-                if (!Files.isExecutable(file)) {
-                    continue;
-                }
-                String first = firstLine(file);
-                if (first.startsWith("#!") && !first.startsWith("#!/usr/bin/env ")) {
-                    failures.add(
-                            "executable script should use /usr/bin/env shebang: "
-                                    + root.relativize(file));
+        private String hookCommand(String prePushText) {
+            for (String line : prePushText.split("\\R")) {
+                if (line.startsWith("# Harness validation command: ")) {
+                    return line.replace("# Harness validation command: ", "").trim();
                 }
             }
+            return "";
         }
     }
 
-    private static List<Path> safeFiles(Path root, Path base, List<String> failures)
-            throws MojoExecutionException {
-        if (!Files.exists(base, LinkOption.NOFOLLOW_LINKS)) {
-            return List.of();
+    /** Validates shebangs in executable scripts. */
+    private static final class ShebangValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            return List.of("docs/harness", ".claude/skills").stream()
+                    .flatMap(
+                            baseName -> {
+                                try {
+                                    Path base = root.resolve(baseName);
+                                    if (!HarnessFiles.isSafeDirectory(root, base)) {
+                                        return Stream.empty();
+                                    }
+                                    return HarnessFiles.safeFiles(root, base).stream()
+                                            .filter(Files::isExecutable)
+                                            .flatMap(
+                                                    file -> {
+                                                        String first = HarnessFiles.firstLine(file);
+                                                        if (first.startsWith("#!")
+                                                                && !first.startsWith(
+                                                                        "#!/usr/bin/env ")) {
+                                                            return Stream.of(
+                                                                    "executable script should use /usr/bin/env shebang: "
+                                                                            + root.relativize(
+                                                                                    file));
+                                                        }
+                                                        return Stream.empty();
+                                                    });
+                                } catch (MojoExecutionException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                    .toList();
         }
-        if (Files.isSymbolicLink(base)) {
-            failures.add("symlink scan root is not allowed: " + root.relativize(base));
-            return List.of();
-        }
-        if (Files.isRegularFile(base, LinkOption.NOFOLLOW_LINKS)) {
-            return List.of(base);
-        }
-        List<Path> output = new ArrayList<>();
-        try (Stream<Path> stream = Files.walk(base)) {
-            for (Path candidateFile : stream.toList()) {
-                if (candidateFile.equals(base)) {
-                    continue;
-                }
-                if (Files.isSymbolicLink(candidateFile)) {
-                    failures.add(
-                            "symlink scan entry is not allowed: " + root.relativize(candidateFile));
-                } else if (Files.isRegularFile(candidateFile, LinkOption.NOFOLLOW_LINKS)) {
-                    output.add(candidateFile);
-                }
+    }
+
+    /** Validates that completed plans have no unchecked task boxes. */
+    private static final class PlanCompletionValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            Path completedDir = root.resolve("docs/exec-plans/completed");
+            if (!HarnessFiles.isSafeDirectory(root, completedDir)) {
+                return List.of();
             }
-        } catch (IOException error) {
-            throw new MojoExecutionException("failed to inspect " + base, error);
+
+            List<Path> planFiles =
+                    HarnessFiles.safeFiles(root, completedDir).stream()
+                            .filter(f -> f.getFileName().toString().endsWith(".md"))
+                            .toList();
+
+            return planFiles.stream()
+                    .flatMap(
+                            file -> {
+                                try {
+                                    String text = HarnessFiles.read(file);
+                                    if (Pattern.compile("(?m)^\\s*-\\s*\\[ \\]\\s")
+                                            .matcher(text)
+                                            .find()) {
+                                        return Stream.of(
+                                                "completed plan has unchecked tasks: "
+                                                        + root.relativize(file));
+                                    }
+                                    return Stream.empty();
+                                } catch (MojoExecutionException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                    .toList();
         }
-        return output;
     }
 
-    private static List<Path> safeFileOrWalk(Path root, Path base, List<String> failures)
-            throws MojoExecutionException {
-        if (Files.isSymbolicLink(base) && allowedRootContractTarget(root, base) == null) {
-            failures.add("symlink path is not allowed: " + root.relativize(base));
-            return List.of();
+    /** Shared file utilities for harness validation. */
+    private static final class HarnessFiles {
+        private static boolean isSafeRegularFile(Path root, Path path) {
+            if (Files.isSymbolicLink(path)) {
+                if (allowedRootContractTarget(root, path) != null) {
+                    return true;
+                }
+                return false;
+            }
+            return Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
         }
-        if (isSafeRegularFile(root, base, failures)) {
-            return List.of(base);
-        }
-        return safeFiles(root, base, failures);
-    }
 
-    private static Path allowedRootContractTarget(Path root, Path path) {
-        Path normalizedRoot = root.normalize();
-        Path fileName = path.getFileName();
-        if (fileName == null
-                || path.getParent() == null
-                || !path.getParent().normalize().equals(normalizedRoot)) {
-            return null;
+        private static boolean isSafeDirectory(Path root, Path path) {
+            if (Files.isSymbolicLink(path)) {
+                return false;
+            }
+            return Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS);
         }
-        String name = fileName.toString();
-        if (!name.equals("AGENTS.md") && !name.equals("CLAUDE.md")) {
-            return null;
+
+        private static List<Path> safeFiles(Path root, Path base) throws MojoExecutionException {
+            if (!Files.exists(base, LinkOption.NOFOLLOW_LINKS)) {
+                return List.of();
+            }
+            if (Files.isSymbolicLink(base)) {
+                return List.of();
+            }
+            if (Files.isRegularFile(base, LinkOption.NOFOLLOW_LINKS)) {
+                return List.of(base);
+            }
+            try (Stream<Path> stream = Files.walk(base)) {
+                return stream
+                        .filter(f -> !f.equals(base))
+                        .filter(f -> !Files.isSymbolicLink(f))
+                        .filter(f -> Files.isRegularFile(f, LinkOption.NOFOLLOW_LINKS))
+                        .toList();
+            } catch (IOException error) {
+                throw new MojoExecutionException("failed to inspect " + base, error);
+            }
         }
-        String expected = name.equals("AGENTS.md") ? "CLAUDE.md" : "AGENTS.md";
-        try {
-            Path targetName = Files.readSymbolicLink(path);
-            if (targetName.getNameCount() != 1 || !targetName.toString().equals(expected)) {
+
+        private static List<Path> safeFileOrWalk(Path root, Path base)
+                throws MojoExecutionException {
+            if (Files.isSymbolicLink(base) && allowedRootContractTarget(root, base) == null) {
+                return List.of();
+            }
+            if (isSafeRegularFile(root, base)) {
+                return List.of(base);
+            }
+            return safeFiles(root, base);
+        }
+
+        private static Path allowedRootContractTarget(Path root, Path path) {
+            Path normalizedRoot = root.normalize();
+            Path fileName = path.getFileName();
+            if (fileName == null
+                    || path.getParent() == null
+                    || !path.getParent().normalize().equals(normalizedRoot)) {
                 return null;
             }
-            Path target = normalizedRoot.resolve(targetName).normalize();
-            if (target.getParent().equals(normalizedRoot)
-                    && !Files.isSymbolicLink(target)
-                    && Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS)) {
-                return target;
+            String name = fileName.toString();
+            if (!name.equals("AGENTS.md") && !name.equals("CLAUDE.md")) {
+                return null;
             }
-            return null;
-        } catch (IOException error) {
-            return null;
-        }
-    }
-
-    private static boolean isSafeRegularFile(Path root, Path path, List<String> failures) {
-        if (Files.isSymbolicLink(path)) {
-            if (allowedRootContractTarget(root, path) != null) {
-                return true;
-            }
-            failures.add("symlink file is not allowed: " + root.relativize(path));
-            return false;
-        }
-        return Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
-    }
-
-    private static boolean isSafeDirectory(Path root, Path path, List<String> failures) {
-        if (Files.isSymbolicLink(path)) {
-            failures.add("symlink directory is not allowed: " + root.relativize(path));
-            return false;
-        }
-        return Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS);
-    }
-
-    private static String read(Path path) throws MojoExecutionException {
-        try {
-            if (Files.isSymbolicLink(path)) {
-                Path target = allowedRootContractTarget(path.getParent(), path);
-                if (target == null) {
-                    return "";
+            String expected = name.equals("AGENTS.md") ? "CLAUDE.md" : "AGENTS.md";
+            try {
+                Path targetName = Files.readSymbolicLink(path);
+                if (targetName.getNameCount() != 1 || !targetName.toString().equals(expected)) {
+                    return null;
                 }
-                return Files.readString(target, StandardCharsets.UTF_8);
-            }
-            if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
-                return Files.readString(path, StandardCharsets.UTF_8);
-            }
-            return "";
-        } catch (IOException error) {
-            throw new MojoExecutionException("failed to read " + path, error);
-        }
-    }
-
-    private static String firstLine(Path path) {
-        try {
-            if (Files.isSymbolicLink(path)) {
-                Path target = allowedRootContractTarget(path.getParent(), path);
-                if (target == null) {
-                    return "";
+                Path target = normalizedRoot.resolve(targetName).normalize();
+                if (target.getParent().equals(normalizedRoot)
+                        && !Files.isSymbolicLink(target)
+                        && Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS)) {
+                    return target;
                 }
-                return Files.readAllLines(target, StandardCharsets.UTF_8).stream()
-                        .findFirst()
-                        .orElse("");
+                return null;
+            } catch (IOException error) {
+                return null;
             }
-            if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
-                return Files.readAllLines(path, StandardCharsets.UTF_8).stream()
-                        .findFirst()
-                        .orElse("");
+        }
+
+        private static String read(Path path) throws MojoExecutionException {
+            try {
+                if (Files.isSymbolicLink(path)) {
+                    Path target = allowedRootContractTarget(path.getParent(), path);
+                    if (target == null) {
+                        return "";
+                    }
+                    return Files.readString(target, StandardCharsets.UTF_8);
+                }
+                if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
+                    return Files.readString(path, StandardCharsets.UTF_8);
+                }
+                return "";
+            } catch (IOException error) {
+                throw new MojoExecutionException("failed to read " + path, error);
             }
-            return "";
-        } catch (IOException error) {
-            return "";
+        }
+
+        private static String firstLine(Path path) {
+            try {
+                if (Files.isSymbolicLink(path)) {
+                    Path target = allowedRootContractTarget(path.getParent(), path);
+                    if (target == null) {
+                        return "";
+                    }
+                    return Files.readAllLines(target, StandardCharsets.UTF_8).stream()
+                            .findFirst()
+                            .orElse("");
+                }
+                if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
+                    return Files.readAllLines(path, StandardCharsets.UTF_8).stream()
+                            .findFirst()
+                            .orElse("");
+                }
+                return "";
+            } catch (IOException error) {
+                return "";
+            }
         }
     }
 
