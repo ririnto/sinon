@@ -28,7 +28,9 @@ These skills compose into the everyday loop: prepare a clean working tree (optio
 
 ## Included Agents
 
-- workspace-architect: coordinates decisions across the six workspace-workflow skills, sequences operations when a task spans worktree, hygiene, history integration, and integration handoff, and enforces team conventions consistently.
+- workspace-architect: coordinates decisions across the workspace-workflow skills, sequences operations when a task spans worktree, hygiene, history integration, and integration handoff, and enforces team conventions consistently.
+- commit-message-architect: drafts Conventional Commit messages from staged changes and evaluates commit cohesion and readiness.
+- pr-body-architect: drafts change description bodies that preserve repository templates and describe real change intent.
 
 ## Included Commands
 
@@ -54,7 +56,9 @@ plugins/workspace-workflow/
 ├── LICENSE
 ├── README.md
 ├── agents/
-│   └── workspace-architect.md
+│   ├── workspace-architect.md
+│   ├── commit-message-architect.md
+│   └── pr-body-architect.md
 ├── commands/
 │   ├── workspace-commit.md
 │   ├── workspace-pr.md
@@ -111,5 +115,3 @@ This plugin focuses on the Git-driven workspace and change-integration handoff l
 - Language- or framework-specific build, test, or release tooling (see language plugins such as `java`, `kotlin`, or framework plugins such as `spring`, `reactor`).
 - Custom CI/CD pipeline templates beyond minimal command snippets used in change description descriptions.
 - Hooks, MCP servers, or repository-level automation outside the workspace workflow itself.
-
-The `git-workflow` plugin remains available for users who want the narrower commit-integration handoff subset; workspace-workflow is the broader workflow surface that subsumes and extends those concerns.

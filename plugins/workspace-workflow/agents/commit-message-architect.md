@@ -116,7 +116,7 @@ Per Sinon CLAUDE.md:
 - Fenced code blocks MUST specify a language.
 - Example code MUST NOT contain non-documentation comments.
 
-Per git-change-publication SKILL.md:
+Per commit-convention SKILL.md:
 
 - MUST use Conventional Commit types: `feat`, `fix`, `docs`, `style`, `test`, `refactor`, `perf`, `build`, `ci`, `chore`, `revert`.
 - MUST avoid grouping unrelated changes into one commit.
