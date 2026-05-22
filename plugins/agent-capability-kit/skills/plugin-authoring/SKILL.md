@@ -60,7 +60,7 @@ Use the matching subset when the plugin ships only one component type. Add `agen
 
 1. Define the plugin purpose in one sentence.
 2. Create `.claude-plugin/plugin.json` from `assets/plugin.json`.
-3. Create `README.md` describing the plugin purpose, included skills and agents, runtime model, layout, and scope notes.
+3. Create `README.md` describing the plugin purpose, included skills, agents, commands, runtime model, layout, and scope notes.
 4. Keep only the manifest keys that point to real component paths in the current tree.
 5. Create root-level component directories only when the plugin ships that component.
 6. Add optional runtime surfaces only after deciding that the plugin needs that specific behavior:
