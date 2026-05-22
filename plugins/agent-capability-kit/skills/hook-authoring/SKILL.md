@@ -52,7 +52,7 @@ Context-aware LLM decision via natural language. Supports variable substitution 
   "prompt": "Evaluate if this write is safe: $TOOL_INPUT. Check for path traversal (..), sensitive files (.env, .aws), and system paths. Return 'approve' or 'deny'.",
   "timeout": 30
 }
-```
+```text
 
 Use for: policy enforcement, security reasoning, context-aware validation, completeness checks.
 
@@ -66,7 +66,7 @@ Deterministic bash checks. Read JSON from stdin, return JSON on stdout/stderr.
   "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate-write.sh",
   "timeout": 10
 }
-```
+```text
 
 Use for: fast file checks, system calls, external integrations, performance-critical paths.
 
@@ -113,7 +113,7 @@ Wrapper structure required for plugins:
     ]
   }
 }
-```
+```text
 
 Key points:
 
@@ -139,7 +139,7 @@ User settings `.claude/settings.json` use flat format:
     }
   ]
 }
-```
+```text
 
 No wrapper, no description field, events at top level.
 
@@ -165,7 +165,7 @@ Execute before any tool runs. Validate, block, or modify tool input.
     }
   ]
 }
-```
+```text
 
 Input fields: `tool_name`, `tool_input`, `permission_mode`.
 Output: `{"permissionDecision": "allow|deny|ask", "updatedInput": {...}, "systemMessage": "..."}`
@@ -188,7 +188,7 @@ Execute after tool completes. React to results, provide feedback, or log outcome
     }
   ]
 }
-```
+```text
 
 Exit 0: stdout shown in transcript. Exit 2: stderr fed back to Claude.
 
@@ -210,7 +210,7 @@ Execute when main agent considers stopping. Validate completeness.
     }
   ]
 }
-```
+```text
 
 Output: `{"decision": "approve|block", "reason": "...", "systemMessage": "..."}`
 
@@ -232,7 +232,7 @@ Execute when subagent considers stopping. Ensure subagent task is complete (same
     }
   ]
 }
-```
+```text
 
 ### UserPromptSubmit
 
@@ -252,7 +252,7 @@ Execute when user submits a prompt. Add context, validate, or block user input.
     }
   ]
 }
-```
+```text
 
 Input fields: `user_prompt`.
 
@@ -274,13 +274,13 @@ Execute when Claude Code session begins. Load project context, set environment v
     }
   ]
 }
-```
+```text
 
 Special: command hooks can write to `$CLAUDE_ENV_FILE` to persist environment variables across the session:
 
 ```sh
 echo "export PROJECT_TYPE=nodejs" >> "$CLAUDE_ENV_FILE"
-```
+```text
 
 ### SessionEnd
 
@@ -300,7 +300,7 @@ Execute when session ends. Cleanup, logging, state preservation.
     }
   ]
 }
-```
+```text
 
 ### PreCompact
 
@@ -320,7 +320,7 @@ Execute before context compaction. Add critical information to preserve.
     }
   ]
 }
-```
+```text
 
 ### Notification
 
@@ -340,7 +340,7 @@ Execute when Claude sends notifications. React to user notifications.
     }
   ]
 }
-```
+```text
 
 ## Matchers
 
@@ -361,7 +361,7 @@ Common patterns:
 "matcher": "Write|Edit"                    // File operations
 "matcher": "mcp__.*"                       // All MCP tools
 "matcher": "mcp__plugin_asana_.*"          // Asana MCP tools
-```
+```text
 
 Matchers are case-sensitive and match against the full tool name.
 
@@ -381,7 +381,7 @@ All hooks receive JSON with common fields:
   "permission_mode": "ask|allow",
   "hook_event_name": "PreToolUse"
 }
-```
+```text
 
 Event-specific fields:
 
@@ -410,7 +410,7 @@ Standard return (all hooks):
   "suppressOutput": false,
   "systemMessage": "Message shown to Claude"
 }
-```
+```text
 
 PreToolUse output:
 
@@ -420,7 +420,7 @@ PreToolUse output:
   "updatedInput": {"field": "modified_value"},
   "systemMessage": "Reason for decision"
 }
-```
+```text
 
 Stop/SubagentStop output:
 
@@ -430,7 +430,7 @@ Stop/SubagentStop output:
   "reason": "Why work should continue",
   "systemMessage": "Context for Claude"
 }
-```
+```text
 
 Exit codes:
 
@@ -454,7 +454,7 @@ Always use `${CLAUDE_PLUGIN_ROOT}` in hook commands:
   "type": "command",
   "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate.sh"
 }
-```
+```text
 
 ## Security Rules
 
@@ -501,7 +501,7 @@ Validate hook configuration offline:
 
 ```sh
 python3 -m json.tool hooks/hooks.json
-```
+```text
 
 This validates JSON syntax. If output shows no errors, the file is structurally valid.
 
@@ -518,13 +518,13 @@ cat > /tmp/test-input.json << 'EOF'
 EOF
 
 bash hooks/validate.sh < /tmp/test-input.json
-```
+```text
 
 Verify output is valid JSON:
 
 ```sh
 bash hooks/validate.sh < /tmp/test-input.json | python3 -m json.tool
-```
+```text
 
 ## Output Contract
 

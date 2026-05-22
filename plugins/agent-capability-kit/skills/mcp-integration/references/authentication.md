@@ -26,7 +26,7 @@ OAuth 2.0 with authorization code flow (used by all SSE servers).
 7. Claude Code exchanges AUTH_CODE for access token
 8. Token stored locally in ~/.claude/mcp_tokens.json (encrypted)
 9. Token used for all subsequent tool calls
-```
+```text
 
 ### Subsequent uses: token reuse
 
@@ -36,7 +36,7 @@ OAuth 2.0 with authorization code flow (used by all SSE servers).
 3. Claude Code reads stored token from ~/.claude/mcp_tokens.json
 4. Token passed in Authorization header: Bearer ${TOKEN}
 5. Tool call succeeds
-```
+```text
 
 ### Token refresh: automatic
 
@@ -46,7 +46,7 @@ OAuth 2.0 with authorization code flow (used by all SSE servers).
 3. New token stored locally
 4. Tool call retried with new token
 5. User sees no interruption
-```
+```text
 
 Claude Code handles refresh automatically; user action not required.
 
@@ -66,20 +66,20 @@ Store API token in environment variable; reference in MCP config:
     }
   }
 }
-```
+```text
 
 Set token in shell environment:
 
 ```sh
 export API_TOKEN="sk_live_abc123xyz..."
 claude
-```
+```text
 
 Or in user's shell profile (`~/.zshrc` or `~/.bashrc`):
 
 ```sh
 export API_TOKEN="sk_live_abc123xyz..."
-```
+```text
 
 > [!CAUTION]
 >
@@ -107,7 +107,7 @@ Each server uses its own env var:
     }
   }
 }
-```
+```text
 
 Each service's token stored separately:
 
@@ -135,7 +135,7 @@ export API_TOKEN=new_token
 
 /exit           # Exit session
 claude          # New session: uses new_token
-```
+```text
 
 Changing credentials requires session restart.
 
@@ -158,7 +158,7 @@ OAuth tokens stored in `~/.claude/mcp_tokens.json`, encrypted at rest:
     "expires_at": 1234567890
   }
 }
-```
+```text
 
 File permissions: `600` (readable only by user).
 
@@ -173,7 +173,7 @@ File permissions: `600` (readable only by user).
     "Authorization": "Bearer sk_live_secret123"
   }
 }
-```
+```text
 
 Risk: Token visible in version control, logs, and process listings.
 
@@ -186,7 +186,7 @@ Risk: Token visible in version control, logs, and process listings.
     "Authorization": "Bearer ${API_TOKEN}"
   }
 }
-```
+```text
 
 Token stored in env var (outside repo), never hardcoded.
 
@@ -206,7 +206,7 @@ Mitigation: add to `.gitignore`:
 .env
 .env.local
 ~/.claude/mcp_tokens.json
-```
+```text
 
 ## Multi-server credential isolation
 
@@ -221,7 +221,7 @@ Server 1 (GitHub, OAuth):
     "url": "https://mcp.github.com/sse"
   }
 }
-```
+```text
 
 Server 2 (Asana, OAuth):
 
@@ -232,7 +232,7 @@ Server 2 (Asana, OAuth):
     "url": "https://mcp.asana.com/sse"
   }
 }
-```
+```text
 
 Server 3 (Custom API, bearer token):
 
@@ -246,7 +246,7 @@ Server 3 (Custom API, bearer token):
     }
   }
 }
-```
+```text
 
 Each server's credentials:
 
@@ -273,7 +273,7 @@ curl -H "Authorization: Bearer $INTERNAL_API_TOKEN" https://api.internal.company
 claude
 
 # 5. Revoke old token at service dashboard
-```
+```text
 
 For OAuth servers (GitHub, Asana), token refresh is automatic. Manual rotation only needed if service requires it.
 
@@ -290,7 +290,7 @@ enabled: true
 # Override token for this project
 
 Use PROJECT_SPECIFIC_TOKEN instead of GLOBAL_TOKEN.
-```
+```text
 
 Hook reads settings and adjusts:
 
@@ -314,7 +314,7 @@ load_project_token() {
         export API_TOKEN="$(eval echo \"\$$token_env\")"
     fi
 }
-```
+```text
 
 ## API key scoping: principle of least privilege
 
@@ -338,7 +338,7 @@ Claude Code requests access to:
 - Read user profile
 
 Allow?
-```
+```text
 
 #### Correct: minimal scope
 
@@ -346,13 +346,13 @@ If using GitHub MCP only to list repos and create issues, request minimal scopes
 
 ```text
 Requested scopes: repo (sufficient for repo + issue access)
-```
+```text
 
 #### Broken: over-permission
 
 ```text
 Requested scopes: repo, gist, user, workflow, admin
-```
+```text
 
 Unnecessary scopes increase attack surface if token leaked.
 
@@ -394,7 +394,7 @@ curl -H "Authorization: Bearer $API_TOKEN" https://api.example.com/mcp/tools | j
 
 # View stored tokens (encrypted, not readable)
 ls -la ~/.claude/mcp_tokens.json
-```
+```text
 
 ## Token debugging
 
@@ -402,7 +402,7 @@ Enable debug output to see token-related messages:
 
 ```sh
 claude --debug 2>&1 | grep -i token
-```
+```text
 
 Output:
 
@@ -411,7 +411,7 @@ Output:
 [mcp] Token expires in 3600 seconds
 [mcp] Attempting refresh for 'github' (token expired)
 [mcp] New token obtained, expiration: ...
-```
+```text
 
 Do not log actual token values (only metadata).
 

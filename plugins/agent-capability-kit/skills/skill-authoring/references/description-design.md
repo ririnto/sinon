@@ -16,13 +16,13 @@ Use this structure:
 
 ```text
 [Verb phrase describing the capability]. Use when [trigger conditions, user intents, file types, systems, or goals].
-```
+```text
 
 Example:
 
 ```text
 Generate production-ready OpenAPI operation blocks and validation notes. Use when designing REST endpoints, function tool schemas, or contract-driven API docs.
-```
+```text
 
 ## What good descriptions contain
 
@@ -47,7 +47,7 @@ Use this sequence when tuning a description:
 
 ```text
 Helps with APIs.
-```
+```text
 
 Problems:
 
@@ -62,19 +62,19 @@ Problems:
 
 ```text
 Extract and normalize tables from CSV, TSV, and spreadsheet exports. Use when the task involves messy tabular data, column mapping, or data cleaning before analysis.
-```
+```text
 
 ### Workflow driven
 
 ```text
 Prepare a release candidate by updating versions, drafting notes, and validating deploy prerequisites. Use when cutting a release branch or preparing a tagged release.
-```
+```text
 
 ### Tooling driven
 
 ```text
 Design strict schemas, request payloads, and tool-facing config files for automation workflows. Use when building schema-driven agent tooling or contract-heavy prompts.
-```
+```text
 
 ## Offline trigger-testing method
 

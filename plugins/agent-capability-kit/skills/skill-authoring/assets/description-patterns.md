@@ -4,7 +4,7 @@
 
 ```text
 [Primary capability]. Use when [task, inputs, systems, file types, or user intent].
-```
+```text
 
 ## Specificity calibration
 

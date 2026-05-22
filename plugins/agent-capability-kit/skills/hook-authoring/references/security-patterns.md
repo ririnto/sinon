@@ -43,7 +43,7 @@ validate_input() {
     fi
     echo "$tool_name"
 }
-```
+```text
 
 Rules:
 
@@ -62,7 +62,7 @@ input=$(cat)
 tool_name=$(printf '%s' "$input" | jq -r '.tool_name')
 # Dangerous: no validation of format or presence
 rm -rf "/projects/$tool_name"
-```
+```text
 
 Risk: `tool_name` could be `..` or `/tmp` or contain spaces, leading to unintended deletions.
 
@@ -107,7 +107,7 @@ validate_path() {
     fi
     return 0
 }
-```
+```text
 
 Patterns to reject:
 
@@ -137,7 +137,7 @@ reject_system_paths() {
     done
     return 0
 }
-```
+```text
 
 ### Broken: insufficient path validation
 
@@ -149,7 +149,7 @@ if [ "$file_path" = "${file_path%..*}" ]; then
     cp "$file_path" /tmp/upload
 fi
 # Risk: allows absolute paths like /etc/passwd
-```
+```text
 
 ## Sensitive file detection
 
@@ -183,7 +183,7 @@ detect_sensitive_files() {
     esac
     return 0
 }
-```
+```text
 
 Categories:
 
@@ -202,7 +202,7 @@ if [ "$basename" = ".env" ]; then
     printf 'deny\n' >&2
 fi
 # Allows /tmp/.env or /other/path/.env without checking
-```
+```text
 
 ## Shell injection prevention
 
@@ -227,7 +227,7 @@ run_command() {
     fi
     "$command" "$arg"
 }
-```
+```text
 
 Safe patterns:
 
@@ -242,7 +242,7 @@ Safe patterns:
 search_term=$(cat | jq -r '.search_term')
 # Dangerous: search_term could be '; rm -rf /'
 grep "$search_term" /tmp/file.txt
-```
+```text
 
 ## Numeric validation
 
@@ -269,7 +269,7 @@ validate_numeric() {
     fi
     echo "$max_value"
 }
-```
+```text
 
 ### Broken: trusting numeric input
 
@@ -278,7 +278,7 @@ max_value=$(cat | jq -r '.max_value')
 if [ "$max_value" -gt 100 ]; then
     # Risk: max_value could be non-numeric or contain operators
 fi
-```
+```text
 
 ## Complete example: hardened PreToolUse hook
 
@@ -325,7 +325,7 @@ main() {
     exit 0
 }
 main
-```
+```text
 
 ## Testing security patterns
 
@@ -343,7 +343,7 @@ EOF
 
 sh hooks/validate.sh < /tmp/test-attack.json
 # Expected: deny output on stderr, exit 2
-```
+```text
 
 Test with various paths:
 
@@ -359,7 +359,7 @@ echo '{"tool_name":"Write","tool_input":{"file_path":"/usr/bin/malware"}}' | sh 
 
 # Safe path (should succeed)
 echo '{"tool_name":"Write","tool_input":{"file_path":"src/index.js"}}' | sh hooks/validate.sh
-```
+```text
 
 ## References
 

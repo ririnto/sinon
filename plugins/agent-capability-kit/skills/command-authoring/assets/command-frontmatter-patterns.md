@@ -13,7 +13,7 @@ allowed-tools:
   - Read
   - Grep
 ---
-```
+```text
 
 ## Manual command with arguments
 
@@ -28,7 +28,7 @@ allowed-tools:
   - Grep
   - Bash(git *)
 ---
-```
+```text
 
 ## Hidden helper command
 
@@ -41,7 +41,7 @@ allowed-tools:
   - Read
   - Grep
 ---
-```
+```text
 
 ## Path-scoped command
 
