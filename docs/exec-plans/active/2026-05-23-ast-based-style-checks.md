@@ -575,7 +575,7 @@ Phase 12에서 처리한 early-return 제거의 후속 정리. guard `if (!cond)
 
 전제: Phase 12c(filter/map 단순화) 완료 후 진행. 12c에서 선언형으로 바뀐 코드는 12d 대상이 아님.
 
-### [x] Phase 12e: 단일 사용 지역 변수 inline 처리 (commit pending)
+### [x] Phase 12e: 단일 사용 지역 변수 inline 처리 (commit 3cb5534)
 
 한 번만 사용되는 지역 변수는 **가능한 모든 위치에서** 사용처에 inline. 보수적 기준 없음, 적극적으로 정리. 안전 제약(아래)만 지키고 나머지는 inline 후 self-check 통과를 기준으로 한다.
 
