@@ -25,9 +25,12 @@ object ForbidUncheckedTasksUnderRule : HarnessCheckRule {
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "forbidUncheckedTasksUnder"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+		val catObj = manifest[category]?.jsonObject
+		val parametersObj = catObj?.get("parameters")?.jsonObject
+		val messagesObj = catObj?.get("messages")?.jsonObject
+		if (catObj == null || parametersObj == null || messagesObj == null) {
+			return emptyList()
+		}
 		val directory = HarnessCheck.Companion.stringFrom(parametersObj, "directory")
 		val uncheckedTaskPattern = HarnessCheck.Companion.stringFrom(parametersObj, "uncheckedTaskPattern")
 		val dirPath = root / directory

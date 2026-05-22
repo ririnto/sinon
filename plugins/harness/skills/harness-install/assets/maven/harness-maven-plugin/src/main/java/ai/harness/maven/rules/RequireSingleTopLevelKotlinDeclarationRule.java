@@ -49,8 +49,12 @@ public enum RequireSingleTopLevelKotlinDeclarationRule implements HarnessCheckRu
                 count++;
             }
         }
-        return count != 1
-                ? List.of(new Finding(severity, CATEGORY, "Kotlin file must have exactly 1 top-level declaration: " + root.relativize(file)))
-                : List.of();
+        List<Finding> findings;
+        if (count != 1) {
+            findings = List.of(new Finding(severity, CATEGORY, "Kotlin file must have exactly 1 top-level declaration: " + root.relativize(file)));
+        } else {
+            findings = List.of();
+        }
+        return findings;
     }
 }

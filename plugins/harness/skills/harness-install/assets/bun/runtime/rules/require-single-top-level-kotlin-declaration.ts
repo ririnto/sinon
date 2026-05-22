@@ -23,7 +23,6 @@ export const requireSingleTopLevelKotlinDeclarationRule = (ctx: RuleContext): Ha
     const parameters = ctx.readJsonObject(section.parameters);
     const directories = Array.isArray(parameters.directories) ? parameters.directories : [];
     const directoryStrs = directories.filter((item): item is string => typeof item === "string");
-
     return directoryStrs.flatMap((directory) => {
       const [files, warnings] = ctx.walkDirectory(directory);
       return warnings.concat(
@@ -38,15 +37,15 @@ export const requireSingleTopLevelKotlinDeclarationRule = (ctx: RuleContext): Ha
           while ((match = declRegex.exec(text)) !== null) {
             count++;
           }
-          return count === 1
-            ? []
-            : [
+          return count !== 1
+            ? [
                 {
                   severity: ctx.severityOf(manifest, "requireSingleTopLevelKotlinDeclaration"),
                   category: "requireSingleTopLevelKotlinDeclaration",
                   message: `Kotlin file must have exactly 1 top-level declaration: ${file} (found ${count})`,
                 },
-              ];
+              ]
+            : [];
         })
       );
     });

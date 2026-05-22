@@ -14,8 +14,7 @@ export const requireDocContentRule = (ctx: RuleContext): HarnessCheckRule => ({
     if (enabled === false) {
       return false;
     }
-    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    const checks = parameters.checks;
+    const checks = ctx.readJsonObject((section as Record<string, unknown>).parameters).checks;
     return Array.isArray(checks) && checks.length > 0;
   }
 
@@ -34,10 +33,8 @@ export const requireDocContentRule = (ctx: RuleContext): HarnessCheckRule => ({
       const files = ctx.readStringArray(checkObj.files);
       const containsAll = ctx.readStringArray(checkObj.containsAll);
       const failureMessage = typeof checkObj.failureMessage === "string" ? checkObj.failureMessage : "";
-
       const combinedText = files.map((f) => ctx.read(f)).join("\n");
       const hasAllSubstrings = containsAll.every((substring) => combinedText.includes(substring));
-
       return !hasAllSubstrings && failureMessage
         ? [
             {

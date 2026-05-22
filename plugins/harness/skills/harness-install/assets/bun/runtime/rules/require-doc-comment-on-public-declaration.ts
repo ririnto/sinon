@@ -36,12 +36,9 @@ export const requireDocCommentOnPublicDeclarationRule = (ctx: RuleContext): Harn
       const hasJSDoc = (node: Node): boolean => {
         const fullText = sourceFile.getFullText();
         const leadingComments = getLeadingCommentRanges(fullText, node.getFullStart());
-        if (!leadingComments || leadingComments.length === 0) {
-          return false;
-        }
-        const lastComment = leadingComments[leadingComments.length - 1];
-        const commentText = fullText.slice(lastComment.pos, lastComment.end);
-        return commentText.includes("/**");
+        return (
+          leadingComments && leadingComments.length > 0 && fullText.slice(leadingComments[leadingComments.length - 1].pos, leadingComments[leadingComments.length - 1].end).includes("/**")
+        );
       };
 
       const checkDeclaration = (node: Node): void => {
@@ -51,7 +48,6 @@ export const requireDocCommentOnPublicDeclarationRule = (ctx: RuleContext): Harn
           (isInterfaceDeclaration(node) && node.name?.text) ||
           (isTypeAliasDeclaration(node) && node.name?.text) ||
           (isVariableStatement(node) && node.declarationList.declarations[0]?.name && isIdentifier(node.declarationList.declarations[0].name) ? node.declarationList.declarations[0].name.text : "");
-
         if (name && !hasJSDoc(node)) {
           const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
           findings.push({

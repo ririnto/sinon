@@ -11,11 +11,7 @@ export const forbidUncheckedTasksUnderRule = (ctx: RuleContext): HarnessCheckRul
       return false;
     }
     const enabled = (section as { enabled?: unknown }).enabled;
-    if (enabled === false) {
-      return false;
-    }
-    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return typeof parameters.directory === "string";
+    return enabled !== false && typeof ctx.readJsonObject((section as Record<string, unknown>).parameters).directory === "string";
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
@@ -23,25 +19,19 @@ export const forbidUncheckedTasksUnderRule = (ctx: RuleContext): HarnessCheckRul
     const parameters = ctx.readJsonObject(section.parameters);
     const directory = typeof parameters.directory === "string" ? parameters.directory : "";
     const patternStr = typeof parameters.uncheckedTaskPattern === "string" ? parameters.uncheckedTaskPattern : "";
-
     if (!directory || !ctx.isDirectory(directory) || !patternStr) {
       return [];
     }
-
     let pattern: RegExp;
     try {
       pattern = new RegExp(patternStr);
     } catch {
       return [];
     }
-
     const [files, warnings] = ctx.walkDirectory(directory);
     return warnings.concat(
       files.flatMap((file) => {
-        if (!file.endsWith(".md")) {
-          return [];
-        }
-        return pattern.test(ctx.read(file))
+        return file.endsWith(".md") && pattern.test(ctx.read(file))
           ? [
               {
                 severity: ctx.severityOf(manifest, "forbidUncheckedTasksUnder"),

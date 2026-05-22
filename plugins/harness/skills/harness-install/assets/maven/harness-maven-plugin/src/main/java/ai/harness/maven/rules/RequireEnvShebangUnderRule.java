@@ -43,8 +43,12 @@ public enum RequireEnvShebangUnderRule implements HarnessCheckRule {
 
     private List<Finding> validateShebang(Path root, Path file, String expectedPrefix, String severity) throws MojoExecutionException {
         String text = HarnessCheckHelper.readFile(root, file);
-        return text.startsWith("#!") && !text.startsWith(expectedPrefix)
-                ? List.of(new Finding(severity, CATEGORY, "executable script should use /usr/bin/env shebang: " + root.relativize(file)))
-                : List.of();
+        List<Finding> findings;
+        if (text.startsWith("#!") && !text.startsWith(expectedPrefix)) {
+            findings = List.of(new Finding(severity, CATEGORY, "executable script should use /usr/bin/env shebang: " + root.relativize(file)));
+        } else {
+            findings = List.of();
+        }
+        return findings;
     }
 }

@@ -11,11 +11,7 @@ export const requireSkillFrontmatterRule = (ctx: RuleContext): HarnessCheckRule 
       return false;
     }
     const enabled = (section as { enabled?: unknown }).enabled;
-    if (enabled === false) {
-      return false;
-    }
-    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return parameters.rootDirectory !== undefined;
+    return enabled !== false && ctx.readJsonObject((section as Record<string, unknown>).parameters).rootDirectory !== undefined;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
@@ -23,14 +19,11 @@ export const requireSkillFrontmatterRule = (ctx: RuleContext): HarnessCheckRule 
     const parameters = ctx.readJsonObject(section.parameters);
     const rootDirectory = typeof parameters.rootDirectory === "string" ? parameters.rootDirectory : "";
     const filename = typeof parameters.filename === "string" ? parameters.filename : "SKILL.md";
-
     if (!rootDirectory || !ctx.isDirectory(rootDirectory)) {
       return [];
     }
-
     const [skills, dirFindings] = ctx.walkDirectory(rootDirectory);
     const skillFiles = skills.filter((f) => f.endsWith(`/${filename}`));
-
     if (skillFiles.length === 0) {
       return [
         {
@@ -40,7 +33,6 @@ export const requireSkillFrontmatterRule = (ctx: RuleContext): HarnessCheckRule 
         },
       ];
     }
-
     return dirFindings.concat(
       skillFiles.flatMap((skill) => {
         const text = ctx.read(skill);

@@ -34,18 +34,23 @@ public enum RequireKeepfileInEmptyDirectoriesRule implements HarnessCheckRule {
 
     private List<Finding> validateKeepFile(Path root, String dir, String severity) {
         Path dirPath = root.resolve(dir);
-        if (!HarnessCheckHelper.isSafeDirectory(root, dirPath)) {
-            return List.of();
+        List<Finding> findings;
+        if (HarnessCheckHelper.isSafeDirectory(root, dirPath)) {
+            try (Stream<Path> stream = Files.list(dirPath)) {
+                List<Path> realFiles = stream
+                        .filter(f -> !Files.isSymbolicLink(f) && !f.getFileName().toString().equals(".gitkeep"))
+                        .toList();
+                if (realFiles.isEmpty() && !HarnessCheckHelper.isSafeRegularFile(root, dirPath.resolve(".gitkeep"))) {
+                    findings = List.of(new Finding(severity, CATEGORY, "empty directory must keep placeholder or real files: " + dir));
+                } else {
+                    findings = List.of();
+                }
+            } catch (IOException e) {
+                findings = List.of();
+            }
+        } else {
+            findings = List.of();
         }
-        try (Stream<Path> stream = Files.list(dirPath)) {
-            List<Path> realFiles = stream
-                    .filter(f -> !Files.isSymbolicLink(f) && !f.getFileName().toString().equals(".gitkeep"))
-                    .toList();
-            return realFiles.isEmpty() && !HarnessCheckHelper.isSafeRegularFile(root, dirPath.resolve(".gitkeep"))
-                    ? List.of(new Finding(severity, CATEGORY, "empty directory must keep placeholder or real files: " + dir))
-                    : List.of();
-        } catch (IOException e) {
-            return List.of();
-        }
+        return findings;
     }
 }
