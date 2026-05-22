@@ -18,16 +18,16 @@ Execution plan filenames MUST use the form `yyyy-MM-dd-<slug>.md` where the date
 
 ## Phases
 
-Phases MUST run sequentially. Tasks inside a single phase MAY run in parallel and SHOULD be scoped to fit one subagent invocation each. A task is the smallest reviewable unit of work.
+Phases MUST run sequentially. Tasks inside a single phase MAY run in parallel and Tasks SHOULD be scoped to fit one bounded implementation pass each. A task is the smallest reviewable unit of work.
 
 ### Phase 1: {{phase-1-title}}
 
-- [ ] Task 1.1 — {{task-description}} (subagent: {{agent-type-or-main}})
-- [ ] Task 1.2 — {{task-description}} (subagent: {{agent-type-or-main}})
+- [ ] Task 1.1 — {{task-description}} (owner: {{agent-type-or-main}})
+- [ ] Task 1.2 — {{task-description}} (owner: {{agent-type-or-main}})
 
 ### Phase 2: {{phase-2-title}}
 
-- [ ] Task 2.1 — {{task-description}} (subagent: {{agent-type-or-main}})
+- [ ] Task 2.1 — {{task-description}} (owner: {{agent-type-or-main}})
 
 ## Validation
 
