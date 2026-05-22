@@ -6,6 +6,8 @@ description: |-
 
 # Multi-Agent Coordination: Task Numbering, Sessions, and Swarm Patterns
 
+Open this reference when orchestrating multi-agent swarms, tracking task dependencies across agents, reporting progress to a coordinator, or implementing cross-agent communication.
+
 This reference covers practical multi-agent workflows using plugin settings files, coordinator sessions, task tracking, and real-world patterns adapted from production plugins.
 
 ## Task numbering convention

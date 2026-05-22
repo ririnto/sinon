@@ -4,7 +4,7 @@ description: >-
   Open when local log and checkpoint diagnostics are not enough and you need assembly tracing, global hooks, or scheduler-level debugging aids.
 ---
 
-Open when a few local probes are not enough to explain where execution moved, where assembly happened, or why scheduling behavior differs across chains.
+Open this reference when local log and checkpoint diagnostics are not enough and you need assembly tracing, global hooks, or scheduler-level debugging aids to explain where execution moved, where assembly happened, or why scheduling behavior differs across chains.
 
 For signal-level inspection (`checkpoint`, `log`, `doOnEach`) without assembly tracing or thread debugging, keep the work in [Signal-Level Diagnostics](../../reactor-core/references/debugging-and-observability.md); this reference covers execution-tracing tools only.
 
