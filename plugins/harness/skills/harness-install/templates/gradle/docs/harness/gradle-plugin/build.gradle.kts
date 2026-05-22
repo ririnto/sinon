@@ -4,8 +4,7 @@ gradlePlugin {
     plugins {
         create("harnessValidation") {
             id = "ai.harness.validation"
-            implementationClass =
-                "ai.harness.gradle.HarnessValidationPlugin"
+            implementationClass = "ai.harness.gradle.HarnessValidationPlugin"
         }
     }
 }
