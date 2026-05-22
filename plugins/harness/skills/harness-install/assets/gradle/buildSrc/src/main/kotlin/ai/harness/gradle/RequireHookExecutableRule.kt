@@ -17,12 +17,12 @@ class RequireHookExecutableRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
 		val category = "requireHookExecutable"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+		val catObj = manifest[category]?.jsonObject ?: return@buildSet
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
+		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
 		val hooks = HarnessCheck.Companion.stringArrayFrom(parametersObj, "hooks")
 
 		return buildSet<Finding> {

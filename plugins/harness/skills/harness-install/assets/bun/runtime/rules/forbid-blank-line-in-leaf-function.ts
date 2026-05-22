@@ -69,21 +69,17 @@ export class ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
         funcNode: FunctionLike,
         body: FunctionLike["body"]
       ): readonly Finding[] => {
-        if (!isBlock(body)) {
-          return [];
+        const blankLineFindings: Finding[] = [];
+        if (!isBlock(body) || body.statements.length === 0) {
+          return blankLineFindings;
         }
 
         const statements = body.statements;
-        if (statements.length === 0) {
-          return [];
-        }
 
         const funcName =
           (isFunctionDeclaration(funcNode) && funcNode.name?.text) ||
           (isMethodDeclaration(funcNode) && funcNode.name && isIdentifier(funcNode.name) && funcNode.name.text) ||
           "<anonymous>";
-
-        const blankLineFindings: Finding[] = [];
 
         const checkTrivia = (triviaStart: number, triviaEnd: number): void => {
           const trivia = text.slice(triviaStart, triviaEnd);

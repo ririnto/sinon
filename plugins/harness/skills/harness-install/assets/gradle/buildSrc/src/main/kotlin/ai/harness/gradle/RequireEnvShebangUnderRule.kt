@@ -19,12 +19,12 @@ class RequireEnvShebangUnderRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
 		val category = "requireEnvShebangUnder"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+		val catObj = manifest[category]?.jsonObject ?: return@buildSet
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
+		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
 		val directories = HarnessCheck.Companion.stringArrayFrom(parametersObj, "directories")
 		val expectedPrefix = HarnessCheck.Companion.stringFrom(parametersObj, "expectedPrefix")
 

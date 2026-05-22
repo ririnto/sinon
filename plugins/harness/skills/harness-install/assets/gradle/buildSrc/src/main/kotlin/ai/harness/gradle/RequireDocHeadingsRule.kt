@@ -14,11 +14,11 @@ class RequireDocHeadingsRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
 		val category = "requireDocHeadings"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val catObj = manifest[category]?.jsonObject ?: return@buildSet
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
 		val sourceCategory = HarnessCheck.Companion.stringFrom(parametersObj, "sourceFilesFromCategory")
 		val sourceFiles = HarnessCheck.Companion.stringArrayFrom(manifest[sourceCategory]?.jsonObject?.get("parameters")?.jsonObject, "paths")
 		val sourceFilterObj = parametersObj["sourceFilter"]?.jsonObject

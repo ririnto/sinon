@@ -27,14 +27,14 @@ class ForbidImplicitLambdaItRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
 		val category = "forbidImplicitLambdaIt"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
-		val sourceRootsPerStack = parametersObj["sourceRootsPerStack"]?.jsonObject ?: return emptyList()
-		val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return emptyList()
+		val catObj = manifest[category]?.jsonObject ?: return@buildSet
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
+		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
+		val sourceRootsPerStack = parametersObj["sourceRootsPerStack"]?.jsonObject ?: return@buildSet
+		val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return@buildSet
 		val kotlinDirs = HarnessCheck.Companion.stringArrayFrom(sourceRootsPerStack, "kotlin")
 		val kotlinExts = HarnessCheck.Companion.stringArrayFrom(extensionsPerStack, "kotlin")
 
