@@ -16,7 +16,7 @@ description: |-
   <example>
     <context>User is preparing to publish a plugin and needs a full structural audit.</context>
     <user>Audit my plugin against Sinon rules before we merge.</user>
-    <assistant>Performs comprehensive check: manifest validity, all directory conventions (commands/, agents/, skills/, hooks/, .mcp.json structure), agent frontmatter consistency, skill SKILL.md presence, forbidden fields (version, agents key, interface), output categorized as Critical/Major/Minor with PASS/FAIL summary.</assistant>
+    <assistant>Performs comprehensive check: manifest validity, all directory conventions (commands/, agents/, skills/), file-typed manifest pairs (hooks/hooks.json, .mcp.json, .lsp.json, settings.json) with bidirectional consistency, agent frontmatter consistency, skill SKILL.md presence, forbidden fields (version, agents key, interface), output categorized as Critical/Major/Minor with PASS/FAIL summary.</assistant>
     <commentary>Full audit provides confidence the plugin is ready for marketplace publication.</commentary>
   </example>
 
@@ -30,8 +30,8 @@ description: |-
   <example>
     <context>User created a plugin with LSP configuration and wants to verify bidirectional consistency.</context>
     <user>Validate my plugin. It has an .lsp.json file.</user>
-    <assistant>Reads plugin-root .lsp.json file and checks .claude-plugin/plugin.json manifest. If .lsp.json exists but lspServers key is missing, flags as Major violation. If lspServers is declared in manifest but .lsp.json does not exist, flags as Critical violation. Ensures exact manifest path "./.lsp.json" matches the actual file.</assistant>
-    <commentary>Bidirectional validation prevents manifest-filesystem mismatch that would cause runtime failures.</commentary>
+    <assistant>Reads plugin-root .lsp.json file and checks .claude-plugin/plugin.json manifest. If .lsp.json exists but lspServers key is missing, flags as Major violation. If lspServers is declared in manifest but .lsp.json does not exist, flags as Critical violation. Ensures the exact manifest path "./.lsp.json" matches the actual file. Applies the same bidirectional symmetry to hooks/hooks.json, .mcp.json, and settings.json against their hooks, mcpServers, and settings manifest keys.</assistant>
+    <commentary>Bidirectional validation prevents manifest-filesystem mismatch that would cause runtime failures across all four file-typed manifest pairs.</commentary>
   </example>
 model: haiku
 color: yellow
@@ -58,10 +58,17 @@ Check `.claude-plugin/plugin.json`:
 - MUST NOT include `version` field.
 - MUST NOT include `agents` key.
 - MUST NOT include `interface` block.
-- If `skills` field is present, MUST use directory form `"./skills/"` with trailing slash; array-of-paths form is prohibited.
-- If `commands` field is present, MUST use directory form `"./commands/"` with trailing slash; array-of-paths form is prohibited.
-- If `lspServers` field is present, MUST be `"./.lsp.json"` and the plugin-root `.lsp.json` file MUST exist.
-- If plugin-root `.lsp.json` exists, the manifest SHOULD declare `lspServers` so the runtime surface is published.
+- Every declared path inside `plugin.json` MUST begin with `./`.
+- If `skills` field is present, MUST be exactly `"./skills/"`; array-of-paths form is prohibited.
+- If `commands` field is present, MUST be exactly `"./commands/"`; array-of-paths form is prohibited.
+- If `hooks` field is present, MUST be exactly `"./hooks/hooks.json"` and the plugin-root `hooks/hooks.json` file MUST exist.
+- If `mcpServers` field is present, MUST be exactly `"./.mcp.json"` and the plugin-root `.mcp.json` file MUST exist.
+- If `lspServers` field is present, MUST be exactly `"./.lsp.json"` and the plugin-root `.lsp.json` file MUST exist.
+- If `settings` field is present, MUST be exactly `"./settings.json"` and the plugin-root `settings.json` file MUST exist.
+- If plugin-root `hooks/hooks.json` exists, the manifest SHOULD declare `"hooks": "./hooks/hooks.json"` so the runtime surface is published.
+- If plugin-root `.mcp.json` exists, the manifest SHOULD declare `"mcpServers": "./.mcp.json"` so the runtime surface is published.
+- If plugin-root `.lsp.json` exists, the manifest SHOULD declare `"lspServers": "./.lsp.json"` so the runtime surface is published.
+- If plugin-root `settings.json` exists, the manifest SHOULD declare `"settings": "./settings.json"` so the runtime surface is published.
 
 ### Directory structure
 
@@ -112,8 +119,12 @@ Major (strongly recommended fixes):
 - HTTP or WS URLs in `.mcp.json` (HTTPS/WSS required).
 - Missing `SKILL.md` in skill directories.
 - Malformed JSON in `.mcp.json`, `hooks/hooks.json`, or `settings.json`.
-- Missing declared component path in the manifest.
-- Plugin-root `.lsp.json` exists but `lspServers` is not declared.
+- Declared manifest path does not exist at the plugin root.
+- Plugin-root `hooks/hooks.json` exists but `hooks` is not declared in the manifest.
+- Plugin-root `.mcp.json` exists but `mcpServers` is not declared in the manifest.
+- Plugin-root `.lsp.json` exists but `lspServers` is not declared in the manifest.
+- Plugin-root `settings.json` exists but `settings` is not declared in the manifest.
+- A declared manifest path does not match the canonical exact form (e.g., `lspServers` not equal to `"./.lsp.json"`).
 
 Minor (informational):
 
