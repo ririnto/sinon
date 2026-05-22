@@ -1,23 +1,28 @@
 # References
 
-This directory holds reference material that supports agent and reviewer decisions: framework documentation snapshots, design-system specs, deployment guides, or domain-specific knowledge that does not live in the source code.
+## Purpose
 
-Reference files are project-owned. The plugin ships only this README as a placeholder seed; it does NOT bundle third-party prose (LLM context files, vendor docs, external articles) because that would (a) inflate every install, (b) age silently, and (c) raise distribution-license risk for material the plugin does not own.
+`docs/references/` is the system of record for external documents that agents need to access offline. References are verbatim upstream content with attribution and an editor's note documenting repository-local deviations (such as CLAUDE.md vs. AGENTS.md naming, or .agents vs. .claude directory symlinks). The harness validator excludes this directory from leak and scaffold-token checks precisely because upstream may contain `TODO`, `{{...}}`, or other tokens that agents must not alter.
 
-## When To Add A Reference
+## Shipped References
 
-Add a reference here when an agent or reviewer needs a stable, offline copy of external context that the target project actually depends on — for example:
+- `openai-harness-engineering.md` — Harness engineering: leveraging Codex in an agent-first world (OpenAI Engineering blog, 2026-02-11). Source: `https://openai.com/index/harness-engineering/`.
+- `symphony-spec.md` — Symphony Service Specification (language-agnostic). Source: `https://github.com/openai/symphony`.
 
-- A captured snapshot of a framework's "LLM context" page when the project pins a specific framework version.
-- A design-system spec for the component library the project consumes.
-- A relevant external article whose ideas the team chose to apply (cite the source URL and capture date; respect the source's license before storing prose verbatim).
+## Adding a New Reference
 
-## Naming
+1. Create a new file `docs/references/<slug>.md` (or `.txt` for plain text).
+2. Prepend the file with the NOTE-style attribution block: `<!-- @formatter:off -->`, then `> [!NOTE]` with Source, Original URL, Raw URL, verbatim caveat, and editor's note on root-contract naming and symlinks.
+3. Reproduce the upstream body verbatim. Add an editor's note only for documented local deviations.
+4. Keep references self-contained: leave external links in place but do not depend on them at runtime — references must be readable offline.
+5. Update `## Shipped References` above with the new file.
 
-- Use lowercase kebab-case filenames.
-- Suffix snapshot files with `-llms.txt` (or `-llms.md`) when the file is meant to be loaded directly into an agent's context window.
-- Begin each reference file with metadata: source URL, capture date in `yyyy-MM-dd`, freshness expectation, and the license under which the snapshot was captured.
+## Template
 
-## When To Remove
+See `docs/harness/templates/docs/reference-llms.txt` for the canonical attribution skeleton. Use the template unchanged for the attribution block; only the verbatim body changes.
 
-Remove a reference when the upstream source is dead, when the project no longer depends on the referenced framework or library, or when the snapshot has drifted enough that keeping it misleads agents.
+## Validation
+
+- The harness validator excludes this directory from leak checks.
+- Manual review by another agent or human is the only quality gate.
+- The editor's note must document every deviation from upstream.
