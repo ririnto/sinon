@@ -9,7 +9,7 @@ description: |-
   <example>
     <context>User has created a new plugin with agents and wants to ensure the manifest is correct.</context>
     <user>Can you validate my plugin? The path is /path/to/my-plugin.</user>
-    <assistant>Checks .claude-plugin/plugin.json for required fields ($schema, author object form, no version, no agents key, no interface block), verifies skills field uses "./skills/" form, scans agents/ directory to confirm each agent frontmatter name matches basename.</assistant>
+    <assistant>Checks .claude-plugin/plugin.json for required fields ($schema, author object form, no version, no agents key, no interface block), verifies skills and commands fields use directory form, checks LSP manifest paths when .lsp.json exists, and scans agents/ directory to confirm each agent frontmatter name matches basename.</assistant>
     <commentary>Plugin-validator reports manifest structure compliance and agent registration correctness.</commentary>
   </example>
 
@@ -52,6 +52,9 @@ Check `.claude-plugin/plugin.json`:
 - MUST NOT include `agents` key.
 - MUST NOT include `interface` block.
 - If `skills` field is present, MUST use directory form `"./skills/"` with trailing slash; array-of-paths form is prohibited.
+- If `commands` field is present, MUST use directory form `"./commands/"` with trailing slash; array-of-paths form is prohibited.
+- If `lspServers` field is present, MUST be `"./.lsp.json"` and the plugin-root `.lsp.json` file MUST exist.
+- If plugin-root `.lsp.json` exists, the manifest SHOULD declare `lspServers` so the runtime surface is published.
 
 ### Directory structure
 
@@ -93,6 +96,7 @@ Critical (publication blocking):
 - Missing or invalid `$schema`.
 - `version`, `agents`, or `interface` keys present.
 - `skills` using array-of-paths form.
+- `commands` using array-of-paths form.
 - Agent or skill `name` mismatch with basename.
 
 Major (strongly recommended fixes):
@@ -101,6 +105,8 @@ Major (strongly recommended fixes):
 - HTTP or WS URLs in `.mcp.json` (HTTPS/WSS required).
 - Missing `SKILL.md` in skill directories.
 - Malformed JSON in `.mcp.json`, `hooks/hooks.json`, or `settings.json`.
+- Missing declared component path in the manifest.
+- Plugin-root `.lsp.json` exists but `lspServers` is not declared.
 
 Minor (informational):
 
@@ -117,8 +123,9 @@ End with:
 1. Read `.claude-plugin/plugin.json` and validate structure.
 2. Check `agents/` directory if present; validate each agent file's frontmatter.
 3. Check `skills/` directory if present; validate each skill's `SKILL.md` frontmatter.
-4. Scan `.mcp.json` for HTTPS/WSS compliance.
-5. Report findings by category and severity.
-6. Output final PASS/FAIL status.
+4. Check declared runtime paths such as `commands`, `lspServers`, `hooks`, `settings`, `outputStyles`, and `monitors` against the filesystem.
+5. Scan `.mcp.json` for HTTPS/WSS compliance.
+6. Report findings by category and severity.
+7. Output final PASS/FAIL status.
 
 Do not modify files; report findings only.
