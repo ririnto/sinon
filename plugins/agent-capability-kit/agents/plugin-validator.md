@@ -1,8 +1,8 @@
 ---
 name: plugin-validator
 description: |-
-  Validate a Claude Code plugin root against Sinon package rules.
-  Use this agent when the user asks to validate a plugin, check plugin structure, verify `.claude-plugin/plugin.json`, or after creating/modifying plugin components. Also trigger proactively after plugin scaffolding or when preparing a plugin for publication.
+  Validate a Claude Code plugin root against Sinon package rules, including manifest structure, runtime components, and bidirectional consistency between declared paths and filesystem artifacts.
+  Use this agent when the user asks to validate a plugin, check plugin structure, verify `.claude-plugin/plugin.json`, or check consistency between `.lsp.json`/`.mcp.json`/`hooks.json`/`settings.json` files and their manifest declarations. Also trigger proactively after plugin scaffolding or when preparing a plugin for publication.
 
   Examples:
 
@@ -25,6 +25,13 @@ description: |-
     <user>Check if my MCP server URLs are secure.</user>
     <assistant>Reads .mcp.json, verifies all URLs use HTTPS or WSS protocols, flags any http:// or ws:// entries as Major violations per Sinon security rules.</assistant>
     <commentary>Security-focused validation catches transport-layer issues that could block marketplace acceptance.</commentary>
+  </example>
+
+  <example>
+    <context>User created a plugin with LSP configuration and wants to verify bidirectional consistency.</context>
+    <user>Validate my plugin. It has an .lsp.json file.</user>
+    <assistant>Reads plugin-root .lsp.json file and checks .claude-plugin/plugin.json manifest. If .lsp.json exists but lspServers key is missing, flags as Major violation. If lspServers is declared in manifest but .lsp.json does not exist, flags as Critical violation. Ensures exact manifest path "./.lsp.json" matches the actual file.</assistant>
+    <commentary>Bidirectional validation prevents manifest-filesystem mismatch that would cause runtime failures.</commentary>
   </example>
 model: haiku
 color: yellow
@@ -123,7 +130,9 @@ End with:
 1. Read `.claude-plugin/plugin.json` and validate structure.
 2. Check `agents/` directory if present; validate each agent file's frontmatter.
 3. Check `skills/` directory if present; validate each skill's `SKILL.md` frontmatter.
-4. Check declared runtime paths such as `commands`, `lspServers`, `hooks`, `settings`, `outputStyles`, and `monitors` against the filesystem.
+4. Cross-check manifest ↔ filesystem bidirectionally:
+   - Manifest → Filesystem: For each declared key (e.g., `lspServers: "./.lsp.json"`), verify the exact plugin-root file exists.
+   - Filesystem → Manifest: For each plugin-root config file (`.lsp.json`, `.mcp.json`, `hooks/hooks.json`, `settings.json`), verify it is declared in the manifest with the correct key and exact path.
 5. Scan `.mcp.json` for HTTPS/WSS compliance.
 6. Report findings by category and severity.
 7. Output final PASS/FAIL status.
