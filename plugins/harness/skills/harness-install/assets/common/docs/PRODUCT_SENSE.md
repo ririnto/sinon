@@ -7,28 +7,34 @@ PRODUCT_SENSE.md gives agents and humans the product mental model needed to make
 ## Product Principles
 
 - Optimize for legibility over cleverness.
-- Prefer reversible operations.
-- Default to explicit feedback over silent success.
+- Prefer reversible operations, especially for shared state.
+- Default to explicit feedback (error or success) over silent operations.
+- Treat plans, decisions, and quality scores as first-class artifacts checked into the repo.
+- Make the agent-readable path identical to the human-readable path; if they diverge, fix the agent path first.
 
 ## User Model
 
-The primary user is a developer integrating coding agents into a project harness who needs stable patterns, bounded delegation, and deterministic validation without constant context-switching.
+The primary user is a {{primary-user-role}} who works inside the product five days a week and depends on it for {{primary-success-metric}}. They need stable patterns, bounded delegation, and deterministic validation without constant context-switching.
 
-- Secondary users include reviewers enforcing product standards and new teammates learning the harness structure from examples.
-- Contributors building plugins and skills need templates that evolve with the product but remain self-contained.
+- Occasional users run specific tasks infrequently and need clear starting points and self-contained instructions.
+- Admin operators manage configuration, secrets, and infrastructure surface and require auditable trails and rollback safety.
+- External API consumers integrate the product programmatically and need versioned interfaces and explicit deprecation timelines.
 
 ## Design Tone
 
-- Write in imperative, direct language; skip preamble and filler.
-- Use kebab-case for configuration keys and reserved identifiers.
-- Keep error messages actionable: name the problem, state what to check, link to relevant docs.
-- Empty-state copy SHOULD explain what belongs in this section and when to populate it.
+- Voice is terse, neutral, and instructive — not casual, not corporate.
+- Copy uses sentence case, never title case, except for proper nouns.
+- Error messages name the constraint and the next safe action; they never blame the user.
+- Empty states explain what would appear here and how to populate it.
+- Use plain language; avoid jargon unless it is the user's working vocabulary.
 
 ## Refusal Signals
 
-- Requests to remove validation gates or bypass review; respond with the design principle and validation command.
-- Scope expansions beyond the active milestone without a design review; respond with a pointer to the active plan and link to the design-docs directory.
-- Prompts that imply destructive shortcuts (deleting files, overwriting templates, skipping harness evolution); respond with the reversibility principle and an alternative approach.
+- Refuse requests that bypass review (e.g. force-merge, --no-verify).
+- Refuse silent destructive operations (drop, truncate, rm -rf) without explicit confirmation.
+- Refuse scope expansions beyond the active milestone in PLANS.md; redirect to the next milestone.
+- Refuse to invent values for required identifiers (IDs, URLs, secrets); ask or fail.
+- Refuse to implement features that lack a matching product spec in docs/product-specs/.
 
 ## When To Update
 

@@ -6,20 +6,27 @@ PLANS.md is the project-wide development plan: the long-horizon roadmap, milesto
 
 ## Roadmap
 
-Replace the example row below with your actual milestones:
+Replace the example milestones below with your own; keep the columns and status values.
 
 | Milestone | Target outcome | Status | Owner | Notes |
 | --- | --- | --- | --- | --- |
-| {{milestone-name}} | {{outcome}} | planned / in flight / shipped | {{owner}} | {{notes}} |
+| M1: Discovery and product spec | Validated product spec under `docs/product-specs/` | shipped | {{owner}} | |
+| M2: Architecture and harness installed | `ARCHITECTURE.md` + harness validator green | shipped | {{owner}} | |
+| M3: Internal beta with daily-driver agents | End-to-end agent workflow with hooks + CI green | in flight | {{owner}} | |
+| M4: External alpha | Opt-in alpha users, observability and feedback loop | planned | {{owner}} | |
+| M5: General availability | SLOs met for one full month + retention dashboards green | planned | {{owner}} | |
 
 ## Sequencing Rationale
 
-- Cite the relevant `docs/product-specs/`, `docs/design-docs/`, or decision-record link explaining why milestones are ordered as they are.
+- M1 precedes everything because the harness needs a product spec to validate against. See `docs/product-specs/`.
+- M2 precedes M3 because the validator must be green before any agent-driven implementation lands. See `docs/design-docs/`.
+- M4 precedes M5 because external alpha feedback is required to confirm the SLOs targeted at GA. See `docs/RELIABILITY.md`.
 
 ## Dependencies
 
-- Milestone X depends on Milestone Y because {{reason}}.
-- List inter-milestone and cross-team dependencies here.
+- M3 depends on M2 because the harness validator gates every implementation PR.
+- M4 depends on observability landing in M3 because alpha users will surface failures that need traces.
+- M5 depends on SLO definitions in `docs/RELIABILITY.md` being green for the GA window.
 
 ## When To Update
 

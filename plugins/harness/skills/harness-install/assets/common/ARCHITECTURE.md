@@ -6,8 +6,9 @@ ARCHITECTURE.md is the top-level map of domains, package layering, data flow, an
 
 ## Domain Map
 
-- {{domain-name}}: <one-sentence responsibility>
-- {{domain-name}}: <one-sentence responsibility>
+- {{Identity}}: User authentication, session management, role-based access control, and tenant isolation.
+- {{Catalog}}: Core business entity management — product listings, inventory, metadata, and pricing tiers.
+- {{Notifications}}: Outbound email delivery, webhook dispatches, and event subscriptions.
 
 ## Package Layering
 
@@ -17,26 +18,38 @@ Refer to `docs/DESIGN.md` for the canonical layering pattern within each domain.
 ---
 title: Package layering (per-domain horizontal layers + cross-domain providers)
 ---
+%%{init: {'theme': 'dark', 'primaryColor': '#0d0d0d', 'primaryTextColor': '#FFFFFF', 'primaryBorderColor': '#FFFFFF', 'lineColor': '#FFFFFF', 'clusterBkg': '#1a1a1a', 'clusterBorder': '#FFFFFF'}}%%
 flowchart LR
-    DomainA[Domain A] --> Shared[Shared utilities]
-    DomainB[Domain B] --> Shared
-    DomainA -. cross-domain via providers .-> DomainB
+    Identity(([Identity]))
+    Catalog(([Catalog]))
+    Notifications(([Notifications]))
+    Shared[Shared utilities]
+    
+    Identity --> Shared
+    Catalog --> Shared
+    Notifications --> Shared
+    
+    Catalog -.via IdentityProvider.-> Identity
+    Notifications -.via EventBus.-> Catalog
 ```
 
 ## Data Flow
 
-- {{entry-point}} → {{service}} → {{repository}} → {{storage}}: describes the request path and state mutations.
-- {{event-source}} → {{queue}} → {{handler}} → {{projection}}: describes event-driven data flow and read-model updates.
+- Request path: HTTP/{{protocol}} entry → handler → service → repository → datastore.
+- Event path: domain event → message bus → projection handler → read model.
 
 ## External Integrations
 
-- {{integration-point}}: {{contract-type}} (REST / GraphQL / gRPC / event / file) — {{responsibility}}.
-- {{integration-point}}: {{contract-type}} — {{responsibility}}.
+- Identity provider: OAuth/OIDC to `https://{{idp-host}}` — user sign-in, token validation, and claims mapping via REST.
+- Payment gateway: {{payment-provider}} REST API — card tokenization, charge processing, and subscription lifecycle.
+- Telemetry backend: OpenTelemetry OTLP export to `{{otlp-endpoint}}` — distributed traces, metrics, and error reporting via gRPC.
 
 ## Validation Surfaces
 
-- {{validator-name}}: enforces {{what the surface guards}}.
-- {{validator-name}}: enforces {{what the surface guards}}.
+- Harness validator: enforces repository structure, documentation presence, and agent skill invariants per `docs/harness/manifest.json`.
+- Lint rules: enforces style, naming, and module boundary rules in the repository lint config.
+- Structural tests: enforces package layer ordering and cross-domain dependency rules under `tests/structure/`.
+- CI workflow: enforces full build, test, and integration pass at `.github/workflows/harness.yml` before merge.
 
 ## When To Update
 

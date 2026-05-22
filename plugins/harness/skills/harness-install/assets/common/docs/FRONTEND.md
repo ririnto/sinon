@@ -8,9 +8,16 @@ This is not only about a frontend-side application. A project with no web UI sti
 
 ## Exposed Surfaces
 
-- List each surface this project exposes and one sentence describing its responsibility.
-- Examples: `Web UI` (browser-facing application), `Mobile UI` (iOS/Android shells), `Public HTTP API` (REST/GraphQL endpoints consumed by external clients), `CLI` (command-line entry points), `Outbound webhooks` (events emitted to other systems), `Public SDK` (libraries published for external consumers).
-- For each, name the entry point (URL pattern, binary name, package path) and the canonical client persona.
+Delete rows below that do not apply to this project. Replace placeholders with real entry points, package names, and source paths.
+
+| Surface | Entry point | Canonical client persona | Contract source of truth |
+| --- | --- | --- | --- |
+| Web UI | `https://{{app-host}}/` | browser-facing end user | `apps/web/` |
+| Mobile UI | `{{ios-bundle-id}}` / `{{android-package}}` | mobile end user | `apps/mobile/` |
+| Public HTTP API | `https://api.{{app-host}}/v1` | external integrator | `apis/public/openapi.yaml` |
+| CLI | `{{cli-binary-name}}` | power user, operator | `apps/cli/` |
+| Outbound webhooks | `POST {{customer-endpoint}}` | customer-integrating system | `events/webhook-catalog.md` |
+| Public SDK | `npm:{{sdk-package}}`, `pypi:{{sdk-package}}` | external integrator | `sdk/` |
 
 ## Surface Legibility
 
@@ -21,15 +28,15 @@ This is not only about a frontend-side application. A project with no web UI sti
 
 ## Design System and Contract Primitives
 
-- Name the canonical design system for UI surfaces (component library path, design-token file, icon set) and require that all visual primitives come from it.
-- Name the canonical contract primitives for non-UI surfaces (shared schema for API errors, standard envelope for paginated lists, conventional CLI exit codes, standard webhook signature scheme).
+- Canonical design system for UI: `packages/design-system/` (component library), `packages/design-system/tokens.json` (design tokens), `packages/design-system/icons/` (icon set).
+- Canonical contract primitives: API error schema at `apis/public/openapi.yaml#/components/schemas/Error`, pagination envelope in the same schema, CLI exit-code table at `docs/cli/exit-codes.md`, webhook signature scheme `HMAC-SHA256 over body with header X-Signature`.
 - Forbid ad-hoc parallel implementations: a new color, a new error envelope, or a new CLI flag pattern MUST be added to the canonical set before being used anywhere.
 
 ## Surface Boundaries
 
 - Separate *surface-shape* layers from *business-logic* layers: presentational components vs. containers (UI); HTTP handlers vs. service code (API); CLI command parsers vs. domain operations (CLI). File-path conventions or lints enforce the split.
 - Keep public surfaces (browser, mobile, external API) distinct from internal-only surfaces (admin tools, internal RPC). Each MUST sit in its own directory and follow the access-control rules in `docs/SECURITY.md`.
-- Versioning rules: public surfaces MUST follow the project's stated compatibility policy (semver, dated API versions, deprecation windows); link to that policy from this file.
+- Public surfaces follow the project's compatibility policy: dated URL prefix (e.g. `/v1`) for the HTTP API, semver for SDKs and CLI, six-month deprecation window with sunset header / SDK warning.
 
 ## Accessibility and Ergonomics Floor
 
