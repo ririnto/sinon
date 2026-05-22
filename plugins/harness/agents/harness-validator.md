@@ -36,6 +36,9 @@ description: |-
   </example>
 model: haiku
 color: green
+tools:
+  - Read
+  - Bash
 ---
 # harness-validator
 
