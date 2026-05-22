@@ -204,7 +204,7 @@ git commit -m "style: align button spacing in form"
 
 ## Pitfalls
 
-**Vague subjects without verbs:**
+Vague subjects without verbs:
 
 ```
 # Wrong
@@ -220,7 +220,7 @@ chore: upgrade lodash to 4.17.21
 docs: add setup instructions for macOS
 ```
 
-**Body restates the diff instead of explaining why:**
+Body restates the diff instead of explaining why:
 
 ```
 # Wrong
@@ -238,7 +238,7 @@ When a user logs out, the token must be cleared from storage
 immediately to prevent reuse in a hijacking scenario.
 ```
 
-**Mixing unrelated changes:**
+Mixing unrelated changes:
 
 ```
 # Wrong
@@ -247,7 +247,7 @@ feat: add two-factor auth and update dependencies
 Two independent concerns forced into one message. Should be split.
 ```
 
-**Breaking change missing the `!` marker:**
+Breaking change missing the `!` marker:
 
 ```
 # Wrong

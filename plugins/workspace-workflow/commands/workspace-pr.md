@@ -180,7 +180,7 @@ Ask the user:
 
 Recommend next steps based on the host. Save the body to a file and provide CLI commands.
 
-**GitHub (gh CLI):**
+#### GitHub (gh CLI)
 
 Provide these commands in sequence:
 
@@ -210,7 +210,7 @@ gh pr merge <PR_NUMBER> --squash --delete-branch
 
 Alternatively, guide the user to the GitHub web UI if CLI is unavailable.
 
-**GitLab (glab CLI):**
+#### GitLab (glab CLI)
 
 Provide these commands in sequence:
 
@@ -242,7 +242,7 @@ glab mr merge <MR_NUMBER> --squash --when-pipeline-succeeds --remove-source-bran
 
 Alternative: Body text can include GitLab quick actions (e.g., `/assign @user`, `/label ~type::feature`) which execute after MR creation.
 
-**Inline Body Option (if file handling is cumbersome):**
+#### Inline Body Option (if file handling is cumbersome)
 
 GitHub:
 ```sh
@@ -265,7 +265,7 @@ git remote get-url origin
 
 Then navigate to the created PR/MR using the reported URL or these commands:
 
-**GitHub:**
+#### GitHub
 
 ```sh
 # View the PR you just created on the current branch
@@ -281,7 +281,7 @@ gh pr view 42 --web
 gh pr list --author "@me" --state all --limit 5
 ```
 
-**GitLab:**
+#### GitLab
 
 ```sh
 # View the MR you just created on the current branch
@@ -297,7 +297,7 @@ glab mr view 42 --web
 glab mr list --assignee "@me" --all --per-page 5
 ```
 
-**Verification Checklist:**
+#### Verification Checklist
 
 - [ ] PR/MR number is reported and matches the CLI output.
 - [ ] Title and body match what was submitted.
@@ -306,7 +306,7 @@ glab mr list --assignee "@me" --all --per-page 5
 - [ ] CI pipeline is running (check status in PR/MR details).
 - [ ] Reviewers are notified (check review request section).
 
-**Next Steps:**
+#### Next Steps
 
 1. Monitor CI progress in the PR/MR details.
 2. Address any lint, type check, or test failures.

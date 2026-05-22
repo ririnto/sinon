@@ -49,13 +49,13 @@ Use Conventional Commits format for PR/MR titles:
 type(scope): description
 ```
 
-**Components:**
+Components:
 
 - `type`: One of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`.
 - `scope`: The module, feature, or area affected (e.g., `api`, `auth`, `ui`, `deps`). MUST be lowercase, no spaces. Omit if single-scope project.
 - `description`: Imperative mood, no period, lowercase start. Summarize the change concisely.
 
-**Examples:**
+Examples:
 
 - `feat(auth): implement JWT refresh token rotation`
 - `fix(api): handle null customer ID in billing endpoint`
@@ -63,7 +63,7 @@ type(scope): description
 - `refactor(db): migrate connection pool to async-await`
 - `perf(search): add query result caching`
 
-**Length:** 50–72 characters (enforce via linter or manual review).
+Length: 50–72 characters (enforce via linter or manual review).
 
 ## Body Template
 
@@ -241,7 +241,7 @@ GitLab supports scoped labels: `scope::value` syntax. Use consistently:
 glab mr create --title "..." --label "type::feature,scope::api,priority::high"
 ```
 
-**Key difference from GitHub**: Scoped labels enforce a single value per scope (e.g., only one `type::*` can be active). Use this to prevent conflicting labels.
+Key difference from GitHub: Scoped labels enforce a single value per scope (e.g., only one `type::*` can be active). Use this to prevent conflicting labels.
 
 ## Reviewer and Assignee Strategy
 
@@ -382,8 +382,6 @@ gh pr list
 gh pr list --state all --assignee @me
 gh pr list --label "needs-review" --state open
 gh pr list --search "status:success review:required"
-
-# Find PRs by draft status or label
 gh pr list --draft
 gh pr list --author "@me" --state closed
 ```
@@ -488,7 +486,7 @@ glab mr list --assignee @me
 glab mr list --reviewer @me
 glab mr list --label "needs-review"
 glab mr list --draft
-glab mr list --all  # Include closed and merged
+glab mr list --all
 
 # Search in title and description
 glab mr list --search "adds feature X"
