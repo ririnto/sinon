@@ -12,30 +12,6 @@ interface Finding {
   message: string;
 }
 
-const DEFAULT_SEVERITY: Record<string, "ERROR" | "WARN" | "INFO"> = {
-  requiredFiles: "ERROR",
-  requiredDirectories: "ERROR",
-  emptyDirectoryKeepFiles: "ERROR",
-  optionalSeedFiles: "INFO",
-  templateGroups: "WARN",
-  requiredDocHeadings: "WARN",
-  requiredContentChecks: "ERROR",
-  leakPatterns: "ERROR",
-  expectedValidationCommands: "ERROR",
-  hookStages: "WARN",
-  completedPlanDirectory: "ERROR",
-  unfinishedTaskPattern: "ERROR",
-  envShebangBases: "WARN",
-  agentFrontmatter: "ERROR",
-  skillFrontmatter: "ERROR",
-  hookFirstLine: "ERROR",
-  hookExecutable: "ERROR",
-  hookGeneratedMarker: "ERROR",
-  ciCommandMatch: "WARN",
-  symlinkSafety: "ERROR",
-  manifestParity: "ERROR",
-};
-
 // Helper functions
 function pathOf(path: string): string {
   return join(root, path);
@@ -205,12 +181,11 @@ function manifestObject(value: unknown): Record<string, unknown> {
 }
 
 function severityOf(manifest: Record<string, unknown>, category: string): "ERROR" | "WARN" | "INFO" {
-  const entry = manifestObject(manifest[category]);
-  const sev = entry.severity;
+  const sev = manifestObject(manifest[category]).severity;
   if (sev === "ERROR" || sev === "WARN" || sev === "INFO") {
     return sev;
   }
-  return DEFAULT_SEVERITY[category] ?? "ERROR";
+  return "ERROR";
 }
 
 function loadManifest(): Record<string, unknown> {
