@@ -1,20 +1,16 @@
 # Product Sense
 
-Document user goals, product principles, and quality signals once the target repository has project-specific product context.
+Document product principles, user-research insights, and judgment calls that agents and reviewers MUST consider before changing user-visible behavior.
 
 ## Purpose
 
-Explain the durable project context this document owns for agents and reviewers.
+Encode the "why we say no" and "why we say yes" for product decisions: target user, deliberate trade-offs, and patterns the product has rejected.
 
 ## When To Update
 
-Update this document when the owned context changes, when validation points at stale guidance, or when a task depends on undocumented assumptions.
+Update when a product principle solidifies, when user research changes a previously-held assumption, or when a recurring debate has been settled.
 
 ## Required Evidence
 
-- Link to the source decision, implementation path, command output, issue, or review note that supports the current guidance.
-- Record unknowns explicitly instead of encoding product-specific guesses in the harness scaffold.
-
-## Validation Link
-
-Run the stack-specific harness validation command listed in `docs/harness/README.md` after changing this document.
+- Cite the research session, customer ticket, or design review where the insight emerged.
+- Link to the product-spec file that operationalizes the insight when one exists.

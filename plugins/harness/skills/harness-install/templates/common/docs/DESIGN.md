@@ -1,20 +1,16 @@
 # Design
 
-Document cross-cutting design guidance and review criteria.
+Document cross-cutting design guidance, layering rules, dependency-direction constraints, and review criteria that apply across the repository.
 
 ## Purpose
 
-Explain the durable project context this document owns for agents and reviewers.
+Capture durable design decisions that span multiple domains: layering constraints, dependency direction rules, naming conventions, and review criteria that reviewers and agents apply to every change.
 
 ## When To Update
 
-Update this document when the owned context changes, when validation points at stale guidance, or when a task depends on undocumented assumptions.
+Update when a layering rule changes, when a recurring review comment exposes an undocumented invariant, or when a domain-spanning decision needs a citable reference under `docs/design-docs/`.
 
 ## Required Evidence
 
-- Link to the source decision, implementation path, command output, issue, or review note that supports the current guidance.
-- Record unknowns explicitly instead of encoding product-specific guesses in the harness scaffold.
-
-## Validation Link
-
-Run the stack-specific harness validation command listed in `docs/harness/README.md` after changing this document.
+- Link to the implementation file or commit where the rule is enforced (lint, type, or runtime check).
+- Link to the related entry under `docs/design-docs/` when a deeper decision record exists.
