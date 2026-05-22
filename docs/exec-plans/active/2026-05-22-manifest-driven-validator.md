@@ -31,19 +31,19 @@
 
 ## Phases
 
-### Phase 1: Manifest schema base (완료)
+### [x] Phase 1: Manifest schema base
 
 - [x] Task 1.1 — manifest.json에 새 필드 도입: `requiredDocHeadings`, `requiredContentChecks`, `activeAssetBases`, `excludedActiveAssetSubtrees`, `activeAssetExtensions`, `leakPatterns`, `expectedValidationCommands`, `hookStages`, `completedPlanDirectory`, `unfinishedTaskPattern`, `envShebangBases`. (harness는 versioning하지 않으므로 schemaVersion 필드는 두지 않는다)
 - [x] Task 1.2 — 미정의 필드는 validator가 무시한다는 정책 명시 (versioning/legacy/deprecated 표현은 사용하지 않는다)
 
-### Phase 2: Self-documenting manifest schema (완료)
+### [x] Phase 2: Self-documenting manifest schema
 
 각 옵션을 (a) check add-on(description + severity + failure message templates + 대상 경로/데이터) 또는 (b) metadata(description + data, severity 없음, validator는 읽기만)로 명확히 분리. AGENTS.md = CLAUDE.md symlink이므로 `requireDocContent`는 CLAUDE.md만 검증.
 
 - [x] Task 2.1 — `requireFilesExist`, `requireDirectoriesExist`, `requireKeepfileInEmptyDirectories`, `requireTemplateGroups`, `requireDocHeadings`, `requireDocContent`, `requireAgentFrontmatter`, `requireSkillFrontmatter`, `forbidScaffoldLeaks`, `requireHookShebang`, `requireHookExecutable`, `requireHookGeneratedMarker`, `requireHookStage`, `requireHookCommand`, `requireCiCommandMatchesHook`, `requireEnvShebangUnder`, `forbidUncheckedTasksUnder`, `forbidUnsafeSymlinks` (check add-ons; description + severity + failureMessageTemplate(s) + 대상 데이터)
 - [x] Task 2.2 — `seedFiles`, `generatedArtifacts`, `harnessEvolution`, `teamPatterns` (metadata; description + data, severity 없음)
 
-### Phase 3: 4 stack validator 통합 마이그레이션 (병렬 sub-agent × 4)
+### [ ] Phase 3: 4 stack validator 통합 마이그레이션 (병렬 sub-agent × 4)
 
 각 sub-agent가 자기 stack의 validator를 *모든 정책*에 맞춰 한 번에 다시 작성. inline 변환·early return 제거·silent failure 제거·functional filter().map()·severity 매니페스트 조회 등 작은 변환을 같은 sub-agent 안에서 통합 처리해 호출 횟수를 줄인다.
 
@@ -54,7 +54,7 @@
 - [ ] Task 3.3 — Python `harness_validate.py`: 새 manifest schema 마이그레이션 + Style Policy(tuple, NamedTuple, list comprehension, no silent failure, no early return) + add-on architecture(`Protocol` 또는 `@dataclass(frozen=True)` HarnessCheck + 각 check 함수 또는 클래스 + registry tuple). (subagent: general-purpose)
 - [ ] Task 3.4 — TypeScript `harness-validate.ts`: 새 manifest schema 마이그레이션 + Style Policy(readonly arrays, spread, template literal, no silent failure, no early return) + add-on architecture(`interface HarnessCheck { category; applies; validate; }` + 각 check function + registry). bun helper 함수들이 module-level `manifest` closure에 의존하던 부분은 명시적 인자 전달로 정리. (subagent: general-purpose)
 
-### Phase 4: AST/native parser 강화
+### [ ] Phase 4: AST/native parser 강화
 
 현재 Kotlin/Java validator는 manifest JSON을 정규식으로 파싱한다. 이는 fragile하고 사용자가 명시적으로 AST 기반으로 옮길 것을 요구했다. Python/TS는 이미 native JSON parser 사용 중.
 
@@ -62,7 +62,7 @@
 - [ ] Task 4.2 — Java: `maven-plugin/pom.xml`에 `com.fasterxml.jackson.core:jackson-databind` 의존성 추가. 정규식 manifest parser를 `ObjectMapper`로 교체. (subagent: general-purpose)
 - [ ] Task 4.3 — markdown frontmatter 검사(`(?m)^name:\s*[-a-z0-9]+\s*$` 등)는 stack별 YAML parser로 교체 가능한지 검토. 의존성 부담이 크면 정규식 유지하되 `kotlin.io.path` / `pathlib` / `node:fs/promises` API로 reading만 갱신. (subagent: general-purpose)
 
-### Phase 5: Self-check + dry-run 재검증
+### [ ] Phase 5: Self-check + dry-run 재검증
 
 - [ ] Task 5.1 — `plugin-self-check.sh` PASS
 - [ ] Task 5.2 — `install-harness.sh --mode bun` dry-run → bun validator 출력이 `[ERROR]`/`[WARN]`/`[INFO]` prefix를 갖는지 확인. ERROR 0건이면 `Harness validation passed` + exit 0
@@ -73,7 +73,7 @@
   - TS: `severity: "(ERROR|WARN|INFO)"`
 - [ ] Task 5.4 — manifest의 모든 카테고리에 description + (check면) failureMessageTemplate 명시 확인
 
-### Phase 5.5: Shell stack adapter 추가 (gradle/maven/uv/bun 외 5번째)
+### [ ] Phase 5.5: Shell stack adapter 추가 (gradle/maven/uv/bun 외 5번째)
 
 shell-only 프로젝트(POSIX sh/bash 기반)에서도 harness를 사용할 수 있도록 stack adapter 추가. 다른 stack과 동일하게 manifest를 single source of truth로 읽고 동일한 add-on architecture로 동작.
 
@@ -84,12 +84,12 @@ shell-only 프로젝트(POSIX sh/bash 기반)에서도 harness를 사용할 수 
 - [ ] Task 5.5.5 — manifest.json의 `requireHookCommand.allowedCommands.shell` + `requireHookStage.stages.shell` 추가. validator의 stack lookup이 자동으로 새 키를 읽도록 (manifest-driven이므로 코드 변경 불필요) (subagent: main)
 - [ ] Task 5.5.6 — plugin README, `harness-install/SKILL.md`의 Validation Adapters 표에 shell 추가 (subagent: general-purpose)
 
-### Phase 6: Gradle buildSrc 재배치 + assets/ 디렉토리 컨벤션 (별도 plan으로 분리 가능)
+### [ ] Phase 6: Gradle buildSrc 재배치 + assets/ 디렉토리 컨벤션 (별도 plan으로 분리 가능)
 
 - [ ] Task 6.1 — `skills/harness-install/templates/` → `skills/harness-install/assets/` 재배치 (sinon plugin authoring 컨벤션). install-harness.sh가 새 위치를 가리키도록 갱신 (subagent: harness:harness-architect)
 - [ ] Task 6.2 — Gradle adapter를 `gradle-plugin/` composite build에서 `buildSrc/`로 옮길 시 *target build에 미치는 영향* 분석 (buildSrc는 root project가 자동 인식). 적절한지 검증 후 결정 (subagent: harness:harness-architect)
 
-### Phase 7: Plan completion
+### [ ] Phase 7: Plan completion
 
 - [ ] Task 7.1 — 본 plan을 `docs/exec-plans/completed/`로 이동, Status `completed` + `Completed: yyyy-MM-dd` 기록
 
