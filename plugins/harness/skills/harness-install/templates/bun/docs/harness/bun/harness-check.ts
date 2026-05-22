@@ -101,7 +101,8 @@ function readJsonObject(value: unknown): Record<string, unknown> {
 }
 
 function severityOf(manifest: Manifest, category: string): "ERROR" | "WARN" | "INFO" {
-  const sev = readJsonObject(manifest[category]).severity;
+  const section = readJsonObject(manifest[category]);
+  const sev = section.severity;
   return sev === "ERROR" || sev === "WARN" || sev === "INFO" ? sev : "ERROR";
 }
 
@@ -154,12 +155,21 @@ function collectFilesUnder(path: string): readonly [readonly string[], readonly 
 const requireFilesExist: HarnessCheckSpec = {
   category: "requireFilesExist",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireFilesExist);
+    const section = manifest.requireFilesExist;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const entry = readJsonObject((section as Record<string, unknown>).parameters);
     return readStringArray(entry.paths).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireFilesExist);
-    const paths = readStringArray(entry.paths);
+    const section = readJsonObject(manifest.requireFilesExist);
+    const parameters = readJsonObject(section.parameters);
+    const paths = readStringArray(parameters.paths);
     return paths.flatMap((path) => {
       if (isSymlink(path) && allowedRootContractTarget(path) === null) {
         return [
@@ -186,12 +196,21 @@ const requireFilesExist: HarnessCheckSpec = {
 const requireDirectoriesExist: HarnessCheckSpec = {
   category: "requireDirectoriesExist",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireDirectoriesExist);
+    const section = manifest.requireDirectoriesExist;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const entry = readJsonObject((section as Record<string, unknown>).parameters);
     return readStringArray(entry.paths).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireDirectoriesExist);
-    const paths = readStringArray(entry.paths);
+    const section = readJsonObject(manifest.requireDirectoriesExist);
+    const parameters = readJsonObject(section.parameters);
+    const paths = readStringArray(parameters.paths);
     return paths.flatMap((path) => {
       if (isSymlink(path)) {
         return [
@@ -218,12 +237,21 @@ const requireDirectoriesExist: HarnessCheckSpec = {
 const requireKeepfileInEmptyDirectories: HarnessCheckSpec = {
   category: "requireKeepfileInEmptyDirectories",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireKeepfileInEmptyDirectories);
+    const section = manifest.requireKeepfileInEmptyDirectories;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const entry = readJsonObject((section as Record<string, unknown>).parameters);
     return readStringArray(entry.directories).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireKeepfileInEmptyDirectories);
-    const directories = readStringArray(entry.directories);
+    const section = readJsonObject(manifest.requireKeepfileInEmptyDirectories);
+    const parameters = readJsonObject(section.parameters);
+    const directories = readStringArray(parameters.directories);
     return directories.flatMap((dir) => {
       if (!isDirectory(dir)) {
         return [];
@@ -246,13 +274,22 @@ const requireKeepfileInEmptyDirectories: HarnessCheckSpec = {
 const requireTemplateGroups: HarnessCheckSpec = {
   category: "requireTemplateGroups",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireTemplateGroups);
+    const section = manifest.requireTemplateGroups;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const entry = readJsonObject((section as Record<string, unknown>).parameters);
     return readStringArray(entry.groups).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireTemplateGroups);
-    const targetRoot = typeof entry.targetRoot === "string" ? entry.targetRoot : "";
-    const groups = readStringArray(entry.groups);
+    const section = readJsonObject(manifest.requireTemplateGroups);
+    const parameters = readJsonObject(section.parameters);
+    const targetRoot = typeof parameters.targetRoot === "string" ? parameters.targetRoot : "";
+    const groups = readStringArray(parameters.groups);
     return groups.flatMap((group) => {
       const path = `${targetRoot}/${group}`;
       return isDirectory(path)
@@ -271,18 +308,29 @@ const requireTemplateGroups: HarnessCheckSpec = {
 const requireDocHeadings: HarnessCheckSpec = {
   category: "requireDocHeadings",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireDocHeadings);
+    const section = manifest.requireDocHeadings;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const entry = readJsonObject((section as Record<string, unknown>).parameters);
     return readStringArray(entry.headings).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireDocHeadings);
-    const requiredEntry = readJsonObject(manifest[entry.sourceFilesFromCategory ?? "requireFilesExist"]);
-    const sourceFilter = readJsonObject(entry.sourceFilter);
+    const section = readJsonObject(manifest.requireDocHeadings);
+    const parameters = readJsonObject(section.parameters);
+    const sourceCategory = typeof parameters.sourceFilesFromCategory === "string" ? parameters.sourceFilesFromCategory : "requireFilesExist";
+    const requiredSection = readJsonObject(manifest[sourceCategory]);
+    const requiredParameters = readJsonObject(requiredSection.parameters);
+    const sourceFilter = readJsonObject(parameters.sourceFilter);
     const prefix = typeof sourceFilter.prefix === "string" ? sourceFilter.prefix : "";
     const suffix = typeof sourceFilter.suffix === "string" ? sourceFilter.suffix : "";
-    const headings = readStringArray(entry.headings);
+    const headings = readStringArray(parameters.headings);
 
-    const allSourceFiles = readStringArray(requiredEntry.paths);
+    const allSourceFiles = readStringArray(requiredParameters.paths);
     const filteredFiles = allSourceFiles.filter(
       (f) => !prefix || f.startsWith(prefix) && (!suffix || f.endsWith(suffix))
     );
@@ -310,13 +358,22 @@ const requireDocHeadings: HarnessCheckSpec = {
 const requireDocContent: HarnessCheckSpec = {
   category: "requireDocContent",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireDocContent);
-    const checks = entry.checks;
+    const section = manifest.requireDocContent;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    const checks = parameters.checks;
     return Array.isArray(checks) && checks.length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireDocContent);
-    const checks = entry.checks;
+    const section = readJsonObject(manifest.requireDocContent);
+    const parameters = readJsonObject(section.parameters);
+    const checks = parameters.checks;
     if (!Array.isArray(checks)) {
       return [];
     }
@@ -347,10 +404,22 @@ const requireDocContent: HarnessCheckSpec = {
 
 const requireAgentFrontmatter: HarnessCheckSpec = {
   category: "requireAgentFrontmatter",
-  applies: (manifest) => readJsonObject(manifest.requireAgentFrontmatter).directory !== undefined,
+  applies: (manifest) => {
+    const section = manifest.requireAgentFrontmatter;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return parameters.directory !== undefined;
+  },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireAgentFrontmatter);
-    const directory = typeof entry.directory === "string" ? entry.directory : "";
+    const section = readJsonObject(manifest.requireAgentFrontmatter);
+    const parameters = readJsonObject(section.parameters);
+    const directory = typeof parameters.directory === "string" ? parameters.directory : "";
     if (!directory || !isDirectory(directory)) {
       return [];
     }
@@ -401,11 +470,23 @@ const requireAgentFrontmatter: HarnessCheckSpec = {
 
 const requireSkillFrontmatter: HarnessCheckSpec = {
   category: "requireSkillFrontmatter",
-  applies: (manifest) => readJsonObject(manifest.requireSkillFrontmatter).rootDirectory !== undefined,
+  applies: (manifest) => {
+    const section = manifest.requireSkillFrontmatter;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return parameters.rootDirectory !== undefined;
+  },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireSkillFrontmatter);
-    const rootDirectory = typeof entry.rootDirectory === "string" ? entry.rootDirectory : "";
-    const filename = typeof entry.filename === "string" ? entry.filename : "SKILL.md";
+    const section = readJsonObject(manifest.requireSkillFrontmatter);
+    const parameters = readJsonObject(section.parameters);
+    const rootDirectory = typeof parameters.rootDirectory === "string" ? parameters.rootDirectory : "";
+    const filename = typeof parameters.filename === "string" ? parameters.filename : "SKILL.md";
 
     if (!rootDirectory || !isDirectory(rootDirectory)) {
       return [];
@@ -451,17 +532,26 @@ const requireSkillFrontmatter: HarnessCheckSpec = {
 const forbidScaffoldLeaks: HarnessCheckSpec = {
   category: "forbidScaffoldLeaks",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.forbidScaffoldLeaks);
-    const scope = readJsonObject(entry.scope);
+    const section = manifest.forbidScaffoldLeaks;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    const scope = readJsonObject(parameters.scope);
     return readStringArray(scope.bases).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.forbidScaffoldLeaks);
-    const scope = readJsonObject(entry.scope);
+    const section = readJsonObject(manifest.forbidScaffoldLeaks);
+    const parameters = readJsonObject(section.parameters);
+    const scope = readJsonObject(parameters.scope);
     const bases = readStringArray(scope.bases);
     const excludedSubtrees = readStringArray(scope.excludedSubtrees);
     const extensions = readStringArray(scope.extensions);
-    const patternsRaw = entry.patterns;
+    const patternsRaw = parameters.patterns;
 
     const patterns: readonly [RegExp, string][] = Array.isArray(patternsRaw)
       ? patternsRaw
@@ -514,13 +604,22 @@ const forbidScaffoldLeaks: HarnessCheckSpec = {
 const requireHookShebang: HarnessCheckSpec = {
   category: "requireHookShebang",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireHookShebang);
-    return readStringArray(entry.hooks).length > 0;
+    const section = manifest.requireHookShebang;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return readStringArray(parameters.hooks).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireHookShebang);
-    const hooks = readStringArray(entry.hooks);
-    const expectedShebang = typeof entry.expectedShebang === "string" ? entry.expectedShebang : "#!/usr/bin/env sh";
+    const section = readJsonObject(manifest.requireHookShebang);
+    const parameters = readJsonObject(section.parameters);
+    const hooks = readStringArray(parameters.hooks);
+    const expectedShebang = typeof parameters.expectedShebang === "string" ? parameters.expectedShebang : "#!/usr/bin/env sh";
     return hooks.flatMap((hook) => {
       if (!isFile(hook)) {
         return [];
@@ -541,12 +640,21 @@ const requireHookShebang: HarnessCheckSpec = {
 const requireHookExecutable: HarnessCheckSpec = {
   category: "requireHookExecutable",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireHookExecutable);
-    return readStringArray(entry.hooks).length > 0;
+    const section = manifest.requireHookExecutable;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return readStringArray(parameters.hooks).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireHookExecutable);
-    const hooks = readStringArray(entry.hooks);
+    const section = readJsonObject(manifest.requireHookExecutable);
+    const parameters = readJsonObject(section.parameters);
+    const hooks = readStringArray(parameters.hooks);
     return hooks.flatMap((hook) => {
       if (!isFile(hook)) {
         return [];
@@ -567,14 +675,23 @@ const requireHookExecutable: HarnessCheckSpec = {
 const requireHookGeneratedMarker: HarnessCheckSpec = {
   category: "requireHookGeneratedMarker",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireHookGeneratedMarker);
-    return readStringArray(entry.hooks).length > 0;
+    const section = manifest.requireHookGeneratedMarker;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return readStringArray(parameters.hooks).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireHookGeneratedMarker);
-    const hooks = readStringArray(entry.hooks);
-    const markerTemplate = typeof entry.markerTemplate === "string" ? entry.markerTemplate : "";
-    const placeholderForbidden = typeof entry.placeholderForbidden === "string" ? entry.placeholderForbidden : "";
+    const section = readJsonObject(manifest.requireHookGeneratedMarker);
+    const parameters = readJsonObject(section.parameters);
+    const hooks = readStringArray(parameters.hooks);
+    const markerTemplate = typeof parameters.markerTemplate === "string" ? parameters.markerTemplate : "";
+    const placeholderForbidden = typeof parameters.placeholderForbidden === "string" ? parameters.placeholderForbidden : "";
 
     return hooks.flatMap((hook) => {
       if (!isFile(hook)) {
@@ -607,15 +724,24 @@ const requireHookGeneratedMarker: HarnessCheckSpec = {
 const requireHookStage: HarnessCheckSpec = {
   category: "requireHookStage",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireHookStage);
-    const stages = readJsonObject(entry.stages);
+    const section = manifest.requireHookStage;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    const stages = readJsonObject(parameters.stages);
     return readJsonObject(stages[STACK]).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireHookStage);
-    const hooks = readStringArray(entry.hooks);
-    const markerTemplate = typeof entry.markerTemplate === "string" ? entry.markerTemplate : "";
-    const stagesEntry = readJsonObject(entry.stages);
+    const section = readJsonObject(manifest.requireHookStage);
+    const parameters = readJsonObject(section.parameters);
+    const hooks = readStringArray(parameters.hooks);
+    const markerTemplate = typeof parameters.markerTemplate === "string" ? parameters.markerTemplate : "";
+    const stagesEntry = readJsonObject(parameters.stages);
     const stackStages = readJsonObject(stagesEntry[STACK]);
 
     return hooks.flatMap((hook) => {
@@ -647,15 +773,24 @@ const requireHookStage: HarnessCheckSpec = {
 const requireHookCommand: HarnessCheckSpec = {
   category: "requireHookCommand",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireHookCommand);
-    return typeof entry.prePushHook === "string";
+    const section = manifest.requireHookCommand;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return typeof parameters.prePushHook === "string";
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireHookCommand);
-    const allowedCommands = readJsonObject(entry.allowedCommands);
+    const section = readJsonObject(manifest.requireHookCommand);
+    const parameters = readJsonObject(section.parameters);
+    const allowedCommands = readJsonObject(parameters.allowedCommands);
     const stackCommands = readStringArray(allowedCommands[STACK]);
 
-    const prePushHook = typeof entry.prePushHook === "string" ? entry.prePushHook : "";
+    const prePushHook = typeof parameters.prePushHook === "string" ? parameters.prePushHook : "";
     if (!isFile(prePushHook)) {
       return [];
     }
@@ -696,13 +831,22 @@ const requireHookCommand: HarnessCheckSpec = {
 const requireCiCommandMatchesHook: HarnessCheckSpec = {
   category: "requireCiCommandMatchesHook",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireCiCommandMatchesHook);
-    return typeof entry.referenceHook === "string";
+    const section = manifest.requireCiCommandMatchesHook;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return typeof parameters.referenceHook === "string";
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireCiCommandMatchesHook);
-    const referenceHook = typeof entry.referenceHook === "string" ? entry.referenceHook : "";
-    const ciFiles = readStringArray(entry.ciFiles);
+    const section = readJsonObject(manifest.requireCiCommandMatchesHook);
+    const parameters = readJsonObject(section.parameters);
+    const referenceHook = typeof parameters.referenceHook === "string" ? parameters.referenceHook : "";
+    const ciFiles = readStringArray(parameters.ciFiles);
 
     if (!isFile(referenceHook)) {
       return [];
@@ -739,13 +883,22 @@ const requireCiCommandMatchesHook: HarnessCheckSpec = {
 const requireEnvShebangUnder: HarnessCheckSpec = {
   category: "requireEnvShebangUnder",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireEnvShebangUnder);
-    return readStringArray(entry.directories).length > 0;
+    const section = manifest.requireEnvShebangUnder;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return readStringArray(parameters.directories).length > 0;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireEnvShebangUnder);
-    const directories = readStringArray(entry.directories);
-    const expectedPrefix = typeof entry.expectedPrefix === "string" ? entry.expectedPrefix : "#!/usr/bin/env ";
+    const section = readJsonObject(manifest.requireEnvShebangUnder);
+    const parameters = readJsonObject(section.parameters);
+    const directories = readStringArray(parameters.directories);
+    const expectedPrefix = typeof parameters.expectedPrefix === "string" ? parameters.expectedPrefix : "#!/usr/bin/env ";
 
     return directories.flatMap((dir) => {
       const [files, warnings] = walkDirectory(dir);
@@ -773,13 +926,22 @@ const requireEnvShebangUnder: HarnessCheckSpec = {
 const forbidUncheckedTasksUnder: HarnessCheckSpec = {
   category: "forbidUncheckedTasksUnder",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.forbidUncheckedTasksUnder);
-    return typeof entry.directory === "string";
+    const section = manifest.forbidUncheckedTasksUnder;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return typeof parameters.directory === "string";
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.forbidUncheckedTasksUnder);
-    const directory = typeof entry.directory === "string" ? entry.directory : "";
-    const patternStr = typeof entry.uncheckedTaskPattern === "string" ? entry.uncheckedTaskPattern : "";
+    const section = readJsonObject(manifest.forbidUncheckedTasksUnder);
+    const parameters = readJsonObject(section.parameters);
+    const directory = typeof parameters.directory === "string" ? parameters.directory : "";
+    const patternStr = typeof parameters.uncheckedTaskPattern === "string" ? parameters.uncheckedTaskPattern : "";
 
     if (!directory || !isDirectory(directory) || !patternStr) {
       return [];
@@ -815,50 +977,85 @@ const forbidUncheckedTasksUnder: HarnessCheckSpec = {
 const forbidUnsafeSymlinks: HarnessCheckSpec = {
   category: "forbidUnsafeSymlinks",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.forbidUnsafeSymlinks);
-    return Array.isArray(entry.allowedSymlinkPairs) && entry.allowedSymlinkPairs.length > 0;
+    const section = manifest.forbidUnsafeSymlinks;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return Array.isArray(parameters.allowedSymlinkPairs) && parameters.allowedSymlinkPairs.length > 0;
   },
   validate: (): readonly Finding[] => {
     return [];
   },
 };
 
-const warnUnknownManifestKeys: HarnessCheckSpec = {
-  category: "warnUnknownManifestKeys",
+const forbidImplicitLambdaIt: HarnessCheckSpec = {
+  category: "forbidImplicitLambdaIt",
   applies: (manifest) => {
-    const section = manifest[warnUnknownManifestKeys.category];
+    const section = manifest.forbidImplicitLambdaIt;
     if (typeof section !== "object" || section === null) {
       return false;
     }
     const enabled = (section as { enabled?: unknown }).enabled;
-    return enabled === undefined || enabled === true;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return Array.isArray(parameters.directories) && parameters.directories.length > 0;
   },
   validate: (root, manifest) => {
-    const section = manifest[warnUnknownManifestKeys.category] as { knownKeys?: unknown };
-    const knownKeysRaw = section?.knownKeys;
-    const knownKeys = new Set<string>(
-      Array.isArray(knownKeysRaw)
-        ? knownKeysRaw.filter((item): item is string => typeof item === "string")
-        : [],
-    );
-    const unknownKeys = Object.keys(manifest).filter((key) => !knownKeys.has(key));
-    return unknownKeys.map((key) => ({
-      severity: severityOf(manifest, "warnUnknownManifestKeys") as const,
-      category: "warnUnknownManifestKeys",
-      message: `unknown manifest key: ${key}`,
-    }));
+    const section = readJsonObject(manifest.forbidImplicitLambdaIt);
+    const parameters = readJsonObject(section.parameters);
+    const directories = readStringArray(parameters.directories);
+    const suffix = typeof parameters.filenameSuffix === "string" ? parameters.filenameSuffix : ".kt";
+    return directories.flatMap((directory) => {
+      const [files, warnings] = walkDirectory(directory);
+      return warnings.concat(
+        files
+          .filter((file) => file.endsWith(suffix))
+          .flatMap((file) => {
+            const text = read(file);
+            const lines = text.split(/\r?\n/);
+            return lines.flatMap((line, index) => {
+              const stripped = line.replace(/"[^"\\]*(?:\\.[^"\\]*)*"/g, "").replace(/\/\/.*$/, "");
+              return /\bit\b\s*\./.test(stripped) || /\bit\b\s*\}/.test(stripped) || /->\s*it\b/.test(stripped)
+                ? [
+                    {
+                      severity: severityOf(manifest, "forbidImplicitLambdaIt"),
+                      category: "forbidImplicitLambdaIt",
+                      message: `Kotlin file ${file} uses implicit \`it\` lambda parameter at line ${index + 1}; use an explicit name`,
+                    },
+                  ]
+                : [];
+            });
+          })
+      );
+    });
   },
 };
 
 const requireSingleTopLevelKotlinDeclaration: HarnessCheckSpec = {
   category: "requireSingleTopLevelKotlinDeclaration",
   applies: (manifest) => {
-    const entry = readJsonObject(manifest.requireSingleTopLevelKotlinDeclaration);
-    return typeof entry.directories === "object" && entry.directories !== null;
+    const section = manifest.requireSingleTopLevelKotlinDeclaration;
+    if (typeof section !== "object" || section === null) {
+      return false;
+    }
+    const enabled = (section as { enabled?: unknown }).enabled;
+    if (enabled === false) {
+      return false;
+    }
+    const parameters = readJsonObject((section as Record<string, unknown>).parameters);
+    return typeof parameters.directories === "object" && parameters.directories !== null;
   },
   validate: (root, manifest) => {
-    const entry = readJsonObject(manifest.requireSingleTopLevelKotlinDeclaration);
-    const directories = Array.isArray(entry.directories) ? entry.directories : [];
+    const section = readJsonObject(manifest.requireSingleTopLevelKotlinDeclaration);
+    const parameters = readJsonObject(section.parameters);
+    const directories = Array.isArray(parameters.directories) ? parameters.directories : [];
     const directoryStrs = directories.filter((item): item is string => typeof item === "string");
 
     return directoryStrs.flatMap((directory) => {
@@ -909,6 +1106,6 @@ export const HARNESS_CHECKS: readonly HarnessCheckSpec[] = [
   requireEnvShebangUnder,
   forbidUncheckedTasksUnder,
   forbidUnsafeSymlinks,
-  warnUnknownManifestKeys,
+  forbidImplicitLambdaIt,
   requireSingleTopLevelKotlinDeclaration,
 ] as const;

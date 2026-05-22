@@ -53,6 +53,13 @@ class HarnessValidationPlugin : Plugin<Project> {
 			val findings = buildSet<Finding> {
 				addAll(manifestFindings)
 				if (manifest != null) {
+					val knownCategories = HarnessCheck.values().map { it.category }.toSet()
+					val knownMetadataKeys = setOf("name", "description", "\$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns")
+					val unknownKeys = manifest.keys - knownCategories - knownMetadataKeys
+					unknownKeys.forEach { key ->
+						project.logger.warn("unknown manifest key: $key")
+					}
+
 					HarnessCheck.values().forEach { check ->
 						if (check.applies(manifest)) {
 							addAll(check.validate(manifest, root))
@@ -63,12 +70,16 @@ class HarnessValidationPlugin : Plugin<Project> {
 
 			val sortedFindings = findings.sortedWith(compareBy({ it.severity.ordinal }, { findings.indexOf(it) }))
 			sortedFindings.forEach { finding ->
-				System.err.println("[${finding.severity}] ${finding.message}")
+				when (finding.severity) {
+					Severity.ERROR -> project.logger.error("[${finding.severity}] ${finding.message}")
+					Severity.WARN -> project.logger.warn("[${finding.severity}] ${finding.message}")
+					Severity.INFO -> project.logger.info("[${finding.severity}] ${finding.message}")
+				}
 			}
 
 			when {
 				sortedFindings.any { it.severity == Severity.ERROR } -> throw GradleException("Harness validation failed")
-				else -> logger.lifecycle("Harness validation passed")
+				else -> project.logger.lifecycle("Harness validation passed")
 			}
 		}
 

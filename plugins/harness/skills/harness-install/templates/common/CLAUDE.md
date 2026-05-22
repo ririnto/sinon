@@ -40,6 +40,7 @@ Harness changes MAY be made during development when the current harness no longe
 AGENTS.md            (symlink to CLAUDE.md, or its own file)
 ARCHITECTURE.md
 CLAUDE.md
+WORKFLOW.md
 docs/
 ├── design-docs/
 │   └── core-beliefs.md  (or real design docs)

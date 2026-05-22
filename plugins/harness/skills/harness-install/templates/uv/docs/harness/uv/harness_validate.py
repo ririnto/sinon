@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import stat
@@ -151,16 +152,26 @@ class RequireFilesExistCheck:
     category: str = "requireFilesExist"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        paths = section.get("paths", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        paths = params.get("paths", [])
         if not isinstance(paths, list):
             return ()
-        template = section.get("failureMessageTemplate", "missing file: {path}")
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
+        template = messages.get("default", "missing file: {path}")
         return tuple(
             Finding(
                 severity_for(manifest, self.category),
@@ -179,16 +190,26 @@ class RequireDirectoriesExistCheck:
     category: str = "requireDirectoriesExist"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        paths = section.get("paths", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        paths = params.get("paths", [])
         if not isinstance(paths, list):
             return ()
-        template = section.get("failureMessageTemplate", "missing directory: {path}")
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
+        template = messages.get("default", "missing directory: {path}")
         return tuple(
             Finding(
                 severity_for(manifest, self.category),
@@ -207,17 +228,27 @@ class RequireKeepfileInEmptyDirectoriesCheck:
     category: str = "requireKeepfileInEmptyDirectories"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        directories = section.get("directories", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        directories = params.get("directories", [])
         if not isinstance(directories, list):
             return ()
-        template = section.get(
-            "failureMessageTemplate", "empty directory must keep placeholder or real files: {directory}"
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
+        template = messages.get(
+            "default", "empty directory must keep placeholder or real files: {directory}"
         )
 
         return tuple(
@@ -241,17 +272,27 @@ class RequireTemplateGroupsCheck:
     category: str = "requireTemplateGroups"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        target_root = section.get("targetRoot", "docs/harness/templates")
-        groups = section.get("groups", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        target_root = params.get("targetRoot", "docs/harness/templates")
+        groups = params.get("groups", [])
         if not isinstance(groups, list):
             return ()
-        template = section.get("failureMessageTemplate", "missing template group: {targetRoot}/{group}")
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
+        template = messages.get("default", "missing template group: {targetRoot}/{group}")
         return tuple(
             Finding(
                 severity_for(manifest, self.category),
@@ -270,22 +311,32 @@ class RequireDocHeadingsCheck:
     category: str = "requireDocHeadings"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        source_from = section.get("sourceFilesFromCategory")
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        source_from = params.get("sourceFilesFromCategory")
         if not isinstance(source_from, str):
             return ()
         source_section = manifest.get(source_from, {})
         if not isinstance(source_section, dict):
             return ()
-        source_paths = source_section.get("paths", [])
+        source_params = source_section.get("parameters", {})
+        if not isinstance(source_params, dict):
+            return ()
+        source_paths = source_params.get("paths", [])
         if not isinstance(source_paths, list):
             return ()
-        source_filter = section.get("sourceFilter", {})
+        source_filter = params.get("sourceFilter", {})
         if not isinstance(source_filter, dict):
             return ()
         prefix = source_filter.get("prefix", "")
@@ -296,10 +347,13 @@ class RequireDocHeadingsCheck:
             if isinstance(p, str) and p.startswith(prefix) and p.endswith(suffix)
         )
 
-        headings = section.get("headings", [])
+        headings = params.get("headings", [])
         if not isinstance(headings, list):
             return ()
-        template = section.get("failureMessageTemplate", "doc missing {heading}: {file}")
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
+        template = messages.get("default", "doc missing {heading}: {file}")
 
         return tuple(
             Finding(
@@ -321,13 +375,20 @@ class RequireDocContentCheck:
     category: str = "requireDocContent"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        checks = section.get("checks", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        checks = params.get("checks", [])
         if not isinstance(checks, list):
             return ()
 
@@ -356,18 +417,25 @@ class RequireAgentFrontmatterCheck:
     category: str = "requireAgentFrontmatter"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        directory = section.get("directory", ".claude/agents")
-        required_fields = section.get("requiredFields", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        directory = params.get("directory", ".claude/agents")
+        required_fields = params.get("requiredFields", [])
         if not isinstance(required_fields, list):
             return ()
-        name_pattern_str = section.get("namePattern", "(?m)^name:\\s*[-a-z0-9]+\\s*$")
-        messages = section.get("failureMessages", {})
+        name_pattern_str = params.get("namePattern", "(?m)^name:\\s*[-a-z0-9]+\\s*$")
+        messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return ()
 
@@ -415,18 +483,25 @@ class RequireSkillFrontmatterCheck:
     category: str = "requireSkillFrontmatter"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        root_directory = section.get("rootDirectory", ".claude/skills")
-        filename = section.get("filename", "SKILL.md")
-        required_fields = section.get("requiredFields", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        root_directory = params.get("rootDirectory", ".claude/skills")
+        filename = params.get("filename", "SKILL.md")
+        required_fields = params.get("requiredFields", [])
         if not isinstance(required_fields, list):
             return ()
-        messages = section.get("failureMessages", {})
+        messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return ()
 
@@ -466,13 +541,20 @@ class ForbidScaffoldLeaksCheck:
     category: str = "forbidScaffoldLeaks"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        scope = section.get("scope", {})
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        scope = params.get("scope", {})
         if not isinstance(scope, dict):
             return ()
         bases_data = scope.get("bases", [])
@@ -491,7 +573,7 @@ class ForbidScaffoldLeaksCheck:
             if isinstance(ext, str)
         ) or frozenset({".md", ".txt", ".json", ".yml", ".yaml"})
 
-        patterns_data = section.get("patterns", [])
+        patterns_data = params.get("patterns", [])
         if not isinstance(patterns_data, list):
             return ()
 
@@ -504,11 +586,14 @@ class ForbidScaffoldLeaksCheck:
             and (lambda p=item.get("pattern"): True if re.compile(p) else False)()
         )
 
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
         return tuple(
             Finding(
                 severity_for(manifest, self.category),
                 self.category,
-                section.get("failureMessageTemplate", "{label} in active asset: {file}").format(
+                messages.get("default", "{label} in active asset: {file}").format(
                     label=label, file=relative(path)
                 ),
             )
@@ -529,17 +614,27 @@ class RequireHookShebangCheck:
     category: str = "requireHookShebang"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        hooks = section.get("hooks", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        hooks = params.get("hooks", [])
         if not isinstance(hooks, list):
             return ()
-        expected_shebang = section.get("expectedShebang", "#!/usr/bin/env sh")
-        template = section.get("failureMessageTemplate", "{hook} must start with {expectedShebang}")
+        expected_shebang = params.get("expectedShebang", "#!/usr/bin/env sh")
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
+        template = messages.get("default", "{hook} must start with {expectedShebang}")
 
         return tuple(
             Finding(
@@ -559,16 +654,26 @@ class RequireHookExecutableCheck:
     category: str = "requireHookExecutable"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        hooks = section.get("hooks", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        hooks = params.get("hooks", [])
         if not isinstance(hooks, list):
             return ()
-        template = section.get("failureMessageTemplate", "{hook} must be executable")
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
+        template = messages.get("default", "{hook} must be executable")
 
         return tuple(
             Finding(
@@ -588,18 +693,25 @@ class RequireHookGeneratedMarkerCheck:
     category: str = "requireHookGeneratedMarker"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        hooks = section.get("hooks", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        hooks = params.get("hooks", [])
         if not isinstance(hooks, list):
             return ()
-        marker_template = section.get("markerTemplate", "# Harness generated hook: {name}")
-        placeholder_forbidden = section.get("placeholderForbidden", "packaged placeholder is replaced during harness installation")
-        messages = section.get("failureMessages", {})
+        marker_template = params.get("markerTemplate", "# Harness generated hook: {name}")
+        placeholder_forbidden = params.get("placeholderForbidden", "packaged placeholder is replaced during harness installation")
+        messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return ()
 
@@ -632,20 +744,30 @@ class RequireHookStageCheck:
     category: str = "requireHookStage"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        marker_template = section.get("markerTemplate", "# Harness stage: {stage}")
-        stages = section.get("stages", {})
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        marker_template = params.get("markerTemplate", "# Harness stage: {stage}")
+        stages = params.get("stages", {})
         if not isinstance(stages, dict):
             return ()
         stack_stages = stages.get(STACK, {})
         if not isinstance(stack_stages, dict):
             return ()
-        template = section.get("failureMessageTemplate", "{hook} must contain stage marker '# Harness stage: {expectedStage}'")
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
+        template = messages.get("default", "{hook} must contain stage marker '# Harness stage: {expectedStage}'")
 
         return tuple(
             Finding(
@@ -668,17 +790,24 @@ class RequireHookCommandCheck:
     category: str = "requireHookCommand"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        pre_push_path = section.get("prePushHook", "docs/harness/git-hooks/pre-push")
-        pre_commit_path = section.get("preCommitHook", "docs/harness/git-hooks/pre-commit")
-        allowed_cmds = section.get("allowedCommands", {})
-        allowed_pre_commit_cmds = section.get("allowedPreCommitCommands", {})
-        messages = section.get("failureMessages", {})
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        pre_push_path = params.get("prePushHook", "docs/harness/git-hooks/pre-push")
+        pre_commit_path = params.get("preCommitHook", "docs/harness/git-hooks/pre-commit")
+        allowed_cmds = params.get("allowedCommands", {})
+        allowed_pre_commit_cmds = params.get("allowedPreCommitCommands", {})
+        messages = section.get("messages", {})
         if not isinstance(allowed_cmds, dict) or not isinstance(messages, dict):
             return ()
 
@@ -763,17 +892,27 @@ class RequireEnvShebangUnderCheck:
     category: str = "requireEnvShebangUnder"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        directories = section.get("directories", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        directories = params.get("directories", [])
         if not isinstance(directories, list):
             return ()
-        expected_prefix = section.get("expectedPrefix", "#!/usr/bin/env ")
-        template = section.get("failureMessageTemplate", "executable script should use /usr/bin/env shebang: {file}")
+        expected_prefix = params.get("expectedPrefix", "#!/usr/bin/env ")
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
+        template = messages.get("default", "executable script should use /usr/bin/env shebang: {file}")
 
         return tuple(
             Finding(
@@ -798,16 +937,26 @@ class ForbidUncheckedTasksUnderCheck:
     category: str = "forbidUncheckedTasksUnder"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        directory = section.get("directory", "docs/exec-plans/completed")
-        filename_pattern_str = section.get("filenamePattern", "*.md")
-        unchecked_pattern_str = section.get("uncheckedTaskPattern", r"^\s*-\s*\[ \]\s")
-        template = section.get("failureMessageTemplate", "completed plan has unchecked tasks: {file}")
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        directory = params.get("directory", "docs/exec-plans/completed")
+        filename_pattern_str = params.get("filenamePattern", "*.md")
+        unchecked_pattern_str = params.get("uncheckedTaskPattern", r"^\s*-\s*\[ \]\s")
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return ()
+        template = messages.get("default", "completed plan has unchecked tasks: {file}")
 
         if not isinstance(directory, str):
             return ()
@@ -845,16 +994,23 @@ class ForbidUnsafeSymlinksCheck:
     category: str = "forbidUnsafeSymlinks"
 
     def applies(self, manifest: dict) -> bool:
-        return self.category in manifest
+        section = manifest.get(self.category)
+        if not isinstance(section, dict):
+            return False
+        enabled = section.get("enabled", True)
+        return enabled is not False
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):
             return ()
-        allowed_pairs = section.get("allowedSymlinkPairs", [])
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        allowed_pairs = params.get("allowedSymlinkPairs", [])
         if not isinstance(allowed_pairs, list):
             return ()
-        messages = section.get("failureMessages", {})
+        messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return ()
 
@@ -935,17 +1091,25 @@ def validate(manifest: dict) -> tuple[Finding, ...]:
 
 def main() -> int:
     """Load manifest, validate, and report findings."""
+    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s", stream=sys.stderr)
+    logger = logging.getLogger()
     path = ROOT / MANIFEST_PATH
     if not is_safe_file(path):
-        print("[ERROR] manifest file missing: docs/harness/manifest.json", file=sys.stderr)
-        print("Harness validation failed", file=sys.stderr)
+        logger.error("manifest file missing: docs/harness/manifest.json")
+        logger.error("Harness validation failed")
         return 1
 
     manifest = load_manifest()
     if not manifest:
-        print("[ERROR] manifest file invalid or empty JSON: docs/harness/manifest.json", file=sys.stderr)
-        print("Harness validation failed", file=sys.stderr)
+        logger.error("manifest file invalid or empty JSON: docs/harness/manifest.json")
+        logger.error("Harness validation failed")
         return 1
+
+    known_categories = set(check.category for check in CHECKS)
+    known_metadata = {"name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns"}
+    for key in manifest.keys():
+        if key not in known_categories and key not in known_metadata:
+            logger.warning("unknown manifest key: %s", key)
 
     findings = validate(manifest)
     severity_order = ("ERROR", "WARN", "INFO")
@@ -956,10 +1120,13 @@ def main() -> int:
 
     for severity in severity_order:
         for finding in grouped[severity]:
-            print(f"[{finding.severity}] {finding.message}", file=sys.stderr)
+            logger.log(
+                logging.ERROR if severity == "ERROR" else logging.WARNING if severity == "WARN" else logging.INFO,
+                finding.message
+            )
 
     if grouped["ERROR"]:
-        print("Harness validation failed", file=sys.stderr)
+        logger.error("Harness validation failed")
         return 1
     print("Harness validation passed")
     return 0
