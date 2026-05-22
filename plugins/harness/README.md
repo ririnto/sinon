@@ -45,14 +45,14 @@ claude plugin install ./plugins/harness --scope project
 
 This plugin ships no commands.
 
-## Packaged Scripts and Templates
+## Packaged Scripts and Assets
 
 - `scripts/plugin-self-check.sh` validates packaged and tracked plugin files.
-- `skills/harness-install/templates/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs/harness`, docs, CI, validation adapters, and Git hook scaffolds.
+- `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs/harness`, docs, CI, validation adapters, and Git hook scaffolds.
 
 ## Runtime Model
 
-The Claude Code manifest declares only `./skills/`. Agents remain in the `agents/` directory at the plugin root and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. Agents are available to host runtimes that load plugin agents from the plugin root; hosts that do not load plugin-root agents still receive the skill surface. The plugin does not expose top-level hooks; packaged hook scaffolds live under `skills/harness-install/templates/common/docs/harness/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
+The Claude Code manifest declares only `./skills/`. Agents remain in the `agents/` directory at the plugin root and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. Agents are available to host runtimes that load plugin agents from the plugin root; hosts that do not load plugin-root agents still receive the skill surface. The plugin does not expose top-level hooks; packaged hook scaffolds live under `skills/harness-install/assets/common/docs/harness/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
 
 ## Target Ownership
 
@@ -216,4 +216,4 @@ plugins/harness/
 - Target-owned agents are starting points, not immutable plugin internals.
 - The installed `.claude/skills/harness-validate/` directory is a project skill. Prefer that project skill when validating an installed target repository. Use the plugin-provided `harness-validate` skill when working from this plugin checkout or before the target repository has its project copy. If a host cannot distinguish the project skill from the plugin skill, rename the installed project directory to `.claude/skills/project-harness-validate/`, update its `SKILL.md` `name` field to `project-harness-validate`, and update local project docs to use that name.
 - GitHub Actions and GitLab CI templates use ordinary version tags from the archive; projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.
-- Maven, Gradle, Python, and test self-checks may create cache, IDE, or build metadata under template directories. Repository `.gitignore` and installer filters exclude ignored byproducts such as `__pycache__/`, `.pytest_cache/`, `*.pyc`, `.classpath`, `.project`, `.factorypath`, `.settings/`, `.gradle/`, `bin/`, `build/`, and `target/`; plugin self-checks validate packaged/tracked template files rather than failing on ignored working-tree byproducts.
+- Maven, Gradle, Python, and test self-checks may create cache, IDE, or build metadata under asset directories. Repository `.gitignore` and installer filters exclude ignored byproducts such as `__pycache__/`, `.pytest_cache/`, `*.pyc`, `.classpath`, `.project`, `.factorypath`, `.settings/`, `.gradle/`, `bin/`, `build/`, and `target/`; plugin self-checks validate packaged/tracked asset files rather than failing on ignored working-tree byproducts.
