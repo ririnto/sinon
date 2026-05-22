@@ -463,7 +463,7 @@ Kotlin 2.3.21이 K1 PSI API를 hard compile error로 격상. 대응:
 - [-] Task 8b.6 — `java.io.File` → `kotlin.io.path.Path` + Kotlin 확장 함수 전면 전환 (Gradle boundary 제외).
 - [-] Task 8b.7 — reflection `hasDescendant` 완전 제거 + `PsiRecursiveElementWalkingVisitor` 기반 `hasDescendantOfType` extension 도입.
 
-### [x] Phase 8c: 9개 disabled add-on 일괄 red-green + 새 companion-position add-on (commit pending)
+### [x] Phase 8c: 9개 disabled add-on 일괄 red-green + 새 companion-position add-on (commit 200a48b)
 
 감사 결과 (manifest 32 add-on vs stack 검증 코드 정합):
 
