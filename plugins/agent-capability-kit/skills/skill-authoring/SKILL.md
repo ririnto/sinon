@@ -63,7 +63,7 @@ skill-name/
 ├── references/
 ├── assets/
 └── scripts/
-```text
+```
 
 - `SKILL.md`: activation-time instructions, common-case workflow, key decisions, edge cases, and output contract
 - `references/`: additive depth for a named blocker or branch
@@ -101,21 +101,21 @@ Optional fields:
 
 Default formula:
 
-```text
+```
 [Primary capability]. Use when [task, inputs, systems, file types, or user intent].
-```text
+```
 
 Strong example:
 
-```text
+```
 Draft release automation runbooks and rollback notes. Use when preparing deployment procedures, CI release steps, or operational handoff docs.
-```text
+```
 
 Weak example:
 
-```text
+```
 Helps with releases.
-```text
+```
 
 Run an offline trigger test before you keep a description:
 
@@ -234,7 +234,7 @@ Use these patterns directly in `SKILL.md` when they help the ordinary path.
 
 Keep the expected response shape inline so the skill can be used immediately after activation.
 
-```markdown
+```
 ## Output contract
 
 Return:
@@ -243,13 +243,13 @@ Return:
 2. Any changed files or paths
 3. Validation results
 4. Explicit remaining risks or blockers
-```text
+```
 
 ### Progress checklist pattern
 
 Use a short progress checklist when the workflow has several phases that are easy to miss. Keep it brief and action-focused.
 
-```markdown
+```
 ## Progress checklist
 
 - [ ] Scope is one coherent job
@@ -257,7 +257,7 @@ Use a short progress checklist when the workflow has several phases that are eas
 - [ ] Support files are additive only
 - [ ] Description states both what and when
 - [ ] Final checklist passed
-```text
+```
 
 Do not turn the checklist into a second full procedure. It is a tracking aid, not the main workflow.
 
@@ -265,13 +265,13 @@ Do not turn the checklist into a second full procedure. It is a tracking aid, no
 
 Use a short `## Gotchas` section when the domain has recurring traps that are cheaper to prevent than to debug later.
 
-```markdown
+```
 ## Gotchas
 
 - Do not move always-needed guidance into `references/`.
 - Do not make a helper script mandatory for the ordinary path.
 - Do not widen the description until unrelated prompts start matching.
-```text
+```
 
 If the list grows long, split the deeper troubleshooting into a reference and keep only the recurring traps inline.
 
@@ -293,7 +293,7 @@ Open `references/scripts-guidance.md` only when you are unsure whether a script 
 
 Use this as a smallest useful starting point:
 
-```markdown
+```
 ---
 name: markdown-review
 description: >-
@@ -324,7 +324,7 @@ Return:
 1. The main issues
 2. Recommended fixes
 3. Any remaining ambiguity
-```text
+```
 
 ## Edge cases
 

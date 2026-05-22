@@ -52,7 +52,7 @@ Context-aware LLM decision via natural language. Supports variable substitution 
   "prompt": "Evaluate if this write is safe: $TOOL_INPUT. Check for path traversal (..), sensitive files (.env, .aws), and system paths. Return 'approve' or 'deny'.",
   "timeout": 30
 }
-```text
+```
 
 Use for: policy enforcement, security reasoning, context-aware validation, completeness checks.
 
@@ -60,13 +60,13 @@ Use for: policy enforcement, security reasoning, context-aware validation, compl
 
 Deterministic bash checks. Read JSON from stdin, return JSON on stdout/stderr.
 
-```json
+```
 {
   "type": "command",
   "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate-write.sh",
   "timeout": 10
 }
-```text
+```
 
 Use for: fast file checks, system calls, external integrations, performance-critical paths.
 
@@ -74,7 +74,7 @@ Use for: fast file checks, system calls, external integrations, performance-crit
 
 Wrapper structure required for plugins:
 
-```json
+```
 {
   "description": "Validation hooks for code safety",
   "hooks": {
@@ -113,7 +113,7 @@ Wrapper structure required for plugins:
     ]
   }
 }
-```text
+```
 
 Key points:
 
@@ -125,7 +125,7 @@ Key points:
 
 User settings `.claude/settings.json` use flat format:
 
-```json
+```
 {
   "PreToolUse": [
     {
@@ -139,7 +139,7 @@ User settings `.claude/settings.json` use flat format:
     }
   ]
 }
-```text
+```
 
 No wrapper, no description field, events at top level.
 
@@ -151,7 +151,7 @@ Each event is triggered by specific Claude Code lifecycle moment. Use matchers t
 
 Execute before any tool runs. Validate, block, or modify tool input.
 
-```json
+```
 {
   "PreToolUse": [
     {
@@ -165,7 +165,7 @@ Execute before any tool runs. Validate, block, or modify tool input.
     }
   ]
 }
-```text
+```
 
 Input fields: `tool_name`, `tool_input`, `permission_mode`.
 Output: `{"permissionDecision": "allow|deny|ask", "updatedInput": {...}, "systemMessage": "..."}`
@@ -174,7 +174,7 @@ Output: `{"permissionDecision": "allow|deny|ask", "updatedInput": {...}, "system
 
 Execute after tool completes. React to results, provide feedback, or log outcomes.
 
-```json
+```
 {
   "PostToolUse": [
     {
@@ -188,7 +188,7 @@ Execute after tool completes. React to results, provide feedback, or log outcome
     }
   ]
 }
-```text
+```
 
 Exit 0: stdout shown in transcript. Exit 2: stderr fed back to Claude.
 
@@ -196,7 +196,7 @@ Exit 0: stdout shown in transcript. Exit 2: stderr fed back to Claude.
 
 Execute when main agent considers stopping. Validate completeness.
 
-```json
+```
 {
   "Stop": [
     {
@@ -210,7 +210,7 @@ Execute when main agent considers stopping. Validate completeness.
     }
   ]
 }
-```text
+```
 
 Output: `{"decision": "approve|block", "reason": "...", "systemMessage": "..."}`
 
@@ -218,7 +218,7 @@ Output: `{"decision": "approve|block", "reason": "...", "systemMessage": "..."}`
 
 Execute when subagent considers stopping. Ensure subagent task is complete (same logic as Stop).
 
-```json
+```
 {
   "SubagentStop": [
     {
@@ -232,13 +232,13 @@ Execute when subagent considers stopping. Ensure subagent task is complete (same
     }
   ]
 }
-```text
+```
 
 ### UserPromptSubmit
 
 Execute when user submits a prompt. Add context, validate, or block user input.
 
-```json
+```
 {
   "UserPromptSubmit": [
     {
@@ -252,7 +252,7 @@ Execute when user submits a prompt. Add context, validate, or block user input.
     }
   ]
 }
-```text
+```
 
 Input fields: `user_prompt`.
 
@@ -260,7 +260,7 @@ Input fields: `user_prompt`.
 
 Execute when Claude Code session begins. Load project context, set environment variables.
 
-```json
+```
 {
   "SessionStart": [
     {
@@ -274,19 +274,19 @@ Execute when Claude Code session begins. Load project context, set environment v
     }
   ]
 }
-```text
+```
 
 Special: command hooks can write to `$CLAUDE_ENV_FILE` to persist environment variables across the session:
 
-```sh
+```
 echo "export PROJECT_TYPE=nodejs" >> "$CLAUDE_ENV_FILE"
-```text
+```
 
 ### SessionEnd
 
 Execute when session ends. Cleanup, logging, state preservation.
 
-```json
+```
 {
   "SessionEnd": [
     {
@@ -300,13 +300,13 @@ Execute when session ends. Cleanup, logging, state preservation.
     }
   ]
 }
-```text
+```
 
 ### PreCompact
 
 Execute before context compaction. Add critical information to preserve.
 
-```json
+```
 {
   "PreCompact": [
     {
@@ -320,13 +320,13 @@ Execute before context compaction. Add critical information to preserve.
     }
   ]
 }
-```text
+```
 
 ### Notification
 
 Execute when Claude sends notifications. React to user notifications.
 
-```json
+```
 {
   "Notification": [
     {
@@ -340,7 +340,7 @@ Execute when Claude sends notifications. React to user notifications.
     }
   ]
 }
-```text
+```
 
 ## Matchers
 
@@ -356,12 +356,12 @@ Match tools, events, or patterns to control which hooks fire.
 
 Common patterns:
 
-```json
+```
 "matcher": "Bash"                          // Bash only
 "matcher": "Write|Edit"                    // File operations
 "matcher": "mcp__.*"                       // All MCP tools
 "matcher": "mcp__plugin_asana_.*"          // Asana MCP tools
-```text
+```
 
 Matchers are case-sensitive and match against the full tool name.
 
@@ -373,7 +373,7 @@ Matcher evaluation precedence: Exact-match patterns are tried first, then pipe-s
 
 All hooks receive JSON with common fields:
 
-```json
+```
 {
   "session_id": "abc123",
   "transcript_path": "/path/to/transcript.txt",
@@ -381,7 +381,7 @@ All hooks receive JSON with common fields:
   "permission_mode": "ask|allow",
   "hook_event_name": "PreToolUse"
 }
-```text
+```
 
 Event-specific fields:
 
@@ -404,33 +404,33 @@ In prompt-type hooks, variables are substituted before sending to LLM:
 
 Standard return (all hooks):
 
-```json
+```
 {
   "continue": true,
   "suppressOutput": false,
   "systemMessage": "Message shown to Claude"
 }
-```text
+```
 
 PreToolUse output:
 
-```json
+```
 {
   "permissionDecision": "allow|deny|ask",
   "updatedInput": {"field": "modified_value"},
   "systemMessage": "Reason for decision"
 }
-```text
+```
 
 Stop/SubagentStop output:
 
-```json
+```
 {
   "decision": "approve|block",
   "reason": "Why work should continue",
   "systemMessage": "Context for Claude"
 }
-```text
+```
 
 Exit codes:
 
@@ -449,12 +449,12 @@ Available in command hooks:
 
 Always use `${CLAUDE_PLUGIN_ROOT}` in hook commands:
 
-```json
+```
 {
   "type": "command",
   "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate.sh"
 }
-```text
+```
 
 ## Security Rules
 
@@ -499,15 +499,15 @@ Claude Code validates hooks when session starts:
 
 Validate hook configuration offline:
 
-```sh
+```
 python3 -m json.tool hooks/hooks.json
-```text
+```
 
 This validates JSON syntax. If output shows no errors, the file is structurally valid.
 
 Test a command hook script with sample input:
 
-```sh
+```
 cat > /tmp/test-input.json << 'EOF'
 {
   "session_id": "test",
@@ -518,13 +518,13 @@ cat > /tmp/test-input.json << 'EOF'
 EOF
 
 bash hooks/validate.sh < /tmp/test-input.json
-```text
+```
 
 Verify output is valid JSON:
 
-```sh
+```
 bash hooks/validate.sh < /tmp/test-input.json | python3 -m json.tool
-```text
+```
 
 ## Output Contract
 

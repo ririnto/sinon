@@ -68,11 +68,11 @@ Weak:
 ```markdown
 description: >-
   Helps with schemas.
-```text
+```
 
 Stronger:
 
-```markdown
+```
 description: >-
   Inspect schemas, contracts, and config files for defects, risks, and missing structure. Use this agent when a schema, contract, or config file needs focused review. Examples:
 
@@ -84,7 +84,7 @@ description: >-
   The task is narrow, analytical, and does not require direct edits.
   </commentary>
   </example>
-```text
+```
 
 ### `model`
 
@@ -125,9 +125,9 @@ Open with one or two lines that define the agent's job.
 
 Example:
 
-```markdown
+```
 You are a specialized review agent for schemas, contracts, and structured configuration.
-```text
+```
 
 ### Responsibilities
 
@@ -135,13 +135,13 @@ List the durable duties of the role.
 
 Good:
 
-```markdown
+```
 ## Responsibilities
 
 1. Inspect the target file closely.
 2. Identify concrete defects, risks, or missing structure.
 3. Support findings with direct evidence from the file.
-```text
+```
 
 ### Process
 
@@ -149,14 +149,14 @@ Use an ordered process when the execution path matters.
 
 Good:
 
-```markdown
+```
 ## Process
 
 1. Read the provided files before drawing conclusions.
 2. Check the highest-risk issues first.
 3. Keep the review bounded to the requested scope.
 4. Verify that every finding is supported by evidence.
-```text
+```
 
 ### Output
 
@@ -164,7 +164,7 @@ Tell the agent exactly what to return.
 
 Good:
 
-```markdown
+```
 ## Output
 
 Return:
@@ -172,7 +172,7 @@ Return:
 1. Findings in priority order
 2. Supporting evidence with file references
 3. Remaining uncertainty or blockers
-```text
+```
 
 ## Ordinary authoring procedure
 
@@ -223,30 +223,30 @@ Choose the narrowest tool set that still lets the agent complete its ordinary jo
 
 Broken:
 
-```markdown
+```
 tools:
   - Read
   - Write
   - Edit
   - Bash
   - Grep
-```text
+```
 
 Correct for a read-only reviewer:
 
-```markdown
+```
 tools:
   - Read
   - Grep
-```text
+```
 
 Correct for a bounded editor:
 
-```markdown
+```
 tools:
   - Read
   - Write
-```text
+```
 
 Also keep the output contract consistent with the tools:
 
@@ -269,7 +269,7 @@ Use simple local checks first:
 
 Use this as a smallest useful agent starting point:
 
-```markdown
+```
 ---
 name: schema-reviewer
 description: >-
@@ -321,7 +321,7 @@ Return:
 1. Findings in priority order
 2. Supporting evidence with file references
 3. Remaining uncertainty or blockers
-```text
+```
 
 ## Edge cases
 

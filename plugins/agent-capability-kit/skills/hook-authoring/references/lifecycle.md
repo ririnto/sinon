@@ -37,18 +37,18 @@ Edit hooks/validate.sh
 # Hook changes have NO effect on current session
 Test hook
 # Behavior unchanged
-```text
+```
 
 ### Correct: restart requirement
 
-```text
+```
 Edit hooks/hooks.json
 Edit hooks/validate.sh
 Exit Claude Code (or /exit)
 Restart: claude or cc
 Test hook
 # New configuration is active
-```text
+```
 
 ## Environment variables by event
 
@@ -56,7 +56,7 @@ Test hook
 
 Only `SessionStart` hooks can write to `$CLAUDE_ENV_FILE` to persist environment variables across the entire session.
 
-```json
+```
 {
   "SessionStart": [
     {
@@ -70,11 +70,11 @@ Only `SessionStart` hooks can write to `$CLAUDE_ENV_FILE` to persist environment
     }
   ]
 }
-```text
+```
 
 Hook script (note: uses bash `printf %q` for safe quoting):
 
-```bash
+```
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 set -e
@@ -92,7 +92,7 @@ setup_env() {
     printf 'export PROJECT_ROOT=%q\n' "$(pwd)" >> "$CLAUDE_ENV_FILE"
 }
 setup_env
-```text
+```
 
 These variables are available to all subsequent hooks and tool execution in the session.
 
@@ -124,19 +124,19 @@ Available in SessionStart command hooks only.
 
 All hook input fields accessible via `jq`:
 
-```sh
+```
 # shellcheck disable=SC2034
 tool_name=$(cat | jq -r '.tool_name')
 tool_input=$(cat | jq -r '.tool_input')
 cwd=$(cat | jq -r '.cwd')
-```text
+```
 
 ### UserPromptSubmit
 
-```sh
+```
 # shellcheck disable=SC2034
 user_prompt=$(cat | jq -r '.user_prompt')
-```text
+```
 
 ## Path resolution rules
 
@@ -144,11 +144,11 @@ user_prompt=$(cat | jq -r '.user_prompt')
 
 Hook commands are evaluated in the project directory (`${CLAUDE_PROJECT_DIR}`). Use full paths or relative-to-plugin:
 
-```json
+```
 {
   "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate.sh"
 }
-```text
+```
 
 Resolves to: `/path/to/plugin/hooks/validate.sh` (absolute path from environment variable)
 
@@ -156,21 +156,21 @@ Resolves to: `/path/to/plugin/hooks/validate.sh` (absolute path from environment
 
 Project directory is the working directory where Claude Code was invoked. Use for relative path references:
 
-```sh
+```
 cd "${CLAUDE_PROJECT_DIR}" || exit
 ls ./src
-```text
+```
 
 ### Relative paths in hooks (avoid)
 
 Relative paths are relative to current working directory, which is `${CLAUDE_PROJECT_DIR}`. Avoid relying on implicit paths:
 
-```sh
+```
 # Fragile: depends on current directory
 bash hooks/validate.sh
 # Robust: explicit path
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/validate.sh"
-```text
+```
 
 ## Remote context handling
 
@@ -178,13 +178,13 @@ Claude Code can run in remote context (ssh, cloud environments). Some operations
 
 ### Detect remote context
 
-```sh
+```
 if [ -n "${CLAUDE_CODE_REMOTE:-}" ]; then
     echo "Running in remote context"
 else
     echo "Running locally"
 fi
-```text
+```
 
 ### I/O safety in remote context
 
@@ -196,7 +196,7 @@ Some operations are unsafe or unavailable in remote:
 
 Pattern: conditional behavior based on context
 
-```sh
+```
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -212,7 +212,7 @@ log_result() {
         echo "$message"
     fi
 }
-```text
+```
 
 ## Temporarily active hooks (flag-file pattern)
 
@@ -220,7 +220,7 @@ Enable/disable hooks without restarting by using a flag file:
 
 Hook configuration:
 
-```json
+```
 {
   "PreToolUse": [
     {
@@ -234,11 +234,11 @@ Hook configuration:
     }
   ]
 }
-```text
+```
 
 Hook script with flag file:
 
-```sh
+```
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -265,15 +265,15 @@ conditional_validate() {
     exit 0
 }
 conditional_validate
-```text
+```
 
 User can toggle validation:
 
-```sh
+```
 touch .hook-validation-enabled      # Enable for this project
 rm .hook-validation-enabled         # Disable for this project
 # No session restart required
-```text
+```
 
 Hook still runs on every tool use (no restart needed), but early-exits if flag absent.
 
@@ -289,7 +289,7 @@ Use for:
 
 Example:
 
-```json
+```
 {
   "SessionEnd": [
     {
@@ -303,11 +303,11 @@ Example:
     }
   ]
 }
-```text
+```
 
 Script:
 
-```sh
+```
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -324,7 +324,7 @@ cleanup() {
     fi
 }
 cleanup
-```text
+```
 
 ## Timeout and session end
 
@@ -336,13 +336,13 @@ If a hook times out:
 
 Set reasonable timeouts:
 
-```json
+```
 {
   "type": "command",
   "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/fast-check.sh",
   "timeout": 5
 }
-```text
+```
 
 For `SessionEnd` hooks, timeouts are enforced at session close. Hook MUST complete before process exits.
 
@@ -350,7 +350,7 @@ For `SessionEnd` hooks, timeouts are enforced at session close. Hook MUST comple
 
 Validate hook behavior with session restart:
 
-```sh
+```
 # 1. Edit hooks/hooks.json or hook scripts
 
 # 2. Exit current session
@@ -361,15 +361,15 @@ claude
 
 # 4. Debug output
 claude --debug
-```text
+```
 
 In debug output, look for:
 
-```text
+```
 [hooks] Loading hooks from .../hooks/hooks.json
 [hooks] SessionStart: running 2 hooks
 [hooks] PreToolUse: 1 matcher (Write)
-```text
+```
 
 If hooks fail to load, JSON syntax error or missing scripts will be reported.
 
