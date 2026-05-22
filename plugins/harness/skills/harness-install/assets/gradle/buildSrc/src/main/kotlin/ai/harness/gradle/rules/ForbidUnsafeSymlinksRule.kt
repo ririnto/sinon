@@ -50,7 +50,7 @@ object ForbidUnsafeSymlinksRule : HarnessCheckRule {
 			}
 			rootFiles.filter { it.isSymbolicLink() }.mapNotNull { file ->
 				if (file.name to (try { file.readSymbolicLink().toString() } catch (_: Exception) { "" }) !in allowed) {
-					Finding(Severity.ERROR, category, HarnessCheck.Companion.stringFrom(messagesObj, "fileNotAllowed").takeIf { it.isNotEmpty() } ?: "symlink file is not allowed: ${file.relativeTo(root)}")
+					Finding(Severity.ERROR, category, HarnessCheck.stringFrom(messagesObj, "fileNotAllowed").takeIf { it.isNotEmpty() } ?: "symlink file is not allowed: ${file.relativeTo(root)}")
 				} else {
 					null
 				}

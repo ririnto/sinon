@@ -33,13 +33,13 @@ object ForbidScaffoldLeaksRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null || messagesObj == null || scopeObj == null) {
 			emptyList()
 		} else {
-			val bases = HarnessCheck.Companion.stringArrayFrom(scopeObj, "bases")
-			val excludedSubtrees = HarnessCheck.Companion.stringArrayFrom(scopeObj, "excludedSubtrees")
-			val extensions = HarnessCheck.Companion.stringArrayFrom(scopeObj, "extensions")
+			val bases = HarnessCheck.stringArrayFrom(scopeObj, "bases")
+			val excludedSubtrees = HarnessCheck.stringArrayFrom(scopeObj, "excludedSubtrees")
+			val extensions = HarnessCheck.stringArrayFrom(scopeObj, "extensions")
 			val patterns = parametersObj["patterns"]?.jsonArray?.mapNotNull { patternElem ->
 				val obj = patternElem.jsonObject
-				val pattern = HarnessCheck.Companion.stringFrom(obj, "pattern")
-				val label = HarnessCheck.Companion.stringFrom(obj, "label")
+				val pattern = HarnessCheck.stringFrom(obj, "pattern")
+				val label = HarnessCheck.stringFrom(obj, "label")
 				if (pattern.isEmpty() || label.isEmpty()) null else pattern to label
 			} ?: emptyList()
 			val excludedPaths = excludedSubtrees.map { root / it }
@@ -51,13 +51,13 @@ object ForbidScaffoldLeaksRule : HarnessCheckRule {
 				}
 			}
 			bases.flatMap { basePath ->
-				val (files, _) = HarnessCheck.Companion.walkSafe(root, root / basePath)
+				val (files, _) = HarnessCheck.walkSafe(root, root / basePath)
 				files.filter { file ->
 					file.extension in extensions && excludedPaths.none { file.toString().startsWith(it.toString()) }
 				}.flatMap { file ->
 					regexes.mapNotNull { (regex, label) ->
 						if (regex.containsMatchIn(file.readText())) {
-							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$label in active asset: ${file.relativeTo(root.toFile())}")
+							Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$label in active asset: ${file.relativeTo(root.toFile())}")
 						} else {
 							null
 						}
