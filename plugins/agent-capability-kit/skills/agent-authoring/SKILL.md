@@ -44,8 +44,7 @@ Other optional frontmatter fields may be kept only when the host actually suppor
 
 ### `name`
 
-- Use kebab-case.
-- Match the agent file basename exactly; `agents/schema-reviewer.md` must use `name: schema-reviewer`.
+- Use kebab-case exclusively, and the `name` field MUST match the file basename exactly; `agents/schema-reviewer.md` must use `name: schema-reviewer`.
 - Make it role-oriented, not task-ticket-oriented.
 - Prefer stable names such as `schema-reviewer`, `docs-refiner`, or `release-checker`.
 - Do not encode one temporary request into the name.
@@ -59,6 +58,8 @@ The description is the main trigger surface. It should do all of the following:
 - name the job, inputs, or system clearly
 - include 2 to 4 concrete `<example>` blocks
 - make it obvious why this agent is the right fit
+
+Agent descriptions MUST include 2 to 4 concrete `<example>` blocks with `<context>`, `<user>`, `<assistant>`, and `<commentary>` sub-elements. Each example MUST demonstrate a realistic triggering scenario and explain why the agent is the right fit for that task.
 
 Use examples that look like realistic user intent, not abstract labels.
 

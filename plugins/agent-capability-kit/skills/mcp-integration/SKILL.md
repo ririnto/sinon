@@ -28,8 +28,9 @@ This skill owns:
 2. MUST use HTTPS for remote servers, WSS for WebSocket connections.
 3. MUST NOT hardcode credentials; use environment variables or OAuth flows.
 4. MUST NOT use wildcards in `allowed-tools`—pre-allow only specific tool names.
-5. MAY use `.mcp.json` (recommended for multi-server plugins) or `mcpServers` in `plugin.json` (for single-server plugins).
-6. SHOULD test MCP connectivity locally with `/mcp` before publishing.
+5. When the manifest declares `"mcpServers": "./.mcp.json"`, plugin-root `.mcp.json` MUST exist; when plugin-root `.mcp.json` exists, the manifest SHOULD declare `"mcpServers": "./.mcp.json"`.
+6. MAY use `.mcp.json` (recommended for multi-server plugins) or `mcpServers` in `plugin.json` (for single-server plugins).
+7. SHOULD test MCP connectivity locally with `/mcp` before publishing.
 
 ## Configuration Methods
 

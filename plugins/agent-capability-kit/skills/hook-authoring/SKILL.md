@@ -31,13 +31,14 @@ Hook configuration in `~/.claude/settings.json` uses direct JSON (not wrapped), 
 1. Hooks are loaded at session start only; configuration changes require session restart.
 2. Plugin `hooks.json` MUST use the wrapper format: `{"hooks": {"PreToolUse": [...], ...}}`.
 3. User settings hooks MUST use direct format: `{"PreToolUse": [...], ...}` (no wrapper).
-4. Prompt-based hooks SHOULD be the default for complex logic; command hooks SHOULD be used only for deterministic checks.
-5. Hook scripts MUST quote all bash variables to prevent injection.
-6. Hook scripts MUST validate all JSON inputs via `jq`.
-7. All hooks MUST return valid JSON on stdout or stderr (exit 0 or 2 respectively).
-8. Hook commands MUST use `${CLAUDE_PLUGIN_ROOT}` for portability; hardcoded paths are forbidden.
-9. Sessions may run in remote context; command hooks MUST test for `$CLAUDE_CODE_REMOTE` when I/O safety matters.
-10. Hooks run in parallel; design scripts as independent and non-blocking.
+4. When the manifest declares `"hooks": "./hooks/hooks.json"`, plugin-root `hooks/hooks.json` MUST exist; when plugin-root `hooks/hooks.json` exists, the manifest SHOULD declare `"hooks": "./hooks/hooks.json"`.
+5. Prompt-based hooks SHOULD be the default for complex logic; command hooks SHOULD be used only for deterministic checks.
+6. Hook scripts MUST quote all bash variables to prevent injection.
+7. Hook scripts MUST validate all JSON inputs via `jq`.
+8. All hooks MUST return valid JSON on stdout or stderr (exit 0 or 2 respectively).
+9. Hook commands MUST use `${CLAUDE_PLUGIN_ROOT}` for portability; hardcoded paths are forbidden.
+10. Sessions may run in remote context; command hooks MUST test for `$CLAUDE_CODE_REMOTE` when I/O safety matters.
+11. Hooks run in parallel; design scripts as independent and non-blocking.
 
 ## Hook Types
 
