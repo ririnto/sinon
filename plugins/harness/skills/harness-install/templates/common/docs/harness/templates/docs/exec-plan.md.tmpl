@@ -2,11 +2,14 @@
 
 - Status: active
 - Created: {{yyyy-MM-dd}}
-- Owner: {{owner}}
+- Author: {{author}}
+- Assignee: {{assignee}}
 
 ## File Naming Convention
 
 Execution plan filenames MUST use the form `yyyy-MM-dd-<slug>.md` where the date is the creation date in the project's timezone. Active plans live under `docs/exec-plans/active/`. The slug MUST be kebab-case and describe the work, not the author.
+
+`Author` records the person who drafted the plan. `Assignee` records the person or agent that executes the plan; the two MAY differ (for example, a tech lead drafts the plan and a separate engineer or agent executes it). `Assignee` MAY be a comma-separated list when execution is split across multiple owners.
 
 ## Goal
 
