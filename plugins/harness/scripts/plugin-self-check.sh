@@ -427,14 +427,17 @@ for path in \
   "$root/skills/harness-install/assets/common/docs/harness/templates/docs/generated-artifact.md" \
   "$root/skills/harness-install/assets/bun/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/bun/.gitlab-ci.yml" \
-  "$root/skills/harness-install/assets/bun/docs/harness/bun/harness-validate.ts" \
+  "$root/skills/harness-install/assets/bun/runtime/harness-validate.ts" \
   "$root/skills/harness-install/assets/gradle/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/gradle/.gitlab-ci.yml" \
   "$root/skills/harness-install/assets/maven/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/maven/.gitlab-ci.yml" \
-  "$root/skills/harness-install/assets/uv/docs/harness/uv/harness_validate.py" \
+  "$root/skills/harness-install/assets/uv/runtime/harness_validate.py" \
   "$root/skills/harness-install/assets/uv/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/uv/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/shell/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/assets/shell/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/shell/runtime/harness-validate.sh" \
   "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" \
   "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java"; do
   require_file "$path"
@@ -448,7 +451,9 @@ for path in \
   "$root/skills/harness-install/assets/maven/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/maven/.gitlab-ci.yml" \
   "$root/skills/harness-install/assets/uv/.github/workflows/harness.yml" \
-  "$root/skills/harness-install/assets/uv/.gitlab-ci.yml"; do
+  "$root/skills/harness-install/assets/uv/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/shell/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/assets/shell/.gitlab-ci.yml"; do
   require_text "$path" '{{validation_command}}'
 done
 

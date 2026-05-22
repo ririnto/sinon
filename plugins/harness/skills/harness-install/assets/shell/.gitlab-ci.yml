@@ -1,0 +1,10 @@
+stages:
+  - validate
+
+harness:
+  stage: validate
+  image: debian:stable-slim
+  before_script:
+    - apt-get update && apt-get install -y python3
+  script:
+    - {{validation_command}}
