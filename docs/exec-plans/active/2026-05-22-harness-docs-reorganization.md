@@ -50,10 +50,13 @@ sinon 루트는 `AGENTS.md → CLAUDE.md` symlink (sinon CLAUDE.md에 명시된 
 
 ### Phase 5: Update stack adapter internals
 
-- [ ] Task 5.1 — Maven adapter: `pom.xml`의 모듈/플러그인 경로, `HarnessValidateMojo.java`의 default path 상수 갱신 (subagent: general-purpose)
-- [ ] Task 5.2 — Gradle adapter: `HarnessValidationPlugin.kt`의 default path 상수, `settings.gradle.kts` 샘플의 `includeBuild` 갱신 (subagent: general-purpose)
-- [ ] Task 5.3 — uv adapter: `harness_validate.py`의 default manifest path 갱신 + `uv/README.md` 사용 예시 갱신 (subagent: general-purpose)
-- [ ] Task 5.4 — bun adapter: `harness-validate.ts`의 default manifest path 갱신 + `bun/README.md` 사용 예시 갱신 (subagent: general-purpose)
+각 stack의 validator는 (a) 경로 docs/harness/로 갱신, (b) 가변 컬렉션을 사용하지 않고 immutable/builder 패턴으로 작성, (c) 검증 영역마다 적절히 class/module로 분리, (d) `docs/exec-plans/completed/`에 위치한 plan에 미완료 `- [ ] ` task가 남아 있으면 fail 추가, (e) `requiredFiles`/`requiredDirectories`/`optionalSeedFiles` 등 manifest와 정합한 상수로 갱신한다.
+
+- [ ] Task 5.1 — Maven adapter: `pom.xml`의 모듈/플러그인 경로, `HarnessValidateMojo.java`의 default path 상수, immutable collection (`List.copyOf` / `Stream.toList`), validator class 분리, completed-plan checker 추가 (subagent: general-purpose)
+- [x] Task 5.2 — Gradle adapter: `HarnessValidationPlugin.kt` 경로/`buildList` 1차 갱신 — class 분리, completed plan validator, manifest 정합은 Phase 5.2b에서 마저 처리 (subagent: main)
+- [ ] Task 5.2b — Gradle: `HarnessValidationPlugin.kt`를 영역별 validator class로 분리(ManifestValidator, StructureValidator, DocsValidator, AgentsValidator, SkillsValidator, TemplateGroupValidator, ActiveAssetsValidator, HooksValidator, ShebangValidator, ContentValidator, PlanCompletionValidator). 진입 task는 각 validator를 호출해 결과 List를 결합. `mutableListOf` 0건 유지. (subagent: main)
+- [ ] Task 5.3 — uv adapter: `harness_validate.py`의 default manifest path 갱신, 가변 list 사용을 list-comprehension/tuple/`itertools.chain`로 대체, validator를 별도 함수/dataclass로 분리, completed-plan checker, `uv/README.md` 사용 예시 갱신 (subagent: general-purpose)
+- [ ] Task 5.4 — bun adapter: `harness-validate.ts`의 default manifest path 갱신, `let arr: T[] = []; arr.push(...)` 패턴을 `const arr: readonly T[] = [...]` 또는 `flatMap`/`filter`로 대체, validator를 별도 module/function으로 분리, completed-plan checker, `bun/README.md` 사용 예시 갱신 (subagent: general-purpose)
 
 ### Phase 6: Update SKILL.md and agent files
 
