@@ -1,6 +1,6 @@
 ---
 description: >-
-  End-to-end Claude Code plugin creation workflow with component design, implementation, and validation.
+  Create a complete Claude Code plugin from design to implementation. Use when building a new plugin root with components, manifest, and verification.
 argument-hint: Optional plugin description
 allowed-tools:
   - Read
