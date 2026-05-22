@@ -56,7 +56,7 @@ parameters:
 - [x] Task 1.1 — manifest.json에 11개 add-on 등록(2 enabled + 8 disabled + 기존 Kotlin 2개)
 - [x] Task 1.2 — `sourceRootsPerStack` (glob) + `extensionsPerStack` (dot-less) schema 확정
 
-### [ ] Phase 2: Python AST (uv stack) — sub-agent prompt 자료 ↓
+### [x] Phase 2: Python AST (uv stack) — sub-agent prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
 
 대상 파일: `plugins/harness/skills/harness-install/assets/uv/runtime/harness_check.py`
 
@@ -143,7 +143,7 @@ python3 docs/harness/uv/harness_validate.py
 - [ ] Task 2.1 — uv harness_check.py에 helper + 2 enum value + validator 함수 추가
 - [ ] Task 2.2 — 위반/통과 fixture로 검증
 
-### [ ] Phase 3: TypeScript AST (bun stack) — sub-agent prompt 자료 ↓
+### [x] Phase 3: TypeScript AST (bun stack) — sub-agent prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
 
 대상 파일: `plugins/harness/skills/harness-install/assets/bun/runtime/harness-check.ts`
 
@@ -233,7 +233,7 @@ bun run docs/harness/bun/harness-validate.ts
 - [ ] Task 3.2 — harness-check.ts에 helper + 2 spec 추가
 - [ ] Task 3.3 — 위반/통과 fixture로 검증
 
-### [ ] Phase 4: Java AST (maven stack) — sub-agent prompt 자료 ↓
+### [x] Phase 4: Java AST (maven stack) — sub-agent prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
 
 대상 파일: `plugins/harness/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/ai/harness/maven/HarnessCheck.java`
 
@@ -318,7 +318,7 @@ class Violation {
 - [ ] Task 4.2 — HarnessCheck.java에 helper + 2 enum value 추가
 - [ ] Task 4.3 — 위반/통과 fixture로 검증 (`mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate`)
 
-### [ ] Phase 5: Kotlin AST (gradle stack) — sub-agent prompt 자료 ↓
+### [x] Phase 5: Kotlin AST (gradle stack) — sub-agent prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
 
 대상 파일:
 
@@ -434,7 +434,7 @@ class Violation {
 - [x] Task 7.3 — Java: JavaParser `LexicalPreservingPrinter.setup(cu)` + JavaToken consecutive newline walk
 - [x] Task 7.4 — Kotlin: PsiWhiteSpace text의 newline count 기반 blank line 검출
 
-### [-] Phase 8: Kotlin Worker API + nested class 재구성
+### [x] Phase 8: Kotlin Worker API + nested class 재구성 (Phase 8b로 정식 패턴 회귀 후 완료)
 
 Kotlin 2.3.21이 K1 PSI API를 hard compile error로 격상. 대응:
 
@@ -445,11 +445,11 @@ Kotlin 2.3.21이 K1 PSI API를 hard compile error로 격상. 대응:
 - WorkAction 결과는 임시 파일에 JSON으로 직렬화 (Worker는 task와 다른 classloader이므로 객체 직접 반환 불가)
 - reflection 기반 `hasDescendant`는 `com.intellij.psi.PsiRecursiveElementWalkingVisitor`로 교체
 
-- [-] Task 8.1 — `HarnessCheck.kt`에서 중복된 PSI 함수 (enum companion + file-level `HarnessCheckCompanion`) 모두 제거, PSI import 제거. 결과 DTO와 enum validate helper만 유지.
-- [-] Task 8.2 — `HarnessValidationPlugin.kt`에 `WorkerExecutor` 주입 + `HarnessPsiWorkParameters` (nested interface) + `HarnessPsiWorkAction` (nested abstract class) 정의.
-- [-] Task 8.3 — `HarnessPsiWorkAction.execute()`에서 PSI 호출, 결과를 `RegularFileProperty`로 받은 임시 파일에 JSON 직렬화.
-- [-] Task 8.4 — reflection 기반 `hasDescendant`를 `PsiRecursiveElementWalkingVisitor`로 교체.
-- [-] Task 8.5 — `plugin-self-check.sh` 통과 확인.
+- [x] Task 8.1 — `HarnessCheck.kt`에서 중복된 PSI 함수 제거, PSI import 제거 (Phase 10 정리에 흡수).
+- [x] Task 8.2 — `HarnessValidationPlugin.kt`에 nested `HarnessPsiWorkParameters` + `HarnessPsiWorkAction` 정의 (Phase 8b에서 정식 격리 패턴으로 완성).
+- [x] Task 8.3 — `HarnessPsiWorkAction.execute()` PSI 호출 + 임시 파일 JSON 직렬화.
+- [x] Task 8.4 — reflection 기반 `hasDescendant` → `PsiRecursiveElementWalkingVisitor` (HarnessValidationPlugin.kt:513).
+- [x] Task 8.5 — `plugin-self-check.sh` 통과 확인.
 
 ### [x] Phase 8b: Kotlin 2.1 whatsnew 정식 격리 패턴 회귀 (완료, 다수 commit으로 분산)
 
@@ -498,9 +498,9 @@ manifest의 9개 disabled add-on 모두를 red-green으로 활성화하고, 새 
 - [x] Task 9.1 — plugin-self-check.sh PASS (반복 확인, 최근 commit 298a4c0 시점 exit 0)
 - [ ] Task 9.2 — gradle / mvn / uv / bun native validator 실행 (사용자 환경)
 
-### [ ] Phase 7: 9개 disabled add-on 활성화 (별도 후속 작업, 본 plan 범위 외)
+### [x] Phase 7 (post-hoc): 9개 disabled add-on 활성화 (Phase 8c로 흡수)
 
-- [ ] Task 7.1 — manifest의 forbidEarlyReturn 등 9개 add-on enabled로 전환 + 각 stack에 구현 추가. *별도 plan으로 분리*.
+- [x] Task 7.1 — manifest 9개 add-on enabled + 각 stack 구현 추가는 Phase 8c (commit 200a48b)로 일괄 완료.
 
 ### [x] Phase 10: HarnessCheck enum → Rule strategy 분리 (4 stack, 완료)
 
