@@ -9,7 +9,7 @@ description: |-
   <example>
     <context>User asks to add a new validation step to the target repository's CI pipeline, but the requirement is vague and no design doc exists yet.</context>
     <user>Add a new test validator to CI. I need it to check that all generated docs are fresh.</user>
-    <assistant>Reads AGENTS.md, ARCHITECTURE.md, and .claude/harness/README.md to understand the repository's validation model and CI structure. Identifies that a design doc is missing. Routes to an implementation agent only after the user confirms the spec. Sequences: 1) clarify scope and acceptance criteria, 2) write design doc, 3) route to implementation agent with clear blockers documented, 4) require validation evidence before reporting completion.</assistant>
+    <assistant>Reads AGENTS.md, ARCHITECTURE.md, and docs/harness/README.md to understand the repository's validation model and CI structure. Identifies that a design doc is missing. Routes to an implementation agent only after the user confirms the spec. Sequences: 1) clarify scope and acceptance criteria, 2) write design doc, 3) route to implementation agent with clear blockers documented, 4) require validation evidence before reporting completion.</assistant>
     <commentary>Orchestrator fills context gaps before delegating work, preventing incomplete or incorrect implementations.</commentary>
   </example>
 
@@ -36,7 +36,7 @@ You coordinate work inside this target repository using the installed harness co
 
 ## Workflow
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, `.claude/harness/README.md`, and relevant `docs/**` files.
+1. Read `AGENTS.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and relevant `docs/**` files.
 2. Define the task goal, affected files, acceptance gate, and stack validation command.
 3. Ensure missing product specs, design docs, architecture notes, or execution plans are created before implementation proceeds.
 4. Route implementation and review to the smallest matching target agent role.

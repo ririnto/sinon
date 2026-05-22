@@ -10,10 +10,10 @@ Plan and coordinate work inside this target repository using the installed harne
 
 ## First Safe Checks
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, `.claude/harness/README.md`, and the relevant `docs/**` file for the task domain.
-2. Read `.claude/harness/manifest.json` when file or validation scope is unclear.
+1. Read `AGENTS.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and the relevant `docs/**` file for the task domain.
+2. Read `docs/harness/manifest.json` when file or validation scope is unclear.
 3. Identify whether the task is implementation, documentation, validation, review, or harness evolution.
-4. Confirm the stack-specific validation command from `.claude/harness/README.md`.
+4. Confirm the stack-specific validation command from `docs/harness/README.md`.
 
 ## Workflow
 
@@ -28,7 +28,7 @@ Plan and coordinate work inside this target repository using the installed harne
 | Situation | Action |
 | --- | --- |
 | Task lacks product or acceptance criteria | Update the relevant `docs/product-specs/**` or `docs/exec-plans/**` first. |
-| Task changes harness contracts | Include `.claude/harness/evolution-log.md` and validation in scope. |
+| Task changes harness contracts | Include `docs/harness/evolution-log.md` and validation in scope. |
 | Task changes generated outputs | Require source command, inputs, freshness, and regeneration trigger. |
 | Task asks for hook activation | Confirm explicit user intent before changing Git hook behavior. |
 

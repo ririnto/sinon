@@ -1,17 +1,17 @@
 ---
 name: harness-validate
 description: >-
-  Run the installed target repository harness validator and report contract readiness. Use this skill after changing AGENTS.md, CLAUDE.md, ARCHITECTURE.md, docs, .claude agents, .claude skills, .claude/harness assets, hooks, CI, or generated artifacts.
+  Run the installed target repository harness validator and report contract readiness. Use this skill after changing AGENTS.md, CLAUDE.md, ARCHITECTURE.md, docs, .claude agents, .claude skills, docs/harness assets, hooks, CI, or generated artifacts.
 ---
 
 # Harness Validate
 
-Validate this target repository's installed harness. This target skill uses the local `.claude/harness/README.md` command; plugin-level validation belongs to the plugin checkout.
+Validate this target repository's installed harness. This target skill uses the local `docs/harness/README.md` command; plugin-level validation belongs to the plugin checkout.
 
 ## First Safe Checks
 
-1. Read `.claude/harness/README.md` for the stack command.
-2. Read `.claude/harness/manifest.json` for required files, directories, and generated-artifact policy.
+1. Read `docs/harness/README.md` for the stack command.
+2. Read `docs/harness/manifest.json` for required files, directories, and generated-artifact policy.
 3. Confirm you are running from the target repository root.
 4. Confirm whether the repository is Gradle, Maven, uv, or bun based on local files.
 
@@ -23,9 +23,9 @@ Run the matching command:
 | --- | --- |
 | Gradle harness validation | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
 | Gradle final check | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| Maven | `mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
-| uv | `uv run python .claude/harness/uv/harness_validate.py` |
-| bun | `bun run .claude/harness/bun/harness-validate.ts` |
+| Maven | `mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
+| uv | `uv run python docs/harness/uv/harness_validate.py` |
+| bun | `bun run docs/harness/bun/harness-validate.ts` |
 
 ## Workflow
 
