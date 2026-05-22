@@ -41,6 +41,10 @@ claude plugin install ./plugins/harness --scope project
 - `harness-reviewer`: review installed harness assets and evolution proposals.
 - `harness-validator`: diagnose validation output and readiness gates.
 
+## Included Commands
+
+This plugin ships no commands.
+
 ## Packaged Scripts and Templates
 
 - `scripts/plugin-self-check.sh` validates packaged and tracked plugin files.
