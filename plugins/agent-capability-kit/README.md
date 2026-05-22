@@ -95,7 +95,7 @@ During local development, point Claude Code at the plugin root:
 
 ```sh
 claude --plugin-dir /absolute/path/to/agent-capability-kit
-```
+```text
 
 Then use Quick navigation to choose the relevant namespaced skills, runtime agents, or command surface.
 

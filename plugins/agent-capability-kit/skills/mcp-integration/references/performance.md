@@ -23,7 +23,7 @@ MCP servers are resource-heavy. Load them only when needed.
   "asana": {"type": "sse", "url": "..."},
   "internal-api": {"type": "http", "url": "..."}
 }
-```
+```text
 
 Session startup latency: 5-10 seconds (one OAuth handshake per server).
 
@@ -50,7 +50,7 @@ lazy_load_mcp_server() {
     /mcp activate "$server_name" 2>&1 | grep -i "success\|ready"
     touch "$loaded_file"
 }
-```
+```text
 
 Call before using server tools:
 
@@ -62,7 +62,7 @@ Before using GitHub tools, ensure server is loaded:
 \`\`\`bash
 lazy_load_mcp_server github
 \`\`\`
-```
+```text
 
 Trade-off: first tool call is slower (2-3s for OAuth), subsequent calls are fast.
 
@@ -78,7 +78,7 @@ Each tool call opens a new connection, then closes:
 Tool call 1: Open → Request → Response → Close (100ms)
 Tool call 2: Open → Request → Response → Close (100ms)
 Total: 200ms
-```
+```text
 
 ### Solution: persistent connection pool
 
@@ -88,7 +88,7 @@ Verify pooling is active:
 
 ```sh
 claude --debug 2>&1 | grep -i "pool\|connection"
-```
+```text
 
 Expected output:
 
@@ -96,7 +96,7 @@ Expected output:
 [mcp] Creating connection pool for 'github' (size=5)
 [mcp] Reusing connection from pool for tool: 'search_repositories'
 [mcp] Connection pool stats: 5 active, 0 pending
-```
+```text
 
 ### Connection pool tuning (advanced)
 
@@ -109,14 +109,14 @@ For high-volume tool use, tune pool size in hook:
 mcp_pool_size: 10
 mcp_max_requests_per_connection: 100
 ---
-```
+```text
 
 Hook reads and applies:
 
 ```sh
 POOL_SIZE=$(grep '^mcp_pool_size:' "$SETTINGS_FILE" | sed 's/mcp_pool_size: *//')
 export MCP_POOL_SIZE="$POOL_SIZE"
-```
+```text
 
 Typical settings:
 
@@ -136,7 +136,7 @@ When using multiple MCP tools in sequence, batch them if server supports it.
 REPO1=$(call_tool list_repositories --user alice)
 REPO2=$(call_tool list_repositories --user bob)
 REPO3=$(call_tool list_repositories --user charlie)
-```
+```text
 
 Latency: 100ms × 3 = 300ms
 
@@ -162,7 +162,7 @@ batch_list_repositories() {
     "
     call_tool graphql_query --query "$query"
 }
-```
+```text
 
 Latency: single request for all users, 100ms total.
 
@@ -193,7 +193,7 @@ batch_slack_post() {
         i=$((i + batch_size))
     done
 }
-```
+```text
 
 ## MCP latency observability
 
@@ -203,7 +203,7 @@ MCP tool call latency has several components:
 
 ```text
 Total = Network (10-100ms) + Server Processing (50-500ms) + Serialization (1-10ms)
-```
+```text
 
 Measure each:
 
@@ -223,13 +223,13 @@ measure_mcp_latency() {
     echo "Tool '$tool_name' latency: ${total_ms}ms"
     echo "Result size: ${#result} bytes"
 }
-```
+```text
 
 Debug output shows per-tool stats:
 
 ```sh
 claude --debug 2>&1 | grep "mcp\|latency"
-```
+```text
 
 Output:
 
@@ -237,7 +237,7 @@ Output:
 [mcp] Tool 'list_repositories': 45ms
 [mcp] Tool 'get_repository_details': 120ms
 [mcp] Average latency: 82.5ms
-```
+```text
 
 ### Slow tool detection
 
@@ -256,7 +256,7 @@ detect_slow_tools() {
         if ($NF > t) print "SLOW: " $0
     }'
 }
-```
+```text
 
 Slow tools are candidates for:
 
@@ -298,14 +298,14 @@ cached_mcp_call() {
     echo "$result" > "$cache_file"
     echo "$result"
 }
-```
+```text
 
 Usage:
 
 ```sh
 # Cache GitHub user data for 1 hour
 GITHUB_USER=$(cached_mcp_call get_user --username alice 3600)
-```
+```text
 
 ### Cache invalidation
 
@@ -324,7 +324,7 @@ invalidate_mcp_cache() {
     rm -f "${cache_dir}/${tool_name}:*"
     echo "Cache cleared for $tool_name"
 }
-```
+```text
 
 ## Debugging MCP: commands and output
 
@@ -334,7 +334,7 @@ List active MCP servers and tools:
 
 ```text
 /mcp
-```
+```text
 
 Output:
 
@@ -350,7 +350,7 @@ MCP Servers (3 active):
   internal-api
     ├─ query_database
     └─ submit_job
-```
+```text
 
 ### Command: /mcp test `<server-name>`
 
@@ -358,7 +358,7 @@ Test server connectivity:
 
 ```text
 /mcp test github
-```
+```text
 
 Output:
 
@@ -368,7 +368,7 @@ Testing github server...
 ✓ Tools loaded (42)
 ✓ Sample query executed in 45ms
 ✓ Server healthy
-```
+```text
 
 ### Command: /mcp authorize `<server-name>`
 
@@ -376,7 +376,7 @@ Trigger OAuth re-authorization (for expired or wrong token):
 
 ```text
 /mcp authorize github
-```
+```text
 
 Browser opens to GitHub OAuth, user approves, token updated.
 
@@ -386,7 +386,7 @@ Run with debug output filtered to MCP:
 
 ```sh
 claude --debug 2>&1 | grep -E "^\[mcp\]"
-```
+```text
 
 Output:
 
@@ -397,7 +397,7 @@ Output:
 [mcp] Server 'github': tools loaded (42)
 [mcp] Tool 'search_repositories': 45ms
 [mcp] Server 'slack': initializing SSE connection
-```
+```text
 
 ### Log file location
 
@@ -405,13 +405,13 @@ Claude Code writes detailed MCP logs to:
 
 ```sh
 ~/.claude/logs/mcp.log
-```
+```text
 
 View recent logs:
 
 ```sh
 tail -50 ~/.claude/logs/mcp.log
-```
+```text
 
 ## Performance checklist
 

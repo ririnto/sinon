@@ -33,7 +33,7 @@ Variables are substituted literally; complex escaping MUST be handled in the pro
   "updatedInput": {"field": "corrected_value"},
   "systemMessage": "Decision rationale"
 }
-```
+```text
 
 - `permissionDecision` (string) — `allow` (proceed unchanged), `deny` (block), `ask` (prompt user)
 - `updatedInput` (object, optional) — Modified tool parameters; if present, tool uses this instead of original
@@ -47,7 +47,7 @@ Variables are substituted literally; complex escaping MUST be handled in the pro
   "suppressOutput": false,
   "systemMessage": "Feedback or warning"
 }
-```
+```text
 
 - `continue` (boolean) — Always true for PostToolUse; signals to continue session
 - `suppressOutput` (boolean) — If true, omit tool result from transcript
@@ -61,7 +61,7 @@ Variables are substituted literally; complex escaping MUST be handled in the pro
   "reason": "Work remaining (if block)",
   "systemMessage": "Context for Claude"
 }
-```
+```text
 
 - `decision` (string) — `approve` (allow stop), `block` (continue working)
 - `reason` (string) — If blocked, describe unfinished work
@@ -90,7 +90,7 @@ FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$POLICY_FILE")
 VALIDATION_LEVEL=$(echo "$FRONTMATTER" | grep '^validation_level:' | sed 's/validation_level: *//' || echo "strict")
 export VALIDATION_LEVEL
 # Prompt hook runs with $VALIDATION_LEVEL set
-```
+```text
 
 Then reference in prompt:
 
@@ -99,7 +99,7 @@ Then reference in prompt:
   "type": "prompt",
   "prompt": "Apply validation_level=$VALIDATION_LEVEL policy. Check: $TOOL_INPUT. Decide allow or deny."
 }
-```
+```text
 
 ## Timeout and failure modes
 
@@ -131,7 +131,7 @@ For complex policies, break decisions into multiple hooks on the same event:
     }
   ]
 }
-```
+```text
 
 Each hook runs sequentially. If any hook denies, the tool is blocked.
 
@@ -159,7 +159,7 @@ Each hook runs sequentially. If any hook denies, the tool is blocked.
     }
   ]
 }
-```
+```text
 
 Each hook runs sequentially; if any denies, tool is blocked.
 
@@ -180,6 +180,6 @@ Each hook runs sequentially; if any denies, tool is blocked.
     }
   ]
 }
-```
+```text
 
 Claude evaluates context and decides whether work is truly complete.

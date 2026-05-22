@@ -46,7 +46,7 @@ Weak:
 
 ```markdown
 description: Use this agent when docs need work.
-```
+```text
 
 Stronger:
 

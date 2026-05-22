@@ -42,6 +42,6 @@ description: >-
   Generate a shell snippet that assumes zsh array handling. Use when the command output must match zsh semantics.
 shell: zsh
 ---
-```
+```text
 
 The `shell` field is needed only when the command semantics depend on a specific shell implementation. Omit it for commands that work correctly under the default host shell.

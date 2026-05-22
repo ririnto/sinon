@@ -18,7 +18,7 @@ Open this file when the plugin work reaches installation, packaging review, or p
 ```text
 ${CLAUDE_PLUGIN_ROOT}/hooks/check.sh        # shipped with the plugin (read-only)
 ${CLAUDE_PLUGIN_DATA}/cache/index.json      # generated at runtime (writable)
-```
+```text
 
 The invariant is stated in `SKILL.md` under Data boundary guidance. Use this split as a concrete reference when reviewing whether a starter file or script respects the boundary.
 
