@@ -754,6 +754,36 @@ enum class HarnessCheck {
 			}.toList()
 		}
 	},
+	FORBID_EMPTY_CATCH_BLOCK {
+		override val category = "forbidEmptyCatchBlock"
+		override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): List<Finding> {
+			val severity = severityOf(manifest, category)
+			val catObj = manifest[category]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+			val sourceRootsPerStack = parametersObj["sourceRootsPerStack"]?.jsonObject ?: return emptyList()
+			val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return emptyList()
+			val kotlinDirs = stringArrayFrom(sourceRootsPerStack, "kotlin")
+			val kotlinExts = stringArrayFrom(extensionsPerStack, "kotlin")
+			val results = psiResults?.emptyCatchBlocks ?: emptyList()
+			return buildSet<Finding> {
+				kotlinDirs.forEach { dirPattern ->
+					val dir = root / dirPattern
+					if (!dir.exists()) return@forEach
+					val (files, _) = walkSafe(root, dir)
+					files.filter { file ->
+						val ext = file.extension
+						ext in kotlinExts
+					}.forEach { file ->
+						results.filter { it.file == file.name }.forEach { hit ->
+							val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: empty catch block; handle, rethrow, or convert to a Finding"
+							add(Finding(severity, category, msg))
+						}
+					}
+				}
+			}.toList()
+		}
+	},
 
 	;
 
