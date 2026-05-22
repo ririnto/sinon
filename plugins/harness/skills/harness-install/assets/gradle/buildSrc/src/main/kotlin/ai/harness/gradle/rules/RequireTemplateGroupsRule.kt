@@ -25,16 +25,20 @@ object RequireTemplateGroupsRule : HarnessCheckRule {
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireTemplateGroups"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val targetRoot = HarnessCheck.Companion.stringFrom(parametersObj, "targetRoot")
-		val groups = HarnessCheck.Companion.stringArrayFrom(parametersObj, "groups")
-		return groups.mapNotNull { group ->
-			val p = root / "$targetRoot/$group"
-			when {
-				p.isSymbolicLink() -> Finding(Severity.ERROR, category, "symlink directory is not allowed: $targetRoot/$group")
-				!p.isDirectory() -> Finding(severity, category, "missing template group: $targetRoot/$group")
-				else -> null
+		val catObj = manifest[category]?.jsonObject
+		val parametersObj = catObj?.get("parameters")?.jsonObject
+		return if (catObj == null || parametersObj == null) {
+			emptyList()
+		} else {
+			val targetRoot = HarnessCheck.Companion.stringFrom(parametersObj, "targetRoot")
+			val groups = HarnessCheck.Companion.stringArrayFrom(parametersObj, "groups")
+			groups.mapNotNull { group ->
+				val p = root / "$targetRoot/$group"
+				when {
+					p.isSymbolicLink() -> Finding(Severity.ERROR, category, "symlink directory is not allowed: $targetRoot/$group")
+					!p.isDirectory() -> Finding(severity, category, "missing template group: $targetRoot/$group")
+					else -> null
+				}
 			}
 		}
 	}

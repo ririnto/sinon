@@ -34,26 +34,30 @@ object ForbidImplicitLambdaItRule : HarnessCheckRule {
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "forbidImplicitLambdaIt"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
-		val sourceRootsPerStack = parametersObj["sourceRootsPerStack"]?.jsonObject ?: return emptyList()
-		val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return emptyList()
-		val kotlinDirs = HarnessCheck.Companion.stringArrayFrom(sourceRootsPerStack, "kotlin")
-		val kotlinExts = HarnessCheck.Companion.stringArrayFrom(extensionsPerStack, "kotlin")
-		val results = psiResults?.implicitLambdaIt ?: emptyList()
-		return kotlinDirs.flatMap { dirPattern ->
-			val dir = root / dirPattern
-			if (!dir.exists()) {
-				emptyList()
-			} else {
-				val (files, _) = HarnessCheck.Companion.walkSafe(root, dir)
-				files.filter { file ->
-					file.extension in kotlinExts
-				}.flatMap { file ->
-					results.filter { it.file == file.name }.map { hit ->
-						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: implicit lambda parameter 'it' is forbidden"
-						Finding(severity, category, msg)
+		val catObj = manifest[category]?.jsonObject
+		val parametersObj = catObj?.get("parameters")?.jsonObject
+		val messagesObj = catObj?.get("messages")?.jsonObject
+		val sourceRootsPerStack = parametersObj?.get("sourceRootsPerStack")?.jsonObject
+		val extensionsPerStack = parametersObj?.get("extensionsPerStack")?.jsonObject
+		return if (catObj == null || parametersObj == null || messagesObj == null || sourceRootsPerStack == null || extensionsPerStack == null) {
+			emptyList()
+		} else {
+			val kotlinDirs = HarnessCheck.Companion.stringArrayFrom(sourceRootsPerStack, "kotlin")
+			val kotlinExts = HarnessCheck.Companion.stringArrayFrom(extensionsPerStack, "kotlin")
+			val results = psiResults?.implicitLambdaIt ?: emptyList()
+			kotlinDirs.flatMap { dirPattern ->
+				val dir = root / dirPattern
+				if (!dir.exists()) {
+					emptyList()
+				} else {
+					val (files, _) = HarnessCheck.Companion.walkSafe(root, dir)
+					files.filter { file ->
+						file.extension in kotlinExts
+					}.flatMap { file ->
+						results.filter { it.file == file.name }.map { hit ->
+							val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: implicit lambda parameter 'it' is forbidden"
+							Finding(severity, category, msg)
+						}
 					}
 				}
 			}

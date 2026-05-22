@@ -24,27 +24,32 @@ object RequireCiCommandMatchesHookRule : HarnessCheckRule {
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireCiCommandMatchesHook"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
-		val ciFiles = HarnessCheck.Companion.stringArrayFrom(parametersObj, "ciFiles")
-		val referenceHookPath = HarnessCheck.Companion.stringFrom(parametersObj, "referenceHook")
-		val referenceHook = root / referenceHookPath
-		val command = if (referenceHook.isRegularFile()) {
-			referenceHook.readText().lineSequence().firstOrNull { it.startsWith("# Harness validation command: ") }?.removePrefix("# Harness validation command: ")?.trim() ?: ""
+		val catObj = manifest[category]?.jsonObject
+		val parametersObj = catObj?.get("parameters")?.jsonObject
+		val messagesObj = catObj?.get("messages")?.jsonObject
+		return if (catObj == null || parametersObj == null || messagesObj == null) {
+			emptyList()
 		} else {
-			""
-		}
-		if (command.isEmpty()) {
-			return emptyList()
-		}
-		return ciFiles.mapNotNull { ciFile ->
-			val ciPath = root / ciFile
-			if (ciPath.isRegularFile() && !ciPath.readText().contains(command)) {
-				val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$ciFile: CI command mismatch — expected $command"
-				Finding(severity, category, msg)
+			val ciFiles = HarnessCheck.Companion.stringArrayFrom(parametersObj, "ciFiles")
+			val referenceHookPath = HarnessCheck.Companion.stringFrom(parametersObj, "referenceHook")
+			val referenceHook = root / referenceHookPath
+			val command = if (referenceHook.isRegularFile()) {
+				referenceHook.readText().lineSequence().firstOrNull { it.startsWith("# Harness validation command: ") }?.removePrefix("# Harness validation command: ")?.trim() ?: ""
 			} else {
-				null
+				""
+			}
+			if (command.isEmpty()) {
+				emptyList()
+			} else {
+				ciFiles.mapNotNull { ciFile ->
+					val ciPath = root / ciFile
+					if (ciPath.isRegularFile() && !ciPath.readText().contains(command)) {
+						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$ciFile: CI command mismatch — expected $command"
+						Finding(severity, category, msg)
+					} else {
+						null
+					}
+				}
 			}
 		}
 	}

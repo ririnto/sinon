@@ -11,11 +11,7 @@ export const requireDocHeadingsRule = (ctx: RuleContext): HarnessCheckRule => ({
       return false;
     }
     const enabled = (section as { enabled?: unknown }).enabled;
-    if (enabled === false) {
-      return false;
-    }
-    const entry = ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return ctx.readStringArray(entry.headings).length > 0;
+    return enabled !== false && ctx.readStringArray(ctx.readJsonObject((section as Record<string, unknown>).parameters).headings).length > 0;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
@@ -28,27 +24,25 @@ export const requireDocHeadingsRule = (ctx: RuleContext): HarnessCheckRule => ({
     const prefix = typeof sourceFilter.prefix === "string" ? sourceFilter.prefix : "";
     const suffix = typeof sourceFilter.suffix === "string" ? sourceFilter.suffix : "";
     const headings = ctx.readStringArray(parameters.headings);
-
     const allSourceFiles = ctx.readStringArray(requiredParameters.paths);
     const filteredFiles = allSourceFiles.filter(
       (f) => !prefix || (f.startsWith(prefix) && (!suffix || f.endsWith(suffix)))
     );
-
     return filteredFiles.flatMap((file) => {
       if (!ctx.isFile(file)) {
         return [];
       }
       const text = ctx.read(file);
       return headings.flatMap((heading) =>
-        text.includes(heading)
-          ? []
-          : [
+        !text.includes(heading)
+          ? [
               {
                 severity: ctx.severityOf(manifest, "requireDocHeadings"),
                 category: "requireDocHeadings",
                 message: `doc missing ${heading}: ${file}`,
               },
             ]
+          : []
       );
     });
   }

@@ -44,21 +44,28 @@ public enum RequireCiCommandMatchesHookRule implements HarnessCheckRule {
 
     private List<Finding> validateCiFile(Path root, String ciFile, String expectedCmd, String severity) throws MojoExecutionException {
         Path ciPath = root.resolve(ciFile);
-        if (!Files.exists(ciPath, LinkOption.NOFOLLOW_LINKS) || !HarnessCheckHelper.isSafeRegularFile(root, ciPath)) {
-            return List.of();
+        List<Finding> findings;
+        if (Files.exists(ciPath, LinkOption.NOFOLLOW_LINKS) && HarnessCheckHelper.isSafeRegularFile(root, ciPath)) {
+            String ciText = HarnessCheckHelper.readFile(root, ciPath);
+            if (ciText.contains(expectedCmd)) {
+                findings = List.of();
+            } else {
+                findings = List.of(new Finding(severity, CATEGORY, ciFile + ": CI command mismatch — expected " + expectedCmd));
+            }
+        } else {
+            findings = List.of();
         }
-        String ciText = HarnessCheckHelper.readFile(root, ciPath);
-        return ciText.contains(expectedCmd)
-                ? List.of()
-                : List.of(new Finding(severity, CATEGORY, ciFile + ": CI command mismatch — expected " + expectedCmd));
+        return findings;
     }
 
     private String extractHookCommand(String text) {
+        String result = "";
         for (String line : text.split("\\R")) {
             if (line.startsWith("# Harness validation command: ")) {
-                return line.substring("# Harness validation command: ".length()).trim();
+                result = line.substring("# Harness validation command: ".length()).trim();
+                break;
             }
         }
-        return "";
+        return result;
     }
 }

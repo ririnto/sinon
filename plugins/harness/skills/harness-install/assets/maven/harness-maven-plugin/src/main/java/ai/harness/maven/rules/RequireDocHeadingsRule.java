@@ -37,13 +37,16 @@ public enum RequireDocHeadingsRule implements HarnessCheckRule {
 
     private List<Finding> validateHeadings(Path root, String file, List<String> headings, String severity) throws MojoExecutionException {
         Path filePath = root.resolve(file);
-        if (!HarnessCheckHelper.isSafeRegularFile(root, filePath)) {
-            return List.of();
+        List<Finding> findings;
+        if (HarnessCheckHelper.isSafeRegularFile(root, filePath)) {
+            String text = HarnessCheckHelper.readFile(root, filePath);
+            findings = headings.stream()
+                    .filter(h -> !text.contains(h))
+                    .map(h -> new Finding(severity, CATEGORY, "doc missing " + h + ": " + file))
+                    .toList();
+        } else {
+            findings = List.of();
         }
-        String text = HarnessCheckHelper.readFile(root, filePath);
-        return headings.stream()
-                .filter(h -> !text.contains(h))
-                .map(h -> new Finding(severity, CATEGORY, "doc missing " + h + ": " + file))
-                .toList();
+        return findings;
     }
 }

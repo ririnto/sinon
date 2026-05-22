@@ -11,11 +11,10 @@ export const forbidUnsafeSymlinksRule = (ctx: RuleContext): HarnessCheckRule => 
       return false;
     }
     const enabled = (section as { enabled?: unknown }).enabled;
-    if (enabled === false) {
-      return false;
-    }
-    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return Array.isArray(parameters.allowedSymlinkPairs) && parameters.allowedSymlinkPairs.length > 0;
+    return enabled !== false && (
+      Array.isArray(ctx.readJsonObject((section as Record<string, unknown>).parameters).allowedSymlinkPairs) &&
+      ctx.readJsonObject((section as Record<string, unknown>).parameters).allowedSymlinkPairs.length > 0
+    );
   }
 
   validate(_root: string, _manifest: HarnessManifest): readonly Finding[] {

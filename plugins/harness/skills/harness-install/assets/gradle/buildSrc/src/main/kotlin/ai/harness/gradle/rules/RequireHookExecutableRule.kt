@@ -24,17 +24,21 @@ object RequireHookExecutableRule : HarnessCheckRule {
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireHookExecutable"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
-		val hooks = HarnessCheck.Companion.stringArrayFrom(parametersObj, "hooks")
-		return hooks.mapNotNull { hookPath ->
-			val hook = root / hookPath
-			if (hook.isRegularFile() && !hook.isExecutable()) {
-				val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must be executable"
-				Finding(severity, category, msg)
-			} else {
-				null
+		val catObj = manifest[category]?.jsonObject
+		val parametersObj = catObj?.get("parameters")?.jsonObject
+		val messagesObj = catObj?.get("messages")?.jsonObject
+		return if (catObj == null || parametersObj == null || messagesObj == null) {
+			emptyList()
+		} else {
+			val hooks = HarnessCheck.Companion.stringArrayFrom(parametersObj, "hooks")
+			hooks.mapNotNull { hookPath ->
+				val hook = root / hookPath
+				if (hook.isRegularFile() && !hook.isExecutable()) {
+					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must be executable"
+					Finding(severity, category, msg)
+				} else {
+					null
+				}
 			}
 		}
 	}

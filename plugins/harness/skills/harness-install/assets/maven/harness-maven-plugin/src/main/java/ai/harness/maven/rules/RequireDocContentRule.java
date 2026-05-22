@@ -44,8 +44,12 @@ public enum RequireDocContentRule implements HarnessCheckRule {
                 })
                 .reduce((a, b) -> a + "\n" + b)
                 .orElse("");
-        return containsAll.stream().allMatch(combined::contains)
-                ? List.of()
-                : List.of(new Finding(severity, CATEGORY, failureMessage));
+        List<Finding> findings;
+        if (containsAll.stream().allMatch(combined::contains)) {
+            findings = List.of();
+        } else {
+            findings = List.of(new Finding(severity, CATEGORY, failureMessage));
+        }
+        return findings;
     }
 }

@@ -44,30 +44,26 @@ export const forbidEarlyReturnRule = (ctx: RuleContext): HarnessCheckRule => ({
       };
 
       const checkFunc = (funcNode: FunctionLike): void => {
-        if (!funcNode.body || !isBlock(funcNode.body)) {
-          return;
+        if (funcNode.body && isBlock(funcNode.body)) {
+          const body = funcNode.body;
+          const statements = body.statements;
+          if (statements.length > 0) {
+            const funcName = getFuncName(funcNode);
+            findings.push(
+              ...statements
+                .slice(0, -1)
+                .filter(isReturnStatement)
+                .map((stmt) => {
+                  const { line } = sourceFile.getLineAndCharacterOfPosition(stmt.getStart(sourceFile));
+                  return {
+                    severity: ctx.severityOf(manifest, "forbidEarlyReturn"),
+                    category: "forbidEarlyReturn",
+                    message: `${file}:${line + 1}: function \`${funcName}\` has an early return; restructure with single exit`,
+                  };
+                })
+            );
+          }
         }
-
-        const body = funcNode.body;
-        const statements = body.statements;
-        if (statements.length === 0) {
-          return;
-        }
-
-        const funcName = getFuncName(funcNode);
-        findings.push(
-          ...statements
-            .slice(0, -1)
-            .filter(isReturnStatement)
-            .map((stmt) => {
-              const { line } = sourceFile.getLineAndCharacterOfPosition(stmt.getStart(sourceFile));
-              return {
-                severity: ctx.severityOf(manifest, "forbidEarlyReturn"),
-                category: "forbidEarlyReturn",
-                message: `${file}:${line + 1}: function \`${funcName}\` has an early return; restructure with single exit`,
-              };
-            })
-        );
       };
 
       const visit = (node: Node): void => {

@@ -11,11 +11,7 @@ export const requireCiCommandMatchesHookRule = (ctx: RuleContext): HarnessCheckR
       return false;
     }
     const enabled = (section as { enabled?: unknown }).enabled;
-    if (enabled === false) {
-      return false;
-    }
-    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return typeof parameters.referenceHook === "string";
+    return enabled !== false && typeof ctx.readJsonObject((section as Record<string, unknown>).parameters).referenceHook === "string";
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
@@ -23,35 +19,28 @@ export const requireCiCommandMatchesHookRule = (ctx: RuleContext): HarnessCheckR
     const parameters = ctx.readJsonObject(section.parameters);
     const referenceHook = typeof parameters.referenceHook === "string" ? parameters.referenceHook : "";
     const ciFiles = ctx.readStringArray(parameters.ciFiles);
-
     if (!ctx.isFile(referenceHook)) {
       return [];
     }
-
     const refText = ctx.read(referenceHook);
     const refCommand = refText
       .split(/\r?\n/)
       .find((line) => line.startsWith("# Harness validation command: "))
       ?.replace("# Harness validation command: ", "")
       .trim() ?? "";
-
     if (!refCommand) {
       return [];
     }
-
     return ciFiles.flatMap((ciFile) => {
-      if (!ctx.isFile(ciFile)) {
-        return [];
-      }
-      return ctx.read(ciFile).includes(refCommand)
-        ? []
-        : [
+      return ctx.isFile(ciFile) && !ctx.read(ciFile).includes(refCommand)
+        ? [
             {
               severity: ctx.severityOf(manifest, "requireCiCommandMatchesHook"),
               category: "requireCiCommandMatchesHook",
               message: `${ciFile}: CI command mismatch — expected ${refCommand}`,
             },
-          ];
+          ]
+        : [];
     });
   }
 
