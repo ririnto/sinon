@@ -5,7 +5,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Rule that requires CI configuration to match hook commands.
@@ -19,7 +19,7 @@ public class RequireCiCommandMatchesHookRule implements HarnessCheckRule {
     }
 
     @Override
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
         String refHook = catNode.get("parameters").get("referenceHook").asText();
         Path refPath = root.resolve(refHook);

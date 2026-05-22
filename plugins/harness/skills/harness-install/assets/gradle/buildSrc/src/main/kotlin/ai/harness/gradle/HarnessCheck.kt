@@ -53,7 +53,7 @@ enum class HarnessCheck(val category: String, val rule: HarnessCheckRule) {
 		return rule.applies(manifest)
 	}
 
-	fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults? = null): List<Finding> {
+	fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults? = null): Collection<Finding> {
 		return rule.validate(manifest, root, psiResults)
 	}
 

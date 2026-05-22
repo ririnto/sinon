@@ -8,7 +8,7 @@ import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Rule that forbids greater-than comparisons in favor of less-than.
@@ -22,7 +22,7 @@ public class ForbidGreaterThanComparisonRule implements HarnessCheckRule {
     }
 
     @Override
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
             List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);

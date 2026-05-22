@@ -3,7 +3,7 @@ package ai.harness.maven;
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Strategy interface implemented by each harness validation rule.
@@ -22,8 +22,8 @@ public interface HarnessCheckRule {
      *
      * @param projectDir the project root directory
      * @param manifest the manifest JSON node
-     * @return a list of findings; empty if validation passes
+     * @return a collection of findings; empty if validation passes
      * @throws MojoExecutionException if validation fails
      */
-    List<Finding> validate(Path projectDir, JsonNode manifest) throws MojoExecutionException;
+    Collection<Finding> validate(Path projectDir, JsonNode manifest) throws MojoExecutionException;
 }

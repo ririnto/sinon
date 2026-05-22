@@ -10,6 +10,7 @@ from __future__ import annotations
 import enum
 import logging
 import sys
+from collections.abc import Iterable
 from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
@@ -104,7 +105,7 @@ class HarnessCheck(enum.Enum):
         rule = self._rule_cls()
         return rule.applies(manifest)
 
-    def validate(self, root: Path, manifest: dict) -> list[Finding]:
+    def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Run validator for this check."""
         rule = self._rule_cls()
         return rule.validate(root, manifest)

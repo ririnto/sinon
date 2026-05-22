@@ -5,7 +5,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
@@ -20,7 +20,7 @@ public class RequireKeepfileInEmptyDirectoriesRule implements HarnessCheckRule {
     }
 
     @Override
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
         List<String> directories = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("directories"));
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);

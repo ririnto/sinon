@@ -22,7 +22,7 @@ export class RequireTemplateGroupsRule implements HarnessCheckRule {
     return this.ctx.readStringArray(entry.groups).length > 0;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireTemplateGroups);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const targetRoot = typeof parameters.targetRoot === "string" ? parameters.targetRoot : "";

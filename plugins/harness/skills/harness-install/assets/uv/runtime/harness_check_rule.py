@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from pathlib import Path
 from typing import NamedTuple
 
@@ -28,5 +29,5 @@ class HarnessCheckRule(ABC):
         """Check if this rule applies to the manifest."""
 
     @abstractmethod
-    def validate(self, project_dir: Path, manifest: dict) -> list[Finding]:
+    def validate(self, project_dir: Path, manifest: dict) -> Iterable[Finding]:
         """Validate and return findings."""

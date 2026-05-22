@@ -25,7 +25,7 @@ export class RequireHookStageRule implements HarnessCheckRule {
     return this.ctx.readJsonObject(stages[STACK]).length > 0;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireHookStage);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const hooks = this.ctx.readStringArray(parameters.hooks);

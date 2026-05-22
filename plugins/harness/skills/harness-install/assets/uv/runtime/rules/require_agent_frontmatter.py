@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 """Require agent frontmatter rule."""
 
+from collections.abc import Iterable
+
 import re
 from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
 
 from ._utils import is_safe_directory, read_text, relative, safe_walk, severity_for
-
 
 class RequireAgentFrontmatterRule(HarnessCheckRule):
     """Validate requireAgentFrontmatter check."""
@@ -23,7 +24,7 @@ class RequireAgentFrontmatterRule(HarnessCheckRule):
         enabled = section.get("enabled", True)
         return enabled is not False
 
-    def validate(self, root: Path, manifest: dict) -> list[Finding]:
+    def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate requireAgentFrontmatter check."""
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):

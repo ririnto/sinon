@@ -22,7 +22,7 @@ export class RequireHookShebangRule implements HarnessCheckRule {
     return this.ctx.readStringArray(parameters.hooks).length > 0;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireHookShebang);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const hooks = this.ctx.readStringArray(parameters.hooks);

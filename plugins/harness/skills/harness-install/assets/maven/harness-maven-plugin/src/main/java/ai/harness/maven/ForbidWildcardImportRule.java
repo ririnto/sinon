@@ -6,7 +6,7 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Rule that forbids wildcard imports.
@@ -20,7 +20,7 @@ public class ForbidWildcardImportRule implements HarnessCheckRule {
     }
 
     @Override
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
             List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);

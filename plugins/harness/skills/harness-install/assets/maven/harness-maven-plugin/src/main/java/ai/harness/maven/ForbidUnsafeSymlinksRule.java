@@ -5,7 +5,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -22,7 +22,7 @@ public class ForbidUnsafeSymlinksRule implements HarnessCheckRule {
     }
 
     @Override
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
         JsonNode allowedNode = catNode.get("parameters").get("allowedSymlinkPairs");
         Set<String> allowedNames = new LinkedHashSet<>();

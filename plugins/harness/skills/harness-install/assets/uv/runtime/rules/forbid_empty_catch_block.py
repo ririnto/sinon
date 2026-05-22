@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """Forbid empty catch block rule."""
 
+from collections.abc import Iterable
+
 from pathlib import Path
 
 import libcst as cst
@@ -9,7 +11,6 @@ import libcst as cst
 from harness_check_rule import Finding, HarnessCheckRule
 
 from ._utils import parse_python, relative, severity_for, stack_sources
-
 
 class ForbidEmptyCatchBlockRule(HarnessCheckRule):
     """Validate forbidEmptyCatchBlock check."""
@@ -24,7 +25,7 @@ class ForbidEmptyCatchBlockRule(HarnessCheckRule):
         enabled = section.get("enabled", True)
         return enabled is not False
 
-    def validate(self, root: Path, manifest: dict) -> list[Finding]:
+    def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate forbidEmptyCatchBlock check."""
         severity = severity_for(manifest, self.category)
         sources = stack_sources(root, manifest, self.category)

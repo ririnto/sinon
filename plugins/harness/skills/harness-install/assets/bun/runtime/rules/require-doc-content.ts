@@ -23,7 +23,7 @@ export class RequireDocContentRule implements HarnessCheckRule {
     return Array.isArray(checks) && checks.length > 0;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireDocContent);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const checks = parameters.checks;

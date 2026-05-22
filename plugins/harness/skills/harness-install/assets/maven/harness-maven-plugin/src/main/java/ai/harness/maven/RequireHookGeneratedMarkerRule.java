@@ -3,7 +3,7 @@ package ai.harness.maven;
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
@@ -18,7 +18,7 @@ public class RequireHookGeneratedMarkerRule implements HarnessCheckRule {
     }
 
     @Override
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
         List<String> hooks = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks"));
         String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();

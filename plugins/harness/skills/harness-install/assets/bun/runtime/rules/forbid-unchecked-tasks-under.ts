@@ -22,7 +22,7 @@ export class ForbidUncheckedTasksUnderRule implements HarnessCheckRule {
     return typeof parameters.directory === "string";
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.forbidUncheckedTasksUnder);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const directory = typeof parameters.directory === "string" ? parameters.directory : "";

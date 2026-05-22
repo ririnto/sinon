@@ -23,7 +23,7 @@ export class RequireKeepfileInEmptyDirectoriesRule implements HarnessCheckRule {
     return this.ctx.readStringArray(entry.directories).length > 0;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireKeepfileInEmptyDirectories);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const directories = this.ctx.readStringArray(parameters.directories);

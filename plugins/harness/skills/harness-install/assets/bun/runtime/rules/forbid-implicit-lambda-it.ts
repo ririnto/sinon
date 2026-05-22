@@ -22,7 +22,7 @@ export class ForbidImplicitLambdaItRule implements HarnessCheckRule {
     return Array.isArray(parameters.directories) && parameters.directories.length > 0;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.forbidImplicitLambdaIt);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const directories = this.ctx.readStringArray(parameters.directories);
