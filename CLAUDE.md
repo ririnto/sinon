@@ -36,8 +36,10 @@ Claude Code plugin manifest rules:
 
 - `.claude-plugin/plugin.json` MUST include the `$schema` field `"https://anthropic.com/claude-code/plugin.schema.json"`.
 - `author` MUST use the object form (for example, `"author": { "name": "ririnto" }`).
-- `skills`, when present, MUST use the directory form `"./skills/"` with a trailing slash. Array-of-paths form MUST NOT be used.
-- `commands`, when present, MUST use the directory form `"./commands/"` with a trailing slash. Array-of-paths form MUST NOT be used.
+- Every declared path inside `plugin.json` MUST begin with `./`.
+- Directory-typed fields, when present, MUST use the trailing-slash directory form. `skills` MUST be exactly `"./skills/"` and `commands` MUST be exactly `"./commands/"`. Array-of-paths form MUST NOT be used for either field.
+- File-typed fields, when present, MUST point to the canonical filename at the plugin root: `hooks` MUST be exactly `"./hooks/hooks.json"`, `mcpServers` MUST be exactly `"./.mcp.json"`, `lspServers` MUST be exactly `"./.lsp.json"`, and `settings` MUST be exactly `"./settings.json"`.
+- The manifest and the plugin-root filesystem MUST stay bidirectionally consistent. When a file-typed manifest field is declared, the corresponding plugin-root file MUST exist. When `hooks/hooks.json`, `.mcp.json`, `.lsp.json`, or `settings.json` exists at the plugin root, the manifest SHOULD declare the matching field so the runtime publishes the surface.
 - `agents` MUST NOT appear in the manifest because the Claude Code manifest schema does not support an `agents` key. When a plugin ships agents, keep the `agents/` directory at the plugin root and describe that runtime surface in the plugin README instead of declaring an `agents` manifest key.
 - `version` MUST NOT appear in any plugin manifest.
 - `.claude-plugin/plugin.json` MUST NOT include an `interface` block.
@@ -45,7 +47,7 @@ Claude Code plugin manifest rules:
 Plugin structure rules:
 
 - Plugins with commands MUST ship a `commands/` directory at the plugin root with one `.md` file per command; commands are identified by file basename and NEED NOT declare a `name` frontmatter field.
-- Plugins with agents MUST ship an `agents/` directory at the plugin root with one `.md` file per agent whose frontmatter `name` matches the file basename.
+- Plugins with agents MUST ship an `agents/` directory at the plugin root with one `.md` file per agent whose frontmatter `name` matches the file basename exactly. Both the filename stem and the `name` field MUST use kebab-case.
 
 ## Authoring Agent Skills
 
