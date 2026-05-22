@@ -38,11 +38,11 @@ class HarnessValidationPlugin : Plugin<Project> {
          */
         @TaskAction
         fun validate() {
-            val root = project.rootDir
-            val manifestLoad = loadManifest(root)
-            val manifest = manifestLoad.manifest
             val findings: List<Finding> =
                 buildList {
+                    val root = project.rootDir
+                    val manifestLoad = loadManifest(root)
+                    val manifest = manifestLoad.manifest
                     addAll(manifestLoad.findings)
                     if (manifest == null) {
                         return@buildList
