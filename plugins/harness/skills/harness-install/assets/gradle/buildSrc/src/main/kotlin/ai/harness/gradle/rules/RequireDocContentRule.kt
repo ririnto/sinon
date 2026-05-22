@@ -21,19 +21,23 @@ object RequireDocContentRule : HarnessCheckRule {
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireDocContent"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val checks = parametersObj["checks"]?.jsonArray ?: return emptyList()
-		return checks.mapNotNull { checkElem ->
-			val checkObj = checkElem.jsonObject
-			val files = HarnessCheck.Companion.stringArrayFrom(checkObj, "files")
-			val containsAll = HarnessCheck.Companion.stringArrayFrom(checkObj, "containsAll")
-			val failureMessage = HarnessCheck.Companion.stringFrom(checkObj, "failureMessage")
-			val content = files.map { HarnessCheck.Companion.readSafe(root, it) }.joinToString("\n")
-			if (!containsAll.all { content.contains(it) }) {
-				Finding(severity, category, failureMessage)
-			} else {
-				null
+		val catObj = manifest[category]?.jsonObject
+		val parametersObj = catObj?.get("parameters")?.jsonObject
+		val checks = parametersObj?.get("checks")?.jsonArray
+		return if (catObj == null || parametersObj == null || checks == null) {
+			emptyList()
+		} else {
+			checks.mapNotNull { checkElem ->
+				val checkObj = checkElem.jsonObject
+				val files = HarnessCheck.Companion.stringArrayFrom(checkObj, "files")
+				val containsAll = HarnessCheck.Companion.stringArrayFrom(checkObj, "containsAll")
+				val failureMessage = HarnessCheck.Companion.stringFrom(checkObj, "failureMessage")
+				val content = files.map { HarnessCheck.Companion.readSafe(root, it) }.joinToString("\n")
+				if (!containsAll.all { content.contains(it) }) {
+					Finding(severity, category, failureMessage)
+				} else {
+					null
+				}
 			}
 		}
 	}

@@ -557,7 +557,7 @@ enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단�
 
 전제: Phase 12b(singleton 전환) commit 후 진행. 변환 시 동작 보존, 부작용(IO, 예외)이 있는 분기는 그대로 명령형 유지.
 
-### [ ] Phase 12d: 중간 return 회피를 위한 조건 반전 패턴 정형화
+### [x] Phase 12d: 중간 return 회피를 위한 조건 반전 패턴 정형화 (commit pending)
 
 Phase 12에서 처리한 early-return 제거의 후속 정리. guard `if (!cond) return ...; doX(); doY();` 구조를 nesting 깊이를 늘리지 않으면서 single-exit으로 유지하기 위해 조건을 반전(`if (cond) { doX(); doY(); }`)하는 패턴을 명시적으로 적용한다.
 
@@ -593,6 +593,31 @@ Phase 12에서 처리한 early-return 제거의 후속 정리. guard `if (!cond)
 - [ ] Task 12e.4 — TypeScript: 동일. type inference로 안전한 모든 곳 inline. type 좁힘이 필요한 곳은 `as`로 옮기고 inline.
 
 전제: Phase 12d(조건 반전) 완료 후 진행. 12d에서 도입된 임시 boolean이 단일 사용이면 그 자리에서 inline.
+
+### [ ] Phase 12f: mutable 변수(var/let) → 불변(val/const) 전환
+
+외부에 노출된 가변 변수를 모두 불변으로. `buildList { }` / `buildSet { }` 같은 *수신자 안의* mutable 컨텍스트는 범위 내에 갇혀 있으므로 허용. 다음 케이스가 제거 대상:
+
+- Kotlin: 함수 본문/클래스 멤버의 `var`.
+- Java: `final` 키워드가 없는 지역 변수, 가변 field.
+- TypeScript: `let` (인덱스 카운터 포함).
+- Python: 누적용 `x = []; for ... x.append(...)` 패턴.
+
+대체 수단:
+
+- 누적은 `fold` / `reduce` / `runningFold` / `flatMap` / list comprehension / `Stream.collect`.
+- 인덱스가 필요하면 `withIndex()` / `enumerate()` / `Array.map((v, i) => ...)`.
+- 카운터는 `count {}` / `filter { ... }.size` / `len([... for ...])`.
+- 단순 재할당은 `if`-식 또는 `when`/`switch`-식으로 단일 `val`.
+- 위 어느 것도 깔끔하지 않은 누적은 `buildList` / `buildSet`로 격리.
+- 재귀가 더 명료하면 재귀 사용 (Kotlin `tailrec` 권장).
+
+- [ ] Task 12f.1 — Kotlin: `var` 제거. tail-recursive 가능한 경우 `tailrec` 함수로 추출.
+- [ ] Task 12f.2 — Java: 지역 변수에 `final` 부착 시도, 실패하는 변수는 fold/Stream으로 리팩터.
+- [ ] Task 12f.3 — Python: append 누적을 comprehension/`itertools.chain`/`functools.reduce`로 전환.
+- [ ] Task 12f.4 — TypeScript: `let` → `const`. 누적은 `.reduce()` / spread / `flatMap`.
+
+전제: Phase 12e(inline) 완료 후 진행. inline으로 임시 변수가 줄어든 상태에서 남은 var/let만 변환.
 
 ### [x] Phase 13: Rule class 하위 패키지(rules/) 정리 (commit 448d323)
 

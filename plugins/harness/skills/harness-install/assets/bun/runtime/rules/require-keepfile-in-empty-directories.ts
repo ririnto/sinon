@@ -12,11 +12,7 @@ export const requireKeepfileInEmptyDirectoriesRule = (ctx: RuleContext): Harness
       return false;
     }
     const enabled = (section as { enabled?: unknown }).enabled;
-    if (enabled === false) {
-      return false;
-    }
-    const entry = ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return ctx.readStringArray(entry.directories).length > 0;
+    return enabled !== false && ctx.readStringArray(ctx.readJsonObject((section as Record<string, unknown>).parameters).directories).length > 0;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {

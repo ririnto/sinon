@@ -34,14 +34,17 @@ public enum RequireHookGeneratedMarkerRule implements HarnessCheckRule {
 
     private List<Finding> validateMarker(Path root, String hook, String markerTemplate, String placeholderForbidden, String severity) throws MojoExecutionException {
         Path hookPath = root.resolve(hook);
-        if (!HarnessCheckHelper.isSafeRegularFile(root, hookPath)) {
-            return List.of();
+        List<Finding> findings;
+        if (HarnessCheckHelper.isSafeRegularFile(root, hookPath)) {
+            String text = HarnessCheckHelper.readFile(root, hookPath);
+            String expectedMarker = markerTemplate.replace("{name}", hookPath.getFileName().toString());
+            findings = Stream.of(
+                    text.contains(expectedMarker) ? Stream.empty() : Stream.of(new Finding(severity, CATEGORY, hook + " must contain generated marker '" + expectedMarker + "'")),
+                    text.contains(placeholderForbidden) ? Stream.of(new Finding(severity, CATEGORY, hook + " still contains packaging placeholder text")) : Stream.empty()
+            ).flatMap(s -> s).toList();
+        } else {
+            findings = List.of();
         }
-        String text = HarnessCheckHelper.readFile(root, hookPath);
-        String expectedMarker = markerTemplate.replace("{name}", hookPath.getFileName().toString());
-        return Stream.of(
-                text.contains(expectedMarker) ? Stream.empty() : Stream.of(new Finding(severity, CATEGORY, hook + " must contain generated marker '" + expectedMarker + "'")),
-                text.contains(placeholderForbidden) ? Stream.of(new Finding(severity, CATEGORY, hook + " still contains packaging placeholder text")) : Stream.empty()
-        ).flatMap(s -> s).toList();
+        return findings;
     }
 }

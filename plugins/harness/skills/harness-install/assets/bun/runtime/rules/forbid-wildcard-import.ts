@@ -30,18 +30,13 @@ export const forbidWildcardImportRule = (ctx: RuleContext): HarnessCheckRule => 
       }
       const findings: Finding[] = [];
       const visit = (node: Node): void => {
-        if (isImportDeclaration(node)) {
-          if (node.importClause && node.importClause.namedBindings) {
-            const bindings = node.importClause.namedBindings;
-            if (isNamespaceImport(bindings)) {
-              const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-              findings.push({
-                severity: ctx.severityOf(manifest, "forbidWildcardImport"),
-                category: "forbidWildcardImport",
-                message: `${file}:${line + 1}: wildcard import \`import * as\` forbidden; import explicit symbols`,
-              });
-            }
-          }
+        if (isImportDeclaration(node) && node.importClause && node.importClause.namedBindings && isNamespaceImport(node.importClause.namedBindings)) {
+          const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+          findings.push({
+            severity: ctx.severityOf(manifest, "forbidWildcardImport"),
+            category: "forbidWildcardImport",
+            message: `${file}:${line + 1}: wildcard import \`import * as\` forbidden; import explicit symbols`,
+          });
         }
         forEachChild(node, visit);
       };

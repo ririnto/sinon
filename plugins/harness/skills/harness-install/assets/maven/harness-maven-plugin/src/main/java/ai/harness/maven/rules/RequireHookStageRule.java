@@ -38,13 +38,18 @@ public enum RequireHookStageRule implements HarnessCheckRule {
     private List<Finding> validateStage(Path root, String hookName, String expectedStage, String markerTemplate, String severity) throws MojoExecutionException {
         String hookPath = "docs/harness/git-hooks/" + hookName;
         Path hook = root.resolve(hookPath);
-        if (!HarnessCheckHelper.isSafeRegularFile(root, hook)) {
-            return List.of();
+        List<Finding> findings;
+        if (HarnessCheckHelper.isSafeRegularFile(root, hook)) {
+            String text = HarnessCheckHelper.readFile(root, hook);
+            String expectedMarker = markerTemplate.replace("{stage}", expectedStage);
+            if (text.contains(expectedMarker)) {
+                findings = List.of();
+            } else {
+                findings = List.of(new Finding(severity, CATEGORY, hookPath + " must contain stage marker '" + expectedMarker + "'"));
+            }
+        } else {
+            findings = List.of();
         }
-        String text = HarnessCheckHelper.readFile(root, hook);
-        String expectedMarker = markerTemplate.replace("{stage}", expectedStage);
-        return text.contains(expectedMarker)
-                ? List.of()
-                : List.of(new Finding(severity, CATEGORY, hookPath + " must contain stage marker '" + expectedMarker + "'"));
+        return findings;
     }
 }

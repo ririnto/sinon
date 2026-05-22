@@ -12,11 +12,7 @@ export const requireAgentFrontmatterRule = (ctx: RuleContext): HarnessCheckRule 
       return false;
     }
     const enabled = (section as { enabled?: unknown }).enabled;
-    if (enabled === false) {
-      return false;
-    }
-    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return parameters.directory !== undefined;
+    return enabled !== false && ctx.readJsonObject((section as Record<string, unknown>).parameters).directory !== undefined;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
@@ -26,10 +22,8 @@ export const requireAgentFrontmatterRule = (ctx: RuleContext): HarnessCheckRule 
     if (!directory || !ctx.isDirectory(directory)) {
       return [];
     }
-
     const [agents, dirFindings] = ctx.walkDirectory(directory);
     const agentFiles = agents.filter((f) => dirname(f) === directory && f.endsWith(".md"));
-
     if (agentFiles.length === 0) {
       return [
         {
@@ -39,7 +33,6 @@ export const requireAgentFrontmatterRule = (ctx: RuleContext): HarnessCheckRule 
         },
       ];
     }
-
     return dirFindings.concat(
       agentFiles.flatMap((agent) => {
         const text = ctx.read(agent);

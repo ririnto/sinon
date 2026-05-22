@@ -33,14 +33,15 @@ public class HarnessCheckHelper {
      * @return severity level: "WARN", "INFO", or "ERROR" (default)
      */
     public static String getSeverity(JsonNode manifest, String category) {
+        String result = "ERROR";
         JsonNode catNode = manifest.get(category);
         if (catNode != null && catNode.has("severity")) {
             String sev = catNode.get("severity").asText();
             if ("WARN".equals(sev) || "INFO".equals(sev)) {
-                return sev;
+                result = sev;
             }
         }
-        return "ERROR";
+        return result;
     }
 
     /**
@@ -88,10 +89,13 @@ public class HarnessCheckHelper {
      * @return true if path is a safe directory
      */
     public static boolean isSafeDirectory(Path root, Path path) {
-        if (Files.isSymbolicLink(path)) {
-            return false;
+        boolean isSafe;
+        if (!Files.isSymbolicLink(path)) {
+            isSafe = Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS);
+        } else {
+            isSafe = false;
         }
-        return Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS);
+        return isSafe;
     }
 
     /**
@@ -129,31 +133,28 @@ public class HarnessCheckHelper {
      * @return the resolved target path if allowed, null otherwise
      */
     public static Path allowedRootContractTarget(Path root, Path path) {
-        if (!Files.isSymbolicLink(path)) {
-            return null;
-        }
-        Path normalized = root.normalize();
-        Path fileName = path.getFileName();
-        if (fileName == null || path.getParent() == null || !path.getParent().normalize().equals(normalized)) {
-            return null;
-        }
-        String name = fileName.toString();
-        if (!name.equals("AGENTS.md") && !name.equals("CLAUDE.md")) {
-            return null;
-        }
-        String expected = name.equals("AGENTS.md") ? "CLAUDE.md" : "AGENTS.md";
-        try {
-            Path target = Files.readSymbolicLink(path);
-            if (target.getNameCount() != 1 || !target.toString().equals(expected)) {
-                return null;
+        Path result = null;
+        if (Files.isSymbolicLink(path)) {
+            Path normalized = root.normalize();
+            Path fileName = path.getFileName();
+            if (fileName != null && path.getParent() != null && path.getParent().normalize().equals(normalized)) {
+                String name = fileName.toString();
+                if (name.equals("AGENTS.md") || name.equals("CLAUDE.md")) {
+                    String expected = name.equals("AGENTS.md") ? "CLAUDE.md" : "AGENTS.md";
+                    try {
+                        Path target = Files.readSymbolicLink(path);
+                        if (target.getNameCount() == 1 && target.toString().equals(expected)) {
+                            Path resolved = normalized.resolve(target).normalize();
+                            if (resolved.getParent().equals(normalized) && !Files.isSymbolicLink(resolved) && Files.isRegularFile(resolved, LinkOption.NOFOLLOW_LINKS)) {
+                                result = resolved;
+                            }
+                        }
+                    } catch (IOException e) {
+                    }
+                }
             }
-            Path resolved = normalized.resolve(target).normalize();
-            if (resolved.getParent().equals(normalized) && !Files.isSymbolicLink(resolved) && Files.isRegularFile(resolved, LinkOption.NOFOLLOW_LINKS)) {
-                return resolved;
-            }
-        } catch (IOException e) {
         }
-        return null;
+        return result;
     }
 
     /**

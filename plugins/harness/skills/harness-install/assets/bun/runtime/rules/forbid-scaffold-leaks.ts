@@ -11,12 +11,7 @@ export const forbidScaffoldLeaksRule = (ctx: RuleContext): HarnessCheckRule => (
       return false;
     }
     const enabled = (section as { enabled?: unknown }).enabled;
-    if (enabled === false) {
-      return false;
-    }
-    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    const scope = ctx.readJsonObject(parameters.scope);
-    return ctx.readStringArray(scope.bases).length > 0;
+    return enabled !== false && ctx.readStringArray(ctx.readJsonObject(ctx.readJsonObject((section as Record<string, unknown>).parameters).scope).bases).length > 0;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
@@ -27,7 +22,6 @@ export const forbidScaffoldLeaksRule = (ctx: RuleContext): HarnessCheckRule => (
     const excludedSubtrees = ctx.readStringArray(scope.excludedSubtrees);
     const extensions = ctx.readStringArray(scope.extensions);
     const patternsRaw = parameters.patterns;
-
     const patterns: readonly [RegExp, string][] = Array.isArray(patternsRaw)
       ? patternsRaw
           .filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null)
@@ -44,32 +38,26 @@ export const forbidScaffoldLeaksRule = (ctx: RuleContext): HarnessCheckRule => (
             }
           })
       : [];
-
     return bases.flatMap((base) => {
       const [files, warnings] = ctx.collectFilesUnder(base);
       return warnings.concat(
         files.flatMap((file) => {
           const isExcluded = excludedSubtrees.some((subtree) => file === subtree || file.startsWith(`${subtree}/`));
-          if (isExcluded) {
-            return [];
-          }
           const extMatch = /\.([a-z0-9]+)$/.exec(file);
           const ext = extMatch ? extMatch[1] : "";
-          if (!extensions.includes(ext)) {
-            return [];
-          }
-          const text = ctx.read(file);
-          return patterns.flatMap(([pattern, label]) =>
-            pattern.test(text)
-              ? [
-                  {
-                    severity: ctx.severityOf(manifest, "forbidScaffoldLeaks"),
-                    category: "forbidScaffoldLeaks",
-                    message: `${label} in active asset: ${file}`,
-                  },
-                ]
-              : []
-          );
+          return !isExcluded && extensions.includes(ext)
+            ? patterns.flatMap(([pattern, label]) =>
+                pattern.test(ctx.read(file))
+                  ? [
+                      {
+                        severity: ctx.severityOf(manifest, "forbidScaffoldLeaks"),
+                        category: "forbidScaffoldLeaks",
+                        message: `${label} in active asset: ${file}`,
+                      },
+                    ]
+                  : []
+              )
+            : [];
         })
       );
     });

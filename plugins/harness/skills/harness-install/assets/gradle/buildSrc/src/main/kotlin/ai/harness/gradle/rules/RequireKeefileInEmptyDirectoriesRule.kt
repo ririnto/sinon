@@ -26,23 +26,27 @@ object RequireKeefileInEmptyDirectoriesRule : HarnessCheckRule {
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireKeepfileInEmptyDirectories"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val directories = HarnessCheck.Companion.stringArrayFrom(parametersObj, "directories")
-		return directories.mapNotNull { dirPath ->
-			val dir = root / dirPath
-			if (!dir.isDirectory()) {
-				null
-			} else {
-				val realFiles = try {
-					dir.listDirectoryEntries().filter { it.name != ".gitkeep" }
-				} catch (_: Exception) {
-					emptyList()
-				}
-				if (realFiles.isEmpty() && !(root / "$dirPath/.gitkeep").exists()) {
-					Finding(severity, category, "empty directory must keep placeholder or real files: $dirPath")
-				} else {
+		val catObj = manifest[category]?.jsonObject
+		val parametersObj = catObj?.get("parameters")?.jsonObject
+		return if (catObj == null || parametersObj == null) {
+			emptyList()
+		} else {
+			val directories = HarnessCheck.Companion.stringArrayFrom(parametersObj, "directories")
+			directories.mapNotNull { dirPath ->
+				val dir = root / dirPath
+				if (!dir.isDirectory()) {
 					null
+				} else {
+					val realFiles = try {
+						dir.listDirectoryEntries().filter { it.name != ".gitkeep" }
+					} catch (_: Exception) {
+						emptyList()
+					}
+					if (realFiles.isEmpty() && !(root / "$dirPath/.gitkeep").exists()) {
+						Finding(severity, category, "empty directory must keep placeholder or real files: $dirPath")
+					} else {
+						null
+					}
 				}
 			}
 		}

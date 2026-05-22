@@ -46,21 +46,26 @@ public enum ForbidUnsafeSymlinksRule implements HarnessCheckRule {
     }
 
     private List<Finding> validateSymlinks(Path root, Path base, Set<String> allowedNames, String severity) throws MojoExecutionException {
+        List<Finding> findings;
         if (Files.isSymbolicLink(base)) {
             String name = base.getFileName().toString();
-            return !allowedNames.contains(name) || HarnessCheckHelper.allowedRootContractTarget(root, base) == null
-                    ? List.of(new Finding(severity, CATEGORY, "symlink scan root is not allowed: " + root.relativize(base)))
-                    : List.of();
+            if (!allowedNames.contains(name) || HarnessCheckHelper.allowedRootContractTarget(root, base) == null) {
+                findings = List.of(new Finding(severity, CATEGORY, "symlink scan root is not allowed: " + root.relativize(base)));
+            } else {
+                findings = List.of();
+            }
+        } else {
+            List<Path> files = HarnessCheckHelper.safeFileOrWalk(root, base);
+            findings = files.stream()
+                    .filter(Files::isSymbolicLink)
+                    .flatMap(file -> {
+                        String name = file.getFileName().toString();
+                        return !allowedNames.contains(name) || HarnessCheckHelper.allowedRootContractTarget(root, file) == null
+                                ? Stream.of(new Finding(severity, CATEGORY, "symlink " + (Files.isDirectory(file, LinkOption.NOFOLLOW_LINKS) ? "directory" : "file") + " is not allowed: " + root.relativize(file)))
+                                : Stream.empty();
+                    })
+                    .toList();
         }
-        List<Path> files = HarnessCheckHelper.safeFileOrWalk(root, base);
-        return files.stream()
-                .filter(Files::isSymbolicLink)
-                .flatMap(file -> {
-                    String name = file.getFileName().toString();
-                    return !allowedNames.contains(name) || HarnessCheckHelper.allowedRootContractTarget(root, file) == null
-                            ? Stream.of(new Finding(severity, CATEGORY, "symlink " + (Files.isDirectory(file, LinkOption.NOFOLLOW_LINKS) ? "directory" : "file") + " is not allowed: " + root.relativize(file)))
-                            : Stream.empty();
-                })
-                .toList();
+        return findings;
     }
 }

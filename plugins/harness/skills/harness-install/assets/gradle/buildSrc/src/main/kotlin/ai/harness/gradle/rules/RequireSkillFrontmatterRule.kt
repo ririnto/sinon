@@ -28,37 +28,43 @@ object RequireSkillFrontmatterRule : HarnessCheckRule {
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireSkillFrontmatter"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
-		val rootDirectory = HarnessCheck.Companion.stringFrom(parametersObj, "rootDirectory")
-		val filename = HarnessCheck.Companion.stringFrom(parametersObj, "filename")
-		val dirPath = root / rootDirectory
-		if (!dirPath.isDirectory()) {
-			val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingDirectory").takeIf { it.isNotEmpty() } ?: ".claude/skills must contain at least one SKILL.md"
-			return listOf(Finding(severity, category, msg))
-		}
-		val files = try {
-			dirPath.walk().filter { it.isRegularFile() && it.name == filename }.toList()
-		} catch (_: Exception) {
+		val catObj = manifest[category]?.jsonObject
+		val parametersObj = catObj?.get("parameters")?.jsonObject
+		val messagesObj = catObj?.get("messages")?.jsonObject
+		return if (catObj == null || parametersObj == null || messagesObj == null) {
 			emptyList()
-		}
-		if (files.isEmpty()) {
-			val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingSkill").takeIf { it.isNotEmpty() } ?: ".claude/skills must contain at least one SKILL.md"
-			return listOf(Finding(severity, category, msg))
-		}
-		return files.flatMap { file ->
-			val text = file.readText()
-			if (!text.startsWith("---")) {
-				val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingFrontmatter").takeIf { it.isNotEmpty() } ?: "skill missing frontmatter: ${file.relativeTo(root)}"
+		} else {
+			val rootDirectory = HarnessCheck.Companion.stringFrom(parametersObj, "rootDirectory")
+			val filename = HarnessCheck.Companion.stringFrom(parametersObj, "filename")
+			val dirPath = root / rootDirectory
+			if (!dirPath.isDirectory()) {
+				val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingDirectory").takeIf { it.isNotEmpty() } ?: ".claude/skills must contain at least one SKILL.md"
 				listOf(Finding(severity, category, msg))
 			} else {
-				listOfNotNull(
-					if (!"""(?m)^description:\s*.+$""".toRegex().containsMatchIn(text)) {
-						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingDescription").takeIf { it.isNotEmpty() } ?: "skill missing description: ${file.relativeTo(root)}"
-						Finding(severity, category, msg)
-					} else null
-				)
+				val files = try {
+					dirPath.walk().filter { it.isRegularFile() && it.name == filename }.toList()
+				} catch (_: Exception) {
+					emptyList()
+				}
+				if (files.isEmpty()) {
+					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingSkill").takeIf { it.isNotEmpty() } ?: ".claude/skills must contain at least one SKILL.md"
+					listOf(Finding(severity, category, msg))
+				} else {
+					files.flatMap { file ->
+						val text = file.readText()
+						if (!text.startsWith("---")) {
+							val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingFrontmatter").takeIf { it.isNotEmpty() } ?: "skill missing frontmatter: ${file.relativeTo(root)}"
+							listOf(Finding(severity, category, msg))
+						} else {
+							listOfNotNull(
+								if (!"""(?m)^description:\s*.+$""".toRegex().containsMatchIn(text)) {
+									val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingDescription").takeIf { it.isNotEmpty() } ?: "skill missing description: ${file.relativeTo(root)}"
+									Finding(severity, category, msg)
+								} else null
+							)
+						}
+					}
+				}
 			}
 		}
 	}

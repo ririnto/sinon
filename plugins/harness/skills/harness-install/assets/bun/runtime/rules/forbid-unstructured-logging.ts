@@ -35,20 +35,15 @@ export const forbidUnstructuredLoggingRule = (ctx: RuleContext): HarnessCheckRul
       const logMethods = ["log", "error", "warn", "info", "debug"];
 
       const visit = (node: Node): void => {
-        if (isCallExpression(node)) {
-          const expr = node.expression;
-          if (isPropertyAccessExpression(expr)) {
-            if (isIdentifier(expr.expression) && expr.expression.text === "console") {
-              const methodName = expr.name?.text;
-              if (methodName && logMethods.includes(methodName)) {
-                const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-                findings.push({
-                  severity: ctx.severityOf(manifest, "forbidUnstructuredLogging"),
-                  category: "forbidUnstructuredLogging",
-                  message: `${file}:${line + 1}: unstructured logging \`console.${methodName}\`; use structured logger`,
-                });
-              }
-            }
+        if (isCallExpression(node) && isPropertyAccessExpression(node.expression) && isIdentifier(node.expression.expression) && node.expression.expression.text === "console") {
+          const methodName = node.expression.name?.text;
+          if (methodName && logMethods.includes(methodName)) {
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+            findings.push({
+              severity: ctx.severityOf(manifest, "forbidUnstructuredLogging"),
+              category: "forbidUnstructuredLogging",
+              message: `${file}:${line + 1}: unstructured logging \`console.${methodName}\`; use structured logger`,
+            });
           }
         }
         forEachChild(node, visit);
