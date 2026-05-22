@@ -1,13 +1,12 @@
 #!/usr/bin/env -S uv run
 # /// script
 # requires-python = ">=3.11"
-# dependencies = []
+# dependencies = ["libcst>=1.8.6"]
 # ///
 """Harness checks enumeration with per-member validator functions."""
 
 from __future__ import annotations
 
-import ast
 import enum
 import fnmatch
 import json
@@ -18,6 +17,8 @@ import stat
 import sys
 from pathlib import Path
 from typing import Callable, NamedTuple
+
+import libcst as cst
 
 ROOT = Path.cwd()
 STACK = "uv"
@@ -967,26 +968,36 @@ def _stack_sources(root: Path, manifest: dict, category: str) -> tuple[Path, ...
     return tuple(sorted(result))
 
 
-def _parse_python(path: Path) -> tuple[ast.AST | None, str | None]:
-    """Parse a Python file and return AST or error message."""
+def _parse_python(path: Path) -> tuple[cst.Module | None, str | None]:
+    """Parse a Python file and return Module or error message."""
+    text = path.read_text(encoding="utf-8")
     try:
-        source = path.read_text(encoding="utf-8")
-        tree = ast.parse(source)
-        return (tree, None)
-    except SyntaxError as e:
-        return (None, str(e))
+        return cst.parse_module(text), None
+    except cst.ParserSyntaxError as err:
+        return None, str(err)
 
 
-def _has_nested_function(func_node: ast.AST) -> bool:
+def _has_nested_function(func_node: cst.FunctionDef) -> bool:
     """Check if function body contains nested function or lambda."""
-    if not hasattr(func_node, "body"):
-        return False
-    for node in ast.walk(func_node):
-        if node is func_node:
-            continue
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+    class _NestedFinder(cst.CSTVisitor):
+        def __init__(self) -> None:
+            super().__init__()
+            self.found = False
+            self._depth = 0
+        def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
+            if self._depth > 0:
+                self.found = True
+                return False
+            self._depth += 1
             return True
-    return False
+        def leave_FunctionDef(self, original: cst.FunctionDef) -> None:
+            self._depth -= 1
+        def visit_Lambda(self, node: cst.Lambda) -> bool:
+            self.found = True
+            return False
+    visitor = _NestedFinder()
+    func_node.visit(visitor)
+    return visitor.found
 
 
 def _validate_forbid_greater_than_comparison(root: Path, manifest: dict) -> tuple[Finding, ...]:
@@ -994,6 +1005,21 @@ def _validate_forbid_greater_than_comparison(root: Path, manifest: dict) -> tupl
     category = "forbidGreaterThanComparison"
     severity = severity_for(manifest, category)
     sources = _stack_sources(root, manifest, category)
+
+    class _ComparisonFinder(cst.CSTVisitor):
+        def __init__(self) -> None:
+            super().__init__()
+            self.findings: list[Finding] = []
+        def visit_Comparison(self, node: cst.Comparison) -> bool:
+            for target in node.comparators:
+                if isinstance(target.operator, (cst.GreaterThan, cst.GreaterThanEqual)):
+                    pos = self.get_metadata(cst.metadata.PositionProvider, node)
+                    self.findings.append(Finding(
+                        severity,
+                        category,
+                        f"{relative(path)}:{pos.start.line}: forbidden `>`/`>=` comparison; rewrite with `<`/`<=` so the smaller value is on the left",
+                    ))
+            return True
 
     result = []
     for path in sources:
@@ -1006,15 +1032,10 @@ def _validate_forbid_greater_than_comparison(root: Path, manifest: dict) -> tupl
             ))
             continue
 
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Compare):
-                for op in node.ops:
-                    if isinstance(op, (ast.Gt, ast.GtE)):
-                        result.append(Finding(
-                            severity,
-                            category,
-                            f"{relative(path)}:{node.lineno}: forbidden `>`/`>=` comparison; rewrite with `<`/`<=` so the smaller value is on the left",
-                        ))
+        wrapper = cst.MetadataWrapper(tree)
+        visitor = _ComparisonFinder()
+        wrapper.visit(visitor)
+        result.extend(visitor.findings)
 
     return tuple(result)
 
@@ -1025,6 +1046,27 @@ def _validate_forbid_blank_line_in_leaf_function(root: Path, manifest: dict) -> 
     severity = severity_for(manifest, category)
     sources = _stack_sources(root, manifest, category)
 
+    class _BlankLineFinder(cst.CSTVisitor):
+        def __init__(self, rel_path: str) -> None:
+            super().__init__()
+            self.findings: list[Finding] = []
+            self.rel_path = rel_path
+        def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
+            if _has_nested_function(node):
+                return False
+            if not isinstance(node.body, cst.IndentedBlock):
+                return False
+            func_name = node.name.value
+            for stmt in node.body.body:
+                if isinstance(stmt, cst.EmptyLine) and stmt.comment is None:
+                    pos = self.get_metadata(cst.metadata.PositionProvider, stmt)
+                    self.findings.append(Finding(
+                        severity,
+                        category,
+                        f"{self.rel_path}:{pos.start.line}: leaf function `{func_name}` contains a blank line; remove or extract the section",
+                    ))
+            return True
+
     result = []
     for path in sources:
         tree, error = _parse_python(path)
@@ -1036,34 +1078,10 @@ def _validate_forbid_blank_line_in_leaf_function(root: Path, manifest: dict) -> 
             ))
             continue
 
-        try:
-            source_lines = path.read_text(encoding="utf-8").splitlines()
-        except (OSError, UnicodeDecodeError):
-            continue
-
-        for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                if _has_nested_function(node):
-                    continue
-
-                if not node.body or not hasattr(node, "end_lineno"):
-                    continue
-
-                start_line = node.body[0].lineno if hasattr(node.body[0], "lineno") else None
-                end_line = node.end_lineno
-
-                if start_line is None or end_line is None:
-                    continue
-
-                for line_no in range(start_line, end_line + 1):
-                    if 1 <= line_no <= len(source_lines):
-                        line_text = source_lines[line_no - 1]
-                        if line_text.strip() == "":
-                            result.append(Finding(
-                                severity,
-                                category,
-                                f"{relative(path)}:{line_no}: leaf function `{node.name}` contains a blank line; remove or extract the section",
-                            ))
+        wrapper = cst.MetadataWrapper(tree)
+        visitor = _BlankLineFinder(relative(path))
+        wrapper.visit(visitor)
+        result.extend(visitor.findings)
 
     return tuple(result)
 

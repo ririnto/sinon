@@ -5,12 +5,6 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtSimpleNameExpression
-import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import kotlin.io.path.extension
 import kotlin.io.path.isExecutable
 import kotlin.io.path.isSymbolicLink
@@ -25,7 +19,7 @@ import java.nio.file.Path
 enum class HarnessCheck {
 	REQUIRE_FILES_EXIST {
 		override val category = "requireFilesExist"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -43,7 +37,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_DIRECTORIES_EXIST {
 		override val category = "requireDirectoriesExist"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -61,7 +55,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_KEEPFILE_IN_EMPTY_DIRECTORIES {
 		override val category = "requireKeepfileInEmptyDirectories"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -80,7 +74,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_TEMPLATE_GROUPS {
 		override val category = "requireTemplateGroups"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -99,7 +93,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_DOC_HEADINGS {
 		override val category = "requireDocHeadings"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -125,7 +119,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_DOC_CONTENT {
 		override val category = "requireDocContent"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -149,7 +143,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_AGENT_FRONTMATTER {
 		override val category = "requireAgentFrontmatter"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -190,7 +184,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_SKILL_FRONTMATTER {
 		override val category = "requireSkillFrontmatter"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -228,7 +222,7 @@ enum class HarnessCheck {
 	},
 	FORBID_SCAFFOLD_LEAKS {
 		override val category = "forbidScaffoldLeaks"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -275,7 +269,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_HOOK_SHEBANG {
 		override val category = "requireHookShebang"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -299,7 +293,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_HOOK_EXECUTABLE {
 		override val category = "requireHookExecutable"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -319,7 +313,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_HOOK_GENERATED_MARKER {
 		override val category = "requireHookGeneratedMarker"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -349,7 +343,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_HOOK_STAGE {
 		override val category = "requireHookStage"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -383,7 +377,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_HOOK_COMMAND {
 		override val category = "requireHookCommand"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -440,7 +434,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_CI_COMMAND_MATCHES_HOOK {
 		override val category = "requireCiCommandMatchesHook"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -470,7 +464,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_ENV_SHEBANG_UNDER {
 		override val category = "requireEnvShebangUnder"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -497,7 +491,7 @@ enum class HarnessCheck {
 	},
 	FORBID_UNCHECKED_TASKS_UNDER {
 		override val category = "forbidUncheckedTasksUnder"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -527,7 +521,7 @@ enum class HarnessCheck {
 	},
 	FORBID_UNSAFE_SYMLINKS {
 		override val category = "forbidUnsafeSymlinks"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
 			val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
@@ -565,7 +559,7 @@ enum class HarnessCheck {
 	},
 	FORBID_GREATER_THAN_COMPARISON {
 		override val category = "forbidGreaterThanComparison"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -574,6 +568,8 @@ enum class HarnessCheck {
 			val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return emptyList()
 			val kotlinDirs = stringArrayFrom(sourceRootsPerStack, "kotlin")
 			val kotlinExts = stringArrayFrom(extensionsPerStack, "kotlin")
+
+			val results = psiResults?.greaterThanComparisons ?: emptyList()
 
 			return buildSet<Finding> {
 				kotlinDirs.forEach { dirPattern ->
@@ -585,24 +581,9 @@ enum class HarnessCheck {
 						val ext = file.toPath().extension
 						ext in kotlinExts
 					}.forEach { file ->
-						val ktFile = try {
-							PsiKotlin.parse(file.toPath())
-						} catch (_: Exception) {
-							return@forEach
-						}
-						val binExprs = mutableListOf<KtBinaryExpression>()
-						ktFile.accept(object : org.jetbrains.kotlin.psi.KtVisitor<Unit, Unit>() {
-							override fun visitBinaryExpression(expression: KtBinaryExpression, data: Unit) {
-								binExprs.add(expression)
-								super.visitBinaryExpression(expression, data)
-							}
-						})
-						binExprs.forEach { binExpr ->
-							if (binExpr.operationToken === KtTokens.GT || binExpr.operationToken === KtTokens.GTEQ) {
-								val lineNumber = (ktFile.viewProvider.document?.getLineNumber(binExpr.node.startOffset) ?: 0).plus(1)
-								val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:$lineNumber: forbidden `>`/`>=`; use `<`/`<=`"
-								add(Finding(severity, category, msg))
-							}
+						results.filter { it.file == file.name }.forEach { hit ->
+							val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: forbidden `>`/`>=`; use `<`/`<=`"
+							add(Finding(severity, category, msg))
 						}
 					}
 				}
@@ -611,7 +592,7 @@ enum class HarnessCheck {
 	},
 	FORBID_BLANK_LINE_IN_LEAF_FUNCTION {
 		override val category = "forbidBlankLineInLeafFunction"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -620,6 +601,8 @@ enum class HarnessCheck {
 			val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return emptyList()
 			val kotlinDirs = stringArrayFrom(sourceRootsPerStack, "kotlin")
 			val kotlinExts = stringArrayFrom(extensionsPerStack, "kotlin")
+
+			val results = psiResults?.blankLinesInLeafFunctions ?: emptyList()
 
 			return buildSet<Finding> {
 				kotlinDirs.forEach { dirPattern ->
@@ -631,33 +614,9 @@ enum class HarnessCheck {
 						val ext = file.toPath().extension
 						ext in kotlinExts
 					}.forEach { file ->
-						val ktFile = try {
-							PsiKotlin.parse(file.toPath())
-						} catch (_: Exception) {
-							return@forEach
-						}
-						val functions = mutableListOf<KtNamedFunction>()
-						ktFile.accept(object : org.jetbrains.kotlin.psi.KtVisitor<Unit, Unit>() {
-							override fun visitNamedFunction(function: KtNamedFunction, data: Unit) {
-								functions.add(function)
-								super.visitNamedFunction(function, data)
-							}
-						})
-						functions.forEach { func ->
-							val hasNestedFunc = func.findDescendantOfType<KtNamedFunction>() != null
-							val hasNestedLambda = func.findDescendantOfType<KtLambdaExpression>() != null
-							if (!hasNestedFunc && !hasNestedLambda) {
-								val bodyText = func.bodyExpression?.text ?: return@forEach
-								val lines = bodyText.split("\n")
-								lines.forEachIndexed { idx, line ->
-									if (line.trim().isEmpty()) {
-										val bodyOffset = func.bodyExpression?.node?.startOffset ?: 0
-										val lineNumber = (ktFile.viewProvider.document?.getLineNumber(bodyOffset + lines.take(idx).sumOf { it.length + 1 }) ?: 0).plus(1)
-										val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:$lineNumber: blank line in leaf function"
-										add(Finding(severity, category, msg))
-									}
-								}
-							}
+						results.filter { it.file == file.name }.forEach { hit ->
+							val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: blank line in leaf function"
+							add(Finding(severity, category, msg))
 						}
 					}
 				}
@@ -666,7 +625,7 @@ enum class HarnessCheck {
 	},
 	FORBID_IMPLICIT_LAMBDA_IT {
 		override val category = "forbidImplicitLambdaIt"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -675,6 +634,8 @@ enum class HarnessCheck {
 			val extensionsPerStack = parametersObj["extensionsPerStack"]?.jsonObject ?: return emptyList()
 			val kotlinDirs = stringArrayFrom(sourceRootsPerStack, "kotlin")
 			val kotlinExts = stringArrayFrom(extensionsPerStack, "kotlin")
+
+			val results = psiResults?.implicitLambdaIt ?: emptyList()
 
 			return buildSet<Finding> {
 				kotlinDirs.forEach { dirPattern ->
@@ -686,27 +647,9 @@ enum class HarnessCheck {
 						val ext = file.toPath().extension
 						ext in kotlinExts
 					}.forEach { file ->
-						val ktFile = try {
-							PsiKotlin.parse(file.toPath())
-						} catch (_: Exception) {
-							return@forEach
-						}
-						val lambdas = mutableListOf<KtLambdaExpression>()
-						ktFile.accept(object : org.jetbrains.kotlin.psi.KtVisitor<Unit, Unit>() {
-							override fun visitLambdaExpression(expression: KtLambdaExpression, data: Unit) {
-								lambdas.add(expression)
-								super.visitLambdaExpression(expression, data)
-							}
-						})
-						lambdas.forEach { lambda ->
-							if (lambda.valueParameters.isEmpty()) {
-								val hasIt = lambda.findDescendantOfType<KtSimpleNameExpression> { it.text == "it" } != null
-								if (hasIt) {
-									val lineNumber = (ktFile.viewProvider.document?.getLineNumber(lambda.node.startOffset) ?: 0).plus(1)
-									val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:$lineNumber: implicit lambda parameter 'it' is forbidden"
-									add(Finding(severity, category, msg))
-								}
-							}
+						results.filter { it.file == file.name }.forEach { hit ->
+							val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: implicit lambda parameter 'it' is forbidden"
+							add(Finding(severity, category, msg))
 						}
 					}
 				}
@@ -715,7 +658,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_SINGLE_TOP_LEVEL_KOTLIN_DECLARATION {
 		override val category = "requireSingleTopLevelKotlinDeclaration"
-		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults?): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
@@ -726,6 +669,8 @@ enum class HarnessCheck {
 			val kotlinExts = stringArrayFrom(extensionsPerStack, "kotlin")
 			val allowedDeclarations = stringArrayFrom(parametersObj, "allowedDeclarations")
 
+			val results = psiResults?.topLevelDeclarations ?: emptyList()
+
 			return buildSet<Finding> {
 				kotlinDirs.forEach { dirPattern ->
 					val dir = java.io.File(root, dirPattern)
@@ -736,28 +681,19 @@ enum class HarnessCheck {
 						val ext = file.toPath().extension
 						ext in kotlinExts
 					}.forEach { file ->
-						val ktFile = try {
-							PsiKotlin.parse(file.toPath())
-						} catch (_: Exception) {
-							return@forEach
-						}
-						val declarations = ktFile.declarations
-						when {
-							declarations.size != 1 -> {
-								val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}: file must have single top-level declaration, found ${declarations.size}"
-								add(Finding(severity, category, msg))
-							}
-							else -> {
-								val decl = declarations.first()
-								val declType = when {
-									decl::class.simpleName == "KtClass" -> "class"
-									decl::class.simpleName == "KtObjectDeclaration" -> "object"
-									decl::class.simpleName == "KtTypeAlias" -> "typealias"
-									else -> null
-								}
-								if (declType != null && declType !in allowedDeclarations) {
-									val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}: top-level $declType is not allowed"
+						val info = results.find { it.file == file.name }
+						if (info != null) {
+							when {
+								info.count != 1 -> {
+									val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}: file must have single top-level declaration, found ${info.count}"
 									add(Finding(severity, category, msg))
+								}
+								else -> {
+									val declType = info.firstKind
+									if (declType != "unknown" && declType !in allowedDeclarations) {
+										val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}: top-level $declType is not allowed"
+										add(Finding(severity, category, msg))
+									}
 								}
 							}
 						}
@@ -769,7 +705,7 @@ enum class HarnessCheck {
 	;
 
 	abstract val category: String
-	abstract fun validate(manifest: JsonObject, root: java.io.File): List<Finding>
+	abstract fun validate(manifest: JsonObject, root: java.io.File, psiResults: HarnessPsiResults? = null): List<Finding>
 
 	fun applies(manifest: JsonObject): Boolean {
 		val catObj = manifest[category]?.jsonObject ?: return false

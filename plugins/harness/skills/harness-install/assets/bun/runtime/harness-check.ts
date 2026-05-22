@@ -156,7 +156,7 @@ function stackSources(manifest: Manifest, category: string): readonly string[] {
         if (stat.isDirectory()) {
           yield* walkDirGen(child);
         } else if (stat.isFile()) {
-          const ext = child.split(".").pop() ?? "";
+          const ext = child.slice(child.lastIndexOf(".") + 1);
           if (extensions.has(ext)) {
             yield child;
           }
@@ -173,7 +173,7 @@ function stackSources(manifest: Manifest, category: string): readonly string[] {
         const glob = new Bun.Glob(sourceDir);
         for (const match of glob.scanSync(".")) {
           const normPath = `${sourceDir.split("/")[0]}/${match}`;
-          const ext = normPath.split(".").pop() ?? "";
+          const ext = normPath.slice(normPath.lastIndexOf(".") + 1);
           if (extensions.has(ext)) {
             collected.add(normPath);
           }
@@ -211,15 +211,14 @@ function hasNestedFunctions(node: ts.FunctionLike): boolean {
       ts.forEachChild(child, visit);
       return;
     }
-    if (
-      ts.isFunctionDeclaration(child) ||
-      ts.isMethodDeclaration(child) ||
-      ts.isFunctionExpression(child) ||
-      ts.isArrowFunction(child) ||
-      ts.isConstructorDeclaration(child)
-    ) {
-      foundNested = true;
-      return;
+    switch (child.kind) {
+      case ts.SyntaxKind.FunctionDeclaration:
+      case ts.SyntaxKind.MethodDeclaration:
+      case ts.SyntaxKind.FunctionExpression:
+      case ts.SyntaxKind.ArrowFunction:
+      case ts.SyntaxKind.Constructor:
+        foundNested = true;
+        return;
     }
     ts.forEachChild(child, visit);
   };
@@ -1249,7 +1248,7 @@ const forbidGreaterThanComparison: HarnessCheckSpec = {
         if (ts.isBinaryExpression(node)) {
           const kind = node.operatorToken.kind;
           if (kind === ts.SyntaxKind.GreaterThanToken || kind === ts.SyntaxKind.GreaterThanEqualsToken) {
-            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+            const { line } = sourceFile.getLineAndCharacterOfPosition(node.operatorToken.getStart(sourceFile));
             const operator = kind === ts.SyntaxKind.GreaterThanToken ? ">" : ">=";
             findings.push({
               severity: severityOf(manifest, "forbidGreaterThanComparison"),
@@ -1302,37 +1301,70 @@ const forbidBlankLineInLeafFunction: HarnessCheckSpec = {
       }
 
       const findings: Finding[] = [];
-      const lines = text.split(/\r?\n/);
+
+      const extractBlankLineFindings = (
+        funcNode: ts.FunctionLike,
+        body: ts.Block | ts.ConciseBody
+      ): readonly Finding[] => {
+        if (!ts.isBlock(body)) {
+          return [];
+        }
+
+        const statements = body.statements;
+        if (statements.length === 0) {
+          return [];
+        }
+
+        const funcName =
+          (ts.isFunctionDeclaration(funcNode) && funcNode.name?.text) ||
+          (ts.isMethodDeclaration(funcNode) && funcNode.name && ts.isIdentifier(funcNode.name) && funcNode.name.text) ||
+          "<anonymous>";
+
+        const blankLineFindings: Finding[] = [];
+
+        const checkTrivia = (triviaStart: number, triviaEnd: number): void => {
+          const trivia = text.slice(triviaStart, triviaEnd);
+          const triviaLines = trivia.split(/\r?\n/);
+          const triviaStartLine = sourceFile.getLineAndCharacterOfPosition(triviaStart).line;
+
+          for (let i = 0; i < triviaLines.length; i++) {
+            if (triviaLines[i].trim() === "") {
+              blankLineFindings.push({
+                severity: severityOf(manifest, "forbidBlankLineInLeafFunction"),
+                category: "forbidBlankLineInLeafFunction",
+                message: `${file}:${triviaStartLine + i + 1}: leaf function \`${funcName}\` contains a blank line; remove or extract the section`,
+              });
+            }
+          }
+        };
+
+        if (statements.length > 0) {
+          checkTrivia(body.getStart(sourceFile, true), statements[0].getFullStart());
+        }
+
+        for (let i = 0; i < statements.length - 1; i++) {
+          checkTrivia(statements[i].getEnd(), statements[i + 1].getFullStart());
+        }
+
+        if (statements.length > 0) {
+          checkTrivia(statements[statements.length - 1].getEnd(), body.getEnd());
+        }
+
+        return blankLineFindings;
+      };
 
       const visit = (node: ts.Node): void => {
-        if (
-          ts.isFunctionDeclaration(node) ||
-          ts.isMethodDeclaration(node) ||
-          ts.isFunctionExpression(node) ||
-          ts.isArrowFunction(node) ||
-          ts.isConstructorDeclaration(node)
-        ) {
-          const funcLike = node as ts.FunctionLike;
-          if (funcLike.body && !hasNestedFunctions(funcLike)) {
-            const bodyStart = funcLike.body.getStart();
-            const bodyEnd = funcLike.body.getEnd();
-            const startLine = sourceFile.getLineAndCharacterOfPosition(bodyStart).line;
-            const endLine = sourceFile.getLineAndCharacterOfPosition(bodyEnd).line;
-
-            for (let lineIdx = startLine; lineIdx <= endLine; lineIdx++) {
-              const lineText = lines[lineIdx] ?? "";
-              if (lineText.trim() === "") {
-                const funcName =
-                  (ts.isFunctionDeclaration(node) && node.name?.text) ||
-                  (ts.isMethodDeclaration(node) && node.name && ts.isIdentifier(node.name) && node.name.text) ||
-                  "<anonymous>";
-                findings.push({
-                  severity: severityOf(manifest, "forbidBlankLineInLeafFunction"),
-                  category: "forbidBlankLineInLeafFunction",
-                  message: `${file}:${lineIdx + 1}: leaf function \`${funcName}\` contains a blank line; remove or extract the section`,
-                });
-              }
+        switch (node.kind) {
+          case ts.SyntaxKind.FunctionDeclaration:
+          case ts.SyntaxKind.MethodDeclaration:
+          case ts.SyntaxKind.FunctionExpression:
+          case ts.SyntaxKind.ArrowFunction:
+          case ts.SyntaxKind.Constructor: {
+            const funcLike = node as ts.FunctionLike;
+            if (funcLike.body && !hasNestedFunctions(funcLike)) {
+              findings.push(...extractBlankLineFindings(funcLike, funcLike.body));
             }
+            break;
           }
         }
         ts.forEachChild(node, visit);
