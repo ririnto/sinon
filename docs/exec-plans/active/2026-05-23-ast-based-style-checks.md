@@ -524,7 +524,7 @@ enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단�
 
 전제: Phase 10 완료 후 진행.
 
-### [ ] Phase 12: 중간 `return emptyList()` 제거
+### [x] Phase 12: 중간 `return emptyList()` 제거 (commit 5fc0d59)
 
 각 Rule 본문 안의 early-return guard (예: `if (...) return emptyList()`, `return Collections.emptyList()`, `return []`)를 모두 제거하고 single-exit + buildList / Stream / list comprehension 패턴으로 통합. `forbidEarlyReturn` add-on과 자연스럽게 정합.
 
@@ -545,6 +545,35 @@ enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단�
 - [ ] Task 12b.4 — TypeScript: `class XxxRule` 대신 `export const xxxRule: HarnessCheckRule = { applies(...) {...}, validate(...) {...} }` object literal로. dispatch table은 instance 생성 없이 singleton 참조.
 
 전제: Phase 10 nested Result 이동 commit 후 진행.
+
+### [ ] Phase 12c: 컬렉션 빌더 패턴 → filter/map 체이닝 단순화
+
+`mapNotNull`, `buildSet { forEach { ... ; if (cond) add(x) } }.toList()`, `buildList { items.forEach { if (cond) add(transform(it)) } }` 같은 명령형 빌더 패턴은 대부분 `.filter { ... }.map { ... }` 체이닝으로 직접 전환 가능. 선언적 표현으로 단순화.
+
+- [ ] Task 12c.1 — Kotlin: `buildSet { forEach { add } }.toList()` → `.filter { ... }.map { ... }` (또는 `.flatMap`). `mapNotNull { if (cond) null else x }` → `.filter { cond }.map { x }`.
+- [ ] Task 12c.2 — Java: `for` + `if` + `findings.add(...)` 패턴 → `stream().filter(...).map(...).collect(toList())`.
+- [ ] Task 12c.3 — Python: `findings = []; for x in items: if cond: findings.append(transform(x))` → list comprehension `[transform(x) for x in items if cond]`.
+- [ ] Task 12c.4 — TypeScript: 명령형 push → `items.filter(...).map(...)` 또는 `.flatMap(...)`.
+
+전제: Phase 12b(singleton 전환) commit 후 진행. 변환 시 동작 보존, 부작용(IO, 예외)이 있는 분기는 그대로 명령형 유지.
+
+### [ ] Phase 12d: 중간 return 회피를 위한 조건 반전 패턴 정형화
+
+Phase 12에서 처리한 early-return 제거의 후속 정리. guard `if (!cond) return ...; doX(); doY();` 구조를 nesting 깊이를 늘리지 않으면서 single-exit으로 유지하기 위해 조건을 반전(`if (cond) { doX(); doY(); }`)하는 패턴을 명시적으로 적용한다.
+
+원칙:
+
+- 조건의 negation을 적용해 본문이 if 블록 안으로 한 단계만 들어가는 형태를 기본 채택.
+- 조건식이 길거나 복합적이면 의도가 드러나는 이름의 boolean 지역 변수로 추출한 뒤 반전.
+- 중첩이 2단계 이상으로 늘어나거나 else 분기가 자연스러우면 함수 분리(extract function)로 평탄화.
+- 부작용(IO, 예외, 로그)이 있는 분기는 그대로 명령형 if/else 유지 — 무리한 반전 금지.
+
+- [ ] Task 12d.1 — Kotlin: `?: return emptyList()` 제거 후 남은 명령형 분기에서 negation 적용. 복합 조건은 `val ok = ... ; if (ok) { ... }`.
+- [ ] Task 12d.2 — Java: `if (x == null) return ...;` → `if (x != null) { ... }`. Stream chain으로 옮길 수 있는 곳은 Phase 12c와 합쳐 처리.
+- [ ] Task 12d.3 — Python: 동일 패턴. `if not isinstance(x, dict): return []` → `if isinstance(x, dict): ...`. Walrus(`:=`)는 가독성이 명확한 곳에 한해.
+- [ ] Task 12d.4 — TypeScript: 동일 패턴. type narrowing이 깨지지 않게 union 처리 주의.
+
+전제: Phase 12c(filter/map 단순화) 완료 후 진행. 12c에서 선언형으로 바뀐 코드는 12d 대상이 아님.
 
 ### [ ] Phase 13: Rule class 하위 패키지(rules/) 정리
 

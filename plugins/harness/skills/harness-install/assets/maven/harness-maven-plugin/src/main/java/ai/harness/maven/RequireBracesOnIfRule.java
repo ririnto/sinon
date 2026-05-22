@@ -13,7 +13,8 @@ import java.util.Collection;
 /**
  * Rule that requires braces on all if and else statements.
  */
-public class RequireBracesOnIfRule implements HarnessCheckRule {
+public enum RequireBracesOnIfRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireBracesOnIf";
 
     @Override

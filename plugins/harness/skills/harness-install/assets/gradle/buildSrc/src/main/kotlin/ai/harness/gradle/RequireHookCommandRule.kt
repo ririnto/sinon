@@ -9,7 +9,7 @@ import kotlin.io.path.readText
 /**
  * Rule that requires hooks to declare and run validation commands.
  */
-class RequireHookCommandRule : HarnessCheckRule {
+object RequireHookCommandRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireHookCommand"
 		val catObj = manifest[category]?.jsonObject ?: return false

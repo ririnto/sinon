@@ -11,7 +11,7 @@ import kotlin.io.path.relativeTo
 /**
  * Rule that forbids blank lines in leaf function bodies.
  */
-class ForbidBlankLineInLeafFunctionRule : HarnessCheckRule {
+object ForbidBlankLineInLeafFunctionRule : HarnessCheckRule {
 	/**
 	 * PSI detection result for a single blank line in a leaf function.
 	 */

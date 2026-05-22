@@ -70,3 +70,6 @@ class RequireDocHeadingsRule(HarnessCheckRule):
                             template.format(heading=heading, file=file_path),
                         ))
         return result
+
+
+RULE: HarnessCheckRule = RequireDocHeadingsRule()

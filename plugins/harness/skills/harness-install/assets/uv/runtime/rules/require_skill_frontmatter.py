@@ -63,3 +63,6 @@ class RequireSkillFrontmatterRule(HarnessCheckRule):
                         else:
                             result.append(Finding(severity_for(manifest, self.category), self.category, missing_dir_msg))
         return result
+
+
+RULE: HarnessCheckRule = RequireSkillFrontmatterRule()

@@ -9,7 +9,7 @@ import kotlin.io.path.isSymbolicLink
 /**
  * Rule that requires template groups to exist as directories.
  */
-class RequireTemplateGroupsRule : HarnessCheckRule {
+object RequireTemplateGroupsRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireTemplateGroups"
 		val catObj = manifest[category]?.jsonObject ?: return false

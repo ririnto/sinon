@@ -5,11 +5,7 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Require .gitkeep placeholder or real files in empty directories.
  */
-export class RequireKeepfileInEmptyDirectoriesRule implements HarnessCheckRule {
-  static readonly category = "requireKeepfileInEmptyDirectories";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const requireKeepfileInEmptyDirectoriesRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(manifest: HarnessManifest): boolean {
     const section = manifest.requireKeepfileInEmptyDirectories;
     if (typeof section !== "object" || section === null) {
@@ -19,29 +15,30 @@ export class RequireKeepfileInEmptyDirectoriesRule implements HarnessCheckRule {
     if (enabled === false) {
       return false;
     }
-    const entry = this.ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return this.ctx.readStringArray(entry.directories).length > 0;
+    const entry = ctx.readJsonObject((section as Record<string, unknown>).parameters);
+    return ctx.readStringArray(entry.directories).length > 0;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = this.ctx.readJsonObject(manifest.requireKeepfileInEmptyDirectories);
-    const parameters = this.ctx.readJsonObject(section.parameters);
-    const directories = this.ctx.readStringArray(parameters.directories);
+    const section = ctx.readJsonObject(manifest.requireKeepfileInEmptyDirectories);
+    const parameters = ctx.readJsonObject(section.parameters);
+    const directories = ctx.readStringArray(parameters.directories);
     return directories.flatMap((dir) => {
-      if (!this.ctx.isDirectory(dir)) {
+      if (!ctx.isDirectory(dir)) {
         return [];
       }
-      const realFiles = readdirSync(this.ctx.pathOf(dir)).filter((e) => e !== ".gitkeep");
+      const realFiles = readdirSync(ctx.pathOf(dir)).filter((e) => e !== ".gitkeep");
       const keepPath = `${dir}/.gitkeep`;
-      return realFiles.length === 0 && !this.ctx.isFile(keepPath)
+      return realFiles.length === 0 && !ctx.isFile(keepPath)
         ? [
             {
-              severity: this.ctx.severityOf(manifest, RequireKeepfileInEmptyDirectoriesRule.category),
-              category: RequireKeepfileInEmptyDirectoriesRule.category,
+              severity: ctx.severityOf(manifest, "requireKeepfileInEmptyDirectories"),
+              category: "requireKeepfileInEmptyDirectories",
               message: `empty directory must keep placeholder or real files: ${dir}`,
             },
           ]
         : [];
     });
   }
-}
+
+});

@@ -9,7 +9,8 @@ import java.util.stream.Stream;
 /**
  * Rule that requires hook files to contain a generated marker.
  */
-public class RequireHookGeneratedMarkerRule implements HarnessCheckRule {
+public enum RequireHookGeneratedMarkerRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireHookGeneratedMarker";
 
     @Override

@@ -11,7 +11,7 @@ import kotlin.io.path.relativeTo
 /**
  * Rule that requires if statements to use braces.
  */
-class RequireBracesOnIfRule : HarnessCheckRule {
+object RequireBracesOnIfRule : HarnessCheckRule {
 	/**
 	 * PSI detection result for an if statement without braces.
 	 */

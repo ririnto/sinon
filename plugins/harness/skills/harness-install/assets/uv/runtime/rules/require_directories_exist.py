@@ -47,3 +47,6 @@ class RequireDirectoriesExistRule(HarnessCheckRule):
             for path in paths
             if isinstance(path, str) and not is_safe_directory(root / path)
         ]
+
+
+RULE: HarnessCheckRule = RequireDirectoriesExistRule()

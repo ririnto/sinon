@@ -13,7 +13,8 @@ import java.util.Collection;
 /**
  * Rule that forbids early return statements in functions.
  */
-public class ForbidEarlyReturnRule implements HarnessCheckRule {
+public enum ForbidEarlyReturnRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidEarlyReturn";
 
     @Override

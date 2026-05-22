@@ -6,7 +6,7 @@ import java.nio.file.Path
 /**
  * Rule that requires documentation files to contain specified content.
  */
-class RequireDocContentRule : HarnessCheckRule {
+object RequireDocContentRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireDocContent"
 		val catObj = manifest[category]?.jsonObject ?: return false

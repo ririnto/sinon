@@ -11,7 +11,7 @@ import kotlin.io.path.name
 /**
  * Rule that requires .gitkeep or real files in empty directories.
  */
-class RequireKeefileInEmptyDirectoriesRule : HarnessCheckRule {
+object RequireKeefileInEmptyDirectoriesRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireKeepfileInEmptyDirectories"
 		val catObj = manifest[category]?.jsonObject ?: return false

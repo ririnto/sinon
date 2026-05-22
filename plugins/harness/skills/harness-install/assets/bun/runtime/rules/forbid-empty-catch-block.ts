@@ -5,19 +5,15 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Forbid empty catch blocks.
  */
-export class ForbidEmptyCatchBlockRule implements HarnessCheckRule {
-  static readonly category = "forbidEmptyCatchBlock";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const forbidEmptyCatchBlockRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(_manifest: HarnessManifest): boolean {
     return true;
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = this.ctx.stackSources(manifest, "typescript");
+    const sources = ctx.stackSources(manifest, "typescript");
     return sources.flatMap((file) => {
-      const text = this.ctx.read(file);
+      const text = ctx.read(file);
       if (!text) {
         return [];
       }
@@ -28,8 +24,8 @@ export class ForbidEmptyCatchBlockRule implements HarnessCheckRule {
       } catch {
         return [
           {
-            severity: this.ctx.severityOf(manifest, ForbidEmptyCatchBlockRule.category),
-            category: ForbidEmptyCatchBlockRule.category,
+            severity: ctx.severityOf(manifest, "forbidEmptyCatchBlock"),
+            category: "forbidEmptyCatchBlock",
             message: `failed to parse TypeScript: ${file}`,
           },
         ];
@@ -42,8 +38,8 @@ export class ForbidEmptyCatchBlockRule implements HarnessCheckRule {
           if (node.block.statements.length === 0) {
             const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
             findings.push({
-              severity: this.ctx.severityOf(manifest, ForbidEmptyCatchBlockRule.category),
-              category: ForbidEmptyCatchBlockRule.category,
+              severity: ctx.severityOf(manifest, "forbidEmptyCatchBlock"),
+              category: "forbidEmptyCatchBlock",
               message: `${file}:${line + 1}: empty catch block; handle, rethrow, or convert to a Finding`,
             });
           }
@@ -55,4 +51,5 @@ export class ForbidEmptyCatchBlockRule implements HarnessCheckRule {
       return findings;
     });
   }
-}
+
+});

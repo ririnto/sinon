@@ -9,7 +9,7 @@ import java.io.File
 /**
  * Rule that requires hooks to have correct shebang.
  */
-class RequireHookShebangRule : HarnessCheckRule {
+object RequireHookShebangRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireHookShebang"
 		val catObj = manifest[category]?.jsonObject ?: return false

@@ -11,7 +11,7 @@ import kotlin.io.path.relativeTo
 /**
  * Rule that requires executable scripts under certain directories to use /usr/bin/env shebang.
  */
-class RequireEnvShebangUnderRule : HarnessCheckRule {
+object RequireEnvShebangUnderRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireEnvShebangUnder"
 		val catObj = manifest[category]?.jsonObject ?: return false

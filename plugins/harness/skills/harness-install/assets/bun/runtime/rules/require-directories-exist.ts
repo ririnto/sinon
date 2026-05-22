@@ -4,11 +4,7 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Require specified directories to exist.
  */
-export class RequireDirectoriesExistRule implements HarnessCheckRule {
-  static readonly category = "requireDirectoriesExist";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const requireDirectoriesExistRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(manifest: HarnessManifest): boolean {
     const section = manifest.requireDirectoriesExist;
     if (typeof section !== "object" || section === null) {
@@ -18,33 +14,34 @@ export class RequireDirectoriesExistRule implements HarnessCheckRule {
     if (enabled === false) {
       return false;
     }
-    const entry = this.ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return this.ctx.readStringArray(entry.paths).length > 0;
+    const entry = ctx.readJsonObject((section as Record<string, unknown>).parameters);
+    return ctx.readStringArray(entry.paths).length > 0;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = this.ctx.readJsonObject(manifest.requireDirectoriesExist);
-    const parameters = this.ctx.readJsonObject(section.parameters);
-    const paths = this.ctx.readStringArray(parameters.paths);
+    const section = ctx.readJsonObject(manifest.requireDirectoriesExist);
+    const parameters = ctx.readJsonObject(section.parameters);
+    const paths = ctx.readStringArray(parameters.paths);
     return paths.flatMap((path) => {
-      if (this.ctx.isSymlink(path)) {
+      if (ctx.isSymlink(path)) {
         return [
           {
-            severity: this.ctx.severityOf(manifest, RequireDirectoriesExistRule.category),
-            category: RequireDirectoriesExistRule.category,
+            severity: ctx.severityOf(manifest, "requireDirectoriesExist"),
+            category: "requireDirectoriesExist",
             message: `symlink directory is not allowed: ${path}`,
           },
         ];
       }
-      return this.ctx.isDirectory(path)
+      return ctx.isDirectory(path)
         ? []
         : [
             {
-              severity: this.ctx.severityOf(manifest, RequireDirectoriesExistRule.category),
-              category: RequireDirectoriesExistRule.category,
+              severity: ctx.severityOf(manifest, "requireDirectoriesExist"),
+              category: "requireDirectoriesExist",
               message: `missing directory: ${path}`,
             },
           ];
     });
   }
-}
+
+});

@@ -13,7 +13,8 @@ import java.util.stream.Stream;
 /**
  * Rule that forbids unsafe symlinks in the project root.
  */
-public class ForbidUnsafeSymlinksRule implements HarnessCheckRule {
+public enum ForbidUnsafeSymlinksRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidUnsafeSymlinks";
 
     @Override

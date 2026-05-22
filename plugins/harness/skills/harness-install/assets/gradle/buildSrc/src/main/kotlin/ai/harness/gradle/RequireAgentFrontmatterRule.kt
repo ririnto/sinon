@@ -14,7 +14,7 @@ import java.io.File
 /**
  * Rule that requires agents to have proper frontmatter.
  */
-class RequireAgentFrontmatterRule : HarnessCheckRule {
+object RequireAgentFrontmatterRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireAgentFrontmatter"
 		val catObj = manifest[category]?.jsonObject ?: return false

@@ -5,38 +5,30 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Forbid wildcard imports.
  */
-export class ForbidWildcardImportRule implements HarnessCheckRule {
-  static readonly category = "forbidWildcardImport";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const forbidWildcardImportRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(_manifest: HarnessManifest): boolean {
     return true;
-  }
-
+  },
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = this.ctx.stackSources(manifest, "typescript");
+    const sources = ctx.stackSources(manifest, "typescript");
     return sources.flatMap((file) => {
-      const text = this.ctx.read(file);
+      const text = ctx.read(file);
       if (!text) {
         return [];
       }
-
       let sourceFile: SourceFile;
       try {
         sourceFile = createSourceFile(file, text, SyntaxKind.LatestVersion, true);
       } catch {
         return [
           {
-            severity: this.ctx.severityOf(manifest, ForbidWildcardImportRule.category),
-            category: ForbidWildcardImportRule.category,
+            severity: ctx.severityOf(manifest, "forbidWildcardImport"),
+            category: "forbidWildcardImport",
             message: `failed to parse TypeScript: ${file}`,
           },
         ];
       }
-
       const findings: Finding[] = [];
-
       const visit = (node: Node): void => {
         if (isImportDeclaration(node)) {
           if (node.importClause && node.importClause.namedBindings) {
@@ -44,8 +36,8 @@ export class ForbidWildcardImportRule implements HarnessCheckRule {
             if (isNamespaceImport(bindings)) {
               const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
               findings.push({
-                severity: this.ctx.severityOf(manifest, ForbidWildcardImportRule.category),
-                category: ForbidWildcardImportRule.category,
+                severity: ctx.severityOf(manifest, "forbidWildcardImport"),
+                category: "forbidWildcardImport",
                 message: `${file}:${line + 1}: wildcard import \`import * as\` forbidden; import explicit symbols`,
               });
             }
@@ -53,9 +45,8 @@ export class ForbidWildcardImportRule implements HarnessCheckRule {
         }
         forEachChild(node, visit);
       };
-
       visit(sourceFile);
       return findings;
     });
-  }
-}
+  },
+});

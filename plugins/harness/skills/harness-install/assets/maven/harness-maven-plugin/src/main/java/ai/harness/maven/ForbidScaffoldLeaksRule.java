@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 /**
  * Rule that forbids scaffold template patterns in active assets.
  */
-public class ForbidScaffoldLeaksRule implements HarnessCheckRule {
+public enum ForbidScaffoldLeaksRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidScaffoldLeaks";
 
     @Override

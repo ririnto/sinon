@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 /**
  * Rule that requires hook files to declare and run harness validation commands.
  */
-public class RequireHookCommandRule implements HarnessCheckRule {
+public enum RequireHookCommandRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireHookCommand";
 
     @Override

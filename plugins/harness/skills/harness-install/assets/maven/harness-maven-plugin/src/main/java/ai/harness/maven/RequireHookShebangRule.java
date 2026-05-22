@@ -8,7 +8,8 @@ import java.util.Collection;
 /**
  * Rule that requires hook files to start with a specific shebang.
  */
-public class RequireHookShebangRule implements HarnessCheckRule {
+public enum RequireHookShebangRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireHookShebang";
 
     @Override
