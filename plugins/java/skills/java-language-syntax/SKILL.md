@@ -157,9 +157,9 @@ Supplier<ArrayList<String>> newList = ArrayList::new;
 ArrayList<String> buffer = newList.get();
 ```
 
-### Stream pipeline (JDK 8+, `.toList()` requires JDK 17+)
+### Stream pipeline (JDK 8+, `.toList()` requires JDK 16+)
 
-Basic filter-map-collect using the unmodifiable `toList()` terminator `(JDK 17+)`:
+Basic filter-map-collect using the unmodifiable `toList()` terminator `(JDK 16+)`:
 
 ```java
 import java.util.List;
@@ -170,7 +170,7 @@ List<String> activeNames = users.stream()
     .toList();
 ```
 
-Older-LTS fallback using `Collectors.toList()` `(JDK 8+)` — the official javadoc makes no guarantee about the returned `List` implementation, its mutability, its serializability, or its thread-safety; current HotSpot builds happen to return a mutable `ArrayList`, but code MUST NOT rely on that. When mutability matters, use `Collectors.toCollection(ArrayList::new)`; when an unmodifiable result is part of the contract, use `Collectors.toUnmodifiableList()` (JDK 10+) or `Stream.toList()` on JDK 16+.
+Older-LTS fallback using `Collectors.toList()` `(JDK 8+)` — the official javadoc makes no guarantee about the returned `List` implementation, its mutability, its serializability, or its thread-safety; current HotSpot builds happen to return a mutable `ArrayList`, but code MUST NOT rely on that. When mutability matters, use `Collectors.toCollection(ArrayList::new)`; when an unmodifiable result is part of the contract, use `Collectors.toUnmodifiableList()` (JDK 10+) or `Stream.toList()` (JDK 16+).
 
 ```java
 import java.util.List;

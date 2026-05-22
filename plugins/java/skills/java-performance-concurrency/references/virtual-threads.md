@@ -62,7 +62,7 @@ final class RequestContextHandler {
     static final ScopedValue<String> REQUEST_ID = ScopedValue.newInstance();
 
     void handle(Request req) {
-        ScopedValue.runWhere(REQUEST_ID, req.id(), () -> innerService.process());
+        ScopedValue.where(REQUEST_ID, req.id()).run(() -> innerService.process());
     }
 }
 ```
