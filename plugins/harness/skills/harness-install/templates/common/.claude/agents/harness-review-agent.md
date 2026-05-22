@@ -16,7 +16,7 @@ description: |-
   <example>
     <context>A docs update was completed but placeholders still contain generic example text instead of repository-specific content.</context>
     <user>Review docs/architecture-update.md. Check if we left any placeholder text that should be filled in.</user>
-    <assistant>Reads docs/architecture-update.md, identifies sections marked with example text or TODO placeholders (e.g., "example user", "run your validator here"), reports each placeholder with file path and line reference. Categorizes: is this placeholder required for the user to fill, or is it acceptable to leave generic? Reports findings with severity and required action.</assistant>
+    <assistant>Reads docs/architecture-update.md, identifies sections marked with example text or incomplete placeholders (e.g., "example user", "run your validator here"), reports each placeholder with file path and line reference. Categorizes: is this placeholder required for the user to fill, or is it acceptable to leave generic? Reports findings with severity and required action.</assistant>
     <commentary>Placeholder readiness review prevents incomplete docs from shipping.</commentary>
   </example>
 
