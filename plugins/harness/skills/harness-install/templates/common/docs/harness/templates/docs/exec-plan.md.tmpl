@@ -1,8 +1,8 @@
 # {{yyyy-MM-dd}}-{{plan-slug}}
 
-Status: active
-Created: {{yyyy-MM-dd}}
-Owner: {{owner}}
+- Status: active
+- Created: {{yyyy-MM-dd}}
+- Owner: {{owner}}
 
 ## File Naming Convention
 
@@ -39,4 +39,4 @@ Run the stack-specific harness validation command after each phase that touches 
 
 ## Completion
 
-When every task is checked, move this file from `docs/exec-plans/active/` to `docs/exec-plans/completed/` without renaming, then change `Status: active` to `Status: completed` and append a `Completed: yyyy-MM-dd` line. The filename date stays the original creation date.
+When every task is checked, move this file from `docs/exec-plans/active/` to `docs/exec-plans/completed/` without renaming, then change `- Status: active` to `- Status: completed` and append a `- Completed: yyyy-MM-dd` list item. The filename date stays the original creation date.
