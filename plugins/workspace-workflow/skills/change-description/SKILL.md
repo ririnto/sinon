@@ -311,6 +311,246 @@ host-cli mr create --draft \
 host-cli mr update <number> --ready
 ```
 
+## hosted service CLI (host-cli) Cheat Sheet
+
+### Create a change description
+
+```sh
+# Create with title and body file (most common)
+  --body-file body.md \
+  --draft
+
+# Create with explicit title and inline body
+host-cli pr create --title "fix(db): handle null connection" \
+
+# Auto-fill from commits (use with caution)
+host-cli pr create --fill --draft
+
+# Create and assign reviewers/labels immediately
+host-cli pr create --title "feat(auth): JWT refresh token" \
+  --body-file body.md \
+  --label "type:feature,scope:auth,priority:high" \
+  --reviewer @alice,@bob \
+  --assignee @maintainer
+```
+
+### Edit an Existing PR
+
+```sh
+# Update title and body from file
+host-cli pr edit 42 --title "New title" --body-file body.md
+
+# Add/remove labels
+
+# Add/remove reviewers
+
+# Add/remove assignees
+```
+
+### Check PR Status and Details
+
+```sh
+# View PR details (title, body, CI status)
+host-cli pr view 42
+
+# View PR with comments
+host-cli pr view 42 --comments
+
+# List open PRs (default)
+host-cli pr list
+
+# List all PRs with filters
+host-cli pr list --search "status:success review:required"
+
+# Find PRs by draft status or label
+host-cli pr list --draft
+host-cli pr list --author "@me" --state closed
+```
+
+### Mark as Ready / Convert to Draft
+
+```sh
+# Convert from draft to ready
+host-cli pr ready 42
+
+# Convert from ready to draft
+host-cli pr ready 42 --undo
+```
+
+### Merge a PR
+
+```sh
+# Standard merge (create merge commit)
+host-cli pr merge 42 --merge
+
+# Squash and merge (flatten commits into one)
+host-cli pr merge 42 --squash
+
+# Rebase and merge (reapply commits on base branch)
+host-cli pr merge 42 --rebase
+
+# Auto-merge when checks pass (do not merge immediately)
+host-cli pr merge 42 --auto --squash
+
+# Merge and delete source branch
+host-cli pr merge 42 --squash --delete-branch
+```
+
+### Recommended Option Combinations
+
+| Scenario | Command |
+| --- | --- |
+| Ready after tests pass | `host-cli pr ready <n>` |
+| Merge when approved (avoid manual merge button) | `host-cli pr merge <n> --squash --auto --delete-branch` |
+
+## hosted service CLI (host-cli) Cheat Sheet
+
+### Create a change description
+
+```sh
+# Create with title and description from file (most common)
+  --description "$(cat body.md)" \
+  --draft
+
+# Create with inline description
+host-cli mr create --title "fix(db): handle null connection" \
+
+# Auto-fill from commits
+host-cli mr create --fill --draft
+
+# Create with labels, reviewers, assignees (via flags or quick actions)
+host-cli mr create --title "feat(auth): JWT refresh token" \
+  --description "$(cat body.md)" \
+  --label "type::feature,scope::auth" \
+  --reviewer @alice,@bob \
+  --assignee @maintainer
+```
+
+### Edit an Existing MR
+
+```sh
+# Update title and description
+host-cli mr update 42 --title "New title" \
+  --description "$(cat body.md)"
+
+# Add/remove labels
+
+# Add/remove reviewers (prefix with '+' to add, '-' to remove)
+
+# Add/remove assignees
+```
+
+### Check MR Status and Details
+
+```sh
+# View MR details (title, body, CI status, discussions)
+host-cli mr view 42
+
+# View MR with comments and discussions
+host-cli mr view 42 --comments
+
+# View only resolved discussions
+host-cli mr view 42 --resolved
+
+# List open MRs (default)
+host-cli mr list
+
+# List with filters
+host-cli mr list --draft
+host-cli mr list --all  # Include closed and merged
+
+# Search in title and description
+host-cli mr list --search "adds feature X"
+
+# Filter by branch
+host-cli mr list --source-branch "new-feature" --target-branch "main"
+```
+
+### Mark as Ready / Convert to Draft
+
+```sh
+# Convert from draft to ready for review
+host-cli mr update 42 --ready
+
+# Convert from ready to draft
+host-cli mr update 42 --draft
+```
+
+### Merge an MR
+
+```sh
+# Standard merge (create merge commit)
+host-cli mr merge 42
+
+# Squash commits before merge
+host-cli mr merge 42 --squash
+
+# Rebase and merge
+host-cli mr merge 42 --rebase
+
+# Merge when pipeline succeeds (do not merge immediately)
+host-cli mr merge 42 --when-pipeline-succeeds
+
+# Merge and delete source branch
+host-cli mr merge 42 --remove-source-branch
+
+# Custom commit message for merge
+host-cli mr merge 42 --message "Merge feature X"
+```
+
+### Recommended Option Combinations
+
+| Scenario | Command |
+| --- | --- |
+| Ready after tests pass | `host-cli mr update <n> --ready` |
+| Merge when approved | `host-cli mr merge <n> --squash --when-pipeline-succeeds` |
+
+## Using External Body Files
+
+Both `host-cli` and `host-cli` support reading change description body text from files. This pattern enables pre-writing a body offline and using it repeatedly.
+
+**Prepare body file:**
+
+```markdown
+## Summary
+
+- Adds JWT refresh token endpoint.
+- Fixes session cleanup race condition.
+
+## Why
+
+- Refresh tokens reduce exposure window if access tokens leak.
+- Session cleanup race allowed zombie sessions up to 30 seconds.
+
+## Testing
+
+- [x] Unit tests (100% coverage).
+- [x] Integration tests with valid/expired tokens.
+- [x] Manual test: 5-minute refresh lifecycle validation.
+```
+
+**hosted service (host-cli):**
+
+```sh
+# Use --body-file to read from file
+host-cli pr create --title "feat(auth): JWT refresh" --body-file body.md --draft
+
+# Update existing PR body from file
+host-cli pr edit 42 --body-file body.md
+```
+
+**hosted service (host-cli):**
+
+```sh
+# Pass file content to --description using command substitution
+host-cli mr create --title "feat(auth): JWT refresh" \
+  --description "$(cat body.md)" \
+  --draft
+
+# Update existing MR description from file
+host-cli mr update 42 --description "$(cat body.md)"
+```
+
 ## Output Contract
 
 When composed correctly, a change description output satisfies these invariants:
