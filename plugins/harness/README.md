@@ -60,9 +60,9 @@ Target repositories own every installed harness file. Copied docs, scripts, CI f
 
 ## Install Harness Assets
 
-From a target repository, ask Claude Code to use the `harness-install` skill with stack mode `auto` or an explicit mode such as `gradle`, `maven`, `uv`, or `bun`.
+From a target repository, ask Claude Code to use the `harness-install` skill with stack mode `auto` or an explicit mode such as `gradle`, `maven`, `uv`, `bun`, or `shell`.
 
-The skill invokes `skills/harness-install/scripts/install-harness.sh` with the target repository as `--target`, detects or accepts the stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command. Supported modes are `auto`, `gradle`, `maven`, `uv`, and `bun`.
+The skill invokes `skills/harness-install/scripts/install-harness.sh` with the target repository as `--target`, detects or accepts the stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command. Supported modes are `auto`, `gradle`, `maven`, `uv`, `bun`, and `shell`.
 
 By default the installer writes both GitHub Actions and GitLab CI examples for the selected stack: `.github/workflows/harness.yml` and `.gitlab-ci.yml`. Both CI snippets are rendered from templates and run the same final check command as generated `pre-push`; for Gradle this is `check`, not `harnessValidate`. Pass `--no-ci` to skip both CI files.
 
@@ -150,8 +150,9 @@ In installed target repositories, `AGENTS.md` is the primary harness contract. `
 | Maven | `pom.xml` | `mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
 | uv | `uv.lock` or Python `pyproject.toml` | `uv run python docs/harness/uv/harness_validate.py` |
 | bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun run docs/harness/bun/harness-validate.ts` |
+| shell | `Makefile` or root-level `*.sh` with no other stack | `sh docs/harness/shell/harness-validate.sh` |
 
-Run validation commands from the target repository root. The uv, bun, and Maven validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes.
+Run validation commands from the target repository root. The uv, bun, Maven, and shell validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes. The shell adapter implements a minimum-viable subset (file/directory existence, hook shebang/executable, scaffold-leak scan, completed-plan unchecked-task scan) and requires `python3` available on PATH for JSON parsing of the manifest.
 
 Gradle installer wiring prepends a `buildSrc/` directory. Existing `buildSrc/` directories in the target repo MUST be reviewed before install; the harness expects a fresh `buildSrc/` and will conflict otherwise.
 
