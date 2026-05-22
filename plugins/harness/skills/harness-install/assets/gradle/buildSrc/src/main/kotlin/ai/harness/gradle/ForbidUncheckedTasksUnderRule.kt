@@ -18,25 +18,25 @@ class ForbidUncheckedTasksUnderRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
 		val category = "forbidUncheckedTasksUnder"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+		val catObj = manifest[category]?.jsonObject ?: return@buildSet
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
+		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
 		val directory = HarnessCheck.Companion.stringFrom(parametersObj, "directory")
 		val uncheckedTaskPattern = HarnessCheck.Companion.stringFrom(parametersObj, "uncheckedTaskPattern")
 
 		val dirPath = root / directory
 		if (!dirPath.isDirectory()) {
-			return emptyList()
+			return@buildSet
 		}
 
 		val (files, _) = HarnessCheck.Companion.walkSafe(root, dirPath)
 		val pattern = try {
 			uncheckedTaskPattern.toRegex()
 		} catch (_: Exception) {
-			return emptyList()
+			return@buildSet
 		}
 
 		return buildSet<Finding> {

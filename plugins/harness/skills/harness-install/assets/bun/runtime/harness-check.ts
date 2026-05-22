@@ -40,12 +40,13 @@ function pathOf(path: string): string {
 }
 
 function read(path: string): string {
+  let content = "";
   try {
     const target = allowedRootContractTarget(path);
-    return readFileSync(target ?? pathOf(path), "utf8");
+    content = readFileSync(target ?? pathOf(path), "utf8");
   } catch {
-    return "";
   }
+  return content;
 }
 
 function firstLine(path: string): string {
@@ -53,59 +54,60 @@ function firstLine(path: string): string {
 }
 
 function isFile(path: string): boolean {
+  let result = false;
   try {
-    if (isSymlink(path) && allowedRootContractTarget(path) === null) {
-      return false;
+    if (!(isSymlink(path) && allowedRootContractTarget(path) === null)) {
+      result = statSync(pathOf(path)).isFile();
     }
-    return statSync(pathOf(path)).isFile();
   } catch {
-    return false;
   }
+  return result;
 }
 
 function isDirectory(path: string): boolean {
+  let result = false;
   try {
-    if (isSymlink(path)) {
-      return false;
+    if (!isSymlink(path)) {
+      result = statSync(pathOf(path)).isDirectory();
     }
-    return statSync(pathOf(path)).isDirectory();
   } catch {
-    return false;
   }
+  return result;
 }
 
 function isExecutablePath(path: string): boolean {
+  let result = false;
   try {
     const target = allowedRootContractTarget(path);
-    return (statSync(target ?? pathOf(path)).mode & 0o100) !== 0;
+    result = (statSync(target ?? pathOf(path)).mode & 0o100) !== 0;
   } catch {
-    return false;
   }
+  return result;
 }
 
 function isSymlink(path: string): boolean {
+  let result = false;
   try {
-    return lstatSync(pathOf(path)).isSymbolicLink();
+    result = lstatSync(pathOf(path)).isSymbolicLink();
   } catch {
-    return false;
   }
+  return result;
 }
 
 function allowedRootContractTarget(path: string): string | null {
-  if (path !== "AGENTS.md" && path !== "CLAUDE.md") {
-    return null;
-  }
-  try {
-    const expected = path === "AGENTS.md" ? "CLAUDE.md" : "AGENTS.md";
-    if (readlinkSync(pathOf(path)) !== expected) {
-      return null;
+  let target: string | null = null;
+  if (path === "AGENTS.md" || path === "CLAUDE.md") {
+    try {
+      const expected = path === "AGENTS.md" ? "CLAUDE.md" : "AGENTS.md";
+      if (readlinkSync(pathOf(path)) === expected) {
+        if (!lstatSync(pathOf(expected)).isSymbolicLink() && statSync(pathOf(expected)).isFile()) {
+          target = pathOf(expected);
+        }
+      }
+    } catch {
     }
-    return !lstatSync(pathOf(expected)).isSymbolicLink() && statSync(pathOf(expected)).isFile()
-      ? pathOf(expected)
-      : null;
-  } catch {
-    return null;
   }
+  return target;
 }
 
 function readStringArray(value: unknown): readonly string[] {
@@ -133,6 +135,7 @@ function severityOf(manifest: HarnessManifest, category: string): "ERROR" | "WAR
  * @return Sorted unique list of source file paths relative to root.
  */
 function stackSources(manifest: HarnessManifest, category: string): readonly string[] {
+  const collected = new Set<string>();
   const parameters = readJsonObject(manifest[category]);
   const sourceRootsPerStack = readJsonObject(parameters.sourceRootsPerStack);
   const extensionsPerStack = readJsonObject(parameters.extensionsPerStack);
@@ -140,69 +143,61 @@ function stackSources(manifest: HarnessManifest, category: string): readonly str
   const sourceDirs = readStringArray(sourceRootsPerStack[category]);
   const extensions = new Set(readStringArray(extensionsPerStack[category]));
 
-  if (sourceDirs.length === 0 || extensions.size === 0) {
-    return [];
-  }
-
-  const collected = new Set<string>();
-
-  function* walkDirGen(dirPath: string): Generator<string> {
-    const skip = (name: string) => name === "node_modules" || name === "build";
-
-    if (isSymlink(dirPath)) {
-      return;
-    }
-    if (!isDirectory(dirPath)) {
-      return;
-    }
-
-    try {
-      const entries = readdirSync(pathOf(dirPath));
-      for (const entry of entries) {
-        if (skip(entry)) {
-          continue;
-        }
-        const child = `${dirPath}/${entry}`;
-        const full = pathOf(child);
-        if (lstatSync(full).isSymbolicLink()) {
-          continue;
-        }
-        const stat = statSync(full);
-        if (stat.isDirectory()) {
-          yield* walkDirGen(child);
-        } else if (stat.isFile()) {
-          const ext = child.slice(child.lastIndexOf(".") + 1);
-          if (extensions.has(ext)) {
-            yield child;
-          }
-        }
+  if (!(sourceDirs.length === 0 || extensions.size === 0)) {
+    function* walkDirGen(dirPath: string): Generator<string> {
+      const skip = (name: string) => name === "node_modules" || name === "build";
+      if (isSymlink(dirPath)) {
+        return;
       }
-    } catch {
-      return;
-    }
-  }
-
-  for (const sourceDir of sourceDirs) {
-    if (sourceDir.includes("*")) {
+      if (!isDirectory(dirPath)) {
+        return;
+      }
       try {
-        const glob = new Bun.Glob(sourceDir);
-        for (const match of glob.scanSync(".")) {
-          const normPath = `${sourceDir.split("/")[0]}/${match}`;
-          const ext = normPath.slice(normPath.lastIndexOf(".") + 1);
-          if (extensions.has(ext)) {
-            collected.add(normPath);
+        const entries = readdirSync(pathOf(dirPath));
+        for (const entry of entries) {
+          if (skip(entry)) {
+            continue;
+          }
+          const child = `${dirPath}/${entry}`;
+          const full = pathOf(child);
+          if (lstatSync(full).isSymbolicLink()) {
+            continue;
+          }
+          const stat = statSync(full);
+          if (stat.isDirectory()) {
+            yield* walkDirGen(child);
+          } else if (stat.isFile()) {
+            const ext = child.slice(child.lastIndexOf(".") + 1);
+            if (extensions.has(ext)) {
+              yield child;
+            }
           }
         }
       } catch {
-        continue;
+        return;
       }
-    } else {
-      for (const file of walkDirGen(sourceDir)) {
-        collected.add(file);
+    }
+    for (const sourceDir of sourceDirs) {
+      if (sourceDir.includes("*")) {
+        try {
+          const glob = new Bun.Glob(sourceDir);
+          for (const match of glob.scanSync(".")) {
+            const normPath = `${sourceDir.split("/")[0]}/${match}`;
+            const ext = normPath.slice(normPath.lastIndexOf(".") + 1);
+            if (extensions.has(ext)) {
+              collected.add(normPath);
+            }
+          }
+        } catch {
+          continue;
+        }
+      } else {
+        for (const file of walkDirGen(sourceDir)) {
+          collected.add(file);
+        }
       }
     }
   }
-
   return [...collected].sort();
 }
 
@@ -247,6 +242,8 @@ function collectFilesUnder(path: string): readonly [readonly string[], readonly 
       category: "forbidUnsafeSymlinks",
       message: `symlink path is not allowed: ${path}`,
     });
+  }
+  if (findings.length > 0) {
     return [[], findings];
   }
   return isFile(path) ? [[path], findings] : walkDirectory(path);

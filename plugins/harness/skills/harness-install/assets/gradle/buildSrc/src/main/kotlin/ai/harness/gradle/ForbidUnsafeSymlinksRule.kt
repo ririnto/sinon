@@ -21,11 +21,11 @@ class ForbidUnsafeSymlinksRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
 		val category = "forbidUnsafeSymlinks"
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+		val catObj = manifest[category]?.jsonObject ?: return@buildSet
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
+		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
 		val allowedPairs = parametersObj["allowedSymlinkPairs"]?.jsonArray?.mapNotNull { pairElem ->
 			val pair = pairElem.jsonArray
 			if (pair.size < 2) null else {

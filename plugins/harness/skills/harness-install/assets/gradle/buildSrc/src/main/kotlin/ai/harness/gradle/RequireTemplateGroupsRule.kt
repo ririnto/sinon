@@ -17,11 +17,11 @@ class RequireTemplateGroupsRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
 		val category = "requireTemplateGroups"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val catObj = manifest[category]?.jsonObject ?: return@buildSet
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
 		val targetRoot = HarnessCheck.Companion.stringFrom(parametersObj, "targetRoot")
 		val groups = HarnessCheck.Companion.stringArrayFrom(parametersObj, "groups")
 		return buildSet<Finding> {
