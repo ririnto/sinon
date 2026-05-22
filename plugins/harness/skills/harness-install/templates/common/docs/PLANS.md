@@ -1,20 +1,16 @@
 # Plans
 
-Document near-term plans, sequencing assumptions, dependencies, and decision checkpoints.
+Document near-term sequencing assumptions, cross-cutting dependencies, and decision checkpoints that are too lightweight to deserve a dedicated `docs/exec-plans/` entry but still need to be visible.
 
 ## Purpose
 
-Explain the durable project context this document owns for agents and reviewers.
+Give agents a single page they can scan to learn which themes are in flight, which are paused, and what unblock criteria each one needs. Heavyweight, multi-phase plans MUST live under `docs/exec-plans/active/` and follow the `yyyy-MM-dd-<slug>.md` convention.
 
 ## When To Update
 
-Update this document when the owned context changes, when validation points at stale guidance, or when a task depends on undocumented assumptions.
+Update when the scope of an in-flight initiative shifts, when a cross-team dependency forms, or when a checkpoint passes.
 
 ## Required Evidence
 
-- Link to the source decision, implementation path, command output, issue, or review note that supports the current guidance.
-- Record unknowns explicitly instead of encoding product-specific guesses in the harness scaffold.
-
-## Validation Link
-
-Run the stack-specific harness validation command listed in `docs/harness/README.md` after changing this document.
+- Link to the relevant `docs/exec-plans/active/` file when an item graduates into a tracked plan.
+- Cite the issue, PR, or message where the sequencing decision was made.

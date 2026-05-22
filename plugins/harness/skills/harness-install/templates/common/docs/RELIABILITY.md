@@ -1,20 +1,16 @@
 # Reliability
 
-Document reliability goals, failure modes, observability, recovery expectations, and validation evidence.
+Document SLOs, on-call posture, incident runbook locations, and observability invariants.
 
 ## Purpose
 
-Explain the durable project context this document owns for agents and reviewers.
+State the reliability contract the service offers users and the operating signals agents and humans use to confirm it. Agents MUST treat SLO violations and missing runbooks as blockers when changing affected code paths.
 
 ## When To Update
 
-Update this document when the owned context changes, when validation points at stale guidance, or when a task depends on undocumented assumptions.
+Update when an SLO target shifts, when a runbook is added or retired, when an incident reveals an observability gap, or when on-call rotation policy changes.
 
 ## Required Evidence
 
-- Link to the source decision, implementation path, command output, issue, or review note that supports the current guidance.
-- Record unknowns explicitly instead of encoding product-specific guesses in the harness scaffold.
-
-## Validation Link
-
-Run the stack-specific harness validation command listed in `docs/harness/README.md` after changing this document.
+- Cite the dashboard, alert, or postmortem that justifies the entry.
+- Link the runbook file directly so agents do not need to search for it.

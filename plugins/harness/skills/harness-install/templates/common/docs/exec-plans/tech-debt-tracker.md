@@ -1,20 +1,21 @@
 # Tech Debt Tracker
 
-Track deferred work, owner, impact, retirement criteria, and validation evidence.
+Track deferred work, owner, impact, retirement criteria, and validation evidence in one place so agents and reviewers can see the standing balance.
 
 ## Purpose
 
-Explain the durable project context this document owns for agents and reviewers.
+Make deferred work visible and retirable. Each row MUST name what was deferred, why, who owns it, what condition retires it, and how the retirement is validated.
 
 ## When To Update
 
-Update this document when the owned context changes, when validation points at stale guidance, or when a task depends on undocumented assumptions.
+Update when a piece of work is deferred (not just postponed), when an owner changes, when impact grows or shrinks, or when the retirement condition is met.
 
 ## Required Evidence
 
-- Link to the source decision, implementation path, command output, issue, or review note that supports the current guidance.
-- Record unknowns explicitly instead of encoding product-specific guesses in the harness scaffold.
+- Cite the PR, issue, or review note that introduced the deferral.
+- Link to the validation step (test, lint, metric) that confirms retirement.
 
-## Validation Link
+## Entries
 
-Run the stack-specific harness validation command listed in `docs/harness/README.md` after changing this document.
+| Item | Owner | Impact | Retirement criterion | Validation |
+| --- | --- | --- | --- | --- |

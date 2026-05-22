@@ -1,20 +1,16 @@
 # Security
 
-Document security boundaries, threat assumptions, required checks, and unresolved security questions.
+Document the threat model, authentication and authorization boundaries, secret handling, and supply-chain controls.
 
 ## Purpose
 
-Explain the durable project context this document owns for agents and reviewers.
+Tell agents which surfaces are trust boundaries and which are not, so changes near auth, input parsing, or external dependencies receive the right scrutiny.
 
 ## When To Update
 
-Update this document when the owned context changes, when validation points at stale guidance, or when a task depends on undocumented assumptions.
+Update when a new external dependency is added, when an authentication path changes, when a secret-store policy shifts, or when an incident exposes a missing control.
 
 ## Required Evidence
 
-- Link to the source decision, implementation path, command output, issue, or review note that supports the current guidance.
-- Record unknowns explicitly instead of encoding product-specific guesses in the harness scaffold.
-
-## Validation Link
-
-Run the stack-specific harness validation command listed in `docs/harness/README.md` after changing this document.
+- Cite the implementation file or middleware that enforces the boundary.
+- Link the policy doc or external compliance reference when one exists.

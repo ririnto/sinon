@@ -1,20 +1,16 @@
 # Core Beliefs
 
-Document stable design beliefs and trade-offs that agents SHOULD preserve.
+Document stable design beliefs and trade-offs that agents SHOULD preserve across changes.
 
 ## Purpose
 
-Explain the durable project context this document owns for agents and reviewers.
+State the small set of opinions that explain why the repository is shaped the way it is — what tradeoffs were chosen and what was deliberately rejected.
 
 ## When To Update
 
-Update this document when the owned context changes, when validation points at stale guidance, or when a task depends on undocumented assumptions.
+Update when a belief shifts, when a long-standing trade-off is replaced, or when a new belief emerges from repeated review feedback.
 
 ## Required Evidence
 
-- Link to the source decision, implementation path, command output, issue, or review note that supports the current guidance.
-- Record unknowns explicitly instead of encoding product-specific guesses in the harness scaffold.
-
-## Validation Link
-
-Run the stack-specific harness validation command listed in `docs/harness/README.md` after changing this document.
+- Cite the decision record, PR discussion, or postmortem that the belief is grounded in.
+- Pair each belief with the code or doc that operationalizes it.

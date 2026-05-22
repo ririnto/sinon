@@ -1,20 +1,16 @@
 # Optional Product Spec Example
 
-This seed file is an optional example of where a target repository may document an onboarding flow. Replace it with a real product spec, rename it for a project-specific feature, or remove it when it does not apply.
+This seed file is an optional example of where a target repository may document an onboarding flow. Replace it with a real product spec, rename it to a project-specific feature, or remove it when it does not apply.
 
 ## Purpose
 
-Explain the durable project context this document owns for agents and reviewers.
+Show the shape a product spec takes under `docs/product-specs/`: target user, acceptance criteria, and references to the related design doc or exec plan.
 
 ## When To Update
 
-Update this document when the owned context changes, when validation points at stale guidance, or when a task depends on undocumented assumptions.
+Update when the spec describes a feature whose scope, success criteria, or acceptance gate changes. Delete the file when the feature ships and is folded into general product documentation.
 
 ## Required Evidence
 
-- Link to the source decision, implementation path, command output, issue, or review note that supports the current guidance.
-- Record unknowns explicitly instead of encoding product-specific guesses in the harness scaffold.
-
-## Validation Link
-
-Run the stack-specific harness validation command listed in `docs/harness/README.md` after changing this document.
+- Cite the user research, PRD, or stakeholder decision that motivates the spec.
+- Link the related entry under `docs/exec-plans/active/` while the work is in flight.
