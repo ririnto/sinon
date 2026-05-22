@@ -1,4 +1,12 @@
-plugins { `kotlin-dsl` }
+plugins {
+    `kotlin-dsl`
+    alias(libs.plugins.kotlin.serialization)
+}
+
+dependencies {
+    implementation(platform(libs.kotlinx.serialization.bom))
+    implementation(libs.kotlinx.serialization.json)
+}
 
 gradlePlugin {
     plugins {
