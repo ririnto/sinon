@@ -27,6 +27,7 @@
 - Kotlin: `else`로 끝나는 if문은 `when` 표현식으로. `Regex(...)` 생성은 `"...".toRegex()`로. `Java.io.File`/`java.nio.file.Files` 직접 사용보다 `kotlin.io.path`의 `Path`/`readText`/`isSymbolicLink`/`readSymbolicLink`/`walk` extension function을 우선 사용한다. `import kotlin.io.path.Path` 같은 import 사용.
 - TypeScript: backtick template literal 일관 사용. `"a " + x + " b"` 같은 concat 금지.
 - 함수/식별자 이름은 *기능/동작*과 일치하게 (예: `validateContentChecks` → `validateRequiredContent`, `walk` → `walkDirectory`, `safeFileOrWalk` → `collectFilesUnder`).
+- finding dedup 같은 중복 제거는 `.distinct()` 대신 `buildSet { addAll(...) }` 또는 `LinkedHashSet`을 우선 사용한다 (순서를 유지하면서 중복 제거; 의도가 명확). Python은 `dict.fromkeys(...)`, TS는 `new Set(...)` 또는 `Array.from(new Map(...))`.
 
 ## Phases
 
@@ -71,6 +72,17 @@
   - Python: `Finding\("(ERROR|WARN|INFO)"`
   - TS: `severity: "(ERROR|WARN|INFO)"`
 - [ ] Task 5.4 — manifest의 모든 카테고리에 description + (check면) failureMessageTemplate 명시 확인
+
+### Phase 5.5: Shell stack adapter 추가 (gradle/maven/uv/bun 외 5번째)
+
+shell-only 프로젝트(POSIX sh/bash 기반)에서도 harness를 사용할 수 있도록 stack adapter 추가. 다른 stack과 동일하게 manifest를 single source of truth로 읽고 동일한 add-on architecture로 동작.
+
+- [ ] Task 5.5.1 — `templates/shell/docs/harness/shell/harness-validate.sh` 작성. POSIX sh 기반(set -e, JSDoc 함수 docstring, 파일별 검증 add-on 함수). manifest.json 파싱은 `python3 -c 'import json; ...'` 또는 `jq`가 있으면 jq 사용. add-on registry, ERROR-only fail, `[SEVERITY] message` 출력 형식 유지 (subagent: harness:harness-architect)
+- [ ] Task 5.5.2 — `templates/shell/.github/workflows/harness.yml.tmpl`, `templates/shell/.gitlab-ci.yml.tmpl` 추가 (subagent: general-purpose)
+- [ ] Task 5.5.3 — `scripts/install-harness.sh`에 `shell` 모드 추가. mode case 추가, `validation_command_for_mode` / `pre_commit_command_for_mode` / `pre_push_command_for_mode`에 shell 처리. (subagent: general-purpose)
+- [ ] Task 5.5.4 — `scripts/detect-stack.sh`에 shell stack 감지 로직 추가. Makefile 또는 root-level `*.sh` 존재 + 다른 stack 부재로 추론 (subagent: general-purpose)
+- [ ] Task 5.5.5 — manifest.json의 `requireHookCommand.allowedCommands.shell` + `requireHookStage.stages.shell` 추가. validator의 stack lookup이 자동으로 새 키를 읽도록 (manifest-driven이므로 코드 변경 불필요) (subagent: main)
+- [ ] Task 5.5.6 — plugin README, `harness-install/SKILL.md`의 Validation Adapters 표에 shell 추가 (subagent: general-purpose)
 
 ### Phase 6: Gradle buildSrc 재배치 + assets/ 디렉토리 컨벤션 (별도 plan으로 분리 가능)
 
