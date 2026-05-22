@@ -286,7 +286,7 @@ ensure_shared_root_contract() {
   if [ -e "$file" ] && grep -Fq '# Repository Harness Contract' "$file"; then
     has_agents=1
   fi
-  if [ -e "$file" ] && grep -Fq '## Claude Code Entry Point' "$file"; then
+  if [ -e "$file" ] && grep -Fq '## Entry Point' "$file"; then
     has_claude=1
   fi
   if [ "$has_agents" -eq 1 ] && [ "$has_claude" -eq 1 ]; then
@@ -306,7 +306,7 @@ ensure_shared_root_contract() {
     fi
     cat "$template_dir/common/AGENTS.md" >> "$tmp"
   fi
-  if [ "$has_claude" -ne 1 ] && grep -Fq '## Claude Code Entry Point' "$tmp"; then
+  if [ "$has_claude" -ne 1 ] && grep -Fq '## Entry Point' "$tmp"; then
     has_claude=1
   fi
   if [ "$has_agents" -ne 1 ] && grep -Fq '# Repository Harness Contract' "$tmp"; then
@@ -367,7 +367,7 @@ ensure_root_contracts() {
     claude_target=$(root_contract_symlink_target CLAUDE.md)
   fi
   check_root_contract_conflict "$agents_target" '# Repository Harness Contract'
-  check_root_contract_conflict "$claude_target" '# Claude Code Entry Point'
+  check_root_contract_conflict "$claude_target" '# Entry Point'
   if [ "$root_contract_conflicts" -ne 0 ]; then
     error 'root contract conflicts must be resolved before installing harness assets'
   fi
@@ -375,7 +375,7 @@ ensure_root_contracts() {
     ensure_shared_root_contract "$agents_target"
   else
     ensure_root_contract "$agents_target" '# Repository Harness Contract' "$template_dir/common/AGENTS.md"
-    ensure_root_contract "$claude_target" '# Claude Code Entry Point' "$template_dir/common/CLAUDE.md"
+    ensure_root_contract "$claude_target" '# Entry Point' "$template_dir/common/CLAUDE.md"
   fi
 }
 
