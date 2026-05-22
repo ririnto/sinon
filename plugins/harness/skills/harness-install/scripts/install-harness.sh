@@ -229,7 +229,7 @@ copy_tree() {
   find "$src_dir" -type f | while IFS= read -r src; do
     rel=${src#"$src_dir"/}
     case "$rel" in
-      AGENTS.md|CLAUDE.md|.claude/harness/git-hooks/pre-commit|.claude/harness/git-hooks/pre-push|target/*|*/target/*|build/*|*/build/*|bin/*|*/bin/*|.gradle/*|*/.gradle/*|.factorypath|*/.factorypath|.classpath|*/.classpath|.project|*/.project|.settings/*|*/.settings/*|__pycache__/*|*/__pycache__/*|*.pyc) continue ;;
+      AGENTS.md|CLAUDE.md|docs/harness/git-hooks/pre-commit|docs/harness/git-hooks/pre-push|target/*|*/target/*|build/*|*/build/*|bin/*|*/bin/*|.gradle/*|*/.gradle/*|.factorypath|*/.factorypath|.classpath|*/.classpath|.project|*/.project|.settings/*|*/.settings/*|__pycache__/*|*/__pycache__/*|*.pyc) continue ;;
     esac
     copy_file "$src" "$dst_dir/$rel"
   done
@@ -463,8 +463,8 @@ append_line_once() {
 # @return Writes modified status.
 ensure_gradle_settings_include() {
   file=$1
-  include='includeBuild(".claude/harness/gradle-plugin")'
-  marker='.claude/harness/gradle-plugin'
+  include='includeBuild("docs/harness/gradle-plugin")'
+  marker='docs/harness/gradle-plugin'
   ensure_safe_file_destination "$file"
   if [ -f "$file" ] && grep -Fq "$marker" "$file"; then
     printf '%s\n' "keep existing Gradle plugin include: $file"
@@ -750,12 +750,12 @@ ensure_hook_activation_policy() {
     '') return 0 ;;
   esac
   normalized_path=$(normalize_hooks_path "$configured_path")
-  harness_hooks_path=$(normalize_absolute_path "$target_root/.claude/harness/git-hooks")
+  harness_hooks_path=$(normalize_absolute_path "$target_root/docs/harness/git-hooks")
   symlink_path=$(resolve_hooks_path_lexically "$configured_path" || true)
   resolved_path=$(resolve_existing_hooks_path "$configured_path" || true)
   points_at_harness_hooks=0
   case "$normalized_path" in
-    .claude/harness/git-hooks) points_at_harness_hooks=1 ;;
+    docs/harness/git-hooks) points_at_harness_hooks=1 ;;
   esac
   if [ -n "$symlink_path" ] && [ "$symlink_path" = "$harness_hooks_path" ]; then
     points_at_harness_hooks=1
@@ -765,7 +765,7 @@ ensure_hook_activation_policy() {
   fi
   if [ "$points_at_harness_hooks" -eq 1 ]; then
     if [ "$hooks" = copy ]; then
-      error '[hook_activation_policy] target Git config points hooks at .claude/harness/git-hooks; --hooks copy would write to the worktree hooks directory instead. Re-run with --hooks none to refresh harness-tracked hooks in place.'
+      error '[hook_activation_policy] target Git config points hooks at docs/harness/git-hooks; --hooks copy would write to the worktree hooks directory instead. Re-run with --hooks none to refresh harness-tracked hooks in place.'
     fi
     return 0
   fi
@@ -788,9 +788,9 @@ validation_command_for_mode() {
         printf '%s\n' 'gradle harnessValidate'
       fi
       ;;
-    maven) printf '%s\n' 'mvn -q -f .claude/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate' ;;
-    uv) printf '%s\n' 'uv run python .claude/harness/uv/harness_validate.py' ;;
-    bun) printf '%s\n' 'bun run .claude/harness/bun/harness-validate.ts' ;;
+    maven) printf '%s\n' 'mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate' ;;
+    uv) printf '%s\n' 'uv run python docs/harness/uv/harness_validate.py' ;;
+    bun) printf '%s\n' 'bun run docs/harness/bun/harness-validate.ts' ;;
     *) error "[validation_command] unsupported mode (must be gradle|maven|uv|bun): $selected_mode" ;;
   esac
 }
@@ -886,10 +886,10 @@ require_executable_hook() {
 require_file AGENTS.md
 require_file CLAUDE.md
 require_file ARCHITECTURE.md
-require_file .claude/harness/manifest.json
-require_executable_hook .claude/harness/git-hooks/pre-commit 'Harness generated hook: pre-commit' 'Harness stage: compliance'
-require_executable_hook .claude/harness/git-hooks/pre-push 'Harness generated hook: pre-push' 'Harness stage: full-validation'
-validation_command=$(sed -n 's/^# Harness validation command: //p' .claude/harness/git-hooks/pre-push | head -n 1)
+require_file docs/harness/manifest.json
+require_executable_hook docs/harness/git-hooks/pre-commit 'Harness generated hook: pre-commit' 'Harness stage: compliance'
+require_executable_hook docs/harness/git-hooks/pre-push 'Harness generated hook: pre-push' 'Harness stage: full-validation'
+validation_command=$(sed -n 's/^# Harness validation command: //p' docs/harness/git-hooks/pre-push | head -n 1)
 if [ -z "$validation_command" ]; then
   printf '%s\n' "[pre_commit_hook] pre-push hook missing validation command marker" >&2
   exit 1
@@ -1024,8 +1024,8 @@ install_one_target_hook_template() {
 install_target_hook_templates() {
   pre_commit_command=$1
   pre_push_command=$2
-  install_one_target_hook_template .claude/harness/git-hooks/pre-commit 'Harness generated hook: pre-commit' pre-commit "$pre_commit_command"
-  install_one_target_hook_template .claude/harness/git-hooks/pre-push 'Harness generated hook: pre-push' pre-push "$pre_push_command"
+  install_one_target_hook_template docs/harness/git-hooks/pre-commit 'Harness generated hook: pre-commit' pre-commit "$pre_commit_command"
+  install_one_target_hook_template docs/harness/git-hooks/pre-push 'Harness generated hook: pre-push' pre-push "$pre_push_command"
 }
 
 # Copy one generated hook into .git/hooks.
@@ -1034,7 +1034,7 @@ install_target_hook_templates() {
 # @exit Exits via 'error' when hook source is invalid.
 validate_generated_hook_source_for_copy() {
   name=$1
-  src=.claude/harness/git-hooks/$name
+  src=docs/harness/git-hooks/$name
   case "$name" in
     pre-commit) stage='Harness stage:' ;;
     pre-push) stage='Harness stage: full-validation' ;;
@@ -1076,7 +1076,7 @@ preflight_git_hook_copy_sources() {
 copy_one_git_hook() {
   name=$1
   hooks_dir=$2
-  src=.claude/harness/git-hooks/$name
+  src=docs/harness/git-hooks/$name
   dst=$hooks_dir/$name
   ensure_safe_hook_destination "$dst"
   if [ -e "$dst" ] && [ "$force" -ne 1 ]; then
