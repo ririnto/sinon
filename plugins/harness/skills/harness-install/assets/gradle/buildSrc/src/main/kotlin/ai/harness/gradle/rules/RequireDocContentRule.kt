@@ -18,26 +18,23 @@ object RequireDocContentRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireDocContent"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return@buildSet
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
-		val checks = parametersObj["checks"]?.jsonArray ?: return@buildSet
-
-		return buildSet<Finding> {
-			checks.forEach { checkElem ->
-				val checkObj = checkElem.jsonObject
-				val files = HarnessCheck.Companion.stringArrayFrom(checkObj, "files")
-				val containsAll = HarnessCheck.Companion.stringArrayFrom(checkObj, "containsAll")
-				val failureMessage = HarnessCheck.Companion.stringFrom(checkObj, "failureMessage")
-
-				val content = files.map { HarnessCheck.Companion.readSafe(root, it) }.joinToString("\n")
-				val allPresent = containsAll.all { content.contains(it) }
-				if (!allPresent) {
-					add(Finding(severity, category, failureMessage))
-				}
+		val catObj = manifest[category]?.jsonObject ?: return emptyList()
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val checks = parametersObj["checks"]?.jsonArray ?: return emptyList()
+		return checks.mapNotNull { checkElem ->
+			val checkObj = checkElem.jsonObject
+			val files = HarnessCheck.Companion.stringArrayFrom(checkObj, "files")
+			val containsAll = HarnessCheck.Companion.stringArrayFrom(checkObj, "containsAll")
+			val failureMessage = HarnessCheck.Companion.stringFrom(checkObj, "failureMessage")
+			val content = files.map { HarnessCheck.Companion.readSafe(root, it) }.joinToString("\n")
+			if (!containsAll.all { content.contains(it) }) {
+				Finding(severity, category, failureMessage)
+			} else {
+				null
 			}
-		}.toList()
+		}
 	}
 }

@@ -22,32 +22,33 @@ object RequireHookGeneratedMarkerRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireHookGeneratedMarker"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return@buildSet
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
-		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
+		val catObj = manifest[category]?.jsonObject ?: return emptyList()
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 		val hooks = HarnessCheck.Companion.stringArrayFrom(parametersObj, "hooks")
 		val markerTemplate = HarnessCheck.Companion.stringFrom(parametersObj, "markerTemplate")
 		val placeholderForbidden = HarnessCheck.Companion.stringFrom(parametersObj, "placeholderForbidden")
-
-		return buildSet<Finding> {
-			hooks.forEach { hookPath ->
-				val hook = root / hookPath
-				if (hook.isRegularFile()) {
-					val text = hook.readText()
-					val marker = markerTemplate.replace("{name}", hook.name)
+		return hooks.flatMap { hookPath ->
+			val hook = root / hookPath
+			if (!hook.isRegularFile()) {
+				emptyList()
+			} else {
+				val text = hook.readText()
+				val marker = markerTemplate.replace("{name}", hook.name)
+				listOfNotNull(
 					if (!text.contains(marker)) {
 						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingMarker").takeIf { it.isNotEmpty() } ?: "$hookPath must contain generated marker '$marker'"
-						add(Finding(severity, category, msg))
-					}
+						Finding(severity, category, msg)
+					} else null,
 					if (text.contains(placeholderForbidden)) {
 						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "placeholderPresent").takeIf { it.isNotEmpty() } ?: "$hookPath still contains packaging placeholder text"
-						add(Finding(severity, category, msg))
-					}
-				}
+						Finding(severity, category, msg)
+					} else null
+				)
 			}
-		}.toList()
+		}
 	}
 }

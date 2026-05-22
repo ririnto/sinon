@@ -40,28 +40,27 @@ public enum RequireImportOverFqnRule implements HarnessCheckRule {
     private List<Finding> validateImportOverFqn(Path root, Path file, String severity) {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
-            Set<String> importedSimpleNames = new java.util.HashSet<>();
-            cu.getImports().forEach(imp -> {
-                String name = imp.getNameAsString();
-                if (!imp.isAsterisk()) {
-                    int lastDot = name.lastIndexOf('.');
-                    if (lastDot > 0) {
-                        importedSimpleNames.add(name.substring(lastDot + 1));
-                    }
-                }
-            });
-            List<Finding> findings = new java.util.ArrayList<>();
-            cu.walk(FieldAccessExpr.class, expr -> {
-                String scope = expr.getScope().toString();
-                if (scope.contains(".") && scope.split("\\.").length >= 2) {
-                    String simple = expr.getNameAsString();
-                    if (!importedSimpleNames.contains(simple)) {
+            Set<String> importedSimpleNames = cu.getImports().stream()
+                    .filter(imp -> !imp.isAsterisk())
+                    .map(imp -> {
+                        String name = imp.getNameAsString();
+                        int lastDot = name.lastIndexOf('.');
+                        return lastDot > 0 ? name.substring(lastDot + 1) : null;
+                    })
+                    .filter(java.util.Objects::nonNull)
+                    .collect(java.util.stream.Collectors.toSet());
+            final Set<String> finalImportedSimpleNames = importedSimpleNames;
+            return cu.findAll(FieldAccessExpr.class).stream()
+                    .filter(expr -> {
+                        String scope = expr.getScope().toString();
+                        return scope.contains(".") && scope.split("\\.").length >= 2;
+                    })
+                    .filter(expr -> !finalImportedSimpleNames.contains(expr.getNameAsString()))
+                    .map(expr -> {
                         int line = expr.getBegin().map(p -> p.line).orElse(-1);
-                        findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": use import instead of FQN"));
-                    }
-                }
-            });
-            return findings;
+                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": use import instead of FQN");
+                    })
+                    .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }

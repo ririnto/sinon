@@ -22,34 +22,31 @@ object ForbidUncheckedTasksUnderRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "forbidUncheckedTasksUnder"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return@buildSet
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
-		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
+		val catObj = manifest[category]?.jsonObject ?: return emptyList()
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 		val directory = HarnessCheck.Companion.stringFrom(parametersObj, "directory")
 		val uncheckedTaskPattern = HarnessCheck.Companion.stringFrom(parametersObj, "uncheckedTaskPattern")
-
 		val dirPath = root / directory
 		if (!dirPath.isDirectory()) {
-			return@buildSet
+			return emptyList()
 		}
-
 		val (files, _) = HarnessCheck.Companion.walkSafe(root, dirPath)
 		val pattern = try {
 			uncheckedTaskPattern.toRegex()
 		} catch (_: Exception) {
-			return@buildSet
+			return emptyList()
 		}
-
-		return buildSet<Finding> {
-			files.filter { it.name.endsWith(".md") }.forEach { file ->
-				if (pattern.containsMatchIn(file.readText())) {
-					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "completed plan has unchecked tasks: ${file.relativeTo(root)}"
-					add(Finding(severity, category, msg))
-				}
+		return files.filter { it.name.endsWith(".md") }.mapNotNull { file ->
+			if (pattern.containsMatchIn(file.readText())) {
+				val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "completed plan has unchecked tasks: ${file.relativeTo(root)}"
+				Finding(severity, category, msg)
+			} else {
+				null
 			}
-		}.toList()
+		}
 	}
 }

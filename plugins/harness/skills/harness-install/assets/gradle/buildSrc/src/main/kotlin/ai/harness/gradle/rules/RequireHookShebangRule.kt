@@ -21,23 +21,27 @@ object RequireHookShebangRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireHookShebang"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return@buildSet
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
-		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
+		val catObj = manifest[category]?.jsonObject ?: return emptyList()
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 		val hooks = HarnessCheck.Companion.stringArrayFrom(parametersObj, "hooks")
 		val expectedShebang = HarnessCheck.Companion.stringFrom(parametersObj, "expectedShebang")
-		hooks.forEach { hookPath ->
+		return hooks.mapNotNull { hookPath ->
 			val hook = root / hookPath
 			if (hook.isRegularFile()) {
 				val first = hook.toFile().readLines().firstOrNull() ?: ""
 				if (first != expectedShebang) {
 					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must start with $expectedShebang"
-					add(Finding(severity, category, msg))
+					Finding(severity, category, msg)
+				} else {
+					null
 				}
+			} else {
+				null
 			}
 		}
-	}.toList()
+	}
 }

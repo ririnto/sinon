@@ -39,26 +39,30 @@ public enum RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRule
     private List<Finding> validateDocComments(Path root, Path file, String severity) {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
-            List<Finding> findings = new java.util.ArrayList<>();
-            cu.walk(ClassOrInterfaceDeclaration.class, cls -> {
-                if (cls.isPublic() && !cls.getJavadoc().isPresent()) {
-                    int line = cls.getBegin().map(p -> p.line).orElse(-1);
-                    findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": public class missing Javadoc"));
-                }
-                cls.getMethods().forEach(m -> {
-                    if (m.isPublic() && !m.getJavadoc().isPresent()) {
-                        int line = m.getBegin().map(p -> p.line).orElse(-1);
-                        findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": public method missing Javadoc"));
-                    }
-                });
-                cls.getFields().forEach(f -> {
-                    if (f.isPublic() && !f.getJavadoc().isPresent()) {
-                        int line = f.getBegin().map(p -> p.line).orElse(-1);
-                        findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": public field missing Javadoc"));
-                    }
-                });
-            });
-            return findings;
+            return cu.findAll(ClassOrInterfaceDeclaration.class).stream()
+                    .flatMap(cls -> {
+                        java.util.List<Finding> findings = new java.util.ArrayList<>();
+                        if (cls.isPublic() && !cls.getJavadoc().isPresent()) {
+                            int line = cls.getBegin().map(p -> p.line).orElse(-1);
+                            findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": public class missing Javadoc"));
+                        }
+                        findings.addAll(cls.getMethods().stream()
+                                .filter(m -> m.isPublic() && !m.getJavadoc().isPresent())
+                                .map(m -> {
+                                    int line = m.getBegin().map(p -> p.line).orElse(-1);
+                                    return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": public method missing Javadoc");
+                                })
+                                .toList());
+                        findings.addAll(cls.getFields().stream()
+                                .filter(f -> f.isPublic() && !f.getJavadoc().isPresent())
+                                .map(f -> {
+                                    int line = f.getBegin().map(p -> p.line).orElse(-1);
+                                    return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": public field missing Javadoc");
+                                })
+                                .toList());
+                        return findings.stream();
+                    })
+                    .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }

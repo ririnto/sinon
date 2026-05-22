@@ -137,10 +137,8 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 root / "buildSrc" / "src" / "main" / "kotlin",
                 root / "buildSrc" / "src" / "test" / "kotlin",
             ).filter { it.isDirectory() }
-            val srcFiles = buildList {
-                srcRoots.forEach { dir ->
-                    dir.walk().filter { it.isRegularFile() && it.extension == "kt" }.forEach { add(it) }
-                }
+            val srcFiles = srcRoots.flatMap { dir ->
+                dir.walk().filter { it.isRegularFile() && it.extension == "kt" }
             }
             val outputFile = temporaryDir.toPath() / "psi-results.json"
             val workQueue = workerExecutor.classLoaderIsolation {

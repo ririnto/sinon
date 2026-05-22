@@ -21,36 +21,34 @@ object RequireHookStageRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireHookStage"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return@buildSet
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
-		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
+		val catObj = manifest[category]?.jsonObject ?: return emptyList()
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 		val markerTemplate = HarnessCheck.Companion.stringFrom(parametersObj, "markerTemplate")
-		val stagesObj = parametersObj["stages"]?.jsonObject ?: return@buildSet
-		val gradleStages = stagesObj["gradle"]?.jsonObject ?: return@buildSet
+		val stagesObj = parametersObj["stages"]?.jsonObject ?: return emptyList()
+		val gradleStages = stagesObj["gradle"]?.jsonObject ?: return emptyList()
 		val preCommitStage = HarnessCheck.Companion.stringFrom(gradleStages, "pre-commit")
 		val prePushStage = HarnessCheck.Companion.stringFrom(gradleStages, "pre-push")
-
-		return buildSet<Finding> {
-			val preCommitHook = root / "docs/harness/git-hooks/pre-commit"
+		val preCommitHook = root / "docs/harness/git-hooks/pre-commit"
+		val prePushHook = root / "docs/harness/git-hooks/pre-push"
+		return listOfNotNull(
 			if (preCommitHook.isRegularFile()) {
 				val marker = markerTemplate.replace("{stage}", preCommitStage)
 				if (!preCommitHook.readText().contains(marker)) {
 					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "pre-commit must contain stage marker '$marker'"
-					add(Finding(severity, category, msg))
-				}
-			}
-
-			val prePushHook = root / "docs/harness/git-hooks/pre-push"
+					Finding(severity, category, msg)
+				} else null
+			} else null,
 			if (prePushHook.isRegularFile()) {
 				val marker = markerTemplate.replace("{stage}", prePushStage)
 				if (!prePushHook.readText().contains(marker)) {
 					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "pre-push must contain stage marker '$marker'"
-					add(Finding(severity, category, msg))
-				}
-			}
-		}.toList()
+					Finding(severity, category, msg)
+				} else null
+			} else null
+		)
 	}
 }

@@ -28,11 +28,9 @@ public enum ForbidUnsafeSymlinksRule implements HarnessCheckRule {
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
         JsonNode allowedNode = catNode.get("parameters").get("allowedSymlinkPairs");
-        Set<String> allowedNames = new LinkedHashSet<>();
-        for (JsonNode pair : allowedNode) {
-            allowedNames.add(pair.get(0).asText());
-            allowedNames.add(pair.get(1).asText());
-        }
+        Set<String> allowedNames = java.util.stream.StreamSupport.stream(allowedNode.spliterator(), false)
+                .flatMap(pair -> java.util.stream.Stream.of(pair.get(0).asText(), pair.get(1).asText()))
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         List<String> rootBases = List.of("AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md", "docs", ".claude", ".github");
         return rootBases.stream()

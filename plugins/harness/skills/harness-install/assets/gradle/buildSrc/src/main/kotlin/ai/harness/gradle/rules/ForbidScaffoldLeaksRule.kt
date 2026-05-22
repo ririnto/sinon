@@ -24,13 +24,13 @@ object ForbidScaffoldLeaksRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "forbidScaffoldLeaks"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return@buildSet
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
-		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
-		val scopeObj = parametersObj["scope"]?.jsonObject ?: return@buildSet
+		val catObj = manifest[category]?.jsonObject ?: return emptyList()
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+		val scopeObj = parametersObj["scope"]?.jsonObject ?: return emptyList()
 		val bases = HarnessCheck.Companion.stringArrayFrom(scopeObj, "bases")
 		val excludedSubtrees = HarnessCheck.Companion.stringArrayFrom(scopeObj, "excludedSubtrees")
 		val extensions = HarnessCheck.Companion.stringArrayFrom(scopeObj, "extensions")
@@ -40,7 +40,6 @@ object ForbidScaffoldLeaksRule : HarnessCheckRule {
 			val label = HarnessCheck.Companion.stringFrom(obj, "label")
 			if (pattern.isEmpty() || label.isEmpty()) null else pattern to label
 		} ?: emptyList()
-
 		val excludedPaths = excludedSubtrees.map { root / it }
 		val regexes = patterns.mapNotNull { (pattern, label) ->
 			try {
@@ -49,24 +48,22 @@ object ForbidScaffoldLeaksRule : HarnessCheckRule {
 				null
 			}
 		}
-
-		return buildSet<Finding> {
-			bases.forEach { basePath ->
-				val base = root / basePath
-				val (files, _) = HarnessCheck.Companion.walkSafe(root, base)
-				files.forEach { file ->
-					val ext = file.extension
-					if (ext in extensions && excludedPaths.none { file.toString().startsWith(it.toString()) }) {
-						val text = file.readText()
-						regexes.forEach { (regex, label) ->
-							if (regex.containsMatchIn(text)) {
-								val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$label in active asset: ${file.relativeTo(root.toFile())}"
-								add(Finding(severity, category, msg))
-							}
-						}
+		return bases.flatMap { basePath ->
+			val base = root / basePath
+			val (files, _) = HarnessCheck.Companion.walkSafe(root, base)
+			files.filter { file ->
+				file.extension in extensions && excludedPaths.none { file.toString().startsWith(it.toString()) }
+			}.flatMap { file ->
+				val text = file.readText()
+				regexes.mapNotNull { (regex, label) ->
+					if (regex.containsMatchIn(text)) {
+						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$label in active asset: ${file.relativeTo(root.toFile())}"
+						Finding(severity, category, msg)
+					} else {
+						null
 					}
 				}
 			}
-		}.toList()
+		}
 	}
 }
