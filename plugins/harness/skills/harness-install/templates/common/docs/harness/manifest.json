@@ -2,12 +2,13 @@
   "$schema": "./manifest.schema.json",
   "name": "repository-harness",
   "description": "Harness validation manifest. Every check add-on follows the same uniform shape: { description, enabled, severity, messages, parameters }. metadata entries carry description + data and are not validated. The harness is not versioned. Unknown top-level keys are logged as WARN by the validator main routine (no add-on entry for that — it is the default behavior).",
-
   "requireFilesExist": {
     "description": "Every path in parameters.paths MUST exist as a regular file under the target repository root.",
     "enabled": true,
     "severity": "ERROR",
-    "messages": {"default": "missing file: {path}"},
+    "messages": {
+      "default": "missing file: {path}"
+    },
     "parameters": {
       "paths": [
         "AGENTS.md",
@@ -28,12 +29,13 @@
       ]
     }
   },
-
   "requireDirectoriesExist": {
     "description": "Every path in parameters.paths MUST exist as a directory under the target repository root.",
     "enabled": true,
     "severity": "ERROR",
-    "messages": {"default": "missing directory: {path}"},
+    "messages": {
+      "default": "missing directory: {path}"
+    },
     "parameters": {
       "paths": [
         ".claude/agents",
@@ -51,12 +53,13 @@
       ]
     }
   },
-
   "requireKeepfileInEmptyDirectories": {
     "description": "Each directory in parameters.directories MUST contain at least one real file or a .gitkeep placeholder.",
     "enabled": true,
     "severity": "ERROR",
-    "messages": {"default": "empty directory must keep placeholder or real files: {directory}"},
+    "messages": {
+      "default": "empty directory must keep placeholder or real files: {directory}"
+    },
     "parameters": {
       "directories": [
         "docs/exec-plans/active",
@@ -65,30 +68,44 @@
       ]
     }
   },
-
   "requireTemplateGroups": {
     "description": "Each group in parameters.groups MUST exist as a directory under parameters.targetRoot.",
     "enabled": true,
     "severity": "WARN",
-    "messages": {"default": "missing template group: {targetRoot}/{group}"},
+    "messages": {
+      "default": "missing template group: {targetRoot}/{group}"
+    },
     "parameters": {
       "targetRoot": "docs/harness/templates",
-      "groups": ["agent", "skill", "workflow", "ci", "docs"]
+      "groups": [
+        "agent",
+        "skill",
+        "workflow",
+        "ci",
+        "docs"
+      ]
     }
   },
-
   "requireDocHeadings": {
     "description": "Each authored .md file derived from parameters.sourceFilesFromCategory.paths and matching parameters.sourceFilter MUST contain every heading in parameters.headings.",
     "enabled": true,
     "severity": "WARN",
-    "messages": {"default": "doc missing {heading}: {file}"},
+    "messages": {
+      "default": "doc missing {heading}: {file}"
+    },
     "parameters": {
       "sourceFilesFromCategory": "requireFilesExist",
-      "sourceFilter": {"prefix": "docs/", "suffix": ".md"},
-      "headings": ["## Purpose", "## When To Update", "## Required Evidence"]
+      "sourceFilter": {
+        "prefix": "docs/",
+        "suffix": ".md"
+      },
+      "headings": [
+        "## Purpose",
+        "## When To Update",
+        "## Required Evidence"
+      ]
     }
   },
-
   "requireDocContent": {
     "description": "For each entry in parameters.checks, the concatenation of files content (newline-joined) MUST contain every substring in containsAll. Otherwise the entry's failureMessage is emitted.",
     "enabled": true,
@@ -97,39 +114,65 @@
     "parameters": {
       "checks": [
         {
-          "files": ["CLAUDE.md"],
-          "containsAll": ["Repository Harness Contract"],
-          "failureMessage": "root contract (CLAUDE.md, aliased as AGENTS.md) must contain Repository Harness Contract"
+          "files": [
+            "CLAUDE.md"
+          ],
+          "containsAll": [
+            "Repository Harness Contract"
+          ],
+          "failureMessage": "root contract (CLAUDE.md; AGENTS.md symlinks to it) must contain Repository Harness Contract"
         },
         {
-          "files": ["CLAUDE.md"],
-          "containsAll": ["## Entry Point"],
+          "files": [
+            "CLAUDE.md"
+          ],
+          "containsAll": [
+            "## Entry Point"
+          ],
           "failureMessage": "root contract must contain an Entry Point section"
         },
         {
-          "files": ["CLAUDE.md"],
-          "containsAll": ["AGENTS.md"],
-          "failureMessage": "root contract must reference AGENTS.md so both filenames resolve to the same document"
+          "files": [
+            "CLAUDE.md"
+          ],
+          "containsAll": [
+            "AGENTS.md"
+          ],
+          "failureMessage": "root contract must reference AGENTS.md as a symlink to CLAUDE.md so both filenames resolve to the same document"
         },
         {
-          "files": ["CLAUDE.md"],
-          "containsAll": ["docs/generated/"],
+          "files": [
+            "CLAUDE.md"
+          ],
+          "containsAll": [
+            "docs/generated/"
+          ],
           "failureMessage": "root contract must describe docs/generated/ semantics"
         },
         {
-          "files": ["CLAUDE.md", "ARCHITECTURE.md"],
-          "containsAll": ["source command", "regeneration trigger"],
+          "files": [
+            "CLAUDE.md",
+            "ARCHITECTURE.md"
+          ],
+          "containsAll": [
+            "source command",
+            "regeneration trigger"
+          ],
           "failureMessage": "repository docs must describe generated-artifact source command and regeneration trigger metadata"
         },
         {
-          "files": ["CLAUDE.md"],
-          "containsAll": ["discovery", "maintenance"],
+          "files": [
+            "CLAUDE.md"
+          ],
+          "containsAll": [
+            "discovery",
+            "maintenance"
+          ],
           "failureMessage": "root contract must state that the harness may evolve across development phases"
         }
       ]
     }
   },
-
   "requireAgentFrontmatter": {
     "description": "Every .md file directly under parameters.directory MUST start with parameters.frontmatterStart and contain every field in parameters.requiredFields. The `name` value MUST match parameters.namePattern.",
     "enabled": true,
@@ -144,11 +187,13 @@
       "directory": ".claude/agents",
       "filenamePattern": "*.md",
       "frontmatterStart": "---",
-      "requiredFields": ["name", "description"],
+      "requiredFields": [
+        "name",
+        "description"
+      ],
       "namePattern": "(?m)^name:\\s*[-a-z0-9]+\\s*$"
     }
   },
-
   "requireSkillFrontmatter": {
     "description": "Every file named parameters.filename under parameters.rootDirectory (any depth) MUST start with parameters.frontmatterStart and contain every field in parameters.requiredFields.",
     "enabled": true,
@@ -162,15 +207,18 @@
       "rootDirectory": ".claude/skills",
       "filename": "SKILL.md",
       "frontmatterStart": "---",
-      "requiredFields": ["description"]
+      "requiredFields": [
+        "description"
+      ]
     }
   },
-
   "forbidScaffoldLeaks": {
     "description": "Scan every file under parameters.scope.bases (excluding excludedSubtrees and files whose extension is not in extensions) and emit a finding for every regex match in parameters.patterns.",
     "enabled": true,
     "severity": "ERROR",
-    "messages": {"default": "{label} in active asset: {file}"},
+    "messages": {
+      "default": "{label} in active asset: {file}"
+    },
     "parameters": {
       "scope": {
         "bases": [
@@ -184,25 +232,48 @@
         ],
         "excludedSubtrees": [
           "docs/harness/manifest.json",
-          "docs/harness/templates"
+          "docs/harness/templates",
+          "docs/references"
         ],
-        "extensions": ["md", "txt", "json", "yml", "yaml"]
+        "extensions": [
+          "md",
+          "txt",
+          "json",
+          "yml",
+          "yaml"
+        ]
       },
       "patterns": [
-        {"pattern": "\\{\\{", "label": "unresolved template token"},
-        {"pattern": "(?m)^name:\\s*example-", "label": "example frontmatter name"},
-        {"pattern": "Describe ", "label": "scaffold prompt text"},
-        {"pattern": "\\bTODO\\b|\\bTBD\\b", "label": "TODO/TBD placeholder"},
-        {"pattern": "replace-with-stack-specific", "label": "stack placeholder"}
+        {
+          "pattern": "\\{\\{",
+          "label": "unresolved template token"
+        },
+        {
+          "pattern": "(?m)^name:\\s*example-",
+          "label": "example frontmatter name"
+        },
+        {
+          "pattern": "Describe ",
+          "label": "scaffold prompt text"
+        },
+        {
+          "pattern": "\\bTODO\\b|\\bTBD\\b",
+          "label": "TODO/TBD placeholder"
+        },
+        {
+          "pattern": "replace-with-stack-specific",
+          "label": "stack placeholder"
+        }
       ]
     }
   },
-
   "requireHookShebang": {
     "description": "Each hook in parameters.hooks MUST start with the line in parameters.expectedShebang.",
     "enabled": true,
     "severity": "ERROR",
-    "messages": {"default": "{hook} must start with {expectedShebang}"},
+    "messages": {
+      "default": "{hook} must start with {expectedShebang}"
+    },
     "parameters": {
       "hooks": [
         "docs/harness/git-hooks/pre-commit",
@@ -211,12 +282,13 @@
       "expectedShebang": "#!/usr/bin/env sh"
     }
   },
-
   "requireHookExecutable": {
     "description": "Each hook in parameters.hooks MUST have its executable bit set on disk.",
     "enabled": true,
     "severity": "ERROR",
-    "messages": {"default": "{hook} must be executable"},
+    "messages": {
+      "default": "{hook} must be executable"
+    },
     "parameters": {
       "hooks": [
         "docs/harness/git-hooks/pre-commit",
@@ -224,7 +296,6 @@
       ]
     }
   },
-
   "requireHookGeneratedMarker": {
     "description": "Each hook in parameters.hooks MUST contain parameters.markerTemplate (with {name} substituted) and MUST NOT contain parameters.placeholderForbidden.",
     "enabled": true,
@@ -242,23 +313,35 @@
       "placeholderForbidden": "packaged placeholder is replaced during harness installation"
     }
   },
-
   "requireHookStage": {
     "description": "Each hook MUST contain parameters.markerTemplate with {stage} substituted from parameters.stages[<stack>][<hookName>]. The active stack identifier is supplied by the validator at runtime.",
     "enabled": true,
     "severity": "WARN",
-    "messages": {"default": "{hook} must contain stage marker '# Harness stage: {expectedStage}'"},
+    "messages": {
+      "default": "{hook} must contain stage marker '# Harness stage: {expectedStage}'"
+    },
     "parameters": {
       "markerTemplate": "# Harness stage: {stage}",
       "stages": {
-        "gradle": {"pre-commit": "harness-validation", "pre-push": "full-validation"},
-        "maven": {"pre-commit": "compliance", "pre-push": "full-validation"},
-        "uv": {"pre-commit": "compliance", "pre-push": "full-validation"},
-        "bun": {"pre-commit": "compliance", "pre-push": "full-validation"}
+        "gradle": {
+          "pre-commit": "harness-validation",
+          "pre-push": "full-validation"
+        },
+        "maven": {
+          "pre-commit": "compliance",
+          "pre-push": "full-validation"
+        },
+        "uv": {
+          "pre-commit": "compliance",
+          "pre-push": "full-validation"
+        },
+        "bun": {
+          "pre-commit": "compliance",
+          "pre-push": "full-validation"
+        }
       }
     }
   },
-
   "requireHookCommand": {
     "description": "parameters.prePushHook MUST declare and run a command listed in parameters.allowedCommands[<stack>]. When parameters.allowedPreCommitCommands[<stack>] is non-empty, parameters.preCommitHook MUST also declare and run one of those commands; otherwise pre-commit MUST NOT run any full-stack validation command.",
     "enabled": true,
@@ -273,51 +356,71 @@
       "prePushHook": "docs/harness/git-hooks/pre-push",
       "preCommitHook": "docs/harness/git-hooks/pre-commit",
       "allowedCommands": {
-        "gradle": ["./gradlew check", "gradle check"],
-        "maven": ["mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate"],
-        "uv": ["uv run python docs/harness/uv/harness_validate.py"],
-        "bun": ["bun run docs/harness/bun/harness-validate.ts"]
+        "gradle": [
+          "./gradlew check",
+          "gradle check"
+        ],
+        "maven": [
+          "mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate"
+        ],
+        "uv": [
+          "uv run python docs/harness/uv/harness_validate.py"
+        ],
+        "bun": [
+          "bun run docs/harness/bun/harness-validate.ts"
+        ]
       },
       "allowedPreCommitCommands": {
-        "gradle": ["./gradlew harnessValidate", "gradle harnessValidate"]
+        "gradle": [
+          "./gradlew harnessValidate",
+          "gradle harnessValidate"
+        ]
       }
     }
   },
-
   "requireCiCommandMatchesHook": {
     "description": "Each existing file in parameters.ciFiles MUST contain the validation command declared by parameters.referenceHook. Absent files are skipped.",
     "enabled": true,
     "severity": "WARN",
-    "messages": {"default": "{ciFile}: CI command mismatch — expected {command}"},
+    "messages": {
+      "default": "{ciFile}: CI command mismatch — expected {command}"
+    },
     "parameters": {
-      "ciFiles": [".github/workflows/harness.yml", ".gitlab-ci.yml"],
+      "ciFiles": [
+        ".github/workflows/harness.yml",
+        ".gitlab-ci.yml"
+      ],
       "referenceHook": "docs/harness/git-hooks/pre-push"
     }
   },
-
   "requireEnvShebangUnder": {
     "description": "Any executable script under parameters.directories whose first line starts with `#!` MUST start with parameters.expectedPrefix.",
     "enabled": true,
     "severity": "WARN",
-    "messages": {"default": "executable script should use /usr/bin/env shebang: {file}"},
+    "messages": {
+      "default": "executable script should use /usr/bin/env shebang: {file}"
+    },
     "parameters": {
-      "directories": ["docs/harness", ".claude/skills"],
+      "directories": [
+        "docs/harness",
+        ".claude/skills"
+      ],
       "expectedPrefix": "#!/usr/bin/env "
     }
   },
-
   "forbidUncheckedTasksUnder": {
     "description": "Every file matching parameters.filenamePattern under parameters.directory MUST NOT contain any line matching parameters.uncheckedTaskPattern. Enforces that plans moved into directory have all tasks marked done.",
     "enabled": true,
     "severity": "ERROR",
-    "messages": {"default": "completed plan has unchecked tasks: {file}"},
+    "messages": {
+      "default": "completed plan has unchecked tasks: {file}"
+    },
     "parameters": {
       "directory": "docs/exec-plans/completed",
       "filenamePattern": "*.md",
       "uncheckedTaskPattern": "^\\s*-\\s*\\[ \\]\\s"
     }
   },
-
   "forbidUnsafeSymlinks": {
     "description": "All scanned files and directories MUST NOT be symbolic links, except symlinks within parameters.allowedSymlinkPairs (root contract symlinks).",
     "enabled": true,
@@ -330,51 +433,73 @@
       "pathNotAllowed": "symlink path is not allowed: {path}"
     },
     "parameters": {
-      "allowedSymlinkPairs": [["AGENTS.md", "CLAUDE.md"]]
+      "allowedSymlinkPairs": [
+        [
+          "AGENTS.md",
+          "CLAUDE.md"
+        ]
+      ]
     }
   },
-
   "forbidImplicitLambdaIt": {
     "description": "Kotlin lambdas under parameters.directories MUST declare an explicit parameter name; the implicit `it` is forbidden.",
     "enabled": true,
     "severity": "ERROR",
-    "messages": {"default": "Kotlin file {file} uses implicit `it` lambda parameter at line {line}; use an explicit name"},
+    "messages": {
+      "default": "Kotlin file {file} uses implicit `it` lambda parameter at line {line}; use an explicit name"
+    },
     "parameters": {
-      "directories": ["docs/harness/gradle-plugin/src/main/kotlin"],
+      "directories": [
+        "docs/harness/gradle-plugin/src/main/kotlin"
+      ],
       "filenameSuffix": ".kt"
     }
   },
-
   "requireSingleTopLevelKotlinDeclaration": {
     "description": "Each Kotlin source file under parameters.directories MUST declare exactly one top-level declaration, and that declaration MUST be one of parameters.allowedDeclarations. Catches accidental top-level val/var/fun declarations.",
     "enabled": true,
     "severity": "ERROR",
-    "messages": {"default": "Kotlin file {file} has multiple top-level declarations or a disallowed declaration kind"},
+    "messages": {
+      "default": "Kotlin file {file} has multiple top-level declarations or a disallowed declaration kind"
+    },
     "parameters": {
-      "directories": ["docs/harness/gradle-plugin/src/main/kotlin"],
+      "directories": [
+        "docs/harness/gradle-plugin/src/main/kotlin"
+      ],
       "filenameSuffix": ".kt",
-      "allowedDeclarations": ["class", "interface", "enum class", "data class", "sealed class", "object", "abstract class"]
+      "allowedDeclarations": [
+        "class",
+        "interface",
+        "enum class",
+        "data class",
+        "sealed class",
+        "object",
+        "abstract class"
+      ]
     }
   },
-
   "seedFiles": {
     "description": "Optional placeholder files the harness installs but the target repository MAY replace, rename, or remove. Not a check.",
-    "paths": ["docs/product-specs/new-user-onboarding.md"]
+    "paths": [
+      "docs/product-specs/new-user-onboarding.md"
+    ]
   },
-
   "generatedArtifacts": {
     "description": "Policy for docs/generated/. Not a check.",
     "path": "docs/generated/",
     "placeholder": "docs/generated/.gitkeep",
     "policy": "Place actual generated repository artifacts here. Do not add fake placeholder files; keep the directory empty with .gitkeep until a real generation step exists.",
-    "metadata": ["source command", "source inputs", "freshness", "regeneration trigger"]
+    "metadata": [
+      "source command",
+      "source inputs",
+      "freshness",
+      "regeneration trigger"
+    ]
   },
-
   "harnessEvolution": {
     "description": "Policy for how the harness evolves. Not a check. The harness is not versioned — the current committed state is the only authoritative shape.",
     "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract; no schemaVersion, no deprecated keys, no compatibility shims."
   },
-
   "teamPatterns": {
     "description": "Catalog of team/agent collaboration patterns this harness recognises. Not a check.",
     "patterns": [
