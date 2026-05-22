@@ -577,23 +577,24 @@ Phase 12에서 처리한 early-return 제거의 후속 정리. guard `if (!cond)
 
 ### [ ] Phase 12e: 단일 사용 지역 변수 inline 처리
 
-한 번만 사용되고 이름이 추가 의미를 더하지 않는 지역 변수는 사용처에 inline. 코드를 짧게 유지하고 잡음을 줄인다.
+한 번만 사용되는 지역 변수는 **가능한 모든 위치에서** 사용처에 inline. 보수적 기준 없음, 적극적으로 정리. 안전 제약(아래)만 지키고 나머지는 inline 후 self-check 통과를 기준으로 한다.
 
-기준:
+안전 제약 (이 경우만 유지):
 
-- 변수의 use site가 1곳이고, 그 use site가 같은 함수 안에 있으며, RHS 표현식이 짧다.
-- 변수 이름이 의미 부여 / 디버깅 편의를 위해 *필요한* 경우는 유지.
-- 부작용(IO, 예외, 카운터 증가)을 가진 표현식은 분리 보존.
-- type widening / explicit type assertion 목적이라면 유지.
+- 부작용을 가진 표현식 (IO, 예외 throw 가능, 외부 상태 변경)을 다중 inline 하면 호출 순서나 횟수가 바뀌어 동작이 달라지는 경우.
+- type widening / explicit type assertion이 의미를 가지는 경우 (제거 시 컴파일러가 좁은 타입으로 추론해 호출이 깨지는 케이스).
+- 디버거 watch point / log 명령에 변수 이름이 직접 등장하는 경우.
 
-- [ ] Task 12e.1 — Kotlin: `val x = computeY(); return x` → `return computeY()`. `val tmp = a.b.c; tmp.doX()` → `a.b.c.doX()`. IDE Inline 사용 또는 수작업.
-- [ ] Task 12e.2 — Java: 동일. `var` / `final` 단일-사용 지역 변수 inline.
-- [ ] Task 12e.3 — Python: 동일. 단, type annotation 보존을 위해 inline 후 변수가 사라지면 RHS 표현식에 type hint를 옮길 수 있는 경우만.
-- [ ] Task 12e.4 — TypeScript: 동일. type inference로 안전하게 inline 가능한 경우만.
+위 제약에 해당하지 않으면 *전부* inline.
 
-전제: Phase 12d(조건 반전) 완료 후 진행 — 반전 과정에서 도입된 임시 boolean도 한 번 쓰는 경우 inline 후보가 됨.
+- [ ] Task 12e.1 — Kotlin: `val x = computeY(); return x` → `return computeY()`. `val tmp = a.b.c; tmp.doX()` → `a.b.c.doX()`. IDE Inline 적극 활용.
+- [ ] Task 12e.2 — Java: `var` / `final` 단일-사용 지역 변수 모두 inline. 람다 안의 임시 변수도 포함.
+- [ ] Task 12e.3 — Python: 동일. type annotation이 의미를 가지면 cast/assert로 옮기고 inline.
+- [ ] Task 12e.4 — TypeScript: 동일. type inference로 안전한 모든 곳 inline. type 좁힘이 필요한 곳은 `as`로 옮기고 inline.
 
-### [ ] Phase 13: Rule class 하위 패키지(rules/) 정리
+전제: Phase 12d(조건 반전) 완료 후 진행. 12d에서 도입된 임시 boolean이 단일 사용이면 그 자리에서 inline.
+
+### [x] Phase 13: Rule class 하위 패키지(rules/) 정리 (commit 448d323)
 
 Rule class를 모아 관리할 전용 하위 네임스페이스를 둠. Python/TS는 Phase 10에서 이미 `rules/` 디렉터리로 분리됨. Kotlin/Java는 단일 패키지에 둔 상태이므로 추가 이동 필요.
 

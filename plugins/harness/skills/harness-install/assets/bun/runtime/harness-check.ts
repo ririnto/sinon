@@ -313,12 +313,9 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const findings: Finding[] = [];
-  for (const { rule } of HARNESS_CHECKS) {
-    if (rule.applies(manifest)) {
-      findings.push(...rule.validate(root, manifest));
-    }
-  }
+  const findings: Finding[] = HARNESS_CHECKS
+    .filter(({ rule }) => rule.applies(manifest))
+    .flatMap(({ rule }) => rule.validate(root, manifest));
 
   if (findings.length === 0) {
     console.log("OK");
@@ -326,12 +323,12 @@ async function main(): Promise<void> {
   }
 
   const grouped = new Map<"ERROR" | "WARN" | "INFO", Finding[]>();
-  for (const finding of findings) {
+  findings.forEach((finding) => {
     if (!grouped.has(finding.severity)) {
       grouped.set(finding.severity, []);
     }
     grouped.get(finding.severity)!.push(finding);
-  }
+  });
 
   const severityOrder = ["ERROR", "WARN", "INFO"] as const;
   for (const severity of severityOrder) {

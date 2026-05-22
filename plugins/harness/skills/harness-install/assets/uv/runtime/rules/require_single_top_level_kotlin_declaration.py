@@ -46,25 +46,19 @@ class RequireSingleTopLevelKotlinDeclarationRule(HarnessCheckRule):
             r"^(class|interface|enum class|data class|sealed class|object|abstract class|val|var|fun|typealias)\b",
             re.MULTILINE,
         )
-        result = []
-        for directory in directories:
-            if not isinstance(directory, str):
-                continue
-            dir_path = root / directory
-            if not is_safe_directory(dir_path):
-                continue
-            for path in safe_walk(dir_path):
-                if path.suffix != ".kt":
-                    continue
-                text = read_text(path)
-                declaration_count = len(top_level_pattern.findall(text))
-                if declaration_count != 1:
-                    result.append(Finding(
-                        severity_for(manifest, self.category),
-                        self.category,
-                        template.format(file=relative(path)),
-                    ))
-        return result
+        return [
+            Finding(
+                severity_for(manifest, self.category),
+                self.category,
+                template.format(file=relative(path)),
+            )
+            for directory in directories
+            if isinstance(directory, str)
+            and is_safe_directory(root / directory)
+            for path in safe_walk(root / directory)
+            if path.suffix == ".kt"
+            and len(top_level_pattern.findall(read_text(path))) != 1
+        ]
 
 
 RULE: HarnessCheckRule = RequireSingleTopLevelKotlinDeclarationRule()

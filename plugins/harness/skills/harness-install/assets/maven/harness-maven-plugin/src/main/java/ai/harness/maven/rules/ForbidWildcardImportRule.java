@@ -38,14 +38,13 @@ public enum ForbidWildcardImportRule implements HarnessCheckRule {
     private List<Finding> validateWildcardImport(Path root, Path file, String severity) {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
-            List<Finding> findings = new java.util.ArrayList<>();
-            cu.getImports().forEach(imp -> {
-                if (imp.isAsterisk()) {
-                    int line = imp.getBegin().map(p -> p.line).orElse(-1);
-                    findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": wildcard import forbidden"));
-                }
-            });
-            return findings;
+            return cu.getImports().stream()
+                    .filter(imp -> imp.isAsterisk())
+                    .map(imp -> {
+                        int line = imp.getBegin().map(p -> p.line).orElse(-1);
+                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": wildcard import forbidden");
+                    })
+                    .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }

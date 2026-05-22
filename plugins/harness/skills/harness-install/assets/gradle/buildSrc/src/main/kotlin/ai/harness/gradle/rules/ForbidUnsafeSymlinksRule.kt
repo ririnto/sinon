@@ -26,11 +26,11 @@ object ForbidUnsafeSymlinksRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "forbidUnsafeSymlinks"
-		val catObj = manifest[category]?.jsonObject ?: return@buildSet
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
-		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
+		val catObj = manifest[category]?.jsonObject ?: return emptyList()
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
 		val allowedPairs = parametersObj["allowedSymlinkPairs"]?.jsonArray?.mapNotNull { pairElem ->
 			val pair = pairElem.jsonArray
 			if (pair.size < 2) null else {
@@ -39,31 +39,24 @@ object ForbidUnsafeSymlinksRule : HarnessCheckRule {
 				a to b
 			}
 		} ?: emptyList()
-
-		val allowed = buildSet<Pair<String, String>> {
-			allowedPairs.forEach { (a, b) ->
-				add(a to b)
-				add(b to a)
+		val allowed = (allowedPairs.flatMap { (a, b) -> listOf(a to b, b to a) }).toSet()
+		val rootFiles = try {
+			root.listDirectoryEntries()
+		} catch (_: Exception) {
+			emptyList()
+		}
+		return rootFiles.filter { it.isSymbolicLink() }.mapNotNull { file ->
+			val target = try {
+				file.readSymbolicLink().toString()
+			} catch (_: Exception) {
+				""
+			}
+			if (file.name to target !in allowed) {
+				val msg = HarnessCheck.Companion.stringFrom(messagesObj, "fileNotAllowed").takeIf { it.isNotEmpty() } ?: "symlink file is not allowed: ${file.relativeTo(root)}"
+				Finding(Severity.ERROR, category, msg)
+			} else {
+				null
 			}
 		}
-
-		return buildSet<Finding> {
-			val rootFiles = try {
-				root.listDirectoryEntries()
-			} catch (_: Exception) {
-				emptyList()
-			}
-			rootFiles.filter { it.isSymbolicLink() }.forEach { file ->
-				val target = try {
-					file.readSymbolicLink().toString()
-				} catch (_: Exception) {
-					""
-				}
-				if (file.name to target !in allowed) {
-					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "fileNotAllowed").takeIf { it.isNotEmpty() } ?: "symlink file is not allowed: ${file.relativeTo(root)}"
-					add(Finding(Severity.ERROR, category, msg))
-				}
-			}
-		}.toList()
 	}
 }

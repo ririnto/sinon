@@ -40,24 +40,23 @@ public enum ForbidEarlyReturnRule implements HarnessCheckRule {
     private List<Finding> validateEarlyReturn(Path root, Path file, String severity) {
         try {
             CompilationUnit cu = StaticJavaParser.parse(file);
-            List<Finding> findings = new java.util.ArrayList<>();
-            cu.walk(MethodDeclaration.class, method -> {
-                method.getBody().ifPresent(body -> {
-                    List<ReturnStmt> returnStmts = new java.util.ArrayList<>();
-                    body.walk(ReturnStmt.class, returnStmts::add);
-                    if (!returnStmts.isEmpty()) {
-                        ReturnStmt lastReturn = returnStmts.get(returnStmts.size() - 1);
-                        List<ReturnStmt> nonLastReturns = returnStmts.stream()
-                                .filter(ret -> !ret.equals(lastReturn))
-                                .toList();
-                        for (ReturnStmt ret : nonLastReturns) {
-                            int line = ret.getBegin().map(p -> p.line).orElse(-1);
-                            findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": early return in function"));
-                        }
-                    }
-                });
-            });
-            return findings;
+            return cu.findAll(MethodDeclaration.class).stream()
+                    .flatMap(method -> method.getBody()
+                            .map(body -> {
+                                List<ReturnStmt> returnStmts = body.findAll(ReturnStmt.class);
+                                if (returnStmts.isEmpty()) {
+                                    return java.util.stream.Stream.<Finding>empty();
+                                }
+                                ReturnStmt lastReturn = returnStmts.get(returnStmts.size() - 1);
+                                return returnStmts.stream()
+                                        .filter(ret -> !ret.equals(lastReturn))
+                                        .map(ret -> {
+                                            int line = ret.getBegin().map(p -> p.line).orElse(-1);
+                                            return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": early return in function");
+                                        });
+                            })
+                            .orElse(java.util.stream.Stream.<Finding>empty()))
+                    .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }
