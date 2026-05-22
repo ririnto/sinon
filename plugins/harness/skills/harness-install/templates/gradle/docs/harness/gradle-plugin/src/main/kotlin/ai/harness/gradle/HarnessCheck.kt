@@ -20,7 +20,9 @@ enum class HarnessCheck {
 		override val category = "requireFilesExist"
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
-			val paths = stringArrayFrom(manifest[category]?.jsonObject, "paths")
+			val catObj = manifest[category]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val paths = stringArrayFrom(parametersObj, "paths")
 			return buildSet<Finding> {
 				paths.forEach { path ->
 					val p = java.io.File(root, path)
@@ -36,7 +38,9 @@ enum class HarnessCheck {
 		override val category = "requireDirectoriesExist"
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
-			val paths = stringArrayFrom(manifest[category]?.jsonObject, "paths")
+			val catObj = manifest[category]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val paths = stringArrayFrom(parametersObj, "paths")
 			return buildSet<Finding> {
 				paths.forEach { path ->
 					val p = java.io.File(root, path)
@@ -52,7 +56,9 @@ enum class HarnessCheck {
 		override val category = "requireKeepfileInEmptyDirectories"
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
-			val directories = stringArrayFrom(manifest[category]?.jsonObject, "directories")
+			val catObj = manifest[category]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val directories = stringArrayFrom(parametersObj, "directories")
 			return buildSet<Finding> {
 				directories.forEach { dirPath ->
 					val dir = java.io.File(root, dirPath)
@@ -69,9 +75,10 @@ enum class HarnessCheck {
 		override val category = "requireTemplateGroups"
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
-			val catObj = manifest[category]?.jsonObject
-			val targetRoot = stringFrom(catObj, "targetRoot")
-			val groups = stringArrayFrom(catObj, "groups")
+			val catObj = manifest[category]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val targetRoot = stringFrom(parametersObj, "targetRoot")
+			val groups = stringArrayFrom(parametersObj, "groups")
 			return buildSet<Finding> {
 				groups.forEach { group ->
 					val p = java.io.File(root, "$targetRoot/$group")
@@ -88,12 +95,13 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val sourceCategory = stringFrom(catObj, "sourceFilesFromCategory")
-			val sourceFiles = stringArrayFrom(manifest[sourceCategory]?.jsonObject, "paths")
-			val filterObj = catObj["sourceFilter"]?.jsonObject
-			val prefix = stringFrom(filterObj, "prefix")
-			val suffix = stringFrom(filterObj, "suffix")
-			val headings = stringArrayFrom(catObj, "headings")
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val sourceCategory = stringFrom(parametersObj, "sourceFilesFromCategory")
+			val sourceFiles = stringArrayFrom(manifest[sourceCategory]?.jsonObject?.get("parameters")?.jsonObject, "paths")
+			val sourceFilterObj = parametersObj["sourceFilter"]?.jsonObject
+			val prefix = stringFrom(sourceFilterObj, "prefix")
+			val suffix = stringFrom(sourceFilterObj, "suffix")
+			val headings = stringArrayFrom(parametersObj, "headings")
 
 			val filtered = sourceFiles.filter { it.startsWith(prefix) && it.endsWith(suffix) }
 			return buildSet<Finding> {
@@ -113,7 +121,8 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val checks = catObj["checks"]?.jsonArray ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val checks = parametersObj["checks"]?.jsonArray ?: return emptyList()
 
 			return buildSet<Finding> {
 				checks.forEach { checkElem ->
@@ -136,29 +145,36 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val directory = stringFrom(catObj, "directory")
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val directory = stringFrom(parametersObj, "directory")
 			val dirPath = java.io.File(root, directory)
 
 			if (!dirPath.isDirectory) {
-				return listOf(Finding(severity, category, ".claude/agents must contain at least one .md agent"))
+				val msg = stringFrom(messagesObj, "missingDirectory").takeIf { it.isNotEmpty() } ?: ".claude/agents must contain at least one .md agent"
+				return listOf(Finding(severity, category, msg))
 			}
 
 			val files = dirPath.listFiles().orEmpty().filter { it.isFile && it.extension == "md" }
 			if (files.isEmpty()) {
-				return listOf(Finding(severity, category, ".claude/agents must contain at least one .md agent"))
+				val msg = stringFrom(messagesObj, "missingAgent").takeIf { it.isNotEmpty() } ?: ".claude/agents must contain at least one .md agent"
+				return listOf(Finding(severity, category, msg))
 			}
 
 			return buildSet<Finding> {
 				files.forEach { file ->
 					val text = file.readText()
 					if (!text.startsWith("---")) {
-						add(Finding(severity, category, "agent missing frontmatter: ${file.relativeTo(root)}"))
+						val msg = stringFrom(messagesObj, "missingFrontmatter").takeIf { it.isNotEmpty() } ?: "agent missing frontmatter: ${file.relativeTo(root)}"
+						add(Finding(severity, category, msg))
 					} else {
 						if (!"""(?m)^name:\s*[-a-z0-9]+\s*$""".toRegex().containsMatchIn(text)) {
-							add(Finding(severity, category, "agent missing name: ${file.relativeTo(root)}"))
+							val msg = stringFrom(messagesObj, "missingName").takeIf { it.isNotEmpty() } ?: "agent missing name: ${file.relativeTo(root)}"
+							add(Finding(severity, category, msg))
 						}
 						if (!"""(?m)^description:\s*.+$""".toRegex().containsMatchIn(text)) {
-							add(Finding(severity, category, "agent missing description: ${file.relativeTo(root)}"))
+							val msg = stringFrom(messagesObj, "missingDescription").takeIf { it.isNotEmpty() } ?: "agent missing description: ${file.relativeTo(root)}"
+							add(Finding(severity, category, msg))
 						}
 					}
 				}
@@ -170,27 +186,33 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val rootDirectory = stringFrom(catObj, "rootDirectory")
-			val filename = stringFrom(catObj, "filename")
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val rootDirectory = stringFrom(parametersObj, "rootDirectory")
+			val filename = stringFrom(parametersObj, "filename")
 
 			val dirPath = java.io.File(root, rootDirectory)
 			if (!dirPath.isDirectory) {
-				return listOf(Finding(severity, category, ".claude/skills must contain at least one SKILL.md"))
+				val msg = stringFrom(messagesObj, "missingDirectory").takeIf { it.isNotEmpty() } ?: ".claude/skills must contain at least one SKILL.md"
+				return listOf(Finding(severity, category, msg))
 			}
 
 			val files = dirPath.walk().filter { it.isFile && it.name == filename }.toList()
 			if (files.isEmpty()) {
-				return listOf(Finding(severity, category, ".claude/skills must contain at least one SKILL.md"))
+				val msg = stringFrom(messagesObj, "missingSkill").takeIf { it.isNotEmpty() } ?: ".claude/skills must contain at least one SKILL.md"
+				return listOf(Finding(severity, category, msg))
 			}
 
 			return buildSet<Finding> {
 				files.forEach { file ->
 					val text = file.readText()
 					if (!text.startsWith("---")) {
-						add(Finding(severity, category, "skill missing frontmatter: ${file.relativeTo(root)}"))
+						val msg = stringFrom(messagesObj, "missingFrontmatter").takeIf { it.isNotEmpty() } ?: "skill missing frontmatter: ${file.relativeTo(root)}"
+						add(Finding(severity, category, msg))
 					} else {
 						if (!"""(?m)^description:\s*.+$""".toRegex().containsMatchIn(text)) {
-							add(Finding(severity, category, "skill missing description: ${file.relativeTo(root)}"))
+							val msg = stringFrom(messagesObj, "missingDescription").takeIf { it.isNotEmpty() } ?: "skill missing description: ${file.relativeTo(root)}"
+							add(Finding(severity, category, msg))
 						}
 					}
 				}
@@ -202,11 +224,13 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val scopeObj = catObj["scope"]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val scopeObj = parametersObj["scope"]?.jsonObject ?: return emptyList()
 			val bases = stringArrayFrom(scopeObj, "bases")
 			val excludedSubtrees = stringArrayFrom(scopeObj, "excludedSubtrees")
 			val extensions = stringArrayFrom(scopeObj, "extensions")
-			val patterns = catObj["patterns"]?.jsonArray?.mapNotNull { patternElem ->
+			val patterns = parametersObj["patterns"]?.jsonArray?.mapNotNull { patternElem ->
 				val obj = patternElem.jsonObject
 				val pattern = stringFrom(obj, "pattern")
 				val label = stringFrom(obj, "label")
@@ -232,7 +256,8 @@ enum class HarnessCheck {
 							val text = file.readText()
 							regexes.forEach { (regex, label) ->
 								if (regex.containsMatchIn(text)) {
-									add(Finding(severity, category, "$label in active asset: ${file.relativeTo(root)}"))
+									val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$label in active asset: ${file.relativeTo(root)}"
+									add(Finding(severity, category, msg))
 								}
 							}
 						}
@@ -246,8 +271,10 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val hooks = stringArrayFrom(catObj, "hooks")
-			val expectedShebang = stringFrom(catObj, "expectedShebang")
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val hooks = stringArrayFrom(parametersObj, "hooks")
+			val expectedShebang = stringFrom(parametersObj, "expectedShebang")
 
 			return buildSet<Finding> {
 				hooks.forEach { hookPath ->
@@ -255,7 +282,8 @@ enum class HarnessCheck {
 					if (hook.isFile) {
 						val first = hook.readLines().firstOrNull() ?: ""
 						if (first != expectedShebang) {
-							add(Finding(severity, category, "$hookPath must start with $expectedShebang"))
+							val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must start with $expectedShebang"
+							add(Finding(severity, category, msg))
 						}
 					}
 				}
@@ -267,13 +295,16 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val hooks = stringArrayFrom(catObj, "hooks")
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val hooks = stringArrayFrom(parametersObj, "hooks")
 
 			return buildSet<Finding> {
 				hooks.forEach { hookPath ->
 					val hook = java.io.File(root, hookPath)
 					if (hook.isFile && !hook.toPath().isExecutable()) {
-						add(Finding(severity, category, "$hookPath must be executable"))
+						val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must be executable"
+						add(Finding(severity, category, msg))
 					}
 				}
 			}.toList()
@@ -284,9 +315,11 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val hooks = stringArrayFrom(catObj, "hooks")
-			val markerTemplate = stringFrom(catObj, "markerTemplate")
-			val placeholderForbidden = stringFrom(catObj, "placeholderForbidden")
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val hooks = stringArrayFrom(parametersObj, "hooks")
+			val markerTemplate = stringFrom(parametersObj, "markerTemplate")
+			val placeholderForbidden = stringFrom(parametersObj, "placeholderForbidden")
 
 			return buildSet<Finding> {
 				hooks.forEach { hookPath ->
@@ -295,10 +328,12 @@ enum class HarnessCheck {
 						val text = hook.readText()
 						val marker = markerTemplate.replace("{name}", hook.name)
 						if (!text.contains(marker)) {
-							add(Finding(severity, category, "$hookPath must contain generated marker '$marker'"))
+							val msg = stringFrom(messagesObj, "missingMarker").takeIf { it.isNotEmpty() } ?: "$hookPath must contain generated marker '$marker'"
+							add(Finding(severity, category, msg))
 						}
 						if (text.contains(placeholderForbidden)) {
-							add(Finding(severity, category, "$hookPath still contains packaging placeholder text"))
+							val msg = stringFrom(messagesObj, "placeholderPresent").takeIf { it.isNotEmpty() } ?: "$hookPath still contains packaging placeholder text"
+							add(Finding(severity, category, msg))
 						}
 					}
 				}
@@ -310,8 +345,10 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val markerTemplate = stringFrom(catObj, "markerTemplate")
-			val stagesObj = catObj["stages"]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val markerTemplate = stringFrom(parametersObj, "markerTemplate")
+			val stagesObj = parametersObj["stages"]?.jsonObject ?: return emptyList()
 			val gradleStages = stagesObj["gradle"]?.jsonObject ?: return emptyList()
 			val preCommitStage = stringFrom(gradleStages, "pre-commit")
 			val prePushStage = stringFrom(gradleStages, "pre-push")
@@ -321,7 +358,8 @@ enum class HarnessCheck {
 				if (preCommitHook.isFile) {
 					val marker = markerTemplate.replace("{stage}", preCommitStage)
 					if (!preCommitHook.readText().contains(marker)) {
-						add(Finding(severity, category, "pre-commit must contain stage marker '$marker'"))
+						val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "pre-commit must contain stage marker '$marker'"
+						add(Finding(severity, category, msg))
 					}
 				}
 
@@ -329,7 +367,8 @@ enum class HarnessCheck {
 				if (prePushHook.isFile) {
 					val marker = markerTemplate.replace("{stage}", prePushStage)
 					if (!prePushHook.readText().contains(marker)) {
-						add(Finding(severity, category, "pre-push must contain stage marker '$marker'"))
+						val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "pre-push must contain stage marker '$marker'"
+						add(Finding(severity, category, msg))
 					}
 				}
 			}.toList()
@@ -340,12 +379,14 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val allowedCmdObj = catObj["allowedCommands"]?.jsonObject
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val allowedCmdObj = parametersObj["allowedCommands"]?.jsonObject
 			val allowedCmds = stringArrayFrom(allowedCmdObj, "gradle")
-			val allowedPreCommitCmdObj = catObj["allowedPreCommitCommands"]?.jsonObject
+			val allowedPreCommitCmdObj = parametersObj["allowedPreCommitCommands"]?.jsonObject
 			val allowedPreCommitCmds = stringArrayFrom(allowedPreCommitCmdObj, "gradle")
-			val prePushPath = stringFrom(catObj, "prePushHook")
-			val preCommitPath = stringFrom(catObj, "preCommitHook")
+			val prePushPath = stringFrom(parametersObj, "prePushHook")
+			val preCommitPath = stringFrom(parametersObj, "preCommitHook")
 
 			return buildSet<Finding> {
 				val prePushHook = java.io.File(root, prePushPath)
@@ -353,9 +394,18 @@ enum class HarnessCheck {
 					val text = prePushHook.readText()
 					val command = text.lineSequence().firstOrNull { it.startsWith("# Harness validation command: ") }?.removePrefix("# Harness validation command: ")?.trim() ?: ""
 					when {
-						command.isEmpty() -> add(Finding(severity, category, "pre-push hook must declare Harness validation command"))
-						command !in allowedCmds -> add(Finding(severity, category, "pre-push hook declares unsupported validation command: $command"))
-						!text.contains(command) -> add(Finding(severity, category, "pre-push hook must run the declared validation command"))
+						command.isEmpty() -> {
+							val msg = stringFrom(messagesObj, "missingDeclaration").takeIf { it.isNotEmpty() } ?: "pre-push hook must declare Harness validation command"
+							add(Finding(severity, category, msg))
+						}
+						command !in allowedCmds -> {
+							val msg = stringFrom(messagesObj, "unsupportedCommand").takeIf { it.isNotEmpty() } ?: "pre-push hook declares unsupported validation command: $command"
+							add(Finding(severity, category, msg))
+						}
+						!text.contains(command) -> {
+							val msg = stringFrom(messagesObj, "commandNotRun").takeIf { it.isNotEmpty() } ?: "pre-push hook must run the declared validation command"
+							add(Finding(severity, category, msg))
+						}
 					}
 				}
 
@@ -364,9 +414,18 @@ enum class HarnessCheck {
 					val text = preCommitHook.readText()
 					val command = text.lineSequence().firstOrNull { it.startsWith("# Harness validation command: ") }?.removePrefix("# Harness validation command: ")?.trim() ?: ""
 					when {
-						command.isEmpty() && allowedPreCommitCmds.isNotEmpty() -> add(Finding(severity, category, "pre-commit hook must declare validation command"))
-						command.isNotEmpty() && command !in allowedPreCommitCmds -> add(Finding(severity, category, "pre-commit hook declares unsupported validation command: $command"))
-						command.isNotEmpty() && !text.contains(command) -> add(Finding(severity, category, "pre-commit hook must run the declared validation command"))
+						command.isEmpty() && allowedPreCommitCmds.isNotEmpty() -> {
+							val msg = stringFrom(messagesObj, "missingDeclaration").takeIf { it.isNotEmpty() } ?: "pre-commit hook must declare validation command"
+							add(Finding(severity, category, msg))
+						}
+						command.isNotEmpty() && command !in allowedPreCommitCmds -> {
+							val msg = stringFrom(messagesObj, "unsupportedCommand").takeIf { it.isNotEmpty() } ?: "pre-commit hook declares unsupported validation command: $command"
+							add(Finding(severity, category, msg))
+						}
+						command.isNotEmpty() && !text.contains(command) -> {
+							val msg = stringFrom(messagesObj, "commandNotRun").takeIf { it.isNotEmpty() } ?: "pre-commit hook must run the declared validation command"
+							add(Finding(severity, category, msg))
+						}
 					}
 				}
 			}.toList()
@@ -377,8 +436,10 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val ciFiles = stringArrayFrom(catObj, "ciFiles")
-			val referenceHookPath = stringFrom(catObj, "referenceHook")
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val ciFiles = stringArrayFrom(parametersObj, "ciFiles")
+			val referenceHookPath = stringFrom(parametersObj, "referenceHook")
 
 			val referenceHook = java.io.File(root, referenceHookPath)
 			val command = if (referenceHook.isFile) {
@@ -393,7 +454,8 @@ enum class HarnessCheck {
 				ciFiles.forEach { ciFile ->
 					val ciPath = java.io.File(root, ciFile)
 					if (ciPath.isFile && !ciPath.readText().contains(command)) {
-						add(Finding(severity, category, "$ciFile: CI command mismatch — expected $command"))
+						val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$ciFile: CI command mismatch — expected $command"
+						add(Finding(severity, category, msg))
 					}
 				}
 			}.toList()
@@ -404,8 +466,10 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val directories = stringArrayFrom(catObj, "directories")
-			val expectedPrefix = stringFrom(catObj, "expectedPrefix")
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val directories = stringArrayFrom(parametersObj, "directories")
+			val expectedPrefix = stringFrom(parametersObj, "expectedPrefix")
 
 			return buildSet<Finding> {
 				directories.forEach { dirPath ->
@@ -416,7 +480,8 @@ enum class HarnessCheck {
 					files.filter { it.toPath().isExecutable() }.forEach { file ->
 						val firstLine = file.readLines().firstOrNull() ?: ""
 						if (firstLine.startsWith("#!") && !firstLine.startsWith(expectedPrefix)) {
-							add(Finding(severity, category, "executable script should use /usr/bin/env shebang: ${file.relativeTo(root)}"))
+							val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "executable script should use /usr/bin/env shebang: ${file.relativeTo(root)}"
+							add(Finding(severity, category, msg))
 						}
 					}
 				}
@@ -428,8 +493,10 @@ enum class HarnessCheck {
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val directory = stringFrom(catObj, "directory")
-			val uncheckedTaskPattern = stringFrom(catObj, "uncheckedTaskPattern")
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val directory = stringFrom(parametersObj, "directory")
+			val uncheckedTaskPattern = stringFrom(parametersObj, "uncheckedTaskPattern")
 
 			val dirPath = java.io.File(root, directory)
 			if (!dirPath.isDirectory) return emptyList()
@@ -444,7 +511,8 @@ enum class HarnessCheck {
 			return buildSet<Finding> {
 				files.filter { it.name.endsWith(".md") }.forEach { file ->
 					if (pattern.containsMatchIn(file.readText())) {
-						add(Finding(severity, category, "completed plan has unchecked tasks: ${file.relativeTo(root)}"))
+						val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "completed plan has unchecked tasks: ${file.relativeTo(root)}"
+						add(Finding(severity, category, msg))
 					}
 				}
 			}.toList()
@@ -454,7 +522,9 @@ enum class HarnessCheck {
 		override val category = "forbidUnsafeSymlinks"
 		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
-			val allowedPairs = catObj["allowedSymlinkPairs"]?.jsonArray?.mapNotNull { pairElem ->
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val allowedPairs = parametersObj["allowedSymlinkPairs"]?.jsonArray?.mapNotNull { pairElem ->
 				val pair = pairElem.jsonArray
 				if (pair.size < 2) null else {
 					val a = pair[0].jsonPrimitive.contentOrNull ?: return@mapNotNull null
@@ -479,7 +549,69 @@ enum class HarnessCheck {
 						""
 					}
 					if (file.name to target !in allowed) {
-						add(Finding(Severity.ERROR, category, "symlink file is not allowed: ${file.relativeTo(root)}"))
+						val msg = stringFrom(messagesObj, "fileNotAllowed").takeIf { it.isNotEmpty() } ?: "symlink file is not allowed: ${file.relativeTo(root)}"
+						add(Finding(Severity.ERROR, category, msg))
+					}
+				}
+			}.toList()
+		}
+	},
+	FORBID_IMPLICIT_LAMBDA_IT {
+		override val category = "forbidImplicitLambdaIt"
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+			val severity = severityOf(manifest, category)
+			val catObj = manifest[category]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val directories = stringArrayFrom(parametersObj, "directories")
+			val filenameSuffix = stringFrom(parametersObj, "filenameSuffix")
+
+			return buildSet<Finding> {
+				directories.forEach { dirPath ->
+					val dir = java.io.File(root, dirPath)
+					if (!dir.isDirectory) return@forEach
+
+					val (files, _) = walkSafe(root, dir)
+					files.filter { it.name.endsWith(filenameSuffix) }.forEach { file ->
+						val content = file.readText()
+						if (content.contains(Regex("""\{\s*it\s*->""))) {
+							val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "implicit lambda parameter 'it' is forbidden: ${file.relativeTo(root)}"
+							add(Finding(severity, category, msg))
+						}
+					}
+				}
+			}.toList()
+		}
+	},
+	REQUIRE_SINGLE_TOP_LEVEL_KOTLIN_DECLARATION {
+		override val category = "requireSingleTopLevelKotlinDeclaration"
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
+			val severity = severityOf(manifest, category)
+			val catObj = manifest[category]?.jsonObject ?: return emptyList()
+			val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+			val messagesObj = catObj["messages"]?.jsonObject ?: emptyMap<String, Any>()
+			val directories = stringArrayFrom(parametersObj, "directories")
+			val filenameSuffix = stringFrom(parametersObj, "filenameSuffix")
+			val allowedDeclarations = stringArrayFrom(parametersObj, "allowedDeclarations")
+
+			return buildSet<Finding> {
+				directories.forEach { dirPath ->
+					val dir = java.io.File(root, dirPath)
+					if (!dir.isDirectory) return@forEach
+
+					val (files, _) = walkSafe(root, dir)
+					files.filter { it.name.endsWith(filenameSuffix) }.forEach { file ->
+						val content = file.readText()
+						val declCount = allowedDeclarations.sumOf { decl ->
+							content.split("\n").count { line ->
+								val trimmed = line.trim()
+								trimmed.startsWith(decl) && !trimmed.startsWith("//") && !trimmed.startsWith("/*")
+							}
+						}
+						if (declCount > 1) {
+							val msg = stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "file must have single top-level declaration: ${file.relativeTo(root)}"
+							add(Finding(severity, category, msg))
+						}
 					}
 				}
 			}.toList()
@@ -490,7 +622,11 @@ enum class HarnessCheck {
 	abstract val category: String
 	abstract fun validate(manifest: JsonObject, root: java.io.File): List<Finding>
 
-	fun applies(manifest: JsonObject) = category in manifest
+	fun applies(manifest: JsonObject): Boolean {
+		val catObj = manifest[category]?.jsonObject ?: return false
+		val enabled = catObj["enabled"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: true
+		return enabled
+	}
 
 	private companion object {
 		fun severityOf(manifest: JsonObject, category: String): Severity {

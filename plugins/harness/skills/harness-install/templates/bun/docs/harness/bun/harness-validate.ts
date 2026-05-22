@@ -33,6 +33,19 @@ function main(): void {
     process.exit(1);
   }
 
+  const knownCategories = new Set<string>(HARNESS_CHECKS.map((c) => c.category));
+  const knownMetadata = new Set<string>(["name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns"]);
+
+  const unknownKeyFindings = Object.keys(manifest)
+    .filter((key) => !knownCategories.has(key) && !knownMetadata.has(key))
+    .map((key) => ({
+      severity: "WARN" as const,
+      category: "manifest-structure",
+      message: `unknown manifest key: ${key}`,
+    }));
+
+  unknownKeyFindings.forEach((f) => console.warn(`[WARN] ${f.message}`));
+
   const allFindings = HARNESS_CHECKS.filter((check) => check.applies(manifest)).flatMap((check) =>
     check.validate(root, manifest)
   );
@@ -46,8 +59,8 @@ function main(): void {
   const infos = uniqueFindings.filter((f) => f.severity === "INFO");
 
   errors.forEach((e) => console.error(`[ERROR] ${e.message}`));
-  warnings.forEach((w) => console.error(`[WARN] ${w.message}`));
-  infos.forEach((i) => console.error(`[INFO] ${i.message}`));
+  warnings.forEach((w) => console.warn(`[WARN] ${w.message}`));
+  infos.forEach((i) => console.info(`[INFO] ${i.message}`));
 
   if (errors.length > 0) {
     console.error("Harness validation failed");

@@ -11,9 +11,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Maven goal that validates installed Claude repository harness assets.
@@ -40,6 +43,15 @@ public final class HarnessValidateMojo extends AbstractMojo {
             }
         }
 
+        Set<String> knownCategories = Arrays.stream(HarnessCheck.values())
+                .map(HarnessCheck::category)
+                .collect(Collectors.toUnmodifiableSet());
+        Set<String> knownMetadataKeys = Set.of("name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns");
+
+        Stream.of(manifest.fieldNames().spliterator(), false)
+                .filter(key -> !knownCategories.contains(key) && !knownMetadataKeys.contains(key))
+                .forEach(key -> getLog().warn("unknown manifest key: " + key));
+
         List<Finding> sorted = allFindings.stream()
                 .sorted((a, b) -> {
                     int severityOrder = severityRank(b.severity()) - severityRank(a.severity());
@@ -48,7 +60,13 @@ public final class HarnessValidateMojo extends AbstractMojo {
                 .toList();
 
         for (Finding finding : sorted) {
-            System.err.println("[" + finding.severity() + "] " + finding.message());
+            if ("ERROR".equals(finding.severity())) {
+                getLog().error("[ERROR] " + finding.message());
+            } else if ("WARN".equals(finding.severity())) {
+                getLog().warn("[WARN] " + finding.message());
+            } else {
+                getLog().info("[INFO] " + finding.message());
+            }
         }
 
         long errorCount = sorted.stream().filter(f -> f.severity().equals("ERROR")).count();

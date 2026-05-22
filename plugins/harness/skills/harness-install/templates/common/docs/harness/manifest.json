@@ -23,7 +23,8 @@
         "docs/RELIABILITY.md",
         "docs/SECURITY.md",
         "docs/harness/git-hooks/pre-commit",
-        "docs/harness/git-hooks/pre-push"
+        "docs/harness/git-hooks/pre-push",
+        "WORKFLOW.md"
       ]
     }
   },
