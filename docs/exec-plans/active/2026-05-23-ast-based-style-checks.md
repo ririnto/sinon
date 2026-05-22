@@ -546,7 +546,7 @@ enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단�
 
 전제: Phase 10 nested Result 이동 commit 후 진행.
 
-### [ ] Phase 12c: 컬렉션 빌더 패턴 → filter/map 체이닝 단순화
+### [x] Phase 12c: 컬렉션 빌더 패턴 → filter/map 체이닝 단순화 (commit 5ffa96b)
 
 `mapNotNull`, `buildSet { forEach { ... ; if (cond) add(x) } }.toList()`, `buildList { items.forEach { if (cond) add(transform(it)) } }` 같은 명령형 빌더 패턴은 대부분 `.filter { ... }.map { ... }` 체이닝으로 직접 전환 가능. 선언적 표현으로 단순화.
 
