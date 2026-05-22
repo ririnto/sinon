@@ -36,6 +36,11 @@ description: |-
   </example>
 model: sonnet
 color: blue
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Skill
 ---
 # harness-architect
 
