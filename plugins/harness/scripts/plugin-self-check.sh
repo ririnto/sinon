@@ -706,7 +706,7 @@ for text in 'example-' 'Describe ' 'Describe...' 'TODO' 'TBD' 'replace-with-stac
     template_root_files=$(package_files "$template_root")
     for path in $(printf '%s\n' "$template_root_files" | grep -F -v '.tmpl'); do
       case "$path" in
-        */harness_validate.py|*/harness-validate.ts|*/HarnessValidationPlugin.kt|*/HarnessValidateMojo.java)
+        */harness_validate.py|*/harness-validate.ts|*/HarnessValidationPlugin.kt|*/HarnessValidateMojo.java|*/manifest.json)
           continue
           ;;
       esac

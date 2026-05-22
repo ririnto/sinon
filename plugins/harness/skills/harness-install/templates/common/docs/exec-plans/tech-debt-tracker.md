@@ -1,14 +1,14 @@
 # Tech Debt Tracker
 
-Track deferred work, owner, impact, retirement criteria, and validation evidence in one place so agents and reviewers can see the standing balance.
+Track consciously deferred work in one place so the standing balance of *postponed* work is visible. Each row MUST name what was deferred, why, who owns it, what condition retires it, and how that retirement is validated.
 
 ## Purpose
 
-Make deferred work visible and retirable. Each row MUST name what was deferred, why, who owns it, what condition retires it, and how the retirement is validated.
+Make deferred work visible and retirable. This is distinct from `docs/PLANS.md`, which tracks work that is *in flight*; this file tracks work that was *intentionally postponed* and the conditions that close it out.
 
 ## When To Update
 
-Update when a piece of work is deferred (not just postponed), when an owner changes, when impact grows or shrinks, or when the retirement condition is met.
+Update when a piece of work is consciously deferred (not merely paused), when an owner changes, when impact grows or shrinks, or when the retirement condition is met.
 
 ## Required Evidence
 
