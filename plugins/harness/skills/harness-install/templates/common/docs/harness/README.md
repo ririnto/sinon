@@ -7,7 +7,7 @@ This directory contains versioned harness assets used by local agents and CI val
 | Path | Purpose |
 | --- | --- |
 | `AGENTS.md` | Primary repository harness contract |
-| `CLAUDE.md` | Claude Code entry point that references `AGENTS.md` |
+| `CLAUDE.md` | Entry-point alias of `AGENTS.md` for agent runtimes that load `CLAUDE.md` |
 | `ARCHITECTURE.md` | System architecture, boundaries, data flow, and validation surface |
 | `docs/exec-plans/active/` | Contains active execution plans, or `.gitkeep` until active plans exist |
 | `docs/exec-plans/completed/` | Contains completed execution plans, or `.gitkeep` until completed plans exist |
