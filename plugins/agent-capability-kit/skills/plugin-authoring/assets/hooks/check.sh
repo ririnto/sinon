@@ -1,9 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+
 # Secret file blocker hook.
 #
 # @exit Exits with status 2 if payload contains secret file references.
 # @exit Exits with status 0 otherwise.
-set -eu
 payload="$(cat)"
 case "$payload" in
   *'".env"'*|*'"credentials.json"'*|*'"secrets"'*)
@@ -11,5 +13,4 @@ case "$payload" in
     exit 2
     ;;
 esac
-
 exit 0
