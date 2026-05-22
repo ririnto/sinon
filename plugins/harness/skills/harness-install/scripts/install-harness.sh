@@ -286,7 +286,7 @@ ensure_shared_root_contract() {
   if [ -e "$file" ] && grep -Fq '# Repository Harness Contract' "$file"; then
     has_agents=1
   fi
-  if [ -e "$file" ] && grep -Fq '# Claude Code Entry Point' "$file"; then
+  if [ -e "$file" ] && grep -Fq '## Claude Code Entry Point' "$file"; then
     has_claude=1
   fi
   if [ "$has_agents" -eq 1 ] && [ "$has_claude" -eq 1 ]; then
@@ -306,7 +306,7 @@ ensure_shared_root_contract() {
     fi
     cat "$template_dir/common/AGENTS.md" >> "$tmp"
   fi
-  if [ "$has_claude" -ne 1 ] && grep -Fq '# Claude Code Entry Point' "$tmp"; then
+  if [ "$has_claude" -ne 1 ] && grep -Fq '## Claude Code Entry Point' "$tmp"; then
     has_claude=1
   fi
   if [ "$has_agents" -ne 1 ] && grep -Fq '# Repository Harness Contract' "$tmp"; then

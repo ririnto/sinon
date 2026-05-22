@@ -1,12 +1,26 @@
 # Repository Harness Contract
 
-This repository uses a versioned harness so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution.
+This repository uses a versioned harness so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution. The canonical pattern is `AGENTS.md` as a symlink to `CLAUDE.md` (or vice versa) so both filenames resolve to this single document.
+
+## Claude Code Entry Point
+
+Claude Code MUST treat this document as the primary Repository Harness Contract. Before making changes, read:
+
+1. `AGENTS.md` (this document; also resolvable as `CLAUDE.md`)
+2. `ARCHITECTURE.md`
+3. The relevant file under `docs/**` for the task domain
+
+Validation MUST use the stack-specific command documented in `docs/harness/README.md`.
+
+`docs/generated/` is for generated repository artifacts. It MAY be empty and retained by `.gitkeep` until generated outputs exist. `docs/generated/db-schema.md` is only an example of a possible generated artifact and MUST NOT be treated as a required file.
+
+Harness changes MAY be made during development when the current harness no longer matches project reality. Such changes MUST be committed as versioned files and validated before merge.
 
 ## Invariants
 
 - The repository MUST keep agent instructions, skills, templates, documentation structure, and validation adapters in versioned files.
 - `AGENTS.md` MUST be the primary repository harness contract for coding agents.
-- `CLAUDE.md` MUST remain a Claude Code entry point and MUST refer to `AGENTS.md`. The canonical pattern is `AGENTS.md` as a symlink to `CLAUDE.md` (or vice versa) so both names resolve to one document.
+- `CLAUDE.md` MUST remain a Claude Code entry point and MUST refer to `AGENTS.md`.
 - `ARCHITECTURE.md` MUST describe system boundaries, major components, data flow, and validation surfaces.
 - `.claude/agents/` MUST contain specialized project agents with `name` and `description` frontmatter.
 - `.claude/skills/*/SKILL.md` MUST contain focused procedures with `description` frontmatter.
@@ -18,6 +32,7 @@ This repository uses a versioned harness so coding agents can work from stable p
 - `docs/harness/git-hooks/pre-commit` MUST follow the stack-specific intermediate gate: Gradle runs `harnessValidate`, and non-Gradle stacks run lightweight harness-rule compliance.
 - `docs/harness/git-hooks/pre-push` SHOULD run the same final check command used by CI; for Gradle this is `check`.
 - CI SHOULD run the same final check command used by generated pre-push.
+- Active execution plans MUST live under `docs/exec-plans/active/` with filenames of the form `yyyy-MM-dd-<slug>.md`. When all tasks are checked, the file MUST move to `docs/exec-plans/completed/` without renaming. Plans in `docs/exec-plans/completed/` MUST NOT contain any unchecked `- [ ]` task lines.
 
 ## Required Repository Structure
 
@@ -94,19 +109,3 @@ Run the stack-specific harness validation command before merging changes that al
 - `docs/harness/`
 - `.git/hooks/` installation instructions
 - CI harness jobs
-
-# Claude Code Entry Point
-
-Claude Code MUST use `AGENTS.md` as the primary Repository Harness Contract.
-
-Before making changes, read:
-
-1. `AGENTS.md`
-2. `ARCHITECTURE.md`
-3. The relevant file under `docs/**` for the task domain
-
-Validation MUST use the stack-specific command documented in `docs/harness/README.md`.
-
-`docs/generated/` is for generated repository artifacts. It MAY be empty and retained by `.gitkeep` until generated outputs exist. `docs/generated/db-schema.md` is only an example of a possible generated artifact and MUST NOT be treated as a required file.
-
-Harness changes MAY be made during development when the current harness no longer matches project reality. Such changes MUST be committed as versioned files and validated before merge.
