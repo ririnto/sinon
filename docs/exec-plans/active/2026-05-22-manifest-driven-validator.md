@@ -75,11 +75,67 @@ manifest의 각 검증 카테고리에 `severity`를 명시한다. validator는 
 - [ ] Task 10.2 — Java Maven validator: pom.xml에 jackson-databind 의존성 추가. 정규식 기반 `extractStringList` 등 제거, Jackson `ObjectMapper`로 manifest 파싱. (subagent: general-purpose)
 - [ ] Task 10.3 — markdown frontmatter 검사(`(?m)^name:\s*[-a-z0-9]+\s*$`, `(?m)^description:\s*.+$`)도 각 stack에서 YAML parser로 교체 가능하면 교체. dependency 부담이 크면 정규식 유지. (subagent: general-purpose)
 
-### Phase 11: Self-check + dry-run 재검증
+### Phase 11.5: Hardcoded severity → manifest 기반 severity 치환
 
-- [ ] Task 11.1 — `plugin-self-check.sh` PASS (subagent: main)
-- [ ] Task 11.2 — `install-harness.sh --mode bun` dry-run → bun validator PASS, ERROR severity 0건 확인 (subagent: main)
-- [ ] Task 11.3 — 본 plan을 `docs/exec-plans/completed/`로 이동, Status/Completed 갱신 (subagent: main)
+- [x] Task 11.5.1 — `bun harness-validate.ts`의 `DEFAULT_SEVERITY` 매핑 제거. severity 미지정 시 무조건 `"ERROR"` fallback (subagent: main)
+- [ ] Task 11.5.2 — Kotlin `HarnessValidationPlugin.kt`의 `Severity.ERROR` 36건, Java `HarnessValidateMojo.java`의 3건, TS 1건, Python의 잔존 `Finding("ERROR", ...)`을 모두 `severityOf(manifest, category)`/`getSeverity(category)`/`severity_for(manifest, category)`/`parseSeverity(manifest, category)` 호출로 치환. manifest 로딩 실패 fallback 1건만 예외로 hardcoded ERROR 허용 (subagent: general-purpose)
+
+### Phase 12: Manifest add-on architecture
+
+manifest의 각 옵션은 `HarnessValidationPlugin`(코어) 위에서 동작하는 *check add-on*이다. 옵션이 manifest에 등록되어 있을 때만 add-on이 활성화되고, 옵션이 없으면 통째로 skip.
+
+- [ ] Task 12.1 — `HarnessCheck` 인터페이스/protocol 도입(stack 4종):
+  ```kotlin
+  interface HarnessCheck {
+      val category: String
+      fun applies(manifest: String): Boolean
+      fun validate(root: File, manifest: String): List<Finding>
+  }
+  ```
+  Java는 `interface HarnessCheck { String category(); boolean applies(...); List<Finding> validate(...); }`, Python은 `Protocol` 또는 dataclass, TS는 `interface HarnessCheck`. (subagent: general-purpose × 4)
+- [ ] Task 12.2 — 각 검증을 별도 add-on 클래스/함수로 분리: `RequiredFilesCheck`, `RequiredDirectoriesCheck`, `KeepfileCheck`, `RequiredTemplateGroupsCheck`, `RequiredDocHeadingsCheck`, `RequiredContentCheck`, `ScaffoldLeakCheck`, `AgentFrontmatterCheck`, `SkillFrontmatterCheck`, `HookStageCheck`, `HookCommandCheck`, `CiCommandMatchCheck`, `EnvShebangCheck`, `ForbidUncheckedTasksCheck`. registry는 `listOf(...)` (subagent: general-purpose × 4)
+- [ ] Task 12.3 — main `validate()`는 registry를 enumerate해 `if (check.applies(manifest)) addAll(check.validate(root, manifest))` 형태로 호출 (subagent: general-purpose × 4)
+- [ ] Task 12.4 — bun TS의 helper 함수(`isSafeFile`, `walk` 등)가 module-level `manifest` closure에 의존하던 부분을 명시적 인자 전달로 정리 (subagent: general-purpose)
+
+### Phase 13: Manifest schema naming refactor (동작 명시 이름)
+
+- [ ] Task 13.1 — manifest.json의 카테고리 이름을 동작 명시 형태로 변경 (subagent: main):
+  - `completedPlanDirectory` + `unfinishedTaskPattern` → `forbidUncheckedTasksUnder { severity, directory, pattern }` (두 옵션 합침)
+  - `emptyDirectoryKeepFiles` → `requireKeepfileInEmptyDirectories`
+  - `templateGroups` → `requiredTemplateGroups`
+  - `requiredContentChecks` → `requiredContent`
+  - `leakPatterns` + `activeAssets` → `forbidScaffoldLeaks { severity, scope: {bases, excludedSubtrees, extensions}, patterns: [...] }` (합침)
+  - `expectedValidationCommands` → `requiredHookCommands`
+  - `hookStages` → `requiredHookStages`
+  - `envShebangBases` → `requireEnvShebangUnder`
+  - `agentFrontmatter` → `requireAgentFrontmatter`
+  - `skillFrontmatter` → `requireSkillFrontmatter`
+  - `hookFirstLine` → `requireHookShebang`
+  - `hookExecutable` → `requireHookExecutable`
+  - `hookGeneratedMarker` → `requireHookGeneratedMarker`
+  - `ciCommandMatch` → `requireCiCommandMatchesHook`
+  - `symlinkSafety` → `forbidUnsafeSymlinks`
+  - `manifestParity` → 옵션 자체 제거(add-on architecture로 자동 만족)
+  - `optionalSeedFiles` → `seedFiles` (검증 카테고리 아님; manifest 메타데이터로만)
+- [ ] Task 13.2 — schemaVersion `0.6.0` bump. 4 validator의 모든 category 문자열도 새 이름으로 일괄 치환 (subagent: general-purpose × 4)
+- [ ] Task 13.3 — bun TS의 함수명 정리: `validateContentChecks` → `validateRequiredContent`, `walk` → `walkDirectory`, `safeFileOrWalk` → `collectFilesUnder`, `manifestArray`/`manifestObject` → `readStringArray`/`readJsonObject` (subagent: general-purpose)
+- [ ] Task 13.4 — 4 stack 모두 함수명을 add-on 클래스 이름과 의미상 일치하게 정리 (subagent: general-purpose × 4)
+
+### Phase 14: Gradle buildSrc 재배치 + assets/ 디렉토리 컨벤션
+
+- [ ] Task 14.1 — skill 디렉토리 컨벤션 정리: `skills/harness-install/templates/` → `skills/harness-install/assets/` (sinon plugin authoring 컨벤션 — skills는 templates 아닌 assets). install-harness.sh가 새 위치를 가리키도록 갱신 (subagent: main)
+- [ ] Task 14.2 — Gradle adapter를 `gradle-plugin/` composite build에서 `buildSrc/` 형태로 재배치 가능한지 검토. buildSrc는 Gradle root project가 자동 인식하므로 `includeBuild` 명시 불필요. 대신 target에 `buildSrc/`를 두는 것이 *target build에 영향*을 미치므로 적절한지 검증 후 결정 (subagent: harness:harness-architect)
+- [ ] Task 14.3 — Maven/uv/bun adapter도 비슷한 stack-네이티브 위치로 재배치할 만한 게 있는지 검토 (subagent: main)
+
+### Phase 15: jsonc 지원 검토 (선택)
+
+- [ ] Task 15.1 — manifest.json을 manifest.jsonc로 옮길 시 cost/benefit. 4 stack의 jsonc parser 의존성 추가 검토 (subagent: harness:harness-architect)
+
+### Phase 16: Self-check + dry-run 재검증 + plan completion
+
+- [ ] Task 16.1 — `plugin-self-check.sh` PASS (subagent: main)
+- [ ] Task 16.2 — `install-harness.sh --mode bun` dry-run → bun validator `Harness validation passed`, ERROR severity 0건 (subagent: main)
+- [ ] Task 16.3 — 본 plan을 `docs/exec-plans/completed/`로 이동, Status/Completed 갱신 (subagent: main)
 
 ## Validation
 

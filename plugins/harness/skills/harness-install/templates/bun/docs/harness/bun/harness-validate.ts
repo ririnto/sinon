@@ -658,7 +658,8 @@ function validateCompletedPlans(manifest: Record<string, unknown>): readonly Fin
 // Main
 const manifest = loadManifest();
 if (!manifest || typeof manifest !== "object" || Object.keys(manifest).length === 0) {
-  console.error("[ERROR] manifest not found or invalid: " + MANIFEST_PATH);
+  const fallbackManifest: Record<string, unknown> = {};
+  console.error(`[${severityOf(fallbackManifest, "manifestParity")}] manifest not found or invalid: ` + MANIFEST_PATH);
   process.exit(1);
 }
 

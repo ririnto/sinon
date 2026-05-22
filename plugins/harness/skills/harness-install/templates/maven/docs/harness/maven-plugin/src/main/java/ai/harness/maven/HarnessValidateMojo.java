@@ -313,13 +313,13 @@ public final class HarnessValidateMojo extends AbstractMojo {
             String manifest = HarnessFiles.read(manifestPath);
             if (manifest.isBlank()) {
                 return List.of(
-                        new Finding("ERROR", "manifestParity",
+                        new Finding("ERROR", "requiredFiles",
                                 "missing file: " + MANIFEST_PATH));
             }
 
             if (!manifest.trim().startsWith("{")) {
                 return List.of(
-                        new Finding("ERROR", "manifestParity",
+                        new Finding("ERROR", "requiredFiles",
                                 "invalid JSON in: " + MANIFEST_PATH));
             }
 
