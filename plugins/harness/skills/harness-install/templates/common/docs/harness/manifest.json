@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.3.0",
+  "schemaVersion": "0.4.0",
   "name": "repository-harness",
   "requiredFiles": [
     "AGENTS.md",
@@ -36,6 +36,100 @@
     "docs/exec-plans/completed/.gitkeep",
     "docs/generated/.gitkeep"
   ],
+  "optionalSeedFiles": [
+    "docs/product-specs/new-user-onboarding.md"
+  ],
+  "templateGroups": [
+    "agent",
+    "skill",
+    "workflow",
+    "ci",
+    "docs"
+  ],
+  "requiredDocHeadings": [
+    "## Purpose",
+    "## When To Update",
+    "## Required Evidence"
+  ],
+  "requiredContentChecks": [
+    {
+      "files": ["AGENTS.md"],
+      "containsAll": ["Repository Harness Contract"],
+      "failureMessage": "AGENTS.md must contain Repository Harness Contract"
+    },
+    {
+      "files": ["CLAUDE.md"],
+      "containsAll": ["## Entry Point"],
+      "failureMessage": "CLAUDE.md must contain an Entry Point section"
+    },
+    {
+      "files": ["CLAUDE.md"],
+      "containsAll": ["AGENTS.md"],
+      "failureMessage": "CLAUDE.md must reference AGENTS.md"
+    },
+    {
+      "files": ["AGENTS.md"],
+      "containsAll": ["docs/generated/"],
+      "failureMessage": "AGENTS.md must describe docs/generated/ semantics"
+    },
+    {
+      "files": ["AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md"],
+      "containsAll": ["docs/generated/db-schema.md"],
+      "failureMessage": "repository docs must state that docs/generated/db-schema.md is only an example, not a required scaffold file"
+    },
+    {
+      "files": ["AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md"],
+      "containsAll": ["source command", "regeneration trigger"],
+      "failureMessage": "repository docs must describe generated-artifact source command and regeneration trigger metadata"
+    },
+    {
+      "files": ["AGENTS.md", "CLAUDE.md", "docs/harness/evolution-log.md"],
+      "containsAll": ["discovery", "maintenance"],
+      "failureMessage": "repository docs must state that the harness may evolve across development phases"
+    }
+  ],
+  "activeAssetBases": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "ARCHITECTURE.md",
+    "docs",
+    ".claude/agents",
+    ".claude/skills",
+    ".github"
+  ],
+  "excludedActiveAssetSubtrees": [
+    "docs/harness/templates"
+  ],
+  "activeAssetExtensions": [
+    "md",
+    "txt",
+    "json",
+    "yml",
+    "yaml"
+  ],
+  "leakPatterns": [
+    {"pattern": "\\{\\{", "label": "unresolved template token"},
+    {"pattern": "(?m)^name:\\s*example-", "label": "example frontmatter name"},
+    {"pattern": "Describe ", "label": "scaffold prompt text"},
+    {"pattern": "\\bTODO\\b|\\bTBD\\b", "label": "TODO/TBD placeholder"},
+    {"pattern": "replace-with-stack-specific", "label": "stack placeholder"}
+  ],
+  "expectedValidationCommands": {
+    "gradleFinalCheck": ["./gradlew check", "gradle check"],
+    "gradleHarnessValidate": ["./gradlew harnessValidate", "gradle harnessValidate"],
+    "maven": "mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate",
+    "uv": "uv run python docs/harness/uv/harness_validate.py",
+    "bun": "bun run docs/harness/bun/harness-validate.ts"
+  },
+  "hookStages": {
+    "gradle": {"preCommit": "harness-validation", "prePush": "full-validation"},
+    "maven": {"preCommit": "compliance", "prePush": "full-validation"},
+    "uv": {"preCommit": "compliance", "prePush": "full-validation"},
+    "bun": {"preCommit": "compliance", "prePush": "full-validation"}
+  },
+  "completedPlanDirectory": "docs/exec-plans/completed",
+  "unfinishedTaskPattern": "^\\s*-\\s*\\[ \\]\\s",
+  "envShebangBases": ["docs/harness", ".claude/skills"],
   "generatedArtifacts": {
     "path": "docs/generated/",
     "placeholder": "docs/generated/.gitkeep",
@@ -51,13 +145,6 @@
     "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract.",
     "log": "docs/harness/evolution-log.md"
   },
-  "templateGroups": [
-    "agent",
-    "skill",
-    "workflow",
-    "ci",
-    "docs"
-  ],
   "teamPatterns": [
     "pipeline",
     "fan-out-fan-in",
@@ -65,8 +152,5 @@
     "producer-reviewer",
     "supervisor",
     "hierarchical-delegation"
-  ],
-  "optionalSeedFiles": [
-    "docs/product-specs/new-user-onboarding.md"
   ]
 }
