@@ -39,45 +39,47 @@ class HarnessValidationPlugin : Plugin<Project> {
         @TaskAction
         fun validate() {
             val root = project.rootDir
-            val failures = mutableListOf<String>()
-            validateManifestParity(root, failures)
-            requiredFiles.forEach { requiredFile ->
-                if (!isSafeFile(root, File(root, requiredFile), failures)) {
-                    failures += "missing file: $requiredFile"
+            val failures: List<String> =
+                buildList {
+                    validateManifestParity(root, this)
+                    requiredFiles.forEach { requiredFile ->
+                        if (!isSafeFile(root, File(root, requiredFile), this)) {
+                            add("missing file: $requiredFile")
+                        }
+                    }
+                    requiredDirectories.forEach { requiredDirectory ->
+                        if (!isSafeDirectory(root, File(root, requiredDirectory), this)) {
+                            add("missing directory: $requiredDirectory")
+                        }
+                    }
+                    validateKeepFiles(root, this)
+                    validateDocs(root, this)
+                    val agentsText = read(root, "AGENTS.md")
+                    val claudeText = read(root, "CLAUDE.md")
+                    val generatedText =
+                        listOf(
+                            agentsText,
+                            claudeText,
+                            read(root, "ARCHITECTURE.md"),
+                        ).joinToString("\n")
+                    val evolutionText =
+                        listOf(
+                            agentsText,
+                            claudeText,
+                            read(root, "docs/harness/evolution-log.md"),
+                        ).joinToString("\n")
+                    addAll(validateRequiredContent(agentsText, claudeText, generatedText, evolutionText))
+                    validateAgents(root, this)
+                    validateSkills(root, this)
+                    templateGroups.forEach { templateGroup ->
+                        if (!isSafeDirectory(root, File(root, "docs/harness/templates/$templateGroup"), this)) {
+                            add("missing template group: docs/harness/templates/$templateGroup")
+                        }
+                    }
+                    validateActiveAssets(root, this)
+                    validateHooks(root, this)
+                    validateEnvShebangs(root, this)
                 }
-            }
-            requiredDirectories.forEach { requiredDirectory ->
-                if (!isSafeDirectory(root, File(root, requiredDirectory), failures)) {
-                    failures += "missing directory: $requiredDirectory"
-                }
-            }
-            validateKeepFiles(root, failures)
-            validateDocs(root, failures)
-            val agentsText = read(root, "AGENTS.md")
-            val claudeText = read(root, "CLAUDE.md")
-            val generatedText =
-                listOf(
-                    agentsText,
-                    claudeText,
-                    read(root, "ARCHITECTURE.md"),
-                ).joinToString("\n")
-            val evolutionText =
-                listOf(
-                    agentsText,
-                    claudeText,
-                    read(root, ".claude/harness/evolution-log.md"),
-                ).joinToString("\n")
-            failures += validateRequiredContent(agentsText, claudeText, generatedText, evolutionText)
-            validateAgents(root, failures)
-            validateSkills(root, failures)
-            templateGroups.forEach { templateGroup ->
-                if (!isSafeDirectory(root, File(root, ".claude/harness/templates/$templateGroup"), failures)) {
-                    failures += "missing template group: .claude/harness/templates/$templateGroup"
-                }
-            }
-            validateActiveAssets(root, failures)
-            validateHooks(root, failures)
-            validateEnvShebangs(root, failures)
             if (failures.isNotEmpty()) {
                 throw GradleException(
                     "Harness validation failed:" +
@@ -149,13 +151,13 @@ class HarnessValidationPlugin : Plugin<Project> {
             root: File,
             failures: MutableList<String>,
         ) {
-            val manifest = read(root, ".claude/harness/manifest.json")
-            if (Files.isSymbolicLink(File(root, ".claude/harness/manifest.json").toPath())) {
-                failures += "symlink file is not allowed: .claude/harness/manifest.json"
+            val manifest = read(root, "docs/harness/manifest.json")
+            if (Files.isSymbolicLink(File(root, "docs/harness/manifest.json").toPath())) {
+                failures += "symlink file is not allowed: docs/harness/manifest.json"
                 return
             }
             if (manifest.isBlank()) {
-                failures += "missing file: .claude/harness/manifest.json"
+                failures += "missing file: docs/harness/manifest.json"
                 return
             }
             compareManifestList(manifest, "requiredFiles", requiredFiles, failures)
@@ -286,7 +288,7 @@ class HarnessValidationPlugin : Plugin<Project> {
             root: File,
             failures: MutableList<String>,
         ) {
-            val excluded = File(root, ".claude/harness/templates")
+            val excluded = File(root, "docs/harness/templates")
             val bases =
                 listOf(
                     "AGENTS.md",
@@ -295,7 +297,6 @@ class HarnessValidationPlugin : Plugin<Project> {
                     "docs",
                     ".claude/agents",
                     ".claude/skills",
-                    ".claude/harness",
                     ".github",
                 ).map { templateName ->
                     File(root, templateName)
@@ -334,7 +335,7 @@ class HarnessValidationPlugin : Plugin<Project> {
             stage: String,
             failures: MutableList<String>,
         ): String {
-            val hook = File(root, ".claude/harness/git-hooks/$name")
+            val hook = File(root, "docs/harness/git-hooks/$name")
             var hookText = ""
             if (isSafeFile(root, hook, failures)) {
                 hookText = hook.readText()
@@ -393,7 +394,7 @@ class HarnessValidationPlugin : Plugin<Project> {
             root: File,
             failures: MutableList<String>,
         ) {
-            listOf(File(root, ".claude/harness"), File(root, ".claude/skills")).forEach { base ->
+            listOf(File(root, "docs/harness"), File(root, ".claude/skills")).forEach { base ->
                 if (!isSafeDirectory(root, base, failures)) {
                     return@forEach
                 }
@@ -426,17 +427,17 @@ class HarnessValidationPlugin : Plugin<Project> {
             if (base.isFile) {
                 return listOf(base)
             }
-            val output = mutableListOf<File>()
-            base.listFiles().orEmpty().forEach { child ->
-                if (Files.isSymbolicLink(child.toPath())) {
-                    failures += "symlink scan entry is not allowed: ${child.relativeTo(root)}"
-                } else if (child.isDirectory) {
-                    output += safeFiles(root, child, failures)
-                } else if (child.isFile) {
-                    output += child
+            return buildList {
+                base.listFiles().orEmpty().forEach { child ->
+                    if (Files.isSymbolicLink(child.toPath())) {
+                        failures += "symlink scan entry is not allowed: ${child.relativeTo(root)}"
+                    } else if (child.isDirectory) {
+                        addAll(safeFiles(root, child, failures))
+                    } else if (child.isFile) {
+                        add(child)
+                    }
                 }
             }
-            return output
         }
 
         private fun safeFileOrWalk(
@@ -532,10 +533,8 @@ class HarnessValidationPlugin : Plugin<Project> {
                     "AGENTS.md",
                     "ARCHITECTURE.md",
                     "CLAUDE.md",
-                    "docs/design-docs/index.md",
                     "docs/design-docs/core-beliefs.md",
                     "docs/exec-plans/tech-debt-tracker.md",
-                    "docs/product-specs/index.md",
                     "docs/DESIGN.md",
                     "docs/FRONTEND.md",
                     "docs/PLANS.md",
@@ -543,8 +542,8 @@ class HarnessValidationPlugin : Plugin<Project> {
                     "docs/QUALITY_SCORE.md",
                     "docs/RELIABILITY.md",
                     "docs/SECURITY.md",
-                    ".claude/harness/git-hooks/pre-commit",
-                    ".claude/harness/git-hooks/pre-push",
+                    "docs/harness/git-hooks/pre-commit",
+                    "docs/harness/git-hooks/pre-push",
                 )
             private val requiredDirectories =
                 listOf(
@@ -554,11 +553,12 @@ class HarnessValidationPlugin : Plugin<Project> {
                     "docs/exec-plans/active",
                     "docs/exec-plans/completed",
                     "docs/generated",
+                    "docs/harness",
+                    "docs/harness/templates",
                     "docs/product-specs",
                     "docs/references",
                     ".claude/agents",
                     ".claude/skills",
-                    ".claude/harness/templates",
                 )
             private val emptyDirectoryKeepFiles =
                 listOf(
@@ -569,9 +569,6 @@ class HarnessValidationPlugin : Plugin<Project> {
             private val optionalSeedFiles =
                 listOf(
                     "docs/product-specs/new-user-onboarding.md",
-                    "docs/references/design-system-reference-llms.txt",
-                    "docs/references/nixpacks-llms.txt",
-                    "docs/references/uv-llms.txt",
                 )
             private val templateGroups =
                 listOf(
@@ -586,7 +583,6 @@ class HarnessValidationPlugin : Plugin<Project> {
                     "## Purpose",
                     "## When To Update",
                     "## Required Evidence",
-                    "## Validation Link",
                 )
             private val requiredAuthoredDocs =
                 requiredFiles
