@@ -2,6 +2,8 @@
 
 - Status: active
 - Created: 2026-05-22
+- Last Updated: 2026-05-23
+- Completed:
 - Author: ririnto
 - Assignee: ririnto
 
@@ -92,25 +94,36 @@ harness는 versioning하지 않으며, manifest 자체가 self-documenting 문�
 - [x] Task 6.6 — `templates/common/docs/harness/templates/agent/AGENT.md.tmpl`, `templates/common/WORKFLOW.md` 참조 정비
 - [x] Task 6.7 — `templates/common/docs/harness/templates/docs/exec-plan.md.tmpl`에 Plan Convention (phase=순차, task=병렬, blocked by 표현) 추가
 
-### [ ] Phase 7: docs/ template 강화 — OpenAI Harness Engineering 패턴 (병렬)
+### [x] Phase 7: docs/ template 강화 — OpenAI Harness Engineering 패턴 (병렬)
 
 각 task는 다른 파일을 다루므로 병렬 안전.
 
-- [ ] Task 7.1 — `docs/PLANS.md`: "프로젝트 개발의 전체 계획" 의미로 재작성 (Roadmap / Milestones 표 / Sequencing rationale / Dependencies)
-- [ ] Task 7.2 — `docs/DESIGN.md`: 도메인 layering(Types → Config → Repo → Service → Runtime → UI) + cross-cutting Providers placeholder
-- [ ] Task 7.3 — `docs/ARCHITECTURE.md`: 최상위 도메인 맵 / 패키지 layering / 데이터 흐름 / 외부 통합 경계
-- [ ] Task 7.4 — `docs/PRODUCT_SENSE.md`: 제품 원칙, 사용자 정의, 디자인 톤, 거절 시그널
-- [ ] Task 7.5 — `docs/QUALITY_SCORE.md`: 도메인/레이어별 등급 표 + 격차 추적 + retirement criteria
-- [ ] Task 7.6 — `docs/RELIABILITY.md`: SLO / 장애 모드 / 복구 절차 / 관측 가능성
-- [ ] Task 7.7 — `docs/SECURITY.md`: 위협 모델 / 비밀 관리 / 권한 경계 / 감사 로그
-- [ ] Task 7.8 — `docs/FRONTEND.md`: UI 가독성 / 디자인 시스템 / 컴포넌트 경계 / 접근성
-- [ ] Task 7.9 — `docs/design-docs/core-beliefs.md`: 점진적 공개, 에이전트 가독성, 불변 조건 기계적 강제
-- [ ] Task 7.10 — `docs/exec-plans/tech-debt-tracker.md`: 의식적으로 *연기된* 작업 + retirement criteria
+- [x] Task 7.1 — `docs/PLANS.md` 재작성
+- [x] Task 7.2 — `docs/DESIGN.md` (Domain Layering mermaid + Cross-cutting Providers + title)
+- [x] Task 7.3 — `docs/../ARCHITECTURE.md` (Domain Map / Layering mermaid + title / Data Flow / External Integrations / Validation Surfaces)
+- [x] Task 7.4 — `docs/PRODUCT_SENSE.md`
+- [x] Task 7.5 — `docs/QUALITY_SCORE.md`
+- [x] Task 7.6 — `docs/RELIABILITY.md`
+- [x] Task 7.7 — `docs/SECURITY.md`
+- [x] Task 7.8 — `docs/FRONTEND.md` ("노출 표면 전체" 의미로 재작성: UI + CLI + API + SDK + 웹훅 등)
+- [x] Task 7.9 — `docs/design-docs/core-beliefs.md`
+- [x] Task 7.10 — `docs/exec-plans/tech-debt-tracker.md`
 
-### [ ] Phase 7.5: docs/ 강화 후 manifest 동기화 (순차)
+### [x] Phase 7.5: docs/ 강화 후 manifest 동기화 + plugin self-check 예외 처리 (순차)
 
-- [ ] Task 7.5.1 — manifest.json의 `requireFilesExist.paths`에 모든 강화된 root 문서 등록 확인 + 필요시 추가
-- [ ] Task 7.5.2 — `requireDocHeadings`/`requireDocContent`에 새 placeholder 항목이 필요한 경우 등록
+- [x] Task 7.5.1 — manifest.json의 `requireFilesExist.paths` 모두 등록 확인 (이미 존재)
+- [x] Task 7.5.2 — `forbidScaffoldLeaks.parameters.scope.excludedSubtrees`에 `docs/references` 추가
+- [x] Task 7.5.3 — plugin-self-check.sh의 `unresolved_template_tokens` + `template_marker_check` case 예외에 placeholder template 파일 추가 (`docs/{DESIGN,PLANS,FRONTEND,PRODUCT_SENSE,QUALITY_SCORE,RELIABILITY,SECURITY,..}`/`docs/design-docs/core-beliefs.md`/`docs/exec-plans/tech-debt-tracker.md`/`docs/product-specs/*.md`/`docs/references/*.md`/`docs/harness/templates/*`/`.github/workflows/harness.yml`/`.gitlab-ci.yml`)
+- [x] Task 7.5.4 — `{{...}}` placeholder는 그대로 유지 (사용자 환경에서 채우는 의도)
+
+### [x] Phase 7.6: `.tmpl` 확장자 제거 (순차)
+
+`.tmpl`은 Go template 의미라 IDE 해석 오해를 부른다. 경로명에 `templates`가 있으므로 확장자 없이도 의도 전달이 충분하다.
+
+- [x] Task 7.6.1 — `find ... -name "*.tmpl"` 전체에 대해 `git mv` 로 `.tmpl` 제거
+- [x] Task 7.6.2 — `install-harness.sh`의 `.gitlab-ci.yml.tmpl`/`.github/workflows/harness.yml.tmpl` case 매칭을 `.tmpl` 없는 형태로 갱신
+- [x] Task 7.6.3 — `plugin-self-check.sh` 의 `.tmpl` 의존 로직 제거(`grep -F -v '.tmpl'` 삭제, "outside .tmpl asset" 메시지 정리, require_text 경로 갱신)
+- [x] Task 7.6.4 — reference-llms 템플릿을 `> [!NOTE]` attribution + editor's note 형태로 재작성
 
 ### [ ] Phase 8: 디렉토리 rename (직렬, 단일 작업)
 

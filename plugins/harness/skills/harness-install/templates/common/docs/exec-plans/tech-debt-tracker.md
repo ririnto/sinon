@@ -1,21 +1,32 @@
 # Tech Debt Tracker
 
-Track consciously deferred work in one place so the standing balance of *postponed* work is visible. Each row MUST name what was deferred, why, who owns it, what condition retires it, and how that retirement is validated.
-
 ## Purpose
 
-Make deferred work visible and retirable. This is distinct from `docs/PLANS.md`, which tracks work that is *in flight*; this file tracks work that was *intentionally postponed* and the conditions that close it out.
-
-## When To Update
-
-Update when a piece of work is consciously deferred (not merely paused), when an owner changes, when impact grows or shrinks, or when the retirement condition is met.
-
-## Required Evidence
-
-- Cite the PR, issue, or review note that introduced the deferral.
-- Link to the validation step (test, lint, metric) that confirms retirement.
+Tech-debt-tracker.md records the deferred-work backlog with retirement criteria: work the team consciously chose not to do right now, and the specific condition under which each item should be reopened. This is distinct from `docs/exec-plans/active/` (work currently in progress) and `docs/PLANS.md` (project-wide roadmap of intended work).
 
 ## Entries
 
-| Item | Owner | Impact | Retirement criterion | Validation |
-| --- | --- | --- | --- | --- |
+Replace the example row below with real deferred items.
+
+| ID | Item | Reason for deferral | Retirement criteria | Owner | Added |
+| --- | --- | --- | --- | --- | --- |
+| TD-1 | {{deferred-item}} | {{why-not-now}} | {{condition-to-revisit}} | {{owner}} | {{yyyy-MM-dd}} |
+
+## Conventions
+
+- Assign a stable `TD-{{n}}` ID to each entry.
+- Write retirement criteria as a condition, not a date (e.g., "when usage exceeds X" rather than "in Q3").
+- Close an entry by deleting the row and linking the PR or completed exec-plan that retired it.
+- If an entry remains open longer than one year, re-evaluate and update its retirement criteria.
+
+## When To Update
+
+- When a piece of work is consciously deferred.
+- When retirement criteria for an existing entry change.
+- When an entry is retired.
+- When an entry has been open long enough to need re-evaluation.
+
+## Required Evidence
+
+- Cite the PR thread, review comment, or design-doc decision that records the original deferral.
+- When an entry is retired, link to the PR or completed `docs/exec-plans/completed/` file that retired it.

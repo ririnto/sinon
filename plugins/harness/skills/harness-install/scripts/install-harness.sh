@@ -408,7 +408,7 @@ copy_stack_tree() {
     rel=${src#"$src_dir"/}
     case "$rel" in
       target/*|*/target/*|build/*|*/build/*|bin/*|*/bin/*|.gradle/*|*/.gradle/*|.factorypath|*/.factorypath|.classpath|*/.classpath|.project|*/.project|.settings/*|*/.settings/*|__pycache__/*|*/__pycache__/*|*.pyc) continue ;;
-      .gitlab-ci.yml.tmpl)
+      .gitlab-ci.yml)
         if [ "$ci" -ne 1 ]; then
           continue
         fi
@@ -420,15 +420,13 @@ copy_stack_tree() {
         ;;
     esac
     case "$rel" in
-      .github/workflows/harness.yml.tmpl)
-        dst_rel=.github/workflows/harness.yml
-        copy_file "$src" "$dst_dir/$dst_rel"
-        render_validation_placeholders "$dst_dir/$dst_rel" "$pre_push_cmd"
+      .github/workflows/harness.yml)
+        copy_file "$src" "$dst_dir/$rel"
+        render_validation_placeholders "$dst_dir/$rel" "$pre_push_cmd"
         ;;
-      .gitlab-ci.yml.tmpl)
-        dst_rel=.gitlab-ci.yml
-        copy_file "$src" "$dst_dir/$dst_rel"
-        render_validation_placeholders "$dst_dir/$dst_rel" "$pre_push_cmd"
+      .gitlab-ci.yml)
+        copy_file "$src" "$dst_dir/$rel"
+        render_validation_placeholders "$dst_dir/$rel" "$pre_push_cmd"
         ;;
       *) copy_file "$src" "$dst_dir/$rel" ;;
     esac

@@ -2,8 +2,12 @@
 
 - Status: active
 - Created: {{yyyy-MM-dd}}
+- Last Updated: {{yyyy-MM-dd}}
+- Completed: {{yyyy-MM-dd or empty while active}}
 - Author: {{author}}
 - Assignee: {{assignee}}
+
+Update `Last Updated` whenever the plan body changes (a task is added, a checkbox flips, a phase opens or closes). Set `Completed` only when the plan moves to `docs/exec-plans/completed/`; while the plan is active the field MAY be left empty.
 
 ## File Naming Convention
 

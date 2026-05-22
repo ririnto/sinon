@@ -424,31 +424,31 @@ for path in \
   "$root/skills/harness-install/templates/common/docs/generated/.gitkeep" \
   "$root/skills/harness-install/templates/common/docs/exec-plans/active/.gitkeep" \
   "$root/skills/harness-install/templates/common/docs/exec-plans/completed/.gitkeep" \
-  "$root/skills/harness-install/templates/common/docs/harness/templates/docs/generated-artifact.md.tmpl" \
-  "$root/skills/harness-install/templates/bun/.github/workflows/harness.yml.tmpl" \
-  "$root/skills/harness-install/templates/bun/.gitlab-ci.yml.tmpl" \
+  "$root/skills/harness-install/templates/common/docs/harness/templates/docs/generated-artifact.md" \
+  "$root/skills/harness-install/templates/bun/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/templates/bun/.gitlab-ci.yml" \
   "$root/skills/harness-install/templates/bun/docs/harness/bun/harness-validate.ts" \
-  "$root/skills/harness-install/templates/gradle/.github/workflows/harness.yml.tmpl" \
-  "$root/skills/harness-install/templates/gradle/.gitlab-ci.yml.tmpl" \
-  "$root/skills/harness-install/templates/maven/.github/workflows/harness.yml.tmpl" \
-  "$root/skills/harness-install/templates/maven/.gitlab-ci.yml.tmpl" \
+  "$root/skills/harness-install/templates/gradle/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/templates/gradle/.gitlab-ci.yml" \
+  "$root/skills/harness-install/templates/maven/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/templates/maven/.gitlab-ci.yml" \
   "$root/skills/harness-install/templates/uv/docs/harness/uv/harness_validate.py" \
-  "$root/skills/harness-install/templates/uv/.github/workflows/harness.yml.tmpl" \
-  "$root/skills/harness-install/templates/uv/.gitlab-ci.yml.tmpl" \
+  "$root/skills/harness-install/templates/uv/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/templates/uv/.gitlab-ci.yml" \
   "$root/skills/harness-install/templates/gradle/docs/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" \
   "$root/skills/harness-install/templates/maven/docs/harness/maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java"; do
   require_file "$path"
 done
 
 for path in \
-  "$root/skills/harness-install/templates/bun/.github/workflows/harness.yml.tmpl" \
-  "$root/skills/harness-install/templates/bun/.gitlab-ci.yml.tmpl" \
-  "$root/skills/harness-install/templates/gradle/.github/workflows/harness.yml.tmpl" \
-  "$root/skills/harness-install/templates/gradle/.gitlab-ci.yml.tmpl" \
-  "$root/skills/harness-install/templates/maven/.github/workflows/harness.yml.tmpl" \
-  "$root/skills/harness-install/templates/maven/.gitlab-ci.yml.tmpl" \
-  "$root/skills/harness-install/templates/uv/.github/workflows/harness.yml.tmpl" \
-  "$root/skills/harness-install/templates/uv/.gitlab-ci.yml.tmpl"; do
+  "$root/skills/harness-install/templates/bun/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/templates/bun/.gitlab-ci.yml" \
+  "$root/skills/harness-install/templates/gradle/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/templates/gradle/.gitlab-ci.yml" \
+  "$root/skills/harness-install/templates/maven/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/templates/maven/.gitlab-ci.yml" \
+  "$root/skills/harness-install/templates/uv/.github/workflows/harness.yml" \
+  "$root/skills/harness-install/templates/uv/.gitlab-ci.yml"; do
   require_text "$path" '{{validation_command}}'
 done
 
@@ -693,15 +693,21 @@ $root/skills/harness-install/templates/uv
 
 for template_root in $template_roots; do
   template_root_files=$(package_files "$template_root")
-  for path in $(printf '%s\n' "$template_root_files" | grep -F -v '.tmpl'); do
+  for path in $template_root_files; do
     case "$path" in
       */harness_validate.py|*/harness_check.py|*/harness-validate.ts|*/harness-check.ts|*/HarnessValidationPlugin.kt|*/HarnessCheck.kt|*/HarnessValidateMojo.java|*/HarnessCheck.java|*/manifest.json|*/manifest.schema.json)
+        continue
+        ;;
+      */templates/common/ARCHITECTURE.md|*/templates/common/docs/DESIGN.md|*/templates/common/docs/PLANS.md|*/templates/common/docs/FRONTEND.md|*/templates/common/docs/PRODUCT_SENSE.md|*/templates/common/docs/QUALITY_SCORE.md|*/templates/common/docs/RELIABILITY.md|*/templates/common/docs/SECURITY.md|*/templates/common/docs/design-docs/core-beliefs.md|*/templates/common/docs/exec-plans/tech-debt-tracker.md|*/templates/common/docs/product-specs/*.md|*/templates/common/docs/references/*.md|*/templates/common/docs/harness/templates/*)
+        continue
+        ;;
+      */.github/workflows/harness.yml|*/.gitlab-ci.yml)
         continue
         ;;
     esac
     if [ -f "$path" ]; then
       if grep -E '\{\{[^}]+\}\}' "$path"; then
-        printf '%s\n' "[unresolved_template_tokens] unresolved template token outside .tmpl asset: $path" >&2
+        printf '%s\n' "[unresolved_template_tokens] unresolved template token in active asset: $path" >&2
         exit 1
       fi
     fi
@@ -711,9 +717,15 @@ done
 for text in 'example-' 'Describe ' 'Describe...' 'TODO' 'TBD' 'replace-with-stack-specific'; do
   for template_root in $template_roots; do
     template_root_files=$(package_files "$template_root")
-    for path in $(printf '%s\n' "$template_root_files" | grep -F -v '.tmpl'); do
+    for path in $template_root_files; do
       case "$path" in
         */harness_validate.py|*/harness-validate.ts|*/HarnessValidationPlugin.kt|*/HarnessValidateMojo.java|*/manifest.json)
+          continue
+          ;;
+        */templates/common/ARCHITECTURE.md|*/templates/common/docs/DESIGN.md|*/templates/common/docs/PLANS.md|*/templates/common/docs/FRONTEND.md|*/templates/common/docs/PRODUCT_SENSE.md|*/templates/common/docs/QUALITY_SCORE.md|*/templates/common/docs/RELIABILITY.md|*/templates/common/docs/SECURITY.md|*/templates/common/docs/design-docs/core-beliefs.md|*/templates/common/docs/exec-plans/tech-debt-tracker.md|*/templates/common/docs/product-specs/*.md|*/templates/common/docs/references/*.md|*/templates/common/docs/harness/templates/*)
+          continue
+          ;;
+        */.github/workflows/harness.yml|*/.gitlab-ci.yml)
           continue
           ;;
       esac
