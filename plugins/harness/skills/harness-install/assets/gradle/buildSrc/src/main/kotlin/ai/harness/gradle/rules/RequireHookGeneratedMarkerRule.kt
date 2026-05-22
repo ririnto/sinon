@@ -24,7 +24,6 @@ object RequireHookGeneratedMarkerRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireHookGeneratedMarker"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -43,12 +42,10 @@ object RequireHookGeneratedMarkerRule : HarnessCheckRule {
 					val marker = markerTemplate.replace("{name}", hook.name)
 					listOfNotNull(
 						if (!text.contains(marker)) {
-							val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingMarker").takeIf { it.isNotEmpty() } ?: "$hookPath must contain generated marker '$marker'"
-							Finding(severity, category, msg)
+							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "missingMarker").takeIf { it.isNotEmpty() } ?: "$hookPath must contain generated marker '$marker'")
 						} else null,
 						if (text.contains(placeholderForbidden)) {
-							val msg = HarnessCheck.Companion.stringFrom(messagesObj, "placeholderPresent").takeIf { it.isNotEmpty() } ?: "$hookPath still contains packaging placeholder text"
-							Finding(severity, category, msg)
+							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "placeholderPresent").takeIf { it.isNotEmpty() } ?: "$hookPath still contains packaging placeholder text")
 						} else null
 					)
 				}

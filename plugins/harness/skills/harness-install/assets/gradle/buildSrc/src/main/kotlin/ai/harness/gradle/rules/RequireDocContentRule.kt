@@ -20,7 +20,6 @@ object RequireDocContentRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireDocContent"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val checks = parametersObj?.get("checks")?.jsonArray
@@ -31,10 +30,9 @@ object RequireDocContentRule : HarnessCheckRule {
 				val checkObj = checkElem.jsonObject
 				val files = HarnessCheck.Companion.stringArrayFrom(checkObj, "files")
 				val containsAll = HarnessCheck.Companion.stringArrayFrom(checkObj, "containsAll")
-				val failureMessage = HarnessCheck.Companion.stringFrom(checkObj, "failureMessage")
 				val content = files.map { HarnessCheck.Companion.readSafe(root, it) }.joinToString("\n")
 				if (!containsAll.all { content.contains(it) }) {
-					Finding(severity, category, failureMessage)
+					Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(checkObj, "failureMessage"))
 				} else {
 					null
 				}

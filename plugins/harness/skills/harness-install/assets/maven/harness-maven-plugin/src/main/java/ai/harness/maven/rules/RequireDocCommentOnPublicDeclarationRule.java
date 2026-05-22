@@ -43,22 +43,15 @@ public enum RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRule
                     .flatMap(cls -> {
                         java.util.List<Finding> findings = new java.util.ArrayList<>();
                         if (cls.isPublic() && !cls.getJavadoc().isPresent()) {
-                            int line = cls.getBegin().map(p -> p.line).orElse(-1);
-                            findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": public class missing Javadoc"));
+                            findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + cls.getBegin().map(p -> p.line).orElse(-1) + ": public class missing Javadoc"));
                         }
                         findings.addAll(cls.getMethods().stream()
                                 .filter(m -> m.isPublic() && !m.getJavadoc().isPresent())
-                                .map(m -> {
-                                    int line = m.getBegin().map(p -> p.line).orElse(-1);
-                                    return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": public method missing Javadoc");
-                                })
+                                .map(m -> new Finding(severity, CATEGORY, root.relativize(file) + ":" + m.getBegin().map(p -> p.line).orElse(-1) + ": public method missing Javadoc"))
                                 .toList());
                         findings.addAll(cls.getFields().stream()
                                 .filter(f -> f.isPublic() && !f.getJavadoc().isPresent())
-                                .map(f -> {
-                                    int line = f.getBegin().map(p -> p.line).orElse(-1);
-                                    return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": public field missing Javadoc");
-                                })
+                                .map(f -> new Finding(severity, CATEGORY, root.relativize(file) + ":" + f.getBegin().map(p -> p.line).orElse(-1) + ": public field missing Javadoc"))
                                 .toList());
                         return findings.stream();
                     })

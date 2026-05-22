@@ -11,8 +11,7 @@ export const forbidEmptyCatchBlockRule = (ctx: RuleContext): HarnessCheckRule =>
   },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = ctx.stackSources(manifest, "typescript");
-    return sources.flatMap((file) => {
+    return ctx.stackSources(manifest, "typescript").flatMap((file) => {
       const text = ctx.read(file);
       if (!text) {
         return [];
@@ -36,11 +35,10 @@ export const forbidEmptyCatchBlockRule = (ctx: RuleContext): HarnessCheckRule =>
       const visit = (node: Node): void => {
         if (isCatchClause(node)) {
           if (node.block.statements.length === 0) {
-            const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
             findings.push({
               severity: ctx.severityOf(manifest, "forbidEmptyCatchBlock"),
               category: "forbidEmptyCatchBlock",
-              message: `${file}:${line + 1}: empty catch block; handle, rethrow, or convert to a Finding`,
+              message: `${file}:${sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1}: empty catch block; handle, rethrow, or convert to a Finding`,
             });
           }
         }

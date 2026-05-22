@@ -19,8 +19,7 @@ export const requireSingleTopLevelKotlinDeclarationRule = (ctx: RuleContext): Ha
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireSingleTopLevelKotlinDeclaration);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireSingleTopLevelKotlinDeclaration).parameters);
     const directories = Array.isArray(parameters.directories) ? parameters.directories : [];
     const directoryStrs = directories.filter((item): item is string => typeof item === "string");
     return directoryStrs.flatMap((directory) => {

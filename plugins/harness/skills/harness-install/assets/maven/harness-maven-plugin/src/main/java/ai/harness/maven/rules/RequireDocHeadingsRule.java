@@ -23,13 +23,12 @@ public enum RequireDocHeadingsRule implements HarnessCheckRule {
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
-        List<String> requiredFiles = HarnessCheckHelper.extractPaths(manifest.get("requireFilesExist").get("parameters").get("paths"));
         List<String> headings = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("headings"));
         JsonNode sourceFilter = catNode.get("parameters").get("sourceFilter");
         String prefix = sourceFilter.get("prefix").asText();
         String suffix = sourceFilter.get("suffix").asText();
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        return requiredFiles.stream()
+        return HarnessCheckHelper.extractPaths(manifest.get("requireFilesExist").get("parameters").get("paths")).stream()
                 .filter(f -> f.startsWith(prefix) && f.endsWith(suffix))
                 .flatMap(f -> validateHeadings(root, f, headings, severity).stream())
                 .toList();

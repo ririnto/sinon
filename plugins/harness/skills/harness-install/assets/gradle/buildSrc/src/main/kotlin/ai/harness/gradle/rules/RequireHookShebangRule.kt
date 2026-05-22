@@ -23,7 +23,6 @@ object RequireHookShebangRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireHookShebang"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -37,8 +36,7 @@ object RequireHookShebangRule : HarnessCheckRule {
 				if (hook.isRegularFile()) {
 					val first = hook.toFile().readLines().firstOrNull() ?: ""
 					if (first != expectedShebang) {
-						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must start with $expectedShebang"
-						Finding(severity, category, msg)
+						Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must start with $expectedShebang")
 					} else {
 						null
 					}

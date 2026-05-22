@@ -28,14 +28,14 @@ public enum RequireSkillFrontmatterRule implements HarnessCheckRule {
         if (!HarnessCheckHelper.isSafeDirectory(root, directory)) {
             return List.of(new Finding(severity, CATEGORY, ".claude/skills must contain at least one SKILL.md"));
         }
-        List<Path> files = HarnessCheckHelper.safeFileOrWalk(root, directory).stream()
+        List<Path> skillFiles = HarnessCheckHelper.safeFileOrWalk(root, directory).stream()
                 .filter(f -> f.getFileName().toString().equals("SKILL.md"))
                 .toList();
-        if (files.isEmpty()) {
+        if (skillFiles.isEmpty()) {
             return List.of(new Finding(severity, CATEGORY, ".claude/skills must contain at least one SKILL.md"));
         }
         Pattern descPattern = Pattern.compile("(?m)^description:\\s*.+$");
-        return files.stream()
+        return skillFiles.stream()
                 .flatMap(f -> validateSkillFile(root, f, descPattern, severity).stream())
                 .toList();
     }

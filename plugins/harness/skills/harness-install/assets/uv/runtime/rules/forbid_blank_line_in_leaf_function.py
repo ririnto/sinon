@@ -22,8 +22,7 @@ class ForbidBlankLineInLeafFunctionRule(HarnessCheckRule):
         section = manifest.get(self.category)
         if not isinstance(section, dict):
             return False
-        enabled = section.get("enabled", True)
-        return enabled is not False
+        return section.get("enabled", True) is not False
 
     def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate forbidBlankLineInLeafFunction check."""
@@ -39,14 +38,13 @@ class ForbidBlankLineInLeafFunctionRule(HarnessCheckRule):
                     return False
                 if not isinstance(node.body, cst.IndentedBlock):
                     return False
-                func_name = node.name.value
                 for stmt in node.body.body:
                     if isinstance(stmt, cst.EmptyLine) and stmt.comment is None:
                         pos = self.get_metadata(cst.metadata.PositionProvider, stmt)
                         self.findings.append(Finding(
                             severity,
                             self.category,
-                            f"{self.rel_path}:{pos.start.line}: leaf function `{func_name}` contains a blank line; remove or extract the section",
+                            f"{self.rel_path}:{pos.start.line}: leaf function `{node.name.value}` contains a blank line; remove or extract the section",
                         ))
                 return True
         result = []

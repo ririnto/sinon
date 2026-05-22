@@ -34,25 +34,19 @@ function main(): void {
     process.exit(1);
   }
 
-  const knownCategories = new Set<string>(HARNESS_CHECKS.map((c) => c.category));
-  const knownMetadata = new Set<string>(["name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns"]);
-
-  const unknownKeyFindings = Object.keys(manifest)
-    .filter((key) => !knownCategories.has(key) && !knownMetadata.has(key))
+  Object.keys(manifest)
+    .filter((key) => !new Set<string>(HARNESS_CHECKS.map((c) => c.category)).has(key) && !new Set<string>(["name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns"]).has(key))
     .map((key) => ({
       severity: "WARN" as const,
       category: "manifest-structure",
       message: `unknown manifest key: ${key}`,
-    }));
-
-  unknownKeyFindings.forEach((f) => console.warn(`[WARN] ${f.message}`));
-
-  const allFindings = HARNESS_CHECKS.filter((check) => check.applies(manifest)).flatMap((check) =>
-    check.validate(root, manifest)
-  );
+    }))
+    .forEach((f) => console.warn(`[WARN] ${f.message}`));
 
   const uniqueFindings = Array.from(
-    new Map(allFindings.map((f) => [`${f.severity}|${f.category}|${f.message}`, f])).values()
+    new Map(HARNESS_CHECKS.filter((check) => check.applies(manifest)).flatMap((check) =>
+      check.validate(root, manifest)
+    ).map((f) => [`${f.severity}|${f.category}|${f.message}`, f])).values()
   );
 
   const errors = uniqueFindings.filter((f) => f.severity === "ERROR");

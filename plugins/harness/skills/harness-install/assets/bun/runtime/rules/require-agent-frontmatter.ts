@@ -13,11 +13,10 @@ export const requireAgentFrontmatterRule = (ctx: RuleContext): HarnessCheckRule 
     }
     const enabled = (section as { enabled?: unknown }).enabled;
     return enabled !== false && ctx.readJsonObject((section as Record<string, unknown>).parameters).directory !== undefined;
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireAgentFrontmatter);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireAgentFrontmatter).parameters);
     const directory = typeof parameters.directory === "string" ? parameters.directory : "";
     if (!directory || !ctx.isDirectory(directory)) {
       return [];

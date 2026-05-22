@@ -17,8 +17,7 @@ export const requireHookStageRule = (ctx: RuleContext): HarnessCheckRule => ({
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireHookStage);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireHookStage).parameters);
     const hooks = ctx.readStringArray(parameters.hooks);
     const markerTemplate = typeof parameters.markerTemplate === "string" ? parameters.markerTemplate : "";
     const stagesEntry = ctx.readJsonObject(parameters.stages);
@@ -28,8 +27,7 @@ export const requireHookStageRule = (ctx: RuleContext): HarnessCheckRule => ({
       if (!ctx.isFile(hook)) {
         return [];
       }
-      const hookName = hook.split("/").pop() ?? "";
-      const stageKey = hookName === "pre-commit" ? "pre-commit" : "pre-push";
+      const stageKey = (hook.split("/").pop() ?? "") === "pre-commit" ? "pre-commit" : "pre-push";
       const stage = typeof stackStages[stageKey] === "string" ? stackStages[stageKey] : "";
       if (!stage) {
         return [];

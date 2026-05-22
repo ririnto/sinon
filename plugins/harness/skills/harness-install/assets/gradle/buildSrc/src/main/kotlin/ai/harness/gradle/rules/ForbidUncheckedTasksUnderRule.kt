@@ -24,7 +24,6 @@ object ForbidUncheckedTasksUnderRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "forbidUncheckedTasksUnder"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -45,8 +44,7 @@ object ForbidUncheckedTasksUnderRule : HarnessCheckRule {
 		}
 		return files.filter { it.name.endsWith(".md") }.mapNotNull { file ->
 			if (pattern.containsMatchIn(file.readText())) {
-				val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "completed plan has unchecked tasks: ${file.relativeTo(root)}"
-				Finding(severity, category, msg)
+				Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "completed plan has unchecked tasks: ${file.relativeTo(root)}")
 			} else {
 				null
 			}

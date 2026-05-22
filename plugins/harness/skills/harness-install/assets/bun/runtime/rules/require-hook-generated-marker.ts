@@ -15,8 +15,7 @@ export const requireHookGeneratedMarkerRule = (ctx: RuleContext): HarnessCheckRu
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireHookGeneratedMarker);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireHookGeneratedMarker).parameters);
     const hooks = ctx.readStringArray(parameters.hooks);
     const markerTemplate = typeof parameters.markerTemplate === "string" ? parameters.markerTemplate : "";
     const placeholderForbidden = typeof parameters.placeholderForbidden === "string" ? parameters.placeholderForbidden : "";
@@ -24,8 +23,7 @@ export const requireHookGeneratedMarkerRule = (ctx: RuleContext): HarnessCheckRu
       if (!ctx.isFile(hook)) {
         return [];
       }
-      const hookName = hook.split("/").pop() ?? "";
-      const marker = markerTemplate.replace("{name}", hookName);
+      const marker = markerTemplate.replace("{name}", (hook.split("/").pop() ?? ""));
       const text = ctx.read(hook);
       return [
         !text.includes(marker)

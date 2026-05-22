@@ -23,7 +23,6 @@ object RequireCiCommandMatchesHookRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireCiCommandMatchesHook"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -42,10 +41,8 @@ object RequireCiCommandMatchesHookRule : HarnessCheckRule {
 				emptyList()
 			} else {
 				ciFiles.mapNotNull { ciFile ->
-					val ciPath = root / ciFile
-					if (ciPath.isRegularFile() && !ciPath.readText().contains(command)) {
-						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$ciFile: CI command mismatch — expected $command"
-						Finding(severity, category, msg)
+					if ((root / ciFile).isRegularFile() && !(root / ciFile).readText().contains(command)) {
+						Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$ciFile: CI command mismatch — expected $command")
 					} else {
 						null
 					}

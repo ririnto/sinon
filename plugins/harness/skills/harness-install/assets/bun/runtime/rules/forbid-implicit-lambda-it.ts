@@ -19,8 +19,7 @@ export const forbidImplicitLambdaItRule = (ctx: RuleContext): HarnessCheckRule =
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.forbidImplicitLambdaIt);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.forbidImplicitLambdaIt).parameters);
     const directories = ctx.readStringArray(parameters.directories);
     const suffix = typeof parameters.filenameSuffix === "string" ? parameters.filenameSuffix : ".kt";
     return directories.flatMap((directory) => {
@@ -29,9 +28,7 @@ export const forbidImplicitLambdaItRule = (ctx: RuleContext): HarnessCheckRule =
         files
           .filter((file) => file.endsWith(suffix))
           .flatMap((file) => {
-            const text = ctx.read(file);
-            const lines = text.split(/\r?\n/);
-            return lines.flatMap((line, index) => {
+            return ctx.read(file).split(/\r?\n/).flatMap((line, index) => {
               const stripped = line.replace(/"[^"\\]*(?:\\.[^"\\]*)*"/g, "").replace(/\/\/.*$/, "");
               return /\bit\b\s*\./.test(stripped) || /\bit\b\s*\}/.test(stripped) || /->\s*it\b/.test(stripped)
                 ? [

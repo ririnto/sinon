@@ -45,10 +45,7 @@ public enum ForbidUnstructuredLoggingRule implements HarnessCheckRule {
                         return methodStr.startsWith("System.out.println") || methodStr.startsWith("System.out.print") ||
                                 methodStr.startsWith("System.err.println") || methodStr.startsWith("System.err.print");
                     })
-                    .map(expr -> {
-                        int line = expr.getBegin().map(p -> p.line).orElse(-1);
-                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": unstructured logging; use structured logger");
-                    })
+                    .map(expr -> new Finding(severity, CATEGORY, root.relativize(file) + ":" + expr.getBegin().map(p -> p.line).orElse(-1) + ": unstructured logging; use structured logger"))
                     .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));

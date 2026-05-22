@@ -11,8 +11,7 @@ export const forbidBlankLineInLeafFunctionRule = (ctx: RuleContext): HarnessChec
   },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = ctx.stackSources(manifest, "typescript");
-    return sources.flatMap((file) => {
+    return ctx.stackSources(manifest, "typescript").flatMap((file) => {
       const text = ctx.read(file);
       if (!text) {
         return [];
@@ -50,8 +49,7 @@ export const forbidBlankLineInLeafFunctionRule = (ctx: RuleContext): HarnessChec
           "<anonymous>";
 
         const checkTrivia = (triviaStart: number, triviaEnd: number): void => {
-          const trivia = text.slice(triviaStart, triviaEnd);
-          const triviaLines = trivia.split(/\r?\n/);
+          const (text.slice(triviaStart, triviaEnd))Lines = (text.slice(triviaStart, triviaEnd)).split(/\r?\n/);
           const triviaStartLine = sourceFile.getLineAndCharacterOfPosition(triviaStart).line;
           blankLineFindings.push(
             ...triviaLines

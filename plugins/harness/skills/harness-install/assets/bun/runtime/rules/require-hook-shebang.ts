@@ -15,8 +15,7 @@ export const requireHookShebangRule = (ctx: RuleContext): HarnessCheckRule => ({
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireHookShebang);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireHookShebang).parameters);
     const hooks = ctx.readStringArray(parameters.hooks);
     const expectedShebang = typeof parameters.expectedShebang === "string" ? parameters.expectedShebang : "#!/usr/bin/env sh";
     return hooks.flatMap((hook) => {

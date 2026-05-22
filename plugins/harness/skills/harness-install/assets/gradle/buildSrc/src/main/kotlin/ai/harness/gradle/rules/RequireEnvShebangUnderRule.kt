@@ -25,7 +25,6 @@ object RequireEnvShebangUnderRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireEnvShebangUnder"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -43,8 +42,7 @@ object RequireEnvShebangUnderRule : HarnessCheckRule {
 					files.filter { it.isExecutable() }.mapNotNull { file ->
 						val firstLine = file.readText().lineSequence().firstOrNull() ?: ""
 						if (firstLine.startsWith("#!") && !firstLine.startsWith(expectedPrefix)) {
-							val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "executable script should use /usr/bin/env shebang: ${file.relativeTo(root)}"
-							Finding(severity, category, msg)
+							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "executable script should use /usr/bin/env shebang: ${file.relativeTo(root)}")
 						} else {
 							null
 						}

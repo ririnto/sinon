@@ -16,16 +16,14 @@ export const requireKeepfileInEmptyDirectoriesRule = (ctx: RuleContext): Harness
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireKeepfileInEmptyDirectories);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireKeepfileInEmptyDirectories).parameters);
     const directories = ctx.readStringArray(parameters.directories);
     return directories.flatMap((dir) => {
       if (!ctx.isDirectory(dir)) {
         return [];
       }
       const realFiles = readdirSync(ctx.pathOf(dir)).filter((e) => e !== ".gitkeep");
-      const keepPath = `${dir}/.gitkeep`;
-      return realFiles.length === 0 && !ctx.isFile(keepPath)
+      return realFiles.length === 0 && !ctx.isFile(`${dir}/.gitkeep`)
         ? [
             {
               severity: ctx.severityOf(manifest, "requireKeepfileInEmptyDirectories"),

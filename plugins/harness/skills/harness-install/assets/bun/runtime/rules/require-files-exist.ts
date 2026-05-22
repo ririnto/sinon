@@ -16,11 +16,10 @@ export const requireFilesExistRule = (ctx: RuleContext): HarnessCheckRule => ({
     }
     const entry = ctx.readJsonObject((section as Record<string, unknown>).parameters);
     return ctx.readStringArray(entry.paths).length > 0;
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireFilesExist);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireFilesExist).parameters);
     const paths = ctx.readStringArray(parameters.paths);
     return paths.flatMap((path) => {
       if (ctx.isSymlink(path) && ctx.allowedRootContractTarget(path) === null) {
