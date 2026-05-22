@@ -9,15 +9,6 @@
   },
   "plugins": [
     {
-      "name": "git-workflow",
-      "description": "Git workflow plugin with practical skill for commit readiness and change publication, plus agents for drafting Conventional Commits and pull request bodies from repository state.",
-      "source": "./plugins/git-workflow",
-      "author": {
-        "name": "ririnto"
-      },
-      "category": "development"
-    },
-    {
       "name": "java",
       "description": "Java development plugin with practical skills for syntax, language design, testing, dependency decisions, and performance analysis, plus an agent for architecture guidance and JDTLS-assisted editing.",
       "source": "./plugins/java",
@@ -102,6 +93,15 @@
       "name": "agent-capability-kit",
       "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, hooks, MCP servers, plugin settings, and cross-platform Agent Skills; includes agents for plugin validation and skill review, plus a command for guided plugin creation.",
       "source": "./plugins/agent-capability-kit",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    },
+    {
+      "name": "workspace-workflow",
+      "description": "Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.",
+      "source": "./plugins/workspace-workflow",
       "author": {
         "name": "ririnto"
       },
