@@ -30,6 +30,10 @@ These skills are meant to help complete Java work directly inside the current re
 
 - `java-architect`: coordinates Java language, testing, dependency, performance, and API design decisions when a task crosses multiple Java skills or needs architecture-level tradeoff review.
 
+## Included Commands
+
+This plugin ships no commands.
+
 ## Skill Selection
 
 Start here when the Java work could fit more than one skill:
