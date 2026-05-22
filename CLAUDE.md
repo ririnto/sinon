@@ -26,7 +26,7 @@ The agentskills.io loading model is the top-level governing basis for skill stru
 - Each plugin MAY expose a Claude Code runtime manifest from its plugin root.
 - Runtime marketplace metadata MUST stay aligned with the plugin content it publishes.
 - Runtime catalogs MUST publish only plugin roots that include the matching runtime manifest.
-- Each plugin root MUST ship a `README.md` that describes the plugin's purpose, included skills and agents, runtime model, layout, and scope notes.
+- Each plugin root MUST ship a `README.md` that describes the plugin's purpose, included skills, agents, commands, runtime model, layout, and scope notes.
 
 ## Plugin manifests
 
@@ -37,12 +37,14 @@ Claude Code plugin manifest rules:
 - `.claude-plugin/plugin.json` MUST include the `$schema` field `"https://anthropic.com/claude-code/plugin.schema.json"`.
 - `author` MUST use the object form (for example, `"author": { "name": "ririnto" }`).
 - `skills`, when present, MUST use the directory form `"./skills/"` with a trailing slash. Array-of-paths form MUST NOT be used.
-- `agents` MUST NOT appear in the manifest. When a plugin ships agents, keep the `agents/` directory at the plugin root and describe that runtime surface in the plugin README instead of declaring an `agents` manifest key.
+- `commands`, when present, MUST use the directory form `"./commands/"` with a trailing slash. Array-of-paths form MUST NOT be used.
+- `agents` MUST NOT appear in the manifest because the Claude Code manifest schema does not support an `agents` key. When a plugin ships agents, keep the `agents/` directory at the plugin root and describe that runtime surface in the plugin README instead of declaring an `agents` manifest key.
 - `version` MUST NOT appear in any plugin manifest.
 - `.claude-plugin/plugin.json` MUST NOT include an `interface` block.
 
-Plugin structure rule:
+Plugin structure rules:
 
+- Plugins with commands MUST ship a `commands/` directory at the plugin root with one `.md` file per command; commands are identified by file basename and NEED NOT declare a `name` frontmatter field.
 - Plugins with agents MUST ship an `agents/` directory at the plugin root with one `.md` file per agent whose frontmatter `name` matches the file basename.
 
 ## Authoring Agent Skills
