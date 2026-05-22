@@ -23,26 +23,26 @@ public enum RequireSkillFrontmatterRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        Path directory = root.resolve(".claude/skills");
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final Path directory = root.resolve(".claude/skills");
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         if (!HarnessCheckHelper.isSafeDirectory(root, directory)) {
             return List.of(new Finding(severity, CATEGORY, ".claude/skills must contain at least one SKILL.md"));
         }
-        List<Path> skillFiles = HarnessCheckHelper.safeFileOrWalk(root, directory).stream()
+        final List<Path> skillFiles = HarnessCheckHelper.safeFileOrWalk(root, directory).stream()
                 .filter(f -> f.getFileName().toString().equals("SKILL.md"))
                 .toList();
         if (skillFiles.isEmpty()) {
             return List.of(new Finding(severity, CATEGORY, ".claude/skills must contain at least one SKILL.md"));
         }
-        Pattern descPattern = Pattern.compile("(?m)^description:\\s*.+$");
+        final Pattern descPattern = Pattern.compile("(?m)^description:\\s*.+$");
         return skillFiles.stream()
                 .flatMap(f -> validateSkillFile(root, f, descPattern, severity).stream())
                 .toList();
     }
 
     private List<Finding> validateSkillFile(Path root, Path file, Pattern descPattern, String severity) throws MojoExecutionException {
-        String text = HarnessCheckHelper.readFile(root, file);
-        String relative = root.relativize(file).toString();
+        final String text = HarnessCheckHelper.readFile(root, file);
+        final String relative = root.relativize(file).toString();
         return Stream.of(
                 text.startsWith("---") ? Stream.empty() : Stream.of(new Finding(severity, CATEGORY, "skill missing frontmatter: " + relative)),
                 descPattern.matcher(text).find() ? Stream.empty() : Stream.of(new Finding(severity, CATEGORY, "skill missing description: " + relative))

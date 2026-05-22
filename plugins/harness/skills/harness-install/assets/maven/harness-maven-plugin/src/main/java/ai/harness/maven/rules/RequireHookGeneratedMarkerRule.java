@@ -22,28 +22,25 @@ public enum RequireHookGeneratedMarkerRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();
-        String placeholderForbidden = catNode.get("parameters").get("placeholderForbidden").asText();
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();
+        final String placeholderForbidden = catNode.get("parameters").get("placeholderForbidden").asText();
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks")).stream()
                 .flatMap(hook -> validateMarker(root, hook, markerTemplate, placeholderForbidden, severity).stream())
                 .toList();
     }
 
     private List<Finding> validateMarker(Path root, String hook, String markerTemplate, String placeholderForbidden, String severity) throws MojoExecutionException {
-        Path hookPath = root.resolve(hook);
-        List<Finding> findings;
+        final Path hookPath = root.resolve(hook);
         if (HarnessCheckHelper.isSafeRegularFile(root, hookPath)) {
-            String text = HarnessCheckHelper.readFile(root, hookPath);
-            String expectedMarker = markerTemplate.replace("{name}", hookPath.getFileName().toString());
-            findings = Stream.of(
+            final String text = HarnessCheckHelper.readFile(root, hookPath);
+            final String expectedMarker = markerTemplate.replace("{name}", hookPath.getFileName().toString());
+            return Stream.of(
                     text.contains(expectedMarker) ? Stream.empty() : Stream.of(new Finding(severity, CATEGORY, hook + " must contain generated marker '" + expectedMarker + "'")),
                     text.contains(placeholderForbidden) ? Stream.of(new Finding(severity, CATEGORY, hook + " still contains packaging placeholder text")) : Stream.empty()
             ).flatMap(s -> s).toList();
-        } else {
-            findings = List.of();
         }
-        return findings;
+        return List.of();
     }
 }

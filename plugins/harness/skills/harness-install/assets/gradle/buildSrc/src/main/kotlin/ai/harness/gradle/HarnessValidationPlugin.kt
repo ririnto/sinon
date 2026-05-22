@@ -231,15 +231,11 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                                 return
                             }
                             val body = function.bodyExpression ?: return
-                            var child: PsiElement? = body.firstChild
-                            while (child != null) {
-                                if (child.text.count { c -> c == '\n' } < 2) {
-                                    child = child.nextSibling
-                                    continue
+                            generateSequence(body.firstChild) { it.nextSibling }.forEach { child ->
+                                if (child.text.count { c -> c == '\n' } >= 2) {
+                                    add(ForbidBlankLineInLeafFunctionRule.Result(file.name, function.name ?: "unknown",
+                                        lineOf(ktFile, child.node?.startOffset)))
                                 }
-                                add(ForbidBlankLineInLeafFunctionRule.Result(file.name, function.name ?: "unknown",
-                                    lineOf(ktFile, child.node?.startOffset)))
-                                child = child.nextSibling
                             }
                         }
                     })
@@ -255,15 +251,18 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                             if (expression.valueParameters.isNotEmpty()) {
                                 return
                             }
-                            var hasIt = false
-                            expression.accept(object : KtVisitorVoid() {
-                                override fun visitSimpleNameExpression(expression: KtSimpleNameExpression) {
-                                    super.visitSimpleNameExpression(expression)
-                                    if (expression.text == "it") {
-                                        hasIt = true
+                            val hasIt = kotlin.run {
+                                var found = false
+                                expression.accept(object : KtVisitorVoid() {
+                                    override fun visitSimpleNameExpression(expression: KtSimpleNameExpression) {
+                                        super.visitSimpleNameExpression(expression)
+                                        if (expression.text == "it") {
+                                            found = true
+                                        }
                                     }
-                                }
-                            })
+                                })
+                                found
+                            }
                             if (hasIt) {
                                 add(ForbidImplicitLambdaItRule.Result(file.name, lineOf(ktFile, expression.node?.startOffset)))
                             }
@@ -391,12 +390,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitDotQualifiedExpression(expression: org.jetbrains.kotlin.psi.KtDotQualifiedExpression) {
                             super.visitDotQualifiedExpression(expression)
-                            var depth = 1
-                            var current: org.jetbrains.kotlin.psi.KtExpression? = expression.receiverExpression
-                            while (current is org.jetbrains.kotlin.psi.KtDotQualifiedExpression) {
-                                depth++
-                                current = current.receiverExpression
-                            }
+                            val depth = generateSequence(expression.receiverExpression) { (it as? org.jetbrains.kotlin.psi.KtDotQualifiedExpression)?.receiverExpression }.count() + 1
                             if (depth >= 2) {
                                 val simpleName = expression.selectorExpression?.text ?: ""
                                 if (simpleName.isNotEmpty() && simpleName !in imports) {
@@ -509,17 +503,20 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             private inline fun <reified T : PsiElement> PsiElement.hasDescendantOfType(
                 crossinline predicate: (T) -> Boolean = { true },
             ): Boolean {
-                var found = false
-                accept(object : PsiRecursiveElementWalkingVisitor() {
-                    override fun visitElement(element: PsiElement) {
-                        if (element is T && predicate(element)) {
-                            found = true
-                            stopWalking()
-                            return
+                val found = kotlin.run {
+                    var result = false
+                    accept(object : PsiRecursiveElementWalkingVisitor() {
+                        override fun visitElement(element: PsiElement) {
+                            if (element is T && predicate(element)) {
+                                result = true
+                                stopWalking()
+                                return
+                            }
+                            super.visitElement(element)
                         }
-                        super.visitElement(element)
-                    }
-                })
+                    })
+                    result
+                }
                 return found
             }
         }

@@ -26,9 +26,9 @@ public enum ForbidGreaterThanComparisonRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
-            List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
             return sources.stream()
                     .flatMap(file -> validateGreaterThanComparison(root, file, severity).stream())
                     .toList();
@@ -39,7 +39,7 @@ public enum ForbidGreaterThanComparisonRule implements HarnessCheckRule {
 
     private List<Finding> validateGreaterThanComparison(Path root, Path file, String severity) {
         try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
+            final CompilationUnit cu = StaticJavaParser.parse(file);
             LexicalPreservingPrinter.setup(cu);
             return cu.findAll(BinaryExpr.class).stream()
                     .filter(expr -> expr.getOperator() == BinaryExpr.Operator.GREATER || expr.getOperator() == BinaryExpr.Operator.GREATER_EQUALS)

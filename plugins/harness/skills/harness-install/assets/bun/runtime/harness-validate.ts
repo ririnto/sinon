@@ -19,12 +19,11 @@ function pathOf(path: string): string {
 }
 
 function loadManifest(): Manifest {
-  let manifest: Manifest = {};
   try {
-    manifest = JSON.parse(readFileSync(pathOf(MANIFEST_PATH), "utf8"));
+    return JSON.parse(readFileSync(pathOf(MANIFEST_PATH), "utf8")) as Manifest;
   } catch {
+    return {};
   }
-  return manifest;
 }
 
 function main(): void {

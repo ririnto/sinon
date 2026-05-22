@@ -23,13 +23,13 @@ public enum RequireEnvShebangUnderRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        String expectedPrefix = catNode.get("parameters").get("expectedPrefix").asText();
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final String expectedPrefix = catNode.get("parameters").get("expectedPrefix").asText();
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("directories")).stream()
                 .flatMap(dir -> {
                     try {
-                        Path dirPath = root.resolve(dir);
+                        final Path dirPath = root.resolve(dir);
                         return HarnessCheckHelper.safeFileOrWalk(root, dirPath).stream()
                                 .filter(Files::isExecutable)
                                 .flatMap(file -> validateShebang(root, file, expectedPrefix, severity).stream());
@@ -41,13 +41,9 @@ public enum RequireEnvShebangUnderRule implements HarnessCheckRule {
     }
 
     private List<Finding> validateShebang(Path root, Path file, String expectedPrefix, String severity) throws MojoExecutionException {
-        String text = HarnessCheckHelper.readFile(root, file);
-        List<Finding> findings;
-        if (text.startsWith("#!") && !text.startsWith(expectedPrefix)) {
-            findings = List.of(new Finding(severity, CATEGORY, "executable script should use /usr/bin/env shebang: " + root.relativize(file)));
-        } else {
-            findings = List.of();
-        }
-        return findings;
+        final String text = HarnessCheckHelper.readFile(root, file);
+        return text.startsWith("#!") && !text.startsWith(expectedPrefix)
+                ? List.of(new Finding(severity, CATEGORY, "executable script should use /usr/bin/env shebang: " + root.relativize(file)))
+                : List.of();
     }
 }
