@@ -12,7 +12,7 @@ Any coding agent runtime that loads `AGENTS.md` or `CLAUDE.md` MUST treat this d
 
 Validation MUST use the stack-specific command documented in `docs/harness/README.md`.
 
-`docs/generated/` is for generated repository artifacts. It MAY be empty and retained by `.gitkeep` until generated outputs exist. `docs/generated/db-schema.md` is only an example of a possible generated artifact and MUST NOT be treated as a required file.
+`docs/generated/` is for generated repository artifacts. It MAY be empty and retained by `.gitkeep` until generated outputs exist; fake placeholder files MUST NOT be added.
 
 Harness changes MAY be made during development when the current harness no longer matches project reality. Such changes MUST be committed as versioned files and validated before merge.
 
@@ -27,7 +27,7 @@ Harness changes MAY be made during development when the current harness no longe
 - `docs/harness/templates/` MUST contain structured templates for agents, skills, workflows, CI integration, and repository documentation.
 - `docs/harness/git-hooks/pre-commit` and `docs/harness/git-hooks/pre-push` MUST remain executable and use `/usr/bin/env sh`.
 - Empty required directories MUST be kept in version control with `.gitkeep` until they contain project files.
-- `docs/generated/` MUST contain actual generated repository artifacts when they exist. `docs/generated/db-schema.md` is an example of a possible generated database schema summary and MUST NOT be treated as a required scaffold file.
+- `docs/generated/` MUST contain actual generated repository artifacts when they exist; fake placeholder files MUST NOT be added.
 - Validation SHOULD run through the repository's native build/runtime ecosystem.
 - `docs/harness/git-hooks/pre-commit` MUST follow the stack-specific intermediate gate: Gradle runs `harnessValidate`, and non-Gradle stacks run lightweight harness-rule compliance.
 - `docs/harness/git-hooks/pre-push` SHOULD run the same final check command used by CI; for Gradle this is `check`.
@@ -71,7 +71,7 @@ docs/
 └── SECURITY.md
 ```
 
-`docs/generated/` is reserved for artifacts produced by commands, schemas, build tools, migrations, reports, or other deterministic generation. Keep `.gitkeep` only while the directory has no real generated artifacts. `docs/generated/db-schema.md` is only an example of a possible output and MUST NOT be treated as a required file. Actual generated items SHOULD document their source command, input files, freshness, and regeneration trigger.
+`docs/generated/` is reserved for artifacts produced by commands, schemas, build tools, migrations, reports, or other deterministic generation. Keep `.gitkeep` only while the directory has no real generated artifacts; do not add fake placeholder files. Actual generated items SHOULD document their source command, input files, freshness, and regeneration trigger.
 
 ## Optional Seed Files
 

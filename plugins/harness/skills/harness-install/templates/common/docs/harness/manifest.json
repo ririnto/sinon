@@ -1,121 +1,137 @@
 {
-  "schemaVersion": "0.4.0",
+  "schemaVersion": "0.5.0",
   "name": "repository-harness",
-  "requiredFiles": [
-    "AGENTS.md",
-    "ARCHITECTURE.md",
-    "CLAUDE.md",
-    "docs/design-docs/core-beliefs.md",
-    "docs/exec-plans/tech-debt-tracker.md",
-    "docs/DESIGN.md",
-    "docs/FRONTEND.md",
-    "docs/PLANS.md",
-    "docs/PRODUCT_SENSE.md",
-    "docs/QUALITY_SCORE.md",
-    "docs/RELIABILITY.md",
-    "docs/SECURITY.md",
-    "docs/harness/git-hooks/pre-commit",
-    "docs/harness/git-hooks/pre-push"
-  ],
-  "requiredDirectories": [
-    ".claude/agents",
-    ".claude/skills",
-    "docs",
-    "docs/design-docs",
-    "docs/exec-plans",
-    "docs/exec-plans/active",
-    "docs/exec-plans/completed",
-    "docs/generated",
-    "docs/harness",
-    "docs/harness/templates",
-    "docs/product-specs",
-    "docs/references"
-  ],
-  "emptyDirectoryKeepFiles": [
-    "docs/exec-plans/active/.gitkeep",
-    "docs/exec-plans/completed/.gitkeep",
-    "docs/generated/.gitkeep"
-  ],
-  "optionalSeedFiles": [
-    "docs/product-specs/new-user-onboarding.md"
-  ],
-  "templateGroups": [
-    "agent",
-    "skill",
-    "workflow",
-    "ci",
-    "docs"
-  ],
-  "requiredDocHeadings": [
-    "## Purpose",
-    "## When To Update",
-    "## Required Evidence"
-  ],
-  "requiredContentChecks": [
-    {
-      "files": ["AGENTS.md"],
-      "containsAll": ["Repository Harness Contract"],
-      "failureMessage": "AGENTS.md must contain Repository Harness Contract"
-    },
-    {
-      "files": ["CLAUDE.md"],
-      "containsAll": ["## Entry Point"],
-      "failureMessage": "CLAUDE.md must contain an Entry Point section"
-    },
-    {
-      "files": ["CLAUDE.md"],
-      "containsAll": ["AGENTS.md"],
-      "failureMessage": "CLAUDE.md must reference AGENTS.md"
-    },
-    {
-      "files": ["AGENTS.md"],
-      "containsAll": ["docs/generated/"],
-      "failureMessage": "AGENTS.md must describe docs/generated/ semantics"
-    },
-    {
-      "files": ["AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md"],
-      "containsAll": ["docs/generated/db-schema.md"],
-      "failureMessage": "repository docs must state that docs/generated/db-schema.md is only an example, not a required scaffold file"
-    },
-    {
-      "files": ["AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md"],
-      "containsAll": ["source command", "regeneration trigger"],
-      "failureMessage": "repository docs must describe generated-artifact source command and regeneration trigger metadata"
-    },
-    {
-      "files": ["AGENTS.md", "CLAUDE.md"],
-      "containsAll": ["discovery", "maintenance"],
-      "failureMessage": "repository docs must state that the harness may evolve across development phases"
-    }
-  ],
-  "activeAssetBases": [
-    "AGENTS.md",
-    "CLAUDE.md",
-    "ARCHITECTURE.md",
-    "docs",
-    ".claude/agents",
-    ".claude/skills",
-    ".github"
-  ],
-  "excludedActiveAssetSubtrees": [
-    "docs/harness/manifest.json",
-    "docs/harness/templates"
-  ],
-  "activeAssetExtensions": [
-    "md",
-    "txt",
-    "json",
-    "yml",
-    "yaml"
-  ],
-  "leakPatterns": [
-    {"pattern": "\\{\\{", "label": "unresolved template token"},
-    {"pattern": "(?m)^name:\\s*example-", "label": "example frontmatter name"},
-    {"pattern": "Describe ", "label": "scaffold prompt text"},
-    {"pattern": "\\bTODO\\b|\\bTBD\\b", "label": "TODO/TBD placeholder"},
-    {"pattern": "replace-with-stack-specific", "label": "stack placeholder"}
-  ],
+  "requiredFiles": {
+    "severity": "ERROR",
+    "items": [
+      "AGENTS.md",
+      "ARCHITECTURE.md",
+      "CLAUDE.md",
+      "docs/design-docs/core-beliefs.md",
+      "docs/exec-plans/tech-debt-tracker.md",
+      "docs/DESIGN.md",
+      "docs/FRONTEND.md",
+      "docs/PLANS.md",
+      "docs/PRODUCT_SENSE.md",
+      "docs/QUALITY_SCORE.md",
+      "docs/RELIABILITY.md",
+      "docs/SECURITY.md",
+      "docs/harness/git-hooks/pre-commit",
+      "docs/harness/git-hooks/pre-push"
+    ]
+  },
+  "requiredDirectories": {
+    "severity": "ERROR",
+    "items": [
+      ".claude/agents",
+      ".claude/skills",
+      "docs",
+      "docs/design-docs",
+      "docs/exec-plans",
+      "docs/exec-plans/active",
+      "docs/exec-plans/completed",
+      "docs/generated",
+      "docs/harness",
+      "docs/harness/templates",
+      "docs/product-specs",
+      "docs/references"
+    ]
+  },
+  "emptyDirectoryKeepFiles": {
+    "severity": "ERROR",
+    "items": [
+      "docs/exec-plans/active/.gitkeep",
+      "docs/exec-plans/completed/.gitkeep",
+      "docs/generated/.gitkeep"
+    ]
+  },
+  "optionalSeedFiles": {
+    "severity": "INFO",
+    "items": [
+      "docs/product-specs/new-user-onboarding.md"
+    ]
+  },
+  "templateGroups": {
+    "severity": "WARN",
+    "items": [
+      "agent",
+      "skill",
+      "workflow",
+      "ci",
+      "docs"
+    ]
+  },
+  "requiredDocHeadings": {
+    "severity": "WARN",
+    "items": [
+      "## Purpose",
+      "## When To Update",
+      "## Required Evidence"
+    ]
+  },
+  "requiredContentChecks": {
+    "severity": "ERROR",
+    "items": [
+      {
+        "files": ["AGENTS.md"],
+        "containsAll": ["Repository Harness Contract"],
+        "failureMessage": "AGENTS.md must contain Repository Harness Contract"
+      },
+      {
+        "files": ["CLAUDE.md"],
+        "containsAll": ["## Entry Point"],
+        "failureMessage": "CLAUDE.md must contain an Entry Point section"
+      },
+      {
+        "files": ["CLAUDE.md"],
+        "containsAll": ["AGENTS.md"],
+        "failureMessage": "CLAUDE.md must reference AGENTS.md"
+      },
+      {
+        "files": ["AGENTS.md"],
+        "containsAll": ["docs/generated/"],
+        "failureMessage": "AGENTS.md must describe docs/generated/ semantics"
+      },
+      {
+        "files": ["AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md"],
+        "containsAll": ["source command", "regeneration trigger"],
+        "failureMessage": "repository docs must describe generated-artifact source command and regeneration trigger metadata"
+      },
+      {
+        "files": ["AGENTS.md", "CLAUDE.md"],
+        "containsAll": ["discovery", "maintenance"],
+        "failureMessage": "repository docs must state that the harness may evolve across development phases"
+      }
+    ]
+  },
+  "leakPatterns": {
+    "severity": "ERROR",
+    "items": [
+      {"pattern": "\\{\\{", "label": "unresolved template token"},
+      {"pattern": "(?m)^name:\\s*example-", "label": "example frontmatter name"},
+      {"pattern": "Describe ", "label": "scaffold prompt text"},
+      {"pattern": "\\bTODO\\b|\\bTBD\\b", "label": "TODO/TBD placeholder"},
+      {"pattern": "replace-with-stack-specific", "label": "stack placeholder"}
+    ]
+  },
+  "activeAssets": {
+    "bases": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "ARCHITECTURE.md",
+      "docs",
+      ".claude/agents",
+      ".claude/skills",
+      ".github"
+    ],
+    "excludedSubtrees": [
+      "docs/harness/manifest.json",
+      "docs/harness/templates"
+    ],
+    "extensions": ["md", "txt", "json", "yml", "yaml"]
+  },
   "expectedValidationCommands": {
+    "severity": "ERROR",
     "gradleFinalCheck": ["./gradlew check", "gradle check"],
     "gradleHarnessValidate": ["./gradlew harnessValidate", "gradle harnessValidate"],
     "maven": "mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate",
@@ -123,18 +139,52 @@
     "bun": "bun run docs/harness/bun/harness-validate.ts"
   },
   "hookStages": {
+    "severity": "WARN",
     "gradle": {"preCommit": "harness-validation", "prePush": "full-validation"},
     "maven": {"preCommit": "compliance", "prePush": "full-validation"},
     "uv": {"preCommit": "compliance", "prePush": "full-validation"},
     "bun": {"preCommit": "compliance", "prePush": "full-validation"}
   },
-  "completedPlanDirectory": "docs/exec-plans/completed",
-  "unfinishedTaskPattern": "^\\s*-\\s*\\[ \\]\\s",
-  "envShebangBases": ["docs/harness", ".claude/skills"],
+  "completedPlanDirectory": {
+    "severity": "ERROR",
+    "value": "docs/exec-plans/completed"
+  },
+  "unfinishedTaskPattern": {
+    "severity": "ERROR",
+    "value": "^\\s*-\\s*\\[ \\]\\s"
+  },
+  "envShebangBases": {
+    "severity": "WARN",
+    "items": ["docs/harness", ".claude/skills"]
+  },
+  "agentFrontmatter": {
+    "severity": "ERROR"
+  },
+  "skillFrontmatter": {
+    "severity": "ERROR"
+  },
+  "hookFirstLine": {
+    "severity": "ERROR"
+  },
+  "hookExecutable": {
+    "severity": "ERROR"
+  },
+  "hookGeneratedMarker": {
+    "severity": "ERROR"
+  },
+  "ciCommandMatch": {
+    "severity": "WARN"
+  },
+  "symlinkSafety": {
+    "severity": "ERROR"
+  },
+  "manifestParity": {
+    "severity": "ERROR"
+  },
   "generatedArtifacts": {
     "path": "docs/generated/",
     "placeholder": "docs/generated/.gitkeep",
-    "policy": "Place actual generated repository artifacts here. docs/generated/db-schema.md is an example output, not a required scaffold file.",
+    "policy": "Place actual generated repository artifacts here. Do not add fake placeholder files; keep the directory empty with .gitkeep until a real generation step exists.",
     "metadata": [
       "source command",
       "source inputs",

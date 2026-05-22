@@ -570,14 +570,23 @@ if settings_json_exists != has_settings:
         errors.append("manifest must declare settings because settings.json exists")
     else:
         errors.append("settings.json target file missing for settings declaration")
-for group in manifest.get("templateGroups", []):
+def manifest_items(manifest, key):
+    section = manifest.get(key, {})
+    if isinstance(section, dict):
+        items = section.get("items", [])
+        return items if isinstance(items, list) else []
+    if isinstance(section, list):
+        return section
+    return []
+
+for group in manifest_items(manifest, "templateGroups"):
     if not (root / f"skills/harness-install/templates/common/docs/harness/templates/{group}").is_dir():
         errors.append(f"manifest template group missing: {group}")
 for key in ("requiredFiles", "emptyDirectoryKeepFiles"):
-    for item in manifest.get(key, []):
+    for item in manifest_items(manifest, key):
         if not (root / "skills/harness-install/templates/common" / item).is_file():
             errors.append(f"manifest {key} missing file: {item}")
-for item in manifest.get("requiredDirectories", []):
+for item in manifest_items(manifest, "requiredDirectories"):
     if not (root / "skills/harness-install/templates/common" / item).is_dir():
         errors.append(f"manifest requiredDirectories missing directory: {item}")
 if errors:

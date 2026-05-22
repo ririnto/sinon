@@ -6,6 +6,36 @@ const root = process.cwd();
 const STACK = "bun" as const;
 const MANIFEST_PATH = "docs/harness/manifest.json";
 
+interface Finding {
+  severity: "ERROR" | "WARN" | "INFO";
+  category: string;
+  message: string;
+}
+
+const DEFAULT_SEVERITY: Record<string, "ERROR" | "WARN" | "INFO"> = {
+  requiredFiles: "ERROR",
+  requiredDirectories: "ERROR",
+  emptyDirectoryKeepFiles: "ERROR",
+  optionalSeedFiles: "INFO",
+  templateGroups: "WARN",
+  requiredDocHeadings: "WARN",
+  requiredContentChecks: "ERROR",
+  leakPatterns: "ERROR",
+  expectedValidationCommands: "ERROR",
+  hookStages: "WARN",
+  completedPlanDirectory: "ERROR",
+  unfinishedTaskPattern: "ERROR",
+  envShebangBases: "WARN",
+  agentFrontmatter: "ERROR",
+  skillFrontmatter: "ERROR",
+  hookFirstLine: "ERROR",
+  hookExecutable: "ERROR",
+  hookGeneratedMarker: "ERROR",
+  ciCommandMatch: "WARN",
+  symlinkSafety: "ERROR",
+  manifestParity: "ERROR",
+};
+
 // Helper functions
 function pathOf(path: string): string {
   return join(root, path);
@@ -80,68 +110,88 @@ function allowedRootContractTarget(path: string): string | null {
   }
 }
 
-function isSafeFile(path: string): readonly [boolean, readonly string[]] {
-  const warnings: string[] = [];
+function isSafeFile(path: string): readonly [boolean, readonly Finding[]] {
+  const findings: Finding[] = [];
   if (isSymlink(path)) {
     if (allowedRootContractTarget(path) === null) {
-      warnings.push(`symlink file is not allowed: ${path}`);
-      return [false, warnings];
+      findings.push({
+        severity: severityOf(manifest, "symlinkSafety"),
+        category: "symlinkSafety",
+        message: `symlink file is not allowed: ${path}`,
+      });
+      return [false, findings];
     }
-    return [true, warnings];
+    return [true, findings];
   }
-  return [isFile(path), warnings];
+  return [isFile(path), findings];
 }
 
-function isSafeDirectory(path: string): readonly [boolean, readonly string[]] {
-  const warnings: string[] = [];
+function isSafeDirectory(path: string): readonly [boolean, readonly Finding[]] {
+  const findings: Finding[] = [];
   if (isSymlink(path)) {
-    warnings.push(`symlink directory is not allowed: ${path}`);
-    return [false, warnings];
+    findings.push({
+      severity: severityOf(manifest, "symlinkSafety"),
+      category: "symlinkSafety",
+      message: `symlink directory is not allowed: ${path}`,
+    });
+    return [false, findings];
   }
-  return [isDirectory(path), warnings];
+  return [isDirectory(path), findings];
 }
 
-function walk(path: string): readonly [readonly string[], readonly string[]] {
-  const warnings: string[] = [];
+function walk(path: string): readonly [readonly string[], readonly Finding[]] {
+  const findings: Finding[] = [];
   if (isSymlink(path)) {
-    warnings.push(`symlink scan root is not allowed: ${path}`);
-    return [[], warnings];
+    findings.push({
+      severity: severityOf(manifest, "symlinkSafety"),
+      category: "symlinkSafety",
+      message: `symlink scan root is not allowed: ${path}`,
+    });
+    return [[], findings];
   }
   if (isFile(path)) {
-    return [[path], warnings];
+    return [[path], findings];
   }
   if (!isDirectory(path)) {
-    return [[], warnings];
+    return [[], findings];
   }
   const files: string[] = [];
   for (const entry of readdirSync(pathOf(path))) {
     const child = `${path}/${entry}`;
     const full = pathOf(child);
     if (lstatSync(full).isSymbolicLink()) {
-      warnings.push(`symlink scan entry is not allowed: ${child}`);
+      findings.push({
+        severity: severityOf(manifest, "symlinkSafety"),
+        category: "symlinkSafety",
+        message: `symlink scan entry is not allowed: ${child}`,
+      });
       continue;
     }
     if (statSync(full).isDirectory()) {
-      const [subFiles, subWarnings] = walk(child);
+      const [subFiles, subFindings] = walk(child);
       files.push(...subFiles);
-      warnings.push(...subWarnings);
+      findings.push(...subFindings);
     }
     if (statSync(full).isFile()) {
       files.push(child);
     }
   }
-  return [files, warnings];
+  return [files, findings];
 }
 
-function safeFileOrWalk(path: string): readonly [readonly string[], readonly string[]] {
-  const warnings: string[] = [];
+function safeFileOrWalk(path: string): readonly [readonly string[], readonly Finding[]] {
+  const findings: Finding[] = [];
   if (isSymlink(path) && allowedRootContractTarget(path) === null) {
-    warnings.push(`symlink path is not allowed: ${path}`);
-    return [[], warnings];
+    findings.push({
+      severity: severityOf(manifest, "symlinkSafety"),
+      category: "symlinkSafety",
+      message: `symlink path is not allowed: ${path}`,
+    });
+    return [[], findings];
   }
   const [isSafe] = isSafeFile(path);
   if (isSafe) {
-    return [[path], warnings];
+    return [[path], findings];
   }
   return walk(path);
 }
@@ -152,6 +202,15 @@ function manifestArray(value: unknown): readonly string[] {
 
 function manifestObject(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
+}
+
+function severityOf(manifest: Record<string, unknown>, category: string): "ERROR" | "WARN" | "INFO" {
+  const entry = manifestObject(manifest[category]);
+  const sev = entry.severity;
+  if (sev === "ERROR" || sev === "WARN" || sev === "INFO") {
+    return sev;
+  }
+  return DEFAULT_SEVERITY[category] ?? "ERROR";
 }
 
 function loadManifest(): Record<string, unknown> {
@@ -166,28 +225,39 @@ function loadManifest(): Record<string, unknown> {
 }
 
 // Validation functions
-function validateStructure(manifest: Record<string, unknown>): readonly string[] {
-  const failures: string[] = [];
+function validateStructure(manifest: Record<string, unknown>): readonly Finding[] {
+  const findings: Finding[] = [];
 
-  const requiredFiles = manifestArray(manifest.requiredFiles);
+  const requiredFilesEntry = manifestObject(manifest.requiredFiles);
+  const requiredFiles = manifestArray(requiredFilesEntry.items);
   for (const path of requiredFiles) {
     const [safe, warnings] = isSafeFile(path);
-    failures.push(...warnings);
+    findings.push(...warnings);
     if (!safe) {
-      failures.push(`missing file: ${path}`);
+      findings.push({
+        severity: severityOf(manifest, "requiredFiles"),
+        category: "requiredFiles",
+        message: `missing file: ${path}`,
+      });
     }
   }
 
-  const requiredDirectories = manifestArray(manifest.requiredDirectories);
+  const requiredDirectoriesEntry = manifestObject(manifest.requiredDirectories);
+  const requiredDirectories = manifestArray(requiredDirectoriesEntry.items);
   for (const path of requiredDirectories) {
     const [safe, warnings] = isSafeDirectory(path);
-    failures.push(...warnings);
+    findings.push(...warnings);
     if (!safe) {
-      failures.push(`missing directory: ${path}`);
+      findings.push({
+        severity: severityOf(manifest, "requiredDirectories"),
+        category: "requiredDirectories",
+        message: `missing directory: ${path}`,
+      });
     }
   }
 
-  const emptyDirectoryKeepFiles = manifestArray(manifest.emptyDirectoryKeepFiles);
+  const emptyDirectoryKeepFilesEntry = manifestObject(manifest.emptyDirectoryKeepFiles);
+  const emptyDirectoryKeepFiles = manifestArray(emptyDirectoryKeepFilesEntry.items);
   for (const keep of emptyDirectoryKeepFiles) {
     const directory = dirname(keep);
     const [dirSafe] = isSafeDirectory(directory);
@@ -197,17 +267,23 @@ function validateStructure(manifest: Record<string, unknown>): readonly string[]
     const realFiles = readdirSync(pathOf(directory)).filter((entry) => entry !== ".gitkeep");
     const [keepSafe] = isSafeFile(keep);
     if (realFiles.length === 0 && !keepSafe) {
-      failures.push(`empty directory must keep placeholder or real files: ${directory}`);
+      findings.push({
+        severity: severityOf(manifest, "emptyDirectoryKeepFiles"),
+        category: "emptyDirectoryKeepFiles",
+        message: `empty directory must keep placeholder or real files: ${directory}`,
+      });
     }
   }
 
-  return failures;
+  return findings;
 }
 
-function validateDocsHeadings(manifest: Record<string, unknown>): readonly string[] {
-  const failures: string[] = [];
-  const requiredFiles = manifestArray(manifest.requiredFiles);
-  const requiredDocHeadings = manifestArray(manifest.requiredDocHeadings);
+function validateDocsHeadings(manifest: Record<string, unknown>): readonly Finding[] {
+  const findings: Finding[] = [];
+  const requiredFilesEntry = manifestObject(manifest.requiredFiles);
+  const requiredFiles = manifestArray(requiredFilesEntry.items);
+  const requiredDocHeadingsEntry = manifestObject(manifest.requiredDocHeadings);
+  const requiredDocHeadings = manifestArray(requiredDocHeadingsEntry.items);
 
   const requiredAuthoredDocs = requiredFiles.filter(
     (path) => path.startsWith("docs/") && path.endsWith(".md")
@@ -221,20 +297,25 @@ function validateDocsHeadings(manifest: Record<string, unknown>): readonly strin
     const text = read(doc);
     for (const heading of requiredDocHeadings) {
       if (!text.includes(heading)) {
-        failures.push(`doc missing ${heading}: ${doc}`);
+        findings.push({
+          severity: severityOf(manifest, "requiredDocHeadings"),
+          category: "requiredDocHeadings",
+          message: `doc missing ${heading}: ${doc}`,
+        });
       }
     }
   }
 
-  return failures;
+  return findings;
 }
 
-function validateContentChecks(manifest: Record<string, unknown>): readonly string[] {
-  const failures: string[] = [];
-  const checks = manifest.requiredContentChecks;
+function validateContentChecks(manifest: Record<string, unknown>): readonly Finding[] {
+  const findings: Finding[] = [];
+  const requiredContentChecksEntry = manifestObject(manifest.requiredContentChecks);
+  const checks = requiredContentChecksEntry.items;
 
   if (!Array.isArray(checks)) {
-    return failures;
+    return findings;
   }
 
   for (const check of checks) {
@@ -250,72 +331,106 @@ function validateContentChecks(manifest: Record<string, unknown>): readonly stri
     const hasMissing = containsAll.some((substring) => !combinedText.includes(substring));
 
     if (hasMissing && failureMessage) {
-      failures.push(failureMessage);
+      findings.push({
+        severity: severityOf(manifest, "requiredContentChecks"),
+        category: "requiredContentChecks",
+        message: failureMessage,
+      });
     }
   }
 
-  return failures;
+  return findings;
 }
 
-function validateAgents(): readonly string[] {
-  const failures: string[] = [];
-  const [agents, agentWarnings] = walk(".claude/agents");
-  failures.push(...agentWarnings);
+function validateAgents(): readonly Finding[] {
+  const findings: Finding[] = [];
+  const [agents, agentFindings] = walk(".claude/agents");
+  findings.push(...agentFindings);
 
   const agentFiles = (agents as readonly string[]).filter(
     (file) => dirname(file) === ".claude/agents" && file.endsWith(".md")
   );
 
   if (agentFiles.length === 0) {
-    failures.push(".claude/agents must contain at least one .md agent");
+    findings.push({
+      severity: severityOf(manifest, "agentFrontmatter"),
+      category: "agentFrontmatter",
+      message: ".claude/agents must contain at least one .md agent",
+    });
   }
 
   for (const agent of agentFiles) {
     const text = read(agent);
     if (!text.startsWith("---")) {
-      failures.push(`agent missing frontmatter: ${agent}`);
+      findings.push({
+        severity: severityOf(manifest, "agentFrontmatter"),
+        category: "agentFrontmatter",
+        message: `agent missing frontmatter: ${agent}`,
+      });
     }
     if (!/^name:\s*[-a-z0-9]+\s*$/m.test(text)) {
-      failures.push(`agent missing name: ${agent}`);
+      findings.push({
+        severity: severityOf(manifest, "agentFrontmatter"),
+        category: "agentFrontmatter",
+        message: `agent missing name: ${agent}`,
+      });
     }
     if (!/^description:\s*.+$/m.test(text)) {
-      failures.push(`agent missing description: ${agent}`);
+      findings.push({
+        severity: severityOf(manifest, "agentFrontmatter"),
+        category: "agentFrontmatter",
+        message: `agent missing description: ${agent}`,
+      });
     }
   }
 
-  return failures;
+  return findings;
 }
 
-function validateSkills(): readonly string[] {
-  const failures: string[] = [];
-  const [skills, skillWarnings] = walk(".claude/skills");
-  failures.push(...skillWarnings);
+function validateSkills(): readonly Finding[] {
+  const findings: Finding[] = [];
+  const [skills, skillFindings] = walk(".claude/skills");
+  findings.push(...skillFindings);
 
   const skillFiles = (skills as readonly string[]).filter((file) => file.endsWith("/SKILL.md"));
 
   if (skillFiles.length === 0) {
-    failures.push(".claude/skills must contain at least one SKILL.md");
+    findings.push({
+      severity: severityOf(manifest, "skillFrontmatter"),
+      category: "skillFrontmatter",
+      message: ".claude/skills must contain at least one SKILL.md",
+    });
   }
 
   for (const skill of skillFiles) {
     const text = read(skill);
     if (!text.startsWith("---")) {
-      failures.push(`skill missing frontmatter: ${skill}`);
+      findings.push({
+        severity: severityOf(manifest, "skillFrontmatter"),
+        category: "skillFrontmatter",
+        message: `skill missing frontmatter: ${skill}`,
+      });
     }
     if (!/^description:\s*.+$/m.test(text)) {
-      failures.push(`skill missing description: ${skill}`);
+      findings.push({
+        severity: severityOf(manifest, "skillFrontmatter"),
+        category: "skillFrontmatter",
+        message: `skill missing description: ${skill}`,
+      });
     }
   }
 
-  return failures;
+  return findings;
 }
 
-function validateActiveAssets(manifest: Record<string, unknown>): readonly string[] {
-  const failures: string[] = [];
-  const activeAssetBases = manifestArray(manifest.activeAssetBases);
-  const excludedActiveAssetSubtrees = manifestArray(manifest.excludedActiveAssetSubtrees);
-  const activeAssetExtensions = manifestArray(manifest.activeAssetExtensions);
-  const leakPatternsRaw = manifest.leakPatterns;
+function validateActiveAssets(manifest: Record<string, unknown>): readonly Finding[] {
+  const findings: Finding[] = [];
+  const activeAssetsEntry = manifestObject(manifest.activeAssets);
+  const activeAssetBases = manifestArray(activeAssetsEntry.bases);
+  const excludedActiveAssetSubtrees = manifestArray(activeAssetsEntry.excludedSubtrees);
+  const activeAssetExtensions = manifestArray(activeAssetsEntry.extensions);
+  const leakPatternsEntry = manifestObject(manifest.leakPatterns);
+  const leakPatternsRaw = leakPatternsEntry.items;
 
   const leakPatterns: Array<readonly [RegExp, string]> = [];
   if (Array.isArray(leakPatternsRaw)) {
@@ -337,7 +452,7 @@ function validateActiveAssets(manifest: Record<string, unknown>): readonly strin
 
   for (const base of activeAssetBases) {
     const [files, warnings] = safeFileOrWalk(base);
-    failures.push(...warnings);
+    findings.push(...warnings);
     for (const file of files) {
       let excluded = false;
       for (const subtree of excludedActiveAssetSubtrees) {
@@ -359,13 +474,17 @@ function validateActiveAssets(manifest: Record<string, unknown>): readonly strin
       const text = read(file);
       for (const [pattern, label] of leakPatterns) {
         if (pattern.test(text)) {
-          failures.push(`${label} in active asset: ${file}`);
+          findings.push({
+            severity: severityOf(manifest, "leakPatterns"),
+            category: "leakPatterns",
+            message: `${label} in active asset: ${file}`,
+          });
         }
       }
     }
   }
 
-  return failures;
+  return findings;
 }
 
 function hookCommand(prePushText: string): string {
@@ -377,125 +496,172 @@ function hookCommand(prePushText: string): string {
   return "";
 }
 
-function validateOneHook(name: string, stage: string): readonly [string, readonly string[]] {
-  const failures: string[] = [];
+function validateOneHook(name: string, stage: string): readonly [string, readonly Finding[]] {
+  const findings: Finding[] = [];
   const hook = `docs/harness/git-hooks/${name}`;
   let hookText = "";
 
   const [hookExists, safeWarnings] = isSafeFile(hook);
-  failures.push(...safeWarnings);
+  findings.push(...safeWarnings);
 
   if (hookExists) {
     hookText = read(hook);
     if (firstLine(hook) !== "#!/usr/bin/env sh") {
-      failures.push(`${name} hook must use #!/usr/bin/env sh`);
+      findings.push({
+        severity: severityOf(manifest, "hookFirstLine"),
+        category: "hookFirstLine",
+        message: `${name} hook must use #!/usr/bin/env sh`,
+      });
     }
     if (!isExecutablePath(hook)) {
-      failures.push(`${name} hook must be executable: ${hook}`);
+      findings.push({
+        severity: severityOf(manifest, "hookExecutable"),
+        category: "hookExecutable",
+        message: `${name} hook must be executable: ${hook}`,
+      });
     }
     if (!hookText.includes(`Harness generated hook: ${name}`)) {
-      failures.push(`${name} hook must contain generated marker`);
+      findings.push({
+        severity: severityOf(manifest, "hookGeneratedMarker"),
+        category: "hookGeneratedMarker",
+        message: `${name} hook must contain generated marker`,
+      });
     }
     if (!hookText.includes(`Harness stage: ${stage}`)) {
-      failures.push(`${name} hook must contain ${stage} stage marker`);
+      findings.push({
+        severity: severityOf(manifest, "hookStages"),
+        category: "hookStages",
+        message: `${name} hook must contain ${stage} stage marker`,
+      });
     }
     if (hookText.includes("packaged placeholder is replaced during harness installation")) {
-      failures.push(`${name} hook must be installer-generated selected-mode content`);
+      findings.push({
+        severity: severityOf(manifest, "hookGeneratedMarker"),
+        category: "hookGeneratedMarker",
+        message: `${name} hook must be installer-generated selected-mode content`,
+      });
     }
   }
 
-  return [hookText, failures];
+  return [hookText, findings];
 }
 
-function validateHooks(manifest: Record<string, unknown>): readonly string[] {
-  const failures: string[] = [];
-  const expectedValidationCommands = manifestObject(manifest.expectedValidationCommands);
-  const hookStages = manifestObject(manifest.hookStages);
-  const stackHookStages = manifestObject(hookStages[STACK]);
+function validateHooks(manifest: Record<string, unknown>): readonly Finding[] {
+  const findings: Finding[] = [];
+  const expectedValidationCommandsEntry = manifestObject(manifest.expectedValidationCommands);
+  const hookStagesEntry = manifestObject(manifest.hookStages);
+  const stackHookStages = manifestObject(hookStagesEntry[STACK]);
 
   const preCommitStage = typeof stackHookStages.preCommit === "string" ? stackHookStages.preCommit : "compliance";
   const prePushStage = typeof stackHookStages.prePush === "string" ? stackHookStages.prePush : "full-validation";
-  const expectedValidationCommand = typeof expectedValidationCommands[STACK] === "string"
-    ? expectedValidationCommands[STACK]
+  const expectedValidationCommand = typeof expectedValidationCommandsEntry[STACK] === "string"
+    ? expectedValidationCommandsEntry[STACK]
     : "";
 
-  const [preCommitText, preCommitFailures] = validateOneHook("pre-commit", preCommitStage);
-  failures.push(...preCommitFailures);
+  const [preCommitText, preCommitFindings] = validateOneHook("pre-commit", preCommitStage);
+  findings.push(...preCommitFindings);
 
-  const [prePushText, prePushFailures] = validateOneHook("pre-push", prePushStage);
-  failures.push(...prePushFailures);
+  const [prePushText, prePushFindings] = validateOneHook("pre-push", prePushStage);
+  findings.push(...prePushFindings);
 
   if (/(^|\s)(uv|bun|gradle|mvn)(\s|$)|\.\/gradlew|harnessValidate|harness_validate\.py|harness-validate\.ts/.test(preCommitText)) {
-    failures.push("pre-commit hook must not run full stack validation commands");
+    findings.push({
+      severity: severityOf(manifest, "expectedValidationCommands"),
+      category: "expectedValidationCommands",
+      message: "pre-commit hook must not run full stack validation commands",
+    });
   }
 
   const validationCommand = hookCommand(prePushText);
   if (validationCommand.length === 0) {
-    failures.push("pre-push hook must declare Harness validation command");
+    findings.push({
+      severity: severityOf(manifest, "expectedValidationCommands"),
+      category: "expectedValidationCommands",
+      message: "pre-push hook must declare Harness validation command",
+    });
   } else {
     if (expectedValidationCommand && validationCommand !== expectedValidationCommand) {
-      failures.push(`pre-push hook declares unsupported validation command: ${validationCommand}`);
+      findings.push({
+        severity: severityOf(manifest, "expectedValidationCommands"),
+        category: "expectedValidationCommands",
+        message: `pre-push hook declares unsupported validation command: ${validationCommand}`,
+      });
     } else {
       if (!prePushText.split(/\r?\n/).includes(validationCommand)) {
-        failures.push("pre-push hook must run the declared validation command");
+        findings.push({
+          severity: severityOf(manifest, "expectedValidationCommands"),
+          category: "expectedValidationCommands",
+          message: "pre-push hook must run the declared validation command",
+        });
       }
       for (const ciFile of [".github/workflows/harness.yml", ".gitlab-ci.yml"]) {
         if (isFile(ciFile)) {
           const [ciSafe, ciWarnings] = isSafeFile(ciFile);
-          failures.push(...ciWarnings);
+          findings.push(...ciWarnings);
           if (ciSafe && !read(ciFile).includes(validationCommand)) {
-            failures.push(`${ciFile}: CI command mismatch - expected ${validationCommand}`);
+            findings.push({
+              severity: severityOf(manifest, "ciCommandMatch"),
+              category: "ciCommandMatch",
+              message: `${ciFile}: CI command mismatch - expected ${validationCommand}`,
+            });
           }
         }
       }
     }
   }
 
-  return failures;
+  return findings;
 }
 
-function validateEnvShebangs(manifest: Record<string, unknown>): readonly string[] {
-  const failures: string[] = [];
-  const envShebangBases = manifestArray(manifest.envShebangBases);
+function validateEnvShebangs(manifest: Record<string, unknown>): readonly Finding[] {
+  const findings: Finding[] = [];
+  const envShebangBasesEntry = manifestObject(manifest.envShebangBases);
+  const envShebangBases = manifestArray(envShebangBasesEntry.items);
 
   for (const base of envShebangBases) {
     const [files, warnings] = walk(base);
-    failures.push(...warnings);
+    findings.push(...warnings);
     for (const file of files) {
       if (!isExecutablePath(file)) {
         continue;
       }
       if (firstLine(file).startsWith("#!") && !firstLine(file).startsWith("#!/usr/bin/env ")) {
-        failures.push(`executable script should use /usr/bin/env shebang: ${file}`);
+        findings.push({
+          severity: severityOf(manifest, "envShebangBases"),
+          category: "envShebangBases",
+          message: `executable script should use /usr/bin/env shebang: ${file}`,
+        });
       }
     }
   }
 
-  return failures;
+  return findings;
 }
 
-function validateCompletedPlans(manifest: Record<string, unknown>): readonly string[] {
-  const failures: string[] = [];
-  const completedPlanDirectory = typeof manifest.completedPlanDirectory === "string"
-    ? manifest.completedPlanDirectory
+function validateCompletedPlans(manifest: Record<string, unknown>): readonly Finding[] {
+  const findings: Finding[] = [];
+  const completedPlanDirectoryEntry = manifestObject(manifest.completedPlanDirectory);
+  const completedPlanDirectory = typeof completedPlanDirectoryEntry.value === "string"
+    ? completedPlanDirectoryEntry.value
     : "docs/exec-plans/completed";
-  const unfinishedTaskPatternStr = typeof manifest.unfinishedTaskPattern === "string"
-    ? manifest.unfinishedTaskPattern
+  const unfinishedTaskPatternEntry = manifestObject(manifest.unfinishedTaskPattern);
+  const unfinishedTaskPatternStr = typeof unfinishedTaskPatternEntry.value === "string"
+    ? unfinishedTaskPatternEntry.value
     : "";
 
   if (!unfinishedTaskPatternStr) {
-    return failures;
+    return findings;
   }
 
   let unfinishedTaskPattern: RegExp;
   try {
     unfinishedTaskPattern = new RegExp(unfinishedTaskPatternStr);
   } catch {
-    return failures;
+    return findings;
   }
 
   const [files, warnings] = walk(completedPlanDirectory);
-  failures.push(...warnings);
+  findings.push(...warnings);
 
   for (const file of files) {
     if (!file.endsWith(".md")) {
@@ -503,22 +669,25 @@ function validateCompletedPlans(manifest: Record<string, unknown>): readonly str
     }
     const text = read(file);
     if (unfinishedTaskPattern.test(text)) {
-      failures.push(`completed plan has unchecked tasks: ${file}`);
+      findings.push({
+        severity: severityOf(manifest, "completedPlanDirectory"),
+        category: "completedPlanDirectory",
+        message: `completed plan has unchecked tasks: ${file}`,
+      });
     }
   }
 
-  return failures;
+  return findings;
 }
 
 // Main
 const manifest = loadManifest();
 if (!manifest || typeof manifest !== "object" || Object.keys(manifest).length === 0) {
-  console.error("Harness validation failed:");
-  console.error(`- manifest not found or invalid: ${MANIFEST_PATH}`);
+  console.error("[ERROR] manifest not found or invalid: " + MANIFEST_PATH);
   process.exit(1);
 }
 
-const allFailures: string[] = [
+const allFindings: Finding[] = [
   ...validateStructure(manifest),
   ...validateDocsHeadings(manifest),
   ...validateContentChecks(manifest),
@@ -530,12 +699,43 @@ const allFailures: string[] = [
   ...validateCompletedPlans(manifest),
 ];
 
-const uniqueFailures = new Set(allFailures);
-if (uniqueFailures.size > 0) {
-  console.error("Harness validation failed:");
-  for (const failure of uniqueFailures) {
-    console.error(`- ${failure}`);
+// Deduplicate findings by (severity, category, message)
+const uniqueFindings = new Map<string, Finding>();
+for (const finding of allFindings) {
+  const key = JSON.stringify([finding.severity, finding.category, finding.message]);
+  if (!uniqueFindings.has(key)) {
+    uniqueFindings.set(key, finding);
   }
+}
+
+// Separate by severity
+const errors: Finding[] = [];
+const warnings: Finding[] = [];
+const infos: Finding[] = [];
+
+for (const finding of uniqueFindings.values()) {
+  if (finding.severity === "ERROR") {
+    errors.push(finding);
+  } else if (finding.severity === "WARN") {
+    warnings.push(finding);
+  } else {
+    infos.push(finding);
+  }
+}
+
+// Output in order: ERROR → WARN → INFO
+for (const error of errors) {
+  console.error(`[ERROR] ${error.message}`);
+}
+for (const warning of warnings) {
+  console.error(`[WARN] ${warning.message}`);
+}
+for (const info of infos) {
+  console.error(`[INFO] ${info.message}`);
+}
+
+if (errors.length > 0) {
+  console.error("Harness validation failed");
   process.exit(1);
 }
 console.log("Harness validation passed");

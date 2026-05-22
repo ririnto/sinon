@@ -226,7 +226,7 @@ bun: bun run docs/harness/bun/harness-validate.ts
 - Do not introduce top-level `hooks/hooks.json` for this plugin.
 - Do not discard validation output; diagnostic output is review evidence.
 - Do not force successful exits after validation failure; classify non-fatal findings as WARN explicitly.
-- Do not make `docs/generated/db-schema.md` a required readiness file.
+- Do not introduce fake placeholder files under `docs/generated/`; keep the directory empty with `.gitkeep` until a real generation step exists.
 - Do not keep duplicate template roots unless README, installer, validators, and self-checks all declare which one is canonical.
 - Do not edit installer scripts during ordinary evolution unless install behavior itself is the evolution target.
 
