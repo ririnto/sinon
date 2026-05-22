@@ -130,7 +130,10 @@ Create plugin directory structure and manifest following sinon rules.
    mkdir -p plugin-name/commands              # if the plugin ships slash commands
    ```
 
-4. Create `.claude-plugin/plugin.json` manifest with sinon-compliant structure (NO version field)
+4. Create `.claude-plugin/plugin.json` manifest with sinon-compliant structure:
+   - Include only `$schema`, `name`, `description`, `author` (object form), and component keys matching the planned directories
+   - Each component key (`commands`, `skills`, `hooks`, `mcpServers`, `lspServers`, `settings`) MUST point to an existing file or directory
+   - NO `version`, `agents`, or `interface` keys
 5. Create `README.md` describing plugin purpose, included skills, agents, runtime model, and layout
 6. Create `.gitignore` if needed (for `.claude/*.local.md`, etc.)
 7. Update TodoWrite with structure creation status
@@ -141,8 +144,9 @@ Create plugin directory structure and manifest following sinon rules.
 
 - `$schema` MUST be `"https://anthropic.com/claude-code/plugin.schema.json"`
 - `author` MUST use object form: `{ "name": "handle" }`
-- `skills` MUST use directory form: `"./skills/"` (with trailing slash)
-- `commands` MAY use directory form `"./commands/"` when the plugin ships slash commands
+- `skills` MUST use directory form: `"./skills/"` (with trailing slash); array-of-paths form is prohibited
+- `commands` MUST use directory form `"./commands/"` (with trailing slash) when the plugin ships slash commands; array-of-paths form is prohibited
+- File-typed manifest keys MUST point to exact filenames: `"hooks": "./hooks/hooks.json"`, `"mcpServers": "./.mcp.json"`, `"lspServers": "./.lsp.json"`, `"settings": "./settings.json"`
 - `version` MUST NOT appear in plugin.json
 - `agents` key MUST NOT appear (ship `agents/` directory at plugin root, documented in README)
 - `interface` key MUST NOT appear
@@ -245,11 +249,12 @@ Verify plugin meets sinon and Claude Code standards.
    - NO `agents` key ✓
    - NO `interface` key ✓
 
-2. Verify directory structure:
-   - All declared paths exist and begin with `./`
+2. Verify directory structure and bidirectional consistency:
+   - Manifest → Filesystem: All declared paths (e.g., `"./skills/"`, `"./commands/"`, `"./.lsp.json"`) exist and match declared form (directory form with trailing slash, or exact filename)
+   - Filesystem → Manifest: Every plugin-root config file (`.lsp.json`, `.mcp.json`, `hooks/hooks.json`, `settings.json`) is declared in manifest with correct key and path
    - `.claude-plugin/` contains only `plugin.json`
    - `agents/` exists at plugin root (if agents present) and is NOT in manifest
-   - Each agent file basename matches `name` frontmatter field
+   - Each agent file basename matches `name` frontmatter field (kebab-case)
 
 3. Verify skill structure (if skills present):
    - Each skill directory has `SKILL.md`
