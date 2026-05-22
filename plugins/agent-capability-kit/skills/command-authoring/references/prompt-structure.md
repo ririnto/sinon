@@ -34,7 +34,7 @@ Use this reference for extended repair patterns and body-shape comparisons beyon
 # Review Docs
 
 This command helps with documentation reviews. It should probably look at the file, think about problems, and provide a useful answer.
-```
+```text
 
 ### What changed
 
@@ -61,6 +61,6 @@ When a command has branching logic or multiple phases, extend the Procedure sect
    - If the target is source code, run the code review sub-procedure.
 2. Collect findings into a structured report.
 3. Return the report in the output contract format.
-```
+```text
 
 Keep the ambiguity behavior and output contract stable regardless of which branch the procedure takes.

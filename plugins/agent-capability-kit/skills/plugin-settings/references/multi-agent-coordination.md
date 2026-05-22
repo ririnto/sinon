@@ -48,7 +48,7 @@ start_coordinator() {
     tmux send-keys -t "$swarm_name" "while read msg; do echo \"[$(date)] \$msg\"; done" Enter
     echo "Coordinator '$swarm_name' ready"
 }
-```
+```text
 
 Agents send messages to coordinator:
 
@@ -84,7 +84,7 @@ report_to_coordinator() {
     safe_status=$(printf '%q' "$status")
     tmux send-keys -t "$coordinator_session" "Agent $HOSTNAME completed task $task_number: $safe_status" Enter
 }
-```
+```text
 
 ### Option 2: File-based coordinator
 
@@ -114,13 +114,13 @@ write_status() {
         echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     } > "$status_file"
 }
-```
+```text
 
 Coordinator polls directory:
 
 ```sh
 watch -n 2 "ls -la /tmp/swarm-status/"
-```
+```text
 
 ## Plugin settings for agent identity
 
@@ -150,7 +150,7 @@ Blocks downstream API gateway refactoring (task 3.3).
 - [ ] Token refresh endpoint
 - [ ] Token validation middleware
 - [ ] Integration tests
-```
+```text
 
 Fields:
 
@@ -197,7 +197,7 @@ report_tool_completion() {
     safe_task=$(printf '%q' "$task_number")
     tmux send-keys -t "$coordinator" "UPDATE: agent=$safe_agent task=$safe_task status=working" Enter
 }
-```
+```text
 
 ## Agent dependency tracking
 
@@ -210,7 +210,7 @@ dependencies:
   - "3.1"
   - "3.2"
 ---
-```
+```text
 
 Hook checks if dependencies are complete:
 
@@ -239,7 +239,7 @@ check_dependencies() {
     done
     return 0
 }
-``` 
+```text
 
 ## Real-world example: multi-agent swarm
 
@@ -261,7 +261,7 @@ dependencies:
 # Task 1: Design Database Schema
 
 Create schema for user, token, and session tables.
-```
+```text
 
 ### Agent 2: Auth service agent (task 2, depends on task 1)
 
@@ -279,7 +279,7 @@ dependencies:
 # Task 2: Implement JWT Auth
 
 Requires task 1 schema to be complete.
-```
+```text
 
 ### Agent 3: API gateway agent (task 3, depends on task 2)
 
@@ -297,7 +297,7 @@ dependencies:
 # Task 3: Update API Gateway
 
 Integrate auth service from task 2.
-```
+```text
 
 ### Hook: conditional execution on dependencies
 
@@ -339,7 +339,7 @@ conditional_start() {
     done
     return 0
 }
-```
+```text
 
 ## Cross-agent communication patterns
 
@@ -355,7 +355,7 @@ echo "task_1_schema_version=1" > .claude/swarm-state/task-1.state
 
 # Agent 2 reads schema info
 . ./.claude/swarm-state/task-1.state
-```
+```text
 
 ### Pattern 2: Completion notifications
 
@@ -364,7 +364,7 @@ Agent writes "complete" file when done:
 ```sh
 # Agent 1 at end of task
 echo "task_1_completed_at=$(date +%s)" > .claude/swarm-state/task-1.complete
-```
+```text
 
 Agent 2 waits for file:
 
@@ -372,7 +372,7 @@ Agent 2 waits for file:
 while [ ! -f .claude/swarm-state/task-1.complete ]; do
     sleep 2
 done
-```
+```text
 
 ### Pattern 3: Configuration propagation
 
@@ -385,14 +385,14 @@ generated_files:
   - src/types.ts
   - src/schema.ts
 ---
-```
+```text
 
 Agent 2 reads:
 
 ```sh
 # shellcheck disable=SC2034
 OUTPUT_FORMAT=$(grep '^output_format:' ".claude/db-agent.local.md" | sed 's/output_format: *//')
-```
+```text
 
 ## Complex example: multi-session coordination
 
@@ -418,7 +418,7 @@ coordinator_session: backend-leader
 # Task 2: Backend Implementation
 
 Three parallel sessions coordinated by backend-leader.
-```
+```text
 
 Coordinator polls all sessions:
 
@@ -437,7 +437,7 @@ aggregate_status() {
         echo "$session: $status"
     done
 }
-```
+```text
 
 ## Testing multi-agent flow
 
@@ -469,7 +469,7 @@ EOF
 
 # Hook runs with dependency check
 bash hooks/swarm-check.sh .claude/agent-2.local.md .claude/swarm-state
-```
+```text
 
 ## References
 

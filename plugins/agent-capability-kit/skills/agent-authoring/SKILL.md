@@ -68,7 +68,7 @@ Weak:
 ```markdown
 description: >-
   Helps with schemas.
-```
+```text
 
 Stronger:
 
@@ -84,7 +84,7 @@ description: >-
   The task is narrow, analytical, and does not require direct edits.
   </commentary>
   </example>
-```
+```text
 
 ### `model`
 
@@ -127,7 +127,7 @@ Example:
 
 ```markdown
 You are a specialized review agent for schemas, contracts, and structured configuration.
-```
+```text
 
 ### Responsibilities
 
@@ -141,7 +141,7 @@ Good:
 1. Inspect the target file closely.
 2. Identify concrete defects, risks, or missing structure.
 3. Support findings with direct evidence from the file.
-```
+```text
 
 ### Process
 
@@ -156,7 +156,7 @@ Good:
 2. Check the highest-risk issues first.
 3. Keep the review bounded to the requested scope.
 4. Verify that every finding is supported by evidence.
-```
+```text
 
 ### Output
 
@@ -172,7 +172,7 @@ Return:
 1. Findings in priority order
 2. Supporting evidence with file references
 3. Remaining uncertainty or blockers
-```
+```text
 
 ## Ordinary authoring procedure
 
@@ -230,7 +230,7 @@ tools:
   - Edit
   - Bash
   - Grep
-```
+```text
 
 Correct for a read-only reviewer:
 
@@ -238,7 +238,7 @@ Correct for a read-only reviewer:
 tools:
   - Read
   - Grep
-```
+```text
 
 Correct for a bounded editor:
 
@@ -246,7 +246,7 @@ Correct for a bounded editor:
 tools:
   - Read
   - Write
-```
+```text
 
 Also keep the output contract consistent with the tools:
 
@@ -321,7 +321,7 @@ Return:
 1. Findings in priority order
 2. Supporting evidence with file references
 3. Remaining uncertainty or blockers
-```
+```text
 
 ## Edge cases
 

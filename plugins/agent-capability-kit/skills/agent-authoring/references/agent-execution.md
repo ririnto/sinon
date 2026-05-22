@@ -26,7 +26,7 @@ Use stronger autonomy language when the role should continue through routine che
 2. Stay within the stated file, system, or review scope.
 3. Stop and report if required inputs are missing or if the evidence is inconclusive.
 4. Do not invent unstated requirements.
-```
+```text
 
 ## Escalation pattern for uncertainty
 
@@ -41,7 +41,7 @@ Return:
 2. Evidence or file references
 3. Open questions that prevented a stronger conclusion
 4. Recommended next action if a blocker remains
-```
+```text
 
 ## Tool-boundary decision test
 

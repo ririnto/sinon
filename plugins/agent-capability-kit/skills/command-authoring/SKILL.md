@@ -60,7 +60,7 @@ Example:
 description: >-
   Review one Markdown file for structure, clarity, and missing sections. Use when a document needs a fast editorial quality pass.
 ---
-```
+```text
 
 ### Common optional fields
 
@@ -97,7 +97,7 @@ allowed-tools:
   - Bash(git *)
 disable-model-invocation: true
 ---
-```
+```text
 
 ## Command body order
 
@@ -147,7 +147,7 @@ Return:
 1. The main issues
 2. Recommended fixes
 3. Any remaining ambiguity
-```
+```text
 
 ## Argument handling rules
 
@@ -169,7 +169,7 @@ allowed-tools:
   - Read
   - Grep
 ---
-```
+```text
 
 ```markdown
 ## Inputs
@@ -179,13 +179,13 @@ allowed-tools:
 ## Ambiguity behavior
 
 - If `$1` is missing, stop and request the log file path.
-```
+```text
 
 Avoid:
 
 ```markdown
 Review the file the user probably means and do the usual thing.
-```
+```text
 
 ## Ambiguity behavior
 
@@ -204,7 +204,7 @@ Example:
 - If the target path contains multiple matching files, review only the file named in `$1`.
 - If `$1` points outside `docs/`, continue only if the command explicitly allows broader scope.
 - If required context is absent, report the blocker instead of guessing.
-```
+```text
 
 ## Output expectations
 
@@ -226,7 +226,7 @@ Return:
 2. The full Markdown command
 3. A short note explaining the argument model
 4. A short note explaining any remaining blocker or risk
-```
+```text
 
 ## First safe local checks
 
@@ -237,7 +237,7 @@ Read `commands/your-command.md` and confirm:
 - the frontmatter contains only needed fields
 - the body order is clear
 - arguments, ambiguity behavior, and output contract are explicit
-```
+```text
 
 If you need a starting point or comparison set, use the optional files in this skill directory.
 

@@ -30,7 +30,7 @@ field5: |-
 # Markdown content below frontmatter
 
 This is body content.
-```
+```text
 
 ## Extraction pattern (complete)
 
@@ -70,7 +70,7 @@ extract_frontmatter() {
         fi
     done < "$file_path"
 }
-```
+```text
 
 ## Per-field type parsing
 
@@ -105,7 +105,7 @@ parse_boolean() {
             ;;
     esac
 }
-```
+```text
 
 Usage:
 
@@ -116,7 +116,7 @@ ENABLED=$(parse_boolean "$FRONTMATTER" "enabled")
 if [ "$ENABLED" = "true" ]; then
     echo "Plugin enabled"
 fi
-```
+```text
 
 ### Numeric fields
 
@@ -158,14 +158,14 @@ parse_numeric() {
     fi
     echo "$value"
 }
-```
+```text
 
 Usage:
 
 ```sh
 # shellcheck disable=SC2034
 RETRY_COUNT=$(parse_numeric "$FRONTMATTER" "max_retries" 1 100)
-```
+```text
 
 ### String fields (unquoted)
 
@@ -192,7 +192,7 @@ parse_string_unquoted() {
     fi
     echo "$value"
 }
-```
+```text
 
 ### String fields (quoted)
 
@@ -219,7 +219,7 @@ parse_string_quoted() {
     fi
     echo "$value"
 }
-```
+```text
 
 ### Array fields (YAML list syntax)
 
@@ -247,7 +247,7 @@ parse_array() {
     value="${value#\[}"
     echo "$value" | tr ',' '\n' | sed 's/^ *"//' | sed 's/"$ *//' | sed 's/^ *//' | sed 's/ *$//'
 }
-```
+```text
 
 Usage:
 
@@ -256,7 +256,7 @@ readarray -t EXTENSIONS < <(parse_array "$FRONTMATTER" "allowed_extensions")
 for ext in "${EXTENSIONS[@]}"; do
     echo "Allowed: $ext"
 done
-```
+```text
 
 ### Multi-line string fields
 
@@ -290,7 +290,7 @@ parse_multiline() {
     done <<< "$frontmatter"
     printf '%s' "$result"
 }
-```
+```text
 
 ## Edge cases and malformed input
 
@@ -301,7 +301,7 @@ Field not present in frontmatter:
 ```sh
 # shellcheck disable=SC2034
 OPTIONAL_FIELD=$(parse_string_unquoted "$FRONTMATTER" "optional_field" "default_value")
-```
+```text
 
 Provide default as third argument. If field absent, default is returned.
 
@@ -313,7 +313,7 @@ Field present but value is empty:
 ---
 empty_field:
 ---
-```
+```text
 
 Parsing:
 
@@ -322,7 +322,7 @@ VALUE=$(echo "$FRONTMATTER" | grep '^empty_field:' | sed 's/^empty_field: *//')
 if [ -z "$VALUE" ]; then
     VALUE="default"
 fi
-```
+```text
 
 ### Malformed YAML (missing closing ---)
 
@@ -336,7 +336,7 @@ field2: value2
 # No closing --- delimiter
 
 Some content
-```
+```text
 
 Extraction will read until EOF instead of second `---`. Validate strictly:
 
@@ -355,7 +355,7 @@ validate_frontmatter() {
     fi
     return 0
 }
-```
+```text
 
 ### Duplicate fields
 
@@ -366,14 +366,14 @@ When same field appears twice:
 field: value1
 field: value2
 ---
-```
+```text
 
 `grep` returns both lines. First match wins:
 
 ```sh
 # shellcheck disable=SC2034
 VALUE=$(echo "$FRONTMATTER" | grep "^field:" | head -1 | sed 's/^field: *//')
-```
+```text
 
 Use `head -1` to take first occurrence.
 
@@ -385,7 +385,7 @@ Quoted string with escaped quotes:
 ---
 message: "He said \"hello\""
 ---
-```
+```text
 
 Parsing:
 
@@ -393,7 +393,7 @@ Parsing:
 # shellcheck disable=SC2034
 MESSAGE=$(parse_string_quoted "$FRONTMATTER" "message")
 # Result: He said "hello"
-```
+```text
 
 ### Special characters in values
 
@@ -405,7 +405,7 @@ path: "/home/user/my-folder"
 regex: "^[a-z]+"
 command: "ls -la"
 ---
-```
+```text
 
 Always quote values containing special characters. Parsing with `parse_string_quoted` handles escaping.
 
@@ -419,13 +419,13 @@ field1: value1
   field2: value2
 field3: value3
 ---
-```
+```text
 
 Indented field2 is treated as nested (incorrect for flat structure). Validate strict formatting:
 
 ```sh
 grep "^[^ ]" "$FRONTMATTER"  # Lines starting with non-space (no indentation)
-```
+```text
 
 ### Comments in frontmatter
 
@@ -436,14 +436,14 @@ YAML allows comments after `#`:
 enabled: true  # Master on/off switch
 mode: strict   # Validation level
 ---
-```
+```text
 
 Parsing removes comments:
 
 ```sh
 # shellcheck disable=SC2034
 VALUE=$(echo "$FRONTMATTER" | grep "^mode:" | sed 's/ *#.*//' | sed 's/^mode: *//')
-```
+```text
 
 ## Validation ranges and defaults
 
@@ -477,14 +477,14 @@ parse_numeric_safe() {
     fi
     echo "$value"
 }
-```
+```text
 
 Usage:
 
 ```sh
 # shellcheck disable=SC2034
 RETRIES=$(parse_numeric_safe "$FRONTMATTER" "max_retries" 1 100 3)
-```
+```text
 
 ### String enum validation
 
@@ -517,14 +517,14 @@ parse_enum() {
     echo "Warning: $field_name has invalid value '$value', using default '$default'" >&2
     echo "$default"
 }
-```
+```text
 
 Usage:
 
 ```sh
 # shellcheck disable=SC2034
 LEVEL=$(parse_enum "$FRONTMATTER" "validation_level" "standard" "strict" "standard" "lenient")
-```
+```text
 
 ### Default when file absent or invalid
 
@@ -540,7 +540,7 @@ else
     MODE=$(parse_string_unquoted "$FRONTMATTER" "mode" "standard")
     MAX_RETRIES=$(parse_numeric_safe "$FRONTMATTER" "max_retries" 1 100 3)
 fi
-```
+```text
 
 ## Complete example: full parsing workflow
 
@@ -570,7 +570,7 @@ load_settings() {
 
 load_settings ".claude/plugin.local.md"
 echo "Enabled: $ENABLED, Mode: $MODE, Retries: $MAX_RETRIES"
-```
+```text
 
 Use parsing functions from Sections: Boolean, String enum validation, Numeric range validation.
 

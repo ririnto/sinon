@@ -12,7 +12,7 @@ color: cyan
 tools:
   - Read
   - Grep
-```
+```text
 
 Key traits: narrow inspection scope, no mutation tools, `description` starts with `Use this agent when...` and includes concrete `<example>` blocks showing trigger conditions.
 
@@ -47,7 +47,7 @@ tools:
   - Read
   - Write
 ---
-```
+```text
 
 ## Multi-file refactor agent
 

@@ -83,7 +83,7 @@ tools:
   - <tool-name-1>
   - <tool-name-2>
 ---
-```
+```text
 
 ### Field Rules
 

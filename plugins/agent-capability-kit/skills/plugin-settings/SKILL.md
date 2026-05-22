@@ -48,7 +48,7 @@ Minimal schema with only fields the plugin actually uses:
   "listField": ["option1", "option2"],
   "booleanField": false
 }
-```
+```text
 
 Declare in `plugin.json`:
 
@@ -62,7 +62,7 @@ Declare in `plugin.json`:
   "skills": "./skills/",
   "settings": "./settings.json"
 }
-```
+```text
 
 ### Per-project .claude/`<plugin-name>`.local.md
 
@@ -83,7 +83,7 @@ list_setting:
 
 This file controls per-project behavior for your-plugin.
 Edit settings above and restart Claude Code for changes to take effect.
-```
+```text
 
 Common frontmatter keys:
 
@@ -105,7 +105,7 @@ if [ ! -f "$STATE_FILE" ]; then
 fi
 FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
 ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
-```
+```text
 
 See `references/frontmatter-parsing.md` for per-field type patterns (boolean, string, numeric, array, multi-line), edge cases, validation, and complete working examples.
 
@@ -120,7 +120,7 @@ Commands use the `Read` tool to fetch `.local.md` files, then parse YAML frontma
 
 Check for settings at `.claude/your-plugin.local.md`.
 If present, read the file, parse YAML frontmatter for `enabled`, `mode`, and other fields, then adapt behavior.
-```
+```text
 
 Agents reference settings in their instructions:
 
@@ -137,7 +137,7 @@ If the file exists:
 - Read the `enabled`, `mode`, and other fields
 - Apply settings to your behavior
 If the file is absent, use documented defaults.
-```
+```text
 
 ## Common Patterns
 
@@ -163,7 +163,7 @@ ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
 if [ "$ENABLED" != "true" ]; then
     exit 0
 fi
-```
+```text
 
 Restart Claude Code after changing `enabled: true/false`.
 
@@ -185,7 +185,7 @@ enabled: true
 # Task: Implement JWT Authentication
 
 Coordinate with database-agent on schema changes.
-```
+```text
 
 Hook reads fields and sends notifications to coordinator:
 
@@ -208,7 +208,7 @@ if validate_tmux_session "$COORDINATOR"; then
     safe_agent=$(printf '%q' "$AGENT_NAME")
     tmux send-keys -t "$COORDINATOR" "Agent $safe_agent completed task" Enter
 fi
-```
+```text
 
 ### Pattern 3: Configuration-Driven Validation Mode
 
@@ -224,7 +224,7 @@ allowed_extensions:
   - ".ts"
   - ".js"
 ---
-```
+```text
 
 Switch behavior based on mode:
 
@@ -241,7 +241,7 @@ case "$LEVEL" in
         # Minimal checks
         ;;
 esac
-```
+```text
 
 ## Creating Settings Files
 
@@ -273,7 +273,7 @@ enabled: true
 # Your Plugin Configuration
 EOF
 chmod 600 ".claude/your-plugin.local.md"
-```
+```text
 
 Validate path fields to prevent path traversal:
 
@@ -309,7 +309,7 @@ if validate_path_safe "${CLAUDE_PROJECT_DIR}" "$FILE_PATH" > /dev/null; then
     echo "⚠️ Invalid path in settings" >&2
     exit 2
 fi
-```
+```text
 
 ## Gitignore and Defaults
 
@@ -320,7 +320,7 @@ User scope state files MUST never be committed:
 ```text
 .claude/*.local.md
 .claude/*.local.json
-```
+```text
 
 Document this in plugin README:
 
@@ -337,7 +337,7 @@ mode: standard
 \`\`\`
 
 Note: This file is local to your project and should be added to `.gitignore`.
-```
+```text
 
 ### Defaults when file is absent
 
@@ -349,7 +349,7 @@ if [ ! -f "$STATE_FILE" ]; then
 else
     # Parse from file
 fi
-```
+```text
 
 Validate numeric ranges:
 
@@ -359,7 +359,7 @@ if ! printf '%s' "$MAX" | grep -qE '^[0-9]+$' || [ "$MAX" -lt 1 ] || [ "$MAX" -g
     echo "⚠️ Invalid max_retries (must be 1-100), using default 3" >&2
     MAX=3
 fi
-```
+```text
 
 ## Restart Requirement
 
@@ -375,7 +375,7 @@ After editing `.claude/your-plugin.local.md`:
 2. Exit Claude Code (or use `/exit`)
 3. Restart: `claude` or `cc`
 4. New settings will be active
-```
+```text
 
 Hooks loaded during startup cannot be hot-reloaded within the same session.
 
@@ -388,7 +388,7 @@ Always escape user input before writing to YAML:
 ```sh
 SAFE_VALUE=$(echo "$INPUT" | sed 's/"/\\"/g' | sed "s/'/\\\\'/g")
 echo "field: \"$SAFE_VALUE\"" >> "$STATE_FILE"
-```
+```text
 
 ### Path Validation
 
@@ -400,7 +400,7 @@ if printf '%s' "$PATH_VALUE" | grep -qE '^/' || [ "$PATH_VALUE" != "${PATH_VALUE
     echo "⚠️ Invalid path in settings" >&2
     PATH_VALUE="./output"
 fi
-```
+```text
 
 ### File Permissions
 
@@ -408,7 +408,7 @@ Settings files MUST be readable only by the user:
 
 ```sh
 chmod 600 ".claude/your-plugin.local.md"
-```
+```text
 
 ## First Safe Commands
 
@@ -418,19 +418,19 @@ Check that a settings file exists and is valid YAML:
 if [ -f ".claude/your-plugin.local.md" ]; then
     head -20 ".claude/your-plugin.local.md"
 fi
-```
+```text
 
 Extract frontmatter without parsing:
 
 ```sh
 sed -n '/^---$/,/^---$/{ /^---$/d; p; }' ".claude/your-plugin.local.md"
-```
+```text
 
 Read a single field:
 
 ```sh
 grep '^enabled:' ".claude/your-plugin.local.md" | sed 's/enabled: *//'
-```
+```text
 
 ## Output Contract
 
