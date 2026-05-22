@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 """Require hook stage rule."""
 
+from collections.abc import Iterable
+
 from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
 
 from ._utils import is_safe_file, read_text, severity_for
 
-
 STACK = "uv"
-
 
 class RequireHookStageRule(HarnessCheckRule):
     """Validate requireHookStage check."""
@@ -25,7 +25,7 @@ class RequireHookStageRule(HarnessCheckRule):
         enabled = section.get("enabled", True)
         return enabled is not False
 
-    def validate(self, root: Path, manifest: dict) -> list[Finding]:
+    def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate requireHookStage check."""
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):

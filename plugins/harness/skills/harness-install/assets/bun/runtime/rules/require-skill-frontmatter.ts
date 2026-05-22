@@ -22,7 +22,7 @@ export class RequireSkillFrontmatterRule implements HarnessCheckRule {
     return parameters.rootDirectory !== undefined;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireSkillFrontmatter);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const rootDirectory = typeof parameters.rootDirectory === "string" ? parameters.rootDirectory : "";

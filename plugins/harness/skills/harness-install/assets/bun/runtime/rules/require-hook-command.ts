@@ -24,7 +24,7 @@ export class RequireHookCommandRule implements HarnessCheckRule {
     return typeof parameters.prePushHook === "string";
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireHookCommand);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const allowedCommands = this.ctx.readJsonObject(parameters.allowedCommands);

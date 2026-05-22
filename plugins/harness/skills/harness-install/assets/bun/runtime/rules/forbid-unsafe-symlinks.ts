@@ -22,7 +22,7 @@ export class ForbidUnsafeSymlinksRule implements HarnessCheckRule {
     return Array.isArray(parameters.allowedSymlinkPairs) && parameters.allowedSymlinkPairs.length > 0;
   }
 
-  validate(_root: string, _manifest: HarnessManifest): Finding[] {
+  validate(_root: string, _manifest: HarnessManifest): readonly Finding[] {
     return [];
   }
 }

@@ -23,7 +23,7 @@ export class RequireAgentFrontmatterRule implements HarnessCheckRule {
     return parameters.directory !== undefined;
   }
 
-  validate(_root: string, manifest: HarnessManifest): Finding[] {
+  validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
     const section = this.ctx.readJsonObject(manifest.requireAgentFrontmatter);
     const parameters = this.ctx.readJsonObject(section.parameters);
     const directory = typeof parameters.directory === "string" ? parameters.directory : "";

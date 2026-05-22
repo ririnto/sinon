@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 """Require env shebang under rule."""
 
+from collections.abc import Iterable
+
 from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
 
 from ._utils import first_line, is_executable, relative, safe_walk, severity_for
-
 
 class RequireEnvShebangUnderRule(HarnessCheckRule):
     """Validate requireEnvShebangUnder check."""
@@ -22,7 +23,7 @@ class RequireEnvShebangUnderRule(HarnessCheckRule):
         enabled = section.get("enabled", True)
         return enabled is not False
 
-    def validate(self, root: Path, manifest: dict) -> list[Finding]:
+    def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate requireEnvShebangUnder check."""
         section = manifest.get(self.category, {})
         if not isinstance(section, dict):

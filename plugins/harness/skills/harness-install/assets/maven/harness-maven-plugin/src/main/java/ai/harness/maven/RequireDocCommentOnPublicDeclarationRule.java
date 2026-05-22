@@ -7,7 +7,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * Rule that requires Javadoc on public declarations.
@@ -21,7 +21,7 @@ public class RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRul
     }
 
     @Override
-    public List<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
             List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
