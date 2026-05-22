@@ -28,7 +28,7 @@ your-plugin/
 │   └── example-mcp.py
 └── output-styles/
     └── executive-summary.md
-```text
+```
 
 This shape is useful when command, policy, server, and formatting surfaces all ship together for Claude Code.
 
@@ -36,7 +36,7 @@ This shape is useful when command, policy, server, and formatting surfaces all s
 
 Some surfaces need adjacent helper files that do not fit the bare root list:
 
-```text
+```
 your-plugin/
 ├── .claude-plugin/
 │   └── plugin.json
@@ -51,7 +51,7 @@ your-plugin/
 │   └── watch.sh
 └── servers/
     └── example-mcp.py
-```text
+```
 
 Use these helper directories only when the associated surface needs local code beside its manifest or content file.
 

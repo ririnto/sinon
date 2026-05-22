@@ -35,7 +35,7 @@ Stdio spawns a local process and communicates via stdin/stdout.
     }
   }
 }
-```text
+```
 
 ### Lifecycle
 
@@ -51,37 +51,37 @@ Stdio spawns a local process and communicates via stdin/stdout.
 
 Process crash: Server exits unexpectedly.
 
-```text
+```
 Error: MCP process exited with code 1
 Tool calls fail: "Server unavailable"
-```text
+```
 
 Mitigation: Log server output, add error recovery:
 
-```json
+```
 {
   "command": "bash",
   "args": ["-c", "while true; do python -m mcp_server || sleep 2; done"]
 }
-```text
+```
 
 Stdin/stdout deadlock: Server blocks waiting for input.
 
-```text
+```
 Timeout: Tool call hangs indefinitely
-```text
+```
 
 Mitigation: Set explicit timeout in command hook that uses tool.
 
 Environment variable mismatch: Server expects env var not set.
 
-```text
+```
 Error: DATABASE_URL not set
-```text
+```
 
 Fix: Provide all required env vars in MCP config:
 
-```json
+```
 {
   "command": "python",
   "args": ["-m", "database_mcp"],
@@ -90,7 +90,7 @@ Fix: Provide all required env vars in MCP config:
     "API_KEY": "${API_KEY}"
   }
 }
-```text
+```
 
 ### Best practices
 
@@ -105,14 +105,14 @@ Server-Sent Events: unidirectional stream from server to client. OAuth handles a
 
 ### Configuration
 
-```json
+```
 {
   "github": {
     "type": "sse",
     "url": "https://mcp.github.com/sse"
   }
 }
-```text
+```
 
 ### Lifecycle
 
@@ -137,35 +137,35 @@ First use of SSE server triggers OAuth:
 
 OAuth denied: User denies permission in browser.
 
-```text
+```
 Error: User denied access to GitHub
 Tool calls fail for this session
-```text
+```
 
 Mitigation: User can retry with `/mcp authorize github`.
 
 Token expired: Stored OAuth token is stale.
 
-```text
+```
 Error: Token expired, attempting refresh
 Automatic retry with new token
-```text
+```
 
 Claude Code handles refresh automatically. No user action needed.
 
 Network timeout: Remote server unreachable.
 
-```text
+```
 Error: Connection timeout to https://mcp.github.com/sse
-```text
+```
 
 Mitigation: Check network, verify server is online. Retry with `/mcp test github`.
 
 Unimplemented tool: Server lists tool but `/call` endpoint returns error.
 
-```text
+```
 Error: Tool 'create_issue' not supported
-```text
+```
 
 Fix: Verify server actually implements listed tools. Report to server maintainer.
 
@@ -182,7 +182,7 @@ HTTP: stateless requests with bearer token in headers.
 
 ### Configuration
 
-```json
+```
 {
   "api-service": {
     "type": "http",
@@ -193,7 +193,7 @@ HTTP: stateless requests with bearer token in headers.
     }
   }
 }
-```text
+```
 
 ### Lifecycle
 
@@ -208,63 +208,63 @@ HTTP: stateless requests with bearer token in headers.
 
 Invalid token: Token in env var is wrong or expired.
 
-```text
+```
 {
   "error": "Unauthorized",
   "code": 401
 }
-```text
+```
 
 Fix: Verify `${API_TOKEN}` env var contains valid token. Refresh if expired.
 
 Server error: Remote server returns 500.
 
-```text
+```
 Error: Server error (500)
-```text
+```
 
 Mitigation: Check server logs, retry after server recovery.
 
 Malformed response: Server returns invalid JSON.
 
-```text
+```
 Error: Failed to parse MCP response
-```text
+```
 
 Fix: Verify server sends valid JSON. Test with:
 
-```sh
+```
 curl -H "Authorization: Bearer $API_TOKEN" https://api.example.com/mcp | jq .
-```text
+```
 
 Rate limiting: Server enforces rate limits.
 
-```text
+```
 Error: Rate limit exceeded
 Retry-After: 60
-```text
+```
 
 Mitigation: Add exponential backoff to hooks that call tools:
 
-```bash
+```
 #!/bin/bash
 for attempt in 1 2 3; do
     call_mcp_tool && break
     sleep $((2 ** attempt))
 done
-```text
+```
 
 Note: This block uses `bash` due to exponential operators, which are not available in POSIX sh.
 
 Header injection: Custom headers passed incorrectly.
 
-```text
+```
 Error: Invalid Authorization header
-```text
+```
 
 Fix: Ensure headers object is valid JSON:
 
-```json
+```
 {
   "type": "http",
   "headers": {
@@ -272,7 +272,7 @@ Fix: Ensure headers object is valid JSON:
     "X-Custom": "value"
   }
 }
-```text
+```
 
 ### Best practices
 
@@ -288,7 +288,7 @@ WebSocket: persistent connection with bidirectional message flow.
 
 ### Configuration
 
-```json
+```
 {
   "realtime-service": {
     "type": "ws",
@@ -298,7 +298,7 @@ WebSocket: persistent connection with bidirectional message flow.
     }
   }
 }
-```text
+```
 
 ### Lifecycle
 
@@ -320,67 +320,67 @@ WebSocket: persistent connection with bidirectional message flow.
 
 Connection refused: Server not listening or port wrong.
 
-```text
+```
 Error: WebSocket connection refused
-```text
+```
 
 Fix: Verify server is running, port is correct.
 
 TLS certificate error: Server cert invalid or self-signed.
 
-```text
+```
 Error: Certificate verification failed
-```text
+```
 
 Mitigation: For self-signed certs in dev, configure trust (not recommended for prod):
 
-```json
+```
 {
   "type": "ws",
   "url": "wss://localhost:8443/ws",
   "verify_ssl": false
 }
-```text
+```
 
 Protocol mismatch: Server doesn't speak MCP protocol.
 
-```text
+```
 Error: Invalid MCP message received
-```text
+```
 
 Fix: Verify server implements MCP protocol correctly.
 
 Message timeout: Server doesn't respond within timeout.
 
-```text
+```
 Error: Tool call timeout after 30s
-```text
+```
 
 Mitigation: Increase timeout for slow operations:
 
-```markdown
+```
 ---
 allowed-tools:
   - mcp__plugin_realtime__*
 tool_timeout: 120
 ---
-```text
+```
 
 Connection drop: Network interruption mid-call.
 
-```text
+```
 Error: Connection lost, reconnecting...
-```text
+```
 
 Mitigation: Implement exponential backoff reconnection:
 
-```bash
+```
 max_retries=3
 for attempt in $(seq 1 $max_retries); do
     call_tool && break
     sleep $((2 ** attempt))
 done
-```text
+```
 
 Note: This block uses `bash` due to exponential operators, which are not available in POSIX sh.
 
@@ -388,7 +388,7 @@ Note: This block uses `bash` due to exponential operators, which are not availab
 
 Tool that returns results in chunks:
 
-```javascript
+```
 // Server-side pseudocode
 async function* streamData(input) {
     for (const chunk of largeDataset) {
@@ -396,7 +396,7 @@ async function* streamData(input) {
     }
     yield {type: "complete"};
 }
-```text
+```
 
 Claude Code collects all chunks and assembles result.
 
@@ -410,7 +410,7 @@ Claude Code collects all chunks and assembles result.
 
 ## Transport selection decision tree
 
-```text
+```
 Is the service hosted remotely?
 ├─ NO → Use stdio (local subprocess)
 └─ YES
@@ -419,7 +419,7 @@ Is the service hosted remotely?
     └─ Is it real-time or streaming?
        ├─ YES → Use WebSocket
        └─ NO → Use HTTP (stateless, simple)
-```text
+```
 
 ### Decision matrix
 

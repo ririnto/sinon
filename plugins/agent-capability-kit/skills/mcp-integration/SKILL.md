@@ -49,11 +49,11 @@ This skill owns:
     }
   }
 }
-```text
+```
 
 ### Inline mcpServers in plugin.json (For Single-Server Plugins)
 
-```json
+```
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "my-plugin",
@@ -68,7 +68,7 @@ This skill owns:
     }
   }
 }
-```text
+```
 
 ## Transport Types
 
@@ -85,7 +85,7 @@ See `references/transport-types.md` for lifecycle details, failure modes, select
 >
 > This example uses unencrypted plaintext transport. Use `wss://` instead of `ws://` to encrypt credentials and data.
 
-```json
+```
 {
   "realtime": {
     "type": "ws",
@@ -93,13 +93,13 @@ See `references/transport-types.md` for lifecycle details, failure modes, select
     "headers": { "Authorization": "Bearer ${TOKEN}" }
   }
 }
-```text
+```
 
 ## Environment variable expansion
 
 All fields support `${VAR_NAME}` substitution from the user's environment. Use `${CLAUDE_PLUGIN_ROOT}` for portable bundled paths:
 
-```json
+```
 {
   "command": "${CLAUDE_PLUGIN_ROOT}/servers/my-server",
   "env": {
@@ -107,7 +107,7 @@ All fields support `${VAR_NAME}` substitution from the user's environment. Use `
     "LOG_FILE": "${CLAUDE_PLUGIN_ROOT}/logs/mcp.log"
   }
 }
-```text
+```
 
 ## MCP tool naming and allowed-tools
 
@@ -115,38 +115,38 @@ MCP tools are prefixed: `mcp__plugin_<plugin-name>_<server-name>__<tool-name>`
 
 Pre-allow specific tools in command frontmatter:
 
-```markdown
+```
 ---
 allowed-tools:
   - mcp__plugin_github_github__search_repositories
   - mcp__plugin_github_github__create_issue
 ---
-```text
+```
 
 ### Broken (Wildcard Too Permissive)
 
-```markdown
+```
 ---
 allowed-tools:
   - mcp__plugin_github_github__*
 ---
-```text
+```
 
 ### Correct (Specific Tools Only)
 
-```markdown
+```
 ---
 allowed-tools:
   - mcp__plugin_github_github__search_repositories
   - mcp__plugin_github_github__create_issue
 ---
-```text
+```
 
 ## Multi-server example
 
 Plugin with multiple MCP servers in `.mcp.json`:
 
-```json
+```
 {
   "github": {
     "type": "sse",
@@ -164,7 +164,7 @@ Plugin with multiple MCP servers in `.mcp.json`:
     }
   }
 }
-```text
+```
 
 ## Authentication patterns
 
@@ -172,18 +172,18 @@ OAuth (SSE/HTTP): Handled automatically by Claude Code. User authenticates in br
 
 Token (HTTP/WebSocket): Pass via environment variables in headers:
 
-```json
+```
 {
   "type": "http",
   "headers": {
     "Authorization": "Bearer ${API_TOKEN}"
   }
 }
-```text
+```
 
 Environment variables (stdio): Pass to server process:
 
-```json
+```
 {
   "command": "python",
   "args": ["-m", "mcp_server"],
@@ -192,7 +192,7 @@ Environment variables (stdio): Pass to server process:
     "API_KEY": "${API_KEY}"
   }
 }
-```text
+```
 
 ## Security
 
@@ -202,7 +202,7 @@ Environment variables (stdio): Pass to server process:
 >
 > This example exposes credentials and uses unencrypted transport. Use HTTPS and environment variables instead.
 
-```json
+```
 {
   "type": "http",
   "url": "http://api.example.com/mcp",
@@ -210,11 +210,11 @@ Environment variables (stdio): Pass to server process:
     "Authorization": "Bearer secret_token_12345"
   }
 }
-```text
+```
 
 ### Correct (HTTPS, Environment Variable, No Wildcards)
 
-```json
+```
 {
   "type": "http",
   "url": "https://api.example.com/mcp",
@@ -222,7 +222,7 @@ Environment variables (stdio): Pass to server process:
     "Authorization": "Bearer ${API_TOKEN}"
   }
 }
-```text
+```
 
 Document required environment variables in plugin README.
 
@@ -230,21 +230,21 @@ Document required environment variables in plugin README.
 
 Validate JSON syntax:
 
-```sh
+```
 python3 -m json.tool .mcp.json
-```text
+```
 
 List active MCP servers in Claude Code:
 
-```text
+```
 /mcp
-```text
+```
 
 Test a specific MCP server's connectivity and tools after plugin restart (required after config changes):
 
-```text
+```
 /mcp test <server-name>
-```text
+```
 
 Distinction: `/mcp` displays all configured servers and their tools. `/mcp test <server>` establishes a live connection to verify the server responds correctly and tool definitions are accessible.
 

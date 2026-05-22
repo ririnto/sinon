@@ -48,11 +48,11 @@ Minimal schema with only fields the plugin actually uses:
   "listField": ["option1", "option2"],
   "booleanField": false
 }
-```text
+```
 
 Declare in `plugin.json`:
 
-```json
+```
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin",
@@ -62,13 +62,13 @@ Declare in `plugin.json`:
   "skills": "./skills/",
   "settings": "./settings.json"
 }
-```text
+```
 
 ### Per-project .claude/`<plugin-name>`.local.md
 
 Template with frontmatter (YAML key-value pairs) and optional markdown body:
 
-```markdown
+```
 ---
 enabled: true
 mode: standard
@@ -83,7 +83,7 @@ list_setting:
 
 This file controls per-project behavior for your-plugin.
 Edit settings above and restart Claude Code for changes to take effect.
-```text
+```
 
 Common frontmatter keys:
 
@@ -99,13 +99,13 @@ Hooks (bash scripts) that read settings follow a three-step pattern: existence c
 
 Pattern: Check file exists, extract frontmatter between `---` delimiters, parse individual fields with `grep` + `sed`:
 
-```sh
+```
 if [ ! -f "$STATE_FILE" ]; then
     return 0
 fi
 FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
 ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
-```text
+```
 
 See `references/frontmatter-parsing.md` for per-field type patterns (boolean, string, numeric, array, multi-line), edge cases, validation, and complete working examples.
 
@@ -115,16 +115,16 @@ Commands use the `Read` tool to fetch `.local.md` files, then parse YAML frontma
 
 ### In Command Markdown
 
-```markdown
+```
 # Your Command
 
 Check for settings at `.claude/your-plugin.local.md`.
 If present, read the file, parse YAML frontmatter for `enabled`, `mode`, and other fields, then adapt behavior.
-```text
+```
 
 Agents reference settings in their instructions:
 
-```markdown
+```
 ---
 name: configured-agent
 description: >-
@@ -137,7 +137,7 @@ If the file exists:
 - Read the `enabled`, `mode`, and other fields
 - Apply settings to your behavior
 If the file is absent, use documented defaults.
-```text
+```
 
 ## Common Patterns
 
@@ -145,7 +145,7 @@ If the file is absent, use documented defaults.
 
 Use `enabled` flag to activate/deactivate hooks without editing `hooks.json` (which requires restart):
 
-```sh
+```
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -163,7 +163,7 @@ ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
 if [ "$ENABLED" != "true" ]; then
     exit 0
 fi
-```text
+```
 
 Restart Claude Code after changing `enabled: true/false`.
 
@@ -173,7 +173,7 @@ Store agent identity and coordinator session for multi-agent swarms:
 
 `.claude/multi-agent-swarm.local.md:`
 
-```markdown
+```
 ---
 agent_name: auth-service
 task_number: 3.5
@@ -185,11 +185,11 @@ enabled: true
 # Task: Implement JWT Authentication
 
 Coordinate with database-agent on schema changes.
-```text
+```
 
 Hook reads fields and sends notifications to coordinator:
 
-```bash
+```
 # Validate tmux session name format.
 #
 # @param session Session name.
@@ -208,7 +208,7 @@ if validate_tmux_session "$COORDINATOR"; then
     safe_agent=$(printf '%q' "$AGENT_NAME")
     tmux send-keys -t "$COORDINATOR" "Agent $safe_agent completed task" Enter
 fi
-```text
+```
 
 ### Pattern 3: Configuration-Driven Validation Mode
 
@@ -216,7 +216,7 @@ Store validation policy and apply in hooks or commands:
 
 `.claude/security-plugin.local.md:`
 
-```markdown
+```
 ---
 validation_level: strict
 max_file_size: 1000000
@@ -224,11 +224,11 @@ allowed_extensions:
   - ".ts"
   - ".js"
 ---
-```text
+```
 
 Switch behavior based on mode:
 
-```sh
+```
 LEVEL=$(echo "$FRONTMATTER" | grep '^validation_level:' | sed 's/validation_level: *//')
 case "$LEVEL" in
     strict)
@@ -241,7 +241,7 @@ case "$LEVEL" in
         # Minimal checks
         ;;
 esac
-```text
+```
 
 ## Creating Settings Files
 
@@ -257,7 +257,7 @@ Commands can scaffold settings files when first run or requested by the user.
 
 ### Sanitization Example
 
-```sh
+```
 # Write sanitized user input to plugin settings file.
 #
 # @param USER_INPUT Raw user input string.
@@ -273,11 +273,11 @@ enabled: true
 # Your Plugin Configuration
 EOF
 chmod 600 ".claude/your-plugin.local.md"
-```text
+```
 
 Validate path fields to prevent path traversal:
 
-```sh
+```
 # Canonicalize and validate path against base directory.
 #
 # @param base_dir Base directory (e.g., ${CLAUDE_PROJECT_DIR}).
@@ -309,7 +309,7 @@ if validate_path_safe "${CLAUDE_PROJECT_DIR}" "$FILE_PATH" > /dev/null; then
     echo "⚠️ Invalid path in settings" >&2
     exit 2
 fi
-```text
+```
 
 ## Gitignore and Defaults
 
@@ -317,14 +317,14 @@ fi
 
 User scope state files MUST never be committed:
 
-```text
+```
 .claude/*.local.md
 .claude/*.local.json
-```text
+```
 
 Document this in plugin README:
 
-```markdown
+```
 ## Configuration
 
 Create `.claude/your-plugin.local.md` in your project:
@@ -337,11 +337,11 @@ mode: standard
 \`\`\`
 
 Note: This file is local to your project and should be added to `.gitignore`.
-```text
+```
 
 ### Defaults when file is absent
 
-```sh
+```
 if [ ! -f "$STATE_FILE" ]; then
     ENABLED=true
     MODE="standard"
@@ -349,17 +349,17 @@ if [ ! -f "$STATE_FILE" ]; then
 else
     # Parse from file
 fi
-```text
+```
 
 Validate numeric ranges:
 
-```sh
+```
 MAX=$(echo "$FRONTMATTER" | grep '^max_retries:' | sed 's/max_retries: *//')
 if ! printf '%s' "$MAX" | grep -qE '^[0-9]+$' || [ "$MAX" -lt 1 ] || [ "$MAX" -gt 100 ]; then
     echo "⚠️ Invalid max_retries (must be 1-100), using default 3" >&2
     MAX=3
 fi
-```text
+```
 
 ## Restart Requirement
 
@@ -367,7 +367,7 @@ Critical: Changes to `.local.md` files require Claude Code restart before hooks 
 
 Document in plugin README:
 
-```markdown
+```
 ## Changing Settings
 
 After editing `.claude/your-plugin.local.md`:
@@ -375,7 +375,7 @@ After editing `.claude/your-plugin.local.md`:
 2. Exit Claude Code (or use `/exit`)
 3. Restart: `claude` or `cc`
 4. New settings will be active
-```text
+```
 
 Hooks loaded during startup cannot be hot-reloaded within the same session.
 
@@ -385,52 +385,52 @@ Hooks loaded during startup cannot be hot-reloaded within the same session.
 
 Always escape user input before writing to YAML:
 
-```sh
+```
 SAFE_VALUE=$(echo "$INPUT" | sed 's/"/\\"/g' | sed "s/'/\\\\'/g")
 echo "field: \"$SAFE_VALUE\"" >> "$STATE_FILE"
-```text
+```
 
 ### Path Validation
 
 Reject paths containing `..` or absolute paths when not intended:
 
-```sh
+```
 PATH_VALUE=$(echo "$FRONTMATTER" | grep '^output_dir:' | sed 's/output_dir: *//')
 if printf '%s' "$PATH_VALUE" | grep -qE '^/' || [ "$PATH_VALUE" != "${PATH_VALUE%..*}" ]; then
     echo "⚠️ Invalid path in settings" >&2
     PATH_VALUE="./output"
 fi
-```text
+```
 
 ### File Permissions
 
 Settings files MUST be readable only by the user:
 
-```sh
+```
 chmod 600 ".claude/your-plugin.local.md"
-```text
+```
 
 ## First Safe Commands
 
 Check that a settings file exists and is valid YAML:
 
-```sh
+```
 if [ -f ".claude/your-plugin.local.md" ]; then
     head -20 ".claude/your-plugin.local.md"
 fi
-```text
+```
 
 Extract frontmatter without parsing:
 
-```sh
+```
 sed -n '/^---$/,/^---$/{ /^---$/d; p; }' ".claude/your-plugin.local.md"
-```text
+```
 
 Read a single field:
 
-```sh
+```
 grep '^enabled:' ".claude/your-plugin.local.md" | sed 's/enabled: *//'
-```text
+```
 
 ## Output Contract
 

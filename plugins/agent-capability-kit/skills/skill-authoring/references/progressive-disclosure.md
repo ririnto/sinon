@@ -80,13 +80,13 @@ SKILL.md                           -> 140 lines of action logic and defaults
 references/context-budget.md       -> scope repair guidance
 assets/template.json               -> starter schema
 scripts/validate.sh                -> deterministic checks
-```text
+```
 
 ## Bad split
 
-```text
+```
 SKILL.md -> 700 lines of mixed instructions, tutorials, examples, and raw templates
-```text
+```
 
 ## Authoring rule
 

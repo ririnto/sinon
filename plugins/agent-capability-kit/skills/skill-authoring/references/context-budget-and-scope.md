@@ -34,13 +34,13 @@ Turn this:
 
 ```text
 Write and validate API, CLI, and deployment skills.
-```text
+```
 
 Into this:
 
-```text
+```
 Write or refactor one deployment-oriented skill for offline use.
-```text
+```
 
 ### Move additive depth out of `SKILL.md`
 
