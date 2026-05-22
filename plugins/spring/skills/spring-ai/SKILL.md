@@ -16,7 +16,7 @@ metadata:
     - "https://docs.spring.io/spring-ai/reference/api/moderation/"
     - "https://docs.spring.io/spring-ai/reference/api/effective-agents.html"
     - "https://docs.spring.io/spring-ai/reference/api/usage-handling.html"
-  version: "1.1.4"
+  version: "1.1.6"
 ---
 
 Use this skill when building Spring AI application features with `ChatClient`, prompt templates, structured output, tool calling, advisors, chat memory, embeddings, vector stores, retrieval-augmented generation, MCP, image or audio model flows, moderation, effective-agent workflows, or other provider-neutral model seams in Spring.
@@ -73,7 +73,7 @@ Import the Spring AI BOM and add only the starters needed for the current model 
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-bom</artifactId>
-            <version>1.1.4</version>
+            <version>1.1.6</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
