@@ -17,15 +17,15 @@ class RequireHookStageRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
 		val category = "requireHookStage"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
-		val messagesObj = catObj["messages"]?.jsonObject ?: return emptyList()
+		val catObj = manifest[category]?.jsonObject ?: return@buildSet
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
+		val messagesObj = catObj["messages"]?.jsonObject ?: return@buildSet
 		val markerTemplate = HarnessCheck.Companion.stringFrom(parametersObj, "markerTemplate")
-		val stagesObj = parametersObj["stages"]?.jsonObject ?: return emptyList()
-		val gradleStages = stagesObj["gradle"]?.jsonObject ?: return emptyList()
+		val stagesObj = parametersObj["stages"]?.jsonObject ?: return@buildSet
+		val gradleStages = stagesObj["gradle"]?.jsonObject ?: return@buildSet
 		val preCommitStage = HarnessCheck.Companion.stringFrom(gradleStages, "pre-commit")
 		val prePushStage = HarnessCheck.Companion.stringFrom(gradleStages, "pre-push")
 

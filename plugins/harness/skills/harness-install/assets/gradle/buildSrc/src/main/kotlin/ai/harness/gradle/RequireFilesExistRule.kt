@@ -17,20 +17,18 @@ class RequireFilesExistRule : HarnessCheckRule {
 		return enabled
 	}
 
-	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> = buildSet {
 		val category = "requireFilesExist"
 		val severity = HarnessCheck.Companion.severityOf(manifest, category)
-		val catObj = manifest[category]?.jsonObject ?: return emptyList()
-		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val catObj = manifest[category]?.jsonObject ?: return@buildSet
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return@buildSet
 		val paths = HarnessCheck.Companion.stringArrayFrom(parametersObj, "paths")
-		return buildSet<Finding> {
-			paths.forEach { path ->
-				val p = root / path
-				when {
-					p.isSymbolicLink() && !HarnessCheck.Companion.isAllowedRootContractSymlink(root, p) -> add(Finding(Severity.ERROR, category, "symlink file is not allowed: $path"))
-					!p.isRegularFile() -> add(Finding(severity, category, "missing file: $path"))
-				}
+		paths.forEach { path ->
+			val p = root / path
+			when {
+				p.isSymbolicLink() && !HarnessCheck.Companion.isAllowedRootContractSymlink(root, p) -> add(Finding(Severity.ERROR, category, "symlink file is not allowed: $path"))
+				!p.isRegularFile() -> add(Finding(severity, category, "missing file: $path"))
 			}
-		}.toList()
-	}
+		}
+	}.toList()
 }
