@@ -461,44 +461,18 @@ append_line_once() {
   printf '%s\n' "append line: $file"
 }
 
-# Ensure Gradle settings includes the local harness plugin build.
+# Install Gradle plugin wiring into the root build file.
 #
-# @param file Gradle settings file path.
-# @return Writes modified status.
-ensure_gradle_settings_include() {
-  file=$1
-  include='includeBuild("docs/harness/gradle-plugin")'
-  marker='docs/harness/gradle-plugin'
-  ensure_safe_file_destination "$file"
-  if [ -f "$file" ] && grep -Fq "$marker" "$file"; then
-    printf '%s\n' "keep existing Gradle plugin include: $file"
-    return 0
-  fi
-  tmp=$file.harness.tmp.$$
-  ensure_safe_file_destination "$tmp"
-  {
-    printf 'pluginManagement {\n    %s\n}\n\n' "$include"
-    if [ -f "$file" ]; then
-      cat "$file"
-    fi
-  } > "$tmp"
-  mv "$tmp" "$file"
-  printf '%s\n' "prepend Gradle plugin include: $file"
-}
-
-# Install Gradle plugin wiring into settings and root build files.
+# The harness plugin lives in `buildSrc/`, which Gradle picks up automatically
+# without any `settings.gradle.kts` change. Only the root `build.gradle.kts`
+# needs to apply the plugin id.
 #
 # @return Writes modified Gradle integration files.
 install_gradle() {
-  settings_file=settings.gradle.kts
   build_file=build.gradle.kts
-  if [ -f settings.gradle ] && [ ! -f settings.gradle.kts ]; then
-    settings_file=settings.gradle
-  fi
   if [ -f build.gradle ] && [ ! -f build.gradle.kts ]; then
     build_file=build.gradle
   fi
-  ensure_gradle_settings_include "$settings_file"
   if [ "$build_file" = build.gradle.kts ]; then
     append_line_once "$build_file" 'apply(plugin = "ai.harness.validation")' 'apply(plugin = "ai.harness.validation")'
   else
@@ -792,7 +766,7 @@ validation_command_for_mode() {
         printf '%s\n' 'gradle harnessValidate'
       fi
       ;;
-    maven) printf '%s\n' 'mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate' ;;
+    maven) printf '%s\n' 'mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate' ;;
     uv) printf '%s\n' 'uv run python docs/harness/uv/harness_validate.py' ;;
     bun) printf '%s\n' 'bun run docs/harness/bun/harness-validate.ts' ;;
     *) error "[validation_command] unsupported mode (must be gradle|maven|uv|bun): $selected_mode" ;;

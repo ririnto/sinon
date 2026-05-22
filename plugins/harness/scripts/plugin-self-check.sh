@@ -435,8 +435,8 @@ for path in \
   "$root/skills/harness-install/assets/uv/docs/harness/uv/harness_validate.py" \
   "$root/skills/harness-install/assets/uv/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/uv/.gitlab-ci.yml" \
-  "$root/skills/harness-install/assets/gradle/docs/harness/gradle-plugin/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" \
-  "$root/skills/harness-install/assets/maven/docs/harness/maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java"; do
+  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java"; do
   require_file "$path"
 done
 
