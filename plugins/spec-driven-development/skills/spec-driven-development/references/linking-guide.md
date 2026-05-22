@@ -89,8 +89,7 @@ These examples use canonical `spec/domain/...` paths for illustration.
 | `spec/domain/SPEC.md` | `spec/domain/ingest/SPEC.md` | `./ingest/SPEC.md` |
 | `spec/domain/SPEC.md` | `spec/domain/other/SPEC.md` | `./other/SPEC.md` |
 | `spec/domain/ingest/SPEC.md` | `spec/domain/SPEC.md` | `../SPEC.md` |
-| `spec/domain/ingest/SPEC.md` | `spec/domain/other/deep/SPEC.md` | |
-| | | `../other/deep/SPEC.md` |
+| `spec/domain/ingest/SPEC.md` | `spec/domain/other/deep/SPEC.md` | `../other/deep/SPEC.md` |
 
 ## Forbidden Link Targets
 
