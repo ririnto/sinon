@@ -306,6 +306,12 @@ ensure_shared_root_contract() {
     fi
     cat "$template_dir/common/AGENTS.md" >> "$tmp"
   fi
+  if [ "$has_claude" -ne 1 ] && grep -Fq '# Claude Code Entry Point' "$tmp"; then
+    has_claude=1
+  fi
+  if [ "$has_agents" -ne 1 ] && grep -Fq '# Repository Harness Contract' "$tmp"; then
+    has_agents=1
+  fi
   if [ "$has_claude" -ne 1 ]; then
     if [ -s "$tmp" ]; then
       printf '\n' >> "$tmp"
