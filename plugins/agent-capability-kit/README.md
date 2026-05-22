@@ -55,7 +55,11 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest points at the shared `skills/`, `agents/`, and `commands/` content. The plugin root exposes skills, agents, and one command; it does not ship hooks, MCP servers, LSP servers, monitors, or custom runtime data surfaces.
+The manifest declares `./skills/` and `./commands/`. Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+
+## Shipped Surfaces
+
+The plugin root exposes seven skills, three agents, and one command. It does not ship hooks, MCP servers, LSP servers, monitors, or custom runtime data surfaces.
 
 ## Scope Notes
 
@@ -85,15 +89,7 @@ Explicitly excluded:
 5. `description` explains both what the skill does and when to use it.
 6. Each skill keeps a flat layout under `SKILL.md`, `references/`, and `assets/`.
 
-## Quick navigation
-
-- Plugin and skill authoring: `/agent-capability-kit:plugin-authoring`, `/agent-capability-kit:skill-authoring`
-- Agent and command authoring: `/agent-capability-kit:agent-authoring`, `/agent-capability-kit:command-authoring`
-- Plugin infrastructure: `/agent-capability-kit:hook-authoring`, `/agent-capability-kit:mcp-integration`, `/agent-capability-kit:plugin-settings`
-- Validation and review: `plugin-validator` agent, `skill-reviewer` agent
-- Plugin creation guidance: `/create-plugin` command, `agent-creator` agent
-
-## Quick start
+## Installation
 
 During local development, point Claude Code at the plugin root:
 
@@ -101,14 +97,15 @@ During local development, point Claude Code at the plugin root:
 claude --plugin-dir /absolute/path/to/agent-capability-kit
 ```
 
-Then invoke namespaced skills such as:
+Then use Quick navigation to choose the relevant namespaced skills, runtime agents, or command surface.
 
-```text
-/agent-capability-kit:plugin-authoring
-/agent-capability-kit:agent-authoring
-/agent-capability-kit:command-authoring
-/agent-capability-kit:skill-authoring
-```
+## Quick navigation
+
+- Plugin and skill authoring: `/agent-capability-kit:plugin-authoring`, `/agent-capability-kit:skill-authoring`
+- Agent and command authoring: `/agent-capability-kit:agent-authoring`, `/agent-capability-kit:command-authoring`
+- Plugin infrastructure: `/agent-capability-kit:hook-authoring`, `/agent-capability-kit:mcp-integration`, `/agent-capability-kit:plugin-settings`
+- Validation and review: `plugin-validator` agent, `skill-reviewer` agent
+- Plugin creation guidance: `/agent-capability-kit:create-plugin` command, `agent-creator` agent
 
 ## Reuse the scaffolds
 
@@ -119,7 +116,7 @@ Copy the files you need from each skill's `assets/` directory:
 - command and prompt examples from `command-authoring/assets/`
 - cross-platform skill examples from `skill-authoring/assets/`
 
-## Package layout
+## Plugin Layout
 
 ```text
 agent-capability-kit/
