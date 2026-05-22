@@ -1,0 +1,39 @@
+package ai.harness.gradle
+
+import kotlinx.serialization.json.JsonObject
+import java.nio.file.Path
+
+/**
+ * Rule that requires documentation files to contain specified content.
+ */
+class RequireDocContentRule : HarnessCheckRule {
+	override fun applies(manifest: JsonObject): Boolean {
+		val category = "requireDocContent"
+		val catObj = manifest[category]?.jsonObject ?: return false
+		val enabled = catObj["enabled"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: true
+		return enabled
+	}
+
+	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): List<Finding> {
+		val category = "requireDocContent"
+		val severity = HarnessCheck.Companion.severityOf(manifest, category)
+		val catObj = manifest[category]?.jsonObject ?: return emptyList()
+		val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+		val checks = parametersObj["checks"]?.jsonArray ?: return emptyList()
+
+		return buildSet<Finding> {
+			checks.forEach { checkElem ->
+				val checkObj = checkElem.jsonObject
+				val files = HarnessCheck.Companion.stringArrayFrom(checkObj, "files")
+				val containsAll = HarnessCheck.Companion.stringArrayFrom(checkObj, "containsAll")
+				val failureMessage = HarnessCheck.Companion.stringFrom(checkObj, "failureMessage")
+
+				val content = files.map { HarnessCheck.Companion.readSafe(root, it) }.joinToString("\n")
+				val allPresent = containsAll.all { content.contains(it) }
+				if (!allPresent) {
+					add(Finding(severity, category, failureMessage))
+				}
+			}
+		}.toList()
+	}
+}
