@@ -46,7 +46,6 @@ contains_lombok_dependency() {
         return
         ;;
     esac
-
     return 1
 }
 
@@ -73,13 +72,11 @@ resolve_candidate_jar_path() {
     candidate_path="$1"
     source_file="$2"
     source_dir=$(dirname "${source_file}")
-
     case "${candidate_path}" in
     file:/*)
         candidate_path=${candidate_path#file:}
         ;;
     esac
-
     case "${candidate_path}" in
     /*)
         resolved_path="${candidate_path}"
@@ -91,12 +88,10 @@ resolve_candidate_jar_path() {
         resolved_path="${source_dir}/${candidate_path}"
         ;;
     esac
-
     if [ -f "${resolved_path}" ]; then
         printf '%s\n' "${resolved_path}"
         return 0
     fi
-
     return 1
 }
 
@@ -153,7 +148,6 @@ project_uses_lombok() {
     contains_lombok_dependency "${project_root}/gradle/libs.versions.toml" && return 0
     contains_lombok_dependency "${project_root}/.classpath" && return 0
     contains_lombok_dependency "${project_root}/.factorypath" && return 0
-
     while IFS= read -r candidate_file; do
         if contains_lombok_dependency "${candidate_file}"; then
             return 0
@@ -161,7 +155,6 @@ project_uses_lombok() {
     done <<EOF
 $(find_project_files)
 EOF
-
     return 1
 }
 
@@ -186,7 +179,6 @@ $(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:spac
 EOF
         fi
     done
-
     while IFS= read -r metadata_file; do
         case "${metadata_file}" in
         */.classpath | */.factorypath)
@@ -207,7 +199,6 @@ EOF
     done <<EOF
 $(find_project_files)
 EOF
-
     return 1
 }
 
