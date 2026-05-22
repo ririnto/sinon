@@ -125,20 +125,20 @@ harness는 versioning하지 않으며, manifest 자체가 self-documenting 문�
 - [x] Task 7.6.3 — `plugin-self-check.sh` 의 `.tmpl` 의존 로직 제거(`grep -F -v '.tmpl'` 삭제, "outside .tmpl asset" 메시지 정리, require_text 경로 갱신)
 - [x] Task 7.6.4 — reference-llms 템플릿을 `> [!NOTE]` attribution + editor's note 형태로 재작성
 
-### [ ] Phase 8: 디렉토리 rename (직렬, 단일 작업)
+### [x] Phase 8: 디렉토리 rename (직렬, 단일 작업)
 
-`templates/` → `assets/` git mv. 후속 phase의 전제 조건.
+- [x] Task 8.1 — `git mv plugins/harness/skills/harness-install/templates plugins/harness/skills/harness-install/assets`
 
-- [ ] Task 8.1 — `git mv plugins/harness/skills/harness-install/templates plugins/harness/skills/harness-install/assets`
-
-### [ ] Phase 9: rename 후속 경로 참조 갱신 (병렬)
+### [x] Phase 9: rename 후속 경로 참조 갱신 (병렬)
 
 각 task는 다른 파일.
 
-- [ ] Task 9.1 — `plugins/harness/skills/harness-install/scripts/install-harness.sh`의 `templates/` 경로 전부 `assets/`로 갱신
-- [ ] Task 9.2 — `plugins/harness/scripts/plugin-self-check.sh`의 `templates/` 경로 갱신
-- [ ] Task 9.3 — `plugins/harness/skills/harness-install/SKILL.md`의 `templates/` 참조 갱신
-- [ ] Task 9.4 — `plugins/harness/README.md`의 layout 다이어그램 갱신
+- [x] Task 9.1 — `install-harness.sh` `template_dir="$skill_dir/assets"` (변수 1줄만 변경)
+- [x] Task 9.2 — `plugin-self-check.sh` 모든 `skills/harness-install/templates/` → `assets/` (require_file/require_text/case 패턴 모두)
+- [x] Task 9.3 — `harness-install/SKILL.md` plugin-source `templates/` 참조 없음 확인
+- [x] Task 9.4 — `plugins/harness/README.md` layout 다이어그램 + 'Packaged Scripts and Assets' rename
+
+검증: self-check PASS, shellcheck PASS, install --mode bun dry-run 성공.
 
 ### [ ] Phase 10: 각 stack depth 평탄화 + buildSrc 이동 (병렬)
 
