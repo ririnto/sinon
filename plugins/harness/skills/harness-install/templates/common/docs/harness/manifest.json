@@ -247,6 +247,14 @@
     "filenamePattern": "*.md",
     "uncheckedTaskPattern": "^\\s*-\\s*\\[ \\]\\s"
   },
+  "forbidImplicitLambdaIt": {
+    "description": "Kotlin lambdas under `directories` MUST declare an explicit parameter name; the implicit `it` is forbidden. Catches anonymous-receiver usage that becomes unreadable in nested lambdas.",
+    "enabled": true,
+    "severity": "ERROR",
+    "failureMessageTemplate": "Kotlin file {file} uses implicit `it` lambda parameter at line {line}; use an explicit name",
+    "directories": ["docs/harness/gradle-plugin/src/main/kotlin"],
+    "filenameSuffix": ".kt"
+  },
   "requireSingleTopLevelKotlinDeclaration": {
     "description": "Each Kotlin source file under `directories` MUST declare exactly one top-level declaration, and that declaration MUST be one of `allowedDeclarations`. Catches accidental top-level `val`/`var`/`fun` declarations that bypass the per-file module boundary.",
     "enabled": true,
@@ -282,6 +290,7 @@
       "requireEnvShebangUnder",
       "forbidUncheckedTasksUnder",
       "forbidUnsafeSymlinks",
+      "forbidImplicitLambdaIt",
       "requireSingleTopLevelKotlinDeclaration",
       "warnUnknownManifestKeys",
       "seedFiles",

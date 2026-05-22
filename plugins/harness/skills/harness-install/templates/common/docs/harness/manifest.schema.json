@@ -251,6 +251,18 @@
       },
       "required": ["description", "knownKeys"]
     },
+    "forbidImplicitLambdaIt": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "enabled": {"$ref": "#/$defs/enabledFlag"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "directories": {"type": "array", "items": {"type": "string"}},
+        "filenameSuffix": {"type": "string"}
+      },
+      "required": ["description", "directories"]
+    },
     "requireSingleTopLevelKotlinDeclaration": {
       "type": "object",
       "properties": {
