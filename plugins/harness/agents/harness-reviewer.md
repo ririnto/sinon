@@ -36,6 +36,11 @@ description: |-
   </example>
 model: sonnet
 color: yellow
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
 ---
 # harness-reviewer
 
