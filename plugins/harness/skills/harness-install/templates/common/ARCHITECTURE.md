@@ -12,7 +12,7 @@ Document major runtime components and the responsibilities each component owns.
 
 Document important data paths, persistence boundaries, event flows, and generated artifact sources.
 
-Generated reference artifacts SHOULD be placed under `docs/generated/` when they are derived from authoritative project sources. `docs/generated/db-schema.md` is only one possible generated artifact and is not required for repositories without a database schema generator.
+Generated reference artifacts SHOULD be placed under `docs/generated/` when they are derived from authoritative project sources. The directory MAY remain empty (with `.gitkeep`) when no generation step exists yet; do not add fake placeholder files.
 
 Generated artifacts SHOULD record their source command, source inputs, freshness, and regeneration trigger.
 

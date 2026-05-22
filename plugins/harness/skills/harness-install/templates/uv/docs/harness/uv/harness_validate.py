@@ -20,6 +20,14 @@ STACK = "uv"
 MANIFEST_PATH = "docs/harness/manifest.json"
 
 
+class Finding(NamedTuple):
+    """Represents a validation finding with severity, category, and message."""
+
+    severity: str
+    category: str
+    message: str
+
+
 class LeakPattern(NamedTuple):
     """Represents a compiled pattern to detect in active assets."""
 
@@ -134,17 +142,35 @@ def load_manifest() -> dict[str, object]:
         return {}
 
 
-def manifest_list(manifest: dict[str, object], key: str) -> tuple[str, ...]:
-    value = manifest.get(key)
-    return (
-        tuple(item for item in value if isinstance(item, str))
-        if isinstance(value, list)
-        else ()
-    )
+def manifest_items(manifest: dict[str, object], key: str) -> tuple[str, ...]:
+    section = manifest.get(key)
+    if isinstance(section, dict):
+        items = section.get("items", [])
+        if isinstance(items, list):
+            return tuple(item for item in items if isinstance(item, str))
+    if isinstance(section, list):
+        return tuple(item for item in section if isinstance(item, str))
+    return ()
+
+
+def manifest_object_items(
+    manifest: dict[str, object], key: str
+) -> tuple[dict[str, object], ...]:
+    section = manifest.get(key)
+    if isinstance(section, dict):
+        items = section.get("items", [])
+        if isinstance(items, list):
+            return tuple(item for item in items if isinstance(item, dict))
+    if isinstance(section, list):
+        return tuple(item for item in section if isinstance(item, dict))
+    return ()
 
 
 def build_leak_patterns(manifest: dict[str, object]) -> tuple[LeakPattern, ...]:
-    patterns_data = manifest.get("leakPatterns")
+    section = manifest.get("leakPatterns")
+    if not isinstance(section, dict):
+        return ()
+    patterns_data = section.get("items", [])
     if not isinstance(patterns_data, list):
         return ()
     output: list[LeakPattern] = []
@@ -162,28 +188,71 @@ def build_leak_patterns(manifest: dict[str, object]) -> tuple[LeakPattern, ...]:
     return tuple(output)
 
 
-def validate_manifest_exists() -> tuple[str, ...]:
+def severity_for(manifest: dict[str, object], category: str) -> str:
+    section = manifest.get(category)
+    if isinstance(section, dict):
+        value = section.get("severity")
+        if value in ("ERROR", "WARN", "INFO"):
+            return value
+    return "ERROR"
+
+
+def validate_manifest_exists(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
     path = ROOT / MANIFEST_PATH
     if path.is_symlink():
-        return ("manifest file is a symlink; must be a regular file",)
+        findings.append(
+            Finding(
+                severity_for(manifest, "manifestParity"),
+                "manifestParity",
+                "manifest file is a symlink; must be a regular file",
+            )
+        )
+        return tuple(findings)
     if not is_safe_file(path):
-        return (f"manifest file missing: {MANIFEST_PATH}",)
+        findings.append(
+            Finding(
+                "ERROR",
+                "manifestParity",
+                f"manifest file missing: {MANIFEST_PATH}",
+            )
+        )
+        return tuple(findings)
     if not load_manifest():
-        return (f"manifest file invalid or empty JSON: {MANIFEST_PATH}",)
-    return ()
+        findings.append(
+            Finding(
+                "ERROR",
+                "manifestParity",
+                f"manifest file invalid or empty JSON: {MANIFEST_PATH}",
+            )
+        )
+        return tuple(findings)
+    return tuple(findings)
 
 
-def validate_structure(manifest: dict[str, object]) -> tuple[str, ...]:
-    failures: list[str] = []
-    required_files = manifest_list(manifest, "requiredFiles")
-    required_dirs = manifest_list(manifest, "requiredDirectories")
-    keep_files = manifest_list(manifest, "emptyDirectoryKeepFiles")
+def validate_structure(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
+    required_files = manifest_items(manifest, "requiredFiles")
+    required_dirs = manifest_items(manifest, "requiredDirectories")
+    keep_files = manifest_items(manifest, "emptyDirectoryKeepFiles")
     for path in required_files:
         if not is_safe_file(ROOT / path):
-            failures.append(f"missing file: {path}")
+            findings.append(
+                Finding(
+                    severity_for(manifest, "requiredFiles"),
+                    "requiredFiles",
+                    f"missing file: {path}",
+                )
+            )
     for path in required_dirs:
         if not is_safe_directory(ROOT / path):
-            failures.append(f"missing directory: {path}")
+            findings.append(
+                Finding(
+                    severity_for(manifest, "requiredDirectories"),
+                    "requiredDirectories",
+                    f"missing directory: {path}",
+                )
+            )
     for keep in keep_files:
         keep_path = ROOT / keep
         directory = keep_path.parent
@@ -191,16 +260,20 @@ def validate_structure(manifest: dict[str, object]) -> tuple[str, ...]:
             continue
         real_files = [p for p in directory.iterdir() if p.name != ".gitkeep"]
         if not real_files and not is_safe_file(keep_path):
-            failures.append(
-                f"empty directory must keep placeholder or real files: {relative(directory)}"
+            findings.append(
+                Finding(
+                    severity_for(manifest, "emptyDirectoryKeepFiles"),
+                    "emptyDirectoryKeepFiles",
+                    f"empty directory must keep placeholder or real files: {relative(directory)}",
+                )
             )
-    return tuple(failures)
+    return tuple(findings)
 
 
-def validate_docs_headings(manifest: dict[str, object]) -> tuple[str, ...]:
-    failures: list[str] = []
-    required_docs = manifest_list(manifest, "requiredFiles")
-    required_headings = manifest_list(manifest, "requiredDocHeadings")
+def validate_docs_headings(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
+    required_docs = manifest_items(manifest, "requiredFiles")
+    required_headings = manifest_items(manifest, "requiredDocHeadings")
     for doc in required_docs:
         if not doc.startswith("docs/") or not doc.endswith(".md"):
             continue
@@ -210,14 +283,20 @@ def validate_docs_headings(manifest: dict[str, object]) -> tuple[str, ...]:
         text = read_text(path)
         for heading in required_headings:
             if heading not in text:
-                failures.append(f"doc missing {heading}: {doc}")
-    return tuple(failures)
+                findings.append(
+                    Finding(
+                        severity_for(manifest, "requiredDocHeadings"),
+                        "requiredDocHeadings",
+                        f"doc missing {heading}: {doc}",
+                    )
+                )
+    return tuple(findings)
 
 
-def validate_content_checks(manifest: dict[str, object]) -> tuple[str, ...]:
-    failures: list[str] = []
-    checks_data = manifest.get("requiredContentChecks")
-    if not isinstance(checks_data, list):
+def validate_content_checks(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
+    checks_data = manifest_object_items(manifest, "requiredContentChecks")
+    if not checks_data:
         return ()
     for check in checks_data:
         if not isinstance(check, dict):
@@ -247,12 +326,18 @@ def validate_content_checks(manifest: dict[str, object]) -> tuple[str, ...]:
                 missing_substr = True
                 break
         if missing_substr:
-            failures.append(failure_msg)
-    return tuple(failures)
+            findings.append(
+                Finding(
+                    severity_for(manifest, "requiredContentChecks"),
+                    "requiredContentChecks",
+                    failure_msg,
+                )
+            )
+    return tuple(findings)
 
 
-def validate_agents() -> tuple[str, ...]:
-    failures: list[str] = []
+def validate_agents(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
     directory = ROOT / ".claude/agents"
     files = tuple(
         sorted(
@@ -262,49 +347,100 @@ def validate_agents() -> tuple[str, ...]:
         )
     )
     if not files:
-        failures.append(".claude/agents must contain at least one .md agent")
+        findings.append(
+            Finding(
+                severity_for(manifest, "agentFrontmatter"),
+                "agentFrontmatter",
+                ".claude/agents must contain at least one .md agent",
+            )
+        )
     for path in files:
         text = read_text(path)
         if not text.startswith("---"):
-            failures.append(f"agent missing frontmatter: {relative(path)}")
+            findings.append(
+                Finding(
+                    severity_for(manifest, "agentFrontmatter"),
+                    "agentFrontmatter",
+                    f"agent missing frontmatter: {relative(path)}",
+                )
+            )
         if not re.search(r"(?m)^name:\s*[-a-z0-9]+\s*$", text):
-            failures.append(f"agent missing name: {relative(path)}")
+            findings.append(
+                Finding(
+                    severity_for(manifest, "agentFrontmatter"),
+                    "agentFrontmatter",
+                    f"agent missing name: {relative(path)}",
+                )
+            )
         if not re.search(r"(?m)^description:\s*.+$", text):
-            failures.append(f"agent missing description: {relative(path)}")
-    return tuple(failures)
+            findings.append(
+                Finding(
+                    severity_for(manifest, "agentFrontmatter"),
+                    "agentFrontmatter",
+                    f"agent missing description: {relative(path)}",
+                )
+            )
+    return tuple(findings)
 
 
-def validate_skills() -> tuple[str, ...]:
-    failures: list[str] = []
+def validate_skills(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
     directory = ROOT / ".claude/skills"
     files = tuple(
         sorted(path for path in safe_walk(directory) if path.name == "SKILL.md")
     )
     if not files:
-        failures.append(".claude/skills must contain at least one SKILL.md")
+        findings.append(
+            Finding(
+                severity_for(manifest, "skillFrontmatter"),
+                "skillFrontmatter",
+                ".claude/skills must contain at least one SKILL.md",
+            )
+        )
     for path in files:
         text = read_text(path)
         if not text.startswith("---"):
-            failures.append(f"skill missing frontmatter: {relative(path)}")
+            findings.append(
+                Finding(
+                    severity_for(manifest, "skillFrontmatter"),
+                    "skillFrontmatter",
+                    f"skill missing frontmatter: {relative(path)}",
+                )
+            )
         if not re.search(r"(?m)^description:\s*.+$", text):
-            failures.append(f"skill missing description: {relative(path)}")
-    return tuple(failures)
+            findings.append(
+                Finding(
+                    severity_for(manifest, "skillFrontmatter"),
+                    "skillFrontmatter",
+                    f"skill missing description: {relative(path)}",
+                )
+            )
+    return tuple(findings)
 
 
-def validate_templates(manifest: dict[str, object]) -> tuple[str, ...]:
-    failures: list[str] = []
-    template_groups = manifest_list(manifest, "templateGroups")
+def validate_templates(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
+    template_groups = manifest_items(manifest, "templateGroups")
     for group in template_groups:
         if not is_safe_directory(ROOT / f"docs/harness/templates/{group}"):
-            failures.append(f"missing template group: docs/harness/templates/{group}")
-    return tuple(failures)
+            findings.append(
+                Finding(
+                    severity_for(manifest, "templateGroups"),
+                    "templateGroups",
+                    f"missing template group: docs/harness/templates/{group}",
+                )
+            )
+    return tuple(findings)
 
 
-def validate_active_assets(manifest: dict[str, object]) -> tuple[str, ...]:
-    failures: list[str] = []
-    bases_data = manifest.get("activeAssetBases")
-    excluded_data = manifest.get("excludedActiveAssetSubtrees")
-    exts_data = manifest.get("activeAssetExtensions")
+def validate_active_assets(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
+    assets = manifest.get("activeAssets")
+    if not isinstance(assets, dict):
+        return ()
+    bases_data = assets.get("bases", [])
+    excluded_data = assets.get("excludedSubtrees", [])
+    exts_data = assets.get("extensions", [])
     if not isinstance(bases_data, list):
         return ()
     active_roots = tuple(ROOT / item for item in bases_data if isinstance(item, str))
@@ -331,8 +467,14 @@ def validate_active_assets(manifest: dict[str, object]) -> tuple[str, ...]:
             text = read_text(path)
             for leak in leak_patterns:
                 if leak.pattern.search(text):
-                    failures.append(f"{leak.label} in active asset: {relative(path)}")
-    return tuple(failures)
+                    findings.append(
+                        Finding(
+                            severity_for(manifest, "leakPatterns"),
+                            "leakPatterns",
+                            f"{leak.label} in active asset: {relative(path)}",
+                        )
+                    )
+    return tuple(findings)
 
 
 def hook_command(pre_push_text: str) -> str:
@@ -344,70 +486,154 @@ def hook_command(pre_push_text: str) -> str:
 
 def validate_one_hook(
     name: str, stage: str, manifest: dict[str, object]
-) -> tuple[str, tuple[str, ...]]:
+) -> tuple[str, tuple[Finding, ...]]:
     hook = ROOT / f"docs/harness/git-hooks/{name}"
     hook_text = ""
-    failures: list[str] = []
+    findings: list[Finding] = []
     if is_safe_file(hook):
         hook_text = read_text(hook)
         if first_line(hook) != "#!/usr/bin/env sh":
-            failures.append(f"{name} hook must use #!/usr/bin/env sh")
-        if not is_executable(hook):
-            failures.append(f"{name} hook must be executable: {relative(hook)}")
-        if f"Harness generated hook: {name}" not in hook_text:
-            failures.append(f"{name} hook must contain generated marker")
-        if f"Harness stage: {stage}" not in hook_text:
-            failures.append(f"{name} hook must contain {stage} stage marker")
-        if "packaged placeholder is replaced during harness installation" in hook_text:
-            failures.append(
-                f"{name} hook must be installer-generated selected-mode content"
+            findings.append(
+                Finding(
+                    severity_for(manifest, "hookFirstLine"),
+                    "hookFirstLine",
+                    f"{name} hook must use #!/usr/bin/env sh",
+                )
             )
-    return hook_text, tuple(failures)
+        if not is_executable(hook):
+            findings.append(
+                Finding(
+                    severity_for(manifest, "hookExecutable"),
+                    "hookExecutable",
+                    f"{name} hook must be executable: {relative(hook)}",
+                )
+            )
+        if f"Harness generated hook: {name}" not in hook_text:
+            findings.append(
+                Finding(
+                    severity_for(manifest, "hookGeneratedMarker"),
+                    "hookGeneratedMarker",
+                    f"{name} hook must contain generated marker",
+                )
+            )
+        if f"Harness stage: {stage}" not in hook_text:
+            findings.append(
+                Finding(
+                    severity_for(manifest, "hookStage"),
+                    "hookStage",
+                    f"{name} hook must contain {stage} stage marker",
+                )
+            )
+        if "packaged placeholder is replaced during harness installation" in hook_text:
+            findings.append(
+                Finding(
+                    severity_for(manifest, "hookGeneratedMarker"),
+                    "hookGeneratedMarker",
+                    f"{name} hook must be installer-generated selected-mode content",
+                )
+            )
+    return hook_text, tuple(findings)
 
 
-def validate_hooks(manifest: dict[str, object]) -> tuple[str, ...]:
-    failures: list[str] = []
-    hook_stages_data = manifest.get("hookStages")
-    expected_commands_data = manifest.get("expectedValidationCommands")
-    if not isinstance(hook_stages_data, dict) or not isinstance(
-        expected_commands_data, dict
+def validate_hooks(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
+    hook_stages_wrap = manifest.get("hookStages")
+    expected_commands_wrap = manifest.get("expectedValidationCommands")
+    if not isinstance(hook_stages_wrap, dict) or not isinstance(
+        expected_commands_wrap, dict
     ):
-        return ("hook stages or validation commands missing from manifest",)
+        findings.append(
+            Finding(
+                "ERROR",
+                "hookValidationCommand",
+                "hook stages or validation commands missing from manifest",
+            )
+        )
+        return tuple(findings)
+    hook_stages_data = hook_stages_wrap
+    if "severity" in hook_stages_data:
+        hook_stages_data = {k: v for k, v in hook_stages_data.items() if k != "severity"}
+    expected_commands_data = expected_commands_wrap
+    if "severity" in expected_commands_data:
+        expected_commands_data = {k: v for k, v in expected_commands_data.items() if k != "severity"}
     stack_stages = hook_stages_data.get(STACK)
     if not isinstance(stack_stages, dict):
-        return (f"hook stages for stack '{STACK}' missing from manifest",)
+        findings.append(
+            Finding(
+                "ERROR",
+                "hookValidationCommand",
+                f"hook stages for stack '{STACK}' missing from manifest",
+            )
+        )
+        return tuple(findings)
     expected_command_obj = expected_commands_data.get(STACK)
     if not isinstance(expected_command_obj, str):
-        return (f"validation command for stack '{STACK}' missing from manifest",)
+        findings.append(
+            Finding(
+                "ERROR",
+                "hookValidationCommand",
+                f"validation command for stack '{STACK}' missing from manifest",
+            )
+        )
+        return tuple(findings)
     pre_commit_stage = stack_stages.get("preCommit")
     pre_push_stage = stack_stages.get("prePush")
     if not isinstance(pre_commit_stage, str) or not isinstance(pre_push_stage, str):
-        return (f"hook stage values for '{STACK}' must be strings",)
-    pre_commit_text, pre_commit_failures = validate_one_hook(
+        findings.append(
+            Finding(
+                "ERROR",
+                "hookValidationCommand",
+                f"hook stage values for '{STACK}' must be strings",
+            )
+        )
+        return tuple(findings)
+    pre_commit_text, pre_commit_findings = validate_one_hook(
         "pre-commit", pre_commit_stage, manifest
     )
-    failures.extend(pre_commit_failures)
-    pre_push_text, pre_push_failures = validate_one_hook(
+    findings.extend(pre_commit_findings)
+    pre_push_text, pre_push_findings = validate_one_hook(
         "pre-push", pre_push_stage, manifest
     )
-    failures.extend(pre_push_failures)
+    findings.extend(pre_push_findings)
     if re.search(
         r"(^|\s)(uv|bun|gradle|mvn)(\s|$)|\./gradlew|harnessValidate|"
         r"harness_validate\.py|harness-validate\.ts",
         pre_commit_text,
     ):
-        failures.append("pre-commit hook must not run full stack validation commands")
+        findings.append(
+            Finding(
+                severity_for(manifest, "hookValidationCommand"),
+                "hookValidationCommand",
+                "pre-commit hook must not run full stack validation commands",
+            )
+        )
     command = hook_command(pre_push_text)
     if not command:
-        failures.append("pre-push hook must declare Harness validation command")
-        return tuple(failures)
-    if command != expected_command_obj:
-        failures.append(
-            f"pre-push hook declares unsupported validation command: {command}"
+        findings.append(
+            Finding(
+                severity_for(manifest, "hookValidationCommand"),
+                "hookValidationCommand",
+                "pre-push hook must declare Harness validation command",
+            )
         )
-        return tuple(failures)
+        return tuple(findings)
+    if command != expected_command_obj:
+        findings.append(
+            Finding(
+                severity_for(manifest, "hookValidationCommand"),
+                "hookValidationCommand",
+                f"pre-push hook declares unsupported validation command: {command}",
+            )
+        )
+        return tuple(findings)
     if command not in pre_push_text.splitlines():
-        failures.append("pre-push hook must run the declared validation command")
+        findings.append(
+            Finding(
+                severity_for(manifest, "hookValidationCommand"),
+                "hookValidationCommand",
+                "pre-push hook must run the declared validation command",
+            )
+        )
     for ci_file in [".github/workflows/harness.yml", ".gitlab-ci.yml"]:
         path = ROOT / ci_file
         if (
@@ -415,16 +641,22 @@ def validate_hooks(manifest: dict[str, object]) -> tuple[str, ...]:
             and is_safe_file(path)
             and command not in read_text(path)
         ):
-            failures.append(f"{ci_file}: CI command mismatch - expected {command}")
-    return tuple(failures)
+            findings.append(
+                Finding(
+                    severity_for(manifest, "ciCommandMatch"),
+                    "ciCommandMatch",
+                    f"{ci_file}: CI command mismatch - expected {command}",
+                )
+            )
+    return tuple(findings)
 
 
-def validate_env_shebangs(manifest: dict[str, object]) -> tuple[str, ...]:
-    failures: list[str] = []
-    shebang_bases_data = manifest.get("envShebangBases")
-    if not isinstance(shebang_bases_data, list):
+def validate_env_shebangs(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
+    shebang_bases = manifest_items(manifest, "envShebangBases")
+    if not shebang_bases:
         return ()
-    bases = tuple(ROOT / item for item in shebang_bases_data if isinstance(item, str))
+    bases = tuple(ROOT / item for item in shebang_bases if isinstance(item, str))
     for base in bases:
         if not base.is_dir():
             continue
@@ -433,16 +665,24 @@ def validate_env_shebangs(manifest: dict[str, object]) -> tuple[str, ...]:
                 continue
             line = first_line(path)
             if line.startswith("#!") and not line.startswith("#!/usr/bin/env "):
-                failures.append(
-                    f"executable script should use /usr/bin/env shebang: {relative(path)}"
+                findings.append(
+                    Finding(
+                        severity_for(manifest, "envShebang"),
+                        "envShebang",
+                        f"executable script should use /usr/bin/env shebang: {relative(path)}",
+                    )
                 )
-    return tuple(failures)
+    return tuple(findings)
 
 
-def validate_completed_plans(manifest: dict[str, object]) -> tuple[str, ...]:
-    failures: list[str] = []
-    completed_dir_name = manifest.get("completedPlanDirectory")
-    unfinished_pattern_str = manifest.get("unfinishedTaskPattern")
+def validate_completed_plans(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    findings: list[Finding] = []
+    completed_wrap = manifest.get("completedPlanDirectory")
+    unfinished_wrap = manifest.get("unfinishedTaskPattern")
+    if not isinstance(completed_wrap, dict) or not isinstance(unfinished_wrap, dict):
+        return ()
+    completed_dir_name = completed_wrap.get("value")
+    unfinished_pattern_str = unfinished_wrap.get("value")
     if not isinstance(completed_dir_name, str) or not isinstance(
         unfinished_pattern_str, str
     ):
@@ -453,7 +693,14 @@ def validate_completed_plans(manifest: dict[str, object]) -> tuple[str, ...]:
     try:
         unfinished_pattern = re.compile(unfinished_pattern_str)
     except re.error:
-        return (f"invalid unfinishedTaskPattern regex: {unfinished_pattern_str}",)
+        findings.append(
+            Finding(
+                "ERROR",
+                "completedPlanUnfinishedTask",
+                f"invalid unfinishedTaskPattern regex: {unfinished_pattern_str}",
+            )
+        )
+        return tuple(findings)
     files = tuple(
         sorted(
             path
@@ -464,39 +711,67 @@ def validate_completed_plans(manifest: dict[str, object]) -> tuple[str, ...]:
     for path in files:
         text = read_text(path)
         if unfinished_pattern.search(text):
-            failures.append(f"completed plan has unchecked tasks: {relative(path)}")
-    return tuple(failures)
+            findings.append(
+                Finding(
+                    severity_for(manifest, "completedPlanUnfinishedTask"),
+                    "completedPlanUnfinishedTask",
+                    f"completed plan has unchecked tasks: {relative(path)}",
+                )
+            )
+    return tuple(findings)
 
 
-def validate() -> tuple[str, ...]:
-    manifest_exists_failures = validate_manifest_exists()
-    if manifest_exists_failures:
-        return manifest_exists_failures
-    manifest = load_manifest()
-    if not manifest:
-        return ("manifest is empty",)
-    all_failures: list[tuple[str, ...]] = [
+def validate(manifest: dict[str, object]) -> tuple[Finding, ...]:
+    all_findings: list[tuple[Finding, ...]] = [
+        validate_manifest_exists(manifest),
         validate_structure(manifest),
         validate_docs_headings(manifest),
         validate_content_checks(manifest),
-        validate_agents(),
-        validate_skills(),
+        validate_agents(manifest),
+        validate_skills(manifest),
         validate_templates(manifest),
         validate_active_assets(manifest),
         validate_hooks(manifest),
         validate_env_shebangs(manifest),
         validate_completed_plans(manifest),
     ]
-    combined = tuple(f for failures in all_failures for f in failures)
-    return tuple(dict.fromkeys(combined))
+    combined = tuple(f for findings in all_findings for f in findings)
+    deduped = tuple(
+        dict.fromkeys(
+            (f.severity, f.category, f.message) for f in combined
+        ).keys()
+    )
+    return tuple(Finding(sev, cat, msg) for sev, cat, msg in deduped)
 
 
 def main() -> int:
-    failures = validate()
-    if failures:
-        print("Harness validation failed:", file=sys.stderr)  # noqa: T201
-        for failure in failures:
-            print(f"- {failure}", file=sys.stderr)  # noqa: T201
+    manifest_exists_failures = validate_manifest_exists({})
+    if manifest_exists_failures:
+        print("Harness validation failed", file=sys.stderr)  # noqa: T201
+        for finding in manifest_exists_failures:
+            print(f"[{finding.severity}] {finding.message}", file=sys.stderr)  # noqa: T201
+        return 1
+    manifest = load_manifest()
+    if not manifest:
+        print("Harness validation failed", file=sys.stderr)  # noqa: T201
+        print("[ERROR] manifest is empty", file=sys.stderr)  # noqa: T201
+        return 1
+    findings = validate(manifest)
+    grouped: dict[str, list[Finding]] = {}
+    severity_order = ["ERROR", "WARN", "INFO"]
+    for finding in findings:
+        if finding.severity not in grouped:
+            grouped[finding.severity] = []
+        grouped[finding.severity].append(finding)
+    has_error = False
+    for severity in severity_order:
+        if severity in grouped:
+            for finding in grouped[severity]:
+                print(f"[{finding.severity}] {finding.message}", file=sys.stderr)  # noqa: T201
+            if severity == "ERROR":
+                has_error = True
+    if has_error:
+        print("Harness validation failed", file=sys.stderr)  # noqa: T201
         return 1
     print("Harness validation passed")  # noqa: T201
     return 0

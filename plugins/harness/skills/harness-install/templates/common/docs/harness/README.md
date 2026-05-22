@@ -15,7 +15,7 @@ This directory contains versioned harness assets used by local agents and CI val
 
 ## Generated artifacts
 
-`docs/generated/` is a generated-artifact location, not a required database-documentation location. A path such as `docs/generated/db-schema.md` is valid only when the repository actually generates a database schema summary. Other generated artifacts MAY include API snapshots, dependency inventories, build metadata, generated architecture maps, report outputs, or other reviewable outputs.
+`docs/generated/` is a generated-artifact location. Valid contents include API snapshots, dependency inventories, build metadata, generated architecture maps, schema dumps, report outputs, or other reviewable outputs — only when the project actually generates them.
 
 Keep `docs/generated/.gitkeep` only while the path has no real generated artifacts. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
