@@ -16,70 +16,15 @@ from pathlib import Path
 from typing import Iterable, NamedTuple
 
 ROOT = Path.cwd()
-EXPECTED_VALIDATION_COMMAND = "uv run python docs/harness/uv/harness_validate.py"
-REQUIRED_FILES = (
-    "AGENTS.md",
-    "ARCHITECTURE.md",
-    "CLAUDE.md",
-    "docs/design-docs/core-beliefs.md",
-    "docs/exec-plans/tech-debt-tracker.md",
-    "docs/DESIGN.md",
-    "docs/FRONTEND.md",
-    "docs/PLANS.md",
-    "docs/PRODUCT_SENSE.md",
-    "docs/QUALITY_SCORE.md",
-    "docs/RELIABILITY.md",
-    "docs/SECURITY.md",
-    "docs/harness/git-hooks/pre-commit",
-    "docs/harness/git-hooks/pre-push",
-)
-REQUIRED_DIRECTORIES = (
-    "docs",
-    "docs/design-docs",
-    "docs/exec-plans",
-    "docs/exec-plans/active",
-    "docs/exec-plans/completed",
-    "docs/generated",
-    "docs/harness",
-    "docs/harness/templates",
-    "docs/product-specs",
-    "docs/references",
-    ".claude/agents",
-    ".claude/skills",
-)
-EMPTY_DIRECTORY_KEEP_FILES = (
-    "docs/exec-plans/active/.gitkeep",
-    "docs/exec-plans/completed/.gitkeep",
-    "docs/generated/.gitkeep",
-)
-OPTIONAL_SEED_FILES = (
-    "docs/product-specs/new-user-onboarding.md",
-)
-TEMPLATE_GROUPS = ("agent", "skill", "workflow", "ci", "docs")
-REQUIRED_DOC_HEADINGS = (
-    "## Purpose",
-    "## When To Update",
-    "## Required Evidence",
-)
-REQUIRED_AUTHORED_DOCS = tuple(
-    path for path in REQUIRED_FILES if path.startswith("docs/") and path.endswith(".md")
-)
+STACK = "uv"
+MANIFEST_PATH = "docs/harness/manifest.json"
 
 
 class LeakPattern(NamedTuple):
-    """Represents a pattern to detect in active assets."""
+    """Represents a compiled pattern to detect in active assets."""
 
     pattern: re.Pattern[str]
     label: str
-
-
-LEAK_PATTERNS = (
-    LeakPattern(re.compile(r"\{\{"), "unresolved template token"),
-    LeakPattern(re.compile(r"(?m)^name:\s*example-"), "example frontmatter name"),
-    LeakPattern(re.compile(r"Describe "), "scaffold prompt text"),
-    LeakPattern(re.compile(r"\bTODO\b|\bTBD\b"), "TODO/TBD placeholder"),
-    LeakPattern(re.compile(r"replace-with-stack-specific"), "stack placeholder"),
-)
 
 
 def read_text(path: Path) -> str:
@@ -178,7 +123,7 @@ def safe_file_or_walk(base: Path) -> tuple[Path, ...]:
 
 
 def load_manifest() -> dict[str, object]:
-    path = ROOT / "docs/harness/manifest.json"
+    path = ROOT / MANIFEST_PATH
     if path.is_symlink():
         return {}
     try:
@@ -198,98 +143,115 @@ def manifest_list(manifest: dict[str, object], key: str) -> tuple[str, ...]:
     )
 
 
-def validate_manifest_parity() -> Iterable[str]:
-    manifest = load_manifest()
-    failures: list[str] = []
-    actual_files = manifest_list(manifest, "requiredFiles")
-    if sorted(actual_files) != sorted(REQUIRED_FILES):
-        failures.append("manifest requiredFiles must match validator constants")
-    actual_dirs = manifest_list(manifest, "requiredDirectories")
-    if sorted(actual_dirs) != sorted(REQUIRED_DIRECTORIES):
-        failures.append("manifest requiredDirectories must match validator constants")
-    actual_keeps = manifest_list(manifest, "emptyDirectoryKeepFiles")
-    if sorted(actual_keeps) != sorted(EMPTY_DIRECTORY_KEEP_FILES):
-        failures.append("manifest emptyDirectoryKeepFiles must match validator constants")
-    actual_seeds = manifest_list(manifest, "optionalSeedFiles")
-    if sorted(actual_seeds) != sorted(OPTIONAL_SEED_FILES):
-        failures.append("manifest optionalSeedFiles must match validator constants")
-    actual_groups = manifest_list(manifest, "templateGroups")
-    if sorted(actual_groups) != sorted(TEMPLATE_GROUPS):
-        failures.append("manifest templateGroups must match validator constants")
-    return failures
+def build_leak_patterns(manifest: dict[str, object]) -> tuple[LeakPattern, ...]:
+    patterns_data = manifest.get("leakPatterns")
+    if not isinstance(patterns_data, list):
+        return ()
+    output: list[LeakPattern] = []
+    for item in patterns_data:
+        if not isinstance(item, dict):
+            continue
+        pattern_str = item.get("pattern")
+        label = item.get("label")
+        if isinstance(pattern_str, str) and isinstance(label, str):
+            try:
+                compiled = re.compile(pattern_str)
+                output.append(LeakPattern(compiled, label))
+            except re.error:
+                pass
+    return tuple(output)
 
 
-def validate_structure() -> Iterable[str]:
+def validate_manifest_exists() -> tuple[str, ...]:
+    path = ROOT / MANIFEST_PATH
+    if path.is_symlink():
+        return ("manifest file is a symlink; must be a regular file",)
+    if not is_safe_file(path):
+        return (f"manifest file missing: {MANIFEST_PATH}",)
+    if not load_manifest():
+        return (f"manifest file invalid or empty JSON: {MANIFEST_PATH}",)
+    return ()
+
+
+def validate_structure(manifest: dict[str, object]) -> tuple[str, ...]:
     failures: list[str] = []
-    for path in REQUIRED_FILES:
+    required_files = manifest_list(manifest, "requiredFiles")
+    required_dirs = manifest_list(manifest, "requiredDirectories")
+    keep_files = manifest_list(manifest, "emptyDirectoryKeepFiles")
+    for path in required_files:
         if not is_safe_file(ROOT / path):
             failures.append(f"missing file: {path}")
-    for path in REQUIRED_DIRECTORIES:
+    for path in required_dirs:
         if not is_safe_directory(ROOT / path):
             failures.append(f"missing directory: {path}")
-    for keep in EMPTY_DIRECTORY_KEEP_FILES:
+    for keep in keep_files:
         keep_path = ROOT / keep
         directory = keep_path.parent
         if not is_safe_directory(directory):
             continue
-        real_files = [path for path in directory.iterdir() if path.name != ".gitkeep"]
+        real_files = [p for p in directory.iterdir() if p.name != ".gitkeep"]
         if not real_files and not is_safe_file(keep_path):
             failures.append(
                 f"empty directory must keep placeholder or real files: {relative(directory)}"
             )
-    return failures
+    return tuple(failures)
 
 
-def validate_docs() -> Iterable[str]:
+def validate_docs_headings(manifest: dict[str, object]) -> tuple[str, ...]:
     failures: list[str] = []
-    for doc in REQUIRED_AUTHORED_DOCS:
+    required_docs = manifest_list(manifest, "requiredFiles")
+    required_headings = manifest_list(manifest, "requiredDocHeadings")
+    for doc in required_docs:
+        if not doc.startswith("docs/") or not doc.endswith(".md"):
+            continue
         path = ROOT / doc
         if not is_safe_file(path):
             continue
         text = read_text(path)
-        for heading in REQUIRED_DOC_HEADINGS:
+        for heading in required_headings:
             if heading not in text:
                 failures.append(f"doc missing {heading}: {doc}")
-    return failures
+    return tuple(failures)
 
 
-def validate_content() -> Iterable[str]:
+def validate_content_checks(manifest: dict[str, object]) -> tuple[str, ...]:
     failures: list[str] = []
-    agents_text = read_text(ROOT / "AGENTS.md")
-    claude_text = read_text(ROOT / "CLAUDE.md")
-    generated_text = "\n".join(
-        [agents_text, claude_text, read_text(ROOT / "ARCHITECTURE.md")]
-    )
-    evolution_text = "\n".join(
-        [agents_text, claude_text, read_text(ROOT / "docs/harness/evolution-log.md")]
-    )
-    if "Repository Harness Contract" not in agents_text:
-        failures.append("AGENTS.md must contain Repository Harness Contract")
-    if "## Entry Point" not in claude_text:
-        failures.append("CLAUDE.md must contain an Entry Point section")
-    if "AGENTS.md" not in claude_text:
-        failures.append("CLAUDE.md must reference AGENTS.md")
-    if "docs/generated/" not in agents_text:
-        failures.append("AGENTS.md must describe docs/generated/ semantics")
-    if "docs/generated/db-schema.md" not in generated_text:
-        failures.append(
-            "repository docs must state that docs/generated/db-schema.md is only an example, not a required scaffold file"
-        )
-    if (
-        "source command" not in generated_text
-        or "regeneration trigger" not in generated_text
-    ):
-        failures.append(
-            "repository docs must describe generated-artifact source command and regeneration trigger metadata"
-        )
-    if "discovery" not in evolution_text or "maintenance" not in evolution_text:
-        failures.append(
-            "repository docs must state that the harness may evolve across development phases"
-        )
-    return failures
+    checks_data = manifest.get("requiredContentChecks")
+    if not isinstance(checks_data, list):
+        return ()
+    for check in checks_data:
+        if not isinstance(check, dict):
+            continue
+        files_list = check.get("files")
+        contains_all = check.get("containsAll")
+        failure_msg = check.get("failureMessage")
+        if (
+            not isinstance(files_list, list)
+            or not isinstance(contains_all, list)
+            or not isinstance(failure_msg, str)
+        ):
+            continue
+        combined_text_parts: list[str] = []
+        for file_name in files_list:
+            if not isinstance(file_name, str):
+                continue
+            path = ROOT / file_name
+            if is_safe_file(path):
+                combined_text_parts.append(read_text(path))
+        combined_text = "\n".join(combined_text_parts)
+        missing_substr = False
+        for substr in contains_all:
+            if not isinstance(substr, str):
+                continue
+            if substr not in combined_text:
+                missing_substr = True
+                break
+        if missing_substr:
+            failures.append(failure_msg)
+    return tuple(failures)
 
 
-def validate_agents() -> Iterable[str]:
+def validate_agents() -> tuple[str, ...]:
     failures: list[str] = []
     directory = ROOT / ".claude/agents"
     files = tuple(
@@ -309,10 +271,10 @@ def validate_agents() -> Iterable[str]:
             failures.append(f"agent missing name: {relative(path)}")
         if not re.search(r"(?m)^description:\s*.+$", text):
             failures.append(f"agent missing description: {relative(path)}")
-    return failures
+    return tuple(failures)
 
 
-def validate_skills() -> Iterable[str]:
+def validate_skills() -> tuple[str, ...]:
     failures: list[str] = []
     directory = ROOT / ".claude/skills"
     files = tuple(
@@ -326,44 +288,51 @@ def validate_skills() -> Iterable[str]:
             failures.append(f"skill missing frontmatter: {relative(path)}")
         if not re.search(r"(?m)^description:\s*.+$", text):
             failures.append(f"skill missing description: {relative(path)}")
-    return failures
+    return tuple(failures)
 
 
-def validate_templates() -> Iterable[str]:
+def validate_templates(manifest: dict[str, object]) -> tuple[str, ...]:
     failures: list[str] = []
-    for group in TEMPLATE_GROUPS:
+    template_groups = manifest_list(manifest, "templateGroups")
+    for group in template_groups:
         if not is_safe_directory(ROOT / f"docs/harness/templates/{group}"):
             failures.append(f"missing template group: docs/harness/templates/{group}")
-    return failures
+    return tuple(failures)
 
 
-def validate_active_assets() -> Iterable[str]:
+def validate_active_assets(manifest: dict[str, object]) -> tuple[str, ...]:
     failures: list[str] = []
-    excluded = ROOT / "docs/harness/templates"
-    active_roots = (
-        ROOT / "AGENTS.md",
-        ROOT / "CLAUDE.md",
-        ROOT / "ARCHITECTURE.md",
-        ROOT / "docs",
-        ROOT / ".claude/agents",
-        ROOT / ".claude/skills",
-        ROOT / "docs/harness",
-        ROOT / ".github",
+    bases_data = manifest.get("activeAssetBases")
+    excluded_data = manifest.get("excludedActiveAssetSubtrees")
+    exts_data = manifest.get("activeAssetExtensions")
+    if not isinstance(bases_data, list):
+        return ()
+    active_roots = tuple(ROOT / item for item in bases_data if isinstance(item, str))
+    excluded_paths = tuple(
+        ROOT / item for item in (excluded_data if isinstance(excluded_data, list) else ())
+        if isinstance(item, str)
     )
+    extensions = (
+        set(
+            f".{ext}" for ext in exts_data
+            if isinstance(exts_data, list) and isinstance(ext, str)
+        )
+        if isinstance(exts_data, list)
+        else {".md", ".txt", ".json", ".yml", ".yaml"}
+    )
+    leak_patterns = build_leak_patterns(manifest)
     for base in active_roots:
         paths = safe_file_or_walk(base)
         for path in paths:
-            if (
-                not path.is_file()
-                or excluded in path.parents
-                or path.suffix not in {".md", ".txt", ".json", ".yml", ".yaml"}
-            ):
+            if not path.is_file() or path.suffix not in extensions:
+                continue
+            if any(path == excluded or excluded in path.parents for excluded in excluded_paths):
                 continue
             text = read_text(path)
-            for leak in LEAK_PATTERNS:
+            for leak in leak_patterns:
                 if leak.pattern.search(text):
                     failures.append(f"{leak.label} in active asset: {relative(path)}")
-    return failures
+    return tuple(failures)
 
 
 def hook_command(pre_push_text: str) -> str:
@@ -373,7 +342,9 @@ def hook_command(pre_push_text: str) -> str:
     return ""
 
 
-def validate_one_hook(name: str, stage: str) -> tuple[str, Iterable[str]]:
+def validate_one_hook(
+    name: str, stage: str, manifest: dict[str, object]
+) -> tuple[str, tuple[str, ...]]:
     hook = ROOT / f"docs/harness/git-hooks/{name}"
     hook_text = ""
     failures: list[str] = []
@@ -391,14 +362,34 @@ def validate_one_hook(name: str, stage: str) -> tuple[str, Iterable[str]]:
             failures.append(
                 f"{name} hook must be installer-generated selected-mode content"
             )
-    return hook_text, failures
+    return hook_text, tuple(failures)
 
 
-def validate_hooks() -> Iterable[str]:
+def validate_hooks(manifest: dict[str, object]) -> tuple[str, ...]:
     failures: list[str] = []
-    pre_commit_text, pre_commit_failures = validate_one_hook("pre-commit", "compliance")
+    hook_stages_data = manifest.get("hookStages")
+    expected_commands_data = manifest.get("expectedValidationCommands")
+    if not isinstance(hook_stages_data, dict) or not isinstance(
+        expected_commands_data, dict
+    ):
+        return ("hook stages or validation commands missing from manifest",)
+    stack_stages = hook_stages_data.get(STACK)
+    if not isinstance(stack_stages, dict):
+        return (f"hook stages for stack '{STACK}' missing from manifest",)
+    expected_command_obj = expected_commands_data.get(STACK)
+    if not isinstance(expected_command_obj, str):
+        return (f"validation command for stack '{STACK}' missing from manifest",)
+    pre_commit_stage = stack_stages.get("preCommit")
+    pre_push_stage = stack_stages.get("prePush")
+    if not isinstance(pre_commit_stage, str) or not isinstance(pre_push_stage, str):
+        return (f"hook stage values for '{STACK}' must be strings",)
+    pre_commit_text, pre_commit_failures = validate_one_hook(
+        "pre-commit", pre_commit_stage, manifest
+    )
     failures.extend(pre_commit_failures)
-    pre_push_text, pre_push_failures = validate_one_hook("pre-push", "full-validation")
+    pre_push_text, pre_push_failures = validate_one_hook(
+        "pre-push", pre_push_stage, manifest
+    )
     failures.extend(pre_push_failures)
     if re.search(
         r"(^|\s)(uv|bun|gradle|mvn)(\s|$)|\./gradlew|harnessValidate|"
@@ -409,12 +400,12 @@ def validate_hooks() -> Iterable[str]:
     command = hook_command(pre_push_text)
     if not command:
         failures.append("pre-push hook must declare Harness validation command")
-        return failures
-    if command != EXPECTED_VALIDATION_COMMAND:
+        return tuple(failures)
+    if command != expected_command_obj:
         failures.append(
             f"pre-push hook declares unsupported validation command: {command}"
         )
-        return failures
+        return tuple(failures)
     if command not in pre_push_text.splitlines():
         failures.append("pre-push hook must run the declared validation command")
     for ci_file in [".github/workflows/harness.yml", ".gitlab-ci.yml"]:
@@ -425,12 +416,16 @@ def validate_hooks() -> Iterable[str]:
             and command not in read_text(path)
         ):
             failures.append(f"{ci_file}: CI command mismatch - expected {command}")
-    return failures
+    return tuple(failures)
 
 
-def validate_env_shebangs() -> Iterable[str]:
+def validate_env_shebangs(manifest: dict[str, object]) -> tuple[str, ...]:
     failures: list[str] = []
-    for base in [ROOT / "docs/harness", ROOT / ".claude/skills"]:
+    shebang_bases_data = manifest.get("envShebangBases")
+    if not isinstance(shebang_bases_data, list):
+        return ()
+    bases = tuple(ROOT / item for item in shebang_bases_data if isinstance(item, str))
+    for base in bases:
         if not base.is_dir():
             continue
         for path in safe_walk(base):
@@ -441,14 +436,24 @@ def validate_env_shebangs() -> Iterable[str]:
                 failures.append(
                     f"executable script should use /usr/bin/env shebang: {relative(path)}"
                 )
-    return failures
+    return tuple(failures)
 
 
-def validate_completed_plans() -> Iterable[str]:
+def validate_completed_plans(manifest: dict[str, object]) -> tuple[str, ...]:
     failures: list[str] = []
-    completed_dir = ROOT / "docs/exec-plans/completed"
+    completed_dir_name = manifest.get("completedPlanDirectory")
+    unfinished_pattern_str = manifest.get("unfinishedTaskPattern")
+    if not isinstance(completed_dir_name, str) or not isinstance(
+        unfinished_pattern_str, str
+    ):
+        return ()
+    completed_dir = ROOT / completed_dir_name
     if not is_safe_directory(completed_dir):
-        return failures
+        return ()
+    try:
+        unfinished_pattern = re.compile(unfinished_pattern_str)
+    except re.error:
+        return (f"invalid unfinishedTaskPattern regex: {unfinished_pattern_str}",)
     files = tuple(
         sorted(
             path
@@ -458,26 +463,31 @@ def validate_completed_plans() -> Iterable[str]:
     )
     for path in files:
         text = read_text(path)
-        if re.search(r"^\s*-\s*\[ \]\s", text, re.MULTILINE):
+        if unfinished_pattern.search(text):
             failures.append(f"completed plan has unchecked tasks: {relative(path)}")
-    return failures
+    return tuple(failures)
 
 
 def validate() -> tuple[str, ...]:
-    all_failures: list[Iterable[str]] = [
-        validate_manifest_parity(),
-        validate_structure(),
-        validate_docs(),
-        validate_content(),
+    manifest_exists_failures = validate_manifest_exists()
+    if manifest_exists_failures:
+        return manifest_exists_failures
+    manifest = load_manifest()
+    if not manifest:
+        return ("manifest is empty",)
+    all_failures: list[tuple[str, ...]] = [
+        validate_structure(manifest),
+        validate_docs_headings(manifest),
+        validate_content_checks(manifest),
         validate_agents(),
         validate_skills(),
-        validate_templates(),
-        validate_active_assets(),
-        validate_hooks(),
-        validate_env_shebangs(),
-        validate_completed_plans(),
+        validate_templates(manifest),
+        validate_active_assets(manifest),
+        validate_hooks(manifest),
+        validate_env_shebangs(manifest),
+        validate_completed_plans(manifest),
     ]
-    combined = (failure for failures in all_failures for failure in failures)
+    combined = tuple(f for failures in all_failures for f in failures)
     return tuple(dict.fromkeys(combined))
 
 

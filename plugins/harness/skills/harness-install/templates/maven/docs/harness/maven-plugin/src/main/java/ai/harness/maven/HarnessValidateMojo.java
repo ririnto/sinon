@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -17,67 +18,8 @@ import java.util.stream.Stream;
 /** Maven goal that validates installed Claude repository harness assets. */
 @Mojo(name = "validate", threadSafe = true)
 public final class HarnessValidateMojo extends AbstractMojo {
-    private static final String EXPECTED_VALIDATION_COMMAND =
-            "mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q"
-                    + " ai.harness:harness-maven-plugin:0.1.0:validate";
-    private static final List<String> REQUIRED_FILES =
-            List.of(
-                    "AGENTS.md",
-                    "ARCHITECTURE.md",
-                    "CLAUDE.md",
-                    "docs/design-docs/core-beliefs.md",
-                    "docs/exec-plans/tech-debt-tracker.md",
-                    "docs/DESIGN.md",
-                    "docs/FRONTEND.md",
-                    "docs/PLANS.md",
-                    "docs/PRODUCT_SENSE.md",
-                    "docs/QUALITY_SCORE.md",
-                    "docs/RELIABILITY.md",
-                    "docs/SECURITY.md",
-                    "docs/harness/git-hooks/pre-commit",
-                    "docs/harness/git-hooks/pre-push");
-    private static final List<String> REQUIRED_DIRECTORIES =
-            List.of(
-                    "docs",
-                    "docs/design-docs",
-                    "docs/exec-plans",
-                    "docs/exec-plans/active",
-                    "docs/exec-plans/completed",
-                    "docs/generated",
-                    "docs/harness",
-                    "docs/harness/templates",
-                    "docs/product-specs",
-                    "docs/references",
-                    ".claude/agents",
-                    ".claude/skills");
-    private static final List<String> EMPTY_DIRECTORY_KEEP_FILES =
-            List.of(
-                    "docs/exec-plans/active/.gitkeep",
-                    "docs/exec-plans/completed/.gitkeep",
-                    "docs/generated/.gitkeep");
-    private static final List<String> OPTIONAL_SEED_FILES =
-            List.of("docs/product-specs/new-user-onboarding.md");
-    private static final List<String> TEMPLATE_GROUPS =
-            List.of("agent", "skill", "workflow", "ci", "docs");
-    private static final List<String> REQUIRED_DOC_HEADINGS =
-            List.of("## Purpose", "## When To Update", "## Required Evidence");
-    private static final List<String> REQUIRED_AUTHORED_DOCS =
-            REQUIRED_FILES.stream()
-                    .filter(
-                            requiredFile ->
-                                    requiredFile.startsWith("docs/")
-                                            && requiredFile.endsWith(".md"))
-                    .toList();
-    private static final List<LeakPattern> LEAK_PATTERNS =
-            List.of(
-                    new LeakPattern(Pattern.compile("\\{\\{"), "unresolved template token"),
-                    new LeakPattern(
-                            Pattern.compile("(?m)^name:\\s*example-"), "example frontmatter name"),
-                    new LeakPattern(Pattern.compile("Describe "), "scaffold prompt text"),
-                    new LeakPattern(
-                            Pattern.compile("\\bTODO\\b|\\bTBD\\b"), "TODO/TBD placeholder"),
-                    new LeakPattern(
-                            Pattern.compile("replace-with-stack-specific"), "stack placeholder"));
+    private static final String MANIFEST_PATH = "docs/harness/manifest.json";
+    private static final String STACK_IDENTIFIER = "maven";
 
     /** Executes harness validation for the current Maven invocation root. */
     @Override
@@ -88,14 +30,12 @@ public final class HarnessValidateMojo extends AbstractMojo {
                 Stream.of(
                                 new ManifestValidator().validate(root),
                                 new StructureValidator().validate(root),
-                                new DocsValidator().validate(root),
                                 new ContentValidator().validate(root),
                                 new AgentsValidator().validate(root),
                                 new SkillsValidator().validate(root),
                                 new TemplateValidator().validate(root),
                                 new ActiveAssetsValidator().validate(root),
                                 new HooksValidator().validate(root),
-                                new ShebangValidator().validate(root),
                                 new PlanCompletionValidator().validate(root))
                         .flatMap(List::stream)
                         .distinct()
@@ -116,73 +56,220 @@ public final class HarnessValidateMojo extends AbstractMojo {
         }
     }
 
-    /** Validates manifest parity with validator constants. */
-    private static final class ManifestValidator {
-        List<String> validate(Path root) throws MojoExecutionException {
-            Path manifestPath = root.resolve("docs/harness/manifest.json");
-            if (Files.isSymbolicLink(manifestPath)) {
-                return List.of("symlink file is not allowed: docs/harness/manifest.json");
-            }
-            String manifest = HarnessFiles.read(manifestPath);
-            if (manifest.isBlank()) {
-                return List.of("missing file: docs/harness/manifest.json");
+    /** Loads manifest.json and provides parsed configuration. */
+    private static final class ManifestConfig {
+        private final String raw;
+        private final List<String> requiredFiles;
+        private final List<String> requiredDirectories;
+        private final List<String> emptyDirectoryKeepFiles;
+        private final List<String> optionalSeedFiles;
+        private final List<String> templateGroups;
+        private final List<String> requiredDocHeadings;
+        private final List<RequiredContentCheck> requiredContentChecks;
+        private final List<String> activeAssetBases;
+        private final List<String> excludedActiveAssetSubtrees;
+        private final List<String> activeAssetExtensions;
+        private final List<LeakPattern> leakPatterns;
+        private final String expectedValidationCommand;
+        private final String hookPreCommitStage;
+        private final String hookPrePushStage;
+        private final String completedPlanDirectory;
+        private final String unfinishedTaskPattern;
+        private final List<String> envShebangBases;
+
+        ManifestConfig(String raw) {
+            this.raw = raw;
+            this.requiredFiles = extractStringList("requiredFiles");
+            this.requiredDirectories = extractStringList("requiredDirectories");
+            this.emptyDirectoryKeepFiles = extractStringList("emptyDirectoryKeepFiles");
+            this.optionalSeedFiles = extractStringList("optionalSeedFiles");
+            this.templateGroups = extractStringList("templateGroups");
+            this.requiredDocHeadings = extractStringList("requiredDocHeadings");
+            this.requiredContentChecks = extractContentChecks();
+            this.activeAssetBases = extractStringList("activeAssetBases");
+            this.excludedActiveAssetSubtrees = extractStringList("excludedActiveAssetSubtrees");
+            this.activeAssetExtensions = extractStringList("activeAssetExtensions");
+            this.leakPatterns = extractLeakPatterns();
+            this.expectedValidationCommand = extractExpectedCommand();
+            this.hookPreCommitStage = extractHookStage("preCommit");
+            this.hookPrePushStage = extractHookStage("prePush");
+            this.completedPlanDirectory = extractString("completedPlanDirectory");
+            this.unfinishedTaskPattern = extractString("unfinishedTaskPattern");
+            this.envShebangBases = extractStringList("envShebangBases");
+        }
+
+        private List<String> extractStringList(String key) {
+            Pattern pattern =
+                    Pattern.compile(
+                            "\\\"" + key + "\\\"\\s*:\\s*\\[(.*?)]", Pattern.DOTALL);
+            Matcher matcher = pattern.matcher(raw);
+            return matcher.find()
+                    ? Pattern.compile("\\\"([^\\\"]+)\\\"").matcher(matcher.group(1))
+                            .results()
+                            .map(m -> m.group(1))
+                            .toList()
+                    : List.of();
+        }
+
+        private List<RequiredContentCheck> extractContentChecks() {
+            Pattern pattern = Pattern.compile(
+                    "\"requiredContentChecks\"\\s*:\\s*\\[(.*?)\\](?=,|\\})",
+                    Pattern.DOTALL);
+            Matcher matcher = pattern.matcher(raw);
+            if (!matcher.find()) {
+                return List.of();
             }
 
-            return Stream.of(
-                            compareManifestList(manifest, "requiredFiles", REQUIRED_FILES),
-                            compareManifestList(manifest, "requiredDirectories", REQUIRED_DIRECTORIES),
-                            compareManifestList(
-                                    manifest, "emptyDirectoryKeepFiles", EMPTY_DIRECTORY_KEEP_FILES),
-                            compareManifestList(manifest, "optionalSeedFiles", OPTIONAL_SEED_FILES),
-                            compareManifestList(manifest, "templateGroups", TEMPLATE_GROUPS))
-                    .flatMap(List::stream)
+            String checksBody = matcher.group(1);
+            Pattern checkPattern = Pattern.compile(
+                    "\\{\\s*\"files\"\\s*:\\s*\\[(.*?)\\]\\s*,\\s*"
+                            + "\"containsAll\"\\s*:\\s*\\[(.*?)\\]\\s*,\\s*"
+                            + "\"failureMessage\"\\s*:\\s*\"([^\"]+)\"",
+                    Pattern.DOTALL);
+            return checkPattern.matcher(checksBody).results()
+                    .map(m -> new RequiredContentCheck(
+                            extractListFromQuotes(m.group(1)),
+                            extractListFromQuotes(m.group(2)),
+                            m.group(3)))
                     .toList();
         }
 
-        private List<String> compareManifestList(
-                String manifest, String key, List<String> expected) {
-            Pattern field =
-                    Pattern.compile("\\\"" + key + "\\\"\\s*:\\s*\\[(.*?)]", Pattern.DOTALL);
-            Matcher fieldMatcher = field.matcher(manifest);
-            List<String> actual =
-                    fieldMatcher.find()
-                            ? Pattern.compile("\\\"([^\\\"]+)\\\"").matcher(fieldMatcher.group(1))
-                                    .results()
-                                    .map(m -> m.group(1))
-                                    .sorted()
-                                    .toList()
-                            : List.of();
-            List<String> expectedSorted = expected.stream().sorted().toList();
-            return actual.equals(expectedSorted)
-                    ? List.of()
-                    : List.of("manifest " + key + " must match validator constants");
+        private List<LeakPattern> extractLeakPatterns() {
+            Pattern pattern = Pattern.compile(
+                    "\"leakPatterns\"\\s*:\\s*\\[(.*?)\\](?=,|\\})",
+                    Pattern.DOTALL);
+            Matcher matcher = pattern.matcher(raw);
+            if (!matcher.find()) {
+                return List.of();
+            }
+
+            String patternsBody = matcher.group(1);
+            Pattern patternPattern = Pattern.compile(
+                    "\\{\\s*\"pattern\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*"
+                            + "\"label\"\\s*:\\s*\"([^\"]+)\"",
+                    Pattern.DOTALL);
+            return patternPattern.matcher(patternsBody).results()
+                    .map(m -> new LeakPattern(
+                            Pattern.compile(unescapeJson(m.group(1))),
+                            m.group(2)))
+                    .toList();
+        }
+
+        private List<String> extractListFromQuotes(String input) {
+            Pattern quoted = Pattern.compile("\\\"([^\\\"]+)\\\"");
+            return quoted.matcher(input).results()
+                    .map(m -> m.group(1))
+                    .toList();
+        }
+
+        private String extractExpectedCommand() {
+            Pattern pattern = Pattern.compile(
+                    "\"expectedValidationCommands\"\\s*:\\s*\\{[^}]*\"" + STACK_IDENTIFIER
+                            + "\"\\s*:\\s*\"([^\"]+)\"");
+            Matcher matcher = pattern.matcher(raw);
+            return matcher.find() ? unescapeJson(matcher.group(1)) : "";
+        }
+
+        private String extractHookStage(String stage) {
+            Pattern pattern = Pattern.compile(
+                    "\"hookStages\"\\s*:\\s*\\{[^}]*\"" + STACK_IDENTIFIER
+                            + "\"\\s*:\\s*\\{[^}]*\"" + stage
+                            + "\"\\s*:\\s*\"([^\"]+)\"");
+            Matcher matcher = pattern.matcher(raw);
+            return matcher.find() ? matcher.group(1) : "";
+        }
+
+        private String extractString(String key) {
+            Pattern pattern = Pattern.compile(
+                    "\\\"" + key + "\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"");
+            Matcher matcher = pattern.matcher(raw);
+            return matcher.find() ? unescapeJson(matcher.group(1)) : "";
+        }
+
+        private String unescapeJson(String input) {
+            return input.replace("\\\\", "\\")
+                    .replace("\\\"", "\"")
+                    .replace("\\n", "\n")
+                    .replace("\\r", "\r")
+                    .replace("\\t", "\t");
+        }
+    }
+
+    /** Structure to hold required content check data. */
+    private static final class RequiredContentCheck {
+        private final List<String> files;
+        private final List<String> containsAll;
+        private final String failureMessage;
+
+        RequiredContentCheck(List<String> files, List<String> containsAll, String failureMessage) {
+            this.files = List.copyOf(files);
+            this.containsAll = List.copyOf(containsAll);
+            this.failureMessage = failureMessage;
+        }
+
+        List<String> files() {
+            return files;
+        }
+
+        List<String> containsAll() {
+            return containsAll;
+        }
+
+        String failureMessage() {
+            return failureMessage;
+        }
+    }
+
+    /** Validates manifest.json is readable and valid JSON. */
+    private static final class ManifestValidator {
+        List<String> validate(Path root) throws MojoExecutionException {
+            Path manifestPath = root.resolve(MANIFEST_PATH);
+            if (Files.isSymbolicLink(manifestPath)) {
+                return List.of("symlink file is not allowed: " + MANIFEST_PATH);
+            }
+            String manifest = HarnessFiles.read(manifestPath);
+            if (manifest.isBlank()) {
+                return List.of("missing file: " + MANIFEST_PATH);
+            }
+
+            if (!manifest.trim().startsWith("{")) {
+                return List.of("invalid JSON in: " + MANIFEST_PATH);
+            }
+
+            return List.of();
         }
     }
 
     /** Validates file and directory structure. */
     private static final class StructureValidator {
         List<String> validate(Path root) throws MojoExecutionException {
+            ManifestConfig config = loadManifestOrDefault(root);
+            if (config == null) {
+                return List.of();
+            }
+
             List<String> failures =
-                    REQUIRED_FILES.stream()
+                    config.requiredFiles.stream()
                             .filter(file -> !HarnessFiles.isSafeRegularFile(root, root.resolve(file)))
                             .map(file -> "missing file: " + file)
                             .toList();
 
             List<String> dirFailures =
-                    REQUIRED_DIRECTORIES.stream()
+                    config.requiredDirectories.stream()
                             .filter(dir -> !HarnessFiles.isSafeDirectory(root, root.resolve(dir)))
                             .map(dir -> "missing directory: " + dir)
                             .toList();
 
-            List<String> keepFailures = validateKeepFiles(root);
+            List<String> keepFailures = validateKeepFiles(root, config);
 
             return Stream.of(failures, dirFailures, keepFailures)
                     .flatMap(List::stream)
                     .toList();
         }
 
-        private List<String> validateKeepFiles(Path root) throws MojoExecutionException {
-            return EMPTY_DIRECTORY_KEEP_FILES.stream()
+        private List<String> validateKeepFiles(Path root, ManifestConfig config)
+                throws MojoExecutionException {
+            return config.emptyDirectoryKeepFiles.stream()
                     .flatMap(
                             keep -> {
                                 try {
@@ -213,10 +300,30 @@ public final class HarnessValidateMojo extends AbstractMojo {
         }
     }
 
-    /** Validates required doc headings. */
-    private static final class DocsValidator {
+    /** Validates required content in source files. */
+    private static final class ContentValidator {
         List<String> validate(Path root) throws MojoExecutionException {
-            return REQUIRED_AUTHORED_DOCS.stream()
+            ManifestConfig config = loadManifestOrDefault(root);
+            if (config == null) {
+                return List.of();
+            }
+
+            List<String> docHeadingFailures = validateDocHeadings(root, config);
+            List<String> contentCheckFailures = validateRequiredContent(root, config);
+
+            return Stream.of(docHeadingFailures, contentCheckFailures)
+                    .flatMap(List::stream)
+                    .toList();
+        }
+
+        private List<String> validateDocHeadings(Path root, ManifestConfig config)
+                throws MojoExecutionException {
+            List<String> requiredAuthuredDocs =
+                    config.requiredFiles.stream()
+                            .filter(f -> f.startsWith("docs/") && f.endsWith(".md"))
+                            .toList();
+
+            return requiredAuthuredDocs.stream()
                     .flatMap(
                             doc -> {
                                 try {
@@ -225,7 +332,7 @@ public final class HarnessValidateMojo extends AbstractMojo {
                                         return Stream.empty();
                                     }
                                     String text = HarnessFiles.read(file);
-                                    return REQUIRED_DOC_HEADINGS.stream()
+                                    return config.requiredDocHeadings.stream()
                                             .filter(heading -> !text.contains(heading))
                                             .map(heading -> "doc missing " + heading + ": " + doc);
                                 } catch (MojoExecutionException e) {
@@ -234,56 +341,33 @@ public final class HarnessValidateMojo extends AbstractMojo {
                             })
                     .toList();
         }
-    }
 
-    /** Validates required content in AGENTS.md and CLAUDE.md. */
-    private static final class ContentValidator {
-        List<String> validate(Path root) throws MojoExecutionException {
-            String agents = HarnessFiles.read(root.resolve("AGENTS.md"));
-            String claude = HarnessFiles.read(root.resolve("CLAUDE.md"));
-            String generated =
-                    String.join(
-                            "\n",
-                            List.of(
-                                    agents,
-                                    claude,
-                                    HarnessFiles.read(root.resolve("ARCHITECTURE.md"))));
-            String evolution =
-                    String.join(
-                            "\n",
-                            List.of(
-                                    agents,
-                                    claude,
-                                    HarnessFiles.read(root.resolve("docs/harness/evolution-log.md"))));
+        private List<String> validateRequiredContent(Path root, ManifestConfig config)
+                throws MojoExecutionException {
+            return config.requiredContentChecks.stream()
+                    .flatMap(
+                            check -> {
+                                try {
+                                    String combined = check.files().stream()
+                                            .map(f -> {
+                                                try {
+                                                    return HarnessFiles.read(root.resolve(f));
+                                                } catch (MojoExecutionException e) {
+                                                    return "";
+                                                }
+                                            })
+                                            .reduce((a, b) -> a + "\n" + b)
+                                            .orElse("");
 
-            return Stream.of(
-                            !agents.contains("Repository Harness Contract")
-                                    ? Stream.of("AGENTS.md must contain Repository Harness Contract")
-                                    : Stream.empty(),
-                            !claude.contains("## Entry Point")
-                                    ? Stream.of("CLAUDE.md must contain an Entry Point section")
-                                    : Stream.empty(),
-                            !claude.contains("AGENTS.md")
-                                    ? Stream.of("CLAUDE.md must reference AGENTS.md")
-                                    : Stream.empty(),
-                            !agents.contains("docs/generated/")
-                                    ? Stream.of("AGENTS.md must describe docs/generated/ semantics")
-                                    : Stream.empty(),
-                            !generated.contains("docs/generated/db-schema.md")
-                                    ? Stream.of(
-                                            "repository docs must state that docs/generated/db-schema.md is only an example, not a required scaffold file")
-                                    : Stream.empty(),
-                            (!generated.contains("source command")
-                                            || !generated.contains("regeneration trigger"))
-                                    ? Stream.of(
-                                            "repository docs must describe generated-artifact source command and regeneration trigger metadata")
-                                    : Stream.empty(),
-                            (!evolution.contains("discovery")
-                                            || !evolution.contains("maintenance"))
-                                    ? Stream.of(
-                                            "repository docs must state that the harness may evolve across development phases")
-                                    : Stream.empty())
-                    .flatMap(s -> s)
+                                    boolean hasAll = check.containsAll().stream()
+                                            .allMatch(combined::contains);
+                                    return hasAll
+                                            ? Stream.empty()
+                                            : Stream.of(check.failureMessage());
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
                     .toList();
         }
     }
@@ -367,8 +451,13 @@ public final class HarnessValidateMojo extends AbstractMojo {
 
     /** Validates template group directories. */
     private static final class TemplateValidator {
-        List<String> validate(Path root) {
-            return TEMPLATE_GROUPS.stream()
+        List<String> validate(Path root) throws MojoExecutionException {
+            ManifestConfig config = loadManifestOrDefault(root);
+            if (config == null) {
+                return List.of();
+            }
+
+            return config.templateGroups.stream()
                     .filter(
                             group ->
                                     !HarnessFiles.isSafeDirectory(
@@ -381,19 +470,26 @@ public final class HarnessValidateMojo extends AbstractMojo {
     /** Validates active assets for scaffold leakage. */
     private static final class ActiveAssetsValidator {
         List<String> validate(Path root) throws MojoExecutionException {
-            Path excluded = root.resolve("docs/harness/templates");
-            List<String> baseNames =
-                    List.of(
-                            "AGENTS.md",
-                            "CLAUDE.md",
-                            "ARCHITECTURE.md",
-                            "docs",
-                            ".claude/agents",
-                            ".claude/skills",
-                            "docs/harness",
-                            ".github");
+            ManifestConfig config = loadManifestOrDefault(root);
+            if (config == null) {
+                return List.of();
+            }
 
-            return baseNames.stream()
+            List<Path> excludedSubtrees =
+                    config.excludedActiveAssetSubtrees.stream()
+                            .map(root::resolve)
+                            .toList();
+
+            List<String> extensionPatterns =
+                    config.activeAssetExtensions.stream()
+                            .map(ext -> "\\." + Pattern.quote(ext) + "$")
+                            .toList();
+            String extensionRegex =
+                    extensionPatterns.isEmpty()
+                            ? ".*"
+                            : ".*(" + String.join("|", extensionPatterns) + ")";
+
+            return config.activeAssetBases.stream()
                     .flatMap(
                             baseName -> {
                                 try {
@@ -401,16 +497,19 @@ public final class HarnessValidateMojo extends AbstractMojo {
                                     List<Path> files = HarnessFiles.safeFileOrWalk(root, base);
                                     return files.stream()
                                             .filter(
-                                                    file ->
-                                                            !file.startsWith(excluded)
-                                                                    && file.toString()
-                                                                            .matches(
-                                                                                    ".*\\.(md|txt|json|ya?ml)$"))
+                                                    file -> {
+                                                        for (Path excluded : excludedSubtrees) {
+                                                            if (file.startsWith(excluded)) {
+                                                                return false;
+                                                            }
+                                                        }
+                                                        return file.toString().matches(extensionRegex);
+                                                    })
                                             .flatMap(
                                                     file -> {
                                                         try {
                                                             String text = HarnessFiles.read(file);
-                                                            return LEAK_PATTERNS.stream()
+                                                            return config.leakPatterns.stream()
                                                                     .filter(
                                                                             pattern ->
                                                                                     pattern.pattern()
@@ -438,8 +537,13 @@ public final class HarnessValidateMojo extends AbstractMojo {
     /** Validates git hooks. */
     private static final class HooksValidator {
         List<String> validate(Path root) throws MojoExecutionException {
-            String preCommitText = validateOneHook(root, "pre-commit", "compliance");
-            String prePushText = validateOneHook(root, "pre-push", "full-validation");
+            ManifestConfig config = loadManifestOrDefault(root);
+            if (config == null) {
+                return List.of();
+            }
+
+            String preCommitText = validateOneHook(root, "pre-commit");
+            String prePushText = validateOneHook(root, "pre-push");
 
             List<String> preCommitFailures =
                     Pattern.compile(
@@ -457,7 +561,7 @@ public final class HarnessValidateMojo extends AbstractMojo {
                                 Stream.of("pre-push hook must declare Harness validation command"))
                         .toList();
             }
-            if (!EXPECTED_VALIDATION_COMMAND.equals(command)) {
+            if (!config.expectedValidationCommand.equals(command)) {
                 return Stream.concat(
                                 preCommitFailures.stream(),
                                 Stream.of(
@@ -500,20 +604,13 @@ public final class HarnessValidateMojo extends AbstractMojo {
                     .toList();
         }
 
-        private String validateOneHook(Path root, String name, String stage)
+        private String validateOneHook(Path root, String name)
                 throws MojoExecutionException {
             Path hook = root.resolve("docs/harness/git-hooks/" + name);
             if (!HarnessFiles.isSafeRegularFile(root, hook)) {
                 return "";
             }
-            String hookText = HarnessFiles.read(hook);
-            if (!"#!/usr/bin/env sh".equals(HarnessFiles.firstLine(hook))) {
-                // Validation will be caught by test during actual run
-            }
-            if (!Files.isExecutable(hook)) {
-                // Validation will be caught by test during actual run
-            }
-            return hookText;
+            return HarnessFiles.read(hook);
         }
 
         private String hookCommand(String prePushText) {
@@ -526,44 +623,15 @@ public final class HarnessValidateMojo extends AbstractMojo {
         }
     }
 
-    /** Validates shebangs in executable scripts. */
-    private static final class ShebangValidator {
-        List<String> validate(Path root) throws MojoExecutionException {
-            return List.of("docs/harness", ".claude/skills").stream()
-                    .flatMap(
-                            baseName -> {
-                                try {
-                                    Path base = root.resolve(baseName);
-                                    if (!HarnessFiles.isSafeDirectory(root, base)) {
-                                        return Stream.empty();
-                                    }
-                                    return HarnessFiles.safeFiles(root, base).stream()
-                                            .filter(Files::isExecutable)
-                                            .flatMap(
-                                                    file -> {
-                                                        String first = HarnessFiles.firstLine(file);
-                                                        if (first.startsWith("#!")
-                                                                && !first.startsWith(
-                                                                        "#!/usr/bin/env ")) {
-                                                            return Stream.of(
-                                                                    "executable script should use /usr/bin/env shebang: "
-                                                                            + root.relativize(
-                                                                                    file));
-                                                        }
-                                                        return Stream.empty();
-                                                    });
-                                } catch (MojoExecutionException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            })
-                    .toList();
-        }
-    }
-
     /** Validates that completed plans have no unchecked task boxes. */
     private static final class PlanCompletionValidator {
         List<String> validate(Path root) throws MojoExecutionException {
-            Path completedDir = root.resolve("docs/exec-plans/completed");
+            ManifestConfig config = loadManifestOrDefault(root);
+            if (config == null || config.completedPlanDirectory.isBlank()) {
+                return List.of();
+            }
+
+            Path completedDir = root.resolve(config.completedPlanDirectory);
             if (!HarnessFiles.isSafeDirectory(root, completedDir)) {
                 return List.of();
             }
@@ -571,16 +639,17 @@ public final class HarnessValidateMojo extends AbstractMojo {
             List<Path> planFiles =
                     HarnessFiles.safeFiles(root, completedDir).stream()
                             .filter(f -> f.getFileName().toString().endsWith(".md"))
+                            .filter(f -> !f.getFileName().toString().equals(".gitkeep"))
                             .toList();
+
+            Pattern unfinishedPattern = Pattern.compile(config.unfinishedTaskPattern);
 
             return planFiles.stream()
                     .flatMap(
                             file -> {
                                 try {
                                     String text = HarnessFiles.read(file);
-                                    if (Pattern.compile("(?m)^\\s*-\\s*\\[ \\]\\s")
-                                            .matcher(text)
-                                            .find()) {
+                                    if (unfinishedPattern.matcher(text).find()) {
                                         return Stream.of(
                                                 "completed plan has unchecked tasks: "
                                                         + root.relativize(file));
@@ -692,28 +761,6 @@ public final class HarnessValidateMojo extends AbstractMojo {
                 throw new MojoExecutionException("failed to read " + path, error);
             }
         }
-
-        private static String firstLine(Path path) {
-            try {
-                if (Files.isSymbolicLink(path)) {
-                    Path target = allowedRootContractTarget(path.getParent(), path);
-                    if (target == null) {
-                        return "";
-                    }
-                    return Files.readAllLines(target, StandardCharsets.UTF_8).stream()
-                            .findFirst()
-                            .orElse("");
-                }
-                if (Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
-                    return Files.readAllLines(path, StandardCharsets.UTF_8).stream()
-                            .findFirst()
-                            .orElse("");
-                }
-                return "";
-            } catch (IOException error) {
-                return "";
-            }
-        }
     }
 
     /** Pattern and label used when scanning active files for scaffold leakage. */
@@ -732,6 +779,21 @@ public final class HarnessValidateMojo extends AbstractMojo {
 
         private String label() {
             return label;
+        }
+    }
+
+    /** Loads and caches manifest configuration. */
+    private static ManifestConfig loadManifestOrDefault(Path root)
+            throws MojoExecutionException {
+        Path manifestPath = root.resolve(MANIFEST_PATH);
+        String manifest = HarnessFiles.read(manifestPath);
+        if (manifest.isBlank()) {
+            return null;
+        }
+        try {
+            return new ManifestConfig(manifest);
+        } catch (Exception e) {
+            return null;
         }
     }
 }

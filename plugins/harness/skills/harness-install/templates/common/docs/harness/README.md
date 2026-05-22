@@ -31,7 +31,7 @@ The harness alone does not define product requirements, domain rules, architectu
 
 ## Harness evolution
 
-The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active contract. When the harness changes, update this directory, `AGENTS.md`, validators, templates, and `docs/harness/evolution-log.md` as needed.
+The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active contract. When the harness changes, update this directory, `AGENTS.md`, validators, and templates as needed; record the evolution in the relevant `docs/exec-plans/` entry rather than in a separate log file.
 
 ## Validation
 

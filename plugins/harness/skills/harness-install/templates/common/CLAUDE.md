@@ -54,7 +54,6 @@ docs/
 ├── harness/
 │   ├── README.md
 │   ├── manifest.json
-│   ├── evolution-log.md
 │   ├── git-hooks/
 │   │   ├── pre-commit
 │   │   └── pre-push

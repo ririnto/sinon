@@ -20,7 +20,7 @@ This skill is report-only unless the user separately asks for implementation. Pr
 
 ## First Safe Checks
 
-1. Read `AGENTS.md`, `docs/harness/README.md`, `docs/harness/manifest.json`, and `docs/harness/evolution-log.md` when present.
+1. Read `AGENTS.md`, `docs/harness/README.md`, `docs/harness/manifest.json`, and any active `docs/exec-plans/active/yyyy-MM-dd-*.md` that touches the harness.
 2. Inspect the user-provided delta summary and current `git diff` for harness-owned files.
 3. Separate product changes from harness changes.
 4. Confirm that every proposed harness change has a matching validation path or an explicit informational-only reason.
@@ -90,20 +90,32 @@ Use this checklist before proposing or applying harness evolution.
 - `docs/harness/templates/**` still contain placeholders only where the template renderer or human copy step expects them.
 - `.github/workflows/harness.yml` and `.gitlab-ci.yml`, when present, run the selected final check command.
 - `docs/generated/**` contains real generated artifacts or `.gitkeep`, not fake readiness files.
-- `docs/harness/evolution-log.md` records the reason, files changed, validation command, and remaining follow-up.
+- A `docs/exec-plans/active/yyyy-MM-dd-<slug>.md` entry records the reason, files changed, validation command, and remaining follow-up for any non-trivial evolution.
 
-## Evolution Log Entry
+## Evolution Plan Entry
 
-Append or propose an entry in `docs/harness/evolution-log.md` using this shape.
+Record the evolution in a new or existing execution plan under `docs/exec-plans/active/` using the project's standard `yyyy-MM-dd-<slug>.md` template. The plan SHOULD include:
 
 ```markdown
-## YYYY-MM-DD - <short title>
+## Trigger
 
-- trigger: <validation failure, review finding, product change, or stack migration>
-- decision: <evolve|reject as drift|defer>
-- files: <changed harness files or planned files>
-- validation: <exact command that must pass>
-- follow-up: <remaining target-specific content or none>
+<validation failure, review finding, product change, or stack migration>
+
+## Decision
+
+<evolve|reject as drift|defer>
+
+## Files
+
+<changed harness files or planned files>
+
+## Validation
+
+<exact command that must pass>
+
+## Follow-up
+
+<remaining target-specific content or none>
 ```
 
 ## Examples

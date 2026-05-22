@@ -83,7 +83,7 @@
       "failureMessage": "repository docs must describe generated-artifact source command and regeneration trigger metadata"
     },
     {
-      "files": ["AGENTS.md", "CLAUDE.md", "docs/harness/evolution-log.md"],
+      "files": ["AGENTS.md", "CLAUDE.md"],
       "containsAll": ["discovery", "maintenance"],
       "failureMessage": "repository docs must state that the harness may evolve across development phases"
     }
@@ -98,6 +98,7 @@
     ".github"
   ],
   "excludedActiveAssetSubtrees": [
+    "docs/harness/manifest.json",
     "docs/harness/templates"
   ],
   "activeAssetExtensions": [
@@ -142,8 +143,7 @@
     ]
   },
   "harnessEvolution": {
-    "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract.",
-    "log": "docs/harness/evolution-log.md"
+    "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract."
   },
   "teamPatterns": [
     "pipeline",
