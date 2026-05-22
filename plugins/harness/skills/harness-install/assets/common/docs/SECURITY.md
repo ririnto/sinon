@@ -6,29 +6,33 @@ SECURITY.md captures the durable security contract: what the team protects, who 
 
 ## Threat Model
 
-- Spoofing: Attacker impersonates a legitimate user or service to gain unauthorized access. Mitigation: enforce strict authentication and identity verification on all endpoints.
-- Tampering: Attacker modifies data in transit or at rest without authorization. Mitigation: use encrypted channels, cryptographic signatures, and immutable audit logs.
-- Repudiation: Actor denies performing a sensitive action. Mitigation: maintain tamper-proof audit logs with cryptographic signatures and timestamp proof.
-- Information disclosure: Attacker gains unauthorized access to secrets, private data, or sensitive logs. Mitigation: encrypt secrets at rest, enforce least-privilege access, and restrict log visibility.
-- Denial of service: Attacker overloads or crashes services to disrupt availability. Mitigation: implement rate limiting, circuit breakers, and redundancy for critical systems.
-- Elevation of privilege: Attacker gains higher permissions than authorized. Mitigation: enforce role-based access control, implement least-privilege defaults, and audit permission changes.
+- Spoofing: stolen session cookie replays end-user identity → short session TTL (15 min), refresh-token rotation (7-day lifetime), optional IP + user-agent fingerprint binding.
+- Tampering: request body altered in transit → enforce TLS only (no HTTP), sign request bodies for webhooks, schema-validate every boundary payload.
+- Repudiation: user denies an action → immutable audit log with monotonic event IDs, write to append-only sink with no delete permission.
+- Information disclosure: PII leaked in logs → structured logger drops fields not in `PII_ALLOWLIST` before write; assert coverage in unit tests.
+- Denial of service: traffic spike or expensive query exhausts the service → per-route rate limit (token bucket), query timeout (30s default), circuit breaker on downstream calls.
+- Elevation of privilege: low-privilege user reaches admin path → RBAC checked at handler entry; tests cover deny-case per route.
 
 ## Secret Management
 
-- Database credentials: stored in secret manager, rotated quarterly; accessed by backend services only via credentials API.
-- Third-party API keys: stored in secret manager, rotated annually or after any compromise; never logged or exposed in error messages.
+- Database credentials live in {{secret-manager}} and are injected via environment variables at boot; rotate every 90 days.
+- Third-party API keys live in {{secret-manager}} under per-service paths; rotate every 90 days or immediately on compromise.
+- Signing keys for outbound webhooks live in {{secret-manager}}/signing/; rotate every 180 days with overlapping validity window.
+- Never write secrets into the repository; pre-commit hook (`docs/harness/git-hooks/pre-commit`) blocks committed secret patterns.
 
 ## Permission Boundaries
 
-- End user: may view and modify their own data; MUST NOT access other users' data or modify system configuration.
-- Support agent: may view user data and moderate content; MUST NOT modify authentication settings or access production databases directly.
-- Admin: may modify system configuration, manage users, and access logs; MUST NOT bypass audit logging or disable security controls.
-- Automation/agent: may execute delegated tasks within assigned scope; MUST NOT escalate privileges or access data outside its declared boundaries.
+- End user: may read and modify their own resources; MUST NOT read other users' data.
+- Support agent: may read across users via impersonation API with audit log entry; MUST NOT modify billing data.
+- Admin: may modify configuration, feature flags, and per-tenant settings; MUST NOT execute arbitrary SQL.
+- Automation / agent: may run pre-approved workflow steps with a scoped service-account token; MUST NOT escalate to admin scope without human approval.
 
 ## Audit Logging
 
-- Authentication success/failure: log to centralized audit system, schema `audit.auth`, retention 365 days.
-- Data access by support agents: log to centralized audit system, schema `audit.data_access`, retention 90 days.
+- Authentication events (login, logout, token refresh): log to {{audit-sink}}, schema audit.auth.v1, retention 365 days.
+- Authorization decisions (deny only): log to {{audit-sink}}, schema audit.authz.v1, retention 365 days.
+- Admin configuration changes: log to {{audit-sink}}, schema audit.config.v1, retention 7 years.
+- Data export / impersonation: log to {{audit-sink}}, schema audit.export.v1, retention 7 years.
 
 ## When To Update
 

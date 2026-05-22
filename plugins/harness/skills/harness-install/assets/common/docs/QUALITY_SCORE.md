@@ -15,25 +15,29 @@ Target teams may adjust the labels and number of levels but MUST keep them ordin
 
 ## Domain Scores
 
-Replace the example row below with entries for each product domain in this repository.
+Replace the example rows below with entries for each product domain in this repository.
 
 | Domain | Score | Gaps | Retirement criteria | Owner |
 | --- | --- | --- | --- | --- |
-| Example Domain | B | docs/ARCHITECTURE.md sections need refresh | all-hands review; test coverage ≥ 90% | example-owner |
+| Identity | B | RBAC unit coverage < 80% | coverage ≥ 90% on `domains/identity/` | {{owner}} |
+| Catalog | B | public API schema not parsed at boundary | parse-don't-validate on every public endpoint | {{owner}} |
+| Notifications | C | no retry policy documented | runbook + dead-letter policy committed | {{owner}} |
 
 ## Layer Scores
 
-Replace the example row below with entries for each architectural layer.
+Replace the example rows below with entries for each architectural layer.
 
 | Layer | Score | Gaps | Retirement criteria | Owner |
 | --- | --- | --- | --- | --- |
-| API Contract | A | none tracked | N/A | api-owner |
+| Service | A | — | — | {{owner}} |
+| Runtime | B | no chaos test suite | one chaos test green for each failure mode in RELIABILITY.md | {{owner}} |
+| UI | B | 70% axe-core coverage | 100% axe-core green on top-10 routes | {{owner}} |
 
 ## Gap Tracking
 
 Each gap MUST be either (a) linked to an entry in `docs/exec-plans/tech-debt-tracker.md` with retirement criteria, or (b) linked to an active execution plan that will close it.
 
-- Example: [docs/exec-plans/tech-debt-tracker.md#example-domain-docs](docs/exec-plans/tech-debt-tracker.md#example-domain-docs)
+- Example: [docs/exec-plans/tech-debt-tracker.md#td-1](docs/exec-plans/tech-debt-tracker.md#td-1)
 
 ## When To Update
 
