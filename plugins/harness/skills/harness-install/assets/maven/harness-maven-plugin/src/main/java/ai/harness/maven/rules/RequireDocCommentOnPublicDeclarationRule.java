@@ -25,9 +25,9 @@ public enum RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRule
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
-            List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
             return sources.stream()
                     .flatMap(file -> validateDocComments(root, file, severity).stream())
                     .toList();
@@ -38,10 +38,10 @@ public enum RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRule
 
     private List<Finding> validateDocComments(Path root, Path file, String severity) {
         try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
+            final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(ClassOrInterfaceDeclaration.class).stream()
                     .flatMap(cls -> {
-                        java.util.List<Finding> findings = new java.util.ArrayList<>();
+                        final java.util.List<Finding> findings = new java.util.ArrayList<>();
                         if (cls.isPublic() && !cls.getJavadoc().isPresent()) {
                             findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + cls.getBegin().map(p -> p.line).orElse(-1) + ": public class missing Javadoc"));
                         }

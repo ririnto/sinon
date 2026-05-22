@@ -24,9 +24,9 @@ public enum ForbidWildcardImportRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
-            List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
             return sources.stream()
                     .flatMap(file -> validateWildcardImport(root, file, severity).stream())
                     .toList();
@@ -37,7 +37,7 @@ public enum ForbidWildcardImportRule implements HarnessCheckRule {
 
     private List<Finding> validateWildcardImport(Path root, Path file, String severity) {
         try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
+            final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.getImports().stream()
                     .filter(imp -> imp.isAsterisk())
                     .map(imp -> new Finding(severity, CATEGORY, root.relativize(file) + ":" + imp.getBegin().map(p -> p.line).orElse(-1) + ": wildcard import forbidden"))

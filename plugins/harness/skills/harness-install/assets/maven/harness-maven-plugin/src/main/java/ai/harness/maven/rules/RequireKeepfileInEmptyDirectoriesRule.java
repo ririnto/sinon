@@ -24,32 +24,27 @@ public enum RequireKeepfileInEmptyDirectoriesRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("directories")).stream()
                 .flatMap(dir -> validateKeepFile(root, dir, severity).stream())
                 .toList();
     }
 
     private List<Finding> validateKeepFile(Path root, String dir, String severity) {
-        Path dirPath = root.resolve(dir);
-        List<Finding> findings;
+        final Path dirPath = root.resolve(dir);
         if (HarnessCheckHelper.isSafeDirectory(root, dirPath)) {
-            try (Stream<Path> stream = Files.list(dirPath)) {
-                List<Path> realFiles = stream
+            try (final Stream<Path> stream = Files.list(dirPath)) {
+                final List<Path> realFiles = stream
                         .filter(f -> !Files.isSymbolicLink(f) && !f.getFileName().toString().equals(".gitkeep"))
                         .toList();
-                if (realFiles.isEmpty() && !HarnessCheckHelper.isSafeRegularFile(root, dirPath.resolve(".gitkeep"))) {
-                    findings = List.of(new Finding(severity, CATEGORY, "empty directory must keep placeholder or real files: " + dir));
-                } else {
-                    findings = List.of();
-                }
+                return realFiles.isEmpty() && !HarnessCheckHelper.isSafeRegularFile(root, dirPath.resolve(".gitkeep"))
+                        ? List.of(new Finding(severity, CATEGORY, "empty directory must keep placeholder or real files: " + dir))
+                        : List.of();
             } catch (IOException e) {
-                findings = List.of();
+                return List.of();
             }
-        } else {
-            findings = List.of();
         }
-        return findings;
+        return List.of();
     }
 }

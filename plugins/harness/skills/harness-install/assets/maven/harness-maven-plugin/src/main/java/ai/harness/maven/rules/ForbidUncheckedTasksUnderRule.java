@@ -23,20 +23,20 @@ public enum ForbidUncheckedTasksUnderRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        String directory = catNode.get("parameters").get("directory").asText();
-        String uncheckedPattern = catNode.get("parameters").get("uncheckedTaskPattern").asText();
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        Path dirPath = root.resolve(directory);
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final String directory = catNode.get("parameters").get("directory").asText();
+        final String uncheckedPattern = catNode.get("parameters").get("uncheckedTaskPattern").asText();
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final Path dirPath = root.resolve(directory);
         if (!HarnessCheckHelper.isSafeDirectory(root, dirPath)) {
             return List.of();
         }
-        Pattern pattern = Pattern.compile(uncheckedPattern);
+        final Pattern pattern = Pattern.compile(uncheckedPattern);
         return HarnessCheckHelper.safeFileOrWalk(root, dirPath).stream()
                 .filter(f -> f.getFileName().toString().endsWith(".md") && !f.getFileName().toString().equals(".gitkeep"))
                 .flatMap(file -> {
                     try {
-                        String text = HarnessCheckHelper.readFile(root, file);
+                        final String text = HarnessCheckHelper.readFile(root, file);
                         return pattern.matcher(text).find()
                                 ? Stream.of(new Finding(severity, CATEGORY, "completed plan has unchecked tasks: " + root.relativize(file)))
                                 : Stream.empty();

@@ -25,9 +25,9 @@ public enum ForbidSilentCatchRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
-            List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
             return sources.stream()
                     .flatMap(file -> validateSilentCatch(root, file, severity).stream())
                     .toList();
@@ -38,11 +38,11 @@ public enum ForbidSilentCatchRule implements HarnessCheckRule {
 
     private List<Finding> validateSilentCatch(Path root, Path file, String severity) {
         try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
+            final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(CatchClause.class).stream()
                     .filter(catchClause -> {
-                        String catchParam = catchClause.getParameter().getNameAsString();
-                        String bodyText = catchClause.getBody().toString();
+                        final String catchParam = catchClause.getParameter().getNameAsString();
+                        final String bodyText = catchClause.getBody().toString();
                         return !bodyText.contains(catchParam) && !bodyText.contains("throw ") && !bodyText.matches("(?s).*\\b(getLog|logger|log)\\s*\\..*");
                     })
                     .map(catchClause -> new Finding(severity, CATEGORY, root.relativize(file) + ":" + catchClause.getBegin().map(p -> p.line).orElse(-1) + ": silent catch block"))

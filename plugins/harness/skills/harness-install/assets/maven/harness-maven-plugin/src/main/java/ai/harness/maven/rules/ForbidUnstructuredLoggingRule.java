@@ -25,9 +25,9 @@ public enum ForbidUnstructuredLoggingRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
-            List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
             return sources.stream()
                     .flatMap(file -> validateUnstructuredLogging(root, file, severity).stream())
                     .toList();
@@ -38,10 +38,10 @@ public enum ForbidUnstructuredLoggingRule implements HarnessCheckRule {
 
     private List<Finding> validateUnstructuredLogging(Path root, Path file, String severity) {
         try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
+            final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(MethodCallExpr.class).stream()
                     .filter(expr -> {
-                        String methodStr = expr.toString();
+                        final String methodStr = expr.toString();
                         return methodStr.startsWith("System.out.println") || methodStr.startsWith("System.out.print") ||
                                 methodStr.startsWith("System.err.println") || methodStr.startsWith("System.err.print");
                     })

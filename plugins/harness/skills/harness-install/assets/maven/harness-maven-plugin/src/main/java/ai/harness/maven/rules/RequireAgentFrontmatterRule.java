@@ -25,20 +25,20 @@ public enum RequireAgentFrontmatterRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        Path directory = root.resolve(".claude/agents");
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final Path directory = root.resolve(".claude/agents");
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         if (!HarnessCheckHelper.isSafeDirectory(root, directory)) {
             return List.of(new Finding(severity, CATEGORY, ".claude/agents must contain at least one .md agent"));
         }
-        try (Stream<Path> stream = Files.list(directory)) {
-            List<Path> files = stream
+        try (final Stream<Path> stream = Files.list(directory)) {
+            final List<Path> files = stream
                     .filter(f -> !Files.isSymbolicLink(f) && f.getFileName().toString().endsWith(".md"))
                     .toList();
             if (files.isEmpty()) {
                 return List.of(new Finding(severity, CATEGORY, ".claude/agents must contain at least one .md agent"));
             }
-            Pattern namePattern = Pattern.compile("(?m)^name:\\s*[-a-z0-9]+\\s*$");
-            Pattern descPattern = Pattern.compile("(?m)^description:\\s*.+$");
+            final Pattern namePattern = Pattern.compile("(?m)^name:\\s*[-a-z0-9]+\\s*$");
+            final Pattern descPattern = Pattern.compile("(?m)^description:\\s*.+$");
             return files.stream()
                     .flatMap(f -> validateAgentFile(root, f, namePattern, descPattern, severity).stream())
                     .toList();
@@ -48,8 +48,8 @@ public enum RequireAgentFrontmatterRule implements HarnessCheckRule {
     }
 
     private List<Finding> validateAgentFile(Path root, Path file, Pattern namePattern, Pattern descPattern, String severity) throws MojoExecutionException {
-        String text = HarnessCheckHelper.readFile(root, file);
-        String relative = root.relativize(file).toString();
+        final String text = HarnessCheckHelper.readFile(root, file);
+        final String relative = root.relativize(file).toString();
         return Stream.of(
                 text.startsWith("---") ? Stream.empty() : Stream.of(new Finding(severity, CATEGORY, "agent missing frontmatter: " + relative)),
                 namePattern.matcher(text).find() ? Stream.empty() : Stream.of(new Finding(severity, CATEGORY, "agent missing name: " + relative)),

@@ -26,9 +26,9 @@ public enum ForbidEarlyReturnRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
-            List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
             return sources.stream()
                     .flatMap(file -> validateEarlyReturn(root, file, severity).stream())
                     .toList();
@@ -39,15 +39,15 @@ public enum ForbidEarlyReturnRule implements HarnessCheckRule {
 
     private List<Finding> validateEarlyReturn(Path root, Path file, String severity) {
         try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
+            final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(MethodDeclaration.class).stream()
                     .flatMap(method -> method.getBody()
                             .map(body -> {
-                                List<ReturnStmt> returnStmts = body.findAll(ReturnStmt.class);
+                                final List<ReturnStmt> returnStmts = body.findAll(ReturnStmt.class);
                                 if (returnStmts.isEmpty()) {
                                     return java.util.stream.Stream.<Finding>empty();
                                 }
-                                ReturnStmt lastReturn = returnStmts.get(returnStmts.size() - 1);
+                                final ReturnStmt lastReturn = returnStmts.get(returnStmts.size() - 1);
                                 return returnStmts.stream()
                                         .filter(ret -> !ret.equals(lastReturn))
                                         .map(ret -> new Finding(severity, CATEGORY, root.relativize(file) + ":" + ret.getBegin().map(p -> p.line).orElse(-1) + ": early return in function"));

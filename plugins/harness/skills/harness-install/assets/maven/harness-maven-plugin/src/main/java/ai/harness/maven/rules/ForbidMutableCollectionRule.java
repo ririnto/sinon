@@ -25,9 +25,9 @@ public enum ForbidMutableCollectionRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
-            List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
             return sources.stream()
                     .flatMap(file -> validateMutableCollection(root, file, severity).stream())
                     .toList();
@@ -38,16 +38,16 @@ public enum ForbidMutableCollectionRule implements HarnessCheckRule {
 
     private List<Finding> validateMutableCollection(Path root, Path file, String severity) {
         try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
+            final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(ObjectCreationExpr.class).stream()
                     .filter(expr -> {
-                        String typeName = expr.getTypeAsString();
+                        final String typeName = expr.getTypeAsString();
                         return typeName.equals("ArrayList") || typeName.equals("HashMap") || typeName.equals("HashSet") ||
                                 typeName.equals("LinkedList") || typeName.equals("LinkedHashMap") || typeName.equals("LinkedHashSet") ||
                                 typeName.equals("TreeMap") || typeName.equals("TreeSet");
                     })
                     .map(expr -> {
-                        String typeName = expr.getTypeAsString();
+                        final String typeName = expr.getTypeAsString();
                         return new Finding(severity, CATEGORY, root.relativize(file) + ":" + expr.getBegin().map(p -> p.line).orElse(-1) + ": mutable collection " + typeName + "; use immutable factory");
                     })
                     .toList();

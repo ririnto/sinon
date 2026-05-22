@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import java.util.stream.IntStream;
 import java.util.regex.Pattern;
 import java.util.Collectors;
 
@@ -33,15 +34,12 @@ public class HarnessCheckHelper {
      * @return severity level: "WARN", "INFO", or "ERROR" (default)
      */
     public static String getSeverity(JsonNode manifest, String category) {
-        String result = "ERROR";
-        JsonNode catNode = manifest.get(category);
+        final JsonNode catNode = manifest.get(category);
         if (catNode != null && catNode.has("severity")) {
-            String sev = catNode.get("severity").asText();
-            if ("WARN".equals(sev) || "INFO".equals(sev)) {
-                result = sev;
-            }
+            final String sev = catNode.get("severity").asText();
+            return "WARN".equals(sev) || "INFO".equals(sev) ? sev : "ERROR";
         }
-        return result;
+        return "ERROR";
     }
 
     /**
@@ -54,7 +52,7 @@ public class HarnessCheckHelper {
      */
     public static String readFile(Path root, Path path) throws MojoExecutionException {
         if (Files.isSymbolicLink(path)) {
-            Path allowed = allowedRootContractTarget(root, path);
+            final Path allowed = allowedRootContractTarget(root, path);
             if (allowed == null) {
                 throw new MojoExecutionException("symlink not allowed: " + path);
             }
@@ -89,13 +87,7 @@ public class HarnessCheckHelper {
      * @return true if path is a safe directory
      */
     public static boolean isSafeDirectory(Path root, Path path) {
-        boolean isSafe;
-        if (!Files.isSymbolicLink(path)) {
-            isSafe = Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS);
-        } else {
-            isSafe = false;
-        }
-        return isSafe;
+        return !Files.isSymbolicLink(path) && Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS);
     }
 
     /**
@@ -116,7 +108,7 @@ public class HarnessCheckHelper {
         if (!Files.isDirectory(base, LinkOption.NOFOLLOW_LINKS)) {
             return List.of();
         }
-        try (Stream<Path> stream = Files.walk(base)) {
+        try (final Stream<Path> stream = Files.walk(base)) {
             return stream
                     .filter(f -> !f.equals(base) && !Files.isSymbolicLink(f) && Files.isRegularFile(f, LinkOption.NOFOLLOW_LINKS))
                     .toList();
@@ -133,28 +125,39 @@ public class HarnessCheckHelper {
      * @return the resolved target path if allowed, null otherwise
      */
     public static Path allowedRootContractTarget(Path root, Path path) {
-        Path result = null;
         if (Files.isSymbolicLink(path)) {
-            Path normalized = root.normalize();
-            Path fileName = path.getFileName();
+            final Path normalized = root.normalize();
+            final Path fileName = path.getFileName();
             if (fileName != null && path.getParent() != null && path.getParent().normalize().equals(normalized)) {
-                String name = fileName.toString();
+                final String name = fileName.toString();
                 if (name.equals("AGENTS.md") || name.equals("CLAUDE.md")) {
-                    String expected = name.equals("AGENTS.md") ? "CLAUDE.md" : "AGENTS.md";
-                    try {
-                        Path target = Files.readSymbolicLink(path);
-                        if (target.getNameCount() == 1 && target.toString().equals(expected)) {
-                            Path resolved = normalized.resolve(target).normalize();
-                            if (resolved.getParent().equals(normalized) && !Files.isSymbolicLink(resolved) && Files.isRegularFile(resolved, LinkOption.NOFOLLOW_LINKS)) {
-                                result = resolved;
-                            }
-                        }
-                    } catch (IOException e) {
-                    }
+                    final String expected = name.equals("AGENTS.md") ? "CLAUDE.md" : "AGENTS.md";
+                    return allowedRootContractTarget(normalized, path, expected);
                 }
             }
         }
-        return result;
+        return null;
+    }
+
+    /**
+     * Resolves an already qualified root contract symlink target.
+     *
+     * @param normalized the normalized project root
+     * @param path the symlink path
+     * @param expected the expected one-segment target name
+     * @return the resolved target path if allowed, null otherwise
+     */
+    private static Path allowedRootContractTarget(Path normalized, Path path, String expected) {
+        try {
+            final Path target = Files.readSymbolicLink(path);
+            if (target.getNameCount() == 1 && target.toString().equals(expected)) {
+                final Path resolved = normalized.resolve(target).normalize();
+                return resolved.getParent().equals(normalized) && !Files.isSymbolicLink(resolved) && Files.isRegularFile(resolved, LinkOption.NOFOLLOW_LINKS) ? resolved : null;
+            }
+        } catch (IOException e) {
+            return null;
+        }
+        return null;
     }
 
     /**
@@ -179,28 +182,28 @@ public class HarnessCheckHelper {
      * @throws IOException if walking fails
      */
     public static List<Path> stackSources(JsonNode manifest, String category) throws IOException {
-        JsonNode catNode = manifest.get(category);
+        final JsonNode catNode = manifest.get(category);
         if (catNode == null) {
             return Collections.emptyList();
         }
-        JsonNode params = catNode.get("parameters");
+        final JsonNode params = catNode.get("parameters");
         if (params == null) {
             return Collections.emptyList();
         }
-        JsonNode rootsNode = params.get("sourceRootsPerStack");
-        JsonNode extsNode = params.get("extensionsPerStack");
+        final JsonNode rootsNode = params.get("sourceRootsPerStack");
+        final JsonNode extsNode = params.get("extensionsPerStack");
         if (rootsNode == null || extsNode == null) {
             return Collections.emptyList();
         }
-        JsonNode javaRoots = rootsNode.get("java");
-        JsonNode javaExts = extsNode.get("java");
+        final JsonNode javaRoots = rootsNode.get("java");
+        final JsonNode javaExts = extsNode.get("java");
         if (javaRoots == null || javaExts == null) {
             return Collections.emptyList();
         }
-        Set<String> extensions = StreamSupport.stream(javaExts.spliterator(), false)
+        final Set<String> extensions = StreamSupport.stream(javaExts.spliterator(), false)
                 .map(JsonNode::asText)
                 .collect(Collectors.toSet());
-        FileSystem fs = FileSystems.getDefault();
+        final FileSystem fs = FileSystems.getDefault();
         return StreamSupport.stream(javaRoots.spliterator(), false)
                 .map(JsonNode::asText)
                 .flatMap(rootEntry -> walkRoot(fs, Path.of("."), rootEntry, extensions).stream())
@@ -221,19 +224,19 @@ public class HarnessCheckHelper {
     public static List<Path> walkRoot(FileSystem fs, Path base, String rootEntry, Set<String> extensions) {
         try {
             if (rootEntry.contains("*")) {
-                String pattern = "glob:" + rootEntry + "/**/*";
-                var matcher = fs.getPathMatcher(pattern);
-                try (Stream<Path> stream = Files.walk(base)) {
+                final String pattern = "glob:" + rootEntry + "/**/*";
+                final var matcher = fs.getPathMatcher(pattern);
+                try (final Stream<Path> stream = Files.walk(base)) {
                     return stream
                             .filter(p -> matcher.matches(p) && extensions.contains(extensionOf(p)) && !containsSegment(p, "target") && !containsSegment(p, "build"))
                             .collect(Collectors.toList());
                 }
             } else {
-                Path resolved = base.resolve(rootEntry);
+                final Path resolved = base.resolve(rootEntry);
                 if (!Files.exists(resolved)) {
                     return Collections.emptyList();
                 }
-                try (Stream<Path> stream = Files.walk(resolved)) {
+                try (final Stream<Path> stream = Files.walk(resolved)) {
                     return stream
                             .filter(p -> extensions.contains(extensionOf(p)) && !containsSegment(p, "target") && !containsSegment(p, "build"))
                             .collect(Collectors.toList());
@@ -251,8 +254,8 @@ public class HarnessCheckHelper {
      * @return the extension without the dot, or empty string if none
      */
     public static String extensionOf(Path p) {
-        String name = p.getFileName().toString();
-        int idx = name.lastIndexOf('.');
+        final String name = p.getFileName().toString();
+        final int idx = name.lastIndexOf('.');
         return idx < 0 ? "" : name.substring(idx + 1);
     }
 
@@ -264,12 +267,8 @@ public class HarnessCheckHelper {
      * @return true if the segment is found
      */
     public static boolean containsSegment(Path p, String segment) {
-        for (int i = 0; i < p.getNameCount(); i++) {
-            if (p.getName(i).toString().equals(segment)) {
-                return true;
-            }
-        }
-        return false;
+        return IntStream.range(0, p.getNameCount())
+                .anyMatch(i -> p.getName(i).toString().equals(segment));
     }
 
     /**
@@ -280,11 +279,11 @@ public class HarnessCheckHelper {
      * @return true if the category is enabled (default) or has no enabled field
      */
     public static boolean applies(JsonNode manifest, String category) {
-        JsonNode node = manifest.get(category);
+        final JsonNode node = manifest.get(category);
         if (node == null || !node.isObject()) {
             return false;
         }
-        JsonNode enabled = node.get("enabled");
+        final JsonNode enabled = node.get("enabled");
         return enabled == null || !enabled.isBoolean() || enabled.asBoolean();
     }
 }

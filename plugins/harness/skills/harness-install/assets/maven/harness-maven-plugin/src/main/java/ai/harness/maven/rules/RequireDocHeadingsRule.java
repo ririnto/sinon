@@ -22,12 +22,12 @@ public enum RequireDocHeadingsRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        List<String> headings = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("headings"));
-        JsonNode sourceFilter = catNode.get("parameters").get("sourceFilter");
-        String prefix = sourceFilter.get("prefix").asText();
-        String suffix = sourceFilter.get("suffix").asText();
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final List<String> headings = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("headings"));
+        final JsonNode sourceFilter = catNode.get("parameters").get("sourceFilter");
+        final String prefix = sourceFilter.get("prefix").asText();
+        final String suffix = sourceFilter.get("suffix").asText();
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(manifest.get("requireFilesExist").get("parameters").get("paths")).stream()
                 .filter(f -> f.startsWith(prefix) && f.endsWith(suffix))
                 .flatMap(f -> validateHeadings(root, f, headings, severity).stream())
@@ -35,17 +35,14 @@ public enum RequireDocHeadingsRule implements HarnessCheckRule {
     }
 
     private List<Finding> validateHeadings(Path root, String file, List<String> headings, String severity) throws MojoExecutionException {
-        Path filePath = root.resolve(file);
-        List<Finding> findings;
+        final Path filePath = root.resolve(file);
         if (HarnessCheckHelper.isSafeRegularFile(root, filePath)) {
-            String text = HarnessCheckHelper.readFile(root, filePath);
-            findings = headings.stream()
+            final String text = HarnessCheckHelper.readFile(root, filePath);
+            return headings.stream()
                     .filter(h -> !text.contains(h))
                     .map(h -> new Finding(severity, CATEGORY, "doc missing " + h + ": " + file))
                     .toList();
-        } else {
-            findings = List.of();
         }
-        return findings;
+        return List.of();
     }
 }

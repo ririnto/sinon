@@ -47,11 +47,11 @@ class ForbidBlankLineInLeafFunctionRule(HarnessCheckRule):
                             f"{self.rel_path}:{pos.start.line}: leaf function `{node.name.value}` contains a blank line; remove or extract the section",
                         ))
                 return True
-        result = []
+        findings = []
         for path in sources:
             tree, error = parse_python(path)
             if error is not None:
-                result.append(Finding(
+                findings.append(Finding(
                     severity,
                     self.category,
                     f"{relative(path)}: syntax error: {error}",
@@ -60,8 +60,8 @@ class ForbidBlankLineInLeafFunctionRule(HarnessCheckRule):
             wrapper = cst.MetadataWrapper(tree)
             visitor = _BlankLineFinder(relative(path))
             wrapper.visit(visitor)
-            result.extend(visitor.findings)
-        return result
+            findings.extend(visitor.findings)
+        return findings
 
 
 RULE: HarnessCheckRule = ForbidBlankLineInLeafFunctionRule()

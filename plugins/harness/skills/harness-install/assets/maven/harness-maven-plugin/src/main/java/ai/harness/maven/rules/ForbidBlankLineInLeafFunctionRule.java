@@ -12,6 +12,7 @@ import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinte
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Rule that forbids blank lines in leaf function bodies.
@@ -27,9 +28,9 @@ public enum ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
-            List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
             return sources.stream()
                     .flatMap(file -> validateBlankLinesInLeafFunctions(root, file, severity).stream())
                     .toList();
@@ -40,7 +41,7 @@ public enum ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
 
     private List<Finding> validateBlankLinesInLeafFunctions(Path root, Path file, String severity) {
         try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
+            final CompilationUnit cu = StaticJavaParser.parse(file);
             LexicalPreservingPrinter.setup(cu);
             return cu.findAll(MethodDeclaration.class).stream()
                     .filter(this::isLeafMethod)
@@ -58,25 +59,25 @@ public enum ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
     }
 
     private java.util.List<Finding> collectBlankLineFindings(Path root, Path file, com.github.javaparser.TokenRange tokens, String severity) {
-        java.util.List<Finding> findings = new java.util.ArrayList<>();
-        int lastNewlineCount = 0;
-        for (JavaToken token : tokens) {
-            String text = token.getText();
+        final java.util.List<Finding> findings = new java.util.ArrayList<>();
+        final AtomicInteger lastNewlineCount = new AtomicInteger(0);
+        tokens.forEach(token -> {
+            final String text = token.getText();
             if (token.getKind() == JavaToken.Kind.NEWLINE) {
-                lastNewlineCount++;
+                lastNewlineCount.incrementAndGet();
             } else if (!text.trim().isEmpty() && !text.matches("\\s+")) {
-                if (lastNewlineCount > 1) {
+                if (lastNewlineCount.get() > 1) {
                     token.getRange().map(r -> r.begin.line).ifPresent(line -> {
                         if (line > 0) {
                             findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + (line - 1) + ": blank line in leaf function"));
                         }
                     });
                 }
-                lastNewlineCount = 0;
+                lastNewlineCount.set(0);
             } else if (text.matches("\\s+") && text.contains("\n")) {
-                lastNewlineCount += text.chars().filter(c -> c == '\n').count();
+                lastNewlineCount.addAndGet((int) text.chars().filter(c -> c == '\n').count());
             }
-        }
+        });
         return findings;
     }
 

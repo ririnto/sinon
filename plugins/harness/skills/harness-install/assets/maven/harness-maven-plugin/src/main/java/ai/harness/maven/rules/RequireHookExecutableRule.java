@@ -22,8 +22,8 @@ public enum RequireHookExecutableRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks")).stream()
                 .filter(hook -> HarnessCheckHelper.isSafeRegularFile(root, root.resolve(hook)) && !Files.isExecutable(root.resolve(hook)))
                 .map(hook -> new Finding(severity, CATEGORY, hook + " must be executable"))

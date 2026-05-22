@@ -25,43 +25,46 @@ class RequireSkillFrontmatterRule(HarnessCheckRule):
 
     def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate requireSkillFrontmatter check."""
-        result = []
         section = manifest.get(self.category, {})
-        if isinstance(section, dict):
-            params = section.get("parameters", {})
-            if isinstance(params, dict):
-                root_directory = params.get("rootDirectory", ".claude/skills")
-                filename = params.get("filename", "SKILL.md")
-                required_fields = params.get("requiredFields", [])
-                if isinstance(required_fields, list):
-                    messages = section.get("messages", {})
-                    if isinstance(messages, dict):
-                        dir_path = root / root_directory
-                        missing_dir_msg = messages.get("missingDirectory", ".claude/skills must contain at least one SKILL.md")
-                        if is_safe_directory(dir_path):
-                            files = tuple(sorted(p for p in safe_walk(dir_path) if p.name == filename))
-                            if files:
-                                for path in files:
-                                    text = read_text(path)
-                                    if not text.startswith("---"):
-                                        result.append(Finding(
-                                            severity_for(manifest, self.category),
-                                            self.category,
-                                            messages.get("missingFrontmatter", "skill missing frontmatter: {file}").format(file=relative(path)),
-                                        ))
-                                    for field in required_fields:
-                                        if isinstance(field, str) and not re.search(rf"(?m)^{re.escape(field)}:\s*.+$", text):
-                                            msg_template = "skill missing " + field + ": {file}"
-                                            result.append(Finding(
-                                                severity_for(manifest, self.category),
-                                                self.category,
-                                                messages.get("missingDescription", msg_template).format(file=relative(path)),
-                                            ))
-                            else:
-                                result.append(Finding(severity_for(manifest, self.category), self.category, missing_dir_msg))
-                        else:
-                            result.append(Finding(severity_for(manifest, self.category), self.category, missing_dir_msg))
-        return result
+        if not isinstance(section, dict):
+            return []
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return []
+        root_directory = params.get("rootDirectory", ".claude/skills")
+        filename = params.get("filename", "SKILL.md")
+        required_fields = params.get("requiredFields", [])
+        if not isinstance(required_fields, list):
+            return []
+        messages = section.get("messages", {})
+        if not isinstance(messages, dict):
+            return []
+        dir_path = root / root_directory
+        missing_dir_msg = messages.get("missingDirectory", ".claude/skills must contain at least one SKILL.md")
+        if not is_safe_directory(dir_path):
+            return [Finding(severity_for(manifest, self.category), self.category, missing_dir_msg)]
+        files = tuple(sorted(p for p in safe_walk(dir_path) if p.name == filename))
+        if not files:
+            return [Finding(severity_for(manifest, self.category), self.category, missing_dir_msg)]
+        severity = severity_for(manifest, self.category)
+        findings = []
+        for path in files:
+            text = read_text(path)
+            if not text.startswith("---"):
+                findings.append(Finding(
+                    severity,
+                    self.category,
+                    messages.get("missingFrontmatter", "skill missing frontmatter: {file}").format(file=relative(path)),
+                ))
+            for field in required_fields:
+                if isinstance(field, str) and not re.search(rf"(?m)^{re.escape(field)}:\s*.+$", text):
+                    msg_template = "skill missing " + field + ": {file}"
+                    findings.append(Finding(
+                        severity,
+                        self.category,
+                        messages.get("missingDescription", msg_template).format(file=relative(path)),
+                    ))
+        return findings
 
 
 RULE: HarnessCheckRule = RequireSkillFrontmatterRule()

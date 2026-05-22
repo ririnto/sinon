@@ -8,6 +8,8 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Rule that requires CI configuration to match hook commands.
@@ -23,47 +25,39 @@ public enum RequireCiCommandMatchesHookRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        JsonNode catNode = manifest.get(CATEGORY);
-        String refHook = catNode.get("parameters").get("referenceHook").asText();
-        Path refPath = root.resolve(refHook);
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final String refHook = catNode.get("parameters").get("referenceHook").asText();
+        final Path refPath = root.resolve(refHook);
         if (!HarnessCheckHelper.isSafeRegularFile(root, refPath)) {
             return List.of();
         }
-        String refText = HarnessCheckHelper.readFile(root, refPath);
-        String expectedCmd = extractHookCommand(refText);
+        final String refText = HarnessCheckHelper.readFile(root, refPath);
+        final String expectedCmd = extractHookCommand(refText);
         if (expectedCmd.isEmpty()) {
             return List.of();
         }
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("ciFiles")).stream()
                 .flatMap(ciFile -> validateCiFile(root, ciFile, expectedCmd, severity).stream())
                 .toList();
     }
 
     private List<Finding> validateCiFile(Path root, String ciFile, String expectedCmd, String severity) throws MojoExecutionException {
-        Path ciPath = root.resolve(ciFile);
-        List<Finding> findings;
+        final Path ciPath = root.resolve(ciFile);
         if (Files.exists(ciPath, LinkOption.NOFOLLOW_LINKS) && HarnessCheckHelper.isSafeRegularFile(root, ciPath)) {
-            String ciText = HarnessCheckHelper.readFile(root, ciPath);
-            if (ciText.contains(expectedCmd)) {
-                findings = List.of();
-            } else {
-                findings = List.of(new Finding(severity, CATEGORY, ciFile + ": CI command mismatch — expected " + expectedCmd));
-            }
-        } else {
-            findings = List.of();
+            final String ciText = HarnessCheckHelper.readFile(root, ciPath);
+            return ciText.contains(expectedCmd)
+                    ? List.of()
+                    : List.of(new Finding(severity, CATEGORY, ciFile + ": CI command mismatch — expected " + expectedCmd));
         }
-        return findings;
+        return List.of();
     }
 
     private String extractHookCommand(String text) {
-        String result = "";
-        for (String line : text.split("\\R")) {
-            if (line.startsWith("# Harness validation command: ")) {
-                result = line.substring("# Harness validation command: ".length()).trim();
-                break;
-            }
-        }
-        return result;
+        return Stream.of(text.split("\\R"))
+                .filter(line -> line.startsWith("# Harness validation command: "))
+                .map(line -> line.substring("# Harness validation command: ".length()).trim())
+                .findFirst()
+                .orElse("");
     }
 }

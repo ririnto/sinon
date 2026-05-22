@@ -26,9 +26,9 @@ public enum RequireImportOverFqnRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
-        String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
-            List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
             return sources.stream()
                     .flatMap(file -> validateImportOverFqn(root, file, severity).stream())
                     .toList();
@@ -39,19 +39,19 @@ public enum RequireImportOverFqnRule implements HarnessCheckRule {
 
     private List<Finding> validateImportOverFqn(Path root, Path file, String severity) {
         try {
-            CompilationUnit cu = StaticJavaParser.parse(file);
-            Set<String> importedSimpleNames = cu.getImports().stream()
+            final CompilationUnit cu = StaticJavaParser.parse(file);
+            final Set<String> importedSimpleNames = cu.getImports().stream()
                     .filter(imp -> !imp.isAsterisk())
                     .map(imp -> {
-                        String name = imp.getNameAsString();
-                        int lastDot = name.lastIndexOf('.');
+                        final String name = imp.getNameAsString();
+                        final int lastDot = name.lastIndexOf('.');
                         return lastDot > 0 ? name.substring(lastDot + 1) : null;
                     })
                     .filter(java.util.Objects::nonNull)
                     .collect(java.util.stream.Collectors.toSet());
             return cu.findAll(FieldAccessExpr.class).stream()
                     .filter(expr -> {
-                        String scope = expr.getScope().toString();
+                        final String scope = expr.getScope().toString();
                         return scope.contains(".") && scope.split("\\.").length >= 2;
                     })
                     .filter(expr -> !importedSimpleNames.contains(expr.getNameAsString()))
