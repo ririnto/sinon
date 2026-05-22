@@ -226,6 +226,17 @@
       "required": ["description", "directory", "uncheckedTaskPattern"]
     },
 
+    "warnUnknownManifestKeys": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "knownKeys": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["description", "knownKeys"]
+    },
+
     "forbidUnsafeSymlinks": {
       "type": "object",
       "properties": {

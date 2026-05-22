@@ -34,7 +34,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_DIRECTORIES_EXIST {
 		override val category = "requireDirectoriesExist"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val paths = stringArrayFrom(manifest[category]?.jsonObject, "paths")
 			return buildSet<Finding> {
@@ -50,7 +50,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_KEEPFILE_IN_EMPTY_DIRECTORIES {
 		override val category = "requireKeepfileInEmptyDirectories"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val directories = stringArrayFrom(manifest[category]?.jsonObject, "directories")
 			return buildSet<Finding> {
@@ -67,7 +67,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_TEMPLATE_GROUPS {
 		override val category = "requireTemplateGroups"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject
 			val targetRoot = stringFrom(catObj, "targetRoot")
@@ -85,7 +85,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_DOC_HEADINGS {
 		override val category = "requireDocHeadings"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val sourceCategory = stringFrom(catObj, "sourceFilesFromCategory")
@@ -110,7 +110,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_DOC_CONTENT {
 		override val category = "requireDocContent"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val checks = catObj["checks"]?.jsonArray ?: return emptyList()
@@ -133,7 +133,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_AGENT_FRONTMATTER {
 		override val category = "requireAgentFrontmatter"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val directory = stringFrom(catObj, "directory")
@@ -167,7 +167,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_SKILL_FRONTMATTER {
 		override val category = "requireSkillFrontmatter"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val rootDirectory = stringFrom(catObj, "rootDirectory")
@@ -199,7 +199,7 @@ enum class HarnessCheck {
 	},
 	FORBID_SCAFFOLD_LEAKS {
 		override val category = "forbidScaffoldLeaks"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val scopeObj = catObj["scope"]?.jsonObject ?: return emptyList()
@@ -243,7 +243,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_HOOK_SHEBANG {
 		override val category = "requireHookShebang"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val hooks = stringArrayFrom(catObj, "hooks")
@@ -264,7 +264,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_HOOK_EXECUTABLE {
 		override val category = "requireHookExecutable"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val hooks = stringArrayFrom(catObj, "hooks")
@@ -281,7 +281,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_HOOK_GENERATED_MARKER {
 		override val category = "requireHookGeneratedMarker"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val hooks = stringArrayFrom(catObj, "hooks")
@@ -307,7 +307,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_HOOK_STAGE {
 		override val category = "requireHookStage"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val markerTemplate = stringFrom(catObj, "markerTemplate")
@@ -337,7 +337,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_HOOK_COMMAND {
 		override val category = "requireHookCommand"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val allowedCmdObj = catObj["allowedCommands"]?.jsonObject
@@ -374,7 +374,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_CI_COMMAND_MATCHES_HOOK {
 		override val category = "requireCiCommandMatchesHook"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val ciFiles = stringArrayFrom(catObj, "ciFiles")
@@ -401,7 +401,7 @@ enum class HarnessCheck {
 	},
 	REQUIRE_ENV_SHEBANG_UNDER {
 		override val category = "requireEnvShebangUnder"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val directories = stringArrayFrom(catObj, "directories")
@@ -425,7 +425,7 @@ enum class HarnessCheck {
 	},
 	FORBID_UNCHECKED_TASKS_UNDER {
 		override val category = "forbidUncheckedTasksUnder"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val severity = severityOf(manifest, category)
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val directory = stringFrom(catObj, "directory")
@@ -452,7 +452,7 @@ enum class HarnessCheck {
 	},
 	FORBID_UNSAFE_SYMLINKS {
 		override val category = "forbidUnsafeSymlinks"
-		override fun validate(manifest: JsonObject): List<Finding> {
+		override fun validate(manifest: JsonObject, root: java.io.File): List<Finding> {
 			val catObj = manifest[category]?.jsonObject ?: return emptyList()
 			val allowedPairs = catObj["allowedSymlinkPairs"]?.jsonArray?.mapNotNull { pairElem ->
 				val pair = pairElem.jsonArray
