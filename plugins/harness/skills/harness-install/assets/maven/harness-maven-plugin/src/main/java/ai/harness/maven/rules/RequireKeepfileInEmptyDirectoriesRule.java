@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -33,18 +34,20 @@ public enum RequireKeepfileInEmptyDirectoriesRule implements HarnessCheckRule {
 
     private List<Finding> validateKeepFile(Path root, String dir, String severity) {
         final Path dirPath = root.resolve(dir);
-        if (HarnessCheckHelper.isSafeDirectory(root, dirPath)) {
-            try (final Stream<Path> stream = Files.list(dirPath)) {
-                final List<Path> realFiles = stream
-                        .filter(f -> !Files.isSymbolicLink(f) && !f.getFileName().toString().equals(".gitkeep"))
-                        .toList();
-                return realFiles.isEmpty() && !HarnessCheckHelper.isSafeRegularFile(root, dirPath.resolve(".gitkeep"))
-                        ? List.of(new Finding(severity, CATEGORY, "empty directory must keep placeholder or real files: " + dir))
-                        : List.of();
-            } catch (IOException e) {
-                return List.of();
-            }
-        }
-        return List.of();
+        return Stream.of(dirPath)
+                .filter(p -> HarnessCheckHelper.isSafeDirectory(root, p))
+                .flatMap(p -> {
+                    try (final Stream<Path> stream = Files.list(p)) {
+                        final List<Path> realFiles = stream
+                                .filter(f -> !Files.isSymbolicLink(f) && !f.getFileName().toString().equals(".gitkeep"))
+                                .toList();
+                        return realFiles.isEmpty() && !HarnessCheckHelper.isSafeRegularFile(root, p.resolve(".gitkeep"))
+                                ? Stream.of(new Finding(severity, CATEGORY, "empty directory must keep placeholder or real files: " + dir))
+                                : Stream.empty();
+                    } catch (IOException e) {
+                        return Stream.empty();
+                    }
+                })
+                .toList();
     }
 }

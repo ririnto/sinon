@@ -1,20 +1,20 @@
 package ai.harness.gradle
 
-import kotlinx.serialization.Serializable
-import ai.harness.gradle.rules.ForbidGreaterThanComparisonRule
 import ai.harness.gradle.rules.ForbidBlankLineInLeafFunctionRule
-import ai.harness.gradle.rules.ForbidImplicitLambdaItRule
-import ai.harness.gradle.rules.RequireSingleTopLevelKotlinDeclarationRule
 import ai.harness.gradle.rules.ForbidEarlyReturnRule
-import ai.harness.gradle.rules.ForbidSilentCatchRule
+import ai.harness.gradle.rules.ForbidEmptyCatchBlockRule
+import ai.harness.gradle.rules.ForbidGreaterThanComparisonRule
+import ai.harness.gradle.rules.ForbidImplicitLambdaItRule
 import ai.harness.gradle.rules.ForbidMutableCollectionRule
+import ai.harness.gradle.rules.ForbidSilentCatchRule
 import ai.harness.gradle.rules.ForbidUnstructuredLoggingRule
 import ai.harness.gradle.rules.ForbidWildcardImportRule
-import ai.harness.gradle.rules.RequireImportOverFqnRule
-import ai.harness.gradle.rules.RequireDocCommentOnPublicDeclarationRule
-import ai.harness.gradle.rules.ForbidEmptyCatchBlockRule
 import ai.harness.gradle.rules.RequireBracesOnIfRule
 import ai.harness.gradle.rules.RequireCompanionObjectPositionRule
+import ai.harness.gradle.rules.RequireDocCommentOnPublicDeclarationRule
+import ai.harness.gradle.rules.RequireImportOverFqnRule
+import ai.harness.gradle.rules.RequireSingleTopLevelKotlinDeclarationRule
+import kotlinx.serialization.Serializable
 
 /**
  * Aggregated PSI analysis results produced by the worker action.

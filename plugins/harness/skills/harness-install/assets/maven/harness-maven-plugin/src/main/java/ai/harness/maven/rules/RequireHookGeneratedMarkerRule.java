@@ -6,6 +6,7 @@ import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -33,14 +34,20 @@ public enum RequireHookGeneratedMarkerRule implements HarnessCheckRule {
 
     private List<Finding> validateMarker(Path root, String hook, String markerTemplate, String placeholderForbidden, String severity) throws MojoExecutionException {
         final Path hookPath = root.resolve(hook);
-        if (HarnessCheckHelper.isSafeRegularFile(root, hookPath)) {
-            final String text = HarnessCheckHelper.readFile(root, hookPath);
-            final String expectedMarker = markerTemplate.replace("{name}", hookPath.getFileName().toString());
-            return Stream.of(
-                    text.contains(expectedMarker) ? Stream.empty() : Stream.of(new Finding(severity, CATEGORY, hook + " must contain generated marker '" + expectedMarker + "'")),
-                    text.contains(placeholderForbidden) ? Stream.of(new Finding(severity, CATEGORY, hook + " still contains packaging placeholder text")) : Stream.empty()
-            ).flatMap(s -> s).toList();
-        }
-        return List.of();
+        return Stream.of(hookPath)
+                .filter(p -> HarnessCheckHelper.isSafeRegularFile(root, p))
+                .flatMap(p -> {
+                    try {
+                        final String text = HarnessCheckHelper.readFile(root, p);
+                        final String expectedMarker = markerTemplate.replace("{name}", p.getFileName().toString());
+                        return Stream.of(
+                                text.contains(expectedMarker) ? Stream.empty() : Stream.of(new Finding(severity, CATEGORY, hook + " must contain generated marker '" + expectedMarker + "'")),
+                                text.contains(placeholderForbidden) ? Stream.of(new Finding(severity, CATEGORY, hook + " still contains packaging placeholder text")) : Stream.empty()
+                        ).flatMap(s -> s);
+                    } catch (MojoExecutionException e) {
+                        return Stream.empty();
+                    }
+                })
+                .toList();
     }
 }
