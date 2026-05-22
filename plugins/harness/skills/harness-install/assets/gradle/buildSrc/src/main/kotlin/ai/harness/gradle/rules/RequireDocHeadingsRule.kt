@@ -20,7 +20,6 @@ object RequireDocHeadingsRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireDocHeadings"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		return if (catObj == null || parametersObj == null) {
@@ -32,12 +31,10 @@ object RequireDocHeadingsRule : HarnessCheckRule {
 			val prefix = HarnessCheck.Companion.stringFrom(sourceFilterObj, "prefix")
 			val suffix = HarnessCheck.Companion.stringFrom(sourceFilterObj, "suffix")
 			val headings = HarnessCheck.Companion.stringArrayFrom(parametersObj, "headings")
-			val filtered = sourceFiles.filter { it.startsWith(prefix) && it.endsWith(suffix) }
-			filtered.flatMap { docPath ->
-				val content = HarnessCheck.Companion.readSafe(root, docPath)
+			sourceFiles.filter { it.startsWith(prefix) && it.endsWith(suffix) }.flatMap { docPath ->
 				headings.mapNotNull { heading ->
-					if (!content.contains(heading)) {
-						Finding(severity, category, "doc missing $heading: $docPath")
+					if (!HarnessCheck.Companion.readSafe(root, docPath).contains(heading)) {
+						Finding(HarnessCheck.Companion.severityOf(manifest, category), category, "doc missing $heading: $docPath")
 					} else {
 						null
 					}

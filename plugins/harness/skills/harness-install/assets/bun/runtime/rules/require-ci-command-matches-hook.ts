@@ -12,18 +12,16 @@ export const requireCiCommandMatchesHookRule = (ctx: RuleContext): HarnessCheckR
     }
     const enabled = (section as { enabled?: unknown }).enabled;
     return enabled !== false && typeof ctx.readJsonObject((section as Record<string, unknown>).parameters).referenceHook === "string";
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireCiCommandMatchesHook);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireCiCommandMatchesHook).parameters);
     const referenceHook = typeof parameters.referenceHook === "string" ? parameters.referenceHook : "";
     const ciFiles = ctx.readStringArray(parameters.ciFiles);
     if (!ctx.isFile(referenceHook)) {
       return [];
     }
-    const refText = ctx.read(referenceHook);
-    const refCommand = refText
+    const refCommand = ctx.read(referenceHook)
       .split(/\r?\n/)
       .find((line) => line.startsWith("# Harness validation command: "))
       ?.replace("# Harness validation command: ", "")

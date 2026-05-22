@@ -31,11 +31,9 @@ public enum ForbidUncheckedTasksUnderRule implements HarnessCheckRule {
         if (!HarnessCheckHelper.isSafeDirectory(root, dirPath)) {
             return List.of();
         }
-        List<Path> files = HarnessCheckHelper.safeFileOrWalk(root, dirPath).stream()
-                .filter(f -> f.getFileName().toString().endsWith(".md") && !f.getFileName().toString().equals(".gitkeep"))
-                .toList();
         Pattern pattern = Pattern.compile(uncheckedPattern);
-        return files.stream()
+        return HarnessCheckHelper.safeFileOrWalk(root, dirPath).stream()
+                .filter(f -> f.getFileName().toString().endsWith(".md") && !f.getFileName().toString().equals(".gitkeep"))
                 .flatMap(file -> {
                     try {
                         String text = HarnessCheckHelper.readFile(root, file);

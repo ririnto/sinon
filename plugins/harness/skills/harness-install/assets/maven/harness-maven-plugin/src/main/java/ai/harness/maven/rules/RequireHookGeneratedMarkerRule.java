@@ -23,11 +23,10 @@ public enum RequireHookGeneratedMarkerRule implements HarnessCheckRule {
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
-        List<String> hooks = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks"));
         String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();
         String placeholderForbidden = catNode.get("parameters").get("placeholderForbidden").asText();
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        return hooks.stream()
+        return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks")).stream()
                 .flatMap(hook -> validateMarker(root, hook, markerTemplate, placeholderForbidden, severity).stream())
                 .toList();
     }

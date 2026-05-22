@@ -40,10 +40,7 @@ public enum ForbidWildcardImportRule implements HarnessCheckRule {
             CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.getImports().stream()
                     .filter(imp -> imp.isAsterisk())
-                    .map(imp -> {
-                        int line = imp.getBegin().map(p -> p.line).orElse(-1);
-                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": wildcard import forbidden");
-                    })
+                    .map(imp -> new Finding(severity, CATEGORY, root.relativize(file) + ":" + imp.getBegin().map(p -> p.line).orElse(-1) + ": wildcard import forbidden"))
                     .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));

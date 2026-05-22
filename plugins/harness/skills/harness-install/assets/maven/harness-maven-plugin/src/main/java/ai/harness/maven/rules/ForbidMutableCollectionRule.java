@@ -47,9 +47,8 @@ public enum ForbidMutableCollectionRule implements HarnessCheckRule {
                                 typeName.equals("TreeMap") || typeName.equals("TreeSet");
                     })
                     .map(expr -> {
-                        int line = expr.getBegin().map(p -> p.line).orElse(-1);
                         String typeName = expr.getTypeAsString();
-                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": mutable collection " + typeName + "; use immutable factory");
+                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + expr.getBegin().map(p -> p.line).orElse(-1) + ": mutable collection " + typeName + "; use immutable factory");
                     })
                     .toList();
         } catch (IOException e) {

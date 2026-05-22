@@ -16,8 +16,7 @@ export const requireHookCommandRule = (ctx: RuleContext): HarnessCheckRule => ({
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireHookCommand);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireHookCommand).parameters);
     const allowedCommands = ctx.readJsonObject(parameters.allowedCommands);
     const stackCommands = ctx.readStringArray(allowedCommands[STACK]);
 

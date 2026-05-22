@@ -11,8 +11,7 @@ export const requireDocCommentOnPublicDeclarationRule = (ctx: RuleContext): Harn
   },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = ctx.stackSources(manifest, "typescript");
-    return sources.flatMap((file) => {
+    return ctx.stackSources(manifest, "typescript").flatMap((file) => {
       const text = ctx.read(file);
       if (!text) {
         return [];

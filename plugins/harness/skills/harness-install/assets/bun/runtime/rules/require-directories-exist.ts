@@ -19,8 +19,7 @@ export const requireDirectoriesExistRule = (ctx: RuleContext): HarnessCheckRule 
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireDirectoriesExist);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireDirectoriesExist).parameters);
     const paths = ctx.readStringArray(parameters.paths);
     return paths.flatMap((path) => {
       if (ctx.isSymlink(path)) {

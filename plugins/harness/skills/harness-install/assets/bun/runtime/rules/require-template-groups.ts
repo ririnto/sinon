@@ -19,8 +19,7 @@ export const requireTemplateGroupsRule = (ctx: RuleContext): HarnessCheckRule =>
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireTemplateGroups);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireTemplateGroups).parameters);
     const targetRoot = typeof parameters.targetRoot === "string" ? parameters.targetRoot : "";
     const groups = ctx.readStringArray(parameters.groups);
     return groups.flatMap((group) => {

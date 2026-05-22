@@ -15,8 +15,7 @@ export const requireSkillFrontmatterRule = (ctx: RuleContext): HarnessCheckRule 
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireSkillFrontmatter);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireSkillFrontmatter).parameters);
     const rootDirectory = typeof parameters.rootDirectory === "string" ? parameters.rootDirectory : "";
     const filename = typeof parameters.filename === "string" ? parameters.filename : "SKILL.md";
     if (!rootDirectory || !ctx.isDirectory(rootDirectory)) {

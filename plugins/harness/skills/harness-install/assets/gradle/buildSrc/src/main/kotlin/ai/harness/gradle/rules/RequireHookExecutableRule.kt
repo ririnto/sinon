@@ -23,7 +23,6 @@ object RequireHookExecutableRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireHookExecutable"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -34,8 +33,7 @@ object RequireHookExecutableRule : HarnessCheckRule {
 			hooks.mapNotNull { hookPath ->
 				val hook = root / hookPath
 				if (hook.isRegularFile() && !hook.isExecutable()) {
-					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must be executable"
-					Finding(severity, category, msg)
+					Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$hookPath must be executable")
 				} else {
 					null
 				}

@@ -25,7 +25,6 @@ public enum ForbidScaffoldLeaksRule implements HarnessCheckRule {
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
         JsonNode scope = catNode.get("parameters").get("scope");
-        List<String> bases = HarnessCheckHelper.extractPaths(scope.get("bases"));
         List<String> excluded = HarnessCheckHelper.extractPaths(scope.get("excludedSubtrees"));
         List<String> extensions = HarnessCheckHelper.extractPaths(scope.get("extensions"));
         JsonNode patternsNode = catNode.get("parameters").get("patterns");
@@ -33,7 +32,7 @@ public enum ForbidScaffoldLeaksRule implements HarnessCheckRule {
         List<Path> excludedPaths = excluded.stream().map(root::resolve).toList();
         String extRegex = extensions.isEmpty() ? ".*" : ".*\\.(" + String.join("|", extensions.stream().map(Pattern::quote).toList()) + ")$";
         Pattern extPattern = Pattern.compile(extRegex);
-        return bases.stream()
+        return HarnessCheckHelper.extractPaths(scope.get("bases")).stream()
                 .flatMap(baseName -> {
                     try {
                         Path base = root.resolve(baseName);

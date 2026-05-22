@@ -15,17 +15,13 @@ export const requireDocHeadingsRule = (ctx: RuleContext): HarnessCheckRule => ({
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireDocHeadings);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireDocHeadings).parameters);
     const sourceCategory = typeof parameters.sourceFilesFromCategory === "string" ? parameters.sourceFilesFromCategory : "requireFilesExist";
-    const requiredSection = ctx.readJsonObject(manifest[sourceCategory]);
-    const requiredParameters = ctx.readJsonObject(requiredSection.parameters);
     const sourceFilter = ctx.readJsonObject(parameters.sourceFilter);
     const prefix = typeof sourceFilter.prefix === "string" ? sourceFilter.prefix : "";
     const suffix = typeof sourceFilter.suffix === "string" ? sourceFilter.suffix : "";
     const headings = ctx.readStringArray(parameters.headings);
-    const allSourceFiles = ctx.readStringArray(requiredParameters.paths);
-    const filteredFiles = allSourceFiles.filter(
+    const filteredFiles = ctx.readStringArray(ctx.readJsonObject(ctx.readJsonObject(manifest[sourceCategory]).parameters).paths).filter(
       (f) => !prefix || (f.startsWith(prefix) && (!suffix || f.endsWith(suffix)))
     );
     return filteredFiles.flatMap((file) => {

@@ -22,8 +22,7 @@ class ForbidEarlyReturnRule(HarnessCheckRule):
         section = manifest.get(self.category)
         if not isinstance(section, dict):
             return False
-        enabled = section.get("enabled", True)
-        return enabled is not False
+        return section.get("enabled", True) is not False
 
     def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate forbidEarlyReturn check."""
@@ -39,11 +38,9 @@ class ForbidEarlyReturnRule(HarnessCheckRule):
                     return False
                 if not isinstance(node.body, cst.IndentedBlock):
                     return True
-                func_name = node.name.value
-                body_stmts = node.body.body
-                if not body_stmts:
+                if not node.body.body:
                     return True
-                for i, stmt in enumerate(body_stmts[:-1]):
+                for i, stmt in enumerate(node.body.body[:-1]):
                     if isinstance(stmt, cst.SimpleStatementLine):
                         for inner_stmt in stmt.body:
                             if isinstance(inner_stmt, cst.Return):
@@ -51,7 +48,7 @@ class ForbidEarlyReturnRule(HarnessCheckRule):
                                 self.findings.append(Finding(
                                     severity,
                                     self.category,
-                                    f"{self.rel_path}:{pos.start.line}: function `{func_name}` has an early/mid return; restructure with single exit",
+                                    f"{self.rel_path}:{pos.start.line}: function `{node.name.value}` has an early/mid return; restructure with single exit",
                                 ))
                 return True
         result = []

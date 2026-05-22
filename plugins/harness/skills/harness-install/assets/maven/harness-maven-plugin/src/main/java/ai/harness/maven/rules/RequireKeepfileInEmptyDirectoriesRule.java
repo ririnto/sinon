@@ -25,9 +25,8 @@ public enum RequireKeepfileInEmptyDirectoriesRule implements HarnessCheckRule {
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
-        List<String> directories = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("directories"));
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        return directories.stream()
+        return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("directories")).stream()
                 .flatMap(dir -> validateKeepFile(root, dir, severity).stream())
                 .toList();
     }

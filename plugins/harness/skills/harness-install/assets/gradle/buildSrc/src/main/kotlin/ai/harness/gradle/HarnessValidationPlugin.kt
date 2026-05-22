@@ -56,13 +56,12 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             depScope.name,
             "$KOTLIN_COMPILER_EMBEDDABLE:$KOTLIN_COMPILER_VERSION",
         )
-        val resolvable = target.configurations.create("harnessKotlinCompilerResolvable") {
-            extendsFrom(depScope)
-        }
         target.tasks.register("harnessValidate", HarnessValidationTask::class.java) {
             group = "verification"
             description = "Validate Claude repository harness assets."
-            kotlinCompiler.from(resolvable)
+            kotlinCompiler.from(target.configurations.create("harnessKotlinCompilerResolvable") {
+                extendsFrom(depScope)
+            })
         }
         target.tasks.named("check").configure {
             dependsOn("harnessValidate")
@@ -102,12 +101,11 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             val findings = buildSet {
                 addAll(manifestFindings)
                 if (manifest != null) {
-                    val knownCategories = HarnessCheck.entries.map { it.category }.toSet()
                     val knownMetadataKeys = setOf(
                         "name", "description", "\$schema",
                         "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns",
                     )
-                    val unknownKeys = manifest.keys - knownCategories - knownMetadataKeys
+                    val unknownKeys = manifest.keys - HarnessCheck.entries.map { it.category }.toSet() - knownMetadataKeys
                     unknownKeys.forEach { key ->
                         project.logger.warn("unknown manifest key: $key")
                     }
@@ -118,15 +116,14 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                     }
                 }
             }.toList()
-            val sorted = findings.sortedWith(compareBy({ it.severity.ordinal }, { findings.indexOf(it) }))
-            sorted.forEach { finding ->
+            findings.sortedWith(compareBy({ it.severity.ordinal }, { findings.indexOf(it) })).forEach { finding ->
                 when (finding.severity) {
                     Severity.ERROR -> project.logger.error("[${finding.severity}] ${finding.message}")
                     Severity.WARN -> project.logger.warn("[${finding.severity}] ${finding.message}")
                     Severity.INFO -> project.logger.info("[${finding.severity}] ${finding.message}")
                 }
             }
-            if (sorted.any { it.severity == Severity.ERROR }) {
+            if (findings.any { it.severity == Severity.ERROR }) {
                 throw GradleException("Harness validation failed")
             }
             project.logger.lifecycle("Harness validation passed")
@@ -149,7 +146,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 this.outputFile.set(outputFile.toFile())
             }
             workQueue.await()
-            return Json.decodeFromString<HarnessPsiResults>(outputFile.readText())
+            return Json.decodeFromString(outputFile.readText())
         }
 
         private fun loadManifest(root: Path): Pair<JsonObject?, List<Finding>> {
@@ -212,13 +209,12 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findGreaterThanComparisons(file: Path): List<ForbidGreaterThanComparisonRule.Result> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitBinaryExpression(expression: KtBinaryExpression) {
                             super.visitBinaryExpression(expression)
                             if (expression.operationToken == KtTokens.GT || expression.operationToken == KtTokens.GTEQ) {
-                                add(ForbidGreaterThanComparisonRule.Result(fileName, lineOf(ktFile, expression.node?.startOffset)))
+                                add(ForbidGreaterThanComparisonRule.Result(file.name, lineOf(ktFile, expression.node?.startOffset)))
                             }
                         }
                     })
@@ -227,14 +223,11 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findBlankLinesInLeafFunctions(file: Path): List<ForbidBlankLineInLeafFunctionRule.Result> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitNamedFunction(function: KtNamedFunction) {
                             super.visitNamedFunction(function)
-                            val hasNestedFunc = function.hasDescendantOfType<KtNamedFunction> { it !== function }
-                            val hasNestedLambda = function.hasDescendantOfType<KtLambdaExpression> { true }
-                            if (hasNestedFunc || hasNestedLambda) {
+                            if (function.hasDescendantOfType<KtNamedFunction> { it !== function } || function.hasDescendantOfType<KtLambdaExpression> { true }) {
                                 return
                             }
                             val body = function.bodyExpression ?: return
@@ -244,7 +237,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                                     child = child.nextSibling
                                     continue
                                 }
-                                add(ForbidBlankLineInLeafFunctionRule.Result(fileName, function.name ?: "unknown",
+                                add(ForbidBlankLineInLeafFunctionRule.Result(file.name, function.name ?: "unknown",
                                     lineOf(ktFile, child.node?.startOffset)))
                                 child = child.nextSibling
                             }
@@ -255,7 +248,6 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findImplicitLambdaIt(file: Path): List<ForbidImplicitLambdaItRule.Result> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitLambdaExpression(expression: KtLambdaExpression) {
@@ -273,7 +265,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                                 }
                             })
                             if (hasIt) {
-                                add(ForbidImplicitLambdaItRule.Result(fileName, lineOf(ktFile, expression.node?.startOffset)))
+                                add(ForbidImplicitLambdaItRule.Result(file.name, lineOf(ktFile, expression.node?.startOffset)))
                             }
                         }
                     })
@@ -296,7 +288,6 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findEarlyReturns(file: Path): List<EarlyReturnResult> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitNamedFunction(function: KtNamedFunction) {
@@ -306,11 +297,10 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                             if (stmts.isEmpty()) {
                                 return
                             }
-                            val funcName = function.name ?: "unknown"
                             stmts.forEach { stmt ->
                                 if (stmt::class.simpleName == "KtReturnExpression") {
                                     if (stmt !== stmts.last()) {
-                                        add(EarlyReturnResult(fileName, funcName, lineOf(ktFile, stmt.node?.startOffset)))
+                                        add(EarlyReturnResult(file.name, function.name ?: "unknown", lineOf(ktFile, stmt.node?.startOffset)))
                                     }
                                 }
                             }
@@ -321,7 +311,6 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findSilentCatches(file: Path): List<SilentCatchResult> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitCatchSection(catchSection: org.jetbrains.kotlin.psi.KtCatchClause) {
@@ -329,9 +318,8 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                             val paramName = catchSection.catchParameter?.name
                             val body = catchSection.catchBody
                             if (paramName != null && body != null) {
-                                val bodyText = body.text
-                                if (!bodyText.contains(paramName) && !bodyText.contains("throw") && !bodyText.contains("logger") && !bodyText.contains("println")) {
-                                    add(SilentCatchResult(fileName, lineOf(ktFile, catchSection.node?.startOffset)))
+                                if (!body.text.contains(paramName) && !body.text.contains("throw") && !body.text.contains("logger") && !body.text.contains("println")) {
+                                    add(SilentCatchResult(file.name, lineOf(ktFile, catchSection.node?.startOffset)))
                                 }
                             }
                         }
@@ -341,7 +329,6 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findMutableCollections(file: Path): List<MutableCollectionResult> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 val mutableFactories = setOf("mutableListOf", "mutableSetOf", "mutableMapOf", "ArrayList", "HashSet", "HashMap", "LinkedHashMap", "LinkedHashSet")
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
@@ -349,7 +336,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                             super.visitCallExpression(expression)
                             val calleeName = expression.calleeExpression?.text ?: ""
                             if (calleeName in mutableFactories) {
-                                add(MutableCollectionResult(fileName, calleeName, lineOf(ktFile, expression.node?.startOffset)))
+                                add(MutableCollectionResult(file.name, calleeName, lineOf(ktFile, expression.node?.startOffset)))
                             }
                         }
 
@@ -357,7 +344,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                             super.visitUserType(type)
                             val typeName = type.text.substringBefore("<")
                             if (typeName in mutableFactories) {
-                                add(MutableCollectionResult(fileName, typeName, lineOf(ktFile, type.node?.startOffset)))
+                                add(MutableCollectionResult(file.name, typeName, lineOf(ktFile, type.node?.startOffset)))
                             }
                         }
                     })
@@ -366,17 +353,16 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findUnstructuredLoggings(file: Path): List<UnstructuredLoggingResult> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitCallExpression(expression: org.jetbrains.kotlin.psi.KtCallExpression) {
                             super.visitCallExpression(expression)
                             val calleeText = expression.calleeExpression?.text ?: ""
                             if (calleeText == "println" || calleeText == "print") {
-                                add(UnstructuredLoggingResult(fileName, lineOf(ktFile, expression.node?.startOffset)))
+                                add(UnstructuredLoggingResult(file.name, lineOf(ktFile, expression.node?.startOffset)))
                             }
                             if (calleeText.contains("System.out") || calleeText.contains("System.err")) {
-                                add(UnstructuredLoggingResult(fileName, lineOf(ktFile, expression.node?.startOffset)))
+                                add(UnstructuredLoggingResult(file.name, lineOf(ktFile, expression.node?.startOffset)))
                             }
                         }
                     })
@@ -385,13 +371,12 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findWildcardImports(file: Path): List<ForbidWildcardImportRule.Result> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitImportDirective(importDirective: org.jetbrains.kotlin.psi.KtImportDirective) {
                             super.visitImportDirective(importDirective)
                             if (importDirective.isAllUnder) {
-                                add(ForbidWildcardImportRule.Result(fileName, lineOf(ktFile, importDirective.node?.startOffset),
+                                add(ForbidWildcardImportRule.Result(file.name, lineOf(ktFile, importDirective.node?.startOffset),
                                     importDirective.importPath?.pathStr ?: ""))
                             }
                         }
@@ -401,15 +386,13 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findFqnUsages(file: Path): List<ImportOverFqnResult> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 val imports = ktFile.importDirectives.mapNotNull { it.importedName?.asString() }.toSet()
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitDotQualifiedExpression(expression: org.jetbrains.kotlin.psi.KtDotQualifiedExpression) {
                             super.visitDotQualifiedExpression(expression)
-                            val receiverChain = expression.receiverExpression
                             var depth = 1
-                            var current: org.jetbrains.kotlin.psi.KtExpression? = receiverChain
+                            var current: org.jetbrains.kotlin.psi.KtExpression? = expression.receiverExpression
                             while (current is org.jetbrains.kotlin.psi.KtDotQualifiedExpression) {
                                 depth++
                                 current = current.receiverExpression
@@ -417,7 +400,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                             if (depth >= 2) {
                                 val simpleName = expression.selectorExpression?.text ?: ""
                                 if (simpleName.isNotEmpty() && simpleName !in imports) {
-                                    add(ImportOverFqnResult(fileName, lineOf(ktFile, expression.node?.startOffset)))
+                                    add(ImportOverFqnResult(file.name, lineOf(ktFile, expression.node?.startOffset)))
                                 }
                             }
                         }
@@ -427,25 +410,21 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findDocCommentMissings(file: Path): List<DocCommentMissingResult> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitClass(klass: org.jetbrains.kotlin.psi.KtClass) {
                             super.visitClass(klass)
                             val visibility = klass.visibilityModifier()?.text
                             if (visibility != "private" && visibility != "internal" && klass.docComment == null) {
-                                val name = klass.name ?: "unknown"
-                                add(DocCommentMissingResult(fileName, name, lineOf(ktFile, klass.node?.startOffset)))
+                                add(DocCommentMissingResult(file.name, klass.name ?: "unknown", lineOf(ktFile, klass.node?.startOffset)))
                             }
                         }
 
                         override fun visitNamedFunction(function: KtNamedFunction) {
                             super.visitNamedFunction(function)
                             val visibility = function.visibilityModifier()?.text
-                            val isOverride = function.hasModifier(KtTokens.OVERRIDE_KEYWORD)
-                            if (visibility != "private" && visibility != "internal" && !isOverride && function.docComment == null) {
-                                val name = function.name ?: "unknown"
-                                add(DocCommentMissingResult(fileName, name, lineOf(ktFile, function.node?.startOffset)))
+                            if (visibility != "private" && visibility != "internal" && !function.hasModifier(KtTokens.OVERRIDE_KEYWORD) && function.docComment == null) {
+                                add(DocCommentMissingResult(file.name, function.name ?: "unknown", lineOf(ktFile, function.node?.startOffset)))
                             }
                         }
 
@@ -453,8 +432,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                             super.visitProperty(property)
                             val visibility = property.visibilityModifier()?.text
                             if (visibility != "private" && visibility != "internal" && property.docComment == null) {
-                                val name = property.name ?: "unknown"
-                                add(DocCommentMissingResult(fileName, name, lineOf(ktFile, property.node?.startOffset)))
+                                add(DocCommentMissingResult(file.name, property.name ?: "unknown", lineOf(ktFile, property.node?.startOffset)))
                             }
                         }
                     })
@@ -463,14 +441,12 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findEmptyCatchBlocks(file: Path): List<ForbidEmptyCatchBlockRule.Result> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitCatchSection(catchSection: org.jetbrains.kotlin.psi.KtCatchClause) {
                             super.visitCatchSection(catchSection)
-                            val body = catchSection.catchBody
-                            if (body is org.jetbrains.kotlin.psi.KtBlockExpression && body.statements.isEmpty()) {
-                                add(ForbidEmptyCatchBlockRule.Result(fileName, lineOf(ktFile, catchSection.node?.startOffset)))
+                            if (catchSection.catchBody is org.jetbrains.kotlin.psi.KtBlockExpression && (catchSection.catchBody as org.jetbrains.kotlin.psi.KtBlockExpression).statements.isEmpty()) {
+                                add(ForbidEmptyCatchBlockRule.Result(file.name, lineOf(ktFile, catchSection.node?.startOffset)))
                             }
                         }
                     })
@@ -479,18 +455,15 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findBraceOnIfViolations(file: Path): List<RequireBracesOnIfRule.Result> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitIfExpression(expression: org.jetbrains.kotlin.psi.KtIfExpression) {
                             super.visitIfExpression(expression)
-                            val thenBranch = expression.then
-                            if (thenBranch != null && thenBranch !is org.jetbrains.kotlin.psi.KtBlockExpression) {
-                                add(RequireBracesOnIfRule.Result(fileName, lineOf(ktFile, expression.node?.startOffset)))
+                            if (expression.then != null && expression.then !is org.jetbrains.kotlin.psi.KtBlockExpression) {
+                                add(RequireBracesOnIfRule.Result(file.name, lineOf(ktFile, expression.node?.startOffset)))
                             }
-                            val elseBranch = expression.`else`
-                            if (elseBranch != null && elseBranch !is org.jetbrains.kotlin.psi.KtBlockExpression && elseBranch !is org.jetbrains.kotlin.psi.KtIfExpression) {
-                                add(RequireBracesOnIfRule.Result(fileName, lineOf(ktFile, expression.node?.startOffset)))
+                            if (expression.`else` != null && expression.`else` !is org.jetbrains.kotlin.psi.KtBlockExpression && expression.`else` !is org.jetbrains.kotlin.psi.KtIfExpression) {
+                                add(RequireBracesOnIfRule.Result(file.name, lineOf(ktFile, expression.node?.startOffset)))
                             }
                         }
                     })
@@ -499,18 +472,15 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
 
             private fun findCompanionPositionViolations(file: Path): List<CompanionPositionResult> {
                 val ktFile = parse(file)
-                val fileName = file.name
                 return buildList {
                     ktFile.accept(object : KtVisitorVoid() {
                         override fun visitClass(klass: org.jetbrains.kotlin.psi.KtClass) {
                             super.visitClass(klass)
-                            val className = klass.name ?: "unknown"
                             val body = klass.getBody() ?: return
-                            val decls = body.declarations
-                            decls.forEachIndexed { idx, decl ->
+                            body.declarations.forEachIndexed { idx, decl ->
                                 if (decl is org.jetbrains.kotlin.psi.KtObjectDeclaration && decl.isCompanion()) {
                                     if (idx != 0) {
-                                        add(CompanionPositionResult(fileName, className, lineOf(ktFile, decl.node?.startOffset)))
+                                        add(CompanionPositionResult(file.name, klass.name ?: "unknown", lineOf(ktFile, decl.node?.startOffset)))
                                     }
                                 }
                             }

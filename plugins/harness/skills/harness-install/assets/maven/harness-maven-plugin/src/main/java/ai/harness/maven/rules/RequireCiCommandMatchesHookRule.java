@@ -34,11 +34,9 @@ public enum RequireCiCommandMatchesHookRule implements HarnessCheckRule {
         if (expectedCmd.isEmpty()) {
             return List.of();
         }
-        List<String> ciFiles = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("ciFiles"));
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        final String cmd = expectedCmd;
-        return ciFiles.stream()
-                .flatMap(ciFile -> validateCiFile(root, ciFile, cmd, severity).stream())
+        return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("ciFiles")).stream()
+                .flatMap(ciFile -> validateCiFile(root, ciFile, expectedCmd, severity).stream())
                 .toList();
     }
 

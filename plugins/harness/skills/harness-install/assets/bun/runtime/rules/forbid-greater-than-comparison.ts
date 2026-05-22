@@ -17,8 +17,7 @@ export const forbidGreaterThanComparisonRule = (ctx: RuleContext): HarnessCheckR
     return true;
   },
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = ctx.stackSources(manifest, "typescript");
-    return sources.flatMap((file) => {
+    return ctx.stackSources(manifest, "typescript").flatMap((file) => {
       const text = ctx.read(file);
       if (!text) {
         return [];
@@ -38,12 +37,11 @@ export const forbidGreaterThanComparisonRule = (ctx: RuleContext): HarnessCheckR
       const findings: Finding[] = [];
       const visit = (node: Node): void => {
         if (isBinaryExpression(node) && (node.operatorToken.kind === SyntaxKind.GreaterThanToken || node.operatorToken.kind === SyntaxKind.GreaterThanEqualsToken)) {
-          const { line } = sourceFile.getLineAndCharacterOfPosition(node.operatorToken.getStart(sourceFile));
           const operator = node.operatorToken.kind === SyntaxKind.GreaterThanToken ? ">" : ">=";
           findings.push({
             severity: ctx.severityOf(manifest, "forbidGreaterThanComparison"),
             category: "forbidGreaterThanComparison",
-            message: `${file}:${line + 1}: forbidden \`${operator}\`; use \`${operator === ">" ? "<" : "<="}\``,
+            message: `${file}:${sourceFile.getLineAndCharacterOfPosition(node.operatorToken.getStart(sourceFile)).line + 1}: forbidden \`${operator}\`; use \`${operator === ">" ? "<" : "<="}\``,
           });
         }
         forEachChild(node, visit);

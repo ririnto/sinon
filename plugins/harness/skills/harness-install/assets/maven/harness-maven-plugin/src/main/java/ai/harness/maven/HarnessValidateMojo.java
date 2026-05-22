@@ -36,17 +36,6 @@ public final class HarnessValidateMojo extends AbstractMojo {
             return;
         }
 
-        List<Finding> allFindings = Arrays.stream(HarnessCheck.values())
-                .filter(check -> check.applies(manifest))
-                .flatMap(check -> {
-                    try {
-                        return check.validate(root, manifest).stream();
-                    } catch (MojoExecutionException e) {
-                        return Stream.empty();
-                    }
-                })
-                .toList();
-
         Set<String> knownCategories = Arrays.stream(HarnessCheck.values())
                 .map(HarnessCheck::category)
                 .collect(Collectors.toUnmodifiableSet());
@@ -56,7 +45,15 @@ public final class HarnessValidateMojo extends AbstractMojo {
                 .filter(key -> !knownCategories.contains(key) && !knownMetadataKeys.contains(key))
                 .forEach(key -> getLog().warn("unknown manifest key: " + key));
 
-        List<Finding> sorted = allFindings.stream()
+        List<Finding> sorted = Arrays.stream(HarnessCheck.values())
+                .filter(check -> check.applies(manifest))
+                .flatMap(check -> {
+                    try {
+                        return check.validate(root, manifest).stream();
+                    } catch (MojoExecutionException e) {
+                        return Stream.empty();
+                    }
+                })
                 .sorted((a, b) -> {
                     int severityOrder = severityRank(b.severity()) - severityRank(a.severity());
                     return severityOrder != 0 ? severityOrder : a.message().compareTo(b.message());
@@ -73,8 +70,7 @@ public final class HarnessValidateMojo extends AbstractMojo {
             }
         }
 
-        long errorCount = sorted.stream().filter(f -> f.severity().equals("ERROR")).count();
-        if (errorCount > 0) {
+        if (sorted.stream().anyMatch(f -> f.severity().equals("ERROR"))) {
             throw new MojoExecutionException("Harness validation failed");
         }
         getLog().info("Harness validation passed");

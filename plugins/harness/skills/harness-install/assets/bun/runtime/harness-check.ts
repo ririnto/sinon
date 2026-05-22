@@ -119,8 +119,7 @@ function readJsonObject(value: unknown): Record<string, unknown> {
 }
 
 function severityOf(manifest: HarnessManifest, category: string): "ERROR" | "WARN" | "INFO" {
-  const section = readJsonObject(manifest[category]);
-  const sev = section.severity;
+  const sev = readJsonObject(manifest[category]).severity;
   return sev === "ERROR" || sev === "WARN" || sev === "INFO" ? sev : "ERROR";
 }
 
@@ -137,15 +136,12 @@ function severityOf(manifest: HarnessManifest, category: string): "ERROR" | "WAR
 function stackSources(manifest: HarnessManifest, category: string): readonly string[] {
   const collected = new Set<string>();
   const parameters = readJsonObject(manifest[category]);
-  const sourceRootsPerStack = readJsonObject(parameters.sourceRootsPerStack);
-  const extensionsPerStack = readJsonObject(parameters.extensionsPerStack);
 
-  const sourceDirs = readStringArray(sourceRootsPerStack[category]);
-  const extensions = new Set(readStringArray(extensionsPerStack[category]));
+  const sourceDirs = readStringArray(readJsonObject(parameters.sourceRootsPerStack)[category]);
+  const extensions = new Set(readStringArray(readJsonObject(parameters.extensionsPerStack)[category]));
 
   if (!(sourceDirs.length === 0 || extensions.size === 0)) {
     function* walkDirGen(dirPath: string): Generator<string> {
-      const skip = (name: string) => name === "node_modules" || name === "build";
       if (isSymlink(dirPath)) {
         return;
       }
@@ -153,9 +149,8 @@ function stackSources(manifest: HarnessManifest, category: string): readonly str
         return;
       }
       try {
-        const entries = readdirSync(pathOf(dirPath));
-        for (const entry of entries) {
-          if (skip(entry)) {
+        for (const entry of readdirSync(pathOf(dirPath))) {
+          if (entry === "node_modules" || entry === "build") {
             continue;
           }
           const child = `${dirPath}/${entry}`;
@@ -180,8 +175,7 @@ function stackSources(manifest: HarnessManifest, category: string): readonly str
     for (const sourceDir of sourceDirs) {
       if (sourceDir.includes("*")) {
         try {
-          const glob = new Bun.Glob(sourceDir);
-          for (const match of glob.scanSync(".")) {
+          for (const match of new Bun.Glob(sourceDir).scanSync(".")) {
             const normPath = `${sourceDir.split("/")[0]}/${match}`;
             const ext = normPath.slice(normPath.lastIndexOf(".") + 1);
             if (extensions.has(ext)) {
@@ -303,11 +297,9 @@ export const HARNESS_CHECKS: readonly { category: string; rule: HarnessCheckRule
 ] as const;
 
 async function main(): Promise<void> {
-  const manifestPath = join(root, "harness.json");
   let manifest: HarnessManifest = {};
   try {
-    const text = readFileSync(manifestPath, "utf8");
-    manifest = JSON.parse(text);
+    manifest = JSON.parse(readFileSync(join(root, "harness.json"), "utf8"));
   } catch {
     console.error("failed to read harness.json");
     process.exit(1);
@@ -330,8 +322,7 @@ async function main(): Promise<void> {
     grouped.get(finding.severity)!.push(finding);
   });
 
-  const severityOrder = ["ERROR", "WARN", "INFO"] as const;
-  for (const severity of severityOrder) {
+  for (const severity of ["ERROR", "WARN", "INFO"] as const) {
     const items = grouped.get(severity);
     if (items && items.length > 0) {
       console.log(`${severity}: ${items.length}`);

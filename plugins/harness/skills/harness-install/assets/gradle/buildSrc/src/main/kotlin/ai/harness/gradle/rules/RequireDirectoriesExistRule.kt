@@ -24,7 +24,6 @@ object RequireDirectoriesExistRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireDirectoriesExist"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		return if (catObj == null || parametersObj == null) {
@@ -35,7 +34,7 @@ object RequireDirectoriesExistRule : HarnessCheckRule {
 				val p = root / path
 				when {
 					p.isSymbolicLink() -> Finding(Severity.ERROR, category, "symlink directory is not allowed: $path")
-					!p.isDirectory() -> Finding(severity, category, "missing directory: $path")
+					!p.isDirectory() -> Finding(HarnessCheck.Companion.severityOf(manifest, category), category, "missing directory: $path")
 					else -> null
 				}
 			}

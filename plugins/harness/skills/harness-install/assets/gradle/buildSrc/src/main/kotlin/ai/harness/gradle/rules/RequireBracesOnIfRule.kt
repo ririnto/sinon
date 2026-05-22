@@ -33,7 +33,6 @@ object RequireBracesOnIfRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireBracesOnIf"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -55,8 +54,7 @@ object RequireBracesOnIfRule : HarnessCheckRule {
 						file.extension in kotlinExts
 					}.flatMap { file ->
 						results.filter { it.file == file.name }.map { hit ->
-							val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: if statement without braces; use braced form"
-							Finding(severity, category, msg)
+							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: if statement without braces; use braced form")
 						}
 					}
 				}

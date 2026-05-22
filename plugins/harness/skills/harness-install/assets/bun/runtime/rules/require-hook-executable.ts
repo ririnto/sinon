@@ -16,11 +16,10 @@ export const requireHookExecutableRule = (ctx: RuleContext): HarnessCheckRule =>
     }
     const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
     return ctx.readStringArray(parameters.hooks).length > 0;
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireHookExecutable);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireHookExecutable).parameters);
     const hooks = ctx.readStringArray(parameters.hooks);
     return hooks.flatMap((hook) => {
       if (!ctx.isFile(hook)) {

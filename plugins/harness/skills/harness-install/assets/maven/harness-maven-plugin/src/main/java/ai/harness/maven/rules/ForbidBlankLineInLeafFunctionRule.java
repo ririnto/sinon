@@ -66,10 +66,11 @@ public enum ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
                 lastNewlineCount++;
             } else if (!text.trim().isEmpty() && !text.matches("\\s+")) {
                 if (lastNewlineCount > 1) {
-                    int line = token.getRange().map(r -> r.begin.line).orElse(-1);
-                    if (line > 0) {
-                        findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + (line - 1) + ": blank line in leaf function"));
-                    }
+                    token.getRange().map(r -> r.begin.line).ifPresent(line -> {
+                        if (line > 0) {
+                            findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + (line - 1) + ": blank line in leaf function"));
+                        }
+                    });
                 }
                 lastNewlineCount = 0;
             } else if (text.matches("\\s+") && text.contains("\n")) {

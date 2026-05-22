@@ -15,24 +15,22 @@ export const forbidScaffoldLeaksRule = (ctx: RuleContext): HarnessCheckRule => (
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.forbidScaffoldLeaks);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.forbidScaffoldLeaks).parameters);
     const scope = ctx.readJsonObject(parameters.scope);
     const bases = ctx.readStringArray(scope.bases);
     const excludedSubtrees = ctx.readStringArray(scope.excludedSubtrees);
     const extensions = ctx.readStringArray(scope.extensions);
-    const patternsRaw = parameters.patterns;
-    const patterns: readonly [RegExp, string][] = Array.isArray(patternsRaw)
-      ? patternsRaw
+    const patterns: readonly [RegExp, string][] = Array.isArray(parameters.patterns)
+      ? (parameters.patterns as unknown[])
           .filter((item): item is Record<string, unknown> => typeof item === "object" && item !== null)
           .flatMap((obj) => {
-            const pattern = typeof obj.pattern === "string" ? obj.pattern : "";
-            const label = typeof obj.label === "string" ? obj.label : "";
-            if (!pattern || !label) {
+            const patternStr = typeof obj.pattern === "string" ? obj.pattern : "";
+            const labelStr = typeof obj.label === "string" ? obj.label : "";
+            if (!patternStr || !labelStr) {
               return [];
             }
             try {
-              return [[new RegExp(pattern), label] as const];
+              return [[new RegExp(patternStr), labelStr] as const];
             } catch {
               return [];
             }
@@ -43,8 +41,7 @@ export const forbidScaffoldLeaksRule = (ctx: RuleContext): HarnessCheckRule => (
       return warnings.concat(
         files.flatMap((file) => {
           const isExcluded = excludedSubtrees.some((subtree) => file === subtree || file.startsWith(`${subtree}/`));
-          const extMatch = /\.([a-z0-9]+)$/.exec(file);
-          const ext = extMatch ? extMatch[1] : "";
+          const ext = /\.([a-z0-9]+)$/.exec(file)?.[1] ?? "";
           return !isExcluded && extensions.includes(ext)
             ? patterns.flatMap(([pattern, label]) =>
                 pattern.test(ctx.read(file))
