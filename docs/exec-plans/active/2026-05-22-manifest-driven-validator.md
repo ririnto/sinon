@@ -159,6 +159,17 @@ Metadata entries (severity 없음, validator는 검증 안 함):
 - [ ] Task 13.5.4 — TypeScript `harness-validate.ts`: early `return` 모두 reverse 조건 + single return 또는 nested if-else (subagent: general-purpose)
 - [ ] Task 13.5.5 — install-harness.sh의 helper 함수도 `return 0` early return 패턴을 검토. 단 shell script는 early return이 관용적이라 함수당 1건 정도는 허용. orchestrator가 직접 검토 (subagent: harness:harness-architect)
 
+### Phase 13.6: Silent failure 제거 (catch 블록 처리 + emptyList 반환 정리)
+
+사용자 지침: (a) `try { ... } catch (e) { return "" }` / `catch { return null }` 같이 예외를 무시하고 빈 값을 반환하는 패턴 금지. catch 블록은 발생한 예외를 *명시적으로* finding으로 변환해 호출자가 알 수 있게 한다. (b) `emptyList()` / `tuple()` / `[]` 같은 "결과 없음" 반환을 silent로 사용하지 않는다. 결과 없음은 *명시적 finding* 또는 *Result type*으로 표현한다.
+
+- [ ] Task 13.6.1 — 4 stack validator의 모든 `try { ... } catch (...)` 블록을 점검. catch에서 빈 값을 반환하지 말고 (a) finding을 추가해 호출자에 전달 (b) 가능한 경우 예외를 다시 throw해 main에서 ManifestLoad failure로 단일 처리. 예외 종류별 finding category(`manifestParity` / `symlinkSafety` / `ioFailure` 등) 매핑 명시 (subagent: general-purpose × 4)
+- [ ] Task 13.6.2 — `emptyList()` / `listOf()` 빈 반환을 silent 결과 표시로 쓰지 않도록 정리:
+  - `safeFileOrWalk(unsafe symlink)` 같은 함수는 빈 list 대신 `ScanResult(emptyList, finding)` 같은 명시적 결과 (finding 포함) 반환
+  - `extractObjectBody`가 manifest에서 못 찾으면 `null` 대신 `ParseResult.NotFound(category)` 또는 `Finding(manifestParity, ...)`로 표현
+  - manifest 옵션이 비어 있는 정상 경우(예: `seedFiles.paths = []`)는 그대로 empty 허용 (이는 정상)
+- [ ] Task 13.6.3 — Python의 `return ()` / Kotlin `emptyList()` / TS `[]` / Java `List.of()` 사용처를 모두 grep해서 silent failure 가능성 검토 (subagent: general-purpose × 4)
+
 ### Phase 14: Gradle buildSrc 재배치 + assets/ 디렉토리 컨벤션
 
 - [ ] Task 14.1 — skill 디렉토리 컨벤션 정리: `skills/harness-install/templates/` → `skills/harness-install/assets/` (sinon plugin authoring 컨벤션 — skills는 templates 아닌 assets). install-harness.sh가 새 위치를 가리키도록 갱신
