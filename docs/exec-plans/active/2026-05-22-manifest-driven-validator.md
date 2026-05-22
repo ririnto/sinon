@@ -170,6 +170,35 @@ Metadata entries (severity 없음, validator는 검증 안 함):
   - manifest 옵션이 비어 있는 정상 경우(예: `seedFiles.paths = []`)는 그대로 empty 허용 (이는 정상)
 - [ ] Task 13.6.3 — Python의 `return ()` / Kotlin `emptyList()` / TS `[]` / Java `List.of()` 사용처를 모두 grep해서 silent failure 가능성 검토 (subagent: general-purpose × 4)
 
+### Phase 13.7: forEach + conditional add → functional `.filter().map()`
+
+사용자 지침: `forEach { if (cond) add(Finding(...)) }` 패턴은 `filter().map()` 으로 충분히 표현 가능. 명령형 builder 패턴을 함수형 변환으로 교체.
+
+예:
+
+```kotlin
+children.forEach { child ->
+    if (Files.isSymbolicLink(child.toPath())) {
+        add(Finding(parseSeverity(manifest, "symlinkSafety"), "symlinkSafety", "symlink scan entry is not allowed: ${child.relativeTo(root)}"))
+    }
+}
+```
+
+→
+
+```kotlin
+addAll(
+    children
+        .filter { Files.isSymbolicLink(it.toPath()) }
+        .map { Finding(parseSeverity(manifest, "symlinkSafety"), "symlinkSafety", "symlink scan entry is not allowed: ${it.relativeTo(root)}") }
+)
+```
+
+- [ ] Task 13.7.1 — Kotlin `HarnessValidationPlugin.kt`: `forEach { if (...) add(...) }` 패턴을 모두 `filter().map()` + `addAll(...)` 형태로 (subagent: general-purpose)
+- [ ] Task 13.7.2 — Java `HarnessValidateMojo.java`: `for (X x : ...) { if (...) findings.add(...) }` 를 `Stream.filter().map().toList()` 로 (subagent: general-purpose)
+- [ ] Task 13.7.3 — Python `harness_validate.py`: `for x in ...: if cond: findings.append(...)` 를 list comprehension `[f(x) for x in ... if cond]` 로 (subagent: general-purpose)
+- [ ] Task 13.7.4 — TypeScript `harness-validate.ts`: `for (const x of ...) { if (cond) findings.push(...) }` 를 `.filter(...).map(...)` 으로 (subagent: general-purpose)
+
 ### Phase 14: Gradle buildSrc 재배치 + assets/ 디렉토리 컨벤션
 
 - [ ] Task 14.1 — skill 디렉토리 컨벤션 정리: `skills/harness-install/templates/` → `skills/harness-install/assets/` (sinon plugin authoring 컨벤션 — skills는 templates 아닌 assets). install-harness.sh가 새 위치를 가리키도록 갱신
