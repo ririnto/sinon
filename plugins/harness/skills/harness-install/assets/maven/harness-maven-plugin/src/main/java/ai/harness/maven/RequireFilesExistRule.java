@@ -8,7 +8,8 @@ import java.util.Collection;
 /**
  * Rule that requires specified files to exist in the project.
  */
-public class RequireFilesExistRule implements HarnessCheckRule {
+public enum RequireFilesExistRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireFilesExist";
 
     @Override

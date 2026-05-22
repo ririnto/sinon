@@ -9,7 +9,8 @@ import java.util.Collection;
 /**
  * Rule that requires hook files to be executable.
  */
-public class RequireHookExecutableRule implements HarnessCheckRule {
+public enum RequireHookExecutableRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireHookExecutable";
 
     @Override

@@ -52,3 +52,6 @@ class RequireKeepleInEmptyDirectoriesRule(HarnessCheckRule):
             and not any(p for p in (root / directory).iterdir() if p.name != ".gitkeep")
             and not is_safe_file(root / directory / ".gitkeep")
         ]
+
+
+RULE: HarnessCheckRule = RequireKeepleInEmptyDirectoriesRule()

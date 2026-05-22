@@ -11,7 +11,8 @@ import java.util.stream.Stream;
 /**
  * Rule that requires .gitkeep or real files in empty directories.
  */
-public class RequireKeepfileInEmptyDirectoriesRule implements HarnessCheckRule {
+public enum RequireKeepfileInEmptyDirectoriesRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireKeepfileInEmptyDirectories";
 
     @Override

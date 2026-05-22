@@ -5,19 +5,15 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Forbid silent catch blocks without rethrow, throw, or logging.
  */
-export class ForbidSilentCatchRule implements HarnessCheckRule {
-  static readonly category = "forbidSilentCatch";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const forbidSilentCatchRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(_manifest: HarnessManifest): boolean {
     return true;
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = this.ctx.stackSources(manifest, "typescript");
+    const sources = ctx.stackSources(manifest, "typescript");
     return sources.flatMap((file) => {
-      const text = this.ctx.read(file);
+      const text = ctx.read(file);
       if (!text) {
         return [];
       }
@@ -28,8 +24,8 @@ export class ForbidSilentCatchRule implements HarnessCheckRule {
       } catch {
         return [
           {
-            severity: this.ctx.severityOf(manifest, ForbidSilentCatchRule.category),
-            category: ForbidSilentCatchRule.category,
+            severity: ctx.severityOf(manifest, "forbidSilentCatch"),
+            category: "forbidSilentCatch",
             message: `failed to parse TypeScript: ${file}`,
           },
         ];
@@ -63,8 +59,8 @@ export class ForbidSilentCatchRule implements HarnessCheckRule {
           if (!hasSafeContent(node.block)) {
             const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
             findings.push({
-              severity: this.ctx.severityOf(manifest, ForbidSilentCatchRule.category),
-              category: ForbidSilentCatchRule.category,
+              severity: ctx.severityOf(manifest, "forbidSilentCatch"),
+              category: "forbidSilentCatch",
               message: `${file}:${line + 1}: silent catch; rethrow, translate to a Finding, or log via structured logger`,
             });
           }
@@ -76,4 +72,5 @@ export class ForbidSilentCatchRule implements HarnessCheckRule {
       return findings;
     });
   }
-}
+
+});

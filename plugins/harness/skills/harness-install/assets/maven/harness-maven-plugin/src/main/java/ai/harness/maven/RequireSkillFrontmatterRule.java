@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 /**
  * Rule that requires skill files to have proper frontmatter.
  */
-public class RequireSkillFrontmatterRule implements HarnessCheckRule {
+public enum RequireSkillFrontmatterRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireSkillFrontmatter";
 
     @Override

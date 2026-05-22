@@ -61,3 +61,6 @@ class RequireHookGeneratedMarkerRule(HarnessCheckRule):
                     messages.get("placeholderPresent", "{hook} still contains packaging placeholder text").format(hook=hook),
                 ))
         return result
+
+
+RULE: HarnessCheckRule = RequireHookGeneratedMarkerRule()

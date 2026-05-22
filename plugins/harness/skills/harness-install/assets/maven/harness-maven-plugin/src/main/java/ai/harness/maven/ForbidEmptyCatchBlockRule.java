@@ -12,7 +12,8 @@ import java.util.Collection;
 /**
  * Rule that forbids empty catch blocks.
  */
-public class ForbidEmptyCatchBlockRule implements HarnessCheckRule {
+public enum ForbidEmptyCatchBlockRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidEmptyCatchBlock";
 
     @Override

@@ -5,19 +5,15 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Forbid mutable collection constructors.
  */
-export class ForbidMutableCollectionRule implements HarnessCheckRule {
-  static readonly category = "forbidMutableCollection";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const forbidMutableCollectionRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(_manifest: HarnessManifest): boolean {
     return true;
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = this.ctx.stackSources(manifest, "typescript");
+    const sources = ctx.stackSources(manifest, "typescript");
     return sources.flatMap((file) => {
-      const text = this.ctx.read(file);
+      const text = ctx.read(file);
       if (!text) {
         return [];
       }
@@ -28,8 +24,8 @@ export class ForbidMutableCollectionRule implements HarnessCheckRule {
       } catch {
         return [
           {
-            severity: this.ctx.severityOf(manifest, ForbidMutableCollectionRule.category),
-            category: ForbidMutableCollectionRule.category,
+            severity: ctx.severityOf(manifest, "forbidMutableCollection"),
+            category: "forbidMutableCollection",
             message: `failed to parse TypeScript: ${file}`,
           },
         ];
@@ -45,8 +41,8 @@ export class ForbidMutableCollectionRule implements HarnessCheckRule {
             if (name === "Array" || name === "Map" || name === "Set") {
               const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
               findings.push({
-                severity: this.ctx.severityOf(manifest, ForbidMutableCollectionRule.category),
-                category: ForbidMutableCollectionRule.category,
+                severity: ctx.severityOf(manifest, "forbidMutableCollection"),
+                category: "forbidMutableCollection",
                 message: `${file}:${line + 1}: mutable collection construction \`new ${name}\`; use functional alternative`,
               });
             }
@@ -59,4 +55,5 @@ export class ForbidMutableCollectionRule implements HarnessCheckRule {
       return findings;
     });
   }
-}
+
+});

@@ -9,7 +9,8 @@ import java.util.stream.Stream;
 /**
  * Rule that requires specific content in documentation files.
  */
-public class RequireDocContentRule implements HarnessCheckRule {
+public enum RequireDocContentRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireDocContent";
 
     @Override

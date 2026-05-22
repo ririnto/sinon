@@ -4,11 +4,7 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Forbid unchecked task lists in completed plans.
  */
-export class ForbidUncheckedTasksUnderRule implements HarnessCheckRule {
-  static readonly category = "forbidUncheckedTasksUnder";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const forbidUncheckedTasksUnderRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(manifest: HarnessManifest): boolean {
     const section = manifest.forbidUncheckedTasksUnder;
     if (typeof section !== "object" || section === null) {
@@ -18,17 +14,17 @@ export class ForbidUncheckedTasksUnderRule implements HarnessCheckRule {
     if (enabled === false) {
       return false;
     }
-    const parameters = this.ctx.readJsonObject((section as Record<string, unknown>).parameters);
+    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
     return typeof parameters.directory === "string";
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = this.ctx.readJsonObject(manifest.forbidUncheckedTasksUnder);
-    const parameters = this.ctx.readJsonObject(section.parameters);
+    const section = ctx.readJsonObject(manifest.forbidUncheckedTasksUnder);
+    const parameters = ctx.readJsonObject(section.parameters);
     const directory = typeof parameters.directory === "string" ? parameters.directory : "";
     const patternStr = typeof parameters.uncheckedTaskPattern === "string" ? parameters.uncheckedTaskPattern : "";
 
-    if (!directory || !this.ctx.isDirectory(directory) || !patternStr) {
+    if (!directory || !ctx.isDirectory(directory) || !patternStr) {
       return [];
     }
 
@@ -39,17 +35,17 @@ export class ForbidUncheckedTasksUnderRule implements HarnessCheckRule {
       return [];
     }
 
-    const [files, warnings] = this.ctx.walkDirectory(directory);
+    const [files, warnings] = ctx.walkDirectory(directory);
     return warnings.concat(
       files.flatMap((file) => {
         if (!file.endsWith(".md")) {
           return [];
         }
-        return pattern.test(this.ctx.read(file))
+        return pattern.test(ctx.read(file))
           ? [
               {
-                severity: this.ctx.severityOf(manifest, ForbidUncheckedTasksUnderRule.category),
-                category: ForbidUncheckedTasksUnderRule.category,
+                severity: ctx.severityOf(manifest, "forbidUncheckedTasksUnder"),
+                category: "forbidUncheckedTasksUnder",
                 message: `completed plan has unchecked tasks: ${file}`,
               },
             ]
@@ -57,4 +53,5 @@ export class ForbidUncheckedTasksUnderRule implements HarnessCheckRule {
       })
     );
   }
-}
+
+});

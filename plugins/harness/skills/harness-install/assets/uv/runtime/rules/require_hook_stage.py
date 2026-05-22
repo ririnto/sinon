@@ -61,3 +61,6 @@ class RequireHookStageRule(HarnessCheckRule):
                     template.format(hook=hook_name, expectedStage=expected_stage),
                 ))
         return result
+
+
+RULE: HarnessCheckRule = RequireHookStageRule()

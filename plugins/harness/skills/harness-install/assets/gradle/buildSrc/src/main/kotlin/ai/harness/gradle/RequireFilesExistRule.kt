@@ -9,7 +9,7 @@ import kotlin.io.path.isSymbolicLink
 /**
  * Rule that requires specified files to exist.
  */
-class RequireFilesExistRule : HarnessCheckRule {
+object RequireFilesExistRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireFilesExist"
 		val catObj = manifest[category]?.jsonObject ?: return false

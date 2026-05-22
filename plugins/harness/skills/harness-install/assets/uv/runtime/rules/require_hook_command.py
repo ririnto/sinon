@@ -102,3 +102,6 @@ class RequireHookCommandRule(HarnessCheckRule):
                     else:
                         return [Finding("ERROR", self.category, f"validation command for stack '{STACK}' missing from manifest")]
         return result
+
+
+RULE: HarnessCheckRule = RequireHookCommandRule()

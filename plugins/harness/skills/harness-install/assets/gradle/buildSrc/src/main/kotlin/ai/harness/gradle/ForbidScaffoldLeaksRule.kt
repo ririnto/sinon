@@ -12,7 +12,7 @@ import java.io.File
 /**
  * Rule that forbids scaffold placeholder patterns in active assets.
  */
-class ForbidScaffoldLeaksRule : HarnessCheckRule {
+object ForbidScaffoldLeaksRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "forbidScaffoldLeaks"
 		val catObj = manifest[category]?.jsonObject ?: return false

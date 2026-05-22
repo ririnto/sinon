@@ -75,3 +75,6 @@ class RequireAgentFrontmatterRule(HarnessCheckRule):
                     messages.get("missingDescription", "agent missing description: {file}").format(file=relative(path)),
                 ))
         return result
+
+
+RULE: HarnessCheckRule = RequireAgentFrontmatterRule()

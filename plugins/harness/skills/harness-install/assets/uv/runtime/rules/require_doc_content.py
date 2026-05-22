@@ -62,3 +62,6 @@ class RequireDocContentRule(HarnessCheckRule):
                     failure_message,
                 ))
         return result
+
+
+RULE: HarnessCheckRule = RequireDocContentRule()

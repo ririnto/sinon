@@ -4,11 +4,7 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Forbid scaffold/placeholder patterns in active assets.
  */
-export class ForbidScaffoldLeaksRule implements HarnessCheckRule {
-  static readonly category = "forbidScaffoldLeaks";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const forbidScaffoldLeaksRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(manifest: HarnessManifest): boolean {
     const section = manifest.forbidScaffoldLeaks;
     if (typeof section !== "object" || section === null) {
@@ -18,18 +14,18 @@ export class ForbidScaffoldLeaksRule implements HarnessCheckRule {
     if (enabled === false) {
       return false;
     }
-    const parameters = this.ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    const scope = this.ctx.readJsonObject(parameters.scope);
-    return this.ctx.readStringArray(scope.bases).length > 0;
+    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
+    const scope = ctx.readJsonObject(parameters.scope);
+    return ctx.readStringArray(scope.bases).length > 0;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = this.ctx.readJsonObject(manifest.forbidScaffoldLeaks);
-    const parameters = this.ctx.readJsonObject(section.parameters);
-    const scope = this.ctx.readJsonObject(parameters.scope);
-    const bases = this.ctx.readStringArray(scope.bases);
-    const excludedSubtrees = this.ctx.readStringArray(scope.excludedSubtrees);
-    const extensions = this.ctx.readStringArray(scope.extensions);
+    const section = ctx.readJsonObject(manifest.forbidScaffoldLeaks);
+    const parameters = ctx.readJsonObject(section.parameters);
+    const scope = ctx.readJsonObject(parameters.scope);
+    const bases = ctx.readStringArray(scope.bases);
+    const excludedSubtrees = ctx.readStringArray(scope.excludedSubtrees);
+    const extensions = ctx.readStringArray(scope.extensions);
     const patternsRaw = parameters.patterns;
 
     const patterns: readonly [RegExp, string][] = Array.isArray(patternsRaw)
@@ -50,7 +46,7 @@ export class ForbidScaffoldLeaksRule implements HarnessCheckRule {
       : [];
 
     return bases.flatMap((base) => {
-      const [files, warnings] = this.ctx.collectFilesUnder(base);
+      const [files, warnings] = ctx.collectFilesUnder(base);
       return warnings.concat(
         files.flatMap((file) => {
           const isExcluded = excludedSubtrees.some((subtree) => file === subtree || file.startsWith(`${subtree}/`));
@@ -62,13 +58,13 @@ export class ForbidScaffoldLeaksRule implements HarnessCheckRule {
           if (!extensions.includes(ext)) {
             return [];
           }
-          const text = this.ctx.read(file);
+          const text = ctx.read(file);
           return patterns.flatMap(([pattern, label]) =>
             pattern.test(text)
               ? [
                   {
-                    severity: this.ctx.severityOf(manifest, ForbidScaffoldLeaksRule.category),
-                    category: ForbidScaffoldLeaksRule.category,
+                    severity: ctx.severityOf(manifest, "forbidScaffoldLeaks"),
+                    category: "forbidScaffoldLeaks",
                     message: `${label} in active asset: ${file}`,
                   },
                 ]
@@ -78,4 +74,5 @@ export class ForbidScaffoldLeaksRule implements HarnessCheckRule {
       );
     });
   }
-}
+
+});

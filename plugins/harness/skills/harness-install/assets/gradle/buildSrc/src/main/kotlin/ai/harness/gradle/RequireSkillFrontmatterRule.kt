@@ -13,7 +13,7 @@ import kotlin.io.path.walk
 /**
  * Rule that requires skills to have proper frontmatter.
  */
-class RequireSkillFrontmatterRule : HarnessCheckRule {
+object RequireSkillFrontmatterRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireSkillFrontmatter"
 		val catObj = manifest[category]?.jsonObject ?: return false

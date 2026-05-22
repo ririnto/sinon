@@ -13,7 +13,8 @@ import java.util.Collection;
 /**
  * Rule that forbids greater-than comparisons in favor of less-than.
  */
-public class ForbidGreaterThanComparisonRule implements HarnessCheckRule {
+public enum ForbidGreaterThanComparisonRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidGreaterThanComparison";
 
     @Override

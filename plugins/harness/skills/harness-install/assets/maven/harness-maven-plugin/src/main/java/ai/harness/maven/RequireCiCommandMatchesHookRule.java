@@ -10,7 +10,8 @@ import java.util.Collection;
 /**
  * Rule that requires CI configuration to match hook commands.
  */
-public class RequireCiCommandMatchesHookRule implements HarnessCheckRule {
+public enum RequireCiCommandMatchesHookRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireCiCommandMatchesHook";
 
     @Override

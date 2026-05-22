@@ -9,7 +9,8 @@ import java.util.stream.Stream;
 /**
  * Rule that requires Kotlin files to have exactly one top-level declaration.
  */
-public class RequireSingleTopLevelKotlinDeclarationRule implements HarnessCheckRule {
+public enum RequireSingleTopLevelKotlinDeclarationRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireSingleTopLevelKotlinDeclaration";
 
     @Override

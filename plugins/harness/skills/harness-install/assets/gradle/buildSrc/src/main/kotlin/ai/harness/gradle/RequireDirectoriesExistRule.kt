@@ -9,7 +9,7 @@ import kotlin.io.path.isSymbolicLink
 /**
  * Rule that requires specified directories to exist.
  */
-class RequireDirectoriesExistRule : HarnessCheckRule {
+object RequireDirectoriesExistRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireDirectoriesExist"
 		val catObj = manifest[category]?.jsonObject ?: return false

@@ -11,7 +11,8 @@ import java.util.Collection;
 /**
  * Rule that forbids wildcard imports.
  */
-public class ForbidWildcardImportRule implements HarnessCheckRule {
+public enum ForbidWildcardImportRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidWildcardImport";
 
     @Override

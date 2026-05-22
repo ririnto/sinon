@@ -2,36 +2,36 @@
 import { lstatSync, readdirSync, readFileSync, readlinkSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { HarnessCheckRule, Finding, HarnessManifest, RuleContext } from "./harness-check-rule";
-import { RequireFilesExistRule } from "./rules/require-files-exist";
-import { RequireDirectoriesExistRule } from "./rules/require-directories-exist";
-import { RequireKeepfileInEmptyDirectoriesRule } from "./rules/require-keepfile-in-empty-directories";
-import { RequireTemplateGroupsRule } from "./rules/require-template-groups";
-import { RequireDocHeadingsRule } from "./rules/require-doc-headings";
-import { RequireDocContentRule } from "./rules/require-doc-content";
-import { RequireAgentFrontmatterRule } from "./rules/require-agent-frontmatter";
-import { RequireSkillFrontmatterRule } from "./rules/require-skill-frontmatter";
-import { ForbidScaffoldLeaksRule } from "./rules/forbid-scaffold-leaks";
-import { RequireHookShebangRule } from "./rules/require-hook-shebang";
-import { RequireHookExecutableRule } from "./rules/require-hook-executable";
-import { RequireHookGeneratedMarkerRule } from "./rules/require-hook-generated-marker";
-import { RequireHookStageRule } from "./rules/require-hook-stage";
-import { RequireHookCommandRule } from "./rules/require-hook-command";
-import { RequireCiCommandMatchesHookRule } from "./rules/require-ci-command-matches-hook";
-import { RequireEnvShebangUnderRule } from "./rules/require-env-shebang-under";
-import { ForbidUncheckedTasksUnderRule } from "./rules/forbid-unchecked-tasks-under";
-import { ForbidUnsafeSymlinksRule } from "./rules/forbid-unsafe-symlinks";
-import { ForbidImplicitLambdaItRule } from "./rules/forbid-implicit-lambda-it";
-import { RequireSingleTopLevelKotlinDeclarationRule } from "./rules/require-single-top-level-kotlin-declaration";
-import { ForbidGreaterThanComparisonRule } from "./rules/forbid-greater-than-comparison";
-import { ForbidBlankLineInLeafFunctionRule } from "./rules/forbid-blank-line-in-leaf-function";
-import { ForbidEarlyReturnRule } from "./rules/forbid-early-return";
-import { ForbidSilentCatchRule } from "./rules/forbid-silent-catch";
-import { ForbidMutableCollectionRule } from "./rules/forbid-mutable-collection";
-import { ForbidUnstructuredLoggingRule } from "./rules/forbid-unstructured-logging";
-import { ForbidWildcardImportRule } from "./rules/forbid-wildcard-import";
-import { ForbidEmptyCatchBlockRule } from "./rules/forbid-empty-catch-block";
-import { RequireBracesOnIfRule } from "./rules/require-braces-on-if";
-import { RequireDocCommentOnPublicDeclarationRule } from "./rules/require-doc-comment-on-public-declaration";
+import { requireFilesExistRule } from "./rules/require-files-exist";
+import { requireDirectoriesExistRule } from "./rules/require-directories-exist";
+import { requireKeepfileInEmptyDirectoriesRule } from "./rules/require-keepfile-in-empty-directories";
+import { requireTemplateGroupsRule } from "./rules/require-template-groups";
+import { requireDocHeadingsRule } from "./rules/require-doc-headings";
+import { requireDocContentRule } from "./rules/require-doc-content";
+import { requireAgentFrontmatterRule } from "./rules/require-agent-frontmatter";
+import { requireSkillFrontmatterRule } from "./rules/require-skill-frontmatter";
+import { forbidScaffoldLeaksRule } from "./rules/forbid-scaffold-leaks";
+import { requireHookShebangRule } from "./rules/require-hook-shebang";
+import { requireHookExecutableRule } from "./rules/require-hook-executable";
+import { requireHookGeneratedMarkerRule } from "./rules/require-hook-generated-marker";
+import { requireHookStageRule } from "./rules/require-hook-stage";
+import { requireHookCommandRule } from "./rules/require-hook-command";
+import { requireCiCommandMatchesHookRule } from "./rules/require-ci-command-matches-hook";
+import { requireEnvShebangUnderRule } from "./rules/require-env-shebang-under";
+import { forbidUncheckedTasksUnderRule } from "./rules/forbid-unchecked-tasks-under";
+import { forbidUnsafeSymlinksRule } from "./rules/forbid-unsafe-symlinks";
+import { forbidImplicitLambdaItRule } from "./rules/forbid-implicit-lambda-it";
+import { requireSingleTopLevelKotlinDeclarationRule } from "./rules/require-single-top-level-kotlin-declaration";
+import { forbidGreaterThanComparisonRule } from "./rules/forbid-greater-than-comparison";
+import { forbidBlankLineInLeafFunctionRule } from "./rules/forbid-blank-line-in-leaf-function";
+import { forbidEarlyReturnRule } from "./rules/forbid-early-return";
+import { forbidSilentCatchRule } from "./rules/forbid-silent-catch";
+import { forbidMutableCollectionRule } from "./rules/forbid-mutable-collection";
+import { forbidUnstructuredLoggingRule } from "./rules/forbid-unstructured-logging";
+import { forbidWildcardImportRule } from "./rules/forbid-wildcard-import";
+import { forbidEmptyCatchBlockRule } from "./rules/forbid-empty-catch-block";
+import { requireBracesOnIfRule } from "./rules/require-braces-on-if";
+import { requireDocCommentOnPublicDeclarationRule } from "./rules/require-doc-comment-on-public-declaration";
 
 const root = process.cwd();
 
@@ -270,36 +270,36 @@ const ruleContext: RuleContext = {
  * All harness check rules instantiated with shared context.
  */
 export const HARNESS_CHECKS: readonly { category: string; rule: HarnessCheckRule }[] = [
-  { category: "requireFilesExist", rule: new RequireFilesExistRule(ruleContext) },
-  { category: "requireDirectoriesExist", rule: new RequireDirectoriesExistRule(ruleContext) },
-  { category: "requireKeepfileInEmptyDirectories", rule: new RequireKeepfileInEmptyDirectoriesRule(ruleContext) },
-  { category: "requireTemplateGroups", rule: new RequireTemplateGroupsRule(ruleContext) },
-  { category: "requireDocHeadings", rule: new RequireDocHeadingsRule(ruleContext) },
-  { category: "requireDocContent", rule: new RequireDocContentRule(ruleContext) },
-  { category: "requireAgentFrontmatter", rule: new RequireAgentFrontmatterRule(ruleContext) },
-  { category: "requireSkillFrontmatter", rule: new RequireSkillFrontmatterRule(ruleContext) },
-  { category: "forbidScaffoldLeaks", rule: new ForbidScaffoldLeaksRule(ruleContext) },
-  { category: "requireHookShebang", rule: new RequireHookShebangRule(ruleContext) },
-  { category: "requireHookExecutable", rule: new RequireHookExecutableRule(ruleContext) },
-  { category: "requireHookGeneratedMarker", rule: new RequireHookGeneratedMarkerRule(ruleContext) },
-  { category: "requireHookStage", rule: new RequireHookStageRule(ruleContext) },
-  { category: "requireHookCommand", rule: new RequireHookCommandRule(ruleContext) },
-  { category: "requireCiCommandMatchesHook", rule: new RequireCiCommandMatchesHookRule(ruleContext) },
-  { category: "requireEnvShebangUnder", rule: new RequireEnvShebangUnderRule(ruleContext) },
-  { category: "forbidUncheckedTasksUnder", rule: new ForbidUncheckedTasksUnderRule(ruleContext) },
-  { category: "forbidUnsafeSymlinks", rule: new ForbidUnsafeSymlinksRule(ruleContext) },
-  { category: "forbidImplicitLambdaIt", rule: new ForbidImplicitLambdaItRule(ruleContext) },
-  { category: "requireSingleTopLevelKotlinDeclaration", rule: new RequireSingleTopLevelKotlinDeclarationRule(ruleContext) },
-  { category: "forbidGreaterThanComparison", rule: new ForbidGreaterThanComparisonRule(ruleContext) },
-  { category: "forbidBlankLineInLeafFunction", rule: new ForbidBlankLineInLeafFunctionRule(ruleContext) },
-  { category: "forbidEarlyReturn", rule: new ForbidEarlyReturnRule(ruleContext) },
-  { category: "forbidSilentCatch", rule: new ForbidSilentCatchRule(ruleContext) },
-  { category: "forbidMutableCollection", rule: new ForbidMutableCollectionRule(ruleContext) },
-  { category: "forbidUnstructuredLogging", rule: new ForbidUnstructuredLoggingRule(ruleContext) },
-  { category: "forbidWildcardImport", rule: new ForbidWildcardImportRule(ruleContext) },
-  { category: "forbidEmptyCatchBlock", rule: new ForbidEmptyCatchBlockRule(ruleContext) },
-  { category: "requireBracesOnIf", rule: new RequireBracesOnIfRule(ruleContext) },
-  { category: "requireDocCommentOnPublicDeclaration", rule: new RequireDocCommentOnPublicDeclarationRule(ruleContext) },
+  { category: "requireFilesExist", rule: requireFilesExistRule(ruleContext) },
+  { category: "requireDirectoriesExist", rule: requireDirectoriesExistRule(ruleContext) },
+  { category: "requireKeepfileInEmptyDirectories", rule: requireKeepfileInEmptyDirectoriesRule(ruleContext) },
+  { category: "requireTemplateGroups", rule: requireTemplateGroupsRule(ruleContext) },
+  { category: "requireDocHeadings", rule: requireDocHeadingsRule(ruleContext) },
+  { category: "requireDocContent", rule: requireDocContentRule(ruleContext) },
+  { category: "requireAgentFrontmatter", rule: requireAgentFrontmatterRule(ruleContext) },
+  { category: "requireSkillFrontmatter", rule: requireSkillFrontmatterRule(ruleContext) },
+  { category: "forbidScaffoldLeaks", rule: forbidScaffoldLeaksRule(ruleContext) },
+  { category: "requireHookShebang", rule: requireHookShebangRule(ruleContext) },
+  { category: "requireHookExecutable", rule: requireHookExecutableRule(ruleContext) },
+  { category: "requireHookGeneratedMarker", rule: requireHookGeneratedMarkerRule(ruleContext) },
+  { category: "requireHookStage", rule: requireHookStageRule(ruleContext) },
+  { category: "requireHookCommand", rule: requireHookCommandRule(ruleContext) },
+  { category: "requireCiCommandMatchesHook", rule: requireCiCommandMatchesHookRule(ruleContext) },
+  { category: "requireEnvShebangUnder", rule: requireEnvShebangUnderRule(ruleContext) },
+  { category: "forbidUncheckedTasksUnder", rule: forbidUncheckedTasksUnderRule(ruleContext) },
+  { category: "forbidUnsafeSymlinks", rule: forbidUnsafeSymlinksRule(ruleContext) },
+  { category: "forbidImplicitLambdaIt", rule: forbidImplicitLambdaItRule(ruleContext) },
+  { category: "requireSingleTopLevelKotlinDeclaration", rule: requireSingleTopLevelKotlinDeclarationRule(ruleContext) },
+  { category: "forbidGreaterThanComparison", rule: forbidGreaterThanComparisonRule(ruleContext) },
+  { category: "forbidBlankLineInLeafFunction", rule: forbidBlankLineInLeafFunctionRule(ruleContext) },
+  { category: "forbidEarlyReturn", rule: forbidEarlyReturnRule(ruleContext) },
+  { category: "forbidSilentCatch", rule: forbidSilentCatchRule(ruleContext) },
+  { category: "forbidMutableCollection", rule: forbidMutableCollectionRule(ruleContext) },
+  { category: "forbidUnstructuredLogging", rule: forbidUnstructuredLoggingRule(ruleContext) },
+  { category: "forbidWildcardImport", rule: forbidWildcardImportRule(ruleContext) },
+  { category: "forbidEmptyCatchBlock", rule: forbidEmptyCatchBlockRule(ruleContext) },
+  { category: "requireBracesOnIf", rule: requireBracesOnIfRule(ruleContext) },
+  { category: "requireDocCommentOnPublicDeclaration", rule: requireDocCommentOnPublicDeclarationRule(ruleContext) },
 ] as const;
 
 async function main(): Promise<void> {

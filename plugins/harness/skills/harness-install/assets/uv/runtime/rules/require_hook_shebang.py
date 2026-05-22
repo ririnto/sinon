@@ -48,3 +48,6 @@ class RequireHookShebangRule(HarnessCheckRule):
             for hook in hooks
             if isinstance(hook, str) and first_line(root / hook) != expected_shebang
         ]
+
+
+RULE: HarnessCheckRule = RequireHookShebangRule()

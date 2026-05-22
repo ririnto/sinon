@@ -14,7 +14,8 @@ import java.util.Collection;
 /**
  * Rule that forbids blank lines in leaf function bodies.
  */
-public class ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
+public enum ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidBlankLineInLeafFunction";
 
     @Override

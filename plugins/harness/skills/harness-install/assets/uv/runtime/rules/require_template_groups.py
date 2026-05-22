@@ -48,3 +48,6 @@ class RequireTemplateGroupsRule(HarnessCheckRule):
             for group in groups
             if isinstance(group, str) and not is_safe_directory(root / target_root / group)
         ]
+
+
+RULE: HarnessCheckRule = RequireTemplateGroupsRule()

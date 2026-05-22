@@ -10,7 +10,7 @@ import kotlin.io.path.readText
 /**
  * Rule that requires hooks to have generated marker and no packaging placeholders.
  */
-class RequireHookGeneratedMarkerRule : HarnessCheckRule {
+object RequireHookGeneratedMarkerRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireHookGeneratedMarker"
 		val catObj = manifest[category]?.jsonObject ?: return false

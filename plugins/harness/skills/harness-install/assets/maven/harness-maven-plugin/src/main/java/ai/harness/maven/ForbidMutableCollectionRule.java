@@ -12,7 +12,8 @@ import java.util.Collection;
 /**
  * Rule that forbids mutable collection instantiation.
  */
-public class ForbidMutableCollectionRule implements HarnessCheckRule {
+public enum ForbidMutableCollectionRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidMutableCollection";
 
     @Override

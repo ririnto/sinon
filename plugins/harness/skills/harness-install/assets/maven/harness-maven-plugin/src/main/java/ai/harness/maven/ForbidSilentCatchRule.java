@@ -12,7 +12,8 @@ import java.util.Collection;
 /**
  * Rule that forbids silent catch blocks.
  */
-public class ForbidSilentCatchRule implements HarnessCheckRule {
+public enum ForbidSilentCatchRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidSilentCatch";
 
     @Override

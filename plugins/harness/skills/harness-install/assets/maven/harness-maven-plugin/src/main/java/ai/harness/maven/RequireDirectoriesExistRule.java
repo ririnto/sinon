@@ -8,7 +8,8 @@ import java.util.Collection;
 /**
  * Rule that requires specified directories to exist in the project.
  */
-public class RequireDirectoriesExistRule implements HarnessCheckRule {
+public enum RequireDirectoriesExistRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireDirectoriesExist";
 
     @Override

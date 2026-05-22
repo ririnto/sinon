@@ -11,7 +11,7 @@ import kotlin.io.path.relativeTo
 /**
  * Rule that requires Kotlin files to have exactly one top-level declaration of allowed type.
  */
-class RequireSingleTopLevelKotlinDeclarationRule : HarnessCheckRule {
+object RequireSingleTopLevelKotlinDeclarationRule : HarnessCheckRule {
 	/**
 	 * PSI analysis result for top-level declarations in a Kotlin source file.
 	 */

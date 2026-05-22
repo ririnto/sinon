@@ -10,7 +10,7 @@ import kotlin.io.path.relativeTo
 /**
  * Rule that forbids unchecked tasks in completed plans.
  */
-class ForbidUncheckedTasksUnderRule : HarnessCheckRule {
+object ForbidUncheckedTasksUnderRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "forbidUncheckedTasksUnder"
 		val catObj = manifest[category]?.jsonObject ?: return false

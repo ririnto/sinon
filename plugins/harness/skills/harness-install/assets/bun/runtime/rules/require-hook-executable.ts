@@ -4,11 +4,7 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Require hooks to be executable.
  */
-export class RequireHookExecutableRule implements HarnessCheckRule {
-  static readonly category = "requireHookExecutable";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const requireHookExecutableRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(manifest: HarnessManifest): boolean {
     const section = manifest.requireHookExecutable;
     if (typeof section !== "object" || section === null) {
@@ -18,27 +14,28 @@ export class RequireHookExecutableRule implements HarnessCheckRule {
     if (enabled === false) {
       return false;
     }
-    const parameters = this.ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return this.ctx.readStringArray(parameters.hooks).length > 0;
+    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
+    return ctx.readStringArray(parameters.hooks).length > 0;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = this.ctx.readJsonObject(manifest.requireHookExecutable);
-    const parameters = this.ctx.readJsonObject(section.parameters);
-    const hooks = this.ctx.readStringArray(parameters.hooks);
+    const section = ctx.readJsonObject(manifest.requireHookExecutable);
+    const parameters = ctx.readJsonObject(section.parameters);
+    const hooks = ctx.readStringArray(parameters.hooks);
     return hooks.flatMap((hook) => {
-      if (!this.ctx.isFile(hook)) {
+      if (!ctx.isFile(hook)) {
         return [];
       }
-      return this.ctx.isExecutablePath(hook)
+      return ctx.isExecutablePath(hook)
         ? []
         : [
             {
-              severity: this.ctx.severityOf(manifest, RequireHookExecutableRule.category),
-              category: RequireHookExecutableRule.category,
+              severity: ctx.severityOf(manifest, "requireHookExecutable"),
+              category: "requireHookExecutable",
               message: `${hook} must be executable`,
             },
           ];
     });
   }
-}
+
+});

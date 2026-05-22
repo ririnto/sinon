@@ -47,3 +47,6 @@ class RequireHookExecutableRule(HarnessCheckRule):
             for hook in hooks
             if isinstance(hook, str) and not is_executable(root / hook)
         ]
+
+
+RULE: HarnessCheckRule = RequireHookExecutableRule()

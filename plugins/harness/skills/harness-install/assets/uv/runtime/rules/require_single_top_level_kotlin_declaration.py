@@ -65,3 +65,6 @@ class RequireSingleTopLevelKotlinDeclarationRule(HarnessCheckRule):
                         template.format(file=relative(path)),
                     ))
         return result
+
+
+RULE: HarnessCheckRule = RequireSingleTopLevelKotlinDeclarationRule()

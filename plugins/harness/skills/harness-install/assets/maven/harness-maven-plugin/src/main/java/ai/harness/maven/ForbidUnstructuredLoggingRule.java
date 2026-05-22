@@ -12,7 +12,8 @@ import java.util.Collection;
 /**
  * Rule that forbids unstructured logging via System.out/System.err.
  */
-public class ForbidUnstructuredLoggingRule implements HarnessCheckRule {
+public enum ForbidUnstructuredLoggingRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidUnstructuredLogging";
 
     @Override

@@ -80,3 +80,6 @@ class RequireImportOverFqnRule(HarnessCheckRule):
             wrapper.visit(visitor)
             result.extend(visitor.findings)
         return result
+
+
+RULE: HarnessCheckRule = RequireImportOverFqnRule()

@@ -4,11 +4,7 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Require /usr/bin/env shebangs in executable scripts.
  */
-export class RequireEnvShebangUnderRule implements HarnessCheckRule {
-  static readonly category = "requireEnvShebangUnder";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const requireEnvShebangUnderRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(manifest: HarnessManifest): boolean {
     const section = manifest.requireEnvShebangUnder;
     if (typeof section !== "object" || section === null) {
@@ -18,29 +14,29 @@ export class RequireEnvShebangUnderRule implements HarnessCheckRule {
     if (enabled === false) {
       return false;
     }
-    const parameters = this.ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return this.ctx.readStringArray(parameters.directories).length > 0;
+    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
+    return ctx.readStringArray(parameters.directories).length > 0;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = this.ctx.readJsonObject(manifest.requireEnvShebangUnder);
-    const parameters = this.ctx.readJsonObject(section.parameters);
-    const directories = this.ctx.readStringArray(parameters.directories);
+    const section = ctx.readJsonObject(manifest.requireEnvShebangUnder);
+    const parameters = ctx.readJsonObject(section.parameters);
+    const directories = ctx.readStringArray(parameters.directories);
     const expectedPrefix = typeof parameters.expectedPrefix === "string" ? parameters.expectedPrefix : "#!/usr/bin/env ";
 
     return directories.flatMap((dir) => {
-      const [files, warnings] = this.ctx.walkDirectory(dir);
+      const [files, warnings] = ctx.walkDirectory(dir);
       return warnings.concat(
         files.flatMap((file) => {
-          if (!this.ctx.isExecutablePath(file)) {
+          if (!ctx.isExecutablePath(file)) {
             return [];
           }
-          const first = this.ctx.firstLine(file);
+          const first = ctx.firstLine(file);
           return first.startsWith("#!") && !first.startsWith(expectedPrefix)
             ? [
                 {
-                  severity: this.ctx.severityOf(manifest, RequireEnvShebangUnderRule.category),
-                  category: RequireEnvShebangUnderRule.category,
+                  severity: ctx.severityOf(manifest, "requireEnvShebangUnder"),
+                  category: "requireEnvShebangUnder",
                   message: `executable script should use /usr/bin/env shebang: ${file}`,
                 },
               ]
@@ -49,4 +45,5 @@ export class RequireEnvShebangUnderRule implements HarnessCheckRule {
       );
     });
   }
-}
+
+});

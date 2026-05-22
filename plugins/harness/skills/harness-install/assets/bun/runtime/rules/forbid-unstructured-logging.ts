@@ -5,19 +5,15 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Forbid unstructured logging (console.log, console.error, etc.).
  */
-export class ForbidUnstructuredLoggingRule implements HarnessCheckRule {
-  static readonly category = "forbidUnstructuredLogging";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const forbidUnstructuredLoggingRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(_manifest: HarnessManifest): boolean {
     return true;
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = this.ctx.stackSources(manifest, "typescript");
+    const sources = ctx.stackSources(manifest, "typescript");
     return sources.flatMap((file) => {
-      const text = this.ctx.read(file);
+      const text = ctx.read(file);
       if (!text) {
         return [];
       }
@@ -28,8 +24,8 @@ export class ForbidUnstructuredLoggingRule implements HarnessCheckRule {
       } catch {
         return [
           {
-            severity: this.ctx.severityOf(manifest, ForbidUnstructuredLoggingRule.category),
-            category: ForbidUnstructuredLoggingRule.category,
+            severity: ctx.severityOf(manifest, "forbidUnstructuredLogging"),
+            category: "forbidUnstructuredLogging",
             message: `failed to parse TypeScript: ${file}`,
           },
         ];
@@ -47,8 +43,8 @@ export class ForbidUnstructuredLoggingRule implements HarnessCheckRule {
               if (methodName && logMethods.includes(methodName)) {
                 const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
                 findings.push({
-                  severity: this.ctx.severityOf(manifest, ForbidUnstructuredLoggingRule.category),
-                  category: ForbidUnstructuredLoggingRule.category,
+                  severity: ctx.severityOf(manifest, "forbidUnstructuredLogging"),
+                  category: "forbidUnstructuredLogging",
                   message: `${file}:${line + 1}: unstructured logging \`console.${methodName}\`; use structured logger`,
                 });
               }
@@ -62,4 +58,5 @@ export class ForbidUnstructuredLoggingRule implements HarnessCheckRule {
       return findings;
     });
   }
-}
+
+});

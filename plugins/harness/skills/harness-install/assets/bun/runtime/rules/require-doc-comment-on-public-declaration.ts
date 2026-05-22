@@ -5,19 +5,15 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Require JSDoc comments on public declarations.
  */
-export class RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRule {
-  static readonly category = "requireDocCommentOnPublicDeclaration";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const requireDocCommentOnPublicDeclarationRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(_manifest: HarnessManifest): boolean {
     return true;
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = this.ctx.stackSources(manifest, "typescript");
+    const sources = ctx.stackSources(manifest, "typescript");
     return sources.flatMap((file) => {
-      const text = this.ctx.read(file);
+      const text = ctx.read(file);
       if (!text) {
         return [];
       }
@@ -28,8 +24,8 @@ export class RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRul
       } catch {
         return [
           {
-            severity: this.ctx.severityOf(manifest, RequireDocCommentOnPublicDeclarationRule.category),
-            category: RequireDocCommentOnPublicDeclarationRule.category,
+            severity: ctx.severityOf(manifest, "requireDocCommentOnPublicDeclaration"),
+            category: "requireDocCommentOnPublicDeclaration",
             message: `failed to parse TypeScript: ${file}`,
           },
         ];
@@ -59,8 +55,8 @@ export class RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRul
         if (name && !hasJSDoc(node)) {
           const { line } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
           findings.push({
-            severity: this.ctx.severityOf(manifest, RequireDocCommentOnPublicDeclarationRule.category),
-            category: RequireDocCommentOnPublicDeclarationRule.category,
+            severity: ctx.severityOf(manifest, "requireDocCommentOnPublicDeclaration"),
+            category: "requireDocCommentOnPublicDeclaration",
             message: `${file}:${line + 1}: public declaration \`${name}\` is missing a documentation comment`,
           });
         }
@@ -86,4 +82,5 @@ export class RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRul
       return findings;
     });
   }
-}
+
+});

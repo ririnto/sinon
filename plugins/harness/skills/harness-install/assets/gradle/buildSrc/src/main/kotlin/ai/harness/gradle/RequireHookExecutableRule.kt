@@ -9,7 +9,7 @@ import kotlin.io.path.isRegularFile
 /**
  * Rule that requires hooks to be executable.
  */
-class RequireHookExecutableRule : HarnessCheckRule {
+object RequireHookExecutableRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireHookExecutable"
 		val catObj = manifest[category]?.jsonObject ?: return false
