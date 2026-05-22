@@ -9,7 +9,8 @@ import java.util.stream.Stream;
 /**
  * Rule that requires specific headings in documentation files.
  */
-public class RequireDocHeadingsRule implements HarnessCheckRule {
+public enum RequireDocHeadingsRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireDocHeadings";
 
     @Override

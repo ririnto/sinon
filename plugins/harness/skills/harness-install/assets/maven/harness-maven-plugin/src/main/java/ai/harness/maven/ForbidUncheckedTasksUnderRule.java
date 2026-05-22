@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 /**
  * Rule that forbids unchecked tasks in completed plan documents.
  */
-public class ForbidUncheckedTasksUnderRule implements HarnessCheckRule {
+public enum ForbidUncheckedTasksUnderRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "forbidUncheckedTasksUnder";
 
     @Override

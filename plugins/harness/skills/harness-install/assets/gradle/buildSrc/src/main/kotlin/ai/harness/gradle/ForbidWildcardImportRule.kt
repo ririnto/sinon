@@ -11,7 +11,7 @@ import kotlin.io.path.relativeTo
 /**
  * Rule that forbids wildcard imports in Kotlin code.
  */
-class ForbidWildcardImportRule : HarnessCheckRule {
+object ForbidWildcardImportRule : HarnessCheckRule {
 	/**
 	 * PSI detection result for a wildcard import.
 	 */

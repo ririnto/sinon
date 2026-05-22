@@ -11,7 +11,7 @@ import kotlin.io.path.relativeTo
 /**
  * Rule that forbids greater-than comparisons in Kotlin code.
  */
-class ForbidGreaterThanComparisonRule : HarnessCheckRule {
+object ForbidGreaterThanComparisonRule : HarnessCheckRule {
 	/**
 	 * PSI detection result for a single greater-than comparison.
 	 */

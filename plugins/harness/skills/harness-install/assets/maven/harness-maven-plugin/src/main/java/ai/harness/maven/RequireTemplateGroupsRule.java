@@ -8,7 +8,8 @@ import java.util.Collection;
 /**
  * Rule that requires specific template groups to exist.
  */
-public class RequireTemplateGroupsRule implements HarnessCheckRule {
+public enum RequireTemplateGroupsRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireTemplateGroups";
 
     @Override

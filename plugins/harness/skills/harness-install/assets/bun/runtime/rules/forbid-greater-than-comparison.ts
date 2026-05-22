@@ -12,19 +12,14 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Forbid greater-than comparisons in TypeScript.
  */
-export class ForbidGreaterThanComparisonRule implements HarnessCheckRule {
-  static readonly category = "forbidGreaterThanComparison";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const forbidGreaterThanComparisonRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(_manifest: HarnessManifest): boolean {
     return true;
-  }
-
+  },
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = this.ctx.stackSources(manifest, "typescript");
+    const sources = ctx.stackSources(manifest, "typescript");
     return sources.flatMap((file) => {
-      const text = this.ctx.read(file);
+      const text = ctx.read(file);
       if (!text) {
         return [];
       }
@@ -34,8 +29,8 @@ export class ForbidGreaterThanComparisonRule implements HarnessCheckRule {
       } catch {
         return [
           {
-            severity: this.ctx.severityOf(manifest, ForbidGreaterThanComparisonRule.category),
-            category: ForbidGreaterThanComparisonRule.category,
+            severity: ctx.severityOf(manifest, "forbidGreaterThanComparison"),
+            category: "forbidGreaterThanComparison",
             message: `failed to parse TypeScript: ${file}`,
           },
         ];
@@ -48,8 +43,8 @@ export class ForbidGreaterThanComparisonRule implements HarnessCheckRule {
             const { line } = sourceFile.getLineAndCharacterOfPosition(node.operatorToken.getStart(sourceFile));
             const operator = kind === SyntaxKind.GreaterThanToken ? ">" : ">=";
             findings.push({
-              severity: this.ctx.severityOf(manifest, ForbidGreaterThanComparisonRule.category),
-              category: ForbidGreaterThanComparisonRule.category,
+              severity: ctx.severityOf(manifest, "forbidGreaterThanComparison"),
+              category: "forbidGreaterThanComparison",
               message: `${file}:${line + 1}: forbidden \`${operator}\`; use \`${operator === ">" ? "<" : "<="}\``,
             });
           }
@@ -60,4 +55,4 @@ export class ForbidGreaterThanComparisonRule implements HarnessCheckRule {
       return findings;
     });
   }
-}
+});

@@ -11,7 +11,7 @@ import kotlin.io.path.relativeTo
 /**
  * Rule that forbids empty catch blocks.
  */
-class ForbidEmptyCatchBlockRule : HarnessCheckRule {
+object ForbidEmptyCatchBlockRule : HarnessCheckRule {
 	/**
 	 * PSI detection result for an empty catch block.
 	 */

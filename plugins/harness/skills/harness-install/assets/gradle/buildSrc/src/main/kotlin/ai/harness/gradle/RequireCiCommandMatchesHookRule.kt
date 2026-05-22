@@ -9,7 +9,7 @@ import kotlin.io.path.readText
 /**
  * Rule that requires CI files to match hook validation commands.
  */
-class RequireCiCommandMatchesHookRule : HarnessCheckRule {
+object RequireCiCommandMatchesHookRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireCiCommandMatchesHook"
 		val catObj = manifest[category]?.jsonObject ?: return false

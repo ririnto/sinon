@@ -10,7 +10,8 @@ import java.util.stream.Stream;
 /**
  * Rule that requires executable scripts to use /usr/bin/env shebang.
  */
-public class RequireEnvShebangUnderRule implements HarnessCheckRule {
+public enum RequireEnvShebangUnderRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireEnvShebangUnder";
 
     @Override

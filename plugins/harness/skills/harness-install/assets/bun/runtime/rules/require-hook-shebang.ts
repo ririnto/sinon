@@ -4,11 +4,7 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Require hooks to have correct shebang.
  */
-export class RequireHookShebangRule implements HarnessCheckRule {
-  static readonly category = "requireHookShebang";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const requireHookShebangRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(manifest: HarnessManifest): boolean {
     const section = manifest.requireHookShebang;
     if (typeof section !== "object" || section === null) {
@@ -18,28 +14,29 @@ export class RequireHookShebangRule implements HarnessCheckRule {
     if (enabled === false) {
       return false;
     }
-    const parameters = this.ctx.readJsonObject((section as Record<string, unknown>).parameters);
-    return this.ctx.readStringArray(parameters.hooks).length > 0;
+    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
+    return ctx.readStringArray(parameters.hooks).length > 0;
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = this.ctx.readJsonObject(manifest.requireHookShebang);
-    const parameters = this.ctx.readJsonObject(section.parameters);
-    const hooks = this.ctx.readStringArray(parameters.hooks);
+    const section = ctx.readJsonObject(manifest.requireHookShebang);
+    const parameters = ctx.readJsonObject(section.parameters);
+    const hooks = ctx.readStringArray(parameters.hooks);
     const expectedShebang = typeof parameters.expectedShebang === "string" ? parameters.expectedShebang : "#!/usr/bin/env sh";
     return hooks.flatMap((hook) => {
-      if (!this.ctx.isFile(hook)) {
+      if (!ctx.isFile(hook)) {
         return [];
       }
-      return this.ctx.firstLine(hook) === expectedShebang
+      return ctx.firstLine(hook) === expectedShebang
         ? []
         : [
             {
-              severity: this.ctx.severityOf(manifest, RequireHookShebangRule.category),
-              category: RequireHookShebangRule.category,
+              severity: ctx.severityOf(manifest, "requireHookShebang"),
+              category: "requireHookShebang",
               message: `${hook} must start with ${expectedShebang}`,
             },
           ];
     });
   }
-}
+
+});

@@ -13,7 +13,7 @@ import kotlin.io.path.relativeTo
 /**
  * Rule that forbids disallowed symlinks at the root level.
  */
-class ForbidUnsafeSymlinksRule : HarnessCheckRule {
+object ForbidUnsafeSymlinksRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "forbidUnsafeSymlinks"
 		val catObj = manifest[category]?.jsonObject ?: return false

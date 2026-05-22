@@ -9,7 +9,7 @@ import kotlin.io.path.readText
 /**
  * Rule that requires hooks to contain stage markers.
  */
-class RequireHookStageRule : HarnessCheckRule {
+object RequireHookStageRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireHookStage"
 		val catObj = manifest[category]?.jsonObject ?: return false

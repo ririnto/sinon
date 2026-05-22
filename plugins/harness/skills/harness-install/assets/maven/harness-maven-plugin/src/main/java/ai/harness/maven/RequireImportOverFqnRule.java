@@ -13,7 +13,8 @@ import java.util.Set;
 /**
  * Rule that requires imports instead of fully qualified names.
  */
-public class RequireImportOverFqnRule implements HarnessCheckRule {
+public enum RequireImportOverFqnRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireImportOverFqn";
 
     @Override

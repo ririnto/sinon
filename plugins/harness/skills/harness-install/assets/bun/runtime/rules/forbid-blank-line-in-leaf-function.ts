@@ -5,47 +5,15 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Helper to check if a function has nested functions.
  */
-function hasNestedFunctions(node: FunctionLike): boolean {
-  let foundNested = false;
-  const visit = (child: Node): void => {
-    if (foundNested) {
-      return;
-    }
-    if (child === node) {
-      forEachChild(child, visit);
-      return;
-    }
-    switch (child.kind) {
-      case SyntaxKind.FunctionDeclaration:
-      case SyntaxKind.MethodDeclaration:
-      case SyntaxKind.FunctionExpression:
-      case SyntaxKind.ArrowFunction:
-      case SyntaxKind.Constructor:
-        foundNested = true;
-        return;
-    }
-    forEachChild(child, visit);
-  };
-  forEachChild(node, visit);
-  return foundNested;
-}
-
-/**
- * Forbid blank lines in leaf function bodies.
- */
-export class ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
-  static readonly category = "forbidBlankLineInLeafFunction";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const forbidBlankLineInLeafFunctionRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(_manifest: HarnessManifest): boolean {
     return true;
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = this.ctx.stackSources(manifest, "typescript");
+    const sources = ctx.stackSources(manifest, "typescript");
     return sources.flatMap((file) => {
-      const text = this.ctx.read(file);
+      const text = ctx.read(file);
       if (!text) {
         return [];
       }
@@ -56,8 +24,8 @@ export class ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
       } catch {
         return [
           {
-            severity: this.ctx.severityOf(manifest, ForbidBlankLineInLeafFunctionRule.category),
-            category: ForbidBlankLineInLeafFunctionRule.category,
+            severity: ctx.severityOf(manifest, "forbidBlankLineInLeafFunction"),
+            category: "forbidBlankLineInLeafFunction",
             message: `failed to parse TypeScript: ${file}`,
           },
         ];
@@ -89,8 +57,8 @@ export class ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
           for (let i = 0; i < triviaLines.length; i++) {
             if (triviaLines[i].trim() === "") {
               blankLineFindings.push({
-                severity: this.ctx.severityOf(manifest, ForbidBlankLineInLeafFunctionRule.category),
-                category: ForbidBlankLineInLeafFunctionRule.category,
+                severity: ctx.severityOf(manifest, "forbidBlankLineInLeafFunction"),
+                category: "forbidBlankLineInLeafFunction",
                 message: `${file}:${triviaStartLine + i + 1}: leaf function \`${funcName}\` contains a blank line; remove or extract the section`,
               });
             }
@@ -133,4 +101,5 @@ export class ForbidBlankLineInLeafFunctionRule implements HarnessCheckRule {
       return findings;
     });
   }
-}
+
+});

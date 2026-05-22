@@ -4,11 +4,7 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Require CI configuration to match hook validation commands.
  */
-export class RequireCiCommandMatchesHookRule implements HarnessCheckRule {
-  static readonly category = "requireCiCommandMatchesHook";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const requireCiCommandMatchesHookRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(manifest: HarnessManifest): boolean {
     const section = manifest.requireCiCommandMatchesHook;
     if (typeof section !== "object" || section === null) {
@@ -18,21 +14,21 @@ export class RequireCiCommandMatchesHookRule implements HarnessCheckRule {
     if (enabled === false) {
       return false;
     }
-    const parameters = this.ctx.readJsonObject((section as Record<string, unknown>).parameters);
+    const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
     return typeof parameters.referenceHook === "string";
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = this.ctx.readJsonObject(manifest.requireCiCommandMatchesHook);
-    const parameters = this.ctx.readJsonObject(section.parameters);
+    const section = ctx.readJsonObject(manifest.requireCiCommandMatchesHook);
+    const parameters = ctx.readJsonObject(section.parameters);
     const referenceHook = typeof parameters.referenceHook === "string" ? parameters.referenceHook : "";
-    const ciFiles = this.ctx.readStringArray(parameters.ciFiles);
+    const ciFiles = ctx.readStringArray(parameters.ciFiles);
 
-    if (!this.ctx.isFile(referenceHook)) {
+    if (!ctx.isFile(referenceHook)) {
       return [];
     }
 
-    const refText = this.ctx.read(referenceHook);
+    const refText = ctx.read(referenceHook);
     const refCommand = refText
       .split(/\r?\n/)
       .find((line) => line.startsWith("# Harness validation command: "))
@@ -44,18 +40,19 @@ export class RequireCiCommandMatchesHookRule implements HarnessCheckRule {
     }
 
     return ciFiles.flatMap((ciFile) => {
-      if (!this.ctx.isFile(ciFile)) {
+      if (!ctx.isFile(ciFile)) {
         return [];
       }
-      return this.ctx.read(ciFile).includes(refCommand)
+      return ctx.read(ciFile).includes(refCommand)
         ? []
         : [
             {
-              severity: this.ctx.severityOf(manifest, RequireCiCommandMatchesHookRule.category),
-              category: RequireCiCommandMatchesHookRule.category,
+              severity: ctx.severityOf(manifest, "requireCiCommandMatchesHook"),
+              category: "requireCiCommandMatchesHook",
               message: `${ciFile}: CI command mismatch — expected ${refCommand}`,
             },
           ];
     });
   }
-}
+
+});

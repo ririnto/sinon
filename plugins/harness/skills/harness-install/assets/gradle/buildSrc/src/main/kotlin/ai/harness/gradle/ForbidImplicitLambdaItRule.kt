@@ -11,7 +11,7 @@ import kotlin.io.path.relativeTo
 /**
  * Rule that forbids implicit lambda parameter 'it'.
  */
-class ForbidImplicitLambdaItRule : HarnessCheckRule {
+object ForbidImplicitLambdaItRule : HarnessCheckRule {
 	/**
 	 * PSI detection result for a single implicit lambda 'it' parameter.
 	 */

@@ -12,7 +12,8 @@ import java.util.stream.Stream;
 /**
  * Rule that requires agent files to have proper frontmatter.
  */
-public class RequireAgentFrontmatterRule implements HarnessCheckRule {
+public enum RequireAgentFrontmatterRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireAgentFrontmatter";
 
     @Override

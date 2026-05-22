@@ -83,3 +83,6 @@ class ForbidScaffoldLeaksRule(HarnessCheckRule):
                             ),
                         ))
         return result
+
+
+RULE: HarnessCheckRule = ForbidScaffoldLeaksRule()

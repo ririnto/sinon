@@ -6,7 +6,7 @@ import java.nio.file.Path
 /**
  * Rule that requires documentation files to contain specified headings.
  */
-class RequireDocHeadingsRule : HarnessCheckRule {
+object RequireDocHeadingsRule : HarnessCheckRule {
 	override fun applies(manifest: JsonObject): Boolean {
 		val category = "requireDocHeadings"
 		val catObj = manifest[category]?.jsonObject ?: return false

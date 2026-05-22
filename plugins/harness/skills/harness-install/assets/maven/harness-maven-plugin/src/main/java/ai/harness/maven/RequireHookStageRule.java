@@ -9,7 +9,8 @@ import java.util.stream.Stream;
 /**
  * Rule that requires hook files to contain stage markers.
  */
-public class RequireHookStageRule implements HarnessCheckRule {
+public enum RequireHookStageRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireHookStage";
 
     @Override

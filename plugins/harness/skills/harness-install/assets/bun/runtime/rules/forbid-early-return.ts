@@ -5,19 +5,15 @@ import type { Finding, HarnessCheckRule, HarnessManifest, RuleContext } from "..
 /**
  * Forbid early return statements in functions.
  */
-export class ForbidEarlyReturnRule implements HarnessCheckRule {
-  static readonly category = "forbidEarlyReturn";
-
-  constructor(private readonly ctx: RuleContext) {}
-
+export const forbidEarlyReturnRule = (ctx: RuleContext): HarnessCheckRule => ({
   applies(_manifest: HarnessManifest): boolean {
     return true;
-  }
+  },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = this.ctx.stackSources(manifest, "typescript");
+    const sources = ctx.stackSources(manifest, "typescript");
     return sources.flatMap((file) => {
-      const text = this.ctx.read(file);
+      const text = ctx.read(file);
       if (!text) {
         return [];
       }
@@ -28,8 +24,8 @@ export class ForbidEarlyReturnRule implements HarnessCheckRule {
       } catch {
         return [
           {
-            severity: this.ctx.severityOf(manifest, ForbidEarlyReturnRule.category),
-            category: ForbidEarlyReturnRule.category,
+            severity: ctx.severityOf(manifest, "forbidEarlyReturn"),
+            category: "forbidEarlyReturn",
             message: `failed to parse TypeScript: ${file}`,
           },
         ];
@@ -64,8 +60,8 @@ export class ForbidEarlyReturnRule implements HarnessCheckRule {
           if (isReturnStatement(statements[i])) {
             const { line } = sourceFile.getLineAndCharacterOfPosition(statements[i].getStart(sourceFile));
             findings.push({
-              severity: this.ctx.severityOf(manifest, ForbidEarlyReturnRule.category),
-              category: ForbidEarlyReturnRule.category,
+              severity: ctx.severityOf(manifest, "forbidEarlyReturn"),
+              category: "forbidEarlyReturn",
               message: `${file}:${line + 1}: function \`${funcName}\` has an early return; restructure with single exit`,
             });
           }
@@ -90,4 +86,5 @@ export class ForbidEarlyReturnRule implements HarnessCheckRule {
       return findings;
     });
   }
-}
+
+});

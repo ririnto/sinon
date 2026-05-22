@@ -12,7 +12,8 @@ import java.util.Collection;
 /**
  * Rule that requires Javadoc on public declarations.
  */
-public class RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRule {
+public enum RequireDocCommentOnPublicDeclarationRule implements HarnessCheckRule {
+    INSTANCE;
     private static final String CATEGORY = "requireDocCommentOnPublicDeclaration";
 
     @Override

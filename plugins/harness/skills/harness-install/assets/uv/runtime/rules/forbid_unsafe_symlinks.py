@@ -82,3 +82,6 @@ class ForbidUnsafeSymlinksRule(HarnessCheckRule):
                         ),
                     ))
         return result
+
+
+RULE: HarnessCheckRule = ForbidUnsafeSymlinksRule()
