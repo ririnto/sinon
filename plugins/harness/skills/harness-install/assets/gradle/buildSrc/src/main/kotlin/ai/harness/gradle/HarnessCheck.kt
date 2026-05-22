@@ -44,6 +44,13 @@ import ai.harness.gradle.rules.RequireSingleTopLevelKotlinDeclarationRule
 import ai.harness.gradle.rules.ForbidWildcardImportRule
 import ai.harness.gradle.rules.ForbidEmptyCatchBlockRule
 import ai.harness.gradle.rules.RequireBracesOnIfRule
+import ai.harness.gradle.rules.ForbidEarlyReturnRule
+import ai.harness.gradle.rules.ForbidSilentCatchRule
+import ai.harness.gradle.rules.ForbidMutableCollectionRule
+import ai.harness.gradle.rules.ForbidUnstructuredLoggingRule
+import ai.harness.gradle.rules.RequireImportOverFqnRule
+import ai.harness.gradle.rules.RequireDocCommentOnPublicDeclarationRule
+import ai.harness.gradle.rules.RequireCompanionObjectPositionRule
 
 /**
  * Enumeration of all harness validation checks.
@@ -73,7 +80,14 @@ enum class HarnessCheck(val category: String, val rule: HarnessCheckRule) {
 	REQUIRE_SINGLE_TOP_LEVEL_KOTLIN_DECLARATION("requireSingleTopLevelKotlinDeclaration", RequireSingleTopLevelKotlinDeclarationRule),
 	FORBID_WILDCARD_IMPORT("forbidWildcardImport", ForbidWildcardImportRule),
 	FORBID_EMPTY_CATCH_BLOCK("forbidEmptyCatchBlock", ForbidEmptyCatchBlockRule),
-	REQUIRE_BRACES_ON_IF("requireBracesOnIf", RequireBracesOnIfRule);
+	REQUIRE_BRACES_ON_IF("requireBracesOnIf", RequireBracesOnIfRule),
+	FORBID_EARLY_RETURN("forbidEarlyReturn", ForbidEarlyReturnRule),
+	FORBID_SILENT_CATCH("forbidSilentCatch", ForbidSilentCatchRule),
+	FORBID_MUTABLE_COLLECTION("forbidMutableCollection", ForbidMutableCollectionRule),
+	FORBID_UNSTRUCTURED_LOGGING("forbidUnstructuredLogging", ForbidUnstructuredLoggingRule),
+	REQUIRE_IMPORT_OVER_FQN("requireImportOverFqn", RequireImportOverFqnRule),
+	REQUIRE_DOC_COMMENT_ON_PUBLIC_DECLARATION("requireDocCommentOnPublicDeclaration", RequireDocCommentOnPublicDeclarationRule),
+	REQUIRE_COMPANION_OBJECT_POSITION("requireCompanionObjectPosition", RequireCompanionObjectPositionRule);
 
 	fun applies(manifest: JsonObject): Boolean {
 		return rule.applies(manifest)

@@ -29,12 +29,12 @@ object RequireFilesExistRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null) {
 			emptyList()
 		} else {
-			val paths = HarnessCheck.Companion.stringArrayFrom(parametersObj, "paths")
+			val paths = HarnessCheck.stringArrayFrom(parametersObj, "paths")
 			paths.mapNotNull { path ->
 				val p = root / path
 				when {
-					p.isSymbolicLink() && !HarnessCheck.Companion.isAllowedRootContractSymlink(root, p) -> Finding(Severity.ERROR, category, "symlink file is not allowed: $path")
-					!p.isRegularFile() -> Finding(HarnessCheck.Companion.severityOf(manifest, category), category, "missing file: $path")
+					p.isSymbolicLink() && !HarnessCheck.isAllowedRootContractSymlink(root, p) -> Finding(Severity.ERROR, category, "symlink file is not allowed: $path")
+					!p.isRegularFile() -> Finding(HarnessCheck.severityOf(manifest, category), category, "missing file: $path")
 					else -> null
 				}
 			}

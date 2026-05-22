@@ -31,18 +31,18 @@ object RequireEnvShebangUnderRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null || messagesObj == null) {
 			emptyList()
 		} else {
-			val directories = HarnessCheck.Companion.stringArrayFrom(parametersObj, "directories")
-			val expectedPrefix = HarnessCheck.Companion.stringFrom(parametersObj, "expectedPrefix")
+			val directories = HarnessCheck.stringArrayFrom(parametersObj, "directories")
+			val expectedPrefix = HarnessCheck.stringFrom(parametersObj, "expectedPrefix")
 			directories.flatMap { dirPath ->
 				val dir = root / dirPath
 				if (!dir.isDirectory()) {
 					emptyList()
 				} else {
-					val (files, _) = HarnessCheck.Companion.walkSafe(root, dir)
+					val (files, _) = HarnessCheck.walkSafe(root, dir)
 					files.filter { it.isExecutable() }.mapNotNull { file ->
 						val firstLine = file.readText().lineSequence().firstOrNull() ?: ""
 						if (firstLine.startsWith("#!") && !firstLine.startsWith(expectedPrefix)) {
-							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "executable script should use /usr/bin/env shebang: ${file.relativeTo(root)}")
+							Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "executable script should use /usr/bin/env shebang: ${file.relativeTo(root)}")
 						} else {
 							null
 						}

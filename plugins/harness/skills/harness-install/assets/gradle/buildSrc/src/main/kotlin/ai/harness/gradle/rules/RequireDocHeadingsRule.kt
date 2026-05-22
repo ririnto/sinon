@@ -25,16 +25,16 @@ object RequireDocHeadingsRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null) {
 			emptyList()
 		} else {
-			val sourceCategory = HarnessCheck.Companion.stringFrom(parametersObj, "sourceFilesFromCategory")
-			val sourceFiles = HarnessCheck.Companion.stringArrayFrom(manifest[sourceCategory]?.jsonObject?.get("parameters")?.jsonObject, "paths")
+			val sourceCategory = HarnessCheck.stringFrom(parametersObj, "sourceFilesFromCategory")
+			val sourceFiles = HarnessCheck.stringArrayFrom(manifest[sourceCategory]?.jsonObject?.get("parameters")?.jsonObject, "paths")
 			val sourceFilterObj = parametersObj["sourceFilter"]?.jsonObject
-			val prefix = HarnessCheck.Companion.stringFrom(sourceFilterObj, "prefix")
-			val suffix = HarnessCheck.Companion.stringFrom(sourceFilterObj, "suffix")
-			val headings = HarnessCheck.Companion.stringArrayFrom(parametersObj, "headings")
+			val prefix = HarnessCheck.stringFrom(sourceFilterObj, "prefix")
+			val suffix = HarnessCheck.stringFrom(sourceFilterObj, "suffix")
+			val headings = HarnessCheck.stringArrayFrom(parametersObj, "headings")
 			sourceFiles.filter { it.startsWith(prefix) && it.endsWith(suffix) }.flatMap { docPath ->
 				headings.mapNotNull { heading ->
-					if (!HarnessCheck.Companion.readSafe(root, docPath).contains(heading)) {
-						Finding(HarnessCheck.Companion.severityOf(manifest, category), category, "doc missing $heading: $docPath")
+					if (!HarnessCheck.readSafe(root, docPath).contains(heading)) {
+						Finding(HarnessCheck.severityOf(manifest, category), category, "doc missing $heading: $docPath")
 					} else {
 						null
 					}

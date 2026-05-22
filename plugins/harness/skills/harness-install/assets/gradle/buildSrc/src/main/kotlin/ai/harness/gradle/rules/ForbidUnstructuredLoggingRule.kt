@@ -13,27 +13,26 @@ import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 
 /**
- * Rule that forbids wildcard imports in Kotlin code.
+ * Rule that forbids unstructured logging via print and println.
  */
-object ForbidWildcardImportRule : HarnessCheckRule {
+object ForbidUnstructuredLoggingRule : HarnessCheckRule {
 	/**
-	 * PSI detection result for a wildcard import.
+	 * PSI detection result for unstructured logging.
 	 */
 	@Serializable
 	data class Result(
 		val file: String,
 		val line: Int,
-		val imported: String,
 	)
 	override fun applies(manifest: JsonObject): Boolean {
-		val category = "forbidWildcardImport"
+		val category = "forbidUnstructuredLogging"
 		val catObj = manifest[category]?.jsonObject ?: return false
 		val enabled = catObj["enabled"]?.jsonPrimitive?.contentOrNull?.toBoolean() ?: true
 		return enabled
 	}
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
-		val category = "forbidWildcardImport"
+		val category = "forbidUnstructuredLogging"
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -44,7 +43,7 @@ object ForbidWildcardImportRule : HarnessCheckRule {
 		} else {
 			val kotlinDirs = HarnessCheck.stringArrayFrom(sourceRootsPerStack, "kotlin")
 			val kotlinExts = HarnessCheck.stringArrayFrom(extensionsPerStack, "kotlin")
-			val results = psiResults?.wildcardImports ?: emptyList()
+			val results = psiResults?.unstructuredLoggings ?: emptyList()
 			kotlinDirs.flatMap { dirPattern ->
 				val dir = root / dirPattern
 				if (!dir.exists()) {
@@ -55,7 +54,7 @@ object ForbidWildcardImportRule : HarnessCheckRule {
 						file.extension in kotlinExts
 					}.flatMap { file ->
 						results.filter { it.file == file.name }.map { hit ->
-							Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: wildcard import of `${hit.imported}` is forbidden; use explicit imports")
+							Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: use a logger instead of print or println")
 						}
 					}
 				}

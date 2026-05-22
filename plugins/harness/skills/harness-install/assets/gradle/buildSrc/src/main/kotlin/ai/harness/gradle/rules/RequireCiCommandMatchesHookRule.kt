@@ -29,8 +29,8 @@ object RequireCiCommandMatchesHookRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null || messagesObj == null) {
 			emptyList()
 		} else {
-			val ciFiles = HarnessCheck.Companion.stringArrayFrom(parametersObj, "ciFiles")
-			val referenceHookPath = HarnessCheck.Companion.stringFrom(parametersObj, "referenceHook")
+			val ciFiles = HarnessCheck.stringArrayFrom(parametersObj, "ciFiles")
+			val referenceHookPath = HarnessCheck.stringFrom(parametersObj, "referenceHook")
 			val referenceHook = root / referenceHookPath
 			val command = if (referenceHook.isRegularFile()) {
 				referenceHook.readText().lineSequence().firstOrNull { it.startsWith("# Harness validation command: ") }?.removePrefix("# Harness validation command: ")?.trim() ?: ""
@@ -42,7 +42,7 @@ object RequireCiCommandMatchesHookRule : HarnessCheckRule {
 			} else {
 				ciFiles.mapNotNull { ciFile ->
 					if ((root / ciFile).isRegularFile() && !(root / ciFile).readText().contains(command)) {
-						Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$ciFile: CI command mismatch — expected $command")
+						Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$ciFile: CI command mismatch — expected $command")
 					} else {
 						null
 					}

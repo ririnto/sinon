@@ -463,7 +463,16 @@ Kotlin 2.3.21이 K1 PSI API를 hard compile error로 격상. 대응:
 - [-] Task 8b.6 — `java.io.File` → `kotlin.io.path.Path` + Kotlin 확장 함수 전면 전환 (Gradle boundary 제외).
 - [-] Task 8b.7 — reflection `hasDescendant` 완전 제거 + `PsiRecursiveElementWalkingVisitor` 기반 `hasDescendantOfType` extension 도입.
 
-### [ ] Phase 8c: 9개 disabled add-on 일괄 red-green + 새 companion-position add-on
+### [x] Phase 8c: 9개 disabled add-on 일괄 red-green + 새 companion-position add-on (commit pending)
+
+감사 결과 (manifest 32 add-on vs stack 검증 코드 정합):
+
+- Kotlin: 25 → 32 (7 신규: forbidEarlyReturn / forbidSilentCatch / forbidMutableCollection / forbidUnstructuredLogging / requireImportOverFqn / requireDocCommentOnPublicDeclaration / requireCompanionObjectPosition)
+- Java: 30 → 30 (잔여는 의도된 single-stack non-Java)
+- Python: 27 → 28 (requireCiCommandMatchesHook 추가). 잔여 4건은 의도된 N/A (manifest.python=[] 또는 Kotlin-only)
+- TypeScript: 29 → 31 (forbidUnsafeSymlinks + requireImportOverFqn). 잔여 1건은 Kotlin-only requireCompanionObjectPosition
+
+`HarnessCheck.Companion.` 명시 호출은 `HarnessCheck.` 단축형으로 정리.
 
 manifest의 9개 disabled add-on 모두를 red-green으로 활성화하고, 새 type 추가:
 
@@ -514,15 +523,13 @@ enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단�
 - [x] Task 10.4 — TypeScript (bun): Rule class 분리 + namespace nested Result. 완료 (30 Rule class, harness-check.ts 356줄).
 - [x] Task 10.5 — 4 stack 모두 `plugin-self-check.sh` PASS 확인 후 일괄 commit (c9f9b94).
 
-### [ ] Phase 11: HarnessCheckRule.validate 반환형 List → Collection 일반화
+### [x] Phase 11: HarnessCheckRule.validate 반환형 List → Collection 일반화 (commit 979a71c)
 
 `validate`는 호출부에서 합치기/순회만 하면 충분하므로 반환형을 더 일반적인 `Collection`(JVM) / `Iterable`(Python) / `readonly Finding[]`(TS)로 확대.
 
-- [ ] Task 11.1 — JVM 두 stack: `Collection<Finding>`으로 시그니처 변경. 구현 클래스 반환형도 좁힘 없이 상위 타입 사용.
-- [ ] Task 11.2 — Python: `Iterable[Finding]` 또는 `Sequence[Finding]`로 변경. 호출부는 `list(...)`로 좁힘.
-- [ ] Task 11.3 — TypeScript: `Iterable<Finding>` 또는 `readonly Finding[]`로 변경.
-
-전제: Phase 10 완료 후 진행.
+- [x] Task 11.1 — JVM 두 stack: `Collection<Finding>`으로 시그니처 변경.
+- [x] Task 11.2 — Python: `Iterable[Finding]`로 변경.
+- [x] Task 11.3 — TypeScript: `readonly Finding[]`로 변경.
 
 ### [x] Phase 12: 중간 `return emptyList()` 제거 (commit 5fc0d59)
 

@@ -25,13 +25,13 @@ object RequireKeefileInEmptyDirectoriesRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireKeepfileInEmptyDirectories"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
+		val severity = HarnessCheck.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		return if (catObj == null || parametersObj == null) {
 			emptyList()
 		} else {
-			val directories = HarnessCheck.Companion.stringArrayFrom(parametersObj, "directories")
+			val directories = HarnessCheck.stringArrayFrom(parametersObj, "directories")
 			directories.mapNotNull { dirPath ->
 				val dir = root / dirPath
 				if (!dir.isDirectory()) {

@@ -30,9 +30,9 @@ object RequireHookGeneratedMarkerRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null || messagesObj == null) {
 			emptyList()
 		} else {
-			val hooks = HarnessCheck.Companion.stringArrayFrom(parametersObj, "hooks")
-			val markerTemplate = HarnessCheck.Companion.stringFrom(parametersObj, "markerTemplate")
-			val placeholderForbidden = HarnessCheck.Companion.stringFrom(parametersObj, "placeholderForbidden")
+			val hooks = HarnessCheck.stringArrayFrom(parametersObj, "hooks")
+			val markerTemplate = HarnessCheck.stringFrom(parametersObj, "markerTemplate")
+			val placeholderForbidden = HarnessCheck.stringFrom(parametersObj, "placeholderForbidden")
 			hooks.flatMap { hookPath ->
 				val hook = root / hookPath
 				if (!hook.isRegularFile()) {
@@ -42,10 +42,10 @@ object RequireHookGeneratedMarkerRule : HarnessCheckRule {
 					val marker = markerTemplate.replace("{name}", hook.name)
 					listOfNotNull(
 						if (!text.contains(marker)) {
-							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "missingMarker").takeIf { it.isNotEmpty() } ?: "$hookPath must contain generated marker '$marker'")
+							Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "missingMarker").takeIf { it.isNotEmpty() } ?: "$hookPath must contain generated marker '$marker'")
 						} else null,
 						if (text.contains(placeholderForbidden)) {
-							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "placeholderPresent").takeIf { it.isNotEmpty() } ?: "$hookPath still contains packaging placeholder text")
+							Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "placeholderPresent").takeIf { it.isNotEmpty() } ?: "$hookPath still contains packaging placeholder text")
 						} else null
 					)
 				}

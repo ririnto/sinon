@@ -34,7 +34,7 @@ object RequireSingleTopLevelKotlinDeclarationRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireSingleTopLevelKotlinDeclaration"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
+		val severity = HarnessCheck.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -43,16 +43,16 @@ object RequireSingleTopLevelKotlinDeclarationRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null || messagesObj == null || sourceRootsPerStack == null || extensionsPerStack == null) {
 			emptyList()
 		} else {
-			val kotlinDirs = HarnessCheck.Companion.stringArrayFrom(sourceRootsPerStack, "kotlin")
-			val kotlinExts = HarnessCheck.Companion.stringArrayFrom(extensionsPerStack, "kotlin")
-			val allowedDeclarations = HarnessCheck.Companion.stringArrayFrom(parametersObj, "allowedDeclarations")
+			val kotlinDirs = HarnessCheck.stringArrayFrom(sourceRootsPerStack, "kotlin")
+			val kotlinExts = HarnessCheck.stringArrayFrom(extensionsPerStack, "kotlin")
+			val allowedDeclarations = HarnessCheck.stringArrayFrom(parametersObj, "allowedDeclarations")
 			val results = psiResults?.topLevelDeclarations ?: emptyList()
 			kotlinDirs.flatMap { dirPattern ->
 				val dir = root / dirPattern
 				if (!dir.exists()) {
 					emptyList()
 				} else {
-					val (files, _) = HarnessCheck.Companion.walkSafe(root, dir)
+					val (files, _) = HarnessCheck.walkSafe(root, dir)
 					files.filter { file ->
 						file.extension in kotlinExts
 					}.mapNotNull { file ->
@@ -60,13 +60,13 @@ object RequireSingleTopLevelKotlinDeclarationRule : HarnessCheckRule {
 						when {
 							info == null -> null
 							info.count != 1 -> {
-								val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}: file must have single top-level declaration, found ${info.count}"
+								val msg = HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}: file must have single top-level declaration, found ${info.count}"
 								Finding(severity, category, msg)
 							}
 							else -> {
 								val declType = info.firstKind
 								if (declType != "unknown" && declType !in allowedDeclarations) {
-									val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}: top-level $declType is not allowed"
+									val msg = HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}: top-level $declType is not allowed"
 									Finding(severity, category, msg)
 								} else {
 									null

@@ -28,11 +28,11 @@ object RequireDocContentRule : HarnessCheckRule {
 		} else {
 			checks.mapNotNull { checkElem ->
 				val checkObj = checkElem.jsonObject
-				val files = HarnessCheck.Companion.stringArrayFrom(checkObj, "files")
-				val containsAll = HarnessCheck.Companion.stringArrayFrom(checkObj, "containsAll")
-				val content = files.map { HarnessCheck.Companion.readSafe(root, it) }.joinToString("\n")
+				val files = HarnessCheck.stringArrayFrom(checkObj, "files")
+				val containsAll = HarnessCheck.stringArrayFrom(checkObj, "containsAll")
+				val content = files.map { HarnessCheck.readSafe(root, it) }.joinToString("\n")
 				if (!containsAll.all { content.contains(it) }) {
-					Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(checkObj, "failureMessage"))
+					Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(checkObj, "failureMessage"))
 				} else {
 					null
 				}

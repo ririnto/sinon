@@ -41,20 +41,20 @@ object RequireBracesOnIfRule : HarnessCheckRule {
 		return if (catObj == null || parametersObj == null || messagesObj == null || sourceRootsPerStack == null || extensionsPerStack == null) {
 			emptyList()
 		} else {
-			val kotlinDirs = HarnessCheck.Companion.stringArrayFrom(sourceRootsPerStack, "kotlin")
-			val kotlinExts = HarnessCheck.Companion.stringArrayFrom(extensionsPerStack, "kotlin")
+			val kotlinDirs = HarnessCheck.stringArrayFrom(sourceRootsPerStack, "kotlin")
+			val kotlinExts = HarnessCheck.stringArrayFrom(extensionsPerStack, "kotlin")
 			val results = psiResults?.braceOnIfs ?: emptyList()
 			kotlinDirs.flatMap { dirPattern ->
 				val dir = root / dirPattern
 				if (!dir.exists()) {
 					emptyList()
 				} else {
-					val (files, _) = HarnessCheck.Companion.walkSafe(root, dir)
+					val (files, _) = HarnessCheck.walkSafe(root, dir)
 					files.filter { file ->
 						file.extension in kotlinExts
 					}.flatMap { file ->
 						results.filter { it.file == file.name }.map { hit ->
-							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: if statement without braces; use braced form")
+							Finding(HarnessCheck.severityOf(manifest, category), category, HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: if statement without braces; use braced form")
 						}
 					}
 				}

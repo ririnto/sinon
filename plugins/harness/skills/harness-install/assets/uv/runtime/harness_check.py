@@ -42,6 +42,7 @@ from rules.forbid_wildcard_import import RULE as forbid_wildcard_import
 from rules.require_import_over_fqn import RULE as require_import_over_fqn
 from rules.require_doc_comment_on_public_declaration import RULE as require_doc_comment_on_public_declaration
 from rules.forbid_empty_catch_block import RULE as forbid_empty_catch_block
+from rules.require_ci_command_matches_hook import RULE as require_ci_command_matches_hook
 
 MANIFEST_PATH = "docs/harness/manifest.json"
 
@@ -94,6 +95,10 @@ class HarnessCheck(enum.Enum):
         require_doc_comment_on_public_declaration,
     )
     FORBID_EMPTY_CATCH_BLOCK = ("forbidEmptyCatchBlock", forbid_empty_catch_block)
+    REQUIRE_CI_COMMAND_MATCHES_HOOK = (
+        "requireCiCommandMatchesHook",
+        require_ci_command_matches_hook,
+    )
 
     def __init__(self, category: str, rule: HarnessCheckRule):
         """Initialize enum member with category name and rule singleton."""

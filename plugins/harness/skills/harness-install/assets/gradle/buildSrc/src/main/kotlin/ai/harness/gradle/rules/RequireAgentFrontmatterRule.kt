@@ -28,17 +28,17 @@ object RequireAgentFrontmatterRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireAgentFrontmatter"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
+		val severity = HarnessCheck.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
 		return if (catObj == null || parametersObj == null || messagesObj == null) {
 			emptyList()
 		} else {
-			val directory = HarnessCheck.Companion.stringFrom(parametersObj, "directory")
+			val directory = HarnessCheck.stringFrom(parametersObj, "directory")
 			val dirPath = root / directory
 			if (!dirPath.isDirectory()) {
-				val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingDirectory").takeIf { it.isNotEmpty() } ?: ".claude/agents must contain at least one .md agent"
+				val msg = HarnessCheck.stringFrom(messagesObj, "missingDirectory").takeIf { it.isNotEmpty() } ?: ".claude/agents must contain at least one .md agent"
 				listOf(Finding(severity, category, msg))
 			} else {
 				val files = try {
@@ -47,22 +47,22 @@ object RequireAgentFrontmatterRule : HarnessCheckRule {
 					emptyList()
 				}
 				if (files.isEmpty()) {
-					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingAgent").takeIf { it.isNotEmpty() } ?: ".claude/agents must contain at least one .md agent"
+					val msg = HarnessCheck.stringFrom(messagesObj, "missingAgent").takeIf { it.isNotEmpty() } ?: ".claude/agents must contain at least one .md agent"
 					listOf(Finding(severity, category, msg))
 				} else {
 					files.flatMap { file ->
 						val text = file.readText()
 						if (!text.startsWith("---")) {
-							val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingFrontmatter").takeIf { it.isNotEmpty() } ?: "agent missing frontmatter: ${file.relativeTo(root)}"
+							val msg = HarnessCheck.stringFrom(messagesObj, "missingFrontmatter").takeIf { it.isNotEmpty() } ?: "agent missing frontmatter: ${file.relativeTo(root)}"
 							listOf(Finding(severity, category, msg))
 						} else {
 							listOfNotNull(
 								if (!"""(?m)^name:\s*[-a-z0-9]+\s*$""".toRegex().containsMatchIn(text)) {
-									val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingName").takeIf { it.isNotEmpty() } ?: "agent missing name: ${file.relativeTo(root)}"
+									val msg = HarnessCheck.stringFrom(messagesObj, "missingName").takeIf { it.isNotEmpty() } ?: "agent missing name: ${file.relativeTo(root)}"
 									Finding(severity, category, msg)
 								} else null,
 								if (!"""(?m)^description:\s*.+$""".toRegex().containsMatchIn(text)) {
-									val msg = HarnessCheck.Companion.stringFrom(messagesObj, "missingDescription").takeIf { it.isNotEmpty() } ?: "agent missing description: ${file.relativeTo(root)}"
+									val msg = HarnessCheck.stringFrom(messagesObj, "missingDescription").takeIf { it.isNotEmpty() } ?: "agent missing description: ${file.relativeTo(root)}"
 									Finding(severity, category, msg)
 								} else null
 							)

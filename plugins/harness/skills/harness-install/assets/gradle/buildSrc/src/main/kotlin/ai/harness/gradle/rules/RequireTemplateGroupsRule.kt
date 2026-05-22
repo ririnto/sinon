@@ -24,14 +24,14 @@ object RequireTemplateGroupsRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireTemplateGroups"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
+		val severity = HarnessCheck.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		return if (catObj == null || parametersObj == null) {
 			emptyList()
 		} else {
-			val targetRoot = HarnessCheck.Companion.stringFrom(parametersObj, "targetRoot")
-			val groups = HarnessCheck.Companion.stringArrayFrom(parametersObj, "groups")
+			val targetRoot = HarnessCheck.stringFrom(parametersObj, "targetRoot")
+			val groups = HarnessCheck.stringArrayFrom(parametersObj, "groups")
 			groups.mapNotNull { group ->
 				val p = root / "$targetRoot/$group"
 				when {
