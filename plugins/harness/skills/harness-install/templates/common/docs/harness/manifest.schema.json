@@ -1,0 +1,315 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.schema.json",
+  "title": "RepositoryHarnessManifest",
+  "description": "Schema for docs/harness/manifest.json. Each top-level entry is either a check add-on (description + severity + failure message templates + target paths/data) or metadata (description + data, no severity, validator does not validate). The harness is not versioned; the current committed manifest is the only authoritative shape.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["name", "description"],
+  "properties": {
+    "name": {"type": "string"},
+    "description": {"type": "string"},
+
+    "requireFilesExist": {"$ref": "#/$defs/pathListCheck"},
+    "requireDirectoriesExist": {"$ref": "#/$defs/pathListCheck"},
+
+    "requireKeepfileInEmptyDirectories": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "directories": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["description", "directories"]
+    },
+
+    "requireTemplateGroups": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "targetRoot": {"type": "string"},
+        "groups": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["description", "targetRoot", "groups"]
+    },
+
+    "requireDocHeadings": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "sourceFilesFromCategory": {"type": "string"},
+        "sourceFilter": {
+          "type": "object",
+          "properties": {
+            "prefix": {"type": "string"},
+            "suffix": {"type": "string"}
+          }
+        },
+        "headings": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["description", "headings"]
+    },
+
+    "requireDocContent": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["files", "containsAll", "failureMessage"],
+            "properties": {
+              "files": {"type": "array", "items": {"type": "string"}},
+              "containsAll": {"type": "array", "items": {"type": "string"}},
+              "failureMessage": {"type": "string"}
+            }
+          }
+        }
+      },
+      "required": ["description", "checks"]
+    },
+
+    "requireAgentFrontmatter": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "directory": {"type": "string"},
+        "filenamePattern": {"type": "string"},
+        "frontmatterStart": {"type": "string"},
+        "requiredFields": {"type": "array", "items": {"type": "string"}},
+        "namePattern": {"type": "string"},
+        "failureMessages": {"$ref": "#/$defs/failureMessages"}
+      },
+      "required": ["description", "directory"]
+    },
+
+    "requireSkillFrontmatter": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "rootDirectory": {"type": "string"},
+        "filename": {"type": "string"},
+        "frontmatterStart": {"type": "string"},
+        "requiredFields": {"type": "array", "items": {"type": "string"}},
+        "failureMessages": {"$ref": "#/$defs/failureMessages"}
+      },
+      "required": ["description", "rootDirectory", "filename"]
+    },
+
+    "forbidScaffoldLeaks": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "scope": {
+          "type": "object",
+          "required": ["bases", "extensions"],
+          "properties": {
+            "bases": {"type": "array", "items": {"type": "string"}},
+            "excludedSubtrees": {"type": "array", "items": {"type": "string"}},
+            "extensions": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "patterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["pattern", "label"],
+            "properties": {
+              "pattern": {"type": "string"},
+              "label": {"type": "string"}
+            }
+          }
+        }
+      },
+      "required": ["description", "scope", "patterns"]
+    },
+
+    "requireHookShebang": {"$ref": "#/$defs/hookListCheck"},
+    "requireHookExecutable": {"$ref": "#/$defs/hookListCheck"},
+
+    "requireHookGeneratedMarker": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "hooks": {"type": "array", "items": {"type": "string"}},
+        "markerTemplate": {"type": "string"},
+        "placeholderForbidden": {"type": "string"},
+        "failureMessages": {"$ref": "#/$defs/failureMessages"}
+      },
+      "required": ["description", "hooks", "markerTemplate"]
+    },
+
+    "requireHookStage": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "markerTemplate": {"type": "string"},
+        "stages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {"type": "string"}
+          }
+        }
+      },
+      "required": ["description", "stages"]
+    },
+
+    "requireHookCommand": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "prePushHook": {"type": "string"},
+        "preCommitHook": {"type": "string"},
+        "allowedCommands": {
+          "type": "object",
+          "additionalProperties": {"type": "array", "items": {"type": "string"}}
+        },
+        "allowedPreCommitCommands": {
+          "type": "object",
+          "additionalProperties": {"type": "array", "items": {"type": "string"}}
+        },
+        "failureMessages": {"$ref": "#/$defs/failureMessages"}
+      },
+      "required": ["description", "prePushHook", "preCommitHook", "allowedCommands"]
+    },
+
+    "requireCiCommandMatchesHook": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "ciFiles": {"type": "array", "items": {"type": "string"}},
+        "referenceHook": {"type": "string"}
+      },
+      "required": ["description", "ciFiles", "referenceHook"]
+    },
+
+    "requireEnvShebangUnder": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "directories": {"type": "array", "items": {"type": "string"}},
+        "expectedPrefix": {"type": "string"}
+      },
+      "required": ["description", "directories", "expectedPrefix"]
+    },
+
+    "forbidUncheckedTasksUnder": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "directory": {"type": "string"},
+        "filenamePattern": {"type": "string"},
+        "uncheckedTaskPattern": {"type": "string"}
+      },
+      "required": ["description", "directory", "uncheckedTaskPattern"]
+    },
+
+    "forbidUnsafeSymlinks": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "allowedSymlinkPairs": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {"type": "string"},
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "failureMessages": {"$ref": "#/$defs/failureMessages"}
+      },
+      "required": ["description"]
+    },
+
+    "seedFiles": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "paths": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["description", "paths"]
+    },
+
+    "generatedArtifacts": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "path": {"type": "string"},
+        "placeholder": {"type": "string"},
+        "policy": {"type": "string"},
+        "metadata": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["description"]
+    },
+
+    "harnessEvolution": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "policy": {"type": "string"}
+      },
+      "required": ["description", "policy"]
+    },
+
+    "teamPatterns": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "patterns": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["description", "patterns"]
+    }
+  },
+  "$defs": {
+    "severity": {"enum": ["ERROR", "WARN", "INFO"]},
+    "failureMessages": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
+    "pathListCheck": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "paths": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["description", "paths"]
+    },
+    "hookListCheck": {
+      "type": "object",
+      "properties": {
+        "description": {"type": "string"},
+        "severity": {"$ref": "#/$defs/severity"},
+        "failureMessageTemplate": {"type": "string"},
+        "hooks": {"type": "array", "items": {"type": "string"}},
+        "expectedShebang": {"type": "string"}
+      },
+      "required": ["description", "hooks"]
+    }
+  }
+}
