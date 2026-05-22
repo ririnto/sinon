@@ -2,7 +2,8 @@
 
 - Status: active
 - Created: 2026-05-22
-- Owner: ririnto
+- Author: ririnto
+- Assignee: ririnto
 
 ## Goal
 
