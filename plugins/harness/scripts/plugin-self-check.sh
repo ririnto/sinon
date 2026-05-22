@@ -542,6 +542,34 @@ if plugin.get("repository") != "https://github.com/ririnto/sinon":
 for forbidden in ("agents", "hooks", "version", "interface"):
     if forbidden in plugin:
         errors.append(f"plugin manifest must not declare {forbidden}")
+lsp_json_exists = (root / ".lsp.json").is_file()
+has_lsp_servers = "lspServers" in plugin
+if lsp_json_exists != has_lsp_servers:
+    if lsp_json_exists:
+        errors.append("manifest must declare lspServers because .lsp.json exists")
+    else:
+        errors.append(".lsp.json target file missing for lspServers declaration")
+mcp_json_exists = (root / ".mcp.json").is_file()
+has_mcp_servers = "mcpServers" in plugin
+if mcp_json_exists != has_mcp_servers:
+    if mcp_json_exists:
+        errors.append("manifest must declare mcpServers because .mcp.json exists")
+    else:
+        errors.append(".mcp.json target file missing for mcpServers declaration")
+hooks_json_exists = (root / "hooks" / "hooks.json").is_file()
+has_hooks = "hooks" in plugin
+if hooks_json_exists != has_hooks:
+    if hooks_json_exists:
+        errors.append("manifest must declare hooks because hooks/hooks.json exists")
+    else:
+        errors.append("hooks/hooks.json target file missing for hooks declaration")
+settings_json_exists = (root / "settings.json").is_file()
+has_settings = "settings" in plugin
+if settings_json_exists != has_settings:
+    if settings_json_exists:
+        errors.append("manifest must declare settings because settings.json exists")
+    else:
+        errors.append("settings.json target file missing for settings declaration")
 for group in manifest.get("templateGroups", []):
     if not (root / f"skills/harness-install/templates/common/.claude/harness/templates/{group}").is_dir():
         errors.append(f"manifest template group missing: {group}")
