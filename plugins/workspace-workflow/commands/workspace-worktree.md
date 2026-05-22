@@ -248,7 +248,8 @@ Next Steps:
 
 ## Common Patterns
 
-**Parallel feature development**:
+Parallel feature development:
+
 ```sh
 git worktree add ../feature-b -b feature/b main
 cd ../feature-b
@@ -256,7 +257,8 @@ cd ../feature-b
 # Main worktree still at main
 ```
 
-**Bug fix while on feature**:
+Bug fix while on feature:
+
 ```sh
 git worktree add ../hotfix -b hotfix/urgent main
 cd ../hotfix
@@ -264,7 +266,8 @@ cd ../hotfix
 git worktree remove ../hotfix
 ```
 
-**Experiment isolation**:
+Experiment isolation:
+
 ```sh
 git worktree add ../experiment -b exp/new-idea main
 cd ../experiment

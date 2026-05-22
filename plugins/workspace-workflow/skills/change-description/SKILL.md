@@ -48,13 +48,13 @@ Use Conventional Commits format for change description titles:
 type(scope): description
 ```
 
-**Components:**
+Components:
 
 - `type`: One of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`.
 - `scope`: The module, feature, or area affected (e.g., `api`, `auth`, `ui`, `deps`). MUST be lowercase, no spaces. Omit if single-scope project.
 - `description`: Imperative mood, no period, lowercase start. Summarize the change concisely.
 
-**Examples:**
+Examples:
 
 - `feat(auth): implement JWT refresh token rotation`
 - `fix(api): handle null customer ID in billing endpoint`
@@ -62,7 +62,7 @@ type(scope): description
 - `refactor(db): migrate connection pool to async-await`
 - `perf(search): add query result caching`
 
-**Length:** 50–72 characters (enforce via linter or manual review).
+Length: 50–72 characters (enforce via linter or manual review).
 
 ## Body Template
 
@@ -361,8 +361,6 @@ host-cli pr list
 
 # List all PRs with filters
 host-cli pr list --search "status:success review:required"
-
-# Find PRs by draft status or label
 host-cli pr list --draft
 host-cli pr list --author "@me" --state closed
 ```
@@ -457,7 +455,7 @@ host-cli mr list
 
 # List with filters
 host-cli mr list --draft
-host-cli mr list --all  # Include closed and merged
+host-cli mr list --all
 
 # Search in title and description
 host-cli mr list --search "adds feature X"

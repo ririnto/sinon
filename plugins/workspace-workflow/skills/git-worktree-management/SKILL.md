@@ -233,7 +233,7 @@ cd ../feat-b && git push
 4. Clean up when done:
 
 ```sh
-cd ../../  # exit the worktree
+cd ../../
 git worktree remove worktrees/feat-a
 git worktree remove worktrees/feat-b
 ```
