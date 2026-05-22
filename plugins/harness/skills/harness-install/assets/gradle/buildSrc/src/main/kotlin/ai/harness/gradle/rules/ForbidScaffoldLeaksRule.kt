@@ -26,7 +26,6 @@ object ForbidScaffoldLeaksRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "forbidScaffoldLeaks"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -52,16 +51,13 @@ object ForbidScaffoldLeaksRule : HarnessCheckRule {
 				}
 			}
 			bases.flatMap { basePath ->
-				val base = root / basePath
-				val (files, _) = HarnessCheck.Companion.walkSafe(root, base)
+				val (files, _) = HarnessCheck.Companion.walkSafe(root, root / basePath)
 				files.filter { file ->
 					file.extension in extensions && excludedPaths.none { file.toString().startsWith(it.toString()) }
 				}.flatMap { file ->
-					val text = file.readText()
 					regexes.mapNotNull { (regex, label) ->
-						if (regex.containsMatchIn(text)) {
-							val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$label in active asset: ${file.relativeTo(root.toFile())}"
-							Finding(severity, category, msg)
+						if (regex.containsMatchIn(file.readText())) {
+							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "$label in active asset: ${file.relativeTo(root.toFile())}")
 						} else {
 							null
 						}

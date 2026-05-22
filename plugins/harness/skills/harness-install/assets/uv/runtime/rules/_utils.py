@@ -15,123 +15,92 @@ ROOT = Path.cwd()
 
 def read_text(path: Path) -> str:
     """Read file text, resolving allowed root contract symlinks."""
-    resolved_path = path
-    if path.is_symlink():
-        target = allowed_root_contract_target(path)
-        if target is not None:
-            resolved_path = target
-        else:
-            resolved_path = None
+    resolved_path = allowed_root_contract_target(path) if path.is_symlink() else path
     if resolved_path is None:
-        result = ""
-    else:
-        try:
-            result = resolved_path.read_text(encoding="utf-8")
-        except OSError:
-            result = ""
-    return result
+        return ""
+    try:
+        return resolved_path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
 
 
 def is_executable(path: Path) -> bool:
     """Check if file has executable bit, resolving allowed symlinks."""
-    resolved_path = path
-    if path.is_symlink():
-        target = allowed_root_contract_target(path)
-        if target is not None:
-            resolved_path = target
-        else:
-            resolved_path = None
+    resolved_path = allowed_root_contract_target(path) if path.is_symlink() else path
     if resolved_path is None:
-        result = False
-    else:
-        try:
-            result = bool(resolved_path.stat().st_mode & stat.S_IXUSR)
-        except OSError:
-            result = False
-    return result
+        return False
+    try:
+        return bool(resolved_path.stat().st_mode & stat.S_IXUSR)
+    except OSError:
+        return False
 
 
 def first_line(path: Path) -> str:
     """Get first line of file text."""
     lines = read_text(path).splitlines()
-    result = lines[0] if lines else ""
-    return result
+    return lines[0] if lines else ""
 
 
 def relative(path: Path) -> str:
     """Return path relative to ROOT or string representation."""
     try:
-        result = path.relative_to(ROOT).as_posix()
+        return path.relative_to(ROOT).as_posix()
     except ValueError:
-        result = str(path)
-    return result
+        return str(path)
 
 
 def allowed_root_contract_target(path: Path) -> Path | None:
     """Resolve root contract symlink (AGENTS.md <-> CLAUDE.md) if valid."""
-    result = None
-    if path.parent == ROOT and path.name in {"AGENTS.md", "CLAUDE.md"}:
-        try:
-            target_name = os.readlink(path)
-            expected = "CLAUDE.md" if path.name == "AGENTS.md" else "AGENTS.md"
-            if target_name == expected:
-                target = ROOT / target_name
-                if target.parent == ROOT and not target.is_symlink() and target.is_file():
-                    result = target
-        except OSError:
-            pass
-    return result
+    if path.parent != ROOT or path.name not in {"AGENTS.md", "CLAUDE.md"}:
+        return None
+    try:
+        target_name = os.readlink(path)
+    except OSError:
+        return None
+    expected = "CLAUDE.md" if path.name == "AGENTS.md" else "AGENTS.md"
+    if target_name != expected:
+        return None
+    target = ROOT / target_name
+    return target if target.parent == ROOT and not target.is_symlink() and target.is_file() else None
 
 
 def is_safe_file(path: Path) -> bool:
     """Check if path is a regular file or allowed root contract symlink."""
-    if path.is_symlink():
-        result = allowed_root_contract_target(path) is not None
-    else:
-        result = path.is_file()
-    return result
+    return allowed_root_contract_target(path) is not None if path.is_symlink() else path.is_file()
 
 
 def is_safe_directory(path: Path) -> bool:
     """Check if path is a directory (not a symlink)."""
-    result = not path.is_symlink() and path.is_dir()
-    return result
+    return not path.is_symlink() and path.is_dir()
 
 
 def safe_walk(base: Path) -> tuple[Path, ...]:
     """Walk directory tree, excluding symlinks."""
     if base.is_symlink() or base.is_file() or not base.is_dir():
-        result = ()
-    else:
-        output = []
-        for current, directories, files in os.walk(base, followlinks=False):
-            current_path = Path(current)
-            directories[:] = [name for name in directories if not (current_path / name).is_symlink()]
-            output.extend(child for name in files if not (child := current_path / name).is_symlink())
-        result = tuple(output)
-    return result
+        return ()
+    output = []
+    for current, directories, files in os.walk(base, followlinks=False):
+        current_path = Path(current)
+        directories[:] = [name for name in directories if not (current_path / name).is_symlink()]
+        output.extend(child for name in files if not (child := current_path / name).is_symlink())
+    return tuple(output)
 
 
 def safe_file_or_walk(base: Path) -> tuple[Path, ...]:
     """Return single file (if safe) or walk directory; no unsafe symlinks."""
     if base.is_symlink() and allowed_root_contract_target(base) is None:
-        result = ()
-    elif is_safe_file(base):
-        result = (base,)
-    else:
-        result = safe_walk(base)
-    return result
+        return ()
+    return (base,) if is_safe_file(base) else safe_walk(base)
 
 
 def severity_for(manifest: dict, category: str) -> str:
     """Get severity for category from manifest, default to ERROR."""
-    result = "ERROR"
     section = manifest.get(category)
     if isinstance(section, dict):
         value = section.get("severity")
         if value in ("ERROR", "WARN", "INFO"):
-            result = value
-    return result
+            return value
+    return "ERROR"
 
 
 def stack_sources(root: Path, manifest: dict, category: str) -> tuple[Path, ...]:
@@ -185,13 +154,10 @@ def stack_sources(root: Path, manifest: dict, category: str) -> tuple[Path, ...]
 
 def parse_python(path: Path) -> tuple[cst.Module | None, str | None]:
     """Parse a Python file and return Module or error message."""
-    text = path.read_text(encoding="utf-8")
     try:
-        module = cst.parse_module(text)
-        result = (module, None)
+        return (cst.parse_module(path.read_text(encoding="utf-8")), None)
     except cst.ParserSyntaxError as err:
-        result = (None, str(err))
-    return result
+        return (None, str(err))
 
 
 def has_nested_function(func_node: cst.FunctionDef) -> bool:

@@ -49,14 +49,8 @@ object ForbidUnsafeSymlinksRule : HarnessCheckRule {
 				emptyList()
 			}
 			rootFiles.filter { it.isSymbolicLink() }.mapNotNull { file ->
-				val target = try {
-					file.readSymbolicLink().toString()
-				} catch (_: Exception) {
-					""
-				}
-				if (file.name to target !in allowed) {
-					val msg = HarnessCheck.Companion.stringFrom(messagesObj, "fileNotAllowed").takeIf { it.isNotEmpty() } ?: "symlink file is not allowed: ${file.relativeTo(root)}"
-					Finding(Severity.ERROR, category, msg)
+				if (file.name to (try { file.readSymbolicLink().toString() } catch (_: Exception) { "" }) !in allowed) {
+					Finding(Severity.ERROR, category, HarnessCheck.Companion.stringFrom(messagesObj, "fileNotAllowed").takeIf { it.isNotEmpty() } ?: "symlink file is not allowed: ${file.relativeTo(root)}")
 				} else {
 					null
 				}

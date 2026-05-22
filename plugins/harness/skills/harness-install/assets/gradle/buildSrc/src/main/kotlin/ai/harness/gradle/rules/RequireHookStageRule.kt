@@ -23,7 +23,6 @@ object RequireHookStageRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireHookStage"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -41,15 +40,13 @@ object RequireHookStageRule : HarnessCheckRule {
 				if (preCommitHook.isRegularFile()) {
 					val marker = markerTemplate.replace("{stage}", preCommitStage)
 					if (!preCommitHook.readText().contains(marker)) {
-						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "pre-commit must contain stage marker '$marker'"
-						Finding(severity, category, msg)
+						Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "pre-commit must contain stage marker '$marker'")
 					} else null
 				} else null,
 				if (prePushHook.isRegularFile()) {
 					val marker = markerTemplate.replace("{stage}", prePushStage)
 					if (!prePushHook.readText().contains(marker)) {
-						val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "pre-push must contain stage marker '$marker'"
-						Finding(severity, category, msg)
+						Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "pre-push must contain stage marker '$marker'")
 					} else null
 				} else null
 			)

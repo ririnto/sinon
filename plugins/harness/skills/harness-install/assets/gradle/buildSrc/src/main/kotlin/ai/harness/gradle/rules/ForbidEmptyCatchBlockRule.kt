@@ -33,7 +33,6 @@ object ForbidEmptyCatchBlockRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "forbidEmptyCatchBlock"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		val messagesObj = catObj?.get("messages")?.jsonObject
@@ -55,8 +54,7 @@ object ForbidEmptyCatchBlockRule : HarnessCheckRule {
 						file.extension in kotlinExts
 					}.flatMap { file ->
 						results.filter { it.file == file.name }.map { hit ->
-							val msg = HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: empty catch block; handle, rethrow, or convert to a Finding"
-							Finding(severity, category, msg)
+							Finding(HarnessCheck.Companion.severityOf(manifest, category), category, HarnessCheck.Companion.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() } ?: "${file.relativeTo(root)}:${hit.line}: empty catch block; handle, rethrow, or convert to a Finding")
 						}
 					}
 				}

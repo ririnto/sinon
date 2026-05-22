@@ -11,8 +11,7 @@ export const forbidEarlyReturnRule = (ctx: RuleContext): HarnessCheckRule => ({
   },
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const sources = ctx.stackSources(manifest, "typescript");
-    return sources.flatMap((file) => {
+    return ctx.stackSources(manifest, "typescript").flatMap((file) => {
       const text = ctx.read(file);
       if (!text) {
         return [];
@@ -45,8 +44,7 @@ export const forbidEarlyReturnRule = (ctx: RuleContext): HarnessCheckRule => ({
 
       const checkFunc = (funcNode: FunctionLike): void => {
         if (funcNode.body && isBlock(funcNode.body)) {
-          const body = funcNode.body;
-          const statements = body.statements;
+          const statements = funcNode.body.statements;
           if (statements.length > 0) {
             const funcName = getFuncName(funcNode);
             findings.push(

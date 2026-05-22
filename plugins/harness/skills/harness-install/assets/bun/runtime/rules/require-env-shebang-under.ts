@@ -19,8 +19,7 @@ export const requireEnvShebangUnderRule = (ctx: RuleContext): HarnessCheckRule =
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.requireEnvShebangUnder);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.requireEnvShebangUnder).parameters);
     const directories = ctx.readStringArray(parameters.directories);
     const expectedPrefix = typeof parameters.expectedPrefix === "string" ? parameters.expectedPrefix : "#!/usr/bin/env ";
 
@@ -31,8 +30,7 @@ export const requireEnvShebangUnderRule = (ctx: RuleContext): HarnessCheckRule =
           if (!ctx.isExecutablePath(file)) {
             return [];
           }
-          const first = ctx.firstLine(file);
-          return first.startsWith("#!") && !first.startsWith(expectedPrefix)
+          return (ctx.firstLine(file)).startsWith("#!") && !(ctx.firstLine(file)).startsWith(expectedPrefix)
             ? [
                 {
                   severity: ctx.severityOf(manifest, "requireEnvShebangUnder"),

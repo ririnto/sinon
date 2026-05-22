@@ -22,10 +22,9 @@ public enum RequireHookShebangRule implements HarnessCheckRule {
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
-        List<String> hooks = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks"));
         String expected = catNode.get("parameters").get("expectedShebang").asText();
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        return hooks.stream()
+        return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks")).stream()
                 .flatMap(hook -> validateHookShebang(root, hook, expected, severity).stream())
                 .toList();
     }

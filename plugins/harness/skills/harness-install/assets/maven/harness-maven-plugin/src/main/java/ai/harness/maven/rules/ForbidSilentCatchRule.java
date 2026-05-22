@@ -43,15 +43,9 @@ public enum ForbidSilentCatchRule implements HarnessCheckRule {
                     .filter(catchClause -> {
                         String catchParam = catchClause.getParameter().getNameAsString();
                         String bodyText = catchClause.getBody().toString();
-                        boolean hasParamRef = bodyText.contains(catchParam);
-                        boolean hasThrow = bodyText.contains("throw ");
-                        boolean hasLog = bodyText.matches("(?s).*\\b(getLog|logger|log)\\s*\\..*");
-                        return !hasParamRef && !hasThrow && !hasLog;
+                        return !bodyText.contains(catchParam) && !bodyText.contains("throw ") && !bodyText.matches("(?s).*\\b(getLog|logger|log)\\s*\\..*");
                     })
-                    .map(catchClause -> {
-                        int line = catchClause.getBegin().map(p -> p.line).orElse(-1);
-                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": silent catch block");
-                    })
+                    .map(catchClause -> new Finding(severity, CATEGORY, root.relativize(file) + ":" + catchClause.getBegin().map(p -> p.line).orElse(-1) + ": silent catch block"))
                     .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));

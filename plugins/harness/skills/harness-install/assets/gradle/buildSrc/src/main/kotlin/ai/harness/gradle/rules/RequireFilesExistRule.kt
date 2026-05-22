@@ -24,7 +24,6 @@ object RequireFilesExistRule : HarnessCheckRule {
 
 	override fun validate(manifest: JsonObject, root: Path, psiResults: HarnessPsiResults?): Collection<Finding> {
 		val category = "requireFilesExist"
-		val severity = HarnessCheck.Companion.severityOf(manifest, category)
 		val catObj = manifest[category]?.jsonObject
 		val parametersObj = catObj?.get("parameters")?.jsonObject
 		return if (catObj == null || parametersObj == null) {
@@ -35,7 +34,7 @@ object RequireFilesExistRule : HarnessCheckRule {
 				val p = root / path
 				when {
 					p.isSymbolicLink() && !HarnessCheck.Companion.isAllowedRootContractSymlink(root, p) -> Finding(Severity.ERROR, category, "symlink file is not allowed: $path")
-					!p.isRegularFile() -> Finding(severity, category, "missing file: $path")
+					!p.isRegularFile() -> Finding(HarnessCheck.Companion.severityOf(manifest, category), category, "missing file: $path")
 					else -> null
 				}
 			}

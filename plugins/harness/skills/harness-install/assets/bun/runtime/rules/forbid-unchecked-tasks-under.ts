@@ -15,8 +15,7 @@ export const forbidUncheckedTasksUnderRule = (ctx: RuleContext): HarnessCheckRul
   }
 
   validate(_root: string, manifest: HarnessManifest): readonly Finding[] {
-    const section = ctx.readJsonObject(manifest.forbidUncheckedTasksUnder);
-    const parameters = ctx.readJsonObject(section.parameters);
+    const parameters = ctx.readJsonObject(ctx.readJsonObject(manifest.forbidUncheckedTasksUnder).parameters);
     const directory = typeof parameters.directory === "string" ? parameters.directory : "";
     const patternStr = typeof parameters.uncheckedTaskPattern === "string" ? parameters.uncheckedTaskPattern : "";
     if (!directory || !ctx.isDirectory(directory) || !patternStr) {

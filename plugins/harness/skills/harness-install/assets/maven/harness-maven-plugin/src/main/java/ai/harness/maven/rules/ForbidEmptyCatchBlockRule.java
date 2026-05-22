@@ -41,10 +41,7 @@ public enum ForbidEmptyCatchBlockRule implements HarnessCheckRule {
             CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(CatchClause.class).stream()
                     .filter(catchClause -> catchClause.getBody().getStatements().isEmpty())
-                    .map(catchClause -> {
-                        int line = catchClause.getBegin().map(p -> p.line).orElse(-1);
-                        return new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": empty catch block");
-                    })
+                    .map(catchClause -> new Finding(severity, CATEGORY, root.relativize(file) + ":" + catchClause.getBegin().map(p -> p.line).orElse(-1) + ": empty catch block"))
                     .toList();
         } catch (IOException e) {
             return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));

@@ -29,32 +29,31 @@ public enum RequireHookCommandRule implements HarnessCheckRule {
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         String prePushPath = catNode.get("parameters").get("prePushHook").asText();
         Path prePush = root.resolve(prePushPath);
-        List<Finding> result = List.of();
-        if (HarnessCheckHelper.isSafeRegularFile(root, prePush)) {
-            String prePushText = HarnessCheckHelper.readFile(root, prePush);
-            String declaredCmd = extractHookCommand(prePushText);
-            List<Finding> prePushIssues = declaredCmd.isEmpty()
-                    ? List.of(new Finding(severity, CATEGORY, "pre-push hook must declare Harness validation command"))
-                    : !expectedCmd.equals(declaredCmd)
-                    ? List.of(new Finding(severity, CATEGORY, "pre-push hook declares unsupported validation command: " + declaredCmd))
-                    : !prePushText.contains(declaredCmd)
-                    ? List.of(new Finding(severity, CATEGORY, "pre-push hook must run the declared validation command"))
-                    : List.of();
-            String preCommitPath = catNode.get("parameters").get("preCommitHook").asText();
-            Path preCommit = root.resolve(preCommitPath);
-            List<Finding> preCommitIssues;
-            if (HarnessCheckHelper.isSafeRegularFile(root, preCommit)) {
-                String preCommitText = HarnessCheckHelper.readFile(root, preCommit);
-                Pattern fullStackPattern = Pattern.compile("(^|\\s)(uv|bun|gradle|mvn)(\\s|$)|\\.\\./gradlew|harnessValidate|harness_validate\\.py|harness-validate\\.ts");
-                preCommitIssues = fullStackPattern.matcher(preCommitText).find()
-                        ? List.of(new Finding(severity, CATEGORY, "pre-commit hook must not run full stack validation commands"))
-                        : List.of();
-            } else {
-                preCommitIssues = List.of();
-            }
-            result = Stream.concat(prePushIssues.stream(), preCommitIssues.stream()).toList();
+        if (!HarnessCheckHelper.isSafeRegularFile(root, prePush)) {
+            return List.of();
         }
-        return result;
+        String prePushText = HarnessCheckHelper.readFile(root, prePush);
+        String declaredCmd = extractHookCommand(prePushText);
+        List<Finding> prePushIssues = declaredCmd.isEmpty()
+                ? List.of(new Finding(severity, CATEGORY, "pre-push hook must declare Harness validation command"))
+                : !expectedCmd.equals(declaredCmd)
+                ? List.of(new Finding(severity, CATEGORY, "pre-push hook declares unsupported validation command: " + declaredCmd))
+                : !prePushText.contains(declaredCmd)
+                ? List.of(new Finding(severity, CATEGORY, "pre-push hook must run the declared validation command"))
+                : List.of();
+        String preCommitPath = catNode.get("parameters").get("preCommitHook").asText();
+        Path preCommit = root.resolve(preCommitPath);
+        List<Finding> preCommitIssues;
+        if (HarnessCheckHelper.isSafeRegularFile(root, preCommit)) {
+            String preCommitText = HarnessCheckHelper.readFile(root, preCommit);
+            Pattern fullStackPattern = Pattern.compile("(^|\\s)(uv|bun|gradle|mvn)(\\s|$)|\\.\\./gradlew|harnessValidate|harness_validate\\.py|harness-validate\\.ts");
+            preCommitIssues = fullStackPattern.matcher(preCommitText).find()
+                    ? List.of(new Finding(severity, CATEGORY, "pre-commit hook must not run full stack validation commands"))
+                    : List.of();
+        } else {
+            preCommitIssues = List.of();
+        }
+        return Stream.concat(prePushIssues.stream(), preCommitIssues.stream()).toList();
     }
 
     private String extractHookCommand(String text) {

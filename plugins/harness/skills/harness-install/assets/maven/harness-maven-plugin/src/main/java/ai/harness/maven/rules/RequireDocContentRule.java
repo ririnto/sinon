@@ -31,10 +31,9 @@ public enum RequireDocContentRule implements HarnessCheckRule {
     }
 
     private List<Finding> validateCheck(Path root, JsonNode check, String severity) throws MojoExecutionException {
-        List<String> files = HarnessCheckHelper.extractPaths(check.get("files"));
         List<String> containsAll = HarnessCheckHelper.extractPaths(check.get("containsAll"));
         String failureMessage = check.get("failureMessage").asText();
-        String combined = files.stream()
+        String combined = HarnessCheckHelper.extractPaths(check.get("files")).stream()
                 .map(f -> {
                     try {
                         return HarnessCheckHelper.readFile(root, root.resolve(f));

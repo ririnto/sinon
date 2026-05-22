@@ -22,9 +22,8 @@ public enum RequireFilesExistRule implements HarnessCheckRule {
     @Override
     public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
         JsonNode catNode = manifest.get(CATEGORY);
-        List<String> paths = HarnessCheckHelper.extractPaths(catNode.get("parameters").get("paths"));
         String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        return paths.stream()
+        return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("paths")).stream()
                 .filter(path -> !HarnessCheckHelper.isSafeRegularFile(root, root.resolve(path)))
                 .map(path -> new Finding(severity, CATEGORY, "missing file: " + path))
                 .toList();

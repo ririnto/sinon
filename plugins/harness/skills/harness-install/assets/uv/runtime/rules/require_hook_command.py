@@ -23,8 +23,7 @@ class RequireHookCommandRule(HarnessCheckRule):
         section = manifest.get(self.category)
         if not isinstance(section, dict):
             return False
-        enabled = section.get("enabled", True)
-        return enabled is not False
+        return section.get("enabled", True) is not False
 
     def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Validate requireHookCommand check."""

@@ -104,8 +104,7 @@ enum class HarnessCheck(val category: String, val rule: HarnessCheckRule) {
 			return when {
 				p.isSymbolicLink() && isAllowedRootContractSymlink(root, p) -> {
 					val target = if (p.name == "AGENTS.md") "CLAUDE.md" else "AGENTS.md"
-					val resolved = root / target
-					if (resolved.isRegularFile()) resolved.readText() else ""
+					(root / target).let { if (it.isRegularFile()) it.readText() else "" }
 				}
 				p.isSymbolicLink() -> ""
 				p.isRegularFile() -> p.readText()
@@ -117,9 +116,8 @@ enum class HarnessCheck(val category: String, val rule: HarnessCheckRule) {
 			if (p.parent != root || p.name !in setOf("AGENTS.md", "CLAUDE.md")) {
 				return false
 			}
-			val expected = if (p.name == "AGENTS.md") "CLAUDE.md" else "AGENTS.md"
 			return try {
-				p.readSymbolicLink().toString() == expected && (root / expected).isRegularFile()
+				p.readSymbolicLink().toString() == (if (p.name == "AGENTS.md") "CLAUDE.md" else "AGENTS.md") && (root / (if (p.name == "AGENTS.md") "CLAUDE.md" else "AGENTS.md")).isRegularFile()
 			} catch (_: Exception) {
 				false
 			}
@@ -145,21 +143,19 @@ enum class HarnessCheck(val category: String, val rule: HarnessCheckRule) {
 					} catch (_: Exception) {
 						emptyList()
 					}
-					val warnings = buildSet<Finding> {
+					val warnings = buildSet {
 						entries.filter { it.isSymbolicLink() && !isAllowedRootContractSymlink(root, it) }.forEach {
 							add(Finding(Severity.ERROR, "forbidUnsafeSymlinks", "symlink path is not allowed: ${it.relativeTo(root)}"))
 						}
 					}.toList()
 
-					val files = entries.filter { !it.isSymbolicLink() }.flatMap { entry ->
+					entries.filter { !it.isSymbolicLink() }.flatMap { entry ->
 						when {
 							entry.isDirectory() -> walkSafe(root, entry).first
 							entry.isRegularFile() -> listOf(entry)
 							else -> emptyList()
 						}
-					}
-
-					files to warnings
+					} to warnings
 				}
 				else -> emptyList<Path>() to emptyList()
 			}

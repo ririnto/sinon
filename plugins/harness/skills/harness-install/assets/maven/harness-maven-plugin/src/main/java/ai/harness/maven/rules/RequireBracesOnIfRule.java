@@ -44,13 +44,11 @@ public enum RequireBracesOnIfRule implements HarnessCheckRule {
                     .flatMap(ifStmt -> {
                         java.util.List<Finding> findings = new java.util.ArrayList<>();
                         if (!(ifStmt.getThenStmt() instanceof BlockStmt)) {
-                            int line = ifStmt.getBegin().map(p -> p.line).orElse(-1);
-                            findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": if without braces"));
+                            findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + ifStmt.getBegin().map(p -> p.line).orElse(-1) + ": if without braces"));
                         }
                         ifStmt.getElseStmt().ifPresent(elseStmt -> {
                             if (!(elseStmt instanceof BlockStmt) && !(elseStmt instanceof IfStmt)) {
-                                int line = elseStmt.getBegin().map(p -> p.line).orElse(-1);
-                                findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + line + ": else without braces"));
+                                findings.add(new Finding(severity, CATEGORY, root.relativize(file) + ":" + elseStmt.getBegin().map(p -> p.line).orElse(-1) + ": else without braces"));
                             }
                         });
                         return findings.stream();
