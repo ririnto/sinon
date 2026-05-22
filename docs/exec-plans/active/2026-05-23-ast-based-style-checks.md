@@ -557,7 +557,7 @@ enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단�
 
 전제: Phase 12b(singleton 전환) commit 후 진행. 변환 시 동작 보존, 부작용(IO, 예외)이 있는 분기는 그대로 명령형 유지.
 
-### [x] Phase 12d: 중간 return 회피를 위한 조건 반전 패턴 정형화 (commit pending)
+### [x] Phase 12d: 중간 return 회피를 위한 조건 반전 패턴 정형화 (commit 368dbcd)
 
 Phase 12에서 처리한 early-return 제거의 후속 정리. guard `if (!cond) return ...; doX(); doY();` 구조를 nesting 깊이를 늘리지 않으면서 single-exit으로 유지하기 위해 조건을 반전(`if (cond) { doX(); doY(); }`)하는 패턴을 명시적으로 적용한다.
 
