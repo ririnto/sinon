@@ -3,10 +3,10 @@ package ai.harness.gradle
 import kotlinx.serialization.Serializable
 
 /**
- * Result of an implicit lambda parameter 'it' detection in Kotlin source.
+ * Result of an if statement without braces in `file` at `line`.
  */
 @Serializable
-data class ImplicitLambdaItResult(
+data class BraceOnIfResult(
     val file: String,
     val line: Int,
 )
