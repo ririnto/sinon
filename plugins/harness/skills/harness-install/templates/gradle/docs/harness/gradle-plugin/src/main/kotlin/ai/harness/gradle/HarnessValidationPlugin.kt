@@ -115,8 +115,8 @@ class HarnessValidationPlugin : Plugin<Project> {
                 if (!agentsText.contains("Repository Harness Contract")) {
                     add("AGENTS.md must contain Repository Harness Contract")
                 }
-                if (!claudeText.contains("Claude Code Entry Point")) {
-                    add("CLAUDE.md must contain Claude Code Entry Point")
+                if (!claudeText.contains("## Entry Point")) {
+                    add("CLAUDE.md must contain an Entry Point section")
                 }
                 if (!claudeText.contains("AGENTS.md")) {
                     add("CLAUDE.md must reference AGENTS.md")

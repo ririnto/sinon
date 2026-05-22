@@ -5,10 +5,8 @@
     "AGENTS.md",
     "ARCHITECTURE.md",
     "CLAUDE.md",
-    "docs/design-docs/index.md",
     "docs/design-docs/core-beliefs.md",
     "docs/exec-plans/tech-debt-tracker.md",
-    "docs/product-specs/index.md",
     "docs/DESIGN.md",
     "docs/FRONTEND.md",
     "docs/PLANS.md",
@@ -69,9 +67,6 @@
     "hierarchical-delegation"
   ],
   "optionalSeedFiles": [
-    "docs/product-specs/new-user-onboarding.md",
-    "docs/references/design-system-reference-llms.txt",
-    "docs/references/nixpacks-llms.txt",
-    "docs/references/uv-llms.txt"
+    "docs/product-specs/new-user-onboarding.md"
   ]
 }

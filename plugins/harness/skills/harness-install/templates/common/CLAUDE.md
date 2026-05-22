@@ -1,10 +1,10 @@
 # Repository Harness Contract
 
-This repository uses a versioned harness so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution. The canonical pattern is `AGENTS.md` as a symlink to `CLAUDE.md` (or vice versa) so both filenames resolve to this single document.
+This repository uses a versioned harness so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution. The canonical pattern is `AGENTS.md` as a symlink to `CLAUDE.md` (or vice versa) so both filenames resolve to this single document, regardless of which agent runtime is running.
 
-## Claude Code Entry Point
+## Entry Point
 
-Claude Code MUST treat this document as the primary Repository Harness Contract. Before making changes, read:
+Any coding agent runtime that loads `AGENTS.md` or `CLAUDE.md` MUST treat this document as its primary contract. Before making changes, an agent MUST read:
 
 1. `AGENTS.md` (this document; also resolvable as `CLAUDE.md`)
 2. `ARCHITECTURE.md`
@@ -20,7 +20,7 @@ Harness changes MAY be made during development when the current harness no longe
 
 - The repository MUST keep agent instructions, skills, templates, documentation structure, and validation adapters in versioned files.
 - `AGENTS.md` MUST be the primary repository harness contract for coding agents.
-- `CLAUDE.md` MUST remain a Claude Code entry point and MUST refer to `AGENTS.md`.
+- `CLAUDE.md` MUST resolve to the same document as `AGENTS.md`, via a symlink in either direction.
 - `ARCHITECTURE.md` MUST describe system boundaries, major components, data flow, and validation surfaces.
 - `.claude/agents/` MUST contain specialized project agents with `name` and `description` frontmatter.
 - `.claude/skills/*/SKILL.md` MUST contain focused procedures with `description` frontmatter.
