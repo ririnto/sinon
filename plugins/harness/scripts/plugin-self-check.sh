@@ -185,14 +185,14 @@ reject_bare_test_in_shell() {
   fi
 }
 
-# Reject the legacy ':description:' or ':param X:' docstring style.
+# Reject reStructuredText-style ':description:' / ':param X:' shell docstrings.
 #
 # @param path Shell file path to check.
-# @exit Exits with status 1 when legacy docstring is found.
-reject_legacy_docstring_in_shell() {
+# @exit Exits with status 1 when a non-JSDoc docstring shape is found.
+reject_nonjsdoc_docstring_in_shell() {
   path=$1
   if grep -qnE '^#[[:space:]]*:(description|param|return)' "$path"; then
-    printf '%s\n' "[reject_legacy_docstring_in_shell] uses legacy ':description:'/':param:' docstring (use JSDoc @param/@return): $path" >&2
+    printf '%s\n' "[reject_nonjsdoc_docstring_in_shell] shell docstrings MUST use JSDoc @param/@return form: $path" >&2
     exit 1
   fi
 }
@@ -492,7 +492,7 @@ for packaged_file in $package_file_list; do
   reject_set_u_in_shell "$packaged_file"
   reject_bare_test_in_shell "$packaged_file"
   reject_double_bracket_in_shell "$packaged_file"
-  reject_legacy_docstring_in_shell "$packaged_file"
+  reject_nonjsdoc_docstring_in_shell "$packaged_file"
   reject_devnull_redirect_in_shell "$packaged_file"
   reject_blank_line_in_function "$packaged_file"
   reject_shellcheck_violations_in_shell "$packaged_file"
@@ -512,7 +512,7 @@ if printf '%s\n' "$template_package_file_list" | grep -E '(^|/)(db-schema[.]md|_
 fi
 
 if printf '%s\n' "$package_file_list" | grep -F '/docs/harness/validate.sh'; then
-  printf '%s\n' "[legacy_validate_check] raw v6 generic harness validate.sh must not be packaged" >&2
+  printf '%s\n' "[reject_generic_validate_script] /docs/harness/validate.sh must not be packaged; stack-specific validators only" >&2
   exit 1
 fi
 

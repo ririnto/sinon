@@ -19,8 +19,8 @@
 
 ### Phase 1: Manifest schema extension
 
-- [x] Task 1.1 — manifest.json schemaVersion 0.4.0. 새 필드: `requiredDocHeadings`, `requiredContentChecks`, `activeAssetBases`, `excludedActiveAssetSubtrees`, `activeAssetExtensions`, `leakPatterns`, `expectedValidationCommands`, `hookStages`, `completedPlanDirectory`, `unfinishedTaskPattern`, `envShebangBases` (subagent: main)
-- [x] Task 1.2 — backwards-compat 정책 명시 (subagent: main)
+- [x] Task 1.1 — manifest.json에 새 필드 도입: `requiredDocHeadings`, `requiredContentChecks`, `activeAssetBases`, `excludedActiveAssetSubtrees`, `activeAssetExtensions`, `leakPatterns`, `expectedValidationCommands`, `hookStages`, `completedPlanDirectory`, `unfinishedTaskPattern`, `envShebangBases`. (harness는 versioning하지 않으므로 schemaVersion 같은 필드는 두지 않는다)
+- [x] Task 1.2 — backwards-compat 정책 명시
 
 ### Phase 2: Gradle validator slimming
 
@@ -35,9 +35,9 @@
 
 ### Phase 4: Self-check + dry-run validation
 
-- [x] Task 4.1 — `plugin-self-check.sh` PASS (subagent: main)
-- [x] Task 4.2 — `install-harness.sh --mode bun` dry-run 후 bun validator PASS (subagent: main)
-- [x] Task 4.3 — 모든 validator에서 hardcoded list 0건 확인 (subagent: main)
+- [x] Task 4.1 — `plugin-self-check.sh` PASS
+- [x] Task 4.2 — `install-harness.sh --mode bun` dry-run 후 bun validator PASS
+- [x] Task 4.3 — 모든 validator에서 hardcoded list 0건 확인
 
 ### Phase 5: Kotlin immutable signatures (MutableList 0)
 
@@ -45,23 +45,23 @@
 
 ### Phase 6: active asset exclude 정확 매치 + evolution-log 제거
 
-- [x] Task 6.1 — manifest.json `excludedActiveAssetSubtrees`에 `docs/harness/manifest.json` 추가 (self-leak 방지) (subagent: main)
-- [x] Task 6.2 — bun/Python validator의 prefix-only 비교를 `path == subtree || prefix` 로 보강. Java/Kotlin은 `Path.startsWith` 기반이라 동등 매치 자동 지원 — 추가 작업 불필요 확인 (subagent: main)
-- [x] Task 6.3 — `templates/common/docs/harness/evolution-log.md` 제거 + manifest/AGENTS.md/CLAUDE.md/harness-evolve SKILL의 cross-ref를 `docs/exec-plans/active/yyyy-MM-dd-<slug>.md` 기반으로 변경 (subagent: main)
+- [x] Task 6.1 — manifest.json `excludedActiveAssetSubtrees`에 `docs/harness/manifest.json` 추가 (self-leak 방지)
+- [x] Task 6.2 — bun/Python validator의 prefix-only 비교를 `path == subtree || prefix` 로 보강. Java/Kotlin은 `Path.startsWith` 기반이라 동등 매치 자동 지원 — 추가 작업 불필요 확인
+- [x] Task 6.3 — `templates/common/docs/harness/evolution-log.md` 제거 + manifest/AGENTS.md/CLAUDE.md/harness-evolve SKILL의 cross-ref를 `docs/exec-plans/active/yyyy-MM-dd-<slug>.md` 기반으로 변경
 
 ### Phase 7: Severity 3단계 (INFO/WARN/ERROR) 분류
 
 manifest의 각 검증 카테고리에 `severity`를 명시한다. validator는 모든 fail을 출력하되 `ERROR` severity가 0건이면 exit 0, 1건 이상이면 exit 1. `INFO`/`WARN`은 로그에 prefix(`[INFO]`/`[WARN]`)와 함께 출력하되 실패 처리 안 함. 출력 색은 stack tool마다 다르므로 prefix만 강제한다.
 
-- [ ] Task 7.1 — manifest.json에 `severities` 매핑 추가: 각 검증 카테고리(`requiredFiles`, `requiredDirectories`, `emptyDirectoryKeepFiles`, `requiredDocHeadings`, `requiredContentChecks`, `leakPatterns`, `activeAssetBases`, `hookStage`, `validationCommand`, `envShebang`, `completedPlanDirectory`) → `ERROR|WARN|INFO`. 기본은 `ERROR`. 본 commit에서 기본값(`requiredFiles`/`requiredDirectories`/`requiredContentChecks`/`leakPatterns`/`validationCommand`/`completedPlanDirectory` = `ERROR`, 나머지 = `WARN`)으로 시작. (subagent: main)
+- [ ] Task 7.1 — manifest.json에 `severities` 매핑 추가: 각 검증 카테고리(`requiredFiles`, `requiredDirectories`, `emptyDirectoryKeepFiles`, `requiredDocHeadings`, `requiredContentChecks`, `leakPatterns`, `activeAssetBases`, `hookStage`, `validationCommand`, `envShebang`, `completedPlanDirectory`) → `ERROR|WARN|INFO`. 기본은 `ERROR`. 본 commit에서 기본값(`requiredFiles`/`requiredDirectories`/`requiredContentChecks`/`leakPatterns`/`validationCommand`/`completedPlanDirectory` = `ERROR`, 나머지 = `WARN`)으로 시작.
 - [ ] Task 7.2 — Kotlin/Java/Python/TS validator의 `validate()`가 `(severity, message)` 페어 또는 `data class Finding(val severity, val message)` 형태로 결과를 모은다. 출력은 `printf "[%s] %s\n" severity message`. ERROR 0건이면 exit 0. (subagent: general-purpose × 4)
-- [ ] Task 7.3 — dry-run install 후 출력 형식이 prefixed 되는지 확인. self-check.sh의 require_text에 ERROR/WARN/INFO 패턴이 필요한 경우 갱신. (subagent: main)
+- [ ] Task 7.3 — dry-run install 후 출력 형식이 prefixed 되는지 확인. self-check.sh의 require_text에 ERROR/WARN/INFO 패턴이 필요한 경우 갱신.
 
 ### Phase 8: Kotlin 스타일 강제
 
 - [ ] Task 8.1 — `HarnessValidationPlugin.kt`에서 `if (...) { ... } else { ... }` 형태로 `else` 절로 끝나는 if문을 모두 `when` 표현식으로 교체 (subagent: general-purpose)
 - [ ] Task 8.2 — string 연결(`"text " + variable + " more"`)을 Kotlin `"text $variable more"` 또는 `"""..."""` template으로 교체. 정규식 raw string은 그대로 유지 (subagent: general-purpose)
-- [ ] Task 8.3 — `MutableList`/`mutableListOf` 0건 유지 확인 + `MutableSet`/`MutableMap`도 0건 (subagent: main)
+- [ ] Task 8.3 — `MutableList`/`mutableListOf` 0건 유지 확인 + `MutableSet`/`MutableMap`도 0건
 
 ### Phase 9: TypeScript/JavaScript template literal 정규화
 
@@ -77,7 +77,7 @@ manifest의 각 검증 카테고리에 `severity`를 명시한다. validator는 
 
 ### Phase 11.5: Hardcoded severity → manifest 기반 severity 치환
 
-- [x] Task 11.5.1 — `bun harness-validate.ts`의 `DEFAULT_SEVERITY` 매핑 제거. severity 미지정 시 무조건 `"ERROR"` fallback (subagent: main)
+- [x] Task 11.5.1 — `bun harness-validate.ts`의 `DEFAULT_SEVERITY` 매핑 제거. severity 미지정 시 무조건 `"ERROR"` fallback
 - [ ] Task 11.5.2 — Kotlin `HarnessValidationPlugin.kt`의 `Severity.ERROR` 36건, Java `HarnessValidateMojo.java`의 3건, TS 1건, Python의 잔존 `Finding("ERROR", ...)`을 모두 `severityOf(manifest, category)`/`getSeverity(category)`/`severity_for(manifest, category)`/`parseSeverity(manifest, category)` 호출로 치환. manifest 로딩 실패 fallback 1건만 예외로 hardcoded ERROR 허용 (subagent: general-purpose)
 
 ### Phase 12: Manifest add-on architecture
@@ -99,14 +99,14 @@ manifest의 각 옵션은 `HarnessValidationPlugin`(코어) 위에서 동작하�
 
 ### Phase 13: Self-documenting manifest schema + add-on vs metadata 분리
 
-직전 schema(0.5.0)는 옵션마다 `severity` + items/value만 두고 동작은 validator 코드에 숨겨져 있었다. 사용자 지적: (a) `severity`가 붙은 옵션 중 일부는 add-on 단위가 아니다(예: `templateGroups`는 데이터 정의일 뿐, `requireTemplateGroups`라는 check가 따로 있어야 한다). (b) 대상 경로가 옵션 안에 명시되어야 한다. (c) manifest 자체가 self-documenting 문서여야 한다.
+직전 schema는 옵션마다 `severity` + items/value만 두고 동작은 validator 코드에 숨겨져 있었다. 사용자 지적: (a) `severity`가 붙은 옵션 중 일부는 add-on 단위가 아니다(예: `templateGroups`는 데이터 정의일 뿐, `requireTemplateGroups`라는 check가 따로 있어야 한다). (b) 대상 경로가 옵션 안에 명시되어야 한다. (c) manifest 자체가 self-documenting 문서여야 한다.
 
 이를 반영해 manifest를 두 종류 entry로 재구성한다:
 
 - **Check add-on**: `description`(무엇을 검증하는지), `severity`(ERROR|WARN|INFO; 미지정 시 ERROR), 그리고 검증 대상 경로/데이터를 명시한 sub-fields. 1 entry = 1 HarnessCheck add-on.
 - **Metadata / data**: `description`만 두고 severity 없음. validator는 이를 *읽지만 검증하지는 않는다* (예: `seedFiles`, `generatedArtifacts`, `harnessEvolution`, `teamPatterns`).
 
-#### Phase 13.1 — 새 manifest schema 0.6.0 작성 (subagent: main)
+#### Phase 13.1 — 새 manifest schema 작성 (self-documenting + 동작 명시 + add-on/metadata 분리). 또한 각 add-on entry는 `failureMessageTemplate`을 명시해 사용자에게 보여줄 메시지를 manifest에서 결정하게 한다.
 
 Check add-on entries (각 entry는 description + severity + 대상 경로/데이터):
 
@@ -151,9 +151,9 @@ Metadata entries (severity 없음, validator는 검증 안 함):
 
 ### Phase 14: Gradle buildSrc 재배치 + assets/ 디렉토리 컨벤션
 
-- [ ] Task 14.1 — skill 디렉토리 컨벤션 정리: `skills/harness-install/templates/` → `skills/harness-install/assets/` (sinon plugin authoring 컨벤션 — skills는 templates 아닌 assets). install-harness.sh가 새 위치를 가리키도록 갱신 (subagent: main)
+- [ ] Task 14.1 — skill 디렉토리 컨벤션 정리: `skills/harness-install/templates/` → `skills/harness-install/assets/` (sinon plugin authoring 컨벤션 — skills는 templates 아닌 assets). install-harness.sh가 새 위치를 가리키도록 갱신
 - [ ] Task 14.2 — Gradle adapter를 `gradle-plugin/` composite build에서 `buildSrc/` 형태로 재배치 가능한지 검토. buildSrc는 Gradle root project가 자동 인식하므로 `includeBuild` 명시 불필요. 대신 target에 `buildSrc/`를 두는 것이 *target build에 영향*을 미치므로 적절한지 검증 후 결정 (subagent: harness:harness-architect)
-- [ ] Task 14.3 — Maven/uv/bun adapter도 비슷한 stack-네이티브 위치로 재배치할 만한 게 있는지 검토 (subagent: main)
+- [ ] Task 14.3 — Maven/uv/bun adapter도 비슷한 stack-네이티브 위치로 재배치할 만한 게 있는지 검토
 
 ### Phase 15: jsonc 지원 검토 (선택)
 
@@ -161,9 +161,9 @@ Metadata entries (severity 없음, validator는 검증 안 함):
 
 ### Phase 16: Self-check + dry-run 재검증 + plan completion
 
-- [ ] Task 16.1 — `plugin-self-check.sh` PASS (subagent: main)
-- [ ] Task 16.2 — `install-harness.sh --mode bun` dry-run → bun validator `Harness validation passed`, ERROR severity 0건 (subagent: main)
-- [ ] Task 16.3 — 본 plan을 `docs/exec-plans/completed/`로 이동, Status/Completed 갱신 (subagent: main)
+- [ ] Task 16.1 — `plugin-self-check.sh` PASS
+- [ ] Task 16.2 — `install-harness.sh --mode bun` dry-run → bun validator `Harness validation passed`, ERROR severity 0건
+- [ ] Task 16.3 — 본 plan을 `docs/exec-plans/completed/`로 이동, Status/Completed 갱신
 
 ## Validation
 
@@ -171,7 +171,7 @@ Metadata entries (severity 없음, validator는 검증 안 함):
 
 ## Rollback Criteria
 
-- manifest 스키마 변경이 backward-incompat한 방식으로 적용돼 기존 target이 break되면 schemaVersion bump을 되돌리고 새 키를 optional로 다시 도입.
+- manifest 스키마 변경이 target validator를 break시키면 그 commit을 그대로 `git revert`로 되돌린다. harness는 versioning하지 않으므로 "schema bump을 되돌린다" 같은 개념이 없고 — 단지 *현재 committed 상태가 진실*이다.
 - AST/native parser 도입으로 인해 stack 의존성이 늘어 install 시간이 현저히 증가하면 정규식 기반으로 부분 롤백 가능 (Phase 10 task별 분리).
 
 ## Completion
