@@ -314,22 +314,22 @@ git log --oneline -n 5
 
 ### Pattern: Same line edited differently
 
-**File**: `src/config.js`
+File: `src/config.js`
 
 ```
 const API_TIMEOUT = 3000;  // base
 const API_TIMEOUT = 5000;  // feature
 ```
 
-**Resolution**: Decide which value is correct or use a compromise. Remove conflict markers and keep one value.
+Resolution: Decide which value is correct or use a compromise. Remove conflict markers and keep one value.
 
 ### Pattern: One branch deleted, other branch modified
 
-**File**: `src/old_module.js`
+File: `src/old_module.js`
 
-**Status**: Base branch deleted the file; feature branch modified it.
+Status: Base branch deleted the file; feature branch modified it.
 
-**Conflict marker**:
+Conflict marker:
 
 ```
 <<<<<<< HEAD
@@ -339,7 +339,7 @@ const API_TIMEOUT = 5000;  // feature
 >>>>>>> feature-branch
 ```
 
-**Resolution**: Decide:
+Resolution: Decide:
 - To delete (resolve by doing nothing, then `git rm src/old_module.js`):
 
 ```sh
@@ -356,11 +356,11 @@ git add src/old_module.js
 
 ### Pattern: Rename and edit same file
 
-**File**: Renamed in base branch; content edited in feature branch.
+File: Renamed in base branch; content edited in feature branch.
 
-**Status**: Git detects rename + content conflict.
+Status: Git detects rename + content conflict.
 
-**Resolution**: 
+Resolution:
 - Accept the rename from base and manually apply feature edits:
 
 ```sh
@@ -371,11 +371,11 @@ git add <renamed-file>
 
 ### Pattern: Binary file conflict
 
-**File**: `image.png` or `archive.bin`
+File: `image.png` or `archive.bin`
 
-**Status**: Both branches changed the binary file.
+Status: Both branches changed the binary file.
 
-**Resolution**: Git cannot auto-merge binaries. Choose one:
+Resolution: Git cannot auto-merge binaries. Choose one:
 
 ```sh
 git checkout --ours image.png
@@ -415,7 +415,7 @@ git config --global rerere.enabled true
 
 ### Record and forget: Rerere cache workflow
 
-**First merge** (with conflicts):
+#### First merge (with conflicts)
 
 1. Encounter conflict:
 
@@ -426,7 +426,6 @@ git merge feature-branch
 2. Resolve manually:
 
 ```sh
-# Edit files, resolve conflicts
 git add <file>
 ```
 
@@ -438,7 +437,7 @@ git commit
 
 With `rerere.enabled = true`, Git automatically records the resolution.
 
-**Second merge** (same conflict pattern):
+#### Second merge (same conflict pattern)
 
 1. Merge again:
 
