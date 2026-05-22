@@ -178,29 +178,142 @@ Ask the user:
 
 ### Step 9: Provide Submission Guidance
 
-Recommend next steps based on the host:
+Recommend next steps based on the host. Save the body to a file and provide CLI commands.
 
-GitHub (gh CLI):
+**GitHub (gh CLI):**
+
+Provide these commands in sequence:
+
 ```sh
-gh pr create --title "Your PR Title" --body-file body.md
+# 1. Save body to file (if not already saved)
+cat > body.md << 'EOF'
+[paste the draft body from Step 8 here]
+EOF
+
+# 2. Create PR in draft status
+gh pr create --title "Your PR Title" \
+  --body-file body.md \
+  --draft
+
+# 3. After PR is created, add labels, reviewers, and assignees
+gh pr edit <PR_NUMBER> \
+  --add-label "type:feature,scope:api,priority:high" \
+  --add-reviewer @alice,@bob \
+  --add-assignee @maintainer
+
+# 4. Once CI passes and checklist is complete, mark as ready
+gh pr ready <PR_NUMBER>
+
+# 5. Merge when approved (squash strategy recommended)
+gh pr merge <PR_NUMBER> --squash --delete-branch
 ```
 
-GitLab (glab CLI):
+Alternatively, guide the user to the GitHub web UI if CLI is unavailable.
+
+**GitLab (glab CLI):**
+
+Provide these commands in sequence:
+
 ```sh
-glab mr create --title "Your MR Title" --body-file body.md
+# 1. Save body to file (if not already saved)
+cat > body.md << 'EOF'
+[paste the draft body from Step 8 here, including quick actions]
+EOF
+
+# 2. Create MR in draft status
+glab mr create --title "Your MR Title" \
+  --description "$(cat body.md)" \
+  --draft
+
+# 3. Or, create with explicit labels and reviewers via flags
+glab mr create --title "Your MR Title" \
+  --description "$(cat body.md)" \
+  --draft \
+  --label "type::feature,scope::api,priority::high" \
+  --reviewer @alice,@bob \
+  --assignee @maintainer
+
+# 4. Once CI passes and checklist is complete, mark as ready
+glab mr update <MR_NUMBER> --ready
+
+# 5. Merge when approved (squash strategy recommended)
+glab mr merge <MR_NUMBER> --squash --when-pipeline-succeeds --remove-source-branch
 ```
 
-Or guide the user to the web UI to paste the body manually.
+Alternative: Body text can include GitLab quick actions (e.g., `/assign @user`, `/label ~type::feature`) which execute after MR creation.
+
+**Inline Body Option (if file handling is cumbersome):**
+
+GitHub:
+```sh
+gh pr create --title "feat(api): ..." --body "## Summary\n\n- Item 1\n- Item 2" --draft
+```
+
+GitLab:
+```sh
+glab mr create --title "feat(api): ..." --description "## Summary\n\n- Item 1\n- Item 2" --draft
+```
 
 ### Step 10: Post-Submission Verification
 
-After submission, output:
+After the PR/MR is created, verify it was successfully submitted:
 
 ```sh
+# Get repository origin URL
 git remote get-url origin
 ```
 
-And provide the direct link to the created PR/MR.
+Then navigate to the created PR/MR using the reported URL or these commands:
+
+**GitHub:**
+
+```sh
+# View the PR you just created on the current branch
+gh pr view
+
+# View a specific PR by number
+gh pr view 42
+
+# Open it in your browser
+gh pr view 42 --web
+
+# List recent PRs to find yours
+gh pr list --author "@me" --state all --limit 5
+```
+
+**GitLab:**
+
+```sh
+# View the MR you just created on the current branch
+glab mr view
+
+# View a specific MR by number
+glab mr view 42
+
+# Open it in your browser
+glab mr view 42 --web
+
+# List recent MRs to find yours
+glab mr list --assignee "@me" --all --per-page 5
+```
+
+**Verification Checklist:**
+
+- [ ] PR/MR number is reported and matches the CLI output.
+- [ ] Title and body match what was submitted.
+- [ ] Draft status is set correctly (should be draft initially).
+- [ ] Labels and assignees are applied as intended.
+- [ ] CI pipeline is running (check status in PR/MR details).
+- [ ] Reviewers are notified (check review request section).
+
+**Next Steps:**
+
+1. Monitor CI progress in the PR/MR details.
+2. Address any lint, type check, or test failures.
+3. Push fixes to the same branch; PR/MR updates automatically.
+4. When all checks pass, mark as ready (see Step 9 commands).
+5. Request review if not automatically triggered by CODEOWNERS.
+6. Merge after approval using the recommended merge strategy (squash or rebase).
 
 ---
 

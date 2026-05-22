@@ -325,6 +325,265 @@ glab mr create --draft \
 glab mr update <number> --ready
 ```
 
+## GitHub CLI (gh) Cheat Sheet
+
+### Create a Pull Request
+
+```sh
+# Create with title and body file (most common)
+gh pr create --title "feat(api): add rate limit headers" \
+  --body-file body.md \
+  --draft
+
+# Create with explicit title and inline body
+gh pr create --title "fix(db): handle null connection" \
+  --body "Fixes #123. Adds null checks to prevent crash."
+
+# Auto-fill from commits (use with caution)
+gh pr create --fill --draft
+
+# Create and assign reviewers/labels immediately
+gh pr create --title "feat(auth): JWT refresh token" \
+  --body-file body.md \
+  --label "type:feature,scope:auth,priority:high" \
+  --reviewer @alice,@bob \
+  --assignee @maintainer
+```
+
+### Edit an Existing PR
+
+```sh
+# Update title and body from file
+gh pr edit 42 --title "New title" --body-file body.md
+
+# Add/remove labels
+gh pr edit 42 --add-label "needs-review" --remove-label "draft-review"
+
+# Add/remove reviewers
+gh pr edit 42 --add-reviewer @alice --remove-reviewer @bob
+
+# Add/remove assignees
+gh pr edit 42 --add-assignee @me --remove-assignee @previous-owner
+```
+
+### Check PR Status and Details
+
+```sh
+# View PR details (title, body, CI status)
+gh pr view 42
+
+# View PR with comments
+gh pr view 42 --comments
+
+# List open PRs (default)
+gh pr list
+
+# List all PRs with filters
+gh pr list --state all --assignee @me
+gh pr list --label "needs-review" --state open
+gh pr list --search "status:success review:required"
+
+# Find PRs by draft status or label
+gh pr list --draft
+gh pr list --author "@me" --state closed
+```
+
+### Mark as Ready / Convert to Draft
+
+```sh
+# Convert from draft to ready
+gh pr ready 42
+
+# Convert from ready to draft
+gh pr ready 42 --undo
+```
+
+### Merge a PR
+
+```sh
+# Standard merge (create merge commit)
+gh pr merge 42 --merge
+
+# Squash and merge (flatten commits into one)
+gh pr merge 42 --squash
+
+# Rebase and merge (reapply commits on base branch)
+gh pr merge 42 --rebase
+
+# Auto-merge when checks pass (do not merge immediately)
+gh pr merge 42 --auto --squash
+
+# Merge and delete source branch
+gh pr merge 42 --squash --delete-branch
+```
+
+### Recommended Option Combinations
+
+| Scenario | Command |
+| --- | --- |
+| Start new feature with discipline | `gh pr create --draft --title "feat(x): ..." --body-file body.md --label "type:feature"` |
+| Add CI/review requirements | `gh pr edit <n> --add-reviewer @maintainer --add-label "needs-review"` |
+| Ready after tests pass | `gh pr ready <n>` |
+| Merge when approved (avoid manual merge button) | `gh pr merge <n> --squash --auto --delete-branch` |
+
+## GitLab CLI (glab) Cheat Sheet
+
+### Create a Merge Request
+
+```sh
+# Create with title and description from file (most common)
+glab mr create --title "feat(api): add rate limit headers" \
+  --description "$(cat body.md)" \
+  --draft
+
+# Create with inline description
+glab mr create --title "fix(db): handle null connection" \
+  --description "Fixes #123. Adds null checks to prevent crash."
+
+# Auto-fill from commits
+glab mr create --fill --draft
+
+# Create with labels, reviewers, assignees (via flags or quick actions)
+glab mr create --title "feat(auth): JWT refresh token" \
+  --description "$(cat body.md)" \
+  --label "type::feature,scope::auth" \
+  --reviewer @alice,@bob \
+  --assignee @maintainer
+```
+
+### Edit an Existing MR
+
+```sh
+# Update title and description
+glab mr update 42 --title "New title" \
+  --description "$(cat body.md)"
+
+# Add/remove labels
+glab mr update 42 --label "needs-review" --unlabel "wip"
+
+# Add/remove reviewers (prefix with '+' to add, '-' to remove)
+glab mr update 42 --reviewer "+@alice,-@bob"
+
+# Add/remove assignees
+glab mr update 42 --assignee "+@me,-@previous"
+```
+
+### Check MR Status and Details
+
+```sh
+# View MR details (title, body, CI status, discussions)
+glab mr view 42
+
+# View MR with comments and discussions
+glab mr view 42 --comments
+
+# View only resolved discussions
+glab mr view 42 --resolved
+
+# List open MRs (default)
+glab mr list
+
+# List with filters
+glab mr list --assignee @me
+glab mr list --reviewer @me
+glab mr list --label "needs-review"
+glab mr list --draft
+glab mr list --all  # Include closed and merged
+
+# Search in title and description
+glab mr list --search "adds feature X"
+
+# Filter by branch
+glab mr list --source-branch "new-feature" --target-branch "main"
+```
+
+### Mark as Ready / Convert to Draft
+
+```sh
+# Convert from draft to ready for review
+glab mr update 42 --ready
+
+# Convert from ready to draft
+glab mr update 42 --draft
+```
+
+### Merge an MR
+
+```sh
+# Standard merge (create merge commit)
+glab mr merge 42
+
+# Squash commits before merge
+glab mr merge 42 --squash
+
+# Rebase and merge
+glab mr merge 42 --rebase
+
+# Merge when pipeline succeeds (do not merge immediately)
+glab mr merge 42 --when-pipeline-succeeds
+
+# Merge and delete source branch
+glab mr merge 42 --remove-source-branch
+
+# Custom commit message for merge
+glab mr merge 42 --message "Merge feature X"
+```
+
+### Recommended Option Combinations
+
+| Scenario | Command |
+| --- | --- |
+| Start new feature with discipline | `glab mr create --draft --title "feat(x): ..." --description "$(cat body.md)" --label "type::feature"` |
+| Add review requirements | `glab mr update <n> --reviewer @maintainer --label "needs-review"` |
+| Ready after tests pass | `glab mr update <n> --ready` |
+| Merge when approved | `glab mr merge <n> --squash --when-pipeline-succeeds` |
+
+## Using External Body Files
+
+Both `gh` and `glab` support reading PR/MR body text from files. This pattern enables pre-writing a body offline and using it repeatedly.
+
+**Prepare body file:**
+
+```markdown
+## Summary
+
+- Adds JWT refresh token endpoint.
+- Fixes session cleanup race condition.
+
+## Why
+
+- Refresh tokens reduce exposure window if access tokens leak.
+- Session cleanup race allowed zombie sessions up to 30 seconds.
+
+## Testing
+
+- [x] Unit tests (100% coverage).
+- [x] Integration tests with valid/expired tokens.
+- [x] Manual test: 5-minute refresh lifecycle validation.
+```
+
+**GitHub (gh):**
+
+```sh
+# Use --body-file to read from file
+gh pr create --title "feat(auth): JWT refresh" --body-file body.md --draft
+
+# Update existing PR body from file
+gh pr edit 42 --body-file body.md
+```
+
+**GitLab (glab):**
+
+```sh
+# Pass file content to --description using command substitution
+glab mr create --title "feat(auth): JWT refresh" \
+  --description "$(cat body.md)" \
+  --draft
+
+# Update existing MR description from file
+glab mr update 42 --description "$(cat body.md)"
+```
+
 ## Output Contract
 
 When composed correctly, a PR/MR output satisfies these invariants:
