@@ -2,9 +2,11 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.isDirectory
@@ -52,7 +54,7 @@ object RequireEnvShebangUnderRule : HarnessCheckRule {
                             Finding(
                                 HarnessCheck.severityOf(manifest, category),
                                 category,
-                                HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() }
+                                HarnessCheck.stringFrom(messagesObj, "default").takeIf { message -> message.isNotEmpty() }
                                     ?: "executable script should use /usr/bin/env shebang: ${file.relativeTo(root)}",
                             )
                         }

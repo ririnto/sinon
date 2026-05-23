@@ -2,13 +2,11 @@
 kotlin = "2.3.21"
 kotlin-serialization-plugin = "2.3.21"
 kotlinx-serialization = "1.11.0"
-ksp-aa-embeddable = "2.3.8"
 kotlin-compiler-embeddable = "2.3.21"
 
 [libraries]
 kotlinx-serialization-bom = { module = "org.jetbrains.kotlinx:kotlinx-serialization-bom", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json" }
-ksp-aa-embeddable = { module = "com.google.devtools.ksp:symbol-processing-aa-embeddable", version.ref = "ksp-aa-embeddable" }
 kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin-compiler-embeddable" }
 
 [plugins]

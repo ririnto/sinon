@@ -1014,7 +1014,7 @@ def main() -> int:
     if grouped["ERROR"]:
         logger.error("Harness validation failed")
         return 1
-    print("Harness validation passed")
+    logger.info("Harness validation passed")
     return 0
 
 

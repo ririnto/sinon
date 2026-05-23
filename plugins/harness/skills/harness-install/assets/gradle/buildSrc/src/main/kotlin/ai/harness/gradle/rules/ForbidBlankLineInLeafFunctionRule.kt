@@ -2,15 +2,18 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.relativeTo
+import kotlin.io.path.name
 
 /**
  * Rule that forbids blank lines in leaf function bodies.
@@ -62,11 +65,15 @@ object ForbidBlankLineInLeafFunctionRule : HarnessCheckRule {
                         .filter { file ->
                             file.extension in kotlinExts
                         }.flatMap { file ->
-                            results.filter { it.file == file.name }.map { hit ->
+                            results.filter { result -> result.file == file.relativeTo(root).toString().replace("\\", "/") }.map { hit ->
                                 Finding(
                                     HarnessCheck.severityOf(manifest, category),
                                     category,
-                                    HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() }
+                                    HarnessCheck.stringFrom(messagesObj, "default")
+                                        .replace("{file}", file.relativeTo(root).toString())
+                                        .replace("{line}", hit.line.toString())
+                                        .replace("{function}", hit.name)
+                                        .takeIf { message -> message.isNotEmpty() }
                                         ?: "${file.relativeTo(root)}:${hit.line}: blank line in leaf function",
                                 )
                             }
