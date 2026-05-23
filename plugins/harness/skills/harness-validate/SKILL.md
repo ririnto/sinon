@@ -1,7 +1,7 @@
 ---
 name: harness-validate
 description: >-
-  Validate repository harness assets against the installed build/runtime contract. Use this skill when verifying a fresh harness install, checking harness changes before commit or CI, or diagnosing WARN and ERROR output from stack validators.
+  Validate target-owned repository harness assets against the installed build/runtime contract. Use this skill when verifying a fresh harness install, checking target harness changes before commit or CI, or diagnosing WARN and ERROR output from stack validators without requiring plugin-root structural agents in the target repository.
 argument-hint: '[auto|gradle|maven|uv|bun]'
 allowed-tools:
   - Bash(./gradlew *)
@@ -17,7 +17,13 @@ allowed-tools:
 
 # Harness Validate
 
-Run the native harness validation command for the target repository. This plugin skill validates the installed scaffold and reports whether the repository harness remains mechanically checkable.
+Run the native harness validation command for the target repository. This plugin skill is the visible runtime surface for validation guidance; it checks target-owned harness assets copied from `skills/harness-install/assets/` and reports whether the repository harness remains mechanically checkable.
+
+## Ownership Boundary
+
+- This skill owns validation guidance for installed target harness assets.
+- Installed target agents and project skills remain target-owned runtime assets.
+- Plugin-root structural agents are not target repository assets and are not required by target validation.
 
 ## First Safe Checks
 
