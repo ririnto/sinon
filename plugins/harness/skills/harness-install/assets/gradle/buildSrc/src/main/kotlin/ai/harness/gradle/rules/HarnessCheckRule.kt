@@ -1,7 +1,6 @@
 package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
 import java.nio.file.Path

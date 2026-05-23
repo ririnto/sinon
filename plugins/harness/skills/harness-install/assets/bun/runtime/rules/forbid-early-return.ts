@@ -1,15 +1,13 @@
 #!/usr/bin/env bun
+import type { FunctionLike, Node, SourceFile } from "typescript@6.0.3";
 import {
 	createSourceFile,
-	type FunctionLike,
 	forEachChild,
 	isBlock,
 	isFunctionDeclaration,
 	isIdentifier,
 	isMethodDeclaration,
 	isReturnStatement,
-	type Node,
-	type SourceFile,
 	SyntaxKind,
 } from "typescript@6.0.3";
 import type {

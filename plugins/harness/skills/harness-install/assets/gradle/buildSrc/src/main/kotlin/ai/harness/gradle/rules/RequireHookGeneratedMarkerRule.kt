@@ -2,9 +2,11 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.isRegularFile
@@ -49,7 +51,7 @@ object RequireHookGeneratedMarkerRule : HarnessCheckRule {
                             Finding(
                                 HarnessCheck.severityOf(manifest, category),
                                 category,
-                                HarnessCheck.stringFrom(messagesObj, "missingMarker").takeIf { it.isNotEmpty() }
+                                HarnessCheck.stringFrom(messagesObj, "missingMarker").takeIf { message -> message.isNotEmpty() }
                                     ?: "$hookPath must contain generated marker '$marker'",
                             )
                         } else {
@@ -59,7 +61,7 @@ object RequireHookGeneratedMarkerRule : HarnessCheckRule {
                             Finding(
                                 HarnessCheck.severityOf(manifest, category),
                                 category,
-                                HarnessCheck.stringFrom(messagesObj, "placeholderPresent").takeIf { it.isNotEmpty() }
+                                HarnessCheck.stringFrom(messagesObj, "placeholderPresent").takeIf { message -> message.isNotEmpty() }
                                     ?: "$hookPath still contains packaging placeholder text",
                             )
                         } else {

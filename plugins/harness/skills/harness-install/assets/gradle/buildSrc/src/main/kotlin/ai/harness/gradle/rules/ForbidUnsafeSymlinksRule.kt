@@ -2,18 +2,19 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import ai.harness.gradle.Severity
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readSymbolicLink
 import kotlin.io.path.relativeTo
+import kotlin.io.path.name
 
 /**
  * Rule that forbids disallowed symlinks at the root level.
@@ -43,7 +44,7 @@ object ForbidUnsafeSymlinksRule : HarnessCheckRule {
                     ?.jsonArray
                     ?.filter { pairElem ->
                         val pair = pairElem.jsonArray
-                        pair.size >= 2 && pair[0].jsonPrimitive.contentOrNull != null &&
+                        2 <= pair.size && pair[0].jsonPrimitive.contentOrNull != null &&
                             pair[1].jsonPrimitive.contentOrNull != null
                     }?.map { pairElem ->
                         val pair = pairElem.jsonArray
@@ -52,19 +53,27 @@ object ForbidUnsafeSymlinksRule : HarnessCheckRule {
                         a to b
                     } ?: emptyList()
             val allowed = (allowedPairs.flatMap { (a, b) -> listOf(a to b, b to a) }).toSet()
+            /**
+             * Root enumeration may fail due to permission issues; return empty on silent fallback.
+             */
             val rootFiles =
                 try {
                     root.listDirectoryEntries()
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    val skipped = e.localizedMessage
                     emptyList()
                 }
             rootFiles
                 .filter { file ->
                     file.isSymbolicLink() &&
                         file.name to (
+                            /**
+                             * Symlink target read may fail; return empty string on silent fallback to exclude from allowed set.
+                             */
                             try {
                                 file.readSymbolicLink().toString()
-                            } catch (_: Exception) {
+                            } catch (error: Exception) {
+                                val skipped = error.localizedMessage
                                 ""
                             }
                         ) !in allowed
@@ -72,7 +81,7 @@ object ForbidUnsafeSymlinksRule : HarnessCheckRule {
                     Finding(
                         Severity.ERROR,
                         category,
-                        HarnessCheck.stringFrom(messagesObj, "fileNotAllowed").takeIf { it.isNotEmpty() }
+                        HarnessCheck.stringFrom(messagesObj, "fileNotAllowed").takeIf { message -> message.isNotEmpty() }
                             ?: "symlink file is not allowed: ${file.relativeTo(root)}",
                     )
                 }

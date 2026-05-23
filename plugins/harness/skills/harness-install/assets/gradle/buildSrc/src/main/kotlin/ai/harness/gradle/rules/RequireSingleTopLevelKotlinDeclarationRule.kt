@@ -2,15 +2,18 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.extension
 import kotlin.io.path.relativeTo
+import kotlin.io.path.name
 
 /**
  * Rule that requires Kotlin files to have exactly one top-level declaration of allowed type.
@@ -64,18 +67,18 @@ object RequireSingleTopLevelKotlinDeclarationRule : HarnessCheckRule {
                         .filter { file ->
                             file.extension in kotlinExts
                         }.filter { file ->
-                            val info = results.find { it.file == file.name }
+                            val info = results.find { result -> result.file == file.relativeTo(root).toString().replace("\\", "/") }
                             info != null &&
                                 (
                                     info.count != 1 ||
                                         (info.firstKind != "unknown" && info.firstKind !in allowedDeclarations)
                                 )
                         }.map { file ->
-                            val info = results.find { it.file == file.name }!!
+                            val info = results.find { result -> result.file == file.relativeTo(root).toString().replace("\\", "/") }!!
                             when {
                                 info.count != 1 -> {
                                     val msg =
-                                        HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() }
+                                        HarnessCheck.stringFrom(messagesObj, "default").takeIf { message -> message.isNotEmpty() }
                                             ?: "${file.relativeTo(
                                                 root,
                                             )}: file must have single top-level declaration, found ${info.count}"
@@ -85,7 +88,7 @@ object RequireSingleTopLevelKotlinDeclarationRule : HarnessCheckRule {
                                 else -> {
                                     val declType = info.firstKind
                                     val msg =
-                                        HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() }
+                                        HarnessCheck.stringFrom(messagesObj, "default").takeIf { message -> message.isNotEmpty() }
                                             ?: "${file.relativeTo(root)}: top-level $declType is not allowed"
                                     Finding(severity, category, msg)
                                 }

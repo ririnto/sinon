@@ -1,11 +1,10 @@
 #!/usr/bin/env bun
+import type { Node, SourceFile } from "typescript@6.0.3";
 import {
 	createSourceFile,
 	forEachChild,
 	isBlock,
 	isIfStatement,
-	type Node,
-	type SourceFile,
 	SyntaxKind,
 } from "typescript@6.0.3";
 import type {

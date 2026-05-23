@@ -2,10 +2,12 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
-import java.io.File
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.extension
@@ -54,14 +56,18 @@ object ForbidScaffoldLeaksRule : HarnessCheckRule {
                         val label = HarnessCheck.stringFrom(obj, "label")
                         pattern to label
                     } ?: emptyList()
-            val excludedPaths = excludedSubtrees.map { root / it }
+            val excludedPaths = excludedSubtrees.map { excludedPath -> root / excludedPath }
+            /**
+             * Filter out patterns that don't compile; invalid regexes silently fail without raising findings.
+             */
             val regexes =
                 patterns
                     .filter { (pattern, label) ->
                         try {
                             pattern.toRegex()
                             true
-                        } catch (_: Exception) {
+                        } catch (e: Exception) {
+                            val skipped = e.localizedMessage
                             false
                         }
                     }.map { (pattern, label) ->
@@ -71,7 +77,7 @@ object ForbidScaffoldLeaksRule : HarnessCheckRule {
                 val (files, _) = HarnessCheck.walkSafe(root, root / basePath)
                 files
                     .filter { file ->
-                        file.extension in extensions && excludedPaths.none { file.toString().startsWith(it.toString()) }
+                        file.extension in extensions && excludedPaths.none { excludedPath -> file.toString().startsWith(excludedPath.toString()) }
                     }.flatMap { file ->
                         regexes
                             .filter { (regex, label) ->
@@ -80,8 +86,8 @@ object ForbidScaffoldLeaksRule : HarnessCheckRule {
                                 Finding(
                                     HarnessCheck.severityOf(manifest, category),
                                     category,
-                                    HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() }
-                                        ?: "$label in active asset: ${file.relativeTo(root.toFile())}",
+                                    HarnessCheck.stringFrom(messagesObj, "default").takeIf { message -> message.isNotEmpty() }
+                                        ?: "$label in active asset: ${file.relativeTo(root)}",
                                 )
                             }
                     }

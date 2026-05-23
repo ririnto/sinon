@@ -2,9 +2,11 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 
 /**
@@ -39,7 +41,7 @@ object RequireDocHeadingsRule : HarnessCheckRule {
             val prefix = HarnessCheck.stringFrom(sourceFilterObj, "prefix")
             val suffix = HarnessCheck.stringFrom(sourceFilterObj, "suffix")
             val headings = HarnessCheck.stringArrayFrom(parametersObj, "headings")
-            sourceFiles.filter { it.startsWith(prefix) && it.endsWith(suffix) }.flatMap { docPath ->
+            sourceFiles.filter { sourceFile -> sourceFile.startsWith(prefix) && sourceFile.endsWith(suffix) }.flatMap { docPath ->
                 headings
                     .filter { heading ->
                         !HarnessCheck.readSafe(root, docPath).contains(heading)

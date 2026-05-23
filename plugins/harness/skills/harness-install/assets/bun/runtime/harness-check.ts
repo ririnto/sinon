@@ -13,6 +13,7 @@ import type {
 	HarnessManifest,
 	RuleContext,
 } from "./harness-check-rule";
+import { logger } from "./logger";
 import { forbidBlankLineInLeafFunctionRule } from "./rules/forbid-blank-line-in-leaf-function";
 import { forbidEarlyReturnRule } from "./rules/forbid-early-return";
 import { forbidEmptyCatchBlockRule } from "./rules/forbid-empty-catch-block";
@@ -258,7 +259,7 @@ function collectFilesUnder(
 			message: `symlink path is not allowed: ${path}`,
 		});
 	}
-	if (findings.length > 0) {
+	if (0 < findings.length) {
 		return [[], findings];
 	}
 	return isFile(path) ? [[path], findings] : walkDirectory(path);
@@ -392,7 +393,7 @@ async function main(): Promise<void> {
 	try {
 		manifest = JSON.parse(readFileSync(join(root, "harness.json"), "utf8"));
 	} catch {
-		console.error("failed to read harness.json");
+		logger.error("failed to read harness.json");
 		process.exit(1);
 	}
 
@@ -401,7 +402,7 @@ async function main(): Promise<void> {
 	).flatMap(({ rule }) => rule.validate(root, manifest));
 
 	if (findings.length === 0) {
-		console.log("OK");
+		logger.log("OK");
 		process.exit(0);
 	}
 
@@ -413,20 +414,20 @@ async function main(): Promise<void> {
 		grouped.get(finding.severity)!.push(finding);
 	});
 
-	for (const severity of ["ERROR", "WARN", "INFO"] as const) {
+	(["ERROR", "WARN", "INFO"] as const).forEach((severity) => {
 		const items = grouped.get(severity);
-		if (items && items.length > 0) {
-			console.log(`${severity}: ${items.length}`);
-			for (const item of items) {
-				console.log(`  [${item.category}] ${item.message}`);
-			}
+		if (items && 0 < items.length) {
+			logger.log(`${severity}: ${items.length}`);
+			items.forEach((item) => {
+				logger.log(`  [${item.category}] ${item.message}`);
+			});
 		}
-	}
+	});
 
 	process.exit(findings.some((f) => f.severity === "ERROR") ? 1 : 0);
 }
 
 main().catch((err) => {
-	console.error(err);
+	logger.error(err instanceof Error ? err.message : String(err));
 	process.exit(2);
 });

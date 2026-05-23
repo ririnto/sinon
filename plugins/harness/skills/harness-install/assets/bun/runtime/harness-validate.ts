@@ -2,15 +2,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { HARNESS_CHECKS } from "./harness-check";
+import { logger } from "./logger";
 
 const root = process.cwd();
 const MANIFEST_PATH = "docs/harness/manifest.json";
-
-interface Finding {
-	severity: "ERROR" | "WARN" | "INFO";
-	category: string;
-	message: string;
-}
 
 type Manifest = Record<string, unknown>;
 
@@ -33,30 +28,25 @@ function main(): void {
 		typeof manifest !== "object" ||
 		Object.keys(manifest).length === 0
 	) {
-		console.error(`[ERROR] manifest not found or invalid: ${MANIFEST_PATH}`);
+		logger.error(`[ERROR] manifest not found or invalid: ${MANIFEST_PATH}`);
 		process.exit(1);
 	}
 
+	const knownCategories = new Set<string>(
+		HARNESS_CHECKS.map((c) => c.category),
+	);
+	const knownKeys = new Set<string>([
+		"name",
+		"description",
+		"$schema",
+		"seedFiles",
+		"generatedArtifacts",
+		"harnessEvolution",
+		"teamPatterns",
+	]);
 	Object.keys(manifest)
-		.filter(
-			(key) =>
-				!new Set<string>(HARNESS_CHECKS.map((c) => c.category)).has(key) &&
-				!new Set<string>([
-					"name",
-					"description",
-					"$schema",
-					"seedFiles",
-					"generatedArtifacts",
-					"harnessEvolution",
-					"teamPatterns",
-				]).has(key),
-		)
-		.map((key) => ({
-			severity: "WARN" as const,
-			category: "manifest-structure",
-			message: `unknown manifest key: ${key}`,
-		}))
-		.forEach((f) => console.warn(`[WARN] ${f.message}`));
+		.filter((key) => !knownCategories.has(key) && !knownKeys.has(key))
+		.forEach((key) => logger.warn(`[WARN] unknown manifest key: ${key}`));
 
 	const uniqueFindings = Array.from(
 		new Map(
@@ -70,15 +60,15 @@ function main(): void {
 	const warnings = uniqueFindings.filter((f) => f.severity === "WARN");
 	const infos = uniqueFindings.filter((f) => f.severity === "INFO");
 
-	errors.forEach((e) => console.error(`[ERROR] ${e.message}`));
-	warnings.forEach((w) => console.warn(`[WARN] ${w.message}`));
-	infos.forEach((i) => console.info(`[INFO] ${i.message}`));
+	errors.forEach((e) => logger.error(`[ERROR] ${e.message}`));
+	warnings.forEach((w) => logger.warn(`[WARN] ${w.message}`));
+	infos.forEach((i) => logger.info(`[INFO] ${i.message}`));
 
-	if (errors.length > 0) {
-		console.error("Harness validation failed");
+	if (0 < errors.length) {
+		logger.error("Harness validation failed");
 		process.exit(1);
 	}
-	console.log("Harness validation passed");
+	logger.log("Harness validation passed");
 }
 
 main();

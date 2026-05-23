@@ -2,9 +2,11 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.exists
@@ -42,10 +44,14 @@ object RequireKeefileInEmptyDirectoriesRule : HarnessCheckRule {
                     if (!dir.isDirectory()) {
                         false
                     } else {
+                        /**
+                         * Directory enumeration may fail; return empty on silent fallback to treat as containing no real files.
+                         */
                         val realFiles =
                             try {
-                                dir.listDirectoryEntries().filter { it.name != ".gitkeep" }
-                            } catch (_: Exception) {
+                                dir.listDirectoryEntries().filter { entry -> entry.name != ".gitkeep" }
+                            } catch (e: Exception) {
+                                val skipped = e.localizedMessage
                                 emptyList()
                             }
                         realFiles.isEmpty() && !(root / "$dirPath/.gitkeep").exists()

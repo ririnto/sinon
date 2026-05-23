@@ -5,7 +5,6 @@ plugins {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.add("-Xwarning-level=K1_API_DEPRECATION_ERROR:warning")
     }
 }
 

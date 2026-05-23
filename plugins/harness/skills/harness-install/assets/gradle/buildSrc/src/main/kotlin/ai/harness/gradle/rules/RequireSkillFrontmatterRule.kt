@@ -2,9 +2,11 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.isDirectory
@@ -45,15 +47,19 @@ object RequireSkillFrontmatterRule : HarnessCheckRule {
                     Finding(
                         HarnessCheck.severityOf(manifest, category),
                         category,
-                        HarnessCheck.stringFrom(messagesObj, "missingDirectory").takeIf { it.isNotEmpty() }
+                        HarnessCheck.stringFrom(messagesObj, "missingDirectory").takeIf { message -> message.isNotEmpty() }
                             ?: ".claude/skills must contain at least one SKILL.md",
                     ),
                 )
             } else {
+                /**
+                 * Tree walk may fail due to permission or I/O issues; return empty on silent fallback.
+                 */
                 val files =
                     try {
-                        dirPath.walk().filter { it.isRegularFile() && it.name == filename }.toList()
-                    } catch (_: Exception) {
+                        dirPath.walk().filter { file -> file.isRegularFile() && file.name == filename }.toList()
+                    } catch (e: Exception) {
+                        val skipped = e.localizedMessage
                         emptyList()
                     }
                 if (files.isEmpty()) {
@@ -61,7 +67,7 @@ object RequireSkillFrontmatterRule : HarnessCheckRule {
                         Finding(
                             HarnessCheck.severityOf(manifest, category),
                             category,
-                            HarnessCheck.stringFrom(messagesObj, "missingSkill").takeIf { it.isNotEmpty() }
+                            HarnessCheck.stringFrom(messagesObj, "missingSkill").takeIf { message -> message.isNotEmpty() }
                                 ?: ".claude/skills must contain at least one SKILL.md",
                         ),
                     )
@@ -77,7 +83,7 @@ object RequireSkillFrontmatterRule : HarnessCheckRule {
                                         .stringFrom(
                                             messagesObj,
                                             "missingFrontmatter",
-                                        ).takeIf { it.isNotEmpty() }
+                                        ).takeIf { message -> message.isNotEmpty() }
                                         ?: "skill missing frontmatter: ${file.relativeTo(root)}",
                                 ),
                             )
@@ -91,7 +97,7 @@ object RequireSkillFrontmatterRule : HarnessCheckRule {
                                             .stringFrom(
                                                 messagesObj,
                                                 "missingDescription",
-                                            ).takeIf { it.isNotEmpty() }
+                                            ).takeIf { message -> message.isNotEmpty() }
                                             ?: "skill missing description: ${file.relativeTo(root)}",
                                     )
                                 } else {
