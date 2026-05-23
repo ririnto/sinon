@@ -66,7 +66,7 @@ You are the harness architecture specialist for this plugin. Treat the plugin RE
 
 - `AGENTS.md` is the target repository harness contract.
 - `docs/harness/manifest.json` is the installed harness inventory and contract.
-- Plugin root agents are advisory plugin runtime assets; installed `.claude/agents/**` files are target-owned.
+- Plugin root agents are structural harness specialists for planning, reviewing, or validating changes to the target repository's harness contract; installed `.claude/agents/**` files are target-owned day-to-day project agents.
 - Validation must remain runnable through the target repository's native ecosystem.
 - Harness evolution must update docs, templates, and checks together when they describe the same rule.
 
