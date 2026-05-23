@@ -2,13 +2,15 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
-import java.io.File
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.isRegularFile
+import kotlin.io.path.readLines
 
 /**
  * Rule that requires hooks to have correct shebang.
@@ -41,14 +43,14 @@ object RequireHookShebangRule : HarnessCheckRule {
                     if (!hook.isRegularFile()) {
                         false
                     } else {
-                        val first = hook.toFile().readLines().firstOrNull() ?: ""
+                        val first = hook.readLines().firstOrNull() ?: ""
                         first != expectedShebang
                     }
                 }.map { hookPath ->
                     Finding(
                         HarnessCheck.severityOf(manifest, category),
                         category,
-                        HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() }
+                        HarnessCheck.stringFrom(messagesObj, "default").takeIf { message -> message.isNotEmpty() }
                             ?: "$hookPath must start with $expectedShebang",
                     )
                 }

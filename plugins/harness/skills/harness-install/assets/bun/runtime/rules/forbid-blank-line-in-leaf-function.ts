@@ -1,14 +1,12 @@
 #!/usr/bin/env bun
+import type { FunctionLike, Node, SourceFile } from "typescript@6.0.3";
 import {
 	createSourceFile,
-	type FunctionLike,
 	forEachChild,
 	isBlock,
 	isFunctionDeclaration,
 	isIdentifier,
 	isMethodDeclaration,
-	type Node,
-	type SourceFile,
 	SyntaxKind,
 } from "typescript@6.0.3";
 import type {
@@ -75,12 +73,12 @@ export const forbidBlankLineInLeafFunctionRule = (
 					"<anonymous>";
 
 				const checkTrivia = (triviaStart: number, triviaEnd: number): void => {
-					const (text.slice(triviaStart, triviaEnd
-					))Lines = (text.slice(triviaStart, triviaEnd)).split(/\r?\n/)
 					const triviaStartLine =
 						sourceFile.getLineAndCharacterOfPosition(triviaStart).line;
 					blankLineFindings.push(
-						...triviaLines
+						...text
+							.slice(triviaStart, triviaEnd)
+							.split(/\r?\n/)
 							.map((line, i) => ({ line, index: i }))
 							.filter(({ line }) => line.trim() === "")
 							.map(({ index }) => ({

@@ -449,25 +449,11 @@
     }
   },
   "forbidImplicitLambdaIt": {
-    "description": "Kotlin lambdas under parameters.directories MUST declare an explicit parameter name; the implicit `it` is forbidden.",
+    "description": "Kotlin lambdas under parameters.sourceRootsPerStack[kotlin] MUST declare an explicit parameter name; the implicit `it` is forbidden.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "Kotlin file {file} uses implicit `it` lambda parameter at line {line}; use an explicit name"
-    },
-    "parameters": {
-      "directories": [
-        "buildSrc/src/main/kotlin"
-      ],
-      "filenameSuffix": ".kt"
-    }
-  },
-  "requireSingleTopLevelKotlinDeclaration": {
-    "description": "Each Kotlin source file under parameters.sourceRootsPerStack[kotlin] MUST declare exactly one top-level declaration, and that declaration MUST be one of parameters.allowedDeclarations. Catches accidental top-level val/var/fun declarations.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "{file}: file must have single top-level declaration"
     },
     "parameters": {
       "sourceRootsPerStack": {
@@ -477,9 +463,24 @@
       },
       "extensionsPerStack": {
         "kotlin": [
-          "kt"
+          "kt",
+          "kts"
         ]
-      },
+      }
+    }
+  },
+  "requireSingleTopLevelKotlinDeclaration": {
+    "description": "Each Kotlin source file under parameters.directories MUST declare exactly one top-level declaration, and that declaration MUST be one of parameters.allowedDeclarations. Catches accidental top-level val/var/fun declarations.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "Kotlin file {file} has multiple top-level declarations or a disallowed declaration kind"
+    },
+    "parameters": {
+      "directories": [
+        "buildSrc/src/main/kotlin"
+      ],
+      "filenameSuffix": ".kt",
       "allowedDeclarations": [
         "class",
         "interface",

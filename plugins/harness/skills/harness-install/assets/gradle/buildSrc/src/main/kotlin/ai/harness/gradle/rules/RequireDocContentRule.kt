@@ -2,9 +2,12 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 
 /**
@@ -35,8 +38,8 @@ object RequireDocContentRule : HarnessCheckRule {
                     val checkObj = checkElem.jsonObject
                     val files = HarnessCheck.stringArrayFrom(checkObj, "files")
                     val containsAll = HarnessCheck.stringArrayFrom(checkObj, "containsAll")
-                    val content = files.map { HarnessCheck.readSafe(root, it) }.joinToString("\n")
-                    !containsAll.all { content.contains(it) }
+                    val content = files.map { filePath -> HarnessCheck.readSafe(root, filePath) }.joinToString("\n")
+                    !containsAll.all { contentStr -> content.contains(contentStr) }
                 }.map { checkElem ->
                     val checkObj = checkElem.jsonObject
                     Finding(

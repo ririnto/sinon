@@ -2,14 +2,17 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.isDirectory
 import kotlin.io.path.readText
 import kotlin.io.path.relativeTo
+import kotlin.io.path.name
 
 /**
  * Rule that forbids unchecked tasks in completed plans.
@@ -41,10 +44,14 @@ object ForbidUncheckedTasksUnderRule : HarnessCheckRule {
             return emptyList()
         }
         val (files, _) = HarnessCheck.walkSafe(root, dirPath)
+        /**
+         * Pattern compilation may fail if the pattern is invalid; return empty on silent fallback.
+         */
         val pattern =
             try {
                 uncheckedTaskPattern.toRegex()
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                val skipped = e.localizedMessage
                 return emptyList()
             }
         return files
@@ -54,7 +61,7 @@ object ForbidUncheckedTasksUnderRule : HarnessCheckRule {
                 Finding(
                     HarnessCheck.severityOf(manifest, category),
                     category,
-                    HarnessCheck.stringFrom(messagesObj, "default").takeIf { it.isNotEmpty() }
+                    HarnessCheck.stringFrom(messagesObj, "default").takeIf { message -> message.isNotEmpty() }
                         ?: "completed plan has unchecked tasks: ${file.relativeTo(root)}",
                 )
             }

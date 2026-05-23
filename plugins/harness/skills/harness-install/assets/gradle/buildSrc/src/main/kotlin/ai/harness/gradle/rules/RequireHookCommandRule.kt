@@ -2,9 +2,11 @@ package ai.harness.gradle.rules
 
 import ai.harness.gradle.Finding
 import ai.harness.gradle.HarnessCheck
-import ai.harness.gradle.HarnessCheckRule
 import ai.harness.gradle.HarnessPsiResults
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.isRegularFile
@@ -48,15 +50,15 @@ object RequireHookCommandRule : HarnessCheckRule {
                     val command =
                         text
                             .lineSequence()
-                            .firstOrNull {
-                                it.startsWith("# Harness validation command: ")
+                            .firstOrNull { line ->
+                                line.startsWith("# Harness validation command: ")
                             }?.removePrefix("# Harness validation command: ")
                             ?.trim()
                             ?: ""
                     listOfNotNull(
                         if (command.isEmpty()) {
                             val msg =
-                                HarnessCheck.stringFrom(messagesObj, "missingDeclaration").takeIf { it.isNotEmpty() }
+                                HarnessCheck.stringFrom(messagesObj, "missingDeclaration").takeIf { message -> message.isNotEmpty() }
                                     ?: "pre-push hook must declare Harness validation command"
                             Finding(severity, category, msg)
                         } else {
@@ -64,7 +66,7 @@ object RequireHookCommandRule : HarnessCheckRule {
                         },
                         if (command.isNotEmpty() && command !in allowedCmds) {
                             val msg =
-                                HarnessCheck.stringFrom(messagesObj, "unsupportedCommand").takeIf { it.isNotEmpty() }
+                                HarnessCheck.stringFrom(messagesObj, "unsupportedCommand").takeIf { message -> message.isNotEmpty() }
                                     ?: "pre-push hook declares unsupported validation command: $command"
                             Finding(severity, category, msg)
                         } else {
@@ -72,7 +74,7 @@ object RequireHookCommandRule : HarnessCheckRule {
                         },
                         if (command.isNotEmpty() && !text.contains(command)) {
                             val msg =
-                                HarnessCheck.stringFrom(messagesObj, "commandNotRun").takeIf { it.isNotEmpty() }
+                                HarnessCheck.stringFrom(messagesObj, "commandNotRun").takeIf { message -> message.isNotEmpty() }
                                     ?: "pre-push hook must run the declared validation command"
                             Finding(severity, category, msg)
                         } else {
@@ -88,15 +90,15 @@ object RequireHookCommandRule : HarnessCheckRule {
                     val command =
                         text
                             .lineSequence()
-                            .firstOrNull {
-                                it.startsWith("# Harness validation command: ")
+                            .firstOrNull { line ->
+                                line.startsWith("# Harness validation command: ")
                             }?.removePrefix("# Harness validation command: ")
                             ?.trim()
                             ?: ""
                     listOfNotNull(
                         if (command.isEmpty() && allowedPreCommitCmds.isNotEmpty()) {
                             val msg =
-                                HarnessCheck.stringFrom(messagesObj, "missingDeclaration").takeIf { it.isNotEmpty() }
+                                HarnessCheck.stringFrom(messagesObj, "missingDeclaration").takeIf { message -> message.isNotEmpty() }
                                     ?: "pre-commit hook must declare validation command"
                             Finding(severity, category, msg)
                         } else {
@@ -104,7 +106,7 @@ object RequireHookCommandRule : HarnessCheckRule {
                         },
                         if (command.isNotEmpty() && command !in allowedPreCommitCmds) {
                             val msg =
-                                HarnessCheck.stringFrom(messagesObj, "unsupportedCommand").takeIf { it.isNotEmpty() }
+                                HarnessCheck.stringFrom(messagesObj, "unsupportedCommand").takeIf { message -> message.isNotEmpty() }
                                     ?: "pre-commit hook declares unsupported validation command: $command"
                             Finding(severity, category, msg)
                         } else {
@@ -112,7 +114,7 @@ object RequireHookCommandRule : HarnessCheckRule {
                         },
                         if (command.isNotEmpty() && !text.contains(command)) {
                             val msg =
-                                HarnessCheck.stringFrom(messagesObj, "commandNotRun").takeIf { it.isNotEmpty() }
+                                HarnessCheck.stringFrom(messagesObj, "commandNotRun").takeIf { message -> message.isNotEmpty() }
                                     ?: "pre-commit hook must run the declared validation command"
                             Finding(severity, category, msg)
                         } else {
