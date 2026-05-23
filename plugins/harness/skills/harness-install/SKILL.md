@@ -1,7 +1,7 @@
 ---
 name: harness-install
 description: >-
-  Install repository harness assets: AGENTS.md contract, ARCHITECTURE.md, docs structure, Claude entry point, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use this skill when setting up or refreshing a repository harness, adding Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
+  Install target-owned repository harness assets from the plugin asset package: AGENTS.md contract, ARCHITECTURE.md, docs structure, Claude entry point, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use this skill when setting up or refreshing a repository harness, adding target-owned Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
 argument-hint: '[auto|gradle|maven|uv|bun|shell] [--target DIR] [--hooks none|copy] [--force] [--no-ci]'
 allowed-tools:
   - Bash(sh */skills/harness-install/scripts/install-harness.sh *)
@@ -19,7 +19,13 @@ allowed-tools:
 
 # Harness Install
 
-Install or refresh target-owned repository harness files from this plugin. The plugin skill installs the scaffold; after installation, target repositories own the copied contracts, docs, agents, skills, templates, validators, CI snippets, and generated hook templates.
+Install or refresh target-owned repository harness files from this plugin. This plugin skill is the visible runtime surface for installation guidance and orchestration; files that live inside a target repository are packaged under `skills/harness-install/assets/` and become target-owned after copying.
+
+## Ownership Boundary
+
+- This skill owns installation guidance and orchestration.
+- Target repository agents, project skills, docs, validators, CI snippets, and hook scaffolds come from `skills/harness-install/assets/`.
+- Plugin-root structural agents are not installable target assets.
 
 ## First Safe Checks
 
@@ -86,7 +92,7 @@ Install or refresh target-owned repository harness files from this plugin. The p
 - `CLAUDE.md` remains the Claude Code entry point and points back to `AGENTS.md`.
 - `docs/harness/manifest.json` is the installed harness inventory and contract.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
-- Plugin skills install and validate the harness package; installed target skills guide day-to-day work inside the target repository.
+- Plugin skills install, validate, and evolve the harness package; installed target skills and agents guide day-to-day work inside the target repository.
 
 ## Pitfalls
 

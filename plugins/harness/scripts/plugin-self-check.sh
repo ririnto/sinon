@@ -71,6 +71,24 @@ require_text() {
   fi
 }
 
+# Require a Markdown file to contain a heading at a specific level.
+#
+# @param path Markdown file path to inspect.
+# @param level Markdown heading level number.
+# @param title Heading title without hash marks.
+# @exit Exits with status 1 when the heading is missing.
+require_markdown_heading() {
+  path=$1
+  level=$2
+  title=$3
+  marks=$(printf '%*s' "$level" '' | tr ' ' '#')
+  heading="$marks $title"
+  if ! grep -Fxq "$heading" "$path"; then
+    printf '%s\n' "[require_markdown_heading] missing heading in $path: $heading" >&2
+    exit 1
+  fi
+}
+
 # Require a file tree to not contain a fixed string.
 #
 # @param text Fixed string to reject.
@@ -615,7 +633,6 @@ done
 require_text "$root/README.md" 'harness-install'
 require_text "$root/README.md" 'harness-validate'
 require_text "$root/README.md" 'harness-evolve'
-require_text "$root/README.md" 'host runtimes that load plugin agents'
 require_text "$root/README.md" 'hook template'
 # shellcheck disable=SC2016
 require_text "$root/README.md" 'Gradle `pre-commit` runs `harnessValidate`'
@@ -624,10 +641,17 @@ require_text "$root/README.md" 'Gradle `pre-push` runs `check`'
 require_text "$root/README.md" 'THIRD_PARTY_NOTICES.md'
 require_text "$root/README.md" 'skills/harness-install/assets/common/docs/harness/git-hooks/'
 require_text "$root/README.md" 'v6 archive structure'
+require_markdown_heading "$root/README.md" 2 'Plugin-Owned Structural Agents'
+require_markdown_heading "$root/README.md" 2 'Packaged Scripts and Assets'
+require_markdown_heading "$root/README.md" 2 'Runtime Model'
 # shellcheck disable=SC2016
 require_text "$root/skills/harness-install/SKILL.md" 'Gradle pre-commit runs `harnessValidate`, Gradle pre-push runs `check`'
+require_markdown_heading "$root/skills/harness-install/SKILL.md" 2 'Ownership Boundary'
+require_markdown_heading "$root/skills/harness-install/SKILL.md" 2 'Invariants'
 # shellcheck disable=SC2016
 require_text "$root/skills/harness-validate/SKILL.md" 'generated `docs/harness/git-hooks/pre-push` command marker'
+require_markdown_heading "$root/skills/harness-validate/SKILL.md" 2 'Ownership Boundary'
+require_markdown_heading "$root/skills/harness-validate/SKILL.md" 2 'Invariants'
 require_text "$root/skills/harness-validate/SKILL.md" 'Manifest drift'
 require_text "$root/skills/harness-validate/SKILL.md" 'Generated artifact metadata'
 require_text "$root/skills/harness-validate/SKILL.md" 'Unsupported validation command'
@@ -636,6 +660,8 @@ require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'unsupported pre-push validation command'
 # shellcheck disable=SC2016
 require_text "$root/skills/harness-evolve/SKILL.md" 'active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target repository files'
+require_markdown_heading "$root/skills/harness-evolve/SKILL.md" 2 'Ownership Boundary'
+require_markdown_heading "$root/skills/harness-evolve/SKILL.md" 2 'Invariants'
 
 generated_doc_package_file_list=$(package_files "$root/skills/harness-install/assets/common/docs/generated")
 if printf '%s\n' "$generated_doc_package_file_list" | grep -F '/db-schema.md'; then
@@ -650,6 +676,28 @@ reject_text 'https://json.schemastore.org/claude-code-plugin-manifest.json' "$ro
 reject_text '"skills": "./skills"' "$root/.claude-plugin/plugin.json"
 reject_text 'docs/generated/README.md' "$root/skills"
 reject_text 'setup-harness' "$root/README.md"
+reject_text_in_paths 'root agents are host-dependent' \
+  "$root/README.md" \
+  "$root/skills/harness-install/SKILL.md" \
+  "$root/skills/harness-validate/SKILL.md" \
+  "$root/skills/harness-evolve/SKILL.md"
+reject_text_in_paths 'host runtimes that load plugin agents' \
+  "$root/README.md" \
+  "$root/skills/harness-install/SKILL.md" \
+  "$root/skills/harness-validate/SKILL.md" \
+  "$root/skills/harness-evolve/SKILL.md"
+reject_text_in_paths 'This plugin skill owns installer guidance and orchestration only' \
+  "$root/skills/harness-install/SKILL.md" \
+  "$root/skills/harness-validate/SKILL.md" \
+  "$root/skills/harness-evolve/SKILL.md"
+reject_text_in_paths 'This plugin skill owns validation guidance only' \
+  "$root/skills/harness-install/SKILL.md" \
+  "$root/skills/harness-validate/SKILL.md" \
+  "$root/skills/harness-evolve/SKILL.md"
+reject_text_in_paths 'This plugin skill owns harness evolution guidance only' \
+  "$root/skills/harness-install/SKILL.md" \
+  "$root/skills/harness-validate/SKILL.md" \
+  "$root/skills/harness-evolve/SKILL.md"
 
 reject_text_in_paths '--hooks install' \
   "$root/README.md" \

@@ -6,7 +6,7 @@ description: >-
 
 # Harness
 
-Harness is a Claude Code plugin for installing, validating, and evolving repository-owned agent development scaffolding. It combines the v6 archive structure with this repository's plugin packaging rules: skills are the declared runtime surface, root agents are host-dependent and undeclared in the manifest, and target repositories own the files copied into them.
+Harness is a Claude Code plugin for installing, validating, and evolving repository-owned agent development scaffolding. It combines the v6 archive structure with this repository's plugin packaging rules: skills are the declared runtime surface, plugin-root agents are structural harness specialists for changing a target repository's harness contract, and files that should live inside a target repository are packaged only under `skills/harness-install/assets/`.
 
 ## Purpose
 
@@ -35,11 +35,13 @@ claude plugin install ./plugins/harness --scope project
 - `harness-validate`: validate installed harness assets and stack adapters against the harness contract.
 - `harness-evolve`: update the harness contract after repeated project use exposes new template, validation, or workflow needs.
 
-## Included Agents
+## Plugin-Owned Structural Agents
 
-- `harness-architect`: plan harness structure and installation strategy.
-- `harness-reviewer`: review installed harness assets and evolution proposals.
-- `harness-validator`: diagnose validation output and readiness gates.
+These agents are plugin-owned advisory surfaces for the harness lifecycle itself. They are valid when the task is to design, review, or verify the target repository's harness structure; they are not installed as day-to-day target repository agents.
+
+- `harness-architect`: plan target harness structure, ownership boundaries, and validation alignment.
+- `harness-reviewer`: review target harness assets and evolution proposals for contract drift.
+- `harness-validator`: diagnose target harness validation output and readiness gates.
 
 ## Included Commands
 
@@ -52,7 +54,7 @@ This plugin ships no commands.
 
 ## Runtime Model
 
-The Claude Code manifest declares only `./skills/`. Agents remain in the `agents/` directory at the plugin root and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. Agents are available to host runtimes that load plugin agents from the plugin root; hosts that do not load plugin-root agents still receive the skill surface. The plugin does not expose top-level hooks; packaged hook scaffolds live under `skills/harness-install/assets/common/docs/harness/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
+The Claude Code manifest declares only `./skills/`. Plugin-root agents remain in `agents/` as optional structural specialists for changing the target repository's harness contract, but they are not declared in `.claude-plugin/plugin.json` and are not copied into target repositories. Target repository agents, project skills, docs, CI snippets, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become target-owned only after installation. The plugin does not expose top-level hooks; packaged hook scaffolds live under `skills/harness-install/assets/common/docs/harness/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
 
 ## Target Ownership
 

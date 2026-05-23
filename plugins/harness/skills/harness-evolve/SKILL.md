@@ -1,7 +1,7 @@
 ---
 name: harness-evolve
 description: >-
-  Reconcile an installed repository harness after real project use changes docs, templates, agents, skills, validators, generated-artifact policy, CI, hooks, or readiness gates. Use this skill when repeated validation or review failures or committed harness drift show the target harness contract should evolve and produce a versioned evolution plan with validation impact.
+  Reconcile an installed target-owned repository harness after real project use changes docs, templates, agents, skills, validators, generated-artifact policy, CI, hooks, or readiness gates. Use this skill when repeated validation or review failures or committed harness drift show the target harness contract should evolve while keeping installable assets under the plugin asset package.
 argument-hint: '[summary-of-delta]'
 allowed-tools:
   - Read
@@ -14,9 +14,15 @@ allowed-tools:
 
 # Harness Evolve
 
-Review how the installed target harness changed and produce a versioned evolution plan. This plugin skill does not weaken validation to make failures disappear; it updates the harness contract when project reality has legitimately changed.
+Review how the installed target harness changed and produce a versioned evolution plan. This plugin skill is the visible runtime surface for harness evolution guidance; target repository files remain packaged under `skills/harness-install/assets/` before install and target-owned after copying.
 
 This skill is report-only unless the user separately asks for implementation. Produce the evolution plan first, then use `harness-validate` after changes are implemented.
+
+## Ownership Boundary
+
+- This skill owns harness evolution guidance.
+- Target repository agents, project skills, docs, validators, CI snippets, and hook scaffolds evolve as installable assets under `skills/harness-install/assets/`.
+- Plugin-root structural agents evolve only when their harness-lifecycle advisory role changes.
 
 ## First Safe Checks
 
