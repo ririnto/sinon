@@ -6,9 +6,9 @@ ARCHITECTURE.md is the top-level map of domains, package layering, data flow, an
 
 ## Domain Map
 
-- {{Identity}}: User authentication, session management, role-based access control, and tenant isolation.
-- {{Catalog}}: Core business entity management — product listings, inventory, metadata, and pricing tiers.
-- {{Notifications}}: Outbound email delivery, webhook dispatches, and event subscriptions.
+- Identity: User authentication, session management, role-based access control, and tenant isolation.
+- Catalog: Core business entity management — product listings, inventory, metadata, and pricing tiers.
+- Notifications: Outbound email delivery, webhook dispatches, and event subscriptions.
 
 ## Package Layering
 
@@ -35,14 +35,14 @@ flowchart LR
 
 ## Data Flow
 
-- Request path: HTTP/{{protocol}} entry → handler → service → repository → datastore.
+- Request path: HTTP/HTTPS entry → handler → service → repository → datastore.
 - Event path: domain event → message bus → projection handler → read model.
 
 ## External Integrations
 
-- Identity provider: OAuth/OIDC to `https://{{idp-host}}` — user sign-in, token validation, and claims mapping via REST.
-- Payment gateway: {{payment-provider}} REST API — card tokenization, charge processing, and subscription lifecycle.
-- Telemetry backend: OpenTelemetry OTLP export to `{{otlp-endpoint}}` — distributed traces, metrics, and error reporting via gRPC.
+- Identity provider: OAuth/OIDC to `https://idp.example.com` — user sign-in, token validation, and claims mapping via REST.
+- Payment gateway: ExamplePay REST API — card tokenization, charge processing, and subscription lifecycle.
+- Telemetry backend: OpenTelemetry OTLP export to `otel.example.com` — distributed traces, metrics, and error reporting via gRPC.
 
 ## Validation Surfaces
 

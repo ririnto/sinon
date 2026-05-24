@@ -5,4 +5,5 @@ harness:
   stage: validate
   image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
   script:
-    - {{validation_command}}
+    - >-
+      {{validation_command}}

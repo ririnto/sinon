@@ -6,7 +6,7 @@ import {
 	readlinkSync,
 	statSync,
 } from "node:fs";
-import { dirname, join } from "node:path";
+import { join, resolve } from "node:path";
 import type {
 	Finding,
 	HarnessCheckRule,
@@ -14,42 +14,48 @@ import type {
 	RuleContext,
 } from "./harness-check-rule";
 import { logger } from "./logger";
-import { forbidBlankLineInLeafFunctionRule } from "./rules/forbid-blank-line-in-leaf-function";
-import { forbidEarlyReturnRule } from "./rules/forbid-early-return";
-import { forbidEmptyCatchBlockRule } from "./rules/forbid-empty-catch-block";
-import { forbidGreaterThanComparisonRule } from "./rules/forbid-greater-than-comparison";
-import { forbidImplicitLambdaItRule } from "./rules/forbid-implicit-lambda-it";
-import { forbidMutableCollectionRule } from "./rules/forbid-mutable-collection";
-import { forbidScaffoldLeaksRule } from "./rules/forbid-scaffold-leaks";
-import { forbidSilentCatchRule } from "./rules/forbid-silent-catch";
-import { forbidUncheckedTasksUnderRule } from "./rules/forbid-unchecked-tasks-under";
-import { forbidUnsafeSymlinksRule } from "./rules/forbid-unsafe-symlinks";
-import { forbidUnstructuredLoggingRule } from "./rules/forbid-unstructured-logging";
-import { forbidWildcardImportRule } from "./rules/forbid-wildcard-import";
-import { requireAgentFrontmatterRule } from "./rules/require-agent-frontmatter";
-import { requireBracesOnIfRule } from "./rules/require-braces-on-if";
-import { requireCiCommandMatchesHookRule } from "./rules/require-ci-command-matches-hook";
-import { requireDirectoriesExistRule } from "./rules/require-directories-exist";
-import { requireDocCommentOnPublicDeclarationRule } from "./rules/require-doc-comment-on-public-declaration";
-import { requireDocContentRule } from "./rules/require-doc-content";
-import { requireDocHeadingsRule } from "./rules/require-doc-headings";
-import { requireEnvShebangUnderRule } from "./rules/require-env-shebang-under";
-import { requireFilesExistRule } from "./rules/require-files-exist";
-import { requireHookCommandRule } from "./rules/require-hook-command";
-import { requireHookExecutableRule } from "./rules/require-hook-executable";
-import { requireHookGeneratedMarkerRule } from "./rules/require-hook-generated-marker";
-import { requireHookShebangRule } from "./rules/require-hook-shebang";
-import { requireHookStageRule } from "./rules/require-hook-stage";
-import { requireImportOverFqnRule } from "./rules/require-import-over-fqn";
-import { requireKeepfileInEmptyDirectoriesRule } from "./rules/require-keepfile-in-empty-directories";
-import { requireSingleTopLevelKotlinDeclarationRule } from "./rules/require-single-top-level-kotlin-declaration";
-import { requireSkillFrontmatterRule } from "./rules/require-skill-frontmatter";
-import { requireTemplateGroupsRule } from "./rules/require-template-groups";
+import { leafFunctionBlankLinesRule } from "./rules/leaf-function-blank-lines";
+import { earlyReturnRule } from "./rules/early-return";
+import { emptyCatchBlockRule } from "./rules/empty-catch-block";
+import { greaterThanComparisonRule } from "./rules/greater-than-comparison";
+import { implicitLambdaItRule } from "./rules/implicit-lambda-it";
+import { mutableCollectionRule } from "./rules/mutable-collection";
+import { scaffoldLeaksRule } from "./rules/scaffold-leaks";
+import { silentCatchRule } from "./rules/silent-catch";
+import { uncheckedTasksRule } from "./rules/unchecked-tasks";
+import { symlinkSafetyRule } from "./rules/symlink-safety";
+import { unstructuredLoggingRule } from "./rules/unstructured-logging";
+import { wildcardImportRule } from "./rules/wildcard-import";
+import { agentFrontmatterRule } from "./rules/agent-frontmatter";
+import { ifStatementBracesRule } from "./rules/if-statement-braces";
+import { ciHookCommandParityRule } from "./rules/ci-hook-command-parity";
+import { directoryPresenceRule } from "./rules/directory-presence";
+import { publicDeclarationDocCommentRule } from "./rules/public-declaration-doc-comment";
+import { docContentRule } from "./rules/doc-content";
+import { docHeadingsRule } from "./rules/doc-headings";
+import { envShebangUsageRule } from "./rules/env-shebang-usage";
+import { filePresenceRule } from "./rules/file-presence";
+import { hookCommandRule } from "./rules/hook-command";
+import { hookExecutableRule } from "./rules/hook-executable";
+import { hookGeneratedMarkerRule } from "./rules/hook-generated-marker";
+import { hookShebangRule } from "./rules/hook-shebang";
+import { hookStageRule } from "./rules/hook-stage";
+import { importOverFqnRule } from "./rules/import-over-fqn";
+import { emptyDirectoryPlaceholdersRule } from "./rules/empty-directory-placeholders";
+import { kotlinTopLevelDeclarationCountRule } from "./rules/kotlin-top-level-declaration-count";
+import { skillFrontmatterRule } from "./rules/skill-frontmatter";
+import { templateGroupsRule } from "./rules/template-groups";
 
 const root = process.cwd();
 
 function pathOf(path: string): string {
 	return join(root, path);
+}
+
+function isWithinRoot(path: string): boolean {
+	const resolvedPath = resolve(pathOf(path));
+	const resolvedRoot = resolve(pathOf("."));
+	return resolvedPath === resolvedRoot || resolvedPath.startsWith(`${resolvedRoot}/`);
 }
 
 function read(path: string): string {
@@ -144,25 +150,30 @@ function severityOf(
  * filters by configured extensions, and skips node_modules and build directories.
  *
  * @param manifest Harness manifest with sourceRootsPerStack and extensionsPerStack.
- * @param category Stack category (e.g., "typescript").
+ * @param category Harness check category.
+ * @param stack Stack source key (e.g., "typescript").
  * @return Sorted unique list of source file paths relative to root.
  */
 function stackSources(
 	manifest: HarnessManifest,
 	category: string,
+	stack: string,
 ): readonly string[] {
 	const collected = new Set<string>();
-	const parameters = readJsonObject(manifest[category]);
+	const parameters = readJsonObject(readJsonObject(manifest[category]).parameters);
 
 	const sourceDirs = readStringArray(
-		readJsonObject(parameters.sourceRootsPerStack)[category],
+		readJsonObject(parameters.sourceRootsPerStack)[stack],
 	);
 	const extensions = new Set(
-		readStringArray(readJsonObject(parameters.extensionsPerStack)[category]),
+		readStringArray(readJsonObject(parameters.extensionsPerStack)[stack]),
 	);
 
 	if (!(sourceDirs.length === 0 || extensions.size === 0)) {
 		function* walkDirGen(dirPath: string): Generator<string> {
+			if (!isWithinRoot(dirPath)) {
+				return;
+			}
 			if (isSymlink(dirPath)) {
 				return;
 			}
@@ -193,15 +204,26 @@ function stackSources(
 				return;
 			}
 		}
+		const collectGlobMatch = (match: string): void => {
+			if (isDirectory(match)) {
+				for (const file of walkDirGen(match)) {
+					collected.add(file);
+				}
+			} else {
+				const ext = match.slice(match.lastIndexOf(".") + 1);
+				if (isWithinRoot(match) && extensions.has(ext) && isFile(match)) {
+					collected.add(match);
+				}
+			}
+		};
 		for (const sourceDir of sourceDirs) {
 			if (sourceDir.includes("*")) {
 				try {
 					for (const match of new Bun.Glob(sourceDir).scanSync(".")) {
-						const normPath = `${sourceDir.split("/")[0]}/${match}`;
-						const ext = normPath.slice(normPath.lastIndexOf(".") + 1);
-						if (extensions.has(ext)) {
-							collected.add(normPath);
-						}
+						collectGlobMatch(match);
+					}
+					for (const match of new Bun.Glob(`${sourceDir}/**/*`).scanSync(".")) {
+						collectGlobMatch(match);
 					}
 				} catch {}
 			} else {
@@ -221,7 +243,7 @@ function walkDirectory(
 	if (isSymlink(path)) {
 		findings.push({
 			severity: "ERROR",
-			category: "forbidUnsafeSymlinks",
+			category: "symlinkSafety",
 			message: `symlink scan root is not allowed: ${path}`,
 		});
 		return [[], findings];
@@ -232,13 +254,13 @@ function walkDirectory(
 	if (!isDirectory(path)) {
 		return [[], findings];
 	}
-	const files = readdirSync(pathOf(path)).flatMap((entry) => {
+	const files = readdirSync(pathOf(path)).flatMap((entry: string) => {
 		const child = `${path}/${entry}`;
 		const full = pathOf(child);
 		if (lstatSync(full).isSymbolicLink()) {
 			findings.push({
 				severity: "ERROR",
-				category: "forbidUnsafeSymlinks",
+				category: "symlinkSafety",
 				message: `symlink scan entry is not allowed: ${child}`,
 			});
 			return [];
@@ -252,10 +274,17 @@ function collectFilesUnder(
 	path: string,
 ): readonly [readonly string[], readonly Finding[]] {
 	const findings: Finding[] = [];
+	if (!isWithinRoot(path)) {
+		findings.push({
+			severity: "ERROR",
+			category: "symlinkSafety",
+			message: `source path escapes repository root: ${path}`,
+		});
+	}
 	if (isSymlink(path) && allowedRootContractTarget(path) === null) {
 		findings.push({
 			severity: "ERROR",
-			category: "forbidUnsafeSymlinks",
+			category: "symlinkSafety",
 			message: `symlink path is not allowed: ${path}`,
 		});
 	}
@@ -285,107 +314,38 @@ const ruleContext: RuleContext = {
 /**
  * All harness check rules instantiated with shared context.
  */
-export const HARNESS_CHECKS: readonly {
-	category: string;
-	rule: HarnessCheckRule;
-}[] = [
-	{ category: "requireFilesExist", rule: requireFilesExistRule(ruleContext) },
-	{
-		category: "requireDirectoriesExist",
-		rule: requireDirectoriesExistRule(ruleContext),
-	},
-	{
-		category: "requireKeepfileInEmptyDirectories",
-		rule: requireKeepfileInEmptyDirectoriesRule(ruleContext),
-	},
-	{
-		category: "requireTemplateGroups",
-		rule: requireTemplateGroupsRule(ruleContext),
-	},
-	{ category: "requireDocHeadings", rule: requireDocHeadingsRule(ruleContext) },
-	{ category: "requireDocContent", rule: requireDocContentRule(ruleContext) },
-	{
-		category: "requireAgentFrontmatter",
-		rule: requireAgentFrontmatterRule(ruleContext),
-	},
-	{
-		category: "requireSkillFrontmatter",
-		rule: requireSkillFrontmatterRule(ruleContext),
-	},
-	{
-		category: "forbidScaffoldLeaks",
-		rule: forbidScaffoldLeaksRule(ruleContext),
-	},
-	{ category: "requireHookShebang", rule: requireHookShebangRule(ruleContext) },
-	{
-		category: "requireHookExecutable",
-		rule: requireHookExecutableRule(ruleContext),
-	},
-	{
-		category: "requireHookGeneratedMarker",
-		rule: requireHookGeneratedMarkerRule(ruleContext),
-	},
-	{ category: "requireHookStage", rule: requireHookStageRule(ruleContext) },
-	{ category: "requireHookCommand", rule: requireHookCommandRule(ruleContext) },
-	{
-		category: "requireCiCommandMatchesHook",
-		rule: requireCiCommandMatchesHookRule(ruleContext),
-	},
-	{
-		category: "requireEnvShebangUnder",
-		rule: requireEnvShebangUnderRule(ruleContext),
-	},
-	{
-		category: "forbidUncheckedTasksUnder",
-		rule: forbidUncheckedTasksUnderRule(ruleContext),
-	},
-	{
-		category: "forbidUnsafeSymlinks",
-		rule: forbidUnsafeSymlinksRule(ruleContext),
-	},
-	{
-		category: "requireImportOverFqn",
-		rule: requireImportOverFqnRule(ruleContext),
-	},
-	{
-		category: "forbidImplicitLambdaIt",
-		rule: forbidImplicitLambdaItRule(ruleContext),
-	},
-	{
-		category: "requireSingleTopLevelKotlinDeclaration",
-		rule: requireSingleTopLevelKotlinDeclarationRule(ruleContext),
-	},
-	{
-		category: "forbidGreaterThanComparison",
-		rule: forbidGreaterThanComparisonRule(ruleContext),
-	},
-	{
-		category: "forbidBlankLineInLeafFunction",
-		rule: forbidBlankLineInLeafFunctionRule(ruleContext),
-	},
-	{ category: "forbidEarlyReturn", rule: forbidEarlyReturnRule(ruleContext) },
-	{ category: "forbidSilentCatch", rule: forbidSilentCatchRule(ruleContext) },
-	{
-		category: "forbidMutableCollection",
-		rule: forbidMutableCollectionRule(ruleContext),
-	},
-	{
-		category: "forbidUnstructuredLogging",
-		rule: forbidUnstructuredLoggingRule(ruleContext),
-	},
-	{
-		category: "forbidWildcardImport",
-		rule: forbidWildcardImportRule(ruleContext),
-	},
-	{
-		category: "forbidEmptyCatchBlock",
-		rule: forbidEmptyCatchBlockRule(ruleContext),
-	},
-	{ category: "requireBracesOnIf", rule: requireBracesOnIfRule(ruleContext) },
-	{
-		category: "requireDocCommentOnPublicDeclaration",
-		rule: requireDocCommentOnPublicDeclarationRule(ruleContext),
-	},
+export const HARNESS_CHECKS: readonly HarnessCheckRule[] = [
+	filePresenceRule(ruleContext),
+	directoryPresenceRule(ruleContext),
+	emptyDirectoryPlaceholdersRule(ruleContext),
+	templateGroupsRule(ruleContext),
+	docHeadingsRule(ruleContext),
+	docContentRule(ruleContext),
+	agentFrontmatterRule(ruleContext),
+	skillFrontmatterRule(ruleContext),
+	scaffoldLeaksRule(ruleContext),
+	hookShebangRule(ruleContext),
+	hookExecutableRule(ruleContext),
+	hookGeneratedMarkerRule(ruleContext),
+	hookStageRule(ruleContext),
+	hookCommandRule(ruleContext),
+	ciHookCommandParityRule(ruleContext),
+	envShebangUsageRule(ruleContext),
+	uncheckedTasksRule(ruleContext),
+	symlinkSafetyRule(ruleContext),
+	importOverFqnRule(ruleContext),
+	implicitLambdaItRule(ruleContext),
+	kotlinTopLevelDeclarationCountRule(ruleContext),
+	greaterThanComparisonRule(ruleContext),
+	leafFunctionBlankLinesRule(ruleContext),
+	earlyReturnRule(ruleContext),
+	silentCatchRule(ruleContext),
+	mutableCollectionRule(ruleContext),
+	unstructuredLoggingRule(ruleContext),
+	wildcardImportRule(ruleContext),
+	emptyCatchBlockRule(ruleContext),
+	ifStatementBracesRule(ruleContext),
+	publicDeclarationDocCommentRule(ruleContext),
 ] as const;
 
 async function main(): Promise<void> {
@@ -397,9 +357,9 @@ async function main(): Promise<void> {
 		process.exit(1);
 	}
 
-	const findings: Finding[] = HARNESS_CHECKS.filter(({ rule }) =>
-		rule.applies(manifest),
-	).flatMap(({ rule }) => rule.validate(root, manifest));
+	const findings: Finding[] = HARNESS_CHECKS.filter((rule) => rule.applies(manifest)).flatMap((rule) =>
+		rule.validate(root, manifest),
+	);
 
 	if (findings.length === 0) {
 		logger.log("OK");
@@ -427,7 +387,9 @@ async function main(): Promise<void> {
 	process.exit(findings.some((f) => f.severity === "ERROR") ? 1 : 0);
 }
 
-main().catch((err) => {
-	logger.error(err instanceof Error ? err.message : String(err));
-	process.exit(2);
-});
+if (import.meta.main) {
+	main().catch((err) => {
+		logger.error(err instanceof Error ? err.message : String(err));
+		process.exit(2);
+	});
+}

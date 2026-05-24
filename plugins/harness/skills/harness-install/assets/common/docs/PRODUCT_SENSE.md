@@ -14,7 +14,7 @@ PRODUCT_SENSE.md gives agents and humans the product mental model needed to make
 
 ## User Model
 
-The primary user is a {{primary-user-role}} who works inside the product five days a week and depends on it for {{primary-success-metric}}. They need stable patterns, bounded delegation, and deterministic validation without constant context-switching.
+The primary user is a primary operator who works inside the product five days a week and depends on it for daily workflow completion. They need stable patterns, bounded delegation, and deterministic validation without constant context-switching.
 
 - Occasional users run specific tasks infrequently and need clear starting points and self-contained instructions.
 - Admin operators manage configuration, secrets, and infrastructure surface and require auditable trails and rollback safety.

@@ -21,12 +21,12 @@ chmod +x "${fake_bin}/jdtls"
 lombok_jar="${temp_dir}/lombok.jar"
 : >"${lombok_jar}"
 
+# Assert that a file contains a literal string.
+#
+# @param needle String to search for.
+# @param haystack_file Path to the file to search.
+# @exit Exits with status 1 when assertion fails.
 assert_contains() {
-    # Assert that a file contains a literal string.
-    #
-    # @param needle String to search for.
-    # @param haystack_file Path to the file to search.
-    # @exit Exits with status 1 when assertion fails.
     needle="$1"
     haystack_file="$2"
     if ! grep -Fq -- "${needle}" "${haystack_file}"; then
@@ -35,12 +35,12 @@ assert_contains() {
     fi
 }
 
+# Assert that a file does not contain a literal string.
+#
+# @param needle String to search for.
+# @param haystack_file Path to the file to search.
+# @exit Exits with status 1 when assertion fails.
 assert_not_contains() {
-    # Assert that a file does not contain a literal string.
-    #
-    # @param needle String to search for.
-    # @param haystack_file Path to the file to search.
-    # @exit Exits with status 1 when assertion fails.
     needle="$1"
     haystack_file="$2"
     if grep -Fq -- "${needle}" "${haystack_file}"; then
@@ -49,14 +49,14 @@ assert_not_contains() {
     fi
 }
 
+# Run jdtls-wrapper.sh in a fake workspace with captured output.
+#
+# @param case_name Label for this test case (used in capture directory naming).
+# @param workspace_dir Fake project directory to run from.
+# @param jar_path Lombok jar path to set as override (empty string for no override).
+# @param support_enabled Whether Lombok support is enabled ("true" or "false").
+# @return Prints "capture_dir|stderr_file" path pair.
 run_case() {
-    # Run jdtls-wrapper.sh in a fake workspace with captured output.
-    #
-    # @param case_name Label for this test case (used in capture directory naming).
-    # @param workspace_dir Fake project directory to run from.
-    # @param jar_path Lombok jar path to set as override (empty string for no override).
-    # @param support_enabled Whether Lombok support is enabled ("true" or "false").
-    # @return Prints "capture_dir|stderr_file" path pair.
     case_name="$1"
     workspace_dir="$2"
     jar_path="$3"
@@ -75,11 +75,11 @@ run_case() {
     printf '%s\n' "${capture_dir}|${stderr_file}"
 }
 
+# Run has-lombok.sh --resolve-project-jar in a workspace.
+#
+# @param workspace_dir Project directory to scan.
+# @return Prints the resolved jar path or nothing.
 run_resolver_case() {
-    # Run has-lombok.sh --resolve-project-jar in a workspace.
-    #
-    # @param workspace_dir Project directory to scan.
-    # @return Prints the resolved jar path or nothing.
     workspace_dir="$1"
     (
     cd "${workspace_dir}"

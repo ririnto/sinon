@@ -77,8 +77,8 @@ enabled_of() {
 # Validate that every parameters.paths entry exists as a regular file.
 #
 # @return Emits findings for missing files.
-check_require_files_exist() {
-    category=requireFilesExist
+check_file_presence() {
+    category=filePresence
     enabled=$(enabled_of "$category")
     if [ "$enabled" -ne 1 ]; then
         return 0
@@ -94,8 +94,8 @@ check_require_files_exist() {
 # Validate that every parameters.paths entry exists as a directory.
 #
 # @return Emits findings for missing directories.
-check_require_directories_exist() {
-    category=requireDirectoriesExist
+check_directory_presence() {
+    category=directoryPresence
     enabled=$(enabled_of "$category")
     if [ "$enabled" -ne 1 ]; then
         return 0
@@ -112,8 +112,8 @@ check_require_directories_exist() {
 # or a .gitkeep placeholder.
 #
 # @return Emits findings for empty directories.
-check_require_keepfile_in_empty_directories() {
-    category=requireKeepfileInEmptyDirectories
+check_empty_directory_placeholders() {
+    category=emptyDirectoryPlaceholders
     enabled=$(enabled_of "$category")
     if [ "$enabled" -ne 1 ]; then
         return 0
@@ -131,8 +131,8 @@ check_require_keepfile_in_empty_directories() {
 # Validate that each parameters.hooks file starts with parameters.expectedShebang.
 #
 # @return Emits findings for incorrect shebang.
-check_require_hook_shebang() {
-    category=requireHookShebang
+check_hook_shebang() {
+    category=hookShebang
     enabled=$(enabled_of "$category")
     if [ "$enabled" -ne 1 ]; then
         return 0
@@ -152,8 +152,8 @@ check_require_hook_shebang() {
 # Validate that each parameters.hooks file has executable bit set.
 #
 # @return Emits findings for non-executable hooks.
-check_require_hook_executable() {
-    category=requireHookExecutable
+check_hook_executable() {
+    category=hookExecutable
     enabled=$(enabled_of "$category")
     if [ "$enabled" -ne 1 ]; then
         return 0
@@ -169,8 +169,8 @@ check_require_hook_executable() {
 # Validate that no scaffold leak pattern appears under parameters.scope.
 #
 # @return Emits findings for matched leak patterns.
-check_forbid_scaffold_leaks() {
-    category=forbidScaffoldLeaks
+check_scaffold_leaks() {
+    category=scaffoldLeaks
     enabled=$(enabled_of "$category")
     if [ "$enabled" -ne 1 ]; then
         return 0
@@ -192,20 +192,49 @@ bases = scope.get('bases', [])
 excluded = scope.get('excludedSubtrees', [])
 extensions = set(scope.get('extensions', []))
 patterns = [(re.compile(p['pattern']), p['label']) for p in spec.get('patterns', [])]
+
+def strip_markdown_code(text):
+    stripped_lines = []
+    in_fence = False
+    fence_marker = ''
+    for line in text.splitlines():
+        fence_match = re.match(r' {0,3}(`{3,}|~{3,})', line)
+        if fence_match:
+            marker = fence_match.group(1)[0]
+            if not in_fence:
+                in_fence = True
+                fence_marker = marker
+            elif marker == fence_marker:
+                in_fence = False
+            stripped_lines.append('')
+            continue
+        if in_fence:
+            stripped_lines.append('')
+            continue
+        stripped_lines.append(re.sub(r'`+[^`\n]*`+', '', line))
+    return '\n'.join(stripped_lines)
+
 def is_excluded(path_str):
     for sub in excluded:
         if path_str == sub or path_str.startswith(sub + '/'):
             return True
     return False
+def is_safe_relative_root(value):
+    path = Path(value)
+    return value != '' and not path.is_absolute() and '..' not in path.parts
 files = []
 for base in bases:
+    if not isinstance(base, str) or not is_safe_relative_root(base):
+        continue
     base_path = Path(base)
-    if not base_path.exists():
+    if not base_path.exists() or base_path.is_symlink():
         continue
     if base_path.is_file():
         files.append(base_path)
         continue
     for entry in base_path.rglob('*'):
+        if entry.is_symlink():
+            continue
         if entry.is_file():
             files.append(entry)
 for file_path in files:
@@ -218,6 +247,7 @@ for file_path in files:
         text = file_path.read_text(encoding='utf-8')
     except UnicodeDecodeError:
         continue
+    text = strip_markdown_code(text)
     for pattern, label in patterns:
         if pattern.search(text):
             print(f"[{severity}] {category}: {label} in active asset: {rel}")
@@ -227,8 +257,8 @@ PYEOF
 # Validate that no completed plan retains unchecked task lines.
 #
 # @return Emits findings for unchecked tasks under the completed plan directory.
-check_forbid_unchecked_tasks_under() {
-    category=forbidUncheckedTasksUnder
+check_unchecked_tasks() {
+    category=uncheckedTasks
     enabled=$(enabled_of "$category")
     if [ "$enabled" -ne 1 ]; then
         return 0
@@ -250,13 +280,13 @@ if [ ! -f "$MANIFEST" ]; then
     exit 1
 fi
 
-check_require_files_exist
-check_require_directories_exist
-check_require_keepfile_in_empty_directories
-check_require_hook_shebang
-check_require_hook_executable
-check_forbid_scaffold_leaks
-check_forbid_unchecked_tasks_under
+check_file_presence
+check_directory_presence
+check_empty_directory_placeholders
+check_hook_shebang
+check_hook_executable
+check_scaffold_leaks
+check_unchecked_tasks
 
 errors=0
 warns=0

@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.stream.IntStream;
 import java.util.regex.Pattern;
-import java.util.Collectors;
+import java.util.stream.Collectors;
 
 /**
  * Helper class containing shared validation utilities.
@@ -110,7 +110,9 @@ public class HarnessCheckHelper {
         }
         try (final Stream<Path> stream = Files.walk(base)) {
             return stream
-                    .filter(f -> !f.equals(base) && !Files.isSymbolicLink(f) && Files.isRegularFile(f, LinkOption.NOFOLLOW_LINKS))
+                    .filter(f -> !f.equals(base))
+                    .filter(f -> !Files.isSymbolicLink(f))
+                    .filter(f -> Files.isRegularFile(f, LinkOption.NOFOLLOW_LINKS))
                     .toList();
         } catch (IOException error) {
             throw new MojoExecutionException("failed to inspect " + base, error);
@@ -169,7 +171,7 @@ public class HarnessCheckHelper {
     public static List<String> extractPaths(JsonNode node) {
         return Stream.ofNullable(node)
                 .filter(JsonNode::isArray)
-                .flatMap(n -> Stream.of(n.spliterator(), false))
+                .flatMap(n -> StreamSupport.stream(n.spliterator(), false))
                 .map(JsonNode::asText)
                 .toList();
     }
@@ -183,6 +185,19 @@ public class HarnessCheckHelper {
      * @throws IOException if walking fails
      */
     public static List<Path> stackSources(JsonNode manifest, String category) throws IOException {
+        return stackSources(manifest, category, "java");
+    }
+
+    /**
+     * Collects all source files for a specific stack from roots and extensions specified in the manifest.
+     *
+     * @param manifest the manifest JSON node
+     * @param category the category name
+     * @param stack the source stack key, such as "java"
+     * @return list of source file paths
+     * @throws IOException if walking fails
+     */
+    public static List<Path> stackSources(JsonNode manifest, String category, String stack) throws IOException {
         return java.util.Optional.ofNullable(manifest.get(category))
                 .map(catNode -> catNode.get("parameters"))
                 .filter(java.util.Objects::nonNull)
@@ -193,19 +208,19 @@ public class HarnessCheckHelper {
                 })
                 .filter(java.util.Objects::nonNull)
                 .map(nodes -> {
-                    final JsonNode javaRoots = nodes[0].get("java");
-                    final JsonNode javaExts = nodes[1].get("java");
-                    return javaRoots != null && javaExts != null ? new JsonNode[]{javaRoots, javaExts} : null;
+                    final JsonNode stackRoots = nodes[0].get(stack);
+                    final JsonNode stackExts = nodes[1].get(stack);
+                    return stackRoots != null && stackExts != null ? new JsonNode[]{stackRoots, stackExts} : null;
                 })
                 .filter(java.util.Objects::nonNull)
                 .map(nodes -> {
-                    final JsonNode javaRoots = nodes[0];
-                    final JsonNode javaExts = nodes[1];
-                    final Set<String> extensions = StreamSupport.stream(javaExts.spliterator(), false)
+                    final JsonNode stackRoots = nodes[0];
+                    final JsonNode stackExts = nodes[1];
+                    final Set<String> extensions = StreamSupport.stream(stackExts.spliterator(), false)
                             .map(JsonNode::asText)
                             .collect(Collectors.toSet());
                     final FileSystem fs = FileSystems.getDefault();
-                    return StreamSupport.stream(javaRoots.spliterator(), false)
+                    return StreamSupport.stream(stackRoots.spliterator(), false)
                             .map(JsonNode::asText)
                             .flatMap(rootEntry -> walkRoot(fs, Path.of("."), rootEntry, extensions).stream())
                             .distinct()
@@ -226,12 +241,21 @@ public class HarnessCheckHelper {
      */
     public static List<Path> walkRoot(FileSystem fs, Path base, String rootEntry, Set<String> extensions) {
         try {
+            if (!isSafeRelativeRoot(rootEntry)) {
+                return Collections.emptyList();
+            }
             if (rootEntry.contains("*")) {
                 final String pattern = "glob:" + rootEntry + "/**/*";
                 final var matcher = fs.getPathMatcher(pattern);
                 try (final Stream<Path> stream = Files.walk(base)) {
                     return stream
-                            .filter(p -> matcher.matches(p) && extensions.contains(extensionOf(p)) && !containsSegment(p, "target") && !containsSegment(p, "build"))
+                            .filter(p -> matcher.matches(p))
+                            .filter(p -> !Files.isSymbolicLink(p))
+                            .filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
+                            .filter(p -> extensions.contains(extensionOf(p)))
+                            .filter(p -> !containsSegment(p, "target"))
+                            .filter(p -> !containsSegment(p, "build"))
+                            .map(p -> p.toAbsolutePath().normalize())
                             .collect(Collectors.toList());
                 }
             } else {
@@ -241,13 +265,36 @@ public class HarnessCheckHelper {
                 }
                 try (final Stream<Path> stream = Files.walk(resolved)) {
                     return stream
-                            .filter(p -> extensions.contains(extensionOf(p)) && !containsSegment(p, "target") && !containsSegment(p, "build"))
+                            .filter(p -> !Files.isSymbolicLink(p))
+                            .filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
+                            .filter(p -> extensions.contains(extensionOf(p)))
+                            .filter(p -> !containsSegment(p, "target"))
+                            .filter(p -> !containsSegment(p, "build"))
+                            .map(p -> p.toAbsolutePath().normalize())
                             .collect(Collectors.toList());
                 }
             }
         } catch (IOException e) {
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * Checks whether a manifest source root is target-relative and cannot escape upward.
+     *
+     * @param rootEntry the manifest source root entry
+     * @return true when the root entry is a safe relative path or glob
+     */
+    public static boolean isSafeRelativeRootEntry(String rootEntry) {
+        return isSafeRelativeRoot(rootEntry);
+    }
+
+    private static boolean isSafeRelativeRoot(String rootEntry) {
+        final Path path = Path.of(rootEntry);
+        return !rootEntry.isBlank()
+                && !path.isAbsolute()
+                && IntStream.range(0, path.getNameCount())
+                .noneMatch(i -> path.getName(i).toString().equals(".."));
     }
 
     /**

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.schema.json",
   "title": "RepositoryHarnessManifest",
-  "description": "Schema for docs/harness/manifest.json. Every check add-on entry follows a uniform shape — { description, enabled, severity, messages, parameters }. metadata entries (seedFiles, generatedArtifacts, harnessEvolution, teamPatterns) carry description + data and are not validated by the harness. The harness is not versioned; the current committed manifest is the only authoritative shape. Unknown top-level keys are logged as WARN by the validator's main routine (no separate add-on entry).",
+  "description": "Schema for docs/harness/manifest.json. Every check add-on entry follows a uniform shape \u2014 { description, enabled, severity, messages, parameters }. metadata entries (seedFiles, generatedArtifacts, harnessEvolution, teamPatterns) carry description + data and are not validated by the harness. The harness is not versioned; the current committed manifest is the only authoritative shape. Unknown top-level keys are logged as WARN by the validator's main routine (no separate add-on entry). The docContent add-on supports nested condition/when expressions inside parameters.checks using allOf, anyOf, contains, and not while preserving the uniform add-on shape.",
   "type": "object",
   "additionalProperties": {
     "$ref": "#/$defs/addOn"
@@ -20,66 +20,6 @@
     },
     "description": {
       "type": "string"
-    },
-    "requireFilesExist": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireDirectoriesExist": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireKeepfileInEmptyDirectories": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireTemplateGroups": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireDocHeadings": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireDocContent": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireAgentFrontmatter": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireSkillFrontmatter": {
-      "$ref": "#/$defs/addOn"
-    },
-    "forbidScaffoldLeaks": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireHookShebang": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireHookExecutable": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireHookGeneratedMarker": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireHookStage": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireHookCommand": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireCiCommandMatchesHook": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireEnvShebangUnder": {
-      "$ref": "#/$defs/addOn"
-    },
-    "forbidUncheckedTasksUnder": {
-      "$ref": "#/$defs/addOn"
-    },
-    "forbidUnsafeSymlinks": {
-      "$ref": "#/$defs/addOn"
-    },
-    "forbidImplicitLambdaIt": {
-      "$ref": "#/$defs/addOn"
-    },
-    "requireSingleTopLevelKotlinDeclaration": {
-      "$ref": "#/$defs/addOn"
     },
     "seedFiles": {
       "$ref": "#/$defs/metadata"

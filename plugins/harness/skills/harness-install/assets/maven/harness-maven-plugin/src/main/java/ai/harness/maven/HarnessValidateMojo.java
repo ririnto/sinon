@@ -2,6 +2,8 @@ package ai.harness.maven;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.StaticJavaParser;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -16,7 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Maven goal that validates installed Claude repository harness assets.
@@ -30,30 +31,27 @@ public final class HarnessValidateMojo extends AbstractMojo {
      */
     @Override
     public void execute() throws MojoExecutionException {
+        StaticJavaParser.setConfiguration(new ParserConfiguration().setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17));
         final Path root = currentRoot();
         final JsonNode manifest = loadManifest(root);
-        if (manifest == null) {
-            return;
-        }
-
         final Set<String> knownCategories = Arrays.stream(HarnessCheck.values())
                 .map(HarnessCheck::category)
                 .collect(Collectors.toUnmodifiableSet());
         final Set<String> knownMetadataKeys = Set.of("name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns");
 
-        Stream.of(manifest.fieldNames().spliterator(), false)
-                .filter(key -> !knownCategories.contains(key) && !knownMetadataKeys.contains(key))
+        manifest.propertyNames().stream()
+                .filter(key -> !knownCategories.contains(key))
+                .filter(key -> !knownMetadataKeys.contains(key))
                 .forEach(key -> getLog().warn("unknown manifest key: " + key));
 
-        final List<Finding> sorted = Arrays.stream(HarnessCheck.values())
-                .filter(check -> check.applies(manifest))
-                .flatMap(check -> {
-                    try {
-                        return check.validate(root, manifest).stream();
-                    } catch (MojoExecutionException e) {
-                        return Stream.empty();
-                    }
-                })
+        final List<Finding> findings = new ArrayList<>();
+        for (final HarnessCheck check : HarnessCheck.values()) {
+            if (check.applies(manifest)) {
+                findings.addAll(check.validate(root, manifest));
+            }
+        }
+
+        final List<Finding> sorted = findings.stream()
                 .sorted((a, b) -> {
                     final int severityOrder = severityRank(b.severity()) - severityRank(a.severity());
                     return severityOrder != 0 ? severityOrder : a.message().compareTo(b.message());
@@ -100,18 +98,18 @@ public final class HarnessValidateMojo extends AbstractMojo {
     }
 
     /**
-     * Loads and parses manifest.json; returns null if not found or unparseable.
+     * Loads and parses manifest.json.
      */
     private static JsonNode loadManifest(Path root) throws MojoExecutionException {
         final Path manifestPath = root.resolve(MANIFEST_PATH);
         if (!Files.isRegularFile(manifestPath, LinkOption.NOFOLLOW_LINKS)) {
-            return null;
+            throw new MojoExecutionException("missing manifest: " + MANIFEST_PATH);
         }
         try {
             final String raw = Files.readString(manifestPath, StandardCharsets.UTF_8);
             return new ObjectMapper().readTree(raw);
         } catch (IOException e) {
-            return null;
+            throw new MojoExecutionException("failed to parse manifest: " + MANIFEST_PATH, e);
         }
     }
 }

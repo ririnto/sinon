@@ -15,34 +15,34 @@ from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
 
-from rules.require_files_exist import RULE as require_files_exist
-from rules.require_directories_exist import RULE as require_directories_exist
-from rules.require_keepfile_in_empty_directories import RULE as require_keepfile_in_empty_directories
-from rules.require_template_groups import RULE as require_template_groups
-from rules.require_doc_headings import RULE as require_doc_headings
-from rules.require_doc_content import RULE as require_doc_content
-from rules.require_agent_frontmatter import RULE as require_agent_frontmatter
-from rules.require_skill_frontmatter import RULE as require_skill_frontmatter
-from rules.forbid_scaffold_leaks import RULE as forbid_scaffold_leaks
-from rules.require_hook_shebang import RULE as require_hook_shebang
-from rules.require_hook_executable import RULE as require_hook_executable
-from rules.require_hook_generated_marker import RULE as require_hook_generated_marker
-from rules.require_hook_stage import RULE as require_hook_stage
-from rules.require_hook_command import RULE as require_hook_command
-from rules.require_env_shebang_under import RULE as require_env_shebang_under
-from rules.forbid_unchecked_tasks_under import RULE as forbid_unchecked_tasks_under
-from rules.forbid_unsafe_symlinks import RULE as forbid_unsafe_symlinks
-from rules.require_single_top_level_kotlin_declaration import RULE as require_single_top_level_kotlin_declaration
-from rules.forbid_greater_than_comparison import RULE as forbid_greater_than_comparison
-from rules.forbid_blank_line_in_leaf_function import RULE as forbid_blank_line_in_leaf_function
-from rules.forbid_early_return import RULE as forbid_early_return
-from rules.forbid_silent_catch import RULE as forbid_silent_catch
-from rules.forbid_unstructured_logging import RULE as forbid_unstructured_logging
-from rules.forbid_wildcard_import import RULE as forbid_wildcard_import
-from rules.require_import_over_fqn import RULE as require_import_over_fqn
-from rules.require_doc_comment_on_public_declaration import RULE as require_doc_comment_on_public_declaration
-from rules.forbid_empty_catch_block import RULE as forbid_empty_catch_block
-from rules.require_ci_command_matches_hook import RULE as require_ci_command_matches_hook
+from rules.file_presence import RULE as file_presence
+from rules.directory_presence import RULE as directory_presence
+from rules.empty_directory_placeholders import RULE as empty_directory_placeholders
+from rules.template_groups import RULE as template_groups
+from rules.doc_headings import RULE as doc_headings
+from rules.doc_content import RULE as doc_content
+from rules.agent_frontmatter import RULE as agent_frontmatter
+from rules.skill_frontmatter import RULE as skill_frontmatter
+from rules.scaffold_leaks import RULE as scaffold_leaks
+from rules.hook_shebang import RULE as hook_shebang
+from rules.hook_executable import RULE as hook_executable
+from rules.hook_generated_marker import RULE as hook_generated_marker
+from rules.hook_stage import RULE as hook_stage
+from rules.hook_command import RULE as hook_command
+from rules.env_shebang_usage import RULE as env_shebang_usage
+from rules.unchecked_tasks import RULE as unchecked_tasks
+from rules.symlink_safety import RULE as symlink_safety
+from rules.kotlin_top_level_declaration_count import RULE as kotlin_top_level_declaration_count
+from rules.greater_than_comparison import RULE as greater_than_comparison
+from rules.leaf_function_blank_lines import RULE as leaf_function_blank_lines
+from rules.early_return import RULE as early_return
+from rules.silent_catch import RULE as silent_catch
+from rules.unstructured_logging import RULE as unstructured_logging
+from rules.wildcard_import import RULE as wildcard_import
+from rules.import_over_fqn import RULE as import_over_fqn
+from rules.public_declaration_doc_comment import RULE as public_declaration_doc_comment
+from rules.empty_catch_block import RULE as empty_catch_block
+from rules.ci_hook_command_parity import RULE as ci_hook_command_parity
 
 MANIFEST_PATH = "docs/harness/manifest.json"
 
@@ -50,54 +50,54 @@ MANIFEST_PATH = "docs/harness/manifest.json"
 class HarnessCheck(enum.Enum):
     """Enumeration of harness checks with embedded rule singletons."""
 
-    REQUIRE_FILES_EXIST = ("requireFilesExist", require_files_exist)
-    REQUIRE_DIRECTORIES_EXIST = ("requireDirectoriesExist", require_directories_exist)
-    REQUIRE_KEEPFILE_IN_EMPTY_DIRECTORIES = (
-        "requireKeepfileInEmptyDirectories",
-        require_keepfile_in_empty_directories,
+    FILE_PRESENCE = ("filePresence", file_presence)
+    DIRECTORY_PRESENCE = ("directoryPresence", directory_presence)
+    EMPTY_DIRECTORY_PLACEHOLDERS = (
+        "emptyDirectoryPlaceholders",
+        empty_directory_placeholders,
     )
-    REQUIRE_TEMPLATE_GROUPS = ("requireTemplateGroups", require_template_groups)
-    REQUIRE_DOC_HEADINGS = ("requireDocHeadings", require_doc_headings)
-    REQUIRE_DOC_CONTENT = ("requireDocContent", require_doc_content)
-    REQUIRE_AGENT_FRONTMATTER = ("requireAgentFrontmatter", require_agent_frontmatter)
-    REQUIRE_SKILL_FRONTMATTER = ("requireSkillFrontmatter", require_skill_frontmatter)
-    FORBID_SCAFFOLD_LEAKS = ("forbidScaffoldLeaks", forbid_scaffold_leaks)
-    REQUIRE_HOOK_SHEBANG = ("requireHookShebang", require_hook_shebang)
-    REQUIRE_HOOK_EXECUTABLE = ("requireHookExecutable", require_hook_executable)
-    REQUIRE_HOOK_GENERATED_MARKER = (
-        "requireHookGeneratedMarker",
-        require_hook_generated_marker,
+    TEMPLATE_GROUPS = ("templateGroups", template_groups)
+    DOC_HEADINGS = ("docHeadings", doc_headings)
+    DOC_CONTENT = ("docContent", doc_content)
+    AGENT_FRONTMATTER = ("agentFrontmatter", agent_frontmatter)
+    SKILL_FRONTMATTER = ("skillFrontmatter", skill_frontmatter)
+    SCAFFOLD_LEAKS = ("scaffoldLeaks", scaffold_leaks)
+    HOOK_SHEBANG = ("hookShebang", hook_shebang)
+    HOOK_EXECUTABLE = ("hookExecutable", hook_executable)
+    HOOK_GENERATED_MARKER = (
+        "hookGeneratedMarker",
+        hook_generated_marker,
     )
-    REQUIRE_HOOK_STAGE = ("requireHookStage", require_hook_stage)
-    REQUIRE_HOOK_COMMAND = ("requireHookCommand", require_hook_command)
-    REQUIRE_ENV_SHEBANG_UNDER = ("requireEnvShebangUnder", require_env_shebang_under)
-    FORBID_UNCHECKED_TASKS_UNDER = (
-        "forbidUncheckedTasksUnder",
-        forbid_unchecked_tasks_under,
+    HOOK_STAGE = ("hookStage", hook_stage)
+    HOOK_COMMAND = ("hookCommand", hook_command)
+    ENV_SHEBANG_USAGE = ("envShebangUsage", env_shebang_usage)
+    UNCHECKED_TASKS = (
+        "uncheckedTasks",
+        unchecked_tasks,
     )
-    FORBID_UNSAFE_SYMLINKS = ("forbidUnsafeSymlinks", forbid_unsafe_symlinks)
-    REQUIRE_SINGLE_TOP_LEVEL_KOTLIN_DECLARATION = (
-        "requireSingleTopLevelKotlinDeclaration",
-        require_single_top_level_kotlin_declaration,
+    SYMLINK_SAFETY = ("symlinkSafety", symlink_safety)
+    KOTLIN_TOP_LEVEL_DECLARATION_COUNT = (
+        "kotlinTopLevelDeclarationCount",
+        kotlin_top_level_declaration_count,
     )
-    FORBID_GREATER_THAN_COMPARISON = ("forbidGreaterThanComparison", forbid_greater_than_comparison)
-    FORBID_BLANK_LINE_IN_LEAF_FUNCTION = (
-        "forbidBlankLineInLeafFunction",
-        forbid_blank_line_in_leaf_function,
+    GREATER_THAN_COMPARISON = ("greaterThanComparison", greater_than_comparison)
+    LEAF_FUNCTION_BLANK_LINES = (
+        "leafFunctionBlankLines",
+        leaf_function_blank_lines,
     )
-    FORBID_EARLY_RETURN = ("forbidEarlyReturn", forbid_early_return)
-    FORBID_SILENT_CATCH = ("forbidSilentCatch", forbid_silent_catch)
-    FORBID_UNSTRUCTURED_LOGGING = ("forbidUnstructuredLogging", forbid_unstructured_logging)
-    FORBID_WILDCARD_IMPORT = ("forbidWildcardImport", forbid_wildcard_import)
-    REQUIRE_IMPORT_OVER_FQN = ("requireImportOverFqn", require_import_over_fqn)
-    REQUIRE_DOC_COMMENT_ON_PUBLIC_DECLARATION = (
-        "requireDocCommentOnPublicDeclaration",
-        require_doc_comment_on_public_declaration,
+    EARLY_RETURN = ("earlyReturn", early_return)
+    SILENT_CATCH = ("silentCatch", silent_catch)
+    UNSTRUCTURED_LOGGING = ("unstructuredLogging", unstructured_logging)
+    WILDCARD_IMPORT = ("wildcardImport", wildcard_import)
+    IMPORT_OVER_FQN = ("importOverFqn", import_over_fqn)
+    PUBLIC_DECLARATION_DOC_COMMENT = (
+        "publicDeclarationDocComment",
+        public_declaration_doc_comment,
     )
-    FORBID_EMPTY_CATCH_BLOCK = ("forbidEmptyCatchBlock", forbid_empty_catch_block)
-    REQUIRE_CI_COMMAND_MATCHES_HOOK = (
-        "requireCiCommandMatchesHook",
-        require_ci_command_matches_hook,
+    EMPTY_CATCH_BLOCK = ("emptyCatchBlock", empty_catch_block)
+    CI_HOOK_COMMAND_PARITY = (
+        "ciHookCommandParity",
+        ci_hook_command_parity,
     )
 
     def __init__(self, category: str, rule: HarnessCheckRule):

@@ -7,4 +7,5 @@ harness:
   before_script:
     - apt-get update && apt-get install -y python3
   script:
-    - {{validation_command}}
+    - >-
+      {{validation_command}}

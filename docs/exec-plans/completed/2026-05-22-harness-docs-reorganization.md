@@ -1,10 +1,13 @@
-# 2026-05-22-harness-docs-reorganization
+---
+status: completed
+created: 2026-05-22
+updated: 
+completed: 2026-05-22
+author: ririnto
+assignee: ririnto
+---
 
-- Status: completed
-- Created: 2026-05-22
-- Completed: 2026-05-22
-- Author: ririnto
-- Assignee: ririnto
+# 2026-05-22-harness-docs-reorganization
 
 ## Goal
 
@@ -95,7 +98,7 @@ sinon 루트는 `AGENTS.md → CLAUDE.md` symlink (sinon CLAUDE.md에 명시된 
 
 - [x] Task 11.1 — `sh plugins/harness/scripts/plugin-self-check.sh` PASS (subagent: main)
 - [x] Task 11.2 — 임시 디렉토리에 `install-harness.sh --mode bun` dry-run; 결과 트리가 `docs/harness/...`로 생성됨을 확인하고 bun validator `Harness validation passed` 통과까지 검증. dry-run 중 발견된 pre-commit hook 첫 줄 빈 줄 버그(`write_new_pre_commit_hook` heredoc) 수정 (subagent: main)
-- [x] Task 11.3 — 본 plan 파일을 `docs/exec-plans/completed/2026-05-22-harness-docs-reorganization.md`로 이동, `Status: completed` + `Completed: 2026-05-22` 기록 (subagent: main)
+- [x] Task 11.3 — 본 plan 파일을 `docs/exec-plans/completed/2026-05-22-harness-docs-reorganization.md`로 이동, frontmatter에 `status: completed` + `completed: 2026-05-22` 기록 (subagent: main)
 
 ## Validation
 
