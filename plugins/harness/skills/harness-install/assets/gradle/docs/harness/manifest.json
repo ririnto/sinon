@@ -760,6 +760,48 @@
       }
     }
   },
+  "nonNullAssertion": {
+    "description": "Kotlin code under parameters.sourceRootsPerStack[kotlin] MUST NOT use non-null assertion operators (`!!`). Use safe call (`?.`), Elvis operator (`?:`), or explicit guard clauses instead. Validators implement this via AST.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: avoid non-null assertion `!!` on `{expression}`; use safe call (?.), Elvis (?:), or explicit guard"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "kotlin": [
+          "buildSrc/src/main/kotlin"
+        ]
+      },
+      "extensionsPerStack": {
+        "kotlin": [
+          "kt",
+          "kts"
+        ]
+      }
+    }
+  },
+  "uncheckedCastSuppression": {
+    "description": "Kotlin code under parameters.sourceRootsPerStack[kotlin] MUST NOT use `@Suppress(\"UNCHECKED_CAST\")` annotations. Refactor to use type-safe casts or rely on smart casts where possible. Validators implement this via AST.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: avoid `@Suppress(\"UNCHECKED_CAST\")` (`{snippet}`); refactor to type-safe cast or smart cast"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "kotlin": [
+          "buildSrc/src/main/kotlin"
+        ]
+      },
+      "extensionsPerStack": {
+        "kotlin": [
+          "kt",
+          "kts"
+        ]
+      }
+    }
+  },
   "terminalBranchWhen": {
     "description": "Kotlin code under parameters.sourceRootsPerStack[kotlin] MUST NOT use `if` / `else` as the final/result expression of a function body, block, or property initializer. Use `when` for result-position branching.",
     "enabled": true,

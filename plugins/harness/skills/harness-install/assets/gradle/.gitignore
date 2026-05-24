@@ -1,0 +1,21 @@
+# Gradle build outputs
+.gradle/
+build/
+**/build/
+**/.gradle/
+
+# Kotlin compiler caches
+.kotlin/
+**/.kotlin/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# Backup files
+*.bak
+**/*.bak
