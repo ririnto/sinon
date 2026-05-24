@@ -1,0 +1,736 @@
+{
+  "$schema": "./manifest.schema.json",
+  "name": "repository-harness",
+  "description": "Harness validation manifest for the selected Bun installation slice. It contains only stack-relevant add-ons plus shared structural checks.",
+  "filePresence": {
+    "description": "Every path in parameters.paths MUST exist as a regular file under the target repository root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "missing file: {path}"
+    },
+    "parameters": {
+      "paths": [
+        "AGENTS.md",
+        "ARCHITECTURE.md",
+        "CLAUDE.md",
+        "docs/design-docs/core-beliefs.md",
+        "docs/exec-plans/tech-debt-tracker.md",
+        "docs/DESIGN.md",
+        "docs/FRONTEND.md",
+        "docs/PLANS.md",
+        "docs/PRODUCT_SENSE.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/RELIABILITY.md",
+        "docs/SECURITY.md",
+        "docs/harness/git-hooks/pre-commit",
+        "docs/harness/git-hooks/pre-push",
+        "WORKFLOW.md"
+      ]
+    }
+  },
+  "directoryPresence": {
+    "description": "Every path in parameters.paths MUST exist as a directory under the target repository root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "missing directory: {path}"
+    },
+    "parameters": {
+      "paths": [
+        ".claude/agents",
+        ".claude/skills",
+        "docs",
+        "docs/design-docs",
+        "docs/exec-plans",
+        "docs/exec-plans/active",
+        "docs/exec-plans/completed",
+        "docs/generated",
+        "docs/harness",
+        "docs/harness/templates",
+        "docs/product-specs",
+        "docs/references"
+      ]
+    }
+  },
+  "emptyDirectoryPlaceholders": {
+    "description": "Each directory in parameters.directories MUST contain at least one real file or a .gitkeep placeholder.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "empty directory must keep placeholder or real files: {directory}"
+    },
+    "parameters": {
+      "directories": [
+        "docs/exec-plans/active",
+        "docs/exec-plans/completed",
+        "docs/generated"
+      ]
+    }
+  },
+  "templateGroups": {
+    "description": "Each group in parameters.groups MUST exist as a directory under parameters.targetRoot.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "missing template group: {targetRoot}/{group}"
+    },
+    "parameters": {
+      "targetRoot": "docs/harness/templates",
+      "groups": [
+        "agent",
+        "skill",
+        "workflow",
+        "ci",
+        "docs"
+      ]
+    }
+  },
+  "docHeadings": {
+    "description": "Each authored .md file derived from parameters.sourceFilesFromCategory.paths and matching parameters.sourceFilter MUST contain every heading in parameters.headings.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "doc missing {heading}: {file}"
+    },
+    "parameters": {
+      "sourceFilesFromCategory": "filePresence",
+      "sourceFilter": {
+        "prefix": "docs/",
+        "suffix": ".md"
+      },
+      "headings": [
+        "## Purpose",
+        "## When To Update",
+        "## Required Evidence"
+      ]
+    }
+  },
+  "docContent": {
+    "description": "For each entry in parameters.checks, files are concatenated with newlines and evaluated against a condition/when expression. Conditions support string contains checks, allOf (AND), anyOf (OR), contains, and not; nested objects define precedence, explicit empty anyOf fails.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {},
+    "parameters": {
+      "checks": [
+        {
+          "files": [
+            "CLAUDE.md"
+          ],
+          "failureMessage": "root contract (CLAUDE.md; AGENTS.md symlinks to it) must contain Repository Harness Contract",
+          "condition": {
+            "allOf": [
+              "Repository Harness Contract"
+            ]
+          }
+        },
+        {
+          "files": [
+            "CLAUDE.md"
+          ],
+          "failureMessage": "root contract must contain an Entry Point section",
+          "condition": {
+            "allOf": [
+              "## Entry Point"
+            ]
+          }
+        },
+        {
+          "files": [
+            "CLAUDE.md"
+          ],
+          "failureMessage": "root contract must reference AGENTS.md as a symlink to CLAUDE.md so both filenames resolve to the same document",
+          "condition": {
+            "allOf": [
+              "AGENTS.md"
+            ]
+          }
+        },
+        {
+          "files": [
+            "CLAUDE.md"
+          ],
+          "failureMessage": "root contract must describe docs/generated/ semantics",
+          "condition": {
+            "allOf": [
+              "docs/generated/"
+            ]
+          }
+        },
+        {
+          "files": [
+            "CLAUDE.md",
+            "ARCHITECTURE.md"
+          ],
+          "failureMessage": "repository docs must describe generated-artifact source command and regeneration trigger metadata",
+          "condition": {
+            "allOf": [
+              "source command",
+              "regeneration trigger"
+            ]
+          }
+        },
+        {
+          "files": [
+            "CLAUDE.md"
+          ],
+          "failureMessage": "root contract must state that the harness may evolve across development phases",
+          "condition": {
+            "allOf": [
+              "discovery",
+              "maintenance"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "agentFrontmatter": {
+    "description": "Every .md file directly under parameters.directory MUST start with parameters.frontmatterStart and contain every field in parameters.requiredFields. The `name` value MUST match parameters.namePattern.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "missingFrontmatter": "agent missing frontmatter: {file}",
+      "missingName": "agent missing name: {file}",
+      "missingDescription": "agent missing description: {file}",
+      "missingDirectory": ".claude/agents must contain at least one .md agent"
+    },
+    "parameters": {
+      "directory": ".claude/agents",
+      "filenamePattern": "*.md",
+      "frontmatterStart": "---",
+      "requiredFields": [
+        "name",
+        "description"
+      ],
+      "namePattern": "(?m)^name:\\s*[-a-z0-9]+\\s*$"
+    }
+  },
+  "skillFrontmatter": {
+    "description": "Every file named parameters.filename under parameters.rootDirectory (any depth) MUST start with parameters.frontmatterStart and contain every field in parameters.requiredFields.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "missingFrontmatter": "skill missing frontmatter: {file}",
+      "missingDescription": "skill missing description: {file}",
+      "missingDirectory": ".claude/skills must contain at least one SKILL.md"
+    },
+    "parameters": {
+      "rootDirectory": ".claude/skills",
+      "filename": "SKILL.md",
+      "frontmatterStart": "---",
+      "requiredFields": [
+        "description"
+      ]
+    }
+  },
+  "scaffoldLeaks": {
+    "description": "Scan every file under parameters.scope.bases (excluding excludedSubtrees and files whose extension is not in extensions) and emit a finding for every regex match in parameters.patterns.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{label} in active asset: {file}"
+    },
+    "parameters": {
+      "scope": {
+        "bases": [
+          "AGENTS.md",
+          "CLAUDE.md",
+          "ARCHITECTURE.md",
+          "docs",
+          ".claude/agents",
+          ".claude/skills",
+          ".github"
+        ],
+        "excludedSubtrees": [
+          "docs/harness/manifest.json",
+          "docs/harness/templates",
+          "docs/references"
+        ],
+        "extensions": [
+          "md",
+          "txt"
+        ]
+      },
+      "patterns": [
+        {
+          "pattern": "\\{\\{",
+          "label": "unresolved template token"
+        },
+        {
+          "pattern": "(?m)^name:\\s*example-",
+          "label": "example frontmatter name"
+        },
+        {
+          "pattern": "Describe ",
+          "label": "scaffold prompt text"
+        },
+        {
+          "pattern": "\\bTODO\\b|\\bTBD\\b",
+          "label": "TODO/TBD placeholder"
+        },
+        {
+          "pattern": "replace-with-stack-specific",
+          "label": "stack placeholder"
+        }
+      ]
+    }
+  },
+  "hookShebang": {
+    "description": "Each hook in parameters.hooks MUST start with the line in parameters.expectedShebang.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{hook} must start with {expectedShebang}"
+    },
+    "parameters": {
+      "hooks": [
+        "docs/harness/git-hooks/pre-commit",
+        "docs/harness/git-hooks/pre-push"
+      ],
+      "expectedShebang": "#!/usr/bin/env sh"
+    }
+  },
+  "hookExecutable": {
+    "description": "Each hook in parameters.hooks MUST have its executable bit set on disk.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{hook} must be executable"
+    },
+    "parameters": {
+      "hooks": [
+        "docs/harness/git-hooks/pre-commit",
+        "docs/harness/git-hooks/pre-push"
+      ]
+    }
+  },
+  "hookGeneratedMarker": {
+    "description": "Each hook in parameters.hooks MUST contain parameters.markerTemplate (with {name} substituted) and MUST NOT contain parameters.placeholderForbidden.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "missingMarker": "{hook} must contain generated marker '{marker}'",
+      "placeholderPresent": "{hook} still contains packaging placeholder text"
+    },
+    "parameters": {
+      "hooks": [
+        "docs/harness/git-hooks/pre-commit",
+        "docs/harness/git-hooks/pre-push"
+      ],
+      "markerTemplate": "# Harness generated hook: {name}",
+      "placeholderForbidden": "packaged placeholder is replaced during harness installation"
+    }
+  },
+  "hookStage": {
+    "description": "Each hook MUST contain parameters.markerTemplate with {stage} substituted from parameters.stages[<stack>][<hookName>]. The active stack identifier is supplied by the validator at runtime.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{hook} must contain stage marker '# Harness stage: {expectedStage}'"
+    },
+    "parameters": {
+      "markerTemplate": "# Harness stage: {stage}",
+      "stages": {
+        "gradle": {
+          "pre-commit": "harness-validation",
+          "pre-push": "full-validation"
+        },
+        "maven": {
+          "pre-commit": "compliance",
+          "pre-push": "full-validation"
+        },
+        "uv": {
+          "pre-commit": "compliance",
+          "pre-push": "full-validation"
+        },
+        "bun": {
+          "pre-commit": "compliance",
+          "pre-push": "full-validation"
+        },
+        "shell": {
+          "pre-commit": "compliance",
+          "pre-push": "full-validation"
+        }
+      }
+    }
+  },
+  "hookCommand": {
+    "description": "parameters.prePushHook MUST declare and run a command listed in parameters.allowedCommands[<stack>]. When parameters.allowedPreCommitCommands[<stack>] is non-empty, parameters.preCommitHook MUST also declare and run one of those commands; otherwise pre-commit MUST NOT run any full-stack validation command.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "missingDeclaration": "{hook} must declare Harness validation command",
+      "unsupportedCommand": "{hook} declares unsupported validation command: {command}",
+      "commandNotRun": "{hook} must run the declared validation command",
+      "preCommitMustNotRunFullStack": "pre-commit hook must not run full stack validation commands"
+    },
+    "parameters": {
+      "prePushHook": "docs/harness/git-hooks/pre-push",
+      "preCommitHook": "docs/harness/git-hooks/pre-commit",
+      "allowedCommands": {
+        "gradle": [
+          "./gradlew check",
+          "gradle check"
+        ],
+        "maven": [
+          "mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate"
+        ],
+        "uv": [
+          "uv run --script docs/harness/uv/harness_validate.py"
+        ],
+        "bun": [
+          "bun --install=fallback run docs/harness/bun/harness-validate.ts"
+        ],
+        "shell": [
+          "sh docs/harness/shell/harness-validate.sh"
+        ]
+      },
+      "allowedPreCommitCommands": {
+        "gradle": [
+          "./gradlew harnessValidate",
+          "gradle harnessValidate"
+        ]
+      }
+    }
+  },
+  "ciHookCommandParity": {
+    "description": "Each existing file in parameters.ciFiles MUST contain the validation command declared by parameters.referenceHook. Absent files are skipped.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{ciFile}: CI command mismatch \u2014 expected {command}"
+    },
+    "parameters": {
+      "ciFiles": [
+        ".github/workflows/harness.yml",
+        ".gitlab-ci.yml"
+      ],
+      "referenceHook": "docs/harness/git-hooks/pre-push"
+    }
+  },
+  "envShebangUsage": {
+    "description": "Any executable script under parameters.directories whose first line starts with `#!` MUST start with parameters.expectedPrefix.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "executable script should use /usr/bin/env shebang: {file}"
+    },
+    "parameters": {
+      "directories": [
+        "docs/harness",
+        ".claude/skills"
+      ],
+      "expectedPrefix": "#!/usr/bin/env "
+    }
+  },
+  "uncheckedTasks": {
+    "description": "Every file matching parameters.filenamePattern under parameters.directory MUST NOT contain any line matching parameters.uncheckedTaskPattern. Enforces that plans moved into directory have all tasks marked done.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "completed plan has unchecked tasks: {file}"
+    },
+    "parameters": {
+      "directory": "docs/exec-plans/completed",
+      "filenamePattern": "*.md",
+      "uncheckedTaskPattern": "^\\s*-\\s*\\[ \\]\\s"
+    }
+  },
+  "symlinkSafety": {
+    "description": "All scanned files and directories MUST NOT be symbolic links, except symlinks within parameters.allowedSymlinkPairs (root contract symlinks).",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "fileNotAllowed": "symlink file is not allowed: {path}",
+      "directoryNotAllowed": "symlink directory is not allowed: {path}",
+      "scanRootNotAllowed": "symlink scan root is not allowed: {path}",
+      "scanEntryNotAllowed": "symlink scan entry is not allowed: {path}",
+      "pathNotAllowed": "symlink path is not allowed: {path}"
+    },
+    "parameters": {
+      "allowedSymlinkPairs": [
+        [
+          "AGENTS.md",
+          "CLAUDE.md"
+        ]
+      ]
+    }
+  },
+  "greaterThanComparison": {
+    "description": "Source files under parameters.sourceRootsPerStack[<stack>] MUST NOT use `>` or `>=` comparison operators; smaller value always belongs on the left (`<` / `<=`). Validators implement this via AST: Kotlin PSI, Java JavaParser, Python ast, TypeScript compiler API.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: forbidden `>`/`>=` comparison; rewrite with `<`/`<=` so the smaller value is on the left"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "leafFunctionBlankLines": {
+    "description": "Leaf functions (function bodies that do not contain any nested function or lambda) under parameters.sourceRootsPerStack[<stack>] MUST NOT contain more than one consecutive blank line. Outer functions that contain nested functions are exempt. Validators implement this via AST. The allowed blank-line run length is controlled by parameters.maxConsecutiveBlankLines.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: leaf function `{function}` contains too many blank lines; remove or extract the section"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      },
+      "maxConsecutiveBlankLines": 1
+    }
+  },
+  "earlyReturn": {
+    "description": "Functions under parameters.sourceRootsPerStack[<stack>] MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that throws).",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{file}:{line}: function `{function}` has an early/mid return; restructure with single exit"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "silentCatch": {
+    "description": "`try`/`catch` blocks under parameters.sourceRootsPerStack[<stack>] MUST NOT swallow exceptions. The catch block MUST either rethrow, translate to a `Finding`, or log via the structured logger. Empty or `pass`-only catch blocks are forbidden. Validators implement this via AST.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: silent catch; rethrow, translate to a Finding, or log via structured logger"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "mutableCollection": {
+    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST prefer functional collection construction. Forbidden: Kotlin `mutableListOf` / `MutableList`, Java `new ArrayList` / `new HashMap`, Python `[].append` accumulation pattern, TypeScript `Array#push` accumulation. Use `buildList` / `Stream.toList()` / list comprehension / spread + `concat`. Validators implement this via AST: detect forbidden constructor calls and accumulation patterns.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: mutable collection construction `{snippet}`; use functional alternative"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "unstructuredLogging": {
+    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST log via the structured logger only. Forbidden: Kotlin `println`, Java `System.out.println` / `System.err.println`, Python `print(`, TypeScript `console.log` / `console.error` / `console.warn`. Use Slf4j / java.util.logging / Python `logging` / `pino` or equivalent. Validators implement this via AST.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: unstructured logging `{snippet}`; use structured logger"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "wildcardImport": {
+    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST use explicit per-symbol imports. Forbidden: Kotlin `import foo.bar.*`, Java `import foo.bar.*`, Python `from foo import *`, TypeScript `import * as foo from 'foo'` outside of namespace re-export modules. Validators implement this via AST.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: wildcard import `{import}` forbidden; import explicit symbols"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "importOverFqn": {
+    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST reach external symbols via `import` rather than inline fully qualified names, EXCEPT when the simple name is already taken by another import in the same file (i.e. the FQN is required to disambiguate). Validators implement this via AST/CST: collect every imported simple name first, then emit a finding when a qualified type reference appears in code AND the qualified name's simple form is NOT already imported under a different qualified name.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{file}:{line}: fully qualified name `{name}` used inline; add an import and use the simple name"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "publicDeclarationDocComment": {
+    "description": "Every externally visible declaration under parameters.sourceRootsPerStack[<stack>] MUST carry a documentation comment in the language-native form (KDoc, JavaDoc, reStructuredText docstring, TSDoc). Validators implement this via AST: walk top-level public/exported declarations and emit a finding for missing doc comments.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{file}:{line}: public declaration `{name}` is missing a documentation comment"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "emptyCatchBlock": {
+    "description": "Catch handlers under parameters.sourceRootsPerStack[<stack>] MUST have a non-empty body. Empty catch handlers are a special case of silentCatch and are listed separately for clarity. Validators implement this via AST.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: empty catch block; handle, rethrow, or convert to a Finding"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "ifStatementBraces": {
+    "description": "Every `if` / `else if` / `else` clause under parameters.sourceRootsPerStack[<stack>] MUST use a braced block (`{ ... }`), even for single-statement bodies. Validators implement this via AST/CST.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: if/else without braces; wrap the body in `{ ... }`"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "typescript": [
+          "**/src",
+          "src"
+        ]
+      },
+      "extensionsPerStack": {
+        "typescript": [
+          "ts",
+          "tsx"
+        ]
+      }
+    }
+  },
+  "seedFiles": {
+    "description": "Optional placeholder files the harness installs but the target repository MAY replace, rename, or remove. Not a check.",
+    "paths": [
+      "docs/product-specs/new-user-onboarding.md"
+    ]
+  },
+  "generatedArtifacts": {
+    "description": "Policy for docs/generated/. Not a check.",
+    "path": "docs/generated/",
+    "placeholder": "docs/generated/.gitkeep",
+    "policy": "Place actual generated repository artifacts here. Do not add fake placeholder files; keep the directory empty with .gitkeep until a real generation step exists.",
+    "metadata": [
+      "source command",
+      "source inputs",
+      "freshness",
+      "regeneration trigger"
+    ]
+  },
+  "harnessEvolution": {
+    "description": "Policy for how the harness evolves. Not a check. The harness is not versioned \u2014 the current committed state is the only authoritative shape.",
+    "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract; no schemaVersion, no deprecated keys, no shims."
+  },
+  "teamPatterns": {
+    "description": "Catalog of team/agent collaboration patterns this harness recognises. Not a check.",
+    "patterns": [
+      "pipeline",
+      "fan-out-fan-in",
+      "expert-pool",
+      "producer-reviewer",
+      "supervisor",
+      "hierarchical-delegation"
+    ]
+  }
+}

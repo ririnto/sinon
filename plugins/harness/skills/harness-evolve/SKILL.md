@@ -194,9 +194,9 @@ Use `harness-validate` after implementing an evolution. The expected stack comma
 ```text
 Gradle harness validation: ./gradlew harnessValidate or gradle harnessValidate
 Gradle final check: ./gradlew check or gradle check
-Maven: mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate
-uv: uv run python docs/harness/uv/harness_validate.py
-bun: bun run docs/harness/bun/harness-validate.ts
+Maven: mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate
+uv: uv run --script docs/harness/uv/harness_validate.py
+bun: bun --install=fallback run docs/harness/bun/harness-validate.ts
 ```
 
 ## Synchronization Checklist

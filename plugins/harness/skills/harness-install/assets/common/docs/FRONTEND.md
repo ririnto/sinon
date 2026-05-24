@@ -12,12 +12,12 @@ Delete rows below that do not apply to this project. Replace placeholders with r
 
 | Surface | Entry point | Canonical client persona | Contract source of truth |
 | --- | --- | --- | --- |
-| Web UI | `https://{{app-host}}/` | browser-facing end user | `apps/web/` |
-| Mobile UI | `{{ios-bundle-id}}` / `{{android-package}}` | mobile end user | `apps/mobile/` |
-| Public HTTP API | `https://api.{{app-host}}/v1` | external integrator | `apis/public/openapi.yaml` |
-| CLI | `{{cli-binary-name}}` | power user, operator | `apps/cli/` |
-| Outbound webhooks | `POST {{customer-endpoint}}` | customer-integrating system | `events/webhook-catalog.md` |
-| Public SDK | `npm:{{sdk-package}}`, `pypi:{{sdk-package}}` | external integrator | `sdk/` |
+| Web UI | `https://app.example.com/` | browser-facing end user | `apps/web/` |
+| Mobile UI | `com.example.app` / `com.example.app` | mobile end user | `apps/mobile/` |
+| Public HTTP API | `https://api.app.example.com/v1` | external integrator | `apis/public/openapi.yaml` |
+| CLI | `example-cli` | power user, operator | `apps/cli/` |
+| Outbound webhooks | `POST https://customer.example.com/webhook` | customer-integrating system | `events/webhook-catalog.md` |
+| Public SDK | `npm:example-sdk`, `pypi:example-sdk` | external integrator | `sdk/` |
 
 ## Surface Legibility
 

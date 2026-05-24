@@ -149,12 +149,26 @@ In installed target repositories, `AGENTS.md` is the primary harness contract. `
 | --- | --- | --- |
 | Gradle local harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
 | Gradle final check | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| Maven | `pom.xml` | `mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
-| uv | `uv.lock` or Python `pyproject.toml` | `uv run python docs/harness/uv/harness_validate.py` |
-| bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun run docs/harness/bun/harness-validate.ts` |
+| Maven | `pom.xml` | `mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate` |
+| uv | `uv.lock` or Python `pyproject.toml` | `uv run --script docs/harness/uv/harness_validate.py` |
+| bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun --install=fallback run docs/harness/bun/harness-validate.ts` |
 | shell | `Makefile` or root-level `*.sh` with no other stack | `sh docs/harness/shell/harness-validate.sh` |
 
 Run validation commands from the target repository root. The uv, bun, Maven, and shell validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes. The shell adapter implements a minimum-viable subset (file/directory existence, hook shebang/executable, scaffold-leak scan, completed-plan unchecked-task scan) and requires `python3` available on PATH for JSON parsing of the manifest.
+
+## Language-Specific Validator Coverage
+
+Each install mode now ships the manifest slice for its selected language or runtime, so target repositories receive only the add-ons their installed validator understands. Shared structural checks remain common across slices; code-structure checks stay stack-specific.
+
+AST/PSI validators use semantic tree traversal for code-structure rules rather than per-check CLI switches or regex-only scans. Inspired by the LY Tech Blog AST validation posture, formatting can remain a separate concern while structural validators compare declarations, ownership, and member order in the parsed tree, leaving room for before/after tree validation through the existing manifest-driven categories.
+
+| Mode | Structural parser | Code-order coverage |
+| --- | --- | --- |
+| Gradle/Kotlin+Java | Kotlin PSI through the Gradle worker classloader plus JavaParser for Java sources | Kotlin class member ordering, Java class member ordering, companion-object position, top-level declaration shape, terminal Kotlin if/else-to-when enforcement, and Kotlin code-style checks. Kotlin enum entries and Java enum constants are treated as language-mandated enum preamble items, not ordinary sortable members. |
+| Maven/Java | JavaParser inside the Maven plugin | Java class member ordering and Java code-style checks. Java enum constants are treated as language-mandated enum preamble items, not ordinary sortable members. Maven+Kotlin source validation is not currently enabled because the Maven adapter does not embed Kotlin PSI. |
+| uv/Python | LibCST for Python source checks | Python code-style checks for the selected uv slice. |
+| Bun/TypeScript | TypeScript compiler API | TypeScript code-style checks for the selected Bun slice. |
+| Shell | POSIX shell plus `python3` for manifest reads | Portable baseline checks only: files, directories, hooks, scaffold leaks, and completed-plan tasks. |
 
 Gradle installer wiring prepends a `buildSrc/` directory. Existing `buildSrc/` directories in the target repo MUST be reviewed before install; the harness expects a fresh `buildSrc/` and will conflict otherwise.
 

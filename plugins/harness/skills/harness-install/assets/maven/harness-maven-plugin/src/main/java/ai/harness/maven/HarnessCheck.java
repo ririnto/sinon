@@ -1,81 +1,80 @@
 package ai.harness.maven;
 
 import ai.harness.maven.rules.HarnessCheckRule;
-import ai.harness.maven.rules.RequireFilesExistRule;
-import ai.harness.maven.rules.RequireDirectoriesExistRule;
-import ai.harness.maven.rules.RequireKeepfileInEmptyDirectoriesRule;
-import ai.harness.maven.rules.RequireTemplateGroupsRule;
-import ai.harness.maven.rules.RequireDocHeadingsRule;
-import ai.harness.maven.rules.RequireDocContentRule;
-import ai.harness.maven.rules.RequireAgentFrontmatterRule;
-import ai.harness.maven.rules.RequireSkillFrontmatterRule;
-import ai.harness.maven.rules.ForbidScaffoldLeaksRule;
-import ai.harness.maven.rules.RequireHookShebangRule;
-import ai.harness.maven.rules.RequireHookExecutableRule;
-import ai.harness.maven.rules.RequireHookGeneratedMarkerRule;
-import ai.harness.maven.rules.RequireHookStageRule;
-import ai.harness.maven.rules.RequireHookCommandRule;
-import ai.harness.maven.rules.RequireCiCommandMatchesHookRule;
-import ai.harness.maven.rules.RequireEnvShebangUnderRule;
-import ai.harness.maven.rules.ForbidUncheckedTasksUnderRule;
-import ai.harness.maven.rules.ForbidUnsafeSymlinksRule;
-import ai.harness.maven.rules.RequireSingleTopLevelKotlinDeclarationRule;
-import ai.harness.maven.rules.ForbidGreaterThanComparisonRule;
-import ai.harness.maven.rules.ForbidBlankLineInLeafFunctionRule;
-import ai.harness.maven.rules.ForbidEarlyReturnRule;
-import ai.harness.maven.rules.ForbidSilentCatchRule;
-import ai.harness.maven.rules.ForbidMutableCollectionRule;
-import ai.harness.maven.rules.ForbidUnstructuredLoggingRule;
-import ai.harness.maven.rules.ForbidWildcardImportRule;
-import ai.harness.maven.rules.RequireImportOverFqnRule;
-import ai.harness.maven.rules.RequireDocCommentOnPublicDeclarationRule;
-import ai.harness.maven.rules.ForbidEmptyCatchBlockRule;
-import ai.harness.maven.rules.RequireBracesOnIfRule;
+import ai.harness.maven.rules.FilePresenceRule;
+import ai.harness.maven.rules.DirectoryPresenceRule;
+import ai.harness.maven.rules.EmptyDirectoryPlaceholdersRule;
+import ai.harness.maven.rules.TemplateGroupsRule;
+import ai.harness.maven.rules.DocHeadingsRule;
+import ai.harness.maven.rules.DocContentRule;
+import ai.harness.maven.rules.AgentFrontmatterRule;
+import ai.harness.maven.rules.SkillFrontmatterRule;
+import ai.harness.maven.rules.ScaffoldLeaksRule;
+import ai.harness.maven.rules.HookShebangRule;
+import ai.harness.maven.rules.HookExecutableRule;
+import ai.harness.maven.rules.HookGeneratedMarkerRule;
+import ai.harness.maven.rules.HookStageRule;
+import ai.harness.maven.rules.HookCommandRule;
+import ai.harness.maven.rules.CiHookCommandParityRule;
+import ai.harness.maven.rules.EnvShebangUsageRule;
+import ai.harness.maven.rules.UncheckedTasksRule;
+import ai.harness.maven.rules.SymlinkSafetyRule;
+import ai.harness.maven.rules.KotlinTopLevelDeclarationCountRule;
+import ai.harness.maven.rules.GreaterThanComparisonRule;
+import ai.harness.maven.rules.LeafFunctionBlankLinesRule;
+import ai.harness.maven.rules.EarlyReturnRule;
+import ai.harness.maven.rules.SilentCatchRule;
+import ai.harness.maven.rules.MutableCollectionRule;
+import ai.harness.maven.rules.UnstructuredLoggingRule;
+import ai.harness.maven.rules.WildcardImportRule;
+import ai.harness.maven.rules.ImportOverFqnRule;
+import ai.harness.maven.rules.PublicDeclarationDocCommentRule;
+import ai.harness.maven.rules.EmptyCatchBlockRule;
+import ai.harness.maven.rules.IfStatementBracesRule;
+import ai.harness.maven.rules.ClassMemberOrderingRule;
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
 import java.util.Collection;
 
 /**
- * Enum of harness validation checks. Each value holds a category name and a rule implementation.
+ * Enum of harness validation checks. Each value holds a rule implementation.
  */
 enum HarnessCheck {
-    REQUIRE_FILES_EXIST("requireFilesExist", RequireFilesExistRule.INSTANCE),
-    REQUIRE_DIRECTORIES_EXIST("requireDirectoriesExist", RequireDirectoriesExistRule.INSTANCE),
-    REQUIRE_KEEPFILE_IN_EMPTY_DIRECTORIES("requireKeepfileInEmptyDirectories", RequireKeepfileInEmptyDirectoriesRule.INSTANCE),
-    REQUIRE_TEMPLATE_GROUPS("requireTemplateGroups", RequireTemplateGroupsRule.INSTANCE),
-    REQUIRE_DOC_HEADINGS("requireDocHeadings", RequireDocHeadingsRule.INSTANCE),
-    REQUIRE_DOC_CONTENT("requireDocContent", RequireDocContentRule.INSTANCE),
-    REQUIRE_AGENT_FRONTMATTER("requireAgentFrontmatter", RequireAgentFrontmatterRule.INSTANCE),
-    REQUIRE_SKILL_FRONTMATTER("requireSkillFrontmatter", RequireSkillFrontmatterRule.INSTANCE),
-    FORBID_SCAFFOLD_LEAKS("forbidScaffoldLeaks", ForbidScaffoldLeaksRule.INSTANCE),
-    REQUIRE_HOOK_SHEBANG("requireHookShebang", RequireHookShebangRule.INSTANCE),
-    REQUIRE_HOOK_EXECUTABLE("requireHookExecutable", RequireHookExecutableRule.INSTANCE),
-    REQUIRE_HOOK_GENERATED_MARKER("requireHookGeneratedMarker", RequireHookGeneratedMarkerRule.INSTANCE),
-    REQUIRE_HOOK_STAGE("requireHookStage", RequireHookStageRule.INSTANCE),
-    REQUIRE_HOOK_COMMAND("requireHookCommand", RequireHookCommandRule.INSTANCE),
-    REQUIRE_CI_COMMAND_MATCHES_HOOK("requireCiCommandMatchesHook", RequireCiCommandMatchesHookRule.INSTANCE),
-    REQUIRE_ENV_SHEBANG_UNDER("requireEnvShebangUnder", RequireEnvShebangUnderRule.INSTANCE),
-    FORBID_UNCHECKED_TASKS_UNDER("forbidUncheckedTasksUnder", ForbidUncheckedTasksUnderRule.INSTANCE),
-    FORBID_UNSAFE_SYMLINKS("forbidUnsafeSymlinks", ForbidUnsafeSymlinksRule.INSTANCE),
-    REQUIRE_SINGLE_TOP_LEVEL_KOTLIN_DECLARATION("requireSingleTopLevelKotlinDeclaration", RequireSingleTopLevelKotlinDeclarationRule.INSTANCE),
-    FORBID_GREATER_THAN_COMPARISON("forbidGreaterThanComparison", ForbidGreaterThanComparisonRule.INSTANCE),
-    FORBID_BLANK_LINE_IN_LEAF_FUNCTION("forbidBlankLineInLeafFunction", ForbidBlankLineInLeafFunctionRule.INSTANCE),
-    FORBID_EARLY_RETURN("forbidEarlyReturn", ForbidEarlyReturnRule.INSTANCE),
-    FORBID_SILENT_CATCH("forbidSilentCatch", ForbidSilentCatchRule.INSTANCE),
-    FORBID_MUTABLE_COLLECTION("forbidMutableCollection", ForbidMutableCollectionRule.INSTANCE),
-    FORBID_UNSTRUCTURED_LOGGING("forbidUnstructuredLogging", ForbidUnstructuredLoggingRule.INSTANCE),
-    FORBID_WILDCARD_IMPORT("forbidWildcardImport", ForbidWildcardImportRule.INSTANCE),
-    REQUIRE_IMPORT_OVER_FQN("requireImportOverFqn", RequireImportOverFqnRule.INSTANCE),
-    REQUIRE_DOC_COMMENT_ON_PUBLIC_DECLARATION("requireDocCommentOnPublicDeclaration", RequireDocCommentOnPublicDeclarationRule.INSTANCE),
-    FORBID_EMPTY_CATCH_BLOCK("forbidEmptyCatchBlock", ForbidEmptyCatchBlockRule.INSTANCE),
-    REQUIRE_BRACES_ON_IF("requireBracesOnIf", RequireBracesOnIfRule.INSTANCE);
-
-    private final String category;
+    FILE_PRESENCE(FilePresenceRule.INSTANCE),
+    DIRECTORY_PRESENCE(DirectoryPresenceRule.INSTANCE),
+    EMPTY_DIRECTORY_PLACEHOLDERS(EmptyDirectoryPlaceholdersRule.INSTANCE),
+    TEMPLATE_GROUPS(TemplateGroupsRule.INSTANCE),
+    DOC_HEADINGS(DocHeadingsRule.INSTANCE),
+    DOC_CONTENT(DocContentRule.INSTANCE),
+    AGENT_FRONTMATTER(AgentFrontmatterRule.INSTANCE),
+    SKILL_FRONTMATTER(SkillFrontmatterRule.INSTANCE),
+    SCAFFOLD_LEAKS(ScaffoldLeaksRule.INSTANCE),
+    HOOK_SHEBANG(HookShebangRule.INSTANCE),
+    HOOK_EXECUTABLE(HookExecutableRule.INSTANCE),
+    HOOK_GENERATED_MARKER(HookGeneratedMarkerRule.INSTANCE),
+    HOOK_STAGE(HookStageRule.INSTANCE),
+    HOOK_COMMAND(HookCommandRule.INSTANCE),
+    CI_HOOK_COMMAND_PARITY(CiHookCommandParityRule.INSTANCE),
+    ENV_SHEBANG_USAGE(EnvShebangUsageRule.INSTANCE),
+    UNCHECKED_TASKS(UncheckedTasksRule.INSTANCE),
+    SYMLINK_SAFETY(SymlinkSafetyRule.INSTANCE),
+    KOTLIN_TOP_LEVEL_DECLARATION_COUNT(KotlinTopLevelDeclarationCountRule.INSTANCE),
+    GREATER_THAN_COMPARISON(GreaterThanComparisonRule.INSTANCE),
+    LEAF_FUNCTION_BLANK_LINES(LeafFunctionBlankLinesRule.INSTANCE),
+    EARLY_RETURN(EarlyReturnRule.INSTANCE),
+    SILENT_CATCH(SilentCatchRule.INSTANCE),
+    MUTABLE_COLLECTION(MutableCollectionRule.INSTANCE),
+    UNSTRUCTURED_LOGGING(UnstructuredLoggingRule.INSTANCE),
+    WILDCARD_IMPORT(WildcardImportRule.INSTANCE),
+    IMPORT_OVER_FQN(ImportOverFqnRule.INSTANCE),
+    PUBLIC_DECLARATION_DOC_COMMENT(PublicDeclarationDocCommentRule.INSTANCE),
+    EMPTY_CATCH_BLOCK(EmptyCatchBlockRule.INSTANCE),
+    IF_STATEMENT_BRACES(IfStatementBracesRule.INSTANCE),
+    CLASS_MEMBER_ORDERING(ClassMemberOrderingRule.INSTANCE);
     private final HarnessCheckRule rule;
 
-    HarnessCheck(String category, HarnessCheckRule rule) {
-        this.category = category;
+    HarnessCheck(HarnessCheckRule rule) {
         this.rule = rule;
     }
 
@@ -85,7 +84,7 @@ enum HarnessCheck {
      * @return the category name
      */
     public String category() {
-        return category;
+        return rule.category();
     }
 
     /**

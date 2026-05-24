@@ -1,11 +1,13 @@
-# 2026-05-23-uv-bun-flatten-and-shell-stack
+---
+status: completed
+created: 2026-05-23
+updated: 2026-05-23
+completed: 2026-05-23
+author: ririnto
+assignee: ririnto
+---
 
-- Status: completed
-- Created: 2026-05-23
-- Last Updated: 2026-05-23
-- Completed: 2026-05-23
-- Author: ririnto
-- Assignee: ririnto
+# 2026-05-23-uv-bun-flatten-and-shell-stack
 
 ## Goal
 
@@ -27,7 +29,7 @@
 - [x] Task 2.3 — `assets/shell/runtime/harness-validate.sh` POSIX sh validator 작성 (manifest는 python3로 파싱; 7개 핵심 add-on 구현)
 - [x] Task 2.4 — `assets/shell/.github/workflows/harness.yml`, `assets/shell/.gitlab-ci.yml` (CI에서 python3 설치 + validation_command 실행)
 - [x] Task 2.5 — `assets/shell/runtime/README.md`
-- [x] Task 2.6 — manifest.json에 `requireHookStage.stages.shell` + `requireHookCommand.allowedCommands.shell` 추가
+- [x] Task 2.6 — manifest.json에 `hookStage.stages.shell` + `hookCommand.allowedCommands.shell` 추가
 - [x] Task 2.7 — `plugin-self-check.sh` require_file에 shell stack assets 추가
 - [x] Task 2.8 — plugin README + harness-install/SKILL.md adapter 표 + narrative + mode list에 shell 추가
 

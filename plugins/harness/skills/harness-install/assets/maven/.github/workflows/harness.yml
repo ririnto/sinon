@@ -1,6 +1,8 @@
 name: harness
 
-on: [push, pull_request]
+on:
+  - push
+  - pull_request
 
 jobs:
   harness:
@@ -11,4 +13,5 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - run: {{validation_command}}
+      - run: >-
+          {{validation_command}}

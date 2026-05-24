@@ -5,6 +5,11 @@
  */
 export interface HarnessCheckRule {
 	/**
+	 * Manifest category key used by this rule.
+	 */
+	readonly category: string;
+
+	/**
 	 * Determines whether this rule applies to the given manifest.
 	 */
 	applies(manifest: HarnessManifest): boolean;
@@ -42,7 +47,11 @@ export interface RuleContext {
 		manifest: HarnessManifest,
 		category: string,
 	): "ERROR" | "WARN" | "INFO";
-	stackSources(manifest: HarnessManifest, category: string): readonly string[];
+	stackSources(
+		manifest: HarnessManifest,
+		category: string,
+		stack: string,
+	): readonly string[];
 	walkDirectory(path: string): readonly [readonly string[], readonly Finding[]];
 	collectFilesUnder(
 		path: string,

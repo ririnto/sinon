@@ -52,7 +52,7 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | Evidence | Mode | Notes |
 | --- | --- | --- |
 | `settings.gradle`, `settings.gradle.kts`, `build.gradle`, or `build.gradle.kts` | `gradle` | Prefer `./gradlew` when executable. |
-| `pom.xml` | `maven` | The harness Maven plugin lives under `docs/harness/maven-plugin/`. |
+| `pom.xml` | `maven` | The harness Maven plugin lives under `harness-maven-plugin/`. |
 | `uv.lock` or Python `pyproject.toml` | `uv` | Run through `uv` so dependencies and Python version resolution stay target-owned. |
 | `bun.lock`, `bun.lockb`, or JavaScript `package.json` without a stronger stack signal | `bun` | Use only when Bun is the intended project runtime. |
 | Multiple stack signals | explicit user mode | Report ambiguous stack when non-interactive, or use the installed README command if present. |
@@ -63,9 +63,9 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | --- | --- | --- |
 | `gradle` harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
 | `gradle` final check | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| `maven` | `pom.xml` exists | `mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate` |
-| `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run python docs/harness/uv/harness_validate.py` |
-| `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun run docs/harness/bun/harness-validate.ts` |
+| `maven` | `pom.xml` exists | `mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate` |
+| `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run --script docs/harness/uv/harness_validate.py` |
+| `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun --install=fallback run docs/harness/bun/harness-validate.ts` |
 
 The installed README command is the local harness validation command. The generated `docs/harness/git-hooks/pre-push` command marker is the final check command; for Gradle that command is `check`, while `pre-commit` runs `harnessValidate`. Do not introduce `docs/harness/validate.sh` as a dispatcher unless the installer, CI templates, hook generation, validators, and self-check all adopt that dispatcher contract together.
 
@@ -82,27 +82,27 @@ gradle harnessValidate
 ```
 
 ```sh
-mvn -q -f docs/harness/maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate
+mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate
 ```
 
 ```sh
-uv run python docs/harness/uv/harness_validate.py
+uv run --script docs/harness/uv/harness_validate.py
 ```
 
 ```sh
-bun run docs/harness/bun/harness-validate.ts
+bun --install=fallback run docs/harness/bun/harness-validate.ts
 ```
 
 Do not suppress validator output.
 
 ```sh
-uv run python docs/harness/uv/harness_validate.py
+uv run --script docs/harness/uv/harness_validate.py
 ```
 
 Reject any pattern that discards validator output or forces a successful exit after failure because it hides diagnostics and turns failure into success.
 
 ```sh
-uv run python docs/harness/uv/harness_validate.py
+uv run --script docs/harness/uv/harness_validate.py
 ```
 
 ## Workflow
@@ -168,7 +168,7 @@ GitHub-only and GitLab-only repositories may intentionally delete the unused CI 
 Report CI drift with the expected command.
 
 ```text
-ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv run python docs/harness/uv/harness_validate.py`
+ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv run --script docs/harness/uv/harness_validate.py`
 ```
 
 ## Invariants

@@ -1,11 +1,13 @@
-# 2026-05-23-template-default-content
+---
+status: completed
+created: 2026-05-23
+updated: 2026-05-23
+completed: 2026-05-23
+author: ririnto
+assignee: ririnto
+---
 
-- Status: completed
-- Created: 2026-05-23
-- Last Updated: 2026-05-23
-- Completed: 2026-05-23
-- Author: ririnto
-- Assignee: ririnto
+# 2026-05-23-template-default-content
 
 ## Goal
 

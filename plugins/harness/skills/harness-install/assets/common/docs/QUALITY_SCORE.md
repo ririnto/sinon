@@ -19,9 +19,9 @@ Replace the example rows below with entries for each product domain in this repo
 
 | Domain | Score | Gaps | Retirement criteria | Owner |
 | --- | --- | --- | --- | --- |
-| Identity | B | RBAC unit coverage < 80% | coverage ≥ 90% on `domains/identity/` | {{owner}} |
-| Catalog | B | public API schema not parsed at boundary | parse-don't-validate on every public endpoint | {{owner}} |
-| Notifications | C | no retry policy documented | runbook + dead-letter policy committed | {{owner}} |
+| Identity | B | RBAC unit coverage < 80% | coverage ≥ 90% on `domains/identity/` | project-owner |
+| Catalog | B | public API schema not parsed at boundary | parse-don't-validate on every public endpoint | project-owner |
+| Notifications | C | no retry policy documented | runbook + dead-letter policy committed | project-owner |
 
 ## Layer Scores
 
@@ -29,9 +29,9 @@ Replace the example rows below with entries for each architectural layer.
 
 | Layer | Score | Gaps | Retirement criteria | Owner |
 | --- | --- | --- | --- | --- |
-| Service | A | — | — | {{owner}} |
-| Runtime | B | no chaos test suite | one chaos test green for each failure mode in RELIABILITY.md | {{owner}} |
-| UI | B | 70% axe-core coverage | 100% axe-core green on top-10 routes | {{owner}} |
+| Service | A | — | — | project-owner |
+| Runtime | B | no chaos test suite | one chaos test green for each failure mode in RELIABILITY.md | project-owner |
+| UI | B | 70% axe-core coverage | 100% axe-core green on top-10 routes | project-owner |
 
 ## Gap Tracking
 

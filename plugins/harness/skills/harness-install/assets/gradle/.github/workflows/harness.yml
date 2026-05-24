@@ -1,6 +1,8 @@
 name: harness
 
-on: [push, pull_request]
+on:
+  - push
+  - pull_request
 
 jobs:
   harness:
@@ -8,4 +10,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: gradle/actions/setup-gradle@v4
-      - run: {{validation_command}}
+      - run: >-
+          {{validation_command}}

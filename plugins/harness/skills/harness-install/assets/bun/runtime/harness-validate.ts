@@ -50,8 +50,8 @@ function main(): void {
 
 	const uniqueFindings = Array.from(
 		new Map(
-			HARNESS_CHECKS.filter((check) => check.applies(manifest))
-				.flatMap((check) => check.validate(root, manifest))
+			HARNESS_CHECKS.filter(({ rule }) => rule.applies(manifest))
+				.flatMap(({ rule }) => rule.validate(root, manifest))
 				.map((f) => [`${f.severity}|${f.category}|${f.message}`, f]),
 		).values(),
 	);
@@ -71,4 +71,6 @@ function main(): void {
 	logger.log("Harness validation passed");
 }
 
-main();
+if (import.meta.main) {
+	main();
+}

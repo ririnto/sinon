@@ -1,38 +1,41 @@
 package ai.harness.gradle
 
-import ai.harness.gradle.rules.ForbidBlankLineInLeafFunctionRule
-import ai.harness.gradle.rules.ForbidEarlyReturnRule
-import ai.harness.gradle.rules.ForbidEmptyCatchBlockRule
-import ai.harness.gradle.rules.ForbidGreaterThanComparisonRule
-import ai.harness.gradle.rules.ForbidImplicitLambdaItRule
-import ai.harness.gradle.rules.ForbidMutableCollectionRule
-import ai.harness.gradle.rules.ForbidScaffoldLeaksRule
-import ai.harness.gradle.rules.ForbidSilentCatchRule
-import ai.harness.gradle.rules.ForbidUncheckedTasksUnderRule
-import ai.harness.gradle.rules.ForbidUnsafeSymlinksRule
-import ai.harness.gradle.rules.ForbidUnstructuredLoggingRule
-import ai.harness.gradle.rules.ForbidWildcardImportRule
+import ai.harness.gradle.HarnessPsiResults.Finding
+import ai.harness.gradle.rules.LeafFunctionBlankLinesRule
+import ai.harness.gradle.rules.EarlyReturnRule
+import ai.harness.gradle.rules.EmptyCatchBlockRule
+import ai.harness.gradle.rules.GreaterThanComparisonRule
+import ai.harness.gradle.rules.ImplicitLambdaItRule
+import ai.harness.gradle.rules.MutableCollectionRule
+import ai.harness.gradle.rules.ScaffoldLeaksRule
+import ai.harness.gradle.rules.SilentCatchRule
+import ai.harness.gradle.rules.UncheckedTasksRule
+import ai.harness.gradle.rules.SymlinkSafetyRule
+import ai.harness.gradle.rules.UnstructuredLoggingRule
+import ai.harness.gradle.rules.WildcardImportRule
 import ai.harness.gradle.rules.HarnessCheckRule
-import ai.harness.gradle.rules.RequireAgentFrontmatterRule
-import ai.harness.gradle.rules.RequireBracesOnIfRule
-import ai.harness.gradle.rules.RequireCiCommandMatchesHookRule
-import ai.harness.gradle.rules.RequireCompanionObjectPositionRule
-import ai.harness.gradle.rules.RequireDirectoriesExistRule
-import ai.harness.gradle.rules.RequireDocCommentOnPublicDeclarationRule
-import ai.harness.gradle.rules.RequireDocContentRule
-import ai.harness.gradle.rules.RequireDocHeadingsRule
-import ai.harness.gradle.rules.RequireEnvShebangUnderRule
-import ai.harness.gradle.rules.RequireFilesExistRule
-import ai.harness.gradle.rules.RequireHookCommandRule
-import ai.harness.gradle.rules.RequireHookExecutableRule
-import ai.harness.gradle.rules.RequireHookGeneratedMarkerRule
-import ai.harness.gradle.rules.RequireHookShebangRule
-import ai.harness.gradle.rules.RequireHookStageRule
-import ai.harness.gradle.rules.RequireImportOverFqnRule
-import ai.harness.gradle.rules.RequireKeefileInEmptyDirectoriesRule
-import ai.harness.gradle.rules.RequireSingleTopLevelKotlinDeclarationRule
-import ai.harness.gradle.rules.RequireSkillFrontmatterRule
-import ai.harness.gradle.rules.RequireTemplateGroupsRule
+import ai.harness.gradle.rules.AgentFrontmatterRule
+import ai.harness.gradle.rules.IfStatementBracesRule
+import ai.harness.gradle.rules.CiHookCommandParityRule
+import ai.harness.gradle.rules.ClassMemberOrderingRule
+import ai.harness.gradle.rules.CompanionObjectPositionRule
+import ai.harness.gradle.rules.DirectoryPresenceRule
+import ai.harness.gradle.rules.PublicDeclarationDocCommentRule
+import ai.harness.gradle.rules.DocContentRule
+import ai.harness.gradle.rules.DocHeadingsRule
+import ai.harness.gradle.rules.EnvShebangUsageRule
+import ai.harness.gradle.rules.FilePresenceRule
+import ai.harness.gradle.rules.HookCommandRule
+import ai.harness.gradle.rules.HookExecutableRule
+import ai.harness.gradle.rules.HookGeneratedMarkerRule
+import ai.harness.gradle.rules.HookShebangRule
+import ai.harness.gradle.rules.HookStageRule
+import ai.harness.gradle.rules.ImportOverFqnRule
+import ai.harness.gradle.rules.EmptyDirectoryPlaceholdersRule
+import ai.harness.gradle.rules.KotlinTopLevelDeclarationCountRule
+import ai.harness.gradle.rules.SkillFrontmatterRule
+import ai.harness.gradle.rules.TemplateGroupsRule
+import ai.harness.gradle.rules.TerminalBranchWhenRule
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
@@ -57,81 +60,111 @@ import kotlin.io.path.walk
  * Enumeration of all harness validation checks.
  */
 enum class HarnessCheck(
-    val category: String,
     val rule: HarnessCheckRule,
 ) {
-
     /** Verifies that required files exist at the repository root. */
-    REQUIRE_FILES_EXIST("requireFilesExist", RequireFilesExistRule),
+    FILE_PRESENCE(FilePresenceRule),
+
     /** Verifies that required directories exist at the repository root. */
-    REQUIRE_DIRECTORIES_EXIST("requireDirectoriesExist", RequireDirectoriesExistRule),
+    DIRECTORY_PRESENCE(DirectoryPresenceRule),
+
     /** Verifies that empty directories contain a .keepfile placeholder. */
-    REQUIRE_KEEPFILE_IN_EMPTY_DIRECTORIES("requireKeepfileInEmptyDirectories", RequireKeefileInEmptyDirectoriesRule),
+    EMPTY_DIRECTORY_PLACEHOLDERS(EmptyDirectoryPlaceholdersRule),
+
     /** Verifies that command and agent groups are properly organized. */
-    REQUIRE_TEMPLATE_GROUPS("requireTemplateGroups", RequireTemplateGroupsRule),
+    TEMPLATE_GROUPS(TemplateGroupsRule),
+
     /** Verifies that Markdown documents have proper heading structure. */
-    REQUIRE_DOC_HEADINGS("requireDocHeadings", RequireDocHeadingsRule),
+    DOC_HEADINGS(DocHeadingsRule),
+
     /** Verifies that Markdown documents contain substantive content. */
-    REQUIRE_DOC_CONTENT("requireDocContent", RequireDocContentRule),
+    DOC_CONTENT(DocContentRule),
+
     /** Verifies that agent files declare required frontmatter fields. */
-    REQUIRE_AGENT_FRONTMATTER("requireAgentFrontmatter", RequireAgentFrontmatterRule),
+    AGENT_FRONTMATTER(AgentFrontmatterRule),
+
     /** Verifies that skill files declare required frontmatter fields. */
-    REQUIRE_SKILL_FRONTMATTER("requireSkillFrontmatter", RequireSkillFrontmatterRule),
+    SKILL_FRONTMATTER(SkillFrontmatterRule),
+
     /** Verifies that scaffold artifacts are not included in tracked files. */
-    FORBID_SCAFFOLD_LEAKS("forbidScaffoldLeaks", ForbidScaffoldLeaksRule),
+    SCAFFOLD_LEAKS(ScaffoldLeaksRule),
+
     /** Verifies that shell scripts have proper shebangs. */
-    REQUIRE_HOOK_SHEBANG("requireHookShebang", RequireHookShebangRule),
+    HOOK_SHEBANG(HookShebangRule),
+
     /** Verifies that hook scripts are executable. */
-    REQUIRE_HOOK_EXECUTABLE("requireHookExecutable", RequireHookExecutableRule),
+    HOOK_EXECUTABLE(HookExecutableRule),
+
     /** Verifies that hook scripts contain the harness-generated marker. */
-    REQUIRE_HOOK_GENERATED_MARKER("requireHookGeneratedMarker", RequireHookGeneratedMarkerRule),
+    HOOK_GENERATED_MARKER(HookGeneratedMarkerRule),
+
     /** Verifies that hook scripts declare a valid stage. */
-    REQUIRE_HOOK_STAGE("requireHookStage", RequireHookStageRule),
+    HOOK_STAGE(HookStageRule),
+
     /** Verifies that hook scripts declare a command to execute. */
-    REQUIRE_HOOK_COMMAND("requireHookCommand", RequireHookCommandRule),
+    HOOK_COMMAND(HookCommandRule),
+
     /** Verifies that CI commands match their corresponding hook definitions. */
-    REQUIRE_CI_COMMAND_MATCHES_HOOK("requireCiCommandMatchesHook", RequireCiCommandMatchesHookRule),
+    CI_HOOK_COMMAND_PARITY(CiHookCommandParityRule),
+
     /** Verifies that shebangs within files use the env form. */
-    REQUIRE_ENV_SHEBANG_UNDER("requireEnvShebangUnder", RequireEnvShebangUnderRule),
+    ENV_SHEBANG_USAGE(EnvShebangUsageRule),
+
     /** Verifies that only approved Gradle task categories are used. */
-    FORBID_UNCHECKED_TASKS_UNDER("forbidUncheckedTasksUnder", ForbidUncheckedTasksUnderRule),
+    UNCHECKED_TASKS(UncheckedTasksRule),
+
     /** Verifies that symbolic links conform to allowed patterns. */
-    FORBID_UNSAFE_SYMLINKS("forbidUnsafeSymlinks", ForbidUnsafeSymlinksRule),
+    SYMLINK_SAFETY(SymlinkSafetyRule),
+
     /** Verifies that length comparisons do not use the greater-than operator. */
-    FORBID_GREATER_THAN_COMPARISON("forbidGreaterThanComparison", ForbidGreaterThanComparisonRule),
+    GREATER_THAN_COMPARISON(GreaterThanComparisonRule),
+
     /** Verifies that leaf functions do not contain blank lines in their body. */
-    FORBID_BLANK_LINE_IN_LEAF_FUNCTION("forbidBlankLineInLeafFunction", ForbidBlankLineInLeafFunctionRule),
+    LEAF_FUNCTION_BLANK_LINES(LeafFunctionBlankLinesRule),
+
     /** Verifies that lambda parameters are not used implicitly. */
-    FORBID_IMPLICIT_LAMBDA_IT("forbidImplicitLambdaIt", ForbidImplicitLambdaItRule),
+    IMPLICIT_LAMBDA_IT(ImplicitLambdaItRule),
+
     /** Verifies that Kotlin files declare only a single top-level declaration. */
-    REQUIRE_SINGLE_TOP_LEVEL_KOTLIN_DECLARATION(
-        "requireSingleTopLevelKotlinDeclaration",
-        RequireSingleTopLevelKotlinDeclarationRule,
-    ),
+    KOTLIN_TOP_LEVEL_DECLARATION_COUNT(KotlinTopLevelDeclarationCountRule),
+
     /** Verifies that wildcard imports are not used. */
-    FORBID_WILDCARD_IMPORT("forbidWildcardImport", ForbidWildcardImportRule),
+    WILDCARD_IMPORT(WildcardImportRule),
+
     /** Verifies that catch blocks contain at least one statement. */
-    FORBID_EMPTY_CATCH_BLOCK("forbidEmptyCatchBlock", ForbidEmptyCatchBlockRule),
+    EMPTY_CATCH_BLOCK(EmptyCatchBlockRule),
+
     /** Verifies that if statements are wrapped in braces. */
-    REQUIRE_BRACES_ON_IF("requireBracesOnIf", RequireBracesOnIfRule),
+    IF_STATEMENT_BRACES(IfStatementBracesRule),
+
+    /** Verifies that terminal Kotlin branches use when instead of if. */
+    TERMINAL_BRANCH_WHEN(TerminalBranchWhenRule),
+
     /** Verifies that early returns are avoided in functions. */
-    FORBID_EARLY_RETURN("forbidEarlyReturn", ForbidEarlyReturnRule),
+    EARLY_RETURN(EarlyReturnRule),
+
     /** Verifies that catch blocks do not silently ignore exceptions. */
-    FORBID_SILENT_CATCH("forbidSilentCatch", ForbidSilentCatchRule),
+    SILENT_CATCH(SilentCatchRule),
+
     /** Verifies that mutable collection builders are not used. */
-    FORBID_MUTABLE_COLLECTION("forbidMutableCollection", ForbidMutableCollectionRule),
+    MUTABLE_COLLECTION(MutableCollectionRule),
+
     /** Verifies that logging conforms to structured patterns. */
-    FORBID_UNSTRUCTURED_LOGGING("forbidUnstructuredLogging", ForbidUnstructuredLoggingRule),
+    UNSTRUCTURED_LOGGING(UnstructuredLoggingRule),
+
     /** Verifies that imports are used instead of fully qualified names. */
-    REQUIRE_IMPORT_OVER_FQN("requireImportOverFqn", RequireImportOverFqnRule),
+    IMPORT_OVER_FQN(ImportOverFqnRule),
+
     /** Verifies that public declarations include documentation comments. */
-    REQUIRE_DOC_COMMENT_ON_PUBLIC_DECLARATION(
-        "requireDocCommentOnPublicDeclaration",
-        RequireDocCommentOnPublicDeclarationRule,
-    ),
+    PUBLIC_DECLARATION_DOC_COMMENT(PublicDeclarationDocCommentRule),
+
     /** Verifies that companion objects are positioned first in the class body. */
-    REQUIRE_COMPANION_OBJECT_POSITION("requireCompanionObjectPosition", RequireCompanionObjectPositionRule),
+    COMPANION_OBJECT_POSITION(CompanionObjectPositionRule),
+
+    /** Verifies that JVM class members follow the configured order. */
+    CLASS_MEMBER_ORDERING(ClassMemberOrderingRule),
     ;
+
     /** Companion object providing utility functions for harness validation. */
     companion object {
         /** Returns the severity level for a given category in the manifest. */
@@ -139,12 +172,16 @@ enum class HarnessCheck(
             manifest: JsonObject,
             category: String,
         ): Severity {
-            val severity = manifest[category]?.jsonObject?.get("severity")?.jsonPrimitive?.contentOrNull
-                ?: return Severity.ERROR
+            val severity =
+                manifest[category]
+                    ?.jsonObject
+                    ?.get("severity")
+                    ?.jsonPrimitive
+                    ?.contentOrNull
+                    ?: return Severity.ERROR
             return try {
                 Severity.valueOf(severity.uppercase())
             } catch (e: Exception) {
-                val skipped = e.localizedMessage
                 Severity.ERROR
             }
         }
@@ -157,25 +194,27 @@ enum class HarnessCheck(
             val p = root / path
             return when {
                 p.isSymbolicLink() && isAllowedRootContractSymlink(root, p) -> {
-                    val target = if (p.name == "AGENTS.md") {
-                        "CLAUDE.md"
-                    } else {
-                        "AGENTS.md"
-                    }
+                    val target =
+                        when (p.name) {
+                            "AGENTS.md" -> "CLAUDE.md"
+                            else -> "AGENTS.md"
+                        }
                     (root / target).let { path ->
-                        if (path.isRegularFile()) {
-                            path.readText()
-                        } else {
-                            ""
+                        when {
+                            path.isRegularFile() -> path.readText()
+                            else -> ""
                         }
                     }
                 }
+
                 p.isSymbolicLink() -> {
                     ""
                 }
+
                 p.isRegularFile() -> {
                     p.readText()
                 }
+
                 else -> {
                     ""
                 }
@@ -190,19 +229,14 @@ enum class HarnessCheck(
             if (p.parent != root || p.name !in setOf("AGENTS.md", "CLAUDE.md")) {
                 return false
             }
+            val expected =
+                when (p.name) {
+                    "AGENTS.md" -> "CLAUDE.md"
+                    else -> "AGENTS.md"
+                }
             return try {
-                p.readSymbolicLink().toString() == (if (p.name == "AGENTS.md") {
-                    "CLAUDE.md"
-                } else {
-                    "AGENTS.md"
-                }) &&
-                    (root / (if (p.name == "AGENTS.md") {
-                        "CLAUDE.md"
-                    } else {
-                        "AGENTS.md"
-                    })).isRegularFile()
+                p.readSymbolicLink().toString() == expected && (root / expected).isRegularFile()
             } catch (e: Exception) {
-                val skipped = e.localizedMessage
                 false
             }
         }
@@ -226,6 +260,20 @@ enum class HarnessCheck(
             key: String,
         ): String = obj?.get(key)?.jsonPrimitive?.contentOrNull ?: ""
 
+        /** Render raw PSI findings through rule-owned renderers. */
+        fun renderPsiFindings(
+            rawFindings: List<PsiFinding>,
+            manifest: JsonObject,
+        ): List<Finding> =
+            entries
+                .filter { check -> check.applies(manifest) }
+                .flatMap { check ->
+                    check.rule.renderPsiFindings(
+                        rawFindings.filter { finding -> finding.rule == check.category() },
+                        manifest,
+                    )
+                }
+
         /** Safely walks the directory tree, returning files and symlink violations. */
         fun walkSafe(
             root: Path,
@@ -235,59 +283,72 @@ enum class HarnessCheck(
                 !base.exists() -> {
                     emptyList<Path>() to emptyList()
                 }
+
                 base.isSymbolicLink() && !isAllowedRootContractSymlink(root, base) -> {
-                    emptyList<Path>() to listOf(
-                        Finding(
-                            Severity.ERROR,
-                            "forbidUnsafeSymlinks",
-                            "symlink scan root is not allowed: ${base.relativeTo(root)}",
-                        ),
-                    )
+                    emptyList<Path>() to
+                        listOf(
+                            Finding(
+                                Severity.ERROR,
+                                "symlinkSafety",
+                                "symlink scan root is not allowed: ${base.relativeTo(root)}",
+                            ),
+                        )
                 }
+
                 base.isRegularFile() -> {
                     listOf(base) to emptyList()
                 }
+
                 base.isDirectory() -> {
-                    val entries = try {
-                        base.listDirectoryEntries()
-                    } catch (e: Exception) {
-                        val skipped = e.localizedMessage
-                        emptyList()
-                    }
-                    val warnings = buildSet {
-                        entries.filter { entry ->
-                            entry.isSymbolicLink() && !isAllowedRootContractSymlink(root, entry)
-                        }.forEach { entry ->
-                            add(
-                                Finding(
-                                    Severity.ERROR,
-                                    "forbidUnsafeSymlinks",
-                                    "symlink path is not allowed: ${entry.relativeTo(root)}",
-                                ),
-                            )
+                    val entries =
+                        try {
+                            base.listDirectoryEntries()
+                        } catch (e: Exception) {
+                            emptyList()
                         }
-                    }.toList()
-                    entries.filter { entry ->
-                        !entry.isSymbolicLink()
-                    }.flatMap { entry ->
-                        when {
-                            entry.isDirectory() -> {
-                                walkSafe(root, entry).first
+                    val warnings =
+                        buildSet {
+                            entries
+                                .filter { entry ->
+                                    entry.isSymbolicLink() && !isAllowedRootContractSymlink(root, entry)
+                                }.forEach { entry ->
+                                    add(
+                                        Finding(
+                                            Severity.ERROR,
+                                            "symlinkSafety",
+                                            "symlink path is not allowed: ${entry.relativeTo(root)}",
+                                        ),
+                                    )
+                                }
+                        }.toList()
+                    entries
+                        .filter { entry ->
+                            !entry.isSymbolicLink()
+                        }.flatMap { entry ->
+                            when {
+                                entry.isDirectory() -> {
+                                    walkSafe(root, entry).first
+                                }
+
+                                entry.isRegularFile() -> {
+                                    listOf(entry)
+                                }
+
+                                else -> {
+                                    emptyList()
+                                }
                             }
-                            entry.isRegularFile() -> {
-                                listOf(entry)
-                            }
-                            else -> {
-                                emptyList()
-                            }
-                        }
-                    } to warnings
+                        } to warnings
                 }
+
                 else -> {
                     emptyList<Path>() to emptyList()
                 }
             }
     }
+
+    /** Gets the category name for this check. */
+    fun category(): String = rule.category
 
     /** Checks whether this rule applies to the given manifest. */
     fun applies(manifest: JsonObject): Boolean = rule.applies(manifest)
@@ -297,5 +358,7 @@ enum class HarnessCheck(
         manifest: JsonObject,
         root: Path,
         psiResults: HarnessPsiResults? = null,
-    ): Collection<Finding> = rule.validate(manifest, root, psiResults)
+    ): Collection<Finding> =
+        rule.validate(manifest, root) +
+            (psiResults?.findings?.filter { finding -> finding.category == category() } ?: emptyList())
 }

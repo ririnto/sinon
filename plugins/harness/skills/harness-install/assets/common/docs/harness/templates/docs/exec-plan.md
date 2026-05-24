@@ -1,39 +1,30 @@
+---
+status: active
+created: "{{yyyy-MM-dd}}"
+updated: "{{yyyy-MM-dd}}"
+completed: "{{yyyy-MM-dd or empty while active}}"
+author: "{{author}}"
+assignee: "{{assignee}}"
+---
+
 # {{yyyy-MM-dd}}-{{plan-slug}}
 
-- Status: active
-- Created: {{yyyy-MM-dd}}
-- Last Updated: {{yyyy-MM-dd}}
-- Completed: {{yyyy-MM-dd or empty while active}}
-- Author: {{author}}
-- Assignee: {{assignee}}
+<!--
+Template notes:
+- Update `updated` whenever the plan body changes; set `completed` only when moving the plan to `docs/exec-plans/completed/`.
+- Save active plans as `docs/exec-plans/active/yyyy-MM-dd-<slug>.md`; keep the slug kebab-case and work-focused.
+- `Author` records who drafted the plan. `Assignee` records who executes it and MAY list multiple owners.
+- Phases are sequential. Tasks inside one phase MUST be independent and parallel-safe; express intra-phase dependencies with `blocked by`.
+- Mark phase headings `[x]` only when every task inside is checked.
+- Flip task checkboxes only after the work and named validation command pass.
+- If a task cannot be validated yet, keep it unchecked until a later task validates the combined result.
+-->
 
-Update `Last Updated` whenever the plan body changes (a task is added, a checkbox flips, a phase opens or closes). Set `Completed` only when the plan moves to `docs/exec-plans/completed/`; while the plan is active the field MAY be left empty.
+{{short description}}
 
-## File Naming Convention
+## Backgrounds
 
-Execution plan filenames MUST use the form `yyyy-MM-dd-<slug>.md` where the date is the creation date in the project's timezone. Active plans live under `docs/exec-plans/active/`. The slug MUST be kebab-case and describe the work, not the author.
-
-`Author` records the person who drafted the plan. `Assignee` records the person or agent that executes the plan; the two MAY differ (for example, a tech lead drafts the plan and a separate engineer or agent executes it). `Assignee` MAY be a comma-separated list when execution is split across multiple owners.
-
-## Plan Convention
-
-- Phase: sequential execution unit. A phase MUST NOT start until the previous phase finishes. Phases form the top-level order of work.
-- Task: parallel-safe unit inside one phase. Tasks within the same phase MUST be independent — no two tasks in the same phase write to the same file or otherwise contend for the same resource. Tasks SHOULD be sized to fit a single subagent invocation.
-- Subagent delegation: tasks SHOULD be delegated to subagents in parallel within a phase. The main agent orchestrates phases sequentially and synthesizes results between phases.
-- Dependencies: cross-phase dependencies are implied by phase order. Within a phase, dependencies between tasks MUST be expressed with `blocked by` so the executor knows what to wait for. A task with no `blocked by` is free to start immediately when the phase begins.
-- Phase heading checkboxes: write phase headings with `[ ]` while in-flight and `[x]` once every task inside is checked. This keeps the table of contents scannable and lets validators detect partially-finished phases.
-
-## Task Execution Order
-
-Tasks MUST follow this order before any `[ ]` checkbox is flipped to `[x]`:
-
-1. Read the task statement and any `blocked by` predecessor in this plan.
-2. Perform the work (in-process or via subagent delegation).
-3. Run the stack-specific harness validator (and any task-local check the task names). The validator command lives in `docs/harness/README.md`.
-4. Only after the validator reports success, flip the task checkbox from `[ ]` to `[x]`.
-5. When every task in a phase is `[x]`, flip that phase's heading checkbox from `[ ]` to `[x]`.
-
-Skipping the validation step before flipping a checkbox is a contract violation. A task that intentionally cannot be validated yet (for example, because it sets up scaffolding for the next phase) MUST stay `[ ]` until a later task validates the combined result.
+{{why-this-plan-exists-and-what-evidence-triggered-it}}
 
 ## Goal
 
@@ -65,4 +56,6 @@ Run the stack-specific harness validation command after each phase that touches 
 
 ## Completion
 
-When every task is checked, move this file from `docs/exec-plans/active/` to `docs/exec-plans/completed/` without renaming, then change `- Status: active` to `- Status: completed` and append a `- Completed: yyyy-MM-dd` list item. The filename date stays the original creation date.
+<!--
+When every task is checked, move this file from `docs/exec-plans/active/` to `docs/exec-plans/completed/` without renaming, then change `status: active` to `status: completed` and set `completed: yyyy-MM-dd` in frontmatter. The filename date stays the original creation date.
+-->

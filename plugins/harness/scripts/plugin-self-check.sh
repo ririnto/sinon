@@ -116,6 +116,48 @@ reject_text_in_paths() {
   done
 }
 
+# Reject unresolved template tokens in prose text of Markdown-like documents.
+#
+# @param path Markdown or text document path to inspect.
+# @exit Exits with status 1 when prose contains an unresolved template token.
+reject_unresolved_template_tokens_in_document() {
+  path=$1
+  if ! python3 - "$path" <<'PYEOF'
+import re
+import sys
+from pathlib import Path
+path = Path(sys.argv[1])
+try:
+    text = path.read_text(encoding="utf-8")
+except UnicodeDecodeError:
+    raise SystemExit(0)
+stripped_lines = []
+in_fence = False
+fence_marker = ""
+for line in text.splitlines():
+    fence_match = re.match(r" {0,3}(`{3,}|~{3,})", line)
+    if fence_match:
+        marker = fence_match.group(1)[0]
+        if not in_fence:
+            in_fence = True
+            fence_marker = marker
+        elif marker == fence_marker:
+            in_fence = False
+        stripped_lines.append("")
+        continue
+    if in_fence:
+        stripped_lines.append("")
+        continue
+    stripped_lines.append(re.sub(r"`+[^`\n]*`+", "", line))
+if re.search(r"\{\{[^}]+\}\}", "\n".join(stripped_lines)):
+    raise SystemExit(1)
+PYEOF
+  then
+    printf '%s\n' "[unresolved_template_tokens] unresolved template token in active document: $path" >&2
+    exit 1
+  fi
+}
+
 # Reject Git hooks path setters while allowing read-only queries.
 #
 # @param paths File or directory paths.
@@ -404,18 +446,17 @@ reject_missing_doc_separator_in_shell() {
 # @exit Exits with status 1 when shellcheck violation is found.
 reject_shellcheck_violations_in_shell() {
   path=$1
-  shellcheck_probe=$(command -v shellcheck 2>&1)
-  if [ -z "$shellcheck_probe" ]; then
+  if ! shellcheck_path=$(command -v shellcheck 2>&1); then
     printf 'warning: shellcheck not in PATH; skipping shellcheck enforcement for %s\n' "$path" >&2
-    unset shellcheck_probe
+    unset shellcheck_path
     return 0
   fi
-  if ! shellcheck_output=$(shellcheck -s sh -f gcc "$path" 2>&1); then
+  if ! shellcheck_output=$("$shellcheck_path" -s sh -f gcc "$path" 2>&1); then
     printf '%s\n' "$shellcheck_output" >&2
     printf '%s\n' "[reject_shellcheck_violations_in_shell] fails shellcheck: $path" >&2
     exit 1
   fi
-  unset shellcheck_probe
+  unset shellcheck_path
 }
 
 for path in \
@@ -445,19 +486,28 @@ for path in \
   "$root/skills/harness-install/assets/common/docs/harness/templates/docs/generated-artifact.md" \
   "$root/skills/harness-install/assets/bun/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/bun/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/bun/docs/harness/manifest.json" \
   "$root/skills/harness-install/assets/bun/runtime/harness-validate.ts" \
   "$root/skills/harness-install/assets/gradle/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/gradle/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/gradle/docs/harness/manifest.json" \
   "$root/skills/harness-install/assets/maven/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/maven/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/maven/docs/harness/manifest.json" \
   "$root/skills/harness-install/assets/uv/runtime/harness_validate.py" \
+  "$root/skills/harness-install/assets/uv/docs/harness/manifest.json" \
   "$root/skills/harness-install/assets/uv/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/uv/.gitlab-ci.yml" \
   "$root/skills/harness-install/assets/shell/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/shell/.gitlab-ci.yml" \
+  "$root/skills/harness-install/assets/shell/docs/harness/manifest.json" \
   "$root/skills/harness-install/assets/shell/runtime/harness-validate.sh" \
   "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" \
-  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java"; do
+  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/ai/harness/gradle/PsiFinding.kt" \
+  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/ai/harness/gradle/rules/ClassMemberOrderingRule.kt" \
+  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/ai/harness/gradle/rules/TerminalBranchWhenRule.kt" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/ai/harness/maven/rules/ClassMemberOrderingRule.java"; do
   require_file "$path"
 done
 
@@ -542,11 +592,14 @@ fi
 python3 - "$root" <<'PY'
 import json
 import pathlib
+import re
 import sys
 
 root = pathlib.Path(sys.argv[1])
 plugin = json.loads((root / ".claude-plugin/plugin.json").read_text())
 manifest = json.loads((root / "skills/harness-install/assets/common/docs/harness/manifest.json").read_text())
+manifest_schema = json.loads((root / "skills/harness-install/assets/common/docs/harness/manifest.schema.json").read_text())
+install_script = (root / "skills/harness-install/scripts/install-harness.sh").read_text()
 errors = []
 if plugin.get("$schema") != "https://anthropic.com/claude-code/plugin.schema.json":
     errors.append("plugin manifest schema mismatch")
@@ -593,6 +646,54 @@ if settings_json_exists != has_settings:
         errors.append("manifest must declare settings because settings.json exists")
     else:
         errors.append("settings.json target file missing for settings declaration")
+allowed_schema_properties = {"$schema", "name", "description", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns"}
+schema_properties = set(manifest_schema.get("properties", {}).keys())
+if schema_properties != allowed_schema_properties:
+    errors.append("manifest schema must validate add-on shape without enumerating check keys")
+if "copy_stack_manifest" not in install_script or "docs/harness/manifest.json" not in install_script:
+    errors.append("installer must apply the selected stack manifest slice")
+def reject_prefixed_rule_ids(value, path):
+    old_rule_id_pattern = re.compile(r"^(require|forbid)[A-Z]")
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if isinstance(key, str) and old_rule_id_pattern.match(key):
+                errors.append(f"manifest canonical rule id must be neutral: {path}.{key}")
+            reject_prefixed_rule_ids(child, f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            reject_prefixed_rule_ids(child, f"{path}[{index}]")
+    elif isinstance(value, str) and old_rule_id_pattern.match(value):
+        errors.append(f"manifest canonical rule reference must be neutral: {path}={value}")
+reject_prefixed_rule_ids(manifest, "common manifest")
+stack_expectations = {
+    "gradle": {"languages": {"kotlin", "java"}, "must": {"implicitLambdaIt", "classMemberOrdering", "companionObjectPosition", "terminalBranchWhen"}, "forbidden_keys": set()},
+    "maven": {"languages": {"java"}, "must": {"classMemberOrdering"}, "forbidden_keys": {"companionObjectPosition", "terminalBranchWhen"}},
+    "uv": {"languages": {"python"}, "must": {"greaterThanComparison"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
+    "bun": {"languages": {"typescript"}, "must": {"greaterThanComparison"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
+    "shell": {"languages": None, "must": {"filePresence", "scaffoldLeaks"}, "forbidden_keys": {"classMemberOrdering", "greaterThanComparison", "importOverFqn", "terminalBranchWhen"}},
+}
+for stack, expectation in stack_expectations.items():
+    stack_manifest_path = root / f"skills/harness-install/assets/{stack}/docs/harness/manifest.json"
+    if not stack_manifest_path.is_file():
+        errors.append(f"missing stack manifest slice: {stack}")
+        continue
+    stack_manifest = json.loads(stack_manifest_path.read_text())
+    reject_prefixed_rule_ids(stack_manifest, f"{stack} manifest")
+    for required_key in expectation["must"]:
+        if required_key not in stack_manifest:
+            errors.append(f"{stack} manifest missing expected key: {required_key}")
+    for forbidden in expectation["forbidden_keys"]:
+        if forbidden in stack_manifest:
+            errors.append(f"{stack} manifest contains non-selected stack content: {forbidden}")
+    languages = expectation["languages"]
+    if languages is not None:
+        for key, value in stack_manifest.items():
+            params = value.get("parameters") if isinstance(value, dict) else None
+            if isinstance(params, dict):
+                for stack_map_name in ("sourceRootsPerStack", "extensionsPerStack"):
+                    stack_map = params.get(stack_map_name)
+                    if isinstance(stack_map, dict) and set(stack_map.keys()) - languages:
+                        errors.append(f"{stack} manifest {key}.{stack_map_name} contains non-selected language keys")
 def manifest_items(manifest, key):
     section = manifest.get(key, {})
     if isinstance(section, dict):
@@ -741,6 +842,7 @@ $root/skills/harness-install/assets/common
 $root/skills/harness-install/assets/bun
 $root/skills/harness-install/assets/gradle
 $root/skills/harness-install/assets/maven
+$root/skills/harness-install/assets/shell
 $root/skills/harness-install/assets/uv
 "
 
@@ -759,10 +861,11 @@ for template_root in $template_roots; do
         ;;
     esac
     if [ -f "$path" ]; then
-      if grep -E '\{\{[^}]+\}\}' "$path"; then
-        printf '%s\n' "[unresolved_template_tokens] unresolved template token in active asset: $path" >&2
-        exit 1
-      fi
+      case "$path" in
+        *.md|*.txt)
+          reject_unresolved_template_tokens_in_document "$path"
+          ;;
+      esac
     fi
   done
 done

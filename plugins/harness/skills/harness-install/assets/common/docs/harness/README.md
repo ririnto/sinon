@@ -41,9 +41,9 @@ Run the command for the repository stack:
 
 - Gradle harness validation: `./gradlew harnessValidate`, or `gradle harnessValidate` when this repository uses system Gradle without a wrapper
 - Gradle final check: `./gradlew check`, or `gradle check` when this repository uses system Gradle without a wrapper
-- Maven: `mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate`
-- uv: `uv run python docs/harness/uv/harness_validate.py`
-- bun: `bun run docs/harness/bun/harness-validate.ts`
+- Maven: `mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate`
+- uv: `uv run --script docs/harness/uv/harness_validate.py`
+- bun: `bun --install=fallback run docs/harness/bun/harness-validate.ts`
 
 The generated Gradle `pre-commit` hook runs `harnessValidate`; non-Gradle `pre-commit` hooks check lightweight harness-rule compliance only. The generated `pre-push` hook runs the selected final check command and should match CI when CI snippets are present.
 

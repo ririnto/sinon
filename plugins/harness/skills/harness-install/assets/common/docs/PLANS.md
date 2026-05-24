@@ -10,11 +10,11 @@ Replace the example milestones below with your own; keep the columns and status 
 
 | Milestone | Target outcome | Status | Owner | Notes |
 | --- | --- | --- | --- | --- |
-| M1: Discovery and product spec | Validated product spec under `docs/product-specs/` | shipped | {{owner}} | |
-| M2: Architecture and harness installed | `ARCHITECTURE.md` + harness validator green | shipped | {{owner}} | |
-| M3: Internal beta with daily-driver agents | End-to-end agent workflow with hooks + CI green | in flight | {{owner}} | |
-| M4: External alpha | Opt-in alpha users, observability and feedback loop | planned | {{owner}} | |
-| M5: General availability | SLOs met for one full month + retention dashboards green | planned | {{owner}} | |
+| M1: Discovery and product spec | Validated product spec under `docs/product-specs/` | shipped | project-owner | |
+| M2: Architecture and harness installed | `ARCHITECTURE.md` + harness validator green | shipped | project-owner | |
+| M3: Internal beta with daily-driver agents | End-to-end agent workflow with hooks + CI green | in flight | project-owner | |
+| M4: External alpha | Opt-in alpha users, observability and feedback loop | planned | project-owner | |
+| M5: General availability | SLOs met for one full month + retention dashboards green | planned | project-owner | |
 
 ## Sequencing Rationale
 

@@ -1,11 +1,13 @@
-# 2026-05-23-ast-based-style-checks
+---
+status: active
+created: 2026-05-23
+updated: 2026-05-24
+completed: 
+author: ririnto
+assignee: ririnto
+---
 
-- Status: active
-- Created: 2026-05-23
-- Last Updated: 2026-05-23
-- Completed:
-- Author: ririnto
-- Assignee: ririnto
+# 2026-05-23-ast-based-style-checks
 
 ## Goal
 
@@ -13,14 +15,14 @@ stack-별 코드 스타일 검사를 *AST 기반*으로 도입한다. 정확성 
 
 신규 add-on (이미 manifest에 등록됨):
 
-- `forbidGreaterThanComparison` (enabled): `>`/`>=` 대신 `<`/`<=` 만 허용.
-- `forbidBlankLineInLeafFunction` (enabled): nested function이 없는 *leaf* 함수 본문에 공백 라인 금지.
-- `forbidEarlyReturn`, `forbidSilentCatch`, `forbidMutableCollection`, `forbidUnstructuredLogging`, `forbidWildcardImport`, `requireImportOverFqn` (WARN), `requireDocCommentOnPublicDeclaration` (WARN), `forbidEmptyCatchBlock` — 모두 disabled로 등록. 구현 후 enable.
+- `greaterThanComparison` (enabled): `>`/`>=` 대신 `<`/`<=` 만 허용.
+- `leafFunctionBlankLines` (enabled): nested function이 없는 *leaf* 함수 본문에 공백 라인 금지.
+- `earlyReturn`, `silentCatch`, `mutableCollection`, `unstructuredLogging`, `wildcardImport`, `importOverFqn` (WARN), `publicDeclarationDocComment` (WARN), `emptyCatchBlock` — 모두 disabled로 등록. 구현 후 enable.
 
 기존 정규식 기반 검사 마이그레이션 대상:
 
-- `forbidImplicitLambdaIt` (Kotlin)
-- `requireSingleTopLevelKotlinDeclaration` (Kotlin)
+- `implicitLambdaIt` (Kotlin)
+- `kotlinTopLevelDeclarationCount` (Kotlin)
 
 모든 검사는 stack-native AST API 사용. 정규식 금지.
 
@@ -82,8 +84,8 @@ parameters:
 
 추가할 enum member 2개 (이번 phase 범위):
 
-- `FORBID_GREATER_THAN_COMPARISON = ("forbidGreaterThanComparison", _validate_forbid_greater_than_comparison)`
-- `FORBID_BLANK_LINE_IN_LEAF_FUNCTION = ("forbidBlankLineInLeafFunction", _validate_forbid_blank_line_in_leaf_function)`
+- `FORBID_GREATER_THAN_COMPARISON = ("greaterThanComparison", _validate_forbid_greater_than_comparison)`
+- `FORBID_BLANK_LINE_IN_LEAF_FUNCTION = ("leafFunctionBlankLines", _validate_forbid_blank_line_in_leaf_function)`
 
 `_validate_forbid_greater_than_comparison(root, manifest)`:
 
@@ -190,7 +192,7 @@ function stackSources(manifest: Manifest, category: string): readonly string[] {
 
 ```ts
 {
-  category: "forbidGreaterThanComparison",
+  category: "greaterThanComparison",
   severityDefault: "ERROR",
   applies(manifest) { return manifest[this.category]?.enabled !== false; },
   validate(root, manifest) {
@@ -202,7 +204,7 @@ function stackSources(manifest: Manifest, category: string): readonly string[] {
           const op = node.operatorToken.kind;
           if (op === ts.SyntaxKind.GreaterThanToken || op === ts.SyntaxKind.GreaterThanEqualsToken) {
             const { line } = src.getLineAndCharacterOfPosition(node.getStart());
-            findings.push({ severity: severityOf(manifest, "forbidGreaterThanComparison"), category: "forbidGreaterThanComparison", message: `${file}:${line + 1}: forbidden \`>\`/\`>=\`; use \`<\`/\`<=\`` });
+            findings.push({ severity: severityOf(manifest, "greaterThanComparison"), category: "greaterThanComparison", message: `${file}:${line + 1}: forbidden \`>\`/\`>=\`; use \`<\`/\`<=\`` });
           }
         }
         node.forEachChild(visit);
@@ -214,7 +216,7 @@ function stackSources(manifest: Manifest, category: string): readonly string[] {
 },
 ```
 
-`forbidBlankLineInLeafFunction` spec:
+`leafFunctionBlankLines` spec:
 
 - `ts.FunctionDeclaration` / `ts.MethodDeclaration` / `ts.ArrowFunction` / `ts.FunctionExpression` 노드 순회.
 - leaf 판단: visit child nodes, return true on `isFunctionLike(child)`. 없으면 leaf.
@@ -226,7 +228,7 @@ fixture 동일 패턴 (TS 문법으로 변환).
 
 ```sh
 cd /tmp/harness-target
-bun run docs/harness/bun/harness-validate.ts
+bun --install=fallback run docs/harness/bun/harness-validate.ts
 ```
 
 - [ ] Task 3.1 — bun runtime에 typescript 의존성 추가
@@ -277,7 +279,7 @@ static String extensionOf(Path p) { String s = p.getFileName().toString(); int i
 추가 enum value 2개:
 
 ```java
-FORBID_GREATER_THAN_COMPARISON("forbidGreaterThanComparison") {
+FORBID_GREATER_THAN_COMPARISON("greaterThanComparison") {
   @Override List<Finding> validate(Path root, JsonNode manifest) {
     List<Finding> findings = new ArrayList<>();
     for (Path file : stackSources(manifest, category)) {
@@ -316,7 +318,7 @@ class Violation {
 
 - [ ] Task 4.1 — pom.xml에 javaparser-core dependency 추가
 - [ ] Task 4.2 — HarnessCheck.java에 helper + 2 enum value 추가
-- [ ] Task 4.3 — 위반/통과 fixture로 검증 (`mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate`)
+- [ ] Task 4.3 — 위반/통과 fixture로 검증 (`mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate`)
 
 ### [x] Phase 5: Kotlin AST (gradle stack) — sub-agent prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
 
@@ -467,30 +469,30 @@ Kotlin 2.3.21이 K1 PSI API를 hard compile error로 격상. 대응:
 
 감사 결과 (manifest 32 add-on vs stack 검증 코드 정합):
 
-- Kotlin: 25 → 32 (7 신규: forbidEarlyReturn / forbidSilentCatch / forbidMutableCollection / forbidUnstructuredLogging / requireImportOverFqn / requireDocCommentOnPublicDeclaration / requireCompanionObjectPosition)
+- Kotlin: 25 → 32 (7 신규: earlyReturn / silentCatch / mutableCollection / unstructuredLogging / importOverFqn / publicDeclarationDocComment / companionObjectPosition)
 - Java: 30 → 30 (잔여는 의도된 single-stack non-Java)
-- Python: 27 → 28 (requireCiCommandMatchesHook 추가). 잔여 4건은 의도된 N/A (manifest.python=[] 또는 Kotlin-only)
-- TypeScript: 29 → 31 (forbidUnsafeSymlinks + requireImportOverFqn). 잔여 1건은 Kotlin-only requireCompanionObjectPosition
+- Python: 27 → 28 (ciHookCommandParity 추가). 잔여 4건은 의도된 N/A (manifest.python=[] 또는 Kotlin-only)
+- TypeScript: 29 → 31 (symlinkSafety + importOverFqn). 잔여 1건은 Kotlin-only companionObjectPosition
 
 `HarnessCheck.Companion.` 명시 호출은 `HarnessCheck.` 단축형으로 정리.
 
 manifest의 9개 disabled add-on 모두를 red-green으로 활성화하고, 새 type 추가:
 
-- forbidEarlyReturn (ERROR, 4 stack)
-- forbidSilentCatch (ERROR, 4 stack)
-- forbidMutableCollection (ERROR, Kotlin/Java/TS — Python 제외)
-- forbidUnstructuredLogging (ERROR, 4 stack)
-- forbidWildcardImport (ERROR, 4 stack)
-- requireImportOverFqn (WARN, 4 stack, name-clash 예외)
-- requireDocCommentOnPublicDeclaration (WARN, 4 stack)
-- forbidEmptyCatchBlock (ERROR, 4 stack)
-- requireBracesOnIf (ERROR, Kotlin/Java/TS — Python 제외)
-- **NEW** requireCompanionObjectPosition (ERROR, Kotlin only, `parameters.position`: "top" | "bottom", 기본 "top")
+- earlyReturn (WARN, 4 stack)
+- silentCatch (ERROR, 4 stack)
+- mutableCollection (ERROR, Kotlin/Java/TS — Python 제외)
+- unstructuredLogging (ERROR, 4 stack)
+- wildcardImport (ERROR, 4 stack)
+- importOverFqn (WARN, 4 stack, name-clash 예외)
+- publicDeclarationDocComment (WARN, 4 stack)
+- emptyCatchBlock (ERROR, 4 stack)
+- ifStatementBraces (ERROR, Kotlin/Java/TS — Python 제외)
+- **NEW** companionObjectPosition (ERROR, Kotlin only, `parameters.position`: "top" | "bottom", 기본 "top")
 
 진행 절차:
 
-- [x] Task 8c.1 — `manifest.json` 일괄 편집: 9개 add-on `enabled: true` + 새 `requireCompanionObjectPosition` 추가 (commit c039ef8).
-- [x] Task 8c.2 — 4 stack 검증 코드 구현. 단일 add-on 단위로 commit (e911abc forbidWildcardImport / 7826db5 forbidEmptyCatchBlock) → 이후 누락 감사로 일괄 보강 (200a48b: Kotlin 7 + TS 2 + Python 1).
+- [x] Task 8c.1 — `manifest.json` 일괄 편집: 9개 add-on `enabled: true` + 새 `companionObjectPosition` 추가 (commit c039ef8).
+- [x] Task 8c.2 — 4 stack 검증 코드 구현. 단일 add-on 단위로 commit (e911abc wildcardImport / 7826db5 emptyCatchBlock) → 이후 누락 감사로 일괄 보강 (200a48b: Kotlin 7 + TS 2 + Python 1).
 - [x] Task 8c.3 — 최종 검증: self-check exit 0. 정합성 감사로 4 stack 모두 manifest 적용 의도 100% 커버 확인.
 
 ### [-] Phase 9: 검증
@@ -529,7 +531,7 @@ enum constant 안에 validate 본문이 인라인되어 있어 1000 라인 단�
 
 ### [x] Phase 12: 중간 `return emptyList()` 제거 (commit 5fc0d59)
 
-각 Rule 본문 안의 early-return guard (예: `if (...) return emptyList()`, `return Collections.emptyList()`, `return []`)를 모두 제거하고 single-exit + buildList / Stream / list comprehension 패턴으로 통합. `forbidEarlyReturn` add-on과 자연스럽게 정합.
+각 Rule 본문 안의 early-return guard (예: `if (...) return emptyList()`, `return Collections.emptyList()`, `return []`)를 모두 제거하고 single-exit + buildList / Stream / list comprehension 패턴으로 통합. `earlyReturn` add-on과 자연스럽게 정합.
 
 - [ ] Task 12.1 — Kotlin: `buildList { ... }` 또는 `flatMap` 체이닝.
 - [ ] Task 12.2 — Java: `Stream.of(...).filter(...).collect(...)` 등.
@@ -645,3 +647,54 @@ Rule class를 모아 관리할 전용 하위 네임스페이스를 둠. Python/T
 ## Rollback Criteria
 
 AST 의존성 도입 후 정확성 문제(false positive / false negative)가 발견되면 해당 stack 변경을 `git revert` 후 fixture를 추가하여 재시도.
+
+### [x] Phase 14: importOverFqn Red-Green and Immutable Finding Builders
+
+Scope added on 2026-05-24:
+
+- Red-green fix for Java `importOverFqn` so inline FQNs such as `java.util.Objects::nonNull` are reported.
+- Keep the documented disambiguation exception: inline FQN is allowed only when the simple name conflicts with a different explicit import.
+- Replace nullable finding-builder patterns such as `listOfNotNull(when { ... else -> null })` and `mapIndexedNotNull { when (...) { ... else -> null } }` with immutable `buildList` / `buildSet` / direct `if` construction where that improves clarity.
+- Lower `earlyReturn` severity to WARN so it reports style guidance without blocking validation.
+- Do not add compatibility aliases, shims, or regex-based source parsing.
+
+Verification:
+
+```sh
+mvn -q -f plugins/harness/skills/harness-install/assets/maven/harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate
+mvn -q test
+sh plugins/harness/scripts/plugin-self-check.sh
+gradle --no-daemon -q build -x harnessValidate
+```
+
+Tasks:
+
+- [x] Task 14.1 - Capture red for the existing `java.util.Objects::nonNull` miss. Maven validation fails on pre-existing package-shape errors but emits no `java.util.Objects`/FQN finding.
+- [x] Task 14.2 - Fix Java AST FQN detection in Maven `ImportOverFqnRule`.
+- [x] Task 14.3 - Replace nullable finding-builder patterns in Gradle rule/runtime code with immutable builders or direct `if` checks.
+- [x] Task 14.4 - Run green validation and update this phase status.
+
+### [x] Phase 15: Template Backgrounds and Rule Identity Parity
+
+Scope added on 2026-05-24:
+
+- Add a `## Backgrounds` section to the execution-plan template so each plan records why it exists and which evidence triggered it.
+- Neutralize remaining uv/Bun runtime implementation filenames and import paths that still use `require_*`, `forbid_*`, `require-*`, or `forbid-*` prefixes.
+- Recheck Gradle Kotlin `importOverFqn` parity. The rule facade delegates to PSI findings; implementation belongs in `HarnessValidationPlugin.kt`.
+- Keep source detection AST/PSI-based. Do not add regex source parsing, aliases, shims, or compatibility files.
+
+Validation:
+
+```sh
+sh plugins/harness/scripts/plugin-self-check.sh
+python3 -m py_compile plugins/harness/skills/harness-install/assets/uv/runtime/harness_check.py plugins/harness/skills/harness-install/assets/uv/runtime/harness_validate.py plugins/harness/skills/harness-install/assets/uv/runtime/rules/*.py
+bun build plugins/harness/skills/harness-install/assets/bun/runtime/harness-check.ts --target=bun
+gradle --no-daemon -q build -x harnessValidate
+```
+
+Tasks:
+
+- [x] Task 15.1 - Add active `## Backgrounds` template section after `## Phases`.
+- [x] Task 15.2 - Rename uv/Bun runtime rule implementation files to neutral category filenames and update imports.
+- [x] Task 15.3 - Implement Gradle Kotlin expression-FQN detection in `ImportOverFqnRule.kt`. Temp Gradle target reports `java.time.Instant` importOverFqn finding; imported simple-name and name-clash fixtures do not emit importOverFqn.
+- [x] Task 15.4 - Run validation and stale identity scans.

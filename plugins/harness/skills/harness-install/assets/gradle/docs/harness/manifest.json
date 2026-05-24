@@ -1,8 +1,8 @@
 {
   "$schema": "./manifest.schema.json",
   "name": "repository-harness",
-  "description": "Harness validation manifest. Every check add-on follows the same uniform shape: { description, enabled, severity, messages, parameters }. metadata entries carry description + data and are not validated. The harness is not versioned. Unknown top-level keys are logged as WARN by the validator main routine (no add-on entry for that \u2014 it is the default behavior).",
-  "requireFilesExist": {
+  "description": "Harness validation manifest for the selected Gradle installation slice. It contains only stack-relevant add-ons plus shared structural checks.",
+  "filePresence": {
     "description": "Every path in parameters.paths MUST exist as a regular file under the target repository root.",
     "enabled": true,
     "severity": "ERROR",
@@ -29,7 +29,7 @@
       ]
     }
   },
-  "requireDirectoriesExist": {
+  "directoryPresence": {
     "description": "Every path in parameters.paths MUST exist as a directory under the target repository root.",
     "enabled": true,
     "severity": "ERROR",
@@ -53,7 +53,7 @@
       ]
     }
   },
-  "requireKeepfileInEmptyDirectories": {
+  "emptyDirectoryPlaceholders": {
     "description": "Each directory in parameters.directories MUST contain at least one real file or a .gitkeep placeholder.",
     "enabled": true,
     "severity": "ERROR",
@@ -68,7 +68,7 @@
       ]
     }
   },
-  "requireTemplateGroups": {
+  "templateGroups": {
     "description": "Each group in parameters.groups MUST exist as a directory under parameters.targetRoot.",
     "enabled": true,
     "severity": "WARN",
@@ -86,7 +86,7 @@
       ]
     }
   },
-  "requireDocHeadings": {
+  "docHeadings": {
     "description": "Each authored .md file derived from parameters.sourceFilesFromCategory.paths and matching parameters.sourceFilter MUST contain every heading in parameters.headings.",
     "enabled": true,
     "severity": "WARN",
@@ -94,7 +94,7 @@
       "default": "doc missing {heading}: {file}"
     },
     "parameters": {
-      "sourceFilesFromCategory": "requireFilesExist",
+      "sourceFilesFromCategory": "filePresence",
       "sourceFilter": {
         "prefix": "docs/",
         "suffix": ".md"
@@ -106,8 +106,8 @@
       ]
     }
   },
-  "requireDocContent": {
-    "description": "For each entry in parameters.checks, the concatenation of files content (newline-joined) MUST contain every substring in containsAll. Otherwise the entry's failureMessage is emitted.",
+  "docContent": {
+    "description": "For each entry in parameters.checks, files are concatenated with newlines and evaluated against a condition/when expression. Conditions support string contains checks, allOf (AND), anyOf (OR), contains, and not; nested objects define precedence, explicit empty anyOf fails.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {},
@@ -117,63 +117,75 @@
           "files": [
             "CLAUDE.md"
           ],
-          "containsAll": [
-            "Repository Harness Contract"
-          ],
-          "failureMessage": "root contract (CLAUDE.md; AGENTS.md symlinks to it) must contain Repository Harness Contract"
+          "failureMessage": "root contract (CLAUDE.md; AGENTS.md symlinks to it) must contain Repository Harness Contract",
+          "condition": {
+            "allOf": [
+              "Repository Harness Contract"
+            ]
+          }
         },
         {
           "files": [
             "CLAUDE.md"
           ],
-          "containsAll": [
-            "## Entry Point"
-          ],
-          "failureMessage": "root contract must contain an Entry Point section"
+          "failureMessage": "root contract must contain an Entry Point section",
+          "condition": {
+            "allOf": [
+              "## Entry Point"
+            ]
+          }
         },
         {
           "files": [
             "CLAUDE.md"
           ],
-          "containsAll": [
-            "AGENTS.md"
-          ],
-          "failureMessage": "root contract must reference AGENTS.md as a symlink to CLAUDE.md so both filenames resolve to the same document"
+          "failureMessage": "root contract must reference AGENTS.md as a symlink to CLAUDE.md so both filenames resolve to the same document",
+          "condition": {
+            "allOf": [
+              "AGENTS.md"
+            ]
+          }
         },
         {
           "files": [
             "CLAUDE.md"
           ],
-          "containsAll": [
-            "docs/generated/"
-          ],
-          "failureMessage": "root contract must describe docs/generated/ semantics"
+          "failureMessage": "root contract must describe docs/generated/ semantics",
+          "condition": {
+            "allOf": [
+              "docs/generated/"
+            ]
+          }
         },
         {
           "files": [
             "CLAUDE.md",
             "ARCHITECTURE.md"
           ],
-          "containsAll": [
-            "source command",
-            "regeneration trigger"
-          ],
-          "failureMessage": "repository docs must describe generated-artifact source command and regeneration trigger metadata"
+          "failureMessage": "repository docs must describe generated-artifact source command and regeneration trigger metadata",
+          "condition": {
+            "allOf": [
+              "source command",
+              "regeneration trigger"
+            ]
+          }
         },
         {
           "files": [
             "CLAUDE.md"
           ],
-          "containsAll": [
-            "discovery",
-            "maintenance"
-          ],
-          "failureMessage": "root contract must state that the harness may evolve across development phases"
+          "failureMessage": "root contract must state that the harness may evolve across development phases",
+          "condition": {
+            "allOf": [
+              "discovery",
+              "maintenance"
+            ]
+          }
         }
       ]
     }
   },
-  "requireAgentFrontmatter": {
+  "agentFrontmatter": {
     "description": "Every .md file directly under parameters.directory MUST start with parameters.frontmatterStart and contain every field in parameters.requiredFields. The `name` value MUST match parameters.namePattern.",
     "enabled": true,
     "severity": "ERROR",
@@ -194,7 +206,7 @@
       "namePattern": "(?m)^name:\\s*[-a-z0-9]+\\s*$"
     }
   },
-  "requireSkillFrontmatter": {
+  "skillFrontmatter": {
     "description": "Every file named parameters.filename under parameters.rootDirectory (any depth) MUST start with parameters.frontmatterStart and contain every field in parameters.requiredFields.",
     "enabled": true,
     "severity": "ERROR",
@@ -212,7 +224,7 @@
       ]
     }
   },
-  "forbidScaffoldLeaks": {
+  "scaffoldLeaks": {
     "description": "Scan every file under parameters.scope.bases (excluding excludedSubtrees and files whose extension is not in extensions) and emit a finding for every regex match in parameters.patterns.",
     "enabled": true,
     "severity": "ERROR",
@@ -237,10 +249,7 @@
         ],
         "extensions": [
           "md",
-          "txt",
-          "json",
-          "yml",
-          "yaml"
+          "txt"
         ]
       },
       "patterns": [
@@ -267,7 +276,7 @@
       ]
     }
   },
-  "requireHookShebang": {
+  "hookShebang": {
     "description": "Each hook in parameters.hooks MUST start with the line in parameters.expectedShebang.",
     "enabled": true,
     "severity": "ERROR",
@@ -282,7 +291,7 @@
       "expectedShebang": "#!/usr/bin/env sh"
     }
   },
-  "requireHookExecutable": {
+  "hookExecutable": {
     "description": "Each hook in parameters.hooks MUST have its executable bit set on disk.",
     "enabled": true,
     "severity": "ERROR",
@@ -296,7 +305,7 @@
       ]
     }
   },
-  "requireHookGeneratedMarker": {
+  "hookGeneratedMarker": {
     "description": "Each hook in parameters.hooks MUST contain parameters.markerTemplate (with {name} substituted) and MUST NOT contain parameters.placeholderForbidden.",
     "enabled": true,
     "severity": "ERROR",
@@ -313,7 +322,7 @@
       "placeholderForbidden": "packaged placeholder is replaced during harness installation"
     }
   },
-  "requireHookStage": {
+  "hookStage": {
     "description": "Each hook MUST contain parameters.markerTemplate with {stage} substituted from parameters.stages[<stack>][<hookName>]. The active stack identifier is supplied by the validator at runtime.",
     "enabled": true,
     "severity": "WARN",
@@ -346,7 +355,7 @@
       }
     }
   },
-  "requireHookCommand": {
+  "hookCommand": {
     "description": "parameters.prePushHook MUST declare and run a command listed in parameters.allowedCommands[<stack>]. When parameters.allowedPreCommitCommands[<stack>] is non-empty, parameters.preCommitHook MUST also declare and run one of those commands; otherwise pre-commit MUST NOT run any full-stack validation command.",
     "enabled": true,
     "severity": "ERROR",
@@ -365,13 +374,13 @@
           "gradle check"
         ],
         "maven": [
-          "mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate"
+          "mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate"
         ],
         "uv": [
-          "uv run python docs/harness/uv/harness_validate.py"
+          "uv run --script docs/harness/uv/harness_validate.py"
         ],
         "bun": [
-          "bun run docs/harness/bun/harness-validate.ts"
+          "bun --install=fallback run docs/harness/bun/harness-validate.ts"
         ],
         "shell": [
           "sh docs/harness/shell/harness-validate.sh"
@@ -385,7 +394,7 @@
       }
     }
   },
-  "requireCiCommandMatchesHook": {
+  "ciHookCommandParity": {
     "description": "Each existing file in parameters.ciFiles MUST contain the validation command declared by parameters.referenceHook. Absent files are skipped.",
     "enabled": true,
     "severity": "WARN",
@@ -400,7 +409,7 @@
       "referenceHook": "docs/harness/git-hooks/pre-push"
     }
   },
-  "requireEnvShebangUnder": {
+  "envShebangUsage": {
     "description": "Any executable script under parameters.directories whose first line starts with `#!` MUST start with parameters.expectedPrefix.",
     "enabled": true,
     "severity": "WARN",
@@ -415,7 +424,7 @@
       "expectedPrefix": "#!/usr/bin/env "
     }
   },
-  "forbidUncheckedTasksUnder": {
+  "uncheckedTasks": {
     "description": "Every file matching parameters.filenamePattern under parameters.directory MUST NOT contain any line matching parameters.uncheckedTaskPattern. Enforces that plans moved into directory have all tasks marked done.",
     "enabled": true,
     "severity": "ERROR",
@@ -428,7 +437,7 @@
       "uncheckedTaskPattern": "^\\s*-\\s*\\[ \\]\\s"
     }
   },
-  "forbidUnsafeSymlinks": {
+  "symlinkSafety": {
     "description": "All scanned files and directories MUST NOT be symbolic links, except symlinks within parameters.allowedSymlinkPairs (root contract symlinks).",
     "enabled": true,
     "severity": "ERROR",
@@ -448,7 +457,7 @@
       ]
     }
   },
-  "forbidImplicitLambdaIt": {
+  "implicitLambdaIt": {
     "description": "Kotlin lambdas under parameters.sourceRootsPerStack[kotlin] MUST declare an explicit parameter name; the implicit `it` is forbidden.",
     "enabled": true,
     "severity": "ERROR",
@@ -469,18 +478,24 @@
       }
     }
   },
-  "requireSingleTopLevelKotlinDeclaration": {
-    "description": "Each Kotlin source file under parameters.directories MUST declare exactly one top-level declaration, and that declaration MUST be one of parameters.allowedDeclarations. Catches accidental top-level val/var/fun declarations.",
+  "kotlinTopLevelDeclarationCount": {
+    "description": "Each Kotlin source file under parameters.sourceRootsPerStack[kotlin] MUST declare exactly one top-level declaration, and that declaration MUST be one of parameters.allowedDeclarations. Catches accidental top-level val/var/fun declarations.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "Kotlin file {file} has multiple top-level declarations or a disallowed declaration kind"
+      "default": "{file}: file must have single top-level declaration"
     },
     "parameters": {
-      "directories": [
-        "buildSrc/src/main/kotlin"
-      ],
-      "filenameSuffix": ".kt",
+      "sourceRootsPerStack": {
+        "kotlin": [
+          "buildSrc/src/main/kotlin"
+        ]
+      },
+      "extensionsPerStack": {
+        "kotlin": [
+          "kt"
+        ]
+      },
       "allowedDeclarations": [
         "class",
         "interface",
@@ -492,7 +507,7 @@
       ]
     }
   },
-  "requireCompanionObjectPosition": {
+  "companionObjectPosition": {
     "description": "Kotlin class bodies under parameters.sourceRootsPerStack[kotlin] MUST place their `companion object` declaration at the configured position (`parameters.position`: \"top\" or \"bottom\"). Default \"top\".",
     "enabled": true,
     "severity": "ERROR",
@@ -513,8 +528,8 @@
       }
     }
   },
-  "forbidGreaterThanComparison": {
-    "description": "Source files under parameters.directoriesPerStack[<stack>] MUST NOT use `>` or `>=` comparison operators; smaller value always belongs on the left (`<` / `<=`). Validators implement this via AST: Kotlin PSI, Java JavaParser, Python ast, TypeScript compiler API.",
+  "greaterThanComparison": {
+    "description": "Source files under parameters.sourceRootsPerStack[<stack>] MUST NOT use `>` or `>=` comparison operators; smaller value always belongs on the left (`<` / `<=`). Validators implement this via AST: Kotlin PSI, Java JavaParser, Python ast, TypeScript compiler API.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -524,89 +539,42 @@
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
-        ],
-        "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [
-          "docs/harness/uv",
-          "**/src",
-          "src"
-        ],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
         ]
       },
       "extensionsPerStack": {
         "kotlin": [
           "kt",
           "kts"
-        ],
-        "java": [
-          "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
       }
     }
   },
-  "forbidBlankLineInLeafFunction": {
-    "description": "Leaf functions (function bodies that do not contain any nested function or lambda) under parameters.directoriesPerStack[<stack>] MUST NOT contain blank lines. Outer functions that contain nested functions are exempt. Validators implement this via AST.",
+  "leafFunctionBlankLines": {
+    "description": "Leaf functions (function bodies that do not contain any nested function or lambda) under parameters.sourceRootsPerStack[<stack>] MUST NOT contain more than one consecutive blank line. Outer functions that contain nested functions are exempt. Validators implement this via AST. The allowed blank-line run length is controlled by parameters.maxConsecutiveBlankLines.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: leaf function `{function}` contains a blank line; remove or extract the section"
+      "default": "{file}:{line}: leaf function `{function}` contains too many blank lines; remove or extract the section"
     },
     "parameters": {
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
-        ],
-        "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [
-          "docs/harness/uv",
-          "**/src",
-          "src"
-        ],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
         ]
       },
       "extensionsPerStack": {
         "kotlin": [
           "kt",
           "kts"
-        ],
-        "java": [
-          "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
-      }
+      },
+      "maxConsecutiveBlankLines": 1
     }
   },
-  "forbidEarlyReturn": {
-    "description": "Functions under parameters.directoriesPerStack[<stack>] MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that throws).",
+  "earlyReturn": {
+    "description": "Functions under parameters.sourceRootsPerStack[<stack>] MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that throws).",
     "enabled": true,
-    "severity": "ERROR",
+    "severity": "WARN",
     "messages": {
       "default": "{file}:{line}: function `{function}` has an early/mid return; restructure with single exit"
     },
@@ -614,42 +582,18 @@
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
-        ],
-        "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [
-          "docs/harness/uv",
-          "**/src",
-          "src"
-        ],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
         ]
       },
       "extensionsPerStack": {
         "kotlin": [
           "kt",
           "kts"
-        ],
-        "java": [
-          "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
       }
     }
   },
-  "forbidSilentCatch": {
-    "description": "`try`/`catch` blocks under parameters.directoriesPerStack[<stack>] MUST NOT swallow exceptions. The catch block MUST either rethrow, translate to a `Finding`, or log via the structured logger. Empty or `pass`-only catch blocks are forbidden. Validators implement this via AST.",
+  "silentCatch": {
+    "description": "`try`/`catch` blocks under parameters.sourceRootsPerStack[<stack>] MUST NOT swallow exceptions. The catch block MUST either rethrow, translate to a `Finding`, or log via the structured logger. Empty or `pass`-only catch blocks are forbidden. Validators implement this via AST.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -659,42 +603,18 @@
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
-        ],
-        "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [
-          "docs/harness/uv",
-          "**/src",
-          "src"
-        ],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
         ]
       },
       "extensionsPerStack": {
         "kotlin": [
           "kt",
           "kts"
-        ],
-        "java": [
-          "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
       }
     }
   },
-  "forbidMutableCollection": {
-    "description": "Code under parameters.directoriesPerStack[<stack>] MUST prefer functional collection construction. Forbidden: Kotlin `mutableListOf` / `MutableList`, Java `new ArrayList` / `new HashMap`, Python `[].append` accumulation pattern, TypeScript `Array#push` accumulation. Use `buildList` / `Stream.toList()` / list comprehension / spread + `concat`. Validators implement this via AST: detect forbidden constructor calls and accumulation patterns.",
+  "mutableCollection": {
+    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST prefer functional collection construction. Forbidden: Kotlin `mutableListOf` / `MutableList`, Java `new ArrayList` / `new HashMap`, Python `[].append` accumulation pattern, TypeScript `Array#push` accumulation. Use `buildList` / `Stream.toList()` / list comprehension / spread + `concat`. Validators implement this via AST: detect forbidden constructor calls and accumulation patterns.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -704,38 +624,18 @@
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
-        ],
-        "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
         ]
       },
       "extensionsPerStack": {
         "kotlin": [
           "kt",
           "kts"
-        ],
-        "java": [
-          "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
       }
     }
   },
-  "forbidUnstructuredLogging": {
-    "description": "Code under parameters.directoriesPerStack[<stack>] MUST log via the structured logger only. Forbidden: Kotlin `println`, Java `System.out.println` / `System.err.println`, Python `print(`, TypeScript `console.log` / `console.error` / `console.warn`. Use Slf4j / java.util.logging / Python `logging` / `pino` or equivalent. Validators implement this via AST.",
+  "unstructuredLogging": {
+    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST log via the structured logger only. Forbidden: Kotlin `println`, Java `System.out.println` / `System.err.println`, Python `print(`, TypeScript `console.log` / `console.error` / `console.warn`. Use Slf4j / java.util.logging / Python `logging` / `pino` or equivalent. Validators implement this via AST.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -745,42 +645,18 @@
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
-        ],
-        "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [
-          "docs/harness/uv",
-          "**/src",
-          "src"
-        ],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
         ]
       },
       "extensionsPerStack": {
         "kotlin": [
           "kt",
           "kts"
-        ],
-        "java": [
-          "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
       }
     }
   },
-  "forbidWildcardImport": {
-    "description": "Code under parameters.directoriesPerStack[<stack>] MUST use explicit per-symbol imports. Forbidden: Kotlin `import foo.bar.*`, Java `import foo.bar.*`, Python `from foo import *`, TypeScript `import * as foo from 'foo'` outside of namespace re-export modules. Validators implement this via AST.",
+  "wildcardImport": {
+    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST use explicit per-symbol imports. Forbidden: Kotlin `import foo.bar.*`, Java `import foo.bar.*`, Python `from foo import *`, TypeScript `import * as foo from 'foo'` outside of namespace re-export modules. Validators implement this via AST.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -790,41 +666,17 @@
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
-        ],
-        "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [
-          "docs/harness/uv",
-          "**/src",
-          "src"
-        ],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
         ]
       },
       "extensionsPerStack": {
         "kotlin": [
           "kt",
           "kts"
-        ],
-        "java": [
-          "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
       }
     }
   },
-  "requireImportOverFqn": {
+  "importOverFqn": {
     "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST reach external symbols via `import` rather than inline fully qualified names, EXCEPT when the simple name is already taken by another import in the same file (i.e. the FQN is required to disambiguate). Validators implement this via AST/CST: collect every imported simple name first, then emit a finding when a qualified type reference appears in code AND the qualified name's simple form is NOT already imported under a different qualified name.",
     "enabled": true,
     "severity": "WARN",
@@ -835,42 +687,18 @@
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
-        ],
-        "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [
-          "docs/harness/uv",
-          "**/src",
-          "src"
-        ],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
         ]
       },
       "extensionsPerStack": {
         "kotlin": [
           "kt",
           "kts"
-        ],
-        "java": [
-          "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
       }
     }
   },
-  "requireDocCommentOnPublicDeclaration": {
-    "description": "Every externally visible declaration under parameters.directoriesPerStack[<stack>] MUST carry a documentation comment in the language-native form (KDoc, JavaDoc, reStructuredText docstring, TSDoc). Validators implement this via AST: walk top-level public/exported declarations and emit a finding for missing doc comments.",
+  "publicDeclarationDocComment": {
+    "description": "Every externally visible declaration under parameters.sourceRootsPerStack[<stack>] MUST carry a documentation comment in the language-native form (KDoc, JavaDoc, reStructuredText docstring, TSDoc). Validators implement this via AST: walk top-level public/exported declarations and emit a finding for missing doc comments.",
     "enabled": true,
     "severity": "WARN",
     "messages": {
@@ -880,42 +708,18 @@
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
-        ],
-        "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [
-          "docs/harness/uv",
-          "**/src",
-          "src"
-        ],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
         ]
       },
       "extensionsPerStack": {
         "kotlin": [
           "kt",
           "kts"
-        ],
-        "java": [
-          "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
       }
     }
   },
-  "forbidEmptyCatchBlock": {
-    "description": "Catch handlers under parameters.directoriesPerStack[<stack>] MUST have a non-empty body. Empty catch handlers are a special case of forbidSilentCatch and are listed separately for clarity. Validators implement this via AST.",
+  "emptyCatchBlock": {
+    "description": "Catch handlers under parameters.sourceRootsPerStack[<stack>] MUST have a non-empty body. Empty catch handlers are a special case of silentCatch and are listed separately for clarity. Validators implement this via AST.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -925,41 +729,17 @@
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
-        ],
-        "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [
-          "docs/harness/uv",
-          "**/src",
-          "src"
-        ],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
         ]
       },
       "extensionsPerStack": {
         "kotlin": [
           "kt",
           "kts"
-        ],
-        "java": [
-          "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
       }
     }
   },
-  "requireBracesOnIf": {
+  "ifStatementBraces": {
     "description": "Every `if` / `else if` / `else` clause under parameters.sourceRootsPerStack[<stack>] MUST use a braced block (`{ ... }`), even for single-statement bodies. Validators implement this via AST/CST.",
     "enabled": true,
     "severity": "ERROR",
@@ -970,16 +750,54 @@
       "sourceRootsPerStack": {
         "kotlin": [
           "buildSrc/src/main/kotlin"
+        ]
+      },
+      "extensionsPerStack": {
+        "kotlin": [
+          "kt",
+          "kts"
+        ]
+      }
+    }
+  },
+  "terminalBranchWhen": {
+    "description": "Kotlin code under parameters.sourceRootsPerStack[kotlin] MUST NOT use `if` / `else` as the final/result expression of a function body, block, or property initializer. Use `when` for result-position branching.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: terminal if/else expression in {context}; use when instead"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "kotlin": [
+          "buildSrc/src/main/kotlin"
+        ]
+      },
+      "extensionsPerStack": {
+        "kotlin": [
+          "kt",
+          "kts"
+        ]
+      }
+    }
+  },
+  "classMemberOrdering": {
+    "description": "JVM class bodies under parameters.sourceRootsPerStack[<stack>] MUST keep ordinary members in parameters.order. Order entries MAY be member kinds (for example function), visibility-kind combinations (for example private:function), or override-state visibility-kind combinations (for example override:public:function). Java enum constants and Kotlin enum entries are language-mandated preamble items and are not sorted as ordinary members. Validators implement this via PSI/AST.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: class `{className}` member `{memberName}` ({memberOverrideState}:{memberVisibility}:{memberKind}) is out of order"
+    },
+    "parameters": {
+      "sourceRootsPerStack": {
+        "kotlin": [
+          "buildSrc/src/main/kotlin"
         ],
         "java": [
-          "harness-maven-plugin/src/main/java",
-          "**/src/main/java"
-        ],
-        "python": [],
-        "typescript": [
-          "docs/harness/bun",
-          "**/src",
-          "src"
+          "buildSrc/src/main/java",
+          "buildSrc/src/test/java",
+          "src/main/java",
+          "src/test/java"
         ]
       },
       "extensionsPerStack": {
@@ -989,15 +807,70 @@
         ],
         "java": [
           "java"
-        ],
-        "python": [
-          "py"
-        ],
-        "typescript": [
-          "ts",
-          "tsx"
         ]
-      }
+      },
+      "order": [
+        "nonOverride:public:companionObject",
+        "override:public:companionObject",
+        "nonOverride:protected:companionObject",
+        "override:protected:companionObject",
+        "nonOverride:internal:companionObject",
+        "override:internal:companionObject",
+        "nonOverride:package:companionObject",
+        "override:package:companionObject",
+        "nonOverride:private:companionObject",
+        "override:private:companionObject",
+        "nonOverride:public:fieldOrProperty",
+        "override:public:fieldOrProperty",
+        "nonOverride:protected:fieldOrProperty",
+        "override:protected:fieldOrProperty",
+        "nonOverride:internal:fieldOrProperty",
+        "override:internal:fieldOrProperty",
+        "nonOverride:package:fieldOrProperty",
+        "override:package:fieldOrProperty",
+        "nonOverride:private:fieldOrProperty",
+        "override:private:fieldOrProperty",
+        "nonOverride:public:initializer",
+        "override:public:initializer",
+        "nonOverride:protected:initializer",
+        "override:protected:initializer",
+        "nonOverride:internal:initializer",
+        "override:internal:initializer",
+        "nonOverride:package:initializer",
+        "override:package:initializer",
+        "nonOverride:private:initializer",
+        "override:private:initializer",
+        "nonOverride:public:constructor",
+        "override:public:constructor",
+        "nonOverride:protected:constructor",
+        "override:protected:constructor",
+        "nonOverride:internal:constructor",
+        "override:internal:constructor",
+        "nonOverride:package:constructor",
+        "override:package:constructor",
+        "nonOverride:private:constructor",
+        "override:private:constructor",
+        "nonOverride:public:function",
+        "override:public:function",
+        "nonOverride:protected:function",
+        "override:protected:function",
+        "nonOverride:internal:function",
+        "override:internal:function",
+        "nonOverride:package:function",
+        "override:package:function",
+        "nonOverride:private:function",
+        "override:private:function",
+        "nonOverride:public:nestedType",
+        "override:public:nestedType",
+        "nonOverride:protected:nestedType",
+        "override:protected:nestedType",
+        "nonOverride:internal:nestedType",
+        "override:internal:nestedType",
+        "nonOverride:package:nestedType",
+        "override:package:nestedType",
+        "nonOverride:private:nestedType",
+        "override:private:nestedType"
+      ]
     }
   },
   "seedFiles": {
@@ -1020,7 +893,7 @@
   },
   "harnessEvolution": {
     "description": "Policy for how the harness evolves. Not a check. The harness is not versioned \u2014 the current committed state is the only authoritative shape.",
-    "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract; no schemaVersion, no deprecated keys, no compatibility shims."
+    "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract; no schemaVersion, no deprecated keys, no shims."
   },
   "teamPatterns": {
     "description": "Catalog of team/agent collaboration patterns this harness recognises. Not a check.",

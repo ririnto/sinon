@@ -22,8 +22,8 @@ usage: install-harness.sh [--target DIR] [--mode auto|gradle|maven|uv|bun|shell]
 
 modes:
   auto    Detect the stack from files in the target repository (recommended).
-  gradle  JVM-family projects (Kotlin/Java/Groovy/Scala) using the Gradle build tool.
-  maven   JVM-family projects (Kotlin/Java/Groovy/Scala) using the Apache Maven build tool.
+  gradle  Projects using the Gradle build tool.
+  maven   Projects using the Apache Maven build tool.
   uv      Python-family projects managed by uv (pyproject.toml + uv.lock).
   bun     Node-family projects (TypeScript/JavaScript) managed by bun (package.json, bun.lock).
   shell   Shell-script-only or Makefile-driven projects. Requires python3 on PATH for manifest parsing.
@@ -195,6 +195,32 @@ copy_file() {
   fi
 }
 
+# Copy the selected stack manifest over the common template when safe.
+#
+# @param src Selected stack manifest source path.
+# @param dst Target-relative manifest destination path.
+# @return Writes copied, overwritten, or skipped path.
+copy_stack_manifest() {
+  src=$1
+  dst=$2
+  common_manifest=$template_dir/common/docs/harness/manifest.json
+  ensure_safe_file_destination "$dst"
+  if [ -e "$dst" ] && [ "$force" -ne 1 ]; then
+    if cmp -s "$dst" "$common_manifest"; then
+      tmp=$(dirname "$dst")/.harness-tmp-$$-$(basename "$dst")
+      ensure_safe_file_destination "$tmp"
+      if [ -e "$tmp" ]; then
+        error "[copy_stack_manifest] temporary destination already exists: $tmp (cleanup or retry)"
+      fi
+      cp "$src" "$tmp"
+      mv "$tmp" "$dst"
+      printf '%s\n' "overwrite selected stack manifest: $dst"
+      return 0
+    fi
+  fi
+  copy_file "$src" "$dst"
+}
+
 # Escape text for use as a sed replacement value.
 #
 # @param value Raw replacement text.
@@ -237,7 +263,7 @@ copy_tree() {
   find "$src_dir" -type f | while IFS= read -r src; do
     rel=${src#"$src_dir"/}
     case "$rel" in
-      AGENTS.md|CLAUDE.md|docs/harness/git-hooks/pre-commit|docs/harness/git-hooks/pre-push|target/*|*/target/*|build/*|*/build/*|bin/*|*/bin/*|.gradle/*|*/.gradle/*|.factorypath|*/.factorypath|.classpath|*/.classpath|.project|*/.project|.settings/*|*/.settings/*|__pycache__/*|*/__pycache__/*|*.pyc) continue ;;
+      AGENTS.md|CLAUDE.md|docs/harness/manifest.json|docs/harness/git-hooks/pre-commit|docs/harness/git-hooks/pre-push|target/*|*/target/*|build/*|*/build/*|bin/*|*/bin/*|.gradle/*|*/.gradle/*|.factorypath|*/.factorypath|.classpath|*/.classpath|.project|*/.project|.settings/*|*/.settings/*|__pycache__/*|*/__pycache__/*|*.pyc) continue ;;
     esac
     copy_file "$src" "$dst_dir/$rel"
   done
@@ -438,6 +464,9 @@ copy_stack_tree() {
         ;;
       runtime/*)
         copy_file "$src" "$dst_dir/docs/harness/$mode/${rel#runtime/}"
+        ;;
+      docs/harness/manifest.json)
+        copy_stack_manifest "$src" "$dst_dir/$rel"
         ;;
       *) copy_file "$src" "$dst_dir/$rel" ;;
     esac
@@ -777,9 +806,9 @@ validation_command_for_mode() {
         printf '%s\n' 'gradle harnessValidate'
       fi
       ;;
-    maven) printf '%s\n' 'mvn -q -f harness-maven-plugin/pom.xml install && mvn -q ai.harness:harness-maven-plugin:0.1.0:validate' ;;
-    uv) printf '%s\n' 'uv run python docs/harness/uv/harness_validate.py' ;;
-    bun) printf '%s\n' 'bun run docs/harness/bun/harness-validate.ts' ;;
+    maven) printf '%s\n' 'mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate' ;;
+    uv) printf '%s\n' 'uv run --script docs/harness/uv/harness_validate.py' ;;
+    bun) printf '%s\n' 'bun --install=fallback run docs/harness/bun/harness-validate.ts' ;;
     shell) printf '%s\n' 'sh docs/harness/shell/harness-validate.sh' ;;
     *) error "[validation_command] unsupported mode (must be gradle|maven|uv|bun|shell): $selected_mode" ;;
   esac

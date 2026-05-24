@@ -6,11 +6,11 @@ script_dir=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
 lombok_override_jar="${JAVA_ASSISTANT_LOMBOK_JAR:-${JDK_ASSISTANT_LOMBOK_JAR:-${LOMBOK_JAR:-}}}"
 lombok_support_enabled="${JAVA_ASSISTANT_LOMBOK_ENABLED:-${JDK_ASSISTANT_LOMBOK_ENABLED:-true}}"
 
+# Check whether a path contains no whitespace or unsafe characters.
+#
+# @param path Filesystem path to validate.
+# @return 0 if safe, 1 if whitespace or unsafe characters found.
 is_safe_path_token() {
-    # Check whether a path contains no whitespace or unsafe characters.
-    #
-    # @param path Filesystem path to validate.
-    # @return 0 if safe, 1 if whitespace or unsafe characters found.
     case "$1" in
     *" "* | *"	"* | *"
 "*)
@@ -20,10 +20,10 @@ is_safe_path_token() {
     return 0
 }
 
+# Check whether Lombok support is enabled from environment.
+#
+# @return 0 if enabled, 1 if explicitly disabled.
 is_lombok_support_enabled() {
-    # Check whether Lombok support is enabled from environment.
-    #
-    # @return 0 if enabled, 1 if explicitly disabled.
     case "${lombok_support_enabled}" in
     0 | false | FALSE | False | off | OFF | Off | no | NO | No)
     return 1
@@ -32,11 +32,11 @@ is_lombok_support_enabled() {
     return 0
 }
 
+# Walk up from PWD to find the project root directory.
+#     Looks for build-system marker files (pom.xml, build.gradle, etc.).
+#
+# @return Prints the project root path and returns 0, or returns 1 if not found.
 find_project_root() {
-    # Walk up from PWD to find the project root directory.
-    #     Looks for build-system marker files (pom.xml, build.gradle, etc.).
-    #
-    # @return Prints the project root path and returns 0, or returns 1 if not found.
     search_dir="${PWD}"
     while [ "${search_dir}" != "/" ]; do
     if [ -f "${search_dir}/pom.xml" ] || [ -f "${search_dir}/build.gradle" ] || [ -f "${search_dir}/build.gradle.kts" ] || [ -f "${search_dir}/.classpath" ] || [ -f "${search_dir}/.factorypath" ] || [ -f "${search_dir}/settings.gradle" ] || [ -f "${search_dir}/settings.gradle.kts" ] || [ -f "${search_dir}/gradle/libs.versions.toml" ]; then
@@ -48,16 +48,16 @@ find_project_root() {
     return 1
 }
 
+# Resolve the project Lombok jar path using has-lombok.sh.
+#
+# @param project_root Project root directory to scan.
+# @return Prints the resolved jar path, or nothing if not found.
 resolve_project_lombok_jar() {
-    # Resolve the project Lombok jar path using has-lombok.sh.
-    #
-    # @param project_root Project root directory to scan.
-    # @return Prints the resolved jar path, or nothing if not found.
     "${script_dir}/has-lombok.sh" --resolve-project-jar "$1" || true
 }
 
+# Remove any existing -javaagent:*lombok*.jar from JDK_JAVA_OPTIONS.
 strip_existing_lombok_agents() {
-    # Remove any existing -javaagent:*lombok*.jar from JDK_JAVA_OPTIONS.
     cleaned_options=""
     for current_arg in ${JDK_JAVA_OPTIONS:-}; do
     case "${current_arg}" in
@@ -74,11 +74,11 @@ strip_existing_lombok_agents() {
     JDK_JAVA_OPTIONS=${cleaned_options}
 }
 
+# Select the Lombok jar from override or project resolution.
+#
+# @param project_root Project root directory for project-level resolution.
+# @return Prints "source|jarpath" on success, or returns 1 if no jar selected.
 select_lombok_jar() {
-    # Select the Lombok jar from override or project resolution.
-    #
-    # @param project_root Project root directory for project-level resolution.
-    # @return Prints "source|jarpath" on success, or returns 1 if no jar selected.
     project_root="$1"
     if [ -n "${lombok_override_jar}" ]; then
     if ! is_safe_path_token "${lombok_override_jar}"; then
@@ -100,17 +100,17 @@ select_lombok_jar() {
     return 1
 }
 
+# Print a warning message to stderr about Lombok support.
+#
+# @param message Warning text to print.
 warn_optional_lombok_support() {
-    # Print a warning message to stderr about Lombok support.
-    #
-    # @param message Warning text to print.
     printf '%s\n' "$1" >&2
 }
 
+# Orchestrate Lombok agent injection before launching JDTLS.
+#     Selects a jar source, validates safety, strips existing agents,
+#     and injects -javaagent via JDK_JAVA_OPTIONS.
 maybe_enable_lombok_agent() {
-    # Orchestrate Lombok agent injection before launching JDTLS.
-    #     Selects a jar source, validates safety, strips existing agents,
-    #     and injects -javaagent via JDK_JAVA_OPTIONS.
     if ! is_lombok_support_enabled; then
     return 0
     fi
