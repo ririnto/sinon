@@ -4,12 +4,16 @@ kotlin-serialization-plugin = "2.3.21"
 kotlinx-serialization = "1.11.0"
 kotlin-compiler-embeddable = "2.3.21"
 javaparser = "3.28.1"
+commonmark = "0.28.0"
 
 [libraries]
+commonmark-parent = { module = "org.commonmark:commonmark-parent", version.ref = "commonmark" }
+commonmark = { module = "org.commonmark:commonmark" }
+commonmark-ext-yaml-front-matter = { module = "org.commonmark:commonmark-ext-yaml-front-matter" }
+javaparser-core = { module = "com.github.javaparser:javaparser-core", version.ref = "javaparser" }
+kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin-compiler-embeddable" }
 kotlinx-serialization-bom = { module = "org.jetbrains.kotlinx:kotlinx-serialization-bom", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json" }
-kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin-compiler-embeddable" }
-javaparser-core = { module = "com.github.javaparser:javaparser-core", version.ref = "javaparser" }
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-serialization-plugin" }
