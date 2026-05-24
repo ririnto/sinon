@@ -36,7 +36,7 @@ ij_shell_use_unix_line_separator = true
 
 [{*.markdown,*.md}]
 indent_size = 2
-max_line_length = off
+max_line_length = unset
 ij_markdown_force_one_space_after_blockquote_symbol = true
 ij_markdown_force_one_space_after_header_symbol = true
 ij_markdown_force_one_space_after_list_bullet = true
@@ -59,7 +59,7 @@ indent_size = 2
 
 [{*.yaml,*.yml}]
 indent_size = 2
-max_line_length = off
+max_line_length = unset
 ij_yaml_align_values_properties = do_not_align
 ij_yaml_autoinsert_sequence_marker = true
 ij_yaml_block_mapping_on_new_line = false

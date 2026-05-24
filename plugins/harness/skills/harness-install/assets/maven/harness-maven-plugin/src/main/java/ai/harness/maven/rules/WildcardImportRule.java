@@ -1,0 +1,55 @@
+package ai.harness.maven.rules;
+
+import ai.harness.maven.Finding;
+
+import tools.jackson.databind.JsonNode;
+import org.apache.maven.plugin.MojoExecutionException;
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * Rule that forbids wildcard imports.
+ */
+public enum WildcardImportRule implements HarnessCheckRule {
+    INSTANCE;
+
+    @Override
+    public String category() {
+        return "wildcardImport";
+    }
+    private static final String CATEGORY = "wildcardImport";
+
+    @Override
+    public boolean applies(JsonNode manifest) {
+        return HarnessCheckHelper.applies(manifest, CATEGORY);
+    }
+
+    @Override
+    public Collection<Finding> validate(Path root, JsonNode manifest) throws MojoExecutionException {
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        try {
+            final List<Path> sources = HarnessCheckHelper.stackSources(manifest, CATEGORY);
+            return sources.stream()
+                    .flatMap(file -> validateWildcardImport(root, file, severity).stream())
+                    .toList();
+        } catch (IOException e) {
+            return List.of(new Finding(severity, CATEGORY, "failed to enumerate Java sources: " + e.getMessage()));
+        }
+    }
+
+    private List<Finding> validateWildcardImport(Path root, Path file, String severity) {
+        try {
+            final CompilationUnit cu = StaticJavaParser.parse(file);
+            return cu.getImports().stream()
+                    .filter(imp -> imp.isAsterisk())
+                    .map(imp -> new Finding(severity, CATEGORY, root.relativize(file) + ":" + imp.getBegin().map(p -> p.line).orElse(-1) + ": wildcard import forbidden"))
+                    .toList();
+        } catch (IOException e) {
+            return List.of(new Finding(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+        }
+    }
+}

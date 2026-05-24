@@ -5,4 +5,5 @@ harness:
   stage: validate
   image: maven:3.9-eclipse-temurin-17
   script:
-    - {{validation_command}}
+    - >-
+      {{validation_command}}

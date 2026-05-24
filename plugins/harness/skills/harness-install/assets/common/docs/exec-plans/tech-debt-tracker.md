@@ -6,27 +6,44 @@ Tech-debt-tracker.md records the deferred-work backlog with retirement criteria:
 
 ## Entries
 
-Delete the example rows below when you record your own entries.
+### Active
 
-| ID | Item | Reason for deferral | Retirement criteria | Owner | Added |
-| --- | --- | --- | --- | --- | --- |
-| TD-1 | Replace ad-hoc retry helper in domains/notifications with shared utility from packages/util/retry. | Shared util landed after the notifications domain shipped; the local helper is functional but diverges on jitter strategy. | Notifications domain uses packages/util/retry; local helper deleted. | {{owner}} | 2026-04-15 |
-| TD-2 | Replace fetch-based webhook client with typed SDK. | Typed SDK was not yet published when the integration shipped. | SDK v1.0 published and pinned in package.json; webhook client uses SDK. | {{owner}} | 2026-04-22 |
-| TD-3 | Add structural test for "Providers is the only cross-cutting entry into a domain". | Existing reviewer-driven enforcement caught regressions, but a structural test would be cheaper. | tests/structure/providers-only.test.ts green on CI for three consecutive weeks. | {{owner}} | 2026-05-02 |
+| Type | Plan | Item | Reason for deferral | Retirement criteria | Author | Assignees | Created | Updated |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+### Completed
+
+| Type | Plan | Item | Reason for deferral | Retirement criteria | Author | Assignees | Created | Completed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+## Types
+
+- Feature
+- Fix
+- Refactor
+- Test
+- Docs
+- Security
+- Performance
+- Reliability
+- Maintenance
+- Chore
 
 ## Conventions
 
-- Assign a stable `TD-{{n}}` ID to each entry; IDs increment monotonically and are never reused once an entry is retired.
+- Use `Plan` to link the active or completed execution plan that records the deferral decision.
+- Put `Type` first in each entry row.
 - Write retirement criteria as a condition, not a date (e.g., "when usage exceeds X" rather than "in Q3").
-- Close an entry by deleting the row and linking the PR or completed exec-plan that retired it in the commit message.
+- Close an entry by moving it from `Active` to `Completed`, then replace `Updated` with `Completed`.
 - Re-evaluate any entry open longer than 6 months and update its retirement criteria if the condition has changed.
-- New entries SHOULD include an `Added` date in `yyyy-MM-dd` format.
+- Record `Author` and `Assignees` in the same spirit as a GitHub Issue: the author captures who opened the debt item, and assignees capture who owns follow-up.
+- Record dates in `yyyy-MM-dd` format: active entries use `Created` and `Updated`, while completed entries use `Created` and `Completed`.
 
 ## When To Update
 
 - When a piece of work is consciously deferred.
 - When retirement criteria for an existing entry change.
-- When an entry is retired.
+- When an entry moves between `Active` and `Completed`.
 - When an entry has been open long enough to need re-evaluation.
 
 ## Required Evidence

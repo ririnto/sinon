@@ -15,9 +15,9 @@ SECURITY.md captures the durable security contract: what the team protects, who 
 
 ## Secret Management
 
-- Database credentials live in {{secret-manager}} and are injected via environment variables at boot; rotate every 90 days.
-- Third-party API keys live in {{secret-manager}} under per-service paths; rotate every 90 days or immediately on compromise.
-- Signing keys for outbound webhooks live in {{secret-manager}}/signing/; rotate every 180 days with overlapping validity window.
+- Database credentials live in the configured secret manager and are injected via environment variables at boot; rotate every 90 days.
+- Third-party API keys live in the configured secret manager under per-service paths; rotate every 90 days or immediately on compromise.
+- Signing keys for outbound webhooks live in the configured secret manager/signing/; rotate every 180 days with overlapping validity window.
 - Never write secrets into the repository; pre-commit hook (`docs/harness/git-hooks/pre-commit`) blocks committed secret patterns.
 
 ## Permission Boundaries
@@ -29,10 +29,10 @@ SECURITY.md captures the durable security contract: what the team protects, who 
 
 ## Audit Logging
 
-- Authentication events (login, logout, token refresh): log to {{audit-sink}}, schema audit.auth.v1, retention 365 days.
-- Authorization decisions (deny only): log to {{audit-sink}}, schema audit.authz.v1, retention 365 days.
-- Admin configuration changes: log to {{audit-sink}}, schema audit.config.v1, retention 7 years.
-- Data export / impersonation: log to {{audit-sink}}, schema audit.export.v1, retention 7 years.
+- Authentication events (login, logout, token refresh): log to the audit log sink, schema audit.auth.v1, retention 365 days.
+- Authorization decisions (deny only): log to the audit log sink, schema audit.authz.v1, retention 365 days.
+- Admin configuration changes: log to the audit log sink, schema audit.config.v1, retention 7 years.
+- Data export / impersonation: log to the audit log sink, schema audit.export.v1, retention 7 years.
 
 ## When To Update
 

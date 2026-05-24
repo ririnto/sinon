@@ -11,6 +11,13 @@ import java.util.Collection;
  */
 public interface HarnessCheckRule {
     /**
+     * Gets the manifest category key used by this rule.
+     *
+     * @return the manifest category key
+     */
+    String category();
+
+    /**
      * Determines whether this rule applies to the given manifest.
      *
      * @param manifest the manifest JSON node

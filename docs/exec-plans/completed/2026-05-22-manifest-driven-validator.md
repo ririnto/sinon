@@ -1,11 +1,13 @@
-# 2026-05-22-manifest-driven-validator
+---
+status: completed
+created: 2026-05-22
+updated: 2026-05-23
+completed: 2026-05-23
+author: ririnto
+assignee: ririnto
+---
 
-- Status: completed
-- Created: 2026-05-22
-- Last Updated: 2026-05-23
-- Completed: 2026-05-23
-- Author: ririnto
-- Assignee: ririnto
+# 2026-05-22-manifest-driven-validator
 
 ## Goal
 
@@ -111,8 +113,8 @@ harness는 versioning하지 않으며, manifest 자체가 self-documenting 문�
 
 ### [x] Phase 7.5: docs/ 강화 후 manifest 동기화 + plugin self-check 예외 처리 (순차)
 
-- [x] Task 7.5.1 — manifest.json의 `requireFilesExist.paths` 모두 등록 확인 (이미 존재)
-- [x] Task 7.5.2 — `forbidScaffoldLeaks.parameters.scope.excludedSubtrees`에 `docs/references` 추가
+- [x] Task 7.5.1 — manifest.json의 `filePresence.paths` 모두 등록 확인 (이미 존재)
+- [x] Task 7.5.2 — `scaffoldLeaks.parameters.scope.excludedSubtrees`에 `docs/references` 추가
 - [x] Task 7.5.3 — plugin-self-check.sh의 `unresolved_template_tokens` + `template_marker_check` case 예외에 placeholder template 파일 추가 (`docs/{DESIGN,PLANS,FRONTEND,PRODUCT_SENSE,QUALITY_SCORE,RELIABILITY,SECURITY,..}`/`docs/design-docs/core-beliefs.md`/`docs/exec-plans/tech-debt-tracker.md`/`docs/product-specs/*.md`/`docs/references/*.md`/`docs/harness/templates/*`/`.github/workflows/harness.yml`/`.gitlab-ci.yml`)
 - [x] Task 7.5.4 — `{{...}}` placeholder는 그대로 유지 (사용자 환경에서 채우는 의도)
 
@@ -193,4 +195,4 @@ shell-only 프로젝트 stack adapter 추가는 minimum viable validator + CI wo
 
 ## Completion
 
-모든 task가 체크되면 본 plan을 `docs/exec-plans/completed/`로 이동하고 `Status: completed`, `Completed: yyyy-MM-dd`를 기록한다.
+모든 task가 체크되면 본 plan을 `docs/exec-plans/completed/`로 이동하고 frontmatter에 `status: completed`, `completed: yyyy-MM-dd`를 기록한다.
