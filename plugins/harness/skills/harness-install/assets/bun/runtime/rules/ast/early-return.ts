@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
-import type { FunctionLike, Node, SourceFile } from "typescript@6.0.3";
+import type { FunctionLike, Node, SourceFile, Statement } from "typescript@6.0.3";
 import {
   createSourceFile,
   isBlock,
@@ -8,15 +8,14 @@ import {
   isIdentifier,
   isMethodDeclaration,
   isReturnStatement,
-  type Statement,
   SyntaxKind,
 } from "typescript@6.0.3";
+import { astChildrenOf } from "../../core/ast-traversal";
 import type {
   Finding,
   HarnessCheckRule,
   RuleContext,
 } from "../harness-check-rule";
-import { astChildrenOf } from "../../core/ast-traversal";
 
 /**
  * Forbid early return statements in functions.
@@ -89,7 +88,7 @@ export const earlyReturnRule: HarnessCheckRule = {
                     },
                   };
                 });
-              return [...earlyReturns, ...astChildrenOf(node).flatMap(visitNode)];
+              return earlyReturns.concat(astChildrenOf(node).flatMap(visitNode));
             }
             default:
               return astChildrenOf(node).flatMap(visitNode);

@@ -2,7 +2,9 @@ package com.ririnto.sinon.harness.core;
 
 import com.ririnto.sinon.harness.rules.HarnessCheckHelper;
 import org.apache.maven.plugin.MojoExecutionException;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Default Maven rule context implementation.
@@ -57,7 +59,7 @@ public final class DefaultRuleContext implements RuleContext {
 
     @Override
     public WalkResult walkSafe(Path base) throws MojoExecutionException {
-        return new WalkResult(HarnessCheckHelper.safeFileOrWalk(root, base), java.util.List.of());
+        return new WalkResult(HarnessCheckHelper.safeFileOrWalk(root, base), List.of());
     }
 
     @Override
@@ -66,10 +68,10 @@ public final class DefaultRuleContext implements RuleContext {
     }
 
     @Override
-    public java.util.List<Path> stackSources(String category) throws MojoExecutionException {
+    public List<Path> stackSources(String category) throws MojoExecutionException {
         try {
             return HarnessCheckHelper.stackSources(manifest.raw(), category, stack, root);
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             throw new MojoExecutionException("failed to collect stack sources: " + e.getMessage(), e);
         }
     }

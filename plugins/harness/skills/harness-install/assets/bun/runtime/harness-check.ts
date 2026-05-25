@@ -2,43 +2,45 @@
 // -*- coding: utf-8 -*-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Finding, HarnessCheckRule } from "./rules/harness-check-rule";
 import type { HarnessManifest } from "./core/manifest";
 import { createRuleContext } from "./core/rule-context";
 import { logger } from "./logger";
 import { renderFindings } from "./reporter";
-import { agentFrontmatterRule } from "./rules/text/agent-frontmatter";
-import { ciHookCommandParityRule } from "./rules/text/ci-hook-command-parity";
-import { directoryPresenceRule } from "./rules/fs/directory-presence";
-import { docContentRule } from "./rules/text/doc-content";
-import { docHeadingsRule } from "./rules/text/doc-headings";
 import { earlyReturnRule } from "./rules/ast/early-return";
 import { emptyCatchBlockRule } from "./rules/ast/empty-catch-block";
-import { emptyDirectoryPlaceholdersRule } from "./rules/fs/empty-directory-placeholders";
-import { envShebangUsageRule } from "./rules/text/env-shebang-usage";
-import { filePresenceRule } from "./rules/fs/file-presence";
 import { greaterThanComparisonRule } from "./rules/ast/greater-than-comparison";
+import { ifStatementBracesRule } from "./rules/ast/if-statement-braces";
+import { implicitLambdaItRule } from "./rules/ast/implicit-lambda-it";
+import { importOverFqnRule } from "./rules/ast/import-over-fqn";
+import { leadingUnderscoreRule } from "./rules/ast/leading-underscore";
+import { leafFunctionBlankLinesRule } from "./rules/ast/leaf-function-blank-lines";
+import { multilineDocStyleRule } from "./rules/ast/multiline-doc-style";
+import { mutableCollectionRule } from "./rules/ast/mutable-collection";
+import { publicDeclarationDocCommentRule } from "./rules/ast/public-declaration-doc-comment";
+import { silentCatchRule } from "./rules/ast/silent-catch";
+import { uncheckedCastSuppressionRule } from "./rules/ast/unchecked-cast-suppression";
+import { unstructuredLoggingRule } from "./rules/ast/unstructured-logging";
+import { wildcardImportRule } from "./rules/ast/wildcard-import";
+import { directoryPresenceRule } from "./rules/fs/directory-presence";
+import { emptyDirectoryPlaceholdersRule } from "./rules/fs/empty-directory-placeholders";
+import { filePresenceRule } from "./rules/fs/file-presence";
+import { symlinkSafetyRule } from "./rules/fs/symlink-safety";
+import type { Finding, HarnessCheckRule } from "./rules/harness-check-rule";
+import { agentFrontmatterRule } from "./rules/text/agent-frontmatter";
+import { ciHookCommandParityRule } from "./rules/text/ci-hook-command-parity";
+import { docContentRule } from "./rules/text/doc-content";
+import { docHeadingsRule } from "./rules/text/doc-headings";
+import { envShebangUsageRule } from "./rules/text/env-shebang-usage";
 import { hookCommandRule } from "./rules/text/hook-command";
 import { hookExecutableRule } from "./rules/text/hook-executable";
 import { hookGeneratedMarkerRule } from "./rules/text/hook-generated-marker";
 import { hookShebangRule } from "./rules/text/hook-shebang";
 import { hookStageRule } from "./rules/text/hook-stage";
-import { ifStatementBracesRule } from "./rules/ast/if-statement-braces";
-import { implicitLambdaItRule } from "./rules/ast/implicit-lambda-it";
-import { importOverFqnRule } from "./rules/ast/import-over-fqn";
-import { kotlinTopLevelDeclarationCountRule } from "./rules/ast/kotlin-top-level-declaration-count";
-import { leafFunctionBlankLinesRule } from "./rules/ast/leaf-function-blank-lines";
-import { mutableCollectionRule } from "./rules/ast/mutable-collection";
-import { publicDeclarationDocCommentRule } from "./rules/ast/public-declaration-doc-comment";
 import { scaffoldLeaksRule } from "./rules/text/scaffold-leaks";
 import { shebangEncodingMarkerRule } from "./rules/text/shebang-encoding-marker";
-import { silentCatchRule } from "./rules/ast/silent-catch";
 import { skillFrontmatterRule } from "./rules/text/skill-frontmatter";
-import { symlinkSafetyRule } from "./rules/fs/symlink-safety";
 import { templateGroupsRule } from "./rules/text/template-groups";
 import { uncheckedTasksRule } from "./rules/text/unchecked-tasks";
-import { unstructuredLoggingRule } from "./rules/ast/unstructured-logging";
-import { wildcardImportRule } from "./rules/ast/wildcard-import";
 
 const root = process.cwd();
 export const MANIFEST_PATH = join("docs", "harness", "manifest.json");
@@ -65,7 +67,6 @@ function createHarnessChecks(): Record<string, HarnessCheckRule> {
     UNCHECKED_TASKS: uncheckedTasksRule,
     SYMLINK_SAFETY: symlinkSafetyRule,
     IMPLICIT_LAMBDA_IT: implicitLambdaItRule,
-    KOTLIN_TOP_LEVEL_DECLARATION_COUNT: kotlinTopLevelDeclarationCountRule,
     IMPORT_OVER_FQN: importOverFqnRule,
     GREATER_THAN_COMPARISON: greaterThanComparisonRule,
     LEAF_FUNCTION_BLANK_LINES: leafFunctionBlankLinesRule,
@@ -77,6 +78,9 @@ function createHarnessChecks(): Record<string, HarnessCheckRule> {
     EMPTY_CATCH_BLOCK: emptyCatchBlockRule,
     IF_STATEMENT_BRACES: ifStatementBracesRule,
     PUBLIC_DECLARATION_DOC_COMMENT: publicDeclarationDocCommentRule,
+    UNCHECKED_CAST_SUPPRESSION: uncheckedCastSuppressionRule,
+    LEADING_UNDERSCORE: leadingUnderscoreRule,
+    MULTILINE_DOC_STYLE: multilineDocStyleRule,
   } as const;
 }
 

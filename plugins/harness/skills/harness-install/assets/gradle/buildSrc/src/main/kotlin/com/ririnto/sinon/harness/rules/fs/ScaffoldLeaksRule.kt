@@ -48,9 +48,9 @@ object ScaffoldLeaksRule : HarnessCheckRule() {
                         JsonAccess.stringFromObject(obj, "pattern") to JsonAccess.stringFromObject(obj, "label")
                     } ?: emptyList()
 
-            val regexes: List<Pair<Regex, String>> =
+            val regexes: List<ScaffoldPattern> =
                 patterns.mapNotNull { (pattern, label) ->
-                    runCatching { pattern.toRegex() to label }.getOrNull()
+                    runCatching { ScaffoldPattern(pattern.toRegex(), label) }.getOrNull()
                 }
             JsonAccess.stringArrayFromObject(scopeObj, "bases").filter(::isSafeRelativeRoot).flatMap { basePath ->
                 val base = (ctx.root / basePath).normalize()
@@ -64,16 +64,16 @@ object ScaffoldLeaksRule : HarnessCheckRule() {
                         }
                     }.flatMap { file ->
                         regexes
-                            .filter { patternEntry -> patternEntry.first.containsMatchIn(stripMarkdownCode(file.readText())) }
+                            .filter { patternEntry -> patternEntry.regex.containsMatchIn(stripMarkdownCode(file.readText())) }
                             .map { patternEntry ->
                                 Finding(
                                     ctx.manifest.severityOf(category),
                                     category,
                                     ctx.manifest.stringValue(category, "default")
-                                        .replace("{label}", patternEntry.second)
+                                        .replace("{label}", patternEntry.label)
                                         .replace("{file}", file.relativeTo(ctx.root).invariantSeparatorsPathString)
                                         .takeIf { message -> message.isNotEmpty() }
-                                        ?: "${patternEntry.second} in active asset: ${file.relativeTo(ctx.root).invariantSeparatorsPathString}",
+                                        ?: "${patternEntry.label} in active asset: ${file.relativeTo(ctx.root).invariantSeparatorsPathString}",
                                 )
                             }
                     }
@@ -114,5 +114,7 @@ object ScaffoldLeaksRule : HarnessCheckRule() {
         val path = Path.of(rootEntry)
         return rootEntry.isNotBlank() && !path.isAbsolute && path.none { segment -> segment.pathString == ".." || segment.pathString == "." }
     }
+
+    private data class ScaffoldPattern(val regex: Regex, val label: String)
 
 }

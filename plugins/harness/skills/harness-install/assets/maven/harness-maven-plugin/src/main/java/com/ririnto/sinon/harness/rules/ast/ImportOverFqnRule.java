@@ -15,7 +15,10 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -39,16 +42,17 @@ public enum ImportOverFqnRule implements AstRule {
         try {
             final List<Path> sources = ctx.stackSources(CATEGORY);
             return sources.stream()
-                    .flatMap(file -> validateImportOverFqn(root, file, severity).stream())
+                    .flatMap(file -> validateImportOverFqn(root, file, manifest, severity).stream())
                     .toList();
         } catch (MojoExecutionException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to enumerate sources: " + e.getMessage()));
         }
     }
 
-    private List<Finding> validateImportOverFqn(Path root, Path file, String severity) {
+    private List<Finding> validateImportOverFqn(Path root, Path file, JsonNode manifest, String severity) {
         try {
             final CompilationUnit cu = StaticJavaParser.parse(file);
+            final List<Pattern> allowedFqnPatterns = allowedFqnPatterns(manifest);
             final Set<String> importedSimpleNames = cu.getImports().stream()
                     .filter(imp -> !imp.isAsterisk())
                     .map(imp -> {
@@ -56,8 +60,8 @@ public enum ImportOverFqnRule implements AstRule {
                         final int lastDot = name.lastIndexOf('.');
                         return lastDot > 0 ? name.substring(lastDot + 1) : null;
                     })
-                    .filter(java.util.Objects::nonNull)
-                    .collect(java.util.stream.Collectors.toSet());
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
             return Stream.concat(
                             cu.findAll(FieldAccessExpr.class).stream()
                                     .map(expr -> candidate(expr.toString(), expr.getNameAsString(), expr.getBegin().map(p -> p.line).orElse(-1))),
@@ -65,6 +69,7 @@ public enum ImportOverFqnRule implements AstRule {
                                     .map(expr -> candidate(expr.getScope().toString(), simpleName(expr.getScope().toString()), expr.getBegin().map(p -> p.line).orElse(-1))))
                     .filter(candidate -> isPackageQualifiedName(candidate.qualifiedName()))
                     .filter(candidate -> !importedSimpleNames.contains(candidate.simpleName()))
+                    .filter(candidate -> allowedFqnPatterns.stream().noneMatch(pattern -> pattern.matcher(candidate.qualifiedName()).matches()))
                     .sorted(Comparator.comparingInt(FqnCandidate::line).thenComparing(FqnCandidate::qualifiedName))
                     .map(candidate -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + candidate.line() + ": fully qualified name `" + candidate.qualifiedName() + "` used inline; add an import and use the simple name"))
                     .toList();
@@ -87,6 +92,15 @@ public enum ImportOverFqnRule implements AstRule {
 
     private static FqnCandidate candidate(String qualifiedName, String simpleName, int line) {
         return new FqnCandidate(qualifiedName, simpleName, line);
+    }
+
+    private List<Pattern> allowedFqnPatterns(JsonNode manifest) {
+        final JsonNode section = manifest.get(CATEGORY);
+        final JsonNode parameters = section == null ? null : section.get("parameters");
+        final JsonNode patterns = parameters == null ? null : parameters.get("allowedFqnPatterns");
+        return HarnessCheckHelper.extractPaths(patterns).stream()
+                .map(Pattern::compile)
+                .toList();
     }
 
     private static String simpleName(String qualifiedName) {

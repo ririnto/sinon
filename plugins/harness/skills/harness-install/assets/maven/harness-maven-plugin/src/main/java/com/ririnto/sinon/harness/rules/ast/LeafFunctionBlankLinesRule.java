@@ -7,14 +7,18 @@ import com.ririnto.sinon.harness.Finding;
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.TokenRange;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.LambdaExpr;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Rule that forbids multiple consecutive blank lines in leaf function bodies.
@@ -53,15 +57,15 @@ public enum LeafFunctionBlankLinesRule implements AstRule {
                     .flatMap(method -> method.getBody()
                             .flatMap(body -> body.getTokenRange())
                             .map(tokenRange -> collectBlankLineFindings(root, file, tokenRange, severity, maxConsecutiveBlankLines).stream())
-                            .orElseGet(java.util.stream.Stream::empty))
+                            .orElseGet(Stream::empty))
                     .toList();
         } catch (IOException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }
     }
 
-    private java.util.List<Finding> collectBlankLineFindings(Path root, Path file, com.github.javaparser.TokenRange tokens, String severity, int maxConsecutiveBlankLines) {
-        final java.util.List<Finding> findings = new java.util.ArrayList<>();
+    private List<Finding> collectBlankLineFindings(Path root, Path file, TokenRange tokens, String severity, int maxConsecutiveBlankLines) {
+        final Stream.Builder<Finding> builder = Stream.builder();
         final AtomicInteger lastNewlineCount = new AtomicInteger(0);
         tokens.forEach(token -> {
             final String text = token.getText();
@@ -71,7 +75,7 @@ public enum LeafFunctionBlankLinesRule implements AstRule {
                 if (maxConsecutiveBlankLines + 1 < lastNewlineCount.get()) {
                     token.getRange().map(r -> r.begin.line).ifPresent(line -> {
                         if (0 < line) {
-                            findings.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + (line - 1) + ": too many blank lines in leaf function"));
+                            builder.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + (line - 1) + ": too many blank lines in leaf function"));
                         }
                     });
                 }
@@ -80,7 +84,7 @@ public enum LeafFunctionBlankLinesRule implements AstRule {
                 lastNewlineCount.addAndGet((int) text.chars().filter(c -> c == '\n').count());
             }
         });
-        return findings;
+        return builder.build().collect(Collectors.toList());
     }
 
     /**
@@ -98,7 +102,7 @@ public enum LeafFunctionBlankLinesRule implements AstRule {
 
     private boolean isLeafMethod(MethodDeclaration method) {
         return method.getBody()
-                .map(body -> body.findAll(MethodDeclaration.class).isEmpty() && body.findAll(com.github.javaparser.ast.expr.LambdaExpr.class).isEmpty())
+                .map(body -> body.findAll(MethodDeclaration.class).isEmpty() && body.findAll(LambdaExpr.class).isEmpty())
                 .orElse(false);
     }
 }

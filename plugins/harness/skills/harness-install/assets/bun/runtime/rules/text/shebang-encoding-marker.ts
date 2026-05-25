@@ -55,7 +55,7 @@ export const shebangEncodingMarkerRule: HarnessCheckRule = {
         : "{file}:2: shebang script declares wrong encoding marker; found `{actual}`, expected `{expected}`";
     const requireShebang = parameters.requireShebang !== false;
     const extraPrefixes = ctx.readStringArray(parameters.additionalShebangPrefixes);
-    const shebangPrefixes: readonly string[] = ["#!", ...extraPrefixes];
+    const shebangPrefixes: readonly string[] = ["#!"].concat(extraPrefixes);
     const severity = ctx.severityOf("shebangEncodingMarker");
     const category = "shebangEncodingMarker";
     return ctx.stackSources("shebangEncodingMarker").flatMap((file): readonly Finding[] => {

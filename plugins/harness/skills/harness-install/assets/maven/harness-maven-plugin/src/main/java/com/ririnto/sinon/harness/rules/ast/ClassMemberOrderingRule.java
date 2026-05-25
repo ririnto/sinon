@@ -18,10 +18,11 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Rule that requires JVM class members to follow the configured manifest order.
@@ -58,7 +59,7 @@ public enum ClassMemberOrderingRule implements AstRule {
     private List<Finding> validateFile(Path root, Path file, String severity, JsonNode messages, Map<String, Integer> rankByKind) {
         try {
             final CompilationUnit cu = StaticJavaParser.parse(file);
-            return java.util.stream.Stream.concat(
+            return Stream.concat(
                     cu.findAll(ClassOrInterfaceDeclaration.class).stream()
                             .flatMap(type -> validateMembers(root, file, severity, messages, rankByKind, type.getNameAsString(), type.getMembers()).stream()),
                     cu.findAll(EnumDeclaration.class).stream()
@@ -79,10 +80,10 @@ public enum ClassMemberOrderingRule implements AstRule {
                     final String overrideState = memberOverrideState(member);
                     final int rank = rankByKind.getOrDefault(overrideState + ":" + visibility + ":" + kind, rankByKind.getOrDefault(visibility + ":" + kind, rankByKind.getOrDefault(kind, rankByKind.size())));
                     if (rank < highestRank[0]) {
-                        return java.util.stream.Stream.of(Finding.of(severity, CATEGORY, message(root, file, messages, className, memberName(member), overrideState, visibility, kind, member.getBegin().map(pos -> pos.line).orElse(-1))));
+                        return Stream.of(Finding.of(severity, CATEGORY, message(root, file, messages, className, memberName(member), overrideState, visibility, kind, member.getBegin().map(pos -> pos.line).orElse(-1))));
                     }
                     highestRank[0] = rank;
-                    return java.util.stream.Stream.<Finding>empty();
+                    return Stream.<Finding>empty();
                 })
                 .toList();
     }
@@ -97,9 +98,9 @@ public enum ClassMemberOrderingRule implements AstRule {
     }
 
     private static Map<String, Integer> ranks(List<String> order) {
-        final Map<String, Integer> ranks = new HashMap<>();
-        IntStream.range(0, order.size()).forEach(index -> ranks.put(order.get(index), index));
-        return ranks;
+        return IntStream.range(0, order.size())
+                .boxed()
+                .collect(Collectors.toMap(order::get, i -> i));
     }
 
     private static String memberVisibility(BodyDeclaration<?> member) {

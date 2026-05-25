@@ -4,6 +4,7 @@ import com.ririnto.sinon.harness.Finding;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Shared runtime context passed to Maven harness rules.
@@ -63,7 +64,7 @@ public interface RuleContext {
      * @return list of source file paths
      * @throws MojoExecutionException when collection fails
      */
-    java.util.List<Path> stackSources(String category) throws MojoExecutionException;
+    List<Path> stackSources(String category) throws MojoExecutionException;
 
     /**
      * Safe walk result with filesystem findings.
