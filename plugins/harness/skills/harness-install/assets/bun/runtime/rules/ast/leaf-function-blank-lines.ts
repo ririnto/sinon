@@ -10,12 +10,12 @@ import {
   ScriptTarget,
   SyntaxKind,
 } from "typescript@6.0.3";
+import { astChildrenOf } from "../../core/ast-traversal";
 import type {
   Finding,
   HarnessCheckRule,
   RuleContext,
 } from "../harness-check-rule";
-import { astChildrenOf } from "../../core/ast-traversal";
 
 const CATEGORY = "leafFunctionBlankLines";
 
@@ -92,7 +92,7 @@ const findingsForFile = (
             maxConsecutiveBlankLines,
           )
           : [];
-        return [...fromHere, ...astChildrenOf(node).flatMap(visitNode)];
+        return fromHere.concat(astChildrenOf(node).flatMap(visitNode));
       }
       default:
         return astChildrenOf(node).flatMap(visitNode);
@@ -117,40 +117,35 @@ const extractBlankLineFindings = (
     body.getStart(sourceFile, true),
   ).line;
   const endLine = sourceFile.getLineAndCharacterOfPosition(body.getEnd()).line;
-  return text
+  const findings: Finding[] = [];
+  let blankLines = 0;
+  text
     .split(/\r?\n/)
     .slice(startLine, endLine + 1)
-    .reduce(
-      (acc, line, index) => {
-        const { count: blankLines } = acc;
-        if (line.trim() === "") {
-          const newCount = blankLines + 1;
-          if (newCount > maxConsecutiveBlankLines) {
-            const lineNum = startLine + index + 1;
-            return {
-              ...acc,
-              findings: [...acc.findings, {
-                severity: ctx.severityOf(CATEGORY),
-                category: CATEGORY,
-                message: `${file}:${lineNum}: leaf function \`${(isFunctionDeclaration(funcNode) && funcNode.name?.text) || (isMethodDeclaration(funcNode) && funcNode.name && isIdentifier(funcNode.name) && funcNode.name.text) || "<anonymous>"}\` contains too many blank lines; remove or extract the section`,
-                file,
-                startLine: lineNum,
-                startColumn: 1,
-                endLine: lineNum,
-                endColumn: line.length + 1,
-                fix: {
-                  description: "remove extra blank lines",
-                  safety: "safe",
-                  edits: [],
-                },
-              }],
-              count: newCount,
-            };
-          }
-          return { ...acc, count: newCount };
+    .forEach((line, index) => {
+      if (line.trim() === "") {
+        blankLines += 1;
+        if (blankLines > maxConsecutiveBlankLines) {
+          const lineNum = startLine + index + 1;
+          findings.push({
+            severity: ctx.severityOf(CATEGORY),
+            category: CATEGORY,
+            message: `${file}:${lineNum}: leaf function \`${(isFunctionDeclaration(funcNode) && funcNode.name?.text) || (isMethodDeclaration(funcNode) && funcNode.name && isIdentifier(funcNode.name) && funcNode.name.text) || "<anonymous>"}\` contains too many blank lines; remove or extract the section`,
+            file,
+            startLine: lineNum,
+            startColumn: 1,
+            endLine: lineNum,
+            endColumn: line.length + 1,
+            fix: {
+              description: "remove extra blank lines",
+              safety: "safe",
+              edits: [],
+            },
+          });
         }
-        return { ...acc, count: 0 };
-      },
-      { count: 0, findings: [] as Finding[] },
-    ).findings;
+      } else {
+        blankLines = 0;
+      }
+    });
+  return findings;
 };

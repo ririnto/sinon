@@ -12,12 +12,12 @@ import {
   isVariableStatement,
   SyntaxKind,
 } from "typescript@6.0.3";
+import { astChildrenOf } from "../../core/ast-traversal";
 import type {
   Finding,
   HarnessCheckRule,
   RuleContext,
 } from "../harness-check-rule";
-import { astChildrenOf } from "../../core/ast-traversal";
 
 /**
  * Read the visibility tokens for a given category from manifest configuration.
@@ -45,7 +45,7 @@ function readVisibilityTokens(ctx: RuleContext, category: string, stack: string)
  */
 export const publicDeclarationDocCommentRule: HarnessCheckRule = {
   category: "publicDeclarationDocComment",
-  applies(ctx: RuleContext): boolean {
+  applies(_: RuleContext): boolean {
     return true;
   },
 
@@ -145,7 +145,7 @@ export const publicDeclarationDocCommentRule: HarnessCheckRule = {
           node.kind === SyntaxKind.VariableStatement)
             ? checkDeclaration(node)
             : [];
-        return [...fromHere, ...astChildrenOf(node).flatMap(visitNode)];
+        return fromHere.concat(astChildrenOf(node).flatMap(visitNode));
       };
 
       return visitNode(sourceFile);

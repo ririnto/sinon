@@ -14,7 +14,9 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Rule that forbids unsafe symlinks in the project root.
@@ -39,9 +41,9 @@ public enum SymlinkSafetyRule implements HarnessCheckRule {
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
         final JsonNode allowedNode = catNode.get("parameters").get("allowedSymlinkPairs");
-        final Set<String> allowedNames = java.util.stream.StreamSupport.stream(allowedNode.spliterator(), false)
-                .flatMap(pair -> java.util.stream.Stream.of(pair.get(0).asText(), pair.get(1).asText()))
-                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        final Set<String> allowedNames = StreamSupport.stream(allowedNode.spliterator(), false)
+                .flatMap(pair -> Stream.of(pair.get(0).asText(), pair.get(1).asText()))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         final List<String> rootBases = List.of("AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md", "docs", ".claude", ".github");
         return rootBases.stream()

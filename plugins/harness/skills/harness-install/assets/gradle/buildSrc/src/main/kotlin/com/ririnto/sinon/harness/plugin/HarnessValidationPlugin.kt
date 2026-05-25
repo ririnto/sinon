@@ -163,33 +163,37 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 Json.decodeFromString<HarnessAstResults>(outputFile.readText())
             } ?: HarnessAstResults(emptyList())
 
-        private fun loadManifest(root: Path): Pair<JsonObject?, List<Finding>> {
+        private fun loadManifest(root: Path): ManifestLoadResult {
             val manifestFile = root / "docs" / "harness" / "manifest.json"
             return when {
                 manifestFile.isSymbolicLink() -> {
-                    null to
+                    ManifestLoadResult(
+                        null,
                         listOf(
                             Finding(
                                 Severity.ERROR,
                                 "symlinkSafety",
                                 "symlink file is not allowed: docs/harness/manifest.json",
                             ),
-                        )
+                        ),
+                    )
                 }
 
                 !manifestFile.isRegularFile() -> {
-                    null to
+                    ManifestLoadResult(
+                        null,
                         listOf(
                             Finding(
                                 Severity.ERROR,
                                 "filePresence",
                                 "missing file: docs/harness/manifest.json",
                             ),
-                        )
+                        ),
+                    )
                 }
 
                 else -> {
-                    Json.parseToJsonElement(manifestFile.readText()).jsonObject to emptyList()
+                    ManifestLoadResult(Json.parseToJsonElement(manifestFile.readText()).jsonObject, emptyList())
                 }
             }
         }
@@ -231,27 +235,35 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             }
         }
 
-        private fun loadManifest(root: Path): Pair<JsonObject?, List<Finding>> {
+        private fun loadManifest(root: Path): ManifestLoadResult {
             val manifestFile = root / "docs" / "harness" / "manifest.json"
             return when {
-                manifestFile.isSymbolicLink() -> null to listOf(
-                    Finding(
-                        Severity.ERROR,
-                        "symlinkSafety",
-                        "symlink file is not allowed: docs/harness/manifest.json",
+                manifestFile.isSymbolicLink() -> ManifestLoadResult(
+                    null,
+                    listOf(
+                        Finding(
+                            Severity.ERROR,
+                            "symlinkSafety",
+                            "symlink file is not allowed: docs/harness/manifest.json",
+                        ),
                     ),
                 )
-                !manifestFile.isRegularFile() -> null to listOf(
-                    Finding(
-                        Severity.ERROR,
-                        "filePresence",
-                        "missing file: docs/harness/manifest.json",
+                !manifestFile.isRegularFile() -> ManifestLoadResult(
+                    null,
+                    listOf(
+                        Finding(
+                            Severity.ERROR,
+                            "filePresence",
+                            "missing file: docs/harness/manifest.json",
+                        ),
                     ),
                 )
-                else -> Json.parseToJsonElement(manifestFile.readText()).jsonObject to emptyList()
+                else -> ManifestLoadResult(Json.parseToJsonElement(manifestFile.readText()).jsonObject, emptyList())
             }
         }
     }
+
+    private data class ManifestLoadResult(val manifest: JsonObject?, val findings: List<Finding>)
 
     /**
      * Work parameters for AST analysis in an isolated classloader.

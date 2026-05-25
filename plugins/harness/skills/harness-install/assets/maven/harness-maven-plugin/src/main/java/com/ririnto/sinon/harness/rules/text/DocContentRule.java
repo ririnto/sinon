@@ -8,9 +8,9 @@ import com.ririnto.sinon.harness.Finding;
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -107,9 +107,8 @@ public enum DocContentRule implements HarnessCheckRule {
         if (!node.isArray()) {
             return List.of(node);
         }
-        final List<JsonNode> items = new ArrayList<>();
-        node.forEach(items::add);
-        return items;
+        return StreamSupport.stream(node.spliterator(), false)
+                .collect(Collectors.toList());
     }
 
     private List<String> stringArray(JsonNode node) {
@@ -122,12 +121,9 @@ public enum DocContentRule implements HarnessCheckRule {
         if (!node.isArray()) {
             return List.of();
         }
-        final List<String> items = new ArrayList<>();
-        node.forEach(item -> {
-            if (item.isTextual()) {
-                items.add(item.asText());
-            }
-        });
-        return items;
+        return StreamSupport.stream(node.spliterator(), false)
+                .filter(JsonNode::isTextual)
+                .map(JsonNode::asText)
+                .collect(Collectors.toList());
     }
 }

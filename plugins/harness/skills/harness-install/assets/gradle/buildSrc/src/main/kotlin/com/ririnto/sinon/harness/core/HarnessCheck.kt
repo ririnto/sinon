@@ -4,18 +4,20 @@ import com.ririnto.sinon.harness.ast.HarnessAstResults
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.ast.AstFinding
 import com.ririnto.sinon.harness.rules.ast.LeafFunctionBlankLinesRule
+import com.ririnto.sinon.harness.rules.ast.LeadingUnderscoreRule
 import com.ririnto.sinon.harness.rules.ast.EarlyReturnRule
 import com.ririnto.sinon.harness.rules.ast.EmptyCatchBlockRule
 import com.ririnto.sinon.harness.rules.ast.GreaterThanComparisonRule
 import com.ririnto.sinon.harness.rules.ast.ImplicitLambdaItRule
 import com.ririnto.sinon.harness.rules.ast.MutableCollectionRule
+import com.ririnto.sinon.harness.rules.ast.MultilineDocStyleRule
 import com.ririnto.sinon.harness.rules.ast.NonNullAssertionRule
 import com.ririnto.sinon.harness.rules.ast.UncheckedCastSuppressionRule
 import com.ririnto.sinon.harness.rules.fs.ScaffoldLeaksRule
 import com.ririnto.sinon.harness.rules.ast.SilentCatchRule
 import com.ririnto.sinon.harness.rules.fs.UncheckedTasksRule
 import com.ririnto.sinon.harness.rules.fs.SymlinkSafetyRule
-import com.ririnto.sinon.harness.rules.text.UnstructuredLoggingRule
+import com.ririnto.sinon.harness.rules.ast.UnstructuredLoggingRule
 import com.ririnto.sinon.harness.rules.ast.WildcardImportRule
 import com.ririnto.sinon.harness.rules.HarnessCheckRule
 import com.ririnto.sinon.harness.rules.text.AgentFrontmatterRule
@@ -222,6 +224,16 @@ enum class HarnessCheck(
      * Verifies that public declarations include documentation comments.
      */
     PUBLIC_DECLARATION_DOC_COMMENT(PublicDeclarationDocCommentRule),
+
+    /**
+     * Verifies that declarations and file basenames do not use leading underscores.
+     */
+    LEADING_UNDERSCORE(LeadingUnderscoreRule),
+
+    /**
+     * Verifies that documentation comments use multiline native style.
+     */
+    MULTILINE_DOC_STYLE(MultilineDocStyleRule),
 
     /**
      * Verifies that companion objects are positioned first in the class body.

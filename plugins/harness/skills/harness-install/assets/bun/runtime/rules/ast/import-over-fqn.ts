@@ -8,12 +8,12 @@ import {
   isPropertyAccessExpression,
   SyntaxKind,
 } from "typescript@6.0.3";
+import { astChildrenOf } from "../../core/ast-traversal";
 import type {
   Finding,
   HarnessCheckRule,
   RuleContext,
 } from "../harness-check-rule";
-import { astChildrenOf } from "../../core/ast-traversal";
 
 /**
  * Require imports instead of fully qualified names. When the simple name from an
@@ -75,7 +75,7 @@ export const importOverFqnRule: HarnessCheckRule = {
                 if (!curr || !isPropertyAccessExpression(curr)) {
                   return acc.reverse();
                 }
-                return buildFqnParts(curr.expression, [...acc, curr.name.text]);
+                return buildFqnParts(curr.expression, acc.concat(curr.name.text));
               };
               const start = sourceFile.getLineAndCharacterOfPosition(
                 node.getStart(sourceFile),
@@ -97,7 +97,7 @@ export const importOverFqnRule: HarnessCheckRule = {
                   safety: "unsafe",
                   edits: [],
                 },
-              }, ...astChildrenOf(node).flatMap(checkFqn)];
+              }].concat(astChildrenOf(node).flatMap(checkFqn));
             }
           }
         }

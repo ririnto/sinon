@@ -549,6 +549,36 @@
         "ts",
         "tsx"
       ],
+      "forbiddenConstructors": [
+        "Array",
+        "Map",
+        "Set",
+        "WeakMap",
+        "WeakSet"
+      ],
+      "forbiddenTypes": [
+        "Array",
+        "Map",
+        "Set",
+        "WeakMap",
+        "WeakSet"
+      ],
+      "forbiddenFqns": [
+        "globalThis.Array",
+        "globalThis.Map",
+        "globalThis.Set"
+      ],
+      "accumulationMethods": [
+        "push",
+        "add",
+        "set"
+      ],
+      "allowedOneShotPatterns": [
+        "Array.from(new Set(...))",
+        "Array.from(new Map(...).values())",
+        "new Set(readonlyArray)"
+      ],
+      "allowedBuilders": [],
       "includePaths": [],
       "excludePaths": []
     }
@@ -570,7 +600,15 @@
         "tsx"
       ],
       "includePaths": [],
-      "excludePaths": []
+      "excludePaths": [],
+      "forbiddenLoggingApis": [
+        "console.log",
+        "console.error",
+        "console.warn",
+        "console.info",
+        "console.debug"
+      ],
+      "allowedLoggingApis": []
     }
   },
   "mutableCollection": {
@@ -589,6 +627,36 @@
         "ts",
         "tsx"
       ],
+      "forbiddenConstructors": [
+        "Array",
+        "Map",
+        "Set",
+        "WeakMap",
+        "WeakSet"
+      ],
+      "forbiddenTypes": [
+        "Array",
+        "Map",
+        "Set",
+        "WeakMap",
+        "WeakSet"
+      ],
+      "forbiddenFqns": [
+        "globalThis.Array",
+        "globalThis.Map",
+        "globalThis.Set"
+      ],
+      "accumulationMethods": [
+        "push",
+        "add",
+        "set"
+      ],
+      "allowedOneShotPatterns": [
+        "Array.from(new Set(...))",
+        "Array.from(new Map(...).values())",
+        "new Set(readonlyArray)"
+      ],
+      "allowedBuilders": [],
       "includePaths": [],
       "excludePaths": []
     }
@@ -610,7 +678,8 @@
         "tsx"
       ],
       "includePaths": [],
-      "excludePaths": []
+      "excludePaths": [],
+      "allowedFqnPatterns": []
     }
   },
   "wildcardImport": {
@@ -673,7 +742,64 @@
       "excludePaths": [],
       "visibility": [
         "export"
-      ]
+      ],
+      "allowedDeclarationKinds": [
+        "class",
+        "function",
+        "interface",
+        "typeAlias",
+        "variable"
+      ],
+      "exemptOverrideDeclarations": true,
+      "exemptLocalDeclarations": true,
+      "docStyleMode": "multiline"
+    }
+  },
+  "leadingUnderscore": {
+    "description": "TypeScript source files under parameters.sourceRoots MUST NOT use leading underscores in file basenames or declarations. The discard name `_` and configured allowedNames or allowedPatterns are exempt. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: declaration `{name}` uses a leading underscore"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "**/src",
+        "src"
+      ],
+      "extensions": [
+        "ts",
+        "tsx"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "allowedNames": [
+        "_"
+      ],
+      "allowedPatterns": [],
+      "pythonDunderExemptions": false
+    }
+  },
+  "multilineDocStyle": {
+    "description": "TSDoc comments under parameters.sourceRoots MUST use multiline block style. This aligns with Biome-compatible native TSDoc while leaving shell JSDoc-style `#` docstrings to the shell validator. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{file}:{line}: documentation comment must use multiline TSDoc style"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "**/src",
+        "src"
+      ],
+      "extensions": [
+        "ts",
+        "tsx"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "docStyleMode": "multiline",
+      "formatterRequiredExceptions": []
     }
   },
   "emptyCatchBlock": {
@@ -714,6 +840,32 @@
       ],
       "includePaths": [],
       "excludePaths": []
+    }
+  },
+  "uncheckedCastSuppression": {
+    "description": "TypeScript source files under parameters.sourceRoots MUST NOT use configured suppression directives such as @ts-ignore, @ts-expect-error, @ts-nocheck, or eslint-disable comments. Ordinary comments and string literals MUST NOT be treated as suppressions. Validators inspect comment directive trivia only. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: avoid suppression of forbidden tokens (`{snippet}`); refactor to explicit handling"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "**/src",
+        "src"
+      ],
+      "extensions": [
+        "ts",
+        "tsx"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "forbiddenSuppressions": [
+        "@ts-ignore",
+        "@ts-expect-error",
+        "@ts-nocheck"
+      ],
+      "allowedSuppressions": []
     }
   },
   "seedFiles": {

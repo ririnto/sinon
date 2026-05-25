@@ -437,6 +437,82 @@ reject_missing_doc_separator_in_shell() {
   exit 1
 }
 
+# Reject Markdown opening fences that lack a language specifier.
+#
+# @param path Markdown file path to check.
+# @exit Exits with status 1 when an opening fence has no language.
+require_markdown_fence_language() {
+  path=$1
+  if ! python3 - "$path" <<'PYFENCE'
+import re
+import sys
+from pathlib import Path
+path = Path(sys.argv[1])
+try:
+    text = path.read_text(encoding="utf-8")
+except UnicodeDecodeError:
+    raise SystemExit(0)
+in_fence = False
+fence_marker = ""
+for lineno, line in enumerate(text.splitlines(), 1):
+    fence_match = re.match(r" {0,3}(`{3,}|~{3,})(.*)", line)
+    if fence_match:
+        marker_char = fence_match.group(1)[0]
+        info_string = fence_match.group(2).strip()
+        if not in_fence:
+            in_fence = True
+            fence_marker = marker_char
+            if not info_string:
+                print(f"{path}:{lineno}: opening fence missing language specifier", file=sys.stderr)
+                raise SystemExit(1)
+        elif marker_char == fence_marker:
+            in_fence = False
+PYFENCE
+  then
+    printf '%s\n' "[require_markdown_fence_language] opening fence missing language specifier: $path" >&2
+    exit 1
+  fi
+}
+
+# Reject Markdown opening fences not preceded by a blank line.
+#
+# @param path Markdown file path to check.
+# @exit Exits with status 1 when an opening fence lacks a preceding blank line.
+require_markdown_blank_before_fence() {
+  path=$1
+  if ! python3 - "$path" <<'PYFENCE'
+import re
+import sys
+from pathlib import Path
+path = Path(sys.argv[1])
+try:
+    text = path.read_text(encoding="utf-8")
+except UnicodeDecodeError:
+    raise SystemExit(0)
+lines = text.splitlines()
+in_fence = False
+fence_marker = ""
+for lineno, line in enumerate(lines, 1):
+    fence_match = re.match(r" {0,3}(`{3,}|~{3,})", line)
+    if fence_match:
+        marker_char = fence_match.group(1)[0]
+        if not in_fence:
+            if lineno > 1:
+                prev = lines[lineno - 2].strip()
+                if prev != "":
+                    print(f"{path}:{lineno}: opening fence not preceded by blank line", file=sys.stderr)
+                    raise SystemExit(1)
+            in_fence = True
+            fence_marker = marker_char
+        elif marker_char == fence_marker:
+            in_fence = False
+PYFENCE
+  then
+    printf '%s\n' "[require_markdown_blank_before_fence] opening fence not preceded by blank line: $path" >&2
+    exit 1
+  fi
+}
+
 # Reject shellcheck violations in a packaged shell file.
 #
 #     Runs `shellcheck -s sh -f gcc` against the file; fails on any violation.
@@ -650,6 +726,7 @@ require_executable "$root/scripts/plugin-self-check.sh"
 require_executable "$root/skills/harness-install/scripts/install-harness.sh"
 require_executable "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-commit"
 require_executable "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-push"
+require_executable "$root/skills/harness-install/assets/shell/runtime/harness-validate.sh"
 
 require_absent "$root/hooks" 'top-level Claude hooks runtime surface must not be packaged'
 
@@ -1000,6 +1077,12 @@ for template_root in $template_roots; do
       case "$path" in
         *.md|*.txt)
           reject_unresolved_template_tokens_in_document "$path"
+          ;;
+      esac
+      case "$path" in
+        *.md)
+          require_markdown_fence_language "$path"
+          require_markdown_blank_before_fence "$path"
           ;;
       esac
     fi

@@ -9,10 +9,11 @@ import java.nio.file.FileSystems;
 import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.nio.file.PathMatcher;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.stream.IntStream;
@@ -232,11 +233,17 @@ public class HarnessCheckHelper {
         final List<String> includes = includesNode != null ? extractPaths(includesNode) : List.of();
         final List<String> excludes = excludesNode != null ? extractPaths(excludesNode) : List.of();
         final FileSystem fs = FileSystems.getDefault();
-        final List<Path> result = new ArrayList<>();
-        for (final JsonNode rootNode : rootsNode) {
-            result.addAll(walkRoot(fs, projectRoot, rootNode.asText(), extensions, includes, excludes));
-        }
-        return result.stream().distinct().sorted().collect(Collectors.toList());
+        return StreamSupport.stream(rootsNode.spliterator(), false)
+                .flatMap((Function<JsonNode, Stream<Path>>) rootNode -> {
+                    try {
+                        return walkRoot(fs, projectRoot, rootNode.asText(), extensions, includes, excludes).stream();
+                    } catch (IOException e) {
+                        return Stream.empty();
+                    }
+                })
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     /**
@@ -255,8 +262,8 @@ public class HarnessCheckHelper {
         if (!isSafeRelativeRoot(rootEntry)) {
             return Collections.emptyList();
         }
-            final List<java.nio.file.PathMatcher> includeMatchers = includes.stream().map(p -> fs.getPathMatcher("glob:" + p)).toList();
-        final List<java.nio.file.PathMatcher> excludeMatchers = excludes.stream().map(p -> fs.getPathMatcher("glob:" + p)).toList();
+        final List<PathMatcher> includeMatchers = includes.stream().map(p -> fs.getPathMatcher("glob:" + p)).toList();
+        final List<PathMatcher> excludeMatchers = excludes.stream().map(p -> fs.getPathMatcher("glob:" + p)).toList();
         if (rootEntry.contains("*")) {
             final String pattern = "glob:" + rootEntry + "/**/*";
             final var matcher = fs.getPathMatcher(pattern);
@@ -282,7 +289,7 @@ public class HarnessCheckHelper {
      * @param matchers glob matchers for inclusion
      * @return true if matchers is empty or file matches any include pattern
      */
-    private static boolean applyIncludeFilters(Path file, Path base, List<java.nio.file.PathMatcher> matchers) {
+    private static boolean applyIncludeFilters(Path file, Path base, List<PathMatcher> matchers) {
         if (matchers.isEmpty()) {
             return true;
         }
@@ -297,7 +304,7 @@ public class HarnessCheckHelper {
      * @param matchers glob matchers for exclusion
      * @return true if matchers is empty or file does not match any exclude pattern
      */
-    private static boolean applyExcludeFilters(Path file, Path base, List<java.nio.file.PathMatcher> matchers) {
+    private static boolean applyExcludeFilters(Path file, Path base, List<PathMatcher> matchers) {
         if (matchers.isEmpty()) {
             return true;
         }

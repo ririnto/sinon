@@ -9,7 +9,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
-import com.github.javaparser.ast.expr.ArrayAccessExpr;
+import com.github.javaparser.ast.expr.ArrayInitializerExpr;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
@@ -17,10 +17,10 @@ import com.github.javaparser.ast.expr.StringLiteralExpr;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Rule that forbids @SuppressWarnings annotations with forbidden tokens.
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * - @SuppressWarnings(value = "TOKEN") — named single
  * - @SuppressWarnings(value = {"TOKEN", "OTHER"}) — named array
  *
- * Configurable via parameters.forbiddenSuppressions (defaults to ["unchecked"]).
+ * Configurable via parameters.forbiddenSuppressions and parameters.allowedSuppressions.
  */
 public enum UncheckedCastSuppressionRule implements AstRule {
     INSTANCE;
@@ -49,22 +49,23 @@ public enum UncheckedCastSuppressionRule implements AstRule {
         final JsonNode manifest = ctx.manifest().raw();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         final Set<String> forbiddenTokens = resolveForbiddenSuppressions(manifest);
+        final Set<String> allowedTokens = resolveAllowedSuppressions(manifest);
         try {
             final List<Path> sources = ctx.stackSources(CATEGORY);
             return sources.stream()
-                    .flatMap(file -> validateFile(root, file, severity, forbiddenTokens).stream())
+                    .flatMap(file -> validateFile(root, file, severity, forbiddenTokens, allowedTokens).stream())
                     .toList();
         } catch (MojoExecutionException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to enumerate sources: " + e.getMessage()));
         }
     }
 
-    private List<Finding> validateFile(Path root, Path file, String severity, Set<String> forbiddenTokens) {
+    private List<Finding> validateFile(Path root, Path file, String severity, Set<String> forbiddenTokens, Set<String> allowedTokens) {
         try {
             final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(AnnotationExpr.class).stream()
                     .filter(ann -> isSuppressWarnings(ann))
-                    .filter(ann -> hasForbiddenToken(ann, forbiddenTokens))
+                    .filter(ann -> hasForbiddenToken(ann, forbiddenTokens, allowedTokens))
                     .map(ann -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + ann.getBegin().map(p -> p.line).orElse(-1) + ": avoid suppression of forbidden tokens (`" + ann.toString() + "`); refactor to type-safe cast or explicit handling"))
                     .toList();
         } catch (IOException e) {
@@ -76,9 +77,9 @@ public enum UncheckedCastSuppressionRule implements AstRule {
         return ann.getNameAsString().equals("SuppressWarnings");
     }
 
-    private boolean hasForbiddenToken(AnnotationExpr ann, Set<String> forbiddenTokens) {
+    private boolean hasForbiddenToken(AnnotationExpr ann, Set<String> forbiddenTokens, Set<String> allowedTokens) {
         final Set<String> tokens = extractSuppressTokens(ann);
-        return !tokens.stream().filter(forbiddenTokens::contains).collect(Collectors.toSet()).isEmpty();
+        return !tokens.stream().filter(token -> forbiddenTokens.contains(token) && !allowedTokens.contains(token)).collect(Collectors.toSet()).isEmpty();
     }
 
     /**
@@ -92,58 +93,53 @@ public enum UncheckedCastSuppressionRule implements AstRule {
      * @return Set of extracted string values.
      */
     private Set<String> extractSuppressTokens(AnnotationExpr ann) {
-        final Set<String> tokens = new HashSet<>();
         if (ann.isSingleMemberAnnotationExpr()) {
             final SingleMemberAnnotationExpr singleAnn = ann.asSingleMemberAnnotationExpr();
-            extractFromExpression(singleAnn.getMemberValue(), tokens);
+            return extractFromExpression(singleAnn.getMemberValue());
         } else if (ann.isNormalAnnotationExpr()) {
             final NormalAnnotationExpr normalAnn = ann.asNormalAnnotationExpr();
-            normalAnn.getPairs().stream()
+            return normalAnn.getPairs().stream()
                     .filter(pair -> "value".equals(pair.getNameAsString()))
-                    .forEach(pair -> extractFromExpression(pair.getValue(), tokens));
+                    .map(pair -> extractFromExpression(pair.getValue()))
+                    .flatMap(Set::stream)
+                    .collect(Collectors.toSet());
         }
-        return tokens;
+        return Set.of();
     }
 
     /**
      * Extracts string literals from an expression (string literal or array).
      *
      * @param expr The expression to extract from.
-     * @param tokens Accumulator set for extracted string values.
+     * @return Set of extracted string values.
      */
-    private void extractFromExpression(Expression expr, Set<String> tokens) {
+    private Set<String> extractFromExpression(Expression expr) {
         if (expr.isStringLiteralExpr()) {
             final String value = expr.asStringLiteralExpr().asString();
-            if (!value.isEmpty()) {
-                tokens.add(value);
-            }
-        } else if (expr.isArrayAccessExpr() || expr.isArrayCreationExpr()) {
-            extractFromArray(expr, tokens);
+            return value.isEmpty() ? Set.of() : Set.of(value);
+        } else if (expr.isArrayInitializerExpr()) {
+            return extractFromArrayInitializer(expr.asArrayInitializerExpr());
+        } else if (expr.isArrayCreationExpr()) {
+            return expr.asArrayCreationExpr().getInitializer()
+                    .map(this::extractFromArrayInitializer)
+                    .orElse(Set.of());
         }
+        return Set.of();
     }
 
     /**
      * Extracts string literals from an array expression.
      *
      * @param expr The array expression.
-     * @param tokens Accumulator set for extracted string values.
+     * @return Set of extracted string values.
      */
-    private void extractFromArray(Expression expr, Set<String> tokens) {
-        final String text = expr.toString();
-        if (text.startsWith("{") && text.endsWith("}")) {
-            final String content = text.substring(1, text.length() - 1).trim();
-            if (!content.isEmpty()) {
-                for (String element : content.split(",")) {
-                    final String trimmed = element.trim();
-                    if (trimmed.startsWith("\"") && trimmed.endsWith("\"")) {
-                        final String value = trimmed.substring(1, trimmed.length() - 1);
-                        if (!value.isEmpty()) {
-                            tokens.add(value);
-                        }
-                    }
-                }
-            }
-        }
+    private Set<String> extractFromArrayInitializer(ArrayInitializerExpr expr) {
+        return expr.getValues().stream()
+                    .filter(Expression::isStringLiteralExpr)
+                    .map(Expression::asStringLiteralExpr)
+                    .map(StringLiteralExpr::asString)
+                    .filter(value -> !value.isEmpty())
+                    .collect(Collectors.toSet());
     }
 
     /**
@@ -168,12 +164,35 @@ public enum UncheckedCastSuppressionRule implements AstRule {
         if (tokens == null || !tokens.isArray()) {
             return Set.of("unchecked");
         }
-        final Set<String> result = new HashSet<>();
-        tokens.forEach(token -> {
-            if (token.isTextual()) {
-                result.add(token.asText());
-            }
-        });
+        final Set<String> result = StreamSupport.stream(tokens.spliterator(), false)
+                .filter(JsonNode::isString)
+                .map(JsonNode::asString)
+                .collect(Collectors.toSet());
         return result.isEmpty() ? Set.of("unchecked") : result;
+    }
+
+    /**
+     * Resolves allowedSuppressions from manifest parameters.
+     *
+     * @param manifest Manifest JSON node.
+     * @return Set of allowed suppression tokens.
+     */
+    private Set<String> resolveAllowedSuppressions(JsonNode manifest) {
+        final JsonNode section = manifest.get(CATEGORY);
+        if (section == null) {
+            return Set.of();
+        }
+        final JsonNode params = section.get("parameters");
+        if (params == null) {
+            return Set.of();
+        }
+        final JsonNode tokens = params.get("allowedSuppressions");
+        if (tokens == null || !tokens.isArray()) {
+            return Set.of();
+        }
+        return StreamSupport.stream(tokens.spliterator(), false)
+                .filter(JsonNode::isString)
+                .map(JsonNode::asString)
+                .collect(Collectors.toSet());
     }
 }

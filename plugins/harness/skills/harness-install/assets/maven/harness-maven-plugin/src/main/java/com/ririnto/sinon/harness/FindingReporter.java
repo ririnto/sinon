@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Renders findings in biome+ruff hybrid diagnostic format.
@@ -27,11 +29,15 @@ public final class FindingReporter {
         if (findings.isEmpty()) {
             return List.of("OK");
         }
-        final List<String> output = new ArrayList<>();
-        for (final Finding finding : findings) {
-            output.addAll(renderFinding(root, finding));
-        }
-        output.add("");
+        final List<String> body = findings.stream()
+                .flatMap(finding -> {
+                    try {
+                        return renderFinding(root, finding).stream();
+                    } catch (IOException e) {
+                        return Stream.<String>empty();
+                    }
+                })
+                .collect(Collectors.toList());
         final int distinctFiles = (int) findings.stream()
                 .map(Finding::file)
                 .filter(f -> f != null)
@@ -52,15 +58,19 @@ public final class FindingReporter {
         final String fixableLabel = fixableCount > 0
                 ? String.format(" [*] %d fixable.", fixableCount)
                 : "";
-        output.add(String.format(
-                "Checked %d file(s). %d violation(s): %d error, %d warn, %d info.%s",
-                distinctFiles,
-                findings.size(),
-                errorCount,
-                warnCount,
-                infoCount,
-                fixableLabel));
-        return output;
+        return Stream.concat(
+                body.stream(),
+                Stream.of(
+                        "",
+                        String.format(
+                                "Checked %d file(s). %d violation(s): %d error, %d warn, %d info.%s",
+                                distinctFiles,
+                                findings.size(),
+                                errorCount,
+                                warnCount,
+                                infoCount,
+                                fixableLabel)))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -72,30 +82,42 @@ public final class FindingReporter {
      * @throws IOException if file cannot be read
      */
     private static List<String> renderFinding(Path root, Finding finding) throws IOException {
-        final List<String> lines = new ArrayList<>();
-        lines.add(renderHeaderLine(finding));
-        if (finding.file() != null && finding.startLine() != null) {
-            lines.addAll(renderSnippet(root, finding));
+        return Stream.of(
+                Stream.of(renderHeaderLine(finding)),
+                finding.file() != null && finding.startLine() != null
+                        ? renderSnippet(root, finding).stream()
+                        : Stream.<String>empty(),
+                renderFixSection(root, finding),
+                Stream.of(""))
+                .flatMap(s -> s)
+                .collect(Collectors.toList());
+    }
+
+    private static Stream<String> renderFixSection(Path root, Finding finding) {
+        if (finding.fix() == null) {
+            return Stream.empty();
         }
-        if (finding.fix() != null) {
-            lines.add("");
-            lines.add(String.format("  Safety: %s", safetyLabel(finding.fix().safety())));
-            lines.add(String.format("  Help: %s", finding.fix().description()));
-            if (finding.fix().edits() != null && !finding.fix().edits().isEmpty()) {
-                final FindingEdit edit = finding.fix().edits().get(0);
-                lines.add("");
-                lines.add("  Before:");
+        final Stream.Builder<String> builder = Stream.builder();
+        builder.add("");
+        builder.add(String.format("  Safety: %s", safetyLabel(finding.fix().safety())));
+        builder.add(String.format("  Help: %s", finding.fix().description()));
+        if (finding.fix().edits() != null && !finding.fix().edits().isEmpty()) {
+            final FindingEdit edit = finding.fix().edits().get(0);
+            builder.add("");
+            builder.add("  Before:");
+            try {
                 for (final String line : extractRemovedText(root, edit)) {
-                    lines.add("  - " + line);
+                    builder.add("  - " + line);
                 }
-                lines.add("  After:");
-                for (final String line : edit.replacement().split("\n", -1)) {
-                    lines.add("  + " + line);
-                }
+            } catch (IOException e) {
+                builder.add("  - [unreadable]");
+            }
+            builder.add("  After:");
+            for (final String line : edit.replacement().split("\n", -1)) {
+                builder.add("  + " + line);
             }
         }
-        lines.add("");
-        return lines;
+        return builder.build();
     }
 
     /**
@@ -145,25 +167,26 @@ public final class FindingReporter {
         if (offendingLineIdx < 0 || offendingLineIdx >= fileLines.size()) {
             return List.of();
         }
-        final List<String> lines = new ArrayList<>();
         final int beforeIdx = offendingLineIdx - 1;
         final int afterIdx = offendingLineIdx + 1;
         final int numWidth = String.valueOf(fileLines.size()).length();
-        lines.add("");
-        if (beforeIdx >= 0) {
-            lines.add(String.format("   %s │ %s",
-                    padLineNum(beforeIdx + 1, numWidth),
-                    fileLines.get(beforeIdx)));
-        }
-        lines.add(String.format("  > %s │ %s",
-                padLineNum(offendingLineIdx + 1, numWidth),
-                fileLines.get(offendingLineIdx)));
-        if (afterIdx < fileLines.size()) {
-            lines.add(String.format("   %s │ %s",
-                    padLineNum(afterIdx + 1, numWidth),
-                    fileLines.get(afterIdx)));
-        }
-        return lines;
+        return Stream.of(
+                Stream.of(""),
+                beforeIdx >= 0
+                        ? Stream.of(String.format("   %s │ %s",
+                                padLineNum(beforeIdx + 1, numWidth),
+                                fileLines.get(beforeIdx)))
+                        : Stream.<String>empty(),
+                Stream.of(String.format("  > %s │ %s",
+                        padLineNum(offendingLineIdx + 1, numWidth),
+                        fileLines.get(offendingLineIdx))),
+                afterIdx < fileLines.size()
+                        ? Stream.of(String.format("   %s │ %s",
+                                padLineNum(afterIdx + 1, numWidth),
+                                fileLines.get(afterIdx)))
+                        : Stream.<String>empty())
+                .flatMap(s -> s)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -185,24 +208,21 @@ public final class FindingReporter {
         if (startIdx < 0 || endIdx >= fileLines.size()) {
             return List.of();
         }
-        final List<String> removed = new ArrayList<>();
-        for (int i = startIdx; i <= endIdx; i++) {
-            final String line = fileLines.get(i);
-            final String slice;
-            if (i == startIdx && i == endIdx) {
-                slice = line.substring(
-                        Math.min(edit.startColumn() - 1, line.length()),
-                        Math.min(edit.endColumn(), line.length()));
-            } else if (i == startIdx) {
-                slice = line.substring(Math.min(edit.startColumn() - 1, line.length()));
-            } else if (i == endIdx) {
-                slice = line.substring(0, Math.min(edit.endColumn(), line.length()));
-            } else {
-                slice = line;
-            }
-            removed.add(slice);
-        }
-        return removed;
+        return IntStream.rangeClosed(startIdx, endIdx)
+                .mapToObj(i -> {
+                    final String line = fileLines.get(i);
+                    if (i == startIdx && i == endIdx) {
+                        return line.substring(
+                                Math.min(edit.startColumn() - 1, line.length()),
+                                Math.min(edit.endColumn(), line.length()));
+                    } else if (i == startIdx) {
+                        return line.substring(Math.min(edit.startColumn() - 1, line.length()));
+                    } else if (i == endIdx) {
+                        return line.substring(0, Math.min(edit.endColumn(), line.length()));
+                    }
+                    return line;
+                })
+                .collect(Collectors.toList());
     }
 
     /**

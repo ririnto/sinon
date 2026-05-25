@@ -43,6 +43,7 @@ class UncheckedCastSuppressionRule(HarnessCheckRule):
         category = self.category
         sources = ctx.stack_sources(self.category)
         forbidden = self.resolve_forbidden_suppressions(ctx)
+        allowed = self.resolve_allowed_suppressions(ctx)
         def collect_findings():
             for path in sources:
                 tree, error = parse_python(path)
@@ -55,7 +56,7 @@ class UncheckedCastSuppressionRule(HarnessCheckRule):
                     continue
                 wrapper = cst.MetadataWrapper(tree)
                 visitor = UncheckedCastSuppressionFinder(
-                    relative(path, ctx.root), forbidden, severity, category
+                    relative(path, ctx.root), forbidden, allowed, severity, category
                 )
                 wrapper.visit(visitor)
                 yield from visitor.findings
@@ -74,6 +75,14 @@ class UncheckedCastSuppressionRule(HarnessCheckRule):
         tokens = params.get("forbiddenSuppressions", ["type: ignore"])
         return set(tokens) if tokens else {"type: ignore"}
 
+    def resolve_allowed_suppressions(self, ctx: RuleContext) -> set[str]:
+        """Resolve allowedSuppressions from manifest parameters."""
+        manifest = ctx.manifest.raw
+        section = manifest.get(self.category, {})
+        params = section.get("parameters", {})
+        tokens = params.get("allowedSuppressions", [])
+        return set(tokens) if tokens else set()
+
 
 class UncheckedCastSuppressionFinder(cst.CSTVisitor):
     """Find forbidden suppression tokens in comments."""
@@ -81,12 +90,18 @@ class UncheckedCastSuppressionFinder(cst.CSTVisitor):
     METADATA_DEPENDENCIES = (cst.metadata.PositionProvider,)
 
     def __init__(
-        self, rel_path: str, forbidden: set[str], severity: str, category: str
+        self,
+        rel_path: str,
+        forbidden: set[str],
+        allowed: set[str],
+        severity: str,
+        category: str,
     ) -> None:
         super().__init__()
         self.findings: list[Finding] = []
         self.rel_path = rel_path
         self.forbidden = forbidden
+        self.allowed = allowed
         self.severity = severity
         self.category = category
 
@@ -125,7 +140,7 @@ class UncheckedCastSuppressionFinder(cst.CSTVisitor):
         if not comment.startswith("#"):
             return
         tokens = self.extract_suppression_tokens(comment)
-        matching = tokens.intersection(self.forbidden)
+        matching = tokens.intersection(self.forbidden - self.allowed)
         if matching:
             line_num = self.comment_line_prefix(comment)
             self.findings.append(

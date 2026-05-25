@@ -20,11 +20,19 @@ import type {
  */
 export const unstructuredLoggingRule: HarnessCheckRule = {
   category: "unstructuredLogging",
-  applies(ctx: RuleContext): boolean {
+  applies(_: RuleContext): boolean {
     return true;
   },
 
   validate(ctx: RuleContext): readonly Finding[] {
+    const forbiddenLoggingApis = resolveLoggingApis(ctx, "forbiddenLoggingApis", [
+      "console.log",
+      "console.error",
+      "console.warn",
+      "console.info",
+      "console.debug",
+    ]);
+    const allowedLoggingApis = resolveLoggingApis(ctx, "allowedLoggingApis", []);
     return ctx
       .stackSources("unstructuredLogging")
       .map((file) => ({ file, text: ctx.read(file) }))
@@ -37,7 +45,6 @@ export const unstructuredLoggingRule: HarnessCheckRule = {
           true,
         );
         const findings: Finding[] = [];
-        const logMethods = ["log", "error", "warn", "info", "debug"];
         const visit = (node: Node): void => {
           if (
             isCallExpression(node) &&
@@ -46,7 +53,8 @@ export const unstructuredLoggingRule: HarnessCheckRule = {
             node.expression.expression.text === "console"
           ) {
             const methodName = node.expression.name?.text;
-            if (methodName && logMethods.includes(methodName)) {
+            const apiName = methodName ? `console.${methodName}` : "";
+            if (forbiddenLoggingApis.includes(apiName) && !allowedLoggingApis.includes(apiName)) {
               const start = sourceFile.getLineAndCharacterOfPosition(
                 node.getStart(sourceFile),
               );
@@ -56,14 +64,14 @@ export const unstructuredLoggingRule: HarnessCheckRule = {
               findings.push({
                 severity: ctx.severityOf("unstructuredLogging"),
                 category: "unstructuredLogging",
-                message: `${file}:${start.line + 1}: unstructured logging \`console.${methodName}\`; use structured logger`,
+                message: `${file}:${start.line + 1}: unstructured logging \`${apiName}\`; use structured logger`,
                 file,
                 startLine: start.line + 1,
                 startColumn: start.character + 1,
                 endLine: end.line + 1,
                 endColumn: end.character + 1,
                 fix: {
-                  description: `replace \`console.${methodName}\` with structured logging`,
+                  description: `replace \`${apiName}\` with structured logging`,
                   safety: "unsafe",
                   edits: [],
                 },
@@ -77,3 +85,18 @@ export const unstructuredLoggingRule: HarnessCheckRule = {
       });
   },
 };
+
+/**
+ * Resolves logging API lists from manifest parameters.
+ */
+function resolveLoggingApis(
+  ctx: RuleContext,
+  key: string,
+  defaults: string[],
+): string[] {
+  const params = ctx.readJsonObject(
+    ctx.categoryObject("unstructuredLogging").parameters,
+  );
+  const values = ctx.readStringArray(params[key]);
+  return values.length > 0 ? Array.from(values) : defaults;
+}

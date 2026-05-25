@@ -6,19 +6,19 @@ import {
   isBinaryExpression,
   SyntaxKind,
 } from "typescript@6.0.3";
+import { astChildrenOf } from "../../core/ast-traversal";
 import type {
   Finding,
   HarnessCheckRule,
   RuleContext,
 } from "../harness-check-rule";
-import { astChildrenOf } from "../../core/ast-traversal";
 
 /**
  * Forbid greater-than comparisons in TypeScript.
  */
 export const greaterThanComparisonRule: HarnessCheckRule = {
   category: "greaterThanComparison",
-  applies(ctx: RuleContext): boolean {
+  applies(_: RuleContext): boolean {
     return true;
   },
   validate(ctx: RuleContext): readonly Finding[] {
@@ -61,7 +61,7 @@ export const greaterThanComparisonRule: HarnessCheckRule = {
                 safety: "unsafe",
                 edits: [],
               },
-            }, ...astChildrenOf(node).flatMap(visitNode)];
+            }].concat(astChildrenOf(node).flatMap(visitNode));
           }
           return astChildrenOf(node).flatMap(visitNode);
         };

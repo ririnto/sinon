@@ -35,18 +35,20 @@ from rules.text.env_shebang_usage import RULE as env_shebang_usage
 from rules.text.shebang_encoding_marker import RULE as shebang_encoding_marker
 from rules.text.unchecked_tasks import RULE as unchecked_tasks
 from rules.fs.symlink_safety import RULE as symlink_safety
-from rules.ast.kotlin_top_level_declaration_count import (
-    RULE as kotlin_top_level_declaration_count,
-)
 from rules.ast.greater_than_comparison import RULE as greater_than_comparison
 from rules.ast.leaf_function_blank_lines import RULE as leaf_function_blank_lines
+from rules.ast.leading_underscore import RULE as leading_underscore
+from rules.ast.multiline_doc_style import RULE as multiline_doc_style
 from rules.ast.early_return import RULE as early_return
 from rules.ast.silent_catch import RULE as silent_catch
+from rules.ast.mutable_collection import RULE as mutable_collection
 from rules.ast.unstructured_logging import RULE as unstructured_logging
 from rules.ast.wildcard_import import RULE as wildcard_import
 from rules.ast.import_over_fqn import RULE as import_over_fqn
 from rules.ast.public_declaration_doc_comment import RULE as public_declaration_doc_comment
 from rules.ast.empty_catch_block import RULE as empty_catch_block
+from rules.ast.unchecked_cast_suppression import RULE as unchecked_cast_suppression
+from rules.ast.triple_quote_inline_comment import RULE as triple_quote_inline_comment
 from rules.text.ci_hook_command_parity import RULE as ci_hook_command_parity
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -88,10 +90,6 @@ class HarnessCheck(enum.Enum):
         unchecked_tasks,
     )
     SYMLINK_SAFETY = ("symlinkSafety", symlink_safety)
-    KOTLIN_TOP_LEVEL_DECLARATION_COUNT = (
-        "kotlinTopLevelDeclarationCount",
-        kotlin_top_level_declaration_count,
-    )
     GREATER_THAN_COMPARISON = ("greaterThanComparison", greater_than_comparison)
     LEAF_FUNCTION_BLANK_LINES = (
         "leafFunctionBlankLines",
@@ -99,6 +97,7 @@ class HarnessCheck(enum.Enum):
     )
     EARLY_RETURN = ("earlyReturn", early_return)
     SILENT_CATCH = ("silentCatch", silent_catch)
+    MUTABLE_COLLECTION = ("mutableCollection", mutable_collection)
     UNSTRUCTURED_LOGGING = ("unstructuredLogging", unstructured_logging)
     WILDCARD_IMPORT = ("wildcardImport", wildcard_import)
     IMPORT_OVER_FQN = ("importOverFqn", import_over_fqn)
@@ -106,7 +105,17 @@ class HarnessCheck(enum.Enum):
         "publicDeclarationDocComment",
         public_declaration_doc_comment,
     )
+    LEADING_UNDERSCORE = ("leadingUnderscore", leading_underscore)
+    MULTILINE_DOC_STYLE = ("multilineDocStyle", multiline_doc_style)
     EMPTY_CATCH_BLOCK = ("emptyCatchBlock", empty_catch_block)
+    UNCHECKED_CAST_SUPPRESSION = (
+        "uncheckedCastSuppression",
+        unchecked_cast_suppression,
+    )
+    TRIPLE_QUOTE_INLINE_COMMENT = (
+        "tripleQuoteInlineComment",
+        triple_quote_inline_comment,
+    )
     CI_HOOK_COMMAND_PARITY = (
         "ciHookCommandParity",
         ci_hook_command_parity,

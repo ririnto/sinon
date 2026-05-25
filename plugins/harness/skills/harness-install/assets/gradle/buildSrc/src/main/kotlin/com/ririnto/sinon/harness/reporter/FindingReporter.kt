@@ -27,7 +27,9 @@ object FindingReporter {
      * @return List of formatted output lines.
      */
     fun renderFindings(root: Path, findings: List<Finding>): List<String> {
-        if (findings.isEmpty()) return listOf("OK")
+        if (findings.isEmpty()) {
+            return listOf("OK")
+        }
         return buildList {
             findings.sortedWith(compareBy({ finding -> finding.severity.ordinal }, { findings.indexOf(it) }))
                 .forEach { finding ->
@@ -35,8 +37,8 @@ object FindingReporter {
                 }
             val (fileCount, errorCount, warnCount, infoCount, fixableCount) = computeSummary(findings)
             add("")
-            val fixableLabel = if (fixableCount > 0) " [*] $fixableCount fixable." else ""
-            add("Checked $fileCount file(s). ${findings.size} violation(s): $errorCount error, $warnCount warn, $infoCount info.$fixableLabel")
+            add("Checked $fileCount file(s). ${findings.size} violation(s): $errorCount error, $warnCount warn, $infoCount info.${when (0 < fixableCount) {true->" [*] $fixableCount fixable."
+            else->""}}")
         }
     }
 
@@ -82,11 +84,13 @@ object FindingReporter {
     private fun renderSnippet(filePath: Path, startLine: Int, startColumn: Int?): List<String> {
         val lines = filePath.readLines()
         val lineNum = startLine - 1
-        if (lineNum < 0 || lineNum >= lines.size) return emptyList()
+        if (lineNum < 0 || lines.size <= lineNum) {
+            return emptyList()
+        }
         return buildList {
             val numWidth = lines.size.toString().length
             val beforeLine = lineNum - 1
-            if (beforeLine >= 0) {
+            if (0 <= beforeLine) {
                 add("   ${(beforeLine + 1).toString().padStart(numWidth)} │ ${lines[beforeLine]}")
             }
             add("  > ${(lineNum + 1).toString().padStart(numWidth)}  │ ${lines[lineNum]}")
@@ -98,11 +102,15 @@ object FindingReporter {
     }
 
     private fun extractRemovedText(filePath: Path, edit: HarnessAstResults.FindingEdit): List<String> {
-        if (!filePath.isRegularFile() || !filePath.exists()) return emptyList()
+        if (!filePath.isRegularFile() || !filePath.exists()) {
+            return emptyList()
+        }
         val lines = filePath.readLines()
         val startIdx = edit.startLine - 1
         val endIdx = edit.endLine - 1
-        if (startIdx < 0 || endIdx >= lines.size) return emptyList()
+        if (startIdx < 0 || lines.size <= endIdx) {
+            return emptyList()
+        }
         return buildList {
             for (i in startIdx..endIdx) {
                 val line = lines[i]
@@ -120,7 +128,11 @@ object FindingReporter {
 
     private fun extractAddedText(edit: HarnessAstResults.FindingEdit): List<String> {
         val lines = edit.replacement.split("\n")
-        return if (lines.isEmpty()) listOf("") else lines
+        return if (lines.isEmpty()) {
+            listOf("")
+        } else {
+            lines
+        }
     }
 
     private fun computeSummary(findings: List<Finding>): Tuple5<Int, Int, Int, Int, Int> {

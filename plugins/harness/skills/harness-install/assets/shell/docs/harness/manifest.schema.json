@@ -2,10 +2,348 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.shell.schema.json",
   "title": "RepositoryHarnessManifestShell",
-  "description": "Shell stack manifest schema. Uses the base tier directly because no shell-specific rules exist beyond the shared filesystem/hook checks. Extends manifest.base.schema.json via allOf without adding stack-specific properties.",
+  "description": "Shell stack manifest schema. Extends manifest.base.schema.json with typed parameter shapes for shell-specific rules: executable path lists, hook file rules, POSIX shell policy, shell runtime scope, generated-artifact patterns, and Markdown fence policy for shell-owned docs/templates.",
   "allOf": [
     {
       "$ref": "./manifest.base.schema.json"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "filePresence": {
+          "$ref": "#/$defs/addOnWithPaths"
+        },
+        "directoryPresence": {
+          "$ref": "#/$defs/addOnWithPaths"
+        },
+        "emptyDirectoryPlaceholders": {
+          "$ref": "#/$defs/addOnWithDirectories"
+        },
+        "scaffoldLeaks": {
+          "$ref": "#/$defs/addOnWithScaffoldScope"
+        },
+        "hookShebang": {
+          "$ref": "#/$defs/addOnWithHookShebang"
+        },
+        "hookExecutable": {
+          "$ref": "#/$defs/addOnWithHookList"
+        },
+        "uncheckedTasks": {
+          "$ref": "#/$defs/addOnWithUncheckedTasks"
+        }
+      }
     }
-  ]
+  ],
+  "$defs": {
+    "addOnWithPaths": {
+      "type": "object",
+      "description": "Add-on with a typed paths array parameter.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "./manifest.base.schema.json#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "paths"
+          ],
+          "properties": {
+            "paths": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of required file or directory paths relative to the target repository root."
+            }
+          }
+        }
+      }
+    },
+    "addOnWithDirectories": {
+      "type": "object",
+      "description": "Add-on with a typed directories array parameter.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "./manifest.base.schema.json#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "directories"
+          ],
+          "properties": {
+            "directories": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Directories that must contain at least one real file or a .gitkeep placeholder."
+            }
+          }
+        }
+      }
+    },
+    "addOnWithScaffoldScope": {
+      "type": "object",
+      "description": "Add-on with typed scaffold leak scope and pattern parameters.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "./manifest.base.schema.json#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scope",
+            "patterns"
+          ],
+          "properties": {
+            "scope": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "bases",
+                "extensions"
+              ],
+              "properties": {
+                "bases": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Root paths to scan for scaffold leaks."
+                },
+                "excludedSubtrees": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Subtrees excluded from scaffold leak scanning."
+                },
+                "extensions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "File extensions to include in scanning."
+                }
+              }
+            },
+            "patterns": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "pattern",
+                  "label"
+                ],
+                "properties": {
+                  "pattern": {
+                    "type": "string",
+                    "description": "Regex pattern to detect."
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "Human-readable label for the pattern match."
+                  }
+                }
+              },
+              "description": "Scaffold leak patterns to detect."
+            }
+          }
+        }
+      }
+    },
+    "addOnWithHookShebang": {
+      "type": "object",
+      "description": "Add-on with typed hook shebang parameters.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "./manifest.base.schema.json#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hooks",
+            "expectedShebang"
+          ],
+          "properties": {
+            "hooks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Hook file paths to validate."
+            },
+            "expectedShebang": {
+              "type": "string",
+              "description": "Required first-line shebang for hook files."
+            }
+          }
+        }
+      }
+    },
+    "addOnWithHookList": {
+      "type": "object",
+      "description": "Add-on with typed hook executable list parameter.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "./manifest.base.schema.json#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hooks"
+          ],
+          "properties": {
+            "hooks": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Hook file paths that must have executable bit set."
+            }
+          }
+        }
+      }
+    },
+    "addOnWithUncheckedTasks": {
+      "type": "object",
+      "description": "Add-on with typed unchecked task parameters.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "./manifest.base.schema.json#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "directory",
+            "uncheckedTaskPattern"
+          ],
+          "properties": {
+            "directory": {
+              "type": "string",
+              "description": "Directory containing completed plan files."
+            },
+            "filenamePattern": {
+              "type": "string",
+              "description": "Glob pattern for plan filenames."
+            },
+            "uncheckedTaskPattern": {
+              "type": "string",
+              "description": "Regex pattern matching unchecked task lines."
+            }
+          }
+        }
+      }
+    }
+  }
 }

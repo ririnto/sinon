@@ -65,6 +65,24 @@ def matches_visibility(name: str, tokens: tuple[str, ...]) -> bool:
     return False
 
 
+def is_override_decorator(decorator: cst.Decorator, exempt_decorators: tuple[str, ...]) -> bool:
+    """Return whether a decorator matches a configured exemption token."""
+    expression = decorator.decorator
+    if isinstance(expression, cst.Name):
+        return expression.value in exempt_decorators
+    if isinstance(expression, cst.Attribute):
+        return expression.attr.value in exempt_decorators
+    return False
+
+
+def resolve_exempt_decorators(ctx: RuleContext, category: str) -> tuple[str, ...]:
+    """Resolve configured decorator names that exempt declarations from docs."""
+    section = ctx.manifest.raw.get(category)
+    params = section.get("parameters", {}) if isinstance(section, dict) else {}
+    exempt_decorators = params.get("exemptDecorators", ["override"]) if isinstance(params, dict) else ["override"]
+    return tuple(item for item in exempt_decorators if isinstance(item, str))
+
+
 class PublicDeclarationDocCommentRule(HarnessCheckRule):
     """Validate publicDeclarationDocComment check."""
 
@@ -82,6 +100,7 @@ class PublicDeclarationDocCommentRule(HarnessCheckRule):
         category = self.category
         sources = ctx.stack_sources(self.category)
         visibility_tokens = resolve_visibility_tokens(ctx, self.category)
+        exempt_decorators = resolve_exempt_decorators(ctx, self.category)
 
         if not visibility_tokens:
             return []
@@ -93,10 +112,13 @@ class PublicDeclarationDocCommentRule(HarnessCheckRule):
                 super().__init__()
                 self.findings: list[Finding] = []
                 self.rel_path = rel_path
+                self.depth = 0
 
             def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
+                self.depth += 1
                 func_name = node.name.value
-                if matches_visibility(func_name, visibility_tokens):
+                has_override = any(is_override_decorator(decorator, exempt_decorators) for decorator in node.decorators)
+                if self.depth == 1 and not has_override and matches_visibility(func_name, visibility_tokens):
                     if not isinstance(node.body, cst.IndentedBlock):
                         return True
                     if not node.body.body:
@@ -131,9 +153,14 @@ class PublicDeclarationDocCommentRule(HarnessCheckRule):
                         )
                 return True
 
+            def leave_FunctionDef(self, original_node: cst.FunctionDef) -> None:
+                """Leave a function declaration."""
+                self.depth -= 1
+
             def visit_ClassDef(self, node: cst.ClassDef) -> bool:
+                self.depth += 1
                 class_name = node.name.value
-                if matches_visibility(class_name, visibility_tokens):
+                if self.depth == 1 and matches_visibility(class_name, visibility_tokens):
                     if not isinstance(node.body, cst.IndentedBlock):
                         return True
                     if not node.body.body:
@@ -167,6 +194,10 @@ class PublicDeclarationDocCommentRule(HarnessCheckRule):
                             )
                         )
                 return True
+
+            def leave_ClassDef(self, original_node: cst.ClassDef) -> None:
+                """Leave a class declaration."""
+                self.depth -= 1
 
         def collect_findings():
             for path in sources:

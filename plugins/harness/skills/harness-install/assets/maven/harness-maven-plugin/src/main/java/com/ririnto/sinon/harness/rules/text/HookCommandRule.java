@@ -10,6 +10,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -57,7 +58,7 @@ public enum HookCommandRule implements HarnessCheckRule {
                         return Stream.empty();
                     }
                 })
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .toList();
         final String preCommitPath = catNode.get("parameters").get("preCommitHook").asText();
         final Path preCommit = root.resolve(preCommitPath);

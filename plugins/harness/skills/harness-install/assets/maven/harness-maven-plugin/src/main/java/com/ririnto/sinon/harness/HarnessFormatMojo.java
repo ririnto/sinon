@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -52,7 +53,7 @@ public final class HarnessFormatMojo extends AbstractMojo {
      * Collects formatted file paths from applicable checks, relativized and sorted.
      */
     private List<String> buildModifiedPaths(Path root, RuleContext ctx) throws MojoExecutionException {
-        final java.util.LinkedHashSet<String> paths = new java.util.LinkedHashSet<>();
+        final LinkedHashSet<String> paths = new LinkedHashSet<>();
         for (final HarnessCheck check : HarnessCheck.values()) {
             if (check.applies(ctx)) {
                 check.format(ctx).stream()

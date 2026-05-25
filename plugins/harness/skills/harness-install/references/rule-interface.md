@@ -370,11 +370,13 @@ Harness validation rules are indexed by manifest category keys (camelCase). This
 | ifStatementBraces | ast/IfStatementBracesRule.kt | | rules/if-statement-braces.ts | ast/IfStatementBracesRule.java | ast |
 | implicitLambdaIt | ast/ImplicitLambdaItRule.kt | | rules/implicit-lambda-it.ts | | ast |
 | importOverFqn | ast/ImportOverFqnRule.kt | runtime/rules/import_over_fqn.py | rules/import-over-fqn.ts | ast/ImportOverFqnRule.java | text/ast |
-| kotlinTopLevelDeclarationCount | ast/KotlinTopLevelDeclarationCountRule.kt | runtime/rules/kotlin_top_level_declaration_count.py | rules/kotlin-top-level-declaration-count.ts | ast/KotlinTopLevelDeclarationCountRule.java | ast |
+| kotlinTopLevelDeclarationCount | ast/KotlinTopLevelDeclarationCountRule.kt | | | | ast |
 | leafFunctionBlankLines | ast/LeafFunctionBlankLinesRule.kt | runtime/rules/leaf_function_blank_lines.py | rules/leaf-function-blank-lines.ts | ast/LeafFunctionBlankLinesRule.java | text/ast |
-| mutableCollection | ast/MutableCollectionRule.kt | | rules/mutable-collection.ts | ast/MutableCollectionRule.java | ast |
+ | mutableCollection | ast/MutableCollectionRule.kt | runtime/rules/ast/mutable_collection.py | rules/mutable-collection.ts | ast/MutableCollectionRule.java | ast |
 | nonNullAssertion | ast/NonNullAssertionRule.kt (checks `!!`) | | | | ast |
 | publicDeclarationDocComment | ast/PublicDeclarationDocCommentRule.kt | runtime/rules/public_declaration_doc_comment.py | rules/public-declaration-doc-comment.ts | ast/PublicDeclarationDocCommentRule.java | text/ast |
+| leadingUnderscore | ast/LeadingUnderscoreRule.kt | runtime/rules/leading_underscore.py | rules/leading-underscore.ts | ast/LeadingUnderscoreRule.java | ast |
+| multilineDocStyle | ast/MultilineDocStyleRule.kt | runtime/rules/multiline_doc_style.py | rules/multiline-doc-style.ts | ast/MultilineDocStyleRule.java | ast |
 | scaffoldLeaks | fs/ScaffoldLeaksRule.kt | runtime/rules/scaffold_leaks.py | rules/scaffold-leaks.ts | text/ScaffoldLeaksRule.java | fs/text |
 | silentCatch | ast/SilentCatchRule.kt | runtime/rules/silent_catch.py | rules/silent-catch.ts | ast/SilentCatchRule.java | text/ast |
 | skillFrontmatter | text/SkillFrontmatterRule.kt (YamlFrontMatterVisitor) | runtime/rules/skill_frontmatter.py | rules/skill-frontmatter.ts | text/SkillFrontmatterRule.java | text |

@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Rule that forbids unstructured logging via System.out/System.err.
@@ -34,27 +36,41 @@ public enum UnstructuredLoggingRule implements AstRule {
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         try {
             final List<Path> sources = ctx.stackSources(CATEGORY);
+            final Set<String> forbiddenLoggingApis = loggingApis(manifest, "forbiddenLoggingApis", Set.of("System.out.println", "System.out.print", "System.err.println", "System.err.print"));
+            final Set<String> allowedLoggingApis = loggingApis(manifest, "allowedLoggingApis", Set.of());
             return sources.stream()
-                    .flatMap(file -> validateUnstructuredLogging(root, file, severity).stream())
+                    .flatMap(file -> validateUnstructuredLogging(root, file, severity, forbiddenLoggingApis, allowedLoggingApis).stream())
                     .toList();
         } catch (MojoExecutionException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to enumerate sources: " + e.getMessage()));
         }
     }
 
-    private List<Finding> validateUnstructuredLogging(Path root, Path file, String severity) {
+    private List<Finding> validateUnstructuredLogging(Path root, Path file, String severity, Set<String> forbiddenLoggingApis, Set<String> allowedLoggingApis) {
         try {
             final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(MethodCallExpr.class).stream()
-                    .filter(expr -> {
-                        final String methodStr = expr.toString();
-                        return methodStr.startsWith("System.out.println") || methodStr.startsWith("System.out.print") ||
-                                methodStr.startsWith("System.err.println") || methodStr.startsWith("System.err.print");
-                    })
-                    .map(expr -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + expr.getBegin().map(p -> p.line).orElse(-1) + ": unstructured logging; use structured logger"))
+                    .map(expr -> loggingApi(expr.toString(), forbiddenLoggingApis, allowedLoggingApis)
+                            .map(api -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + expr.getBegin().map(p -> p.line).orElse(-1) + ": unstructured logging `" + api + "`; use structured logger")))
+                    .flatMap(optional -> optional.stream())
                     .toList();
         } catch (IOException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }
+    }
+
+    private Set<String> loggingApis(JsonNode manifest, String key, Set<String> defaults) {
+        final JsonNode section = manifest.get(CATEGORY);
+        final JsonNode parameters = section == null ? null : section.get("parameters");
+        final JsonNode values = parameters == null ? null : parameters.get(key);
+        final Set<String> configured = Set.copyOf(HarnessCheckHelper.extractPaths(values));
+        return configured.isEmpty() ? defaults : configured;
+    }
+
+    private Optional<String> loggingApi(String methodCall, Set<String> forbiddenLoggingApis, Set<String> allowedLoggingApis) {
+        return forbiddenLoggingApis.stream()
+                .filter(api -> !allowedLoggingApis.contains(api))
+                .filter(methodCall::startsWith)
+                .findFirst();
     }
 }

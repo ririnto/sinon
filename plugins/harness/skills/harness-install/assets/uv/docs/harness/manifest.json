@@ -558,7 +558,59 @@
         "py"
       ],
       "includePaths": [],
-      "excludePaths": []
+      "excludePaths": [],
+      "allowedLoggingCalls": [
+        "\\blogging\\b",
+        "\\blogger\\b",
+        "\\blog\\b"
+      ]
+    }
+  },
+  "mutableCollection": {
+    "description": "Code under parameters.sourceRoots MUST prefer functional collection construction. Forbidden: Python `list()` / `dict()` / `set()` construction and `.append()` / `.add()` accumulation. Use comprehensions, generators, tuples, or immutable copies. Validators implement this via CST: detect forbidden constructor calls and accumulation methods. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: mutable collection `{snippet}` is forbidden; use functional alternative"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "forbiddenConstructors": [
+        "list",
+        "dict",
+        "set"
+      ],
+      "forbiddenTypes": [],
+      "forbiddenFqns": [
+        "builtins.list",
+        "builtins.dict",
+        "builtins.set"
+      ],
+      "accumulationMethods": [
+        "append",
+        "add",
+        "extend",
+        "insert",
+        "update",
+        "setdefault"
+      ],
+      "allowedOneShotPatterns": [],
+      "allowedBuilders": [],
+      "allowedComprehensionsOrGenerators": [
+        "list",
+        "dict",
+        "set",
+        "generator"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "allowedFqnPatterns": []
     }
   },
   "unstructuredLogging": {
@@ -577,7 +629,15 @@
         "py"
       ],
       "includePaths": [],
-      "excludePaths": []
+      "excludePaths": [],
+      "forbiddenLoggingApis": [
+        "print"
+      ],
+      "allowedLoggingApis": [],
+      "functionalOutputPaths": [
+        "docs/harness/uv/harness_format.py",
+        "docs/harness/uv/harness_validate.py"
+      ]
     }
   },
   "wildcardImport": {
@@ -637,7 +697,62 @@
       "excludePaths": [],
       "visibility": [
         "module"
-      ]
+      ],
+      "allowedDeclarationKinds": [
+        "class",
+        "function"
+      ],
+      "exemptOverrideDeclarations": true,
+      "exemptLocalDeclarations": true,
+      "exemptDecorators": [
+        "override"
+      ],
+      "docStyleMode": "multiline"
+    }
+  },
+  "leadingUnderscore": {
+    "description": "Python source files under parameters.sourceRoots MUST NOT use leading underscores in file basenames or declarations. The discard name `_`, configured allowedNames or allowedPatterns, and Python dunder names when parameters.pythonDunderExemptions is true are exempt. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: declaration `{name}` uses a leading underscore"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "allowedNames": [
+        "_"
+      ],
+      "allowedPatterns": [],
+      "pythonDunderExemptions": true
+    }
+  },
+  "multilineDocStyle": {
+    "description": "Python docstrings under parameters.sourceRoots MUST use multiline reStructuredText-compatible docstring style. This aligns with ruff-compatible native docstrings while leaving shell JSDoc-style `#` docstrings to the shell validator. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{file}:{line}: docstring must use multiline reStructuredText style"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "docStyleMode": "multiline",
+      "formatterRequiredExceptions": []
     }
   },
   "emptyCatchBlock": {
@@ -698,6 +813,7 @@
       "forbiddenSuppressions": [
         "type: ignore"
       ],
+      "allowedSuppressions": [],
       "allowedScopes": []
     }
   },
