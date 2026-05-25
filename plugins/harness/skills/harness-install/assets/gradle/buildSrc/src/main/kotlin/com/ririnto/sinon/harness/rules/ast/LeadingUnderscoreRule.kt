@@ -75,9 +75,6 @@ object LeadingUnderscoreRule : HarnessAstRule() {
         val allowedNames: Set<String>,
         val allowedPatterns: List<Regex>,
     ) {
-        fun isForbidden(name: String): Boolean =
-            name.startsWith("_") && name !in allowedNames && allowedPatterns.none { pattern -> pattern.matches(name) }
-
         companion object {
             fun from(ctx: RuleContext): RuleConfig {
                 val parameters = ctx.manifest.categoryObject("leadingUnderscore")?.get("parameters")?.jsonObject
@@ -89,5 +86,8 @@ object LeadingUnderscoreRule : HarnessAstRule() {
                 )
             }
         }
+
+        fun isForbidden(name: String): Boolean =
+            name.startsWith("_") && name !in allowedNames && allowedPatterns.none { pattern -> pattern.matches(name) }
     }
 }
