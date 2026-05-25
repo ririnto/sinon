@@ -225,20 +225,17 @@ object ClassMemberOrderingRule : HarnessAstRule() {
         root: Path,
         file: Path,
         manifest: JsonObject,
-    ): List<Finding> =
-        try {
-            val compilationUnit = StaticJavaParser.parse(file)
-            AstFindingRenderer.renderEach(
-                compilationUnit.findAll(ClassOrInterfaceDeclaration::class.java).flatMap { type ->
-                    javaClassMemberOrderEntries(root, file, type.nameAsString, javaOwnerId(type), type.members)
-                } + compilationUnit.findAll(EnumDeclaration::class.java).flatMap { type ->
-                    javaClassMemberOrderEntries(root, file, type.nameAsString, javaOwnerId(type), type.members)
-                },
-                manifest,
-            )
-        } catch (error: Exception) {
-            throw GradleException("failed to parse Java source ${file.relativeTo(root)}", error)
-        }
+    ): List<Finding> {
+        val compilationUnit = StaticJavaParser.parse(file)
+        return AstFindingRenderer.renderEach(
+            compilationUnit.findAll(ClassOrInterfaceDeclaration::class.java).flatMap { type ->
+                javaClassMemberOrderEntries(root, file, type.nameAsString, javaOwnerId(type), type.members)
+            } + compilationUnit.findAll(EnumDeclaration::class.java).flatMap { type ->
+                javaClassMemberOrderEntries(root, file, type.nameAsString, javaOwnerId(type), type.members)
+            },
+            manifest,
+        )
+    }
 
     private fun javaClassMemberOrderEntries(
         root: Path,

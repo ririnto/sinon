@@ -21,31 +21,19 @@ object HookExecutableRule : HarnessCheckRule() {
      * Category key.
      */
     override val category: String = "hookExecutable"
-    override fun validate(ctx: RuleContext): Collection<Finding> = buildList {
-        val catObj = ctx.manifest.categoryObject(category)
-        if (catObj != null) {
-            addAll(
-                ctx.manifest.stringArray(category, "hooks")
-                    .filter { hookPath ->
-                        val hook = ctx.root / hookPath
-                        hook.isRegularFile()
-                    }
-                    .filter { hookPath ->
-                        val hook = ctx.root / hookPath
-                        !hook.isExecutable()
-                    }
-                    .map { hookPath ->
-                        Finding(
-                            ctx.manifest.severityOf(category),
-                            category,
-                            ctx.manifest.stringValue(category, "default").takeIf { message ->
-                                message.isNotEmpty()
-                            }
-                                ?: "$hookPath must be executable",
-                        )
-                    }
-            )
-        }
+    override fun validate(ctx: RuleContext): Collection<Finding> {
+        if (ctx.manifest.categoryObject(category) == null) return emptyList()
+        return ctx.manifest.stringArray(category, "hooks")
+            .filter { hookPath -> (ctx.root / hookPath).isRegularFile() }
+            .filter { hookPath -> !(ctx.root / hookPath).isExecutable() }
+            .map { hookPath ->
+                Finding(
+                    ctx.manifest.severityOf(category),
+                    category,
+                    ctx.manifest.stringValue(category, "default").takeIf { it.isNotEmpty() }
+                        ?: "$hookPath must be executable",
+                )
+            }
     }
 
 }

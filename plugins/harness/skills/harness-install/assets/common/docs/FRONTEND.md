@@ -36,7 +36,7 @@ Delete rows below that do not apply to this project. Replace placeholders with r
 
 - Separate *surface-shape* layers from *business-logic* layers: presentational components vs. containers (UI); HTTP handlers vs. service code (API); CLI command parsers vs. domain operations (CLI). File-path conventions or lints enforce the split.
 - Keep public surfaces (browser, mobile, external API) distinct from internal-only surfaces (admin tools, internal RPC). Each MUST sit in its own directory and follow the access-control rules in `docs/SECURITY.md`.
-- Public surfaces follow the project's compatibility policy: dated URL prefix (e.g. `/v1`) for the HTTP API, semver for SDKs and CLI, six-month deprecation window with sunset header / SDK warning.
+- Public surfaces follow the project's compatibility policy: dated URL prefix (e.g. `/v1`) for the HTTP API, semver for SDKs and CLI, six-month sunset window with sunset header / SDK warning.
 
 ## Accessibility and Ergonomics Floor
 

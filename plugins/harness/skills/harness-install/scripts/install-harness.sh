@@ -5,7 +5,7 @@ set -e
 script_dir=$(CDPATH='' cd "$(dirname "$0")" && pwd)
 skill_dir=$(CDPATH='' cd "$script_dir/.." && pwd)
 template_dir="$skill_dir/assets"
-mode=auto
+mode=
 hooks=none
 force=0
 ci=1
@@ -18,10 +18,9 @@ root_contract_conflicts=0
 # @exit Exits with status 0 when invoked with -h or --help.
 usage() {
   cat <<'EOF'
-usage: install-harness.sh [--target DIR] [--mode auto|gradle|maven|uv|bun|shell] [--hooks none|copy] [--force] [--no-ci]
+usage: install-harness.sh --mode gradle|maven|uv|bun|shell [--target DIR] [--hooks none|copy] [--force] [--no-ci]
 
-modes:
-  auto    Detect the stack from files in the target repository (recommended).
+modes (required, no auto-detection):
   gradle  Projects using the Gradle build tool.
   maven   Projects using the Apache Maven build tool.
   uv      Python-family projects managed by uv (pyproject.toml + uv.lock).
@@ -54,13 +53,13 @@ while [ $# -gt 0 ]; do
     --target=*) target_root=${1#--target=}; shift ;;
     --mode)
       if [ $# -lt 2 ]; then
-        error '--mode requires auto|gradle|maven|uv|bun|shell'
+        error '--mode requires gradle|maven|uv|bun|shell'
       fi
       mode=$2
       shift 2
       ;;
     --mode=*) mode=${1#--mode=}; shift ;;
-    auto|gradle|maven|uv|bun|shell) mode=$1; shift ;;
+    gradle|maven|uv|bun|shell) mode=$1; shift ;;
     --hooks)
       if [ $# -lt 2 ]; then
         error '--hooks requires none|copy'
@@ -76,7 +75,11 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-case "$mode" in auto|gradle|maven|uv|bun|shell) ;; *) printf '%s\n' "invalid mode: $mode" >&2; exit 2 ;; esac
+case "$mode" in
+  gradle|maven|uv|bun|shell) ;;
+  '') printf '%s\n' '--mode is required (gradle|maven|uv|bun|shell).' >&2; exit 2 ;;
+  *) printf '%s\n' "invalid mode: $mode" >&2; exit 2 ;;
+esac
 case "$hooks" in copy|none) ;; *) printf '%s\n' "invalid hooks mode: $hooks" >&2; exit 2 ;; esac
 if [ -z "$target_root" ]; then
   error 'target root must not be empty'
@@ -92,13 +95,6 @@ if ! git_probe=$(git rev-parse --is-inside-work-tree 2>&1); then
   printf '%s\n' 'warning: target root is not a Git worktree; git hook activation will be skipped' >&2
 fi
 
-if [ "$mode" = auto ]; then
-  mode=$(sh "$script_dir/detect-stack.sh")
-fi
-if [ "$mode" = unknown ]; then
-  printf '%s\n' 'could not detect repository stack; pass --mode gradle|maven|uv|bun|shell' >&2
-  exit 2
-fi
 
 # Reject a path that is not a safe target-relative path.
 #
@@ -441,7 +437,7 @@ copy_stack_tree() {
   find "$src_dir" -type f | while IFS= read -r src; do
     rel=${src#"$src_dir"/}
     case "$rel" in
-      target/*|*/target/*|build/*|*/build/*|bin/*|*/bin/*|.gradle/*|*/.gradle/*|.factorypath|*/.factorypath|.classpath|*/.classpath|.project|*/.project|.settings/*|*/.settings/*|__pycache__/*|*/__pycache__/*|*.pyc) continue ;;
+      target/*|*/target/*|build/*|*/build/*|bin/*|*/bin/*|.gradle/*|*/.gradle/*|.ruff_cache/*|*/.ruff_cache/*|.factorypath|*/.factorypath|.classpath|*/.classpath|.project|*/.project|.settings/*|*/.settings/*|__pycache__/*|*/__pycache__/*|*.pyc) continue ;;
       .gitlab-ci.yml)
         if [ "$ci" -ne 1 ]; then
           continue

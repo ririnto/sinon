@@ -41,7 +41,8 @@ object GreaterThanComparisonRule : HarnessAstRule() {
     /**
      * AST visitor for greater-than comparison analysis.
      *
-     * Identifies binary expressions using greater-than (>) or greater-than-or-equal (>=) operators.
+     * Identifies binary expressions using greater-than (>) or
+     * greater-than-or-equal (>=) operators.
      */
     private class Visitor(
         private val record: (AstFinding) -> Unit,

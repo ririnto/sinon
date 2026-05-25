@@ -1,6 +1,13 @@
+# -*- coding: utf-8 -*-
 """Re-export utility functions from HarnessCheckRule static methods."""
 
-from harness_check_rule import Finding, HarnessCheckRule, JsonObject, ROOT
+import sys
+
+
+from harness_check_rule import HarnessCheckRule
+
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
 
 allowed_root_contract_target = HarnessCheckRule.allowed_root_contract_target
 first_line = HarnessCheckRule.first_line

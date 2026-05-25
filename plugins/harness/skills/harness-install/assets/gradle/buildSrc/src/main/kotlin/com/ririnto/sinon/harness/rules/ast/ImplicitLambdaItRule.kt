@@ -40,9 +40,7 @@ object ImplicitLambdaItRule : HarnessAstRule() {
         astFactory: KtPsiFactory?,
     ): Collection<AstFinding> = buildSet {
         val ktFile = AstSupport.parse(file, astFactory)
-        if (ktFile != null) {
-            ktFile.accept(OuterVisitor(::add, file, ctx, ktFile))
-        }
+        ktFile?.accept(OuterVisitor({ finding -> add(finding) }, file, ctx, ktFile))
     }
 
     private class OuterVisitor(

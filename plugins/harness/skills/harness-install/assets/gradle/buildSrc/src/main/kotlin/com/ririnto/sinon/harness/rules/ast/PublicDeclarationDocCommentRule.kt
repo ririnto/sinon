@@ -7,8 +7,8 @@ import com.ririnto.sinon.harness.ast.AstFindingRenderer
 import com.ririnto.sinon.harness.ast.AstFinding
 
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -43,22 +43,35 @@ object PublicDeclarationDocCommentRule : HarnessAstRule() {
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        val ktFile = AstSupport.parse(file, astFactory)
-        if (ktFile != null) {
-            ktFile.accept(Visitor(::add, file, ctx, ktFile))
+    ): Collection<AstFinding> {
+        return buildSet {
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile, loadConfiguredTokens(ctx)))
         }
     }
+
+    /**
+     * Load configured visibility tokens from manifest parameters.
+     */
+    private fun loadConfiguredTokens(ctx: RuleContext): Set<String> =
+        (ctx.manifest.categoryObject(category)
+            ?.get("parameters")
+            ?.jsonObject
+            ?.get("visibility")
+            ?.jsonArray
+            ?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull }
+            ?: listOf("public", "protected", "internal")).toSet()
 
     private class Visitor(
         private val record: (AstFinding) -> Unit,
         private val file: Path,
         private val ctx: RuleContext,
         private val ktFile: KtFile,
+        private val configuredTokens: Set<String>,
     ) : KtTreeVisitorVoid() {
         override fun visitClass(klass: KtClass) {
             super.visitClass(klass)
-            if (isExternallyVisible(klass) && klass.docComment == null) {
+            if (matchesVisibility(klass, configuredTokens) && klass.docComment == null) {
                 record(
                     AstFinding(
                         rule = "publicDeclarationDocComment",
@@ -71,7 +84,7 @@ object PublicDeclarationDocCommentRule : HarnessAstRule() {
         }
         override fun visitNamedFunction(function: KtNamedFunction) {
             super.visitNamedFunction(function)
-            if (isExternallyVisible(function) &&
+            if (matchesVisibility(function, configuredTokens) &&
                 !function.hasModifier(KtTokens.OVERRIDE_KEYWORD) &&
                 function.docComment == null
             ) {
@@ -87,7 +100,7 @@ object PublicDeclarationDocCommentRule : HarnessAstRule() {
         }
         override fun visitProperty(property: KtProperty) {
             super.visitProperty(property)
-            if (!property.isLocal && isExternallyVisible(property) && property.docComment == null) {
+            if (!property.isLocal && matchesVisibility(property, configuredTokens) && property.docComment == null) {
                 record(
                     AstFinding(
                         rule = "publicDeclarationDocComment",
@@ -98,13 +111,37 @@ object PublicDeclarationDocCommentRule : HarnessAstRule() {
                 )
             }
         }
-        private fun isExternallyVisible(element: KtModifierListOwner): Boolean {
-            val visibilityType = element.visibilityModifierType()
-            val parent = element.parent
-            return visibilityType != KtTokens.PRIVATE_KEYWORD &&
-                visibilityType != KtTokens.INTERNAL_KEYWORD &&
-                !(element is KtProperty && element.isLocal) &&
-                !(element is KtNamedFunction && parent is KtBlockExpression)
-        }
     }
+}
+
+/**
+ * Determine the effective visibility of a Kotlin declaration.
+ *
+ * @param declaration The declaration to inspect.
+ * @return One of "public", "protected", "internal", "private".
+ */
+private fun effectiveVisibility(declaration: KtModifierListOwner): String {
+    val visibilityModifierType = declaration.visibilityModifierType()
+    return when (visibilityModifierType) {
+        KtTokens.PUBLIC_KEYWORD -> "public"
+        KtTokens.PROTECTED_KEYWORD -> "protected"
+        KtTokens.INTERNAL_KEYWORD -> "internal"
+        KtTokens.PRIVATE_KEYWORD -> "private"
+        else -> "public"
+    }
+}
+
+/**
+ * Check if a declaration matches the configured visibility tokens.
+ *
+ * @param declaration The declaration to check.
+ * @param tokens The set of visibility tokens to match against.
+ * @return true if declaration's visibility is in tokens and it's not in a block expression.
+ */
+private fun matchesVisibility(declaration: KtModifierListOwner, tokens: Set<String>): Boolean {
+    val visibility = effectiveVisibility(declaration)
+    val parent = declaration.parent
+    return visibility in tokens &&
+        !(declaration is KtProperty && declaration.isLocal) &&
+        !(declaration is KtNamedFunction && parent is KtBlockExpression)
 }
