@@ -67,7 +67,7 @@ object ClassMemberOrderingRule : HarnessAstRule() {
         val parameters = ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject
         val rank =
             (parameters?.get("order")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull } ?: emptyList()).ifEmpty {
-                listOf("companionObject", "fieldOrProperty", "initializer", "constructor", "function", "nestedType")
+                listOf("companionObject", "constProperty", "fieldOrProperty", "initializer", "constructor", "function", "interface", "class", "enum")
             }
             .withIndex()
             .associate { indexed -> indexed.value to indexed.index }
@@ -170,15 +170,28 @@ object ClassMemberOrderingRule : HarnessAstRule() {
             is KtObjectDeclaration -> {
                 when {
                     declaration.isCompanion() -> "companionObject"
-                    else -> "nestedType"
+                    else -> "class"
                 }
             }
 
-            is KtProperty -> "fieldOrProperty"
+            is KtProperty -> {
+                when {
+                    declaration.hasModifier(KtTokens.CONST_KEYWORD) -> "constProperty"
+                    else -> "fieldOrProperty"
+                }
+            }
+
             is KtSecondaryConstructor -> "constructor"
             is KtClassInitializer -> "initializer"
             is KtNamedFunction -> "function"
-            is KtClass -> "nestedType"
+            is KtClass -> {
+                when {
+                    declaration.isInterface() -> "interface"
+                    declaration.isEnum() -> "enum"
+                    else -> "class"
+                }
+            }
+
             else -> null
         }
 
@@ -194,11 +207,24 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                 }
             }
 
-            is KtProperty -> declaration.name ?: "property"
+            is KtProperty -> {
+                when {
+                    declaration.hasModifier(KtTokens.CONST_KEYWORD) -> "const ${declaration.name ?: "property"}"
+                    else -> declaration.name ?: "property"
+                }
+            }
+
             is KtSecondaryConstructor -> "constructor"
             is KtClassInitializer -> "initializer"
             is KtNamedFunction -> declaration.name ?: "function"
-            is KtClass -> declaration.name ?: "class"
+            is KtClass -> {
+                when {
+                    declaration.isInterface() -> "interface ${declaration.name ?: ""}"
+                    declaration.isEnum() -> "enum ${declaration.name ?: ""}"
+                    else -> declaration.name ?: "class"
+                }
+            }
+
             else -> "member"
         }
 
@@ -316,8 +342,14 @@ object ClassMemberOrderingRule : HarnessAstRule() {
             is InitializerDeclaration -> "initializer"
             is ConstructorDeclaration -> "constructor"
             is MethodDeclaration -> "function"
-            is ClassOrInterfaceDeclaration -> "nestedType"
-            is EnumDeclaration -> "nestedType"
+            is ClassOrInterfaceDeclaration -> {
+                when {
+                    member.isInterface -> "interface"
+                    else -> "class"
+                }
+            }
+
+            is EnumDeclaration -> "enum"
             else -> null
         }
 
