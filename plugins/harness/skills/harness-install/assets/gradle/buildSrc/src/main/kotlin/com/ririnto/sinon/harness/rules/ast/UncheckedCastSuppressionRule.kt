@@ -26,7 +26,7 @@ import kotlin.io.path.Path
  * - @Suppress(value = ["TOKEN"]) — named array single
  * - @Suppress(value = ["TOKEN", "OTHER"]) — named array multiple
  *
- * Configurable via parameters.forbiddenSuppressions (defaults to ["UNCHECKED_CAST"]).
+ * Configurable via parameters.forbiddenSuppressions and parameters.allowedSuppressions.
  */
 object UncheckedCastSuppressionRule : HarnessAstRule() {
     /**
@@ -84,6 +84,20 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
     }
 
     /**
+     * Resolves allowedSuppressions from manifest parameters.
+     *
+     * @param ctx Rule execution context carrying manifest payload.
+     * @return Set of allowed suppression tokens.
+     */
+    internal fun resolveAllowedSuppressions(ctx: RuleContext): Set<String> {
+        val manifest = ctx.manifest.raw
+        val section = manifest[category] as? Map<*, *> ?: return emptySet()
+        val params = section["parameters"] as? Map<*, *> ?: return emptySet()
+        val tokens = params["allowedSuppressions"] as? List<*> ?: return emptySet()
+        return tokens.filterIsInstance<String>().toSet()
+    }
+
+    /**
      * AST visitor for finding @Suppress annotations with forbidden tokens.
      */
     private class Visitor(
@@ -93,12 +107,13 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
         private val ktFile: KtFile,
     ) : KtTreeVisitorVoid() {
         private val forbiddenTokens = resolveForbiddenSuppressions(ctx)
+        private val allowedTokens = resolveAllowedSuppressions(ctx)
 
         override fun visitAnnotationEntry(annotation: KtAnnotationEntry) {
             super.visitAnnotationEntry(annotation)
             if (annotation.shortName?.asString() == "Suppress") {
                 val foundTokens = extractSuppressTokens(annotation)
-                val matchingTokens = foundTokens.intersect(forbiddenTokens)
+                val matchingTokens = foundTokens.intersect(forbiddenTokens - allowedTokens)
                 if (matchingTokens.isNotEmpty()) {
                     record(
                         AstFinding(
@@ -128,14 +143,17 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
         private fun extractSuppressTokens(annotation: KtAnnotationEntry): Set<String> = buildSet {
             for (arg in annotation.valueArguments) {
                 val argExpr = arg.getArgumentExpression()
-                if (argExpr is KtStringTemplateExpression) {
-                    val stringValue = extractStringValue(argExpr)
-                    if (stringValue.isNotEmpty()) {
-                        add(stringValue)
+                when {
+                    argExpr is KtStringTemplateExpression -> {
+                        val stringValue = extractStringValue(argExpr)
+                        if (stringValue.isNotEmpty()) {
+                            add(stringValue)
+                        }
                     }
-                } else if (argExpr != null && argExpr.text.startsWith("[")) {
-                    for (token in arrayLiteralTokens(argExpr)) {
-                        add(token)
+                    argExpr != null && argExpr.text.startsWith("[") -> {
+                        for (token in arrayLiteralTokens(argExpr)) {
+                            add(token)
+                        }
                     }
                 }
             }

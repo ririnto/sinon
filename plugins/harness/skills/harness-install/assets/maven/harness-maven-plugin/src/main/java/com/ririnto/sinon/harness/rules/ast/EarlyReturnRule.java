@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Rule that forbids early return statements in functions.
@@ -51,14 +52,14 @@ public enum EarlyReturnRule implements AstRule {
                             .map(body -> {
                                 final List<ReturnStmt> returnStmts = body.findAll(ReturnStmt.class);
                                 if (returnStmts.isEmpty()) {
-                                    return java.util.stream.Stream.<Finding>empty();
+                                    return Stream.<Finding>empty();
                                 }
                                 final ReturnStmt lastReturn = returnStmts.get(returnStmts.size() - 1);
                                 return returnStmts.stream()
                                         .filter(ret -> !ret.equals(lastReturn))
                                         .map(ret -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + ret.getBegin().map(p -> p.line).orElse(-1) + ": early return in function"));
                             })
-                            .orElse(java.util.stream.Stream.<Finding>empty()))
+                            .orElse(Stream.<Finding>empty()))
                     .toList();
         } catch (IOException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));

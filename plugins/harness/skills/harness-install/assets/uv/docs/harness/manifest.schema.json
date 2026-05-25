@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.uv.schema.json",
   "title": "RepositoryHarnessManifestUv",
-  "description": "uv (Python) stack manifest schema. Extends manifest.code.schema.json with Python-specific rules (tripleQuoteInlineComment).",
+  "description": "uv (Python) stack manifest schema. Extends manifest.code.schema.json with Python-specific rules (tripleQuoteInlineComment) and Python declaration/doc rules.",
   "allOf": [
     {
       "$ref": "./manifest.code.schema.json"
@@ -10,7 +10,329 @@
   ],
   "properties": {
     "tripleQuoteInlineComment": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+      "$ref": "#/$defs/sourceAddOn"
+    },
+    "silentCatch": {
+      "$ref": "#/$defs/silentCatchAddOn"
+    },
+    "unstructuredLogging": {
+      "$ref": "#/$defs/loggingAddOn"
+    },
+    "importOverFqn": {
+      "$ref": "#/$defs/importOverFqnAddOn"
+    },
+    "uncheckedCastSuppression": {
+      "$ref": "#/$defs/suppressionAddOn"
+    },
+    "publicDeclarationDocComment": {
+      "$ref": "#/$defs/publicDeclarationDocCommentAddOn"
+    },
+    "leadingUnderscore": {
+      "$ref": "#/$defs/leadingUnderscoreAddOn"
+    },
+    "multilineDocStyle": {
+      "$ref": "#/$defs/multilineDocStyleAddOn"
+    }
+  },
+  "$defs": {
+    "sourceScope": {
+      "type": "object",
+      "properties": {
+        "sourceRoots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "extensions": {
+          "type": "array",
+          "items": {
+            "const": "py"
+          }
+        },
+        "includePaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excludePaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "sourceAddOn": {
+      "allOf": [
+        {
+          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "$ref": "#/$defs/sourceScope"
+            }
+          }
+        }
+      ]
+    },
+    "silentCatchAddOn": {
+      "allOf": [
+        {
+          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/sourceScope"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "allowedLoggingCalls": {
+                      "$ref": "#/$defs/stringList"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "loggingAddOn": {
+      "allOf": [
+        {
+          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/sourceScope"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "forbiddenLoggingApis": {
+                      "$ref": "#/$defs/stringList"
+                    },
+                    "allowedLoggingApis": {
+                      "$ref": "#/$defs/stringList"
+                    },
+                    "functionalOutputPaths": {
+                      "$ref": "#/$defs/stringList"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "importOverFqnAddOn": {
+      "allOf": [
+        {
+          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/sourceScope"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "allowedFqnPatterns": {
+                      "$ref": "#/$defs/stringList"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "suppressionAddOn": {
+      "allOf": [
+        {
+          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/sourceScope"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "forbiddenSuppressions": {
+                      "$ref": "#/$defs/stringList"
+                    },
+                    "allowedSuppressions": {
+                      "$ref": "#/$defs/stringList"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "publicDeclarationDocCommentAddOn": {
+      "allOf": [
+        {
+          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/sourceScope"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "visibility": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "module"
+                        ]
+                      }
+                    },
+                    "allowedDeclarationKinds": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "class",
+                          "function"
+                        ]
+                      }
+                    },
+                    "exemptOverrideDeclarations": {
+                      "type": "boolean"
+                    },
+                    "exemptLocalDeclarations": {
+                      "type": "boolean"
+                    },
+                    "exemptDecorators": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "docStyleMode": {
+                      "enum": [
+                        "multiline"
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "leadingUnderscoreAddOn": {
+      "allOf": [
+        {
+          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/sourceScope"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "allowedNames": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "allowedPatterns": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "pythonDunderExemptions": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "multilineDocStyleAddOn": {
+      "allOf": [
+        {
+          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/sourceScope"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "docStyleMode": {
+                      "enum": [
+                        "multiline"
+                      ]
+                    },
+                    "formatterRequiredExceptions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
   }
 }

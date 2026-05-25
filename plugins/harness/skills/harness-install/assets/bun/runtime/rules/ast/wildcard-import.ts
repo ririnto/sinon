@@ -7,19 +7,19 @@ import {
   isNamespaceImport,
   SyntaxKind,
 } from "typescript@6.0.3";
+import { astChildrenOf } from "../../core/ast-traversal";
 import type {
   Finding,
   HarnessCheckRule,
   RuleContext,
 } from "../harness-check-rule";
-import { astChildrenOf } from "../../core/ast-traversal";
 
 /**
  * Forbid wildcard imports.
  */
 export const wildcardImportRule: HarnessCheckRule = {
   category: "wildcardImport",
-  applies(ctx: RuleContext): boolean {
+  applies(_: RuleContext): boolean {
     return true;
   },
   validate(ctx: RuleContext): readonly Finding[] {
@@ -60,7 +60,7 @@ export const wildcardImportRule: HarnessCheckRule = {
                 safety: "unsafe",
                 edits: [],
               },
-            }, ...astChildrenOf(node).flatMap(visitNode)];
+            }].concat(astChildrenOf(node).flatMap(visitNode));
           }
           return astChildrenOf(node).flatMap(visitNode);
         };

@@ -1,26 +1,27 @@
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
-import type { Node, SourceFile } from "typescript@6.0.3";
+import type { Block, Node, SourceFile } from "typescript@6.0.3";
 import {
   createSourceFile,
+  forEachChild,
   isCatchClause,
   isIdentifier,
   isThrowStatement,
   SyntaxKind,
 } from "typescript@6.0.3";
+import { astChildrenOf } from "../../core/ast-traversal";
 import type {
   Finding,
   HarnessCheckRule,
   RuleContext,
 } from "../harness-check-rule";
-import { astChildrenOf } from "../../core/ast-traversal";
 
 /**
  * Forbid silent catch blocks without rethrow, throw, or logging.
  */
 export const silentCatchRule: HarnessCheckRule = {
   category: "silentCatch",
-  applies(ctx: RuleContext): boolean {
+  applies(_: RuleContext): boolean {
     return true;
   },
 
@@ -38,7 +39,7 @@ export const silentCatchRule: HarnessCheckRule = {
         true,
       );
 
-      const hasSafeContent = (block: any): boolean => {
+      const hasSafeContent = (block: Block): boolean => {
         if (block.statements.length === 0) {
           return false;
         }
@@ -90,7 +91,7 @@ export const silentCatchRule: HarnessCheckRule = {
             safety: "unsafe",
             edits: [],
           },
-        }, ...astChildrenOf(node).flatMap(visitNode)];
+        }].concat(astChildrenOf(node).flatMap(visitNode));
       };
 
       return visitNode(sourceFile);

@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Rule that requires documentation comments on declarations matching configured visibility levels.
@@ -167,21 +168,19 @@ public enum PublicDeclarationDocCommentRule implements AstRule {
             final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(ClassOrInterfaceDeclaration.class).stream()
                     .flatMap(cls -> {
-                        final java.util.List<Finding> findings = new java.util.ArrayList<>();
+                        final Stream.Builder<Finding> builder = Stream.builder();
                         if (matchesVisibility(cls, visibilityTokens) && !cls.getJavadoc().isPresent()) {
-                            findings.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + cls.getBegin().map(p -> p.line).orElse(-1) + ": public class missing Javadoc"));
+                            builder.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + cls.getBegin().map(p -> p.line).orElse(-1) + ": public class missing Javadoc"));
                         }
-                        findings.addAll(cls.getMethods().stream()
+                        cls.getMethods().stream()
                                 .filter(m -> matchesVisibility(m, visibilityTokens))
                                 .filter(m -> !m.getJavadoc().isPresent())
-                                .map(m -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + m.getBegin().map(p -> p.line).orElse(-1) + ": public method missing Javadoc"))
-                                .toList());
-                        findings.addAll(cls.getFields().stream()
+                                .forEach(m -> builder.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + m.getBegin().map(p -> p.line).orElse(-1) + ": public method missing Javadoc")));
+                        cls.getFields().stream()
                                 .filter(f -> matchesVisibility(f, visibilityTokens))
                                 .filter(f -> !f.getJavadoc().isPresent())
-                                .map(f -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + f.getBegin().map(p -> p.line).orElse(-1) + ": public field missing Javadoc"))
-                                .toList());
-                        return findings.stream();
+                                .forEach(f -> builder.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + f.getBegin().map(p -> p.line).orElse(-1) + ": public field missing Javadoc")));
+                        return builder.build();
                     })
                     .toList();
         } catch (IOException e) {

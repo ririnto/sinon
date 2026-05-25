@@ -62,6 +62,38 @@ object PublicDeclarationDocCommentRule : HarnessAstRule() {
             ?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull }
             ?: listOf("public", "protected", "internal")).toSet()
 
+    /**
+     * Determine the effective visibility of a Kotlin declaration.
+     *
+     * @param declaration The declaration to inspect.
+     * @return One of "public", "protected", "internal", "private".
+     */
+    private fun effectiveVisibility(declaration: KtModifierListOwner): String {
+        val visibilityModifierType = declaration.visibilityModifierType()
+        return when (visibilityModifierType) {
+            KtTokens.PUBLIC_KEYWORD -> "public"
+            KtTokens.PROTECTED_KEYWORD -> "protected"
+            KtTokens.INTERNAL_KEYWORD -> "internal"
+            KtTokens.PRIVATE_KEYWORD -> "private"
+            else -> "public"
+        }
+    }
+
+    /**
+     * Check if a declaration matches the configured visibility tokens.
+     *
+     * @param declaration The declaration to check.
+     * @param tokens The set of visibility tokens to match against.
+     * @return true if declaration's visibility is in tokens and it's not in a block expression.
+     */
+    private fun matchesVisibility(declaration: KtModifierListOwner, tokens: Set<String>): Boolean {
+        val visibility = effectiveVisibility(declaration)
+        val parent = declaration.parent
+        return visibility in tokens &&
+            !(declaration is KtProperty && declaration.isLocal) &&
+            !(declaration is KtNamedFunction && parent is KtBlockExpression)
+    }
+
     private class Visitor(
         private val record: (AstFinding) -> Unit,
         private val file: Path,
@@ -112,36 +144,4 @@ object PublicDeclarationDocCommentRule : HarnessAstRule() {
             }
         }
     }
-}
-
-/**
- * Determine the effective visibility of a Kotlin declaration.
- *
- * @param declaration The declaration to inspect.
- * @return One of "public", "protected", "internal", "private".
- */
-private fun effectiveVisibility(declaration: KtModifierListOwner): String {
-    val visibilityModifierType = declaration.visibilityModifierType()
-    return when (visibilityModifierType) {
-        KtTokens.PUBLIC_KEYWORD -> "public"
-        KtTokens.PROTECTED_KEYWORD -> "protected"
-        KtTokens.INTERNAL_KEYWORD -> "internal"
-        KtTokens.PRIVATE_KEYWORD -> "private"
-        else -> "public"
-    }
-}
-
-/**
- * Check if a declaration matches the configured visibility tokens.
- *
- * @param declaration The declaration to check.
- * @param tokens The set of visibility tokens to match against.
- * @return true if declaration's visibility is in tokens and it's not in a block expression.
- */
-private fun matchesVisibility(declaration: KtModifierListOwner, tokens: Set<String>): Boolean {
-    val visibility = effectiveVisibility(declaration)
-    val parent = declaration.parent
-    return visibility in tokens &&
-        !(declaration is KtProperty && declaration.isLocal) &&
-        !(declaration is KtNamedFunction && parent is KtBlockExpression)
 }

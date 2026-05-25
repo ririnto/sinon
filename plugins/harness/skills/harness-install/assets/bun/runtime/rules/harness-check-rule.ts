@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
-import type { RuleContext } from "../core/rule-context";
 import type {
   HarnessManifest,
   Manifest,
 } from "../core/manifest";
+import type { RuleContext } from "../core/rule-context";
 import type { Severity } from "../core/severity";
 
 /**

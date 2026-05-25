@@ -512,6 +512,52 @@
       "extensions": [
         "java"
       ],
+      "forbiddenConstructors": [
+        "ArrayList",
+        "HashMap",
+        "HashSet",
+        "LinkedList",
+        "LinkedHashMap",
+        "LinkedHashSet",
+        "TreeMap",
+        "TreeSet"
+      ],
+      "forbiddenTypes": [
+        "ArrayList",
+        "HashMap",
+        "HashSet",
+        "LinkedList",
+        "LinkedHashMap",
+        "LinkedHashSet",
+        "TreeMap",
+        "TreeSet"
+      ],
+      "forbiddenFqns": [
+        "java.util.ArrayList",
+        "java.util.HashMap",
+        "java.util.HashSet",
+        "java.util.LinkedList",
+        "java.util.LinkedHashMap",
+        "java.util.LinkedHashSet",
+        "java.util.TreeMap",
+        "java.util.TreeSet"
+      ],
+      "accumulationMethods": [
+        "add",
+        "addAll",
+        "put",
+        "putAll"
+      ],
+      "allowedOneShotPatterns": [
+        "stream-toList",
+        "Set.copyOf",
+        "List.copyOf",
+        "Map.copyOf"
+      ],
+      "allowedBuilders": [
+        "builder",
+        "streamBuilder"
+      ],
       "includePaths": [],
       "excludePaths": []
     }
@@ -532,7 +578,14 @@
         "java"
       ],
       "includePaths": [],
-      "excludePaths": []
+      "excludePaths": [],
+      "forbiddenLoggingApis": [
+        "System.out.println",
+        "System.out.print",
+        "System.err.println",
+        "System.err.print"
+      ],
+      "allowedLoggingApis": []
     }
   },
   "mutableCollection": {
@@ -550,8 +603,39 @@
       "extensions": [
         "java"
       ],
+      "forbiddenConstructors": [
+        "ArrayList",
+        "HashMap",
+        "HashSet",
+        "LinkedList",
+        "LinkedHashMap",
+        "LinkedHashSet",
+        "TreeMap",
+        "TreeSet"
+      ],
+      "forbiddenFqns": [
+        "java.util.ArrayList",
+        "java.util.HashMap",
+        "java.util.HashSet",
+        "java.util.LinkedList",
+        "java.util.LinkedHashMap",
+        "java.util.LinkedHashSet",
+        "java.util.TreeMap",
+        "java.util.TreeSet"
+      ],
+      "accumulationMethods": [
+        "add",
+        "addAll",
+        "put",
+        "putAll"
+      ],
+      "allowedBuilders": [
+        "builder",
+        "streamBuilder"
+      ],
       "includePaths": [],
-      "excludePaths": []
+      "excludePaths": [],
+      "allowedFqnPatterns": []
     }
   },
   "unstructuredLogging": {
@@ -630,7 +714,60 @@
       "excludePaths": [],
       "visibility": [
         "public"
-      ]
+      ],
+      "allowedDeclarationKinds": [
+        "class",
+        "method",
+        "field"
+      ],
+      "exemptOverrideDeclarations": true,
+      "exemptLocalDeclarations": true,
+      "docStyleMode": "multiline"
+    }
+  },
+  "leadingUnderscore": {
+    "description": "Java source files under parameters.sourceRoots MUST NOT use leading underscores in file basenames or declarations. The discard name `_` and configured allowedNames or allowedPatterns are exempt. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: declaration `{name}` uses a leading underscore"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "src/main/java",
+        "harness-maven-plugin/src/main/java"
+      ],
+      "extensions": [
+        "java"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "allowedNames": [
+        "_"
+      ],
+      "allowedPatterns": [],
+      "pythonDunderExemptions": false
+    }
+  },
+  "multilineDocStyle": {
+    "description": "JavaDoc comments under parameters.sourceRoots MUST use multiline block style. This aligns with googleJavaFormat-compatible native JavaDoc while leaving shell JSDoc-style `#` docstrings to the shell validator. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{file}:{line}: documentation comment must use multiline JavaDoc style"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "src/main/java",
+        "harness-maven-plugin/src/main/java"
+      ],
+      "extensions": [
+        "java"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "docStyleMode": "multiline",
+      "formatterRequiredExceptions": []
     }
   },
   "emptyCatchBlock": {
@@ -772,6 +909,7 @@
       "forbiddenSuppressions": [
         "unchecked"
       ],
+      "allowedSuppressions": [],
       "allowedScopes": []
     }
   },

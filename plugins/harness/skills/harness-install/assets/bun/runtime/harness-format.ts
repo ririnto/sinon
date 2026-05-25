@@ -4,8 +4,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import type { HarnessManifest } from "./core/manifest";
 import { createRuleContext } from "./core/rule-context";
-import { logger } from "./logger";
 import { HARNESS_CHECKS, MANIFEST_PATH } from "./harness-check";
+import { logger } from "./logger";
 
 const root = process.cwd();
 

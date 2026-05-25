@@ -10,29 +10,28 @@ import type {
  * Remove Markdown code blocks and inline code spans before prose-level checks.
  */
 const stripMarkdownCode = (text: string): string => {
-  const result = text
-    .split(/\r?\n/)
-    .reduce(
-      (acc, line) => {
-        const fenceMatch = /^( {0,3})(`{3,}|~{3,})/.exec(line);
-        if (fenceMatch) {
-          const marker = fenceMatch[2]?.charAt(0) ?? "";
-          if (!acc.inFence) {
-            return { ...acc, inFence: true, fenceMarker: marker, lines: [...acc.lines, ""] };
-          }
-          if (marker === acc.fenceMarker) {
-            return { ...acc, inFence: false, lines: [...acc.lines, ""] };
-          }
-          return acc;
-        }
-        if (acc.inFence) {
-          return { ...acc, lines: [...acc.lines, ""] };
-        }
-        return { ...acc, lines: [...acc.lines, line.replace(/`+[^`\n]*`+/g, "")] };
-      },
-      { inFence: false, fenceMarker: "", lines: [] as string[] },
-    );
-  return result.lines.join("\n");
+  const lines: string[] = [];
+  let inFence = false;
+  let fenceMarker = "";
+  for (const line of text.split(/\r?\n/)) {
+    const fenceMatch = /^( {0,3})(`{3,}|~{3,})/.exec(line);
+    if (fenceMatch) {
+      const marker = fenceMatch[2]?.charAt(0) ?? "";
+      if (!inFence) {
+        inFence = true;
+        fenceMarker = marker;
+        lines.push("");
+      } else if (marker === fenceMarker) {
+        inFence = false;
+        lines.push("");
+      }
+    } else if (inFence) {
+      lines.push("");
+    } else {
+      lines.push(line.replace(/`+[^`\n]*`+/g, ""));
+    }
+  }
+  return lines.join("\n");
 };
 
 /**
@@ -41,7 +40,7 @@ const stripMarkdownCode = (text: string): string => {
  */
 const compilePortableRegex = (pattern: string): RegExp => {
   const inlineFlagMatch = /^\(\?([a-z]+)\)/.exec(pattern);
-  if (inlineFlagMatch && inlineFlagMatch[1]) {
+  if (inlineFlagMatch?.[1]) {
     return new RegExp(
       pattern.slice(inlineFlagMatch[0].length),
       inlineFlagMatch[1],
@@ -49,6 +48,14 @@ const compilePortableRegex = (pattern: string): RegExp => {
   }
   return new RegExp(pattern);
 };
+
+/**
+ * Scaffold leak regex paired with its reporting label.
+ */
+interface ScaffoldPattern {
+  readonly regex: RegExp;
+  readonly label: string;
+}
 
 /**
  * Forbid scaffold/placeholder patterns in active assets.
@@ -80,7 +87,7 @@ export const scaffoldLeaksRule: HarnessCheckRule = {
     const bases = ctx.readStringArray(scope.bases);
     const excludedSubtrees = ctx.readStringArray(scope.excludedSubtrees);
     const extensions = ctx.readStringArray(scope.extensions);
-    const patterns: readonly [RegExp, string][] = Array.isArray(
+    const patterns: readonly ScaffoldPattern[] = Array.isArray(
       parameters.patterns,
     )
       ? (parameters.patterns as unknown[])
@@ -97,7 +104,7 @@ export const scaffoldLeaksRule: HarnessCheckRule = {
           )
           .map(
             ({ patternStr, labelStr }) =>
-              [compilePortableRegex(patternStr), labelStr] as const,
+              ({ regex: compilePortableRegex(patternStr), label: labelStr }),
           )
       : [];
     return bases.flatMap((base) => {
@@ -114,9 +121,9 @@ export const scaffoldLeaksRule: HarnessCheckRule = {
           .flatMap((file) => {
             const text = ctx.read(file);
             return patterns
-              .filter(([pattern]) => pattern.test(stripMarkdownCode(text)))
-              .flatMap(([pattern, label]) => {
-                const match = pattern.exec(stripMarkdownCode(text));
+              .filter((patternEntry) => patternEntry.regex.test(stripMarkdownCode(text)))
+              .flatMap((patternEntry) => {
+                const match = patternEntry.regex.exec(stripMarkdownCode(text));
                 const positions = match
                   ? (() => {
                       const before = text.slice(0, match.index);
@@ -139,11 +146,11 @@ export const scaffoldLeaksRule: HarnessCheckRule = {
                   {
                     severity: ctx.severityOf("scaffoldLeaks"),
                     category: "scaffoldLeaks",
-                    message: `${label} in active asset: ${file}`,
+                    message: `${patternEntry.label} in active asset: ${file}`,
                     file,
                     ...positions,
                     fix: {
-                      description: `replace scaffold pattern: ${label}`,
+                      description: `replace scaffold pattern: ${patternEntry.label}`,
                       safety: "manual",
                     },
                   },

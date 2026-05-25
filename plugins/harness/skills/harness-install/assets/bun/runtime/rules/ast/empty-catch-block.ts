@@ -6,19 +6,19 @@ import {
   isCatchClause,
   SyntaxKind,
 } from "typescript@6.0.3";
+import { astChildrenOf } from "../../core/ast-traversal";
 import type {
   Finding,
   HarnessCheckRule,
   RuleContext,
 } from "../harness-check-rule";
-import { astChildrenOf } from "../../core/ast-traversal";
 
 /**
  * Forbid empty catch blocks.
  */
 export const emptyCatchBlockRule: HarnessCheckRule = {
   category: "emptyCatchBlock",
-  applies(ctx: RuleContext): boolean {
+  applies(_: RuleContext): boolean {
     return true;
   },
 
@@ -56,7 +56,7 @@ export const emptyCatchBlockRule: HarnessCheckRule = {
             safety: "unsafe",
             edits: [],
           },
-        }, ...astChildrenOf(node).flatMap(visitNode)];
+        }].concat(astChildrenOf(node).flatMap(visitNode));
       };
 
       return visitNode(sourceFile);

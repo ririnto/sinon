@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Rule that requires braces on all if and else statements.
@@ -48,16 +49,16 @@ public enum IfStatementBracesRule implements AstRule {
             final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(IfStmt.class).stream()
                     .flatMap(ifStmt -> {
-                        final java.util.List<Finding> findings = new java.util.ArrayList<>();
+                        final Stream.Builder<Finding> builder = Stream.builder();
                         if (!(ifStmt.getThenStmt() instanceof BlockStmt)) {
-                            findings.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + ifStmt.getBegin().map(p -> p.line).orElse(-1) + ": if without braces"));
+                            builder.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + ifStmt.getBegin().map(p -> p.line).orElse(-1) + ": if without braces"));
                         }
                         ifStmt.getElseStmt().ifPresent(elseStmt -> {
                             if (!(elseStmt instanceof BlockStmt) && !(elseStmt instanceof IfStmt)) {
-                                findings.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + elseStmt.getBegin().map(p -> p.line).orElse(-1) + ": else without braces"));
+                                builder.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + elseStmt.getBegin().map(p -> p.line).orElse(-1) + ": else without braces"));
                             }
                         });
-                        return findings.stream();
+                        return builder.build();
                     })
                     .toList();
         } catch (IOException e) {

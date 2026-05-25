@@ -58,7 +58,7 @@ public final class HarnessValidateMojo extends AbstractMojo {
                 .toList();
         final List<Finding> ruleFindings = Arrays.stream(HarnessCheck.values())
                 .filter(check -> check.applies(ctx))
-                .flatMap(check -> check.validate(ctx).stream())
+                .flatMap(check -> validateCheck(ctx, check).stream())
                 .toList();
         final List<Finding> findings = Stream.concat(unknownKeyFindings.stream(), ruleFindings.stream())
                 .sorted((a, b) -> {
@@ -103,5 +103,16 @@ public final class HarnessValidateMojo extends AbstractMojo {
         }
         final String raw = Files.readString(manifestPath, StandardCharsets.UTF_8);
         return new ObjectMapper().readTree(raw);
+    }
+
+    /**
+     * Runs one check and turns check-level failures into findings.
+     */
+    private static List<Finding> validateCheck(RuleContext ctx, HarnessCheck check) {
+        try {
+            return check.validate(ctx).stream().toList();
+        } catch (MojoExecutionException error) {
+            return List.of(Finding.of("ERROR", check.category(), "failed to validate " + check.category() + ": " + error.getMessage()));
+        }
     }
 }

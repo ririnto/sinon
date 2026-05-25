@@ -76,7 +76,7 @@ object ClassMemberOrderingRule : HarnessAstRule() {
             .values
             .flatMap { entries ->
                 entries.sortedBy { entry -> entry.intDetail("position") }
-                    .fold(Pair(-1, emptyList<Finding>())) { (maxRank, results), entry ->
+                    .fold(MemberOrderAccumulator(-1, emptyList())) { accumulator, entry ->
                         val memberKind = entry.detail("memberKind")
                         val memberVisibility = entry.detail("memberVisibility")
                         val memberRank =
@@ -85,11 +85,11 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                                 ?: rank[memberKind]
                                 ?: rank.size
                         when {
-                            memberRank < maxRank -> maxRank to (results + AstFindingRenderer.render(entry, ctx.manifest.raw))
-                            else -> memberRank to results
+                            memberRank < accumulator.maxRank -> accumulator.copy(findings = accumulator.findings + AstFindingRenderer.render(entry, ctx.manifest.raw))
+                            else -> accumulator.copy(maxRank = memberRank)
                         }
                     }
-                    .second
+                    .findings
             }
     }
 
@@ -336,6 +336,8 @@ object ClassMemberOrderingRule : HarnessAstRule() {
             is EnumDeclaration -> member.nameAsString
             else -> "member"
         }
+
+    private data class MemberOrderAccumulator(val maxRank: Int, val findings: List<Finding>)
 
     /**
      * AST visitor for class member ordering analysis.

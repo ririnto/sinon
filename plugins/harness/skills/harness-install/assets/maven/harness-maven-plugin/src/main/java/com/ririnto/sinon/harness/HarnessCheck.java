@@ -20,9 +20,9 @@ import com.ririnto.sinon.harness.rules.text.CiHookCommandParityRule;
 import com.ririnto.sinon.harness.rules.text.EnvShebangUsageRule;
 import com.ririnto.sinon.harness.rules.text.UncheckedTasksRule;
 import com.ririnto.sinon.harness.rules.fs.SymlinkSafetyRule;
-import com.ririnto.sinon.harness.rules.ast.KotlinTopLevelDeclarationCountRule;
 import com.ririnto.sinon.harness.rules.ast.GreaterThanComparisonRule;
 import com.ririnto.sinon.harness.rules.ast.LeafFunctionBlankLinesRule;
+import com.ririnto.sinon.harness.rules.ast.LeadingUnderscoreRule;
 import com.ririnto.sinon.harness.rules.ast.EarlyReturnRule;
 import com.ririnto.sinon.harness.rules.ast.SilentCatchRule;
 import com.ririnto.sinon.harness.rules.ast.MutableCollectionRule;
@@ -30,6 +30,7 @@ import com.ririnto.sinon.harness.rules.ast.UnstructuredLoggingRule;
 import com.ririnto.sinon.harness.rules.ast.WildcardImportRule;
 import com.ririnto.sinon.harness.rules.ast.ImportOverFqnRule;
 import com.ririnto.sinon.harness.rules.ast.PublicDeclarationDocCommentRule;
+import com.ririnto.sinon.harness.rules.ast.MultilineDocStyleRule;
 import com.ririnto.sinon.harness.rules.ast.EmptyCatchBlockRule;
 import com.ririnto.sinon.harness.rules.ast.IfStatementBracesRule;
 import com.ririnto.sinon.harness.rules.ast.ClassMemberOrderingRule;
@@ -60,7 +61,6 @@ enum HarnessCheck {
     ENV_SHEBANG_USAGE(EnvShebangUsageRule.INSTANCE),
     UNCHECKED_TASKS(UncheckedTasksRule.INSTANCE),
     SYMLINK_SAFETY(SymlinkSafetyRule.INSTANCE),
-    KOTLIN_TOP_LEVEL_DECLARATION_COUNT(KotlinTopLevelDeclarationCountRule.INSTANCE),
     GREATER_THAN_COMPARISON(GreaterThanComparisonRule.INSTANCE),
     LEAF_FUNCTION_BLANK_LINES(LeafFunctionBlankLinesRule.INSTANCE),
     EARLY_RETURN(EarlyReturnRule.INSTANCE),
@@ -70,6 +70,8 @@ enum HarnessCheck {
     WILDCARD_IMPORT(WildcardImportRule.INSTANCE),
     IMPORT_OVER_FQN(ImportOverFqnRule.INSTANCE),
     PUBLIC_DECLARATION_DOC_COMMENT(PublicDeclarationDocCommentRule.INSTANCE),
+    LEADING_UNDERSCORE(LeadingUnderscoreRule.INSTANCE),
+    MULTILINE_DOC_STYLE(MultilineDocStyleRule.INSTANCE),
     EMPTY_CATCH_BLOCK(EmptyCatchBlockRule.INSTANCE),
     IF_STATEMENT_BRACES(IfStatementBracesRule.INSTANCE),
     CLASS_MEMBER_ORDERING(ClassMemberOrderingRule.INSTANCE),

@@ -472,6 +472,63 @@
         "kt",
         "kts"
       ],
+      "forbiddenConstructors": [
+        "mutableListOf",
+        "mutableSetOf",
+        "mutableMapOf",
+        "arrayListOf",
+        "hashSetOf",
+        "hashMapOf",
+        "linkedSetOf",
+        "linkedMapOf",
+        "ArrayList",
+        "HashSet",
+        "HashMap",
+        "LinkedHashMap",
+        "LinkedHashSet",
+        "LinkedList",
+        "TreeMap",
+        "TreeSet"
+      ],
+      "forbiddenTypes": [
+        "MutableList",
+        "MutableSet",
+        "MutableMap",
+        "ArrayList",
+        "HashSet",
+        "HashMap",
+        "LinkedHashMap",
+        "LinkedHashSet",
+        "LinkedList",
+        "TreeMap",
+        "TreeSet"
+      ],
+      "forbiddenFqns": [
+        "java.util.ArrayList",
+        "java.util.HashMap",
+        "java.util.HashSet",
+        "java.util.LinkedHashMap",
+        "java.util.LinkedHashSet",
+        "java.util.LinkedList",
+        "java.util.TreeMap",
+        "java.util.TreeSet",
+        "kotlin.collections.MutableList",
+        "kotlin.collections.MutableMap",
+        "kotlin.collections.MutableSet"
+      ],
+      "accumulationMethods": [
+        "add",
+        "addAll",
+        "put",
+        "putAll"
+      ],
+      "allowedOneShotPatterns": [],
+      "allowedBuilders": [
+        "buildList",
+        "buildMap",
+        "buildSet",
+        "dependencies"
+      ],
       "includePaths": [],
       "excludePaths": []
     }
@@ -615,6 +672,62 @@
         "kt",
         "kts"
       ],
+      "forbiddenConstructors": [
+        "mutableListOf",
+        "mutableSetOf",
+        "mutableMapOf",
+        "arrayListOf",
+        "hashSetOf",
+        "hashMapOf",
+        "linkedSetOf",
+        "linkedMapOf",
+        "ArrayList",
+        "HashSet",
+        "HashMap",
+        "LinkedHashMap",
+        "LinkedHashSet",
+        "LinkedList",
+        "TreeMap",
+        "TreeSet"
+      ],
+      "forbiddenTypes": [
+        "MutableList",
+        "MutableSet",
+        "MutableMap",
+        "ArrayList",
+        "HashSet",
+        "HashMap",
+        "LinkedHashMap",
+        "LinkedHashSet",
+        "LinkedList",
+        "TreeMap",
+        "TreeSet"
+      ],
+      "forbiddenFqns": [
+        "java.util.ArrayList",
+        "java.util.HashMap",
+        "java.util.HashSet",
+        "java.util.LinkedHashMap",
+        "java.util.LinkedHashSet",
+        "java.util.LinkedList",
+        "java.util.TreeMap",
+        "java.util.TreeSet",
+        "kotlin.collections.MutableList",
+        "kotlin.collections.MutableMap",
+        "kotlin.collections.MutableSet"
+      ],
+      "accumulationMethods": [
+        "add",
+        "addAll",
+        "put",
+        "putAll"
+      ],
+      "allowedBuilders": [
+        "buildList",
+        "buildMap",
+        "buildSet",
+        "dependencies"
+      ],
       "includePaths": [],
       "excludePaths": []
     }
@@ -635,7 +748,11 @@
         "kts"
       ],
       "includePaths": [],
-      "excludePaths": []
+      "excludePaths": [],
+      "forbiddenLoggingApis": [
+        "println"
+      ],
+      "allowedLoggingApis": []
     }
   },
   "wildcardImport": {
@@ -654,7 +771,8 @@
         "kts"
       ],
       "includePaths": [],
-      "excludePaths": []
+      "excludePaths": [],
+      "allowedFqnPatterns": []
     }
   },
   "importOverFqn": {
@@ -697,7 +815,60 @@
         "public",
         "protected",
         "internal"
-      ]
+      ],
+      "allowedDeclarationKinds": [
+        "class",
+        "function",
+        "property"
+      ],
+      "exemptOverrideDeclarations": true,
+      "exemptLocalDeclarations": true,
+      "docStyleMode": "multiline"
+    }
+  },
+  "leadingUnderscore": {
+    "description": "Kotlin source files under parameters.sourceRoots MUST NOT use leading underscores in file basenames or declarations. The discard name `_` and configured allowedNames or allowedPatterns are exempt. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: declaration `{name}` uses a leading underscore"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "buildSrc/src/main/kotlin"
+      ],
+      "extensions": [
+        "kt",
+        "kts"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "allowedNames": [
+        "_"
+      ],
+      "allowedPatterns": [],
+      "pythonDunderExemptions": false
+    }
+  },
+  "multilineDocStyle": {
+    "description": "KDoc comments under parameters.sourceRoots MUST use multiline block style. This aligns with ktlint-compatible native KDoc while leaving shell JSDoc-style `#` docstrings to the shell validator. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{file}:{line}: documentation comment must use multiline KDoc style"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "buildSrc/src/main/kotlin"
+      ],
+      "extensions": [
+        "kt",
+        "kts"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "docStyleMode": "multiline",
+      "formatterRequiredExceptions": []
     }
   },
   "emptyCatchBlock": {
@@ -777,6 +948,7 @@
       "forbiddenSuppressions": [
         "UNCHECKED_CAST"
       ],
+      "allowedSuppressions": [],
       "allowedScopes": []
     }
   },
