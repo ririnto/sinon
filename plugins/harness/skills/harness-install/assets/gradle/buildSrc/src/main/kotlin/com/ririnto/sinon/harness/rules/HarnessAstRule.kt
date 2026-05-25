@@ -8,8 +8,11 @@ import java.nio.file.Path
 
 /**
  * Base class for AST-based harness validation rules.
+ *
+ * AST rules are stack-scoped and process source files based on manifest configuration
+ * for sourceRoots, extensions, includePaths, and excludePaths.
  */
-abstract class HarnessAstRule : HarnessCheckRule() {
+abstract class HarnessAstRule : HarnessStackScopeRule() {
     /**
      * Render AST scanner details owned by this rule into final findings.
      */

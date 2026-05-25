@@ -1,0 +1,76 @@
+package com.ririnto.sinon.harness.rules.fs;
+
+import com.ririnto.sinon.harness.rules.HarnessCheckHelper;
+import com.ririnto.sinon.harness.rules.HarnessCheckRule;
+import com.ririnto.sinon.harness.core.RuleContext;
+import com.ririnto.sinon.harness.Finding;
+
+import tools.jackson.databind.JsonNode;
+import org.apache.maven.plugin.MojoExecutionException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
+/**
+ * Rule that forbids unsafe symlinks in the project root.
+ */
+public enum SymlinkSafetyRule implements HarnessCheckRule {
+    INSTANCE;
+
+    @Override
+    public String category() {
+        return "symlinkSafety";
+    }
+    private static final String CATEGORY = "symlinkSafety";
+
+    @Override
+    public boolean applies(RuleContext ctx) {
+        return ctx.manifest().isEnabled(CATEGORY);
+    }
+
+    @Override
+    public Collection<Finding> validate(RuleContext ctx) throws MojoExecutionException {
+        final Path root = ctx.root();
+        final JsonNode manifest = ctx.manifest().raw();
+        final JsonNode catNode = manifest.get(CATEGORY);
+        final JsonNode allowedNode = catNode.get("parameters").get("allowedSymlinkPairs");
+        final Set<String> allowedNames = java.util.stream.StreamSupport.stream(allowedNode.spliterator(), false)
+                .flatMap(pair -> java.util.stream.Stream.of(pair.get(0).asText(), pair.get(1).asText()))
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final List<String> rootBases = List.of("AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md", "docs", ".claude", ".github");
+        return rootBases.stream()
+                .flatMap(baseName -> {
+                    final Path base = root.resolve(baseName);
+                    try {
+                        return validateSymlinks(root, base, allowedNames, severity).stream();
+                    } catch (MojoExecutionException e) {
+                        return Stream.empty();
+                    }
+                })
+                .toList();
+    }
+
+    private List<Finding> validateSymlinks(Path root, Path base, Set<String> allowedNames, String severity) throws MojoExecutionException {
+        if (Files.isSymbolicLink(base)) {
+            final String name = base.getFileName().toString();
+            return !allowedNames.contains(name) || HarnessCheckHelper.allowedRootContractTarget(root, base) == null
+                    ? List.of(Finding.of(severity, CATEGORY, "symlink scan root is not allowed: " + root.relativize(base)))
+                    : List.of();
+        }
+        return HarnessCheckHelper.safeFileOrWalk(root, base).stream()
+                .filter(Files::isSymbolicLink)
+                .flatMap(file -> {
+                    final String name = file.getFileName().toString();
+                    return !allowedNames.contains(name) || HarnessCheckHelper.allowedRootContractTarget(root, file) == null
+                            ? Stream.of(Finding.of(severity, CATEGORY, "symlink " + (Files.isDirectory(file, LinkOption.NOFOLLOW_LINKS) ? "directory" : "file") + " is not allowed: " + root.relativize(file)))
+                            : Stream.empty();
+                })
+                .toList();
+    }
+}

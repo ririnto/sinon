@@ -399,7 +399,7 @@
     "enabled": true,
     "severity": "WARN",
     "messages": {
-      "default": "{ciFile}: CI command mismatch \u2014 expected {command}"
+      "default": "{ciFile}: CI command mismatch — expected {command}"
     },
     "parameters": {
       "ciFiles": [
@@ -422,6 +422,32 @@
         ".claude/skills"
       ],
       "expectedPrefix": "#!/usr/bin/env "
+    }
+  },
+  "shebangEncodingMarker": {
+    "description": "Python source files under parameters.sourceRoots whose first line is a shebang (`#!`) MUST declare `# -*- coding: utf-8 -*-` as the second line. Files matched by `parameters.includePaths` (empty array means match-all) and not by `parameters.excludePaths` are checked. Globs use POSIX `**/*` semantics relative to the project root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:2: shebang script missing UTF-8 encoding marker; expected `{expected}` on line 2",
+      "missingLine": "{file}: shebang script has no line 2; expected `{expected}`",
+      "wrongMarker": "{file}:2: shebang script declares wrong encoding marker; found `{actual}`, expected `{expected}`"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "docs/harness/uv",
+        "src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "markers": {
+        "py": "# -*- coding: utf-8 -*-"
+      },
+      "requireShebang": true,
+      "additionalShebangPrefixes": []
     }
   },
   "uncheckedTasks": {
@@ -458,193 +484,221 @@
     }
   },
   "greaterThanComparison": {
-    "description": "Source files under parameters.sourceRootsPerStack[<stack>] MUST NOT use `>` or `>=` comparison operators; smaller value always belongs on the left (`<` / `<=`). Validators implement this via AST: Kotlin PSI, Java JavaParser, Python ast, TypeScript compiler API.",
+    "description": "Source files under parameters.sourceRoots MUST NOT use `>` or `>=` comparison operators; smaller value always belongs on the left (`<` / `<=`). Validators implement this via AST: Kotlin PSI, Java JavaParser, Python ast, TypeScript compiler API. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: forbidden `>`/`>=` comparison; rewrite with `<`/`<=` so the smaller value is on the left"
     },
     "parameters": {
-      "sourceRootsPerStack": {
-        "python": [
-          "src",
-          "**/src"
-        ]
-      },
-      "extensionsPerStack": {
-        "python": [
-          "py"
-        ]
-      }
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "forbiddenOperators": [">", ">="]
     }
   },
   "leafFunctionBlankLines": {
-    "description": "Leaf functions (function bodies that do not contain any nested function or lambda) under parameters.sourceRootsPerStack[<stack>] MUST NOT contain more than one consecutive blank line. Outer functions that contain nested functions are exempt. Validators implement this via AST. The allowed blank-line run length is controlled by parameters.maxConsecutiveBlankLines.",
+    "description": "Leaf functions (function bodies that do not contain any nested function or lambda) under parameters.sourceRoots MUST NOT contain more than one consecutive blank line. Outer functions that contain nested functions are exempt. Validators implement this via AST. The allowed blank-line run length is controlled by parameters.maxConsecutiveBlankLines. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: leaf function `{function}` contains too many blank lines; remove or extract the section"
     },
     "parameters": {
-      "sourceRootsPerStack": {
-        "python": [
-          "src",
-          "**/src"
-        ]
-      },
-      "extensionsPerStack": {
-        "python": [
-          "py"
-        ]
-      },
-      "maxConsecutiveBlankLines": 1
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "maxConsecutiveBlankLines": 1,
+      "includePaths": [],
+      "excludePaths": []
     }
   },
   "earlyReturn": {
-    "description": "Functions under parameters.sourceRootsPerStack[<stack>] MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that throws).",
+    "description": "Functions under parameters.sourceRoots MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that throws). Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "WARN",
     "messages": {
       "default": "{file}:{line}: function `{function}` has an early/mid return; restructure with single exit"
     },
     "parameters": {
-      "sourceRootsPerStack": {
-        "python": [
-          "src",
-          "**/src"
-        ]
-      },
-      "extensionsPerStack": {
-        "python": [
-          "py"
-        ]
-      }
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": []
     }
   },
   "silentCatch": {
-    "description": "`try`/`catch` blocks under parameters.sourceRootsPerStack[<stack>] MUST NOT swallow exceptions. The catch block MUST either rethrow, translate to a `Finding`, or log via the structured logger. Empty or `pass`-only catch blocks are forbidden. Validators implement this via AST.",
+    "description": "`try`/`catch` blocks under parameters.sourceRoots MUST NOT swallow exceptions. The catch block MUST either rethrow, translate to a `Finding`, or log via the structured logger. Empty or `pass`-only catch blocks are forbidden. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: silent catch; rethrow, translate to a Finding, or log via structured logger"
     },
     "parameters": {
-      "sourceRootsPerStack": {
-        "python": [
-          "src",
-          "**/src"
-        ]
-      },
-      "extensionsPerStack": {
-        "python": [
-          "py"
-        ]
-      }
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": []
     }
   },
   "unstructuredLogging": {
-    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST log via the structured logger only. Forbidden: Kotlin `println`, Java `System.out.println` / `System.err.println`, Python `print(`, TypeScript `console.log` / `console.error` / `console.warn`. Use Slf4j / java.util.logging / Python `logging` / `pino` or equivalent. Validators implement this via AST.",
+    "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: Kotlin `println`, Java `System.out.println` / `System.err.println`, Python `print(`, TypeScript `console.log` / `console.error` / `console.warn`. Use Slf4j / java.util.logging / Python `logging` / `pino` or equivalent. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: unstructured logging `{snippet}`; use structured logger"
     },
     "parameters": {
-      "sourceRootsPerStack": {
-        "python": [
-          "src",
-          "**/src"
-        ]
-      },
-      "extensionsPerStack": {
-        "python": [
-          "py"
-        ]
-      }
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": []
     }
   },
   "wildcardImport": {
-    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST use explicit per-symbol imports. Forbidden: Kotlin `import foo.bar.*`, Java `import foo.bar.*`, Python `from foo import *`, TypeScript `import * as foo from 'foo'` outside of namespace re-export modules. Validators implement this via AST.",
+    "description": "Code under parameters.sourceRoots MUST use explicit per-symbol imports. Forbidden: Kotlin `import foo.bar.*`, Java `import foo.bar.*`, Python `from foo import *`, TypeScript `import * as foo from 'foo'` outside of namespace re-export modules. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: wildcard import `{import}` forbidden; import explicit symbols"
     },
     "parameters": {
-      "sourceRootsPerStack": {
-        "python": [
-          "src",
-          "**/src"
-        ]
-      },
-      "extensionsPerStack": {
-        "python": [
-          "py"
-        ]
-      }
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": []
     }
   },
   "importOverFqn": {
-    "description": "Code under parameters.sourceRootsPerStack[<stack>] MUST reach external symbols via `import` rather than inline fully qualified names, EXCEPT when the simple name is already taken by another import in the same file (i.e. the FQN is required to disambiguate). Validators implement this via AST/CST: collect every imported simple name first, then emit a finding when a qualified type reference appears in code AND the qualified name's simple form is NOT already imported under a different qualified name.",
+    "description": "Code under parameters.sourceRoots MUST reach external symbols via `import` rather than inline fully qualified names, EXCEPT when the simple name is already taken by another import in the same file (i.e. the FQN is required to disambiguate). Validators implement this via AST/CST: collect every imported simple name first, then emit a finding when a qualified type reference appears in code AND the qualified name's simple form is NOT already imported under a different qualified name. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "WARN",
     "messages": {
       "default": "{file}:{line}: fully qualified name `{name}` used inline; add an import and use the simple name"
     },
     "parameters": {
-      "sourceRootsPerStack": {
-        "python": [
-          "src",
-          "**/src"
-        ]
-      },
-      "extensionsPerStack": {
-        "python": [
-          "py"
-        ]
-      }
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": []
     }
   },
   "publicDeclarationDocComment": {
-    "description": "Every externally visible declaration under parameters.sourceRootsPerStack[<stack>] MUST carry a documentation comment in the language-native form (KDoc, JavaDoc, reStructuredText docstring, TSDoc). Validators implement this via AST: walk top-level public/exported declarations and emit a finding for missing doc comments.",
+    "description": "Every externally visible declaration under parameters.sourceRoots MUST carry a documentation comment in the language-native form (KDoc, JavaDoc, reStructuredText docstring, TSDoc). Validators implement this via AST: walk top-level public/exported declarations and emit a finding for missing doc comments. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root. Declarations matching one of `parameters.visibility` are required to carry a documentation comment. Valid tokens per stack are listed in the references doc; default values preserve pre-Wave-3 behavior.",
     "enabled": true,
     "severity": "WARN",
     "messages": {
       "default": "{file}:{line}: public declaration `{name}` is missing a documentation comment"
     },
     "parameters": {
-      "sourceRootsPerStack": {
-        "python": [
-          "src",
-          "**/src"
-        ]
-      },
-      "extensionsPerStack": {
-        "python": [
-          "py"
-        ]
-      }
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "visibility": [
+        "module"
+      ]
     }
   },
   "emptyCatchBlock": {
-    "description": "Catch handlers under parameters.sourceRootsPerStack[<stack>] MUST have a non-empty body. Empty catch handlers are a special case of silentCatch and are listed separately for clarity. Validators implement this via AST.",
+    "description": "Catch handlers under parameters.sourceRoots MUST have a non-empty body. Empty catch handlers are a special case of silentCatch and are listed separately for clarity. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
       "default": "{file}:{line}: empty catch block; handle, rethrow, or convert to a Finding"
     },
     "parameters": {
-      "sourceRootsPerStack": {
-        "python": [
-          "src",
-          "**/src"
-        ]
-      },
-      "extensionsPerStack": {
-        "python": [
-          "py"
-        ]
-      }
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": []
+    }
+  },
+  "tripleQuoteInlineComment": {
+    "description": "Source files under parameters.sourceRoots MUST NOT have a comment (# ...) on the same physical line as a triple-double-quoted string (\"\"\"). Triple-single-quoted strings containing \"\"\" as content are exempt. Validators implement this via the Python tokenize module for physical-line token analysis. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: comment on same line as triple-double-quoted string"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": []
+    }
+  },
+  "uncheckedCastSuppression": {
+    "description": "Python code under parameters.sourceRoots MUST NOT use forbidden suppression comment tokens. Detects: # type: ignore[...] and # noqa: ... comments. Refactor to use explicit type annotations or error handling. Validators implement this via AST comment analysis. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "{file}:{line}: avoid suppression of forbidden tokens (`{snippet}`); refactor to explicit handling"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "src",
+        "**/src"
+      ],
+      "extensions": [
+        "py"
+      ],
+      "includePaths": [],
+      "excludePaths": [],
+      "forbiddenSuppressions": [
+        "type: ignore"
+      ],
+      "allowedScopes": []
     }
   },
   "seedFiles": {
@@ -666,8 +720,8 @@
     ]
   },
   "harnessEvolution": {
-    "description": "Policy for how the harness evolves. Not a check. The harness is not versioned \u2014 the current committed state is the only authoritative shape.",
-    "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract; no schemaVersion, no deprecated keys, no shims."
+    "description": "Policy for how the harness evolves. Not a check. The harness is not versioned — the current committed state is the only authoritative shape.",
+    "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract; no schemaVersion, no retired keys, no alternate compatibility paths."
   },
   "teamPatterns": {
     "description": "Catalog of team/agent collaboration patterns this harness recognises. Not a check.",

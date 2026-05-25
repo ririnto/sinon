@@ -49,7 +49,7 @@ This plugin ships no commands.
 
 ## Packaged Scripts and Assets
 
-- `scripts/plugin-self-check.sh` validates packaged and tracked plugin files.
+- `scripts/plugin-self-check.sh` validates packaged and tracked plugin files. It also runs four-stack runtime smoke checks (uv import via `uv run --with libcst`, bun dynamic `import('./harness-check.ts')`, gradle `buildSrc:compileKotlin`, mvn `validate`) and skips each stack gracefully when the toolchain is absent.
 - `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs/harness`, docs, CI, validation adapters, and Git hook scaffolds.
 
 ## Runtime Model
@@ -82,7 +82,7 @@ The installer ships both CI examples so it never has to guess where the target p
 To run the installer directly, pass the target repository explicitly:
 
 ```sh
-sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.sh --target /path/to/target-repo --mode auto --hooks none
+sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.sh --target /path/to/target-repo --mode uv --hooks none
 ```
 
 ## Required Repository Structure
@@ -177,7 +177,7 @@ Gradle installer wiring prepends a `buildSrc/` directory. Existing `buildSrc/` d
 The installer writes two selected-mode hook templates in `docs/harness/git-hooks/` on fresh install. Gradle `pre-commit` runs `harnessValidate` for intermediate harness feedback, and Gradle `pre-push` runs `check` for the final push gate. Non-Gradle `pre-commit` performs lightweight harness-rule compliance checks, and non-Gradle `pre-push` runs the selected validation command. Managed generated templates refresh with the selected intermediate and final commands; custom target-owned templates are preserved unless `--force` is used. Git hook activation is opt-in because it modifies local Git behavior outside version control.
 
 ```sh
-sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.sh --target /path/to/target-repo --mode auto --hooks copy
+sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.sh --target /path/to/target-repo --mode uv --hooks copy
 ```
 
 Use `--hooks none` or omit the flag to skip Git hook activation. Use `--hooks copy` only when the target should copy both generated hooks to `pre-commit` and `pre-push` in the active worktree hooks directory.

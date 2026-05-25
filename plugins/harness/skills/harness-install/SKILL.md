@@ -2,7 +2,7 @@
 name: harness-install
 description: >-
   Install target-owned repository harness assets from the plugin asset package: AGENTS.md contract, ARCHITECTURE.md, docs structure, Claude entry point, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use this skill when setting up or refreshing a repository harness, adding target-owned Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
-argument-hint: '[auto|gradle|maven|uv|bun|shell] [--target DIR] [--hooks none|copy] [--force] [--no-ci]'
+argument-hint: '--mode gradle|maven|uv|bun|shell [--target DIR] [--hooks none|copy] [--force] [--no-ci]'
 allowed-tools:
   - Bash(sh */skills/harness-install/scripts/install-harness.sh *)
   - Bash(git *)
@@ -31,7 +31,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 
 1. Confirm the target repository working tree is clean before running the installer. Run `git status --short` in the target; if the output is non-empty, stop and ask the user to commit or stash first. The installer writes new files (and with `--force` overwrites existing ones), and any rollback or recovery action against the working tree afterwards will be indistinguishable from unrelated in-progress work. Commit-first keeps the harness change set isolated and reversible.
 2. Read the target repository root files if present: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and `docs/harness/manifest.json`.
-3. Detect the target stack from repository files, or use the explicit stack argument supplied by the user.
+3. Determine the target stack from explicit user choice. The installer no longer auto-detects; confirm the stack with the user (inspect manifests such as `pom.xml`, `build.gradle*`, `pyproject.toml`/`uv.lock`, `package.json`/`bun.lock`, or `Makefile`/`*.sh`) before passing `--mode`.
 4. Identify the active CI host. Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither, so unused CI files can be removed as a post-install step.
 5. Detect whether the target is a linked Git worktree. `.git` as a file means the user is inside a `git worktree add` working copy; the installer resolves the worktree hooks directory through the shared common dir.
 6. Read the target's `core.hooksPath` Git config with `git config --get core.hooksPath`. When it already resolves to `docs/harness/git-hooks`, prefer `--hooks none` so generated hook templates refresh in place; the installer refuses `--hooks copy` in that configuration.
@@ -41,10 +41,9 @@ Install or refresh target-owned repository harness files from this plugin. This 
 
 ## Workflow
 
-1. Choose a mode.
+1. Choose an explicit mode (no auto-detection).
 
     ```text
-    auto
     gradle
     maven
     uv
@@ -52,21 +51,15 @@ Install or refresh target-owned repository harness files from this plugin. This 
     shell
     ```
 
-2. Run the installer with the target repository as `--target`.
-
-    ```sh
-    sh "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.sh" --target "$PWD" --mode auto --hooks none
-    ```
-
-3. Use explicit mode when auto-detection is ambiguous or when the user supplied a stack.
+2. Run the installer with the target repository as `--target` and an explicit `--mode`.
 
     ```sh
     sh "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.sh" --target "$PWD" --mode gradle --hooks none
     ```
 
-4. Run the validation command printed by the installer before reporting completion.
-5. Inspect changed files and distinguish kept files from written files in the final report.
-6. Report hook behavior, validation status, and any target-owned files the user must fill with project truth.
+3. Run the validation command printed by the installer before reporting completion.
+4. Inspect changed files and distinguish kept files from written files in the final report.
+5. Report hook behavior, validation status, and any target-owned files the user must fill with project truth.
 
 ## Decisions
 

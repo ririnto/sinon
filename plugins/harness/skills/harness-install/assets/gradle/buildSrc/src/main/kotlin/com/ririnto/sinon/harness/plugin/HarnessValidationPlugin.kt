@@ -6,6 +6,7 @@ import com.ririnto.sinon.harness.core.HarnessCheck
 import com.ririnto.sinon.harness.core.Severity
 import com.ririnto.sinon.harness.ast.HarnessAstResults
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
+import com.ririnto.sinon.harness.reporter.FindingReporter
 import com.ririnto.sinon.harness.rules.HarnessAstRule
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -67,6 +68,10 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 },
             )
         }
+        target.tasks.register("harnessFormat", HarnessFormatTask::class.java) {
+            group = "verification"
+            description = "Auto-format Claude repository harness assets where rules support it."
+        }
         target.tasks.named("check").configure {
             dependsOn("harnessValidate")
         }
@@ -95,7 +100,6 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
         fun validate() {
             val root: Path = project.rootDir.toPath()
             val (manifest, manifestFindings) = loadManifest(root)
-            val astResults = computeAstResults(root, manifest)
             val findings =
                 buildSet {
                     addAll(manifestFindings)
@@ -112,27 +116,17 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                             )).forEach { key ->
                             project.logger.warn("unknown manifest key: $key")
                         }
-                        val ctx = DefaultRuleContext(root, DefaultManifest(manifest))
+                        val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
                         HarnessCheck.entries.filter { check -> check.rule.applies(ctx) }.forEach { check ->
                             addAll(check.rule.validate(ctx))
                         }
-                        addAll(astResults.findings)
+                        addAll(computeAstResults(root, manifest).findings)
                     }
                 }
-            findings
-                .sortedWith(
-                    compareBy({ finding -> finding.severity.ordinal }, { finding -> findings.indexOf(finding) }),
-                ).forEach { finding ->
-                    when (finding.severity) {
-                        Severity.ERROR -> project.logger.error("[${finding.severity}] ${finding.message}")
-                        Severity.WARN -> project.logger.warn("[${finding.severity}] ${finding.message}")
-                        Severity.INFO -> project.logger.info("[${finding.severity}] ${finding.message}")
-                    }
-                }
+            FindingReporter.renderFindings(root, findings.toList()).forEach { line -> project.logger.lifecycle(line) }
             if (findings.any { finding -> finding.severity == Severity.ERROR }) {
                 throw GradleException("Harness validation failed")
             }
-            project.logger.lifecycle("Harness validation passed")
         }
 
         private fun computeAstResults(
@@ -202,6 +196,64 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
     }
 
     /**
+     * Gradle task that auto-formats installed Claude repository harness assets.
+     */
+    abstract class HarnessFormatTask : DefaultTask() {
+        /**
+         * Executes harness formatting by calling the format method on applicable rules.
+         */
+        @TaskAction
+        fun format() {
+            val root: Path = project.rootDir.toPath()
+            val (manifest, manifestFindings) = loadManifest(root)
+            if (manifestFindings.isNotEmpty()) {
+                manifestFindings.forEach { finding ->
+                    project.logger.error("[${finding.severity}] ${finding.message}")
+                }
+                throw GradleException("Harness manifest is invalid; cannot format")
+            }
+            if (manifest == null) {
+                throw GradleException("Cannot load harness manifest; format aborted")
+            }
+            val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
+            val relativePaths = HarnessCheck.entries
+                .filter { check -> check.rule.applies(ctx) }
+                .flatMap { check -> check.rule.format(ctx) }
+                .map { absolute -> root.relativize(absolute) }
+                .sortedBy { rel -> rel.invariantSeparatorsPathString }
+            if (relativePaths.isEmpty()) {
+                project.logger.lifecycle("no files formatted")
+            } else {
+                project.logger.lifecycle("formatted: ${relativePaths.size}")
+                relativePaths.forEach { rel ->
+                    project.logger.lifecycle("  ${rel.invariantSeparatorsPathString}")
+                }
+            }
+        }
+
+        private fun loadManifest(root: Path): Pair<JsonObject?, List<Finding>> {
+            val manifestFile = root / "docs" / "harness" / "manifest.json"
+            return when {
+                manifestFile.isSymbolicLink() -> null to listOf(
+                    Finding(
+                        Severity.ERROR,
+                        "symlinkSafety",
+                        "symlink file is not allowed: docs/harness/manifest.json",
+                    ),
+                )
+                !manifestFile.isRegularFile() -> null to listOf(
+                    Finding(
+                        Severity.ERROR,
+                        "filePresence",
+                        "missing file: docs/harness/manifest.json",
+                    ),
+                )
+                else -> Json.parseToJsonElement(manifestFile.readText()).jsonObject to emptyList()
+            }
+        }
+    }
+
+    /**
      * Work parameters for AST analysis in an isolated classloader.
      */
     interface HarnessAstWorkParameters : WorkParameters {
@@ -248,7 +300,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                     put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
                 }
             val environment = createKotlinCoreEnvironmentViaReflection(configuration)
-            val ctx = DefaultRuleContext(root, DefaultManifest(manifest))
+            val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
             val factory = KtPsiFactory(environment.project)
             val findings = HarnessCheck.entries
                 .map { check -> check.rule }

@@ -49,4 +49,16 @@ The generated Gradle `pre-commit` hook runs `harnessValidate`; non-Gradle `pre-c
 
 Run validation from the repository root. The uv, bun, and Maven validators bind the current working directory as the target root. Native validators support the installed `docs/harness/manifest.json` schema and compare the list fields written by this harness.
 
+## Manifest schema layering
+
+`docs/harness/manifest.json` is validated against a layered JSON Schema set. After install the directory contains three schema files:
+
+| File | Purpose |
+| --- | --- |
+| `manifest.base.schema.json` | Shell tier. Defines the uniform add-on shape and the filesystem/hook checks common to every stack. |
+| `manifest.code.schema.json` | Code-stack tier. Extends the base via `allOf` and declares the rule keys common to all code stacks (gradle, maven, bun, uv). |
+| `manifest.schema.json` | Stack-specific tier. Extends either the base (shell) or code tier (gradle/maven/bun/uv) via `allOf` and adds stack-unique rule keys. |
+
+The shell stack uses only the base tier. Gradle adds Kotlin-specific and JVM-shared rules. Maven adds JVM-shared rules only. Bun and uv each extend the code tier with their own language-specific rules. Editors and CLI tooling that resolve `$schema` will fetch the layered chain through the sibling `$ref` paths.
+
 If the installer wired Gradle into a complex existing `settings.gradle(.kts)`, review the resulting plugin management and composite build blocks manually before relying on `check` in CI.

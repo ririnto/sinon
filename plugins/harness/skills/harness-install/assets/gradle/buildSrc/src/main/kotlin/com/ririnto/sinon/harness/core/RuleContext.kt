@@ -18,6 +18,11 @@ interface RuleContext {
     val manifest: Manifest
 
     /**
+     * The current stack identifier (e.g. "kotlin", "typescript").
+     */
+    val stack: String
+
+    /**
      * Safely read file content.
      *
      * @param path The file path relative to root.
@@ -40,6 +45,14 @@ interface RuleContext {
      * @return true if allowed, false otherwise.
      */
     fun isAllowedRootContractSymlink(path: Path): Boolean
+
+    /**
+     * Get source root paths for a specific category and the current stack.
+     *
+     * @param category The category name.
+     * @return List of expanded Path objects; empty if not found or stack not in manifest.
+     */
+    fun stackSources(category: String): List<Path>
 
     /**
      * Result of a safe directory walk.

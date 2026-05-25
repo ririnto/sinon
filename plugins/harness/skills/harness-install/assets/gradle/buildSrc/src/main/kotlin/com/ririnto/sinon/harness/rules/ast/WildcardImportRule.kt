@@ -38,9 +38,7 @@ object WildcardImportRule : HarnessAstRule() {
         astFactory: KtPsiFactory?,
     ): Collection<AstFinding> = buildSet {
         val ktFile = AstSupport.parse(file, astFactory)
-        if (ktFile != null) {
-            ktFile.accept(Visitor(::add, file, ctx, ktFile))
-        }
+        ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
     }
 
     private class Visitor(

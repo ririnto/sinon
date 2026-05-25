@@ -1,7 +1,7 @@
 ---
 status: active
 created: 2026-05-23
-updated: 2026-05-24
+updated: 2026-05-25
 completed: 
 author: ririnto
 assignee: ririnto
@@ -698,3 +698,40 @@ Tasks:
 - [x] Task 15.2 - Rename uv/Bun runtime rule implementation files to neutral category filenames and update imports.
 - [x] Task 15.3 - Implement Gradle Kotlin expression-FQN detection in `ImportOverFqnRule.kt`. Temp Gradle target reports `java.time.Instant` importOverFqn finding; imported simple-name and name-clash fixtures do not emit importOverFqn.
 - [x] Task 15.4 - Run validation and stale identity scans.
+
+### [x] Phase 16: Biome+Ruff Reporter and Self-Enforcement Smoke Checks
+
+Scope added on 2026-05-25 (Waves 5-7):
+
+- Wire biome+ruff hybrid diagnostic output across all four stacks. Each `Finding` carries `file:line:col`, severity, category, message, and an optional `FindingFix` with `safety` (SAFE/UNSAFE/MANUAL) plus `description` and `edits`.
+- Enrich 30+ rules with location and fix metadata so reporters can render snippets and Before/After diffs.
+- Implement the `shebangEncodingMarker` rule body that flags missing UTF-8 encoding markers in Python and TypeScript scripts.
+- Achieve four-stack parity for `harnessFormat`: every applicable rule's `format(ctx)` returns the set of modified files; entrypoints aggregate, dedupe, and report.
+- Flatten `*PerStack` parameter shape on every manifest add-on. Each stack manifest now reads stack-native keys directly without per-stack maps.
+- Migrate the uv runtime's 28 file/text/AST rules from the OLD `applies(manifest)`/`validate(root, manifest)` API to the NEW `applies(ctx)`/`validate(ctx)` API, drop the try-except compatibility adapter in `HarnessCheck`, and reorganise rule modules under `rules/{fs,text,ast}/`.
+- Extend `plugin-self-check.sh` with four-stack runtime smoke checks (uv import + libcst, bun dynamic import, gradle buildSrc compileKotlin, mvn validate) so the plugin self-enforces that its validators load before any target install.
+- Honour the no try-catch rule: bun smoke check relies on unhandled promise rejection to exit nonzero; uv smoke check lets ImportError propagate naturally.
+
+Validation:
+
+```sh
+sh plugins/harness/scripts/plugin-self-check.sh
+cd plugins/harness/skills/harness-install/assets/uv && PYTHONPATH=runtime uv run runtime/harness_validate.py
+cd plugins/harness/skills/harness-install/assets/bun && bun runtime/harness-validate.ts
+cd plugins/harness/skills/harness-install/assets/gradle && gradle --no-daemon -q buildSrc:compileKotlin
+```
+
+Commits:
+
+- `2d3dcdf` feat(harness): rule Finding에 biome-style location/fix 메타데이터 보강 (uv + bun)
+- `fd4e9f8` fix(harness): harnessFormat 실행 패리티 4-stack 정상화
+- `49d0e52` refactor(harness): uv rule 28개 OLD→NEW ctx API 마이그레이션 (Wave 6)
+- `2ef8e47` feat(harness): plugin-self-check에 4-stack runtime smoke check 추가 (Wave 7)
+
+Tasks:
+
+- [x] Task 16.1 - Add `FindingFix` and `FindingEdit` types in all four stacks; rule emissions populate them where a deterministic safe fix exists.
+- [x] Task 16.2 - Unify reporter output to the biome+ruff hybrid format across uv, bun, gradle, and maven, including code snippets and Before/After diffs.
+- [x] Task 16.3 - Replace OLD-style applies/validate adapters in uv `HarnessCheck` with direct NEW API calls. No try-except shims.
+- [x] Task 16.4 - Add `smoke_check_uv_runtime`, `smoke_check_bun_runtime`, `smoke_check_gradle_runtime`, `smoke_check_maven_runtime` to `plugin-self-check.sh`. Skip gracefully when toolchain is missing. No `/dev/null` redirects.
+- [x] Task 16.5 - Confirm `plugin-self-check.sh` exit 0 with uv 29 rules, bun 32 rules, gradle compileKotlin OK, maven skipped (mvn not in PATH on agent host).

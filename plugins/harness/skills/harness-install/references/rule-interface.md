@@ -132,22 +132,22 @@ export interface RuleContext {
 
 ### Differences Summary
 
-| Aspect | Gradle | uv | Bun |
-| --- | --- | --- | --- |
-| Base type | abstract class | abstract base class (ABC) | interface |
-| applies() params | `ctx: RuleContext` | `ctx: RuleContext` | `ctx: RuleContext` |
-| validate() params | `ctx: RuleContext` | `ctx: RuleContext` | `ctx: RuleContext` |
-| Root type | `Path` (kotlin.io.path) | `Path` (pathlib) | `string` |
-| Finding.severity | enum (Severity) | Severity enum | union type ("ERROR" \| …) |
-| Utility exposure | static methods on helpers (JsonAccess, AstSupport, AstFindingRenderer) | static methods on HarnessCheckRule | RuleContext interface |
-| Manifest access | via RuleContext.manifest (Manifest interface) | via RuleContext.manifest | RuleContext.severityOf(), readJsonObject() |
-| Filesystem access | RuleContext.readSafe(), walkSafe(), isAllowedRootContractSymlink() | RuleContext methods | RuleContext methods |
+| Aspect | Gradle | uv | Bun | Maven |
+| --- | --- | --- | --- | --- |
+| Base type | abstract class | abstract base class (ABC) | interface | Java interface |
+| applies() params | `ctx: RuleContext` | `manifest: JsonObject` | `manifest: HarnessManifest` | `manifest: JsonNode` |
+| validate() params | `ctx: RuleContext` | `project_dir: Path, manifest: JsonObject` | `projectDir: string, manifest: HarnessManifest` | `root: Path, manifest: JsonNode` |
+| Root type | `Path` (kotlin.io.path) | `Path` (pathlib) | `string` | `Path` (java.nio.file) |
+| Finding.severity | enum (Severity) | string literal ("ERROR" \| "WARN" \| "INFO") | union type ("ERROR" \| "WARN" \| "INFO") | string literal ("ERROR" \| "WARN" \| "INFO") |
+| Utility exposure | helper objects (JsonAccess, AstSupport, AstFindingRenderer) | static methods on HarnessCheckRule plus rules/utils.py re-exports | RuleContext interface captured by rule factories | HarnessCheckHelper static methods |
+| Manifest access | via RuleContext.manifest (Manifest interface) | manifest dict plus HarnessCheckRule helpers | manifest argument plus RuleContext helpers | JsonNode plus HarnessCheckHelper |
+| Filesystem access | RuleContext.readSafe(), walkSafe(), isAllowedRootContractSymlink() | HarnessCheckRule safe helpers | RuleContext filesystem helpers | HarnessCheckHelper safe helpers |
 
 ## Target Specification (Gradle Implementation Reference)
 
 ### Rule Interface Contract
 
-All three stacks MUST present rule implementations with two core methods. Gradle (Kotlin) currently implements this fully; uv (Python) and Bun (TypeScript) are aligning to this model.
+All stack rule implementations expose three core methods: `applies`, `validate`, and `format`. Gradle (Kotlin) currently implements the target `RuleContext` signature fully; uv (Python), Bun (TypeScript), and Maven (Java) currently retain stack-native signatures while using centralized registries and shared helpers. The `format` method is OPTIONAL for rules without an automatic fix; the base interface MUST provide a no-op default that returns an empty collection.
 
 #### Gradle (Kotlin) — Current Implementation
 
@@ -157,6 +157,7 @@ abstract class HarnessCheckRule {
     abstract val category: String
     open fun applies(ctx: RuleContext): Boolean = ctx.manifest.isEnabled(category)
     abstract fun validate(ctx: RuleContext): Collection<Finding>
+    open fun format(ctx: RuleContext): Collection<Path> = emptyList()
 }
 
 // AST-based rules (optional extension)
@@ -186,15 +187,15 @@ validate(ctx: RuleContext): readonly Finding[];
 
 Rationale: Consolidating manifest and filesystem context into a single `ctx` parameter reduces signature variance and centralizes policy for safe file I/O and manifest structure access. Gradle implementation provides the reference model.
 
-### Parameter: RuleContext and Manifest
+### Target Parameter Model: RuleContext and Manifest
 
-All stacks MUST pass context and manifest through dedicated interface abstractions:
+The target end-state is to pass context and manifest through dedicated interface abstractions:
 
 - Kotlin: `RuleContext` interface with `val root: Path`, `val manifest: Manifest`; uses `kotlin.io.path.Path` (prefer over java.nio.file.Path per memory guidelines)
 - Python: `RuleContext` class with `root: Path` (pathlib), `manifest: Manifest`
 - TypeScript: `RuleContext` interface with `root: string` (absolute path), `manifest: HarnessManifest`
 
-All path references MUST be resolved to absolute paths before crossing rule boundaries. The `Manifest` interface abstracts manifest queries (`isEnabled()`, `severityOf()`, `stringArray()`, `stringValue()`, `categoryObject()`, `raw`).
+All path references SHOULD be resolved to absolute paths before crossing rule boundaries. The `Manifest` interface abstracts manifest queries (`isEnabled()`, `severityOf()`, `stringArray()`, `stringValue()`, `categoryObject()`, `raw`). Current uv, Bun, and Maven implementations enforce the same policy through stack-local helpers rather than a common `RuleContext` signature.
 
 ### Severity and Finding Shape
 
@@ -297,11 +298,11 @@ Rules access filesystem through `RuleContext` methods:
 
 #### Language-Specific Parsing
 
-Rules MUST NOT instantiate parsers directly. Gradle rules use `KtPsiFactory` (injected via `HarnessAstRule.findAstFindings()`). uv and Bun MUST follow the same injection pattern.
+Target AST rules SHOULD receive parser support from runtime-level helpers. Gradle rules use `KtPsiFactory` through `HarnessAstRule.findAstFindings()`. Current uv and Bun rules use stack-local AST/token helpers while they continue aligning with the Gradle model.
 
 ## Rule Classification (Directory Organization)
 
-All stacks MUST organize rules into three categories:
+Rules are grouped by validation concern:
 
 | Group | Purpose | Examples |
 | --- | --- | --- |
@@ -309,15 +310,15 @@ All stacks MUST organize rules into three categories:
 | text | Text content and markup validation | doc-headings, doc-content, hook-shebang, hook-executable, agent-frontmatter, skill-frontmatter |
 | ast | Code structure and syntax validation | public-declaration-doc-comment, leaf-function-blank-lines, early-return, silent-catch, hook-command |
 
-### Directory layout
+### Target directory layout
 
 ```text
 rules/
   fs/
-    FilePresence.kt  (Gradle)
+    FilePresenceRule.kt  (Gradle)
     file_presence.py  (uv)
     file-presence.ts  (Bun)
-    DirectoryPresence.kt
+    DirectoryPresenceRule.kt
     …
   text/
     DocHeadingsRule.kt  (Gradle, uses CommonMark AST)
@@ -344,47 +345,50 @@ rules/
 
 ## Manifest Key → Rule Class Mapping Matrix
 
-Harness validation rules are indexed by manifest category keys (camelCase). This matrix maps each key to its runtime implementation(s). Gradle (Kotlin) package names use `com.ririnto.sinon.harness.rules.fs.*`, `.rules.text.*`, and `.rules.ast.*`.
+Harness validation rules are indexed by manifest category keys (camelCase). This matrix maps each key to its runtime implementation(s). Gradle (Kotlin) package names use `com.ririnto.sinon.harness.rules.fs.*`, `.rules.text.*`, and `.rules.ast.*`. Maven (Java) mirrors that grouping under `com.ririnto.sinon.harness.rules.fs`, `.rules.text`, and `.rules.ast`, with shared interfaces in `com.ririnto.sinon.harness.rules`. uv currently keeps rules flat under `runtime/rules/`.
 
-| Manifest Key | Gradle (Kotlin) | uv (Python) | Bun (TypeScript) | Group |
-| --- | --- | --- | --- | --- |
-| agentFrontmatter | text/AgentFrontmatterRule.kt | text/agent_frontmatter.py | text/agent-frontmatter.ts | text |
-| ciHookCommandParity | text/CiHookCommandParity.kt | text/ci_hook_command_parity.py | text/ci-hook-command-parity.ts | text |
-| directoryPresence | fs/DirectoryPresence.kt | fs/directory_presence.py | fs/directory-presence.ts | fs |
-| docContent | text/DocContent.kt | text/doc_content.py | text/doc-content.ts | text |
-| docHeadings | text/DocHeadingsRule.kt (CommonMark AST) | text/doc_headings.py | text/doc-headings.ts | text |
-| earlyReturn | ast/EarlyReturnRule.kt | ? | ast/early-return.ts | ast |
-| emptyCatchBlock | ast/EmptyCatchBlockRule.kt | ? | ast/empty-catch-block.ts | ast |
-| emptyDirectoryPlaceholders | fs/EmptyDirectoryPlaceholders.kt | fs/empty_directory_placeholders.py | fs/empty-directory-placeholders.ts | fs |
-| envShebangUsage | text/EnvShebangUsage.kt | text/env_shebang_usage.py | text/env-shebang-usage.ts | text |
-| filePresence | fs/FilePresence.kt | fs/file_presence.py | fs/file-presence.ts | fs |
-| greaterThanComparison | ast/GreaterThanComparisonRule.kt | ? | ast/greater-than-comparison.ts | ast |
-| hookCommand | ast/HookCommandRule.kt | text/hook_command.py | ast/hook-command.ts | text/ast |
-| hookExecutable | text/HookExecutable.kt | text/hook_executable.py | text/hook-executable.ts | text |
-| hookGeneratedMarker | text/HookGeneratedMarker.kt | text/hook_generated_marker.py | text/hook-generated-marker.ts | text |
-| hookShebang | text/HookShebang.kt | text/hook_shebang.py | text/hook-shebang.ts | text |
-| hookStage | text/HookStage.kt | text/hook_stage.py | text/hook-stage.ts | text |
-| ifStatementBraces | ast/IfStatementBracesRule.kt | ? | ast/if-statement-braces.ts | ast |
-| implicitLambdaIt | ast/ImplicitLambdaItRule.kt | ? | ast/implicit-lambda-it.ts | ast |
-| importOverFqn | ast/ImportOverFqnRule.kt | text/import_over_fqn.py | ast/import-over-fqn.ts | text/ast |
-| kotlinTopLevelDeclarationCount | ast/KotlinTopLevelDeclarationCountRule.kt | text/kotlin_top_level_declaration_count.py | ast/kotlin-top-level-declaration-count.ts | text/ast |
-| leafFunctionBlankLines | ast/LeafFunctionBlankLinesRule.kt | text/leaf_function_blank_lines.py | ast/leaf-function-blank-lines.ts | text/ast |
-| mutableCollection | ast/MutableCollectionRule.kt | ? | ast/mutable-collection.ts | ast |
-| nonNullAssertion | ast/NonNullAssertionRule.kt (checks `!!`) | ? | ? | ast |
-| publicDeclarationDocComment | ast/PublicDeclarationDocCommentRule.kt | text/public_declaration_doc_comment.py | ast/public-declaration-doc-comment.ts | text/ast |
-| scaffoldLeaks | text/ScaffoldLeaks.kt | text/scaffold_leaks.py | text/scaffold-leaks.ts | text |
-| silentCatch | ast/SilentCatchRule.kt | text/silent_catch.py | ast/silent-catch.ts | text/ast |
-| skillFrontmatter | text/SkillFrontmatterRule.kt (YamlFrontMatterVisitor) | text/skill_frontmatter.py | text/skill-frontmatter.ts | text |
-| symbolicLinkSafety | fs/SymbolicLinkSafety.kt | text/symlink_safety.py | text/symlink-safety.ts | fs/text |
-| templateGroups | text/TemplateGroups.kt | text/template_groups.py | text/template-groups.ts | text |
-| uncheckedCastSuppression | ast/UncheckedCastSuppressionRule.kt (checks `@Suppress("UNCHECKED_CAST")`) | ? | ? | ast |
-| uncheckedTasks | text/UncheckedTasks.kt | text/unchecked_tasks.py | text/unchecked-tasks.ts | text |
-| unstructuredLogging | ast/UnstructuredLoggingRule.kt | text/unstructured_logging.py | ast/unstructured-logging.ts | text/ast |
-| wildcardImport | ast/WildcardImportRule.kt | text/wildcard_import.py | ast/wildcard-import.ts | text/ast |
+| Manifest Key | Gradle (Kotlin) | uv (Python) | Bun (TypeScript) | Maven (Java) | Group |
+| --- | --- | --- | --- | --- | --- |
+| agentFrontmatter | text/AgentFrontmatterRule.kt | runtime/rules/agent_frontmatter.py | rules/agent-frontmatter.ts | text/AgentFrontmatterRule.java | text |
+| classMemberOrdering | ast/ClassMemberOrderingRule.kt | | | ast/ClassMemberOrderingRule.java | ast |
+| ciHookCommandParity | text/CiHookCommandParityRule.kt | runtime/rules/ci_hook_command_parity.py | rules/ci-hook-command-parity.ts | text/CiHookCommandParityRule.java | text |
+| companionObjectPosition | ast/CompanionObjectPositionRule.kt | | | | ast |
+| directoryPresence | fs/DirectoryPresenceRule.kt | runtime/rules/directory_presence.py | rules/directory-presence.ts | fs/DirectoryPresenceRule.java | fs |
+| docContent | text/DocContentRule.kt | runtime/rules/doc_content.py | rules/doc-content.ts | text/DocContentRule.java | text |
+| docHeadings | text/DocHeadingsRule.kt (CommonMark AST) | runtime/rules/doc_headings.py | rules/doc-headings.ts | text/DocHeadingsRule.java | text |
+| earlyReturn | ast/EarlyReturnRule.kt | runtime/rules/early_return.py | rules/early-return.ts | ast/EarlyReturnRule.java | ast |
+| emptyCatchBlock | ast/EmptyCatchBlockRule.kt | runtime/rules/empty_catch_block.py | rules/empty-catch-block.ts | ast/EmptyCatchBlockRule.java | ast |
+| emptyDirectoryPlaceholders | fs/EmptyDirectoryPlaceholdersRule.kt | runtime/rules/empty_directory_placeholders.py | rules/empty-directory-placeholders.ts | fs/EmptyDirectoryPlaceholdersRule.java | fs |
+| envShebangUsage | text/EnvShebangUsageRule.kt | runtime/rules/env_shebang_usage.py | rules/env-shebang-usage.ts | text/EnvShebangUsageRule.java | text |
+| filePresence | fs/FilePresenceRule.kt | runtime/rules/file_presence.py | rules/file-presence.ts | fs/FilePresenceRule.java | fs |
+| greaterThanComparison | ast/GreaterThanComparisonRule.kt | runtime/rules/greater_than_comparison.py | rules/greater-than-comparison.ts | ast/GreaterThanComparisonRule.java | ast |
+| hookCommand | text/HookCommandRule.kt | runtime/rules/hook_command.py | rules/hook-command.ts | text/HookCommandRule.java | text/ast |
+| hookExecutable | text/HookExecutableRule.kt | runtime/rules/hook_executable.py | rules/hook-executable.ts | text/HookExecutableRule.java | text |
+| hookGeneratedMarker | text/HookGeneratedMarkerRule.kt | runtime/rules/hook_generated_marker.py | rules/hook-generated-marker.ts | text/HookGeneratedMarkerRule.java | text |
+| hookShebang | text/HookShebangRule.kt | runtime/rules/hook_shebang.py | rules/hook-shebang.ts | text/HookShebangRule.java | text |
+| hookStage | text/HookStageRule.kt | runtime/rules/hook_stage.py | rules/hook-stage.ts | text/HookStageRule.java | text |
+| ifStatementBraces | ast/IfStatementBracesRule.kt | | rules/if-statement-braces.ts | ast/IfStatementBracesRule.java | ast |
+| implicitLambdaIt | ast/ImplicitLambdaItRule.kt | | rules/implicit-lambda-it.ts | | ast |
+| importOverFqn | ast/ImportOverFqnRule.kt | runtime/rules/import_over_fqn.py | rules/import-over-fqn.ts | ast/ImportOverFqnRule.java | text/ast |
+| kotlinTopLevelDeclarationCount | ast/KotlinTopLevelDeclarationCountRule.kt | runtime/rules/kotlin_top_level_declaration_count.py | rules/kotlin-top-level-declaration-count.ts | ast/KotlinTopLevelDeclarationCountRule.java | ast |
+| leafFunctionBlankLines | ast/LeafFunctionBlankLinesRule.kt | runtime/rules/leaf_function_blank_lines.py | rules/leaf-function-blank-lines.ts | ast/LeafFunctionBlankLinesRule.java | text/ast |
+| mutableCollection | ast/MutableCollectionRule.kt | | rules/mutable-collection.ts | ast/MutableCollectionRule.java | ast |
+| nonNullAssertion | ast/NonNullAssertionRule.kt (checks `!!`) | | | | ast |
+| publicDeclarationDocComment | ast/PublicDeclarationDocCommentRule.kt | runtime/rules/public_declaration_doc_comment.py | rules/public-declaration-doc-comment.ts | ast/PublicDeclarationDocCommentRule.java | text/ast |
+| scaffoldLeaks | fs/ScaffoldLeaksRule.kt | runtime/rules/scaffold_leaks.py | rules/scaffold-leaks.ts | text/ScaffoldLeaksRule.java | fs/text |
+| silentCatch | ast/SilentCatchRule.kt | runtime/rules/silent_catch.py | rules/silent-catch.ts | ast/SilentCatchRule.java | text/ast |
+| skillFrontmatter | text/SkillFrontmatterRule.kt (YamlFrontMatterVisitor) | runtime/rules/skill_frontmatter.py | rules/skill-frontmatter.ts | text/SkillFrontmatterRule.java | text |
+| symlinkSafety | fs/SymlinkSafetyRule.kt | runtime/rules/symlink_safety.py | rules/symlink-safety.ts | fs/SymlinkSafetyRule.java | fs |
+| templateGroups | fs/TemplateGroupsRule.kt | runtime/rules/template_groups.py | rules/template-groups.ts | text/TemplateGroupsRule.java | fs/text |
+| terminalBranchWhen | ast/TerminalBranchWhenRule.kt | | | | ast |
+| tripleQuoteInlineComment | | runtime/rules/triple_quote_inline_comment.py (tokenize) | | | text/token |
+| uncheckedCastSuppression | ast/UncheckedCastSuppressionRule.kt (checks `@Suppress("UNCHECKED_CAST")`) | | | | ast |
+| uncheckedTasks | fs/UncheckedTasksRule.kt | runtime/rules/unchecked_tasks.py | rules/unchecked-tasks.ts | text/UncheckedTasksRule.java | fs/text |
+| unstructuredLogging | text/UnstructuredLoggingRule.kt | runtime/rules/unstructured_logging.py | rules/unstructured-logging.ts | ast/UnstructuredLoggingRule.java | text/ast |
+| wildcardImport | ast/WildcardImportRule.kt | runtime/rules/wildcard_import.py | rules/wildcard-import.ts | ast/WildcardImportRule.java | text/ast |
 
 ### Legend
 
-- `?` = implementation status unknown; requires verification
 - Cell blank = category not yet implemented in that stack
 - Group column indicates primary category; rules spanning multiple groups show all applicable
 - Gradle classes in `com.ririnto.sinon.harness.rules.*` package hierarchy
@@ -407,8 +411,8 @@ com.ririnto.sinon.harness.
 │   ├── HarnessCheckRule.kt (abstract base)
 │   ├── HarnessAstRule.kt (AST-specific base)
 │   ├── fs/
-│   │   ├── FilePresence.kt
-│   │   ├── DirectoryPresence.kt
+│   │   ├── FilePresenceRule.kt
+│   │   ├── DirectoryPresenceRule.kt
 │   │   └── …
 │   ├── text/
 │   │   ├── DocHeadingsRule.kt (uses CommonMark AST)
@@ -494,11 +498,12 @@ When aligning a stack to the Gradle model, follow this order:
 
 ## Notes
 
-- Backward compatibility: Changes to rule signatures breaking existing rule implementations are acceptable if adoption is coordinated across a stack release cycle. Gradle has completed this migration as of Phase 2.
+- Coordinated signature changes: Rule signature changes are acceptable when adoption is coordinated across a stack release cycle. Gradle has completed this migration as of Phase 2.
 - Parser ownership: Each stack MUST prevent rules from instantiating parsers directly. Parsers (KtPsiFactory, CommonMark, YAML) MUST be injected or cached at runtime level, never within rule constructors.
 - Path absoluteness: All paths crossing rule boundaries MUST be absolute. Relative paths are internal optimization only (e.g., display in messages via `file.relativeTo(root)`).
 - Manifest safety: RuleContext/Manifest helpers (stringArray, stringValue, severityOf, categoryObject) MUST enforce type safety and return safe defaults on manifest structure mismatch (empty string, empty list, ERROR severity, null).
 - Finding severity: All findings MUST use the Severity enum (Gradle), Severity enum (uv target), or union type (Bun target). String literals are prohibited.
 - Rule registration: Each stack MUST maintain a centralized rule registry (Gradle: HarnessCheck enum) mapping manifest categories to rule instances, enabling safe lookup and invocation without reflection.
 - CommonMark adoption: Text rules validating Markdown (doc headings, frontmatter) SHOULD use CommonMark AST parsing (0.28.0 or compatible) rather than regex for robustness.
+- Python token rules: Physical-line Python checks such as `tripleQuoteInlineComment` SHOULD use the stdlib `tokenize` module so strings and comments are classified as tokens rather than text fragments.
 - Collection return types: Rule `validate()` methods return `Collection<Finding>` (Gradle) or language equivalents. buildList/buildSet may be used; early guards like `?: return@buildList` or `let { … }` are idiomatic.

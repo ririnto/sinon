@@ -1,4 +1,6 @@
 #!/usr/bin/env -S uv run
+# -*- coding: utf-8 -*-
+
 # /// script
 # requires-python = ">=3.13"
 # dependencies = ["libcst>=1.8.6"]
@@ -8,18 +10,19 @@ Validate repository harness installation and structure.
 """
 from __future__ import annotations
 
-import json
 import logging
 import os
 import re
-import stat
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import NamedTuple, TypeGuard
 
 from harness_check import HarnessCheck
 from harness_check_rule import Finding, HarnessCheckRule, JsonObject, ROOT
+from reporter import render_findings
+
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
 
 STACK = "uv"
 MANIFEST_PATH = "docs/harness/manifest.json"
@@ -30,6 +33,7 @@ class FilePresenceCheck:
     """
     Check that required files exist.
     """
+
     category: str = "filePresence"
 
     def applies(self, manifest: dict) -> bool:
@@ -38,7 +42,9 @@ class FilePresenceCheck:
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
-        if not isinstance(section, dict) or not isinstance(section.get("parameters", {}), dict):
+        if not isinstance(section, dict) or not isinstance(
+            section.get("parameters", {}), dict
+        ):
             return ()
         params = section.get("parameters", {})
         paths = params.get("paths", [])
@@ -63,6 +69,7 @@ class DirectoryPresenceCheck:
     """
     Check that required directories exist.
     """
+
     category: str = "directoryPresence"
 
     def applies(self, manifest: dict) -> bool:
@@ -71,7 +78,9 @@ class DirectoryPresenceCheck:
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
-        if not isinstance(section, dict) or not isinstance(section.get("parameters", {}), dict):
+        if not isinstance(section, dict) or not isinstance(
+            section.get("parameters", {}), dict
+        ):
             return ()
         params = section.get("parameters", {})
         paths = params.get("paths", [])
@@ -87,7 +96,8 @@ class DirectoryPresenceCheck:
                 messages.get("default", "missing directory: {path}").format(path=path),
             )
             for path in paths
-            if isinstance(path, str) and not HarnessCheckRule.is_safe_directory(root / path)
+            if isinstance(path, str)
+            and not HarnessCheckRule.is_safe_directory(root / path)
         )
 
 
@@ -96,6 +106,7 @@ class EmptyDirectoryPlaceholdersRule:
     """
     Check that empty directories contain .gitkeep or files.
     """
+
     category: str = "emptyDirectoryPlaceholders"
 
     def applies(self, manifest: dict) -> bool:
@@ -104,7 +115,9 @@ class EmptyDirectoryPlaceholdersRule:
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
-        if not isinstance(section, dict) or not isinstance(section.get("parameters", {}), dict):
+        if not isinstance(section, dict) or not isinstance(
+            section.get("parameters", {}), dict
+        ):
             return ()
         params = section.get("parameters", {})
         directories = params.get("directories", [])
@@ -118,7 +131,8 @@ class EmptyDirectoryPlaceholdersRule:
                 HarnessCheckRule.severity_for(manifest, self.category),
                 self.category,
                 messages.get(
-                    "default", "empty directory must keep placeholder or real files: {directory}"
+                    "default",
+                    "empty directory must keep placeholder or real files: {directory}",
                 ).format(directory=directory),
             )
             for directory in directories
@@ -134,6 +148,7 @@ class TemplateGroupsCheck:
     """
     Check that template groups exist.
     """
+
     category: str = "templateGroups"
 
     def applies(self, manifest: dict) -> bool:
@@ -142,7 +157,9 @@ class TemplateGroupsCheck:
 
     def validate(self, root: Path, manifest: dict) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
-        if not isinstance(section, dict) or not isinstance(section.get("parameters", {}), dict):
+        if not isinstance(section, dict) or not isinstance(
+            section.get("parameters", {}), dict
+        ):
             return ()
         params = section.get("parameters", {})
         target_root = params.get("targetRoot", "docs/harness/templates")
@@ -156,10 +173,13 @@ class TemplateGroupsCheck:
             Finding(
                 HarnessCheckRule.severity_for(manifest, self.category),
                 self.category,
-                messages.get("default", "missing template group: {targetRoot}/{group}").format(targetRoot=target_root, group=group),
+                messages.get(
+                    "default", "missing template group: {targetRoot}/{group}"
+                ).format(targetRoot=target_root, group=group),
             )
             for group in groups
-            if isinstance(group, str) and not HarnessCheckRule.is_safe_directory(root / target_root / group)
+            if isinstance(group, str)
+            and not HarnessCheckRule.is_safe_directory(root / target_root / group)
         )
 
 
@@ -168,6 +188,7 @@ class DocHeadingsCheck:
     """
     Check that required docs contain required headings.
     """
+
     category: str = "docHeadings"
 
     def applies(self, manifest: dict) -> bool:
@@ -197,8 +218,11 @@ class DocHeadingsCheck:
         if not isinstance(source_filter, dict):
             return ()
         filtered_files = tuple(
-            p for p in source_paths
-            if isinstance(p, str) and p.startswith(source_filter.get("prefix", "")) and p.endswith(source_filter.get("suffix", ""))
+            p
+            for p in source_paths
+            if isinstance(p, str)
+            and p.startswith(source_filter.get("prefix", ""))
+            and p.endswith(source_filter.get("suffix", ""))
         )
         headings = params.get("headings", [])
         if not isinstance(headings, list):
@@ -210,12 +234,15 @@ class DocHeadingsCheck:
             Finding(
                 HarnessCheckRule.severity_for(manifest, self.category),
                 self.category,
-                messages.get("default", "doc missing {heading}: {file}").format(heading=heading, file=file_path),
+                messages.get("default", "doc missing {heading}: {file}").format(
+                    heading=heading, file=file_path
+                ),
             )
             for file_path in filtered_files
             if HarnessCheckRule.is_safe_file(root / file_path)
             for heading in headings
-            if isinstance(heading, str) and heading not in HarnessCheckRule.read_text(root / file_path)
+            if isinstance(heading, str)
+            and heading not in HarnessCheckRule.read_text(root / file_path)
         )
 
 
@@ -224,11 +251,15 @@ class DocContentCheck:
     """
     Check that specified files contain required substrings.
     """
+
     category: str = "docContent"
 
     def applies(self, manifest: JsonObject) -> bool:
         section = manifest.get(self.category)
-        return HarnessCheckRule.is_json_object(section) and section.get("enabled", True) is not False
+        return (
+            HarnessCheckRule.is_json_object(section)
+            and section.get("enabled", True) is not False
+        )
 
     def validate(self, root: Path, manifest: JsonObject) -> tuple[Finding, ...]:
         section = manifest.get(self.category, {})
@@ -254,7 +285,13 @@ class DocContentCheck:
             )
             if self.condition_matches(check, combined):
                 continue
-            findings.append(Finding(HarnessCheckRule.severity_for(manifest, self.category), self.category, failure_message))
+            findings.append(
+                Finding(
+                    HarnessCheckRule.severity_for(manifest, self.category),
+                    self.category,
+                    failure_message,
+                )
+            )
         return tuple(findings)
 
     @staticmethod
@@ -275,7 +312,9 @@ class DocContentCheck:
         if isinstance(condition, str):
             return condition in content
         if HarnessCheckRule.is_json_array(condition):
-            return all(DocContentCheck.evaluate_condition(item, content) for item in condition)
+            return all(
+                DocContentCheck.evaluate_condition(item, content) for item in condition
+            )
         if not HarnessCheckRule.is_json_object(condition):
             return False
         has_all = "allOf" in condition
@@ -287,11 +326,17 @@ class DocContentCheck:
         all_of = DocContentCheck.condition_array(condition.get("allOf"))
         any_of = DocContentCheck.condition_array(condition.get("anyOf"))
         contains = DocContentCheck.string_array(condition.get("contains"))
-        and_matches = not has_all or all(DocContentCheck.evaluate_condition(item, content) for item in all_of)
-        or_matches = not has_any or any(DocContentCheck.evaluate_condition(item, content) for item in any_of)
+        and_matches = not has_all or all(
+            DocContentCheck.evaluate_condition(item, content) for item in all_of
+        )
+        or_matches = not has_any or any(
+            DocContentCheck.evaluate_condition(item, content) for item in any_of
+        )
         contains_matches = all(item in content for item in contains)
         not_condition = condition.get("not")
-        not_matches = not has_not or not DocContentCheck.evaluate_condition(not_condition, content)
+        not_matches = not has_not or not DocContentCheck.evaluate_condition(
+            not_condition, content
+        )
         return and_matches and or_matches and contains_matches and not_matches
 
     @staticmethod
@@ -322,6 +367,7 @@ class AgentFrontmatterCheck:
     """
     Check that agents have required frontmatter.
     """
+
     category: str = "agentFrontmatter"
 
     def applies(self, manifest: dict) -> bool:
@@ -343,37 +389,76 @@ class AgentFrontmatterCheck:
         messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return ()
-        try:
-            name_pattern = re.compile(name_pattern_str)
-        except re.error:
-            return (
-                Finding("ERROR", self.category, f"invalid namePattern regex: {name_pattern_str}"),
-            )
+        name_pattern = re.compile(name_pattern_str)
         dir_path = root / directory
-        missing_dir_msg = messages.get("missingDirectory", ".claude/agents must contain at least one .md agent")
+        missing_dir_msg = messages.get(
+            "missingDirectory", ".claude/agents must contain at least one .md agent"
+        )
         if not HarnessCheckRule.is_safe_directory(dir_path):
-            return (Finding(HarnessCheckRule.severity_for(manifest, self.category), self.category, missing_dir_msg),)
-        files = tuple(sorted(p for p in HarnessCheckRule.safe_walk(dir_path) if p.parent == dir_path and p.suffix == ".md"))
+            return (
+                Finding(
+                    HarnessCheckRule.severity_for(manifest, self.category),
+                    self.category,
+                    missing_dir_msg,
+                ),
+            )
+        files = tuple(
+            sorted(
+                p
+                for p in HarnessCheckRule.safe_walk(dir_path)
+                if p.parent == dir_path and p.suffix == ".md"
+            )
+        )
         if not files:
-            return (Finding(HarnessCheckRule.severity_for(manifest, self.category), self.category, missing_dir_msg),)
+            return (
+                Finding(
+                    HarnessCheckRule.severity_for(manifest, self.category),
+                    self.category,
+                    missing_dir_msg,
+                ),
+            )
         findings = []
         for path in files:
             text = HarnessCheckRule.read_text(path)
-            findings.extend([] if text.startswith("---") else [Finding(
-                HarnessCheckRule.severity_for(manifest, self.category),
-                self.category,
-                messages.get("missingFrontmatter", "agent missing frontmatter: {file}").format(file=HarnessCheckRule.relative(path)),
-            )])
-            findings.extend([] if (not text.startswith("---") or name_pattern.search(text)) else [Finding(
-                HarnessCheckRule.severity_for(manifest, self.category),
-                self.category,
-                messages.get("missingName", "agent missing name: {file}").format(file=HarnessCheckRule.relative(path)),
-            )])
-            findings.extend([] if re.search(r"(?m)^description:\s*.+$", text) else [Finding(
-                HarnessCheckRule.severity_for(manifest, self.category),
-                self.category,
-                messages.get("missingDescription", "agent missing description: {file}").format(file=HarnessCheckRule.relative(path)),
-            )])
+            findings.extend(
+                []
+                if text.startswith("---")
+                else [
+                    Finding(
+                        HarnessCheckRule.severity_for(manifest, self.category),
+                        self.category,
+                        messages.get(
+                            "missingFrontmatter", "agent missing frontmatter: {file}"
+                        ).format(file=HarnessCheckRule.relative(path)),
+                    )
+                ]
+            )
+            findings.extend(
+                []
+                if (not text.startswith("---") or name_pattern.search(text))
+                else [
+                    Finding(
+                        HarnessCheckRule.severity_for(manifest, self.category),
+                        self.category,
+                        messages.get(
+                            "missingName", "agent missing name: {file}"
+                        ).format(file=HarnessCheckRule.relative(path)),
+                    )
+                ]
+            )
+            findings.extend(
+                []
+                if re.search(r"(?m)^description:\s*.+$", text)
+                else [
+                    Finding(
+                        HarnessCheckRule.severity_for(manifest, self.category),
+                        self.category,
+                        messages.get(
+                            "missingDescription", "agent missing description: {file}"
+                        ).format(file=HarnessCheckRule.relative(path)),
+                    )
+                ]
+            )
         return tuple(findings)
 
 
@@ -382,6 +467,7 @@ class SkillFrontmatterCheck:
     """
     Check that skills have required frontmatter.
     """
+
     category: str = "skillFrontmatter"
 
     def applies(self, manifest: dict) -> bool:
@@ -404,29 +490,60 @@ class SkillFrontmatterCheck:
         if not isinstance(messages, dict):
             return ()
         dir_path = root / root_directory
-        missing_dir_msg = messages.get("missingDirectory", ".claude/skills must contain at least one SKILL.md")
+        missing_dir_msg = messages.get(
+            "missingDirectory", ".claude/skills must contain at least one SKILL.md"
+        )
         if not HarnessCheckRule.is_safe_directory(dir_path):
-            return (Finding(HarnessCheckRule.severity_for(manifest, self.category), self.category, missing_dir_msg),)
-        files = tuple(sorted(p for p in HarnessCheckRule.safe_walk(dir_path) if p.name == filename))
-        if not files:
-            return (Finding(HarnessCheckRule.severity_for(manifest, self.category), self.category, missing_dir_msg),)
-        findings = []
-        for path in files:
-            text = HarnessCheckRule.read_text(path)
-            findings.extend([] if text.startswith("---") else [Finding(
-                HarnessCheckRule.severity_for(manifest, self.category),
-                self.category,
-                messages.get("missingFrontmatter", "skill missing frontmatter: {file}").format(file=HarnessCheckRule.relative(path)),
-            )])
-            findings.extend([
+            return (
                 Finding(
                     HarnessCheckRule.severity_for(manifest, self.category),
                     self.category,
-                    messages.get("missingDescription", f"skill missing {field}: {{file}}").format(file=HarnessCheckRule.relative(path)),
-                )
-                for field in required_fields
-                if isinstance(field, str) and not re.search(rf"(?m)^{re.escape(field)}:\s*.+$", text)
-            ])
+                    missing_dir_msg,
+                ),
+            )
+        files = tuple(
+            sorted(
+                p for p in HarnessCheckRule.safe_walk(dir_path) if p.name == filename
+            )
+        )
+        if not files:
+            return (
+                Finding(
+                    HarnessCheckRule.severity_for(manifest, self.category),
+                    self.category,
+                    missing_dir_msg,
+                ),
+            )
+        findings = []
+        for path in files:
+            text = HarnessCheckRule.read_text(path)
+            findings.extend(
+                []
+                if text.startswith("---")
+                else [
+                    Finding(
+                        HarnessCheckRule.severity_for(manifest, self.category),
+                        self.category,
+                        messages.get(
+                            "missingFrontmatter", "skill missing frontmatter: {file}"
+                        ).format(file=HarnessCheckRule.relative(path)),
+                    )
+                ]
+            )
+            findings.extend(
+                [
+                    Finding(
+                        HarnessCheckRule.severity_for(manifest, self.category),
+                        self.category,
+                        messages.get(
+                            "missingDescription", f"skill missing {field}: {{file}}"
+                        ).format(file=HarnessCheckRule.relative(path)),
+                    )
+                    for field in required_fields
+                    if isinstance(field, str)
+                    and not re.search(rf"(?m)^{re.escape(field)}:\s*.+$", text)
+                ]
+            )
         return tuple(findings)
 
 
@@ -435,6 +552,7 @@ class ScaffoldLeaksCheck:
     """
     Check for unresolved scaffold tokens and placeholders in active assets.
     """
+
     category: str = "scaffoldLeaks"
 
     @staticmethod
@@ -483,18 +601,22 @@ class ScaffoldLeaksCheck:
             return ()
         resolved_root = root.resolve()
         active_roots = tuple(
-            candidate for b in bases_data if isinstance(b, str)
+            candidate
+            for b in bases_data
+            if isinstance(b, str)
             for candidate in (root / b,)
             if HarnessCheckRule.is_relative_to(candidate.resolve(), resolved_root)
         )
         excluded_paths = tuple(
-            candidate for e in (excluded_data if isinstance(excluded_data, list) else ())
+            candidate
+            for e in (excluded_data if isinstance(excluded_data, list) else ())
             if isinstance(e, str)
             for candidate in (root / e,)
             if HarnessCheckRule.is_relative_to(candidate.resolve(), resolved_root)
         )
         extensions = frozenset(
-            f".{ext}" for ext in (exts_data if isinstance(exts_data, list) else [])
+            f".{ext}"
+            for ext in (exts_data if isinstance(exts_data, list) else [])
             if isinstance(ext, str)
         ) or frozenset({".md", ".txt"})
         patterns_data = params.get("patterns", [])
@@ -536,6 +658,7 @@ class HookShebangCheck:
     """
     Check that hooks use correct shebang.
     """
+
     category: str = "hookShebang"
 
     def applies(self, manifest: dict) -> bool:
@@ -560,10 +683,13 @@ class HookShebangCheck:
             Finding(
                 HarnessCheckRule.severity_for(manifest, self.category),
                 self.category,
-                messages.get("default", "{hook} must start with {expectedShebang}").format(hook=hook, expectedShebang=expected_shebang),
+                messages.get(
+                    "default", "{hook} must start with {expectedShebang}"
+                ).format(hook=hook, expectedShebang=expected_shebang),
             )
             for hook in hooks
-            if isinstance(hook, str) and HarnessCheckRule.first_line(root / hook) != expected_shebang
+            if isinstance(hook, str)
+            and HarnessCheckRule.first_line(root / hook) != expected_shebang
         )
 
 
@@ -572,6 +698,7 @@ class HookExecutableCheck:
     """
     Check that hooks are executable.
     """
+
     category: str = "hookExecutable"
 
     def applies(self, manifest: dict) -> bool:
@@ -607,6 +734,7 @@ class HookGeneratedMarkerCheck:
     """
     Check that hooks contain generated marker and no packaging placeholder.
     """
+
     category: str = "hookGeneratedMarker"
 
     def applies(self, manifest: dict) -> bool:
@@ -623,8 +751,13 @@ class HookGeneratedMarkerCheck:
         hooks = params.get("hooks", [])
         if not isinstance(hooks, list):
             return ()
-        marker_template = params.get("markerTemplate", "# Harness generated hook: {name}")
-        placeholder_forbidden = params.get("placeholderForbidden", "packaged placeholder is replaced during harness installation")
+        marker_template = params.get(
+            "markerTemplate", "# Harness generated hook: {name}"
+        )
+        placeholder_forbidden = params.get(
+            "placeholderForbidden",
+            "packaged placeholder is replaced during harness installation",
+        )
         messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return ()
@@ -634,18 +767,37 @@ class HookGeneratedMarkerCheck:
                 text = HarnessCheckRule.read_text(root / hook)
                 hook_name = Path(hook).name
                 expected_marker = marker_template.format(name=hook_name)
-                findings.extend([] if expected_marker in text else [Finding(
-                    HarnessCheckRule.severity_for(manifest, self.category),
-                    self.category,
-                    messages.get("missingMarker", "{hook} must contain generated marker '{marker}'").format(
-                        hook=hook, marker=expected_marker
-                    ),
-                )])
-                findings.extend([] if not (isinstance(placeholder_forbidden, str) and placeholder_forbidden in text) else [Finding(
-                    HarnessCheckRule.severity_for(manifest, self.category),
-                    self.category,
-                    messages.get("placeholderPresent", "{hook} still contains packaging placeholder text").format(hook=hook),
-                )])
+                findings.extend(
+                    []
+                    if expected_marker in text
+                    else [
+                        Finding(
+                            HarnessCheckRule.severity_for(manifest, self.category),
+                            self.category,
+                            messages.get(
+                                "missingMarker",
+                                "{hook} must contain generated marker '{marker}'",
+                            ).format(hook=hook, marker=expected_marker),
+                        )
+                    ]
+                )
+                findings.extend(
+                    []
+                    if not (
+                        isinstance(placeholder_forbidden, str)
+                        and placeholder_forbidden in text
+                    )
+                    else [
+                        Finding(
+                            HarnessCheckRule.severity_for(manifest, self.category),
+                            self.category,
+                            messages.get(
+                                "placeholderPresent",
+                                "{hook} still contains packaging placeholder text",
+                            ).format(hook=hook),
+                        )
+                    ]
+                )
         return tuple(findings)
 
 
@@ -654,6 +806,7 @@ class HookStageCheck:
     """
     Check that hooks contain stage marker for the active stack.
     """
+
     category: str = "hookStage"
 
     def applies(self, manifest: dict) -> bool:
@@ -681,13 +834,19 @@ class HookStageCheck:
             Finding(
                 HarnessCheckRule.severity_for(manifest, self.category),
                 self.category,
-                messages.get("default", "{hook} must contain stage marker '# Harness stage: {expectedStage}'").format(hook=hook_name, expectedStage=expected_stage),
+                messages.get(
+                    "default",
+                    "{hook} must contain stage marker '# Harness stage: {expectedStage}'",
+                ).format(hook=hook_name, expectedStage=expected_stage),
             )
             for hook_name, expected_stage in stack_stages.items()
             if isinstance(hook_name, str)
             and isinstance(expected_stage, str)
-            and HarnessCheckRule.is_safe_file(path := root / f"docs/harness/git-hooks/{hook_name}")
-            and marker_template.format(stage=expected_stage) not in (text := HarnessCheckRule.read_text(path))
+            and HarnessCheckRule.is_safe_file(
+                path := root / f"docs/harness/git-hooks/{hook_name}"
+            )
+            and marker_template.format(stage=expected_stage)
+            not in HarnessCheckRule.read_text(path)
         )
 
 
@@ -696,6 +855,7 @@ class HookCommandCheck:
     """
     Check that hooks declare and run correct validation commands.
     """
+
     category: str = "hookCommand"
 
     def applies(self, manifest: dict) -> bool:
@@ -710,7 +870,9 @@ class HookCommandCheck:
         if not isinstance(params, dict):
             return ()
         pre_push_path = params.get("prePushHook", "docs/harness/git-hooks/pre-push")
-        pre_commit_path = params.get("preCommitHook", "docs/harness/git-hooks/pre-commit")
+        pre_commit_path = params.get(
+            "preCommitHook", "docs/harness/git-hooks/pre-commit"
+        )
         allowed_cmds = params.get("allowedCommands", {})
         allowed_pre_commit_cmds = params.get("allowedPreCommitCommands", {})
         messages = section.get("messages", {})
@@ -718,7 +880,13 @@ class HookCommandCheck:
             return ()
         stack_commands = allowed_cmds.get(STACK)
         if not isinstance(stack_commands, list):
-            return (Finding("ERROR", self.category, f"validation command for stack '{STACK}' missing from manifest"),)
+            return (
+                Finding(
+                    "ERROR",
+                    self.category,
+                    f"validation command for stack '{STACK}' missing from manifest",
+                ),
+            )
         stack_pre_commit_commands = (
             allowed_pre_commit_cmds.get(STACK, [])
             if isinstance(allowed_pre_commit_cmds, dict)
@@ -726,61 +894,117 @@ class HookCommandCheck:
         )
         if not isinstance(stack_pre_commit_commands, list):
             stack_pre_commit_commands = []
-        pre_push_file = root / (pre_push_path if isinstance(pre_push_path, str) else "docs/harness/git-hooks/pre-push")
-        pre_commit_file = root / (pre_commit_path if isinstance(pre_commit_path, str) else "docs/harness/git-hooks/pre-commit")
-        pre_push_text = HarnessCheckRule.read_text(pre_push_file) if HarnessCheckRule.is_safe_file(pre_push_file) else ""
-        pre_commit_text = HarnessCheckRule.read_text(pre_commit_file) if HarnessCheckRule.is_safe_file(pre_commit_file) else ""
-        command_match = re.search(r"# Harness validation command:\s*(.+)$", pre_push_text, re.MULTILINE)
+        pre_push_file = root / (
+            pre_push_path
+            if isinstance(pre_push_path, str)
+            else "docs/harness/git-hooks/pre-push"
+        )
+        pre_commit_file = root / (
+            pre_commit_path
+            if isinstance(pre_commit_path, str)
+            else "docs/harness/git-hooks/pre-commit"
+        )
+        pre_push_text = (
+            HarnessCheckRule.read_text(pre_push_file)
+            if HarnessCheckRule.is_safe_file(pre_push_file)
+            else ""
+        )
+        pre_commit_text = (
+            HarnessCheckRule.read_text(pre_commit_file)
+            if HarnessCheckRule.is_safe_file(pre_commit_file)
+            else ""
+        )
+        command_match = re.search(
+            r"# Harness validation command:\s*(.+)$", pre_push_text, re.MULTILINE
+        )
         declared_command = command_match.group(1).strip() if command_match else ""
         findings = (
-            [] if declared_command else [Finding(
-                HarnessCheckRule.severity_for(manifest, self.category),
-                self.category,
-                messages.get("missingDeclaration", "pre-push hook must declare Harness validation command"),
-            )]
-        ) + (
-            [] if (not declared_command or declared_command in stack_commands) else [Finding(
-                HarnessCheckRule.severity_for(manifest, self.category),
-                self.category,
-                messages.get("unsupportedCommand", "pre-push hook declares unsupported validation command: {command}").format(
-                    command=declared_command
-                ),
-            )]
-        ) + (
-            [] if (not declared_command or declared_command in pre_push_text.splitlines()) else [Finding(
-                HarnessCheckRule.severity_for(manifest, self.category),
-                self.category,
-                messages.get("commandNotRun", "pre-push hook must run the declared validation command"),
-            )]
-        ) + (
-            [] if not (
-                stack_pre_commit_commands
-                and not any(
-                    re.search(rf"(^|\s)({re.escape(cmd)}|\s)(\s|$)", pre_commit_text)
-                    for cmd in stack_pre_commit_commands
-                )
-                and re.search(
-                    r"(^|\s)(uv|bun|gradle|mvn)(\s|$)|\./gradlew|harnessValidate|harness_validate\.py|harness-validate\.ts",
-                    pre_commit_text,
-                )
-            ) else [Finding(
-                HarnessCheckRule.severity_for(manifest, self.category),
-                self.category,
-                messages.get("preCommitMustNotRunFullStack", "pre-commit hook must not run full stack validation commands"),
-            )]
-        ) + [
-            Finding(
-                HarnessCheckRule.severity_for(manifest, self.category),
-                self.category,
-                messages.get("ciCommandMatch", f"{ci_file}: CI command mismatch — expected {{command}}").format(
-                    command=declared_command
-                ),
+            (
+                []
+                if declared_command
+                else [
+                    Finding(
+                        HarnessCheckRule.severity_for(manifest, self.category),
+                        self.category,
+                        messages.get(
+                            "missingDeclaration",
+                            "pre-push hook must declare Harness validation command",
+                        ),
+                    )
+                ]
             )
-            for ci_file in [".github/workflows/harness.yml", ".gitlab-ci.yml"]
-            if HarnessCheckRule.is_safe_file(ci_path := root / ci_file)
-            and declared_command
-            and declared_command not in HarnessCheckRule.read_text(ci_path)
-        ]
+            + (
+                []
+                if (not declared_command or declared_command in stack_commands)
+                else [
+                    Finding(
+                        HarnessCheckRule.severity_for(manifest, self.category),
+                        self.category,
+                        messages.get(
+                            "unsupportedCommand",
+                            "pre-push hook declares unsupported validation command: {command}",
+                        ).format(command=declared_command),
+                    )
+                ]
+            )
+            + (
+                []
+                if (
+                    not declared_command
+                    or declared_command in pre_push_text.splitlines()
+                )
+                else [
+                    Finding(
+                        HarnessCheckRule.severity_for(manifest, self.category),
+                        self.category,
+                        messages.get(
+                            "commandNotRun",
+                            "pre-push hook must run the declared validation command",
+                        ),
+                    )
+                ]
+            )
+            + (
+                []
+                if not (
+                    stack_pre_commit_commands
+                    and not any(
+                        re.search(
+                            rf"(^|\s)({re.escape(cmd)}|\s)(\s|$)", pre_commit_text
+                        )
+                        for cmd in stack_pre_commit_commands
+                    )
+                    and re.search(
+                        r"(^|\s)(uv|bun|gradle|mvn)(\s|$)|\./gradlew|harnessValidate|harness_validate\.py|harness-validate\.ts",
+                        pre_commit_text,
+                    )
+                )
+                else [
+                    Finding(
+                        HarnessCheckRule.severity_for(manifest, self.category),
+                        self.category,
+                        messages.get(
+                            "preCommitMustNotRunFullStack",
+                            "pre-commit hook must not run full stack validation commands",
+                        ),
+                    )
+                ]
+            )
+            + [
+                Finding(
+                    HarnessCheckRule.severity_for(manifest, self.category),
+                    self.category,
+                    messages.get(
+                        "ciCommandMatch",
+                        f"{ci_file}: CI command mismatch — expected {{command}}",
+                    ).format(command=declared_command),
+                )
+                for ci_file in [".github/workflows/harness.yml", ".gitlab-ci.yml"]
+                if HarnessCheckRule.is_safe_file(ci_path := root / ci_file)
+                and declared_command
+                and declared_command not in HarnessCheckRule.read_text(ci_path)
+            ]
+        )
         return tuple(findings)
 
 
@@ -789,6 +1013,7 @@ class EnvShebangUsageCheck:
     """
     Check that executable scripts use /usr/bin/env shebang.
     """
+
     category: str = "envShebangUsage"
 
     def applies(self, manifest: dict) -> bool:
@@ -813,7 +1038,10 @@ class EnvShebangUsageCheck:
             Finding(
                 HarnessCheckRule.severity_for(manifest, self.category),
                 self.category,
-                messages.get("default", "executable script should use /usr/bin/env shebang: {file}").format(file=HarnessCheckRule.relative(path)),
+                messages.get(
+                    "default",
+                    "executable script should use /usr/bin/env shebang: {file}",
+                ).format(file=HarnessCheckRule.relative(path)),
             )
             for directory in directories
             if isinstance(directory, str)
@@ -830,6 +1058,7 @@ class UncheckedTasksCheck:
     """
     Check that completed plans have no unchecked tasks.
     """
+
     category: str = "uncheckedTasks"
 
     def applies(self, manifest: dict) -> bool:
@@ -854,22 +1083,27 @@ class UncheckedTasksCheck:
         dir_path = root / directory
         if not HarnessCheckRule.is_safe_directory(dir_path):
             return ()
-        try:
-            unchecked_pattern = re.compile(unchecked_pattern_str)
-        except re.error:
-            return (Finding("ERROR", self.category, f"invalid uncheckedTaskPattern regex: {unchecked_pattern_str}"),)
+        unchecked_pattern = re.compile(unchecked_pattern_str)
         import fnmatch
+
         return tuple(
             Finding(
                 HarnessCheckRule.severity_for(manifest, self.category),
                 self.category,
-                messages.get("default", "completed plan has unchecked tasks: {file}").format(file=HarnessCheckRule.relative(path)),
+                messages.get(
+                    "default", "completed plan has unchecked tasks: {file}"
+                ).format(file=HarnessCheckRule.relative(path)),
             )
             for path in sorted(dir_path.iterdir())
             if path.is_file()
             and path.name != ".gitkeep"
-            and fnmatch.fnmatch(path.name, filename_pattern_str if isinstance(filename_pattern_str, str) else "*.md")
-            and unchecked_pattern.search(text := HarnessCheckRule.read_text(path))
+            and fnmatch.fnmatch(
+                path.name,
+                filename_pattern_str
+                if isinstance(filename_pattern_str, str)
+                else "*.md",
+            )
+            and unchecked_pattern.search(HarnessCheckRule.read_text(path))
         )
 
 
@@ -878,6 +1112,7 @@ class SymlinkSafetyCheck:
     """
     Check that no unsafe symlinks exist outside allowed root contract pairs.
     """
+
     category: str = "symlinkSafety"
 
     def applies(self, manifest: dict) -> bool:
@@ -898,45 +1133,100 @@ class SymlinkSafetyCheck:
         if not isinstance(messages, dict):
             return ()
         allowed_set = frozenset(
-            tuple(sorted((p[0], p[1]))) for p in allowed_pairs
+            tuple(sorted((p[0], p[1])))
+            for p in allowed_pairs
             if isinstance(p, list) and len(p) == 2
         )
         findings = []
-        for base in (".claude", "docs", ".github", "AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md"):
+        for base in (
+            ".claude",
+            "docs",
+            ".github",
+            "AGENTS.md",
+            "CLAUDE.md",
+            "ARCHITECTURE.md",
+        ):
             base_path = root / base
             if base_path.is_symlink():
-                pair = tuple(sorted((base_path.name, os.readlink(base_path).split("/")[-1])))
-                findings.extend([] if pair in allowed_set else [Finding(
-                    HarnessCheckRule.severity_for(manifest, self.category),
-                    self.category,
-                    messages.get("scanRootNotAllowed", "symlink scan root is not allowed: {path}").format(
-                        path=HarnessCheckRule.relative(base_path)
-                    ),
-                )])
+                pair = tuple(
+                    sorted((base_path.name, os.readlink(base_path).split("/")[-1]))
+                )
+                findings.extend(
+                    []
+                    if pair in allowed_set
+                    else [
+                        Finding(
+                            HarnessCheckRule.severity_for(manifest, self.category),
+                            self.category,
+                            messages.get(
+                                "scanRootNotAllowed",
+                                "symlink scan root is not allowed: {path}",
+                            ).format(path=HarnessCheckRule.relative(base_path)),
+                        )
+                    ]
+                )
             elif HarnessCheckRule.is_safe_directory(base_path):
                 for path in HarnessCheckRule.safe_walk(base_path):
                     if path.is_symlink():
-                        if path.parent == root and path.name in {"AGENTS.md", "CLAUDE.md"}:
+                        if path.parent == root and path.name in {
+                            "AGENTS.md",
+                            "CLAUDE.md",
+                        }:
                             pair = tuple(sorted((path.name, os.readlink(path))))
-                            findings.extend([] if pair in allowed_set else [Finding(
-                                HarnessCheckRule.severity_for(manifest, self.category),
-                                self.category,
-                                messages.get("fileNotAllowed", "symlink file is not allowed: {path}").format(
-                                    path=HarnessCheckRule.relative(path)
-                                ),
-                            )])
+                            findings.extend(
+                                []
+                                if pair in allowed_set
+                                else [
+                                    Finding(
+                                        HarnessCheckRule.severity_for(
+                                            manifest, self.category
+                                        ),
+                                        self.category,
+                                        messages.get(
+                                            "fileNotAllowed",
+                                            "symlink file is not allowed: {path}",
+                                        ).format(path=HarnessCheckRule.relative(path)),
+                                    )
+                                ]
+                            )
                         else:
-                            findings.extend([Finding(
-                                HarnessCheckRule.severity_for(manifest, self.category),
-                                self.category,
-                                messages.get("pathNotAllowed", "symlink path is not allowed: {path}").format(
-                                    path=HarnessCheckRule.relative(path)
-                                ),
-                            )])
+                            findings.extend(
+                                [
+                                    Finding(
+                                        HarnessCheckRule.severity_for(
+                                            manifest, self.category
+                                        ),
+                                        self.category,
+                                        messages.get(
+                                            "pathNotAllowed",
+                                            "symlink path is not allowed: {path}",
+                                        ).format(path=HarnessCheckRule.relative(path)),
+                                    )
+                                ]
+                            )
         return tuple(findings)
 
 
-CHECKS: tuple[FilePresenceCheck | DirectoryPresenceCheck | EmptyDirectoryPlaceholdersRule | TemplateGroupsCheck | DocHeadingsCheck | DocContentCheck | AgentFrontmatterCheck | SkillFrontmatterCheck | ScaffoldLeaksCheck | HookShebangCheck | HookExecutableCheck | HookGeneratedMarkerCheck | HookStageCheck | HookCommandCheck | EnvShebangUsageCheck | UncheckedTasksCheck | SymlinkSafetyCheck, ...] = (
+CHECKS: tuple[
+    FilePresenceCheck
+    | DirectoryPresenceCheck
+    | EmptyDirectoryPlaceholdersRule
+    | TemplateGroupsCheck
+    | DocHeadingsCheck
+    | DocContentCheck
+    | AgentFrontmatterCheck
+    | SkillFrontmatterCheck
+    | ScaffoldLeaksCheck
+    | HookShebangCheck
+    | HookExecutableCheck
+    | HookGeneratedMarkerCheck
+    | HookStageCheck
+    | HookCommandCheck
+    | EnvShebangUsageCheck
+    | UncheckedTasksCheck
+    | SymlinkSafetyCheck,
+    ...,
+] = (
     FilePresenceCheck(),
     DirectoryPresenceCheck(),
     EmptyDirectoryPlaceholdersRule(),
@@ -960,18 +1250,35 @@ CHECKS: tuple[FilePresenceCheck | DirectoryPresenceCheck | EmptyDirectoryPlaceho
 def validate(manifest: dict) -> tuple[Finding, ...]:
     """
     Run all applicable checks and return deduplicated findings.
+
+    Dedup key is (severity, category, message, file, start_line); the original
+    Finding (with location and fix metadata) is preserved on first occurrence
+    so biome-style reporter output keeps Safety/Help/Before/After sections.
     """
-    all_findings = tuple(
-        f for check in HarnessCheck if check.applies(manifest) for f in check.validate(ROOT, manifest)
-    )
-    return tuple(Finding(sev, cat, msg) for sev, cat, msg in dict.fromkeys((f.severity, f.category, f.message) for f in all_findings).keys())
+    seen: dict[tuple, Finding] = {}
+    for check in HarnessCheck:
+        if not check.applies(manifest):
+            continue
+        for finding in check.validate(ROOT, manifest):
+            key = (
+                finding.severity,
+                finding.category,
+                finding.message,
+                finding.file,
+                finding.start_line,
+            )
+            if key not in seen:
+                seen[key] = finding
+    return tuple(seen.values())
 
 
 def main() -> int:
     """
     Load manifest, validate, and report findings.
     """
-    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s", stream=sys.stderr)
+    logging.basicConfig(
+        level=logging.INFO, format="[%(levelname)s] %(message)s", stream=sys.stderr
+    )
     logger = logging.getLogger()
     path = ROOT / MANIFEST_PATH
     if not HarnessCheckRule.is_safe_file(path):
@@ -984,27 +1291,23 @@ def main() -> int:
         logger.error("Harness validation failed")
         return 1
     known_categories = set(check.category for check in HarnessCheck)
-    known_metadata = {"name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns"}
+    known_metadata = {
+        "name",
+        "description",
+        "$schema",
+        "seedFiles",
+        "generatedArtifacts",
+        "harnessEvolution",
+        "teamPatterns",
+    }
     for key in manifest.keys():
         if key not in known_categories and key not in known_metadata:
             logger.warning("unknown manifest key: %s", key)
     findings = validate(manifest)
-    severity_order = ("ERROR", "WARN", "INFO")
-    grouped = {
-        sev: [f for f in findings if f.severity == sev]
-        for sev in severity_order
-    }
-    for severity in severity_order:
-        for finding in grouped[severity]:
-            logger.log(
-                logging.ERROR if severity == "ERROR" else logging.WARNING if severity == "WARN" else logging.INFO,
-                finding.message
-            )
-    if grouped["ERROR"]:
-        logger.error("Harness validation failed")
-        return 1
-    logger.info("Harness validation passed")
-    return 0
+    for line in render_findings(ROOT, findings):
+        print(line)
+    error_count = sum(1 for f in findings if f.severity == "ERROR")
+    return 1 if error_count > 0 else 0
 
 
 if __name__ == "__main__":

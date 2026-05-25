@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.gradle.schema.json",
+  "title": "RepositoryHarnessManifestGradle",
+  "description": "Gradle stack manifest schema. Extends manifest.code.schema.json with JVM-shared rules (classMemberOrdering, ifStatementBraces, mutableCollection) and Kotlin-specific rules (implicitLambdaIt, kotlinTopLevelDeclarationCount, companionObjectPosition, nonNullAssertion, uncheckedCastSuppression, terminalBranchWhen).",
+  "allOf": [
+    {
+      "$ref": "./manifest.code.schema.json"
+    }
+  ],
+  "properties": {
+    "classMemberOrdering": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "ifStatementBraces": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "mutableCollection": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "implicitLambdaIt": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "kotlinTopLevelDeclarationCount": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "companionObjectPosition": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "nonNullAssertion": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "uncheckedCastSuppression": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "terminalBranchWhen": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    }
+  }
+}

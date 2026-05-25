@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.bun.schema.json",
+  "title": "RepositoryHarnessManifestBun",
+  "description": "Bun stack manifest schema. Extends manifest.code.schema.json with TypeScript/JavaScript rules (ifStatementBraces, mutableCollection).",
+  "allOf": [
+    {
+      "$ref": "./manifest.code.schema.json"
+    }
+  ],
+  "properties": {
+    "ifStatementBraces": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "mutableCollection": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    }
+  }
+}

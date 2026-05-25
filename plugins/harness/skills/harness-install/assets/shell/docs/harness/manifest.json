@@ -182,7 +182,7 @@
   },
   "harnessEvolution": {
     "description": "Policy for how the harness evolves. Not a check. The harness is not versioned — the current committed state is the only authoritative shape.",
-    "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract; no schemaVersion, no deprecated keys, no shims."
+    "policy": "The in-repository harness may evolve across discovery, implementation, hardening, release, and maintenance. The current committed harness is the active contract; no schemaVersion, no retired keys, no alternate compatibility paths."
   },
   "teamPatterns": {
     "description": "Catalog of team/agent collaboration patterns this harness recognises. Not a check.",
