@@ -11,12 +11,6 @@ data class HarnessAstResults(
     val findings: List<Finding>,
 ) {
     /**
-     * Safety classification of a fix associated with a finding.
-     */
-    @Serializable
-    enum class FixSafety { SAFE, UNSAFE, MANUAL }
-
-    /**
      * A concrete text edit that a fix would apply.
      */
     @Serializable
@@ -55,4 +49,10 @@ data class HarnessAstResults(
         val endColumn: Int? = null,
         val fix: FindingFix? = null,
     )
+
+    /**
+     * Safety classification of a fix associated with a finding.
+     */
+    @Serializable
+    enum class FixSafety { SAFE, UNSAFE, MANUAL }
 }

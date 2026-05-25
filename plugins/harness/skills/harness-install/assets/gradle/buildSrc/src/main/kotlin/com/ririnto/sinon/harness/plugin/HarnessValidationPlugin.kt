@@ -78,6 +78,31 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
     }
 
     /**
+     * Work parameters for AST analysis in an isolated classloader.
+     */
+    interface HarnessAstWorkParameters : WorkParameters {
+        /**
+         * Absolute paths of Kotlin source files to scan.
+         */
+        val srcFilePaths: ListProperty<String>
+
+        /**
+         * Root directory path for computing relative file paths.
+         */
+        val rootDir: Property<String>
+
+        /**
+         * Serialized harness manifest used to render AST findings.
+         */
+        val manifestText: Property<String>
+
+        /**
+         * JSON output sink for serialized HarnessAstResults.
+         */
+        val outputFile: RegularFileProperty
+    }
+
+    /**
      * Gradle task that validates installed Claude repository harness assets.
      */
     abstract class HarnessValidationTask : DefaultTask() {
@@ -263,33 +288,6 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
         }
     }
 
-    private data class ManifestLoadResult(val manifest: JsonObject?, val findings: List<Finding>)
-
-    /**
-     * Work parameters for AST analysis in an isolated classloader.
-     */
-    interface HarnessAstWorkParameters : WorkParameters {
-        /**
-         * Absolute paths of Kotlin source files to scan.
-         */
-        val srcFilePaths: ListProperty<String>
-
-        /**
-         * Root directory path for computing relative file paths.
-         */
-        val rootDir: Property<String>
-
-        /**
-         * Serialized harness manifest used to render AST findings.
-         */
-        val manifestText: Property<String>
-
-        /**
-         * JSON output sink for serialized HarnessAstResults.
-         */
-        val outputFile: RegularFileProperty
-    }
-
     /**
      * Worker action that runs Kotlin AST scans in an isolated classloader.
      */
@@ -361,4 +359,6 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             }
         }
     }
+
+    private data class ManifestLoadResult(val manifest: JsonObject?, val findings: List<Finding>)
 }
