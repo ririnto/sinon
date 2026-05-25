@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.shell.schema.json",
+  "title": "RepositoryHarnessManifestShell",
+  "description": "Shell stack manifest schema. Uses the base tier directly because no shell-specific rules exist beyond the shared filesystem/hook checks. Extends manifest.base.schema.json via allOf without adding stack-specific properties.",
+  "allOf": [
+    {
+      "$ref": "./manifest.base.schema.json"
+    }
+  ]
+}

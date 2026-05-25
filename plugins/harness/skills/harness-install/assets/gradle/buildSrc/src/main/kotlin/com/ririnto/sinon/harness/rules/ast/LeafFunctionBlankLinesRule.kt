@@ -28,7 +28,7 @@ object LeafFunctionBlankLinesRule : HarnessAstRule() {
     override val category: String = "leafFunctionBlankLines"
 
     override fun renderAstFindings(ctx: RuleContext, findings: Collection<AstFinding>): Collection<Finding> {
-        val maxConsecutiveBlankLines =
+        val maxBlankLines =
             ctx.manifest.categoryObject(category)?.get("parameters")
                 ?.jsonObject
                 ?.get("maxConsecutiveBlankLines")
@@ -37,20 +37,16 @@ object LeafFunctionBlankLinesRule : HarnessAstRule() {
                 ?.toIntOrNull()
                 ?.coerceAtLeast(0)
                 ?: 1
-        return buildList {
-            findings
-                .filter { finding -> maxConsecutiveBlankLines < finding.intDetail("blankLineCount") }
-                .forEach { finding ->
-                    add(
-                        Finding(
-                            ctx.manifest.severityOf(category),
-                            category,
-                            "${finding.file}:${finding.line}: leaf function `${finding.detail("function")}` " +
-                                "contains too many blank lines; remove or extract the section",
-                        ),
-                    )
-                }
-        }
+        return findings
+            .filter { finding -> maxBlankLines < finding.intDetail("blankLineCount") }
+            .map { finding ->
+                Finding(
+                    ctx.manifest.severityOf(category),
+                    category,
+                    "${finding.file}:${finding.line}: leaf function `${finding.detail("function")}` " +
+                        "contains too many blank lines; remove or extract the section",
+                )
+            }
     }
 
     override fun findAstFindings(
@@ -59,7 +55,7 @@ object LeafFunctionBlankLinesRule : HarnessAstRule() {
         astFactory: KtPsiFactory?,
     ): Collection<AstFinding> = buildSet {
         val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor(::add, file, ctx, ktFile))
+        ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
     }
 
     /**

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.maven.schema.json",
+  "title": "RepositoryHarnessManifestMaven",
+  "description": "Maven stack manifest schema. Extends manifest.code.schema.json with JVM-shared rules (classMemberOrdering, ifStatementBraces, mutableCollection). Maven does not include Kotlin-specific rules; those live in the Gradle schema.",
+  "allOf": [
+    {
+      "$ref": "./manifest.code.schema.json"
+    }
+  ],
+  "properties": {
+    "classMemberOrdering": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "ifStatementBraces": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    },
+    "mutableCollection": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    }
+  }
+}

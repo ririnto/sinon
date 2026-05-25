@@ -171,10 +171,10 @@ reject_hooks_path_setters() {
   done
 }
 
-# Print files tracked by Git.
+# Print files tracked by Git plus untracked package files.
 #
 # @param path File or directory path to scan.
-# @return Writes full paths of tracked files.
+# @return Writes full paths of tracked and untracked files.
 package_files() {
   path=$1
   if [ "$path" = "$root" ]; then
@@ -185,7 +185,7 @@ package_files() {
   git_probe=$(git -C "$root" rev-parse --is-inside-work-tree 2>&1)
   if [ -n "$git_probe" ]; then
     unset git_probe
-    files=$(git -C "$root" ls-files --cached -- "$rel") || { printf '%s\n' "[package_files] cannot enumerate package files: $path" >&2; exit 1; }
+    files=$(git -C "$root" ls-files --cached --others --exclude-standard -- "$rel") || { printf '%s\n' "[package_files] cannot enumerate package files: $path" >&2; exit 1; }
     printf '%s\n' "$files" | while IFS= read -r file; do
       if [ -n "$file" ]; then
         printf '%s/%s\n' "$root" "$file"
@@ -459,6 +459,110 @@ reject_shellcheck_violations_in_shell() {
   unset shellcheck_path
 }
 
+# Smoke-check the uv stack runtime by importing harness_check and counting registered rules.
+#
+#     Requires `uv` in PATH. Loads libcst on demand via `uv run --with libcst`.
+#     Gracefully skips with a warning when uv is unavailable.
+#
+# @return Returns 0 on success or when uv is missing.
+# @exit Exits with status 1 on import failure.
+smoke_check_uv_runtime() {
+  # shellcheck disable=SC2034
+  if ! uv_path=$(command -v uv 2>&1); then
+    printf 'warning: uv not in PATH; skipping uv runtime smoke check\n' >&2
+    unset uv_path
+    return 0
+  fi
+  unset uv_path
+  runtime_dir="$root/skills/harness-install/assets/uv/runtime"
+  # shellcheck disable=SC2016
+  if ! smoke_output=$(cd "$runtime_dir" && uv run --quiet --with libcst python3 -c 'import sys
+sys.path.insert(0, ".")
+import harness_check
+print(f"uv runtime rules: {len(list(harness_check.HarnessCheck))}")' 2>&1); then
+    printf '%s\n' "$smoke_output" >&2
+    printf '%s\n' "[smoke_check_uv_runtime] uv runtime failed to import: $runtime_dir" >&2
+    exit 1
+  fi
+  printf '%s\n' "$smoke_output"
+}
+
+# Smoke-check the bun stack runtime by importing harness-check.ts and counting registered rules.
+#
+#     Requires `bun` in PATH. Uses dynamic import so external version-pinned npm
+#     specifiers resolve through Bun's auto-install. Gracefully skips with a
+#     warning when bun is unavailable.
+#
+# @return Returns 0 on success or when bun is missing.
+# @exit Exits with status 1 on import failure.
+smoke_check_bun_runtime() {
+  # shellcheck disable=SC2034
+  if ! bun_path=$(command -v bun 2>&1); then
+    printf 'warning: bun not in PATH; skipping bun runtime smoke check\n' >&2
+    unset bun_path
+    return 0
+  fi
+  unset bun_path
+  runtime_dir="$root/skills/harness-install/assets/bun/runtime"
+  # shellcheck disable=SC2016
+  if ! smoke_output=$(cd "$runtime_dir" && bun -e 'import("./harness-check.ts").then(m => { console.log(`bun runtime rules: ${m.HARNESS_CHECKS.length}`); })' 2>&1); then
+    printf '%s\n' "$smoke_output" >&2
+    printf '%s\n' "[smoke_check_bun_runtime] bun runtime failed to import: $runtime_dir" >&2
+    exit 1
+  fi
+  printf '%s\n' "$smoke_output"
+}
+
+# Smoke-check the gradle stack runtime by compiling buildSrc Kotlin sources.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is
+#     unavailable. Compilation exercises every rule class without running the
+#     validator against an installed harness.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 on compile failure.
+smoke_check_gradle_runtime() {
+  # shellcheck disable=SC2034
+  if ! gradle_path=$(command -v gradle 2>&1); then
+    printf 'warning: gradle not in PATH; skipping gradle runtime smoke check\n' >&2
+    unset gradle_path
+    return 0
+  fi
+  unset gradle_path
+  runtime_dir="$root/skills/harness-install/assets/gradle"
+  if ! smoke_output=$(cd "$runtime_dir" && gradle --console=plain --no-daemon -q buildSrc:compileKotlin 2>&1); then
+    printf '%s\n' "$smoke_output" >&2
+    printf '%s\n' "[smoke_check_gradle_runtime] gradle buildSrc compile failed: $runtime_dir" >&2
+    exit 1
+  fi
+  printf '%s\n' 'gradle runtime: buildSrc:compileKotlin OK'
+}
+
+# Smoke-check the maven stack runtime by validating the plugin POM.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is
+#     unavailable. Runs `mvn validate` which exercises module wiring without
+#     executing the full plugin lifecycle.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 on validation failure.
+smoke_check_maven_runtime() {
+  # shellcheck disable=SC2034
+  if ! mvn_path=$(command -v mvn 2>&1); then
+    printf 'warning: mvn not in PATH; skipping maven runtime smoke check\n' >&2
+    unset mvn_path
+    return 0
+  fi
+  unset mvn_path
+  runtime_dir="$root/skills/harness-install/assets/maven/harness-maven-plugin"
+  if ! smoke_output=$(cd "$runtime_dir" && mvn -q -B -ntp validate 2>&1); then
+    printf '%s\n' "$smoke_output" >&2
+    printf '%s\n' "[smoke_check_maven_runtime] mvn validate failed: $runtime_dir" >&2
+    exit 1
+  fi
+  printf '%s\n' 'maven runtime: mvn validate OK'
+}
+
 for path in \
   "$root/.claude-plugin/plugin.json" \
   "$root/LICENSE" \
@@ -472,7 +576,6 @@ for path in \
   "$root/skills/harness-validate/SKILL.md" \
   "$root/skills/harness-evolve/SKILL.md" \
   "$root/skills/harness-install/scripts/install-harness.sh" \
-  "$root/skills/harness-install/scripts/detect-stack.sh" \
   "$root/skills/harness-install/assets/common/AGENTS.md" \
   "$root/skills/harness-install/assets/common/ARCHITECTURE.md" \
   "$root/skills/harness-install/assets/common/CLAUDE.md" \
@@ -494,6 +597,11 @@ for path in \
   "$root/skills/harness-install/assets/maven/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/maven/.gitlab-ci.yml" \
   "$root/skills/harness-install/assets/maven/docs/harness/manifest.json" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/core/Manifest.java" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/core/DefaultManifest.java" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/core/RuleContext.java" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/core/DefaultRuleContext.java" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/core/Severity.java" \
   "$root/skills/harness-install/assets/uv/runtime/harness_validate.py" \
   "$root/skills/harness-install/assets/uv/docs/harness/manifest.json" \
   "$root/skills/harness-install/assets/uv/.github/workflows/harness.yml" \
@@ -502,12 +610,12 @@ for path in \
   "$root/skills/harness-install/assets/shell/.gitlab-ci.yml" \
   "$root/skills/harness-install/assets/shell/docs/harness/manifest.json" \
   "$root/skills/harness-install/assets/shell/runtime/harness-validate.sh" \
-  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/ai/harness/gradle/HarnessValidationPlugin.kt" \
-  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/ai/harness/gradle/PsiFinding.kt" \
-  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/ai/harness/gradle/rules/ClassMemberOrderingRule.kt" \
-  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/ai/harness/gradle/rules/TerminalBranchWhenRule.kt" \
-  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/ai/harness/maven/HarnessValidateMojo.java" \
-  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/ai/harness/maven/rules/ClassMemberOrderingRule.java"; do
+  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/plugin/HarnessValidationPlugin.kt" \
+  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/ast/AstFinding.kt" \
+  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/rules/ast/ClassMemberOrderingRule.kt" \
+  "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/rules/ast/TerminalBranchWhenRule.kt" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/HarnessValidateMojo.java" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/rules/ast/ClassMemberOrderingRule.java"; do
   require_file "$path"
 done
 
@@ -540,7 +648,6 @@ done
 
 require_executable "$root/scripts/plugin-self-check.sh"
 require_executable "$root/skills/harness-install/scripts/install-harness.sh"
-require_executable "$root/skills/harness-install/scripts/detect-stack.sh"
 require_executable "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-commit"
 require_executable "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-push"
 
@@ -577,9 +684,14 @@ if printf '%s\n' "$package_file_list" | grep -F "$backup_suffix"; then
 fi
 
 require_text "$root/skills/harness-install/scripts/install-harness.sh" "# -*- coding: utf-8 -*-"
+require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/rules/HarnessCheckRule.java" 'boolean applies(RuleContext ctx)'
+require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/rules/HarnessCheckRule.java" 'Collection<Finding> validate(RuleContext ctx)'
+require_text "$root/skills/harness-install/assets/bun/runtime/README.md" 'Structural parity'
+require_text "$root/skills/harness-install/assets/uv/runtime/README.md" 'Structural parity'
+require_text "$root/skills/harness-install/assets/maven/runtime/README.md" 'Structural parity'
 
 template_package_file_list=$(package_files "$root/skills/harness-install/assets")
-if printf '%s\n' "$template_package_file_list" | grep -E '(^|/)(db-schema[.]md|__pycache__|target|build|bin|[.]gradle|[.]factorypath|[.]classpath|[.]project|[.]settings)(/|$)|[.]pyc$'; then
+if printf '%s\n' "$template_package_file_list" | grep -E '(^|/)(db-schema[.]md|__pycache__|[.]ruff_cache|target|build|bin|[.]gradle|[.]factorypath|[.]classpath|[.]project|[.]settings)(/|$)|[.]pyc$'; then
   printf '%s\n' "[generated_artifacts_check] packaged template files contain generated or IDE artifacts" >&2
   exit 1
 fi
@@ -598,7 +710,10 @@ import sys
 root = pathlib.Path(sys.argv[1])
 plugin = json.loads((root / ".claude-plugin/plugin.json").read_text())
 manifest = json.loads((root / "skills/harness-install/assets/common/docs/harness/manifest.json").read_text())
-manifest_schema = json.loads((root / "skills/harness-install/assets/common/docs/harness/manifest.schema.json").read_text())
+manifest_base_schema_path = root / "skills/harness-install/assets/common/docs/harness/manifest.base.schema.json"
+manifest_code_schema_path = root / "skills/harness-install/assets/common/docs/harness/manifest.code.schema.json"
+manifest_base_schema = json.loads(manifest_base_schema_path.read_text())
+manifest_code_schema = json.loads(manifest_code_schema_path.read_text())
 install_script = (root / "skills/harness-install/scripts/install-harness.sh").read_text()
 errors = []
 if plugin.get("$schema") != "https://anthropic.com/claude-code/plugin.schema.json":
@@ -646,32 +761,56 @@ if settings_json_exists != has_settings:
         errors.append("manifest must declare settings because settings.json exists")
     else:
         errors.append("settings.json target file missing for settings declaration")
-allowed_schema_properties = {"$schema", "name", "description", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns"}
-schema_properties = set(manifest_schema.get("properties", {}).keys())
-if schema_properties != allowed_schema_properties:
-    errors.append("manifest schema must validate add-on shape without enumerating check keys")
+required_metadata_properties = {"$schema", "name", "description", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns"}
+base_schema_properties = set(manifest_base_schema.get("properties", {}).keys())
+missing_metadata = required_metadata_properties - base_schema_properties
+if missing_metadata:
+    errors.append(f"manifest base schema missing metadata properties: {sorted(missing_metadata)}")
+base_additional = manifest_base_schema.get("additionalProperties")
+if not isinstance(base_additional, dict) or base_additional.get("$ref") != "#/$defs/addOn":
+    errors.append("manifest base schema must accept unknown rules via additionalProperties addOn $ref")
+code_all_of = manifest_code_schema.get("allOf")
+if not isinstance(code_all_of, list) or {"$ref": "./manifest.base.schema.json"} not in code_all_of:
+    errors.append("manifest code schema must extend base via allOf $ref to ./manifest.base.schema.json")
+per_stack_schema_expectations = {
+    "shell": "./manifest.base.schema.json",
+    "gradle": "./manifest.code.schema.json",
+    "maven": "./manifest.code.schema.json",
+    "bun": "./manifest.code.schema.json",
+    "uv": "./manifest.code.schema.json",
+}
+for stack, expected_parent_ref in per_stack_schema_expectations.items():
+    stack_schema_path = root / f"skills/harness-install/assets/{stack}/docs/harness/manifest.schema.json"
+    if not stack_schema_path.is_file():
+        errors.append(f"missing stack schema: {stack}/docs/harness/manifest.schema.json")
+        continue
+    stack_schema = json.loads(stack_schema_path.read_text())
+    stack_all_of = stack_schema.get("allOf")
+    if not isinstance(stack_all_of, list) or {"$ref": expected_parent_ref} not in stack_all_of:
+        errors.append(f"{stack} manifest schema must extend {expected_parent_ref} via allOf")
 if "copy_stack_manifest" not in install_script or "docs/harness/manifest.json" not in install_script:
     errors.append("installer must apply the selected stack manifest slice")
-def reject_prefixed_rule_ids(value, path):
+def reject_prefixed_rule_ids(value, path, inside_parameters=False):
     old_rule_id_pattern = re.compile(r"^(require|forbid)[A-Z]")
     if isinstance(value, dict):
         for key, child in value.items():
-            if isinstance(key, str) and old_rule_id_pattern.match(key):
+            if not inside_parameters and isinstance(key, str) and old_rule_id_pattern.match(key):
                 errors.append(f"manifest canonical rule id must be neutral: {path}.{key}")
-            reject_prefixed_rule_ids(child, f"{path}.{key}")
+            reject_prefixed_rule_ids(child, f"{path}.{key}", inside_parameters or key == "parameters")
     elif isinstance(value, list):
         for index, child in enumerate(value):
-            reject_prefixed_rule_ids(child, f"{path}[{index}]")
-    elif isinstance(value, str) and old_rule_id_pattern.match(value):
+            reject_prefixed_rule_ids(child, f"{path}[{index}]", inside_parameters)
+    elif not inside_parameters and isinstance(value, str) and old_rule_id_pattern.match(value):
         errors.append(f"manifest canonical rule reference must be neutral: {path}={value}")
 reject_prefixed_rule_ids(manifest, "common manifest")
 stack_expectations = {
-    "gradle": {"languages": {"kotlin", "java"}, "must": {"implicitLambdaIt", "classMemberOrdering", "companionObjectPosition", "terminalBranchWhen"}, "forbidden_keys": set()},
-    "maven": {"languages": {"java"}, "must": {"classMemberOrdering"}, "forbidden_keys": {"companionObjectPosition", "terminalBranchWhen"}},
-    "uv": {"languages": {"python"}, "must": {"greaterThanComparison"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
-    "bun": {"languages": {"typescript"}, "must": {"greaterThanComparison"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
-    "shell": {"languages": None, "must": {"filePresence", "scaffoldLeaks"}, "forbidden_keys": {"classMemberOrdering", "greaterThanComparison", "importOverFqn", "terminalBranchWhen"}},
+    "gradle": {"must": {"implicitLambdaIt", "classMemberOrdering", "companionObjectPosition", "terminalBranchWhen"}, "forbidden_keys": set()},
+    "maven": {"must": {"classMemberOrdering"}, "forbidden_keys": {"companionObjectPosition", "terminalBranchWhen"}},
+    "uv": {"must": {"greaterThanComparison"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
+    "bun": {"must": {"greaterThanComparison"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
+    "shell": {"must": {"filePresence", "scaffoldLeaks"}, "forbidden_keys": {"classMemberOrdering", "greaterThanComparison", "importOverFqn", "terminalBranchWhen"}},
 }
+forbidden_param_keys = ("sourceRootsPerStack", "extensionsPerStack", "includePathsPerStack", "excludePathsPerStack", "visibilityPerStack")
 for stack, expectation in stack_expectations.items():
     stack_manifest_path = root / f"skills/harness-install/assets/{stack}/docs/harness/manifest.json"
     if not stack_manifest_path.is_file():
@@ -685,15 +824,12 @@ for stack, expectation in stack_expectations.items():
     for forbidden in expectation["forbidden_keys"]:
         if forbidden in stack_manifest:
             errors.append(f"{stack} manifest contains non-selected stack content: {forbidden}")
-    languages = expectation["languages"]
-    if languages is not None:
-        for key, value in stack_manifest.items():
-            params = value.get("parameters") if isinstance(value, dict) else None
-            if isinstance(params, dict):
-                for stack_map_name in ("sourceRootsPerStack", "extensionsPerStack"):
-                    stack_map = params.get(stack_map_name)
-                    if isinstance(stack_map, dict) and set(stack_map.keys()) - languages:
-                        errors.append(f"{stack} manifest {key}.{stack_map_name} contains non-selected language keys")
+    for key, value in stack_manifest.items():
+        params = value.get("parameters") if isinstance(value, dict) else None
+        if isinstance(params, dict):
+            for legacy_key in forbidden_param_keys:
+                if legacy_key in params:
+                    errors.append(f"{stack} manifest {key}.parameters contains legacy *PerStack key: {legacy_key}")
 def manifest_items(manifest, key):
     section = manifest.get(key, {})
     if isinstance(section, dict):
@@ -894,5 +1030,10 @@ for text in 'example-' 'Describe ' 'Describe...' 'TODO' 'TBD' 'replace-with-stac
     done
   done
 done
+
+smoke_check_uv_runtime
+smoke_check_bun_runtime
+smoke_check_gradle_runtime
+smoke_check_maven_runtime
 
 exit 0

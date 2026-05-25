@@ -43,9 +43,24 @@ object MutableCollectionRule : HarnessAstRule() {
         astFactory: KtPsiFactory?,
     ): Collection<AstFinding> = buildSet {
         val ktFile = AstSupport.parse(file, astFactory)
-        val mutableFactories =
-            setOf("mutableListOf", "mutableSetOf", "mutableMapOf", "ArrayList", "HashSet", "HashMap", "LinkedHashMap", "LinkedHashSet")
-        ktFile?.accept(Visitor(::add, file, ctx, ktFile, mutableFactories))
+        ktFile?.accept(
+            Visitor(
+                { finding -> add(finding) },
+                file,
+                ctx,
+                ktFile,
+                setOf(
+                    "mutableListOf",
+                    "mutableSetOf",
+                    "mutableMapOf",
+                    "ArrayList",
+                    "HashSet",
+                    "HashMap",
+                    "LinkedHashMap",
+                    "LinkedHashSet",
+                ),
+            ),
+        )
     }
 
     /**

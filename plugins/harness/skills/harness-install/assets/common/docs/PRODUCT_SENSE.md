@@ -18,7 +18,7 @@ The primary user is a primary operator who works inside the product five days a 
 
 - Occasional users run specific tasks infrequently and need clear starting points and self-contained instructions.
 - Admin operators manage configuration, secrets, and infrastructure surface and require auditable trails and rollback safety.
-- External API consumers integrate the product programmatically and need versioned interfaces and explicit deprecation timelines.
+- External API consumers integrate the product programmatically and need versioned interfaces and explicit replacement timelines.
 
 ## Design Tone
 

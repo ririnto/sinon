@@ -1,0 +1,59 @@
+package com.ririnto.sinon.harness.rules.ast;
+
+import com.ririnto.sinon.harness.rules.HarnessCheckHelper;
+import com.ririnto.sinon.harness.core.RuleContext;
+import com.ririnto.sinon.harness.Finding;
+
+import tools.jackson.databind.JsonNode;
+import org.apache.maven.plugin.MojoExecutionException;
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.expr.BinaryExpr;
+import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * Rule that forbids greater-than comparisons in favor of
+ * less-than.
+ */
+public enum GreaterThanComparisonRule implements AstRule {
+    INSTANCE;
+
+    private static final String CATEGORY = "greaterThanComparison";
+
+    @Override
+    public String category() {
+        return CATEGORY;
+    }
+
+    @Override
+    public Collection<Finding> validate(RuleContext ctx) throws MojoExecutionException {
+        final Path root = ctx.root();
+        final JsonNode manifest = ctx.manifest().raw();
+        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        try {
+            final List<Path> sources = ctx.stackSources(CATEGORY);
+            return sources.stream()
+                    .flatMap(file -> validateGreaterThanComparison(root, file, severity).stream())
+                    .toList();
+        } catch (MojoExecutionException e) {
+            return List.of(Finding.of(severity, CATEGORY, "failed to enumerate sources: " + e.getMessage()));
+        }
+    }
+
+    private List<Finding> validateGreaterThanComparison(Path root, Path file, String severity) {
+        try {
+            final CompilationUnit cu = StaticJavaParser.parse(file);
+            LexicalPreservingPrinter.setup(cu);
+            return cu.findAll(BinaryExpr.class).stream()
+                    .filter(expr -> expr.getOperator() == BinaryExpr.Operator.GREATER || expr.getOperator() == BinaryExpr.Operator.GREATER_EQUALS)
+                    .map(expr -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + expr.getBegin().map(p -> p.line).orElse(-1) + ": forbidden `" + (expr.getOperator() == BinaryExpr.Operator.GREATER ? ">" : ">=") + "`; use `" + (expr.getOperator() == BinaryExpr.Operator.GREATER ? "<" : "<=") + "`"))
+                    .toList();
+        } catch (IOException e) {
+            return List.of(Finding.of(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
+        }
+    }
+}

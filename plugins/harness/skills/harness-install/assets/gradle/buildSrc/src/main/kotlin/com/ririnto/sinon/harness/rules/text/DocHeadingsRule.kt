@@ -29,33 +29,30 @@ object DocHeadingsRule : HarnessCheckRule() {
     override val category: String = "docHeadings"
     private val markdownParser: Parser = Parser.builder().build()
 
-    override fun validate(ctx: RuleContext): Collection<Finding> = buildList {
-        val catObj = ctx.manifest.categoryObject(category)
-        val parametersObj = catObj?.get("parameters")?.jsonObject
-        if (catObj != null && parametersObj != null) {
-            val sourceFilterObj = parametersObj["sourceFilter"]?.jsonObject
-            JsonAccess.stringArrayFromObject(
-                referencedCategoryParameters(ctx, parametersObj),
-                "paths",
-            )
-                .filter { sourceFile -> sourceFile.startsWith(JsonAccess.stringFromObject(sourceFilterObj, "prefix")) }
-                .filter { sourceFile -> sourceFile.endsWith(JsonAccess.stringFromObject(sourceFilterObj, "suffix")) }
-                .forEach { docPath ->
-                    val content = ctx.readSafe(docPath)
-                    val document = markdownParser.parse(content)
-                    ctx.manifest.stringArray(category, "headings").forEach { heading ->
-                        if (!extractHeadings(document).contains(heading)) {
-                            add(
-                                Finding(
-                                    ctx.manifest.severityOf(category),
-                                    category,
-                                    "doc missing $heading: $docPath",
-                                )
-                            )
-                        }
+    override fun validate(ctx: RuleContext): Collection<Finding> {
+        val parametersObj = ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject
+            ?: return emptyList()
+        val sourceFilterObj = parametersObj["sourceFilter"]?.jsonObject
+        return JsonAccess.stringArrayFromObject(
+            referencedCategoryParameters(ctx, parametersObj),
+            "paths",
+        )
+            .filter { sourceFile -> sourceFile.startsWith(JsonAccess.stringFromObject(sourceFilterObj, "prefix")) }
+            .filter { sourceFile -> sourceFile.endsWith(JsonAccess.stringFromObject(sourceFilterObj, "suffix")) }
+            .flatMap { docPath ->
+                val content = ctx.readSafe(docPath)
+                val document = markdownParser.parse(content)
+                val headingsInDoc = extractHeadings(document)
+                ctx.manifest.stringArray(category, "headings")
+                    .filter { heading -> !headingsInDoc.contains(heading) }
+                    .map { heading ->
+                        Finding(
+                            ctx.manifest.severityOf(category),
+                            category,
+                            "doc missing $heading: $docPath",
+                        )
                     }
-                }
-        }
+            }
     }
 
     /**
@@ -112,18 +109,14 @@ object DocHeadingsRule : HarnessCheckRule() {
     ) : AbstractVisitor() {
         override fun visit(heading: Heading) {
             val text = heading.childrenToString()
-            if (text.isNotEmpty()) {
-                record(text)
-            }
+            if (text.isNotEmpty()) record(text)
         }
 
         /**
          * Converts all children of this node to a string, joining text and line breaks.
-         *
-         * @return String representation of node children.
          */
-        private fun Node.childrenToString(): String {
-            return generateSequence(firstChild) { current -> current.next }
+        private fun Node.childrenToString(): String =
+            generateSequence(firstChild) { current -> current.next }
                 .map { child ->
                     when (child) {
                         is Text -> child.literal
@@ -133,7 +126,6 @@ object DocHeadingsRule : HarnessCheckRule() {
                     }
                 }
                 .joinToString("")
-        }
     }
 
 }

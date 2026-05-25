@@ -1,4 +1,6 @@
 #!/usr/bin/env -S uv run
+# -*- coding: utf-8 -*-
+
 # /// script
 # requires-python = ">=3.11"
 # dependencies = ["libcst>=1.8.6"]
@@ -8,41 +10,47 @@
 from __future__ import annotations
 
 import enum
-import logging
 import sys
 from collections.abc import Iterable
 from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
+from core.rule_context import create_rule_context
 
-from rules.file_presence import RULE as file_presence
-from rules.directory_presence import RULE as directory_presence
-from rules.empty_directory_placeholders import RULE as empty_directory_placeholders
-from rules.template_groups import RULE as template_groups
-from rules.doc_headings import RULE as doc_headings
-from rules.doc_content import RULE as doc_content
-from rules.agent_frontmatter import RULE as agent_frontmatter
-from rules.skill_frontmatter import RULE as skill_frontmatter
-from rules.scaffold_leaks import RULE as scaffold_leaks
-from rules.hook_shebang import RULE as hook_shebang
-from rules.hook_executable import RULE as hook_executable
-from rules.hook_generated_marker import RULE as hook_generated_marker
-from rules.hook_stage import RULE as hook_stage
-from rules.hook_command import RULE as hook_command
-from rules.env_shebang_usage import RULE as env_shebang_usage
-from rules.unchecked_tasks import RULE as unchecked_tasks
-from rules.symlink_safety import RULE as symlink_safety
-from rules.kotlin_top_level_declaration_count import RULE as kotlin_top_level_declaration_count
-from rules.greater_than_comparison import RULE as greater_than_comparison
-from rules.leaf_function_blank_lines import RULE as leaf_function_blank_lines
-from rules.early_return import RULE as early_return
-from rules.silent_catch import RULE as silent_catch
-from rules.unstructured_logging import RULE as unstructured_logging
-from rules.wildcard_import import RULE as wildcard_import
-from rules.import_over_fqn import RULE as import_over_fqn
-from rules.public_declaration_doc_comment import RULE as public_declaration_doc_comment
-from rules.empty_catch_block import RULE as empty_catch_block
-from rules.ci_hook_command_parity import RULE as ci_hook_command_parity
+from rules.fs.file_presence import RULE as file_presence
+from rules.fs.directory_presence import RULE as directory_presence
+from rules.fs.empty_directory_placeholders import RULE as empty_directory_placeholders
+from rules.text.template_groups import RULE as template_groups
+from rules.text.doc_headings import RULE as doc_headings
+from rules.text.doc_content import RULE as doc_content
+from rules.text.agent_frontmatter import RULE as agent_frontmatter
+from rules.text.skill_frontmatter import RULE as skill_frontmatter
+from rules.text.scaffold_leaks import RULE as scaffold_leaks
+from rules.text.hook_shebang import RULE as hook_shebang
+from rules.text.hook_executable import RULE as hook_executable
+from rules.text.hook_generated_marker import RULE as hook_generated_marker
+from rules.text.hook_stage import RULE as hook_stage
+from rules.text.hook_command import RULE as hook_command
+from rules.text.env_shebang_usage import RULE as env_shebang_usage
+from rules.text.shebang_encoding_marker import RULE as shebang_encoding_marker
+from rules.text.unchecked_tasks import RULE as unchecked_tasks
+from rules.fs.symlink_safety import RULE as symlink_safety
+from rules.ast.kotlin_top_level_declaration_count import (
+    RULE as kotlin_top_level_declaration_count,
+)
+from rules.ast.greater_than_comparison import RULE as greater_than_comparison
+from rules.ast.leaf_function_blank_lines import RULE as leaf_function_blank_lines
+from rules.ast.early_return import RULE as early_return
+from rules.ast.silent_catch import RULE as silent_catch
+from rules.ast.unstructured_logging import RULE as unstructured_logging
+from rules.ast.wildcard_import import RULE as wildcard_import
+from rules.ast.import_over_fqn import RULE as import_over_fqn
+from rules.ast.public_declaration_doc_comment import RULE as public_declaration_doc_comment
+from rules.ast.empty_catch_block import RULE as empty_catch_block
+from rules.text.ci_hook_command_parity import RULE as ci_hook_command_parity
+
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
 
 MANIFEST_PATH = "docs/harness/manifest.json"
 
@@ -71,6 +79,10 @@ class HarnessCheck(enum.Enum):
     HOOK_STAGE = ("hookStage", hook_stage)
     HOOK_COMMAND = ("hookCommand", hook_command)
     ENV_SHEBANG_USAGE = ("envShebangUsage", env_shebang_usage)
+    SHEBANG_ENCODING_MARKER = (
+        "shebangEncodingMarker",
+        shebang_encoding_marker,
+    )
     UNCHECKED_TASKS = (
         "uncheckedTasks",
         unchecked_tasks,
@@ -107,8 +119,8 @@ class HarnessCheck(enum.Enum):
 
     def applies(self, manifest: dict) -> bool:
         """Check if this check applies to the manifest."""
-        return self.rule.applies(manifest)
+        return self.rule.applies(create_rule_context(Path.cwd(), manifest))
 
     def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Run validator for this check."""
-        return self.rule.validate(root, manifest)
+        return self.rule.validate(create_rule_context(root, manifest))

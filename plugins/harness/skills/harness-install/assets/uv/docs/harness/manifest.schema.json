@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.uv.schema.json",
+  "title": "RepositoryHarnessManifestUv",
+  "description": "uv (Python) stack manifest schema. Extends manifest.code.schema.json with Python-specific rules (tripleQuoteInlineComment).",
+  "allOf": [
+    {
+      "$ref": "./manifest.code.schema.json"
+    }
+  ],
+  "properties": {
+    "tripleQuoteInlineComment": {
+      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    }
+  }
+}
