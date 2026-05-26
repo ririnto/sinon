@@ -2,7 +2,6 @@
 name: git-worktree-management
 description: >-
   Create and manage isolated git worktrees to work on multiple branches in parallel without switching HEAD.
-  Use this skill when the user needs to add a new worktree, list worktrees, remove worktree branches, or reason about worktree constraints and isolation guarantees.
 ---
 
 # Git Worktree Management

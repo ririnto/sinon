@@ -2,10 +2,7 @@
 name: git-merge-strategies
 description: >-
   Merge feature branches into a base branch using appropriate strategies
-  (fast-forward, no-ff merge commit, squash, octopus). Use this skill when
-  integrating completed work, resolving conflicts, choosing the right merge
-  mode for branch history, or applying rerere caching to recurring conflict
-  patterns.
+  (fast-forward, no-ff merge commit, squash, octopus).
 ---
 
 # Git Merge Strategies

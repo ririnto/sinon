@@ -2,9 +2,7 @@
 name: change-description
 description: >-
   Compose hosted service change descriptions and hosted service change descriptions with disciplined titles,
-  structured bodies, review checklists, and consistent metadata. Use this skill
-  when opening or updating a change description, writing review-friendly descriptions, choosing
-  labels and reviewers, or aligning host conventions across hosted service and hosted service.
+  structured bodies, review checklists, and consistent metadata.
 ---
 
 # change description Convention

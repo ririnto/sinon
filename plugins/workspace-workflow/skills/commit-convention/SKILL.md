@@ -1,7 +1,7 @@
 ---
 name: commit-convention
 description: >-
-  Write Conventional Commits-style commit messages with appropriate type, optional scope, breaking-change markers, and structured body or footer. Use this skill when authoring commit messages, normalizing existing history, choosing the right type or scope, or deciding when to split a change into multiple commits.
+  Write Conventional Commits-style commit messages with appropriate type, optional scope, breaking-change markers, and structured body or footer.
 ---
 
 # Commit Convention

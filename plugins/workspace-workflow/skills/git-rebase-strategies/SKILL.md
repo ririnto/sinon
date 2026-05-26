@@ -2,7 +2,6 @@
 name: git-rebase-strategies
 description: >-
   Rebase feature branches with interactive editing, autosquash, and selective reapplication while protecting shared history.
-  Use this skill when linearizing branch history, squashing or reordering commits, replaying a branch onto a different base, or recovering from a rebase mid-operation.
 ---
 
 # Git Rebase Strategies
