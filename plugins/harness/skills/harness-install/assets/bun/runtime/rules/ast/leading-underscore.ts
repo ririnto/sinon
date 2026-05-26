@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+// -*- coding: utf-8 -*-
 import type { Node, SourceFile } from "typescript@6.0.3";
 import {
     createSourceFile,
@@ -10,7 +11,6 @@ import {
     isVariableDeclaration,
     SyntaxKind,
 } from "typescript@6.0.3";
-// -*- coding: utf-8 -*-
 import { basename } from "node:path";
 import { astChildrenOf } from "../../core/ast-traversal";
 import type { Finding, HarnessCheckRule, RuleContext } from "../harness-check-rule";
@@ -79,31 +79,27 @@ function visitDeclarations(ctx: RuleContext, sourceFile: SourceFile, ruleConfig:
         ) {
             return node.name.text;
         }
-        if (isVariableDeclaration(node) && isIdentifier(node.name)) {
-            return node.name.text;
-        }
-        return "";
+        return isVariableDeclaration(node) && isIdentifier(node.name) ? node.name.text : "";
     };
     const visitNode = (node: Node): readonly Finding[] => {
         const name = declarationName(node);
-        const current = isForbidden(name, ruleConfig)
-            ? (() => {
-                  const start = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-                  const end = sourceFile.getLineAndCharacterOfPosition(node.getEnd());
-                  return [
-                      finding(
-                          ctx,
-                          sourceFile.fileName,
-                          name,
-                          start.line + 1,
-                          start.character + 1,
-                          end.line + 1,
-                          end.character + 1,
-                      ),
-                  ];
-              })()
-            : [];
-        return current.concat(astChildrenOf(node).flatMap(visitNode));
+        if (!isForbidden(name, ruleConfig)) {
+            return astChildrenOf(node).flatMap(visitNode);
+        }
+        const start = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+        const end = sourceFile.getLineAndCharacterOfPosition(node.getEnd());
+        return [
+            finding(
+                ctx,
+                sourceFile.fileName,
+                name,
+                start.line + 1,
+                start.character + 1,
+                end.line + 1,
+                end.character + 1,
+            ),
+            ...astChildrenOf(node).flatMap(visitNode),
+        ];
     };
     return visitNode(sourceFile);
 }

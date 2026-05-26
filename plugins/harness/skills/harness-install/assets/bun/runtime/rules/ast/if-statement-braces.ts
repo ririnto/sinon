@@ -19,56 +19,65 @@ export const ifStatementBracesRule: HarnessCheckRule = {
             if (!text) {
                 return [];
             }
-
             const sourceFile: SourceFile = createSourceFile(file, text, SyntaxKind.LatestVersion, true);
-            const findings: Finding[] = [];
-
-            const visit = (node: Node): void => {
-                if (isIfStatement(node)) {
-                    if (!isBlock(node.thenStatement)) {
-                        const start = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-                        const end = sourceFile.getLineAndCharacterOfPosition(node.thenStatement.getEnd());
-                        findings.push({
-                            severity: ctx.severityOf("ifStatementBraces"),
-                            category: "ifStatementBraces",
-                            message: `if/else without braces; wrap the body in \`{ ... }\``,
-                            file,
-                            startLine: start.line + 1,
-                            startColumn: start.character + 1,
-                            endLine: end.line + 1,
-                            endColumn: end.character + 1,
-                            fix: {
-                                description: "wrap body with braces",
-                                safety: "safe",
-                                edits: [],
-                            },
-                        });
-                    }
-                    if (node.elseStatement && !isBlock(node.elseStatement) && !isIfStatement(node.elseStatement)) {
-                        const start = sourceFile.getLineAndCharacterOfPosition(node.elseStatement.getStart(sourceFile));
-                        const end = sourceFile.getLineAndCharacterOfPosition(node.elseStatement.getEnd());
-                        findings.push({
-                            severity: ctx.severityOf("ifStatementBraces"),
-                            category: "ifStatementBraces",
-                            message: `if/else without braces; wrap the body in \`{ ... }\``,
-                            file,
-                            startLine: start.line + 1,
-                            startColumn: start.character + 1,
-                            endLine: end.line + 1,
-                            endColumn: end.character + 1,
-                            fix: {
-                                description: "wrap body with braces",
-                                safety: "safe",
-                                edits: [],
-                            },
-                        });
-                    }
+            const visit = (node: Node): readonly Finding[] => {
+                if (!isIfStatement(node)) {
+                    let result: readonly Finding[] = [];
+                    forEachChild(node, (child) => {
+                        result = [...result, ...visit(child)];
+                    });
+                    return result;
                 }
-                forEachChild(node, visit);
+                const start = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+                const thenEnd = sourceFile.getLineAndCharacterOfPosition(node.thenStatement.getEnd());
+                const thenFindings = !isBlock(node.thenStatement)
+                    ? [
+                          {
+                              severity: ctx.severityOf("ifStatementBraces"),
+                              category: "ifStatementBraces",
+                              message: `if/else without braces; wrap the body in \`{ ... }\``,
+                              file,
+                              startLine: start.line + 1,
+                              startColumn: start.character + 1,
+                              endLine: thenEnd.line + 1,
+                              endColumn: thenEnd.character + 1,
+                              fix: {
+                                  description: "wrap body with braces",
+                                  safety: "safe",
+                                  edits: [],
+                              },
+                          },
+                      ]
+                    : [];
+                const elseStart = sourceFile.getLineAndCharacterOfPosition(node.elseStatement?.getStart(sourceFile));
+                const elseEnd = sourceFile.getLineAndCharacterOfPosition(node.elseStatement?.getEnd());
+                const elseFindings =
+                    node.elseStatement && !isBlock(node.elseStatement) && !isIfStatement(node.elseStatement)
+                        ? [
+                              {
+                                  severity: ctx.severityOf("ifStatementBraces"),
+                                  category: "ifStatementBraces",
+                                  message: `if/else without braces; wrap the body in \`{ ... }\``,
+                                  file,
+                                  startLine: elseStart.line + 1,
+                                  startColumn: elseStart.character + 1,
+                                  endLine: elseEnd.line + 1,
+                                  endColumn: elseEnd.character + 1,
+                                  fix: {
+                                      description: "wrap body with braces",
+                                      safety: "safe",
+                                      edits: [],
+                                  },
+                              },
+                          ]
+                        : [];
+                let result = [...thenFindings, ...elseFindings];
+                forEachChild(node, (child) => {
+                    result = [...result, ...visit(child)];
+                });
+                return result;
             };
-
-            visit(sourceFile);
-            return findings;
+            return visit(sourceFile);
         });
     },
 };
