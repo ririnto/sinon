@@ -27,8 +27,8 @@ check_shell_files() {
         if ! shellcheck_bin=$(command -v shellcheck 2>&1); then
             printf 'warning: shellcheck not in PATH; skipping shellcheck for %s\n' "$path" >&2
         else
-            shellcheck_output=$("$shellcheck_bin" "$path" 2>&1 || true)
-            if [ -n "$shellcheck_output" ]; then
+            shellcheck_output=$("$shellcheck_bin" "$path" 2>&1) && shellcheck_rc=0 || shellcheck_rc=$?
+            if [ "$shellcheck_rc" -ne 0 ]; then
                 printf '%s\n' "$shellcheck_output" >&2
                 error_count=$((error_count + 1))
             fi
@@ -36,8 +36,11 @@ check_shell_files() {
         if ! shfmt_bin=$(command -v shfmt 2>&1); then
             printf 'warning: shfmt not in PATH; skipping shfmt for %s\n' "$path" >&2
         else
-            shfmt_diff=$("$shfmt_bin" -d -i 4 -ci "$path" 2>&1 || true)
-            if [ -n "$shfmt_diff" ]; then
+            shfmt_diff=$("$shfmt_bin" -d -i 4 -ci "$path" 2>&1) && shfmt_rc=0 || shfmt_rc=$?
+            if [ "$shfmt_rc" -ne 0 ]; then
+                printf '%s\n' "$shfmt_diff" >&2
+                error_count=$((error_count + 1))
+            elif [ -n "$shfmt_diff" ]; then
                 printf '%s\n' "$shfmt_diff" >&2
                 error_count=$((error_count + 1))
             fi
@@ -64,13 +67,13 @@ check_python_files() {
         if ! uv_bin=$(command -v uv 2>&1); then
             printf 'warning: uv not in PATH; skipping ruff checks for %s\n' "$path" >&2
         else
-            check_output=$("$uv_bin" run --with ruff==0.15.14 ruff check "$path" 2>&1 || true)
-            if [ -n "$check_output" ]; then
+            check_output=$("$uv_bin" run --with ruff==0.15.14 ruff check "$path" 2>&1) && check_rc=0 || check_rc=$?
+            if [ "$check_rc" -ne 0 ]; then
                 printf '%s\n' "$check_output" >&2
                 error_count=$((error_count + 1))
             fi
-            format_check_output=$("$uv_bin" run --with ruff==0.15.14 ruff format --check "$path" 2>&1 || true)
-            if [ -n "$format_check_output" ]; then
+            format_check_output=$("$uv_bin" run --with ruff==0.15.14 ruff format --check "$path" 2>&1) && format_rc=0 || format_rc=$?
+            if [ "$format_rc" -ne 0 ]; then
                 printf '%s\n' "$format_check_output" >&2
                 error_count=$((error_count + 1))
             fi
