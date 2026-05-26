@@ -18,5 +18,6 @@
   },
   "code-block-style": {
     "style": "fenced"
-  }
+  },
+  "no-emphasis-as-heading": true
 }

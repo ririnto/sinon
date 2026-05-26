@@ -33,7 +33,7 @@ This skill covers composing and validating commit message text only. It does not
 
 A Conventional Commit has the structure:
 
-```
+```text
 <type>(<scope>)?(!)?: <subject>
 
 <body>
@@ -70,7 +70,7 @@ A Conventional Commit has the structure:
 
 ### Simple Bug Fix
 
-```
+```text
 fix(auth): resolve session token expiration on logout
 
 Previously, invalidating a session did not clear the token from
@@ -80,7 +80,7 @@ atomically with session invalidation.
 
 ### Feature with Scope
 
-```
+```text
 feat(api): add pagination support to user list endpoint
 
 Users requested the ability to fetch large user lists in batches.
@@ -90,7 +90,7 @@ size is 20.
 
 ### Breaking Change Marker
 
-```
+```text
 feat(auth)!: require OAuth2 for all API endpoints
 
 BREAKING CHANGE: Basic auth is no longer supported. All clients
@@ -100,7 +100,7 @@ docs/migration-oauth2.md.
 
 ### Multiple Concerns in Body
 
-```
+```text
 refactor(parser): split lexer and parser modules
 
 This change improves maintainability by separating concerns:
@@ -114,7 +114,7 @@ No behavior change. Existing tests pass.
 
 ### Fix Without Scope (When Scope Adds Noise)
 
-```
+```text
 fix: handle edge case in date parsing for year 9999
 
 Year 9999 was incorrectly parsed as a 2-digit number in some
@@ -123,7 +123,7 @@ locales. Root cause was missing century boundary check.
 
 ### Revert
 
-```
+```text
 revert: undo refactoring of email service (commit abc1234)
 
 The async refactor introduced subtle timing bugs in test suite.
@@ -193,7 +193,7 @@ Split a change into multiple commits when the staged changes contain **more than
 
 Example: a developer stages both a bug fix to `auth.js` and a style update to `form.css`. These SHOULD be split into two commits.
 
-```sh
+```markdown
 # Suggested split:
 git reset
 git add auth.js
@@ -206,14 +206,14 @@ git commit -m "style: align button spacing in form"
 
 Vague subjects without verbs:
 
-```
+```markdown
 # Wrong
 fix: stuff
 chore: updates
 docs: changes
 ```
 
-```
+```markdown
 # Correct
 fix: handle null pointer in user lookup
 chore: upgrade lodash to 4.17.21
@@ -222,7 +222,7 @@ docs: add setup instructions for macOS
 
 Body restates the diff instead of explaining why:
 
-```
+```markdown
 # Wrong
 fix: update login handler
 
@@ -230,7 +230,7 @@ Modified login.js to check token expiry. Also updated session.js
 to clear storage.
 ```
 
-```
+```markdown
 # Correct
 fix: resolve session token expiration on logout
 
@@ -240,7 +240,7 @@ immediately to prevent reuse in a hijacking scenario.
 
 Mixing unrelated changes:
 
-```
+```markdown
 # Wrong
 feat: add two-factor auth and update dependencies
 
@@ -249,7 +249,7 @@ Two independent concerns forced into one message. Should be split.
 
 Breaking change missing the `!` marker:
 
-```
+```markdown
 # Wrong
 feat(api): remove deprecated endpoint
 
@@ -257,7 +257,7 @@ User will miss the breaking-change signal if checking git log or
 running tooling.
 ```
 
-```
+```markdown
 # Correct
 feat(api)!: remove deprecated endpoint
 

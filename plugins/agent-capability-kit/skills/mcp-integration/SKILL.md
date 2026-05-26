@@ -36,7 +36,7 @@ This skill owns:
 
 ### Dedicated .mcp.json (Recommended for Multiple Servers)
 
-```json
+```jsonc
 {
   "github": {
     "type": "sse",
@@ -53,7 +53,7 @@ This skill owns:
 
 ### Inline mcpServers in plugin.json (For Single-Server Plugins)
 
-```
+```jsonc
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "my-plugin",
@@ -85,7 +85,7 @@ See `references/transport-types.md` for lifecycle details, failure modes, select
 >
 > This example uses unencrypted plaintext transport. Use `wss://` instead of `ws://` to encrypt credentials and data.
 
-```
+```jsonc
 {
   "realtime": {
     "type": "ws",
@@ -99,7 +99,7 @@ See `references/transport-types.md` for lifecycle details, failure modes, select
 
 All fields support `${VAR_NAME}` substitution from the user's environment. Use `${CLAUDE_PLUGIN_ROOT}` for portable bundled paths:
 
-```
+```json
 {
   "command": "${CLAUDE_PLUGIN_ROOT}/servers/my-server",
   "env": {
@@ -111,11 +111,11 @@ All fields support `${VAR_NAME}` substitution from the user's environment. Use `
 
 ## MCP tool naming and allowed-tools
 
-MCP tools are prefixed: `mcp__plugin_<plugin-name>_<server-name>__<tool-name>`
+MCP tools are prefixed: `mcp__plugin_{{plugin-name}}_{{server-name}}__{{tool-name}}`
 
 Pre-allow specific tools in command frontmatter:
 
-```
+```markdown
 ---
 allowed-tools:
   - mcp__plugin_github_github__search_repositories
@@ -125,7 +125,7 @@ allowed-tools:
 
 ### Broken (Wildcard Too Permissive)
 
-```
+```markdown
 ---
 allowed-tools:
   - mcp__plugin_github_github__*
@@ -134,7 +134,7 @@ allowed-tools:
 
 ### Correct (Specific Tools Only)
 
-```
+```markdown
 ---
 allowed-tools:
   - mcp__plugin_github_github__search_repositories
@@ -146,7 +146,7 @@ allowed-tools:
 
 Plugin with multiple MCP servers in `.mcp.json`:
 
-```
+```jsonc
 {
   "github": {
     "type": "sse",
@@ -172,7 +172,7 @@ OAuth (SSE/HTTP): Handled automatically by Claude Code. User authenticates in br
 
 Token (HTTP/WebSocket): Pass via environment variables in headers:
 
-```
+```json
 {
   "type": "http",
   "headers": {
@@ -183,7 +183,7 @@ Token (HTTP/WebSocket): Pass via environment variables in headers:
 
 Environment variables (stdio): Pass to server process:
 
-```
+```json
 {
   "command": "python",
   "args": ["-m", "mcp_server"],
@@ -202,7 +202,7 @@ Environment variables (stdio): Pass to server process:
 >
 > This example exposes credentials and uses unencrypted transport. Use HTTPS and environment variables instead.
 
-```
+```jsonc
 {
   "type": "http",
   "url": "http://api.example.com/mcp",
@@ -214,7 +214,7 @@ Environment variables (stdio): Pass to server process:
 
 ### Correct (HTTPS, Environment Variable, No Wildcards)
 
-```
+```jsonc
 {
   "type": "http",
   "url": "https://api.example.com/mcp",
@@ -230,23 +230,23 @@ Document required environment variables in plugin README.
 
 Validate JSON syntax:
 
-```
+```sh
 python3 -m json.tool .mcp.json
 ```
 
 List active MCP servers in Claude Code:
 
-```
+```text
 /mcp
 ```
 
 Test a specific MCP server's connectivity and tools after plugin restart (required after config changes):
 
-```
+```text
 /mcp test <server-name>
 ```
 
-Distinction: `/mcp` displays all configured servers and their tools. `/mcp test <server>` establishes a live connection to verify the server responds correctly and tool definitions are accessible.
+Distinction: `/mcp` displays all configured servers and their tools. `/mcp test {{server}}` establishes a live connection to verify the server responds correctly and tool definitions are accessible.
 
 ## Testing checklist
 
