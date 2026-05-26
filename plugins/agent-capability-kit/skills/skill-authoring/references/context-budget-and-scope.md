@@ -38,7 +38,7 @@ Write and validate API, CLI, and deployment skills.
 
 Into this:
 
-```
+```text
 Write or refactor one deployment-oriented skill for offline use.
 ```
 

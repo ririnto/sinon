@@ -20,7 +20,7 @@ Use this structure:
 
 Example:
 
-```
+```text
 Generate production-ready OpenAPI operation blocks and validation notes. Use when designing REST endpoints, function tool schemas, or contract-driven API docs.
 ```
 
@@ -45,7 +45,7 @@ Use this sequence when tuning a description:
 
 ## Weak pattern
 
-```
+```text
 Helps with APIs.
 ```
 
@@ -60,19 +60,19 @@ Problems:
 
 ### File-type driven
 
-```
+```text
 Extract and normalize tables from CSV, TSV, and spreadsheet exports. Use when the task involves messy tabular data, column mapping, or data cleaning before analysis.
 ```
 
 ### Workflow driven
 
-```
+```text
 Prepare a release candidate by updating versions, drafting notes, and validating deploy prerequisites. Use when cutting a release branch or preparing a tagged release.
 ```
 
 ### Tooling driven
 
-```
+```text
 Design strict schemas, request payloads, and tool-facing config files for automation workflows. Use when building schema-driven agent tooling or contract-heavy prompts.
 ```
 
