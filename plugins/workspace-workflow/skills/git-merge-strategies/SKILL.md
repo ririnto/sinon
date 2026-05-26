@@ -41,7 +41,7 @@ This skill does not cover:
 | **--squash** | `git merge --squash <branch>` | Linear; combined into one commit | Many small feature commits; want clean history; feature work is experimental | Need to preserve individual commit attribution; long feedback history is valuable |
 | **octopus** | `git merge -X octopus branch1 branch2 ...` | Multi-parent; all branches merged at once | Integrating 3+ parallel features at once; all are complete and non-conflicting | Any conflicts exist; need to debug individual merges; most merges (use for special cases) |
 
-### Quick decision rules:
+### Quick decision rules
 
 1. **Default**: Use `--no-ff` unless your project standard specifies otherwise. It preserves feature branch identity without cluttering history.
 2. **Small hotfix or trivial rebase**: Use fast-forward (`git merge <branch>`). The feature is a clean linear extension.
@@ -58,19 +58,19 @@ git status
 
 Expected: "nothing to commit, working tree clean"
 
-2. Fetch latest remote state:
+1. Fetch latest remote state:
 
 ```sh
 git fetch origin
 ```
 
-3. List branches to merge:
+1. List branches to merge:
 
 ```sh
 git branch -a
 ```
 
-4. Verify you are on the target (base) branch:
+1. Verify you are on the target (base) branch:
 
 ```sh
 git status -s -b
@@ -78,13 +78,13 @@ git status -s -b
 
 Expected: Current branch line shows the base branch (e.g., `main`, `develop`).
 
-5. If on the wrong branch, switch:
+1. If on the wrong branch, switch:
 
 ```sh
 git checkout <base-branch>
 ```
 
-6. Verify the base branch is up to date:
+1. Verify the base branch is up to date:
 
 ```sh
 git status -s -b
@@ -232,6 +232,7 @@ function greet(name) {
 ```
 
 Markers:
+
 - `<<<<<<< HEAD` – start of base (current) branch
 - `=======` – separator
 - `>>>>>>> <branch>` – end of feature branch
@@ -337,6 +338,7 @@ Conflict marker:
 ```
 
 Resolution: Decide:
+
 - To delete (resolve by doing nothing, then `git rm src/old_module.js`):
 
 ```sh
@@ -358,6 +360,7 @@ File: Renamed in base branch; content edited in feature branch.
 Status: Git detects rename + content conflict.
 
 Resolution:
+
 - Accept the rename from base and manually apply feature edits:
 
 ```sh
@@ -420,13 +423,13 @@ git config --global rerere.enabled true
 git merge feature-branch
 ```
 
-2. Resolve manually:
+1. Resolve manually:
 
 ```sh
 git add <file>
 ```
 
-3. Complete merge:
+1. Complete merge:
 
 ```sh
 git commit
@@ -442,7 +445,7 @@ With `rerere.enabled = true`, Git automatically records the resolution.
 git merge another-branch
 ```
 
-2. If the same conflict pattern is detected, Git auto-applies the cached resolution:
+1. If the same conflict pattern is detected, Git auto-applies the cached resolution:
 
 ```
 CONFLICT (content): Merge conflict in src/config.js
@@ -450,7 +453,7 @@ Recorded preimage for 'src/config.js'
 Automatic merge failed; fix conflicts and then commit the result.
 ```
 
-3. Review the auto-resolved file:
+1. Review the auto-resolved file:
 
 ```sh
 cat src/config.js
@@ -575,4 +578,4 @@ git branch -d <feature-branch>
 git push origin --delete <feature-branch>
 ```
 
-3. Final state: `git log --graph --oneline -n 10` showing merged history.
+1. Final state: `git log --graph --oneline -n 10` showing merged history.

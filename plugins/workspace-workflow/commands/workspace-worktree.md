@@ -27,6 +27,7 @@ git worktree list
 ```
 
 Output shows:
+
 - Current worktree (marked with `*`)
 - All other worktrees and their branches
 - Status (detached, prunable, etc.)
@@ -50,6 +51,7 @@ Ask or infer the user's intent from context:
 5. **Prune** — Clean up stale/broken worktree references
 
 If intent is ambiguous, ask:
+
 - "Do you want to create a new worktree, switch to an existing one, or clean up old ones?"
 
 ### Step 3: Create a New Worktree
@@ -59,6 +61,7 @@ If user wants to create a worktree:
 Option A: Create from existing branch
 
 Ask:
+
 - What branch name to check out? (e.g., `feature/auth`)
 - Should the worktree be in a default location or custom path?
 
@@ -71,6 +74,7 @@ git branch -a | grep <branch-name>
 Option B: Create from new branch
 
 Ask:
+
 - What base branch? (default: `main` or `develop`)
 - What new branch name?
 
@@ -96,13 +100,13 @@ git status
 
 If dirty, ask: "Current worktree has uncommitted changes. Commit or stash them first?"
 
-2. Verify the branch doesn't already have a worktree:
+1. Verify the branch doesn't already have a worktree:
 
 ```sh
 git worktree list | grep <branch-name>
 ```
 
-3. Ensure the path is available:
+1. Ensure the path is available:
 
 ```sh
 [ ! -d <path> ] && echo "Path available" || echo "Path exists"
@@ -162,7 +166,7 @@ Safety Checks:
 git worktree list
 ```
 
-2. Check if the worktree has uncommitted changes:
+1. Check if the worktree has uncommitted changes:
 
 ```sh
 cd <worktree-path>

@@ -55,7 +55,7 @@ sinon 루트는 `AGENTS.md → CLAUDE.md` symlink (sinon CLAUDE.md에 명시된 
 
 ### Phase 5: Update stack adapter internals
 
-각 stack의 validator는 (a) 경로 `docs/harness/`로 갱신, (b) 가변 컬렉션 미사용, (c) 검증 영역 분리, (d) `docs/exec-plans/completed/`에 미완료 `- [ ] ` task가 남아 있으면 fail, (e) manifest와 정합한 상수로 갱신했다.
+각 stack의 validator는 (a) 경로 `docs/harness/`로 갱신, (b) 가변 컬렉션 미사용, (c) 검증 영역 분리, (d) `docs/exec-plans/completed/`에 미완료 `- [ ]` task가 남아 있으면 fail, (e) manifest와 정합한 상수로 갱신했다.
 
 - [x] Task 5.1 — Maven adapter: `pom.xml`/`HarnessValidateMojo.java`의 경로 갱신, `List.copyOf`/`Stream.toList`로 ArrayList 제거, 11개 inner validator class + HarnessFiles 유틸 분리, PlanCompletionValidator 추가 (subagent: general-purpose)
 - [x] Task 5.2 — Gradle adapter: `HarnessValidationPlugin.kt` 경로/`buildList` 1차 갱신 (subagent: main)
