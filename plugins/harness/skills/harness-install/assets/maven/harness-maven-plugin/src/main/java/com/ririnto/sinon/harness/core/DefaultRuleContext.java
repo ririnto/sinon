@@ -62,6 +62,7 @@ public final class DefaultRuleContext implements RuleContext {
         return new WalkResult(HarnessCheckHelper.safeFileOrWalk(root, base), List.of());
     }
 
+
     @Override
     public boolean isAllowedRootContractSymlink(Path path) {
         return HarnessCheckHelper.allowedRootContractTarget(root, path) != null;

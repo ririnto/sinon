@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -37,7 +36,7 @@ public final class FindingReporter {
                         return Stream.<String>empty();
                     }
                 })
-                .collect(Collectors.toList());
+                .toList();
         final int distinctFiles = (int) findings.stream()
                 .map(Finding::file)
                 .filter(f -> f != null)
@@ -55,9 +54,7 @@ public final class FindingReporter {
         final long fixableCount = findings.stream()
                 .filter(f -> f.fix() != null && f.fix().safety() == FixSafety.SAFE)
                 .count();
-        final String fixableLabel = fixableCount > 0
-                ? String.format(" [*] %d fixable.", fixableCount)
-                : "";
+        final String fixableLabel = fixableCount > 0 ? String.format(" [*] %d fixable.", fixableCount) : "";
         return Stream.concat(
                 body.stream(),
                 Stream.of(
@@ -70,7 +67,7 @@ public final class FindingReporter {
                                 warnCount,
                                 infoCount,
                                 fixableLabel)))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -90,7 +87,7 @@ public final class FindingReporter {
                 renderFixSection(root, finding),
                 Stream.of(""))
                 .flatMap(s -> s)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private static Stream<String> renderFixSection(Path root, Finding finding) {
@@ -186,7 +183,7 @@ public final class FindingReporter {
                                 fileLines.get(afterIdx)))
                         : Stream.<String>empty())
                 .flatMap(s -> s)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -222,7 +219,7 @@ public final class FindingReporter {
                     }
                     return line;
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
