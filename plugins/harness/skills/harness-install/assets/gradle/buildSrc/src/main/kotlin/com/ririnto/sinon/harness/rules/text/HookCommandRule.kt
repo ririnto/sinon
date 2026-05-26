@@ -1,10 +1,10 @@
 package com.ririnto.sinon.harness.rules.text
 
+import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.JsonAccess
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.core.Severity
 import com.ririnto.sinon.harness.rules.HarnessCheckRule
-import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -26,42 +26,98 @@ object HookCommandRule : HarnessCheckRule() {
 
     override fun validate(ctx: RuleContext): Collection<Finding> {
         return buildList {
-            val parametersObj = ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject
-                ?: return emptyList()
+            val parametersObj =
+                ctx.manifest
+                    .categoryObject(category)
+                    ?.get("parameters")
+                    ?.jsonObject
+                    ?: return emptyList()
             val severity = ctx.manifest.severityOf(category)
-            val allowedPreCommitCmds = JsonAccess.stringArrayFromObject(parametersObj["allowedPreCommitCommands"]?.jsonObject, "gradle")
+            val allowedPreCommitCmds =
+                JsonAccess.stringArrayFromObject(
+                    parametersObj["allowedPreCommitCommands"]?.jsonObject,
+                    "gradle",
+                )
             val prePushHook = ctx.root / JsonAccess.stringFromObject(parametersObj, "prePushHook")
             val preCommitHook = ctx.root / JsonAccess.stringFromObject(parametersObj, "preCommitHook")
             if (prePushHook.isRegularFile()) {
-                addAll(validateHook(ctx, prePushHook.readText(), parametersObj["allowedCommands"]?.jsonObject?.let { JsonAccess.stringArrayFromObject(it, "gradle") } ?: emptyList(), severity, "pre-push hook"))
+                addAll(
+                    validateHook(
+                        ctx,
+                        prePushHook.readText(),
+                        parametersObj["allowedCommands"]?.jsonObject?.let {
+                            JsonAccess.stringArrayFromObject(
+                                it,
+                                "gradle",
+                            )
+                        }
+                            ?: emptyList(),
+                        severity,
+                        "pre-push hook",
+                    ),
+                )
             }
             if (preCommitHook.isRegularFile()) {
-                addAll(validateHook(ctx, preCommitHook.readText(), allowedPreCommitCmds, severity, "pre-commit hook", allowedPreCommitCmds.isNotEmpty()))
+                addAll(
+                    validateHook(
+                        ctx,
+                        preCommitHook.readText(),
+                        allowedPreCommitCmds,
+                        severity,
+                        "pre-commit hook",
+                        allowedPreCommitCmds.isNotEmpty(),
+                    ),
+                )
             }
         }
     }
 
-    private fun validateHook(ctx: RuleContext, text: String, allowedCmds: List<String>, severity: Severity, hookName: String, requireDeclaration: Boolean = true): Collection<Finding> {
-        return buildList {
+    private fun validateHook(
+        ctx: RuleContext,
+        text: String,
+        allowedCmds: List<String>,
+        severity: Severity,
+        hookName: String,
+        requireDeclaration: Boolean = true,
+    ): Collection<Finding> =
+        buildList {
             val command = extractCommand(text)
             val missingMsg = { msgKey: String -> ctx.manifest.stringValue(category, msgKey).takeIf { it.isNotEmpty() } }
             if (command.isEmpty() && requireDeclaration) {
-                add(Finding(severity, category, missingMsg("missingDeclaration") ?: "$hookName must declare Harness validation command"))
+                add(
+                    Finding(
+                        severity,
+                        category,
+                        missingMsg("missingDeclaration") ?: "$hookName must declare Harness validation command",
+                    ),
+                )
             }
             if (command.isNotEmpty() && command !in allowedCmds) {
-                add(Finding(severity, category, missingMsg("unsupportedCommand") ?: "$hookName declares unsupported validation command: $command"))
+                add(
+                    Finding(
+                        severity,
+                        category,
+                        missingMsg("unsupportedCommand")
+                            ?: "$hookName declares unsupported validation command: $command",
+                    ),
+                )
             }
             if (command.isNotEmpty() && !text.contains(command)) {
-                add(Finding(severity, category, missingMsg("commandNotRun") ?: "$hookName must run the declared validation command"))
+                add(
+                    Finding(
+                        severity,
+                        category,
+                        missingMsg("commandNotRun") ?: "$hookName must run the declared validation command",
+                    ),
+                )
             }
         }
-    }
 
     private fun extractCommand(text: String): String =
-        text.lineSequence()
+        text
+            .lineSequence()
             .firstOrNull { it.startsWith("# Harness validation command: ") }
             ?.removePrefix("# Harness validation command: ")
             ?.trim()
             ?: ""
-
 }

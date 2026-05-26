@@ -44,7 +44,6 @@ object AstSupport {
     ): Boolean =
         generateSequence(listOf(this)) { layer ->
             layer.flatMap { node -> node.children.toList() }.takeIf { nodes -> nodes.isNotEmpty() }
-        }
-            .flatten()
+        }.flatten()
             .any { element -> element is T && predicate(element) }
 }

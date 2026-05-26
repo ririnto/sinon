@@ -31,10 +31,11 @@ object NonNullAssertionRule : HarnessAstRule() {
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
-    }
+    ): Collection<AstFinding> =
+        buildSet {
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
+        }
 
     private class Visitor(
         private val record: (AstFinding) -> Unit,
@@ -50,9 +51,10 @@ object NonNullAssertionRule : HarnessAstRule() {
                         rule = "nonNullAssertion",
                         file = AstSupport.relativeFilePath(file, ctx.root),
                         line = AstSupport.lineOf(ktFile, expression.node?.startOffset),
-                        details = mapOf(
-                            "expression" to expression.baseExpression?.text.orEmpty(),
-                        ),
+                        details =
+                            mapOf(
+                                "expression" to expression.baseExpression?.text.orEmpty(),
+                            ),
                     ),
                 )
             }

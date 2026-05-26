@@ -1,12 +1,12 @@
 package com.ririnto.sinon.harness.rules.ast
 
-import com.ririnto.sinon.harness.core.RuleContext
-import com.ririnto.sinon.harness.rules.HarnessAstRule
-import com.ririnto.sinon.harness.ast.AstSupport
 import com.ririnto.sinon.harness.ast.AstFinding
+import com.ririnto.sinon.harness.ast.AstSupport
 import com.ririnto.sinon.harness.ast.AstSupport.hasDescendantOfType
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
+import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.core.Severity
+import com.ririnto.sinon.harness.rules.HarnessAstRule
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -27,9 +27,14 @@ object LeafFunctionBlankLinesRule : HarnessAstRule() {
      */
     override val category: String = "leafFunctionBlankLines"
 
-    override fun renderAstFindings(ctx: RuleContext, findings: Collection<AstFinding>): Collection<Finding> {
+    override fun renderAstFindings(
+        ctx: RuleContext,
+        findings: Collection<AstFinding>,
+    ): Collection<Finding> {
         val maxBlankLines =
-            ctx.manifest.categoryObject(category)?.get("parameters")
+            ctx.manifest
+                .categoryObject(category)
+                ?.get("parameters")
                 ?.jsonObject
                 ?.get("maxConsecutiveBlankLines")
                 ?.jsonPrimitive
@@ -53,10 +58,11 @@ object LeafFunctionBlankLinesRule : HarnessAstRule() {
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
-    }
+    ): Collection<AstFinding> =
+        buildSet {
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
+        }
 
     /**
      * AST visitor for leaf function blank line analysis.

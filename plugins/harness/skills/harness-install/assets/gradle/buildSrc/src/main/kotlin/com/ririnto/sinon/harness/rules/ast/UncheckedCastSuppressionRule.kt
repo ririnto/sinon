@@ -43,10 +43,11 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
-    }
+    ): Collection<AstFinding> =
+        buildSet {
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
+        }
 
     /**
      * Extracts the string value from a Kotlin string template expression.
@@ -57,14 +58,16 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
      * @param expr The string template expression to extract from.
      * @return The string value, or empty string if expression is not purely literal.
      */
-    internal fun extractStringValue(expr: KtStringTemplateExpression): String {
-        return when {
+    internal fun extractStringValue(expr: KtStringTemplateExpression): String =
+        when {
             expr.entries.all { entry -> entry is KtLiteralStringTemplateEntry } -> {
                 expr.entries.joinToString("") { entry -> entry.text }
             }
-            else -> ""
+
+            else -> {
+                ""
+            }
         }
-    }
 
     /**
      * Resolves forbiddenSuppressions from manifest parameters.
@@ -120,9 +123,10 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
                             rule = UncheckedCastSuppressionRule.category,
                             file = AstSupport.relativeFilePath(file, ctx.root),
                             line = AstSupport.lineOf(ktFile, annotation.node?.startOffset),
-                            details = mapOf(
-                                "snippet" to annotation.text,
-                            ),
+                            details =
+                                mapOf(
+                                    "snippet" to annotation.text,
+                                ),
                         ),
                     )
                 }
@@ -140,24 +144,26 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
          * @param annotation The @Suppress annotation entry.
          * @return Set of extracted string values.
          */
-        private fun extractSuppressTokens(annotation: KtAnnotationEntry): Set<String> = buildSet {
-            for (arg in annotation.valueArguments) {
-                val argExpr = arg.getArgumentExpression()
-                when {
-                    argExpr is KtStringTemplateExpression -> {
-                        val stringValue = extractStringValue(argExpr)
-                        if (stringValue.isNotEmpty()) {
-                            add(stringValue)
+        private fun extractSuppressTokens(annotation: KtAnnotationEntry): Set<String> =
+            buildSet {
+                for (arg in annotation.valueArguments) {
+                    val argExpr = arg.getArgumentExpression()
+                    when {
+                        argExpr is KtStringTemplateExpression -> {
+                            val stringValue = extractStringValue(argExpr)
+                            if (stringValue.isNotEmpty()) {
+                                add(stringValue)
+                            }
                         }
-                    }
-                    argExpr != null && argExpr.text.startsWith("[") -> {
-                        for (token in arrayLiteralTokens(argExpr)) {
-                            add(token)
+
+                        argExpr != null && argExpr.text.startsWith("[") -> {
+                            for (token in arrayLiteralTokens(argExpr)) {
+                                add(token)
+                            }
                         }
                     }
                 }
             }
-        }
 
         /**
          * Extracts string literals from an array literal (e.g., ["TOKEN1", "TOKEN2"]).
@@ -166,7 +172,10 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
          * @return List of extracted string values in source order.
          */
         private fun arrayLiteralTokens(arrayExpr: Any): List<String> =
-            arrayExpr.toString().trim().removeSurrounding("[", "]")
+            arrayExpr
+                .toString()
+                .trim()
+                .removeSurrounding("[", "]")
                 .split(Regex(",\\s*"))
                 .map { elemText -> elemText.trim().removeSurrounding("\"") }
                 .filter { trimmed -> trimmed.isNotEmpty() }

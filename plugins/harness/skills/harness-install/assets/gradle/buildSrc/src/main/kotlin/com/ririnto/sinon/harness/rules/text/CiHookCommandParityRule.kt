@@ -1,9 +1,9 @@
 package com.ririnto.sinon.harness.rules.text
 
+import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.JsonAccess
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.rules.HarnessCheckRule
-import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -24,35 +24,38 @@ object CiHookCommandParityRule : HarnessCheckRule() {
      * Category key.
      */
     override val category: String = "ciHookCommandParity"
-    override fun validate(ctx: RuleContext): Collection<Finding> = buildList {
-        val catObj = ctx.manifest.categoryObject(category)
-        val parametersObj = catObj?.get("parameters")?.jsonObject
-        if (catObj != null && parametersObj != null) {
-            (ctx.root / JsonAccess.stringFromObject(parametersObj, "referenceHook"))
-                .takeIf { it.isRegularFile() }
-                ?.readText()
-                ?.lineSequence()
-                ?.firstOrNull { hookLine ->
-                    hookLine.startsWith("# Harness validation command: ")
-                }?.removePrefix("# Harness validation command: ")
-                ?.trim()
-                ?.let { command ->
-                    addAll(
-                        ctx.manifest.stringArray(category, "ciFiles")
-                            .filter { ciFile -> (ctx.root / ciFile).isRegularFile() }
-                            .filter { ciFile -> !(ctx.root / ciFile).readText().contains(command) }
-                            .map { ciFile ->
-                                Finding(
-                                    ctx.manifest.severityOf(category),
-                                    category,
-                                    ctx.manifest.stringValue(category, "default").takeIf { message ->
-                                        message.isNotEmpty()
-                                    }
-                                        ?: "$ciFile: CI command mismatch — expected $command",
-                                )
-                            }
-                    )
-                }
+
+    override fun validate(ctx: RuleContext): Collection<Finding> =
+        buildList {
+            val catObj = ctx.manifest.categoryObject(category)
+            val parametersObj = catObj?.get("parameters")?.jsonObject
+            if (catObj != null && parametersObj != null) {
+                (ctx.root / JsonAccess.stringFromObject(parametersObj, "referenceHook"))
+                    .takeIf { it.isRegularFile() }
+                    ?.readText()
+                    ?.lineSequence()
+                    ?.firstOrNull { hookLine ->
+                        hookLine.startsWith("# Harness validation command: ")
+                    }?.removePrefix("# Harness validation command: ")
+                    ?.trim()
+                    ?.let { command ->
+                        addAll(
+                            ctx.manifest
+                                .stringArray(category, "ciFiles")
+                                .filter { ciFile -> (ctx.root / ciFile).isRegularFile() }
+                                .filter { ciFile -> !(ctx.root / ciFile).readText().contains(command) }
+                                .map { ciFile ->
+                                    Finding(
+                                        ctx.manifest.severityOf(category),
+                                        category,
+                                        ctx.manifest.stringValue(category, "default").takeIf { message ->
+                                            message.isNotEmpty()
+                                        }
+                                            ?: "$ciFile: CI command mismatch — expected $command",
+                                    )
+                                },
+                        )
+                    }
+            }
         }
-    }
 }

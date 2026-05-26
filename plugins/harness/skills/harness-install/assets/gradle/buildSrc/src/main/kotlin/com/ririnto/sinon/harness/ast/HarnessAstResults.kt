@@ -1,7 +1,7 @@
 package com.ririnto.sinon.harness.ast
 
-import kotlinx.serialization.Serializable
 import com.ririnto.sinon.harness.core.Severity
+import kotlinx.serialization.Serializable
 
 /**
  * Aggregated validation findings produced by source AST/PSI analysis.

@@ -1,11 +1,11 @@
 package com.ririnto.sinon.harness.rules.ast
 
-import com.ririnto.sinon.harness.core.RuleContext
-import com.ririnto.sinon.harness.rules.HarnessAstRule
-import com.ririnto.sinon.harness.ast.AstSupport
 import com.ririnto.sinon.harness.ast.AstFinding
+import com.ririnto.sinon.harness.ast.AstSupport
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
+import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.core.Severity
+import com.ririnto.sinon.harness.rules.HarnessAstRule
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -27,28 +27,33 @@ object TerminalBranchWhenRule : HarnessAstRule() {
      */
     override val category: String = "terminalBranchWhen"
 
-    override fun renderAstFindings(ctx: RuleContext, findings: Collection<AstFinding>): Collection<Finding> {
-        return buildList {
+    override fun renderAstFindings(
+        ctx: RuleContext,
+        findings: Collection<AstFinding>,
+    ): Collection<Finding> =
+        buildList {
             findings.forEach { finding ->
                 add(
                     Finding(
                         ctx.manifest.severityOf(category),
                         category,
-                        "${finding.file}:${finding.line}: terminal if expression in ${finding.detail("context")}; use when instead",
+                        "${finding.file}:${finding.line}: terminal if expression in ${finding.detail(
+                            "context",
+                        )}; use when instead",
                     ),
                 )
             }
         }
-    }
 
     override fun findAstFindings(
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor(::add, file, ctx, ktFile))
-    }
+    ): Collection<AstFinding> =
+        buildSet {
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(Visitor(::add, file, ctx, ktFile))
+        }
 
     private fun terminalIfElseExpression(expression: PsiElement?): KtIfExpression? =
         when (expression) {

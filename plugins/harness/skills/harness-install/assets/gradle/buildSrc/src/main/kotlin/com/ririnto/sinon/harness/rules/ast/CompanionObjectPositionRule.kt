@@ -1,11 +1,11 @@
 package com.ririnto.sinon.harness.rules.ast
 
-import com.ririnto.sinon.harness.core.RuleContext
-import com.ririnto.sinon.harness.rules.HarnessAstRule
-import com.ririnto.sinon.harness.ast.AstSupport
 import com.ririnto.sinon.harness.ast.AstFinding
+import com.ririnto.sinon.harness.ast.AstSupport
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
+import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.core.Severity
+import com.ririnto.sinon.harness.rules.HarnessAstRule
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -26,12 +26,17 @@ object CompanionObjectPositionRule : HarnessAstRule() {
      */
     override val category: String = "companionObjectPosition"
 
-    override fun renderAstFindings(ctx: RuleContext, findings: Collection<AstFinding>): Collection<Finding> {
-        return buildList {
+    override fun renderAstFindings(
+        ctx: RuleContext,
+        findings: Collection<AstFinding>,
+    ): Collection<Finding> =
+        buildList {
             findings
                 .filter { finding ->
                     when (
-                        ctx.manifest.categoryObject(category)?.get("parameters")
+                        ctx.manifest
+                            .categoryObject(category)
+                            ?.get("parameters")
                             ?.jsonObject
                             ?.get("position")
                             ?.jsonPrimitive
@@ -42,27 +47,28 @@ object CompanionObjectPositionRule : HarnessAstRule() {
                         "bottom" -> finding.intDetail("position") != finding.intDetail("lastPosition")
                         else -> finding.intDetail("position") != 0
                     }
-                }
-                .forEach { finding ->
+                }.forEach { finding ->
                     add(
                         Finding(
                             ctx.manifest.severityOf(category),
                             category,
-                            "${finding.file}:${finding.line}: companion object in class `${finding.detail("className")}` must be repositioned",
+                            "${finding.file}:${finding.line}: companion object in class `${finding.detail(
+                                "className",
+                            )}` must be repositioned",
                         ),
                     )
                 }
         }
-    }
 
     override fun findAstFindings(
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor(::add, file, ctx, ktFile))
-    }
+    ): Collection<AstFinding> =
+        buildSet {
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(Visitor(::add, file, ctx, ktFile))
+        }
 
     /**
      * AST visitor for companion object position analysis.

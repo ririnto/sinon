@@ -34,7 +34,10 @@ interface Manifest {
      * @param key The parameter key.
      * @return List of strings; empty if not found.
      */
-    fun stringArray(category: String, key: String): List<String>
+    fun stringArray(
+        category: String,
+        key: String,
+    ): List<String>
 
     /**
      * Extract a string value from a category's parameters.
@@ -43,7 +46,10 @@ interface Manifest {
      * @param key The parameter key.
      * @return The string value; empty string if not found.
      */
-    fun stringValue(category: String, key: String): String
+    fun stringValue(
+        category: String,
+        key: String,
+    ): String
 
     /**
      * Get the category's JSON object.

@@ -1,12 +1,11 @@
 package com.ririnto.sinon.harness.rules.ast
 
+import com.ririnto.sinon.harness.ast.AstFinding
+import com.ririnto.sinon.harness.ast.AstFindingRenderer
+import com.ririnto.sinon.harness.ast.AstSupport
+import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.rules.HarnessAstRule
-import com.ririnto.sinon.harness.ast.AstSupport
-import com.ririnto.sinon.harness.ast.AstFindingRenderer
-import com.ririnto.sinon.harness.ast.AstFinding
-
-import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -33,34 +32,43 @@ object PublicDeclarationDocCommentRule : HarnessAstRule() {
      */
     override val category: String = "publicDeclarationDocComment"
 
-    override fun applies(ctx: RuleContext): Boolean {
-        return ctx.manifest.categoryObject(category)?.get("enabled")?.jsonPrimitive?.contentOrNull?.toBoolean() ?: true
-    }
+    override fun applies(ctx: RuleContext): Boolean =
+        ctx.manifest
+            .categoryObject(category)
+            ?.get("enabled")
+            ?.jsonPrimitive
+            ?.contentOrNull
+            ?.toBoolean() ?: true
 
-    override fun renderAstFindings(ctx: RuleContext, findings: Collection<AstFinding>): Collection<Finding> = AstFindingRenderer.renderEach(findings.toList(), ctx.manifest.raw)
+    override fun renderAstFindings(
+        ctx: RuleContext,
+        findings: Collection<AstFinding>,
+    ): Collection<Finding> = AstFindingRenderer.renderEach(findings.toList(), ctx.manifest.raw)
 
     override fun findAstFindings(
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> {
-        return buildSet {
+    ): Collection<AstFinding> =
+        buildSet {
             val ktFile = AstSupport.parse(file, astFactory)
             ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile, loadConfiguredTokens(ctx)))
         }
-    }
 
     /**
      * Load configured visibility tokens from manifest parameters.
      */
     private fun loadConfiguredTokens(ctx: RuleContext): Set<String> =
-        (ctx.manifest.categoryObject(category)
-            ?.get("parameters")
-            ?.jsonObject
-            ?.get("visibility")
-            ?.jsonArray
-            ?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull }
-            ?: listOf("public", "protected", "internal")).toSet()
+        (
+            ctx.manifest
+                .categoryObject(category)
+                ?.get("parameters")
+                ?.jsonObject
+                ?.get("visibility")
+                ?.jsonArray
+                ?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull }
+                ?: listOf("public", "protected", "internal")
+        ).toSet()
 
     /**
      * Determine the effective visibility of a Kotlin declaration.
@@ -86,7 +94,10 @@ object PublicDeclarationDocCommentRule : HarnessAstRule() {
      * @param tokens The set of visibility tokens to match against.
      * @return true if declaration's visibility is in tokens and it's not in a block expression.
      */
-    private fun matchesVisibility(declaration: KtModifierListOwner, tokens: Set<String>): Boolean {
+    private fun matchesVisibility(
+        declaration: KtModifierListOwner,
+        tokens: Set<String>,
+    ): Boolean {
         val visibility = effectiveVisibility(declaration)
         val parent = declaration.parent
         return visibility in tokens &&
@@ -114,6 +125,7 @@ object PublicDeclarationDocCommentRule : HarnessAstRule() {
                 )
             }
         }
+
         override fun visitNamedFunction(function: KtNamedFunction) {
             super.visitNamedFunction(function)
             if (matchesVisibility(function, configuredTokens) &&
@@ -130,6 +142,7 @@ object PublicDeclarationDocCommentRule : HarnessAstRule() {
                 )
             }
         }
+
         override fun visitProperty(property: KtProperty) {
             super.visitProperty(property)
             if (!property.isLocal && matchesVisibility(property, configuredTokens) && property.docComment == null) {
