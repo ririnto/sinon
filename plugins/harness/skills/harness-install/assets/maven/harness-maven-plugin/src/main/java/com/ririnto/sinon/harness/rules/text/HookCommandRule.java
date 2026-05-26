@@ -80,7 +80,7 @@ public enum HookCommandRule implements HarnessCheckRule {
                 .flatMap(p -> {
                     try {
                         final String preCommitText = HarnessCheckHelper.readFile(root, p);
-                        final Pattern fullStackPattern = Pattern.compile("(^|\\s)(uv|bun|gradle|mvn)(\\s|$)|\\.\\./gradlew|harnessValidate|harness_validate\\.py|harness-validate\\.ts");
+                        final Pattern fullStackPattern = Pattern.compile("(^|\\s)(uv|bun|gradle|mvn)(\\s|$)|\\.\\./gradlew|harnessCheck|harness_check\\.py|harness-check\\.ts|harness-check\\.sh");
                         return fullStackPattern.matcher(preCommitText).find()
                                 ? Stream.of(Finding.of(severity, CATEGORY, "pre-commit hook must not run full stack validation commands"))
                                 : Stream.empty();

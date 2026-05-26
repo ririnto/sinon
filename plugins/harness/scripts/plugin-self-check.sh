@@ -1000,7 +1000,7 @@ PYEOF
     fixture_remove_temp_dir "$temp_dir"
     exit 1
   fi
-  if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_check.py\" && uv run --quiet --with libcst \"$temp_dir/harness_validate.py\""; then
+  if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_check.py\""; then
     printf '%s\n' '[fixture_assert_uv_format] expected harness-check to report unsafe comparison' >&2
     fixture_remove_temp_dir "$temp_dir"
     exit 1
@@ -1021,8 +1021,7 @@ PYEOF
 
 # Verify Gradle AST findings render canonical file:line:column prefixes.
 #
-#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is
-#     unavailable.
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
 #
 # @return Returns 0 on success or when gradle is missing.
 # @exit Exits with status 1 when the Gradle location fixture fails.
@@ -1037,7 +1036,7 @@ fixture_assert_gradle_location() {
   fixture_write_file "$temp_dir" settings.gradle.kts 'rootProject.name = "gradle-location-fixture"'
   fixture_write_file "$temp_dir" build.gradle.kts "$(cat <<'KOTLINEOF'
 plugins {
-    id("ai.harness.validation")
+    id("com.ririnto.sinon.harness")
 }
 
 repositories {
@@ -1058,8 +1057,8 @@ class LocationFixture {
 }
 KOTLINEOF
 )"
-  if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessValidate'; then
-    printf '%s\n' '[fixture_assert_gradle_location] expected harnessValidate to report class member ordering' >&2
+  if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessCheck'; then
+    printf '%s\n' '[fixture_assert_gradle_location] expected harnessCheck to report class member ordering' >&2
     fixture_remove_temp_dir "$temp_dir"
     exit 1
   fi
@@ -1211,7 +1210,7 @@ for path in \
   "$root/skills/harness-install/assets/bun/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/bun/.gitlab-ci.yml" \
   "$root/skills/harness-install/assets/bun/docs/harness/manifest.json" \
-  "$root/skills/harness-install/assets/bun/runtime/harness-validate.ts" \
+  "$root/skills/harness-install/assets/bun/runtime/harness-check.ts" \
   "$root/skills/harness-install/assets/gradle/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/gradle/.gitlab-ci.yml" \
   "$root/skills/harness-install/assets/gradle/docs/harness/manifest.json" \
@@ -1223,19 +1222,19 @@ for path in \
   "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/core/RuleContext.java" \
   "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/core/DefaultRuleContext.java" \
   "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/core/Severity.java" \
-  "$root/skills/harness-install/assets/uv/runtime/harness_validate.py" \
+  "$root/skills/harness-install/assets/uv/runtime/harness_check.py" \
   "$root/skills/harness-install/assets/uv/docs/harness/manifest.json" \
   "$root/skills/harness-install/assets/uv/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/uv/.gitlab-ci.yml" \
   "$root/skills/harness-install/assets/shell/.github/workflows/harness.yml" \
   "$root/skills/harness-install/assets/shell/.gitlab-ci.yml" \
   "$root/skills/harness-install/assets/shell/docs/harness/manifest.json" \
-  "$root/skills/harness-install/assets/shell/runtime/harness-validate.sh" \
+  "$root/skills/harness-install/assets/shell/runtime/harness-check.sh" \
   "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/plugin/HarnessValidationPlugin.kt" \
   "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/ast/AstFinding.kt" \
   "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/rules/ast/ClassMemberOrderingRule.kt" \
   "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/rules/ast/TerminalBranchWhenRule.kt" \
-  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/HarnessValidateMojo.java" \
+  "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/HarnessCheckMojo.java" \
   "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/rules/ast/ClassMemberOrderingRule.java"; do
   require_file "$path"
 done
@@ -1271,7 +1270,7 @@ require_executable "$root/scripts/plugin-self-check.sh"
 require_executable "$root/skills/harness-install/scripts/install-harness.sh"
 require_executable "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-commit"
 require_executable "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-push"
-require_executable "$root/skills/harness-install/assets/shell/runtime/harness-validate.sh"
+require_executable "$root/skills/harness-install/assets/shell/runtime/harness-check.sh"
 
 require_absent "$root/hooks" 'top-level Claude hooks runtime surface must not be packaged'
 
@@ -1493,7 +1492,7 @@ require_text "$root/README.md" 'harness-install'
 require_text "$root/README.md" 'harness-validate'
 require_text "$root/README.md" 'harness-evolve'
 require_text "$root/README.md" 'hook template'
-require_text "$root/README.md" "Gradle \`pre-commit\` runs \`harnessValidate\`"
+require_text "$root/README.md" "Gradle \`pre-commit\` runs \`harnessCheck\`"
 require_text "$root/README.md" "Gradle \`pre-push\` runs \`check\`"
 require_text "$root/README.md" 'THIRD_PARTY_NOTICES.md'
 require_text "$root/README.md" 'skills/harness-install/assets/common/docs/harness/git-hooks/'
@@ -1501,7 +1500,7 @@ require_text "$root/README.md" 'v6 archive structure'
 require_markdown_heading "$root/README.md" 2 'Plugin-Owned Structural Agents'
 require_markdown_heading "$root/README.md" 2 'Packaged Scripts and Assets'
 require_markdown_heading "$root/README.md" 2 'Runtime Model'
-require_text "$root/skills/harness-install/SKILL.md" "Gradle pre-commit runs \`harnessValidate\`, Gradle pre-push runs \`check\`"
+require_text "$root/skills/harness-install/SKILL.md" "Gradle pre-commit runs \`harnessCheck\`, Gradle pre-push runs \`check\`"
 require_markdown_heading "$root/skills/harness-install/SKILL.md" 2 'Ownership Boundary'
 require_markdown_heading "$root/skills/harness-install/SKILL.md" 2 'Invariants'
 require_text "$root/skills/harness-validate/SKILL.md" "generated \`docs/harness/git-hooks/pre-push\` command marker"
@@ -1579,7 +1578,7 @@ require_text "$root/skills/harness-install/scripts/install-harness.sh" 'Harness 
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'Harness stage: full-validation'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'Harness validation command:'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradlew check'
-require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradlew harnessValidate'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradlew harnessCheck'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'resolve_existing_hooks_path'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'refusing to copy non-generated hook source'
 manifest_json="$root/skills/harness-install/assets/common/docs/harness/manifest.json"
@@ -1588,7 +1587,7 @@ require_text "$manifest_json" 'must declare Harness validation command'
 require_text "$manifest_json" 'declares unsupported validation command'
 require_text "$manifest_json" 'must run the declared validation command'
 require_text "$manifest_json" './gradlew check'
-require_text "$manifest_json" './gradlew harnessValidate'
+require_text "$manifest_json" './gradlew harnessCheck'
 
 template_roots="
 $root/skills/harness-install/assets/common
@@ -1603,7 +1602,7 @@ for template_root in $template_roots; do
   template_root_files=$(package_files "$template_root")
   for path in $template_root_files; do
     case "$path" in
-      */harness_validate.py|*/harness_check.py|*/harness-validate.ts|*/harness-check.ts|*/HarnessValidationPlugin.kt|*/HarnessCheck.kt|*/HarnessValidateMojo.java|*/HarnessCheck.java|*/manifest.json|*/manifest.schema.json)
+      */harness_check.py|*/harness-check.ts|*/harness-check.sh|*/HarnessValidationPlugin.kt|*/HarnessCheck.kt|*/HarnessCheckMojo.java|*/HarnessCheck.java|*/manifest.json|*/manifest.schema.json)
         continue
         ;;
       */assets/common/ARCHITECTURE.md|*/assets/common/docs/DESIGN.md|*/assets/common/docs/PLANS.md|*/assets/common/docs/FRONTEND.md|*/assets/common/docs/PRODUCT_SENSE.md|*/assets/common/docs/QUALITY_SCORE.md|*/assets/common/docs/RELIABILITY.md|*/assets/common/docs/SECURITY.md|*/assets/common/docs/design-docs/core-beliefs.md|*/assets/common/docs/exec-plans/tech-debt-tracker.md|*/assets/common/docs/product-specs/*.md|*/assets/common/docs/references/*.md|*/assets/common/docs/harness/templates/*)
@@ -1634,7 +1633,7 @@ for text in 'example-' 'Describe ' 'Describe...' 'TODO' 'TBD' 'replace-with-stac
     template_root_files=$(package_files "$template_root")
     for path in $template_root_files; do
       case "$path" in
-        */harness_validate.py|*/harness-validate.ts|*/HarnessValidationPlugin.kt|*/HarnessValidateMojo.java|*/manifest.json)
+        */harness_check.py|*/harness-check.ts|*/harness-check.sh|*/HarnessValidationPlugin.kt|*/HarnessCheckMojo.java|*/manifest.json)
           continue
           ;;
         */assets/common/ARCHITECTURE.md|*/assets/common/docs/DESIGN.md|*/assets/common/docs/PLANS.md|*/assets/common/docs/FRONTEND.md|*/assets/common/docs/PRODUCT_SENSE.md|*/assets/common/docs/QUALITY_SCORE.md|*/assets/common/docs/RELIABILITY.md|*/assets/common/docs/SECURITY.md|*/assets/common/docs/design-docs/core-beliefs.md|*/assets/common/docs/exec-plans/tech-debt-tracker.md|*/assets/common/docs/product-specs/*.md|*/assets/common/docs/references/*.md|*/assets/common/docs/harness/templates/*)

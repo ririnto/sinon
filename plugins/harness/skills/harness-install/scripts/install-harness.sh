@@ -510,9 +510,9 @@ install_gradle() {
     build_file=build.gradle
   fi
   if [ "$build_file" = build.gradle.kts ]; then
-    append_line_once "$build_file" 'apply(plugin = "ai.harness.validation")' 'apply(plugin = "ai.harness.validation")'
+    append_line_once "$build_file" 'apply(plugin = "com.ririnto.sinon.harness")' 'apply(plugin = "com.ririnto.sinon.harness")'
   else
-    append_line_once "$build_file" "apply plugin: 'ai.harness.validation'" "apply plugin: 'ai.harness.validation'"
+    append_line_once "$build_file" "apply plugin: 'com.ririnto.sinon.harness'" "apply plugin: 'com.ririnto.sinon.harness'"
   fi
 }
 
@@ -797,15 +797,15 @@ validation_command_for_mode() {
   case "$selected_mode" in
     gradle)
       if [ -x ./gradlew ]; then
-        printf '%s\n' './gradlew harnessValidate'
+        printf '%s\n' './gradlew harnessCheck'
       else
-        printf '%s\n' 'gradle harnessValidate'
+        printf '%s\n' 'gradle harnessCheck'
       fi
       ;;
-    maven) printf '%s\n' 'mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate' ;;
-    uv) printf '%s\n' 'uv run --script docs/harness/uv/harness_validate.py' ;;
-    bun) printf '%s\n' 'bun --install=fallback run docs/harness/bun/harness-validate.ts' ;;
-    shell) printf '%s\n' 'sh docs/harness/shell/harness-validate.sh' ;;
+    maven) printf '%s\n' 'mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check' ;;
+    uv) printf '%s\n' 'uv run --script docs/harness/uv/harness_check.py' ;;
+    bun) printf '%s\n' 'bun --install=fallback run docs/harness/bun/harness-check.ts' ;;
+    shell) printf '%s\n' 'sh docs/harness/shell/harness-check.sh' ;;
     *) error "[validation_command] unsupported mode (must be gradle|maven|uv|bun|shell): $selected_mode" ;;
   esac
 }
@@ -819,9 +819,9 @@ pre_commit_command_for_mode() {
   case "$selected_mode" in
     gradle)
       if [ -x ./gradlew ]; then
-        printf '%s\n' './gradlew harnessValidate'
+        printf '%s\n' './gradlew harnessCheck'
       else
-        printf '%s\n' 'gradle harnessValidate'
+        printf '%s\n' 'gradle harnessCheck'
       fi
       ;;
     maven|uv|bun|shell) ;;

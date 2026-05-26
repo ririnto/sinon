@@ -66,7 +66,7 @@ From a target repository, ask Claude Code to use the `harness-install` skill wit
 
 The skill invokes `skills/harness-install/scripts/install-harness.sh` with the target repository as `--target`, detects or accepts the stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command. Supported modes are `auto`, `gradle`, `maven`, `uv`, `bun`, and `shell`.
 
-By default the installer writes both GitHub Actions and GitLab CI examples for the selected stack: `.github/workflows/harness.yml` and `.gitlab-ci.yml`. Both CI snippets are rendered from templates and run the same final check command as generated `pre-push`; for Gradle this is `check`, not `harnessValidate`. Pass `--no-ci` to skip both CI files.
+By default the installer writes both GitHub Actions and GitLab CI examples for the selected stack: `.github/workflows/harness.yml` and `.gitlab-ci.yml`. Both CI snippets are rendered from templates and run the same final check command as generated `pre-push`; for Gradle this is `check`. Pass `--no-ci` to skip both CI files.
 
 ## CI Host Selection
 
@@ -139,7 +139,7 @@ docs/
 └── SECURITY.md
 ```
 
-Empty required directories are kept in version control with `.gitkeep`. `docs/harness/git-hooks/pre-commit` is a generated, target-owned hook template: Gradle uses it for `harnessValidate`, while non-Gradle stacks use it for compliance checks. `docs/harness/git-hooks/pre-push` is the generated final-check hook template: Gradle uses `check`, while non-Gradle stacks use the selected validation command. Neither is an active Git hook unless the target repository opts in. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
+Empty required directories are kept in version control with `.gitkeep`. `docs/harness/git-hooks/pre-commit` is a generated, target-owned hook template: Gradle uses it for `harnessCheck`, while non-Gradle stacks use it for compliance checks. `docs/harness/git-hooks/pre-push` is the generated final-check hook template: Gradle uses `check`, while non-Gradle stacks use the selected validation command. Neither is an active Git hook unless the target repository opts in. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
 In installed target repositories, `AGENTS.md` is the primary harness contract. `CLAUDE.md` is retained as the Claude Code entry point and points back to `AGENTS.md`.
 
@@ -147,12 +147,12 @@ In installed target repositories, `AGENTS.md` is the primary harness contract. `
 
 | Stack | Detection | Validation command |
 | --- | --- | --- |
-| Gradle local harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
+| Gradle local harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew harnessCheck`, or `gradle harnessCheck` when the target uses system Gradle without a wrapper |
 | Gradle final check | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| Maven | `pom.xml` | `mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate` |
-| uv | `uv.lock` or Python `pyproject.toml` | `uv run --script docs/harness/uv/harness_validate.py` |
-| bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun --install=fallback run docs/harness/bun/harness-validate.ts` |
-| shell | `Makefile` or root-level `*.sh` with no other stack | `sh docs/harness/shell/harness-validate.sh` |
+| Maven | `pom.xml` | `mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check` |
+| uv | `uv.lock` or Python `pyproject.toml` | `uv run --script docs/harness/uv/harness_check.py` |
+| bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun --install=fallback run docs/harness/bun/harness-check.ts` |
+| shell | `Makefile` or root-level `*.sh` with no other stack | `sh docs/harness/shell/harness-check.sh` |
 
 Run validation commands from the target repository root. The uv, bun, Maven, and shell validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes. The shell adapter implements a minimum-viable subset (file/directory existence, hook shebang/executable, scaffold-leak scan, completed-plan unchecked-task scan) and requires `python3` available on PATH for JSON parsing of the manifest.
 
@@ -219,11 +219,11 @@ Gradle and Maven formatting is deferred and not implemented in this change set.
 
 ### Shell exclusion
 
-The shell runtime ships `harness-validate.sh` only. No shell `harnessCheck` or `harnessFormat` was added. Shell validation covers file presence, directory structure, hook shebangs and executable bits, scaffold-leak scanning, and completed-plan unchecked-task scanning.
+The shell runtime ships `harness-check.sh`. Shell `harnessFormat` is added in a follow-up phase. Shell validation covers file presence, directory structure, hook shebangs and executable bits, scaffold-leak scanning, and completed-plan unchecked-task scanning.
 
 ## Git Hooks
 
-The installer writes two selected-mode hook templates in `docs/harness/git-hooks/` on fresh install. Gradle `pre-commit` runs `harnessValidate` for intermediate harness feedback, and Gradle `pre-push` runs `check` for the final push gate. Non-Gradle `pre-commit` performs lightweight harness-rule compliance checks, and non-Gradle `pre-push` runs the selected validation command. Managed generated templates refresh with the selected intermediate and final commands; custom target-owned templates are preserved unless `--force` is used. Git hook activation is opt-in because it modifies local Git behavior outside version control.
+The installer writes two selected-mode hook templates in `docs/harness/git-hooks/` on fresh install. Gradle `pre-commit` runs `harnessCheck` for intermediate harness feedback, and Gradle `pre-push` runs `check` for the final push gate. Non-Gradle `pre-commit` performs lightweight harness-rule compliance checks, and non-Gradle `pre-push` runs the selected validation command. Managed generated templates refresh with the selected intermediate and final commands; custom target-owned templates are preserved unless `--force` is used. Git hook activation is opt-in because it modifies local Git behavior outside version control.
 
 ```sh
 sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.sh --target /path/to/target-repo --mode uv --hooks copy
