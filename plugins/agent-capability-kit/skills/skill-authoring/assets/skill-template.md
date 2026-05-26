@@ -1,7 +1,9 @@
 ---
 name: your-skill-name
 description: >-
-  [Imperative capability statement: e.g., Write, Author, Review, Build, Triage]. Use when the task, inputs, systems, file types, or user intent clearly matches this workflow.
+  [Imperative capability statement: e.g., Write, Author, Review, Build, Triage].
+# Optional: add a trigger clause with distinct vocabulary only if needed:
+# Use when the task, inputs, systems, file types, or user intent add keywords not in the capability.
 # Optional:
 # license: Proprietary. LICENSE has complete terms
 # compatibility: Requires uv and jq
