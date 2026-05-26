@@ -1,13 +1,40 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "sinon",
-  "version": "2026.05.23",
+  "version": "2026.05.26",
   "description": "Claude catalog view for the Sinon marketplace.",
   "owner": {
     "name": "ririnto",
     "email": "ririnto@kakao.com"
   },
   "plugins": [
+    {
+      "name": "agent-capability-kit",
+      "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, hooks, MCP servers, plugin settings, and cross-platform Agent Skills; includes agents for plugin validation and skill review, plus a command for guided plugin creation.",
+      "source": "./plugins/agent-capability-kit",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    },
+    {
+      "name": "document-creator",
+      "description": "Authoring skills for AI-consumable engineering documents; currently provides SPEC.md creation with structured requirements, scenarios, and acceptance criteria.",
+      "source": "./plugins/document-creator",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    },
+    {
+      "name": "harness",
+      "description": "Install, validate, and evolve repository-owned harness assets for agent instructions, docs, templates, project agents, project skills, stack validators, CI snippets, and opt-in Git hook templates.",
+      "source": "./plugins/harness",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development"
+    },
     {
       "name": "java",
       "description": "Java development plugin with practical skills for syntax, language design, testing, dependency decisions, and performance analysis, plus an agent for architecture guidance and JDTLS-assisted editing.",
@@ -36,9 +63,9 @@
       "category": "development"
     },
     {
-      "name": "spring",
-      "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, messaging, Cloud, and Batch workflows, plus an agent for architecture and component design.",
-      "source": "./plugins/spring",
+      "name": "netty",
+      "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, core API bootstrap and pipelines, and reactive HTTP/TCP/UDP workflows.",
+      "source": "./plugins/netty",
       "author": {
         "name": "ririnto"
       },
@@ -63,24 +90,6 @@
       "category": "development"
     },
     {
-      "name": "netty",
-      "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, core API bootstrap and pipelines, and reactive HTTP/TCP/UDP workflows.",
-      "source": "./plugins/netty",
-      "author": {
-        "name": "ririnto"
-      },
-      "category": "development"
-    },
-    {
-      "name": "harness",
-      "description": "Install, validate, and evolve repository-owned harness assets for agent instructions, docs, templates, project agents, project skills, stack validators, CI snippets, and opt-in Git hook templates.",
-      "source": "./plugins/harness",
-      "author": {
-        "name": "ririnto"
-      },
-      "category": "development"
-    },
-    {
       "name": "spec-driven-development",
       "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.",
       "source": "./plugins/spec-driven-development",
@@ -90,9 +99,9 @@
       "category": "development"
     },
     {
-      "name": "agent-capability-kit",
-      "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, hooks, MCP servers, plugin settings, and cross-platform Agent Skills; includes agents for plugin validation and skill review, plus a command for guided plugin creation.",
-      "source": "./plugins/agent-capability-kit",
+      "name": "spring",
+      "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, messaging, Cloud, and Batch workflows, plus an agent for architecture and component design.",
+      "source": "./plugins/spring",
       "author": {
         "name": "ririnto"
       },
