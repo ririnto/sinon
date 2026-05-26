@@ -48,8 +48,8 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        create("harnessValidation") {
-            id = "ai.harness.validation"
+        create("harnessCheck") {
+            id = "com.ririnto.sinon.harness"
             implementationClass = "com.ririnto.sinon.harness.plugin.HarnessValidationPlugin"
         }
     }

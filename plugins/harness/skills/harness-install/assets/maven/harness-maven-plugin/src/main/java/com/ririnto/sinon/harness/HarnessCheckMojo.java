@@ -16,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -26,8 +25,8 @@ import java.util.stream.Stream;
 /**
  * Maven goal that validates installed Claude repository harness assets.
  */
-@Mojo(name = "validate", threadSafe = true)
-public final class HarnessValidateMojo extends AbstractMojo {
+@Mojo(name = "check", threadSafe = true)
+public final class HarnessCheckMojo extends AbstractMojo {
     private static final Path MANIFEST_PATH = Path.of("docs", "harness", "manifest.json");
 
     /**

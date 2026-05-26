@@ -2,20 +2,24 @@
 # -*- coding: utf-8 -*-
 
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.13"
 # dependencies = ["libcst>=1.8.6"]
 # ///
-"""Harness checks enumeration with per-member rule classes."""
+"""
+Harness checks enumeration with per-member rule classes and validation runner.
+"""
 
 from __future__ import annotations
 
 import enum
+import logging
 import sys
 from collections.abc import Iterable
 from pathlib import Path
 
 from harness_check_rule import Finding, HarnessCheckRule
 from core.rule_context import create_rule_context
+from reporter import render_findings
 
 from rules.fs.file_presence import RULE as file_presence
 from rules.fs.directory_presence import RULE as directory_presence
@@ -55,6 +59,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 sys.stderr.reconfigure(encoding="utf-8")
 
 MANIFEST_PATH = "docs/harness/manifest.json"
+ROOT = Path.cwd()
 
 
 class HarnessCheck(enum.Enum):
@@ -133,3 +138,70 @@ class HarnessCheck(enum.Enum):
     def validate(self, root: Path, manifest: dict) -> Iterable[Finding]:
         """Run validator for this check."""
         return self.rule.validate(create_rule_context(root, manifest))
+
+
+def validate(manifest: dict) -> tuple[Finding, ...]:
+    """
+    Run all applicable checks and return deduplicated findings.
+
+    Dedup key is (severity, category, message, file, start_line); the original
+    Finding (with location and fix metadata) is preserved on first occurrence
+    so biome-style reporter output keeps Safety/Help/Before/After sections.
+    """
+    seen: dict[tuple, Finding] = {}
+    for check in HarnessCheck:
+        if not check.applies(manifest):
+            continue
+        for finding in check.validate(ROOT, manifest):
+            key = (
+                finding.severity,
+                finding.category,
+                finding.message,
+                finding.file,
+                finding.start_line,
+            )
+            if key not in seen:
+                seen[key] = finding
+    return tuple(seen.values())
+
+
+def main() -> int:
+    """
+    Load manifest, validate, and report findings.
+    """
+    logging.basicConfig(
+        level=logging.INFO, format="[%(levelname)s] %(message)s", stream=sys.stderr
+    )
+    logger = logging.getLogger()
+    path = ROOT / MANIFEST_PATH
+    if not HarnessCheckRule.is_safe_file(path):
+        logger.error("manifest file missing: docs/harness/manifest.json")
+        logger.error("Harness validation failed")
+        return 1
+    manifest = HarnessCheckRule.load_manifest()
+    if not manifest:
+        logger.error("manifest file invalid or empty JSON: docs/harness/manifest.json")
+        logger.error("Harness validation failed")
+        return 1
+    known_categories = set(check.category for check in HarnessCheck)
+    known_metadata = {
+        "name",
+        "description",
+        "$schema",
+        "seedFiles",
+        "generatedArtifacts",
+        "harnessEvolution",
+        "teamPatterns",
+    }
+    for key in manifest.keys():
+        if key not in known_categories and key not in known_metadata:
+            logger.warning("unknown manifest key: %s", key)
+    findings = validate(manifest)
+    for line in render_findings(ROOT, findings):
+        print(line)
+    error_count = sum(1 for f in findings if f.severity == "ERROR")
+    return 1 if error_count > 0 else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

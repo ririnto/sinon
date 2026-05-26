@@ -90,18 +90,53 @@ function createHarnessChecks(): Record<string, HarnessCheckRule> {
 export const HARNESS_CHECKS: readonly HarnessCheckRule[] =
   Object.values(createHarnessChecks());
 
-async function main(): Promise<void> {
-  const manifest: HarnessManifest = JSON.parse(
+function main(): void {
+  const rawManifest: unknown = JSON.parse(
     readFileSync(join(root, MANIFEST_PATH), "utf8"),
   );
-  const executionContext = createRuleContext(root, manifest);
-  const findings: Finding[] = HARNESS_CHECKS
-    .filter((rule) => rule.applies(executionContext))
-    .flatMap((rule) => rule.validate(executionContext));
-  renderFindings(root, findings).forEach((line) => logger.log(line));
-  process.exit(findings.some((f) => f.severity === "ERROR") ? 1 : 0);
+  const context = createRuleContext(root, rawManifest);
+  const manifest = context.manifest.raw;
+  if (manifest === null || Object.keys(manifest).length === 0) {
+    throw new Error(`manifest is empty or malformed: ${MANIFEST_PATH}`);
+  }
+  const knownCategories = new Set<string>(
+    HARNESS_CHECKS.map((c) => c.category),
+  );
+  const knownKeys = new Set<string>([
+    "name",
+    "description",
+    "$schema",
+    "seedFiles",
+    "generatedArtifacts",
+    "harnessEvolution",
+    "teamPatterns",
+  ]);
+  const unknownKeyFindings: readonly Finding[] = Object.keys(manifest)
+    .filter((key) => !knownCategories.has(key) && !knownKeys.has(key))
+    .map((key) => ({
+      severity: "WARN" as const,
+      category: "manifestSchema",
+      message: `unknown manifest key: ${key}`,
+    }));
+  const ruleFindings: readonly Finding[] = Array.from(
+    new Map(
+      HARNESS_CHECKS.filter((rule) => rule.applies(context))
+        .flatMap((rule) => rule.validate(context))
+        .map((finding) => [
+          `${finding.severity}|${finding.category}|${finding.message}|${finding.file ?? ""}|${finding.startLine ?? ""}|${finding.startColumn ?? ""}`,
+          finding,
+        ]),
+    ).values(),
+  );
+  const findings: readonly Finding[] = unknownKeyFindings.concat(ruleFindings);
+  renderFindings(root, findings).forEach((line) => {
+    logger.log(line);
+  });
+  if (findings.some((finding) => finding.severity === "ERROR")) {
+    process.exit(1);
+  }
 }
 
 if (import.meta.main) {
-  await main();
+  main();
 }
