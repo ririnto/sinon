@@ -31,7 +31,7 @@ public enum ClassMemberOrderingRule implements AstRule {
     INSTANCE;
 
     private static final String CATEGORY = "classMemberOrdering";
-    private static final List<String> DEFAULT_ORDER = List.of("companionObject", "fieldOrProperty", "initializer", "constructor", "function", "nestedType");
+    private static final List<String> DEFAULT_ORDER = List.of("companionObject", "constProperty", "fieldOrProperty", "initializer", "constructor", "function", "interface", "class", "enum");
 
     @Override
     public String category() {
@@ -140,7 +140,10 @@ public enum ClassMemberOrderingRule implements AstRule {
     }
 
     private static String memberKind(BodyDeclaration<?> member) {
-        if (member instanceof FieldDeclaration) {
+        if (member instanceof FieldDeclaration field) {
+            if (field.isStatic() && field.isFinal()) {
+                return "constProperty";
+            }
             return "fieldOrProperty";
         }
         if (member instanceof InitializerDeclaration) {
@@ -152,8 +155,14 @@ public enum ClassMemberOrderingRule implements AstRule {
         if (member instanceof MethodDeclaration) {
             return "function";
         }
-        if (member instanceof ClassOrInterfaceDeclaration || member instanceof EnumDeclaration) {
-            return "nestedType";
+        if (member instanceof ClassOrInterfaceDeclaration type) {
+            if (type.isInterface()) {
+                return "interface";
+            }
+            return "class";
+        }
+        if (member instanceof EnumDeclaration) {
+            return "enum";
         }
         return null;
     }
