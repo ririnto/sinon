@@ -134,7 +134,7 @@ def format_fix_info(root: Path, finding: "Finding") -> list[str]:
 
 def render_finding(root: Path, finding: "Finding") -> list[str]:
     """
-    Render a single finding in biome+ruff hybrid format.
+    Render a single finding in structured diagnostic format.
 
     :param root: Repository root path.
     :param finding: The finding to render.
@@ -154,7 +154,7 @@ def render_finding(root: Path, finding: "Finding") -> list[str]:
 
 def render_findings(root: Path, findings: Iterable["Finding"]) -> list[str]:
     """
-    Render all findings in biome+ruff hybrid diagnostic format.
+    Render all findings in structured diagnostic format.
 
     Returns list of output lines suitable for printing. Gracefully handles
     findings where location or fix data is absent.

@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Renders findings in biome+ruff hybrid diagnostic format.
+ * Renders findings in structured diagnostic format.
  * Handles both full-featured findings (with location/fix metadata) and legacy findings
  * (severity/category/message only).
  */
@@ -18,7 +18,7 @@ public final class FindingReporter {
     private FindingReporter() {}
 
     /**
-     * Renders a list of findings in biome+ruff hybrid format.
+     * Renders a list of findings in structured diagnostic format.
      *
      * @param root     project root path used to resolve file paths for snippet rendering
      * @param findings findings to render, may include mixed full and legacy shapes
