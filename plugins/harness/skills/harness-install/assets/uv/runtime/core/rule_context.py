@@ -129,9 +129,7 @@ def relative(path: Path, root: Path) -> str:
     return str(path)
 
 
-def stack_sources_configured(
-    raw_manifest: dict[str, object], category: str
-) -> bool:
+def stack_sources_configured(raw_manifest: dict[str, object], category: str) -> bool:
     """
     Check whether the given category declares a non-empty flat ``sourceRoots``
     list.
@@ -258,6 +256,7 @@ def create_rule_context(
         ext_set = frozenset(e for e in exts if isinstance(e, str))
         include_glob_list = [g for g in include_globs if isinstance(g, str)]
         exclude_glob_list = [g for g in exclude_globs if isinstance(g, str)]
+
         def collect_all() -> list[Path]:
             collected = []
             for root_entry in source_roots:
@@ -300,11 +299,13 @@ def create_rule_context(
                             )
                         )
             return collected
+
         result = list(dict.fromkeys(collect_all()))
         result = [
             file_path
             for file_path in result
-            if not include_glob_list or any(
+            if not include_glob_list
+            or any(
                 fnmatch(file_path.relative_to(root_dir).as_posix(), glob_pattern)
                 for glob_pattern in include_glob_list
             )
@@ -312,7 +313,8 @@ def create_rule_context(
         result = [
             file_path
             for file_path in result
-            if not exclude_glob_list or not any(
+            if not exclude_glob_list
+            or not any(
                 fnmatch(file_path.relative_to(root_dir).as_posix(), glob_pattern)
                 for glob_pattern in exclude_glob_list
             )
@@ -329,9 +331,7 @@ def create_rule_context(
         for current, directories, files in os.walk(path, followlinks=False):
             current_path = Path(current)
             directories[:] = [
-                name
-                for name in directories
-                if not (current_path / name).is_symlink()
+                name for name in directories if not (current_path / name).is_symlink()
             ]
             output.extend(
                 child

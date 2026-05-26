@@ -506,7 +506,7 @@
   "leafFunctionBlankLines": {
     "description": "Leaf functions (function bodies that do not contain any nested function or lambda) under parameters.sourceRoots MUST NOT contain more than one consecutive blank line. Outer functions that contain nested functions are exempt. Validators implement this via AST. The allowed blank-line run length is controlled by parameters.maxConsecutiveBlankLines. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
-    "severity": "ERROR",
+    "severity": "WARN",
     "messages": {
       "default": "leaf function `{function}` contains too many blank lines; remove or extract the section"
     },

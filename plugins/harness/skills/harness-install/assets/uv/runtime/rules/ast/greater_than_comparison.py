@@ -105,6 +105,7 @@ class GreaterThanComparisonRule(HarnessCheckRule):
                 visitor = ComparisonFinder(relative(path, ctx.root))
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return list(collect_findings())
 
 

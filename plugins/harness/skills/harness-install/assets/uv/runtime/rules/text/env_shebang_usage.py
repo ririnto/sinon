@@ -8,7 +8,13 @@ import sys
 
 from collections.abc import Iterable
 
-from rules.harness_check_rule import Finding, FindingEdit, FindingFix, FixSafety, HarnessCheckRule
+from rules.harness_check_rule import (
+    Finding,
+    FindingEdit,
+    FindingFix,
+    FixSafety,
+    HarnessCheckRule,
+)
 from core.rule_context import RuleContext, relative
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -63,7 +69,9 @@ class EnvShebangUsageRule(HarnessCheckRule):
                     path_str = path.relative_to(ctx.root).as_posix()
                     if ctx.is_executable(path_str):
                         line = ctx.first_line(path_str)
-                        if line.startswith("#!") and not line.startswith(expected_prefix):
+                        if line.startswith("#!") and not line.startswith(
+                            expected_prefix
+                        ):
                             relative_path = relative(path, ctx.root)
                             interpreter = line[2:].strip() if len(line) > 2 else ""
                             env_shebang = f"#!/usr/bin/env {interpreter.split()[-1] if interpreter else 'sh'}"

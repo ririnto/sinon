@@ -40,11 +40,19 @@ class MultilineDocStyleRule(HarnessCheckRule):
             for finding in self.validate_file(path, ctx, severity)
         ]
 
-    def validate_file(self, path: Path, ctx: RuleContext, severity: str) -> tuple[Finding, ...]:
+    def validate_file(
+        self, path: Path, ctx: RuleContext, severity: str
+    ) -> tuple[Finding, ...]:
         """Validate one Python file."""
         tree, error = parse_python(path)
         if error is not None or tree is None:
-            return (Finding(severity, self.category, f"{relative(path, ctx.root)}: syntax error: {error}"),)
+            return (
+                Finding(
+                    severity,
+                    self.category,
+                    f"{relative(path, ctx.root)}: syntax error: {error}",
+                ),
+            )
         wrapper = cst.MetadataWrapper(tree)
         visitor = DocstringVisitor(ctx, path, severity)
         wrapper.visit(visitor)
@@ -54,7 +62,11 @@ class MultilineDocStyleRule(HarnessCheckRule):
         """Return configured doc style mode."""
         section = ctx.manifest.raw.get(self.category, {})
         params = section.get("parameters", {}) if isinstance(section, dict) else {}
-        mode = params.get("docStyleMode", "multiline") if isinstance(params, dict) else "multiline"
+        mode = (
+            params.get("docStyleMode", "multiline")
+            if isinstance(params, dict)
+            else "multiline"
+        )
         return mode if isinstance(mode, str) else "multiline"
 
 

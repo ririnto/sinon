@@ -9,7 +9,13 @@ import sys
 from collections.abc import Iterable
 from pathlib import Path
 
-from rules.harness_check_rule import Finding, FindingEdit, FindingFix, FixSafety, HarnessCheckRule
+from rules.harness_check_rule import (
+    Finding,
+    FindingEdit,
+    FindingFix,
+    FixSafety,
+    HarnessCheckRule,
+)
 from core.rule_context import RuleContext, relative
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -74,7 +80,8 @@ class HookGeneratedMarkerRule(HarnessCheckRule):
                         ctx.severity_of(self.category),
                         self.category,
                         messages.get(
-                            "missingMarker", "{hook} must contain generated marker '{marker}'"
+                            "missingMarker",
+                            "{hook} must contain generated marker '{marker}'",
                         ).format(hook=hook, marker=marker_line),
                         file=relative_path,
                         start_line=1,

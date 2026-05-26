@@ -63,18 +63,19 @@ class HookStageRule(HarnessCheckRule):
         )
         result = []
         for hook_name, expected_stage in stack_stages.items():
-            if (
-                isinstance(hook_name, str)
-                and isinstance(expected_stage, str)
-            ):
+            if isinstance(hook_name, str) and isinstance(expected_stage, str):
                 hook_path = f"docs/harness/git-hooks/{hook_name}"
-                if ctx.is_file(hook_path) and marker_template.format(stage=expected_stage) not in ctx.read(hook_path):
+                if ctx.is_file(hook_path) and marker_template.format(
+                    stage=expected_stage
+                ) not in ctx.read(hook_path):
                     relative_path = relative(ctx.path_of(hook_path), ctx.root)
                     result.append(
                         Finding(
                             ctx.severity_of(self.category),
                             self.category,
-                            template.format(hook=hook_name, expectedStage=expected_stage),
+                            template.format(
+                                hook=hook_name, expectedStage=expected_stage
+                            ),
                             file=relative_path,
                             start_line=1,
                             start_column=1,

@@ -293,6 +293,7 @@ class HarnessCheckRule(ABC):
         if not isinstance(python_exts, list):
             return ()
         ext_set = frozenset(e for e in python_exts if isinstance(e, str))
+
         def collect_all() -> list[Path]:
             collected = []
             for root_entry in python_roots:
@@ -341,6 +342,7 @@ class HarnessCheckRule(ABC):
                             )
                         )
             return collected
+
         result = list(dict.fromkeys(collect_all()))
         return tuple(sorted(result))
 

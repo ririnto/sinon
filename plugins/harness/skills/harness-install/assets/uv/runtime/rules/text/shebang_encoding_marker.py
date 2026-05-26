@@ -8,7 +8,13 @@ import sys
 
 from collections.abc import Iterable
 
-from rules.harness_check_rule import Finding, FindingEdit, FindingFix, FixSafety, HarnessCheckRule
+from rules.harness_check_rule import (
+    Finding,
+    FindingEdit,
+    FindingFix,
+    FixSafety,
+    HarnessCheckRule,
+)
 from core.rule_context import RuleContext, relative
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -58,7 +64,9 @@ class ShebangEncodingMarkerRule(HarnessCheckRule):
         extra_prefixes = params.get("additionalShebangPrefixes", [])
         if not isinstance(extra_prefixes, list):
             extra_prefixes = []
-        shebang_prefixes = tuple(["#!"] + [p for p in extra_prefixes if isinstance(p, str)])
+        shebang_prefixes = tuple(
+            ["#!"] + [p for p in extra_prefixes if isinstance(p, str)]
+        )
         messages = section.get("messages", {})
         if not isinstance(messages, dict):
             messages = {}
@@ -95,7 +103,9 @@ class ShebangEncodingMarkerRule(HarnessCheckRule):
                     Finding(
                         severity,
                         self.category,
-                        missing_line_template.format(file=relative_path, expected=expected),
+                        missing_line_template.format(
+                            file=relative_path, expected=expected
+                        ),
                         file=relative_path,
                         start_line=2,
                         start_column=1,
@@ -130,7 +140,9 @@ class ShebangEncodingMarkerRule(HarnessCheckRule):
                             file=relative_path, actual=actual, expected=expected
                         )
                         if actual.strip()
-                        else default_template.format(file=relative_path, expected=expected)
+                        else default_template.format(
+                            file=relative_path, expected=expected
+                        )
                     ),
                     file=relative_path,
                     start_line=2,

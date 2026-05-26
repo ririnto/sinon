@@ -95,7 +95,9 @@ class HookCommandRule(HarnessCheckRule):
                             command_match.group(1).strip() if command_match else ""
                         )
                         if not declared_command:
-                            pre_push_relative = relative(ctx.path_of(pre_push_path_str), ctx.root)
+                            pre_push_relative = relative(
+                                ctx.path_of(pre_push_path_str), ctx.root
+                            )
                             result.append(
                                 Finding(
                                     ctx.severity_of(self.category),
@@ -117,7 +119,9 @@ class HookCommandRule(HarnessCheckRule):
                                 )
                             )
                         elif declared_command not in stack_commands:
-                            pre_push_relative = relative(ctx.path_of(pre_push_path_str), ctx.root)
+                            pre_push_relative = relative(
+                                ctx.path_of(pre_push_path_str), ctx.root
+                            )
                             result.append(
                                 Finding(
                                     ctx.severity_of(self.category),
@@ -142,7 +146,9 @@ class HookCommandRule(HarnessCheckRule):
                             declared_command
                             and declared_command not in pre_push_text.splitlines()
                         ):
-                            pre_push_relative = relative(ctx.path_of(pre_push_path_str), ctx.root)
+                            pre_push_relative = relative(
+                                ctx.path_of(pre_push_path_str), ctx.root
+                            )
                             result.append(
                                 Finding(
                                     ctx.severity_of(self.category),
@@ -177,7 +183,9 @@ class HookCommandRule(HarnessCheckRule):
                                 pre_commit_text,
                             )
                         ):
-                            pre_commit_relative = relative(ctx.path_of(pre_commit_path_str), ctx.root)
+                            pre_commit_relative = relative(
+                                ctx.path_of(pre_commit_path_str), ctx.root
+                            )
                             result.append(
                                 Finding(
                                     ctx.severity_of(self.category),
@@ -205,7 +213,9 @@ class HookCommandRule(HarnessCheckRule):
                             if ctx.is_file(ci_file):
                                 ci_text = ctx.read(ci_file)
                                 if declared_command and declared_command not in ci_text:
-                                    ci_relative = relative(ctx.path_of(ci_file), ctx.root)
+                                    ci_relative = relative(
+                                        ctx.path_of(ci_file), ctx.root
+                                    )
                                     result.append(
                                         Finding(
                                             ctx.severity_of(self.category),

@@ -94,6 +94,7 @@ class EarlyReturnRule(HarnessCheckRule):
                 visitor = EarlyReturnFinder(relative(path, ctx.root))
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return list(collect_findings())
 
 

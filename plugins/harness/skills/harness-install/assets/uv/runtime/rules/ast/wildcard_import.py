@@ -98,6 +98,7 @@ class WildcardImportRule(HarnessCheckRule):
                 visitor = WildcardFinder(relative(path, ctx.root))
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return list(collect_findings())
 
 

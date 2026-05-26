@@ -69,7 +69,9 @@ class CiHookCommandParityRule(HarnessCheckRule):
                                     if ctx.is_file(ci_file):
                                         ci_text = ctx.read(ci_file)
                                         if command not in ci_text:
-                                            ci_relative = relative(ctx.path_of(ci_file), ctx.root)
+                                            ci_relative = relative(
+                                                ctx.path_of(ci_file), ctx.root
+                                            )
                                             result.append(
                                                 Finding(
                                                     ctx.severity_of(self.category),

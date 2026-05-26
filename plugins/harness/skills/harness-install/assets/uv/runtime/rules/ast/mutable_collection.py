@@ -39,14 +39,30 @@ class MutableCollectionRule(HarnessCheckRule):
     def validate(self, ctx: RuleContext) -> Iterable[Finding]:
         """Validate mutableCollection check."""
         severity = ctx.severity_of(self.category)
-        parameters = ctx.read_json_object(ctx.category_object(self.category).get("parameters"))
+        parameters = ctx.read_json_object(
+            ctx.category_object(self.category).get("parameters")
+        )
         config = MutableConfig(
-            configured(ctx, parameters.get("forbiddenConstructors"), ("list", "dict", "set")),
+            configured(
+                ctx, parameters.get("forbiddenConstructors"), ("list", "dict", "set")
+            ),
             configured(ctx, parameters.get("forbiddenTypes"), ()),
-            configured(ctx, parameters.get("forbiddenFqns"), ("builtins.list", "builtins.dict", "builtins.set")),
-            configured(ctx, parameters.get("accumulationMethods"), ("append", "add", "extend", "insert", "update", "setdefault")),
+            configured(
+                ctx,
+                parameters.get("forbiddenFqns"),
+                ("builtins.list", "builtins.dict", "builtins.set"),
+            ),
+            configured(
+                ctx,
+                parameters.get("accumulationMethods"),
+                ("append", "add", "extend", "insert", "update", "setdefault"),
+            ),
             configured(ctx, parameters.get("allowedBuilders"), ()),
-            configured(ctx, parameters.get("allowedComprehensionsOrGenerators"), ("list", "dict", "set", "generator")),
+            configured(
+                ctx,
+                parameters.get("allowedComprehensionsOrGenerators"),
+                ("list", "dict", "set", "generator"),
+            ),
         )
 
         def collect_findings() -> Iterable[Finding]:
@@ -55,12 +71,17 @@ class MutableCollectionRule(HarnessCheckRule):
                 tree, error = parse_python(path)
                 rel_path = relative(path, ctx.root)
                 if error is not None:
-                    yield Finding(severity, self.category, f"{rel_path}: syntax error: {error}")
+                    yield Finding(
+                        severity, self.category, f"{rel_path}: syntax error: {error}"
+                    )
                     continue
                 wrapper = cst.MetadataWrapper(tree)
-                visitor = MutableCollectionFinder(rel_path, severity, self.category, config)
+                visitor = MutableCollectionFinder(
+                    rel_path, severity, self.category, config
+                )
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return tuple(collect_findings())
 
 
@@ -108,11 +129,20 @@ class MutableCollectionFinder(cst.CSTVisitor):
     def visit_Call(self, node: cst.Call) -> bool:
         """Check constructor and accumulation calls."""
         call_name = dotted_name(node.func)
-        attr_name = node.func.attr.value if isinstance(node.func, cst.Attribute) else call_name
-        if call_name in self.config.forbidden_constructors or call_name in self.config.forbidden_fqns:
+        attr_name = (
+            node.func.attr.value if isinstance(node.func, cst.Attribute) else call_name
+        )
+        if (
+            call_name in self.config.forbidden_constructors
+            or call_name in self.config.forbidden_fqns
+        ):
             self.record(node, call_name)
         elif attr_name in self.config.accumulation_methods:
-            receiver = dotted_name(node.func.value) if isinstance(node.func, cst.Attribute) else ""
+            receiver = (
+                dotted_name(node.func.value)
+                if isinstance(node.func, cst.Attribute)
+                else ""
+            )
             if receiver not in self.config.allowed_builders:
                 self.record(node, attr_name)
         return True
@@ -158,7 +188,9 @@ class MutableCollectionFinder(cst.CSTVisitor):
         )
 
 
-def configured(ctx: RuleContext, value: object, defaults: tuple[str, ...]) -> tuple[str, ...]:
+def configured(
+    ctx: RuleContext, value: object, defaults: tuple[str, ...]
+) -> tuple[str, ...]:
     """Read a configured string tuple, falling back to defaults."""
     values = tuple(ctx.read_string_array(value))
     return values if values else defaults

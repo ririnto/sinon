@@ -49,7 +49,9 @@ from rules.ast.mutable_collection import RULE as mutable_collection
 from rules.ast.unstructured_logging import RULE as unstructured_logging
 from rules.ast.wildcard_import import RULE as wildcard_import
 from rules.ast.import_over_fqn import RULE as import_over_fqn
-from rules.ast.public_declaration_doc_comment import RULE as public_declaration_doc_comment
+from rules.ast.public_declaration_doc_comment import (
+    RULE as public_declaration_doc_comment,
+)
 from rules.ast.empty_catch_block import RULE as empty_catch_block
 from rules.ast.unchecked_cast_suppression import RULE as unchecked_cast_suppression
 from rules.ast.triple_quote_inline_comment import RULE as triple_quote_inline_comment
