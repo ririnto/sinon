@@ -1,7 +1,7 @@
 package com.ririnto.sinon.harness.rules
 
-import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.ast.AstFinding
+import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.RuleContext
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import java.nio.file.Path

@@ -33,19 +33,30 @@ object UnstructuredLoggingRule : HarnessAstRule() {
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile, forbiddenApis(ctx), allowedApis(ctx)))
-    }
+    ): Collection<AstFinding> =
+        buildSet {
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(
+                Visitor({ finding -> add(finding) }, file, ctx, ktFile, forbiddenApis(ctx), allowedApis(ctx)),
+            )
+        }
 
     private fun forbiddenApis(ctx: RuleContext): Set<String> {
-        val params = ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject
+        val params =
+            ctx.manifest
+                .categoryObject(category)
+                ?.get("parameters")
+                ?.jsonObject
         val configured = JsonAccess.stringArrayFromObject(params, "forbiddenLoggingApis")
         return configured.takeIf { values -> values.isNotEmpty() }?.toSet() ?: setOf("println")
     }
 
     private fun allowedApis(ctx: RuleContext): Set<String> {
-        val params = ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject
+        val params =
+            ctx.manifest
+                .categoryObject(category)
+                ?.get("parameters")
+                ?.jsonObject
         return JsonAccess.stringArrayFromObject(params, "allowedLoggingApis").toSet()
     }
 

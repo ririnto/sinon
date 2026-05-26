@@ -1,12 +1,11 @@
 package com.ririnto.sinon.harness.rules.ast
 
+import com.ririnto.sinon.harness.ast.AstFinding
+import com.ririnto.sinon.harness.ast.AstFindingRenderer
+import com.ririnto.sinon.harness.ast.AstSupport
+import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.rules.HarnessAstRule
-import com.ririnto.sinon.harness.ast.AstSupport
-import com.ririnto.sinon.harness.ast.AstFindingRenderer
-import com.ririnto.sinon.harness.ast.AstFinding
-
-import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
@@ -26,20 +25,28 @@ object WildcardImportRule : HarnessAstRule() {
      */
     override val category: String = "wildcardImport"
 
-    override fun applies(ctx: RuleContext): Boolean {
-        return ctx.manifest.categoryObject(category)?.get("enabled")?.jsonPrimitive?.contentOrNull?.toBoolean() ?: true
-    }
+    override fun applies(ctx: RuleContext): Boolean =
+        ctx.manifest
+            .categoryObject(category)
+            ?.get("enabled")
+            ?.jsonPrimitive
+            ?.contentOrNull
+            ?.toBoolean() ?: true
 
-    override fun renderAstFindings(ctx: RuleContext, findings: Collection<AstFinding>): Collection<Finding> = AstFindingRenderer.renderEach(findings.toList(), ctx.manifest.raw)
+    override fun renderAstFindings(
+        ctx: RuleContext,
+        findings: Collection<AstFinding>,
+    ): Collection<Finding> = AstFindingRenderer.renderEach(findings.toList(), ctx.manifest.raw)
 
     override fun findAstFindings(
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
-    }
+    ): Collection<AstFinding> =
+        buildSet {
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
+        }
 
     private class Visitor(
         private val record: (AstFinding) -> Unit,

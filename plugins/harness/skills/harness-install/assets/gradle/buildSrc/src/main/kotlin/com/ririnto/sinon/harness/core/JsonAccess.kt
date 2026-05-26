@@ -12,13 +12,18 @@ object JsonAccess {
     /**
      * Extracts a string value from a JSON object by key.
      */
-    fun stringFromObject(obj: JsonObject?, key: String): String =
-        obj?.get(key)?.jsonPrimitive?.contentOrNull ?: ""
+    fun stringFromObject(
+        obj: JsonObject?,
+        key: String,
+    ): String = obj?.get(key)?.jsonPrimitive?.contentOrNull ?: ""
 
     /**
      * Extracts a string array from a JSON object by key.
      */
-    fun stringArrayFromObject(obj: JsonObject?, key: String): List<String> =
+    fun stringArrayFromObject(
+        obj: JsonObject?,
+        key: String,
+    ): List<String> =
         obj
             ?.get(key)
             ?.jsonArray

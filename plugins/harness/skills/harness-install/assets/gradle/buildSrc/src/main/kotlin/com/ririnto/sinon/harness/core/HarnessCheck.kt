@@ -1,47 +1,47 @@
 package com.ririnto.sinon.harness.core
 
+import com.ririnto.sinon.harness.ast.AstFinding
 import com.ririnto.sinon.harness.ast.HarnessAstResults
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
-import com.ririnto.sinon.harness.ast.AstFinding
-import com.ririnto.sinon.harness.rules.ast.LeafFunctionBlankLinesRule
-import com.ririnto.sinon.harness.rules.ast.LeadingUnderscoreRule
+import com.ririnto.sinon.harness.rules.HarnessCheckRule
+import com.ririnto.sinon.harness.rules.ast.ClassMemberOrderingRule
+import com.ririnto.sinon.harness.rules.ast.CompanionObjectPositionRule
 import com.ririnto.sinon.harness.rules.ast.EarlyReturnRule
 import com.ririnto.sinon.harness.rules.ast.EmptyCatchBlockRule
 import com.ririnto.sinon.harness.rules.ast.GreaterThanComparisonRule
+import com.ririnto.sinon.harness.rules.ast.IfStatementBracesRule
 import com.ririnto.sinon.harness.rules.ast.ImplicitLambdaItRule
-import com.ririnto.sinon.harness.rules.ast.MutableCollectionRule
+import com.ririnto.sinon.harness.rules.ast.ImportOverFqnRule
+import com.ririnto.sinon.harness.rules.ast.KotlinTopLevelDeclarationCountRule
+import com.ririnto.sinon.harness.rules.ast.LeadingUnderscoreRule
+import com.ririnto.sinon.harness.rules.ast.LeafFunctionBlankLinesRule
 import com.ririnto.sinon.harness.rules.ast.MultilineDocStyleRule
+import com.ririnto.sinon.harness.rules.ast.MutableCollectionRule
 import com.ririnto.sinon.harness.rules.ast.NonNullAssertionRule
-import com.ririnto.sinon.harness.rules.ast.UncheckedCastSuppressionRule
-import com.ririnto.sinon.harness.rules.fs.ScaffoldLeaksRule
+import com.ririnto.sinon.harness.rules.ast.PublicDeclarationDocCommentRule
 import com.ririnto.sinon.harness.rules.ast.SilentCatchRule
-import com.ririnto.sinon.harness.rules.fs.UncheckedTasksRule
-import com.ririnto.sinon.harness.rules.fs.SymlinkSafetyRule
+import com.ririnto.sinon.harness.rules.ast.TerminalBranchWhenRule
+import com.ririnto.sinon.harness.rules.ast.UncheckedCastSuppressionRule
 import com.ririnto.sinon.harness.rules.ast.UnstructuredLoggingRule
 import com.ririnto.sinon.harness.rules.ast.WildcardImportRule
-import com.ririnto.sinon.harness.rules.HarnessCheckRule
-import com.ririnto.sinon.harness.rules.text.AgentFrontmatterRule
-import com.ririnto.sinon.harness.rules.ast.IfStatementBracesRule
-import com.ririnto.sinon.harness.rules.text.CiHookCommandParityRule
-import com.ririnto.sinon.harness.rules.ast.ClassMemberOrderingRule
-import com.ririnto.sinon.harness.rules.ast.CompanionObjectPositionRule
 import com.ririnto.sinon.harness.rules.fs.DirectoryPresenceRule
-import com.ririnto.sinon.harness.rules.ast.PublicDeclarationDocCommentRule
+import com.ririnto.sinon.harness.rules.fs.EmptyDirectoryPlaceholdersRule
+import com.ririnto.sinon.harness.rules.fs.FilePresenceRule
+import com.ririnto.sinon.harness.rules.fs.ScaffoldLeaksRule
+import com.ririnto.sinon.harness.rules.fs.SymlinkSafetyRule
+import com.ririnto.sinon.harness.rules.fs.TemplateGroupsRule
+import com.ririnto.sinon.harness.rules.fs.UncheckedTasksRule
+import com.ririnto.sinon.harness.rules.text.AgentFrontmatterRule
+import com.ririnto.sinon.harness.rules.text.CiHookCommandParityRule
 import com.ririnto.sinon.harness.rules.text.DocContentRule
 import com.ririnto.sinon.harness.rules.text.DocHeadingsRule
 import com.ririnto.sinon.harness.rules.text.EnvShebangUsageRule
-import com.ririnto.sinon.harness.rules.fs.FilePresenceRule
 import com.ririnto.sinon.harness.rules.text.HookCommandRule
 import com.ririnto.sinon.harness.rules.text.HookExecutableRule
 import com.ririnto.sinon.harness.rules.text.HookGeneratedMarkerRule
 import com.ririnto.sinon.harness.rules.text.HookShebangRule
 import com.ririnto.sinon.harness.rules.text.HookStageRule
-import com.ririnto.sinon.harness.rules.ast.ImportOverFqnRule
-import com.ririnto.sinon.harness.rules.fs.EmptyDirectoryPlaceholdersRule
-import com.ririnto.sinon.harness.rules.ast.KotlinTopLevelDeclarationCountRule
 import com.ririnto.sinon.harness.rules.text.SkillFrontmatterRule
-import com.ririnto.sinon.harness.rules.fs.TemplateGroupsRule
-import com.ririnto.sinon.harness.rules.ast.TerminalBranchWhenRule
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
@@ -263,9 +263,9 @@ enum class HarnessCheck(
                     ?.get("severity")
                     ?.jsonPrimitive
                     ?.contentOrNull
-            return Severity.entries.firstOrNull { entry -> entry.name.equals(severityName, ignoreCase = true) } ?: Severity.ERROR
+            return Severity.entries.firstOrNull { entry -> entry.name.equals(severityName, ignoreCase = true) }
+                ?: Severity.ERROR
         }
-
     }
 
     /**

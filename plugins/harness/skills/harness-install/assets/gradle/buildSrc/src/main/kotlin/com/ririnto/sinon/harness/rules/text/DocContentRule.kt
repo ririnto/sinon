@@ -1,9 +1,9 @@
 package com.ririnto.sinon.harness.rules.text
 
+import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.JsonAccess
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.rules.HarnessCheckRule
-import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -20,25 +20,30 @@ object DocContentRule : HarnessCheckRule() {
      * Category key.
      */
     override val category: String = "docContent"
+
     override fun validate(ctx: RuleContext): Collection<Finding> {
         if (ctx.manifest.categoryObject(category) == null) return emptyList()
-        return ctx.manifest.categoryObject(category)
+        return ctx.manifest
+            .categoryObject(category)
             ?.get("parameters")
             ?.jsonObject
             ?.get("checks")
             ?.jsonArray
             ?.mapNotNull { checkElem ->
                 runCatching { checkElem.jsonObject }.getOrNull()?.let { checkObj ->
-                    val content = JsonAccess.stringArrayFromObject(checkObj, "files").joinToString("\n") { filePath ->
-                        ctx.readSafe(filePath)
-                    }
+                    val content =
+                        JsonAccess.stringArrayFromObject(checkObj, "files").joinToString("\n") { filePath ->
+                            ctx.readSafe(filePath)
+                        }
                     if (!conditionMatches(checkObj, content)) {
                         Finding(
                             ctx.manifest.severityOf(category),
                             category,
                             JsonAccess.stringFromObject(checkObj, "failureMessage"),
                         )
-                    } else null
+                    } else {
+                        null
+                    }
                 }
             } ?: emptyList()
     }
