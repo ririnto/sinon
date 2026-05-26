@@ -31,7 +31,7 @@ Session startup latency: 5-10 seconds (one OAuth handshake per server).
 
 Load servers only when tool is called:
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -54,7 +54,7 @@ lazy_load_mcp_server() {
 
 Call before using server tools:
 
-```
+```markdown
 # Command that uses GitHub MCP
 
 Before using GitHub tools, ensure server is loaded:
@@ -74,7 +74,7 @@ HTTP and WebSocket connections to MCP servers can be pooled (connection reuse ac
 
 Each tool call opens a new connection, then closes:
 
-```
+```text
 Tool call 1: Open → Request → Response → Close (100ms)
 Tool call 2: Open → Request → Response → Close (100ms)
 Total: 200ms
@@ -86,13 +86,13 @@ MCP runtime maintains connection pool automatically for HTTP/WebSocket. No confi
 
 Verify pooling is active:
 
-```
+```json
 claude --debug 2>&1 | grep -i "pool\|connection"
 ```
 
 Expected output:
 
-```
+```toml
 [mcp] Creating connection pool for 'github' (size=5)
 [mcp] Reusing connection from pool for tool: 'search_repositories'
 [mcp] Connection pool stats: 5 active, 0 pending
@@ -102,9 +102,9 @@ Expected output:
 
 For high-volume tool use, tune pool size in hook:
 
-`.claude/<plugin-name>.local.md:`
+`.claude/{{plugin-name}}.local.md:`
 
-```
+```markdown
 ---
 mcp_pool_size: 10
 mcp_max_requests_per_connection: 100
@@ -113,7 +113,7 @@ mcp_max_requests_per_connection: 100
 
 Hook reads and applies:
 
-```
+```json
 POOL_SIZE=$(grep '^mcp_pool_size:' "$SETTINGS_FILE" | sed 's/mcp_pool_size: *//')
 export MCP_POOL_SIZE="$POOL_SIZE"
 ```
@@ -130,7 +130,7 @@ When using multiple MCP tools in sequence, batch them if server supports it.
 
 ### Problem: sequential calls
 
-```
+```markdown
 # shellcheck disable=SC2034
 # Three separate tool calls, three separate requests
 REPO1=$(call_tool list_repositories --user alice)
@@ -144,7 +144,7 @@ Latency: 100ms × 3 = 300ms
 
 Some servers support batch API (e.g., GitHub GraphQL can query multiple users in one call):
 
-```
+```bash
 #!/bin/bash
 
 # Batch repository queries for multiple users.
@@ -170,7 +170,7 @@ Latency: single request for all users, 100ms total.
 
 Post to multiple channels in one batch call:
 
-```
+```bash
 #!/bin/bash
 
 # Post message to multiple Slack channels.
@@ -201,13 +201,13 @@ batch_slack_post() {
 
 MCP tool call latency has several components:
 
-```
+```text
 Total = Network (10-100ms) + Server Processing (50-500ms) + Serialization (1-10ms)
 ```
 
 Measure each:
 
-```
+```bash
 #!/bin/bash
 
 # Measure MCP tool call latency with breakdown.
@@ -227,13 +227,13 @@ measure_mcp_latency() {
 
 Debug output shows per-tool stats:
 
-```
+```json
 claude --debug 2>&1 | grep "mcp\|latency"
 ```
 
 Output:
 
-```
+```toml
 [mcp] Tool 'list_repositories': 45ms
 [mcp] Tool 'get_repository_details': 120ms
 [mcp] Average latency: 82.5ms
@@ -243,7 +243,7 @@ Output:
 
 If tool consistently takes > 500ms:
 
-```
+```bash
 #!/bin/bash
 
 # Identify slow MCP tools in use.
@@ -270,7 +270,7 @@ Cache expensive tool results locally to avoid repeated calls.
 
 ### File-based cache
 
-```
+```bash
 #!/bin/bash
 
 # Cache MCP tool result with TTL.
@@ -302,7 +302,7 @@ cached_mcp_call() {
 
 Usage:
 
-```
+```markdown
 # Cache GitHub user data for 1 hour
 GITHUB_USER=$(cached_mcp_call get_user --username alice 3600)
 ```
@@ -311,7 +311,7 @@ GITHUB_USER=$(cached_mcp_call get_user --username alice 3600)
 
 Invalidate cache when data changes:
 
-```
+```bash
 #!/bin/bash
 
 # Clear MCP cache for a specific tool.
@@ -332,13 +332,13 @@ invalidate_mcp_cache() {
 
 List active MCP servers and tools:
 
-```
+```text
 /mcp
 ```
 
 Output:
 
-```
+```text
 MCP Servers (3 active):
   github
     ├─ search_repositories
@@ -352,17 +352,17 @@ MCP Servers (3 active):
     └─ submit_job
 ```
 
-### Command: /mcp test `<server-name>`
+### Command: /mcp test `{{server-name}}`
 
 Test server connectivity:
 
-```
+```text
 /mcp test github
 ```
 
 Output:
 
-```
+```text
 Testing github server...
 ✓ Connection successful
 ✓ Tools loaded (42)
@@ -370,11 +370,11 @@ Testing github server...
 ✓ Server healthy
 ```
 
-### Command: /mcp authorize `<server-name>`
+### Command: /mcp authorize `{{server-name}}`
 
 Trigger OAuth re-authorization (for expired or wrong token):
 
-```
+```text
 /mcp authorize github
 ```
 
@@ -384,13 +384,13 @@ Browser opens to GitHub OAuth, user approves, token updated.
 
 Run with debug output filtered to MCP:
 
-```
+```json
 claude --debug 2>&1 | grep -E "^\[mcp\]"
 ```
 
 Output:
 
-```
+```toml
 [mcp] Loading servers from .mcp.json
 [mcp] Server 'github': initializing SSE connection
 [mcp] Server 'github': OAuth token valid (expires in 3600s)
@@ -403,13 +403,13 @@ Output:
 
 Claude Code writes detailed MCP logs to:
 
-```
+```text
 ~/.claude/logs/mcp.log
 ```
 
 View recent logs:
 
-```
+```text
 tail -50 ~/.claude/logs/mcp.log
 ```
 
@@ -422,7 +422,7 @@ tail -50 ~/.claude/logs/mcp.log
 - [ ] Invalidate cache on data changes
 - [ ] Monitor per-tool latency with `/mcp`
 - [ ] Identify slow tools (> 500ms) and optimize
-- [ ] Test server connectivity regularly: `/mcp test <server>`
+- [ ] Test server connectivity regularly: `/mcp test {{server}}`
 - [ ] Review MCP debug logs for errors: `tail -f ~/.claude/logs/mcp.log`
 - [ ] Tune connection pool size for high-volume use
 

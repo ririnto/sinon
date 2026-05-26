@@ -37,7 +37,7 @@ Hooks MUST NOT depend on side effects of other hooks:
 
 #### Broken: implicit ordering dependency
 
-```
+```json
 {
   "SessionStart": [
     {
@@ -56,7 +56,7 @@ Risk: second hook may run before first hook writes file, causing parse error.
 
 Each hook reads from its own source or environment variables:
 
-```
+```json
 {
   "SessionStart": [
     {
@@ -84,7 +84,7 @@ Timeouts apply per hook. If hook exceeds timeout, it is terminated:
 
 ### Example: tuning per operation
 
-```
+```json
 {
   "PreToolUse": [
     {
@@ -127,7 +127,7 @@ If hook times out, it is logged and subsequent behavior depends on hook type:
 
 Monitor timeouts with:
 
-```
+```text
 claude --debug 2>&1 | grep -i timeout
 ```
 
@@ -137,7 +137,7 @@ claude --debug 2>&1 | grep -i timeout
 
 Cache is written by one hook, read by others. Safe because hooks in same event run in parallel but file creation is atomic:
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -169,7 +169,7 @@ cache_based_check() {
 
 SessionStart hooks run sequentially in a single session. Computed values can be written to `$CLAUDE_ENV_FILE` for reuse:
 
-```
+```jsonc
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 set -e
@@ -194,7 +194,7 @@ All subsequent hooks and tools can access via `$PROJECT_TYPE` and `$PROJECT_VERS
 
 Add timestamps to cached data. If data is stale (> 1 hour), recompute:
 
-```
+```json
 timestamp=$(jq -r '.timestamp' "$cache_file" || echo "0")
 current=$(date +%s)
 age=$((current - timestamp))
@@ -212,7 +212,7 @@ Hooks on critical paths (`PreToolUse` with `Write|Edit|Bash` matchers) should be
 
 ### Example: fast-path + fallback pattern
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -236,7 +236,7 @@ quick_validation
 
 Then add a second, slower prompt hook for deep validation only when needed:
 
-```
+```json
 {
   "PreToolUse": [
     {
@@ -264,7 +264,7 @@ First hook blocks obvious issues quickly. Second hook runs in parallel and can t
 
 #### Broken
 
-```
+```sh
 # PreToolUse hook
 input=$(cat)
 file_path=$(printf '%s' "$input" | jq -r '.tool_input.file_path')
@@ -276,7 +276,7 @@ curl -s "https://api.example.com/check?path=$file_path"
 
 Move expensive work to SessionStart
 
-```
+```json
 {
   "SessionStart": [
     {
@@ -310,13 +310,13 @@ Policies are downloaded once at session start. PreToolUse hook reads local polic
 
 List active hooks in current session:
 
-```
+```text
 /hooks
 ```
 
 Output:
 
-```
+```text
 Loaded hooks (session abc123):
   SessionStart (1 hook)
     - command: bash ${CLAUDE_PLUGIN_ROOT}/hooks/init.sh
@@ -331,13 +331,13 @@ Loaded hooks (session abc123):
 
 Run Claude Code with debug output:
 
-```
+```text
 claude --debug
 ```
 
 Look for hook-related output:
 
-```
+```toml
 [hooks] Loading hooks from /path/to/plugin/hooks/hooks.json
 [hooks] Validating hook syntax...
 [hooks] SessionStart: executing 1 hook (0.5s)
@@ -349,7 +349,7 @@ Look for hook-related output:
 
 Create test input and run hook directly:
 
-```
+```json
 cat > /tmp/test-input.json << 'EOF'
 {
   "session_id": "test",
@@ -365,7 +365,7 @@ echo "Exit code: $?"
 
 Verify output is valid JSON:
 
-```
+```text
 sh hooks/validate.sh < /tmp/test-input.json | python3 -m json.tool
 ```
 
@@ -373,7 +373,7 @@ sh hooks/validate.sh < /tmp/test-input.json | python3 -m json.tool
 
 Write logs to file for debugging:
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -399,7 +399,7 @@ check_with_logging
 
 View logs:
 
-```
+```json
 tail -f "${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
 ```
 
@@ -409,7 +409,7 @@ Hooks on the same event WILL run in parallel unless explicitly chained. There is
 
 To enforce sequence, use SessionStart setup:
 
-```
+```json
 {
   "SessionStart": [
     {
