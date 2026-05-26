@@ -64,7 +64,7 @@ export const unstructuredLoggingRule: HarnessCheckRule = {
               findings.push({
                 severity: ctx.severityOf("unstructuredLogging"),
                 category: "unstructuredLogging",
-                message: `${file}:${start.line + 1}: unstructured logging \`${apiName}\`; use structured logger`,
+                message: `unstructured logging \`${apiName}\`; use structured logger`,
                 file,
                 startLine: start.line + 1,
                 startColumn: start.character + 1,

@@ -28,10 +28,15 @@ object AstFindingRenderer {
         manifest: JsonObject,
     ): Finding {
         val category = finding.rule
+        /** AstFinding carries PSI line data only; default to the line start rather than inventing a column. */
+        val lineStartColumn = 1
         return Finding(
-            HarnessCheck.severityOf(manifest, category),
-            category,
-            renderedMessage(finding, manifest),
+            severity = HarnessCheck.severityOf(manifest, category),
+            category = category,
+            message = renderedMessage(finding, manifest),
+            file = finding.file,
+            startLine = finding.line,
+            startColumn = lineStartColumn,
         )
     }
 
@@ -62,6 +67,8 @@ object AstFindingRenderer {
                         ?.jsonPrimitive
                         ?.contentOrNull
                         ?: "top",
-                ).takeIf { message -> message.isNotEmpty() } ?: error("manifest messages.default missing for category ${finding.rule}")
+                )
+                .replace(Regex("^\\S+:\\d+:\\s"), "")
+                .takeIf { message -> message.isNotEmpty() } ?: error("manifest messages.default missing for category ${finding.rule}")
     }
 }

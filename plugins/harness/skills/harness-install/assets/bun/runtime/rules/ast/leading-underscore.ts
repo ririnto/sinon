@@ -150,7 +150,7 @@ function finding(
 	return {
 		severity: ctx.severityOf("leadingUnderscore"),
 		category: "leadingUnderscore",
-		message: `${file}:${startLine}: declaration \`${name}\` uses a leading underscore`,
+		message: `declaration \`${name}\` uses a leading underscore`,
 		file,
 		startLine,
 		startColumn,

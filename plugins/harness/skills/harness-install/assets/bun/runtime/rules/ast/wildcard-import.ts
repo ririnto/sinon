@@ -49,7 +49,7 @@ export const wildcardImportRule: HarnessCheckRule = {
             return [{
               severity: ctx.severityOf("wildcardImport"),
               category: "wildcardImport",
-              message: `${file}:${start.line + 1}: wildcard import \`import * as\` forbidden; import explicit symbols`,
+              message: `wildcard import \`import * as\` forbidden; import explicit symbols`,
               file,
               startLine: start.line + 1,
               startColumn: start.character + 1,

@@ -429,9 +429,9 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:2: shebang script missing UTF-8 encoding marker; expected `{expected}` on line 2",
-      "missingLine": "{file}: shebang script has no line 2; expected `{expected}`",
-      "wrongMarker": "{file}:2: shebang script declares wrong encoding marker; found `{actual}`, expected `{expected}`"
+      "default": "shebang script missing UTF-8 encoding marker; expected `{expected}` on line 2",
+      "missingLine": "shebang script has no line 2; expected `{expected}`",
+      "wrongMarker": "shebang script declares wrong encoding marker; found `{actual}`, expected `{expected}`"
     },
     "parameters": {
       "sourceRoots": [],
@@ -510,7 +510,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}: file must have single top-level declaration"
+      "default": "file must have single top-level declaration"
     },
     "parameters": {
       "sourceRoots": [
@@ -537,7 +537,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: companion object position violates parameters.position={position}"
+      "default": "companion object position violates parameters.position={position}"
     },
     "parameters": {
       "position": "top",
@@ -556,7 +556,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: forbidden `>`/`>=` comparison; rewrite with `<`/`<=` so the smaller value is on the left"
+      "default": "forbidden `>`/`>=` comparison; rewrite with `<`/`<=` so the smaller value is on the left"
     },
     "parameters": {
       "sourceRoots": [
@@ -584,7 +584,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: leaf function `{function}` contains too many blank lines; remove or extract the section"
+      "default": "leaf function `{function}` contains too many blank lines; remove or extract the section"
     },
     "parameters": {
       "sourceRoots": [
@@ -613,7 +613,7 @@
     "enabled": true,
     "severity": "WARN",
     "messages": {
-      "default": "{file}:{line}: function `{function}` has an early/mid return; restructure with single exit"
+      "default": "function `{function}` has an early/mid return; restructure with single exit"
     },
     "parameters": {
       "sourceRoots": [
@@ -641,7 +641,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: silent catch; rethrow, translate to a Finding, or log via structured logger"
+      "default": "silent catch; rethrow, translate to a Finding, or log via structured logger"
     },
     "parameters": {
       "sourceRoots": [
@@ -669,7 +669,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: mutable collection construction `{snippet}`; use functional alternative"
+      "default": "mutable collection construction `{snippet}`; use functional alternative"
     },
     "parameters": {
       "sourceRoots": [
@@ -696,7 +696,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: unstructured logging `{snippet}`; use structured logger"
+      "default": "unstructured logging `{snippet}`; use structured logger"
     },
     "parameters": {
       "sourceRoots": [
@@ -724,7 +724,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: wildcard import `{import}` forbidden; import explicit symbols"
+      "default": "wildcard import `{import}` forbidden; import explicit symbols"
     },
     "parameters": {
       "sourceRoots": [
@@ -752,7 +752,7 @@
     "enabled": true,
     "severity": "WARN",
     "messages": {
-      "default": "{file}:{line}: fully qualified name `{name}` used inline; add an import and use the simple name"
+      "default": "fully qualified name `{name}` used inline; add an import and use the simple name"
     },
     "parameters": {
       "sourceRoots": [
@@ -780,7 +780,7 @@
     "enabled": true,
     "severity": "WARN",
     "messages": {
-      "default": "{file}:{line}: public declaration `{name}` is missing a documentation comment"
+      "default": "public declaration `{name}` is missing a documentation comment"
     },
     "parameters": {
       "sourceRoots": [
@@ -815,7 +815,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: empty catch block; handle, rethrow, or convert to a Finding"
+      "default": "empty catch block; handle, rethrow, or convert to a Finding"
     },
     "parameters": {
       "sourceRoots": [
@@ -843,7 +843,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: if/else without braces; wrap the body in `{ ... }`"
+      "default": "if/else without braces; wrap the body in `{ ... }`"
     },
     "parameters": {
       "sourceRoots": [
@@ -870,7 +870,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: terminal if/else expression in {context}; use when instead"
+      "default": "terminal if/else expression in {context}; use when instead"
     },
     "parameters": {
       "sourceRoots": [
@@ -889,7 +889,7 @@
     "enabled": true,
     "severity": "ERROR",
     "messages": {
-      "default": "{file}:{line}: class `{className}` member `{memberName}` ({memberOverrideState}:{memberVisibility}:{memberKind}) is out of order"
+      "default": "class `{className}` member `{memberName}` ({memberOverrideState}:{memberVisibility}:{memberKind}) is out of order"
     },
     "parameters": {
       "sourceRoots": [

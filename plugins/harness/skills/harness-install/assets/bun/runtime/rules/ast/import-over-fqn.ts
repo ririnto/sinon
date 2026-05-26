@@ -86,7 +86,7 @@ export const importOverFqnRule: HarnessCheckRule = {
               return [{
                 severity: ctx.severityOf("importOverFqn"),
                 category: "importOverFqn",
-                message: `${file}:${start.line + 1}: fully qualified name \`${buildFqnParts(node, [simpleName]).join(".")}\` used inline; add an import and use the simple name`,
+                message: `fully qualified name \`${buildFqnParts(node, [simpleName]).join(".")}\` used inline; add an import and use the simple name`,
                 file,
                 startLine: start.line + 1,
                 startColumn: start.character + 1,

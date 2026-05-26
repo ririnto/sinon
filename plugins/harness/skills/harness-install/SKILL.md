@@ -86,6 +86,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 - `docs/harness/manifest.json` is the installed harness inventory and contract.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
 - Plugin skills install, validate, and evolve the harness package; installed target skills and agents guide day-to-day work inside the target repository.
+- Bun and uv runtimes install `harness-check` and `harness-format` alongside `harness-validate`. `harnessFormat` applies only allowlisted safe fixes and is idempotent. The shell runtime installs `harness-validate.sh` only; no shell `harnessCheck` or `harnessFormat` exists. Gradle and Maven formatting is deferred.
 
 ## Pitfalls
 
@@ -100,7 +101,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 
 Report these fields:
 
-- `mode`: detected or explicit stack mode.
+- `mode`: explicit stack mode (`--mode` flag).
 - `installer command`: the command that ran.
 - `files`: written, kept, and skipped file groups.
 - `hooks`: `none` or `copy`; the resolved worktree hooks directory used for copy mode; whether pre-commit and pre-push files were written, kept, refreshed, or force-replaced.

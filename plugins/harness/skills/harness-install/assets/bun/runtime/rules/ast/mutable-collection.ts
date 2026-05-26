@@ -142,7 +142,7 @@ function mutableFinding(
   return {
     severity: ctx.severityOf("mutableCollection"),
     category: "mutableCollection",
-    message: `${file}:${start.line + 1}: mutable collection construction \`${name}\`; use functional alternative`,
+    message: `mutable collection construction \`${name}\`; use functional alternative`,
     file,
     startLine: start.line + 1,
     startColumn: start.character + 1,
