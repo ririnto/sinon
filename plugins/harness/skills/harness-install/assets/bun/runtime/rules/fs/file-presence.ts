@@ -21,16 +21,16 @@ export const filePresenceRule: HarnessCheckRule = {
     },
 
     validate(ctx: RuleContext): readonly Finding[] {
-        const parameters = ctx.readJsonObject(ctx.readJsonObject(ctx.manifest.raw.filePresence).parameters);
-        const paths = ctx.readStringArray(parameters.paths);
+        const paths = ctx.readStringArray(
+            ctx.readJsonObject(ctx.readJsonObject(ctx.manifest.raw.filePresence).parameters).paths,
+        );
         const severity = ctx.severityOf("filePresence");
-        const category = "filePresence";
         return paths.flatMap((path) => {
             if (ctx.isSymlink(path) && ctx.allowedRootContractTarget(path) === null) {
                 return [
                     {
                         severity,
-                        category,
+                        category: "filePresence",
                         message: `symlink file is not allowed: ${path}`,
                         file: path,
                         startLine: 1,
@@ -46,7 +46,7 @@ export const filePresenceRule: HarnessCheckRule = {
             return [
                 {
                     severity,
-                    category,
+                    category: "filePresence",
                     message: `missing file: ${path}`,
                     file: path,
                     startLine: 1,
