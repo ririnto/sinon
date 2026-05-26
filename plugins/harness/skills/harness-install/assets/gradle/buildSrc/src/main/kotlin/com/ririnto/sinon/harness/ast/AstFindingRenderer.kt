@@ -1,8 +1,8 @@
 package com.ririnto.sinon.harness.ast
 
-import com.ririnto.sinon.harness.core.JsonAccess
-import com.ririnto.sinon.harness.core.HarnessCheck
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
+import com.ririnto.sinon.harness.core.HarnessCheck
+import com.ririnto.sinon.harness.core.JsonAccess
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
@@ -28,6 +28,7 @@ object AstFindingRenderer {
         manifest: JsonObject,
     ): Finding {
         val category = finding.rule
+
         /** AstFinding carries PSI line data only; default to the line start rather than inventing a column. */
         val lineStartColumn = 1
         return Finding(
@@ -43,32 +44,32 @@ object AstFindingRenderer {
     private fun renderedMessage(
         finding: AstFinding,
         manifest: JsonObject,
-    ): String {
-        return JsonAccess.stringFromObject(manifest[finding.rule]?.jsonObject?.get("messages")?.jsonObject, "default")
-                .replace("{file}", finding.file)
-                .replace("{line}", finding.line.toString())
-                .replace("{function}", finding.detail("function"))
-                .replace("{name}", finding.detail("name"))
-                .replace("{snippet}", finding.detail("name"))
-                .replace("{imported}", finding.detail("imported"))
-                .replace("{className}", finding.detail("className"))
-                .replace("{memberName}", finding.detail("memberName"))
-                .replace("{memberOverrideState}", finding.detail("memberOverrideState"))
-                .replace("{memberVisibility}", finding.detail("memberVisibility"))
-                .replace("{memberKind}", finding.detail("memberKind"))
-                .replace("{context}", finding.detail("context"))
-                .replace(
-                    "{position}",
-                    manifest[finding.rule]
-                        ?.jsonObject
-                        ?.get("parameters")
-                        ?.jsonObject
-                        ?.get("position")
-                        ?.jsonPrimitive
-                        ?.contentOrNull
-                        ?: "top",
-                )
-                .replace(Regex("^\\S+:\\d+:\\s"), "")
-                .takeIf { message -> message.isNotEmpty() } ?: error("manifest messages.default missing for category ${finding.rule}")
-    }
+    ): String =
+        JsonAccess
+            .stringFromObject(manifest[finding.rule]?.jsonObject?.get("messages")?.jsonObject, "default")
+            .replace("{file}", finding.file)
+            .replace("{line}", finding.line.toString())
+            .replace("{function}", finding.detail("function"))
+            .replace("{name}", finding.detail("name"))
+            .replace("{snippet}", finding.detail("name"))
+            .replace("{imported}", finding.detail("imported"))
+            .replace("{className}", finding.detail("className"))
+            .replace("{memberName}", finding.detail("memberName"))
+            .replace("{memberOverrideState}", finding.detail("memberOverrideState"))
+            .replace("{memberVisibility}", finding.detail("memberVisibility"))
+            .replace("{memberKind}", finding.detail("memberKind"))
+            .replace("{context}", finding.detail("context"))
+            .replace(
+                "{position}",
+                manifest[finding.rule]
+                    ?.jsonObject
+                    ?.get("parameters")
+                    ?.jsonObject
+                    ?.get("position")
+                    ?.jsonPrimitive
+                    ?.contentOrNull
+                    ?: "top",
+            ).replace(Regex("^\\S+:\\d+:\\s"), "")
+            .takeIf { message -> message.isNotEmpty() }
+            ?: error("manifest messages.default missing for category ${finding.rule}")
 }

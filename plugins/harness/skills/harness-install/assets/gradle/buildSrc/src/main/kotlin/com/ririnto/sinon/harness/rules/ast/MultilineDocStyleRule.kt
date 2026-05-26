@@ -24,23 +24,27 @@ object MultilineDocStyleRule : HarnessAstRule() {
      */
     override val category: String = "multilineDocStyle"
 
-    override fun renderAstFindings(ctx: RuleContext, findings: Collection<AstFinding>): Collection<Finding> =
-        AstFindingRenderer.renderEach(findings.toList(), ctx.manifest.raw)
+    override fun renderAstFindings(
+        ctx: RuleContext,
+        findings: Collection<AstFinding>,
+    ): Collection<Finding> = AstFindingRenderer.renderEach(findings.toList(), ctx.manifest.raw)
 
     override fun findAstFindings(
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        if (docStyleMode(ctx) != "multiline") {
-            return@buildSet
+    ): Collection<AstFinding> =
+        buildSet {
+            if (docStyleMode(ctx) != "multiline") {
+                return@buildSet
+            }
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(Visitor(::add, file, ctx, ktFile))
         }
-        val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor(::add, file, ctx, ktFile))
-    }
 
     private fun docStyleMode(ctx: RuleContext): String =
-        ctx.manifest.categoryObject(category)
+        ctx.manifest
+            .categoryObject(category)
             ?.get("parameters")
             ?.jsonObject
             ?.get("docStyleMode")
