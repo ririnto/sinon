@@ -1,7 +1,7 @@
 ---
 name: plugin-settings
 description: >-
-  Author plugin-level configuration via `settings.json` and per-project state via `.claude/<plugin-name>.local.md` with YAML frontmatter parsing patterns.
+  Author plugin-level configuration via `settings.json` and per-project state via `.claude/{{plugin-name}}.local.md` with YAML frontmatter parsing patterns.
 ---
 
 # Plugin Settings
@@ -10,7 +10,7 @@ Author plugin-level static configuration and per-project plugin state with YAML 
 
 ## Goal
 
-Enable plugins to store configurable state in `.claude/<plugin-name>.local.md` files so projects can customize plugin behavior without code changes, and document the file structure and parsing patterns needed to read and validate settings.
+Enable plugins to store configurable state in `.claude/{{plugin-name}}.local.md` files so projects can customize plugin behavior without code changes, and document the file structure and parsing patterns needed to read and validate settings.
 
 ## Scope
 
@@ -22,7 +22,7 @@ This skill covers two independent surfaces:
 
 ### Per-Project State
 
-`.claude/<plugin-name>.local.md` in user projects, gitignored, user-managed. YAML frontmatter (structured key-value config) + markdown body (freeform content). One file per plugin per project.
+`.claude/{{plugin-name}}.local.md` in user projects, gitignored, user-managed. YAML frontmatter (structured key-value config) + markdown body (freeform content). One file per plugin per project.
 
 ## Operating Rules
 
@@ -52,7 +52,7 @@ Minimal schema with only fields the plugin actually uses:
 
 Declare in `plugin.json`:
 
-```
+```jsonc
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin",
@@ -64,11 +64,11 @@ Declare in `plugin.json`:
 }
 ```
 
-### Per-project .claude/`<plugin-name>`.local.md
+### Per-project .claude/`{{plugin-name}}`.local.md
 
 Template with frontmatter (YAML key-value pairs) and optional markdown body:
 
-```
+```markdown
 ---
 enabled: true
 mode: standard
@@ -99,7 +99,7 @@ Hooks (bash scripts) that read settings follow a three-step pattern: existence c
 
 Pattern: Check file exists, extract frontmatter between `---` delimiters, parse individual fields with `grep` + `sed`:
 
-```
+```sh
 if [ ! -f "$STATE_FILE" ]; then
     return 0
 fi
@@ -115,7 +115,7 @@ Commands use the `Read` tool to fetch `.local.md` files, then parse YAML frontma
 
 ### In Command Markdown
 
-```
+```markdown
 # Your Command
 
 Check for settings at `.claude/your-plugin.local.md`.
@@ -124,7 +124,7 @@ If present, read the file, parse YAML frontmatter for `enabled`, `mode`, and oth
 
 Agents reference settings in their instructions:
 
-```
+```markdown
 ---
 name: configured-agent
 description: >-
@@ -145,7 +145,7 @@ If the file is absent, use documented defaults.
 
 Use `enabled` flag to activate/deactivate hooks without editing `hooks.json` (which requires restart):
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -173,7 +173,7 @@ Store agent identity and coordinator session for multi-agent swarms:
 
 `.claude/multi-agent-swarm.local.md:`
 
-```
+```markdown
 ---
 agent_name: auth-service
 task_number: 3.5
@@ -189,7 +189,7 @@ Coordinate with database-agent on schema changes.
 
 Hook reads fields and sends notifications to coordinator:
 
-```
+```markdown
 # Validate tmux session name format.
 #
 # @param session Session name.
@@ -216,7 +216,7 @@ Store validation policy and apply in hooks or commands:
 
 `.claude/security-plugin.local.md:`
 
-```
+```markdown
 ---
 validation_level: strict
 max_file_size: 1000000
@@ -228,7 +228,7 @@ allowed_extensions:
 
 Switch behavior based on mode:
 
-```
+```json
 LEVEL=$(echo "$FRONTMATTER" | grep '^validation_level:' | sed 's/validation_level: *//')
 case "$LEVEL" in
     strict)
@@ -251,13 +251,13 @@ Commands can scaffold settings files when first run or requested by the user.
 
 1. Ask user for configuration preferences.
 2. Sanitize user input (escape quotes, validate types).
-3. Write `.claude/<plugin-name>.local.md` with YAML frontmatter and optional body.
+3. Write `.claude/{{plugin-name}}.local.md` with YAML frontmatter and optional body.
 4. Add `.claude/*.local.md` to project `.gitignore`.
 5. Inform user that settings are active and require Claude Code restart.
 
 ### Sanitization Example
 
-```
+```markdown
 # Write sanitized user input to plugin settings file.
 #
 # @param USER_INPUT Raw user input string.
@@ -277,7 +277,7 @@ chmod 600 ".claude/your-plugin.local.md"
 
 Validate path fields to prevent path traversal:
 
-```
+```markdown
 # Canonicalize and validate path against base directory.
 #
 # @param base_dir Base directory (e.g., ${CLAUDE_PROJECT_DIR}).
@@ -317,14 +317,14 @@ fi
 
 User scope state files MUST never be committed:
 
-```
+```text
 .claude/*.local.md
 .claude/*.local.json
 ```
 
 Document this in plugin README:
 
-```
+```markdown
 ## Configuration
 
 Create `.claude/your-plugin.local.md` in your project:
@@ -341,7 +341,7 @@ Note: This file is local to your project and should be added to `.gitignore`.
 
 ### Defaults when file is absent
 
-```
+```sh
 if [ ! -f "$STATE_FILE" ]; then
     ENABLED=true
     MODE="standard"
@@ -353,7 +353,7 @@ fi
 
 Validate numeric ranges:
 
-```
+```json
 MAX=$(echo "$FRONTMATTER" | grep '^max_retries:' | sed 's/max_retries: *//')
 if ! printf '%s' "$MAX" | grep -qE '^[0-9]+$' || [ "$MAX" -lt 1 ] || [ "$MAX" -gt 100 ]; then
     echo "⚠️ Invalid max_retries (must be 1-100), using default 3" >&2
@@ -367,7 +367,7 @@ Critical: Changes to `.local.md` files require Claude Code restart before hooks 
 
 Document in plugin README:
 
-```
+```markdown
 ## Changing Settings
 
 After editing `.claude/your-plugin.local.md`:
@@ -385,7 +385,7 @@ Hooks loaded during startup cannot be hot-reloaded within the same session.
 
 Always escape user input before writing to YAML:
 
-```
+```json
 SAFE_VALUE=$(echo "$INPUT" | sed 's/"/\\"/g' | sed "s/'/\\\\'/g")
 echo "field: \"$SAFE_VALUE\"" >> "$STATE_FILE"
 ```
@@ -394,7 +394,7 @@ echo "field: \"$SAFE_VALUE\"" >> "$STATE_FILE"
 
 Reject paths containing `..` or absolute paths when not intended:
 
-```
+```jsonc
 PATH_VALUE=$(echo "$FRONTMATTER" | grep '^output_dir:' | sed 's/output_dir: *//')
 if printf '%s' "$PATH_VALUE" | grep -qE '^/' || [ "$PATH_VALUE" != "${PATH_VALUE%..*}" ]; then
     echo "⚠️ Invalid path in settings" >&2
@@ -406,7 +406,7 @@ fi
 
 Settings files MUST be readable only by the user:
 
-```
+```json
 chmod 600 ".claude/your-plugin.local.md"
 ```
 
@@ -414,7 +414,7 @@ chmod 600 ".claude/your-plugin.local.md"
 
 Check that a settings file exists and is valid YAML:
 
-```
+```sh
 if [ -f ".claude/your-plugin.local.md" ]; then
     head -20 ".claude/your-plugin.local.md"
 fi
@@ -422,13 +422,13 @@ fi
 
 Extract frontmatter without parsing:
 
-```
+```json
 sed -n '/^---$/,/^---$/{ /^---$/d; p; }' ".claude/your-plugin.local.md"
 ```
 
 Read a single field:
 
-```
+```json
 grep '^enabled:' ".claude/your-plugin.local.md" | sed 's/enabled: *//'
 ```
 
@@ -436,7 +436,7 @@ grep '^enabled:' ".claude/your-plugin.local.md" | sed 's/enabled: *//'
 
 When implementing settings support in a plugin, return:
 
-1. The template `.claude/<plugin-name>.local.md` file showing example frontmatter and body.
+1. The template `.claude/{{plugin-name}}.local.md` file showing example frontmatter and body.
 2. Example hook code that reads and uses settings.
 3. Updated plugin README documenting the settings schema, defaults, and restart requirement.
 4. Updated `.gitignore` entry for `.claude/*.local.md`.
