@@ -13,7 +13,6 @@ import java.nio.file.PathMatcher;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.stream.IntStream;
@@ -110,9 +109,7 @@ public class HarnessCheckHelper {
         }
         try (final Stream<Path> stream = Files.walk(base)) {
             return stream
-                    .filter(f -> !f.equals(base))
-                    .filter(f -> !Files.isSymbolicLink(f))
-                    .filter(f -> Files.isRegularFile(f, LinkOption.NOFOLLOW_LINKS))
+                    .filter(f -> !f.equals(base) && !Files.isSymbolicLink(f) && Files.isRegularFile(f, LinkOption.NOFOLLOW_LINKS))
                     .toList();
         } catch (IOException error) {
             throw new MojoExecutionException("failed to inspect " + base, error);
@@ -171,9 +168,10 @@ public class HarnessCheckHelper {
      * @return list of string values; empty if node is null or not an array
      */
     public static List<String> extractPaths(JsonNode node) {
-        return Stream.ofNullable(node)
-                .filter(JsonNode::isArray)
-                .flatMap(n -> StreamSupport.stream(n.spliterator(), false))
+        if (node == null || !node.isArray()) {
+            return Collections.emptyList();
+        }
+        return StreamSupport.stream(node.spliterator(), false)
                 .map(JsonNode::asText)
                 .toList();
     }
@@ -214,11 +212,11 @@ public class HarnessCheckHelper {
      * @throws IOException if walking fails
      */
     public static List<Path> stackSources(JsonNode manifest, String category, String stack, Path projectRoot) throws IOException {
-        final JsonNode category_node = manifest.get(category);
-        if (category_node == null) {
+        final JsonNode categoryNode = manifest.get(category);
+        if (categoryNode == null) {
             return Collections.emptyList();
         }
-        final JsonNode params = category_node.get("parameters");
+        final JsonNode params = categoryNode.get("parameters");
         if (params == null) {
             return Collections.emptyList();
         }
@@ -227,14 +225,14 @@ public class HarnessCheckHelper {
         if (rootsNode == null || extsNode == null) {
             return Collections.emptyList();
         }
-        final JsonNode includesNode = params.get("includePaths");
-        final JsonNode excludesNode = params.get("excludePaths");
-        final Set<String> extensions = StreamSupport.stream(extsNode.spliterator(), false).map(JsonNode::asText).collect(Collectors.toSet());
-        final List<String> includes = includesNode != null ? extractPaths(includesNode) : List.of();
-        final List<String> excludes = excludesNode != null ? extractPaths(excludesNode) : List.of();
+        final Set<String> extensions = StreamSupport.stream(extsNode.spliterator(), false)
+                .map(JsonNode::asText)
+                .collect(Collectors.toSet());
+        final List<String> includes = extractPaths(params.get("includePaths"));
+        final List<String> excludes = extractPaths(params.get("excludePaths"));
         final FileSystem fs = FileSystems.getDefault();
         return StreamSupport.stream(rootsNode.spliterator(), false)
-                .flatMap((Function<JsonNode, Stream<Path>>) rootNode -> {
+                .flatMap(rootNode -> {
                     try {
                         return walkRoot(fs, projectRoot, rootNode.asText(), extensions, includes, excludes).stream();
                     } catch (IOException e) {
@@ -243,7 +241,7 @@ public class HarnessCheckHelper {
                 })
                 .distinct()
                 .sorted()
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**
@@ -264,20 +262,18 @@ public class HarnessCheckHelper {
         }
         final List<PathMatcher> includeMatchers = includes.stream().map(p -> fs.getPathMatcher("glob:" + p)).toList();
         final List<PathMatcher> excludeMatchers = excludes.stream().map(p -> fs.getPathMatcher("glob:" + p)).toList();
-        if (rootEntry.contains("*")) {
-            final String pattern = "glob:" + rootEntry + "/**/*";
-            final var matcher = fs.getPathMatcher(pattern);
-            try (final Stream<Path> stream = Files.walk(base)) {
-                return stream.filter(p -> matcher.matches(p)).filter(p -> !Files.isSymbolicLink(p)).filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS)).filter(p -> extensions.contains(extensionOf(p))).filter(p -> !containsSegment(p, "target")).filter(p -> !containsSegment(p, "build")).filter(p -> applyIncludeFilters(p, base, includeMatchers)).filter(p -> applyExcludeFilters(p, base, excludeMatchers)).map(p -> p.toAbsolutePath().normalize()).collect(Collectors.toList());
-            }
-        } else {
-            final Path resolved = base.resolve(rootEntry);
-            if (!Files.exists(resolved)) {
-                return Collections.emptyList();
-            }
-            try (final Stream<Path> stream = Files.walk(resolved)) {
-                return stream.filter(p -> !Files.isSymbolicLink(p)).filter(p -> Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS)).filter(p -> extensions.contains(extensionOf(p))).filter(p -> !containsSegment(p, "target")).filter(p -> !containsSegment(p, "build")).filter(p -> applyIncludeFilters(p, base, includeMatchers)).filter(p -> applyExcludeFilters(p, base, excludeMatchers)).map(p -> p.toAbsolutePath().normalize()).collect(Collectors.toList());
-            }
+        final Stream<Path> stream = rootEntry.contains("*")
+                ? Files.walk(base).filter(p -> fs.getPathMatcher("glob:" + rootEntry + "/**/*").matches(p))
+                : Files.walk(base.resolve(rootEntry));
+        try (stream) {
+            return stream
+                    .filter(p -> !Files.isSymbolicLink(p) && Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
+                    .filter(p -> extensions.contains(extensionOf(p)))
+                    .filter(p -> !containsSegment(p, "target") && !containsSegment(p, "build"))
+                    .filter(p -> applyIncludeFilters(p, base, includeMatchers))
+                    .filter(p -> applyExcludeFilters(p, base, excludeMatchers))
+                    .map(p -> p.toAbsolutePath().normalize())
+                    .toList();
         }
     }
 

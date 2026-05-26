@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
 /**
  * Maven goal that validates installed Claude repository harness assets.
  */
@@ -50,16 +51,13 @@ public final class HarnessCheckMojo extends AbstractMojo {
                 .map(HarnessCheck::category)
                 .collect(Collectors.toUnmodifiableSet());
         final Set<String> knownMetadataKeys = Set.of("name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns");
-        final List<Finding> unknownKeyFindings = manifest.propertyNames().stream()
-                .filter(key -> !knownCategories.contains(key))
-                .filter(key -> !knownMetadataKeys.contains(key))
-                .map(key -> Finding.of("WARN", "manifestSchema", "unknown manifest key: " + key))
-                .toList();
-        final List<Finding> ruleFindings = Arrays.stream(HarnessCheck.values())
-                .filter(check -> check.applies(ctx))
-                .flatMap(check -> validateCheck(ctx, check).stream())
-                .toList();
-        final List<Finding> findings = Stream.concat(unknownKeyFindings.stream(), ruleFindings.stream())
+        final List<Finding> findings = Stream.concat(
+                manifest.propertyNames().stream()
+                        .filter(key -> !knownCategories.contains(key) && !knownMetadataKeys.contains(key))
+                        .map(key -> Finding.of("WARN", "manifestSchema", "unknown manifest key: " + key)),
+                Arrays.stream(HarnessCheck.values())
+                        .filter(check -> check.applies(ctx))
+                        .flatMap(check -> validateCheck(ctx, check).stream()))
                 .sorted((a, b) -> {
                     final int severityOrder = severityRank(b.severity()) - severityRank(a.severity());
                     return severityOrder != 0 ? severityOrder : a.message().compareTo(b.message());

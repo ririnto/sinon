@@ -41,10 +41,7 @@ public final class DefaultManifest implements Manifest {
             return List.of();
         }
         final JsonNode parameters = section.get("parameters");
-        if (parameters == null) {
-            return List.of();
-        }
-        return HarnessCheckHelper.extractPaths(parameters.get(key));
+        return parameters == null ? List.of() : HarnessCheckHelper.extractPaths(parameters.get(key));
     }
 
     @Override
@@ -58,7 +55,7 @@ public final class DefaultManifest implements Manifest {
             return "";
         }
         final JsonNode value = parameters.get(key);
-        return value != null && value.isTextual() ? value.asText() : "";
+        return value == null || !value.isTextual() ? "" : value.asText();
     }
 
     @Override
