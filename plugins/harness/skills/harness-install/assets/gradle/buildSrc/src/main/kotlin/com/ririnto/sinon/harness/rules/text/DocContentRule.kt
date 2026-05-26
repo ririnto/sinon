@@ -21,32 +21,23 @@ object DocContentRule : HarnessCheckRule() {
      */
     override val category: String = "docContent"
 
-    override fun validate(ctx: RuleContext): Collection<Finding> {
-        if (ctx.manifest.categoryObject(category) == null) return emptyList()
-        return ctx.manifest
-            .categoryObject(category)
-            ?.get("parameters")
-            ?.jsonObject
-            ?.get("checks")
-            ?.jsonArray
-            ?.mapNotNull { checkElem ->
-                runCatching { checkElem.jsonObject }.getOrNull()?.let { checkObj ->
-                    val content =
-                        JsonAccess.stringArrayFromObject(checkObj, "files").joinToString("\n") { filePath ->
-                            ctx.readSafe(filePath)
-                        }
-                    if (!conditionMatches(checkObj, content)) {
-                        Finding(
-                            ctx.manifest.severityOf(category),
-                            category,
-                            JsonAccess.stringFromObject(checkObj, "failureMessage"),
-                        )
-                    } else {
-                        null
-                    }
+    override fun validate(ctx: RuleContext): Collection<Finding> =
+        ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject?.get("checks")?.jsonArray?.mapNotNull { checkElem ->
+            runCatching { checkElem.jsonObject }.getOrNull()?.let { checkObj ->
+                val content = JsonAccess.stringArrayFromObject(checkObj, "files").joinToString("\n") { filePath ->
+                    ctx.readSafe(filePath)
                 }
-            } ?: emptyList()
-    }
+                if (!conditionMatches(checkObj, content)) {
+                    Finding(
+                        ctx.manifest.severityOf(category),
+                        category,
+                        JsonAccess.stringFromObject(checkObj, "failureMessage"),
+                    )
+                } else {
+                    null
+                }
+            }
+        } ?: emptyList()
 
     private fun conditionMatches(
         checkObj: JsonObject,
