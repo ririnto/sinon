@@ -30,12 +30,7 @@ object DocHeadingsRule : HarnessCheckRule() {
     private val markdownParser: Parser = Parser.builder().build()
 
     override fun validate(ctx: RuleContext): Collection<Finding> {
-        val parametersObj =
-            ctx.manifest
-                .categoryObject(category)
-                ?.get("parameters")
-                ?.jsonObject
-                ?: return emptyList()
+        val parametersObj = ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject ?: return emptyList()
         val sourceFilterObj = parametersObj["sourceFilter"]?.jsonObject
         return JsonAccess
             .stringArrayFromObject(
@@ -44,9 +39,7 @@ object DocHeadingsRule : HarnessCheckRule() {
             ).filter { sourceFile -> sourceFile.startsWith(JsonAccess.stringFromObject(sourceFilterObj, "prefix")) }
             .filter { sourceFile -> sourceFile.endsWith(JsonAccess.stringFromObject(sourceFilterObj, "suffix")) }
             .flatMap { docPath ->
-                val content = ctx.readSafe(docPath)
-                val document = markdownParser.parse(content)
-                val headingsInDoc = extractHeadings(document)
+                val headingsInDoc = extractHeadings(markdownParser.parse(ctx.readSafe(docPath)))
                 ctx.manifest
                     .stringArray(category, "headings")
                     .filter { heading -> !headingsInDoc.contains(heading) }

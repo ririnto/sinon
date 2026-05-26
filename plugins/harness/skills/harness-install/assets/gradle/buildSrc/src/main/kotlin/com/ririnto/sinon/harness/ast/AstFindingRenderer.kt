@@ -44,9 +44,11 @@ object AstFindingRenderer {
     private fun renderedMessage(
         finding: AstFinding,
         manifest: JsonObject,
-    ): String =
-        JsonAccess
-            .stringFromObject(manifest[finding.rule]?.jsonObject?.get("messages")?.jsonObject, "default")
+    ): String {
+        val categoryObj = manifest[finding.rule]?.jsonObject ?: error("manifest missing category ${finding.rule}")
+        val position = categoryObj.get("parameters")?.jsonObject?.get("position")?.jsonPrimitive?.contentOrNull ?: "top"
+        val message = JsonAccess.stringFromObject(categoryObj.get("messages")?.jsonObject, "default")
+        return message
             .replace("{file}", finding.file)
             .replace("{line}", finding.line.toString())
             .replace("{function}", finding.detail("function"))
@@ -59,17 +61,9 @@ object AstFindingRenderer {
             .replace("{memberVisibility}", finding.detail("memberVisibility"))
             .replace("{memberKind}", finding.detail("memberKind"))
             .replace("{context}", finding.detail("context"))
-            .replace(
-                "{position}",
-                manifest[finding.rule]
-                    ?.jsonObject
-                    ?.get("parameters")
-                    ?.jsonObject
-                    ?.get("position")
-                    ?.jsonPrimitive
-                    ?.contentOrNull
-                    ?: "top",
-            ).replace(Regex("^\\S+:\\d+:\\s"), "")
-            .takeIf { message -> message.isNotEmpty() }
+            .replace("{position}", position)
+            .replace(Regex("^\\S+:\\d+:\\s"), "")
+            .takeIf { it.isNotEmpty() }
             ?: error("manifest messages.default missing for category ${finding.rule}")
+    }
 }

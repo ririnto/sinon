@@ -35,43 +35,32 @@ object SymlinkSafetyRule : HarnessCheckRule() {
      */
     override val category: String = "symlinkSafety"
 
-    override fun validate(ctx: RuleContext): Collection<Finding> =
-        buildList {
-            val catObj = ctx.manifest.categoryObject(category)
-            val parametersObj = catObj?.get("parameters")?.jsonObject
-            if (catObj != null && parametersObj != null) {
-                val allowedPairs =
-                    parametersObj["allowedSymlinkPairs"]
-                        ?.jsonArray
-                        ?.mapNotNull { pairElem ->
-                            val pair = pairElem.jsonArray
-                            when {
-                                2 <= pair.size && pair[0].jsonPrimitive.contentOrNull != null &&
-                                    pair[1].jsonPrimitive.contentOrNull != null -> {
-                                    pair[0].jsonPrimitive.contentOrNull to pair[1].jsonPrimitive.contentOrNull
-                                }
-
-                                else -> {
-                                    null
-                                }
-                            }
-                        } ?: emptyList()
-                ctx.root
-                    .listDirectoryEntries()
-                    .filter { file -> file.isSymbolicLink() }
-                    .filter { file ->
-                        (file.name to file.readSymbolicLink().pathString) !in
-                            (allowedPairs.flatMap { (a, b) -> listOf(a to b, b to a) }).toSet()
-                    }.map { file ->
+    override fun validate(ctx: RuleContext): Collection<Finding> {
+        val catObj = ctx.manifest.categoryObject(category) ?: return emptyList()
+        val parametersObj = catObj.get("parameters")?.jsonObject ?: return emptyList()
+        val allowedPairs = parametersObj["allowedSymlinkPairs"]?.jsonArray?.mapNotNull { pairElem ->
+            val pair = pairElem.jsonArray
+            when {
+                2 <= pair.size && pair[0].jsonPrimitive.contentOrNull != null && pair[1].jsonPrimitive.contentOrNull != null ->
+                    pair[0].jsonPrimitive.contentOrNull to pair[1].jsonPrimitive.contentOrNull
+                else -> null
+            }
+        } ?: emptyList()
+        val allowedSet = allowedPairs.flatMap { (a, b) -> listOf(a to b, b to a) }.toSet()
+        return buildList {
+            ctx.root.listDirectoryEntries()
+                .filter { file -> file.isSymbolicLink() }
+                .filter { file -> (file.name to file.readSymbolicLink().pathString) !in allowedSet }
+                .forEach { file ->
+                    add(
                         Finding(
                             Severity.ERROR,
                             category,
-                            ctx.manifest.stringValue(category, "fileNotAllowed").takeIf { message ->
-                                message.isNotEmpty()
-                            }
+                            ctx.manifest.stringValue(category, "fileNotAllowed").takeIf { message -> message.isNotEmpty() }
                                 ?: "symlink file is not allowed: ${file.relativeTo(ctx.root)}",
-                        )
-                    }.forEach { finding -> add(finding) }
-            }
+                        ),
+                    )
+                }
         }
+    }
 }

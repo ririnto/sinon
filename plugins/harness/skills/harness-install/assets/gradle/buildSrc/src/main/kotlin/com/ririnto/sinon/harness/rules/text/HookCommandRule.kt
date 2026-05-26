@@ -25,33 +25,18 @@ object HookCommandRule : HarnessCheckRule() {
     override val category: String = "hookCommand"
 
     override fun validate(ctx: RuleContext): Collection<Finding> {
+        val parametersObj = ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject ?: return emptyList()
+        val severity = ctx.manifest.severityOf(category)
+        val allowedPreCommitCmds = JsonAccess.stringArrayFromObject(parametersObj["allowedPreCommitCommands"]?.jsonObject, "gradle")
+        val prePushHook = ctx.root / JsonAccess.stringFromObject(parametersObj, "prePushHook")
+        val preCommitHook = ctx.root / JsonAccess.stringFromObject(parametersObj, "preCommitHook")
         return buildList {
-            val parametersObj =
-                ctx.manifest
-                    .categoryObject(category)
-                    ?.get("parameters")
-                    ?.jsonObject
-                    ?: return emptyList()
-            val severity = ctx.manifest.severityOf(category)
-            val allowedPreCommitCmds =
-                JsonAccess.stringArrayFromObject(
-                    parametersObj["allowedPreCommitCommands"]?.jsonObject,
-                    "gradle",
-                )
-            val prePushHook = ctx.root / JsonAccess.stringFromObject(parametersObj, "prePushHook")
-            val preCommitHook = ctx.root / JsonAccess.stringFromObject(parametersObj, "preCommitHook")
             if (prePushHook.isRegularFile()) {
                 addAll(
                     validateHook(
                         ctx,
                         prePushHook.readText(),
-                        parametersObj["allowedCommands"]?.jsonObject?.let {
-                            JsonAccess.stringArrayFromObject(
-                                it,
-                                "gradle",
-                            )
-                        }
-                            ?: emptyList(),
+                        parametersObj["allowedCommands"]?.jsonObject?.let { JsonAccess.stringArrayFromObject(it, "gradle") } ?: emptyList(),
                         severity,
                         "pre-push hook",
                     ),

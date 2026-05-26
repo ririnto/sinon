@@ -103,17 +103,13 @@ object ClassMemberOrderingRule : HarnessAstRule() {
             ).ifEmpty {
                 listOf("override", "nonOverride")
             }
-        val rank =
-            buildMap {
-                var idx = 0
-                for (kind in kindOrder) {
-                    for (visibility in visibilityOrder) {
-                        for (overrideState in overrideOrder) {
-                            put("$overrideState:$visibility:$kind", idx++)
-                        }
-                    }
+        val rank = kindOrder.flatMapIndexed { kindIdx, kind ->
+            visibilityOrder.flatMapIndexed { visIdx, visibility ->
+                overrideOrder.mapIndexed { ovrIdx, overrideState ->
+                    ("$overrideState:$visibility:$kind" to (kindIdx * visibilityOrder.size * overrideOrder.size + visIdx * overrideOrder.size + ovrIdx))
                 }
             }
+        }.toMap()
         return findings
             .groupBy { finding -> finding.file to finding.detail("ownerId") }
             .values
