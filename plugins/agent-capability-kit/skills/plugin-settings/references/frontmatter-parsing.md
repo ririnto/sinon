@@ -1,14 +1,14 @@
 ---
 name: frontmatter-parsing
 description: |-
-  Complete YAML frontmatter parsing patterns for `.claude/<plugin-name>.local.md` files, including all data types, edge cases, and validation.
+  Complete YAML frontmatter parsing patterns for `.claude/{{plugin-name}}.local.md` files, including all data types, edge cases, and validation.
 ---
 
 # YAML Frontmatter Parsing: Complete Patterns and Edge Cases
 
 Open this reference when parsing YAML frontmatter from `.local.md` files, handling edge cases like missing fields or malformed input, or validating numeric ranges and enums.
 
-This reference covers exhaustive YAML frontmatter parsing patterns for `.claude/<plugin-name>.local.md` files, including all data types, edge cases, malformed input handling, and validation.
+This reference covers exhaustive YAML frontmatter parsing patterns for `.claude/{{plugin-name}}.local.md` files, including all data types, edge cases, malformed input handling, and validation.
 
 ## Frontmatter structure
 
@@ -36,7 +36,7 @@ This is body content.
 
 Extract raw frontmatter without parsing:
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -78,7 +78,7 @@ extract_frontmatter() {
 
 YAML boolean values: `true`, `false` (case-insensitive).
 
-```
+```jsonc
 
 # Parse boolean field with strict type checking.
 #
@@ -109,7 +109,7 @@ parse_boolean() {
 
 Usage:
 
-```
+```sh
 # shellcheck disable=SC2034
 FRONTMATTER=$(extract_frontmatter ".claude/plugin.local.md")
 ENABLED=$(parse_boolean "$FRONTMATTER" "enabled")
@@ -122,7 +122,7 @@ fi
 
 Integer and floating-point numbers.
 
-```
+```markdown
 
 # Parse numeric field with range validation.
 #
@@ -162,7 +162,7 @@ parse_numeric() {
 
 Usage:
 
-```
+```markdown
 # shellcheck disable=SC2034
 RETRY_COUNT=$(parse_numeric "$FRONTMATTER" "max_retries" 1 100)
 ```
@@ -171,7 +171,7 @@ RETRY_COUNT=$(parse_numeric "$FRONTMATTER" "max_retries" 1 100)
 
 Simple unquoted strings up to end of line.
 
-```
+```markdown
 
 # Parse unquoted string field.
 #
@@ -198,7 +198,7 @@ parse_string_unquoted() {
 
 Quoted strings with escaped quotes.
 
-```
+```jsonc
 
 # Parse quoted string field with quote unescaping.
 #
@@ -225,7 +225,7 @@ parse_string_quoted() {
 
 YAML arrays in `[item1, item2]` syntax.
 
-```
+```jsonc
 
 # Parse array field into bash array.
 #
@@ -251,7 +251,7 @@ parse_array() {
 
 Usage:
 
-```
+```json
 readarray -t EXTENSIONS < <(parse_array "$FRONTMATTER" "allowed_extensions")
 for ext in "${EXTENSIONS[@]}"; do
     echo "Allowed: $ext"
@@ -262,7 +262,7 @@ done
 
 YAML literal (`|`) or folded (`>`) scalars spanning multiple lines.
 
-```
+```markdown
 
 # Extract multi-line string (literal or folded).
 #
@@ -298,7 +298,7 @@ parse_multiline() {
 
 Field not present in frontmatter:
 
-```
+```markdown
 # shellcheck disable=SC2034
 OPTIONAL_FIELD=$(parse_string_unquoted "$FRONTMATTER" "optional_field" "default_value")
 ```
@@ -309,7 +309,7 @@ Provide default as third argument. If field absent, default is returned.
 
 Field present but value is empty:
 
-```
+```markdown
 ---
 empty_field:
 ---
@@ -317,7 +317,7 @@ empty_field:
 
 Parsing:
 
-```
+```json
 VALUE=$(echo "$FRONTMATTER" | grep '^empty_field:' | sed 's/^empty_field: *//')
 if [ -z "$VALUE" ]; then
     VALUE="default"
@@ -328,7 +328,7 @@ fi
 
 File:
 
-```
+```markdown
 ---
 field1: value1
 field2: value2
@@ -340,7 +340,7 @@ Some content
 
 Extraction will read until EOF instead of second `---`. Validate strictly:
 
-```
+```markdown
 
 # Validate frontmatter has proper delimiters.
 #
@@ -361,7 +361,7 @@ validate_frontmatter() {
 
 When same field appears twice:
 
-```
+```markdown
 ---
 field: value1
 field: value2
@@ -370,7 +370,7 @@ field: value2
 
 `grep` returns both lines. First match wins:
 
-```
+```markdown
 # shellcheck disable=SC2034
 VALUE=$(echo "$FRONTMATTER" | grep "^field:" | head -1 | sed 's/^field: *//')
 ```
@@ -381,7 +381,7 @@ Use `head -1` to take first occurrence.
 
 Quoted string with escaped quotes:
 
-```
+```markdown
 ---
 message: "He said \"hello\""
 ---
@@ -389,7 +389,7 @@ message: "He said \"hello\""
 
 Parsing:
 
-```
+```markdown
 # shellcheck disable=SC2034
 MESSAGE=$(parse_string_quoted "$FRONTMATTER" "message")
 # Result: He said "hello"
@@ -399,7 +399,7 @@ MESSAGE=$(parse_string_quoted "$FRONTMATTER" "message")
 
 YAML requires quoting for special characters:
 
-```
+```markdown
 ---
 path: "/home/user/my-folder"
 regex: "^[a-z]+"
@@ -413,7 +413,7 @@ Always quote values containing special characters. Parsing with `parse_string_qu
 
 YAML is whitespace-sensitive:
 
-```
+```markdown
 ---
 field1: value1
   field2: value2
@@ -423,7 +423,7 @@ field3: value3
 
 Indented field2 is treated as nested (incorrect for flat structure). Validate strict formatting:
 
-```
+```json
 grep "^[^ ]" "$FRONTMATTER"  # Lines starting with non-space (no indentation)
 ```
 
@@ -431,7 +431,7 @@ grep "^[^ ]" "$FRONTMATTER"  # Lines starting with non-space (no indentation)
 
 YAML allows comments after `#`:
 
-```
+```markdown
 ---
 enabled: true  # Master on/off switch
 mode: strict   # Validation level
@@ -440,7 +440,7 @@ mode: strict   # Validation level
 
 Parsing removes comments:
 
-```
+```markdown
 # shellcheck disable=SC2034
 VALUE=$(echo "$FRONTMATTER" | grep "^mode:" | sed 's/ *#.*//' | sed 's/^mode: *//')
 ```
@@ -449,7 +449,7 @@ VALUE=$(echo "$FRONTMATTER" | grep "^mode:" | sed 's/ *#.*//' | sed 's/^mode: */
 
 ### Numeric range validation
 
-```
+```markdown
 
 # Parse and validate numeric field within range.
 #
@@ -481,14 +481,14 @@ parse_numeric_safe() {
 
 Usage:
 
-```
+```markdown
 # shellcheck disable=SC2034
 RETRIES=$(parse_numeric_safe "$FRONTMATTER" "max_retries" 1 100 3)
 ```
 
 ### String enum validation
 
-```
+```markdown
 
 # Parse and validate string from allowed set.
 #
@@ -521,14 +521,14 @@ parse_enum() {
 
 Usage:
 
-```
+```markdown
 # shellcheck disable=SC2034
 LEVEL=$(parse_enum "$FRONTMATTER" "validation_level" "standard" "strict" "standard" "lenient")
 ```
 
 ### Default when file absent or invalid
 
-```
+```markdown
 # shellcheck disable=SC2034
 if [ ! -f ".claude/plugin.local.md" ] || ! validate_frontmatter ".claude/plugin.local.md"; then
     ENABLED=true
@@ -546,7 +546,7 @@ fi
 
 Composite script using per-field parsing functions defined earlier:
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
