@@ -4,8 +4,6 @@ description: >-
   Design idiomatic Java APIs, review class structure for immutability and clarity,
   choose between records and sealed classes, decide checked vs unchecked exception boundaries,
   and shape public contracts with narrow surfaces and explicit value semantics.
-  Use when the user asks to design a Java API, review Java class structure,
-  refactor Java code, or needs guidance on idiomatic Java language and library design.
 ---
 
 # Java Language Design

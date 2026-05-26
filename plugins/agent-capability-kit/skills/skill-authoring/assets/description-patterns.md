@@ -3,8 +3,10 @@
 ## Recommended formula
 
 ```text
-[Primary capability]. Use when [task, inputs, systems, file types, or user intent].
+[Primary capability]. [Optional: Use when task, inputs, systems, file types, or user intent keywords distinct from the capability.]
 ```
+
+Include the trigger clause only when it adds vocabulary not already present in the capability statement.
 
 ## Specificity calibration
 
@@ -49,3 +51,4 @@ Run this quick test before you keep a description:
 - Add the user intent or file type when the trigger feels fuzzy.
 - Remove product names when the description feels locked to one host.
 - Remove extra capabilities when the description advertises several adjacent jobs.
+- Drop the trigger clause when the capability statement already covers the keywords needed for routing.

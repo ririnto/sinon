@@ -3,8 +3,6 @@ name: java-test
 description: >-
   Write JUnit 5 tests, follow TDD red-green-refactor in Java, fix failing tests,
   configure Maven Surefire or Gradle test execution, and choose the smallest correct test scope.
-  Use when the user asks to write a JUnit test, follow TDD in Java,
-  fix a failing Maven test, or needs guidance on Java test-first workflows.
 ---
 
 # Java Test
