@@ -61,48 +61,48 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 
 | Mode | Use when | Command |
 | --- | --- | --- |
-| `gradle` harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
+| `gradle` harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew harnessCheck`, or `gradle harnessCheck` when the target uses system Gradle without a wrapper |
 | `gradle` final check | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| `maven` | `pom.xml` exists | `mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate` |
-| `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run --script docs/harness/uv/harness_validate.py` |
-| `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun --install=fallback run docs/harness/bun/harness-validate.ts` |
+| `maven` | `pom.xml` exists | `mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check` |
+| `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run --script docs/harness/uv/harness_check.py` |
+| `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun --install=fallback run docs/harness/bun/harness-check.ts` |
 
-The installed README command is the local harness validation command. The generated `docs/harness/git-hooks/pre-push` command marker is the final check command; for Gradle that command is `check`, while `pre-commit` runs `harnessValidate`. Do not introduce `docs/harness/validate.sh` as a dispatcher unless the installer, CI templates, hook generation, validators, and self-check all adopt that dispatcher contract together.
+The installed README command is the local harness validation command. The generated `docs/harness/git-hooks/pre-push` command marker is the final check command; for Gradle that command is `check`, while `pre-commit` runs `harnessCheck`. Do not introduce `docs/harness/check.sh` as a dispatcher unless the installer, CI templates, hook generation, validators, and self-check all adopt that dispatcher contract together.
 
 ## Command Examples
 
 Run from the target repository root.
 
 ```sh
-./gradlew harnessValidate
+./gradlew harnessCheck
 ```
 
 ```sh
-gradle harnessValidate
+gradle harnessCheck
 ```
 
 ```sh
-mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate
+mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check
 ```
 
 ```sh
-uv run --script docs/harness/uv/harness_validate.py
+uv run --script docs/harness/uv/harness_check.py
 ```
 
 ```sh
-bun --install=fallback run docs/harness/bun/harness-validate.ts
+bun --install=fallback run docs/harness/bun/harness-check.ts
 ```
 
 Do not suppress validator output.
 
 ```sh
-uv run --script docs/harness/uv/harness_validate.py
+uv run --script docs/harness/uv/harness_check.py
 ```
 
 Reject any pattern that discards validator output or forces a successful exit after failure because it hides diagnostics and turns failure into success.
 
 ```sh
-uv run --script docs/harness/uv/harness_validate.py
+uv run --script docs/harness/uv/harness_check.py
 ```
 
 ## Workflow
@@ -168,7 +168,7 @@ GitHub-only and GitLab-only repositories may intentionally delete the unused CI 
 Report CI drift with the expected command.
 
 ```text
-ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv run --script docs/harness/uv/harness_validate.py`
+ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv run --script docs/harness/uv/harness_check.py`
 ```
 
 ## Diagnostic Format
@@ -199,7 +199,7 @@ path/to/file [SEVERITY] category: file-level message
 
 `harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications.
 
-The shell runtime ships `harness-validate.sh` only. No shell `harnessCheck` or `harnessFormat` exists.
+The shell runtime ships `harness-check.sh`. Shell `harnessFormat` is added in a follow-up phase.
 
 ## Invariants
 
@@ -208,7 +208,7 @@ The shell runtime ships `harness-validate.sh` only. No shell `harnessCheck` or `
 - Native validators support the installed `docs/harness/manifest.json` schema and compare the known list fields from that schema.
 - File presence alone does not prove project readiness when placeholders still lack project-specific content.
 - Generated artifacts are valid only when they document source command, source inputs, freshness, and regeneration trigger.
-- GitHub Actions, GitLab CI, and the generated pre-push hook MUST remain examples of the same final check command. Gradle pre-commit runs `harnessValidate`; non-Gradle pre-commit remains compliance-only.
+- GitHub Actions, GitLab CI, and the generated pre-push hook MUST remain examples of the same final check command. Gradle pre-commit runs `harnessCheck`; non-Gradle pre-commit remains compliance-only.
 - Check and validation findings MUST use the canonical diagnostic prefix with one-based line and column numbers when position is available.
 
 ## Pitfalls

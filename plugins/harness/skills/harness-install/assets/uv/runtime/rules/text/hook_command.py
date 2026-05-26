@@ -173,7 +173,7 @@ class HookCommandRule(HarnessCheckRule):
                                 for cmd in stack_pre_commit_commands
                             )
                             and re.search(
-                                r"(^|\s)(uv|bun|gradle|mvn)(\s|$)|\./gradlew|harnessValidate|harness_validate\.py|harness-validate\.ts",
+                                r"(^|\s)(uv|bun|gradle|mvn)(\s|$)|\./gradlew|harnessCheck|harness_check\.py|harness-check\.ts|harness-check\.sh",
                                 pre_commit_text,
                             )
                         ):

@@ -25,7 +25,7 @@ The richer set of add-ons (manifest-driven Kotlin / Java / Python / TypeScript c
 ## How to run
 
 ```sh
-sh docs/harness/shell/harness-validate.sh
+sh docs/harness/shell/harness-check.sh
 ```
 
 Exit code is `0` when zero `ERROR` findings are emitted; `1` otherwise. `WARN` and `INFO` findings are reported on stderr but do not fail the run.
