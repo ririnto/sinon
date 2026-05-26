@@ -186,7 +186,7 @@ def main() -> int:
         logger.error("Harness validation failed")
         return 1
     known_categories = set(check.category for check in HarnessCheck)
-    known_metadata = {
+    known_metadata = frozenset({
         "name",
         "description",
         "$schema",
@@ -194,15 +194,14 @@ def main() -> int:
         "generatedArtifacts",
         "harnessEvolution",
         "teamPatterns",
-    }
+    })
     for key in manifest.keys():
         if key not in known_categories and key not in known_metadata:
             logger.warning("unknown manifest key: %s", key)
     findings = validate(manifest)
     for line in render_findings(ROOT, findings):
         print(line)
-    error_count = sum(1 for f in findings if f.severity == "ERROR")
-    return 1 if error_count > 0 else 0
+    return 1 if sum(1 for f in findings if f.severity == "ERROR") > 0 else 0
 
 
 if __name__ == "__main__":

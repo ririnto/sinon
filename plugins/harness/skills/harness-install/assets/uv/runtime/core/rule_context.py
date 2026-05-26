@@ -252,7 +252,6 @@ def create_rule_context(
         exclude_globs = params.get("excludePaths", [])
         if not isinstance(exclude_globs, list):
             exclude_globs = []
-
         ext_set = frozenset(e for e in exts if isinstance(e, str))
         include_glob_list = [g for g in include_globs if isinstance(g, str)]
         exclude_glob_list = [g for g in exclude_globs if isinstance(g, str)]
@@ -300,44 +299,40 @@ def create_rule_context(
                         )
             return collected
 
-        result = list(dict.fromkeys(collect_all()))
-        result = [
+        deduped = list(dict.fromkeys(collect_all()))
+        included = [
             file_path
-            for file_path in result
+            for file_path in deduped
             if not include_glob_list
             or any(
                 fnmatch(file_path.relative_to(root_dir).as_posix(), glob_pattern)
                 for glob_pattern in include_glob_list
             )
         ]
-        result = [
+        excluded = [
             file_path
-            for file_path in result
+            for file_path in included
             if not exclude_glob_list
             or not any(
                 fnmatch(file_path.relative_to(root_dir).as_posix(), glob_pattern)
                 for glob_pattern in exclude_glob_list
             )
         ]
-        return tuple(sorted(result))
+        return tuple(sorted(excluded))
 
     def walk_directory(path_str: str) -> tuple[tuple[Path, ...], tuple]:
         """Walk directory tree, excluding symlinks."""
         path = path_of(path_str)
         if path.is_symlink() or path.is_file() or not path.is_dir():
             return ((), ())
-
         output: list[Path] = []
         for current, directories, files in os.walk(path, followlinks=False):
             current_path = Path(current)
             directories[:] = [
                 name for name in directories if not (current_path / name).is_symlink()
             ]
-            output.extend(
-                child
-                for name in files
-                if not (child := current_path / name).is_symlink()
-            )
+            for child in (current_path / name for name in files if not (current_path / name).is_symlink()):
+                output.append(child)
         return (tuple(output), ())
 
     def collect_files_under(path_str: str) -> tuple[tuple[Path, ...], tuple]:
