@@ -2,9 +2,7 @@
 name: pr-mr-convention
 description: >-
   Compose GitHub pull requests and GitLab merge requests with disciplined titles,
-  structured bodies, review checklists, and consistent metadata. Use this skill
-  when opening or updating a PR/MR, writing review-friendly descriptions, choosing
-  labels and reviewers, or aligning host conventions across GitHub and GitLab.
+  structured bodies, review checklists, and consistent metadata.
 ---
 
 # PR/MR Convention

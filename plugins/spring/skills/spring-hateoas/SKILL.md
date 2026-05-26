@@ -1,7 +1,7 @@
 ---
 name: spring-hateoas
 description: >-
-  Build Spring hypermedia representations with links, assemblers, HAL output, affordances, and paged models. Use this skill when building Spring hypermedia representations with links, assemblers, HAL output, affordances, and paged models for server responses.
+  Build Spring hypermedia representations with links, assemblers, HAL output, affordances, and paged models.
 metadata:
   title: "Spring HATEOAS"
   official-project-url: "https://spring.io/projects/spring-hateoas"

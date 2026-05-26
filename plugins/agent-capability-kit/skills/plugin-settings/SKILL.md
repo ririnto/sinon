@@ -1,7 +1,7 @@
 ---
 name: plugin-settings
 description: >-
-  Author plugin-level configuration via `settings.json` and per-project state via `.claude/<plugin-name>.local.md` with YAML frontmatter parsing patterns. Use this skill when adding user-configurable plugin behavior offline.
+  Author plugin-level configuration via `settings.json` and per-project state via `.claude/<plugin-name>.local.md` with YAML frontmatter parsing patterns.
 ---
 
 # Plugin Settings

@@ -2,7 +2,6 @@
 name: working-tree-hygiene
 description: >-
   Inspect, maintain, and verify clean working trees before starting work or publishing changes.
-  Use this skill when the user needs to check working tree status, manage stashed changes, verify branch sync state, establish hygiene invariants, or prepare a tree for safe publication.
 ---
 
 # Working Tree Hygiene

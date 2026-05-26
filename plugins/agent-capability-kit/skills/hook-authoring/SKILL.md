@@ -1,7 +1,7 @@
 ---
 name: hook-authoring
 description: >-
-  Author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails. Use this skill when authoring or refactoring `hooks/hooks.json` and hook scripts offline.
+  Author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails.
 ---
 
 # Hook Authoring

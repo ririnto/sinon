@@ -1,7 +1,7 @@
 ---
 name: plugin-authoring
 description: >-
-  Create or refactor a Claude Code plugin root with a manifest, README, and only the runtime components the plugin actually uses. Use this skill when authoring or reorganizing a Claude Code plugin root offline.
+  Create or refactor a Claude Code plugin root with a manifest, README, and only the runtime components the plugin actually uses.
 ---
 
 # Plugin Authoring
