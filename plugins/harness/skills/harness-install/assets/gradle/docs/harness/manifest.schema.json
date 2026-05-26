@@ -66,6 +66,7 @@
           "type": "array",
           "items": {
             "enum": [
+              "java",
               "kt",
               "kts"
             ]
@@ -91,32 +92,6 @@
         "type": "string"
       }
     },
-    "memberKind": {
-      "enum": [
-        "companionObject",
-        "constProperty",
-        "fieldOrProperty",
-        "initializer",
-        "constructor",
-        "function",
-        "interface",
-        "class",
-        "enum"
-      ]
-    },
-    "memberOrderEntry": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/memberKind"
-        },
-        {
-          "pattern": "^(public|protected|internal|package|private):(companionObject|constProperty|fieldOrProperty|initializer|constructor|function|interface|class|enum)$"
-        },
-        {
-          "pattern": "^(nonOverride|override):(public|protected|internal|package|private):(companionObject|constProperty|fieldOrProperty|initializer|constructor|function|interface|class|enum)$"
-        }
-      ]
-    },
     "classMemberOrderingAddOn": {
       "allOf": [
         {
@@ -126,43 +101,53 @@
           "type": "object",
           "properties": {
             "parameters": {
-              "type": "object",
-              "properties": {
-                "sourceRoots": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
+              "allOf": [
+                {
+                  "$ref": "#/$defs/sourceScope"
                 },
-                "extensions": {
-                  "type": "array",
-                  "items": {
-                    "enum": [
-                      "java",
-                      "kt",
-                      "kts"
-                    ]
-                  }
-                },
-                "includePaths": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "excludePaths": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "order": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/$defs/memberOrderEntry"
+                {
+                  "type": "object",
+                  "properties": {
+                    "kindOrder": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "companionObject",
+                          "constProperty",
+                          "fieldOrProperty",
+                          "initializer",
+                          "constructor",
+                          "function",
+                          "interface",
+                          "class",
+                          "enum"
+                        ]
+                      }
+                    },
+                    "visibilityOrder": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "public",
+                          "protected",
+                          "internal",
+                          "package",
+                          "private"
+                        ]
+                      }
+                    },
+                    "overrideOrder": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "override",
+                          "nonOverride"
+                        ]
+                      }
+                    }
                   }
                 }
-              }
+              ]
             }
           }
         }

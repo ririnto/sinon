@@ -18,10 +18,9 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -31,7 +30,9 @@ public enum ClassMemberOrderingRule implements AstRule {
     INSTANCE;
 
     private static final String CATEGORY = "classMemberOrdering";
-    private static final List<String> DEFAULT_ORDER = List.of("companionObject", "constProperty", "fieldOrProperty", "initializer", "constructor", "function", "interface", "class", "enum");
+    private static final List<String> DEFAULT_KIND_ORDER = List.of("companionObject", "constProperty", "fieldOrProperty", "initializer", "constructor", "function", "interface", "class", "enum");
+    private static final List<String> DEFAULT_VISIBILITY_ORDER = List.of("public", "protected", "package", "private");
+    private static final List<String> DEFAULT_OVERRIDE_ORDER = List.of("override", "nonOverride");
 
     @Override
     public String category() {
@@ -44,8 +45,7 @@ public enum ClassMemberOrderingRule implements AstRule {
         final JsonNode manifest = ctx.manifest().raw();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         final JsonNode messages = manifest.get(CATEGORY).get("messages");
-        final List<String> order = configuredOrder(manifest);
-        final Map<String, Integer> rankByKind = ranks(order);
+        final Map<String, Integer> rankByKind = configuredRankMap(manifest);
         try {
             final List<Path> sources = ctx.stackSources(CATEGORY);
             return sources.stream()
@@ -88,19 +88,27 @@ public enum ClassMemberOrderingRule implements AstRule {
                 .toList();
     }
 
-    private static List<String> configuredOrder(JsonNode manifest) {
+    private static Map<String, Integer> configuredRankMap(JsonNode manifest) {
         final JsonNode parameters = manifest.get(CATEGORY).get("parameters");
-        if (parameters == null || parameters.get("order") == null) {
-            return DEFAULT_ORDER;
+        final List<String> kindOrder = parameters != null && parameters.get("kindOrder") != null
+                ? HarnessCheckHelper.extractPaths(parameters.get("kindOrder"))
+                : DEFAULT_KIND_ORDER;
+        final List<String> visibilityOrder = parameters != null && parameters.get("visibilityOrder") != null
+                ? HarnessCheckHelper.extractPaths(parameters.get("visibilityOrder"))
+                : DEFAULT_VISIBILITY_ORDER;
+        final List<String> overrideOrder = parameters != null && parameters.get("overrideOrder") != null
+                ? HarnessCheckHelper.extractPaths(parameters.get("overrideOrder"))
+                : DEFAULT_OVERRIDE_ORDER;
+        final Map<String, Integer> rankMap = new LinkedHashMap<>();
+        int idx = 0;
+        for (String kind : kindOrder) {
+            for (String visibility : visibilityOrder) {
+                for (String overrideState : overrideOrder) {
+                    rankMap.put(overrideState + ":" + visibility + ":" + kind, idx++);
+                }
+            }
         }
-        final List<String> order = HarnessCheckHelper.extractPaths(parameters.get("order"));
-        return order.isEmpty() ? DEFAULT_ORDER : order;
-    }
-
-    private static Map<String, Integer> ranks(List<String> order) {
-        return IntStream.range(0, order.size())
-                .boxed()
-                .collect(Collectors.toMap(order::get, i -> i));
+        return rankMap;
     }
 
     private static String memberVisibility(BodyDeclaration<?> member) {

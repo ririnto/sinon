@@ -65,12 +65,25 @@ object ClassMemberOrderingRule : HarnessAstRule() {
 
     override fun renderAstFindings(ctx: RuleContext, findings: Collection<AstFinding>): Collection<Finding> {
         val parameters = ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject
-        val rank =
-            (parameters?.get("order")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull } ?: emptyList()).ifEmpty {
-                listOf("companionObject", "constProperty", "fieldOrProperty", "initializer", "constructor", "function", "interface", "class", "enum")
+        val kindOrder = (parameters?.get("kindOrder")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull } ?: emptyList()).ifEmpty {
+            listOf("companionObject", "constProperty", "fieldOrProperty", "initializer", "constructor", "function", "interface", "class", "enum")
+        }
+        val visibilityOrder = (parameters?.get("visibilityOrder")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull } ?: emptyList()).ifEmpty {
+            listOf("public", "protected", "internal", "package", "private")
+        }
+        val overrideOrder = (parameters?.get("overrideOrder")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull } ?: emptyList()).ifEmpty {
+            listOf("override", "nonOverride")
+        }
+        val rank = buildMap {
+            var idx = 0
+            for (kind in kindOrder) {
+                for (visibility in visibilityOrder) {
+                    for (overrideState in overrideOrder) {
+                        put("$overrideState:$visibility:$kind", idx++)
+                    }
+                }
             }
-            .withIndex()
-            .associate { indexed -> indexed.value to indexed.index }
+        }
         return findings
             .groupBy { finding -> finding.file to finding.detail("ownerId") }
             .values
@@ -338,7 +351,13 @@ object ClassMemberOrderingRule : HarnessAstRule() {
 
     private fun javaMemberKind(member: BodyDeclaration<*>): String? =
         when (member) {
-            is FieldDeclaration -> "fieldOrProperty"
+            is FieldDeclaration -> {
+                when {
+                    member.isStatic && member.isFinal -> "constProperty"
+                    else -> "fieldOrProperty"
+                }
+            }
+
             is InitializerDeclaration -> "initializer"
             is ConstructorDeclaration -> "constructor"
             is MethodDeclaration -> "function"

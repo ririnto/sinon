@@ -10,7 +10,7 @@
   ],
   "properties": {
     "classMemberOrdering": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+      "$ref": "#/$defs/classMemberOrderingAddOn"
     },
     "ifStatementBraces": {
       "$ref": "./manifest.base.schema.json#/$defs/addOn"
@@ -72,6 +72,66 @@
       "items": {
         "type": "string"
       }
+    },
+    "classMemberOrderingAddOn": {
+      "allOf": [
+        {
+          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/sourceScope"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kindOrder": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "companionObject",
+                          "constProperty",
+                          "fieldOrProperty",
+                          "initializer",
+                          "constructor",
+                          "function",
+                          "interface",
+                          "class",
+                          "enum"
+                        ]
+                      }
+                    },
+                    "visibilityOrder": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "public",
+                          "protected",
+                          "package",
+                          "private"
+                        ]
+                      }
+                    },
+                    "overrideOrder": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "override",
+                          "nonOverride"
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     "loggingAddOn": {
       "allOf": [
