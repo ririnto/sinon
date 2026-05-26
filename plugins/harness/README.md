@@ -1,5 +1,4 @@
 ---
-title: Harness
 description: >-
   Overview of the Harness plugin, its install, validation, evolution, templates, agents, skills, CI, and Git hook scaffolding workflow.
 ---

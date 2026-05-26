@@ -455,7 +455,7 @@ Kotlin 2.3.21이 K1 PSI API를 hard compile error로 격상. 대응:
 
 ### [x] Phase 8b: Kotlin 2.1 whatsnew 정식 격리 패턴 회귀 (완료, 다수 commit으로 분산)
 
-사용자가 https://kotlinlang.org/docs/whatsnew21.html 의 정확한 Worker API 격리 예제(`@Classpath` + 별도 `myDependencyScope`/`myResolvable` Configuration + `classLoaderIsolation { classpath.from(kotlinCompiler) }`)를 제시. 이전 sub-agent가 `implementation(libs.kotlin.compiler.embeddable)`로 우회했던 부분은 정식 패턴으로 회귀.
+사용자가 <https://kotlinlang.org/docs/whatsnew21.html> 의 정확한 Worker API 격리 예제(`@Classpath` + 별도 `myDependencyScope`/`myResolvable` Configuration + `classLoaderIsolation { classpath.from(kotlinCompiler) }`)를 제시. 이전 sub-agent가 `implementation(libs.kotlin.compiler.embeddable)`로 우회했던 부분은 정식 패턴으로 회귀.
 
 - [x] Task 8b.1 — `buildSrc/build.gradle.kts`의 `implementation` → `compileOnly(libs.kotlin.compiler.embeddable)` 전환 (commit c039ef8).
 - [x] Task 8b.2 — `HarnessValidationPlugin.apply`에 두 Configuration (`harnessKotlinCompilerDeps` + `harnessKotlinCompilerResolvable`) 및 task에 `kotlinCompiler.from(resolvable)` 주입 (commit c039ef8).

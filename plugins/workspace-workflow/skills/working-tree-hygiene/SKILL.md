@@ -57,16 +57,16 @@ Your branch is up to date with 'origin/main'.
 
 Changes to be committed:
   (use "git restore --staged <file>..." to unstage)
-	modified:   src/Main.java
+ modified:   src/Main.java
 
 Changes not staged for commit:
   (use "git restore <file>..." to discard changes in working directory)
-	modified:   src/Helper.java
+ modified:   src/Helper.java
 
 Untracked files:
   (use "git list-files --others --exclude-standard")
-	build/
-	.DS_Store
+ build/
+ .DS_Store
 ```
 
 ### Interpretation
@@ -256,7 +256,7 @@ For each untracked file:
 git add <file>
 ```
 
-2. **Ignore** if it is a build artifact or local file that should never be tracked:
+1. **Ignore** if it is a build artifact or local file that should never be tracked:
 
 ```sh
 echo "<pattern>" >> .gitignore
@@ -273,7 +273,7 @@ target/
 node_modules/
 ```
 
-3. **Delete** if it is temporary and not needed:
+1. **Delete** if it is temporary and not needed:
 
 ```sh
 rm <file>
@@ -289,13 +289,13 @@ Before starting a task, ensure a known-clean state:
 git status
 ```
 
-2. If staged changes exist that you do not intend to commit, unstage them:
+1. If staged changes exist that you do not intend to commit, unstage them:
 
 ```sh
 git restore --staged <file>
 ```
 
-3. If unstaged changes exist, decide:
+1. If unstaged changes exist, decide:
    - Commit them:
 
 ```sh
@@ -303,26 +303,26 @@ git add <file>
 git commit -m "..."
 ```
 
-   - Stash them:
+- Stash them:
 
 ```sh
 git stash
 ```
 
-   - Or discard them:
+- Or discard them:
 
 ```sh
 git restore <file>
 ```
 
-4. If untracked files block work (e.g., build artifacts), delete or ignore them:
+1. If untracked files block work (e.g., build artifacts), delete or ignore them:
 
 ```sh
 rm <file>
 echo "<pattern>" >> .gitignore
 ```
 
-5. Verify the final state:
+1. Verify the final state:
 
 ```sh
 git status
@@ -349,7 +349,7 @@ git status
 
 Expected: "nothing to commit, working tree clean"
 
-2. Check the branch is not behind its upstream:
+1. Check the branch is not behind its upstream:
 
 ```sh
 git status -s -b
@@ -357,7 +357,7 @@ git status -s -b
 
 Expected: "even" or "[ahead N]" (never "[behind ...]")
 
-3. If behind, pull first:
+1. If behind, pull first:
 
 ```sh
 git pull
@@ -371,7 +371,7 @@ git status
 
 Expected: "nothing to commit" again.
 
-4. If no conflicts and all work is committed, push:
+1. If no conflicts and all work is committed, push:
 
 ```sh
 git push
@@ -389,8 +389,8 @@ You are working on feature A but need to switch to feature B urgently:
 git stash
 ```
 
-2. Switch branches or create a new worktree for feature B.
-3. When done with B and ready to resume A, restore:
+1. Switch branches or create a new worktree for feature B.
+2. When done with B and ready to resume A, restore:
 
 ```sh
 git stash pop
@@ -406,14 +406,14 @@ You have untracked build artifacts and `.gitignore` updates:
 echo "build/" >> .gitignore
 ```
 
-2. Commit the `.gitignore` change separately:
+1. Commit the `.gitignore` change separately:
 
 ```sh
 git add .gitignore
 git commit -m "chore: ignore build artifacts"
 ```
 
-3. Delete the artifact or run a clean build.
+1. Delete the artifact or run a clean build.
 
 ### Pattern: Pre-publication verification
 
@@ -425,20 +425,20 @@ Before creating a pull request or merge request:
 git status
 ```
 
-2. Verify sync state:
+1. Verify sync state:
 
 ```sh
 git status -s -b
 ```
 
-3. If behind, pull and re-test:
+1. If behind, pull and re-test:
 
 ```sh
 git pull
 # Run tests to confirm no regressions from upstream changes
 ```
 
-4. If all checks pass, push:
+1. If all checks pass, push:
 
 ```sh
 git push
@@ -529,7 +529,8 @@ Same format as `--cached` but shows unstaged (working directory) changes instead
 ```
 
 Porcelain status codes:
-- ` M` = modified, unstaged
-- `M ` = modified, staged
+
+- `M` = modified, unstaged
+- `M` = modified, staged
 - `??` = untracked
 - `MM` = modified staged and unstaged

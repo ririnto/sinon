@@ -139,6 +139,7 @@ Example output:
 ```
 
 Columns:
+
 - Path to worktree directory
 - Current HEAD commit SHA
 - Current branch name (in brackets) or detach status
@@ -213,7 +214,7 @@ git worktree add worktrees/feat-a feat-a
 git worktree add worktrees/feat-b feat-b
 ```
 
-2. Work independently in each worktree:
+1. Work independently in each worktree:
 
 ```sh
 cd worktrees/feat-a
@@ -222,14 +223,14 @@ cd ../feat-b
 # Make different changes, commit, test
 ```
 
-3. Push each branch independently:
+1. Push each branch independently:
 
 ```sh
 cd worktrees/feat-a && git push
 cd ../feat-b && git push
 ```
 
-4. Clean up when done:
+1. Clean up when done:
 
 ```sh
 cd ../../
@@ -258,7 +259,7 @@ cd worktrees/feat-main-work
 # Long-running feature development
 ```
 
-2. Hotfix urgent production issue in a separate worktree:
+1. Hotfix urgent production issue in a separate worktree:
 
 ```sh
 # From another terminal or after exiting the feature worktree
@@ -270,7 +271,7 @@ git push
 cd ../../
 ```
 
-3. Resume feature work:
+1. Resume feature work:
 
 ```sh
 cd worktrees/feat-main-work

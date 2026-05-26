@@ -27,10 +27,12 @@ git status --short
 ```
 
 Capture the output to understand:
+
 - Which files are staged (marked `M`, `A`, `D`, etc.)
 - Which files are unstaged or untracked
 
 If nothing is staged, ask the user whether they want to:
+
 - Include staged changes only
 - Include HEAD changes (last commit)
 - Stage specific files first
@@ -50,6 +52,7 @@ git diff HEAD~1 HEAD
 ```
 
 Read the full diff to grasp:
+
 - What code changed
 - Why it changed (logic, refactor, fix)
 - Which components are affected (src/components/Button, tests/unit/, docs/, etc.)
@@ -59,6 +62,7 @@ Read the full diff to grasp:
 Consult the commit-convention skill for authoritative type and scope guidance. Decide:
 
 Type (pick one):
+
 - `feat` — New feature
 - `fix` — Bug fix
 - `refactor` — Code restructuring without feature or fix
@@ -69,6 +73,7 @@ Type (pick one):
 - `perf` — Performance improvement
 
 Scope (optional, in parentheses):
+
 - A short label identifying the affected module or component (e.g., `Button`, `auth`, `CLI`, `docs`)
 - Omit if the change spans multiple areas or is broadly scoped
 
@@ -85,17 +90,20 @@ Compose a draft message in the following format:
 ```
 
 Subject line:
+
 - Imperative mood: "add", "fix", "remove", not "adds", "fixed", "removes"
 - No period at end
 - 50 characters or fewer (guideline)
 - Lowercase unless proper nouns
 
 Body (optional, use if change is non-trivial):
+
 - Wrapped at ~72 characters
 - Explain *what* changed and *why*, not *how*
 - One blank line between subject and body
 
 Footer (optional, for breaking changes or references):
+
 - Prefix with `BREAKING CHANGE:` if the change breaks backwards compatibility
 - Prefix with `Fixes #123` to link to issues
 - One blank line before footer
@@ -111,6 +119,7 @@ Output the draft message clearly:
 ```
 
 Ask the user to:
+
 - Accept the draft
 - Modify it before committing
 - Reject and start over
@@ -118,6 +127,7 @@ Ask the user to:
 ### Step 6: Evaluate Multi-Commit Need
 
 If the diff shows multiple distinct changes (e.g., refactor + feature + test), ask the user:
+
 - Should this be split into multiple commits?
 - Which changes go together logically?
 

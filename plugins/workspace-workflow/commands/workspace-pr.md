@@ -27,6 +27,7 @@ git remote -v
 ```
 
 Detect:
+
 - GitHub (origin points to github.com)
 - GitLab (origin points to gitlab.com or self-hosted instance)
 - Other platform (Gitea, Bitbucket, etc.)
@@ -60,6 +61,7 @@ git log --oneline main..HEAD
 ```
 
 Collect:
+
 - All commit messages on the branch
 - Commit count and types (feat, fix, refactor, etc.)
 - Rough change narrative from commit subjects
@@ -82,6 +84,7 @@ git log --format=%b <base-branch>..HEAD | grep -i 'fixes\|closes\|resolves'
 ```
 
 Collect issue/PR references and link syntax:
+
 - GitHub: `Fixes #123`, `Closes #456`
 - GitLab: `Closes #789`, `Fixes #101`
 
@@ -108,15 +111,18 @@ Compose the body with three main sections following pr-mr-convention:
 ```
 
 Summary section:
+
 - Concise, single focus
 - Include the "why" (business/technical reason)
 
 Changes section:
+
 - Bullet points describing each logical change
 - Include file or component names if helpful
 - Mention refactors, test additions, docs
 
 Testing section:
+
 - Describe how to verify the change works
 - Link to CI/CD results if applicable
 - Note any manual testing required
@@ -141,11 +147,13 @@ Add a **Breaking Changes** section before Testing:
 ### Step 7: Detect Platform-Specific Syntax
 
 GitHub (Markdown):
+
 - Use standard Markdown
 - Link syntax: `#123` or `Fixes #456`
 - Checklists: `- [ ] Item`, `- [x] Done`
 
 GitLab (Markdown):
+
 - Use standard Markdown
 - Link syntax: `#123` or `closes #456`
 - Checklists: `- [ ] Item`, `- [x] Done`
@@ -171,6 +179,7 @@ Output the draft clearly:
 ```
 
 Ask the user:
+
 - Accept the draft
 - Modify before posting
 - Add additional sections (e.g., Screenshots, Dependencies)
@@ -245,11 +254,13 @@ Alternative: Body text can include GitLab quick actions (e.g., `/assign @user`, 
 #### Inline Body Option (if file handling is cumbersome)
 
 GitHub:
+
 ```sh
 gh pr create --title "feat(api): ..." --body "## Summary\n\n- Item 1\n- Item 2" --draft
 ```
 
 GitLab:
+
 ```sh
 glab mr create --title "feat(api): ..." --description "## Summary\n\n- Item 1\n- Item 2" --draft
 ```
