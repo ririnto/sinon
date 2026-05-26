@@ -58,8 +58,7 @@ object FindingReporter {
         finding: Finding,
     ): List<String> =
         buildList {
-            val headerLine = renderHeader(finding)
-            add(headerLine)
+            add(renderHeader(finding))
             add("")
             if (finding.file != null && finding.startLine != null) {
                 val filePath = root / finding.file
@@ -67,18 +66,18 @@ object FindingReporter {
                     renderSnippet(filePath, finding.startLine, finding.startColumn).forEach(::add)
                 }
             }
-            if (finding.fix != null) {
+            finding.fix?.let { fix ->
                 add("")
-                val safetyLabel = finding.fix.safety.name
-                add("Safety: $safetyLabel")
-                add("Help: ${finding.fix.description}")
-                val firstEdit = finding.fix.edits.firstOrNull()
-                if (firstEdit != null && finding.file != null) {
-                    add("")
-                    add("Before:")
-                    extractRemovedText(root / finding.file, firstEdit).forEach { line -> add("- $line") }
-                    add("After:")
-                    extractAddedText(firstEdit).forEach { line -> add("+ $line") }
+                add("Safety: ${fix.safety.name}")
+                add("Help: ${fix.description}")
+                fix.edits.firstOrNull()?.let { firstEdit ->
+                    if (finding.file != null) {
+                        add("")
+                        add("Before:")
+                        extractRemovedText(root / finding.file, firstEdit).forEach { line -> add("- $line") }
+                        add("After:")
+                        extractAddedText(firstEdit).forEach { line -> add("+ $line") }
+                    }
                 }
             }
             add("")
@@ -106,8 +105,8 @@ object FindingReporter {
         if (lineNum < 0 || lines.size <= lineNum) {
             return emptyList()
         }
+        val numWidth = lines.size.toString().length
         return buildList {
-            val numWidth = lines.size.toString().length
             val beforeLine = lineNum - 1
             if (0 <= beforeLine) {
                 add("   ${(beforeLine + 1).toString().padStart(numWidth)} │ ${lines[beforeLine]}")
@@ -159,23 +158,17 @@ object FindingReporter {
         }
     }
 
-    private fun extractAddedText(edit: HarnessAstResults.FindingEdit): List<String> {
-        val lines = edit.replacement.split("\n")
-        return if (lines.isEmpty()) {
-            listOf("")
-        } else {
-            lines
-        }
-    }
+    private fun extractAddedText(edit: HarnessAstResults.FindingEdit): List<String> =
+        edit.replacement.split("\n").takeIf { it.isNotEmpty() } ?: listOf("")
 
-    private fun computeSummary(findings: List<Finding>): Tuple5<Int, Int, Int, Int, Int> {
-        val distinctFiles = findings.mapNotNull { it.file }.distinct().count()
-        val errorCount = findings.count { it.severity == Severity.ERROR }
-        val warnCount = findings.count { it.severity == Severity.WARN }
-        val infoCount = findings.count { it.severity == Severity.INFO }
-        val fixableCount = findings.count { it.fix?.safety == HarnessAstResults.FixSafety.SAFE }
-        return Tuple5(distinctFiles, errorCount, warnCount, infoCount, fixableCount)
-    }
+    private fun computeSummary(findings: List<Finding>): Tuple5<Int, Int, Int, Int, Int> =
+        Tuple5(
+            findings.mapNotNull { it.file }.distinct().count(),
+            findings.count { it.severity == Severity.ERROR },
+            findings.count { it.severity == Severity.WARN },
+            findings.count { it.severity == Severity.INFO },
+            findings.count { it.fix?.safety == HarnessAstResults.FixSafety.SAFE },
+        )
 
     private data class Tuple5<A, B, C, D, E>(
         val a: A,

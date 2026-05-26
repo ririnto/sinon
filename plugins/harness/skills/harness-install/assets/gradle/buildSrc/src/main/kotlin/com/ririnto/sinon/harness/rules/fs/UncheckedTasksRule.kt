@@ -23,37 +23,26 @@ object UncheckedTasksRule : HarnessCheckRule() {
      */
     override val category: String = "uncheckedTasks"
 
-    override fun validate(ctx: RuleContext): Collection<Finding> =
-        buildList {
-            val catObj = ctx.manifest.categoryObject(category)
-            val parametersObj = catObj?.get("parameters")?.jsonObject
-            if (catObj != null && parametersObj != null) {
-                if ((ctx.root / JsonAccess.stringFromObject(parametersObj, "directory")).isDirectory()) {
-                    ctx
-                        .walkSafe(ctx.root / JsonAccess.stringFromObject(parametersObj, "directory"))
-                        .paths
-                        .filter { file ->
-                            file.name.endsWith(".md")
-                        }.filter { file ->
-                            JsonAccess
-                                .stringFromObject(
-                                    parametersObj,
-                                    "uncheckedTaskPattern",
-                                ).toRegex()
-                                .containsMatchIn(file.readText())
-                        }.forEach { file ->
-                            add(
-                                Finding(
-                                    ctx.manifest.severityOf(category),
-                                    category,
-                                    ctx.manifest.stringValue(category, "default").takeIf { message ->
-                                        message.isNotEmpty()
-                                    }
-                                        ?: "completed plan has unchecked tasks: ${file.relativeTo(ctx.root)}",
-                                ),
-                            )
-                        }
+    override fun validate(ctx: RuleContext): Collection<Finding> {
+        val catObj = ctx.manifest.categoryObject(category) ?: return emptyList()
+        val parametersObj = catObj.get("parameters")?.jsonObject ?: return emptyList()
+        val directory = ctx.root / JsonAccess.stringFromObject(parametersObj, "directory")
+        if (!directory.isDirectory()) return emptyList()
+        val uncheckedPattern = JsonAccess.stringFromObject(parametersObj, "uncheckedTaskPattern").toRegex()
+        return buildList {
+            ctx.walkSafe(directory).paths
+                .filter { file -> file.name.endsWith(".md") }
+                .filter { file -> uncheckedPattern.containsMatchIn(file.readText()) }
+                .forEach { file ->
+                    add(
+                        Finding(
+                            ctx.manifest.severityOf(category),
+                            category,
+                            ctx.manifest.stringValue(category, "default").takeIf { message -> message.isNotEmpty() }
+                                ?: "completed plan has unchecked tasks: ${file.relativeTo(ctx.root)}",
+                        ),
+                    )
                 }
-            }
         }
+    }
 }
