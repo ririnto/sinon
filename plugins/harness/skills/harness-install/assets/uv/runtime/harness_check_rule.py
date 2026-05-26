@@ -211,11 +211,8 @@ class HarnessCheckRule(ABC):
             directories[:] = [
                 name for name in directories if not (current_path / name).is_symlink()
             ]
-            output.extend(
-                child
-                for name in files
-                if not (child := current_path / name).is_symlink()
-            )
+            for child in (current_path / name for name in files if not (current_path / name).is_symlink()):
+                output.append(child)
         return tuple(output)
 
     @staticmethod
@@ -294,6 +291,15 @@ class HarnessCheckRule(ABC):
             return ()
         ext_set = frozenset(e for e in python_exts if isinstance(e, str))
 
+        def matches_filter(file_path: Path) -> bool:
+            return (
+                file_path.is_file()
+                and not file_path.is_symlink()
+                and "__pycache__" not in file_path.parts
+                and HarnessCheckRule.is_relative_to(file_path.resolve(), root)
+                and file_path.suffix.lstrip(".") in ext_set
+            )
+
         def collect_all() -> list[Path]:
             collected = []
             for root_entry in python_roots:
@@ -304,22 +310,12 @@ class HarnessCheckRule(ABC):
                         if (
                             resolved_path.is_dir()
                             and not resolved_path.is_symlink()
-                            and HarnessCheckRule.is_relative_to(
-                                resolved_path.resolve(), root
-                            )
+                            and HarnessCheckRule.is_relative_to(resolved_path.resolve(), root)
                         ):
                             collected.extend(
                                 file_path.resolve()
                                 for file_path in resolved_path.rglob("*")
-                                if (
-                                    file_path.is_file()
-                                    and not file_path.is_symlink()
-                                    and "__pycache__" not in file_path.parts
-                                    and HarnessCheckRule.is_relative_to(
-                                        file_path.resolve(), root
-                                    )
-                                    and file_path.suffix.lstrip(".") in ext_set
-                                )
+                                if matches_filter(file_path)
                             )
                 else:
                     dir_path = root / root_entry
@@ -331,20 +327,11 @@ class HarnessCheckRule(ABC):
                         collected.extend(
                             file_path.resolve()
                             for file_path in dir_path.rglob("*")
-                            if (
-                                file_path.is_file()
-                                and not file_path.is_symlink()
-                                and "__pycache__" not in file_path.parts
-                                and HarnessCheckRule.is_relative_to(
-                                    file_path.resolve(), root
-                                )
-                                and file_path.suffix.lstrip(".") in ext_set
-                            )
+                            if matches_filter(file_path)
                         )
             return collected
 
-        result = list(dict.fromkeys(collect_all()))
-        return tuple(sorted(result))
+        return tuple(sorted(dict.fromkeys(collect_all())))
 
     @staticmethod
     def parse_python(path: Path) -> tuple[cst.Module | None, str | None]:

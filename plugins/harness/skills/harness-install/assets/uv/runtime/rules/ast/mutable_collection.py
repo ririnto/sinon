@@ -139,9 +139,7 @@ class MutableCollectionFinder(cst.CSTVisitor):
             self.record(node, call_name)
         elif attr_name in self.config.accumulation_methods:
             receiver = (
-                dotted_name(node.func.value)
-                if isinstance(node.func, cst.Attribute)
-                else ""
+                dotted_name(node.func.value) if isinstance(node.func, cst.Attribute) else ""
             )
             if receiver not in self.config.allowed_builders:
                 self.record(node, attr_name)
@@ -180,9 +178,9 @@ class MutableCollectionFinder(cst.CSTVisitor):
                 end_line=pos.end.line,
                 end_column=pos.end.column + 1,
                 fix=FindingFix(
-                    description=f"replace `{name}` with functional construction",
-                    safety=FixSafety.UNSAFE,
-                    edits=(),
+                    f"replace `{name}` with functional construction",
+                    FixSafety.UNSAFE,
+                    (),
                 ),
             ),
         )

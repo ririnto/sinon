@@ -102,7 +102,7 @@ def string_array_from_manifest(
     value = raw_manifest.get(category)
     if isinstance(value, list):
         return [item for item in value if isinstance(item, str)]
-    return []
+    return list()
 
 
 def create_manifest(raw_manifest: object) -> Manifest:
