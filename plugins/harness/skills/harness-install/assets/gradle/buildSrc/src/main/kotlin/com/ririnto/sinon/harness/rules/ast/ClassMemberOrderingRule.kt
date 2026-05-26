@@ -1,13 +1,5 @@
 package com.ririnto.sinon.harness.rules.ast
 
-import com.ririnto.sinon.harness.core.RuleContext
-import com.ririnto.sinon.harness.rules.HarnessAstRule
-import com.ririnto.sinon.harness.core.HarnessCheck
-import com.ririnto.sinon.harness.ast.AstSupport
-import com.ririnto.sinon.harness.ast.AstFindingRenderer
-import com.ririnto.sinon.harness.ast.AstFinding
-
-import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.github.javaparser.StaticJavaParser
 import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.body.BodyDeclaration
@@ -17,6 +9,13 @@ import com.github.javaparser.ast.body.EnumDeclaration
 import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.InitializerDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
+import com.ririnto.sinon.harness.ast.AstFinding
+import com.ririnto.sinon.harness.ast.AstFindingRenderer
+import com.ririnto.sinon.harness.ast.AstSupport
+import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
+import com.ririnto.sinon.harness.core.HarnessCheck
+import com.ririnto.sinon.harness.core.RuleContext
+import com.ririnto.sinon.harness.rules.HarnessAstRule
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
@@ -40,7 +39,6 @@ import org.jetbrains.kotlin.psi.KtSecondaryConstructor
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement as KtPsiElement
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.div
@@ -51,6 +49,7 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.isSymbolicLink
 import kotlin.io.path.relativeTo
 import kotlin.io.path.walk
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement as KtPsiElement
 
 /**
  * Rule that delegates class-member ordering findings to source AST/PSI analysis.
@@ -61,34 +60,66 @@ object ClassMemberOrderingRule : HarnessAstRule() {
      */
     override val category: String = "classMemberOrdering"
 
-    override fun validate(ctx: RuleContext): Collection<Finding> = findJavaClassMemberOrderEntries(ctx.root, ctx.manifest.raw)
+    override fun validate(ctx: RuleContext): Collection<Finding> =
+        findJavaClassMemberOrderEntries(ctx.root, ctx.manifest.raw)
 
-    override fun renderAstFindings(ctx: RuleContext, findings: Collection<AstFinding>): Collection<Finding> {
-        val parameters = ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject
-        val kindOrder = (parameters?.get("kindOrder")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull } ?: emptyList()).ifEmpty {
-            listOf("companionObject", "constProperty", "fieldOrProperty", "initializer", "constructor", "function", "interface", "class", "enum")
-        }
-        val visibilityOrder = (parameters?.get("visibilityOrder")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull } ?: emptyList()).ifEmpty {
-            listOf("public", "protected", "internal", "package", "private")
-        }
-        val overrideOrder = (parameters?.get("overrideOrder")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull } ?: emptyList()).ifEmpty {
-            listOf("override", "nonOverride")
-        }
-        val rank = buildMap {
-            var idx = 0
-            for (kind in kindOrder) {
-                for (visibility in visibilityOrder) {
-                    for (overrideState in overrideOrder) {
-                        put("$overrideState:$visibility:$kind", idx++)
+    override fun renderAstFindings(
+        ctx: RuleContext,
+        findings: Collection<AstFinding>,
+    ): Collection<Finding> {
+        val parameters =
+            ctx.manifest
+                .categoryObject(category)
+                ?.get("parameters")
+                ?.jsonObject
+        val kindOrder =
+            (
+                parameters?.get("kindOrder")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull }
+                    ?: emptyList()
+            ).ifEmpty {
+                listOf(
+                    "companionObject",
+                    "constProperty",
+                    "fieldOrProperty",
+                    "initializer",
+                    "constructor",
+                    "function",
+                    "interface",
+                    "class",
+                    "enum",
+                )
+            }
+        val visibilityOrder =
+            (
+                parameters?.get("visibilityOrder")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull }
+                    ?: emptyList()
+            ).ifEmpty {
+                listOf("public", "protected", "internal", "package", "private")
+            }
+        val overrideOrder =
+            (
+                parameters?.get("overrideOrder")?.jsonArray?.mapNotNull { entry -> entry.jsonPrimitive.contentOrNull }
+                    ?: emptyList()
+            ).ifEmpty {
+                listOf("override", "nonOverride")
+            }
+        val rank =
+            buildMap {
+                var idx = 0
+                for (kind in kindOrder) {
+                    for (visibility in visibilityOrder) {
+                        for (overrideState in overrideOrder) {
+                            put("$overrideState:$visibility:$kind", idx++)
+                        }
                     }
                 }
             }
-        }
         return findings
             .groupBy { finding -> finding.file to finding.detail("ownerId") }
             .values
             .flatMap { entries ->
-                entries.sortedBy { entry -> entry.intDetail("position") }
+                entries
+                    .sortedBy { entry -> entry.intDetail("position") }
                     .fold(MemberOrderAccumulator(-1, emptyList())) { accumulator, entry ->
                         val memberKind = entry.detail("memberKind")
                         val memberVisibility = entry.detail("memberVisibility")
@@ -98,11 +129,18 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                                 ?: rank[memberKind]
                                 ?: rank.size
                         when {
-                            memberRank < accumulator.maxRank -> accumulator.copy(findings = accumulator.findings + AstFindingRenderer.render(entry, ctx.manifest.raw))
-                            else -> accumulator.copy(maxRank = memberRank)
+                            memberRank < accumulator.maxRank -> {
+                                accumulator.copy(
+                                    findings =
+                                        accumulator.findings + AstFindingRenderer.render(entry, ctx.manifest.raw),
+                                )
+                            }
+
+                            else -> {
+                                accumulator.copy(maxRank = memberRank)
+                            }
                         }
-                    }
-                    .findings
+                    }.findings
             }
     }
 
@@ -110,10 +148,11 @@ object ClassMemberOrderingRule : HarnessAstRule() {
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor(::add, file, ctx, ktFile, this@ClassMemberOrderingRule))
-    }
+    ): Collection<AstFinding> =
+        buildSet {
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(Visitor(::add, file, ctx, ktFile, this@ClassMemberOrderingRule))
+        }
 
     /**
      * Get owner ID for a class or object.
@@ -163,7 +202,9 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                 }
             }
 
-            else -> "public"
+            else -> {
+                "public"
+            }
         }
 
     /**
@@ -194,9 +235,18 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                 }
             }
 
-            is KtSecondaryConstructor -> "constructor"
-            is KtClassInitializer -> "initializer"
-            is KtNamedFunction -> "function"
+            is KtSecondaryConstructor -> {
+                "constructor"
+            }
+
+            is KtClassInitializer -> {
+                "initializer"
+            }
+
+            is KtNamedFunction -> {
+                "function"
+            }
+
             is KtClass -> {
                 when {
                     declaration.isInterface() -> "interface"
@@ -205,7 +255,9 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                 }
             }
 
-            else -> null
+            else -> {
+                null
+            }
         }
 
     /**
@@ -227,9 +279,18 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                 }
             }
 
-            is KtSecondaryConstructor -> "constructor"
-            is KtClassInitializer -> "initializer"
-            is KtNamedFunction -> declaration.name ?: "function"
+            is KtSecondaryConstructor -> {
+                "constructor"
+            }
+
+            is KtClassInitializer -> {
+                "initializer"
+            }
+
+            is KtNamedFunction -> {
+                declaration.name ?: "function"
+            }
+
             is KtClass -> {
                 when {
                     declaration.isInterface() -> "interface ${declaration.name ?: ""}"
@@ -238,7 +299,9 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                 }
             }
 
-            else -> "member"
+            else -> {
+                "member"
+            }
         }
 
     private fun findJavaClassMemberOrderEntries(
@@ -269,9 +332,10 @@ object ClassMemberOrderingRule : HarnessAstRule() {
         return AstFindingRenderer.renderEach(
             compilationUnit.findAll(ClassOrInterfaceDeclaration::class.java).flatMap { type ->
                 javaClassMemberOrderEntries(root, file, type.nameAsString, javaOwnerId(type), type.members)
-            } + compilationUnit.findAll(EnumDeclaration::class.java).flatMap { type ->
-                javaClassMemberOrderEntries(root, file, type.nameAsString, javaOwnerId(type), type.members)
-            },
+            } +
+                compilationUnit.findAll(EnumDeclaration::class.java).flatMap { type ->
+                    javaClassMemberOrderEntries(root, file, type.nameAsString, javaOwnerId(type), type.members)
+                },
             manifest,
         )
     }
@@ -358,9 +422,18 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                 }
             }
 
-            is InitializerDeclaration -> "initializer"
-            is ConstructorDeclaration -> "constructor"
-            is MethodDeclaration -> "function"
+            is InitializerDeclaration -> {
+                "initializer"
+            }
+
+            is ConstructorDeclaration -> {
+                "constructor"
+            }
+
+            is MethodDeclaration -> {
+                "function"
+            }
+
             is ClassOrInterfaceDeclaration -> {
                 when {
                     member.isInterface -> "interface"
@@ -368,8 +441,13 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                 }
             }
 
-            is EnumDeclaration -> "enum"
-            else -> null
+            is EnumDeclaration -> {
+                "enum"
+            }
+
+            else -> {
+                null
+            }
         }
 
     private fun javaMemberName(member: BodyDeclaration<*>): String =
@@ -381,14 +459,31 @@ object ClassMemberOrderingRule : HarnessAstRule() {
                 }
             }
 
-            is ConstructorDeclaration -> member.nameAsString
-            is MethodDeclaration -> member.nameAsString
-            is ClassOrInterfaceDeclaration -> member.nameAsString
-            is EnumDeclaration -> member.nameAsString
-            else -> "member"
+            is ConstructorDeclaration -> {
+                member.nameAsString
+            }
+
+            is MethodDeclaration -> {
+                member.nameAsString
+            }
+
+            is ClassOrInterfaceDeclaration -> {
+                member.nameAsString
+            }
+
+            is EnumDeclaration -> {
+                member.nameAsString
+            }
+
+            else -> {
+                "member"
+            }
         }
 
-    private data class MemberOrderAccumulator(val maxRank: Int, val findings: List<Finding>)
+    private data class MemberOrderAccumulator(
+        val maxRank: Int,
+        val findings: List<Finding>,
+    )
 
     /**
      * AST visitor for class member ordering analysis.
