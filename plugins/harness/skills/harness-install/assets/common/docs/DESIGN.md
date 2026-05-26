@@ -45,7 +45,7 @@ Anything that enters the domain from outside MUST come through Providers. Allowe
 
 ## Taste Invariants
 
-- **Parse don't validate at boundaries** — Enforce at the entry point where external data enters. Use `parse-don't-validate` (https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) as the canonical reference.
+- **Parse don't validate at boundaries** — Enforce at the entry point where external data enters. Use `parse-don't-validate` (<https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/>) as the canonical reference.
 - **Structured logging only** — No `print` / `console.log` in production paths; enforce via lint.
 - **Boundary schemas use `<Domain>(Request|Response|Event)` naming** — Apply this convention to all boundary types; enforce via structural test.
 - **File size cap** — Default 400 lines per file; enforce via custom lint.
