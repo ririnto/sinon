@@ -162,6 +162,15 @@
       "uncheckedTaskPattern": "^\\s*-\\s*\\[ \\]\\s"
     }
   },
+  "shellcheck": {
+    "description": "Every shell script file under the current directory (excluding .git) MUST pass shellcheck validation with no violations.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{file}: shellcheck violations found"
+    },
+    "parameters": {}
+  },
   "seedFiles": {
     "description": "Optional placeholder files the harness installs but the target repository MAY replace, rename, or remove. Not a check.",
     "paths": [

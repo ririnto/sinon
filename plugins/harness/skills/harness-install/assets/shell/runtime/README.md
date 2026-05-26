@@ -13,6 +13,7 @@ The shell adapter implements a minimum-viable subset of the harness manifest, su
 - `hookExecutable` — each hook has the executable bit set.
 - `scaffoldLeaks` — no leak pattern (unresolved template tokens, deferred-work markers, scaffold prompt text, or example identifiers) appears in active assets. The exact patterns are read from the manifest at runtime.
 - `uncheckedTasks` — no completed plan retains unchecked `- [ ]` task lines.
+- `shellcheck` — every shell script in the repository passes `shellcheck` validation with no violations.
 
 The richer set of add-ons (manifest-driven Kotlin / Java / Python / TypeScript checks) live in the matching language-specific adapters and is out of scope for the shell adapter.
 
@@ -21,14 +22,24 @@ The richer set of add-ons (manifest-driven Kotlin / Java / Python / TypeScript c
 - POSIX `sh`
 - `python3` 3.8 or newer, used to parse `docs/harness/manifest.json` (POSIX shell has no JSON parser)
 - `find`, `grep`, `sed`
+- `shellcheck` (for shell script validation)
+- `shfmt` (for shell script formatting)
 
-## How to run
+## How to run validation
 
 ```sh
 sh docs/harness/shell/harness-check.sh
 ```
 
 Exit code is `0` when zero `ERROR` findings are emitted; `1` otherwise. `WARN` and `INFO` findings are reported on stderr but do not fail the run.
+
+## How to format shell scripts
+
+```sh
+sh docs/harness/shell/harness-format.sh
+```
+
+Formats all `.sh` files under the current directory using `shfmt` with 4-space indent and compact if-statement style.
 
 ## Output format
 
