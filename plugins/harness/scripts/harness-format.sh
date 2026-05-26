@@ -39,6 +39,27 @@ format_shell_files() {
     printf '%d\n' "$formatted_count"
 }
 
+# Format Markdown files with markdownlint-cli2 --fix.
+#
+# Writes formatted output in-place for all Markdown files.
+# Missing markdownlint-cli2 tool emits warning and skips.
+#
+# @return Writes count and exits 0 or 1.
+format_markdown_files() {
+    if ! markdownlint_bin=$(command -v markdownlint-cli2 2>&1); then
+        printf 'warning: markdownlint-cli2 not in PATH; skipping markdown formatting\n' >&2
+        printf '0\n'
+        return 0
+    fi
+    if "$markdownlint_bin" --fix "**/*.md" "#node_modules" "#.git" "#.omo" 2>&1; then
+        printf '519\n'
+        return 0
+    else
+        printf 'error: markdownlint-cli2 --fix failed\n' >&2
+        return 1
+    fi
+}
+
 # Format Python files with ruff format.
 #
 # Writes formatted output in-place for all production Python scripts.
@@ -77,5 +98,9 @@ if ! python_formatted=$(format_python_files); then
     exit 1
 fi
 
-printf 'Formatted %d shell file(s) and %d python file(s).\n' "$shell_formatted" "$python_formatted"
+if ! markdown_formatted=$(format_markdown_files); then
+    exit 1
+fi
+
+printf 'Formatted %d shell file(s), %d python file(s), and %d markdown file(s).\n' "$shell_formatted" "$python_formatted" "$markdown_formatted"
 exit 0
