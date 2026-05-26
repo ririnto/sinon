@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "document-creator",
+  "description": "Skills for authoring AI-consumable engineering documents with structured requirements, scenarios, and acceptance criteria. Currently provides SPEC.md creation.",
+  "author": {
+    "name": "ririnto"
+  },
+  "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/document-creator",
+  "repository": "https://github.com/ririnto/sinon",
+  "skills": "./skills/",
+  "keywords": [
+    "spec",
+    "requirements",
+    "documentation",
+    "authoring",
+    "ai-consumable",
+    "structured"
+  ]
+}
