@@ -7,13 +7,13 @@ COMPATIBLE_VERSION="1.18.4"
 mode="uses-lombok"
 
 case "${1:-}" in
---resolve-project-jar)
-    mode="resolve-project-jar"
-    shift
-    ;;
---uses-lombok)
-    shift
-    ;;
+    --resolve-project-jar)
+        mode="resolve-project-jar"
+        shift
+        ;;
+    --uses-lombok)
+        shift
+        ;;
 esac
 
 project_root=${1:-$PWD}
@@ -29,22 +29,22 @@ contains_lombok_dependency() {
         return 1
     fi
     case "${file_path}" in
-    */pom.xml)
-        grep -Eq 'org\.projectlombok|<artifactId>lombok</artifactId>' "${file_path}"
-        return
-        ;;
-    */build.gradle | */build.gradle.kts)
-        grep -Eq 'org\.projectlombok:lombok|io\.freefair\.lombok|annotationProcessor[^[:cntrl:]]*lombok|compileOnly[^[:cntrl:]]*lombok|testAnnotationProcessor[^[:cntrl:]]*lombok|testCompileOnly[^[:cntrl:]]*lombok|kapt[^[:cntrl:]]*lombok' "${file_path}"
-        return
-        ;;
-    */gradle/libs.versions.toml)
-        grep -Eq 'org\.projectlombok|module\s*=\s*"org\.projectlombok:lombok"|^lombok\s*=|\blombok\b' "${file_path}"
-        return
-        ;;
-    */.classpath | */.factorypath)
-        grep -Eq 'org\.projectlombok|lombok' "${file_path}"
-        return
-        ;;
+        */pom.xml)
+            grep -Eq 'org\.projectlombok|<artifactId>lombok</artifactId>' "${file_path}"
+            return
+            ;;
+        */build.gradle | */build.gradle.kts)
+            grep -Eq 'org\.projectlombok:lombok|io\.freefair\.lombok|annotationProcessor[^[:cntrl:]]*lombok|compileOnly[^[:cntrl:]]*lombok|testAnnotationProcessor[^[:cntrl:]]*lombok|testCompileOnly[^[:cntrl:]]*lombok|kapt[^[:cntrl:]]*lombok' "${file_path}"
+            return
+            ;;
+        */gradle/libs.versions.toml)
+            grep -Eq 'org\.projectlombok|module\s*=\s*"org\.projectlombok:lombok"|^lombok\s*=|\blombok\b' "${file_path}"
+            return
+            ;;
+        */.classpath | */.factorypath)
+            grep -Eq 'org\.projectlombok|lombok' "${file_path}"
+            return
+            ;;
     esac
     return 1
 }
@@ -73,20 +73,20 @@ resolve_candidate_jar_path() {
     source_file="$2"
     source_dir=$(dirname "${source_file}")
     case "${candidate_path}" in
-    file:/*)
-        candidate_path=${candidate_path#file:}
-        ;;
+        file:/*)
+            candidate_path=${candidate_path#file:}
+            ;;
     esac
     case "${candidate_path}" in
-    /*)
-        resolved_path="${candidate_path}"
-        ;;
-    [A-Za-z]:[\\/]*)
-        resolved_path="${candidate_path}"
-        ;;
-    *)
-        resolved_path="${source_dir}/${candidate_path}"
-        ;;
+        /*)
+            resolved_path="${candidate_path}"
+            ;;
+        [A-Za-z]:[\\/]*)
+            resolved_path="${candidate_path}"
+            ;;
+        *)
+            resolved_path="${source_dir}/${candidate_path}"
+            ;;
     esac
     if [ -f "${resolved_path}" ]; then
         printf '%s\n' "${resolved_path}"
@@ -181,20 +181,20 @@ EOF
     done
     while IFS= read -r metadata_file; do
         case "${metadata_file}" in
-        */.classpath | */.factorypath)
-            while IFS= read -r candidate_path; do
-                resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}" || true)
-                if [ -n "${resolved_path}" ]; then
-                    candidate_version=$(version_from_lombok_path "${resolved_path}")
-                    if [ -n "${candidate_version}" ] && is_compatible_lombok_version "${candidate_version}"; then
-                        printf '%s\n' "${resolved_path}"
-                        return 0
+            */.classpath | */.factorypath)
+                while IFS= read -r candidate_path; do
+                    resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}" || true)
+                    if [ -n "${resolved_path}" ]; then
+                        candidate_version=$(version_from_lombok_path "${resolved_path}")
+                        if [ -n "${candidate_version}" ] && is_compatible_lombok_version "${candidate_version}"; then
+                            printf '%s\n' "${resolved_path}"
+                            return 0
+                        fi
                     fi
-                fi
-            done <<EOF
+                done <<EOF
 $(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}" || true)
 EOF
-            ;;
+                ;;
         esac
     done <<EOF
 $(find_project_files)
@@ -207,10 +207,10 @@ if [ ! -d "${project_root}" ]; then
 fi
 
 case "${mode}" in
-resolve-project-jar)
-    resolve_project_lombok_jar
-    ;;
-uses-lombok)
-    project_uses_lombok
-    ;;
+    resolve-project-jar)
+        resolve_project_lombok_jar
+        ;;
+    uses-lombok)
+        project_uses_lombok
+        ;;
 esac
