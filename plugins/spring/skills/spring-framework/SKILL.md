@@ -1,7 +1,7 @@
 ---
 name: spring-framework
 description: >-
-  Apply core Spring Framework APIs for the container, Java configuration, bean lifecycle, transactions, events, validation, servlet MVC, WebFlux, WebClient, and TestContext support. Use this skill when the task depends on core Spring Framework APIs rather than Boot conventions, especially the container, Java configuration, bean lifecycle, transactions, events, validation, servlet MVC controllers and exception handling, reactive HTTP with WebFlux, WebClient, and TestContext support.
+  Apply core Spring Framework APIs for the container, Java configuration, bean lifecycle, transactions, events, validation, servlet MVC, WebFlux, WebClient, and TestContext support.
 metadata:
   title: "Spring Framework"
   official-project-url: "https://spring.io/projects/spring-framework"

@@ -1,7 +1,7 @@
 ---
 name: spec-driven-development
 description: >-
-  Drive implementation through a SPEC.md-first workflow covering research, review gates, approved-spec execution, and completeness verification. Use this skill when the user explicitly asks to follow a spec-driven workflow, write a SPEC.md before implementing, create a specification, define requirements before coding, or use a spec-first approach. Covers the full lifecycle: research external unknowns, author SPEC.md, pass review gates, implement against the approved spec, and verify completeness. Activated only on explicit user request, not automatically.
+  Drive implementation through a SPEC.md-first workflow covering research, review gates, approved-spec execution, and completeness verification. Covers the full lifecycle: research external unknowns, author SPEC.md, pass review gates, implement against the approved spec, and verify completeness. Activated only on explicit user request, not automatically.
 license: Apache-2.0
 ---
 

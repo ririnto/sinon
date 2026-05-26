@@ -4,9 +4,6 @@ description: >-
   Review Java performance and concurrency decisions with evidence-driven profiling,
   classify bottlenecks as CPU, I/O, contention, or allocation,
   evaluate virtual-thread fit, and recommend the smallest measured change.
-  Use when the user asks to optimize Java performance, analyze concurrency design,
-  use virtual threads, reduce allocation pressure, profile Java code,
-  or needs guidance on Java performance and concurrency tradeoffs.
 ---
 
 # Java Performance Concurrency

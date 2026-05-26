@@ -1,7 +1,7 @@
 ---
 name: spring-ldap
 description: >-
-  Build LDAP directory reads and writes in Spring with LdapTemplate, ODM entry mapping, LDAP repository queries, authentication checks, and embedded LDAP tests. Use this skill when building LDAP directory reads and writes in Spring with LdapTemplate, ODM entry mapping, LDAP repository queries, authentication checks, and embedded LDAP tests.
+  Build LDAP directory reads and writes in Spring with LdapTemplate, ODM entry mapping, LDAP repository queries, authentication checks, and embedded LDAP tests.
 metadata:
   title: "Spring LDAP"
   official-project-url: "https://spring.io/projects/spring-ldap"
