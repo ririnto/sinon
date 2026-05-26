@@ -53,7 +53,7 @@ emit() {
     severity=$1
     category=$2
     message=$3
-    printf '[%s] %s: %s\n' "$severity" "$category" "$message" >> "$findings_file"
+    printf '[%s] %s: %s\n' "$severity" "$category" "$message" >>"$findings_file"
 }
 
 # Resolve a severity from the manifest with ERROR fallback.
@@ -176,7 +176,7 @@ check_scaffold_leaks() {
         return 0
     fi
     sev=$(severity_of "$category")
-    python3 - "$MANIFEST" "$category" "$sev" >> "$findings_file" <<'PYEOF'
+    python3 - "$MANIFEST" "$category" "$sev" >>"$findings_file" <<'PYEOF'
 import json
 import re
 import sys
@@ -293,11 +293,20 @@ warns=0
 infos=0
 while IFS= read -r line; do
     case "$line" in
-        '[ERROR]'*) printf '%s\n' "$line" >&2; errors=$((errors + 1)) ;;
-        '[WARN]'*)  printf '%s\n' "$line" >&2; warns=$((warns + 1)) ;;
-        '[INFO]'*)  printf '%s\n' "$line" >&2; infos=$((infos + 1)) ;;
+        '[ERROR]'*)
+            printf '%s\n' "$line" >&2
+            errors=$((errors + 1))
+            ;;
+        '[WARN]'*)
+            printf '%s\n' "$line" >&2
+            warns=$((warns + 1))
+            ;;
+        '[INFO]'*)
+            printf '%s\n' "$line" >&2
+            infos=$((infos + 1))
+            ;;
     esac
-done < "$findings_file"
+done <"$findings_file"
 
 if [ "$errors" -gt 0 ]; then
     printf 'Harness validation failed (errors=%s warns=%s infos=%s)\n' "$errors" "$warns" "$infos" >&2
