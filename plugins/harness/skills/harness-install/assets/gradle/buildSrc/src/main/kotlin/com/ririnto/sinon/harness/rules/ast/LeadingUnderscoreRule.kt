@@ -24,29 +24,32 @@ object LeadingUnderscoreRule : HarnessAstRule() {
      */
     override val category: String = "leadingUnderscore"
 
-    override fun renderAstFindings(ctx: RuleContext, findings: Collection<AstFinding>): Collection<Finding> =
-        AstFindingRenderer.renderEach(findings.toList(), ctx.manifest.raw)
+    override fun renderAstFindings(
+        ctx: RuleContext,
+        findings: Collection<AstFinding>,
+    ): Collection<Finding> = AstFindingRenderer.renderEach(findings.toList(), ctx.manifest.raw)
 
     override fun findAstFindings(
         file: Path,
         ctx: RuleContext,
         astFactory: KtPsiFactory?,
-    ): Collection<AstFinding> = buildSet {
-        val ruleConfig = RuleConfig.from(ctx)
-        val basename = file.nameWithoutExtension
-        if (ruleConfig.isForbidden(basename)) {
-            add(
-                AstFinding(
-                    rule = category,
-                    file = AstSupport.relativeFilePath(file, ctx.root),
-                    line = 1,
-                    details = mapOf("name" to basename),
-                ),
-            )
+    ): Collection<AstFinding> =
+        buildSet {
+            val ruleConfig = RuleConfig.from(ctx)
+            val basename = file.nameWithoutExtension
+            if (ruleConfig.isForbidden(basename)) {
+                add(
+                    AstFinding(
+                        rule = category,
+                        file = AstSupport.relativeFilePath(file, ctx.root),
+                        line = 1,
+                        details = mapOf("name" to basename),
+                    ),
+                )
+            }
+            val ktFile = AstSupport.parse(file, astFactory)
+            ktFile?.accept(Visitor(::add, file, ctx, ktFile, ruleConfig))
         }
-        val ktFile = AstSupport.parse(file, astFactory)
-        ktFile?.accept(Visitor(::add, file, ctx, ktFile, ruleConfig))
-    }
 
     private class Visitor(
         private val record: (AstFinding) -> Unit,
@@ -77,17 +80,24 @@ object LeadingUnderscoreRule : HarnessAstRule() {
     ) {
         companion object {
             fun from(ctx: RuleContext): RuleConfig {
-                val parameters = ctx.manifest.categoryObject("leadingUnderscore")?.get("parameters")?.jsonObject
+                val parameters =
+                    ctx.manifest
+                        .categoryObject("leadingUnderscore")
+                        ?.get("parameters")
+                        ?.jsonObject
                 return RuleConfig(
                     allowedNames = (JsonAccess.stringArrayFromObject(parameters, "allowedNames") + "_").toSet(),
-                    allowedPatterns = JsonAccess.stringArrayFromObject(parameters, "allowedPatterns").mapNotNull { pattern ->
-                        runCatching { pattern.toRegex() }.getOrNull()
-                    },
+                    allowedPatterns =
+                        JsonAccess.stringArrayFromObject(parameters, "allowedPatterns").mapNotNull { pattern ->
+                            runCatching { pattern.toRegex() }.getOrNull()
+                        },
                 )
             }
         }
 
         fun isForbidden(name: String): Boolean =
-            name.startsWith("_") && name !in allowedNames && allowedPatterns.none { pattern -> pattern.matches(name) }
+            name.startsWith("_") &&
+                name !in allowedNames &&
+                allowedPatterns.none { pattern -> pattern.matches(name) }
     }
 }

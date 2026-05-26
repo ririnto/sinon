@@ -1,9 +1,9 @@
 package com.ririnto.sinon.harness.rules.text
 
+import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.JsonAccess
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.rules.HarnessCheckRule
-import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import kotlinx.serialization.json.jsonObject
 import org.commonmark.ext.front.matter.YamlFrontMatterExtension
 import org.commonmark.ext.front.matter.YamlFrontMatterVisitor
@@ -29,72 +29,88 @@ object SkillFrontmatterRule : HarnessCheckRule() {
     override val category: String = "skillFrontmatter"
 
     private val markdownParser: Parser =
-        Parser.builder()
+        Parser
+            .builder()
             .extensions(listOf(YamlFrontMatterExtension.create()))
             .build()
 
-    override fun validate(ctx: RuleContext): Collection<Finding> = buildList {
-        val catObj = ctx.manifest.categoryObject(category)
-        val parametersObj = catObj?.get("parameters")?.jsonObject
-        if (catObj != null && parametersObj != null) {
-            val dirPath = ctx.root / JsonAccess.stringFromObject(parametersObj, "rootDirectory")
-            val severity = ctx.manifest.severityOf(category)
-            when {
-                !dirPath.isDirectory() -> {
-                    add(
-                        Finding(
-                            severity,
-                            category,
-                            ctx.manifest.stringValue(category, "missingDirectory").takeIf { message ->
-                                message.isNotEmpty()
-                            } ?: ".claude/skills must contain at least one SKILL.md",
-                        ),
-                    )
-                }
-                else -> {
-                    val files =
-                        dirPath
-                            .walk()
-                            .filter { file -> file.isRegularFile() }
-                            .filter { file -> file.name == JsonAccess.stringFromObject(parametersObj, "filename") }
-                            .toList()
-                    when {
-                        files.isEmpty() -> {
-                            add(
-                                Finding(
-                                    severity,
-                                    category,
-                                    ctx.manifest.stringValue(category, "missingSkill").takeIf { message ->
-                                        message.isNotEmpty()
-                                    } ?: ".claude/skills must contain at least one SKILL.md",
-                                ),
-                            )
-                        }
-                        else -> {
-                            files.forEach { file ->
-                                val text = file.readText()
-                                when {
-                                    !text.startsWith("---") -> {
-                                        add(
-                                            Finding(
-                                                severity,
-                                                category,
-                                                ctx.manifest.stringValue(category, "missingFrontmatter").takeIf { message -> message.isNotEmpty() }
-                                                    ?: "skill missing frontmatter: ${file.relativeTo(ctx.root)}",
-                                            ),
-                                        )
-                                    }
-                                    else -> {
-                                        val frontmatter = extractFrontmatter(text)
-                                        if (frontmatter["description"]?.firstOrNull()?.isNotBlank() != true) {
+    override fun validate(ctx: RuleContext): Collection<Finding> =
+        buildList {
+            val catObj = ctx.manifest.categoryObject(category)
+            val parametersObj = catObj?.get("parameters")?.jsonObject
+            if (catObj != null && parametersObj != null) {
+                val dirPath = ctx.root / JsonAccess.stringFromObject(parametersObj, "rootDirectory")
+                val severity = ctx.manifest.severityOf(category)
+                when {
+                    !dirPath.isDirectory() -> {
+                        add(
+                            Finding(
+                                severity,
+                                category,
+                                ctx.manifest.stringValue(category, "missingDirectory").takeIf { message ->
+                                    message.isNotEmpty()
+                                } ?: ".claude/skills must contain at least one SKILL.md",
+                            ),
+                        )
+                    }
+
+                    else -> {
+                        val files =
+                            dirPath
+                                .walk()
+                                .filter { file -> file.isRegularFile() }
+                                .filter { file -> file.name == JsonAccess.stringFromObject(parametersObj, "filename") }
+                                .toList()
+                        when {
+                            files.isEmpty() -> {
+                                add(
+                                    Finding(
+                                        severity,
+                                        category,
+                                        ctx.manifest.stringValue(category, "missingSkill").takeIf { message ->
+                                            message.isNotEmpty()
+                                        } ?: ".claude/skills must contain at least one SKILL.md",
+                                    ),
+                                )
+                            }
+
+                            else -> {
+                                files.forEach { file ->
+                                    val text = file.readText()
+                                    when {
+                                        !text.startsWith("---") -> {
                                             add(
                                                 Finding(
                                                     severity,
                                                     category,
-                                                    ctx.manifest.stringValue(category, "missingDescription").takeIf { message -> message.isNotEmpty() }
-                                                        ?: "skill missing description: ${file.relativeTo(ctx.root)}",
+                                                    ctx.manifest
+                                                        .stringValue(category, "missingFrontmatter")
+                                                        .takeIf { message -> message.isNotEmpty() }
+                                                        ?: "skill missing frontmatter: ${file.relativeTo(ctx.root)}",
                                                 ),
                                             )
+                                        }
+
+                                        else -> {
+                                            val frontmatter = extractFrontmatter(text)
+                                            if (frontmatter["description"]?.firstOrNull()?.isNotBlank() != true) {
+                                                add(
+                                                    Finding(
+                                                        severity,
+                                                        category,
+                                                        ctx.manifest
+                                                            .stringValue(
+                                                                category,
+                                                                "missingDescription",
+                                                            ).takeIf { message ->
+                                                                message.isNotEmpty()
+                                                            }
+                                                            ?: "skill missing description: ${file.relativeTo(
+                                                                ctx.root,
+                                                            )}",
+                                                    ),
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -104,7 +120,6 @@ object SkillFrontmatterRule : HarnessCheckRule() {
                 }
             }
         }
-    }
 
     private fun extractFrontmatter(content: String): Map<String, List<String>> =
         YamlFrontMatterVisitor()

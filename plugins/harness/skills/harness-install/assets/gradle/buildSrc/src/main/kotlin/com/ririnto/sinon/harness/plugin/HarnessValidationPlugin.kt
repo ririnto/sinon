@@ -1,11 +1,11 @@
 package com.ririnto.sinon.harness.plugin
 
+import com.ririnto.sinon.harness.ast.HarnessAstResults
+import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.DefaultManifest
 import com.ririnto.sinon.harness.core.DefaultRuleContext
 import com.ririnto.sinon.harness.core.HarnessCheck
 import com.ririnto.sinon.harness.core.Severity
-import com.ririnto.sinon.harness.ast.HarnessAstResults
-import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.reporter.FindingReporter
 import com.ririnto.sinon.harness.rules.HarnessAstRule
 import kotlinx.serialization.json.Json
@@ -75,6 +75,14 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
         target.tasks.named("check").configure {
             dependsOn("harnessCheck")
         }
+        target.afterEvaluate {
+            target.tasks.findByName("ktlintCheck")?.let { ktlintCheckTask ->
+                target.tasks.named("harnessCheck") { dependsOn(ktlintCheckTask) }
+            }
+            target.tasks.findByName("ktlintFormat")?.let { ktlintFormatTask ->
+                target.tasks.named("harnessFormat") { dependsOn(ktlintFormatTask) }
+            }
+        }
     }
 
     /**
@@ -129,16 +137,18 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 buildSet {
                     addAll(manifestFindings)
                     manifest?.let { manifest ->
-                        (manifest.keys - HarnessCheck.entries.map { check -> check.category() }.toSet() -
-                            setOf(
-                                "name",
-                                "description",
-                                $$"$schema",
-                                "seedFiles",
-                                "generatedArtifacts",
-                                "harnessEvolution",
-                                "teamPatterns",
-                            )).forEach { key ->
+                        (
+                            manifest.keys - HarnessCheck.entries.map { check -> check.category() }.toSet() -
+                                setOf(
+                                    "name",
+                                    "description",
+                                    $$"$schema",
+                                    "seedFiles",
+                                    "generatedArtifacts",
+                                    "harnessEvolution",
+                                    "teamPatterns",
+                                )
+                        ).forEach { key ->
                             project.logger.warn("unknown manifest key: $key")
                         }
                         val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
@@ -168,23 +178,20 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                                 listOf(
                                     root / "buildSrc" / "src" / "main" / "kotlin",
                                     root / "buildSrc" / "src" / "test" / "kotlin",
-                                )
-                                    .filter { srcRoot -> srcRoot.isDirectory() }
+                                ).filter { srcRoot -> srcRoot.isDirectory() }
                                     .flatMap { dir ->
                                         dir
                                             .walk()
                                             .filter { file -> !file.isSymbolicLink() }
                                             .filter { file -> file.isRegularFile() }
                                             .filter { file -> file.extension == "kt" }
-                                    }
-                                    .map { srcFile -> srcFile.invariantSeparatorsPathString },
+                                    }.map { srcFile -> srcFile.invariantSeparatorsPathString },
                             )
                             rootDir.set(root.invariantSeparatorsPathString)
                             manifestText.set(Json.encodeToString(manifest))
                             this.outputFile.set(outputFile.toFile())
                         }
-                    }
-                    .await()
+                    }.await()
                 Json.decodeFromString<HarnessAstResults>(outputFile.readText())
             } ?: HarnessAstResults(emptyList())
 
@@ -245,11 +252,12 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 throw GradleException("Cannot load harness manifest; format aborted")
             }
             val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
-            val relativePaths = HarnessCheck.entries
-                .filter { check -> check.rule.applies(ctx) }
-                .flatMap { check -> check.rule.format(ctx) }
-                .map { absolute -> root.relativize(absolute) }
-                .sortedBy { rel -> rel.invariantSeparatorsPathString }
+            val relativePaths =
+                HarnessCheck.entries
+                    .filter { check -> check.rule.applies(ctx) }
+                    .flatMap { check -> check.rule.format(ctx) }
+                    .map { absolute -> root.relativize(absolute) }
+                    .sortedBy { rel -> rel.invariantSeparatorsPathString }
             if (relativePaths.isEmpty()) {
                 project.logger.lifecycle("no files formatted")
             } else {
@@ -263,27 +271,35 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
         private fun loadManifest(root: Path): ManifestLoadResult {
             val manifestFile = root / "docs" / "harness" / "manifest.json"
             return when {
-                manifestFile.isSymbolicLink() -> ManifestLoadResult(
-                    null,
-                    listOf(
-                        Finding(
-                            Severity.ERROR,
-                            "symlinkSafety",
-                            "symlink file is not allowed: docs/harness/manifest.json",
+                manifestFile.isSymbolicLink() -> {
+                    ManifestLoadResult(
+                        null,
+                        listOf(
+                            Finding(
+                                Severity.ERROR,
+                                "symlinkSafety",
+                                "symlink file is not allowed: docs/harness/manifest.json",
+                            ),
                         ),
-                    ),
-                )
-                !manifestFile.isRegularFile() -> ManifestLoadResult(
-                    null,
-                    listOf(
-                        Finding(
-                            Severity.ERROR,
-                            "filePresence",
-                            "missing file: docs/harness/manifest.json",
+                    )
+                }
+
+                !manifestFile.isRegularFile() -> {
+                    ManifestLoadResult(
+                        null,
+                        listOf(
+                            Finding(
+                                Severity.ERROR,
+                                "filePresence",
+                                "missing file: docs/harness/manifest.json",
+                            ),
                         ),
-                    ),
-                )
-                else -> ManifestLoadResult(Json.parseToJsonElement(manifestFile.readText()).jsonObject, emptyList())
+                    )
+                }
+
+                else -> {
+                    ManifestLoadResult(Json.parseToJsonElement(manifestFile.readText()).jsonObject, emptyList())
+                }
             }
         }
     }
@@ -312,17 +328,20 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             val environment = createKotlinCoreEnvironmentViaReflection(configuration)
             val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
             val factory = KtPsiFactory(environment.project)
-            val findings = HarnessCheck.entries
-                .map { check -> check.rule }
-                .filter { rule -> rule.applies(ctx) }
-                .filterIsInstance<HarnessAstRule>()
-                .flatMap { astRule ->
-                    val astFindings = parameters.srcFilePaths.get()
-                        .flatMap { srcFilePath ->
-                            astRule.findAstFindings(Path(srcFilePath), ctx, factory)
-                        }
-                    astRule.renderAstFindings(ctx, astFindings)
-                }
+            val findings =
+                HarnessCheck.entries
+                    .map { check -> check.rule }
+                    .filter { rule -> rule.applies(ctx) }
+                    .filterIsInstance<HarnessAstRule>()
+                    .flatMap { astRule ->
+                        val astFindings =
+                            parameters.srcFilePaths
+                                .get()
+                                .flatMap { srcFilePath ->
+                                    astRule.findAstFindings(Path(srcFilePath), ctx, factory)
+                                }
+                        astRule.renderAstFindings(ctx, astFindings)
+                    }
             val results = HarnessAstResults(findings)
             parameters.outputFile
                 .get()
@@ -348,17 +367,21 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                     EnvironmentConfigFiles::class.java,
                 )
             method.isAccessible = true
-            val result = method.invoke(
-                null,
-                Disposer.newDisposable("HarnessAstWorkAction"),
-                configuration,
-                EnvironmentConfigFiles.JVM_CONFIG_FILES,
-            )
+            val result =
+                method.invoke(
+                    null,
+                    Disposer.newDisposable("HarnessAstWorkAction"),
+                    configuration,
+                    EnvironmentConfigFiles.JVM_CONFIG_FILES,
+                )
             return checkNotNull(result as? KotlinCoreEnvironment) {
                 "createForTests returned null or incorrect type: ${result?.javaClass}"
             }
         }
     }
 
-    private data class ManifestLoadResult(val manifest: JsonObject?, val findings: List<Finding>)
+    private data class ManifestLoadResult(
+        val manifest: JsonObject?,
+        val findings: List<Finding>,
+    )
 }
