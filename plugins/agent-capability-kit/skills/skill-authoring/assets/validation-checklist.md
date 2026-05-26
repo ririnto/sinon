@@ -7,7 +7,8 @@ Use this checklist as a final verification pass, not as a gate that blocks compl
 - [ ] Directory name matches `name`
 - [ ] `name` is lowercase, hyphen-safe, and <= 64 characters
 - [ ] `description` is non-empty and <= 1024 characters
-- [ ] `description` states both what and when
+- [ ] `description` opens with an imperative capability statement
+- [ ] `description` trigger clause (if present) adds vocabulary distinct from the capability, with no verb-synonym duplication
 - [ ] `description` is specific enough to trigger the right job and exclude nearby jobs
 - [ ] `compatibility` is absent or <= 500 characters
 

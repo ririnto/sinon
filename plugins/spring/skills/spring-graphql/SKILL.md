@@ -1,7 +1,7 @@
 ---
 name: spring-graphql
 description: >-
-  Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests. Use this skill when building Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests.
+  Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests.
 metadata:
   title: "Spring for GraphQL"
   official-project-url: "https://spring.io/projects/spring-graphql"
@@ -9,13 +9,6 @@ metadata:
     - "https://docs.spring.io/spring-graphql/reference/index.html"
   version: "2.0.3"
 ---
-
-Use this skill when building Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests.
-
-## Boundaries
-
-Use `spring-graphql` for GraphQL schema design, query and mutation handlers, field mappings, batching, transport-aware execution, and GraphQL-specific tests.
-
 - Use narrower guidance for ordinary REST or non-GraphQL HTTP endpoint design.
 - Keep transport and resolver concerns at the GraphQL boundary. Domain services should not depend on GraphQL-specific annotations or response shapes.
 - Keep federation out of the ordinary path. Open the federation reference only when the graph is intentionally split across several services.

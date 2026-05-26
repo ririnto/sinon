@@ -94,7 +94,8 @@ Optional fields:
 ### `description`
 
 - 1 to 1024 characters
-- state both capability and trigger condition
+- open with a capability statement in imperative form
+- add a trigger clause only when it introduces vocabulary absent from the capability (artifact types, domain terminology, timing cues, or alternate naming)
 - include likely user-intent keywords, nouns, file types, systems, or goals
 - remain valid outside one host product
 - be specific enough to activate the right skill without locking to one host or vendor
@@ -102,13 +103,19 @@ Optional fields:
 Default formula:
 
 ```text
-[Primary capability]. Use when [task, inputs, systems, file types, or user intent].
+[Imperative capability]. Use when [distinct task, inputs, systems, file types, or user intent keywords not already in the capability].
 ```
 
-Strong example:
+Strong example (with trigger clause adding new vocabulary):
 
 ```text
 Draft release automation runbooks and rollback notes. Use when preparing deployment procedures, CI release steps, or operational handoff docs.
+```
+
+Valid example (capability-only, already keyword-complete):
+
+```text
+Review Markdown documents for structure, headings, and missing sections.
 ```
 
 Weak example:

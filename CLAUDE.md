@@ -55,7 +55,7 @@ When the task is to create, edit, review, refactor, validate, or package an Agen
 
 Progressive disclosure applies at three levels:
 
-1. Skill `description` metadata is the activation trigger. It MUST open with a capability statement written as an imperative clause that names what the skill does (for example, "Design...", "Write...", "Build...", "Author...", "Triage...", "Integrate..."), followed by a user-intent trigger clause such as "Use this skill when...". Starting the description with the trigger clause alone, without an opening capability statement, is PROHIBITED.
+1. Skill `description` metadata is the activation trigger. It MUST open with a capability statement written as an imperative clause that names what the skill does (for example, "Design...", "Write...", "Build...", "Author...", "Triage...", "Integrate..."). A trigger clause SHOULD follow only when it adds vocabulary absent from the capability statement (alternative artifact names like RFC/SRS, domain-specific terms like normative, timing/context cues like before implementation, alternative naming users commonly use). Each item within the trigger clause MUST contribute at least one new signal; verb-synonym duplication of the capability verb is PROHIBITED. Starting the description with the trigger clause alone, without an opening capability statement, is PROHIBITED.
 2. `SKILL.md` is the common-path entrypoint loaded at activation and MUST be self-sufficient for the ordinary task.
 3. `references/`, `assets/`, and `scripts/` hold on-demand additive depth and MUST NOT be treated as always-loaded context.
 

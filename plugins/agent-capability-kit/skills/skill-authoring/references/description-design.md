@@ -15,13 +15,21 @@ The description is the primary trigger signal in most skill-loading models, so o
 Use this structure:
 
 ```text
-[Verb phrase describing the capability]. Use when [trigger conditions, user intents, file types, systems, or goals].
+[Verb phrase describing the capability]. [Optional: Use when trigger conditions, user intents, file types, systems, or goals not already named in the capability.]
 ```
 
-Example:
+The trigger clause is optional. Include it only when it adds vocabulary distinct from the capability statement (artifact names, domain terminology, timing cues, or alternative phrasing users commonly employ).
+
+Example with trigger clause (adds "REST endpoints", "function tool schemas", "contract-driven API docs"):
 
 ```text
 Generate production-ready OpenAPI operation blocks and validation notes. Use when designing REST endpoints, function tool schemas, or contract-driven API docs.
+```
+
+Example without trigger clause (capability is already keyword-complete):
+
+```text
+Extract and normalize tables from CSV, TSV, and spreadsheet exports.
 ```
 
 ## What good descriptions contain
@@ -38,8 +46,8 @@ Generate production-ready OpenAPI operation blocks and validation notes. Use whe
 Use this sequence when tuning a description:
 
 1. Start with the job in verb form.
-2. Add the trigger condition with 'Use when ...'.
-3. Add two or three concrete nouns users are likely to mention.
+2. Add two or three concrete nouns users are likely to mention in the capability statement.
+3. Add a trigger clause with 'Use when ...' only if it introduces vocabulary distinct from step 2 (alternative artifact names, domain terms, timing cues, or alternate phrasing).
 4. Remove host names, team jargon, and extra adjacent jobs.
 5. Test again with nearby prompts.
 
@@ -100,7 +108,7 @@ Example:
 ## Common mistakes
 
 - naming a domain without the task
-- naming the task without the trigger
+- writing a trigger clause when the capability statement already covers the keywords (verb-synonym duplication)
 - writing marketing copy instead of operational guidance
 - exceeding the strict common-denominator length limit
 - stuffing platform-specific fields into the main `description`
@@ -111,7 +119,7 @@ Example:
 Ask:
 
 1. Could another engineer choose this skill correctly from the description alone?
-2. Does it mention both what and when?
+2. Does the capability statement name the job and relevant keywords? If yes, is the trigger clause adding distinct vocabulary?
 3. Does it include likely search terms from user prompts?
 4. Is it still valid if the skill is loaded outside Claude?
 5. Does it describe one coherent job rather than several adjacent jobs?
