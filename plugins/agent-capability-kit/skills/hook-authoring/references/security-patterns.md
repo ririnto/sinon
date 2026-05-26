@@ -56,7 +56,7 @@ Rules:
 
 Trusting input without validation:
 
-```
+```sh
 #!/bin/sh
 input=$(cat)
 tool_name=$(printf '%s' "$input" | jq -r '.tool_name')
@@ -70,7 +70,7 @@ Risk: `tool_name` could be `..` or `/tmp` or contain spaces, leading to unintend
 
 ### Correct: reject traversal and sensitive paths
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -118,7 +118,7 @@ Patterns to reject:
 
 ### Correct: system path detection
 
-```
+```sh
 #!/bin/sh
 
 # Reject writes to system directories.
@@ -141,7 +141,7 @@ reject_system_paths() {
 
 ### Broken: insufficient path validation
 
-```
+```sh
 #!/bin/sh
 file_path=$(cat | jq -r '.tool_input.file_path')
 # Only checks for ..
@@ -155,7 +155,7 @@ fi
 
 ### Correct: multi-layer detection
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -196,7 +196,7 @@ Categories:
 
 ### Broken: name-only detection
 
-```
+```json
 basename=$(basename "$file_path")
 if [ "$basename" = ".env" ]; then
     printf 'deny\n' >&2
@@ -208,7 +208,7 @@ fi
 
 ### Correct: safe command construction
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -237,7 +237,7 @@ Safe patterns:
 
 ### Broken: command injection via variable
 
-```
+```sh
 #!/bin/sh
 search_term=$(cat | jq -r '.search_term')
 # Dangerous: search_term could be '; rm -rf /'
@@ -248,7 +248,7 @@ grep "$search_term" /tmp/file.txt
 
 ### Correct: type and range checking
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -273,7 +273,7 @@ validate_numeric() {
 
 ### Broken: trusting numeric input
 
-```
+```json
 max_value=$(cat | jq -r '.max_value')
 if [ "$max_value" -gt 100 ]; then
     # Risk: max_value could be non-numeric or contain operators
@@ -282,7 +282,7 @@ fi
 
 ## Complete example: hardened PreToolUse hook
 
-```
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 # shellcheck disable=SC2034
@@ -331,7 +331,7 @@ main
 
 Validate hook script with sample attack payloads:
 
-```
+```json
 cat > /tmp/test-attack.json << 'EOF'
 {
   "tool_name": "Write",
@@ -347,7 +347,7 @@ sh hooks/validate.sh < /tmp/test-attack.json
 
 Test with various paths:
 
-```
+```json
 # Path traversal
 echo '{"tool_name":"Write","tool_input":{"file_path":"../../../etc/passwd"}}' | sh hooks/validate.sh
 

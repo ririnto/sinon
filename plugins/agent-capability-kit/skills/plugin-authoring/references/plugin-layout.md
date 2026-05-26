@@ -36,7 +36,7 @@ This shape is useful when command, policy, server, and formatting surfaces all s
 
 Some surfaces need adjacent helper files that do not fit the bare root list:
 
-```
+```text
 your-plugin/
 ├── .claude-plugin/
 │   └── plugin.json

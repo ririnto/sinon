@@ -11,7 +11,7 @@ assignee: ririnto
 
 ## Goal
 
-(1) uv/bun stack의 plugin-side depth 평탄화 — `assets/<stack>/docs/harness/<stack>/` (4-depth) → `assets/<stack>/runtime/` (2-depth). target 측의 `docs/harness/<stack>/`는 그대로 유지. (2) shell stack adapter 신규 추가. Phase 12에서 deferred되었던 항목을 처리.
+(1) uv/bun stack의 plugin-side depth 평탄화 — `assets/{{stack}}/docs/harness/{{stack}}/` (4-depth) → `assets/{{stack}}/runtime/` (2-depth). target 측의 `docs/harness/{{stack}}/`는 그대로 유지. (2) shell stack adapter 신규 추가. Phase 12에서 deferred되었던 항목을 처리.
 
 ## Phases
 
@@ -37,7 +37,7 @@ assignee: ririnto
 
 - [x] Task 3.1 — `plugin-self-check.sh` PASS
 - [x] Task 3.2 — `shellcheck` PASS (install-harness.sh + plugin-self-check.sh + detect-stack.sh + shell harness-validate.sh)
-- [x] Task 3.3 — `install --mode uv/bun/shell` dry-run 모두 성공; target/docs/harness/<stack>/ layout 정상
+- [x] Task 3.3 — `install --mode uv/bun/shell` dry-run 모두 성공; target/docs/harness/STACK/ layout 정상
 
 ## Validation
 

@@ -56,10 +56,10 @@ The description is the main trigger surface. It should do all of the following:
 - open with an imperative capability clause that names what the agent does (for example "Enforce…", "Review…", "Detect…", "Author…", "Reproduce…")
 - follow with a trigger clause such as `Use this agent when...`
 - name the job, inputs, or system clearly
-- include 2 to 4 concrete `<example>` blocks
+- include 2 to 4 concrete `{{example}}` blocks
 - make it obvious why this agent is the right fit
 
-Agent descriptions MUST include 2 to 4 concrete `<example>` blocks with `<context>`, `<user>`, `<assistant>`, and `<commentary>` sub-elements. Each example MUST demonstrate a realistic triggering scenario and explain why the agent is the right fit for that task.
+Agent descriptions MUST include 2 to 4 concrete `{{example}}` blocks with `{{context}}`, `{{user}}`, `{{assistant}}`, and `{{commentary}}` sub-elements. Each example MUST demonstrate a realistic triggering scenario and explain why the agent is the right fit for that task.
 
 Use examples that look like realistic user intent, not abstract labels.
 
@@ -72,7 +72,7 @@ description: >-
 
 Stronger:
 
-```
+```markdown
 description: >-
   Inspect schemas, contracts, and config files for defects, risks, and missing structure. Use this agent when a schema, contract, or config file needs focused review. Examples:
 
@@ -125,7 +125,7 @@ Open with one or two lines that define the agent's job.
 
 Example:
 
-```
+```text
 You are a specialized review agent for schemas, contracts, and structured configuration.
 ```
 
@@ -135,7 +135,7 @@ List the durable duties of the role.
 
 Good:
 
-```
+```markdown
 ## Responsibilities
 
 1. Inspect the target file closely.
@@ -149,7 +149,7 @@ Use an ordered process when the execution path matters.
 
 Good:
 
-```
+```markdown
 ## Process
 
 1. Read the provided files before drawing conclusions.
@@ -164,7 +164,7 @@ Tell the agent exactly what to return.
 
 Good:
 
-```
+```markdown
 ## Output
 
 Return:
@@ -181,7 +181,7 @@ Return:
 3. Check that the role is narrow enough to be discoverable and autonomous.
 4. Draft or revise frontmatter:
    - `name` matches the file basename and is stable and role-based
-   - `description` opens with an imperative capability clause, then says when to use the agent, and includes concrete `<example>` blocks
+   - `description` opens with an imperative capability clause, then says when to use the agent, and includes concrete `{{example}}` blocks
    - `model` defaults to `inherit`
    - `color` is stable and distinguishable
    - `tools` appears only when a bounded tool surface is needed
@@ -223,7 +223,7 @@ Choose the narrowest tool set that still lets the agent complete its ordinary jo
 
 Broken:
 
-```
+```markdown
 tools:
   - Read
   - Write
@@ -234,7 +234,7 @@ tools:
 
 Correct for a read-only reviewer:
 
-```
+```markdown
 tools:
   - Read
   - Grep
@@ -242,7 +242,7 @@ tools:
 
 Correct for a bounded editor:
 
-```
+```markdown
 tools:
   - Read
   - Write
@@ -269,7 +269,7 @@ Use simple local checks first:
 
 Use this as a smallest useful agent starting point:
 
-```
+```markdown
 ---
 name: schema-reviewer
 description: >-

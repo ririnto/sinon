@@ -36,15 +36,15 @@ This skill does not cover:
 
 | Strategy | Command | History shape | Use when | Avoid when |
 | --- | --- | --- | --- | --- |
-| **fast-forward** | `git merge <branch>` | Linear; no merge commit | Branch is a clean extension of the base; feature is small and clean | Want to preserve feature branch as a named commit; feature has long history |
-| **--no-ff** | `git merge --no-ff <branch>` | Tree; explicit merge commit | Want to preserve branch identity; feature is significant; need bisect anchors | Linear history preferred; single-commit features |
-| **--squash** | `git merge --squash <branch>` | Linear; combined into one commit | Many small feature commits; want clean history; feature work is experimental | Need to preserve individual commit attribution; long feedback history is valuable |
+| **fast-forward** | `git merge {{branch}}` | Linear; no merge commit | Branch is a clean extension of the base; feature is small and clean | Want to preserve feature branch as a named commit; feature has long history |
+| **--no-ff** | `git merge --no-ff {{branch}}` | Tree; explicit merge commit | Want to preserve branch identity; feature is significant; need bisect anchors | Linear history preferred; single-commit features |
+| **--squash** | `git merge --squash {{branch}}` | Linear; combined into one commit | Many small feature commits; want clean history; feature work is experimental | Need to preserve individual commit attribution; long feedback history is valuable |
 | **octopus** | `git merge -X octopus branch1 branch2 ...` | Multi-parent; all branches merged at once | Integrating 3+ parallel features at once; all are complete and non-conflicting | Any conflicts exist; need to debug individual merges; most merges (use for special cases) |
 
 ### Quick decision rules
 
 1. **Default**: Use `--no-ff` unless your project standard specifies otherwise. It preserves feature branch identity without cluttering history.
-2. **Small hotfix or trivial rebase**: Use fast-forward (`git merge <branch>`). The feature is a clean linear extension.
+2. **Small hotfix or trivial rebase**: Use fast-forward (`git merge {{branch}}`). The feature is a clean linear extension.
 3. **Experimental or temporary branch**: Use `--squash`. Collapse feature work into a single logical commit.
 4. **Multiple features at once**: Use octopus *only* if all feature branches are complete, tested, and non-conflicting.
 
@@ -108,7 +108,7 @@ git merge <feature-branch>
 
 Example output:
 
-```
+```text
 Updating a1b2c3d..e4f5g6h
 Fast-forward
  src/feature.js | 10 +++++++++-
@@ -134,7 +134,7 @@ This opens your editor to confirm the merge message. Accept or edit, then save.
 
 Example output:
 
-```
+```text
 Merge made by the 'recursive' strategy.
  src/feature.js | 10 +++++++++-
  test/feature.test.js | 5 +++++
@@ -159,7 +159,7 @@ git merge --squash <feature-branch>
 
 Example output:
 
-```
+```text
 Squash commit -- not updating HEAD
  src/feature.js | 10 +++++++++-
  test/feature.test.js | 5 +++++
@@ -190,7 +190,7 @@ Expected: One new commit with all feature work combined.
 
 When a merge encounters conflicts, Git pauses:
 
-```
+```text
 Auto-merging src/module.js
 CONFLICT (content): Merge conflict in src/module.js
 Automatic merge failed; fix conflicts and then commit the result.
@@ -204,7 +204,7 @@ git status
 
 Example:
 
-```
+```text
 On branch main
 You have unmerged paths.
   (fix conflicts and run "git commit")
@@ -221,7 +221,7 @@ cat src/module.js
 
 Example (conflict markers):
 
-```
+```json
 function greet(name) {
 <<<<<<< HEAD
   return "Hello, " + name;
@@ -235,7 +235,7 @@ Markers:
 
 - `<<<<<<< HEAD` – start of base (current) branch
 - `=======` – separator
-- `>>>>>>> <branch>` – end of feature branch
+- `>>>>>>> {{branch}}` – end of feature branch
 
 ### Step 3: Resolve conflict manually
 
@@ -243,7 +243,7 @@ Edit the file to choose the correct version or combine both versions:
 
 Option A: Keep HEAD (base branch):
 
-```
+```json
 function greet(name) {
   return "Hello, " + name;
 }
@@ -251,7 +251,7 @@ function greet(name) {
 
 Option B: Keep feature branch:
 
-```
+```json
 function greet(name) {
   return "Hi, " + name + "!";
 }
@@ -259,7 +259,7 @@ function greet(name) {
 
 Option C: Combine both:
 
-```
+```json
 function greet(name) {
   return "Hello, " + name + "!";
 }
@@ -283,7 +283,7 @@ git commit
 
 This opens your editor. Accept the default merge message or edit it:
 
-```
+```text
 Merge branch 'feature-branch' into main
 ```
 
@@ -297,7 +297,7 @@ git status
 
 Expected:
 
-```
+```text
 On branch main
 nothing to commit, working tree clean
 ```
@@ -314,7 +314,7 @@ git log --oneline -n 5
 
 File: `src/config.js`
 
-```
+```typescript
 const API_TIMEOUT = 3000;  // base
 const API_TIMEOUT = 5000;  // feature
 ```
@@ -329,7 +329,7 @@ Status: Base branch deleted the file; feature branch modified it.
 
 Conflict marker:
 
-```
+```text
 <<<<<<< HEAD
 (deleted file)
 =======
@@ -447,7 +447,7 @@ git merge another-branch
 
 1. If the same conflict pattern is detected, Git auto-applies the cached resolution:
 
-```
+```text
 CONFLICT (content): Merge conflict in src/config.js
 Recorded preimage for 'src/config.js'
 Automatic merge failed; fix conflicts and then commit the result.
@@ -474,7 +474,7 @@ git rerere list
 
 Output (hash IDs of recorded conflicts):
 
-```
+```text
 a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
 x1y2z3a4b5c6d7e8f9g0h1i2j3k4l5m6
 ```
@@ -554,7 +554,7 @@ Report:
 
 1. Merge command used and output (e.g., "Fast-forward" or "Merge made by recursive strategy").
 2. Commit hash of the merge (or most recent commit if fast-forward).
-3. Files changed (from `git diff --stat <base-branch>^..<branch>`).
+3. Files changed (from `git diff --stat {{base-branch}}^..{{branch}}`).
 4. Verification: `git log --oneline -n 3` showing merge in history.
 
 ### Merge with conflicts

@@ -1,5 +1,4 @@
 ---
-title: Agent Capability Kit
 description: >-
   Overview of the Agent Capability Kit plugin, its authoring skills, runtime agents, command surface, and plugin packaging guidance.
 ---
@@ -118,7 +117,7 @@ Copy the files you need from each skill's `assets/` directory:
 
 ## Plugin Layout
 
-```
+```text
 agent-capability-kit/
 ├── .claude-plugin/
 │   └── plugin.json
