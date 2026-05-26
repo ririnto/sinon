@@ -50,7 +50,7 @@ export const greaterThanComparisonRule: HarnessCheckRule = {
             return [{
               severity: ctx.severityOf("greaterThanComparison"),
               category: "greaterThanComparison",
-              message: `${file}:${start.line + 1}: forbidden \`${operator}\` comparison; use \`${inverse}\` with operands flipped`,
+              message: `forbidden \`${operator}\` comparison; use \`${inverse}\` with operands flipped`,
               file,
               startLine: start.line + 1,
               startColumn: start.character + 1,

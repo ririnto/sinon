@@ -51,7 +51,7 @@ export const multilineDocStyleRule: HarnessCheckRule = {
             return {
               severity: ctx.severityOf("multilineDocStyle"),
               category: "multilineDocStyle",
-              message: `${file}:${start.line + 1}: TSDoc comment must use multiline style`,
+              message: "TSDoc comment must use multiline style",
               file,
               startLine: start.line + 1,
               startColumn: start.character + 1,

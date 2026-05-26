@@ -44,15 +44,15 @@ export const shebangEncodingMarkerRule: HarnessCheckRule = {
     const defaultTemplate =
       typeof messages.default === "string"
         ? messages.default
-        : "{file}:2: shebang script missing UTF-8 encoding marker; expected `{expected}` on line 2";
+        : "shebang script missing UTF-8 encoding marker; expected `{expected}` on line 2";
     const missingLineTemplate =
       typeof messages.missingLine === "string"
         ? messages.missingLine
-        : "{file}: shebang script has no line 2; expected `{expected}`";
+        : "shebang script has no line 2; expected `{expected}`";
     const wrongMarkerTemplate =
       typeof messages.wrongMarker === "string"
         ? messages.wrongMarker
-        : "{file}:2: shebang script declares wrong encoding marker; found `{actual}`, expected `{expected}`";
+        : "shebang script declares wrong encoding marker; found `{actual}`, expected `{expected}`";
     const requireShebang = parameters.requireShebang !== false;
     const extraPrefixes = ctx.readStringArray(parameters.additionalShebangPrefixes);
     const shebangPrefixes: readonly string[] = ["#!"].concat(extraPrefixes);
@@ -81,7 +81,6 @@ export const shebangEncodingMarkerRule: HarnessCheckRule = {
             severity,
             category,
             message: missingLineTemplate
-              .replace("{file}", file)
               .replace("{expected}", expected),
             file,
             startLine: 2,
@@ -115,7 +114,6 @@ export const shebangEncodingMarkerRule: HarnessCheckRule = {
           severity,
           category,
           message: messageTemplate
-            .replace("{file}", file)
             .replace("{actual}", actual)
             .replace("{expected}", expected),
           file,

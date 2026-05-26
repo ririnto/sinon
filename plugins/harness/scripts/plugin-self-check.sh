@@ -535,6 +535,557 @@ reject_shellcheck_violations_in_shell() {
   unset shellcheck_path
 }
 
+# Match the canonical fixture finding prefix.
+#
+# @constant FIXTURE_CANONICAL_FINDING_PREFIX_REGEX
+FIXTURE_CANONICAL_FINDING_PREFIX_REGEX='^[^:]+:[0-9]+:[0-9]+ \[(ERROR|WARN|INFO)\] [A-Za-z][A-Za-z0-9]*: .+'
+
+# Create a temporary fixture directory for self-check assertions.
+#
+# @return Writes the temporary directory path.
+# @exit Exits with status 1 when the directory cannot be created.
+fixture_create_temp_dir() {
+  mktemp -d /tmp/harness-self-check-XXXXXXXXXX
+}
+
+# Remove a temporary fixture directory.
+#
+# @param temp_dir Temporary directory path to remove.
+# @return Returns 0 when cleanup succeeds.
+fixture_remove_temp_dir() {
+  temp_dir=$1
+  rm -rf "$temp_dir"
+}
+
+# Write fixture file content under a temporary directory.
+#
+# @param temp_dir Temporary directory root.
+# @param relative_path Fixture-relative file path.
+# @param content File content to write.
+# @return Returns 0 when the file is written.
+fixture_write_file() {
+  temp_dir=$1
+  relative_path=$2
+  content=$3
+  file_path=$temp_dir/$relative_path
+  parent_dir=$(dirname "$file_path")
+  mkdir -p "$parent_dir"
+  printf '%s' "$content" > "$file_path"
+}
+
+# Copy a stack runtime into a temporary fixture directory.
+#
+# @param temp_dir Temporary directory root.
+# @param stack_name Stack name: bun, uv, or gradle.
+# @return Returns 0 when the runtime is copied.
+fixture_copy_runtime() {
+  temp_dir=$1
+  stack_name=$2
+  case "$stack_name" in
+    bun|uv)
+      source_dir=$root/skills/harness-install/assets/$stack_name/runtime
+      mkdir -p "$temp_dir"
+      cp -R "$source_dir"/. "$temp_dir"/
+      ;;
+    gradle)
+      source_dir=$root/skills/harness-install/assets/gradle/buildSrc
+      mkdir -p "$temp_dir/buildSrc"
+      cp -R "$source_dir"/. "$temp_dir/buildSrc"/
+      ;;
+    *)
+      printf '%s\n' "[fixture_copy_runtime] unsupported stack: $stack_name" >&2
+      return 1
+      ;;
+  esac
+}
+
+# Write a minimal harness manifest into a temporary fixture directory.
+#
+# @param temp_dir Temporary directory root.
+# @param manifest_json_string Manifest JSON content.
+# @return Returns 0 when the manifest is written.
+fixture_write_manifest() {
+  temp_dir=$1
+  manifest_json_string=$2
+  fixture_write_file "$temp_dir" docs/harness/manifest.json "$manifest_json_string"
+}
+
+# Run a command inside a temporary fixture directory and capture output.
+#
+# @param temp_dir Temporary directory root.
+# @param command_string Shell command string to evaluate.
+# @return Returns the command exit code and sets fixture_stdout and fixture_stderr.
+fixture_run_command() {
+  temp_dir=$1
+  command_string=$2
+  fixture_exit_code=0
+  fixture_stderr_path=$(mktemp /tmp/harness-self-check-stderr-XXXXXXXXXX)
+  if fixture_stdout=$(cd "$temp_dir" && eval "$command_string" 2> "$fixture_stderr_path"); then
+    fixture_exit_code=0
+  else
+    fixture_exit_code=$?
+  fi
+  fixture_stderr=$(cat "$fixture_stderr_path")
+  rm -f "$fixture_stderr_path"
+  : "$fixture_stdout" "$fixture_stderr"
+  return "$fixture_exit_code"
+}
+
+# Assert that an actual exit code matches the expected value.
+#
+# @param actual Actual exit code.
+# @param expected Expected exit code.
+# @param label Assertion label.
+# @return Returns 0 when the exit code matches.
+fixture_assert_exit_code() {
+  actual=$1
+  expected=$2
+  label=$3
+  if [ "$actual" = "$expected" ]; then
+    printf '%s\n' "PASS: $label"
+    return 0
+  fi
+  printf '%s\n' "FAIL: $label expected exit $expected, got $actual" >&2
+  return 1
+}
+
+# Assert that captured output contains a fixed substring.
+#
+# @param haystack Captured output text.
+# @param needle Required fixed substring.
+# @param label Assertion label.
+# @return Returns 0 when the substring is present.
+fixture_assert_output_contains() {
+  haystack=$1
+  needle=$2
+  label=$3
+  case "$haystack" in
+    *"$needle"*)
+      printf '%s\n' "PASS: $label"
+      return 0
+      ;;
+    *)
+      printf '%s\n' "FAIL: $label missing output substring: $needle" >&2
+      return 1
+      ;;
+  esac
+}
+
+# Assert that captured output matches a regular expression.
+#
+# @param haystack Captured output text.
+# @param pattern Required extended regular expression.
+# @param label Assertion label.
+# @return Returns 0 when the pattern matches.
+fixture_assert_output_matches() {
+  haystack=$1
+  pattern=$2
+  label=$3
+  if printf '%s\n' "$haystack" | grep -Eq "$pattern"; then
+    printf '%s\n' "PASS: $label"
+    return 0
+  fi
+  printf '%s\n' "FAIL: $label missing output pattern: $pattern" >&2
+  return 1
+}
+
+# Return a stable checksum for a fixture file.
+#
+# @param path File path to checksum.
+# @return Writes the cksum numeric digest and size.
+fixture_file_checksum() {
+  path=$1
+  cksum "$path" | awk '{ print $1 ":" $2 }'
+}
+
+# Assert that a fixture file checksum changed.
+#
+# @param before Checksum captured before the action.
+# @param after Checksum captured after the action.
+# @param label Assertion label.
+# @return Returns 0 when the checksums differ.
+fixture_assert_checksum_changed() {
+  before=$1
+  after=$2
+  label=$3
+  if [ "$before" != "$after" ]; then
+    printf '%s\n' "PASS: $label"
+    return 0
+  fi
+  printf '%s\n' "FAIL: $label expected checksum to change" >&2
+  return 1
+}
+
+# Assert that a fixture file checksum stayed unchanged.
+#
+# @param before Checksum captured before the action.
+# @param after Checksum captured after the action.
+# @param label Assertion label.
+# @return Returns 0 when the checksums match.
+fixture_assert_checksum_unchanged() {
+  before=$1
+  after=$2
+  label=$3
+  if [ "$before" = "$after" ]; then
+    printf '%s\n' "PASS: $label"
+    return 0
+  fi
+  printf '%s\n' "FAIL: $label expected checksum to stay unchanged" >&2
+  return 1
+}
+
+# Assert that the first format run changed one fixture file and reported it.
+#
+# @param before Checksum captured before formatting.
+# @param after Checksum captured after formatting.
+# @param haystack Captured formatter output text.
+# @param relative_path Fixture-relative file path that should be reported.
+# @param label Assertion label prefix.
+# @return Returns 0 when formatter output and checksum prove a first-run edit.
+fixture_assert_format_changed() {
+  before=$1
+  after=$2
+  haystack=$3
+  relative_path=$4
+  label=$5
+  fixture_assert_checksum_changed "$before" "$after" "$label changes fixture file" || return 1
+  fixture_assert_output_contains "$haystack" 'formatted: 1' "$label reports one formatted file" || return 1
+  fixture_assert_output_contains "$haystack" "$relative_path" "$label reports modified path"
+}
+
+# Assert that the second format run made no fixture file changes.
+#
+# @param before Checksum captured before formatting.
+# @param after Checksum captured after formatting.
+# @param haystack Captured formatter output text.
+# @param label Assertion label prefix.
+# @return Returns 0 when formatter output and checksum prove idempotence.
+fixture_assert_format_unchanged() {
+  before=$1
+  after=$2
+  haystack=$3
+  label=$4
+  fixture_assert_checksum_unchanged "$before" "$after" "$label leaves fixture file unchanged" || return 1
+  fixture_assert_output_contains "$haystack" 'no files formatted' "$label reports no-op format"
+}
+
+# Assert that captured output contains a canonical finding for a runtime fixture.
+#
+# @param haystack Captured output text.
+# @param relative_path_pattern Fixture-relative file path extended regular expression.
+# @param category Finding category identifier.
+# @param label Assertion label.
+# @return Returns 0 when the output has the canonical prefix and expected rule.
+fixture_assert_canonical_finding_prefix() {
+  haystack=$1
+  relative_path_pattern=$2
+  category=$3
+  label=$4
+  pattern="^$relative_path_pattern:[0-9]+:[0-9]+ \\[(ERROR|WARN|INFO)\\] $category: .+"
+  fixture_assert_output_matches "$haystack" "$FIXTURE_CANONICAL_FINDING_PREFIX_REGEX" "$label canonical shape" || return 1
+  fixture_assert_output_matches "$haystack" "$pattern" "$label"
+}
+
+# Verify fixture helpers without adding user-visible output.
+#
+# @exit Exits with status 1 when a fixture helper fails.
+fixture_self_check_helpers() {
+  temp_dir=$(fixture_create_temp_dir)
+  fixture_write_file "$temp_dir" docs/harness/fixture.txt 'fixture helper ok'
+  fixture_write_manifest "$temp_dir" '{"name":"fixture"}'
+  fixture_copy_runtime "$temp_dir/runtime-uv" uv
+  if fixture_run_command "$temp_dir" 'printf "%s\n" "fixture helper ok"'; then
+    :
+  else
+    printf '%s\n' "$fixture_stderr" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! fixture_assertion_output=$(fixture_assert_exit_code "$fixture_exit_code" 0 'fixture command exit' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" 'fixture helper ok' 'fixture command output' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! fixture_assertion_output=$(fixture_assert_output_matches "$fixture_stdout" '^fixture helper ok$' 'fixture command output pattern' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  : "$fixture_assertion_output"
+  fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify Bun formatter allowlists safe edits and remains idempotent.
+#
+#     Requires `bun` in PATH. Gracefully skips with a warning when bun is
+#     unavailable.
+#
+# @return Returns 0 on success or when bun is missing.
+# @exit Exits with status 1 when the Bun formatter fixture fails.
+fixture_assert_bun_format() {
+  if ! bun_path=$(command -v bun 2>&1); then
+    printf 'warning: bun not in PATH; skipping bun format fixture check\n' >&2
+    return 0
+  fi
+  : "$bun_path"
+  temp_dir=$(fixture_create_temp_dir)
+  fixture_copy_runtime "$temp_dir" bun
+  fixture_write_file "$temp_dir" package.json '{"dependencies":{"typescript":"6.0.3"}}'
+  if ! install_output=$(cd "$temp_dir" && bun install 2>&1); then
+    printf '%s\n' "$install_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  ln -s typescript "$temp_dir/node_modules/typescript@6.0.3"
+  fixture_write_manifest "$temp_dir" "$(cat <<'JSONEOF'
+{"name":"bun-format-fixture","leafFunctionBlankLines":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"maxConsecutiveBlankLines":1}},"greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+JSONEOF
+)"
+  fixture_write_file "$temp_dir" src/example.ts "$(cat <<'TSEOF'
+export function compare(value: number): number {
+  const baseline = 1;
+
+
+  return value > baseline ? value : baseline;
+}
+TSEOF
+)"
+  fixture_write_file "$temp_dir" src/unsafe.ts "$(cat <<'TSEOF'
+export function unsafe(value: number): boolean {
+  return value > 1;
+}
+TSEOF
+)"
+  fixture_target_file=$temp_dir/src/example.ts
+  fixture_unsafe_file=$temp_dir/src/unsafe.ts
+  fixture_before_format_checksum=$(fixture_file_checksum "$fixture_target_file")
+  fixture_unsafe_before_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
+  if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-format.ts\""; then
+    :
+  else
+    printf '%s\n' "$fixture_stdout" >&2
+    printf '%s\n' "$fixture_stderr" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  fixture_after_first_format_checksum=$(fixture_file_checksum "$fixture_target_file")
+  fixture_unsafe_after_first_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
+  if ! fixture_assertion_output=$(fixture_assert_format_changed "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" "$fixture_stdout" 'src/example.ts' 'bun format first run' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_unsafe_before_format_checksum" "$fixture_unsafe_after_first_format_checksum" 'bun format leaves unsafe-only file unchanged' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-format.ts\""; then
+    :
+  else
+    printf '%s\n' "$fixture_stdout" >&2
+    printf '%s\n' "$fixture_stderr" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  fixture_after_second_format_checksum=$(fixture_file_checksum "$fixture_target_file")
+  fixture_unsafe_after_second_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
+  if ! fixture_assertion_output=$(fixture_assert_format_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" "$fixture_stdout" 'bun format second run' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_unsafe_before_format_checksum" "$fixture_unsafe_after_second_format_checksum" 'bun second format leaves unsafe-only file unchanged' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-check.ts\""; then
+    printf '%s\n' '[fixture_assert_bun_format] expected harness-check to report unsafe comparison' >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_stdout" 'src/example[.]ts' 'greaterThanComparison' 'bun check canonical finding prefix' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! grep -Fq 'value > baseline' "$temp_dir/src/example.ts"; then
+    printf '%s\n' '[fixture_assert_bun_format] unsafe greaterThanComparison edit was unexpectedly formatted' >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  : "$fixture_assertion_output"
+  fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify uv formatter allowlists safe edits and remains idempotent.
+#
+#     Requires `uv` in PATH. Gracefully skips with a warning when uv is
+#     unavailable.
+#
+# @return Returns 0 on success or when uv is missing.
+# @exit Exits with status 1 when the uv formatter fixture fails.
+fixture_assert_uv_format() {
+  if ! uv_path=$(command -v uv 2>&1); then
+    printf 'warning: uv not in PATH; skipping uv format fixture check\n' >&2
+    return 0
+  fi
+  : "$uv_path"
+  temp_dir=$(fixture_create_temp_dir)
+  fixture_copy_runtime "$temp_dir" uv
+  fixture_write_manifest "$temp_dir" "$(cat <<'JSONEOF'
+{"name":"uv-format-fixture","leafFunctionBlankLines":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[],"maxConsecutiveBlankLines":1}},"greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}
+JSONEOF
+)"
+  fixture_write_file "$temp_dir" src/example.py "$(cat <<'PYEOF'
+def compare(value: int) -> int:
+    baseline = 1
+
+
+    return value > baseline
+PYEOF
+)"
+  fixture_write_file "$temp_dir" src/unsafe.py "$(cat <<'PYEOF'
+def unsafe(value: int) -> bool:
+    return value > 1
+PYEOF
+)"
+  fixture_target_file=$temp_dir/src/example.py
+  fixture_unsafe_file=$temp_dir/src/unsafe.py
+  fixture_before_format_checksum=$(fixture_file_checksum "$fixture_target_file")
+  fixture_unsafe_before_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
+  if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_format.py\""; then
+    :
+  else
+    printf '%s\n' "$fixture_stdout" >&2
+    printf '%s\n' "$fixture_stderr" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  fixture_after_first_format_checksum=$(fixture_file_checksum "$fixture_target_file")
+  fixture_unsafe_after_first_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
+  if ! fixture_assertion_output=$(fixture_assert_format_changed "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" "$fixture_stdout" 'src/example.py' 'uv format first run' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_unsafe_before_format_checksum" "$fixture_unsafe_after_first_format_checksum" 'uv format leaves unsafe-only file unchanged' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_format.py\""; then
+    :
+  else
+    printf '%s\n' "$fixture_stdout" >&2
+    printf '%s\n' "$fixture_stderr" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  fixture_after_second_format_checksum=$(fixture_file_checksum "$fixture_target_file")
+  fixture_unsafe_after_second_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
+  if ! fixture_assertion_output=$(fixture_assert_format_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" "$fixture_stdout" 'uv format second run' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_unsafe_before_format_checksum" "$fixture_unsafe_after_second_format_checksum" 'uv second format leaves unsafe-only file unchanged' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_check.py\" && uv run --quiet --with libcst \"$temp_dir/harness_validate.py\""; then
+    printf '%s\n' '[fixture_assert_uv_format] expected harness-check to report unsafe comparison' >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_stdout" 'src/example[.]py' 'greaterThanComparison' 'uv check canonical finding prefix' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! grep -Fq 'value > baseline' "$temp_dir/src/example.py"; then
+    printf '%s\n' '[fixture_assert_uv_format] unsafe greaterThanComparison edit was unexpectedly formatted' >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  : "$fixture_assertion_output"
+  fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify Gradle AST findings render canonical file:line:column prefixes.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is
+#     unavailable.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 when the Gradle location fixture fails.
+fixture_assert_gradle_location() {
+  if ! gradle_path=$(command -v gradle 2>&1); then
+    printf 'warning: gradle not in PATH; skipping gradle location fixture check\n' >&2
+    return 0
+  fi
+  : "$gradle_path"
+  temp_dir=$(fixture_create_temp_dir)
+  fixture_copy_runtime "$temp_dir" gradle
+  fixture_write_file "$temp_dir" settings.gradle.kts 'rootProject.name = "gradle-location-fixture"'
+  fixture_write_file "$temp_dir" build.gradle.kts "$(cat <<'KOTLINEOF'
+plugins {
+    id("ai.harness.validation")
+}
+
+repositories {
+    mavenCentral()
+}
+KOTLINEOF
+)"
+  fixture_write_manifest "$temp_dir" "$(cat <<'JSONEOF'
+  {"name":"gradle-location-fixture","filePresence":{"enabled":true,"severity":"ERROR","paths":["MISSING.md"],"parameters":{}},"ifStatementBraces":{"enabled":false},"implicitLambdaIt":{"enabled":false},"publicDeclarationDocComment":{"enabled":false},"silentCatch":{"enabled":false},"wildcardImport":{"enabled":false},"classMemberOrdering":{"enabled":true,"severity":"ERROR","messages":{"default":"{file}:{line}: class `{className}` member `{memberName}` ({memberOverrideState}:{memberVisibility}:{memberKind}) is out of order"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"kindOrder":["companionObject","constProperty","fieldOrProperty","initializer","constructor","function","interface","class","enum"],"visibilityOrder":["public","protected","internal","package","private"],"overrideOrder":["override","nonOverride"]}}}
+JSONEOF
+)"
+  fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/LocationFixture.kt "$(cat <<'KOTLINEOF'
+package fixture
+
+class LocationFixture {
+    fun later(): String = "value"
+    val earlier: String = "value"
+}
+KOTLINEOF
+)"
+  if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessValidate'; then
+    printf '%s\n' '[fixture_assert_gradle_location] expected harnessValidate to report class member ordering' >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+  if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'buildSrc/src/main/kotlin/fixture/LocationFixture[.]kt' 'classMemberOrdering' 'gradle AST canonical finding prefix' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    printf '%s\n' "$fixture_combined_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" '[ERROR] filePresence: missing file: MISSING.md' 'gradle repository-level finding' 2>&1); then
+    printf '%s\n' "$fixture_assertion_output" >&2
+    printf '%s\n' "$fixture_combined_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  if printf '%s\n' "$fixture_combined_output" | grep -Eq '^[^:]+:0:0'; then
+    printf '%s\n' '[fixture_assert_gradle_location] repository-level finding rendered a fabricated :0:0 location' >&2
+    printf '%s\n' "$fixture_combined_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+  fi
+  : "$fixture_assertion_output"
+  fixture_remove_temp_dir "$temp_dir"
+}
+
 # Smoke-check the uv stack runtime by importing harness_check and counting registered rules.
 #
 #     Requires `uv` in PATH. Loads libcst on demand via `uv run --with libcst`.
@@ -543,15 +1094,12 @@ reject_shellcheck_violations_in_shell() {
 # @return Returns 0 on success or when uv is missing.
 # @exit Exits with status 1 on import failure.
 smoke_check_uv_runtime() {
-  # shellcheck disable=SC2034
   if ! uv_path=$(command -v uv 2>&1); then
     printf 'warning: uv not in PATH; skipping uv runtime smoke check\n' >&2
-    unset uv_path
     return 0
   fi
-  unset uv_path
+  : "$uv_path"
   runtime_dir="$root/skills/harness-install/assets/uv/runtime"
-  # shellcheck disable=SC2016
   if ! smoke_output=$(cd "$runtime_dir" && uv run --quiet --with libcst python3 -c 'import sys
 sys.path.insert(0, ".")
 import harness_check
@@ -572,16 +1120,17 @@ print(f"uv runtime rules: {len(list(harness_check.HarnessCheck))}")' 2>&1); then
 # @return Returns 0 on success or when bun is missing.
 # @exit Exits with status 1 on import failure.
 smoke_check_bun_runtime() {
-  # shellcheck disable=SC2034
   if ! bun_path=$(command -v bun 2>&1); then
     printf 'warning: bun not in PATH; skipping bun runtime smoke check\n' >&2
-    unset bun_path
     return 0
   fi
-  unset bun_path
+  : "$bun_path"
   runtime_dir="$root/skills/harness-install/assets/bun/runtime"
-  # shellcheck disable=SC2016
-  if ! smoke_output=$(cd "$runtime_dir" && bun -e 'import("./harness-check.ts").then(m => { console.log(`bun runtime rules: ${m.HARNESS_CHECKS.length}`); })' 2>&1); then
+  bun_script=$(cat <<'JSEOF'
+import("./harness-check.ts").then(m => { console.log(`bun runtime rules: ${m.HARNESS_CHECKS.length}`); })
+JSEOF
+)
+  if ! smoke_output=$(cd "$runtime_dir" && bun -e "$bun_script" 2>&1); then
     printf '%s\n' "$smoke_output" >&2
     printf '%s\n' "[smoke_check_bun_runtime] bun runtime failed to import: $runtime_dir" >&2
     exit 1
@@ -598,13 +1147,11 @@ smoke_check_bun_runtime() {
 # @return Returns 0 on success or when gradle is missing.
 # @exit Exits with status 1 on compile failure.
 smoke_check_gradle_runtime() {
-  # shellcheck disable=SC2034
   if ! gradle_path=$(command -v gradle 2>&1); then
     printf 'warning: gradle not in PATH; skipping gradle runtime smoke check\n' >&2
-    unset gradle_path
     return 0
   fi
-  unset gradle_path
+  : "$gradle_path"
   runtime_dir="$root/skills/harness-install/assets/gradle"
   if ! smoke_output=$(cd "$runtime_dir" && gradle --console=plain --no-daemon -q buildSrc:compileKotlin 2>&1); then
     printf '%s\n' "$smoke_output" >&2
@@ -623,13 +1170,11 @@ smoke_check_gradle_runtime() {
 # @return Returns 0 on success or when mvn is missing.
 # @exit Exits with status 1 on validation failure.
 smoke_check_maven_runtime() {
-  # shellcheck disable=SC2034
   if ! mvn_path=$(command -v mvn 2>&1); then
     printf 'warning: mvn not in PATH; skipping maven runtime smoke check\n' >&2
-    unset mvn_path
     return 0
   fi
-  unset mvn_path
+  : "$mvn_path"
   runtime_dir="$root/skills/harness-install/assets/maven/harness-maven-plugin"
   if ! smoke_output=$(cd "$runtime_dir" && mvn -q -B -ntp validate 2>&1); then
     printf '%s\n' "$smoke_output" >&2
@@ -948,22 +1493,18 @@ require_text "$root/README.md" 'harness-install'
 require_text "$root/README.md" 'harness-validate'
 require_text "$root/README.md" 'harness-evolve'
 require_text "$root/README.md" 'hook template'
-# shellcheck disable=SC2016
-require_text "$root/README.md" 'Gradle `pre-commit` runs `harnessValidate`'
-# shellcheck disable=SC2016
-require_text "$root/README.md" 'Gradle `pre-push` runs `check`'
+require_text "$root/README.md" "Gradle \`pre-commit\` runs \`harnessValidate\`"
+require_text "$root/README.md" "Gradle \`pre-push\` runs \`check\`"
 require_text "$root/README.md" 'THIRD_PARTY_NOTICES.md'
 require_text "$root/README.md" 'skills/harness-install/assets/common/docs/harness/git-hooks/'
 require_text "$root/README.md" 'v6 archive structure'
 require_markdown_heading "$root/README.md" 2 'Plugin-Owned Structural Agents'
 require_markdown_heading "$root/README.md" 2 'Packaged Scripts and Assets'
 require_markdown_heading "$root/README.md" 2 'Runtime Model'
-# shellcheck disable=SC2016
-require_text "$root/skills/harness-install/SKILL.md" 'Gradle pre-commit runs `harnessValidate`, Gradle pre-push runs `check`'
+require_text "$root/skills/harness-install/SKILL.md" "Gradle pre-commit runs \`harnessValidate\`, Gradle pre-push runs \`check\`"
 require_markdown_heading "$root/skills/harness-install/SKILL.md" 2 'Ownership Boundary'
 require_markdown_heading "$root/skills/harness-install/SKILL.md" 2 'Invariants'
-# shellcheck disable=SC2016
-require_text "$root/skills/harness-validate/SKILL.md" 'generated `docs/harness/git-hooks/pre-push` command marker'
+require_text "$root/skills/harness-validate/SKILL.md" "generated \`docs/harness/git-hooks/pre-push\` command marker"
 require_markdown_heading "$root/skills/harness-validate/SKILL.md" 2 'Ownership Boundary'
 require_markdown_heading "$root/skills/harness-validate/SKILL.md" 2 'Invariants'
 require_text "$root/skills/harness-validate/SKILL.md" 'Manifest drift'
@@ -972,8 +1513,7 @@ require_text "$root/skills/harness-validate/SKILL.md" 'Unsupported validation co
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'manifest drift'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'generated-artifact metadata'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'unsupported pre-push validation command'
-# shellcheck disable=SC2016
-require_text "$root/skills/harness-evolve/SKILL.md" 'active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target repository files'
+require_text "$root/skills/harness-evolve/SKILL.md" "active \`.git/hooks/pre-commit\` and \`.git/hooks/pre-push\` remain target repository files"
 require_markdown_heading "$root/skills/harness-evolve/SKILL.md" 2 'Ownership Boundary'
 require_markdown_heading "$root/skills/harness-evolve/SKILL.md" 2 'Invariants'
 
@@ -1114,6 +1654,10 @@ for text in 'example-' 'Describe ' 'Describe...' 'TODO' 'TBD' 'replace-with-stac
   done
 done
 
+fixture_self_check_helpers
+fixture_assert_bun_format
+fixture_assert_uv_format
+fixture_assert_gradle_location
 smoke_check_uv_runtime
 smoke_check_bun_runtime
 smoke_check_gradle_runtime

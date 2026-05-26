@@ -75,7 +75,7 @@ export const earlyReturnRule: HarnessCheckRule = {
                   return {
                     severity: ctx.severityOf("earlyReturn"),
                     category: "earlyReturn",
-                    message: `${file}:${start.line + 1}: function \`${getFuncName(funcNode)}\` has an early return; restructure with single exit`,
+                    message: `function \`${getFuncName(funcNode)}\` has an early return; restructure with single exit`,
                     file,
                     startLine: start.line + 1,
                     startColumn: start.character + 1,

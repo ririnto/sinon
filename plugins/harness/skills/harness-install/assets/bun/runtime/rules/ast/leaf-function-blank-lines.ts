@@ -130,7 +130,7 @@ const extractBlankLineFindings = (
           findings.push({
             severity: ctx.severityOf(CATEGORY),
             category: CATEGORY,
-            message: `${file}:${lineNum}: leaf function \`${(isFunctionDeclaration(funcNode) && funcNode.name?.text) || (isMethodDeclaration(funcNode) && funcNode.name && isIdentifier(funcNode.name) && funcNode.name.text) || "<anonymous>"}\` contains too many blank lines; remove or extract the section`,
+            message: `leaf function \`${(isFunctionDeclaration(funcNode) && funcNode.name?.text) || (isMethodDeclaration(funcNode) && funcNode.name && isIdentifier(funcNode.name) && funcNode.name.text) || "<anonymous>"}\` contains too many blank lines; remove or extract the section`,
             file,
             startLine: lineNum,
             startColumn: 1,
@@ -139,7 +139,14 @@ const extractBlankLineFindings = (
             fix: {
               description: "remove extra blank lines",
               safety: "safe",
-              edits: [],
+              edits: [{
+                file,
+                startLine: lineNum,
+                startColumn: 1,
+                endLine: lineNum + 1,
+                endColumn: 1,
+                replacement: "",
+              }],
             },
           });
         }

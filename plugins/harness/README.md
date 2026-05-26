@@ -172,6 +172,55 @@ AST/PSI validators use semantic tree traversal for code-structure rules rather t
 
 Gradle installer wiring prepends a `buildSrc/` directory. Existing `buildSrc/` directories in the target repo MUST be reviewed before install; the harness expects a fresh `buildSrc/` and will conflict otherwise.
 
+## Diagnostic Format
+
+Validators and checkers emit findings in a canonical format so that agents, CI, and humans can parse them uniformly.
+
+### Location-bearing findings
+
+When a finding maps to a specific position in a source file, the diagnostic prefix MUST follow this shape:
+
+```text
+path:line:column [SEVERITY] category: message
+```
+
+Lines and columns are one-based. `SEVERITY` is one of `ERROR`, `WARN`, or `INFO`. `category` is the manifest rule identifier (for example, `classMemberOrdering`, `greaterThanComparison`, `leafFunctionBlankLines`).
+
+### Non-location fallbacks
+
+When file, line, or column information is unavailable, validators use shorter forms:
+
+```text
+[SEVERITY] category: repository-level message
+```
+
+```text
+path/to/file [SEVERITY] category: file-level message
+```
+
+Repository-level findings apply to the harness as a whole (for example, missing manifest). File-level findings apply to a file without a specific position (for example, missing required file).
+
+## Safe-Format Contracts
+
+`harnessFormat` applies only explicitly allowlisted safe fixes. A safe fix is a deterministic, semantics-preserving edit that does not change program behavior. The allowlist is:
+
+| Rule category | Bun | uv | Gradle | Maven | Mutation type |
+| --- | --- | --- | --- | --- | --- |
+| `leafFunctionBlankLines` | Allow | Allow | Defer | Defer | Remove blank lines inside leaf function bodies |
+| `emptyDirectoryPlaceholders` | Allow | Allow | Defer | Defer | Create `.gitkeep` in empty required directories |
+| `envShebangUsage` | Allow | Allow | Defer | Defer | Replace script shebang with `/usr/bin/env` form |
+| `hookGeneratedMarker` | Allow | Allow | Defer | Defer | Insert generated marker in managed hook template |
+| `hookShebang` | Allow | Allow | Defer | Defer | Replace missing or incorrect hook shebang |
+| `shebangEncodingMarker` | Allow | Allow | Defer | Defer | Insert encoding marker after shebang |
+
+Rules not in this table are not formatted. `harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications.
+
+Gradle and Maven formatting is deferred and not implemented in this change set.
+
+### Shell exclusion
+
+The shell runtime ships `harness-validate.sh` only. No shell `harnessCheck` or `harnessFormat` was added. Shell validation covers file presence, directory structure, hook shebangs and executable bits, scaffold-leak scanning, and completed-plan unchecked-task scanning.
+
 ## Git Hooks
 
 The installer writes two selected-mode hook templates in `docs/harness/git-hooks/` on fresh install. Gradle `pre-commit` runs `harnessValidate` for intermediate harness feedback, and Gradle `pre-push` runs `check` for the final push gate. Non-Gradle `pre-commit` performs lightweight harness-rule compliance checks, and non-Gradle `pre-push` runs the selected validation command. Managed generated templates refresh with the selected intermediate and final commands; custom target-owned templates are preserved unless `--force` is used. Git hook activation is opt-in because it modifies local Git behavior outside version control.
