@@ -10,13 +10,13 @@ import kotlin.io.path.isRegularFile
 import kotlin.io.path.readLines
 
 /**
- * Renders validation findings in biome+ruff hybrid diagnostic format.
+ * Renders validation findings in structured diagnostic format.
  */
 object FindingReporter {
     /**
      * Renders a list of findings to diagnostic output lines.
      *
-     * Returns a list of output lines following biome+ruff style:
+     * Returns a list of output lines following structured diagnostic style:
      * - File location header with severity and rule ID
      * - Code snippet with context lines (if file is readable)
      * - Fix metadata (safety, help, before/after diffs)

@@ -2,7 +2,7 @@ package com.ririnto.sinon.harness;
 
 /**
  * Record representing a validation finding with severity, category, message, and
- * optional biome-lint-style location and fix metadata. Line and column values are
+ * optional structured location and fix metadata. Line and column values are
  * 1-indexed.
  */
 public record Finding(
