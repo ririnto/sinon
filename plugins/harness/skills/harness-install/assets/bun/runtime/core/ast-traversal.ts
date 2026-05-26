@@ -7,5 +7,5 @@ import type { Node } from "typescript@6.0.3";
  * Enables node traversal via flatMap composition rather than mutable visitor callbacks.
  */
 export const astChildrenOf = (node: Node): readonly Node[] => {
-  return node.getChildren();
+    return node.getChildren();
 };

@@ -2,7 +2,6 @@
 // -*- coding: utf-8 -*-
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { HarnessManifest } from "./core/manifest";
 import { createRuleContext } from "./core/rule-context";
 import { logger } from "./logger";
 import { renderFindings } from "./reporter";
@@ -46,97 +45,92 @@ const root = process.cwd();
 export const MANIFEST_PATH = join("docs", "harness", "manifest.json");
 
 function createHarnessChecks(): Record<string, HarnessCheckRule> {
-  return {
-    FILE_PRESENCE: filePresenceRule,
-    DIRECTORY_PRESENCE: directoryPresenceRule,
-    EMPTY_DIRECTORY_PLACEHOLDERS: emptyDirectoryPlaceholdersRule,
-    TEMPLATE_GROUPS: templateGroupsRule,
-    DOC_HEADINGS: docHeadingsRule,
-    DOC_CONTENT: docContentRule,
-    AGENT_FRONTMATTER: agentFrontmatterRule,
-    SKILL_FRONTMATTER: skillFrontmatterRule,
-    SCAFFOLD_LEAKS: scaffoldLeaksRule,
-    HOOK_SHEBANG: hookShebangRule,
-    HOOK_EXECUTABLE: hookExecutableRule,
-    HOOK_GENERATED_MARKER: hookGeneratedMarkerRule,
-    HOOK_STAGE: hookStageRule,
-    HOOK_COMMAND: hookCommandRule,
-    CI_HOOK_COMMAND_PARITY: ciHookCommandParityRule,
-    ENV_SHEBANG_USAGE: envShebangUsageRule,
-    SHEBANG_ENCODING_MARKER: shebangEncodingMarkerRule,
-    UNCHECKED_TASKS: uncheckedTasksRule,
-    SYMLINK_SAFETY: symlinkSafetyRule,
-    IMPLICIT_LAMBDA_IT: implicitLambdaItRule,
-    IMPORT_OVER_FQN: importOverFqnRule,
-    GREATER_THAN_COMPARISON: greaterThanComparisonRule,
-    LEAF_FUNCTION_BLANK_LINES: leafFunctionBlankLinesRule,
-    EARLY_RETURN: earlyReturnRule,
-    SILENT_CATCH: silentCatchRule,
-    MUTABLE_COLLECTION: mutableCollectionRule,
-    UNSTRUCTURED_LOGGING: unstructuredLoggingRule,
-    WILDCARD_IMPORT: wildcardImportRule,
-    EMPTY_CATCH_BLOCK: emptyCatchBlockRule,
-    IF_STATEMENT_BRACES: ifStatementBracesRule,
-    PUBLIC_DECLARATION_DOC_COMMENT: publicDeclarationDocCommentRule,
-    UNCHECKED_CAST_SUPPRESSION: uncheckedCastSuppressionRule,
-    LEADING_UNDERSCORE: leadingUnderscoreRule,
-    MULTILINE_DOC_STYLE: multilineDocStyleRule,
-  } as const;
+    return {
+        FILE_PRESENCE: filePresenceRule,
+        DIRECTORY_PRESENCE: directoryPresenceRule,
+        EMPTY_DIRECTORY_PLACEHOLDERS: emptyDirectoryPlaceholdersRule,
+        TEMPLATE_GROUPS: templateGroupsRule,
+        DOC_HEADINGS: docHeadingsRule,
+        DOC_CONTENT: docContentRule,
+        AGENT_FRONTMATTER: agentFrontmatterRule,
+        SKILL_FRONTMATTER: skillFrontmatterRule,
+        SCAFFOLD_LEAKS: scaffoldLeaksRule,
+        HOOK_SHEBANG: hookShebangRule,
+        HOOK_EXECUTABLE: hookExecutableRule,
+        HOOK_GENERATED_MARKER: hookGeneratedMarkerRule,
+        HOOK_STAGE: hookStageRule,
+        HOOK_COMMAND: hookCommandRule,
+        CI_HOOK_COMMAND_PARITY: ciHookCommandParityRule,
+        ENV_SHEBANG_USAGE: envShebangUsageRule,
+        SHEBANG_ENCODING_MARKER: shebangEncodingMarkerRule,
+        UNCHECKED_TASKS: uncheckedTasksRule,
+        SYMLINK_SAFETY: symlinkSafetyRule,
+        IMPLICIT_LAMBDA_IT: implicitLambdaItRule,
+        IMPORT_OVER_FQN: importOverFqnRule,
+        GREATER_THAN_COMPARISON: greaterThanComparisonRule,
+        LEAF_FUNCTION_BLANK_LINES: leafFunctionBlankLinesRule,
+        EARLY_RETURN: earlyReturnRule,
+        SILENT_CATCH: silentCatchRule,
+        MUTABLE_COLLECTION: mutableCollectionRule,
+        UNSTRUCTURED_LOGGING: unstructuredLoggingRule,
+        WILDCARD_IMPORT: wildcardImportRule,
+        EMPTY_CATCH_BLOCK: emptyCatchBlockRule,
+        IF_STATEMENT_BRACES: ifStatementBracesRule,
+        PUBLIC_DECLARATION_DOC_COMMENT: publicDeclarationDocCommentRule,
+        UNCHECKED_CAST_SUPPRESSION: uncheckedCastSuppressionRule,
+        LEADING_UNDERSCORE: leadingUnderscoreRule,
+        MULTILINE_DOC_STYLE: multilineDocStyleRule,
+    } as const;
 }
 
 /**
  * All harness check rules as singleton instances.
  */
-export const HARNESS_CHECKS: readonly HarnessCheckRule[] =
-  Object.values(createHarnessChecks());
+export const HARNESS_CHECKS: readonly HarnessCheckRule[] = Object.values(createHarnessChecks());
 
 function main(): void {
-  const rawManifest: unknown = JSON.parse(
-    readFileSync(join(root, MANIFEST_PATH), "utf8"),
-  );
-  const context = createRuleContext(root, rawManifest);
-  const manifest = context.manifest.raw;
-  if (manifest === null || Object.keys(manifest).length === 0) {
-    throw new Error(`manifest is empty or malformed: ${MANIFEST_PATH}`);
-  }
-  const knownCategories = new Set<string>(
-    HARNESS_CHECKS.map((c) => c.category),
-  );
-  const knownKeys = new Set<string>([
-    "name",
-    "description",
-    "$schema",
-    "seedFiles",
-    "generatedArtifacts",
-    "harnessEvolution",
-    "teamPatterns",
-  ]);
-  const unknownKeyFindings: readonly Finding[] = Object.keys(manifest)
-    .filter((key) => !knownCategories.has(key) && !knownKeys.has(key))
-    .map((key) => ({
-      severity: "WARN" as const,
-      category: "manifestSchema",
-      message: `unknown manifest key: ${key}`,
-    }));
-  const ruleFindings: readonly Finding[] = Array.from(
-    new Map(
-      HARNESS_CHECKS.filter((rule) => rule.applies(context))
-        .flatMap((rule) => rule.validate(context))
-        .map((finding) => [
-          `${finding.severity}|${finding.category}|${finding.message}|${finding.file ?? ""}|${finding.startLine ?? ""}|${finding.startColumn ?? ""}`,
-          finding,
-        ]),
-    ).values(),
-  );
-  const findings: readonly Finding[] = unknownKeyFindings.concat(ruleFindings);
-  renderFindings(root, findings).forEach((line) => {
-    logger.log(line);
-  });
-  if (findings.some((finding) => finding.severity === "ERROR")) {
-    process.exit(1);
-  }
+    const rawManifest: unknown = JSON.parse(readFileSync(join(root, MANIFEST_PATH), "utf8"));
+    const context = createRuleContext(root, rawManifest);
+    const manifest = context.manifest.raw;
+    if (manifest === null || Object.keys(manifest).length === 0) {
+        throw new Error(`manifest is empty or malformed: ${MANIFEST_PATH}`);
+    }
+    const knownCategories = new Set<string>(HARNESS_CHECKS.map((c) => c.category));
+    const knownKeys = new Set<string>([
+        "name",
+        "description",
+        "$schema",
+        "seedFiles",
+        "generatedArtifacts",
+        "harnessEvolution",
+        "teamPatterns",
+    ]);
+    const unknownKeyFindings: readonly Finding[] = Object.keys(manifest)
+        .filter((key) => !knownCategories.has(key) && !knownKeys.has(key))
+        .map((key) => ({
+            severity: "WARN" as const,
+            category: "manifestSchema",
+            message: `unknown manifest key: ${key}`,
+        }));
+    const ruleFindings: readonly Finding[] = Array.from(
+        new Map(
+            HARNESS_CHECKS.filter((rule) => rule.applies(context))
+                .flatMap((rule) => rule.validate(context))
+                .map((finding) => [
+                    `${finding.severity}|${finding.category}|${finding.message}|${finding.file ?? ""}|${finding.startLine ?? ""}|${finding.startColumn ?? ""}`,
+                    finding,
+                ]),
+        ).values(),
+    );
+    const findings: readonly Finding[] = unknownKeyFindings.concat(ruleFindings);
+    renderFindings(root, findings).forEach((line) => {
+        logger.log(line);
+    });
+    if (findings.some((finding) => finding.severity === "ERROR")) {
+        process.exit(1);
+    }
 }
 
 if (import.meta.main) {
-  main();
+    main();
 }
