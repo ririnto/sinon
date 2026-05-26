@@ -30,8 +30,8 @@ assert_contains() {
     needle="$1"
     haystack_file="$2"
     if ! grep -Fq -- "${needle}" "${haystack_file}"; then
-    printf '%s\n' "ASSERTION FAILED: expected ${haystack_file} to contain ${needle}" >&2
-    exit 1
+        printf '%s\n' "ASSERTION FAILED: expected ${haystack_file} to contain ${needle}" >&2
+        exit 1
     fi
 }
 
@@ -44,8 +44,8 @@ assert_not_contains() {
     needle="$1"
     haystack_file="$2"
     if grep -Fq -- "${needle}" "${haystack_file}"; then
-    printf '%s\n' "ASSERTION FAILED: expected ${haystack_file} to not contain ${needle}" >&2
-    exit 1
+        printf '%s\n' "ASSERTION FAILED: expected ${haystack_file} to not contain ${needle}" >&2
+        exit 1
     fi
 }
 
@@ -65,12 +65,12 @@ run_case() {
     stderr_file="${temp_dir}/${case_name}.stderr"
     mkdir -p "${capture_dir}"
     (
-    cd "${workspace_dir}"
-    PATH="${fake_bin}:$PATH" \
-        JDTLS_CAPTURE_DIR="${capture_dir}" \
-        JAVA_ASSISTANT_LOMBOK_JAR="${jar_path}" \
-        JAVA_ASSISTANT_LOMBOK_ENABLED="${support_enabled}" \
-        "${wrapper_path}" >"${capture_dir}/stdout.txt" 2>"${stderr_file}"
+        cd "${workspace_dir}"
+        PATH="${fake_bin}:$PATH" \
+            JDTLS_CAPTURE_DIR="${capture_dir}" \
+            JAVA_ASSISTANT_LOMBOK_JAR="${jar_path}" \
+            JAVA_ASSISTANT_LOMBOK_ENABLED="${support_enabled}" \
+            "${wrapper_path}" >"${capture_dir}/stdout.txt" 2>"${stderr_file}"
     )
     printf '%s\n' "${capture_dir}|${stderr_file}"
 }
@@ -82,8 +82,8 @@ run_case() {
 run_resolver_case() {
     workspace_dir="$1"
     (
-    cd "${workspace_dir}"
-    "${resolver_path}" --resolve-project-jar "${workspace_dir}"
+        cd "${workspace_dir}"
+        "${resolver_path}" --resolve-project-jar "${workspace_dir}"
     )
 }
 
