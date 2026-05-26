@@ -89,6 +89,7 @@ class EmptyCatchBlockRule(HarnessCheckRule):
                 visitor = EmptyCatchFinder(relative(path, ctx.root))
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return list(collect_findings())
 
 

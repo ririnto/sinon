@@ -65,7 +65,9 @@ def relative_file_of(file: str, root: Path) -> str | None:
     absolute_file = Path(file) if Path(file).is_absolute() else root / file
     resolved_file = absolute_file.resolve(strict=False)
     resolved_root = root.resolve(strict=False)
-    if resolved_file == resolved_root or not resolved_file.is_relative_to(resolved_root):
+    if resolved_file == resolved_root or not resolved_file.is_relative_to(
+        resolved_root
+    ):
         return None
     return resolved_file.relative_to(resolved_root).as_posix()
 
@@ -92,7 +94,9 @@ def is_generated_artifact(ctx: RuleContext, relative_file: str, category: str) -
     """
     if category == "emptyDirectoryPlaceholders":
         return False
-    generated_artifacts = ctx.read_json_object(ctx.manifest.raw.get("generatedArtifacts"))
+    generated_artifacts = ctx.read_json_object(
+        ctx.manifest.raw.get("generatedArtifacts")
+    )
     generated_path = generated_artifacts.get("path")
     if not isinstance(generated_path, str) or generated_path == "":
         return False
@@ -291,7 +295,7 @@ def apply_edits(by_file: dict[str, list[PreparedEdit]], root: Path) -> list[str]
             text = (
                 f"{text[: edit.start_offset]}"
                 f"{edit.edit.replacement}"
-                f"{text[edit.end_offset:]}"
+                f"{text[edit.end_offset :]}"
             )
         if original != text:
             absolute_file.parent.mkdir(parents=True, exist_ok=True)

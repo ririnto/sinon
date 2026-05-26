@@ -44,6 +44,7 @@ class UncheckedCastSuppressionRule(HarnessCheckRule):
         sources = ctx.stack_sources(self.category)
         forbidden = self.resolve_forbidden_suppressions(ctx)
         allowed = self.resolve_allowed_suppressions(ctx)
+
         def collect_findings():
             for path in sources:
                 tree, error = parse_python(path)
@@ -60,6 +61,7 @@ class UncheckedCastSuppressionRule(HarnessCheckRule):
                 )
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return list(collect_findings())
 
     def resolve_forbidden_suppressions(self, ctx: RuleContext) -> set[str]:

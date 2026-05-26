@@ -42,7 +42,9 @@ class UnstructuredLoggingRule(HarnessCheckRule):
         sources = ctx.stack_sources(self.category)
         forbidden = self.resolve_api_list(ctx, "forbiddenLoggingApis", {"print"})
         allowed = self.resolve_api_list(ctx, "allowedLoggingApis", set())
-        functional_output_paths = self.resolve_api_list(ctx, "functionalOutputPaths", set())
+        functional_output_paths = self.resolve_api_list(
+            ctx, "functionalOutputPaths", set()
+        )
 
         class PrintFinder(cst.CSTVisitor):
             METADATA_DEPENDENCIES = (cst.metadata.PositionProvider,)
@@ -108,6 +110,7 @@ class UnstructuredLoggingRule(HarnessCheckRule):
                 visitor = PrintFinder(relative(path, ctx.root))
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return list(collect_findings())
 
     def resolve_api_list(
