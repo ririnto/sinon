@@ -12,7 +12,7 @@ This reference covers practical multi-agent workflows using plugin settings file
 
 ## Task numbering convention
 
-Agent tasks use dotted notation: `<major>.<minor>[.<sub>]`
+Agent tasks use dotted notation: `{{major}}.{{minor}}[.{{sub}}]`
 
 - `1` — Top-level task (e.g., "Build authentication system")
 - `1.1` — Subtask (e.g., "Implement JWT token generation")
@@ -52,7 +52,7 @@ start_coordinator() {
 
 Agents send messages to coordinator:
 
-```
+```sh
 #!/bin/bash
 
 # Validate coordinator session name for safety.
@@ -90,7 +90,7 @@ report_to_coordinator() {
 
 Coordinator watches a shared directory for status files:
 
-```
+```sh
 #!/bin/bash
 
 # Write agent status to coordinator file.
@@ -118,17 +118,17 @@ write_status() {
 
 Coordinator polls directory:
 
-```
+```json
 watch -n 2 "ls -la /tmp/swarm-status/"
 ```
 
 ## Plugin settings for agent identity
 
-Each agent in swarm stores identity and task in `.claude/<plugin-name>.local.md`:
+Each agent in swarm stores identity and task in `.claude/{{plugin-name}}.local.md`:
 
 ### Agent settings template
 
-```
+```markdown
 ---
 agent_name: auth-service-agent
 task_number: 3.2
@@ -165,7 +165,7 @@ Fields:
 
 Bash is required for this example to use `printf %q` for safe quoting. For POSIX sh, use single-quote escaping or double-quote variables.
 
-```
+```sh
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 set -e
@@ -203,7 +203,7 @@ report_tool_completion() {
 
 Agents can declare prerequisites in settings:
 
-```
+```markdown
 ---
 task_number: 3.3
 dependencies:
@@ -214,7 +214,7 @@ dependencies:
 
 Hook checks if dependencies are complete:
 
-```
+```sh
 #!/bin/bash
 
 # Block work until prerequisite tasks complete.
@@ -249,7 +249,7 @@ Three agents working on interconnected tasks:
 
 `.claude/db-agent.local.md:`
 
-```
+```markdown
 ---
 agent_name: db-schema-agent
 task_number: 1
@@ -267,7 +267,7 @@ Create schema for user, token, and session tables.
 
 `.claude/auth-agent.local.md:`
 
-```
+```markdown
 ---
 agent_name: auth-service-agent
 task_number: 2
@@ -285,7 +285,7 @@ Requires task 1 schema to be complete.
 
 `.claude/gateway-agent.local.md:`
 
-```
+```markdown
 ---
 agent_name: api-gateway-agent
 task_number: 3
@@ -303,7 +303,7 @@ Integrate auth service from task 2.
 
 This example uses bash for robustness. For strict POSIX sh, replace `find` with globbing and avoid while-pipe subshells.
 
-```
+```sh
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 set -e
@@ -347,7 +347,7 @@ conditional_start() {
 
 All agents write state to `.claude/swarm-state/`:
 
-```
+```text
 mkdir -p .claude/swarm-state
 
 # Agent 1 writes schema info
@@ -361,14 +361,14 @@ echo "task_1_schema_version=1" > .claude/swarm-state/task-1.state
 
 Agent writes "complete" file when done:
 
-```
+```markdown
 # Agent 1 at end of task
 echo "task_1_completed_at=$(date +%s)" > .claude/swarm-state/task-1.complete
 ```
 
 Agent 2 waits for file:
 
-```
+```text
 while [ ! -f .claude/swarm-state/task-1.complete ]; do
     sleep 2
 done
@@ -378,7 +378,7 @@ done
 
 Agent 1 writes config; Agent 2 reads:
 
-```
+```markdown
 ---
 output_format: json
 generated_files:
@@ -389,7 +389,7 @@ generated_files:
 
 Agent 2 reads:
 
-```
+```markdown
 # shellcheck disable=SC2034
 OUTPUT_FORMAT=$(grep '^output_format:' ".claude/db-agent.local.md" | sed 's/output_format: *//')
 ```
@@ -398,7 +398,7 @@ OUTPUT_FORMAT=$(grep '^output_format:' ".claude/db-agent.local.md" | sed 's/outp
 
 Teams with multiple Claude Code sessions per agent:
 
-```
+```markdown
 ---
 agent_name: backend-team
 team_size: 3
@@ -422,7 +422,7 @@ Three parallel sessions coordinated by backend-leader.
 
 Coordinator polls all sessions:
 
-```
+```sh
 #!/bin/bash
 
 # Aggregate status from multiple agent sessions.
@@ -443,7 +443,7 @@ aggregate_status() {
 
 Simulate multi-agent swarm locally:
 
-```
+```sh
 # Start coordinator
 tmux new-session -d -s coordinator "while true; do sleep 1; done"
 
