@@ -77,14 +77,20 @@ public enum MutableCollectionRule implements AstRule {
                 configured(manifest, "forbiddenConstructors", DEFAULT_CONSTRUCTORS),
                 configured(manifest, "forbiddenFqns", DEFAULT_FQNS),
                 configured(manifest, "accumulationMethods", DEFAULT_ACCUMULATION_METHODS),
-                configured(manifest, "allowedBuilders", DEFAULT_ALLOWED_BUILDERS));
+                configured(manifest, "allowedBuilders", DEFAULT_ALLOWED_BUILDERS)
+        );
     }
 
     private static Set<String> configured(JsonNode manifest, String key, List<String> defaults) {
         final JsonNode section = manifest.get(CATEGORY);
-        final JsonNode parameters = section == null ? null : section.get("parameters");
-        final JsonNode values = parameters == null ? null : parameters.get(key);
-        final List<String> configured = HarnessCheckHelper.extractPaths(values);
+        if (section == null) {
+            return Set.copyOf(defaults);
+        }
+        final JsonNode parameters = section.get("parameters");
+        if (parameters == null) {
+            return Set.copyOf(defaults);
+        }
+        final List<String> configured = HarnessCheckHelper.extractPaths(parameters.get(key));
         return Set.copyOf(configured.isEmpty() ? defaults : configured);
     }
 

@@ -17,8 +17,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.LinkedHashSet;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Maven goal that auto-formats installed Claude repository harness assets.
@@ -52,15 +53,19 @@ public final class HarnessFormatMojo extends AbstractMojo {
      * Collects formatted file paths from applicable checks, relativized and sorted.
      */
     private List<String> buildModifiedPaths(Path root, RuleContext ctx) throws MojoExecutionException {
-        final LinkedHashSet<String> paths = new LinkedHashSet<>();
-        for (final HarnessCheck check : HarnessCheck.values()) {
-            if (check.applies(ctx)) {
-                check.format(ctx).stream()
-                        .map(path -> root.relativize(path).toString())
-                        .forEach(paths::add);
-            }
-        }
-        return paths.stream().sorted().toList();
+        return Arrays.stream(HarnessCheck.values())
+                .filter(check -> check.applies(ctx))
+                .flatMap(check -> {
+                    try {
+                        return check.format(ctx).stream();
+                    } catch (MojoExecutionException e) {
+                        return Stream.<Path>empty();
+                    }
+                })
+                .map(path -> root.relativize(path).toString())
+                .distinct()
+                .sorted()
+                .toList();
     }
 
     /**

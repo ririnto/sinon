@@ -73,6 +73,7 @@ public enum PublicDeclarationDocCommentRule implements AstRule {
         return tokens.isEmpty() ? Set.of() : Set.copyOf(tokens);
     }
 
+
     /**
      * Returns the effective visibility level of a class or interface declaration.
      *
