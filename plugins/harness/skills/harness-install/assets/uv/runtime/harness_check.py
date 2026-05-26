@@ -148,7 +148,7 @@ def validate(manifest: dict) -> tuple[Finding, ...]:
 
     Dedup key is (severity, category, message, file, start_line); the original
     Finding (with location and fix metadata) is preserved on first occurrence
-    so biome-style reporter output keeps Safety/Help/Before/After sections.
+    so structured reporter output keeps Safety/Help/Before/After sections.
     """
     seen: dict[tuple, Finding] = {}
     for check in HarnessCheck:

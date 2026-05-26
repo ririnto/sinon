@@ -781,7 +781,7 @@
     }
   },
   "multilineDocStyle": {
-    "description": "TSDoc comments under parameters.sourceRoots MUST use multiline block style. This aligns with Biome-compatible native TSDoc while leaving shell JSDoc-style `#` docstrings to the shell validator. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches.",
+    "description": "TSDoc comments under parameters.sourceRoots MUST use multiline block style. This matches the native TSDoc convention while leaving shell JSDoc-style `#` docstrings to the shell validator. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches.",
     "enabled": true,
     "severity": "WARN",
     "messages": {

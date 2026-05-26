@@ -35,7 +35,7 @@ data class HarnessAstResults(
 
     /**
      * Represents a validation finding with severity, category, message, and optional
-     * biome-lint-style location/fix metadata. Line and column values are 1-indexed.
+     * structured location/fix metadata. Line and column values are 1-indexed.
      */
     @Serializable
     data class Finding(
