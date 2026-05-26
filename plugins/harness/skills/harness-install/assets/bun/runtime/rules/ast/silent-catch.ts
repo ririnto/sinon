@@ -80,7 +80,7 @@ export const silentCatchRule: HarnessCheckRule = {
         return [{
           severity: ctx.severityOf("silentCatch"),
           category: "silentCatch",
-          message: `${file}:${start.line + 1}: silent catch; rethrow, translate to a Finding, or log via structured logger`,
+          message: "silent catch; rethrow, translate to a Finding, or log via structured logger",
           file,
           startLine: start.line + 1,
           startColumn: start.character + 1,

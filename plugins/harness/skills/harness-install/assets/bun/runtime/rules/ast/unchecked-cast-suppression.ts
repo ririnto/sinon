@@ -63,7 +63,7 @@ export const uncheckedCastSuppressionRule: HarnessCheckRule = {
             findings.push({
               severity: ctx.severityOf("uncheckedCastSuppression"),
               category: "uncheckedCastSuppression",
-              message: `${file}:${start.line + 1}: avoid suppression of forbidden tokens (\`${commentText.trim()}\`); refactor to explicit handling`,
+              message: `avoid suppression of forbidden tokens (\`${commentText.trim()}\`); refactor to explicit handling`,
               file,
               startLine: start.line + 1,
               startColumn: start.character + 1,

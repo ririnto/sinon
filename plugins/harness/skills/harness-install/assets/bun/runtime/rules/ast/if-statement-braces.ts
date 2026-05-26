@@ -19,7 +19,7 @@ import type {
  */
 export const ifStatementBracesRule: HarnessCheckRule = {
   category: "ifStatementBraces",
-  applies(ctx: RuleContext): boolean {
+  applies(_: RuleContext): boolean {
     return true;
   },
 
@@ -50,7 +50,7 @@ export const ifStatementBracesRule: HarnessCheckRule = {
             findings.push({
               severity: ctx.severityOf("ifStatementBraces"),
               category: "ifStatementBraces",
-              message: `${file}:${start.line + 1}: if/else without braces; wrap the body in \`{ ... }\``,
+              message: `if/else without braces; wrap the body in \`{ ... }\``,
               file,
               startLine: start.line + 1,
               startColumn: start.character + 1,
@@ -77,7 +77,7 @@ export const ifStatementBracesRule: HarnessCheckRule = {
             findings.push({
               severity: ctx.severityOf("ifStatementBraces"),
               category: "ifStatementBraces",
-              message: `${file}:${start.line + 1}: if/else without braces; wrap the body in \`{ ... }\``,
+              message: `if/else without braces; wrap the body in \`{ ... }\``,
               file,
               startLine: start.line + 1,
               startColumn: start.character + 1,

@@ -171,6 +171,36 @@ Report CI drift with the expected command.
 ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv run --script docs/harness/uv/harness_validate.py`
 ```
 
+## Diagnostic Format
+
+Check and validation output uses a canonical prefix so that agents, CI, and humans can parse findings uniformly.
+
+Location-bearing findings use one-based line and column numbers:
+
+```text
+path:line:column [SEVERITY] category: message
+```
+
+When position is unavailable, validators fall back to shorter forms:
+
+```text
+[SEVERITY] category: repository-level message
+```
+
+```text
+path/to/file [SEVERITY] category: file-level message
+```
+
+`SEVERITY` is one of `ERROR`, `WARN`, or `INFO`. `category` matches the manifest rule identifier.
+
+## Safe-Format Allowlist
+
+`harnessFormat` applies only explicitly allowlisted safe fixes. A safe fix is a deterministic, semantics-preserving edit. The current allowlist covers `leafFunctionBlankLines`, `emptyDirectoryPlaceholders`, `envShebangUsage`, `hookGeneratedMarker`, `hookShebang`, and `shebangEncodingMarker`. Bun and uv allow these fixes; Gradle and Maven formatting is deferred. Rules not in the allowlist are not formatted.
+
+`harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications.
+
+The shell runtime ships `harness-validate.sh` only. No shell `harnessCheck` or `harnessFormat` exists.
+
 ## Invariants
 
 - Validation checks the target repository harness, not this plugin package.
@@ -179,6 +209,7 @@ ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv 
 - File presence alone does not prove project readiness when placeholders still lack project-specific content.
 - Generated artifacts are valid only when they document source command, source inputs, freshness, and regeneration trigger.
 - GitHub Actions, GitLab CI, and the generated pre-push hook MUST remain examples of the same final check command. Gradle pre-commit runs `harnessValidate`; non-Gradle pre-commit remains compliance-only.
+- Check and validation findings MUST use the canonical diagnostic prefix with one-based line and column numbers when position is available.
 
 ## Pitfalls
 
@@ -192,7 +223,7 @@ ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv 
 ## Report Template
 
 ```text
-mode: <auto|gradle|maven|uv|bun>
+mode: <gradle|maven|uv|bun> (--mode flag)
 command: <exact command>
 result: <pass|fail> (<exit status or unavailable>)
 failures:
@@ -205,7 +236,7 @@ next action: <smallest valid fix or reason no fix was made>
 
 Report these fields:
 
-- `mode`: detected or explicit stack mode.
+- `mode`: explicit stack mode (--mode flag).
 - `command`: exact validation command.
 - `result`: pass or fail with exit status when available.
 - `failures`: file paths and contract categories for any failures.

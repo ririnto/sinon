@@ -45,7 +45,7 @@ export const emptyCatchBlockRule: HarnessCheckRule = {
         return [{
           severity: ctx.severityOf("emptyCatchBlock"),
           category: "emptyCatchBlock",
-          message: `${file}:${start.line + 1}: empty catch block; handle, rethrow, or convert to a Finding`,
+          message: "empty catch block; handle, rethrow, or convert to a Finding",
           file,
           startLine: start.line + 1,
           startColumn: start.character + 1,

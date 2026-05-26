@@ -111,7 +111,7 @@ export const publicDeclarationDocCommentRule: HarnessCheckRule = {
             "publicDeclarationDocComment",
           ),
           category: "publicDeclarationDocComment",
-          message: `${file}:${start.line + 1}: public declaration \`${name}\` is missing a documentation comment`,
+          message: `public declaration \`${name}\` is missing a documentation comment`,
           file,
           startLine: start.line + 1,
           startColumn: start.character + 1,

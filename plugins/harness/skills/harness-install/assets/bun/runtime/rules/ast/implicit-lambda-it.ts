@@ -31,7 +31,7 @@ export const implicitLambdaItRule: HarnessCheckRule = {
                 {
                   severity: ctx.severityOf("implicitLambdaIt"),
                   category: "implicitLambdaIt",
-                  message: `Kotlin file ${file} uses implicit \`it\` lambda parameter at line ${index + 1}; use an explicit name`,
+                  message: `uses implicit \`it\` lambda parameter; use an explicit name`,
                   file,
                   startLine: index + 1,
                   startColumn: 1,
