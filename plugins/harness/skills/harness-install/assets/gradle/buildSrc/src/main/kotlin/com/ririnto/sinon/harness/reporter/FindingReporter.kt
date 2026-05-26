@@ -26,48 +26,63 @@ object FindingReporter {
      * @param findings List of validation findings to render.
      * @return List of formatted output lines.
      */
-    fun renderFindings(root: Path, findings: List<Finding>): List<String> {
+    fun renderFindings(
+        root: Path,
+        findings: List<Finding>,
+    ): List<String> {
         if (findings.isEmpty()) {
             return listOf("OK")
         }
         return buildList {
-            findings.sortedWith(compareBy({ finding -> finding.severity.ordinal }, { findings.indexOf(it) }))
+            findings
+                .sortedWith(compareBy({ finding -> finding.severity.ordinal }, { findings.indexOf(it) }))
                 .forEach { finding ->
                     renderFinding(root, finding).forEach(::add)
                 }
             val (fileCount, errorCount, warnCount, infoCount, fixableCount) = computeSummary(findings)
             add("")
-            add("Checked $fileCount file(s). ${findings.size} violation(s): $errorCount error, $warnCount warn, $infoCount info.${when (0 < fixableCount) {true->" [*] $fixableCount fixable."
-            else->""}}")
+            val fixableSuffix =
+                when (0 < fixableCount) {
+                    true -> " [*] $fixableCount fixable."
+                    else -> ""
+                }
+            add(
+                "Checked $fileCount file(s). ${findings.size} violation(s): " +
+                    "$errorCount error, $warnCount warn, $infoCount info.$fixableSuffix",
+            )
         }
     }
 
-    private fun renderFinding(root: Path, finding: Finding): List<String> = buildList {
-        val headerLine = renderHeader(finding)
-        add(headerLine)
-        add("")
-        if (finding.file != null && finding.startLine != null) {
-            val filePath = root / finding.file
-            if (filePath.isRegularFile() && filePath.exists()) {
-                renderSnippet(filePath, finding.startLine, finding.startColumn).forEach(::add)
-            }
-        }
-        if (finding.fix != null) {
+    private fun renderFinding(
+        root: Path,
+        finding: Finding,
+    ): List<String> =
+        buildList {
+            val headerLine = renderHeader(finding)
+            add(headerLine)
             add("")
-            val safetyLabel = finding.fix.safety.name
-            add("Safety: $safetyLabel")
-            add("Help: ${finding.fix.description}")
-            val firstEdit = finding.fix.edits.firstOrNull()
-            if (firstEdit != null && finding.file != null) {
-                add("")
-                add("Before:")
-                extractRemovedText(root / finding.file, firstEdit).forEach { line -> add("- $line") }
-                add("After:")
-                extractAddedText(firstEdit).forEach { line -> add("+ $line") }
+            if (finding.file != null && finding.startLine != null) {
+                val filePath = root / finding.file
+                if (filePath.isRegularFile() && filePath.exists()) {
+                    renderSnippet(filePath, finding.startLine, finding.startColumn).forEach(::add)
+                }
             }
+            if (finding.fix != null) {
+                add("")
+                val safetyLabel = finding.fix.safety.name
+                add("Safety: $safetyLabel")
+                add("Help: ${finding.fix.description}")
+                val firstEdit = finding.fix.edits.firstOrNull()
+                if (firstEdit != null && finding.file != null) {
+                    add("")
+                    add("Before:")
+                    extractRemovedText(root / finding.file, firstEdit).forEach { line -> add("- $line") }
+                    add("After:")
+                    extractAddedText(firstEdit).forEach { line -> add("+ $line") }
+                }
+            }
+            add("")
         }
-        add("")
-    }
 
     private fun renderHeader(finding: Finding): String {
         val severity = finding.severity.name
@@ -81,7 +96,11 @@ object FindingReporter {
         return "${finding.file}:${finding.startLine}:$column [$severity] ${finding.category}: ${finding.message}"
     }
 
-    private fun renderSnippet(filePath: Path, startLine: Int, startColumn: Int?): List<String> {
+    private fun renderSnippet(
+        filePath: Path,
+        startLine: Int,
+        startColumn: Int?,
+    ): List<String> {
         val lines = filePath.readLines()
         val lineNum = startLine - 1
         if (lineNum < 0 || lines.size <= lineNum) {
@@ -101,7 +120,10 @@ object FindingReporter {
         }
     }
 
-    private fun extractRemovedText(filePath: Path, edit: HarnessAstResults.FindingEdit): List<String> {
+    private fun extractRemovedText(
+        filePath: Path,
+        edit: HarnessAstResults.FindingEdit,
+    ): List<String> {
         if (!filePath.isRegularFile() || !filePath.exists()) {
             return emptyList()
         }
@@ -114,13 +136,24 @@ object FindingReporter {
         return buildList {
             for (i in startIdx..endIdx) {
                 val line = lines[i]
-                val trimmedLine = when {
-                    i == startIdx && i == endIdx ->
-                        line.substring(minOf(edit.startColumn - 1, line.length), minOf(edit.endColumn, line.length))
-                    i == startIdx -> line.substring(minOf(edit.startColumn - 1, line.length))
-                    i == endIdx -> line.substring(0, minOf(edit.endColumn, line.length))
-                    else -> line
-                }
+                val trimmedLine =
+                    when {
+                        i == startIdx && i == endIdx -> {
+                            line.substring(minOf(edit.startColumn - 1, line.length), minOf(edit.endColumn, line.length))
+                        }
+
+                        i == startIdx -> {
+                            line.substring(minOf(edit.startColumn - 1, line.length))
+                        }
+
+                        i == endIdx -> {
+                            line.substring(0, minOf(edit.endColumn, line.length))
+                        }
+
+                        else -> {
+                            line
+                        }
+                    }
                 add(trimmedLine)
             }
         }
@@ -144,5 +177,11 @@ object FindingReporter {
         return Tuple5(distinctFiles, errorCount, warnCount, infoCount, fixableCount)
     }
 
-    private data class Tuple5<A, B, C, D, E>(val a: A, val b: B, val c: C, val d: D, val e: E)
+    private data class Tuple5<A, B, C, D, E>(
+        val a: A,
+        val b: B,
+        val c: C,
+        val d: D,
+        val e: E,
+    )
 }
