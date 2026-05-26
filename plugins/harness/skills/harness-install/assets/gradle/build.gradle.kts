@@ -1,5 +1,5 @@
 plugins {
-    id("ai.harness.validation")
+    id("com.ririnto.sinon.harness")
 }
 
 repositories {
