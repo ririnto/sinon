@@ -101,19 +101,19 @@ Optional fields:
 
 Default formula:
 
-```
+```text
 [Primary capability]. Use when [task, inputs, systems, file types, or user intent].
 ```
 
 Strong example:
 
-```
+```text
 Draft release automation runbooks and rollback notes. Use when preparing deployment procedures, CI release steps, or operational handoff docs.
 ```
 
 Weak example:
 
-```
+```text
 Helps with releases.
 ```
 
@@ -234,7 +234,7 @@ Use these patterns directly in `SKILL.md` when they help the ordinary path.
 
 Keep the expected response shape inline so the skill can be used immediately after activation.
 
-```
+```markdown
 ## Output contract
 
 Return:
@@ -249,7 +249,7 @@ Return:
 
 Use a short progress checklist when the workflow has several phases that are easy to miss. Keep it brief and action-focused.
 
-```
+```markdown
 ## Progress checklist
 
 - [ ] Scope is one coherent job
@@ -265,7 +265,7 @@ Do not turn the checklist into a second full procedure. It is a tracking aid, no
 
 Use a short `## Gotchas` section when the domain has recurring traps that are cheaper to prevent than to debug later.
 
-```
+```markdown
 ## Gotchas
 
 - Do not move always-needed guidance into `references/`.
@@ -293,7 +293,7 @@ Open `references/scripts-guidance.md` only when you are unsure whether a script 
 
 Use this as a smallest useful starting point:
 
-```
+```markdown
 ---
 name: markdown-review
 description: >-

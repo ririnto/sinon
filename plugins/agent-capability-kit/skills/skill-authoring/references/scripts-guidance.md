@@ -61,14 +61,14 @@ Shell scripts have no equivalent dependency metadata block. Document required co
 
 ### Good decision
 
-```
+```text
 Need: Verify that every example file contains required frontmatter keys.
 Choice: Add scripts/validate.py because the check is deterministic and repetitive.
 ```
 
 ### Bad decision
 
-```
+```text
 Need: Explain how to choose a good description.
 Choice: Add a validator service or web-based scoring tool.
 ```

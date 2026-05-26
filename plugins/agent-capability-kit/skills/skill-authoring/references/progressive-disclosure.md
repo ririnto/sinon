@@ -84,7 +84,7 @@ scripts/validate.sh                -> deterministic checks
 
 ## Bad split
 
-```
+```text
 SKILL.md -> 700 lines of mixed instructions, tutorials, examples, and raw templates
 ```
 
