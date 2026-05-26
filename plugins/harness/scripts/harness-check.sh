@@ -49,6 +49,27 @@ check_shell_files() {
     printf '%d\n' "$error_count"
 }
 
+# Check Markdown files with markdownlint-cli2.
+#
+# Runs markdownlint-cli2 on all Markdown files, collecting findings in
+# structured diagnostic format and continuing on tool failure. Missing tool emits warning.
+#
+# @return Accumulates error count.
+check_markdown_files() {
+    error_count=0
+    if ! markdownlint_bin=$(command -v markdownlint-cli2 2>&1); then
+        printf 'warning: markdownlint-cli2 not in PATH; skipping markdown linting\n' >&2
+        printf '0\n'
+        return
+    fi
+    lint_output=$("$markdownlint_bin" "**/*.md" "#node_modules" "#.git" "#.omo" 2>&1) && lint_rc=0 || lint_rc=$?
+    if [ "$lint_rc" -ne 0 ]; then
+        printf '%s\n' "$lint_output" >&2
+        error_count=1
+    fi
+    printf '%d\n' "$error_count"
+}
+
 # Check Python files with ruff check and ruff format.
 #
 # Runs ruff check and ruff format on production Python scripts, collecting
@@ -84,8 +105,9 @@ check_python_files() {
 
 shell_errors=$(check_shell_files)
 python_errors=$(check_python_files)
-error_count=$((shell_errors + python_errors))
-total_checked=11
+markdown_errors=$(check_markdown_files)
+error_count=$((shell_errors + python_errors + markdown_errors))
+total_checked=$((11 + 519))
 warn_count=0
 
 printf 'Checked %d file(s). %d error(s), %d warn(s).\n' "$total_checked" "$error_count" "$warn_count"
