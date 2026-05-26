@@ -275,6 +275,24 @@ check_unchecked_tasks() {
     fi
 }
 
+# Validate that every shell script passes shellcheck with no errors.
+#
+# @return Emits findings for shell scripts with violations.
+check_shellcheck() {
+    category=shellcheck
+    enabled=$(enabled_of "$category")
+    if [ "$enabled" -ne 1 ]; then
+        return 0
+    fi
+    sev=$(severity_of "$category")
+    find . -type f -name '*.sh' -not -path './.git/*' | while IFS= read -r file; do
+        output=$(shellcheck "$file" 2>&1)
+        if [ -n "$output" ]; then
+            emit "$sev" "$category" "$file: shellcheck violations found"
+        fi
+    done
+}
+
 if [ ! -f "$MANIFEST" ]; then
     printf '[ERROR] manifest missing: %s\n' "$MANIFEST" >&2
     exit 1
@@ -287,6 +305,7 @@ check_hook_shebang
 check_hook_executable
 check_scaffold_leaks
 check_unchecked_tasks
+check_shellcheck
 
 errors=0
 warns=0
