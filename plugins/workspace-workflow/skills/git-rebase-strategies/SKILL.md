@@ -107,7 +107,7 @@ An editor opens with a list of commits. Commands available:
 
 Example workflow:
 
-```
+```text
 pick a1b2c3d Add user authentication
 reword 2d3e4f5 Fix typo in user form
 squash 3e4f5g6 Refactor user service (combine into previous)
@@ -161,7 +161,7 @@ git status
 
 Edit each conflicted file to resolve the conflict. Markers appear as:
 
-```
+```text
 <<<<<<< HEAD
 your changes
 =======
@@ -210,7 +210,7 @@ git rebase -i origin/main
 
 Mark commits to squash:
 
-```
+```text
 pick a1b2c3d Add user profile feature
 squash 2d3e4f5 WIP: refactor validation
 squash 3e4f5g6 Fix tests

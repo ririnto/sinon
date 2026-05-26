@@ -32,7 +32,7 @@ Use stronger autonomy language when the role should continue through routine che
 
 Use this when the caller needs explicit uncertainty handling.
 
-```
+```markdown
 ## Output
 
 Return:

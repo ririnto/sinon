@@ -5,6 +5,8 @@ model: {{agent_model}}
 color: {{agent_color}}
 ---
 
+# {{agent_name}}
+
 Define the autonomous role this agent owns for the target repository.
 
 ## Inputs

@@ -55,7 +55,7 @@ Use `description` to explain what the command does and when to use it. Prefer th
 
 Example:
 
-```yaml
+```markdown
 ---
 description: >-
   Review one Markdown file for structure, clarity, and missing sections. Use when a document needs a fast editorial quality pass.
@@ -86,7 +86,7 @@ Do not add frontmatter fields as decoration. If removing a field would not chang
 
 Example with common optional fields:
 
-```
+```markdown
 ---
 description: >-
   Review one pull request for risk, missing tests, and merge blockers. Use when preparing a merge recommendation.
@@ -115,7 +115,7 @@ This order keeps commands readable during invocation and makes the runtime path 
 
 Example body shape:
 
-```
+```markdown
 # Review Markdown
 
 Review one Markdown file and return a concise rewrite plan.
@@ -160,7 +160,7 @@ Return:
 
 Good:
 
-```
+```markdown
 ---
 description: >-
   Summarize one log file for error clusters and likely causes. Use when triaging a local failure report.
@@ -171,7 +171,7 @@ allowed-tools:
 ---
 ```
 
-```
+```markdown
 ## Inputs
 
 - `log-file`: path from `$1`
@@ -183,7 +183,7 @@ allowed-tools:
 
 Avoid:
 
-```
+```text
 Review the file the user probably means and do the usual thing.
 ```
 
@@ -198,7 +198,7 @@ Commands should resolve ordinary cases without extra discussion. When ambiguity 
 
 Example:
 
-```
+```markdown
 ## Ambiguity behavior
 
 - If the target path contains multiple matching files, review only the file named in `$1`.
@@ -217,7 +217,7 @@ Every command should say what the final response must contain.
 
 Example:
 
-```
+```markdown
 ## Output contract
 
 Return:
@@ -232,8 +232,9 @@ Return:
 
 Use simple local inspection before deeper validation:
 
-```
+```markdown
 Read `commands/your-command.md` and confirm:
+
 - the frontmatter contains only needed fields
 - the body order is clear
 - arguments, ambiguity behavior, and output contract are explicit
