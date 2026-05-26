@@ -50,7 +50,7 @@ description: Use this agent when docs need work.
 
 Stronger:
 
-```
+```markdown
 description: Use this agent when a Markdown guide, README, or handoff note needs direct rewriting for structure and clarity. Examples:
 
   <example>

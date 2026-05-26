@@ -53,7 +53,7 @@ The full repaired body follows the canonical order documented in `../SKILL.md` u
 
 When a command has branching logic or multiple phases, extend the Procedure section with sub-steps:
 
-```
+```markdown
 ## Procedure
 
 1. Read and classify the target.

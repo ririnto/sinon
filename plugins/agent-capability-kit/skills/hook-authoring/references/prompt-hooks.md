@@ -41,7 +41,7 @@ Variables are substituted literally; complex escaping MUST be handled in the pro
 
 ### PostToolUse feedback output
 
-```
+```json
 {
   "continue": true,
   "suppressOutput": false,
@@ -55,7 +55,7 @@ Variables are substituted literally; complex escaping MUST be handled in the pro
 
 ### Stop decision output
 
-```
+```json
 {
   "decision": "approve|block",
   "reason": "Work remaining (if block)",
@@ -69,11 +69,11 @@ Variables are substituted literally; complex escaping MUST be handled in the pro
 
 ## Policy Injection Pattern
 
-Read project policy from `.claude/<plugin-name>.local.md` frontmatter and pass to prompt hooks as environment variables or inline text.
+Read project policy from `.claude/{{plugin-name}}.local.md` frontmatter and pass to prompt hooks as environment variables or inline text.
 
 ### Command Hook Example
 
-```
+```json
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
@@ -94,7 +94,7 @@ export VALIDATION_LEVEL
 
 Then reference in prompt:
 
-```
+```json
 {
   "type": "prompt",
   "prompt": "Apply validation_level=$VALIDATION_LEVEL policy. Check: $TOOL_INPUT. Decide allow or deny."
@@ -111,7 +111,7 @@ If timeout expires or LLM response does not match the expected output schema, th
 
 For complex policies, break decisions into multiple hooks on the same event:
 
-```
+```json
 {
   "PreToolUse": [
     {
@@ -139,7 +139,7 @@ Each hook runs sequentially. If any hook denies, the tool is blocked.
 
 ### Security policy with multi-rule chaining
 
-```
+```json
 {
   "PreToolUse": [
     {
@@ -165,7 +165,7 @@ Each hook runs sequentially; if any denies, tool is blocked.
 
 ### Completeness validation at Stop
 
-```
+```json
 {
   "Stop": [
     {

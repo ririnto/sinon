@@ -123,7 +123,7 @@ Create plugin directory structure and manifest following sinon rules.
 2. Choose plugin location
 3. Create directory structure using bash:
 
-   ```
+   ```markdown
    mkdir -p plugin-name/.claude-plugin
    mkdir -p plugin-name/skills/<skill-name>   # one dir per skill, each with a SKILL.md
    mkdir -p plugin-name/agents                # if agents are needed
@@ -174,7 +174,7 @@ Load the relevant authoring skill (skill-authoring, command-authoring, agent-aut
 1. For each skill:
    - Ask user for concrete usage examples
    - Plan resources (scripts/, references/, examples/)
-   - Create skill directory: `skills/<skill-name>/`
+   - Create skill directory: `skills/{{skill-name}}/`
    - Write `SKILL.md` with:
      - `name` field matching directory basename
      - Activation surface, common-case workflow, decision points
@@ -187,7 +187,7 @@ Load the relevant authoring skill (skill-authoring, command-authoring, agent-aut
 ### For Agents
 
 1. For each agent:
-   - Create agent markdown file at `agents/<name>.md`
+   - Create agent markdown file at `agents/{{name}}.md`
    - Agent frontmatter `name` MUST match file basename
    - Include clear description, triggering conditions, system prompt
    - Add appropriate model, color, and tools
@@ -293,7 +293,7 @@ Test plugin functionality in Claude Code.
 1. Installation instructions:
    - Show user how to test locally:
 
-     ```
+     ```bash
      claude --plugin-dir /absolute/path/to/plugin-name
      ```
 
