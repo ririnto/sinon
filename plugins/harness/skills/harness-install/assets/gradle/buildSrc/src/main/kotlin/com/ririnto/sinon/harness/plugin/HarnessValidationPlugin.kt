@@ -59,7 +59,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             depScope.name,
             "${BuildConfig.KOTLIN_COMPILER_MODULE}:${BuildConfig.KOTLIN_COMPILER_VERSION}",
         )
-        target.tasks.register("harnessValidate", HarnessValidationTask::class.java) {
+        target.tasks.register("harnessCheck", HarnessCheckTask::class.java) {
             group = "verification"
             description = "Validate Claude repository harness assets."
             kotlinCompiler.from(
@@ -73,7 +73,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             description = "Auto-format Claude repository harness assets where rules support it."
         }
         target.tasks.named("check").configure {
-            dependsOn("harnessValidate")
+            dependsOn("harnessCheck")
         }
     }
 
@@ -105,7 +105,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
     /**
      * Gradle task that validates installed Claude repository harness assets.
      */
-    abstract class HarnessValidationTask : DefaultTask() {
+    abstract class HarnessCheckTask : DefaultTask() {
         /**
          * Gradle worker executor for running AST analysis in an isolated classloader.
          */
