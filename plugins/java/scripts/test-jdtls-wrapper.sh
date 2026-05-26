@@ -104,8 +104,8 @@ gradle_workspace="${temp_dir}/gradle-project"
 mkdir -p "${gradle_workspace}"
 cat >"${gradle_workspace}/build.gradle.kts" <<'EOF'
 dependencies {
-  compileOnly("org.projectlombok:lombok:1.18.36")
-  annotationProcessor("org.projectlombok:lombok:1.18.36")
+  compileOnly("org.projectlombok:lombok:1.18.38")
+  annotationProcessor("org.projectlombok:lombok:1.18.38")
 }
 EOF
 
@@ -127,12 +127,12 @@ mkdir -p "${no_project_workspace}"
 
 classpath_workspace="${temp_dir}/classpath-project"
 mkdir -p "${classpath_workspace}/lib"
-project_lombok_jar="${classpath_workspace}/lib/lombok-1.18.36.jar"
+project_lombok_jar="${classpath_workspace}/lib/lombok-1.18.38.jar"
 : >"${project_lombok_jar}"
 cat >"${classpath_workspace}/.classpath" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-  <classpathentry kind="lib" path="lib/lombok-1.18.36.jar"/>
+  <classpathentry kind="lib" path="lib/lombok-1.18.38.jar"/>
 </classpath>
 EOF
 
