@@ -132,7 +132,7 @@ git worktree list
 
 Example output:
 
-```
+```text
 /path/to/repo              abcdef1 [main]
 /path/to/repo/worktrees/feat-auth  1a2b3c4 [feat-auth] (branch:feat-auth)
 /path/to/repo/worktrees/hotfix-123  5e6f7a8 [hotfix-123] (branch:hotfix-123)
@@ -280,7 +280,7 @@ cd worktrees/feat-main-work
 
 ## Pitfalls
 
-- **Same branch in two worktrees**: If you accidentally create a worktree for a branch already checked out elsewhere, `git worktree add` fails with "error: <branch> is already checked out". Use `git worktree list` before adding.
+- **Same branch in two worktrees**: If you accidentally create a worktree for a branch already checked out elsewhere, `git worktree add` fails with "error: BRANCH is already checked out". Use `git worktree list` before adding.
 - **Forgetting to exit the worktree before removing**: If you try to remove a worktree while inside it, removal fails. Always `cd` out first.
 - **Stale worktree metadata**: If you delete a worktree directory manually (not via `git worktree remove`), stale metadata remains. Use `git worktree prune` to clean up.
 - **Nested worktrees**: Do not create a worktree inside another worktree's directory. Keep worktrees as siblings in a flat structure (e.g., `worktrees/branch-a`, `worktrees/branch-b`).
@@ -312,7 +312,7 @@ git worktree remove worktrees/<branch-name>
 
 ### `git worktree list` output shape
 
-```
+```text
 <path>  <sha>  [<branch>]  (<metadata>)
 <path>  <sha>  [<branch>]  (<metadata>)
 ```
@@ -325,14 +325,14 @@ git worktree remove worktrees/<branch-name>
 
 ### `git worktree add` success output
 
-```
+```text
 Preparing worktree (new branch)
 Checking out branch '<branch>'
 ```
 
 or
 
-```
+```text
 Preparing worktree (checking out '<branch>')
 HEAD is now at <sha> <commit-message>
 ```
@@ -341,7 +341,7 @@ If no output appears, the worktree was created successfully.
 
 ### `git worktree add` failure output
 
-```
+```text
 fatal: <branch> is already checked out at '<path>'
 ```
 
@@ -351,6 +351,6 @@ This means the branch is already active in another worktree or the base reposito
 
 No output on success. On failure:
 
-```
+```text
 fatal: <path> is not a worktree
 ```

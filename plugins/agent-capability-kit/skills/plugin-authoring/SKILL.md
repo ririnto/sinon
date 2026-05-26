@@ -84,7 +84,7 @@ Use the matching subset when the plugin ships only one component type. Add `agen
 
 Use this as the default `.claude-plugin/plugin.json` starting point:
 
-```
+```jsonc
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
@@ -99,7 +99,7 @@ Use this as the default `.claude-plugin/plugin.json` starting point:
 
 If the plugin ships agents at the plugin root, keep the directory in the plugin tree but leave it out of the manifest:
 
-```
+```jsonc
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
@@ -114,7 +114,7 @@ If the plugin ships agents at the plugin root, keep the directory in the plugin 
 
 Add optional keys only when the plugin needs the corresponding runtime surface. For example:
 
-```
+```jsonc
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "your-plugin-name",
@@ -188,13 +188,13 @@ Never treat `${CLAUDE_PLUGIN_ROOT}` as a writable data directory. Open `referenc
 
 Use this command first when checking a real plugin root:
 
-```
+```sh
 uv run -m json.tool .claude-plugin/plugin.json
 ```
 
 The command above validates JSON syntax offline. For runtime validation with a live Claude Code installation, use:
 
-```
+```sh
 claude --plugin-dir /absolute/path/to/your-plugin
 ```
 

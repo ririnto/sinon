@@ -51,7 +51,7 @@ git status
 
 Example output:
 
-```
+```text
 On branch main
 Your branch is up to date with 'origin/main'.
 
@@ -73,10 +73,10 @@ Untracked files:
 
 | Output section | Meaning | Next action |
 | --- | --- | --- |
-| `On branch <branch>` | Current branch name | Verify this is the intended branch. |
-| `Your branch is up to date with 'origin/<branch>'` | Branch is even with upstream. | Safe to work; no forced merge needed on pull. |
-| `Your branch is ahead of 'origin/<branch>' by N commits` | Unmerged commits exist locally. | Push or understand why they exist. |
-| `Your branch is behind 'origin/<branch>' by N commits` | Upstream has unmerged commits. | Pull to sync before pushing new work. |
+| `On branch {{branch}}` | Current branch name | Verify this is the intended branch. |
+| `Your branch is up to date with 'origin/{{branch}}'` | Branch is even with upstream. | Safe to work; no forced merge needed on pull. |
+| `Your branch is ahead of 'origin/{{branch}}' by N commits` | Unmerged commits exist locally. | Push or understand why they exist. |
+| `Your branch is behind 'origin/{{branch}}' by N commits` | Upstream has unmerged commits. | Pull to sync before pushing new work. |
 | `Changes to be committed:` | Staged changes await commit. | Decide whether to commit or unstage. |
 | `Changes not staged for commit:` | Unstaged changes exist. | Decide whether to stage and commit or stash. |
 | `Untracked files:` | New files not tracked by Git. | Decide whether to commit, ignore, or delete. |
@@ -98,7 +98,7 @@ git diff --staged
 
 Example output:
 
-```
+```text
 diff --git a/src/Main.java b/src/Main.java
 index a1b2c3d..e4f5g6h 100644
 --- a/src/Main.java
@@ -123,7 +123,7 @@ git diff
 
 Example output:
 
-```
+```text
 diff --git a/src/Helper.java b/src/Helper.java
 index x1y2z3a..m1n2o3p 100644
 --- a/src/Helper.java
@@ -160,7 +160,7 @@ git status -s -b
 
 Output:
 
-```
+```markdown
 ## main...origin/main
 M  src/Main.java
 ?? build/
@@ -185,7 +185,7 @@ git stash
 
 Output:
 
-```
+```text
 Saved working directory and index state WIP on main: a1b2c3d Last commit message
 ```
 
@@ -197,7 +197,7 @@ git stash list
 
 Output:
 
-```
+```text
 stash@{0}: WIP on main: a1b2c3d Last commit message
 stash@{1}: WIP on feat-auth: e4f5g6h Add authentication
 ```
@@ -240,7 +240,7 @@ git status --porcelain
 
 Output (untracked files start with `??`):
 
-```
+```markdown
  M src/Main.java
 ?? build/
 ?? .DS_Store
@@ -265,7 +265,7 @@ git add .gitignore
 
 Examples of patterns:
 
-```
+```text
 build/
 *.pyc
 .DS_Store
@@ -330,7 +330,7 @@ git status
 
 Expected:
 
-```
+```text
 On branch main
 Your branch is up to date with 'origin/main'.
 
@@ -480,7 +480,7 @@ git stash list
 
 ### `git status` clean state
 
-```
+```text
 On branch <branch>
 Your branch is up to date with 'origin/<branch>'.
 
@@ -489,7 +489,7 @@ nothing to commit, working tree clean
 
 ### `git status` with changes
 
-```
+```text
 On branch <branch>
 Your branch is <sync-state>.
 
@@ -505,7 +505,7 @@ Untracked files:
 
 ### `git diff --cached` output
 
-```
+```text
 diff --git a/<path> b/<path>
 index <sha1>..<sha2> <mode>
 --- a/<path>
@@ -522,7 +522,7 @@ Same format as `--cached` but shows unstaged (working directory) changes instead
 
 ### `git status -s -b` output
 
-```
+```text
 ## <branch>...<upstream> [<sync>]
 <porcelain-status> <file>
 <porcelain-status> <file>
