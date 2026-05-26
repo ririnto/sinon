@@ -75,9 +75,9 @@ class SilentCatchRule(HarnessCheckRule):
                                 end_line=pos.end.line,
                                 end_column=pos.end.column + 1,
                                 fix=FindingFix(
-                                    description="add exception handling: rethrow or log",
-                                    safety=FixSafety.UNSAFE,
-                                    edits=(),
+                                    "add exception handling: rethrow or log",
+                                    FixSafety.UNSAFE,
+                                    (),
                                 ),
                             )
                         )
@@ -85,9 +85,7 @@ class SilentCatchRule(HarnessCheckRule):
                     if len(body_stmts) == 1:
                         stmt = body_stmts[0]
                         if isinstance(stmt, cst.SimpleStatementLine):
-                            if len(stmt.body) == 1 and isinstance(
-                                stmt.body[0], cst.Pass
-                            ):
+                            if len(stmt.body) == 1 and isinstance(stmt.body[0], cst.Pass):
                                 self.findings.append(
                                     Finding(
                                         severity,
@@ -99,16 +97,13 @@ class SilentCatchRule(HarnessCheckRule):
                                         end_line=pos.end.line,
                                         end_column=pos.end.column + 1,
                                         fix=FindingFix(
-                                            description="replace pass with exception handling",
-                                            safety=FixSafety.UNSAFE,
-                                            edits=(),
+                                            "replace pass with exception handling",
+                                            FixSafety.UNSAFE,
+                                            (),
                                         ),
                                     )
                                 )
                                 continue
-                    body_text = (
-                        handler.body.visit(cst.RemovalSentinel.REMOVE) if False else ""
-                    )
                     body_text = _body_text(handler)
                     param_name = _handler_param_name(handler)
                     has_raise = "raise" in body_text
@@ -128,9 +123,9 @@ class SilentCatchRule(HarnessCheckRule):
                                 end_line=pos.end.line,
                                 end_column=pos.end.column + 1,
                                 fix=FindingFix(
-                                    description="add rethrow, structured logging, or error translation",
-                                    safety=FixSafety.UNSAFE,
-                                    edits=(),
+                                    "add rethrow, structured logging, or error translation",
+                                    FixSafety.UNSAFE,
+                                    (),
                                 ),
                             )
                         )
@@ -146,9 +141,9 @@ class SilentCatchRule(HarnessCheckRule):
                                 end_line=pos.end.line,
                                 end_column=pos.end.column + 1,
                                 fix=FindingFix(
-                                    description="use the exception parameter or rethrow",
-                                    safety=FixSafety.UNSAFE,
-                                    edits=(),
+                                    "use the exception parameter or rethrow",
+                                    FixSafety.UNSAFE,
+                                    (),
                                 ),
                             )
                         )
@@ -169,7 +164,7 @@ class SilentCatchRule(HarnessCheckRule):
                 wrapper.visit(visitor)
                 yield from visitor.findings
 
-        return list(collect_findings())
+        return tuple(collect_findings())
 
     def _resolve_allowed_logging(self, ctx: RuleContext) -> list[str]:
         """Resolve allowed logging call patterns from manifest parameters.
@@ -180,13 +175,15 @@ class SilentCatchRule(HarnessCheckRule):
         section = manifest.get(self.category, {})
         params = section.get("parameters", {})
         tokens = params.get("allowedLoggingCalls")
-        if tokens:
-            return list(tokens)
-        return [
-            r"\blogging\b",
-            r"\blogger\b",
-            r"\blog\b",
-        ]
+        return (
+            list(tokens)
+            if tokens
+            else [
+                r"\blogging\b",
+                r"\blogger\b",
+                r"\blog\b",
+            ]
+        )
 
 
 def _body_text(handler: cst.ExceptHandler) -> str:

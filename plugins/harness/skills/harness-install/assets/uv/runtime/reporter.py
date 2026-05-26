@@ -57,8 +57,7 @@ def format_code_snippet(root: Path, finding: "Finding") -> list[str]:
     start_idx = max(0, line_idx - 1)
     end_idx = min(len(lines), line_idx + 2)
     snippet_lines = lines[start_idx:end_idx]
-    max_line_no = end_idx
-    line_width = len(str(max_line_no))
+    line_width = len(str(end_idx))
     result = []
     for offset, code_line in enumerate(snippet_lines):
         actual_line_no = start_idx + offset + 1
@@ -124,10 +123,7 @@ def format_fix_info(root: Path, finding: "Finding") -> list[str]:
         for line in extract_removed_text(root, first_edit):
             result.append(f"  - {line}")
         result.append("  After:")
-        added_lines = (
-            first_edit.replacement.split("\n") if first_edit.replacement else [""]
-        )
-        for line in added_lines:
+        for line in (first_edit.replacement.split("\n") if first_edit.replacement else [""]):
             result.append(f"  + {line}")
     return result
 
@@ -178,8 +174,7 @@ def render_findings(root: Path, findings: Iterable["Finding"]) -> list[str]:
     import harness_check_rule
 
     fixable_count = sum(
-        1
-        for f in findings_list
+        1 for f in findings_list
         if f.fix is not None and f.fix.safety == harness_check_rule.FixSafety.SAFE
     )
     summary = f"Checked {file_count} file(s). {len(findings_list)} violation(s): {error_count} error, {warn_count} warn, {info_count} info."

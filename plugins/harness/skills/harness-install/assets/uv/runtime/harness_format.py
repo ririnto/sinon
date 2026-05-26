@@ -135,11 +135,7 @@ def line_starts_of(text: str) -> list[int]:
     :param text: File text.
     :returns: Start offsets for every addressable line.
     """
-    starts = [0]
-    for index, character in enumerate(text):
-        if character == "\n":
-            starts.append(index + 1)
-    return starts
+    return [0] + [index + 1 for index, character in enumerate(text) if character == "\n"]
 
 
 def line_length_at(text: str, line_start: int) -> int:
@@ -290,7 +286,7 @@ def apply_edits(by_file: dict[str, list[PreparedEdit]], root: Path) -> list[str]
             if absolute_file.exists()
             else None
         )
-        text = "" if original is None else original
+        text = original or ""
         for edit in sorted_edits:
             text = (
                 f"{text[: edit.start_offset]}"
