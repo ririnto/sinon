@@ -192,11 +192,11 @@ risks: adding the dispatcher early creates a second validation source of truth.
 Use `harness-validate` after implementing an evolution. The expected stack commands are:
 
 ```text
-Gradle harness validation: ./gradlew harnessValidate or gradle harnessValidate
+Gradle harness validation: ./gradlew harnessCheck or gradle harnessCheck
 Gradle final check: ./gradlew check or gradle check
-Maven: mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate
-uv: uv run --script docs/harness/uv/harness_validate.py
-bun: bun --install=fallback run docs/harness/bun/harness-validate.ts
+Maven: mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check
+uv: uv run --script docs/harness/uv/harness_check.py
+bun: bun --install=fallback run docs/harness/bun/harness-check.ts
 ```
 
 ## Synchronization Checklist
@@ -204,7 +204,7 @@ bun: bun --install=fallback run docs/harness/bun/harness-validate.ts
 - If `AGENTS.md` changes, check `CLAUDE.md` symlink or shared-contract behavior.
 - If `docs/harness/manifest.json` changes, update validators and self-checks.
 - If templates move, update README, installer paths, and self-check required directories.
-- If stack commands change, update README, `harness-validate`, installed target `harness-validate`, CI templates, hook generation, and printed installer output.
+- If stack commands change, update README, `harness-validate`, installed target `harness-check`, CI templates, hook generation, and printed installer output.
 - If generated artifact policy changes, update `docs/generated` guidance and template examples.
 - If installer behavior changes, confirm ordinary harness evolution actually needs an installer change rather than a target-owned docs/template edit.
 

@@ -30,7 +30,7 @@ Harness changes MAY be made during development when the current harness no longe
 - Empty required directories MUST be kept in version control with `.gitkeep` until they contain project files.
 - `docs/generated/` MUST contain actual generated repository artifacts when they exist; fake placeholder files MUST NOT be added.
 - Validation SHOULD run through the repository's native build/runtime ecosystem.
-- `docs/harness/git-hooks/pre-commit` MUST follow the stack-specific intermediate gate: Gradle runs `harnessValidate`, and non-Gradle stacks run lightweight harness-rule compliance.
+- `docs/harness/git-hooks/pre-commit` MUST follow the stack-specific intermediate gate: Gradle runs `harnessCheck`, and non-Gradle stacks run lightweight harness-rule compliance.
 - `docs/harness/git-hooks/pre-push` SHOULD run the same final check command used by CI; for Gradle this is `check`.
 - CI SHOULD run the same final check command used by generated pre-push.
 - Active execution plans MUST live under `docs/exec-plans/active/` with filenames of the form `yyyy-MM-dd-<slug>.md`. When all tasks are checked, the file MUST move to `docs/exec-plans/completed/` without renaming. Plans in `docs/exec-plans/completed/` MUST NOT contain any unchecked `- [ ]` task lines.
