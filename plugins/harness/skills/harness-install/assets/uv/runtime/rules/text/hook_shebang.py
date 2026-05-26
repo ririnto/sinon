@@ -8,7 +8,13 @@ import sys
 
 from collections.abc import Iterable
 
-from rules.harness_check_rule import Finding, FindingEdit, FindingFix, FixSafety, HarnessCheckRule
+from rules.harness_check_rule import (
+    Finding,
+    FindingEdit,
+    FindingFix,
+    FixSafety,
+    HarnessCheckRule,
+)
 from core.rule_context import RuleContext, relative
 
 sys.stdout.reconfigure(encoding="utf-8")

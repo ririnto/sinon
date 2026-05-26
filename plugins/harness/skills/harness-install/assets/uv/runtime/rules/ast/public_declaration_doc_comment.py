@@ -24,9 +24,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 sys.stderr.reconfigure(encoding="utf-8")
 
 
-def resolve_visibility_tokens(
-    ctx: RuleContext, category: str
-) -> tuple[str, ...]:
+def resolve_visibility_tokens(ctx: RuleContext, category: str) -> tuple[str, ...]:
     """
     Resolve configured visibility tokens from the flat manifest shape.
 
@@ -65,7 +63,9 @@ def matches_visibility(name: str, tokens: tuple[str, ...]) -> bool:
     return False
 
 
-def is_override_decorator(decorator: cst.Decorator, exempt_decorators: tuple[str, ...]) -> bool:
+def is_override_decorator(
+    decorator: cst.Decorator, exempt_decorators: tuple[str, ...]
+) -> bool:
     """Return whether a decorator matches a configured exemption token."""
     expression = decorator.decorator
     if isinstance(expression, cst.Name):
@@ -79,7 +79,11 @@ def resolve_exempt_decorators(ctx: RuleContext, category: str) -> tuple[str, ...
     """Resolve configured decorator names that exempt declarations from docs."""
     section = ctx.manifest.raw.get(category)
     params = section.get("parameters", {}) if isinstance(section, dict) else {}
-    exempt_decorators = params.get("exemptDecorators", ["override"]) if isinstance(params, dict) else ["override"]
+    exempt_decorators = (
+        params.get("exemptDecorators", ["override"])
+        if isinstance(params, dict)
+        else ["override"]
+    )
     return tuple(item for item in exempt_decorators if isinstance(item, str))
 
 
@@ -117,8 +121,15 @@ class PublicDeclarationDocCommentRule(HarnessCheckRule):
             def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
                 self.depth += 1
                 func_name = node.name.value
-                has_override = any(is_override_decorator(decorator, exempt_decorators) for decorator in node.decorators)
-                if self.depth == 1 and not has_override and matches_visibility(func_name, visibility_tokens):
+                has_override = any(
+                    is_override_decorator(decorator, exempt_decorators)
+                    for decorator in node.decorators
+                )
+                if (
+                    self.depth == 1
+                    and not has_override
+                    and matches_visibility(func_name, visibility_tokens)
+                ):
                     if not isinstance(node.body, cst.IndentedBlock):
                         return True
                     if not node.body.body:
@@ -160,7 +171,9 @@ class PublicDeclarationDocCommentRule(HarnessCheckRule):
             def visit_ClassDef(self, node: cst.ClassDef) -> bool:
                 self.depth += 1
                 class_name = node.name.value
-                if self.depth == 1 and matches_visibility(class_name, visibility_tokens):
+                if self.depth == 1 and matches_visibility(
+                    class_name, visibility_tokens
+                ):
                     if not isinstance(node.body, cst.IndentedBlock):
                         return True
                     if not node.body.body:
@@ -213,6 +226,7 @@ class PublicDeclarationDocCommentRule(HarnessCheckRule):
                 visitor = DocCommentFinder(relative(path, ctx.root))
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return list(collect_findings())
 
 

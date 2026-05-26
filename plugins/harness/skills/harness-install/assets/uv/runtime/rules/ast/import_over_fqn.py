@@ -116,6 +116,7 @@ class ImportOverFqnRule(HarnessCheckRule):
                 visitor = FqnFinder(relative(path, ctx.root))
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return list(collect_findings())
 
 

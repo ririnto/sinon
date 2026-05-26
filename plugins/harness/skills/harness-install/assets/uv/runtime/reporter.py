@@ -90,7 +90,9 @@ def extract_removed_text(root: Path, edit: "FindingEdit") -> list[str]:
     for i in range(start_idx, end_idx + 1):
         line = file_lines[i]
         if i == start_idx and i == end_idx:
-            slice_text = line[min(edit.start_column - 1, len(line)) : min(edit.end_column, len(line))]
+            slice_text = line[
+                min(edit.start_column - 1, len(line)) : min(edit.end_column, len(line))
+            ]
         elif i == start_idx:
             slice_text = line[min(edit.start_column - 1, len(line)) :]
         elif i == end_idx:
@@ -122,7 +124,9 @@ def format_fix_info(root: Path, finding: "Finding") -> list[str]:
         for line in extract_removed_text(root, first_edit):
             result.append(f"  - {line}")
         result.append("  After:")
-        added_lines = first_edit.replacement.split("\n") if first_edit.replacement else [""]
+        added_lines = (
+            first_edit.replacement.split("\n") if first_edit.replacement else [""]
+        )
         for line in added_lines:
             result.append(f"  + {line}")
     return result
@@ -172,8 +176,11 @@ def render_findings(root: Path, findings: Iterable["Finding"]) -> list[str]:
     warn_count = sum(1 for f in findings_list if f.severity == "WARN")
     info_count = sum(1 for f in findings_list if f.severity == "INFO")
     import harness_check_rule
+
     fixable_count = sum(
-        1 for f in findings_list if f.fix is not None and f.fix.safety == harness_check_rule.FixSafety.SAFE
+        1
+        for f in findings_list
+        if f.fix is not None and f.fix.safety == harness_check_rule.FixSafety.SAFE
     )
     summary = f"Checked {file_count} file(s). {len(findings_list)} violation(s): {error_count} error, {warn_count} warn, {info_count} info."
     if fixable_count > 0:

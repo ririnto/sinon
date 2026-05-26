@@ -106,13 +106,14 @@ class SilentCatchRule(HarnessCheckRule):
                                     )
                                 )
                                 continue
-                    body_text = handler.body.visit(cst.RemovalSentinel.REMOVE) if False else ""
+                    body_text = (
+                        handler.body.visit(cst.RemovalSentinel.REMOVE) if False else ""
+                    )
                     body_text = _body_text(handler)
                     param_name = _handler_param_name(handler)
                     has_raise = "raise" in body_text
                     has_logging = any(
-                        re.search(pattern, body_text)
-                        for pattern in allowed_logging
+                        re.search(pattern, body_text) for pattern in allowed_logging
                     )
                     uses_param = param_name is not None and param_name in body_text
                     if not has_raise and not has_logging:
@@ -167,6 +168,7 @@ class SilentCatchRule(HarnessCheckRule):
                 visitor = SilentCatchFinder(relative(path, ctx.root))
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return list(collect_findings())
 
     def _resolve_allowed_logging(self, ctx: RuleContext) -> list[str]:

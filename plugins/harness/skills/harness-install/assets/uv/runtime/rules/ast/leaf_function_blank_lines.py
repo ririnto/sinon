@@ -111,6 +111,7 @@ class LeafFunctionBlankLinesRule(HarnessCheckRule):
                 visitor = BlankLineFinder(relative(path, ctx.root))
                 wrapper.visit(visitor)
                 yield from visitor.findings
+
         return list(collect_findings())
 
     def max_consecutive_blank_lines(self, ctx: RuleContext) -> int:
