@@ -58,12 +58,8 @@ export function createRuleContext(
     }
 
     function read(path: string): string {
-        const target = allowedRootContractTarget(path);
-        const filePath = target ?? pathOf(path);
-        if (!existsSync(filePath)) {
-            return "";
-        }
-        return readFileSync(filePath, "utf8");
+        const filePath = allowedRootContractTarget(path) ?? pathOf(path);
+        return existsSync(filePath) ? readFileSync(filePath, "utf8") : "";
     }
 
     function firstLine(path: string): string {
@@ -224,58 +220,29 @@ export function createRuleContext(
 
         const filesAfterInclude =
             includePaths.length > 0
-                ? (() => {
-                      const included = new Set<string>();
-                      for (const file of Array.from(collected).sort()) {
-                          for (const pattern of includePaths) {
-                              for (const match of new Bun.Glob(pattern).scanSync(".")) {
-                                  if (file === match) {
-                                      included.add(file);
-                                      break;
-                                  }
-                              }
-                              if (included.has(file)) {
-                                  break;
-                              }
-                              for (const match of new Bun.Glob(`${pattern}/**/*`).scanSync(".")) {
-                                  if (file === match) {
-                                      included.add(file);
-                                      break;
-                                  }
-                              }
-                          }
-                      }
-                      return Array.from(included).sort();
-                  })()
+                ? Array.from(collected)
+                      .sort()
+                      .filter((file) =>
+                          includePaths.some((pattern) =>
+                              [
+                                  ...new Bun.Glob(pattern).scanSync("."),
+                                  ...new Bun.Glob(`${pattern}/**/*`).scanSync("."),
+                              ].includes(file),
+                          ),
+                      )
                 : Array.from(collected).sort();
 
-        const filesAfterExclude =
-            excludePaths.length > 0
-                ? (() => {
-                      const excluded = new Set<string>();
-                      for (const file of filesAfterInclude) {
-                          const shouldSkip = excludePaths.some((pattern) => {
-                              for (const match of new Bun.Glob(pattern).scanSync(".")) {
-                                  if (file === match) {
-                                      return true;
-                                  }
-                              }
-                              for (const match of new Bun.Glob(`${pattern}/**/*`).scanSync(".")) {
-                                  if (file === match) {
-                                      return true;
-                                  }
-                              }
-                              return false;
-                          });
-                          if (!shouldSkip) {
-                              excluded.add(file);
-                          }
-                      }
-                      return Array.from(excluded).sort();
-                  })()
-                : filesAfterInclude;
-
-        return filesAfterExclude;
+        return excludePaths.length > 0
+            ? filesAfterInclude.filter(
+                  (file) =>
+                      !excludePaths.some((pattern) =>
+                          [
+                              ...new Bun.Glob(pattern).scanSync("."),
+                              ...new Bun.Glob(`${pattern}/**/*`).scanSync("."),
+                          ].includes(file),
+                      ),
+              )
+            : filesAfterInclude;
     }
 
     function walkDirectory(path: string): readonly [readonly string[], readonly Finding[]] {
@@ -323,7 +290,7 @@ export function createRuleContext(
     }
 
     function collectFilesUnder(path: string): readonly [readonly string[], readonly Finding[]] {
-        const earlyFindings = [
+        const earlyFindings: readonly Finding[] = [
             ...(!isWithinRoot(path)
                 ? [
                       {
@@ -343,10 +310,7 @@ export function createRuleContext(
                   ]
                 : []),
         ];
-        if (0 < earlyFindings.length) {
-            return [[], earlyFindings];
-        }
-        return isFile(path) ? [[path], []] : walkDirectory(path);
+        return earlyFindings.length > 0 ? [[], earlyFindings] : isFile(path) ? [[path], []] : walkDirectory(path);
     }
 
     return {

@@ -29,15 +29,15 @@ export const mutableCollectionRule: HarnessCheckRule = {
             }
             const sourceFile: SourceFile = createSourceFile(file, text, SyntaxKind.LatestVersion, true);
             const parameters = ctx.readJsonObject(ctx.categoryObject("mutableCollection").parameters);
-            const forbiddenConstructors = configured(ctx, parameters.forbiddenConstructors, [
-                "Array",
-                "Map",
-                "Set",
-                "WeakMap",
-                "WeakSet",
-            ]);
-            const accumulationMethods = configured(ctx, parameters.accumulationMethods, ["push", "add", "set"]);
-            const allowedOneShotPatterns = configured(ctx, parameters.allowedOneShotPatterns, []);
+            const forbiddenConstructors =
+                ctx.readStringArray(parameters.forbiddenConstructors).length > 0
+                    ? ctx.readStringArray(parameters.forbiddenConstructors)
+                    : ["Array", "Map", "Set", "WeakMap", "WeakSet"];
+            const accumulationMethods =
+                ctx.readStringArray(parameters.accumulationMethods).length > 0
+                    ? ctx.readStringArray(parameters.accumulationMethods)
+                    : ["push", "add", "set"];
+            const allowedOneShotPatterns = ctx.readStringArray(parameters.allowedOneShotPatterns);
             const visit = (node: Node): readonly Finding[] => [
                 ...findingForNode(
                     ctx,
@@ -54,11 +54,6 @@ export const mutableCollectionRule: HarnessCheckRule = {
         });
     },
 };
-
-function configured(ctx: RuleContext, value: unknown, defaults: readonly string[]): readonly string[] {
-    const configuredValues = ctx.readStringArray(value);
-    return configuredValues.length > 0 ? configuredValues : defaults;
-}
 
 function findingForNode(
     ctx: RuleContext,

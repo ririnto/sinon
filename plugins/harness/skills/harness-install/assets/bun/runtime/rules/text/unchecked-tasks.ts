@@ -38,8 +38,8 @@ export const uncheckedTasksRule: HarnessCheckRule = {
         if (!directory || !ctx.isDirectory(directory) || !patternStr) {
             return [];
         }
-        const pattern: RegExp = compilePortableRegex(patternStr);
         const [files, warnings] = ctx.walkDirectory(directory);
+        const pattern = compilePortableRegex(patternStr);
         return warnings.concat(
             files
                 .filter((file) => file.endsWith(".md"))

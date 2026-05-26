@@ -24,7 +24,7 @@ import { directoryPresenceRule } from "./rules/fs/directory-presence";
 import { emptyDirectoryPlaceholdersRule } from "./rules/fs/empty-directory-placeholders";
 import { filePresenceRule } from "./rules/fs/file-presence";
 import { symlinkSafetyRule } from "./rules/fs/symlink-safety";
-import type { Finding, HarnessCheckRule } from "./rules/harness-check-rule";
+import type { HarnessCheckRule } from "./rules/harness-check-rule";
 import { agentFrontmatterRule } from "./rules/text/agent-frontmatter";
 import { ciHookCommandParityRule } from "./rules/text/ci-hook-command-parity";
 import { docContentRule } from "./rules/text/doc-content";
@@ -89,14 +89,13 @@ function createHarnessChecks(): Record<string, HarnessCheckRule> {
 export const HARNESS_CHECKS: readonly HarnessCheckRule[] = Object.values(createHarnessChecks());
 
 function main(): void {
-    const rawManifest: unknown = JSON.parse(readFileSync(join(root, MANIFEST_PATH), "utf8"));
-    const context = createRuleContext(root, rawManifest);
+    const context = createRuleContext(root, JSON.parse(readFileSync(join(root, MANIFEST_PATH), "utf8")));
     const manifest = context.manifest.raw;
     if (manifest === null || Object.keys(manifest).length === 0) {
         throw new Error(`manifest is empty or malformed: ${MANIFEST_PATH}`);
     }
-    const knownCategories = new Set<string>(HARNESS_CHECKS.map((c) => c.category));
-    const knownKeys = new Set<string>([
+    const knownCategories = new Set(HARNESS_CHECKS.map((c) => c.category));
+    const knownKeys = new Set([
         "name",
         "description",
         "$schema",
@@ -105,24 +104,25 @@ function main(): void {
         "harnessEvolution",
         "teamPatterns",
     ]);
-    const unknownKeyFindings: readonly Finding[] = Object.keys(manifest)
-        .filter((key) => !knownCategories.has(key) && !knownKeys.has(key))
-        .map((key) => ({
-            severity: "WARN" as const,
-            category: "manifestSchema",
-            message: `unknown manifest key: ${key}`,
-        }));
-    const ruleFindings: readonly Finding[] = Array.from(
-        new Map(
-            HARNESS_CHECKS.filter((rule) => rule.applies(context))
-                .flatMap((rule) => rule.validate(context))
-                .map((finding) => [
-                    `${finding.severity}|${finding.category}|${finding.message}|${finding.file ?? ""}|${finding.startLine ?? ""}|${finding.startColumn ?? ""}`,
-                    finding,
-                ]),
-        ).values(),
-    );
-    const findings: readonly Finding[] = unknownKeyFindings.concat(ruleFindings);
+    const findings = [
+        ...Object.keys(manifest)
+            .filter((key) => !knownCategories.has(key) && !knownKeys.has(key))
+            .map((key) => ({
+                severity: "WARN" as const,
+                category: "manifestSchema",
+                message: `unknown manifest key: ${key}`,
+            })),
+        ...Array.from(
+            new Map(
+                HARNESS_CHECKS.filter((rule) => rule.applies(context))
+                    .flatMap((rule) => rule.validate(context))
+                    .map((finding) => [
+                        `${finding.severity}|${finding.category}|${finding.message}|${finding.file ?? ""}|${finding.startLine ?? ""}|${finding.startColumn ?? ""}`,
+                        finding,
+                    ]),
+            ).values(),
+        ),
+    ];
     renderFindings(root, findings).forEach((line) => {
         logger.log(line);
     });

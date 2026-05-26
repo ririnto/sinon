@@ -21,16 +21,16 @@ export const directoryPresenceRule: HarnessCheckRule = {
     },
 
     validate(ctx: RuleContext): readonly Finding[] {
-        const parameters = ctx.readJsonObject(ctx.readJsonObject(ctx.manifest.raw.directoryPresence).parameters);
-        const paths = ctx.readStringArray(parameters.paths);
+        const paths = ctx.readStringArray(
+            ctx.readJsonObject(ctx.readJsonObject(ctx.manifest.raw.directoryPresence).parameters).paths,
+        );
         const severity = ctx.severityOf("directoryPresence");
-        const category = "directoryPresence";
         return paths.flatMap((path) => {
             if (ctx.isSymlink(path)) {
                 return [
                     {
                         severity,
-                        category,
+                        category: "directoryPresence",
                         message: `symlink directory is not allowed: ${path}`,
                         file: path,
                         startLine: 1,
@@ -46,7 +46,7 @@ export const directoryPresenceRule: HarnessCheckRule = {
             return [
                 {
                     severity,
-                    category,
+                    category: "directoryPresence",
                     message: `missing directory: ${path}`,
                     file: path,
                     startLine: 1,

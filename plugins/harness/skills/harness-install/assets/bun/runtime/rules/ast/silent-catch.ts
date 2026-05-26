@@ -34,21 +34,22 @@ export const silentCatchRule: HarnessCheckRule = {
                 if (block.statements.length === 0) {
                     return false;
                 }
-                const state = { found: false };
-                const visit = (node: Node): void => {
-                    if (state.found) {
-                        return;
-                    }
+                const visit = (node: Node): boolean => {
                     if (isThrowStatement(node)) {
-                        state.found = true;
+                        return true;
                     }
                     if (isIdentifier(node) && node.text && /^(console|logger|log)/.test(node.text)) {
-                        state.found = true;
+                        return true;
                     }
-                    forEachChild(node, visit);
+                    let found = false;
+                    forEachChild(node, (child) => {
+                        if (!found && visit(child)) {
+                            found = true;
+                        }
+                    });
+                    return found;
                 };
-                visit(block);
-                return state.found;
+                return visit(block);
             };
 
             const visitNode = (node: Node): readonly Finding[] => {
