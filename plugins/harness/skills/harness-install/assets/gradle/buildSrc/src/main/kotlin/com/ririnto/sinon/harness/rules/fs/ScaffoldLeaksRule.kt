@@ -31,44 +31,59 @@ object ScaffoldLeaksRule : HarnessCheckRule() {
     override val category: String = "scaffoldLeaks"
 
     override fun validate(ctx: RuleContext): Collection<Finding> {
-        val catObj = ctx.manifest.categoryObject(category) ?: return emptyList()
-        val parametersObj = catObj.get("parameters")?.jsonObject ?: return emptyList()
+        val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList()).get("parameters")?.jsonObject ?: return emptyList()
         val scopeObj = parametersObj.get("scope")?.jsonObject ?: return emptyList()
-        val patterns = parametersObj["patterns"]?.jsonArray?.filter { patternElem ->
-            val obj = patternElem.jsonObject
-            JsonAccess.stringFromObject(obj, "pattern").let { pattern ->
-                pattern.isNotEmpty() && JsonAccess.stringFromObject(obj, "label").isNotEmpty()
+        val patterns =
+            parametersObj["patterns"]
+                ?.jsonArray
+                ?.filter { patternElem ->
+                    val obj = patternElem.jsonObject
+                    JsonAccess.stringFromObject(obj, "pattern").let { pattern ->
+                        pattern.isNotEmpty() && JsonAccess.stringFromObject(obj, "label").isNotEmpty()
+                    }
+                }?.map { patternElem ->
+                    val obj = patternElem.jsonObject
+                    JsonAccess.stringFromObject(obj, "pattern") to JsonAccess.stringFromObject(obj, "label")
+                } ?: emptyList()
+        val excludedPaths =
+            JsonAccess.stringArrayFromObject(scopeObj, "excludedSubtrees").map { excludedPath ->
+                ctx.root /
+                    excludedPath
             }
-        }?.map { patternElem ->
-            val obj = patternElem.jsonObject
-            JsonAccess.stringFromObject(obj, "pattern") to JsonAccess.stringFromObject(obj, "label")
-        } ?: emptyList()
-        val regexes: List<ScaffoldPattern> = patterns.mapNotNull { (pattern, label) ->
-            runCatching { ScaffoldPattern(pattern.toRegex(), label) }.getOrNull()
-        }
-        val excludedPaths = JsonAccess.stringArrayFromObject(scopeObj, "excludedSubtrees").map { ctx.root / it }
         val extensions = JsonAccess.stringArrayFromObject(scopeObj, "extensions")
         return buildList {
-            JsonAccess.stringArrayFromObject(scopeObj, "bases")
+            JsonAccess
+                .stringArrayFromObject(scopeObj, "bases")
                 .filter(::isSafeRelativeRoot)
                 .forEach { basePath ->
                     val walkResult = ctx.walkSafe((ctx.root / basePath).normalize())
                     walkResult.paths
                         .filter { file -> file.extension in extensions }
-                        .filter { file -> excludedPaths.none { excludedPath -> file.pathString.startsWith(excludedPath.pathString) } }
-                        .forEach { file ->
-                            regexes
-                                .filter { patternEntry -> patternEntry.regex.containsMatchIn(stripMarkdownCode(file.readText())) }
-                                .forEach { patternEntry ->
+                        .filter { file ->
+                            excludedPaths.none { excludedPath ->
+                                file.pathString.startsWith(excludedPath.pathString)
+                            }
+                        }.forEach { file ->
+                            patterns.mapNotNull { (pattern, label) ->
+                                runCatching { ScaffoldPattern(pattern.toRegex(), label) }.getOrNull()
+                            }
+                                .filter { patternEntry ->
+                                    patternEntry.regex.containsMatchIn(stripMarkdownCode(file.readText()))
+                                }.forEach { patternEntry ->
                                     add(
                                         Finding(
                                             ctx.manifest.severityOf(category),
                                             category,
-                                            ctx.manifest.stringValue(category, "default")
+                                            ctx.manifest
+                                                .stringValue(category, "default")
                                                 .replace("{label}", patternEntry.label)
-                                                .replace("{file}", file.relativeTo(ctx.root).invariantSeparatorsPathString)
-                                                .takeIf { message -> message.isNotEmpty() }
-                                                ?: "${patternEntry.label} in active asset: ${file.relativeTo(ctx.root).invariantSeparatorsPathString}",
+                                                .replace(
+                                                    "{file}",
+                                                    file.relativeTo(ctx.root).invariantSeparatorsPathString,
+                                                ).takeIf { message -> message.isNotEmpty() }
+                                                ?: "${patternEntry.label} in active asset: ${file.relativeTo(
+                                                    ctx.root,
+                                                ).invariantSeparatorsPathString}",
                                         ),
                                     )
                                 }
@@ -88,12 +103,10 @@ object ScaffoldLeaksRule : HarnessCheckRule() {
             val inFence: Boolean,
             val marker: String,
         )
-        val fenceRegex = "^ {0,3}(`{3,}|~{3,})".toRegex()
-        val inlineCodeRegex = "`+[^`\\n]*`+".toRegex()
         return text
             .lines()
             .fold(FenceState(false, "") to emptyList<String>()) { (state, lines), line ->
-                val fenceMatch = fenceRegex.find(line)
+                val fenceMatch = "^ {0,3}(`{3,}|~{3,})".toRegex().find(line)
                 when {
                     fenceMatch != null -> {
                         val marker = fenceMatch.groupValues[1].take(1)
@@ -109,7 +122,7 @@ object ScaffoldLeaksRule : HarnessCheckRule() {
                     }
 
                     else -> {
-                        state to (lines + line.replace(inlineCodeRegex, ""))
+                        state to (lines + line.replace("`+[^`\\n]*`+".toRegex(), ""))
                     }
                 }
             }.second

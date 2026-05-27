@@ -19,11 +19,12 @@ import java.util.stream.Stream;
 public enum SkillFrontmatterRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "skillFrontmatter";
+
     @Override
     public String category() {
         return "skillFrontmatter";
     }
-    private static final String CATEGORY = "skillFrontmatter";
 
     @Override
     public boolean applies(RuleContext ctx) {

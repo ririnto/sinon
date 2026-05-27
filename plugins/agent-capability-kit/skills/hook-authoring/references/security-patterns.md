@@ -285,7 +285,6 @@ fi
 ```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
-# shellcheck disable=SC2034
 set -e
 
 # Comprehensive file write validation hook.

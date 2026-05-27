@@ -64,12 +64,11 @@ class WildcardImportRule(HarnessCheckRule):
                         module_parts = list(reversed(parts))
                     elif isinstance(node.module, cst.Name):
                         module_parts = [node.module.value]
-                    module_str = ".".join(module_parts) if module_parts else "?"
                     self.findings.append(
                         Finding(
                             severity,
                             category,
-                            f"{self.rel_path}:{pos.start.line}: wildcard import `from {module_str} import *` forbidden; import explicit symbols",
+                            f"{self.rel_path}:{pos.start.line}: wildcard import `from {'.'.join(module_parts) if module_parts else '?'} import *` forbidden; import explicit symbols",
                             file=self.rel_path,
                             start_line=pos.start.line,
                             start_column=pos.start.column + 1,

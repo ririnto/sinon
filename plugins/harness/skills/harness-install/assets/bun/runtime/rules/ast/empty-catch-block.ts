@@ -20,9 +20,7 @@ export const emptyCatchBlockRule: HarnessCheckRule = {
             if (!text) {
                 return [];
             }
-
             const sourceFile: SourceFile = createSourceFile(file, text, SyntaxKind.LatestVersion, true);
-
             const visitNode = (node: Node): readonly Finding[] => {
                 if (!isCatchClause(node) || node.block.statements.length !== 0) {
                     return astChildrenOf(node).flatMap(visitNode);
@@ -47,7 +45,6 @@ export const emptyCatchBlockRule: HarnessCheckRule = {
                     },
                 ].concat(astChildrenOf(node).flatMap(visitNode));
             };
-
             return visitNode(sourceFile);
         });
     },

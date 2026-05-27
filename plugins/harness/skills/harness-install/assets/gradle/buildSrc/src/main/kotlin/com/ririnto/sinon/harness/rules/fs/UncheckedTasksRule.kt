@@ -24,15 +24,17 @@ object UncheckedTasksRule : HarnessCheckRule() {
     override val category: String = "uncheckedTasks"
 
     override fun validate(ctx: RuleContext): Collection<Finding> {
-        val catObj = ctx.manifest.categoryObject(category) ?: return emptyList()
-        val parametersObj = catObj.get("parameters")?.jsonObject ?: return emptyList()
+        val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList()).get("parameters")?.jsonObject ?: return emptyList()
         val directory = ctx.root / JsonAccess.stringFromObject(parametersObj, "directory")
-        if (!directory.isDirectory()) return emptyList()
-        val uncheckedPattern = JsonAccess.stringFromObject(parametersObj, "uncheckedTaskPattern").toRegex()
+        if (!directory.isDirectory()) {
+            return emptyList()
+        }
         return buildList {
-            ctx.walkSafe(directory).paths
+            ctx
+                .walkSafe(directory)
+                .paths
                 .filter { file -> file.name.endsWith(".md") }
-                .filter { file -> uncheckedPattern.containsMatchIn(file.readText()) }
+                .filter { file -> JsonAccess.stringFromObject(parametersObj, "uncheckedTaskPattern").toRegex().containsMatchIn(file.readText()) }
                 .forEach { file ->
                     add(
                         Finding(

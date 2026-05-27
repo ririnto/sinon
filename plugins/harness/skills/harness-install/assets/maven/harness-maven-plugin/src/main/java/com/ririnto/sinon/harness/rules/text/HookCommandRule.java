@@ -20,11 +20,12 @@ import java.util.stream.Stream;
 public enum HookCommandRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "hookCommand";
+
     @Override
     public String category() {
         return "hookCommand";
     }
-    private static final String CATEGORY = "hookCommand";
 
     @Override
     public boolean applies(RuleContext ctx) {
@@ -36,7 +37,7 @@ public enum HookCommandRule implements HarnessCheckRule {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
-        final JsonNode allowedCmds = catNode.get("parameters").get("allowedCommands").get("maven");
+        final JsonNode allowedCmds = catNode.get("parameters").get("allowedCommands");
         final String expectedCmd = allowedCmds == null || allowedCmds.size() == 0 ? "" : allowedCmds.get(0).asText();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         final String prePushPath = catNode.get("parameters").get("prePushHook").asText();

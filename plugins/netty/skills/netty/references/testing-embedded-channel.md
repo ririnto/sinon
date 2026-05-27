@@ -96,7 +96,6 @@ void propagatesExceptionOnShortFrame() {
     );
     ByteBuf shortInput = Unpooled.buffer(2);
     shortInput.writeShort(42);
-
     assertFalse(channel.writeInbound(shortInput));
     assertTrue(channel.finish());
 }

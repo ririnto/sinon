@@ -21,6 +21,9 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -99,16 +102,14 @@ public enum ClassMemberOrderingRule implements AstRule {
         final List<String> overrideOrder = parameters != null && parameters.get("overrideOrder") != null
                 ? HarnessCheckHelper.extractPaths(parameters.get("overrideOrder"))
                 : DEFAULT_OVERRIDE_ORDER;
-        final Map<String, Integer> rankMap = new LinkedHashMap<>();
-        int idx = 0;
-        for (String kind : kindOrder) {
-            for (String visibility : visibilityOrder) {
-                for (String overrideState : overrideOrder) {
-                    rankMap.put(overrideState + ":" + visibility + ":" + kind, idx++);
-                }
-            }
-        }
-        return rankMap;
+        return IntStream.range(0, kindOrder.size() * visibilityOrder.size() * overrideOrder.size())
+                .boxed()
+                .collect(Collectors.toMap(
+                        i -> overrideOrder.get(i % overrideOrder.size()) + ":" + visibilityOrder.get((i / overrideOrder.size()) % visibilityOrder.size()) + ":" + kindOrder.get(i / (overrideOrder.size() * visibilityOrder.size())),
+                        Function.identity(),
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
     }
 
     private static String memberVisibility(BodyDeclaration<?> member) {
@@ -195,10 +196,9 @@ public enum ClassMemberOrderingRule implements AstRule {
     }
 
     private static String message(Path root, Path file, JsonNode messages, String className, String memberName, String memberOverrideState, String memberVisibility, String memberKind, int line) {
-        final String template = messages != null && messages.get("default") != null
+        return (messages != null && messages.get("default") != null
                 ? messages.get("default").asText()
-                : "{file}:{line}: class `{className}` member `{memberName}` ({memberKind}) is out of order";
-        return template
+                : "{file}:{line}: class `{className}` member `{memberName}` ({memberKind}) is out of order")
                 .replace("{file}", root.relativize(file).toString())
                 .replace("{line}", Integer.toString(line))
                 .replace("{className}", className)

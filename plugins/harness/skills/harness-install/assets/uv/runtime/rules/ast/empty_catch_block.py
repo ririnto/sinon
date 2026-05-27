@@ -53,8 +53,7 @@ class EmptyCatchBlockRule(HarnessCheckRule):
                 for handler in node.handlers:
                     if not isinstance(handler.body, cst.IndentedBlock):
                         continue
-                    body_stmts = handler.body.body
-                    if not body_stmts:
+                    if not handler.body.body:
                         pos = self.get_metadata(cst.metadata.PositionProvider, handler)
                         self.findings.append(
                             Finding(

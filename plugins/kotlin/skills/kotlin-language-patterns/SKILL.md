@@ -43,7 +43,7 @@ Model absence directly and keep the flow readable.
 
 ```kotlin
 fun primaryEmail(user: User?): String? =
-    user?.emails?.firstOrNull { it.isPrimary }?.value
+    user?.emails?.firstOrNull { email -> email.isPrimary }?.value
 ```
 
 Use early returns, `?.`, `?:`, and `as?` before reaching for `!!`. When calling into Java code that returns a platform type (`T!`), pin nullability immediately at the interop edge:
@@ -158,7 +158,7 @@ Prefer ordinary collections for finite in-memory work. Move to `Sequence` only w
 
 ```kotlin
 fun activeIds(customers: List<Customer>): List<CustomerId> =
-    customers.filter { it.active }.map { it.id }
+    customers.filter { customer -> customer.active }.map { customer -> customer.id }
 ```
 
 Expose read-only collection interfaces from public APIs so callers cannot mutate internal state:
@@ -184,7 +184,7 @@ Use scope functions only when they make ownership or transformation clearer. Sto
 | `also` | `it` | Receiver itself | Side-effects, logging, validation |
 
 ```kotlin
-val email: String? = user?.let { it.emails.firstOrNull()?.value }
+val email: String? = user?.let { account -> account.emails.firstOrNull()?.value }
 
 val request = HttpRequestBuilder().apply {
     method = HttpMethod.Get
@@ -192,7 +192,7 @@ val request = HttpRequestBuilder().apply {
     header("Accept", "application/json")
 }
 
-val config = loadConfig().also { log.debug("Loaded config: $it") }
+val config = loadConfig().also { cfg -> log.debug("Loaded config: $cfg") }
 
 val result: Int = run {
     val a = computeA()
@@ -246,7 +246,7 @@ fun <T> serialize(value: T): String where T : Comparable<T>, T : Serializable {
 Star projections (`<*>`) let you accept a generic type without knowing its variance direction when you only read from it (equivalent to `out Any?`) or only write to it (equivalent to `in Nothing`):
 
 ```kotlin
-fun printAll(items: List<*>) { items.forEach { println(it) } }
+fun printAll(items: List<*>) { items.forEach { item -> println(item) } }
 ```
 
 ### Property delegation
@@ -477,7 +477,7 @@ value class UserId(val value: Long)
 data class User(val id: UserId, val active: Boolean)
 
 fun activeUserIds(users: List<User>): List<UserId> =
-    users.filter { it.active }.map { it.id }
+    users.filter { user -> user.active }.map { user -> user.id }
 ```
 
 ## Validate the Result

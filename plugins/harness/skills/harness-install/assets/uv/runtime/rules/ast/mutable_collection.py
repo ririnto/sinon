@@ -139,7 +139,9 @@ class MutableCollectionFinder(cst.CSTVisitor):
             self.record(node, call_name)
         elif attr_name in self.config.accumulation_methods:
             receiver = (
-                dotted_name(node.func.value) if isinstance(node.func, cst.Attribute) else ""
+                dotted_name(node.func.value)
+                if isinstance(node.func, cst.Attribute)
+                else ""
             )
             if receiver not in self.config.allowed_builders:
                 self.record(node, attr_name)

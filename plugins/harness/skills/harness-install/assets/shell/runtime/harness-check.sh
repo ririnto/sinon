@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 set -e
 
-# shellcheck disable=SC2034
-STACK=shell
 MANIFEST=docs/harness/manifest.json
 findings_file=$(mktemp)
 trap 'rm -f "$findings_file"' EXIT
@@ -285,12 +283,20 @@ check_shellcheck() {
         return 0
     fi
     sev=$(severity_of "$category")
-    find . -type f -name '*.sh' -not -path './.git/*' | while IFS= read -r file; do
-        output=$(shellcheck "$file" 2>&1)
-        if [ -n "$output" ]; then
+    sh_body=$(cat <<'BODY'
+output=$(shellcheck "$1" 2>&1)
+if [ -n "$output" ]; then
+    printf "%s\n" "$1"
+fi
+BODY
+)
+    violators=$(find . -type f -name '*.sh' -not -path './.git/*' -print0 |
+        xargs -0 -n 1 -P 4 sh -c "$sh_body" sh)
+    if [ -n "$violators" ]; then
+        printf '%s\n' "$violators" | while IFS= read -r file; do
             emit "$sev" "$category" "$file: shellcheck violations found"
-        fi
-    done
+        done
+    fi
 }
 
 if [ ! -f "$MANIFEST" ]; then

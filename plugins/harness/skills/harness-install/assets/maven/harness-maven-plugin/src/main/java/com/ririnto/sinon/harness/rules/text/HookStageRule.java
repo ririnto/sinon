@@ -18,11 +18,12 @@ import java.util.stream.Stream;
 public enum HookStageRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "hookStage";
+
     @Override
     public String category() {
         return "hookStage";
     }
-    private static final String CATEGORY = "hookStage";
 
     @Override
     public boolean applies(RuleContext ctx) {
@@ -34,13 +35,11 @@ public enum HookStageRule implements HarnessCheckRule {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
-        final JsonNode stages = catNode.get("parameters").get("stages");
-        final JsonNode stackStages = stages.get("maven");
         final String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        return Stream.ofNullable(stackStages)
-                .flatMap(ss -> ss.propertyNames().stream()
-                        .flatMap(hookName -> validateStage(root, hookName, ss.get(hookName).asText(), markerTemplate, severity).stream()))
+        return Stream.ofNullable(catNode.get("parameters").get("stages"))
+                .flatMap(s -> s.propertyNames().stream()
+                        .flatMap(hookName -> validateStage(root, hookName, s.get(hookName).asText(), markerTemplate, severity).stream()))
                 .toList();
     }
 

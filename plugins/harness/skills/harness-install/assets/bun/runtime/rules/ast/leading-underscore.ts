@@ -39,9 +39,9 @@ export const leadingUnderscoreRule: HarnessCheckRule = {
             if (!text) {
                 return [];
             }
-            const sourceFile = createSourceFile(file, text, SyntaxKind.LatestVersion, true);
-            const basenameFinding = validateBasename(ctx, file, ruleConfig);
-            return basenameFinding.concat(visitDeclarations(ctx, sourceFile, ruleConfig));
+            return validateBasename(ctx, file, ruleConfig).concat(
+                visitDeclarations(ctx, createSourceFile(file, text, SyntaxKind.LatestVersion, true), ruleConfig),
+            );
         });
     },
 };

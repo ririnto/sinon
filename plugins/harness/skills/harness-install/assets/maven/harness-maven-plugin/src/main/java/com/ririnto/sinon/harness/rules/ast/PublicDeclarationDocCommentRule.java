@@ -175,6 +175,7 @@ public enum PublicDeclarationDocCommentRule implements AstRule {
                         }
                         cls.getMethods().stream()
                                 .filter(m -> matchesVisibility(m, visibilityTokens))
+                                .filter(m -> !m.isAnnotationPresent("Override"))
                                 .filter(m -> !m.getJavadoc().isPresent())
                                 .forEach(m -> builder.add(Finding.of(severity, CATEGORY, root.relativize(file) + ":" + m.getBegin().map(p -> p.line).orElse(-1) + ": public method missing Javadoc")));
                         cls.getFields().stream()

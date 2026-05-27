@@ -86,11 +86,9 @@ class RetryClockTest {
             delay(1_000)
             "done"
         }
-
         advanceTimeBy(999)
         runCurrent()
         assertEquals(false, deferred.isCompleted)
-
         advanceTimeBy(1)
         runCurrent()
         assertEquals("done", deferred.await())

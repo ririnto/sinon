@@ -75,7 +75,6 @@ class DataRepositoryTest {
     @Test
     fun propagatesNetworkError() = runTest {
         val failingFlow: Flow<Data> = flow { throw IOException("connection refused") }
-
         failingFlow.test {
             awaitError()
         }
@@ -98,9 +97,7 @@ class DashboardRepositoryTest {
         turbineScope {
             val states = repository.observeState().testIn(backgroundScope)
             val events = repository.observeEvents().testIn(backgroundScope)
-
             repository.refresh()
-
             assertEquals(UiState.Loading, states.awaitItem())
             assertEquals(UiEvent.RefreshStarted, events.awaitItem())
             states.cancelAndIgnoreRemainingEvents()

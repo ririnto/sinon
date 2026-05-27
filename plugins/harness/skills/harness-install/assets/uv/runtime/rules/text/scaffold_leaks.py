@@ -124,9 +124,9 @@ class ScaffoldLeaksRule(HarnessCheckRule):
                 ctx.severity_of(self.category),
                 self.category,
                 messages.get("default", "{label} in active asset: {file}").format(
-                    label=label, file=relative(path, ctx.root)
+                    label=label, file=relative(sub_path, ctx.root)
                 ),
-                file=relative(path, ctx.root),
+                file=relative(sub_path, ctx.root),
                 start_line=1,
                 start_column=1,
                 end_line=1,
@@ -137,10 +137,10 @@ class ScaffoldLeaksRule(HarnessCheckRule):
                 ),
             )
             for base in active_roots
-            for path, _ in [
+            for paths, _ in [
                 ctx.collect_files_under(base.relative_to(ctx.root).as_posix())
             ]
-            for sub_path in path
+            for sub_path in paths
             if sub_path.is_file()
             and is_relative_to(sub_path.resolve(), resolved_root)
             and sub_path.suffix in extensions

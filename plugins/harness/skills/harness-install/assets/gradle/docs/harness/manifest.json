@@ -323,7 +323,7 @@
     }
   },
   "hookStage": {
-    "description": "Each hook MUST contain parameters.markerTemplate with {stage} substituted from parameters.stages[<stack>][<hookName>]. The active stack identifier is supplied by the validator at runtime.",
+    "description": "Each hook MUST contain parameters.markerTemplate with {stage} substituted from parameters.stages[<hookName>].",
     "enabled": true,
     "severity": "WARN",
     "messages": {
@@ -332,31 +332,13 @@
     "parameters": {
       "markerTemplate": "# Harness stage: {stage}",
       "stages": {
-        "gradle": {
-          "pre-commit": "harness-validation",
-          "pre-push": "full-validation"
-        },
-        "maven": {
-          "pre-commit": "compliance",
-          "pre-push": "full-validation"
-        },
-        "uv": {
-          "pre-commit": "compliance",
-          "pre-push": "full-validation"
-        },
-        "bun": {
-          "pre-commit": "compliance",
-          "pre-push": "full-validation"
-        },
-        "shell": {
-          "pre-commit": "compliance",
-          "pre-push": "full-validation"
-        }
+        "pre-commit": "harness-validation",
+        "pre-push": "full-validation"
       }
     }
   },
   "hookCommand": {
-    "description": "parameters.prePushHook MUST declare and run a command listed in parameters.allowedCommands[<stack>]. When parameters.allowedPreCommitCommands[<stack>] is non-empty, parameters.preCommitHook MUST also declare and run one of those commands; otherwise pre-commit MUST NOT run any full-stack validation command.",
+    "description": "parameters.prePushHook MUST declare and run a command listed in parameters.allowedCommands. When parameters.allowedPreCommitCommands is non-empty, parameters.preCommitHook MUST also declare and run one of those commands; otherwise pre-commit MUST NOT run any full-stack validation command.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -368,30 +350,14 @@
     "parameters": {
       "prePushHook": "docs/harness/git-hooks/pre-push",
       "preCommitHook": "docs/harness/git-hooks/pre-commit",
-      "allowedCommands": {
-        "gradle": [
-          "./gradlew check",
-          "gradle check"
-        ],
-        "maven": [
-          "mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check"
-        ],
-        "uv": [
-          "uv run --script docs/harness/uv/harness_check.py"
-        ],
-        "bun": [
-          "bun --install=fallback run docs/harness/bun/harness-check.ts"
-        ],
-        "shell": [
-          "sh docs/harness/shell/harness-check.sh"
-        ]
-      },
-      "allowedPreCommitCommands": {
-        "gradle": [
-          "./gradlew harnessCheck",
-          "gradle harnessCheck"
-        ]
-      }
+      "allowedCommands": [
+        "./gradlew check",
+        "gradle check"
+      ],
+      "allowedPreCommitCommands": [
+        "./gradlew harnessCheck",
+        "gradle harnessCheck"
+      ]
     }
   },
   "ciHookCommandParity": {
@@ -453,6 +419,10 @@
         [
           "AGENTS.md",
           "CLAUDE.md"
+        ],
+        [
+          ".agents",
+          ".claude"
         ]
       ]
     }
@@ -504,14 +474,6 @@
         "TreeSet"
       ],
       "forbiddenFqns": [
-        "java.util.ArrayList",
-        "java.util.HashMap",
-        "java.util.HashSet",
-        "java.util.LinkedHashMap",
-        "java.util.LinkedHashSet",
-        "java.util.LinkedList",
-        "java.util.TreeMap",
-        "java.util.TreeSet",
         "kotlin.collections.MutableList",
         "kotlin.collections.MutableMap",
         "kotlin.collections.MutableSet"
@@ -580,7 +542,7 @@
     }
   },
   "greaterThanComparison": {
-    "description": "Source files under parameters.sourceRoots MUST NOT use `>` or `>=` comparison operators; smaller value always belongs on the left (`<` / `<=`). Validators implement this via AST: Kotlin PSI, Java JavaParser, Python ast, TypeScript compiler API. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "description": "Source files under parameters.sourceRoots MUST NOT use `>` or `>=` comparison operators; smaller value always belongs on the left (`<` / `<=`). Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -658,7 +620,7 @@
     }
   },
   "mutableCollection": {
-    "description": "Code under parameters.sourceRoots MUST prefer functional collection construction. Forbidden: Kotlin `mutableListOf` / `MutableList`, Java `new ArrayList` / `new HashMap`, Python `[].append` accumulation pattern, TypeScript `Array#push` accumulation. Use `buildList` / `Stream.toList()` / list comprehension / spread + `concat`. Validators implement this via AST: detect forbidden constructor calls and accumulation patterns. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "description": "Code under parameters.sourceRoots MUST prefer functional collection construction. Forbidden: Kotlin `mutableListOf` / `MutableList`. Use `buildList` instead. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -704,14 +666,6 @@
         "TreeSet"
       ],
       "forbiddenFqns": [
-        "java.util.ArrayList",
-        "java.util.HashMap",
-        "java.util.HashSet",
-        "java.util.LinkedHashMap",
-        "java.util.LinkedHashSet",
-        "java.util.LinkedList",
-        "java.util.TreeMap",
-        "java.util.TreeSet",
         "kotlin.collections.MutableList",
         "kotlin.collections.MutableMap",
         "kotlin.collections.MutableSet"
@@ -733,7 +687,7 @@
     }
   },
   "unstructuredLogging": {
-    "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: Kotlin `println`, Java `System.out.println` / `System.err.println`, Python `print(`, TypeScript `console.log` / `console.error` / `console.warn`. Use Slf4j / java.util.logging / Python `logging` / `pino` or equivalent. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: Kotlin `println`. Use Slf4j or equivalent. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -756,7 +710,7 @@
     }
   },
   "wildcardImport": {
-    "description": "Code under parameters.sourceRoots MUST use explicit per-symbol imports. Forbidden: Kotlin `import foo.bar.*`, Java `import foo.bar.*`, Python `from foo import *`, TypeScript `import * as foo from 'foo'` outside of namespace re-export modules. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "description": "Code under parameters.sourceRoots MUST use explicit per-symbol imports. Forbidden: Kotlin `import foo.bar.*`. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -795,7 +749,7 @@
     }
   },
   "publicDeclarationDocComment": {
-    "description": "Every externally visible declaration under parameters.sourceRoots MUST carry a documentation comment in the language-native form (KDoc, JavaDoc, reStructuredText docstring, TSDoc). Validators implement this via AST: walk top-level public/exported declarations and emit a finding for missing doc comments. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root. Declarations matching one of `parameters.visibility` are required to carry a documentation comment. Valid tokens per stack are listed in the references doc; default values preserve pre-Wave-3 behavior.",
+    "description": "Every externally visible declaration under parameters.sourceRoots MUST carry a documentation comment in KDoc form. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root. Declarations matching one of `parameters.visibility` are required to carry a documentation comment.",
     "enabled": true,
     "severity": "WARN",
     "messages": {
@@ -846,12 +800,11 @@
       "allowedNames": [
         "_"
       ],
-      "allowedPatterns": [],
-      "pythonDunderExemptions": false
+      "allowedPatterns": []
     }
   },
   "multilineDocStyle": {
-    "description": "KDoc comments under parameters.sourceRoots MUST use multiline block style. This aligns with ktlint-compatible native KDoc while leaving shell JSDoc-style `#` docstrings to the shell validator. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches.",
+    "description": "KDoc comments under parameters.sourceRoots MUST use multiline block style. This aligns with ktlint-compatible native KDoc. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches.",
     "enabled": true,
     "severity": "WARN",
     "messages": {
@@ -929,7 +882,7 @@
     }
   },
   "uncheckedCastSuppression": {
-    "description": "Kotlin and Java code under parameters.sourceRoots MUST NOT use @Suppress/@SuppressWarnings annotations with forbidden tokens. Detects all argument forms: positional single/multiple, named array/single. Refactor to use type-safe casts or explicit handling. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "description": "Kotlin code under parameters.sourceRoots MUST NOT use @Suppress annotations with forbidden tokens. Detects all argument forms: positional single/multiple, named array/single. Refactor to use type-safe casts or explicit handling. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -969,52 +922,6 @@
       ],
       "includePaths": [],
       "excludePaths": []
-    }
-  },
-  "classMemberOrdering": {
-    "description": "JVM class bodies under parameters.sourceRoots MUST keep ordinary members in parameters.kindOrder, parameters.visibilityOrder, and parameters.overrideOrder. Java enum constants and Kotlin enum entries are language-mandated preamble items and are not sorted as ordinary members. Validators implement this via PSI/AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "class `{className}` member `{memberName}` ({memberOverrideState}:{memberVisibility}:{memberKind}) is out of order"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "buildSrc/src/main/java",
-        "buildSrc/src/test/java",
-        "src/main/java",
-        "src/test/java",
-        "buildSrc/src/main/kotlin"
-      ],
-      "extensions": [
-        "java",
-        "kt",
-        "kts"
-      ],
-      "includePaths": [],
-      "excludePaths": [],
-      "kindOrder": [
-        "companionObject",
-        "constProperty",
-        "fieldOrProperty",
-        "initializer",
-        "constructor",
-        "function",
-        "interface",
-        "class",
-        "enum"
-      ],
-      "visibilityOrder": [
-        "public",
-        "protected",
-        "internal",
-        "package",
-        "private"
-      ],
-      "overrideOrder": [
-        "override",
-        "nonOverride"
-      ]
     }
   },
   "seedFiles": {

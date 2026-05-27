@@ -48,10 +48,6 @@ class EmptyDirectoryPlaceholdersRule(HarnessCheckRule):
         messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return []
-        template = messages.get(
-            "default",
-            "empty directory must keep placeholder or real files: {directory}",
-        )
         findings = []
         for directory in directories:
             if not isinstance(directory, str):
@@ -59,18 +55,18 @@ class EmptyDirectoryPlaceholdersRule(HarnessCheckRule):
             if not ctx.is_directory(directory):
                 continue
             dir_path = ctx.root / directory
-            has_files = any(p for p in dir_path.iterdir() if p.name != ".gitkeep")
-            if has_files:
+            if any(p for p in dir_path.iterdir() if p.name != ".gitkeep"):
                 continue
-            has_keepfile = ctx.is_file(f"{directory}/.gitkeep")
-            if has_keepfile:
+            if ctx.is_file(f"{directory}/.gitkeep"):
                 continue
-            gitkeep_path = f"{directory}/.gitkeep"
             findings.append(
                 Finding(
                     ctx.severity_of(self.category),
                     self.category,
-                    template.format(directory=directory),
+                    messages.get(
+                        "default",
+                        "empty directory must keep placeholder or real files: {directory}",
+                    ).format(directory=directory),
                     file=directory,
                     start_line=1,
                     start_column=1,
@@ -81,7 +77,7 @@ class EmptyDirectoryPlaceholdersRule(HarnessCheckRule):
                         safety=FixSafety.SAFE,
                         edits=(
                             FindingEdit(
-                                file=gitkeep_path,
+                                file=f"{directory}/.gitkeep",
                                 start_line=1,
                                 start_column=1,
                                 end_line=1,

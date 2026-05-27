@@ -14,8 +14,6 @@ from core.rule_context import RuleContext, relative
 sys.stdout.reconfigure(encoding="utf-8")
 sys.stderr.reconfigure(encoding="utf-8")
 
-STACK = "uv"
-
 
 class HookStageRule(HarnessCheckRule):
     """Validate hookStage check."""
@@ -51,9 +49,6 @@ class HookStageRule(HarnessCheckRule):
         stages = params.get("stages", {})
         if not isinstance(stages, dict):
             return []
-        stack_stages = stages.get(STACK, {})
-        if not isinstance(stack_stages, dict):
-            return []
         messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return []
@@ -62,7 +57,7 @@ class HookStageRule(HarnessCheckRule):
             "{hook} must contain stage marker '# Harness stage: {expectedStage}'",
         )
         result = []
-        for hook_name, expected_stage in stack_stages.items():
+        for hook_name, expected_stage in stages.items():
             if isinstance(hook_name, str) and isinstance(expected_stage, str):
                 hook_path = f"docs/harness/git-hooks/{hook_name}"
                 if ctx.is_file(hook_path) and marker_template.format(

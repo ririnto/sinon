@@ -21,11 +21,12 @@ import java.util.stream.Stream;
 public enum AgentFrontmatterRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "agentFrontmatter";
+
     @Override
     public String category() {
         return "agentFrontmatter";
     }
-    private static final String CATEGORY = "agentFrontmatter";
 
     @Override
     public boolean applies(RuleContext ctx) {

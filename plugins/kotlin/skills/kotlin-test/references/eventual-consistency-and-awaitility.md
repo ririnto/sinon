@@ -24,7 +24,6 @@ class SettlementProjectionTest {
     @Test
     fun projectsTheSettlementEventually() {
         service.startProjection()
-
         await.atMost(Duration.ofSeconds(5)).untilAsserted {
             assertEquals(ProjectionStatus.READY, repository.status())
         }

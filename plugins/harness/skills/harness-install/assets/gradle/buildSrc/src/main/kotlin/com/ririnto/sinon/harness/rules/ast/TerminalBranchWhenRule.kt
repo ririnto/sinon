@@ -55,11 +55,16 @@ object TerminalBranchWhenRule : HarnessAstRule() {
             ktFile?.accept(Visitor(::add, file, ctx, ktFile))
         }
 
-    private fun terminalIfElseExpression(expression: PsiElement?): KtIfExpression? =
-        when (expression) {
-            is KtIfExpression -> expression.takeIf { candidate -> candidate.`else` != null }
-            is KtReturnExpression -> terminalIfElseExpression(expression.returnedExpression)
-            else -> null
+    private fun terminalIfElseExpressions(expression: PsiElement?): List<KtIfExpression> =
+        buildList {
+            when (expression) {
+                is KtIfExpression -> {
+                    if (expression.`else` != null) {
+                        add(expression)
+                    }
+                }
+                is KtReturnExpression -> addAll(terminalIfElseExpressions(expression.returnedExpression))
+            }
         }
 
     /**
@@ -75,7 +80,7 @@ object TerminalBranchWhenRule : HarnessAstRule() {
     ) : KtTreeVisitorVoid() {
         override fun visitBlockExpression(expression: KtBlockExpression) {
             super.visitBlockExpression(expression)
-            terminalIfElseExpression(expression.statements.lastOrNull())?.let { terminalIf ->
+            terminalIfElseExpressions(expression.statements.lastOrNull()).forEach { terminalIf ->
                 record(
                     AstFinding(
                         rule = "terminalBranchWhen",
@@ -89,7 +94,7 @@ object TerminalBranchWhenRule : HarnessAstRule() {
 
         override fun visitNamedFunction(function: KtNamedFunction) {
             super.visitNamedFunction(function)
-            terminalIfElseExpression(function.bodyExpression)?.let { terminalIf ->
+            terminalIfElseExpressions(function.bodyExpression).forEach { terminalIf ->
                 record(
                     AstFinding(
                         rule = "terminalBranchWhen",
@@ -103,8 +108,10 @@ object TerminalBranchWhenRule : HarnessAstRule() {
 
         override fun visitProperty(property: KtProperty) {
             super.visitProperty(property)
-            val terminalIf = terminalIfElseExpression(property.initializer)
-            if (!property.isLocal && terminalIf != null) {
+            if (property.isLocal) {
+                return
+            }
+            terminalIfElseExpressions(property.initializer).forEach { terminalIf ->
                 record(
                     AstFinding(
                         rule = "terminalBranchWhen",

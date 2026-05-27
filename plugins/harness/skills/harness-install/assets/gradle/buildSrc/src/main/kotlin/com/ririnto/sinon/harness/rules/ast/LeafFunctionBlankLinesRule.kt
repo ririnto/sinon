@@ -64,6 +64,37 @@ object LeafFunctionBlankLinesRule : HarnessAstRule() {
             ktFile?.accept(Visitor({ finding -> add(finding) }, file, ctx, ktFile))
         }
 
+    override fun formatAst(
+        file: Path,
+        ktFile: KtFile,
+        ctx: RuleContext,
+    ): String? {
+        val maxBlankLines = readMaxBlankLines(ctx)
+        val edits = buildSet {
+            ktFile.accept(FormatVisitor({ edit -> add(edit) }, maxBlankLines))
+        }
+        if (edits.isEmpty()) {
+            return null
+        }
+        val builder = StringBuilder(ktFile.text)
+        edits
+            .sortedByDescending { edit -> edit.startOffset }
+            .forEach { edit -> builder.replace(edit.startOffset, edit.endOffset, edit.replacement) }
+        return builder.toString()
+    }
+
+    private fun readMaxBlankLines(ctx: RuleContext): Int =
+        ctx.manifest
+            .categoryObject(category)
+            ?.get("parameters")
+            ?.jsonObject
+            ?.get("maxConsecutiveBlankLines")
+            ?.jsonPrimitive
+            ?.contentOrNull
+            ?.toIntOrNull()
+            ?.coerceAtLeast(0)
+            ?: 1
+
     /**
      * AST visitor for leaf function blank line analysis.
      *
@@ -103,6 +134,54 @@ object LeafFunctionBlankLinesRule : HarnessAstRule() {
                                     ),
                             ),
                         )
+                    }
+            }
+        }
+    }
+
+    /**
+     * Text edit to be applied during source formatting.
+     */
+    private data class TextEdit(
+        val startOffset: Int,
+        val endOffset: Int,
+        val replacement: String,
+    )
+
+    /**
+     * AST visitor for leaf function blank line formatting.
+     *
+     * Collects text edits to reduce consecutive blank lines exceeding the threshold.
+     */
+    private class FormatVisitor(
+        private val record: (TextEdit) -> Unit,
+        private val maxBlankLines: Int,
+    ) : KtTreeVisitorVoid() {
+        /**
+         * Visit named function declarations.
+         */
+        override fun visitNamedFunction(function: KtNamedFunction) {
+            super.visitNamedFunction(function)
+            if (function.hasDescendantOfType<KtNamedFunction> { nestedFunc -> nestedFunc !== function } ||
+                function.hasDescendantOfType<KtLambdaExpression> { true }
+            ) {
+                return
+            }
+            function.bodyExpression?.firstChild?.run {
+                generateSequence(this) { element -> element.nextSibling }
+                    .filter { child -> child is PsiWhiteSpace }
+                    .forEach { child ->
+                        val blankLines = child.text.count { c -> c == '\n' } - 1
+                        if (blankLines > maxBlankLines) {
+                            val newText = "\n".repeat(maxBlankLines + 1)
+                            record(
+                                TextEdit(
+                                    startOffset = child.textRange.startOffset,
+                                    endOffset = child.textRange.endOffset,
+                                    replacement = newText,
+                                ),
+                            )
+                        }
                     }
             }
         }

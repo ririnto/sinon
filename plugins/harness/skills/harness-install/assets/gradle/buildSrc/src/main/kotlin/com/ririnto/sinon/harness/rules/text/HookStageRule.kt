@@ -26,11 +26,10 @@ object HookStageRule : HarnessCheckRule() {
             val catObj = ctx.manifest.categoryObject(category)
             val parametersObj = catObj?.get("parameters")?.jsonObject
             val stagesObj = parametersObj?.get("stages")?.jsonObject
-            val gradleStages = stagesObj?.get("gradle")?.jsonObject
-            if (catObj != null && parametersObj != null && gradleStages != null) {
+            if (catObj != null && parametersObj != null && stagesObj != null) {
                 val markerTemplate = JsonAccess.stringFromObject(parametersObj, "markerTemplate")
-                val preCommitStage = JsonAccess.stringFromObject(gradleStages, "pre-commit")
-                val prePushStage = JsonAccess.stringFromObject(gradleStages, "pre-push")
+                val preCommitStage = JsonAccess.stringFromObject(stagesObj, "pre-commit")
+                val prePushStage = JsonAccess.stringFromObject(stagesObj, "pre-push")
                 val preCommitHook = ctx.root / "docs/harness/git-hooks/pre-commit"
                 val prePushHook = ctx.root / "docs/harness/git-hooks/pre-push"
                 if (preCommitHook.isRegularFile()) {

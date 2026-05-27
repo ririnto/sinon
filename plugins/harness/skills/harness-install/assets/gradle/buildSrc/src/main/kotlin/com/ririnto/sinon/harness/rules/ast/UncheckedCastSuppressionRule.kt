@@ -115,9 +115,7 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
         override fun visitAnnotationEntry(annotation: KtAnnotationEntry) {
             super.visitAnnotationEntry(annotation)
             if (annotation.shortName?.asString() == "Suppress") {
-                val foundTokens = extractSuppressTokens(annotation)
-                val matchingTokens = foundTokens.intersect(forbiddenTokens - allowedTokens)
-                if (matchingTokens.isNotEmpty()) {
+                if (extractSuppressTokens(annotation).intersect(forbiddenTokens - allowedTokens).isNotEmpty()) {
                     record(
                         AstFinding(
                             rule = UncheckedCastSuppressionRule.category,

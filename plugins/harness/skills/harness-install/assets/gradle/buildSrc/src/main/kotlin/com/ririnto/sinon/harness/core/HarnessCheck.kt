@@ -4,7 +4,6 @@ import com.ririnto.sinon.harness.ast.AstFinding
 import com.ririnto.sinon.harness.ast.HarnessAstResults
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.rules.HarnessCheckRule
-import com.ririnto.sinon.harness.rules.ast.ClassMemberOrderingRule
 import com.ririnto.sinon.harness.rules.ast.CompanionObjectPositionRule
 import com.ririnto.sinon.harness.rules.ast.EarlyReturnRule
 import com.ririnto.sinon.harness.rules.ast.EmptyCatchBlockRule
@@ -239,11 +238,6 @@ enum class HarnessCheck(
      * Verifies that companion objects are positioned first in the class body.
      */
     COMPANION_OBJECT_POSITION(CompanionObjectPositionRule),
-
-    /**
-     * Verifies that JVM class members follow the configured order.
-     */
-    CLASS_MEMBER_ORDERING(ClassMemberOrderingRule),
     ;
 
     /**
@@ -257,12 +251,7 @@ enum class HarnessCheck(
             manifest: JsonObject,
             category: String,
         ): Severity {
-            val severityName =
-                manifest[category]
-                    ?.jsonObject
-                    ?.get("severity")
-                    ?.jsonPrimitive
-                    ?.contentOrNull
+            val severityName = manifest[category]?.jsonObject?.get("severity")?.jsonPrimitive?.contentOrNull
             return Severity.entries.firstOrNull { entry -> entry.name.equals(severityName, ignoreCase = true) }
                 ?: Severity.ERROR
         }

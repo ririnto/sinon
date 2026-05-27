@@ -51,8 +51,7 @@ object ImportOverFqnRule : HarnessAstRule() {
                     name: String,
                     element: PsiElement,
                 ) {
-                    val simpleName = name.substringAfterLast('.')
-                    if (isPackageQualifiedName(name) && simpleName !in importedNames) {
+                    if (isPackageQualifiedName(name) && name.substringAfterLast('.') !in importedNames) {
                         add(
                             AstFinding(
                                 rule = category,

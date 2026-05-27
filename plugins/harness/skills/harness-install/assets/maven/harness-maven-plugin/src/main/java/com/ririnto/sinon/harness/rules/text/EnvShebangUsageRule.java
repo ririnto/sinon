@@ -7,8 +7,11 @@ import com.ririnto.sinon.harness.Finding;
 
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -19,11 +22,12 @@ import java.util.stream.Stream;
 public enum EnvShebangUsageRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "envShebangUsage";
+
     @Override
     public String category() {
         return "envShebangUsage";
     }
-    private static final String CATEGORY = "envShebangUsage";
 
     @Override
     public boolean applies(RuleContext ctx) {
@@ -55,6 +59,47 @@ public enum EnvShebangUsageRule implements HarnessCheckRule {
                     }
                 })
                 .toList();
+    }
+
+    /**
+     * Replaces the shebang of executable scripts that do not use the /usr/bin/env form.
+     * Extracts the interpreter from the current shebang, converts it to env form.
+     * For example, #!/bin/bash becomes #!/usr/bin/env bash.
+     */
+    @Override
+    public Collection<Path> format(RuleContext ctx) throws MojoExecutionException {
+        final Path root = ctx.root();
+        final JsonNode manifest = ctx.manifest().raw();
+        final JsonNode catNode = manifest.get(CATEGORY);
+        if (catNode == null || catNode.get("parameters") == null || catNode.get("parameters").get("directories") == null) {
+            return List.of();
+        }
+        final String expectedPrefix = catNode.get("parameters").get("expectedPrefix").asText();
+        final List<Path> formatted = new ArrayList<>();
+        for (final String dir : HarnessCheckHelper.extractPaths(catNode.get("parameters").get("directories"))) {
+            final Path dirPath = root.resolve(dir);
+            try {
+                for (final Path file : HarnessCheckHelper.safeFileOrWalk(root, dirPath)) {
+                    if (!Files.isExecutable(file)) {
+                        continue;
+                    }
+                    final String text = Files.readString(file, StandardCharsets.UTF_8);
+                    if (text.startsWith("#!") && !text.startsWith(expectedPrefix)) {
+                        final int newlineIdx = text.indexOf('\n');
+                        final String shebang = newlineIdx < 0 ? text : text.substring(0, newlineIdx);
+                        final String rest = newlineIdx < 0 ? "" : text.substring(newlineIdx);
+                        final String[] parts = shebang.substring(2).trim().split("\\s+");
+                        final String interpreter = parts.length > 0 ? parts[parts.length - 1] : "sh";
+                        final String newShebang = expectedPrefix.stripTrailing() + " " + interpreter;
+                        Files.writeString(file, newShebang + rest, StandardCharsets.UTF_8);
+                        formatted.add(file);
+                    }
+                }
+            } catch (IOException e) {
+                throw new MojoExecutionException("Failed to format shebang in directory " + dir, e);
+            }
+        }
+        return formatted;
     }
 
     private List<Finding> validateShebang(Path root, Path file, String expectedPrefix, String severity) throws MojoExecutionException {

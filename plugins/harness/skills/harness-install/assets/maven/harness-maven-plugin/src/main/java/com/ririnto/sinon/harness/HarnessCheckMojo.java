@@ -50,10 +50,9 @@ public final class HarnessCheckMojo extends AbstractMojo {
         final Set<String> knownCategories = Arrays.stream(HarnessCheck.values())
                 .map(HarnessCheck::category)
                 .collect(Collectors.toUnmodifiableSet());
-        final Set<String> knownMetadataKeys = Set.of("name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns");
         final List<Finding> findings = Stream.concat(
                 manifest.propertyNames().stream()
-                        .filter(key -> !knownCategories.contains(key) && !knownMetadataKeys.contains(key))
+                        .filter(key -> !knownCategories.contains(key) && !Set.of("name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns").contains(key))
                         .map(key -> Finding.of("WARN", "manifestSchema", "unknown manifest key: " + key)),
                 Arrays.stream(HarnessCheck.values())
                         .filter(check -> check.applies(ctx))
@@ -98,8 +97,7 @@ public final class HarnessCheckMojo extends AbstractMojo {
         if (!Files.isRegularFile(manifestPath, LinkOption.NOFOLLOW_LINKS)) {
             throw new IOException("missing manifest: " + MANIFEST_PATH.toString());
         }
-        final String raw = Files.readString(manifestPath, StandardCharsets.UTF_8);
-        return new ObjectMapper().readTree(raw);
+        return new ObjectMapper().readTree(Files.readString(manifestPath, StandardCharsets.UTF_8));
     }
 
     /**

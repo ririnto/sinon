@@ -1,19 +1,96 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.bun.schema.json",
   "title": "RepositoryHarnessManifestBun",
-  "description": "Bun stack manifest schema. Extends manifest.code.schema.json with TypeScript/JavaScript rules (ifStatementBraces, mutableCollection) and TypeScript declaration/doc rules.",
-  "allOf": [
-    {
-      "$ref": "./manifest.code.schema.json"
-    }
+  "description": "Bun stack (TypeScript/JavaScript) manifest schema. Self-contained with inlined base and code-stack definitions. Defines validation rules for TS/JS source files, harness structure, and documentation.",
+  "type": "object",
+  "additionalProperties": {
+    "$ref": "#/$defs/addOn"
+  },
+  "required": [
+    "name",
+    "description"
   ],
   "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "filePresence": {
+      "$ref": "#/$defs/addOn"
+    },
+    "directoryPresence": {
+      "$ref": "#/$defs/addOn"
+    },
+    "emptyDirectoryPlaceholders": {
+      "$ref": "#/$defs/addOn"
+    },
+    "scaffoldLeaks": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookShebang": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookExecutable": {
+      "$ref": "#/$defs/addOn"
+    },
+    "uncheckedTasks": {
+      "$ref": "#/$defs/addOn"
+    },
+    "templateGroups": {
+      "$ref": "#/$defs/addOn"
+    },
+    "docHeadings": {
+      "$ref": "#/$defs/addOn"
+    },
+    "docContent": {
+      "$ref": "#/$defs/addOn"
+    },
+    "agentFrontmatter": {
+      "$ref": "#/$defs/addOn"
+    },
+    "skillFrontmatter": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookGeneratedMarker": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookStage": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookCommand": {
+      "$ref": "#/$defs/addOn"
+    },
+    "ciHookCommandParity": {
+      "$ref": "#/$defs/addOn"
+    },
+    "envShebangUsage": {
+      "$ref": "#/$defs/addOn"
+    },
+    "shebangEncodingMarker": {
+      "$ref": "#/$defs/addOn"
+    },
+    "symlinkSafety": {
+      "$ref": "#/$defs/addOn"
+    },
+    "earlyReturn": {
+      "$ref": "#/$defs/addOn"
+    },
+    "emptyCatchBlock": {
+      "$ref": "#/$defs/addOn"
+    },
+    "greaterThanComparison": {
+      "$ref": "#/$defs/addOn"
+    },
     "ifStatementBraces": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+      "$ref": "#/$defs/addOn"
     },
     "mutableCollection": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+      "$ref": "#/$defs/addOn"
     },
     "unstructuredLogging": {
       "$ref": "#/$defs/loggingAddOn"
@@ -32,9 +109,87 @@
     },
     "multilineDocStyle": {
       "$ref": "#/$defs/multilineDocStyleAddOn"
+    },
+    "leafFunctionBlankLines": {
+      "$ref": "#/$defs/addOn"
+    },
+    "wildcardImport": {
+      "$ref": "#/$defs/addOn"
+    },
+    "silentCatch": {
+      "$ref": "#/$defs/addOn"
+    },
+    "seedFiles": {
+      "$ref": "#/$defs/metadata"
+    },
+    "generatedArtifacts": {
+      "$ref": "#/$defs/metadata"
+    },
+    "harnessEvolution": {
+      "$ref": "#/$defs/metadata"
+    },
+    "teamPatterns": {
+      "$ref": "#/$defs/metadata"
     }
   },
   "$defs": {
+    "severity": {
+      "enum": [
+        "ERROR",
+        "WARN",
+        "INFO"
+      ]
+    },
+    "fixSafety": {
+      "enum": [
+        "safe",
+        "unsafe",
+        "manual"
+      ]
+    },
+    "addOn": {
+      "type": "object",
+      "description": "Uniform shape for every check add-on. `parameters` is free-form per add-on; `messages` maps named template keys to user-visible failure messages.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Informational metadata; not validated by the harness.",
+      "required": [
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
     "sourceScope": {
       "type": "object",
       "properties": {
@@ -49,7 +204,13 @@
           "items": {
             "enum": [
               "ts",
-              "tsx"
+              "tsx",
+              "js",
+              "jsx",
+              "mts",
+              "cts",
+              "mjs",
+              "cjs"
             ]
           }
         },
@@ -76,7 +237,7 @@
     "loggingAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -106,7 +267,7 @@
     "importOverFqnAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -133,7 +294,7 @@
     "suppressionAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -163,7 +324,7 @@
     "publicDeclarationDocCommentAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -218,7 +379,7 @@
     "leadingUnderscoreAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -242,9 +403,6 @@
                       "items": {
                         "type": "string"
                       }
-                    },
-                    "pythonDunderExemptions": {
-                      "const": false
                     }
                   }
                 }
@@ -257,7 +415,7 @@
     "multilineDocStyleAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",

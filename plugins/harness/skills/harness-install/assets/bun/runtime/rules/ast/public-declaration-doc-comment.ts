@@ -23,8 +23,7 @@ import type { Finding, HarnessCheckRule, RuleContext } from "../harness-check-ru
  * @param stack The stack identifier (e.g. "typescript").
  * @return Array of configured visibility tokens, or ["export"] as default if not configured.
  */
-function readVisibilityTokens(ctx: RuleContext, category: string, stack: string): string[] {
-    void stack;
+function readVisibilityTokens(ctx: RuleContext, category: string, _: string): string[] {
     const config = ctx.manifest.raw[category];
     if (!config || typeof config !== "object") {
         return ["export"];
@@ -110,13 +109,12 @@ export const publicDeclarationDocCommentRule: HarnessCheckRule = {
             };
 
             const matchesVisibility = (node: Node): boolean => {
-                const hasToken = visibilityTokens.some((token) => {
+                return visibilityTokens.some((token) => {
                     if (token === "export") {
                         return node.modifiers?.some((m) => m.kind === SyntaxKind.ExportKeyword) ?? false;
                     }
                     return false;
                 });
-                return hasToken;
             };
 
             const visitNode = (node: Node): readonly Finding[] => {

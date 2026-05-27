@@ -206,8 +206,7 @@ def create_rule_context(
         if not path.is_symlink():
             return None
         target_name = os.readlink(path)
-        expected = "CLAUDE.md" if path.name == "AGENTS.md" else "AGENTS.md"
-        if target_name != expected:
+        if target_name != ("CLAUDE.md" if path.name == "AGENTS.md" else "AGENTS.md"):
             return None
         target = root_dir / target_name
         if target.parent == root_dir and not target.is_symlink() and target.is_file():
@@ -233,8 +232,7 @@ def create_rule_context(
         :param category: Category key under the manifest root.
         :returns: Tuple of source file paths.
         """
-        manifest_dict = manifest.raw
-        section = manifest_dict.get(category, {})
+        section = manifest.raw.get(category, {})
         if not isinstance(section, dict):
             return ()
         params = section.get("parameters", {})
@@ -331,19 +329,22 @@ def create_rule_context(
             directories[:] = [
                 name for name in directories if not (current_path / name).is_symlink()
             ]
-            for child in (current_path / name for name in files if not (current_path / name).is_symlink()):
+            for child in (
+                current_path / name
+                for name in files
+                if not (current_path / name).is_symlink()
+            ):
                 output.append(child)
         return (tuple(output), ())
 
     def collect_files_under(path_str: str) -> tuple[tuple[Path, ...], tuple]:
         """Collect files under path."""
-        path = path_of(path_str)
         if not is_within_root(path_str):
             return ((), ())
         if is_symlink(path_str) and allowed_root_contract_target(path_str) is None:
             return ((), ())
         if is_file(path_str):
-            return ((path,), ())
+            return ((path_of(path_str),), ())
         if is_directory(path_str):
             return walk_directory(path_str)
         return ((), ())

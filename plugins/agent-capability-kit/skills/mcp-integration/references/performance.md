@@ -130,12 +130,12 @@ When using multiple MCP tools in sequence, batch them if server supports it.
 
 ### Problem: sequential calls
 
-```markdown
-# shellcheck disable=SC2034
+```sh
 # Three separate tool calls, three separate requests
 REPO1=$(call_tool list_repositories --user alice)
 REPO2=$(call_tool list_repositories --user bob)
 REPO3=$(call_tool list_repositories --user charlie)
+echo "Repos: $REPO1, $REPO2, $REPO3"
 ```
 
 Latency: 100ms × 3 = 300ms

@@ -21,11 +21,8 @@ class DefaultManifest(
             ?: false
 
     override fun severityOf(category: String): Severity {
-        val severityName =
-            categoryField(category, "severity")
-                ?.jsonPrimitive
-                ?.contentOrNull
-                ?: return Severity.ERROR
+        val severityName = categoryField(category, "severity")?.jsonPrimitive?.contentOrNull
+            ?: return Severity.ERROR
         return Severity.entries.firstOrNull { entry -> entry.name.equals(severityName, ignoreCase = true) }
             ?: Severity.ERROR
     }

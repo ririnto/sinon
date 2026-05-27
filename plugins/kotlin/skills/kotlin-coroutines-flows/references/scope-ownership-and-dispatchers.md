@@ -52,7 +52,6 @@ fun launchBackgroundRefresh(scope: CoroutineScope) {
     val handler = CoroutineExceptionHandler { _, throwable ->
         logger.error("Background refresh failed", throwable)
     }
-
     scope.launch(Dispatchers.Default + handler) {
         refreshCache()
     }
@@ -69,7 +68,6 @@ import kotlinx.coroutines.coroutineScope
 suspend fun loadDashboardSafely(): DashboardResult = coroutineScope {
     val summary = async { summaryService.load() }
     val alerts = async { alertService.load() }
-
     try {
         DashboardResult.Ready(summary.await(), alerts.await())
     } catch (error: IOException) {

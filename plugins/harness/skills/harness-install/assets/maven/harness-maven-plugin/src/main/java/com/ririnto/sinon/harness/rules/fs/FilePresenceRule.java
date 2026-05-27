@@ -16,11 +16,12 @@ import java.util.Collection;
 public enum FilePresenceRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "filePresence";
+
     @Override
     public String category() {
         return "filePresence";
     }
-    private static final String CATEGORY = "filePresence";
 
     @Override
     public boolean applies(RuleContext ctx) {
@@ -31,9 +32,8 @@ public enum FilePresenceRule implements HarnessCheckRule {
     public Collection<Finding> validate(RuleContext ctx) throws MojoExecutionException {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
-        final JsonNode catNode = manifest.get(CATEGORY);
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("paths")).stream()
+        return HarnessCheckHelper.extractPaths(manifest.get(CATEGORY).get("parameters").get("paths")).stream()
                 .filter(path -> !HarnessCheckHelper.isSafeRegularFile(root, root.resolve(path)))
                 .map(path -> Finding.of(severity, CATEGORY, "missing file: " + path))
                 .toList();

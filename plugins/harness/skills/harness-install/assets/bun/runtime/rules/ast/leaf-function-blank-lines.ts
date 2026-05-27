@@ -43,10 +43,8 @@ export const leafFunctionBlankLinesRule: HarnessCheckRule = {
 
     validate(ctx: RuleContext): readonly Finding[] {
         const parameters = ctx.readJsonObject(ctx.readJsonObject(ctx.manifest.raw[CATEGORY]).parameters);
-        const configuredMaxConsecutiveBlankLines = Number(parameters.maxConsecutiveBlankLines ?? 1);
-        const maxConsecutiveBlankLines = Number.isFinite(configuredMaxConsecutiveBlankLines)
-            ? Math.max(0, Math.trunc(configuredMaxConsecutiveBlankLines))
-            : 1;
+        const n = Number(parameters.maxConsecutiveBlankLines ?? 1);
+        const maxConsecutiveBlankLines = Number.isFinite(n) ? Math.max(0, Math.trunc(n)) : 1;
         return ctx.stackSources(CATEGORY).flatMap((file) => findingsForFile(ctx, file, maxConsecutiveBlankLines));
     },
 };

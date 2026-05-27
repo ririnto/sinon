@@ -47,12 +47,11 @@ class DirectoryPresenceRule(HarnessCheckRule):
         messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return []
-        template = messages.get("default", "missing directory: {path}")
         return [
             Finding(
                 ctx.severity_of(self.category),
                 self.category,
-                template.format(path=path),
+                messages.get("default", "missing directory: {path}").format(path=path),
                 file=path,
                 start_line=1,
                 start_column=1,

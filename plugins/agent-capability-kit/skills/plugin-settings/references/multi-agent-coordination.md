@@ -332,7 +332,11 @@ conditional_start() {
     fi
     deps=$(echo "$deps_line" | sed 's/\[//;s/\]//' | tr ',' '\n' | sed 's/^ *"//' | sed 's/"$ *//')
     for dep in $deps; do
-        status_files=$(find "$status_dir" -name "*.$dep.status" 2>/dev/null || true)
+        if [ -d "$status_dir" ]; then
+            status_files=$(find "$status_dir" -name "*.$dep.status")
+        else
+            status_files=""
+        fi
         if [ -z "$status_files" ]; then
             echo '{"continue": false, "systemMessage": "Waiting for task '"$dep"' to complete"}' >&2
             return 2
@@ -395,9 +399,13 @@ generated_files:
 
 Agent 2 reads:
 
-```markdown
-# shellcheck disable=SC2034
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+
 OUTPUT_FORMAT=$(grep '^output_format:' ".claude/db-agent.local.md" | sed 's/output_format: *//')
+echo "Format from task 1: $OUTPUT_FORMAT"
 ```
 
 ## Complex example: multi-session coordination

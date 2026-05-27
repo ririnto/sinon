@@ -79,6 +79,12 @@ object LeadingUnderscoreRule : HarnessAstRule() {
         val allowedPatterns: List<Regex>,
     ) {
         companion object {
+            /**
+             * Creates a RuleConfig from manifest parameters.
+             *
+             * Loads allowed names and patterns from the leadingUnderscore
+             * manifest category configuration.
+             */
             fun from(ctx: RuleContext): RuleConfig {
                 val parameters =
                     ctx.manifest
@@ -87,14 +93,19 @@ object LeadingUnderscoreRule : HarnessAstRule() {
                         ?.jsonObject
                 return RuleConfig(
                     allowedNames = (JsonAccess.stringArrayFromObject(parameters, "allowedNames") + "_").toSet(),
-                    allowedPatterns =
-                        JsonAccess.stringArrayFromObject(parameters, "allowedPatterns").mapNotNull { pattern ->
-                            runCatching { pattern.toRegex() }.getOrNull()
-                        },
+                    allowedPatterns = JsonAccess.stringArrayFromObject(parameters, "allowedPatterns").mapNotNull { pattern ->
+                        runCatching { pattern.toRegex() }.getOrNull()
+                    },
                 )
             }
         }
 
+        /**
+         * Determines if a name violates the leading underscore rule.
+         *
+         * A name is forbidden if it starts with an underscore and is not
+         * in the allowed names set or matched by allowed patterns.
+         */
         fun isForbidden(name: String): Boolean =
             name.startsWith("_") &&
                 name !in allowedNames &&

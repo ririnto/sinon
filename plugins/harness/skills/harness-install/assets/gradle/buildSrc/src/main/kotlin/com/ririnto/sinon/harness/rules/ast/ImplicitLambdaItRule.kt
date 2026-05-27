@@ -76,20 +76,8 @@ object ImplicitLambdaItRule : HarnessAstRule() {
          * Recursively check if a KtElement tree contains an 'it' reference.
          */
         private fun containsItReference(element: KtElement?): Boolean =
-            when {
-                element == null -> {
-                    false
-                }
-
-                element is KtSimpleNameExpression && element.text == "it" -> {
-                    true
-                }
-
-                else -> {
-                    element.children.any { child ->
-                        child is KtElement && containsItReference(child)
-                    }
-                }
-            }
+            element != null &&
+                ((element is KtSimpleNameExpression && element.text == "it") ||
+                    element.children.any { child -> child is KtElement && containsItReference(child) })
     }
 }

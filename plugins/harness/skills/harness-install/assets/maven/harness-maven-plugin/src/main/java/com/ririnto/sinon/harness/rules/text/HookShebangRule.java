@@ -7,7 +7,11 @@ import com.ririnto.sinon.harness.Finding;
 
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -18,11 +22,12 @@ import java.util.stream.Stream;
 public enum HookShebangRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "hookShebang";
+
     @Override
     public String category() {
         return "hookShebang";
     }
-    private static final String CATEGORY = "hookShebang";
 
     @Override
     public boolean applies(RuleContext ctx) {
@@ -45,6 +50,39 @@ public enum HookShebangRule implements HarnessCheckRule {
                     }
                 })
                 .toList();
+    }
+
+    /**
+     * Inserts the expected shebang as the first line of hook files that do not already start with it.
+     * Existing file content is preserved below the inserted shebang.
+     */
+    @Override
+    public Collection<Path> format(RuleContext ctx) throws MojoExecutionException {
+        final Path root = ctx.root();
+        final JsonNode manifest = ctx.manifest().raw();
+        final JsonNode catNode = manifest.get(CATEGORY);
+        if (catNode == null || catNode.get("parameters") == null || catNode.get("parameters").get("hooks") == null) {
+            return List.of();
+        }
+        final String expected = catNode.get("parameters").get("expectedShebang").asText();
+        final List<Path> formatted = new ArrayList<>();
+        for (final String hook : HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks"))) {
+            final Path hookPath = root.resolve(hook);
+            if (!HarnessCheckHelper.isSafeRegularFile(root, hookPath)) {
+                continue;
+            }
+            try {
+                final String existingText = Files.readString(hookPath, StandardCharsets.UTF_8);
+                if (!existingText.startsWith(expected)) {
+                    final String newContent = expected + "\n" + existingText;
+                    Files.writeString(hookPath, newContent, StandardCharsets.UTF_8);
+                    formatted.add(hookPath);
+                }
+            } catch (IOException e) {
+                throw new MojoExecutionException("Failed to insert shebang in " + hook, e);
+            }
+        }
+        return formatted;
     }
 
     private List<Finding> validateHookShebang(Path root, String hook, String expected, String severity) throws MojoExecutionException {

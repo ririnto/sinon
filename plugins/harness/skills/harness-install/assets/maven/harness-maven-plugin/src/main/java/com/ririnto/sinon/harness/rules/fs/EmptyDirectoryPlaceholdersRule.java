@@ -20,11 +20,12 @@ import java.util.stream.Stream;
 public enum EmptyDirectoryPlaceholdersRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "emptyDirectoryPlaceholders";
+
     @Override
     public String category() {
         return "emptyDirectoryPlaceholders";
     }
-    private static final String CATEGORY = "emptyDirectoryPlaceholders";
 
     @Override
     public boolean applies(RuleContext ctx) {
@@ -35,10 +36,26 @@ public enum EmptyDirectoryPlaceholdersRule implements HarnessCheckRule {
     public Collection<Finding> validate(RuleContext ctx) throws MojoExecutionException {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
-        final JsonNode catNode = manifest.get(CATEGORY);
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("directories")).stream()
+        return HarnessCheckHelper.extractPaths(manifest.get(CATEGORY).get("parameters").get("directories")).stream()
                 .flatMap(dir -> validateKeepFile(root, dir, severity).stream())
+                .toList();
+    }
+
+    /**
+     * Creates .gitkeep placeholder files in empty directories that lack them.
+     * Returns the collection of paths where .gitkeep was created.
+     */
+    @Override
+    public Collection<Path> format(RuleContext ctx) throws MojoExecutionException {
+        final Path root = ctx.root();
+        final JsonNode manifest = ctx.manifest().raw();
+        final JsonNode categoryNode = manifest.get(CATEGORY);
+        if (categoryNode == null || categoryNode.get("parameters") == null || categoryNode.get("parameters").get("directories") == null) {
+            return List.of();
+        }
+        return HarnessCheckHelper.extractPaths(categoryNode.get("parameters").get("directories")).stream()
+                .flatMap(dir -> createGitkeepIfNeeded(root, dir).stream())
                 .toList();
     }
 
@@ -60,5 +77,26 @@ public enum EmptyDirectoryPlaceholdersRule implements HarnessCheckRule {
                     }
                 })
                 .toList();
+    }
+
+    private List<Path> createGitkeepIfNeeded(Path root, String dir) throws MojoExecutionException {
+        final Path dirPath = root.resolve(dir);
+        if (!HarnessCheckHelper.isSafeDirectory(root, dirPath)) {
+            return List.of();
+        }
+        try (final Stream<Path> stream = Files.list(dirPath)) {
+            final List<Path> realFiles = stream
+                    .filter(f -> !Files.isSymbolicLink(f))
+                    .filter(f -> !f.getFileName().toString().equals(".gitkeep"))
+                    .toList();
+            if (realFiles.isEmpty() && !HarnessCheckHelper.isSafeRegularFile(root, dirPath.resolve(".gitkeep"))) {
+                final Path gitkeepPath = dirPath.resolve(".gitkeep");
+                Files.createFile(gitkeepPath);
+                return List.of(gitkeepPath);
+            }
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to create .gitkeep in " + dir, e);
+        }
+        return List.of();
     }
 }

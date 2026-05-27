@@ -48,10 +48,8 @@ import kotlin.test.assertEquals
 @Test
 fun timeoutEmitsFallback() = runTest {
     val result = async { slowRepository.loadWithTimeout(OrderId("1")) }
-
     advanceTimeBy(5_000)
     runCurrent()
-
     assertEquals(Fallback, result.await())
 }
 ```
@@ -90,10 +88,8 @@ fun cancellationRunsCleanup() {
     val job: Job = scope.launch {
         resource.use { r -> r.longOperation() }
     }
-
     job.cancel()
     scope.advanceUntilIdle()
-
     assertTrue(resource.wasClosed)
 }
 ```

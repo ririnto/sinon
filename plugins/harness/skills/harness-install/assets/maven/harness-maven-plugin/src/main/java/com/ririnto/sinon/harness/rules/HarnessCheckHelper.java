@@ -34,11 +34,11 @@ public class HarnessCheckHelper {
      */
     public static String getSeverity(JsonNode manifest, String category) {
         final JsonNode catNode = manifest.get(category);
-        if (catNode != null && catNode.has("severity")) {
-            final String sev = catNode.get("severity").asText();
-            return "WARN".equals(sev) || "INFO".equals(sev) ? sev : "ERROR";
-        }
-        return "ERROR";
+        return catNode != null && catNode.has("severity")
+                ? (catNode.get("severity").asText().equals("WARN") || catNode.get("severity").asText().equals("INFO")
+                        ? catNode.get("severity").asText()
+                        : "ERROR")
+                : "ERROR";
     }
 
     /**
@@ -50,17 +50,14 @@ public class HarnessCheckHelper {
      * @throws MojoExecutionException if reading fails
      */
     public static String readFile(Path root, Path path) throws MojoExecutionException {
-        if (Files.isSymbolicLink(path)) {
-            final Path allowed = allowedRootContractTarget(root, path);
-            if (allowed == null) {
-                throw new MojoExecutionException("symlink not allowed: " + path);
-            }
-            path = allowed;
+        final Path resolved = Files.isSymbolicLink(path) ? allowedRootContractTarget(root, path) : path;
+        if (resolved == null) {
+            throw new MojoExecutionException("symlink not allowed: " + path);
         }
         try {
-            return Files.readString(path, StandardCharsets.UTF_8);
+            return Files.readString(resolved, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new MojoExecutionException("failed to read " + path, e);
+            throw new MojoExecutionException("failed to read " + resolved, e);
         }
     }
 
@@ -72,10 +69,9 @@ public class HarnessCheckHelper {
      * @return true if path is a safe regular file
      */
     public static boolean isSafeRegularFile(Path root, Path path) {
-        if (Files.isSymbolicLink(path)) {
-            return allowedRootContractTarget(root, path) != null;
-        }
-        return Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
+        return Files.isSymbolicLink(path)
+                ? allowedRootContractTarget(root, path) != null
+                : Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
     }
 
     /**
@@ -124,41 +120,18 @@ public class HarnessCheckHelper {
      * @return the resolved target path if allowed, null otherwise
      */
     public static Path allowedRootContractTarget(Path root, Path path) {
-        if (Files.isSymbolicLink(path)) {
-            final Path normalized = root.normalize();
-            final Path fileName = path.getFileName();
-            if (fileName != null && path.getParent() != null && path.getParent().normalize().equals(normalized)) {
-                final String name = fileName.toString();
-                if (name.equals("AGENTS.md") || name.equals("CLAUDE.md")) {
-                    final String expected = name.equals("AGENTS.md") ? "CLAUDE.md" : "AGENTS.md";
-                    return allowedRootContractTarget(normalized, path, expected);
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Resolves an already qualified root contract symlink target.
-     *
-     * @param normalized the normalized project root
-     * @param path the symlink path
-     * @param expected the expected one-segment target name
-     * @return the resolved target path if allowed, null otherwise
-     */
-    private static Path allowedRootContractTarget(Path normalized, Path path, String expected) {
-        try {
-            final Path target = Files.readSymbolicLink(path);
-            if (target.getNameCount() == 1 && target.toString().equals(expected)) {
-                final Path resolved = normalized.resolve(target).normalize();
-                if (resolved.getParent().equals(normalized) && !Files.isSymbolicLink(resolved) && Files.isRegularFile(resolved, LinkOption.NOFOLLOW_LINKS)) {
-                    return resolved;
-                }
-            }
-        } catch (IOException e) {
+        if (!Files.isSymbolicLink(path)) {
             return null;
         }
-        return null;
+        final Path normalized = root.normalize();
+        final Path fileName = path.getFileName();
+        if (fileName == null || path.getParent() == null || !path.getParent().normalize().equals(normalized)) {
+            return null;
+        }
+        final String name = fileName.toString();
+        return (name.equals("AGENTS.md") || name.equals("CLAUDE.md"))
+                ? allowedRootContractTarget(normalized, path, name.equals("AGENTS.md") ? "CLAUDE.md" : "AGENTS.md")
+                : null;
     }
 
     /**
@@ -168,12 +141,11 @@ public class HarnessCheckHelper {
      * @return list of string values; empty if node is null or not an array
      */
     public static List<String> extractPaths(JsonNode node) {
-        if (node == null || !node.isArray()) {
-            return Collections.emptyList();
-        }
-        return StreamSupport.stream(node.spliterator(), false)
-                .map(JsonNode::asText)
-                .toList();
+        return node == null || !node.isArray()
+                ? Collections.emptyList()
+                : StreamSupport.stream(node.spliterator(), false)
+                        .map(JsonNode::asText)
+                        .toList();
     }
 
     /**
@@ -213,15 +185,9 @@ public class HarnessCheckHelper {
      */
     public static List<Path> stackSources(JsonNode manifest, String category, String stack, Path projectRoot) throws IOException {
         final JsonNode categoryNode = manifest.get(category);
-        if (categoryNode == null) {
-            return Collections.emptyList();
-        }
-        final JsonNode params = categoryNode.get("parameters");
-        if (params == null) {
-            return Collections.emptyList();
-        }
-        final JsonNode rootsNode = params.get("sourceRoots");
-        final JsonNode extsNode = params.get("extensions");
+        final JsonNode params = categoryNode == null ? null : categoryNode.get("parameters");
+        final JsonNode rootsNode = params == null ? null : params.get("sourceRoots");
+        final JsonNode extsNode = params == null ? null : params.get("extensions");
         if (rootsNode == null || extsNode == null) {
             return Collections.emptyList();
         }
@@ -232,13 +198,7 @@ public class HarnessCheckHelper {
         final List<String> excludes = extractPaths(params.get("excludePaths"));
         final FileSystem fs = FileSystems.getDefault();
         return StreamSupport.stream(rootsNode.spliterator(), false)
-                .flatMap(rootNode -> {
-                    try {
-                        return walkRoot(fs, projectRoot, rootNode.asText(), extensions, includes, excludes).stream();
-                    } catch (IOException e) {
-                        return Stream.empty();
-                    }
-                })
+                .flatMap(rootNode -> walkRootSafely(fs, projectRoot, rootNode.asText(), extensions, includes, excludes))
                 .distinct()
                 .sorted()
                 .toList();
@@ -278,36 +238,6 @@ public class HarnessCheckHelper {
     }
 
     /**
-     * Applies include filters to a file path.
-     *
-     * @param file the file path
-     * @param base the base directory
-     * @param matchers glob matchers for inclusion
-     * @return true if matchers is empty or file matches any include pattern
-     */
-    private static boolean applyIncludeFilters(Path file, Path base, List<PathMatcher> matchers) {
-        if (matchers.isEmpty()) {
-            return true;
-        }
-        return matchers.stream().anyMatch(m -> m.matches(base.relativize(file)));
-    }
-
-    /**
-     * Applies exclude filters to a file path.
-     *
-     * @param file the file path
-     * @param base the base directory
-     * @param matchers glob matchers for exclusion
-     * @return true if matchers is empty or file does not match any exclude pattern
-     */
-    private static boolean applyExcludeFilters(Path file, Path base, List<PathMatcher> matchers) {
-        if (matchers.isEmpty()) {
-            return true;
-        }
-        return matchers.stream().noneMatch(m -> m.matches(base.relativize(file)));
-    }
-
-    /**
      * Checks whether a manifest source root is target-relative and cannot escape upward.
      *
      * @param rootEntry the manifest source root entry
@@ -315,14 +245,6 @@ public class HarnessCheckHelper {
      */
     public static boolean isSafeRelativeRootEntry(String rootEntry) {
         return isSafeRelativeRoot(rootEntry);
-    }
-
-    private static boolean isSafeRelativeRoot(String rootEntry) {
-        final Path path = Path.of(rootEntry);
-        return !rootEntry.isBlank()
-                && !path.isAbsolute()
-                && IntStream.range(0, path.getNameCount())
-                .noneMatch(i -> path.getName(i).toString().equals(".."));
     }
 
     /**
@@ -363,5 +285,85 @@ public class HarnessCheckHelper {
         }
         final JsonNode enabled = node.get("enabled");
         return enabled == null || !enabled.isBoolean() || enabled.asBoolean();
+    }
+
+    /**
+     * Resolves an already qualified root contract symlink target.
+     *
+     * @param normalized the normalized project root
+     * @param path the symlink path
+     * @param expected the expected one-segment target name
+     * @return the resolved target path if allowed, null otherwise
+     */
+    private static Path allowedRootContractTarget(Path normalized, Path path, String expected) {
+        try {
+            final Path target = Files.readSymbolicLink(path);
+            if (target.getNameCount() != 1 || !target.toString().equals(expected)) {
+                return null;
+            }
+            final Path resolved = normalized.resolve(target).normalize();
+            return resolved.getParent().equals(normalized) && !Files.isSymbolicLink(resolved) && Files.isRegularFile(resolved, LinkOption.NOFOLLOW_LINKS)
+                    ? resolved
+                    : null;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Walks a root entry returning an empty stream when an IO error occurs.
+     *
+     * @param fs the file system
+     * @param base the base path
+     * @param rootEntry the manifest root entry
+     * @param extensions allowed extensions
+     * @param includes include patterns
+     * @param excludes exclude patterns
+     * @return stream of matching file paths
+     */
+    private static Stream<Path> walkRootSafely(FileSystem fs, Path base, String rootEntry, Set<String> extensions, List<String> includes, List<String> excludes) {
+        try {
+            return walkRoot(fs, base, rootEntry, extensions, includes, excludes).stream();
+        } catch (IOException e) {
+            return Stream.empty();
+        }
+    }
+
+    /**
+     * Applies include filters to a file path.
+     *
+     * @param file the file path
+     * @param base the base directory
+     * @param matchers glob matchers for inclusion
+     * @return true if matchers is empty or file matches any include pattern
+     */
+    private static boolean applyIncludeFilters(Path file, Path base, List<PathMatcher> matchers) {
+        return matchers.isEmpty() || matchers.stream().anyMatch(m -> m.matches(base.relativize(file)));
+    }
+
+    /**
+     * Applies exclude filters to a file path.
+     *
+     * @param file the file path
+     * @param base the base directory
+     * @param matchers glob matchers for exclusion
+     * @return true if matchers is empty or file does not match any exclude pattern
+     */
+    private static boolean applyExcludeFilters(Path file, Path base, List<PathMatcher> matchers) {
+        return matchers.isEmpty() || matchers.stream().noneMatch(m -> m.matches(base.relativize(file)));
+    }
+
+    /**
+     * Checks whether a manifest source root is target-relative and cannot escape upward.
+     *
+     * @param rootEntry the manifest source root entry
+     * @return true when the root entry is a safe relative path or glob
+     */
+    private static boolean isSafeRelativeRoot(String rootEntry) {
+        final Path path = Path.of(rootEntry);
+        return !rootEntry.isBlank()
+                && !path.isAbsolute()
+                && IntStream.range(0, path.getNameCount())
+                        .noneMatch(i -> path.getName(i).toString().equals(".."));
     }
 }

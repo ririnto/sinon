@@ -85,7 +85,9 @@ class SilentCatchRule(HarnessCheckRule):
                     if len(body_stmts) == 1:
                         stmt = body_stmts[0]
                         if isinstance(stmt, cst.SimpleStatementLine):
-                            if len(stmt.body) == 1 and isinstance(stmt.body[0], cst.Pass):
+                            if len(stmt.body) == 1 and isinstance(
+                                stmt.body[0], cst.Pass
+                            ):
                                 self.findings.append(
                                     Finding(
                                         severity,
@@ -107,11 +109,9 @@ class SilentCatchRule(HarnessCheckRule):
                     body_text = _body_text(handler)
                     param_name = _handler_param_name(handler)
                     has_raise = "raise" in body_text
-                    has_logging = any(
+                    if not has_raise and not any(
                         re.search(pattern, body_text) for pattern in allowed_logging
-                    )
-                    uses_param = param_name is not None and param_name in body_text
-                    if not has_raise and not has_logging:
+                    ):
                         self.findings.append(
                             Finding(
                                 severity,
@@ -171,8 +171,7 @@ class SilentCatchRule(HarnessCheckRule):
 
         Defaults to common Python logging patterns when not configured.
         """
-        manifest = ctx.manifest.raw
-        section = manifest.get(self.category, {})
+        section = ctx.manifest.raw.get(self.category, {})
         params = section.get("parameters", {})
         tokens = params.get("allowedLoggingCalls")
         return (

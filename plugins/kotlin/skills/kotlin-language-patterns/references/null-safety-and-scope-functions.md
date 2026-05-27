@@ -21,7 +21,7 @@ Nullable handoff with an early return:
 ```kotlin
 fun primaryEmail(user: User?): String? {
     val account = user ?: return null
-    return account.emails.firstOrNull { it.isPrimary }?.value
+    return account.emails.firstOrNull { email -> email.isPrimary }?.value
 }
 ```
 
@@ -29,7 +29,7 @@ fun primaryEmail(user: User?): String? {
 
 ```kotlin
 fun displayName(user: User?): String =
-    user?.name?.trim()?.takeIf { it.isNotEmpty() } ?: "anonymous"
+    user?.name?.trim()?.takeIf { name -> name.isNotEmpty() } ?: "anonymous"
 ```
 
 `apply` for local configuration:

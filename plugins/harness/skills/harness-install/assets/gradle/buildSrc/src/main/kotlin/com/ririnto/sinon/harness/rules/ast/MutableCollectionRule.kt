@@ -6,11 +6,15 @@ import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.core.Severity
 import com.ririnto.sinon.harness.rules.HarnessAstRule
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtLambdaArgument
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtUserType
+import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import java.nio.file.Path
 
@@ -56,11 +60,72 @@ object MutableCollectionRule : HarnessAstRule() {
                     ctx,
                     ktFile,
                     MutableConfig(
-                        configuredSet(ctx, "forbiddenConstructors", listOf("mutableListOf", "mutableSetOf", "mutableMapOf", "arrayListOf", "hashSetOf", "hashMapOf", "linkedSetOf", "linkedMapOf", "ArrayList", "HashSet", "HashMap", "LinkedHashMap", "LinkedHashSet", "LinkedList", "TreeMap", "TreeSet")),
-                        configuredSet(ctx, "forbiddenTypes", listOf("MutableList", "MutableSet", "MutableMap", "ArrayList", "HashSet", "HashMap", "LinkedHashMap", "LinkedHashSet", "LinkedList", "TreeMap", "TreeSet")),
-                        configuredSet(ctx, "forbiddenFqns", listOf("java.util.ArrayList", "java.util.HashMap", "java.util.HashSet", "java.util.LinkedHashMap", "java.util.LinkedHashSet", "java.util.LinkedList", "java.util.TreeMap", "java.util.TreeSet", "kotlin.collections.MutableList", "kotlin.collections.MutableMap", "kotlin.collections.MutableSet")),
-                        configuredSet(ctx, "accumulationMethods", listOf("add", "addAll", "put", "putAll")),
-                        configuredSet(ctx, "allowedBuilders", listOf("buildList", "buildMap", "buildSet", "dependencies")),
+                        configuredSet(
+                            ctx,
+                            "forbiddenConstructors",
+                            listOf(
+                                "mutableListOf",
+                                "mutableSetOf",
+                                "mutableMapOf",
+                                "arrayListOf",
+                                "hashSetOf",
+                                "hashMapOf",
+                                "linkedSetOf",
+                                "linkedMapOf",
+                                "ArrayList",
+                                "HashSet",
+                                "HashMap",
+                                "LinkedHashMap",
+                                "LinkedHashSet",
+                                "LinkedList",
+                                "TreeMap",
+                                "TreeSet",
+                            ),
+                        ),
+                        configuredSet(
+                            ctx,
+                            "forbiddenTypes",
+                            listOf(
+                                "MutableList",
+                                "MutableSet",
+                                "MutableMap",
+                                "ArrayList",
+                                "HashSet",
+                                "HashMap",
+                                "LinkedHashMap",
+                                "LinkedHashSet",
+                                "LinkedList",
+                                "TreeMap",
+                                "TreeSet",
+                            ),
+                        ),
+                        configuredSet(
+                            ctx,
+                            "forbiddenFqns",
+                            listOf(
+                                "java.util.ArrayList",
+                                "java.util.HashMap",
+                                "java.util.HashSet",
+                                "java.util.LinkedHashMap",
+                                "java.util.LinkedHashSet",
+                                "java.util.LinkedList",
+                                "java.util.TreeMap",
+                                "java.util.TreeSet",
+                                "kotlin.collections.MutableList",
+                                "kotlin.collections.MutableMap",
+                                "kotlin.collections.MutableSet",
+                            ),
+                        ),
+                        configuredSet(
+                            ctx,
+                            "accumulationMethods",
+                            listOf("add", "addAll", "put", "putAll"),
+                        ),
+                        configuredSet(
+                            ctx,
+                            "allowedBuilders",
+                            listOf("buildList", "buildMap", "buildSet", "dependencies", "apply", "also"),
+                        ),
                     ),
                 ),
             )
@@ -71,8 +136,7 @@ object MutableCollectionRule : HarnessAstRule() {
         key: String,
         defaults: List<String>,
     ): Set<String> {
-        val configured = ctx.manifest.stringArray(category, key)
-        return (configured.ifEmpty { defaults }).toSet()
+        return (ctx.manifest.stringArray(category, key).ifEmpty { defaults }).toSet()
     }
 
     private data class MutableConfig(
@@ -100,11 +164,16 @@ object MutableCollectionRule : HarnessAstRule() {
             val calleeName = expression.calleeExpression?.text ?: ""
             val qualifiedName = expression.getQualifiedExpressionForSelector()?.text?.substringBefore("(") ?: calleeName
             val receiverName = qualifiedName.substringBeforeLast(".", "")
+            val isAccumulation = calleeName in config.accumulationMethods
             val findingName =
                 when {
                     calleeName in config.constructors -> calleeName
+
                     qualifiedName in config.forbiddenFqns -> qualifiedName
-                    calleeName in config.accumulationMethods && receiverName !in config.allowedBuilders -> calleeName
+
+                    isAccumulation && !isReceiverAllowed(receiverName) &&
+                        !isInsideAllowedBuilderLambda(expression) -> calleeName
+
                     else -> ""
                 }
             if (findingName.isNotEmpty()) {
@@ -115,12 +184,11 @@ object MutableCollectionRule : HarnessAstRule() {
         override fun visitUserType(type: KtUserType) {
             super.visitUserType(type)
             val typeName = type.text.substringBefore("<")
-            val findingName =
-                when {
-                    typeName in config.types -> typeName
-                    typeName in config.forbiddenFqns -> typeName
-                    else -> ""
-                }
+            val findingName = when {
+                typeName in config.types -> typeName
+                typeName in config.forbiddenFqns -> typeName
+                else -> ""
+            }
             if (findingName.isNotEmpty()) {
                 record(
                     AstFinding(
@@ -132,6 +200,25 @@ object MutableCollectionRule : HarnessAstRule() {
                 )
             }
         }
+
+        private fun isReceiverAllowed(receiverName: String): Boolean =
+            when {
+                receiverName.isEmpty() -> false
+                receiverName in config.allowedBuilders -> true
+                else -> config.allowedBuilders.any { allowed -> receiverName.endsWith(".$allowed") }
+            }
+
+        private fun isInsideAllowedBuilderLambda(call: KtCallExpression): Boolean =
+            generateSequence(call.parent as PsiElement?) { element -> element.parent }
+                .filterIsInstance<KtLambdaExpression>()
+                .any { lambda ->
+                    val argument = lambda.parent
+                    (when (argument) {
+                        is KtLambdaArgument -> argument.parent as? KtCallExpression
+                        is KtValueArgument -> argument.parent?.parent as? KtCallExpression
+                        else -> null
+                    }?.calleeExpression?.text ?: "") in config.allowedBuilders
+                }
 
         private fun recordFinding(
             expression: KtCallExpression,

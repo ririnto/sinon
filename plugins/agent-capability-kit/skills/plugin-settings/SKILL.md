@@ -305,7 +305,7 @@ validate_path_safe() {
 }
 
 FILE_PATH=$(echo "$FRONTMATTER" | grep '^data_file:' | sed 's/data_file: *//')
-if validate_path_safe "${CLAUDE_PROJECT_DIR}" "$FILE_PATH" > /dev/null; then
+if ! FILE_PATH=$(validate_path_safe "${CLAUDE_PROJECT_DIR}" "$FILE_PATH"); then
     echo "⚠️ Invalid path in settings" >&2
     exit 2
 fi

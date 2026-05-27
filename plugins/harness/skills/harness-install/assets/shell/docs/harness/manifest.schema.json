@@ -1,40 +1,75 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.shell.schema.json",
   "title": "RepositoryHarnessManifestShell",
-  "description": "Shell stack manifest schema. Extends manifest.base.schema.json with typed parameter shapes for shell-specific rules: executable path lists, hook file rules, POSIX shell policy, shell runtime scope, generated-artifact patterns, and Markdown fence policy for shell-owned docs/templates.",
-  "allOf": [
-    {
-      "$ref": "./manifest.base.schema.json"
-    },
-    {
-      "type": "object",
-      "properties": {
-        "filePresence": {
-          "$ref": "#/$defs/addOnWithPaths"
-        },
-        "directoryPresence": {
-          "$ref": "#/$defs/addOnWithPaths"
-        },
-        "emptyDirectoryPlaceholders": {
-          "$ref": "#/$defs/addOnWithDirectories"
-        },
-        "scaffoldLeaks": {
-          "$ref": "#/$defs/addOnWithScaffoldScope"
-        },
-        "hookShebang": {
-          "$ref": "#/$defs/addOnWithHookShebang"
-        },
-        "hookExecutable": {
-          "$ref": "#/$defs/addOnWithHookList"
-        },
-        "uncheckedTasks": {
-          "$ref": "#/$defs/addOnWithUncheckedTasks"
-        }
-      }
-    }
+  "description": "Self-contained shell stack manifest schema for docs/harness/manifest.json. Defines typed parameter shapes for shell-specific rules: executable path lists, hook file rules, POSIX shell policy, shell runtime scope, generated-artifact patterns, and Markdown fence policy for shell-owned docs/templates. No external schema dependencies.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "description"
   ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "filePresence": {
+      "$ref": "#/$defs/addOnWithPaths"
+    },
+    "directoryPresence": {
+      "$ref": "#/$defs/addOnWithPaths"
+    },
+    "emptyDirectoryPlaceholders": {
+      "$ref": "#/$defs/addOnWithDirectories"
+    },
+    "scaffoldLeaks": {
+      "$ref": "#/$defs/addOnWithScaffoldScope"
+    },
+    "hookShebang": {
+      "$ref": "#/$defs/addOnWithHookShebang"
+    },
+    "hookExecutable": {
+      "$ref": "#/$defs/addOnWithHookList"
+    },
+    "uncheckedTasks": {
+      "$ref": "#/$defs/addOnWithUncheckedTasks"
+    },
+    "shellcheck": {
+      "$ref": "#/$defs/addOnWithShellcheck"
+    },
+    "seedFiles": {
+      "$ref": "#/$defs/metadata"
+    },
+    "generatedArtifacts": {
+      "$ref": "#/$defs/metadata"
+    },
+    "harnessEvolution": {
+      "$ref": "#/$defs/metadata"
+    },
+    "teamPatterns": {
+      "$ref": "#/$defs/metadata"
+    }
+  },
   "$defs": {
+    "severity": {
+      "enum": [
+        "ERROR",
+        "WARN",
+        "INFO"
+      ]
+    },
+    "fixSafety": {
+      "enum": [
+        "safe",
+        "unsafe",
+        "manual"
+      ]
+    },
     "addOnWithPaths": {
       "type": "object",
       "description": "Add-on with a typed paths array parameter.",
@@ -51,7 +86,7 @@
           "default": true
         },
         "severity": {
-          "$ref": "./manifest.base.schema.json#/$defs/severity"
+          "$ref": "#/$defs/severity"
         },
         "messages": {
           "type": "object",
@@ -93,7 +128,7 @@
           "default": true
         },
         "severity": {
-          "$ref": "./manifest.base.schema.json#/$defs/severity"
+          "$ref": "#/$defs/severity"
         },
         "messages": {
           "type": "object",
@@ -135,7 +170,7 @@
           "default": true
         },
         "severity": {
-          "$ref": "./manifest.base.schema.json#/$defs/severity"
+          "$ref": "#/$defs/severity"
         },
         "messages": {
           "type": "object",
@@ -224,7 +259,7 @@
           "default": true
         },
         "severity": {
-          "$ref": "./manifest.base.schema.json#/$defs/severity"
+          "$ref": "#/$defs/severity"
         },
         "messages": {
           "type": "object",
@@ -271,7 +306,7 @@
           "default": true
         },
         "severity": {
-          "$ref": "./manifest.base.schema.json#/$defs/severity"
+          "$ref": "#/$defs/severity"
         },
         "messages": {
           "type": "object",
@@ -313,7 +348,7 @@
           "default": true
         },
         "severity": {
-          "$ref": "./manifest.base.schema.json#/$defs/severity"
+          "$ref": "#/$defs/severity"
         },
         "messages": {
           "type": "object",
@@ -344,6 +379,50 @@
           }
         }
       }
+    },
+    "addOnWithShellcheck": {
+      "type": "object",
+      "description": "Add-on for shellcheck validation of shell scripts.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {}
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Informational metadata; not validated by the harness.",
+      "required": [
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
     }
   }
 }

@@ -77,7 +77,6 @@ export const unstructuredLoggingRule: HarnessCheckRule = {
  * Resolves logging API lists from manifest parameters.
  */
 function resolveLoggingApis(ctx: RuleContext, key: string, defaults: string[]): string[] {
-    const params = ctx.readJsonObject(ctx.categoryObject("unstructuredLogging").parameters);
-    const values = ctx.readStringArray(params[key]);
-    return values.length > 0 ? Array.from(values) : defaults;
+    const v = ctx.readStringArray(ctx.readJsonObject(ctx.categoryObject("unstructuredLogging").parameters)[key]);
+    return v.length > 0 ? Array.from(v) : defaults;
 }
