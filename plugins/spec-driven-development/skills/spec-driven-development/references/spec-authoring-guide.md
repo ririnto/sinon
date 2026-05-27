@@ -14,13 +14,13 @@ Each section SHOULD be written at the correct workflow timing so requirements re
 
 ### Canonical Placement
 
-SPECs MUST be placed at `spec/domain/<ownership-path>/SPEC.md` where `<ownership-path>` reflects the owning capability boundary.
+SPECs MUST be placed at `spec/domain/{{ownership-path}}/SPEC.md` where `{{ownership-path}}` reflects the owning capability boundary.
 
 Parent capability SPECs at `spec/domain/SPEC.md` are valid when ownership of child capability differs. Nested hierarchies MUST remain valid under this rule.
 
 ### Ownership-Oriented Naming
 
-The `<ownership-path>` component MUST reflect actual ownership boundaries.
+The `{{ownership-path}}` component MUST reflect actual ownership boundaries.
 
 Naming MUST be ownership-oriented and MUST NOT use the following patterns:
 

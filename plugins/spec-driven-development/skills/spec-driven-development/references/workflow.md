@@ -97,7 +97,7 @@ If Research was needed, the active investigation findings already exist.
 Activities:
 
 1. The spec path MUST be determined from ownership rules that map to the owning capability boundary.
-2. `spec/domain/<ownership-path>/SPEC.md` MUST be created. The `<ownership-path>` MUST reflect the owning capability boundary. Authors MAY copy `assets/templates/SPEC.md` as a starting scaffold.
+2. `spec/domain/{{ownership-path}}/SPEC.md` MUST be created. The `{{ownership-path}}` MUST reflect the owning capability boundary. Authors MAY copy `assets/templates/SPEC.md` as a starting scaffold.
 3. `spec/CHANGELOG.md` MUST exist. `CHANGELOG.md` MUST NOT be created inside individual spec directories. Only `spec/CHANGELOG.md` is permitted.
 4. Necessity, Role, and Overview SHOULD be completed first.
 5. Scope ownership MUST be confirmed: the SPEC MUST own a single capability and MUST NOT duplicate another SPEC's requirements.
