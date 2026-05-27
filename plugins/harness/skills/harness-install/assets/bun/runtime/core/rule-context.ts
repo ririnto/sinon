@@ -107,12 +107,11 @@ export function createRuleContext(
             return null;
         }
         const expectedPath = pathOf(path);
-        if (!existsSync(expectedPath)) {
+        if (!existsSync(expectedPath) || !lstatSync(expectedPath).isSymbolicLink()) {
             return null;
         }
         const expected = path === "AGENTS.md" ? "CLAUDE.md" : "AGENTS.md";
-        const link = readlinkSync(expectedPath);
-        if (link !== expected) {
+        if (readlinkSync(expectedPath) !== expected) {
             return null;
         }
         const expectedFullPath = pathOf(expected);

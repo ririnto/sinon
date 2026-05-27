@@ -24,9 +24,6 @@ abstract class HarnessStackScopeRule : HarnessCheckRule() {
         if (!ctx.manifest.isEnabled(category)) {
             return false
         }
-        val catObj = ctx.manifest.categoryObject(category) ?: return false
-        val parametersObj = catObj["parameters"]?.jsonObject ?: return false
-        val sourceRoots = parametersObj["sourceRoots"]?.jsonArray ?: return false
-        return sourceRoots.isNotEmpty()
+        return (((ctx.manifest.categoryObject(category) ?: return false)["parameters"]?.jsonObject ?: return false)["sourceRoots"]?.jsonArray ?: return false).isNotEmpty()
     }
 }

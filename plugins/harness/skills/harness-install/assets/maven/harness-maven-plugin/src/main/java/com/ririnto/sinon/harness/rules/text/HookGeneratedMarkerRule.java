@@ -7,7 +7,11 @@ import com.ririnto.sinon.harness.Finding;
 
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -18,11 +22,12 @@ import java.util.stream.Stream;
 public enum HookGeneratedMarkerRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "hookGeneratedMarker";
+
     @Override
     public String category() {
         return "hookGeneratedMarker";
     }
-    private static final String CATEGORY = "hookGeneratedMarker";
 
     @Override
     public boolean applies(RuleContext ctx) {
@@ -46,6 +51,51 @@ public enum HookGeneratedMarkerRule implements HarnessCheckRule {
                     }
                 })
                 .toList();
+    }
+
+    /**
+     * Automatically inserts generated marker at the beginning of hook files.
+     * Only handles missing marker (SAFE). Placeholder presence (MANUAL) is skipped.
+     *
+     * @param ctx The rule context containing root path and manifest.
+     * @return Collection of paths that were modified.
+     * @throws MojoExecutionException if file operations fail.
+     */
+    @Override
+    public Collection<Path> format(RuleContext ctx) throws MojoExecutionException {
+        final Path root = ctx.root();
+        final JsonNode manifest = ctx.manifest().raw();
+        final JsonNode catNode = manifest.get(CATEGORY);
+        if (catNode == null) {
+            return List.of();
+        }
+        final JsonNode parametersNode = catNode.get("parameters");
+        if (parametersNode == null) {
+            return List.of();
+        }
+        final JsonNode hooksNode = parametersNode.get("hooks");
+        if (hooksNode == null) {
+            return List.of();
+        }
+        final String markerTemplate = parametersNode.get("markerTemplate").asText();
+        final List<Path> formatted = new ArrayList<>();
+        for (final String hook : HarnessCheckHelper.extractPaths(hooksNode)) {
+            final Path hookPath = root.resolve(hook);
+            if (!HarnessCheckHelper.isSafeRegularFile(root, hookPath)) {
+                continue;
+            }
+            try {
+                final String text = Files.readString(hookPath, StandardCharsets.UTF_8);
+                final String expectedMarker = markerTemplate.replace("{name}", hookPath.getFileName().toString());
+                if (!text.contains(expectedMarker)) {
+                    Files.writeString(hookPath, expectedMarker + "\n" + text, StandardCharsets.UTF_8);
+                    formatted.add(hookPath);
+                }
+            } catch (IOException e) {
+                throw new MojoExecutionException("Failed to insert marker in " + hook, e);
+            }
+        }
+        return formatted;
     }
 
     private List<Finding> validateMarker(Path root, String hook, String markerTemplate, String placeholderForbidden, String severity) throws MojoExecutionException {

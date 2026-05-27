@@ -25,14 +25,22 @@ object DirectoryPresenceRule : HarnessCheckRule() {
     override val category: String = "directoryPresence"
 
     override fun validate(ctx: RuleContext): Collection<Finding> {
-        val catObj = ctx.manifest.categoryObject(category) ?: return emptyList()
-        catObj.get("parameters")?.jsonObject ?: return emptyList()
+        (ctx.manifest.categoryObject(category) ?: return emptyList()).get("parameters")?.jsonObject ?: return emptyList()
         return buildList {
             ctx.manifest.stringArray(category, "paths").forEach { path ->
                 val p = ctx.root / path
                 when {
-                    p.isSymbolicLink() -> add(Finding(Severity.ERROR, category, "symlink directory is not allowed: $path"))
-                    !p.isDirectory() -> add(Finding(ctx.manifest.severityOf(category), category, "missing directory: $path"))
+                    p.isSymbolicLink() -> {
+                        add(
+                            Finding(Severity.ERROR, category, "symlink directory is not allowed: $path"),
+                        )
+                    }
+
+                    !p.isDirectory() -> {
+                        add(
+                            Finding(ctx.manifest.severityOf(category), category, "missing directory: $path"),
+                        )
+                    }
                 }
             }
         }

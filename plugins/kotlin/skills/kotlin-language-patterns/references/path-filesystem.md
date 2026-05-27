@@ -39,16 +39,13 @@ import kotlin.io.path.writeText
 class ConfigWriter {
     fun writeDefaultConfig(root: Path): Path {
         val out = root / "config" / "app.json"
-
         out.createParentDirectories()
         if (!out.exists()) {
             out.writeText("{}")
         }
-
         println(out.name)
         println(out.extension)
         println(out.readText())
-
         return out
     }
 }
@@ -63,8 +60,8 @@ import java.io.StringReader
 fun firstNonBlankLine(raw: String): String? =
     BufferedReader(StringReader(raw)).use { reader ->
         reader.lineSequence()
-            .map { it.trim() }
-            .firstOrNull { it.isNotEmpty() }
+            .map { line -> line.trim() }
+            .firstOrNull { line -> line.isNotEmpty() }
     }
 ```
 

@@ -101,10 +101,8 @@ import kotlin.test.assertEquals
 @Test
 fun returnsFallbackOnTimeout() = runTest {
     val result = async { service.loadWithTimeout(OrderId("1")) }
-
     advanceTimeBy(5_000)
     runCurrent()
-
     assertEquals(Fallback, result.await())
 }
 ```

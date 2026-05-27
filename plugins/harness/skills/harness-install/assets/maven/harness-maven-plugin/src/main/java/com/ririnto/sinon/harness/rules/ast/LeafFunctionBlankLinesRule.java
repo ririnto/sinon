@@ -6,14 +6,19 @@ import com.ririnto.sinon.harness.Finding;
 
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
+import com.github.javaparser.JavaToken;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.TokenRange;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.LambdaExpr;
+import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,6 +51,94 @@ public enum LeafFunctionBlankLinesRule implements AstRule {
         } catch (MojoExecutionException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to enumerate sources: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Removes excess blank lines from leaf function bodies and writes changed files.
+     */
+    @Override
+    public Collection<Path> format(RuleContext ctx) throws MojoExecutionException {
+        final Path root = ctx.root();
+        final JsonNode manifest = ctx.manifest().raw();
+        final List<Path> changed = new ArrayList<>();
+        try {
+            final int maxConsecutiveBlankLines = maxConsecutiveBlankLines(manifest);
+            for (final Path file : ctx.stackSources(CATEGORY)) {
+                if (formatBlankLinesInLeafFunctions(file, maxConsecutiveBlankLines)) {
+                    changed.add(file);
+                }
+            }
+        } catch (MojoExecutionException e) {
+            throw new MojoExecutionException("failed to enumerate sources: " + e.getMessage(), e);
+        }
+        return changed;
+    }
+
+    private boolean formatBlankLinesInLeafFunctions(Path file, int maxConsecutiveBlankLines) throws MojoExecutionException {
+        try {
+            final CompilationUnit cu = StaticJavaParser.parse(file);
+            LexicalPreservingPrinter.setup(cu);
+            boolean fileChanged = false;
+            for (final MethodDeclaration method : cu.findAll(MethodDeclaration.class)) {
+                if (isLeafMethod(method)) {
+                    final boolean methodChanged = removeExcessBlankLinesInMethod(method, maxConsecutiveBlankLines);
+                    fileChanged = fileChanged || methodChanged;
+                }
+            }
+            if (fileChanged) {
+                Files.writeString(file, LexicalPreservingPrinter.print(cu), StandardCharsets.UTF_8);
+            }
+            return fileChanged;
+        } catch (IOException e) {
+            throw new MojoExecutionException("failed to format " + file + ": " + e.getMessage(), e);
+        }
+    }
+
+    private boolean removeExcessBlankLinesInMethod(MethodDeclaration method, int maxConsecutiveBlankLines) {
+        final java.util.Optional<BlockStmt> optBody = method.getBody();
+        if (optBody.isEmpty()) {
+            return false;
+        }
+        final java.util.Optional<TokenRange> optTokenRange = optBody.get().getTokenRange();
+        if (optTokenRange.isEmpty()) {
+            return false;
+        }
+        final TokenRange tokenRange = optTokenRange.get();
+        boolean methodChanged = false;
+        JavaToken cur = tokenRange.getBegin();
+        final JavaToken end = tokenRange.getEnd();
+        int consecutive = 0;
+        final List<JavaToken> pendingNewlines = new ArrayList<>();
+        while (cur != null) {
+            final String text = cur.getText();
+            final boolean isNewline = "\n".equals(text) || "\r\n".equals(text);
+            final boolean isWsWithNewline = text.matches("\\s+") && text.contains("\n");
+            JavaToken next = cur.getNextToken().orElse(null);
+            if (isNewline) {
+                consecutive += 1;
+                pendingNewlines.add(cur);
+            } else if (isWsWithNewline) {
+                final long count = text.chars().filter(c -> c == '\n').count();
+                consecutive += (int) count;
+                pendingNewlines.add(cur);
+            } else if (!text.trim().isEmpty()) {
+                if (consecutive > maxConsecutiveBlankLines + 1) {
+                    final int excess = consecutive - (maxConsecutiveBlankLines + 1);
+                    for (int i = 0; i < excess && !pendingNewlines.isEmpty(); i++) {
+                        final JavaToken victim = pendingNewlines.remove(pendingNewlines.size() - 1);
+                        victim.deleteToken();
+                        methodChanged = true;
+                    }
+                }
+                consecutive = 0;
+                pendingNewlines.clear();
+            }
+            if (cur == end) {
+                break;
+            }
+            cur = next;
+        }
+        return methodChanged;
     }
 
     private List<Finding> validateBlankLinesInLeafFunctions(Path root, Path file, String severity, int maxConsecutiveBlankLines) {

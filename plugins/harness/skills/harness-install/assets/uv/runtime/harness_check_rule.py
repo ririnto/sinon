@@ -176,8 +176,7 @@ class HarnessCheckRule(ABC):
         if not path.is_symlink():
             return None
         target_name = os.readlink(path)
-        expected = "CLAUDE.md" if path.name == "AGENTS.md" else "AGENTS.md"
-        if target_name != expected:
+        if target_name != ("CLAUDE.md" if path.name == "AGENTS.md" else "AGENTS.md"):
             return None
         target = ROOT / target_name
         return (
@@ -211,7 +210,11 @@ class HarnessCheckRule(ABC):
             directories[:] = [
                 name for name in directories if not (current_path / name).is_symlink()
             ]
-            for child in (current_path / name for name in files if not (current_path / name).is_symlink()):
+            for child in (
+                current_path / name
+                for name in files
+                if not (current_path / name).is_symlink()
+            ):
                 output.append(child)
         return tuple(output)
 
@@ -289,15 +292,13 @@ class HarnessCheckRule(ABC):
         python_exts = params.get("extensions", [])
         if not isinstance(python_exts, list):
             return ()
-        ext_set = frozenset(e for e in python_exts if isinstance(e, str))
-
         def matches_filter(file_path: Path) -> bool:
             return (
                 file_path.is_file()
                 and not file_path.is_symlink()
                 and "__pycache__" not in file_path.parts
                 and HarnessCheckRule.is_relative_to(file_path.resolve(), root)
-                and file_path.suffix.lstrip(".") in ext_set
+                and file_path.suffix.lstrip(".") in frozenset(e for e in python_exts if isinstance(e, str))
             )
 
         def collect_all() -> list[Path]:
@@ -310,7 +311,9 @@ class HarnessCheckRule(ABC):
                         if (
                             resolved_path.is_dir()
                             and not resolved_path.is_symlink()
-                            and HarnessCheckRule.is_relative_to(resolved_path.resolve(), root)
+                            and HarnessCheckRule.is_relative_to(
+                                resolved_path.resolve(), root
+                            )
                         ):
                             collected.extend(
                                 file_path.resolve()
@@ -338,8 +341,7 @@ class HarnessCheckRule(ABC):
         """Parse a Python file and return Module or error message."""
         if not path.is_file():
             return (None, "file not found")
-        module = cst.parse_module(path.read_text(encoding="utf-8"))
-        return (module, None)
+        return (cst.parse_module(path.read_text(encoding="utf-8")), None)
 
     @staticmethod
     def has_nested_function(func_node: cst.FunctionDef) -> bool:

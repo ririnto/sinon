@@ -2,8 +2,6 @@
 // -*- coding: utf-8 -*-
 import type { Finding, HarnessCheckRule, RuleContext } from "../harness-check-rule";
 
-const STACK = "bun";
-
 export const hookCommandRule: HarnessCheckRule = {
     category: "hookCommand",
     applies(ctx: RuleContext): boolean {
@@ -21,8 +19,7 @@ export const hookCommandRule: HarnessCheckRule = {
 
     validate(ctx: RuleContext): readonly Finding[] {
         const parameters = ctx.readJsonObject(ctx.readJsonObject(ctx.manifest.raw.hookCommand).parameters);
-        const allowedCommands = ctx.readJsonObject(parameters.allowedCommands);
-        const stackCommands = ctx.readStringArray(allowedCommands[STACK]);
+        const stackCommands = ctx.readStringArray(parameters.allowedCommands);
         const prePushHook = typeof parameters.prePushHook === "string" ? parameters.prePushHook : "";
         if (!ctx.isFile(prePushHook)) {
             return [];

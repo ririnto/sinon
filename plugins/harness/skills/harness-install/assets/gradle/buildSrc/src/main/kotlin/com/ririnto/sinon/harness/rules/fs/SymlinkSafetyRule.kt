@@ -36,19 +36,21 @@ object SymlinkSafetyRule : HarnessCheckRule() {
     override val category: String = "symlinkSafety"
 
     override fun validate(ctx: RuleContext): Collection<Finding> {
-        val catObj = ctx.manifest.categoryObject(category) ?: return emptyList()
-        val parametersObj = catObj.get("parameters")?.jsonObject ?: return emptyList()
-        val allowedPairs = parametersObj["allowedSymlinkPairs"]?.jsonArray?.mapNotNull { pairElem ->
-            val pair = pairElem.jsonArray
-            when {
-                2 <= pair.size && pair[0].jsonPrimitive.contentOrNull != null && pair[1].jsonPrimitive.contentOrNull != null ->
-                    pair[0].jsonPrimitive.contentOrNull to pair[1].jsonPrimitive.contentOrNull
-                else -> null
+        val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList()).get("parameters")?.jsonObject ?: return emptyList()
+        val allowedSet = buildSet {
+            parametersObj["allowedSymlinkPairs"]?.jsonArray?.forEach { pairElem ->
+                val pair = pairElem.jsonArray
+                val first = pair.getOrNull(0)?.jsonPrimitive?.contentOrNull
+                val second = pair.getOrNull(1)?.jsonPrimitive?.contentOrNull
+                if (first != null && second != null) {
+                    add(first to second)
+                    add(second to first)
+                }
             }
-        } ?: emptyList()
-        val allowedSet = allowedPairs.flatMap { (a, b) -> listOf(a to b, b to a) }.toSet()
+        }
         return buildList {
-            ctx.root.listDirectoryEntries()
+            ctx.root
+                .listDirectoryEntries()
                 .filter { file -> file.isSymbolicLink() }
                 .filter { file -> (file.name to file.readSymbolicLink().pathString) !in allowedSet }
                 .forEach { file ->
@@ -56,7 +58,9 @@ object SymlinkSafetyRule : HarnessCheckRule() {
                         Finding(
                             Severity.ERROR,
                             category,
-                            ctx.manifest.stringValue(category, "fileNotAllowed").takeIf { message -> message.isNotEmpty() }
+                            ctx.manifest.stringValue(category, "fileNotAllowed").takeIf { message ->
+                                message.isNotEmpty()
+                            }
                                 ?: "symlink file is not allowed: ${file.relativeTo(ctx.root)}",
                         ),
                     )

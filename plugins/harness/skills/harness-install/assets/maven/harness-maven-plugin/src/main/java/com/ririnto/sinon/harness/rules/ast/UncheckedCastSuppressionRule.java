@@ -11,8 +11,6 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.AnnotationExpr;
 import com.github.javaparser.ast.expr.ArrayInitializerExpr;
 import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.NormalAnnotationExpr;
-import com.github.javaparser.ast.expr.SingleMemberAnnotationExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -94,11 +92,9 @@ public enum UncheckedCastSuppressionRule implements AstRule {
      */
     private Set<String> extractSuppressTokens(AnnotationExpr ann) {
         if (ann.isSingleMemberAnnotationExpr()) {
-            final SingleMemberAnnotationExpr singleAnn = ann.asSingleMemberAnnotationExpr();
-            return extractFromExpression(singleAnn.getMemberValue());
+            return extractFromExpression(ann.asSingleMemberAnnotationExpr().getMemberValue());
         } else if (ann.isNormalAnnotationExpr()) {
-            final NormalAnnotationExpr normalAnn = ann.asNormalAnnotationExpr();
-            return normalAnn.getPairs().stream()
+            return ann.asNormalAnnotationExpr().getPairs().stream()
                     .filter(pair -> "value".equals(pair.getNameAsString()))
                     .map(pair -> extractFromExpression(pair.getValue()))
                     .flatMap(Set::stream)

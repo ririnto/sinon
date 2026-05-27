@@ -7,7 +7,6 @@ import com.ririnto.sinon.harness.Finding;
 
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
-import java.nio.file.Path;
 import java.util.Collection;
 
 /**
@@ -16,11 +15,12 @@ import java.util.Collection;
 public enum DirectoryPresenceRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "directoryPresence";
+
     @Override
     public String category() {
         return "directoryPresence";
     }
-    private static final String CATEGORY = "directoryPresence";
 
     @Override
     public boolean applies(RuleContext ctx) {
@@ -29,12 +29,10 @@ public enum DirectoryPresenceRule implements HarnessCheckRule {
 
     @Override
     public Collection<Finding> validate(RuleContext ctx) throws MojoExecutionException {
-        final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
-        final JsonNode catNode = manifest.get(CATEGORY);
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("paths")).stream()
-                .filter(path -> !HarnessCheckHelper.isSafeDirectory(root, root.resolve(path)))
+        return HarnessCheckHelper.extractPaths(manifest.get(CATEGORY).get("parameters").get("paths")).stream()
+                .filter(path -> !HarnessCheckHelper.isSafeDirectory(ctx.root(), ctx.root().resolve(path)))
                 .map(path -> Finding.of(severity, CATEGORY, "missing directory: " + path))
                 .toList();
     }

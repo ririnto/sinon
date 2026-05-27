@@ -157,8 +157,8 @@ Build transform chains with basic operators. Keep chains readable by grouping re
 
 ```kotlin
 repository.observeOrders()
-    .filter { it.status == Status.ACTIVE }
-    .map { it.toDisplayModel() }
+    .filter { order -> order.status == Status.ACTIVE }
+    .map { order -> order.toDisplayModel() }
     .distinctUntilChanged()
     .collect { model -> render(model) }
 ```
@@ -180,7 +180,7 @@ Use `onEach` to inject side effects (logging, metrics) into a Flow chain without
 ```kotlin
 orders
     .onEach { order -> log.debug("Processing order ${order.id}") }
-    .map { it.toDisplayModel() }
+    .map { order -> order.toDisplayModel() }
     .collect { model -> render(model) }
 ```
 
@@ -196,7 +196,7 @@ Handle errors at the Flow level using `catch` and `retry`, not by wrapping `coll
 
 ```kotlin
 repository.observeOrders()
-    .retry(3) { it is IOException }
+    .retry(3) { error -> error is IOException }
     .catch { e -> emit(FallbackOrderList) }
     .collect { orders -> render(orders) }
 ```

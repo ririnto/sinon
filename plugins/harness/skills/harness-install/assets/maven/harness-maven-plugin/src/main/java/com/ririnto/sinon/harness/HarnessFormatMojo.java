@@ -83,7 +83,6 @@ public final class HarnessFormatMojo extends AbstractMojo {
         if (!Files.isRegularFile(manifestPath, LinkOption.NOFOLLOW_LINKS)) {
             throw new IOException("missing manifest: " + MANIFEST_PATH.toString());
         }
-        final String raw = Files.readString(manifestPath, StandardCharsets.UTF_8);
-        return new ObjectMapper().readTree(raw);
+        return new ObjectMapper().readTree(Files.readString(manifestPath, StandardCharsets.UTF_8));
     }
 }

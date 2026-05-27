@@ -125,17 +125,25 @@ Available in SessionStart command hooks only.
 All hook input fields accessible via `jq`:
 
 ```sh
-# shellcheck disable=SC2034
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+
 tool_name=$(cat | jq -r '.tool_name')
 tool_input=$(cat | jq -r '.tool_input')
 cwd=$(cat | jq -r '.cwd')
+printf 'Tool: %s, Input: %s, CWD: %s\n' "$tool_name" "$tool_input" "$cwd"
 ```
 
 ### UserPromptSubmit
 
 ```sh
-# shellcheck disable=SC2034
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+
 user_prompt=$(cat | jq -r '.user_prompt')
+echo "User prompt received: $user_prompt"
 ```
 
 ## Path resolution rules

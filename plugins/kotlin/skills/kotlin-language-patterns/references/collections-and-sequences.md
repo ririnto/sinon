@@ -19,7 +19,7 @@ Readable eager pipeline:
 
 ```kotlin
 fun enabledNames(users: List<User>): List<String> =
-    users.filter { it.enabled }.map { it.name }
+    users.filter { user -> user.enabled }.map { user -> user.name }
 ```
 
 Lazy sequence when the source is large and the chain is selective:
@@ -28,12 +28,11 @@ Lazy sequence when the source is large and the chain is selective:
 fun loadEnabledUsers(lines: List<String>): List<UserId> {
     val cleaned = lines
         .asSequence()
-        .map { it.substringBefore('#').trim() }
-        .filter { it.isNotEmpty() }
+        .map { line -> line.substringBefore('#').trim() }
+        .filter { line -> line.isNotEmpty() }
         .mapNotNull { raw -> raw.toLongOrNull() }
         .map(::UserId)
         .take(500)
-
     return cleaned.toList()
 }
 ```
@@ -51,16 +50,16 @@ fun loadEnabledUsers(lines: List<String>): List<UserId> {
 ### Grouping and associating
 
 ```kotlin
-val byCategory: Map<String, List<Order>> = orders.groupBy { it.category }
-val byId: Map<String, Order> = orders.associateBy { it.id }
-val lengths: Map<String, Int> = names.associateWith { it.length }
-val pairs: Map<String, Int> = names.associate { it to it.length }
+val byCategory: Map<String, List<Order>> = orders.groupBy { order -> order.category }
+val byId: Map<String, Order> = orders.associateBy { order -> order.id }
+val lengths: Map<String, Int> = names.associateWith { name -> name.length }
+val pairs: Map<String, Int> = names.associate { name -> name to name.length }
 ```
 
 ### Flattening and zipping
 
 ```kotlin
-val allItems: List<Item> = orders.flatMap { it.items }
+val allItems: List<Item> = orders.flatMap { order -> order.items }
 val paired: List<Pair<String, Int>> = names.zip(ages)
 val (namesAgain, agesAgain) = paired.unzip()
 ```
@@ -87,5 +86,5 @@ val filtered: List<String> = buildList {
 ```kotlin
 val batches: List<List<Order>> = orders.chunked(size = 100)
 val triples: List<List<Int>> = numbers.windowed(size = 3)
-val unique: List<User> = users.distinctBy { it.email }
+val unique: List<User> = users.distinctBy { user -> user.email }
 ```

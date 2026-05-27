@@ -31,7 +31,7 @@ object CiHookCommandParityRule : HarnessCheckRule() {
             val parametersObj = catObj?.get("parameters")?.jsonObject
             if (catObj != null && parametersObj != null) {
                 (ctx.root / JsonAccess.stringFromObject(parametersObj, "referenceHook"))
-                    .takeIf { it.isRegularFile() }
+                    .takeIf { refHook -> refHook.isRegularFile() }
                     ?.readText()
                     ?.lineSequence()
                     ?.firstOrNull { hookLine ->

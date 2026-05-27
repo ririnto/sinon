@@ -22,31 +22,42 @@ object DocContentRule : HarnessCheckRule() {
     override val category: String = "docContent"
 
     override fun validate(ctx: RuleContext): Collection<Finding> =
-        ctx.manifest.categoryObject(category)?.get("parameters")?.jsonObject?.get("checks")?.jsonArray?.mapNotNull { checkElem ->
-            runCatching { checkElem.jsonObject }.getOrNull()?.let { checkObj ->
-                val content = JsonAccess.stringArrayFromObject(checkObj, "files").joinToString("\n") { filePath ->
-                    ctx.readSafe(filePath)
+        ctx.manifest
+            .categoryObject(category)
+            ?.get("parameters")
+            ?.jsonObject
+            ?.get("checks")
+            ?.jsonArray
+            ?.mapNotNull { checkElem ->
+                runCatching { checkElem.jsonObject }.getOrNull()?.let { checkObj ->
+                    val content =
+                        JsonAccess
+                            .stringArrayFromObject(checkObj, "files")
+                            .joinToString("\n") { filePath -> ctx.readSafe(filePath) }
+                    when {
+                        !conditionMatches(checkObj, content) -> {
+                            Finding(
+                                ctx.manifest.severityOf(category),
+                                category,
+                                JsonAccess.stringFromObject(checkObj, "failureMessage"),
+                            )
+                        }
+
+                        else -> {
+                            null
+                        }
+                    }
                 }
-                if (!conditionMatches(checkObj, content)) {
-                    Finding(
-                        ctx.manifest.severityOf(category),
-                        category,
-                        JsonAccess.stringFromObject(checkObj, "failureMessage"),
-                    )
-                } else {
-                    null
-                }
-            }
-        } ?: emptyList()
+            } ?: emptyList()
 
     private fun conditionMatches(
         checkObj: JsonObject,
         content: String,
     ): Boolean {
         val condition = checkObj["condition"] ?: checkObj["when"]
-        return when {
-            condition != null -> evaluateCondition(condition, content)
-            else -> false
+        return when (condition) {
+            null -> false
+            else -> evaluateCondition(condition, content)
         }
     }
 
@@ -68,17 +79,13 @@ object DocContentRule : HarnessCheckRule() {
         if (!(hasAll || hasAny || hasContains || hasNot)) {
             return false
         }
-        val allOfValue = asObject["allOf"]
-        val anyOfValue = asObject["anyOf"]
-        val allOf = conditionArray(allOfValue)
-        val anyOf = conditionArray(anyOfValue)
+        val allOf = conditionArray(asObject["allOf"])
+        val anyOf = conditionArray(asObject["anyOf"])
         val contains = stringArray(asObject["contains"])
-        val andMatches = allOf.isEmpty() || allOf.all { item -> evaluateCondition(item, content) }
-        val orMatches = !hasAny || (anyOf.isNotEmpty() && anyOf.any { item -> evaluateCondition(item, content) })
-        val containsMatches = contains.all { item -> content.contains(item) }
-        val notCondition = asObject["not"]
-        val notMatches = !hasNot || notCondition?.let { item -> !evaluateCondition(item, content) } == true
-        return andMatches && orMatches && containsMatches && notMatches
+        return (allOf.isEmpty() || allOf.all { item -> evaluateCondition(item, content) }) &&
+            (!hasAny || (anyOf.isNotEmpty() && anyOf.any { item -> evaluateCondition(item, content) })) &&
+            contains.all { item -> content.contains(item) } &&
+            (!hasNot || asObject["not"]?.let { item -> !evaluateCondition(item, content) } == true)
     }
 
     private fun conditionArray(value: JsonElement?): List<JsonElement> {

@@ -8,6 +8,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.FileSystems
 import java.nio.file.Path
+import java.nio.file.PathMatcher
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.extension
@@ -31,15 +32,12 @@ class DefaultRuleContext(
     override val stack: String = "kotlin",
 ) : RuleContext {
     override fun readSafe(path: String): String {
-        val p = root / path
         return when {
-            p.isSymbolicLink() && isAllowedRootContractSymlink(p) -> {
-                val target =
-                    when (p.name) {
-                        "AGENTS.md" -> "CLAUDE.md"
-                        else -> "AGENTS.md"
-                    }
-                (root / target).let { targetPath ->
+            (root / path).isSymbolicLink() && isAllowedRootContractSymlink(root / path) -> {
+                (root / when ((root / path).name) {
+                    "AGENTS.md" -> "CLAUDE.md"
+                    else -> "AGENTS.md"
+                }).let { targetPath ->
                     when {
                         targetPath.isRegularFile() -> targetPath.readText()
                         else -> ""
@@ -47,12 +45,12 @@ class DefaultRuleContext(
                 }
             }
 
-            p.isSymbolicLink() -> {
+            (root / path).isSymbolicLink() -> {
                 ""
             }
 
-            p.isRegularFile() -> {
-                p.readText()
+            (root / path).isRegularFile() -> {
+                (root / path).readText()
             }
 
             else -> {
@@ -87,15 +85,16 @@ class DefaultRuleContext(
             base.isDirectory() -> {
                 val entries = base.listDirectoryEntries()
                 RuleContext.WalkResult(
-                    entries
-                        .filter { entry -> !entry.isSymbolicLink() }
-                        .flatMap { entry ->
-                            when {
-                                entry.isDirectory() -> walkSafe(entry).paths
-                                entry.isRegularFile() -> listOf(entry)
-                                else -> emptyList()
+                    buildList {
+                        entries
+                            .filter { entry -> !entry.isSymbolicLink() }
+                            .forEach { entry ->
+                                when {
+                                    entry.isDirectory() -> addAll(walkSafe(entry).paths)
+                                    entry.isRegularFile() -> add(entry)
+                                }
                             }
-                        },
+                    },
                     buildSet {
                         entries
                             .filter { entry -> entry.isSymbolicLink() }
@@ -122,17 +121,15 @@ class DefaultRuleContext(
         if (path.parent != root || path.name !in setOf("AGENTS.md", "CLAUDE.md") || !path.isSymbolicLink()) {
             return false
         }
-        val expected =
-            when (path.name) {
-                "AGENTS.md" -> "CLAUDE.md"
-                else -> "AGENTS.md"
-            }
-        return path.readSymbolicLink().fileName.pathString == expected && (root / expected).isRegularFile()
+        val targetName = when (path.name) {
+            "AGENTS.md" -> "CLAUDE.md"
+            else -> "AGENTS.md"
+        }
+        return path.readSymbolicLink().fileName.pathString == targetName && (root / targetName).isRegularFile()
     }
 
     override fun stackSources(category: String): List<Path> {
-        val catObj = manifest.categoryObject(category) ?: return emptyList()
-        val parametersObj = catObj["parameters"]?.jsonObject ?: return emptyList()
+        val parametersObj = (manifest.categoryObject(category) ?: return emptyList())["parameters"]?.jsonObject ?: return emptyList()
         val sourcePatterns =
             parametersObj["sourceRoots"]?.jsonArray?.mapNotNull { elem -> elem.jsonPrimitive.contentOrNull }
                 ?: return emptyList()
@@ -146,55 +143,49 @@ class DefaultRuleContext(
             parametersObj["excludePaths"]?.jsonArray?.mapNotNull { elem -> elem.jsonPrimitive.contentOrNull }
                 ?: emptyList()
         val pathMatcher = FileSystems.getDefault()
-        val includeMatchers =
+        val includeMatchers: List<PathMatcher> =
             buildList {
                 if (includePaths.isNotEmpty()) {
                     addAll(includePaths.map { pattern -> pathMatcher.getPathMatcher("glob:$pattern") })
                 }
             }
-        val excludeMatchers =
+        val excludeMatchers: List<PathMatcher> =
             buildList {
                 addAll(excludePaths.map { pattern -> pathMatcher.getPathMatcher("glob:$pattern") })
             }
 
         return buildList {
             for (pattern in sourcePatterns) {
-                val dirs =
+                for (dir in
                     when {
                         "*" in pattern || "?" in pattern -> {
-                            val matcher = pathMatcher.getPathMatcher("glob:$pattern")
                             root
                                 .walk()
                                 .filter { file -> !file.isSymbolicLink() }
                                 .filter { file -> file.isDirectory() }
                                 .filter { dir ->
+                                    val matcher = pathMatcher.getPathMatcher("glob:$pattern")
                                     matcher.matches(root.relativeTo(root).resolve(dir.relativeTo(root))) ||
                                         matcher.matches(dir.relativeTo(root))
                                 }.toList()
                         }
 
-                        else -> {
-                            val dir = root / pattern
-                            if (dir.isDirectory()) listOf(dir) else emptyList()
+                        else -> buildList {
+                            if ((root / pattern).isDirectory()) {
+                                add(root / pattern)
+                            }
                         }
                     }
-
-                for (dir in dirs) {
+                ) {
                     dir
                         .walk()
                         .filter { file -> !file.isSymbolicLink() }
                         .filter { file -> file.isRegularFile() }
                         .filter { file -> file.extension in extensions }
                         .filter { file ->
-                            val relativePath = file.relativeTo(root)
-                            if (includeMatchers.isNotEmpty()) {
-                                includeMatchers.any { matcher -> matcher.matches(relativePath) }
-                            } else {
-                                true
-                            }
-                        }.filter { file ->
-                            val relativePath = file.relativeTo(root)
-                            excludeMatchers.none { matcher -> matcher.matches(relativePath) }
+                            val relative = file.relativeTo(root)
+                            (includeMatchers.isEmpty() || includeMatchers.any { matcher -> matcher.matches(relative) }) &&
+                                excludeMatchers.none { matcher -> matcher.matches(relative) }
                         }.forEach { file -> add(file) }
                 }
             }

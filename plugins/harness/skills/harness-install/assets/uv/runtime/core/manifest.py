@@ -68,8 +68,7 @@ def is_enabled_from_manifest(
     category: str,
 ) -> bool:
     """Check if category is enabled in manifest."""
-    section = category_object_from_manifest(raw_manifest, category)
-    return section.get("enabled", True) is not False
+    return category_object_from_manifest(raw_manifest, category).get("enabled", True) is not False
 
 
 def severity_from_manifest(
@@ -107,7 +106,6 @@ def string_array_from_manifest(
 
 def create_manifest(raw_manifest: object) -> Manifest:
     """Factory function to create a Manifest from a raw manifest object."""
-    manifest_json = as_record(raw_manifest)
 
     class ManifestImpl:
         """Manifest implementation."""
@@ -136,4 +134,4 @@ def create_manifest(raw_manifest: object) -> Manifest:
             """Get category object."""
             return category_object_from_manifest(self.raw, category)
 
-    return ManifestImpl(manifest_json)
+    return ManifestImpl(as_record(raw_manifest))

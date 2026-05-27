@@ -54,5 +54,20 @@ data class HarnessAstResults(
      * Safety classification of a fix associated with a finding.
      */
     @Serializable
-    enum class FixSafety { SAFE, UNSAFE, MANUAL }
+    enum class FixSafety {
+        /**
+         * The fix is safe to apply automatically.
+         */
+        SAFE,
+
+        /**
+         * The fix may require human judgment before applying.
+         */
+        UNSAFE,
+
+        /**
+         * The fix requires manual intervention.
+         */
+        MANUAL,
+    }
 }

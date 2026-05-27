@@ -4,7 +4,6 @@ import com.ririnto.sinon.harness.rules.HarnessCheckHelper;
 import com.ririnto.sinon.harness.core.RuleContext;
 import com.ririnto.sinon.harness.Finding;
 
-import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -30,8 +29,7 @@ public enum SilentCatchRule implements AstRule {
     @Override
     public Collection<Finding> validate(RuleContext ctx) throws MojoExecutionException {
         final Path root = ctx.root();
-        final JsonNode manifest = ctx.manifest().raw();
-        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(ctx.manifest().raw(), CATEGORY);
         try {
             final List<Path> sources = ctx.stackSources(CATEGORY);
             return sources.stream()

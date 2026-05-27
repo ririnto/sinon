@@ -3,6 +3,7 @@ package com.ririnto.sinon.harness.rules
 import com.ririnto.sinon.harness.ast.AstFinding
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.RuleContext
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import java.nio.file.Path
 
@@ -13,6 +14,8 @@ import java.nio.file.Path
  * for sourceRoots, extensions, includePaths, and excludePaths.
  */
 abstract class HarnessAstRule : HarnessStackScopeRule() {
+    override fun validate(ctx: RuleContext): Collection<Finding> = emptyList()
+
     /**
      * Render AST scanner details owned by this rule into final findings.
      */
@@ -30,5 +33,19 @@ abstract class HarnessAstRule : HarnessStackScopeRule() {
         astFactory: KtPsiFactory?,
     ): Collection<AstFinding>
 
-    override fun validate(ctx: RuleContext): Collection<Finding> = emptyList()
+    /**
+     * Compute formatted source text for this file, when this rule supports auto-formatting.
+     *
+     * Rules without an automatic AST-based fix MUST keep this default and return null.
+     *
+     * @param file Absolute path of the source file (read-only; do not write).
+     * @param ktFile Parsed Kotlin PSI file.
+     * @param ctx Rule execution context.
+     * @return New source text when changes are needed, or null when the file is already conformant.
+     */
+    open fun formatAst(
+        file: Path,
+        ktFile: KtFile,
+        ctx: RuleContext,
+    ): String? = null
 }

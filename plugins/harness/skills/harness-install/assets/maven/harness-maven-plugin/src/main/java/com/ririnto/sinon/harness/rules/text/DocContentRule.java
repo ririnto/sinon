@@ -19,11 +19,12 @@ import java.util.stream.StreamSupport;
 public enum DocContentRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "docContent";
+
     @Override
     public String category() {
         return "docContent";
     }
-    private static final String CATEGORY = "docContent";
 
     @Override
     public boolean applies(RuleContext ctx) {

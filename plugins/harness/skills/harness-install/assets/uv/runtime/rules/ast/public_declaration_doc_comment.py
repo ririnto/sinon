@@ -36,8 +36,7 @@ def resolve_visibility_tokens(ctx: RuleContext, category: str) -> tuple[str, ...
     :param category: manifest category key (e.g. ``"publicDeclarationDocComment"``).
     :returns: configured token tuple, or the per-stack default when missing.
     """
-    manifest_dict = ctx.manifest.raw
-    section = manifest_dict.get(category)
+    section = ctx.manifest.raw.get(category)
     if not isinstance(section, dict):
         return ("module",)
     params = section.get("parameters", {})
@@ -121,13 +120,12 @@ class PublicDeclarationDocCommentRule(HarnessCheckRule):
             def visit_FunctionDef(self, node: cst.FunctionDef) -> bool:
                 self.depth += 1
                 func_name = node.name.value
-                has_override = any(
-                    is_override_decorator(decorator, exempt_decorators)
-                    for decorator in node.decorators
-                )
                 if (
                     self.depth == 1
-                    and not has_override
+                    and not any(
+                        is_override_decorator(decorator, exempt_decorators)
+                        for decorator in node.decorators
+                    )
                     and matches_visibility(func_name, visibility_tokens)
                 ):
                     if not isinstance(node.body, cst.IndentedBlock):

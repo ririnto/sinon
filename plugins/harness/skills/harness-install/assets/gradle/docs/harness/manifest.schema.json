@@ -1,46 +1,138 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.gradle.schema.json",
   "title": "RepositoryHarnessManifestGradle",
-  "description": "Gradle stack manifest schema. Extends manifest.code.schema.json with JVM-shared rules (classMemberOrdering, ifStatementBraces, mutableCollection), declaration/doc rules, and Kotlin-specific rules (implicitLambdaIt, kotlinTopLevelDeclarationCount, companionObjectPosition, nonNullAssertion, uncheckedCastSuppression, terminalBranchWhen).",
-  "allOf": [
-    {
-      "$ref": "./manifest.code.schema.json"
-    }
+  "description": "Gradle stack (Kotlin-only) manifest schema. Self-contained; no external references. Includes infrastructure checks, code-tier rules, and Kotlin-specific rules (implicitLambdaIt, kotlinTopLevelDeclarationCount, companionObjectPosition, nonNullAssertion, uncheckedCastSuppression, terminalBranchWhen).",
+  "type": "object",
+  "additionalProperties": {
+    "$ref": "#/$defs/addOn"
+  },
+  "required": [
+    "name",
+    "description"
   ],
   "properties": {
-    "classMemberOrdering": {
-      "$ref": "#/$defs/classMemberOrderingAddOn"
+    "$schema": {
+      "type": "string"
     },
-    "ifStatementBraces": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    "name": {
+      "type": "string"
     },
-    "mutableCollection": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+    "description": {
+      "type": "string"
+    },
+    "filePresence": {
+      "$ref": "#/$defs/addOn"
+    },
+    "directoryPresence": {
+      "$ref": "#/$defs/addOn"
+    },
+    "emptyDirectoryPlaceholders": {
+      "$ref": "#/$defs/addOn"
+    },
+    "scaffoldLeaks": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookShebang": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookExecutable": {
+      "$ref": "#/$defs/addOn"
+    },
+    "uncheckedTasks": {
+      "$ref": "#/$defs/addOn"
+    },
+    "seedFiles": {
+      "$ref": "#/$defs/metadata"
+    },
+    "generatedArtifacts": {
+      "$ref": "#/$defs/metadata"
+    },
+    "harnessEvolution": {
+      "$ref": "#/$defs/metadata"
+    },
+    "teamPatterns": {
+      "$ref": "#/$defs/metadata"
+    },
+    "templateGroups": {
+      "$ref": "#/$defs/addOn"
+    },
+    "docHeadings": {
+      "$ref": "#/$defs/addOn"
+    },
+    "docContent": {
+      "$ref": "#/$defs/addOn"
+    },
+    "agentFrontmatter": {
+      "$ref": "#/$defs/addOn"
+    },
+    "skillFrontmatter": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookGeneratedMarker": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookStage": {
+      "$ref": "#/$defs/hookStageAddOn"
+    },
+    "hookCommand": {
+      "$ref": "#/$defs/hookCommandAddOn"
+    },
+    "ciHookCommandParity": {
+      "$ref": "#/$defs/addOn"
+    },
+    "envShebangUsage": {
+      "$ref": "#/$defs/addOn"
+    },
+    "symlinkSafety": {
+      "$ref": "#/$defs/addOn"
+    },
+    "earlyReturn": {
+      "$ref": "#/$defs/addOn"
+    },
+    "emptyCatchBlock": {
+      "$ref": "#/$defs/addOn"
+    },
+    "greaterThanComparison": {
+      "$ref": "#/$defs/addOn"
+    },
+    "leafFunctionBlankLines": {
+      "$ref": "#/$defs/addOn"
+    },
+    "silentCatch": {
+      "$ref": "#/$defs/addOn"
     },
     "unstructuredLogging": {
       "$ref": "#/$defs/loggingAddOn"
+    },
+    "wildcardImport": {
+      "$ref": "#/$defs/addOn"
     },
     "importOverFqn": {
       "$ref": "#/$defs/importOverFqnAddOn"
     },
     "implicitLambdaIt": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+      "$ref": "#/$defs/addOn"
     },
     "kotlinTopLevelDeclarationCount": {
       "$ref": "#/$defs/kotlinTopLevelDeclarationCountAddOn"
     },
     "companionObjectPosition": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+      "$ref": "#/$defs/addOn"
     },
     "nonNullAssertion": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+      "$ref": "#/$defs/addOn"
+    },
+    "mutableCollection": {
+      "$ref": "#/$defs/addOn"
+    },
+    "ifStatementBraces": {
+      "$ref": "#/$defs/addOn"
     },
     "uncheckedCastSuppression": {
       "$ref": "#/$defs/suppressionAddOn"
     },
     "terminalBranchWhen": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
+      "$ref": "#/$defs/addOn"
     },
     "publicDeclarationDocComment": {
       "$ref": "#/$defs/publicDeclarationDocCommentAddOn"
@@ -53,6 +145,63 @@
     }
   },
   "$defs": {
+    "severity": {
+      "enum": [
+        "ERROR",
+        "WARN",
+        "INFO"
+      ]
+    },
+    "fixSafety": {
+      "enum": [
+        "safe",
+        "unsafe",
+        "manual"
+      ]
+    },
+    "addOn": {
+      "type": "object",
+      "description": "Uniform shape for every check add-on. `parameters` is free-form per add-on; `messages` maps named template keys to user-visible failure messages.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Informational metadata; not validated by the harness.",
+      "required": [
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
     "sourceScope": {
       "type": "object",
       "properties": {
@@ -66,7 +215,6 @@
           "type": "array",
           "items": {
             "enum": [
-              "java",
               "kt",
               "kts"
             ]
@@ -92,71 +240,10 @@
         "type": "string"
       }
     },
-    "classMemberOrderingAddOn": {
-      "allOf": [
-        {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "parameters": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/sourceScope"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "kindOrder": {
-                      "type": "array",
-                      "items": {
-                        "enum": [
-                          "companionObject",
-                          "constProperty",
-                          "fieldOrProperty",
-                          "initializer",
-                          "constructor",
-                          "function",
-                          "interface",
-                          "class",
-                          "enum"
-                        ]
-                      }
-                    },
-                    "visibilityOrder": {
-                      "type": "array",
-                      "items": {
-                        "enum": [
-                          "public",
-                          "protected",
-                          "internal",
-                          "package",
-                          "private"
-                        ]
-                      }
-                    },
-                    "overrideOrder": {
-                      "type": "array",
-                      "items": {
-                        "enum": [
-                          "override",
-                          "nonOverride"
-                        ]
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
     "loggingAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -186,7 +273,7 @@
     "importOverFqnAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -213,7 +300,7 @@
     "suppressionAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -243,7 +330,7 @@
     "publicDeclarationDocCommentAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -299,7 +386,7 @@
     "leadingUnderscoreAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -323,9 +410,6 @@
                       "items": {
                         "type": "string"
                       }
-                    },
-                    "pythonDunderExemptions": {
-                      "const": false
                     }
                   }
                 }
@@ -338,7 +422,7 @@
     "multilineDocStyleAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -373,7 +457,7 @@
     "kotlinTopLevelDeclarationCountAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -404,6 +488,71 @@
                   }
                 }
               ]
+            }
+          }
+        }
+      ]
+    },
+    "hookStageAddOn": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "markerTemplate": {
+                  "type": "string"
+                },
+                "stages": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "pre-commit",
+                    "pre-push"
+                  ],
+                  "properties": {
+                    "pre-commit": {
+                      "type": "string"
+                    },
+                    "pre-push": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "hookCommandAddOn": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/addOn"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "prePushHook": {
+                  "type": "string"
+                },
+                "preCommitHook": {
+                  "type": "string"
+                },
+                "allowedCommands": {
+                  "$ref": "#/$defs/stringList"
+                },
+                "allowedPreCommitCommands": {
+                  "$ref": "#/$defs/stringList"
+                }
+              }
             }
           }
         }

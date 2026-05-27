@@ -52,13 +52,12 @@ public enum ImportOverFqnRule implements AstRule {
     private List<Finding> validateImportOverFqn(Path root, Path file, JsonNode manifest, String severity) {
         try {
             final CompilationUnit cu = StaticJavaParser.parse(file);
-            final List<Pattern> allowedFqnPatterns = allowedFqnPatterns(manifest);
             final Set<String> importedSimpleNames = cu.getImports().stream()
                     .filter(imp -> !imp.isAsterisk())
                     .map(imp -> {
                         final String name = imp.getNameAsString();
                         final int lastDot = name.lastIndexOf('.');
-                        return lastDot > 0 ? name.substring(lastDot + 1) : null;
+                        return 0 < lastDot ? name.substring(lastDot + 1) : null;
                     })
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
@@ -69,7 +68,7 @@ public enum ImportOverFqnRule implements AstRule {
                                     .map(expr -> candidate(expr.getScope().toString(), simpleName(expr.getScope().toString()), expr.getBegin().map(p -> p.line).orElse(-1))))
                     .filter(candidate -> isPackageQualifiedName(candidate.qualifiedName()))
                     .filter(candidate -> !importedSimpleNames.contains(candidate.simpleName()))
-                    .filter(candidate -> allowedFqnPatterns.stream().noneMatch(pattern -> pattern.matcher(candidate.qualifiedName()).matches()))
+                    .filter(candidate -> allowedFqnPatterns(manifest).stream().noneMatch(pattern -> pattern.matcher(candidate.qualifiedName()).matches()))
                     .sorted(Comparator.comparingInt(FqnCandidate::line).thenComparing(FqnCandidate::qualifiedName))
                     .map(candidate -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + candidate.line() + ": fully qualified name `" + candidate.qualifiedName() + "` used inline; add an import and use the simple name"))
                     .toList();
@@ -79,7 +78,7 @@ public enum ImportOverFqnRule implements AstRule {
     }
     private static boolean isPackageQualifiedName(String qualifiedName) {
         final String[] parts = qualifiedName.split("\\.");
-        return parts.length >= 3 && startsLowercase(parts[0]) && startsLowercase(parts[1]) && startsUppercase(parts[parts.length - 1]);
+        return 3 <= parts.length && startsLowercase(parts[0]) && startsLowercase(parts[1]) && startsUppercase(parts[parts.length - 1]);
     }
 
     private static boolean startsLowercase(String value) {
@@ -105,7 +104,7 @@ public enum ImportOverFqnRule implements AstRule {
 
     private static String simpleName(String qualifiedName) {
         final int lastDot = qualifiedName.lastIndexOf('.');
-        return lastDot > 0 ? qualifiedName.substring(lastDot + 1) : qualifiedName;
+        return 0 < lastDot ? qualifiedName.substring(lastDot + 1) : qualifiedName;
     }
 
     private record FqnCandidate(String qualifiedName, String simpleName, int line) {

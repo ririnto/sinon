@@ -110,7 +110,6 @@ parse_boolean() {
 Usage:
 
 ```sh
-# shellcheck disable=SC2034
 FRONTMATTER=$(extract_frontmatter ".claude/plugin.local.md")
 ENABLED=$(parse_boolean "$FRONTMATTER" "enabled")
 if [ "$ENABLED" = "true" ]; then
@@ -162,9 +161,9 @@ parse_numeric() {
 
 Usage:
 
-```markdown
-# shellcheck disable=SC2034
+```sh
 RETRY_COUNT=$(parse_numeric "$FRONTMATTER" "max_retries" 1 100)
+echo "Max retries: $RETRY_COUNT"
 ```
 
 ### String fields (unquoted)
@@ -298,9 +297,9 @@ parse_multiline() {
 
 Field not present in frontmatter:
 
-```markdown
-# shellcheck disable=SC2034
+```sh
 OPTIONAL_FIELD=$(parse_string_unquoted "$FRONTMATTER" "optional_field" "default_value")
+echo "Optional field: $OPTIONAL_FIELD"
 ```
 
 Provide default as third argument. If field absent, default is returned.
@@ -371,8 +370,8 @@ field: value2
 `grep` returns both lines. First match wins:
 
 ```sh
-# shellcheck disable=SC2034
 VALUE=$(echo "$FRONTMATTER" | grep "^field:" | head -1 | sed 's/^field: *//')
+echo "Value: $VALUE"
 ```
 
 Use `head -1` to take first occurrence.
@@ -389,11 +388,12 @@ message: "He said \"hello\""
 
 Parsing:
 
-```markdown
-# shellcheck disable=SC2034
+```sh
 MESSAGE=$(parse_string_quoted "$FRONTMATTER" "message")
-# Result: He said "hello"
+echo "Message: $MESSAGE"
 ```
+
+Result: He said "hello"
 
 ### Special characters in values
 
@@ -440,9 +440,9 @@ mode: strict   # Validation level
 
 Parsing removes comments:
 
-```markdown
-# shellcheck disable=SC2034
+```sh
 VALUE=$(echo "$FRONTMATTER" | grep "^mode:" | sed 's/ *#.*//' | sed 's/^mode: *//')
+echo "Mode: $VALUE"
 ```
 
 ## Validation ranges and defaults
@@ -481,9 +481,9 @@ parse_numeric_safe() {
 
 Usage:
 
-```markdown
-# shellcheck disable=SC2034
+```sh
 RETRIES=$(parse_numeric_safe "$FRONTMATTER" "max_retries" 1 100 3)
+echo "Retries: $RETRIES"
 ```
 
 ### String enum validation
@@ -521,15 +521,14 @@ parse_enum() {
 
 Usage:
 
-```markdown
-# shellcheck disable=SC2034
+```sh
 LEVEL=$(parse_enum "$FRONTMATTER" "validation_level" "standard" "strict" "standard" "lenient")
+echo "Validation level: $LEVEL"
 ```
 
 ### Default when file absent or invalid
 
-```markdown
-# shellcheck disable=SC2034
+```sh
 if [ ! -f ".claude/plugin.local.md" ] || ! validate_frontmatter ".claude/plugin.local.md"; then
     ENABLED=true
     MODE="standard"
@@ -540,6 +539,7 @@ else
     MODE=$(parse_string_unquoted "$FRONTMATTER" "mode" "standard")
     MAX_RETRIES=$(parse_numeric_safe "$FRONTMATTER" "max_retries" 1 100 3)
 fi
+echo "Enabled: $ENABLED, Mode: $MODE, Retries: $MAX_RETRIES"
 ```
 
 ## Complete example: full parsing workflow

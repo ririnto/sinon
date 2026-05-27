@@ -45,7 +45,6 @@ class OrderSummaryTest {
     @Test
     fun exposesExpectedSummary() {
         val result = service.loadSummary(OrderId("o-1"))
-
         assertAll(
             { assertEquals(OrderId("o-1"), result.id) },
             { assertEquals(2, result.itemCount) }

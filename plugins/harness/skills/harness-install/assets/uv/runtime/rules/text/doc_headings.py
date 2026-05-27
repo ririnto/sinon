@@ -62,23 +62,17 @@ class DocHeadingsRule(HarnessCheckRule):
             return []
         prefix = source_filter.get("prefix", "")
         suffix = source_filter.get("suffix", "")
-        filtered_files = tuple(
-            p
-            for p in source_paths
-            if isinstance(p, str) and p.startswith(prefix) and p.endswith(suffix)
-        )
         headings = params.get("headings", [])
         if not isinstance(headings, list):
             return []
         messages = section.get("messages", {})
         if not isinstance(messages, dict):
             return []
-        template = messages.get("default", "doc missing {heading}: {file}")
         return [
             Finding(
                 ctx.severity_of(self.category),
                 self.category,
-                template.format(heading=heading, file=file_path),
+                messages.get("default", "doc missing {heading}: {file}").format(heading=heading, file=file_path),
                 file=file_path,
                 start_line=1,
                 start_column=1,
@@ -89,7 +83,11 @@ class DocHeadingsRule(HarnessCheckRule):
                     safety=FixSafety.MANUAL,
                 ),
             )
-            for file_path in filtered_files
+            for file_path in tuple(
+                p
+                for p in source_paths
+                if isinstance(p, str) and p.startswith(prefix) and p.endswith(suffix)
+            )
             if ctx.is_file(file_path)
             for heading in headings
             if isinstance(heading, str) and heading not in ctx.read(file_path)
