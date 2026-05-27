@@ -160,7 +160,7 @@ git status -s -b
 
 Output:
 
-```markdown
+```text
 ## main...origin/main
 M  src/Main.java
 ?? build/
@@ -240,7 +240,7 @@ git status --porcelain
 
 Output (untracked files start with `??`):
 
-```markdown
+```text
  M src/Main.java
 ?? build/
 ?? .DS_Store

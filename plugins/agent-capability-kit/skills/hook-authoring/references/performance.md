@@ -127,7 +127,7 @@ If hook times out, it is logged and subsequent behavior depends on hook type:
 
 Monitor timeouts with:
 
-```text
+```sh
 claude --debug 2>&1 | grep -i timeout
 ```
 
@@ -169,8 +169,8 @@ cache_based_check() {
 
 SessionStart hooks run sequentially in a single session. Computed values can be written to `$CLAUDE_ENV_FILE` for reuse:
 
-```jsonc
-#!/usr/bin/env bash
+```sh
+#!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e
 
@@ -194,7 +194,7 @@ All subsequent hooks and tools can access via `$PROJECT_TYPE` and `$PROJECT_VERS
 
 Add timestamps to cached data. If data is stale (> 1 hour), recompute:
 
-```json
+```sh
 timestamp=$(jq -r '.timestamp' "$cache_file" || echo "0")
 current=$(date +%s)
 age=$((current - timestamp))
@@ -337,7 +337,7 @@ claude --debug
 
 Look for hook-related output:
 
-```toml
+```text
 [hooks] Loading hooks from /path/to/plugin/hooks/hooks.json
 [hooks] Validating hook syntax...
 [hooks] SessionStart: executing 1 hook (0.5s)

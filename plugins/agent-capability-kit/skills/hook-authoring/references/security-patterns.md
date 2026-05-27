@@ -196,7 +196,7 @@ Categories:
 
 ### Broken: name-only detection
 
-```json
+```sh
 basename=$(basename "$file_path")
 if [ "$basename" = ".env" ]; then
     printf 'deny\n' >&2
@@ -273,7 +273,7 @@ validate_numeric() {
 
 ### Broken: trusting numeric input
 
-```json
+```sh
 max_value=$(cat | jq -r '.max_value')
 if [ "$max_value" -gt 100 ]; then
     # Risk: max_value could be non-numeric or contain operators
@@ -331,7 +331,7 @@ main
 
 Validate hook script with sample attack payloads:
 
-```json
+```sh
 cat > /tmp/test-attack.json << 'EOF'
 {
   "tool_name": "Write",
@@ -347,7 +347,7 @@ sh hooks/validate.sh < /tmp/test-attack.json
 
 Test with various paths:
 
-```json
+```sh
 # Path traversal
 echo '{"tool_name":"Write","tool_input":{"file_path":"../../../etc/passwd"}}' | sh hooks/validate.sh
 
