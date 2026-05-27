@@ -27,13 +27,13 @@ import kotlinx.coroutines.launch
 
 class OrderProcessor(private val scope: CoroutineScope) {
     private val commands = Channel<Order>(capacity = 64)
-    private val _state = MutableStateFlow(emptyList<Order>())
-    val state: StateFlow<List<Order>> = _state
+    private val mutableState = MutableStateFlow(emptyList<Order>())
+    val state: StateFlow<List<Order>> = mutableState
 
     fun start() {
         scope.launch {
             for (order in commands) {
-                _state.value = _state.value + order
+                mutableState.value = mutableState.value + order
             }
         }
     }
@@ -53,12 +53,12 @@ import kotlinx.coroutines.flow.StateFlow
 
 class OrderAccumulator {
     private val updates = Channel<Order>(capacity = 64)
-    private val _state = MutableStateFlow(emptyList<Order>())
-    val state: StateFlow<List<Order>> = _state
+    private val mutableState = MutableStateFlow(emptyList<Order>())
+    val state: StateFlow<List<Order>> = mutableState
 
     suspend fun run() {
         for (order in updates) {
-            _state.value = _state.value + order
+            mutableState.value = mutableState.value + order
         }
     }
 

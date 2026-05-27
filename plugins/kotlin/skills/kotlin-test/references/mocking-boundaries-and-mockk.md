@@ -56,7 +56,7 @@ class NotificationServiceTest {
 
         service.completeOrder("order-1")
 
-        verify { notifier.send(match { it.orderId == "order-1" }) }
+        verify { notifier.send(match { notification -> notification.orderId == "order-1" }) }
     }
 }
 ```
@@ -179,7 +179,7 @@ class LoggerMockTest {
 
         service.doWork()
 
-        verify { Logger.info(match { it.contains("work done") }) }
+        verify { Logger.info(match { message -> message.contains("work done") }) }
 
         unmockkObject(Logger)
     }

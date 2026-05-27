@@ -165,9 +165,9 @@ Expose read-only collection interfaces from public APIs so callers cannot mutate
 
 ```kotlin
 class OrderRepository {
-    private val _orders = mutableListOf<Order>()
+    private val mutableOrders = mutableListOf<Order>()
 
-    val orders: List<Order> get() = _orders
+    val orders: List<Order> get() = mutableOrders
 }
 ```
 

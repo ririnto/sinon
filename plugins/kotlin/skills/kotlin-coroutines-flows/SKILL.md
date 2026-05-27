@@ -84,11 +84,11 @@ Use ordinary `Flow` as the default streaming type. It is usually cold, so each c
 Use `StateFlow` when every collector should immediately see the latest state. StateFlow always conflates -- fast writers drop intermediate values so collectors see at most the most recent emission.
 
 ```kotlin
-private val _uiState = MutableStateFlow(UiState.Loading)
-val uiState: StateFlow<UiState> = _uiState
+private val mutableUiState = MutableStateFlow(UiState.Loading)
+val uiState: StateFlow<UiState> = mutableUiState
 
 fun markLoaded(orders: List<Order>) {
-    _uiState.update { UiState.Success(orders) }
+    mutableUiState.update { UiState.Success(orders) }
 }
 ```
 
@@ -99,12 +99,12 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
-private val _events = MutableSharedFlow<UiEvent>(
+private val mutableEvents = MutableSharedFlow<UiEvent>(
     replay = 0,
     extraBufferCapacity = 64,
     onBufferOverflow = BufferOverflow.DROP_OLDEST,
 )
-val events: SharedFlow<UiEvent> = _events
+val events: SharedFlow<UiEvent> = mutableEvents
 ```
 
 ### Ownership and dispatchers
