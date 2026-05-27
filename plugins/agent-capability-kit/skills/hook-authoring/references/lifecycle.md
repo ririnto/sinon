@@ -269,7 +269,7 @@ conditional_validate
 
 User can toggle validation:
 
-```text
+```sh
 touch .hook-validation-enabled      # Enable for this project
 rm .hook-validation-enabled         # Disable for this project
 # No session restart required

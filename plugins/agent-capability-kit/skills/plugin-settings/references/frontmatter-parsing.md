@@ -78,7 +78,7 @@ extract_frontmatter() {
 
 YAML boolean values: `true`, `false` (case-insensitive).
 
-```jsonc
+```sh
 
 # Parse boolean field with strict type checking.
 #
@@ -122,7 +122,7 @@ fi
 
 Integer and floating-point numbers.
 
-```markdown
+```sh
 
 # Parse numeric field with range validation.
 #
@@ -171,7 +171,7 @@ RETRY_COUNT=$(parse_numeric "$FRONTMATTER" "max_retries" 1 100)
 
 Simple unquoted strings up to end of line.
 
-```markdown
+```sh
 
 # Parse unquoted string field.
 #
@@ -198,7 +198,7 @@ parse_string_unquoted() {
 
 Quoted strings with escaped quotes.
 
-```jsonc
+```sh
 
 # Parse quoted string field with quote unescaping.
 #
@@ -225,7 +225,7 @@ parse_string_quoted() {
 
 YAML arrays in `[item1, item2]` syntax.
 
-```jsonc
+```sh
 
 # Parse array field into bash array.
 #
@@ -262,7 +262,7 @@ done
 
 YAML literal (`|`) or folded (`>`) scalars spanning multiple lines.
 
-```markdown
+```sh
 
 # Extract multi-line string (literal or folded).
 #
@@ -317,7 +317,7 @@ empty_field:
 
 Parsing:
 
-```json
+```sh
 VALUE=$(echo "$FRONTMATTER" | grep '^empty_field:' | sed 's/^empty_field: *//')
 if [ -z "$VALUE" ]; then
     VALUE="default"
@@ -340,7 +340,7 @@ Some content
 
 Extraction will read until EOF instead of second `---`. Validate strictly:
 
-```markdown
+```sh
 
 # Validate frontmatter has proper delimiters.
 #
@@ -370,7 +370,7 @@ field: value2
 
 `grep` returns both lines. First match wins:
 
-```markdown
+```sh
 # shellcheck disable=SC2034
 VALUE=$(echo "$FRONTMATTER" | grep "^field:" | head -1 | sed 's/^field: *//')
 ```

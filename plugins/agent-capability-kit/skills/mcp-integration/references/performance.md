@@ -113,7 +113,7 @@ mcp_max_requests_per_connection: 100
 
 Hook reads and applies:
 
-```json
+```sh
 POOL_SIZE=$(grep '^mcp_pool_size:' "$SETTINGS_FILE" | sed 's/mcp_pool_size: *//')
 export MCP_POOL_SIZE="$POOL_SIZE"
 ```
@@ -145,7 +145,9 @@ Latency: 100ms × 3 = 300ms
 Some servers support batch API (e.g., GitHub GraphQL can query multiple users in one call):
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -eo pipefail
 
 # Batch repository queries for multiple users.
 #
@@ -171,7 +173,9 @@ Latency: single request for all users, 100ms total.
 Post to multiple channels in one batch call:
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -eo pipefail
 
 # Post message to multiple Slack channels.
 #
@@ -207,8 +211,10 @@ Total = Network (10-100ms) + Server Processing (50-500ms) + Serialization (1-10m
 
 Measure each:
 
-```bash
-#!/bin/bash
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Measure MCP tool call latency with breakdown.
 #
@@ -243,8 +249,10 @@ Output:
 
 If tool consistently takes > 500ms:
 
-```bash
-#!/bin/bash
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Identify slow MCP tools in use.
 #
@@ -270,8 +278,10 @@ Cache expensive tool results locally to avoid repeated calls.
 
 ### File-based cache
 
-```bash
-#!/bin/bash
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Cache MCP tool result with TTL.
 #
@@ -311,8 +321,10 @@ GITHUB_USER=$(cached_mcp_call get_user --username alice 3600)
 
 Invalidate cache when data changes:
 
-```bash
-#!/bin/bash
+```sh
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
 
 # Clear MCP cache for a specific tool.
 #

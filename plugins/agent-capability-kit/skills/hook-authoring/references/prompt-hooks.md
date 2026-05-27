@@ -73,7 +73,7 @@ Read project policy from `.claude/{{plugin-name}}.local.md` frontmatter and pass
 
 ### Command Hook Example
 
-```json
+```sh
 #!/usr/bin/env sh
 # -*- coding: utf-8 -*-
 set -e

@@ -246,8 +246,11 @@ Retry-After: 60
 
 Mitigation: Add exponential backoff to hooks that call tools:
 
-```sh
-#!/bin/bash
+```bash
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -eo pipefail
+
 for attempt in 1 2 3; do
     call_mcp_tool && break
     sleep $((2 ** attempt))

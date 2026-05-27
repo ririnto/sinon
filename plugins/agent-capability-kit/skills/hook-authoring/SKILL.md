@@ -278,7 +278,7 @@ Execute when Claude Code session begins. Load project context, set environment v
 
 Special: command hooks can write to `$CLAUDE_ENV_FILE` to persist environment variables across the session:
 
-```json
+```sh
 echo "export PROJECT_TYPE=nodejs" >> "$CLAUDE_ENV_FILE"
 ```
 
