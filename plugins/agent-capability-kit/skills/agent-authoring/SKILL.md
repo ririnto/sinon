@@ -56,10 +56,10 @@ The description is the main trigger surface. It should do all of the following:
 - open with an imperative capability clause that names what the agent does (for example "Enforce…", "Review…", "Detect…", "Author…", "Reproduce…")
 - follow with a trigger clause such as `Use this agent when...`
 - name the job, inputs, or system clearly
-- include 2 to 4 concrete `{{example}}` blocks
+- include 2 to 4 concrete `<example>` blocks
 - make it obvious why this agent is the right fit
 
-Agent descriptions MUST include 2 to 4 concrete `{{example}}` blocks with `{{context}}`, `{{user}}`, `{{assistant}}`, and `{{commentary}}` sub-elements. Each example MUST demonstrate a realistic triggering scenario and explain why the agent is the right fit for that task.
+Agent descriptions MUST include 2 to 4 concrete `<example>` blocks with `<context>`, `<user>`, `<assistant>`, and `<commentary>` sub-elements. Each example MUST demonstrate a realistic triggering scenario and explain why the agent is the right fit for that task.
 
 Use examples that look like realistic user intent, not abstract labels.
 
@@ -181,7 +181,7 @@ Return:
 3. Check that the role is narrow enough to be discoverable and autonomous.
 4. Draft or revise frontmatter:
    - `name` matches the file basename and is stable and role-based
-   - `description` opens with an imperative capability clause, then says when to use the agent, and includes concrete `{{example}}` blocks
+   - `description` opens with an imperative capability clause, then says when to use the agent, and includes concrete `<example>` blocks
    - `model` defaults to `inherit`
    - `color` is stable and distinguishable
    - `tools` appears only when a bounded tool surface is needed

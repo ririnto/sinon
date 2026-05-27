@@ -37,7 +37,7 @@ Heavy-handed style reviews and approval gates on minor details create friction i
 
 Chat logs and ephemeral memory vanish after context resets or when teams grow. If decisions live only in threads or agent memory, future implementers cannot find the *why* behind a rule, postmortems are lost, and the same debates recur. Version control is the only source of truth that survives a team transition.
 
-- Active execution plans live under docs/exec-plans/active/ with dates in filenames (yyyy-MM-dd-SLUG.md); completed plans move to completed/ without renaming so history and decision rationale remain auditable.
+- Active execution plans live under docs/exec-plans/active/ with dates in filenames (yyyy-MM-dd-{{slug}}.md); completed plans move to completed/ without renaming so history and decision rationale remain auditable.
 - Design decisions, postmortems, and incident reviews are cited in core-beliefs.md with links to their source so the belief-to-incident chain is traceable.
 - QUALITY_SCORE.md, RELIABILITY.md, and tech-debt-tracker.md are version-controlled records; every consciously deferred item records its retirement criteria so the project knows what unblocks it.
 - Review threads that surface a repeated pattern trigger an update to core-beliefs.md, DESIGN.md, or a new reference/ file so the verdict persists beyond the PR.
