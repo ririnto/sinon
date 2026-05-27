@@ -18,11 +18,12 @@ import java.util.stream.Stream;
 public enum UncheckedTasksRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "uncheckedTasks";
+
     @Override
     public String category() {
         return "uncheckedTasks";
     }
-    private static final String CATEGORY = "uncheckedTasks";
 
     @Override
     public boolean applies(RuleContext ctx) {

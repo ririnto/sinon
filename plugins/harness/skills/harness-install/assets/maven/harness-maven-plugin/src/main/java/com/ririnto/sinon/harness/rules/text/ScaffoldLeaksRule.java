@@ -20,11 +20,12 @@ import java.util.stream.StreamSupport;
 public enum ScaffoldLeaksRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "scaffoldLeaks";
+
     @Override
     public String category() {
         return "scaffoldLeaks";
     }
-    private static final String CATEGORY = "scaffoldLeaks";
 
     @Override
     public boolean applies(RuleContext ctx) {

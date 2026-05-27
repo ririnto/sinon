@@ -175,8 +175,7 @@ def main() -> int:
         level=logging.INFO, format="[%(levelname)s] %(message)s", stream=sys.stderr
     )
     logger = logging.getLogger()
-    path = ROOT / MANIFEST_PATH
-    if not HarnessCheckRule.is_safe_file(path):
+    if not HarnessCheckRule.is_safe_file(ROOT / MANIFEST_PATH):
         logger.error("manifest file missing: docs/harness/manifest.json")
         logger.error("Harness validation failed")
         return 1
@@ -185,18 +184,18 @@ def main() -> int:
         logger.error("manifest file invalid or empty JSON: docs/harness/manifest.json")
         logger.error("Harness validation failed")
         return 1
-    known_categories = set(check.category for check in HarnessCheck)
-    known_metadata = frozenset({
-        "name",
-        "description",
-        "$schema",
-        "seedFiles",
-        "generatedArtifacts",
-        "harnessEvolution",
-        "teamPatterns",
-    })
     for key in manifest.keys():
-        if key not in known_categories and key not in known_metadata:
+        if key not in set(check.category for check in HarnessCheck) and key not in frozenset(
+            {
+                "name",
+                "description",
+                "$schema",
+                "seedFiles",
+                "generatedArtifacts",
+                "harnessEvolution",
+                "teamPatterns",
+            }
+        ):
             logger.warning("unknown manifest key: %s", key)
     findings = validate(manifest)
     for line in render_findings(ROOT, findings):

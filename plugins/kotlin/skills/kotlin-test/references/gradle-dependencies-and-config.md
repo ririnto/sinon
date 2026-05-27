@@ -14,7 +14,6 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:1.9.25")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     testImplementation("io.mockk:mockk:1.14.6")
 }
@@ -29,14 +28,12 @@ Pin versions through a `libs.versions.toml` catalog or the project's dependency 
 ```kotlin
 tasks.test {
     useJUnitPlatform()
-
     testLogging {
         events("passed", "skipped", "failed", "standard_out", "standard_error")
         showExceptions = true
         showStackTraces = true
         exceptionFormat = TestExceptionFormat.FULL
     }
-
     maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
     jvmArgs("-Xmx512m")
 }

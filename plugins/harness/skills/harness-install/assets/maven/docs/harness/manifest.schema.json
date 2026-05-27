@@ -1,34 +1,126 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/ririnto/sinon/plugins/harness/manifest.maven.schema.json",
   "title": "RepositoryHarnessManifestMaven",
-  "description": "Maven stack manifest schema. Extends manifest.code.schema.json with JVM-shared rules (classMemberOrdering, ifStatementBraces, mutableCollection) and Java declaration/doc rules. Maven does not include Kotlin-specific rules; those live in the Gradle schema.",
-  "allOf": [
-    {
-      "$ref": "./manifest.code.schema.json"
-    }
+  "description": "Maven stack manifest schema for Java-only projects. Contains only Java-applicable rules (classMemberOrdering, ifStatementBraces, etc.). Does not include Kotlin, Python, or TypeScript language-specific rules.",
+  "type": "object",
+  "additionalProperties": {
+    "$ref": "#/$defs/addOn"
+  },
+  "required": [
+    "name",
+    "description"
   ],
   "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "filePresence": {
+      "$ref": "#/$defs/addOn"
+    },
+    "directoryPresence": {
+      "$ref": "#/$defs/addOn"
+    },
+    "emptyDirectoryPlaceholders": {
+      "$ref": "#/$defs/addOn"
+    },
+    "scaffoldLeaks": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookShebang": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookExecutable": {
+      "$ref": "#/$defs/addOn"
+    },
+    "uncheckedTasks": {
+      "$ref": "#/$defs/addOn"
+    },
+    "seedFiles": {
+      "$ref": "#/$defs/metadata"
+    },
+    "generatedArtifacts": {
+      "$ref": "#/$defs/metadata"
+    },
+    "harnessEvolution": {
+      "$ref": "#/$defs/metadata"
+    },
+    "teamPatterns": {
+      "$ref": "#/$defs/metadata"
+    },
+    "templateGroups": {
+      "$ref": "#/$defs/addOn"
+    },
+    "docHeadings": {
+      "$ref": "#/$defs/addOn"
+    },
+    "docContent": {
+      "$ref": "#/$defs/addOn"
+    },
+    "agentFrontmatter": {
+      "$ref": "#/$defs/addOn"
+    },
+    "skillFrontmatter": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookGeneratedMarker": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookStage": {
+      "$ref": "#/$defs/addOn"
+    },
+    "hookCommand": {
+      "$ref": "#/$defs/addOn"
+    },
+    "ciHookCommandParity": {
+      "$ref": "#/$defs/addOn"
+    },
+    "envShebangUsage": {
+      "$ref": "#/$defs/addOn"
+    },
+    "shebangEncodingMarker": {
+      "$ref": "#/$defs/addOn"
+    },
+    "symlinkSafety": {
+      "$ref": "#/$defs/addOn"
+    },
+    "earlyReturn": {
+      "$ref": "#/$defs/addOn"
+    },
+    "emptyCatchBlock": {
+      "$ref": "#/$defs/addOn"
+    },
+    "greaterThanComparison": {
+      "$ref": "#/$defs/addOn"
+    },
+    "importOverFqn": {
+      "$ref": "#/$defs/addOn"
+    },
+    "leafFunctionBlankLines": {
+      "$ref": "#/$defs/addOn"
+    },
+    "publicDeclarationDocComment": {
+      "$ref": "#/$defs/addOn"
+    },
+    "silentCatch": {
+      "$ref": "#/$defs/addOn"
+    },
+    "unstructuredLogging": {
+      "$ref": "#/$defs/addOn"
+    },
+    "wildcardImport": {
+      "$ref": "#/$defs/addOn"
+    },
     "classMemberOrdering": {
       "$ref": "#/$defs/classMemberOrderingAddOn"
     },
-    "ifStatementBraces": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
-    },
     "mutableCollection": {
-      "$ref": "./manifest.base.schema.json#/$defs/addOn"
-    },
-    "unstructuredLogging": {
-      "$ref": "#/$defs/loggingAddOn"
-    },
-    "importOverFqn": {
-      "$ref": "#/$defs/importOverFqnAddOn"
-    },
-    "uncheckedCastSuppression": {
-      "$ref": "#/$defs/suppressionAddOn"
-    },
-    "publicDeclarationDocComment": {
-      "$ref": "#/$defs/publicDeclarationDocCommentAddOn"
+      "$ref": "#/$defs/addOn"
     },
     "leadingUnderscore": {
       "$ref": "#/$defs/leadingUnderscoreAddOn"
@@ -38,6 +130,63 @@
     }
   },
   "$defs": {
+    "severity": {
+      "enum": [
+        "ERROR",
+        "WARN",
+        "INFO"
+      ]
+    },
+    "fixSafety": {
+      "enum": [
+        "safe",
+        "unsafe",
+        "manual"
+      ]
+    },
+    "addOn": {
+      "type": "object",
+      "description": "Uniform shape for every check add-on. `parameters` is free-form per add-on; `messages` maps named template keys to user-visible failure messages.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Informational metadata; not validated by the harness.",
+      "required": [
+        "description"
+      ],
+      "properties": {
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
     "sourceScope": {
       "type": "object",
       "properties": {
@@ -76,7 +225,7 @@
     "classMemberOrderingAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -133,153 +282,10 @@
         }
       ]
     },
-    "loggingAddOn": {
-      "allOf": [
-        {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "parameters": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/sourceScope"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "forbiddenLoggingApis": {
-                      "$ref": "#/$defs/stringList"
-                    },
-                    "allowedLoggingApis": {
-                      "$ref": "#/$defs/stringList"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "importOverFqnAddOn": {
-      "allOf": [
-        {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "parameters": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/sourceScope"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "allowedFqnPatterns": {
-                      "$ref": "#/$defs/stringList"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "suppressionAddOn": {
-      "allOf": [
-        {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "parameters": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/sourceScope"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "forbiddenSuppressions": {
-                      "$ref": "#/$defs/stringList"
-                    },
-                    "allowedSuppressions": {
-                      "$ref": "#/$defs/stringList"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "publicDeclarationDocCommentAddOn": {
-      "allOf": [
-        {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "parameters": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/sourceScope"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "visibility": {
-                      "type": "array",
-                      "items": {
-                        "enum": [
-                          "public",
-                          "protected",
-                          "package",
-                          "private"
-                        ]
-                      }
-                    },
-                    "allowedDeclarationKinds": {
-                      "type": "array",
-                      "items": {
-                        "enum": [
-                          "class",
-                          "method",
-                          "field"
-                        ]
-                      }
-                    },
-                    "exemptOverrideDeclarations": {
-                      "type": "boolean"
-                    },
-                    "exemptLocalDeclarations": {
-                      "type": "boolean"
-                    },
-                    "docStyleMode": {
-                      "enum": [
-                        "multiline"
-                      ]
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
     "leadingUnderscoreAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",
@@ -303,9 +309,6 @@
                       "items": {
                         "type": "string"
                       }
-                    },
-                    "pythonDunderExemptions": {
-                      "const": false
                     }
                   }
                 }
@@ -318,7 +321,7 @@
     "multilineDocStyleAddOn": {
       "allOf": [
         {
-          "$ref": "./manifest.base.schema.json#/$defs/addOn"
+          "$ref": "#/$defs/addOn"
         },
         {
           "type": "object",

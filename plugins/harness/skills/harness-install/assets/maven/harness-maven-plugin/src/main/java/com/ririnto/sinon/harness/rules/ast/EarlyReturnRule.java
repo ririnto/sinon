@@ -4,10 +4,8 @@ import com.ririnto.sinon.harness.rules.HarnessCheckHelper;
 import com.ririnto.sinon.harness.core.RuleContext;
 import com.ririnto.sinon.harness.Finding;
 
-import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.stmt.ReturnStmt;
 import java.io.IOException;
@@ -32,8 +30,7 @@ public enum EarlyReturnRule implements AstRule {
     @Override
     public Collection<Finding> validate(RuleContext ctx) throws MojoExecutionException {
         final Path root = ctx.root();
-        final JsonNode manifest = ctx.manifest().raw();
-        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(ctx.manifest().raw(), CATEGORY);
         try {
             final List<Path> sources = ctx.stackSources(CATEGORY);
             return sources.stream()
@@ -46,17 +43,15 @@ public enum EarlyReturnRule implements AstRule {
 
     private List<Finding> validateEarlyReturn(Path root, Path file, String severity) {
         try {
-            final CompilationUnit cu = StaticJavaParser.parse(file);
-            return cu.findAll(MethodDeclaration.class).stream()
+            return StaticJavaParser.parse(file).findAll(MethodDeclaration.class).stream()
                     .flatMap(method -> method.getBody()
                             .map(body -> {
-                                final List<ReturnStmt> returnStmts = body.findAll(ReturnStmt.class);
-                                if (returnStmts.isEmpty()) {
-                                    return Stream.<Finding>empty();
-                                }
-                                final ReturnStmt lastReturn = returnStmts.get(returnStmts.size() - 1);
+                                final List<ReturnStmt> returnStmts = body.getStatements().stream()
+                                        .filter(stmt -> stmt instanceof ReturnStmt)
+                                        .map(stmt -> (ReturnStmt) stmt)
+                                        .toList();
                                 return returnStmts.stream()
-                                        .filter(ret -> !ret.equals(lastReturn))
+                                        .filter(ret -> !ret.equals(returnStmts.isEmpty() ? null : returnStmts.get(returnStmts.size() - 1)))
                                         .map(ret -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + ret.getBegin().map(p -> p.line).orElse(-1) + ": early return in function"));
                             })
                             .orElse(Stream.<Finding>empty()))

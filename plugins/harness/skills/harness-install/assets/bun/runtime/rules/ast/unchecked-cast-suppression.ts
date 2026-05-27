@@ -97,8 +97,7 @@ function resolveForbiddenSuppressions(ctx: RuleContext): string[] {
  * Resolves allowedSuppressions from manifest parameters.
  */
 function resolveAllowedSuppressions(ctx: RuleContext): string[] {
-    const params = ctx.readJsonObject(ctx.categoryObject("uncheckedCastSuppression").parameters);
-    return Array.from(ctx.readStringArray(params.allowedSuppressions));
+    return Array.from(ctx.readStringArray(ctx.readJsonObject(ctx.categoryObject("uncheckedCastSuppression").parameters).allowedSuppressions));
 }
 
 /**

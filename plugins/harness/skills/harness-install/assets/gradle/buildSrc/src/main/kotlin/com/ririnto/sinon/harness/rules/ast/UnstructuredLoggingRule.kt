@@ -42,22 +42,24 @@ object UnstructuredLoggingRule : HarnessAstRule() {
         }
 
     private fun forbiddenApis(ctx: RuleContext): Set<String> {
-        val params =
+        val forbidden = JsonAccess.stringArrayFromObject(
             ctx.manifest
                 .categoryObject(category)
                 ?.get("parameters")
-                ?.jsonObject
-        val configured = JsonAccess.stringArrayFromObject(params, "forbiddenLoggingApis")
-        return configured.takeIf { values -> values.isNotEmpty() }?.toSet() ?: setOf("println")
+                ?.jsonObject,
+            "forbiddenLoggingApis"
+        )
+        return forbidden.takeIf { values -> values.isNotEmpty() }?.toSet() ?: setOf("println")
     }
 
     private fun allowedApis(ctx: RuleContext): Set<String> {
-        val params =
+        return JsonAccess.stringArrayFromObject(
             ctx.manifest
                 .categoryObject(category)
                 ?.get("parameters")
-                ?.jsonObject
-        return JsonAccess.stringArrayFromObject(params, "allowedLoggingApis").toSet()
+                ?.jsonObject,
+            "allowedLoggingApis"
+        ).toSet()
     }
 
     private class Visitor(
@@ -91,9 +93,8 @@ object UnstructuredLoggingRule : HarnessAstRule() {
             expression: KtCallExpression,
             callName: String,
         ): String {
-            val qualified = expression.parent as? KtDotQualifiedExpression
             return when {
-                qualified?.selectorExpression == expression -> "${qualified.receiverExpression.text}.$callName"
+                (expression.parent as? KtDotQualifiedExpression)?.selectorExpression == expression -> "${(expression.parent as KtDotQualifiedExpression).receiverExpression.text}.$callName"
                 else -> callName
             }
         }

@@ -16,11 +16,12 @@ import java.util.Collection;
 public enum TemplateGroupsRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "templateGroups";
+
     @Override
     public String category() {
         return "templateGroups";
     }
-    private static final String CATEGORY = "templateGroups";
 
     @Override
     public boolean applies(RuleContext ctx) {

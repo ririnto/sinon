@@ -2,8 +2,6 @@
 // -*- coding: utf-8 -*-
 import type { Finding, HarnessCheckRule, RuleContext } from "../harness-check-rule";
 
-const STACK = "bun";
-
 export const hookStageRule: HarnessCheckRule = {
     category: "hookStage",
     applies(ctx: RuleContext): boolean {
@@ -16,27 +14,24 @@ export const hookStageRule: HarnessCheckRule = {
             return false;
         }
         const parameters = ctx.readJsonObject((section as Record<string, unknown>).parameters);
-        const stages = ctx.readJsonObject(parameters.stages);
-        return 0 < Object.keys(ctx.readJsonObject(stages[STACK])).length;
+        return 0 < Object.keys(ctx.readJsonObject(parameters.stages)).length;
     },
 
     validate(ctx: RuleContext): readonly Finding[] {
         const parameters = ctx.readJsonObject(ctx.readJsonObject(ctx.manifest.raw.hookStage).parameters);
         const markerTemplate = typeof parameters.markerTemplate === "string" ? parameters.markerTemplate : "";
-        const stagesEntry = ctx.readJsonObject(parameters.stages);
-        const stackStages = ctx.readJsonObject(stagesEntry[STACK]);
+        const stages = ctx.readJsonObject(parameters.stages);
         const configuredHooks = ctx.readStringArray(parameters.hooks);
         const hooks =
             configuredHooks.length === 0
-                ? Object.keys(stackStages).map((stage) => `docs/harness/git-hooks/${stage}`)
+                ? Object.keys(stages).map((stage) => `docs/harness/git-hooks/${stage}`)
                 : configuredHooks;
-
         return hooks.flatMap((hook) => {
             if (!ctx.isFile(hook)) {
                 return [];
             }
             const stageKey = (hook.split("/").pop() ?? "") === "pre-commit" ? "pre-commit" : "pre-push";
-            const stage = typeof stackStages[stageKey] === "string" ? stackStages[stageKey] : "";
+            const stage = typeof stages[stageKey] === "string" ? stages[stageKey] : "";
             if (!stage) {
                 return [];
             }

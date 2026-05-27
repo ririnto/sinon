@@ -348,7 +348,9 @@ WEBHOOK_TOKEN = os.environ["ALERTMANAGER_WEBHOOK_TOKEN"]
 
 @app.post("/alertmanager")
 def alertmanager_webhook():
-    """Translate Alertmanager webhook JSON into a downstream incident body."""
+    """
+    Translate Alertmanager webhook JSON into a downstream incident body.
+    """
     auth_header = request.headers.get("Authorization", "")
     if auth_header != f"Bearer {WEBHOOK_TOKEN}":
         return jsonify({"error": "unauthorized"}), 401

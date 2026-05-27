@@ -79,8 +79,7 @@ class UncheckedCastSuppressionRule(HarnessCheckRule):
 
     def resolve_allowed_suppressions(self, ctx: RuleContext) -> set[str]:
         """Resolve allowedSuppressions from manifest parameters."""
-        manifest = ctx.manifest.raw
-        section = manifest.get(self.category, {})
+        section = ctx.manifest.raw.get(self.category, {})
         params = section.get("parameters", {})
         tokens = params.get("allowedSuppressions", [])
         return set(tokens) if tokens else set()

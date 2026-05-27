@@ -17,6 +17,7 @@ object FindingReporter {
      * Renders a list of findings to diagnostic output lines.
      *
      * Returns a list of output lines following structured diagnostic style:
+     *
      * - File location header with severity and rule ID
      * - Code snippet with context lines (if file is readable)
      * - Fix metadata (safety, help, before/after diffs)
@@ -35,20 +36,18 @@ object FindingReporter {
         }
         return buildList {
             findings
-                .sortedWith(compareBy({ finding -> finding.severity.ordinal }, { findings.indexOf(it) }))
+                .sortedWith(compareBy({ finding -> finding.severity.ordinal }, { f -> findings.indexOf(f) }))
                 .forEach { finding ->
                     renderFinding(root, finding).forEach(::add)
                 }
             val (fileCount, errorCount, warnCount, infoCount, fixableCount) = computeSummary(findings)
             add("")
-            val fixableSuffix =
-                when (0 < fixableCount) {
-                    true -> " [*] $fixableCount fixable."
-                    else -> ""
-                }
             add(
                 "Checked $fileCount file(s). ${findings.size} violation(s): " +
-                    "$errorCount error, $warnCount warn, $infoCount info.$fixableSuffix",
+                    "$errorCount error, $warnCount warn, $infoCount info.${when (0 < fixableCount) {
+                        true -> " [*] $fixableCount fixable."
+                        else -> ""
+                    }}",
             )
         }
     }
@@ -91,8 +90,7 @@ object FindingReporter {
         if (finding.startLine == null) {
             return "${finding.file} [$severity] ${finding.category}: ${finding.message}"
         }
-        val column = finding.startColumn ?: 1
-        return "${finding.file}:${finding.startLine}:$column [$severity] ${finding.category}: ${finding.message}"
+        return "${finding.file}:${finding.startLine}:${finding.startColumn ?: 1} [$severity] ${finding.category}: ${finding.message}"
     }
 
     private fun renderSnippet(
@@ -107,14 +105,12 @@ object FindingReporter {
         }
         val numWidth = lines.size.toString().length
         return buildList {
-            val beforeLine = lineNum - 1
-            if (0 <= beforeLine) {
-                add("   ${(beforeLine + 1).toString().padStart(numWidth)} │ ${lines[beforeLine]}")
+            if (0 <= lineNum - 1) {
+                add("   ${lineNum.toString().padStart(numWidth)} │ ${lines[lineNum - 1]}")
             }
             add("  > ${(lineNum + 1).toString().padStart(numWidth)}  │ ${lines[lineNum]}")
-            val afterLine = lineNum + 1
-            if (afterLine < lines.size) {
-                add("   ${(afterLine + 1).toString().padStart(numWidth)} │ ${lines[afterLine]}")
+            if (lineNum + 1 < lines.size) {
+                add("   ${(lineNum + 2).toString().padStart(numWidth)} │ ${lines[lineNum + 1]}")
             }
         }
     }
@@ -134,40 +130,39 @@ object FindingReporter {
         }
         return buildList {
             for (i in startIdx..endIdx) {
-                val line = lines[i]
-                val trimmedLine =
+                add(
                     when {
                         i == startIdx && i == endIdx -> {
-                            line.substring(minOf(edit.startColumn - 1, line.length), minOf(edit.endColumn, line.length))
+                            lines[i].substring(minOf(edit.startColumn - 1, lines[i].length), minOf(edit.endColumn, lines[i].length))
                         }
 
                         i == startIdx -> {
-                            line.substring(minOf(edit.startColumn - 1, line.length))
+                            lines[i].substring(minOf(edit.startColumn - 1, lines[i].length))
                         }
 
                         i == endIdx -> {
-                            line.substring(0, minOf(edit.endColumn, line.length))
+                            lines[i].substring(0, minOf(edit.endColumn, lines[i].length))
                         }
 
                         else -> {
-                            line
+                            lines[i]
                         }
                     }
-                add(trimmedLine)
+                )
             }
         }
     }
 
     private fun extractAddedText(edit: HarnessAstResults.FindingEdit): List<String> =
-        edit.replacement.split("\n").takeIf { it.isNotEmpty() } ?: listOf("")
+        edit.replacement.split("\n").takeIf { lines -> lines.isNotEmpty() } ?: listOf("")
 
     private fun computeSummary(findings: List<Finding>): Tuple5<Int, Int, Int, Int, Int> =
         Tuple5(
-            findings.mapNotNull { it.file }.distinct().count(),
-            findings.count { it.severity == Severity.ERROR },
-            findings.count { it.severity == Severity.WARN },
-            findings.count { it.severity == Severity.INFO },
-            findings.count { it.fix?.safety == HarnessAstResults.FixSafety.SAFE },
+            findings.mapNotNull { finding -> finding.file }.distinct().count(),
+            findings.count { finding -> finding.severity == Severity.ERROR },
+            findings.count { finding -> finding.severity == Severity.WARN },
+            findings.count { finding -> finding.severity == Severity.INFO },
+            findings.count { finding -> finding.fix?.safety == HarnessAstResults.FixSafety.SAFE },
         )
 
     private data class Tuple5<A, B, C, D, E>(

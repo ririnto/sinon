@@ -31,7 +31,6 @@ class InvoiceClientMockKTest {
     @Test
     fun loadsTheRemoteInvoiceOnce() {
         every { client.load("inv-1") } returns Invoice("inv-1")
-
         assertEquals("inv-1", service.load("inv-1").id)
         verify(exactly = 1) { client.load("inv-1") }
     }
@@ -53,9 +52,7 @@ class NotificationServiceTest {
     @Test
     fun sendsNotification() {
         every { notifier.send(any()) } just Runs
-
         service.completeOrder("order-1")
-
         verify { notifier.send(match { notification -> notification.orderId == "order-1" }) }
     }
 }
@@ -73,9 +70,7 @@ import kotlin.test.assertEquals
 @Test
 fun loadsRemoteProfile() = runTest {
     coEvery { api.fetchProfile("user-1") } returns Profile("user-1")
-
     val result = service.loadProfile("user-1")
-
     assertEquals("user-1", result.id)
     coVerify { api.fetchProfile("user-1") }
 }
@@ -99,9 +94,7 @@ class ArgumentMatchingTest {
     fun capturesProcessedPayload() {
         val captured = slot<Payload>()
         every { processor.enqueue(capture(captured)) } returns JobId("job-1")
-
         service.process(rawInput)
-
         assertTrue(captured.isCaptured)
         assertEquals("processed", captured.captured.status)
     }
@@ -122,9 +115,7 @@ class CacheInvalidationTest {
     @Test
     fun matchesAnyArgument() {
         every { cache.invalidate(any<String>()) } just Runs
-
         service.clearCache()
-
         verify(atLeast = 1) { cache.invalidate(any()) }
     }
 }
@@ -144,15 +135,11 @@ class SpyRepositoryTest {
     fun delegatesRealBehaviorAndVerifiesCall() {
         val realRepo = RealRepository()
         val spy: Repository = spyk(realRepo)
-
         every { spy.findByName("special") } returns SpecialItem
-
         val result = spy.findByName("normal")
         val special = spy.findByName("special")
-
         assertEquals(normalItem, result)
         assertEquals(SpecialItem, special)
-
         verify { spy.findByName("normal") }
         verify { spy.findByName("special") }
     }
@@ -174,13 +161,9 @@ class LoggerMockTest {
     @Test
     fun mocksSingletonObject() {
         mockkObject(Logger)
-
         every { Logger.info(any()) } just Runs
-
         service.doWork()
-
         verify { Logger.info(match { message -> message.contains("work done") }) }
-
         unmockkObject(Logger)
     }
 }
@@ -204,7 +187,6 @@ class SequenceReturnsTest {
     @Test
     fun returnsDifferentValuesOnSubsequentCalls() {
         every { counter.next() } returnsMany listOf(1, 2, 3)
-
         assertEquals(1, counter.next())
         assertEquals(2, counter.next())
         assertEquals(3, counter.next())
@@ -213,7 +195,6 @@ class SequenceReturnsTest {
     @Test
     fun throwsOnInvalidInput() {
         every { validator.check("") } throws IllegalArgumentException("empty input")
-
         assertFailsWith<IllegalArgumentException> { validator.check("") }
     }
 }

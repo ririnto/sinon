@@ -12,6 +12,7 @@ import kotlin.io.path.div
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.name
 import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 /**
  * Rule that requires hooks to have generated marker and no packaging placeholders.
@@ -25,26 +26,27 @@ object HookGeneratedMarkerRule : HarnessCheckRule() {
     override val category: String = "hookGeneratedMarker"
 
     override fun validate(ctx: RuleContext): Collection<Finding> {
-        val catObj = ctx.manifest.categoryObject(category) ?: return emptyList()
-        val parametersObj = catObj.get("parameters")?.jsonObject ?: return emptyList()
+        val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList()).get("parameters")?.jsonObject ?: return emptyList()
         val markerTemplate = JsonAccess.stringFromObject(parametersObj, "markerTemplate")
         val placeholderForbidden = JsonAccess.stringFromObject(parametersObj, "placeholderForbidden")
         return buildList {
             addAll(
-                ctx.manifest.stringArray(category, "hooks")
+                ctx.manifest
+                    .stringArray(category, "hooks")
                     .filter { hookPath -> (ctx.root / hookPath).isRegularFile() }
                     .flatMap { hookPath ->
                         val hook = ctx.root / hookPath
                         val text = hook.readText()
-                        val marker = markerTemplate.replace("{name}", hook.name)
                         buildList {
-                            if (!text.contains(marker)) {
+                            if (!text.contains(markerTemplate.replace("{name}", hook.name))) {
                                 add(
                                     Finding(
                                         ctx.manifest.severityOf(category),
                                         category,
-                                        ctx.manifest.stringValue(category, "missingMarker").takeIf { message -> message.isNotEmpty() }
-                                            ?: "$hookPath must contain generated marker '$marker'",
+                                        ctx.manifest.stringValue(category, "missingMarker").takeIf { message ->
+                                            message.isNotEmpty()
+                                        }
+                                            ?: "$hookPath must contain generated marker '${markerTemplate.replace("{name}", hook.name)}'",
                                     ),
                                 )
                             }
@@ -53,7 +55,9 @@ object HookGeneratedMarkerRule : HarnessCheckRule() {
                                     Finding(
                                         ctx.manifest.severityOf(category),
                                         category,
-                                        ctx.manifest.stringValue(category, "placeholderPresent").takeIf { message -> message.isNotEmpty() }
+                                        ctx.manifest.stringValue(category, "placeholderPresent").takeIf { message ->
+                                            message.isNotEmpty()
+                                        }
                                             ?: "$hookPath still contains packaging placeholder text",
                                     ),
                                 )
@@ -61,6 +65,30 @@ object HookGeneratedMarkerRule : HarnessCheckRule() {
                         }
                     },
             )
+        }
+    }
+
+    /**
+     * Adds missing generated markers to hook files.
+     *
+     * Fixes only missingMarker findings (SAFE); placeholderForbidden findings are MANUAL and skipped.
+     */
+    override fun format(ctx: RuleContext): Collection<Path> {
+        val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList()).get("parameters")?.jsonObject ?: return emptyList()
+        val markerTemplate = JsonAccess.stringFromObject(parametersObj, "markerTemplate")
+        return buildList {
+            ctx.manifest
+                .stringArray(category, "hooks")
+                .forEach { hookPath ->
+                    val hook = ctx.root / hookPath
+                    if (!hook.isRegularFile()) return@forEach
+                    val text = hook.readText()
+                    val expectedMarker = markerTemplate.replace("{name}", hook.name)
+                    if (!text.contains(expectedMarker)) {
+                        hook.writeText("$expectedMarker\n$text")
+                        add(hook)
+                    }
+                }
         }
     }
 }

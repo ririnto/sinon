@@ -23,8 +23,7 @@ export const importOverFqnRule: HarnessCheckRule = {
         if (typeof section !== "object" || section === null) {
             return false;
         }
-        const enabled = (section as { enabled?: unknown }).enabled;
-        return enabled !== false;
+        return ((section as { enabled?: unknown }).enabled) !== false;
     },
     validate(ctx: RuleContext): readonly Finding[] {
         return ctx.stackSources("importOverFqn").flatMap((file) => {

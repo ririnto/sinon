@@ -3,14 +3,12 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-kotlin {
-    compilerOptions {
-    }
-}
-
-val kotlinCompilerLibrary = libs.kotlin.compiler.embeddable.get()
-val kotlinCompilerModule: String = kotlinCompilerLibrary.module.toString()
-val kotlinCompilerVersion: String = kotlinCompilerLibrary.versionConstraint.requiredVersion
+val kotlinCompilerLibrary =
+    libs.kotlin.compiler.embeddable.get()
+val kotlinCompilerModule: String =
+    kotlinCompilerLibrary.module.toString()
+val kotlinCompilerVersion: String =
+    kotlinCompilerLibrary.versionConstraint.requiredVersion
 
 val generateBuildConfig by tasks.registering {
     val outDir = layout.buildDirectory.dir("generated/buildConfig/kotlin")
@@ -28,7 +26,8 @@ val generateBuildConfig by tasks.registering {
                     const val KOTLIN_COMPILER_MODULE: String = "$kotlinCompilerModule"
                     const val KOTLIN_COMPILER_VERSION: String = "$kotlinCompilerVersion"
                 }
-                """.trimIndent() + "\n"
+                """.trimIndent()
+                    + "\n",
             )
         }
     }

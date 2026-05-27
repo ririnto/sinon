@@ -56,7 +56,6 @@ class UiStateReplayTest {
     fun newCollectorGetsLatestState() = runTest {
         val state = MutableStateFlow<UiState>(UiState.Loading)
         state.value = UiState.Data
-
         assertEquals(UiState.Data, state.first())
     }
 }
@@ -81,11 +80,8 @@ class UiEventReplayTest {
     fun replayZeroRequiresActiveCollector() = runTest {
         val events = MutableSharedFlow<String>(replay = 0)
         val collected = async(start = CoroutineStart.UNDISPATCHED) { events.first() }
-
         yield()
-
         events.emit("saved")
-
         assertEquals("saved", collected.await())
     }
 }

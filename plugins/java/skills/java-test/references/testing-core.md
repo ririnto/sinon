@@ -180,7 +180,6 @@ class ClientServiceTest {
         when(client.call())
                 .thenThrow(new IOException("temporary"))
                 .thenReturn("ok");
-
         assertEquals("ok", service.run());
         verify(client, times(2)).call();
     }
@@ -239,7 +238,6 @@ class JobMonitorTest {
     @Test
     void marksJobCompletedEventually() {
         service.start(jobId);
-
         await()
                 .atMost(Duration.ofSeconds(5))
                 .pollInterval(Duration.ofMillis(200))

@@ -10,6 +10,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
+import kotlin.io.path.createFile
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
@@ -52,6 +53,36 @@ object EmptyDirectoryPlaceholdersRule : HarnessCheckRule() {
                         )
                     }.forEach { finding ->
                         add(finding)
+                    }
+            }
+        }
+
+    /**
+     * Creates .gitkeep files in empty directories that lack placeholders.
+     */
+    override fun format(ctx: RuleContext): Collection<Path> =
+        buildList {
+            val catObj = ctx.manifest.categoryObject(category)
+            val parametersObj = catObj?.get("parameters")?.jsonObject
+            if (catObj != null && parametersObj != null) {
+                ctx.manifest
+                    .stringArray(category, "directories")
+                    .filter { dirPath ->
+                        val dir = ctx.root / dirPath
+                        when {
+                            !dir.isDirectory() -> {
+                                false
+                            }
+
+                            else -> {
+                                dir.listDirectoryEntries().none { entry -> entry.name != ".gitkeep" } &&
+                                    !(ctx.root / dirPath / ".gitkeep").exists()
+                            }
+                        }
+                    }.forEach { dirPath ->
+                        val gitkeepPath = ctx.root / dirPath / ".gitkeep"
+                        gitkeepPath.createFile()
+                        add(gitkeepPath)
                     }
             }
         }

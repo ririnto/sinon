@@ -28,7 +28,7 @@ export const multilineDocStyleRule: HarnessCheckRule = {
             const visitedComments = new Set<number>();
             const visitNode = (node: Node): readonly Finding[] => {
                 const leadingComments = getLeadingCommentRanges(fullText, node.getFullStart()) ?? [];
-                const current = leadingComments
+                return leadingComments
                     .map((comment) => ({ comment, text: fullText.slice(comment.pos, comment.end) }))
                     .filter(({ comment }) => {
                         if (visitedComments.has(comment.pos)) {
@@ -50,8 +50,8 @@ export const multilineDocStyleRule: HarnessCheckRule = {
                             endLine: start.line + 1,
                             endColumn: start.character + commentText.length + 1,
                         } satisfies Finding;
-                    });
-                return current.concat(astChildrenOf(node).flatMap(visitNode));
+                    })
+                    .concat(astChildrenOf(node).flatMap(visitNode));
             };
             return visitNode(sourceFile);
         });
@@ -59,6 +59,6 @@ export const multilineDocStyleRule: HarnessCheckRule = {
 };
 
 function docStyleMode(ctx: RuleContext): string {
-    const parameters = ctx.readJsonObject(ctx.categoryObject("multilineDocStyle").parameters);
-    return typeof parameters.docStyleMode === "string" ? parameters.docStyleMode : "multiline";
+    const p = ctx.readJsonObject(ctx.categoryObject("multilineDocStyle").parameters);
+    return typeof p.docStyleMode === "string" ? p.docStyleMode : "multiline";
 }

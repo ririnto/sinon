@@ -125,10 +125,11 @@ fi
 target_root=$(CDPATH='' cd "$target_root" && pwd -P) || error "cannot resolve target root: $target_root"
 cd "$target_root"
 
-if ! git_probe=$(git rev-parse --is-inside-work-tree 2>&1); then
-    unset git_probe
+git_in_tree=$(git rev-parse --is-inside-work-tree 2>&1) || git_in_tree=
+if [ "$git_in_tree" != "true" ]; then
     printf '%s\n' 'warning: target root is not a Git worktree; git hook activation will be skipped' >&2
 fi
+unset git_in_tree
 
 # Reject a path that is not a safe target-relative path.
 #
@@ -204,13 +205,19 @@ ensure_safe_file_destination() {
 #
 # @param src Source file path.
 # @param dst Target-relative destination file path.
-# @return Writes copied, overwritten, or skipped path.
+# @param seed Optional 1 to mark the file as a first-install seed (default 0).
+# @return Writes copied, overwritten, or skipped path with seed-aware logs.
 copy_file() {
     src=$1
     dst=$2
+    seed=${3:-0}
     ensure_safe_file_destination "$dst"
     if [ -e "$dst" ] && [ "$force" -ne 1 ]; then
-        printf '%s\n' "keep existing: $dst"
+        if [ "$seed" -eq 1 ]; then
+            printf 'skip seed (target exists): %s\n' "$dst"
+        else
+            printf 'keep existing: %s\n' "$dst"
+        fi
         return 0
     fi
     tmp=$(dirname "$dst")/.harness-tmp-$$-$(basename "$dst")
@@ -224,36 +231,29 @@ copy_file() {
     fi
     if [ -e "$dst" ]; then
         mv "$tmp" "$dst"
-        printf '%s\n' "overwrite (--force): $dst"
+        if [ "$seed" -eq 1 ]; then
+            printf 'overwrite seed (--force): %s\n' "$dst"
+        else
+            printf 'overwrite (--force): %s\n' "$dst"
+        fi
     else
         mv "$tmp" "$dst"
-        printf '%s\n' "write: $dst"
+        if [ "$seed" -eq 1 ]; then
+            printf 'deliver seed: %s\n' "$dst"
+        else
+            printf 'write: %s\n' "$dst"
+        fi
     fi
 }
 
-# Copy the selected stack manifest over the common template when safe.
+# Copy the selected stack manifest to the target destination.
 #
 # @param src Selected stack manifest source path.
 # @param dst Target-relative manifest destination path.
-# @return Writes copied, overwritten, or skipped path.
+# @return Writes copied path via copy_file.
 copy_stack_manifest() {
     src=$1
     dst=$2
-    common_manifest=$template_dir/common/docs/harness/manifest.json
-    ensure_safe_file_destination "$dst"
-    if [ -e "$dst" ] && [ "$force" -ne 1 ]; then
-        if cmp -s "$dst" "$common_manifest"; then
-            tmp=$(dirname "$dst")/.harness-tmp-$$-$(basename "$dst")
-            ensure_safe_file_destination "$tmp"
-            if [ -e "$tmp" ]; then
-                error "[copy_stack_manifest] temporary destination already exists: $tmp (cleanup or retry)"
-            fi
-            cp "$src" "$tmp"
-            mv "$tmp" "$dst"
-            printf '%s\n' "overwrite selected stack manifest: $dst"
-            return 0
-        fi
-    fi
     copy_file "$src" "$dst"
 }
 
@@ -300,8 +300,9 @@ copy_tree() {
         rel=${src#"$src_dir"/}
         case "$rel" in
             AGENTS.md | CLAUDE.md | docs/harness/manifest.json | docs/harness/git-hooks/pre-commit | docs/harness/git-hooks/pre-push | target/* | */target/* | build/* | */build/* | bin/* | */bin/* | .gradle/* | */.gradle/* | .factorypath | */.factorypath | .classpath | */.classpath | .project | */.project | .settings/* | */.settings/* | __pycache__/* | */__pycache__/* | *.pyc) continue ;;
+            docs/harness/templates/*) copy_file "$src" "$dst_dir/$rel" 1 ;;
+            *) copy_file "$src" "$dst_dir/$rel" ;;
         esac
-        copy_file "$src" "$dst_dir/$rel"
     done
 }
 
@@ -432,12 +433,28 @@ check_root_contract_conflict() {
 #
 # @return Writes root contract status.
 ensure_root_contracts() {
-    agents_target=AGENTS.md
-    claude_target=CLAUDE.md
+    agents_exists=0
+    claude_exists=0
+    agents_is_symlink=0
+    claude_is_symlink=0
+    if [ -e AGENTS.md ] || [ -L AGENTS.md ]; then
+        agents_exists=1
+    fi
+    if [ -e CLAUDE.md ] || [ -L CLAUDE.md ]; then
+        claude_exists=1
+    fi
     if [ -L AGENTS.md ]; then
-        agents_target=$(root_contract_symlink_target AGENTS.md)
+        agents_is_symlink=1
     fi
     if [ -L CLAUDE.md ]; then
+        claude_is_symlink=1
+    fi
+    agents_target=AGENTS.md
+    claude_target=CLAUDE.md
+    if [ "$agents_is_symlink" -eq 1 ]; then
+        agents_target=$(root_contract_symlink_target AGENTS.md)
+    fi
+    if [ "$claude_is_symlink" -eq 1 ]; then
         claude_target=$(root_contract_symlink_target CLAUDE.md)
     fi
     check_root_contract_conflict "$agents_target" '# Repository Harness Contract'
@@ -447,9 +464,34 @@ ensure_root_contracts() {
     fi
     if [ "$agents_target" = "$claude_target" ]; then
         ensure_shared_root_contract "$agents_target"
+    elif [ "$agents_exists" -eq 0 ] && [ "$claude_exists" -eq 0 ]; then
+        ensure_root_contract "$claude_target" '# Entry Point' "$template_dir/common/CLAUDE.md"
+        ln -s CLAUDE.md AGENTS.md
+        printf '%s\n' "create symlink: AGENTS.md -> CLAUDE.md"
+    elif [ "$agents_exists" -eq 0 ] && [ "$claude_exists" -eq 1 ]; then
+        ensure_root_contract "$claude_target" '# Entry Point' "$template_dir/common/CLAUDE.md"
+        ln -s CLAUDE.md AGENTS.md
+        printf '%s\n' "create symlink: AGENTS.md -> CLAUDE.md"
+    elif [ "$claude_exists" -eq 0 ] && [ "$agents_exists" -eq 1 ]; then
+        ensure_root_contract "$agents_target" '# Repository Harness Contract' "$template_dir/common/AGENTS.md"
+        ln -s AGENTS.md CLAUDE.md
+        printf '%s\n' "create symlink: CLAUDE.md -> AGENTS.md"
     else
         ensure_root_contract "$agents_target" '# Repository Harness Contract' "$template_dir/common/AGENTS.md"
         ensure_root_contract "$claude_target" '# Entry Point' "$template_dir/common/CLAUDE.md"
+    fi
+}
+
+# Ensure .agents symlink points to .claude when neither exists.
+#
+# @return Writes symlink creation status.
+ensure_agents_symlink() {
+    if [ ! -e .agents ] && [ ! -L .agents ]; then
+        if [ -d .claude ]; then
+            ln -s .claude .agents
+            printf '%s\n' "create symlink: .agents -> .claude"
+            return 0
+        fi
     fi
 }
 
@@ -572,11 +614,13 @@ ensure_git_dir_for_hooks() {
         printf '%s\n' 'skip git hook install: .git is a symlink' >&2
         return 1
     fi
-    if ! git_probe=$(git rev-parse --is-inside-work-tree 2>&1); then
-        unset git_probe
+    git_in_tree=$(git rev-parse --is-inside-work-tree 2>&1) || git_in_tree=
+    if [ "$git_in_tree" != "true" ]; then
+        unset git_in_tree
         printf '%s\n' 'skip git hook install: not inside a Git worktree' >&2
         return 1
     fi
+    unset git_in_tree
     return 0
 }
 
@@ -639,15 +683,13 @@ ensure_safe_hook_destination() {
 #
 # @return Writes the configured hooks path or nothing.
 configured_hooks_path() {
-    # shellcheck disable=SC2034
-    if ! git_probe=$(git rev-parse --is-inside-work-tree 2>&1); then
-        unset git_probe
+    git_in_tree=$(git rev-parse --is-inside-work-tree 2>&1) || git_in_tree=
+    if [ "$git_in_tree" != "true" ]; then
+        unset git_in_tree
         return 0
     fi
-    if git config --path --get core.hooksPath; then
-        return 0
-    fi
-    return 0
+    unset git_in_tree
+    git config --path --get core.hooksPath || return 0
 }
 
 # Normalize a hooks path for comparison without requiring it to exist.
@@ -850,6 +892,42 @@ ensure_hook_activation_policy() {
     fi
 }
 
+# Print runtime-availability advisories for the selected stack mode.
+#
+# @param selected_mode Resolved harness stack mode.
+# @return Writes one advisory line to standard error per missing runtime, or nothing when present.
+runtime_advisory_for_mode() {
+    selected_mode=$1
+    case "$selected_mode" in
+        gradle)
+            if [ ! -x ./gradlew ] && ! command -v gradle 2>&1 | grep -q .; then
+                printf '%s\n' "[advisory] gradle command not found on PATH; install via SDKMAN (\`sdk install gradle\`), Homebrew (\`brew install gradle\`), or asdf (\`asdf plugin add gradle && asdf install gradle latest\`), or add a Gradle wrapper (\`gradle wrapper\`) so \`./gradlew\` is available before running validation." >&2
+            fi
+            ;;
+        maven)
+            if ! command -v mvn 2>&1 | grep -q .; then
+                printf '%s\n' "[advisory] mvn command not found on PATH; install via SDKMAN (\`sdk install maven\`), Homebrew (\`brew install maven\`), or your package manager before running validation." >&2
+            fi
+            ;;
+        uv)
+            if ! command -v uv 2>&1 | grep -q .; then
+                printf '%s\n' "[advisory] uv command not found on PATH; install via the official script (\`curl -LsSf https://astral.sh/uv/install.sh | sh\`) or Homebrew (\`brew install uv\`) before running validation." >&2
+            fi
+            ;;
+        bun)
+            if ! command -v bun 2>&1 | grep -q .; then
+                printf '%s\n' "[advisory] bun command not found on PATH; install via the official script (\`curl -fsSL https://bun.sh/install | bash\`) or Homebrew (\`brew install oven-sh/bun/bun\`) before running validation." >&2
+            fi
+            ;;
+        shell)
+            if ! command -v python3 2>&1 | grep -q .; then
+                printf '%s\n' "[advisory] python3 command not found on PATH; install Python 3 via your OS package manager or Homebrew (\`brew install python\`) before running validation." >&2
+            fi
+            ;;
+        *) error "[runtime_advisory] unsupported mode (must be gradle|maven|uv|bun|shell): $selected_mode" ;;
+    esac
+}
+
 # Return the validation command for the selected stack mode.
 #
 # @param selected_mode Resolved harness stack mode.
@@ -926,38 +1004,44 @@ write_new_pre_commit_hook() {
 # Harness stage: compliance
 set -e
 require_file() {
-  if [ ! -f "$1" ]; then
-    printf '%s\n' "harness pre-commit: missing required file: $1" >&2
-    exit 1
-  fi
+    if [ ! -f "$1" ]; then
+        printf '%s\n' "harness pre-commit: missing required file: $1" >&2
+        exit 1
+    fi
 }
 require_executable_hook() {
-  hook=$1
-  marker=$2
-  stage=$3
-  require_file "$hook"
-  if [ ! -x "$hook" ]; then
-    printf '%s\n' "[require_executable_hook] hook must be executable: $hook" >&2
-    exit 1
-  fi
-  first_line=$(sed -n '1p' "$hook")
-  if [ "$first_line" != '#!/usr/bin/env sh' ]; then
-    printf '%s\n' "[require_executable_hook] hook must use #!/usr/bin/env sh: $hook" >&2
-    exit 1
-  fi
-  second_line=$(sed -n '2p' "$hook")
-  if [ "$second_line" != '# -*- coding: utf-8 -*-' ]; then
-    printf '%s\n' "[require_executable_hook] hook must declare utf-8 coding on line 2: $hook" >&2
-    exit 1
-  fi
-  grep -Fq "$marker" "$hook" || { printf '%s\n' "[require_executable_hook] hook missing generated marker: $hook" >&2; exit 1; }
-  grep -Fq "$stage" "$hook" || { printf '%s\n' "[require_executable_hook] hook missing stage marker: $hook" >&2; exit 1; }
-  placeholder='packaged placeholder is replaced during harness'
-  placeholder="$placeholder installation"
-  if grep -Fq "$placeholder" "$hook"; then
-    printf '%s\n' "[require_executable_hook] hook still contains packaged placeholder text: $hook" >&2
-    exit 1
-  fi
+    hook=$1
+    marker=$2
+    stage=$3
+    require_file "$hook"
+    if [ ! -x "$hook" ]; then
+        printf '%s\n' "[require_executable_hook] hook must be executable: $hook" >&2
+        exit 1
+    fi
+    first_line=$(sed -n '1p' "$hook")
+    if [ "$first_line" != '#!/usr/bin/env sh' ]; then
+        printf '%s\n' "[require_executable_hook] hook must use #!/usr/bin/env sh: $hook" >&2
+        exit 1
+    fi
+    second_line=$(sed -n '2p' "$hook")
+    if [ "$second_line" != '# -*- coding: utf-8 -*-' ]; then
+        printf '%s\n' "[require_executable_hook] hook must declare utf-8 coding on line 2: $hook" >&2
+        exit 1
+    fi
+    grep -Fq "$marker" "$hook" || {
+        printf '%s\n' "[require_executable_hook] hook missing generated marker: $hook" >&2
+        exit 1
+    }
+    grep -Fq "$stage" "$hook" || {
+        printf '%s\n' "[require_executable_hook] hook missing stage marker: $hook" >&2
+        exit 1
+    }
+    placeholder='packaged placeholder is replaced during harness'
+    placeholder="$placeholder installation"
+    if grep -Fq "$placeholder" "$hook"; then
+        printf '%s\n' "[require_executable_hook] hook still contains packaged placeholder text: $hook" >&2
+        exit 1
+    fi
 }
 require_file AGENTS.md
 require_file CLAUDE.md
@@ -967,16 +1051,16 @@ require_executable_hook docs/harness/git-hooks/pre-commit 'Harness generated hoo
 require_executable_hook docs/harness/git-hooks/pre-push 'Harness generated hook: pre-push' 'Harness stage: full-validation'
 validation_command=$(sed -n 's/^# Harness validation command: //p' docs/harness/git-hooks/pre-push | head -n 1)
 if [ -z "$validation_command" ]; then
-  printf '%s\n' "[pre_commit_hook] pre-push hook missing validation command marker" >&2
-  exit 1
+    printf '%s\n' "[pre_commit_hook] pre-push hook missing validation command marker" >&2
+    exit 1
 fi
 if [ -f .github/workflows/harness.yml ] && ! grep -Fq "$validation_command" .github/workflows/harness.yml; then
-  printf '%s\n' "[pre_commit_hook] .github/workflows/harness.yml does not match pre-push validation command" >&2
-  exit 1
+    printf '%s\n' "[pre_commit_hook] .github/workflows/harness.yml does not match pre-push validation command" >&2
+    exit 1
 fi
 if [ -f .gitlab-ci.yml ] && ! grep -Fq "$validation_command" .gitlab-ci.yml; then
-  printf '%s\n' "[pre_commit_hook] .gitlab-ci.yml does not match pre-push validation command" >&2
-  exit 1
+    printf '%s\n' "[pre_commit_hook] .gitlab-ci.yml does not match pre-push validation command" >&2
+    exit 1
 fi
 HOOK
     ) || error "[write_pre_commit_hook] temporary hook destination already exists: $file (cleanup or retry)"
@@ -1211,6 +1295,7 @@ pre_push_cmd=$(pre_push_command_for_mode "$mode")
 ensure_hook_activation_policy
 ensure_root_contracts
 copy_tree "$template_dir/common" .
+ensure_agents_symlink
 ensure_gitkeep_paths
 copy_stack_tree "$template_dir/$mode" .
 
@@ -1224,3 +1309,4 @@ printf '%s\n' "harness mode: $mode"
 printf '%s\n' "validation command: $cmd"
 printf '%s\n' "pre-commit command: ${pre_commit_cmd:-harness compliance}"
 printf '%s\n' "pre-push command: $pre_push_cmd"
+runtime_advisory_for_mode "$mode"

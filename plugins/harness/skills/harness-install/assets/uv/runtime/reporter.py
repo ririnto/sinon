@@ -33,8 +33,7 @@ def format_location_header(finding: "Finding") -> str:
         return f"[{label}] {msg_part}"
     if finding.start_line is None:
         return f"{finding.file} [{label}] {msg_part}"
-    col = finding.start_column if finding.start_column is not None else 1
-    return f"{finding.file}:{finding.start_line}:{col} [{label}] {finding.category}: {finding.message}"
+    return f"{finding.file}:{finding.start_line}:{finding.start_column if finding.start_column is not None else 1} [{label}] {finding.category}: {finding.message}"
 
 
 def format_code_snippet(root: Path, finding: "Finding") -> list[str]:
@@ -56,15 +55,10 @@ def format_code_snippet(root: Path, finding: "Finding") -> list[str]:
         return []
     start_idx = max(0, line_idx - 1)
     end_idx = min(len(lines), line_idx + 2)
-    snippet_lines = lines[start_idx:end_idx]
-    line_width = len(str(end_idx))
     result = []
-    for offset, code_line in enumerate(snippet_lines):
+    for offset, code_line in enumerate(lines[start_idx:end_idx]):
         actual_line_no = start_idx + offset + 1
-        is_offending = actual_line_no == finding.start_line
-        prefix = ">" if is_offending else " "
-        line_no_str = str(actual_line_no).rjust(line_width)
-        result.append(f"  {prefix} {line_no_str}  │ {code_line}")
+        result.append(f"  {'>' if actual_line_no == finding.start_line else ' '} {str(actual_line_no).rjust(len(str(end_idx)))}  │ {code_line}")
     return result
 
 
@@ -123,7 +117,9 @@ def format_fix_info(root: Path, finding: "Finding") -> list[str]:
         for line in extract_removed_text(root, first_edit):
             result.append(f"  - {line}")
         result.append("  After:")
-        for line in (first_edit.replacement.split("\n") if first_edit.replacement else [""]):
+        for line in (
+            first_edit.replacement.split("\n") if first_edit.replacement else [""]
+        ):
             result.append(f"  + {line}")
     return result
 
@@ -167,17 +163,14 @@ def render_findings(root: Path, findings: Iterable["Finding"]) -> list[str]:
         if i > 0:
             output.append("")
         output.extend(render_finding(root, finding))
-    file_count = len(set(f.file for f in findings_list if f.file is not None))
-    error_count = sum(1 for f in findings_list if f.severity == "ERROR")
-    warn_count = sum(1 for f in findings_list if f.severity == "WARN")
-    info_count = sum(1 for f in findings_list if f.severity == "INFO")
     import harness_check_rule
 
     fixable_count = sum(
-        1 for f in findings_list
+        1
+        for f in findings_list
         if f.fix is not None and f.fix.safety == harness_check_rule.FixSafety.SAFE
     )
-    summary = f"Checked {file_count} file(s). {len(findings_list)} violation(s): {error_count} error, {warn_count} warn, {info_count} info."
+    summary = f"Checked {len(set(f.file for f in findings_list if f.file is not None))} file(s). {len(findings_list)} violation(s): {sum(1 for f in findings_list if f.severity == 'ERROR')} error, {sum(1 for f in findings_list if f.severity == 'WARN')} warn, {sum(1 for f in findings_list if f.severity == 'INFO')} info."
     if fixable_count > 0:
         summary += f" [*] {fixable_count} fixable."
     output.append("")

@@ -4,10 +4,8 @@ import com.ririnto.sinon.harness.rules.HarnessCheckHelper;
 import com.ririnto.sinon.harness.core.RuleContext;
 import com.ririnto.sinon.harness.Finding;
 
-import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.stmt.CatchClause;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -30,8 +28,7 @@ public enum EmptyCatchBlockRule implements AstRule {
     @Override
     public Collection<Finding> validate(RuleContext ctx) throws MojoExecutionException {
         final Path root = ctx.root();
-        final JsonNode manifest = ctx.manifest().raw();
-        final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
+        final String severity = HarnessCheckHelper.getSeverity(ctx.manifest().raw(), CATEGORY);
         try {
             final List<Path> sources = ctx.stackSources(CATEGORY);
             return sources.stream()
@@ -44,8 +41,7 @@ public enum EmptyCatchBlockRule implements AstRule {
 
     private List<Finding> validateEmptyCatch(Path root, Path file, String severity) {
         try {
-            final CompilationUnit cu = StaticJavaParser.parse(file);
-            return cu.findAll(CatchClause.class).stream()
+            return StaticJavaParser.parse(file).findAll(CatchClause.class).stream()
                     .filter(catchClause -> catchClause.getBody().getStatements().isEmpty())
                     .map(catchClause -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + catchClause.getBegin().map(p -> p.line).orElse(-1) + ": empty catch block"))
                     .toList();

@@ -20,11 +20,12 @@ import java.util.stream.Stream;
 public enum CiHookCommandParityRule implements HarnessCheckRule {
     INSTANCE;
 
+    private static final String CATEGORY = "ciHookCommandParity";
+
     @Override
     public String category() {
         return "ciHookCommandParity";
     }
-    private static final String CATEGORY = "ciHookCommandParity";
 
     @Override
     public boolean applies(RuleContext ctx) {

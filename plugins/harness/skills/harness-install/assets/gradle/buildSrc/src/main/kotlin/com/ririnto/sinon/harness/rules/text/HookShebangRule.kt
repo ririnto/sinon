@@ -11,6 +11,8 @@ import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.readLines
+import kotlin.io.path.readText
+import kotlin.io.path.writeText
 
 /**
  * Rule that requires hooks to have correct shebang.
@@ -57,6 +59,34 @@ object HookShebangRule : HarnessCheckRule() {
                             )
                         },
                 )
+            }
+        }
+
+    /**
+     * Insert expectedShebang as line 1 when missing.
+     *
+     * For each hook file in manifest where the first line differs from expectedShebang,
+     * prepend the shebang as a new line 1 and write the file back.
+     */
+    override fun format(ctx: RuleContext): Collection<Path> =
+        buildList {
+            val catObj = ctx.manifest.categoryObject(category)
+            val parametersObj = catObj?.get("parameters")?.jsonObject
+            if (catObj != null && parametersObj != null) {
+                val expectedShebang = JsonAccess.stringFromObject(parametersObj, "expectedShebang")
+                ctx.manifest
+                    .stringArray(category, "hooks")
+                    .forEach { hookPath ->
+                        val hook = ctx.root / hookPath
+                        if (hook.isRegularFile()) {
+                            val currentText = hook.readText()
+                            val currentFirstLine = currentText.lines().firstOrNull() ?: ""
+                            if (currentFirstLine != expectedShebang) {
+                                hook.writeText("$expectedShebang\n$currentText")
+                                add(hook)
+                            }
+                        }
+                    }
             }
         }
 }
