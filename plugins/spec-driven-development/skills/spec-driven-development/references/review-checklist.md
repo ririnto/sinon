@@ -31,7 +31,7 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 ### Canonical Placement
 
-- [ ] SPEC.md is placed at `spec/domain/<ownership-path>/SPEC.md` where `<ownership-path>` reflects the owning capability boundary
+- [ ] SPEC.md is placed at `spec/domain/{{ownership-path}}/SPEC.md` where `{{ownership-path}}` reflects the owning capability boundary
 - [ ] RESEARCH.md exists only under `spec/research/{framework|library|topic}/{name}/` when external behavior affects the SPEC
 
 ### Ownership and Authoring Flow

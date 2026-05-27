@@ -24,7 +24,7 @@ If your host does not provide `${CLAUDE_PLUGIN_ROOT}`, replace `SKILL_ROOT` with
 
 ## Operating rules
 
-- MUST use `spec/domain/<ownership-path>/SPEC.md` for capability specs, where `<ownership-path>` reflects the owning capability boundary.
+- MUST use `spec/domain/{{ownership-path}}/SPEC.md` for capability specs, where `{{ownership-path}}` reflects the owning capability boundary.
   MUST NOT use `topic`, `policy`, `audit`, or `repository-improvement` unless they map to a real owning capability.
 - MUST use `spec/research/{framework|library|topic}/{name}/RESEARCH.md` for research artifacts.
 - MUST use `RESEARCH.md` only for framework, library, or topic investigation that informs later spec decisions.
@@ -170,7 +170,7 @@ Record each applicable item as `pass`, `fail`, or `n/a` with rationale.
 ### Spec Review minimum checklist
 
 - `SPEC.md` frontmatter includes `title`, `description`, `last_updated`, `status`, and `call`
-- `SPEC.md` is placed under `spec/domain/<ownership-path>/SPEC.md`
+- `SPEC.md` is placed under `spec/domain/{{ownership-path}}/SPEC.md`
 - Functional Requirements are verifiable and covered by scenarios
 - Scenarios include Normal, Alternative, and Error flows
 - `SPEC.md` remains implementation-agnostic by default
