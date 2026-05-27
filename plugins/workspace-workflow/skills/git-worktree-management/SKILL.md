@@ -280,7 +280,7 @@ cd worktrees/feat-main-work
 
 ## Pitfalls
 
-- **Same branch in two worktrees**: If you accidentally create a worktree for a branch already checked out elsewhere, `git worktree add` fails with "error: BRANCH is already checked out". Use `git worktree list` before adding.
+- **Same branch in two worktrees**: If you accidentally create a worktree for a branch already checked out elsewhere, `git worktree add` fails with "error: {{branch}} is already checked out". Use `git worktree list` before adding.
 - **Forgetting to exit the worktree before removing**: If you try to remove a worktree while inside it, removal fails. Always `cd` out first.
 - **Stale worktree metadata**: If you delete a worktree directory manually (not via `git worktree remove`), stale metadata remains. Use `git worktree prune` to clean up.
 - **Nested worktrees**: Do not create a worktree inside another worktree's directory. Keep worktrees as siblings in a flat structure (e.g., `worktrees/branch-a`, `worktrees/branch-b`).

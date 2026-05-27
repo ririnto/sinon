@@ -37,7 +37,7 @@ assignee: ririnto
 
 - [x] Task 3.1 — `plugin-self-check.sh` PASS
 - [x] Task 3.2 — `shellcheck` PASS (install-harness.sh + plugin-self-check.sh + detect-stack.sh + shell harness-validate.sh)
-- [x] Task 3.3 — `install --mode uv/bun/shell` dry-run 모두 성공; target/docs/harness/STACK/ layout 정상
+- [x] Task 3.3 — `install --mode uv/bun/shell` dry-run 모두 성공; target/docs/harness/{{stack}}/ layout 정상
 
 ## Validation
 
