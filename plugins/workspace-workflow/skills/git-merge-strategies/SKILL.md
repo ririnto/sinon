@@ -221,7 +221,7 @@ cat src/module.js
 
 Example (conflict markers):
 
-```json
+```text
 function greet(name) {
 <<<<<<< HEAD
   return "Hello, " + name;
@@ -243,7 +243,7 @@ Edit the file to choose the correct version or combine both versions:
 
 Option A: Keep HEAD (base branch):
 
-```json
+```js
 function greet(name) {
   return "Hello, " + name;
 }
@@ -251,7 +251,7 @@ function greet(name) {
 
 Option B: Keep feature branch:
 
-```json
+```js
 function greet(name) {
   return "Hi, " + name + "!";
 }
@@ -259,7 +259,7 @@ function greet(name) {
 
 Option C: Combine both:
 
-```json
+```js
 function greet(name) {
   return "Hello, " + name + "!";
 }
@@ -314,7 +314,7 @@ git log --oneline -n 5
 
 File: `src/config.js`
 
-```typescript
+```js
 const API_TIMEOUT = 3000;  // base
 const API_TIMEOUT = 5000;  // feature
 ```

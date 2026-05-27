@@ -52,8 +52,10 @@ start_coordinator() {
 
 Agents send messages to coordinator:
 
-```sh
-#!/bin/bash
+```bash
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -eo pipefail
 
 # Validate coordinator session name for safety.
 #
@@ -90,8 +92,10 @@ report_to_coordinator() {
 
 Coordinator watches a shared directory for status files:
 
-```sh
-#!/bin/bash
+```bash
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -eo pipefail
 
 # Write agent status to coordinator file.
 #
@@ -214,8 +218,10 @@ dependencies:
 
 Hook checks if dependencies are complete:
 
-```sh
-#!/bin/bash
+```bash
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -eo pipefail
 
 # Block work until prerequisite tasks complete.
 #
@@ -422,8 +428,10 @@ Three parallel sessions coordinated by backend-leader.
 
 Coordinator polls all sessions:
 
-```sh
-#!/bin/bash
+```bash
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+set -eo pipefail
 
 # Aggregate status from multiple agent sessions.
 #

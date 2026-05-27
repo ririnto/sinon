@@ -232,7 +232,7 @@ Return:
 
 Use simple local inspection before deeper validation:
 
-```markdown
+```text
 Read `commands/your-command.md` and confirm:
 
 - the frontmatter contains only needed fields
