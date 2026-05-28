@@ -2,7 +2,7 @@
 name: harness-validate
 description: >-
   Validate target-owned repository harness assets against the installed build/runtime contract. Use when verifying a fresh harness install, checking target harness changes before commit or CI, or diagnosing WARN and ERROR output from stack validators without requiring plugin-root structural agents in the target repository.
-argument-hint: '[auto|gradle|maven|uv|bun]'
+argument-hint: '[auto|gradle|maven|uv|bun|shell]'
 disable-model-invocation: true
 allowed-tools:
   - Bash(./gradlew *)
@@ -10,6 +10,7 @@ allowed-tools:
   - Bash(mvn *)
   - Bash(uv *)
   - Bash(bun *)
+  - Bash(sh docs/harness/shell/harness-check.sh)
   - Read
   - Grep
   - Glob
@@ -56,6 +57,7 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | `pom.xml` | `maven` | The harness Maven plugin lives under `harness-maven-plugin/`. |
 | `uv.lock` or Python `pyproject.toml` | `uv` | Run through `uv` so dependencies and Python version resolution stay target-owned. |
 | `bun.lock`, `bun.lockb`, or JavaScript `package.json` without a stronger stack signal | `bun` | Use only when Bun is the intended project runtime. |
+| Shell scripts, `Makefile`, or no stronger stack signal | `shell` | Requires `python3` on PATH for manifest parsing. |
 | Multiple stack signals | explicit user mode | Report ambiguous stack when non-interactive, or use the installed README command if present. |
 
 ## Stack Commands
@@ -67,6 +69,7 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | `maven` | `pom.xml` exists | `mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check` |
 | `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run --script docs/harness/uv/harness_check.py` |
 | `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun --install=fallback run docs/harness/bun/harness-check.ts` |
+| `shell` | shell-script-only or Makefile-driven repository | `sh docs/harness/shell/harness-check.sh` |
 
 The installed README command is the local harness validation command. The generated `docs/harness/git-hooks/pre-push` command marker is the final check command; for Gradle that command is `check`, while `pre-commit` runs `harnessCheck`. Do not introduce `docs/harness/check.sh` as a dispatcher unless the installer, CI templates, hook generation, validators, and self-check all adopt that dispatcher contract together.
 
@@ -92,6 +95,10 @@ uv run --script docs/harness/uv/harness_check.py
 
 ```sh
 bun --install=fallback run docs/harness/bun/harness-check.ts
+```
+
+```sh
+sh docs/harness/shell/harness-check.sh
 ```
 
 Do not suppress validator output.
@@ -224,7 +231,7 @@ The shell runtime ships `harness-check.sh`. Shell `harnessFormat` is added in a 
 ## Report Template
 
 ```text
-mode: <gradle|maven|uv|bun> (--mode flag)
+mode: <gradle|maven|uv|bun|shell> (--mode flag)
 command: <exact command>
 result: <pass|fail> (<exit status or unavailable>)
 failures:
