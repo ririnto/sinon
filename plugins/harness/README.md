@@ -139,7 +139,7 @@ docs/
 
 Empty required directories are kept in version control with `.gitkeep`. `docs/harness/git-hooks/pre-commit` is a generated, target-owned hook template: Gradle uses it for `harnessCheck`, while non-Gradle stacks use it for compliance checks. `docs/harness/git-hooks/pre-push` is the generated final-check hook template: Gradle uses `check`, while non-Gradle stacks use the selected validation command. Neither is an active Git hook unless the target repository opts in. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
-In installed target repositories, `AGENTS.md` is the primary harness contract. `CLAUDE.md` is retained as the Claude Code entry point and points back to `AGENTS.md`.
+In installed target repositories, `CLAUDE.md` is the primary harness contract and Claude Code entry point. `AGENTS.md` is retained as a symlink alias to `CLAUDE.md` so runtimes that load either filename resolve to the same document.
 
 ## Validation Adapters
 
