@@ -39,7 +39,7 @@ Harness changes MAY be made during development when the current harness no longe
 
 ```text
 CLAUDE.md
-AGENTS.md            (symlink to CLAUDE.md)
+AGENTS.md            (same document as CLAUDE.md via symlink in one direction)
 ARCHITECTURE.md
 WORKFLOW.md
 docs/

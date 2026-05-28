@@ -6,8 +6,8 @@ This directory contains versioned harness assets used by local agents and CI val
 
 | Path | Purpose |
 | --- | --- |
-| `CLAUDE.md` | Primary repository harness contract |
-| `AGENTS.md` | Symlink alias of `CLAUDE.md` so runtimes that load `AGENTS.md` resolve to the same content |
+| `CLAUDE.md` | Repository harness contract; fresh installs use it as the real file |
+| `AGENTS.md` | Same root contract document as `CLAUDE.md`, via a symlink in one direction |
 | `.claude/` | Primary directory for agents, skills, commands, and runtime state |
 | `.agents/` | Symlink alias of `.claude/` so runtimes that load `.agents/` resolve to the same content |
 | `ARCHITECTURE.md` | System architecture, boundaries, data flow, and validation surface |
