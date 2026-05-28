@@ -82,8 +82,8 @@ Install or refresh target-owned repository harness files from this plugin. This 
 
 - The installed harness is target-owned after copying.
 - The generated hook templates are target-owned: Gradle pre-commit runs `harnessCheck`, Gradle pre-push runs `check`, non-Gradle pre-commit checks harness-rule compliance only, non-Gradle pre-push runs selected validation, and custom templates are preserved unless `--force` was requested.
-- `CLAUDE.md` is the primary target repository harness contract and Claude Code entry point.
-- `AGENTS.md` remains a symlink alias to `CLAUDE.md` so runtimes that load either filename resolve to the same document.
+- Fresh installs use `CLAUDE.md` as the primary target repository harness contract and `AGENTS.md` as its symlink alias.
+- Refreshes of existing AGENTS-only repositories may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias; either orientation MUST resolve both filenames to the same document.
 - `docs/harness/manifest.json` is the installed harness inventory and contract.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
 - Plugin skills install, validate, and evolve the harness package; installed target skills and agents guide day-to-day work inside the target repository.

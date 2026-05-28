@@ -1,6 +1,6 @@
 # Repository Harness Contract
 
-This repository uses a versioned harness so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution. The canonical pattern is `CLAUDE.md` as the primary contract, with `AGENTS.md` as a symlink to `CLAUDE.md`, so both filenames resolve to this single document, regardless of which agent runtime is running.
+This repository uses a versioned harness so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution. Fresh installs use `CLAUDE.md` as the primary contract with `AGENTS.md` as a symlink alias. Existing AGENTS-only repositories may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias. In either orientation, both filenames MUST resolve to this single document, regardless of which agent runtime is running.
 
 ## Entry Point
 
@@ -19,9 +19,9 @@ Harness changes MAY be made during development when the current harness no longe
 ## Invariants
 
 - The repository MUST keep agent instructions, skills, templates, documentation structure, and validation adapters in versioned files.
-- `CLAUDE.md` MUST be the primary repository harness contract for coding agents.
-- `AGENTS.md` MUST resolve to the same document as `CLAUDE.md`, via a symlink.
-- `.agents/` MUST be a symlink to `.claude/`, mirroring the `CLAUDE.md` → `AGENTS.md` pattern, so that runtimes looking up either directory resolve to the same content.
+- `CLAUDE.md` SHOULD be the primary repository harness contract for coding agents on fresh installs.
+- `AGENTS.md` and `CLAUDE.md` MUST resolve to the same document, via a symlink in one direction.
+- `.agents/` MUST be a symlink to `.claude/` so that runtimes looking up either directory resolve to the same content.
 - `ARCHITECTURE.md` MUST describe system boundaries, major components, data flow, and validation surfaces.
 - `.claude/agents/` MUST contain specialized project agents with `name` and `description` frontmatter.
 - `.claude/skills/*/SKILL.md` MUST contain focused procedures with `description` frontmatter.
