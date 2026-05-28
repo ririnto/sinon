@@ -1195,7 +1195,7 @@ KOTLINEOF
     )"
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-  {"name":"gradle-location-fixture","filePresence":{"enabled":true,"severity":"ERROR","paths":["MISSING.md"],"parameters":{}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","messages":{"default":"if/else without braces; wrap the body in `{ ... }`"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","messages":{"default":"avoid suppression of forbidden tokens (`{snippet}`); refactor to type-safe cast or explicit handling"},"parameters":{"sourceRoots":["src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenSuppressions":["UNCHECKED_CAST"],"allowedSuppressions":[]}},"implicitLambdaIt":{"enabled":false},"publicDeclarationDocComment":{"enabled":false},"wildcardImport":{"enabled":false}}
+  {"name":"gradle-location-fixture","filePresence":{"enabled":true,"severity":"ERROR","paths":["MISSING.md"],"parameters":{}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","messages":{"default":"if/else without braces; wrap the body in `{ ... }`"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"importOverFqn":{"enabled":true,"severity":"ERROR","messages":{"default":"fully qualified name `{name}` used inline; add an import and use the simple name"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"allowedFqnPatterns":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","messages":{"default":"avoid suppression of forbidden tokens (`{snippet}`); refactor to type-safe cast or explicit handling"},"parameters":{"sourceRoots":["src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenSuppressions":["UNCHECKED_CAST"],"allowedSuppressions":[]}},"implicitLambdaIt":{"enabled":false},"publicDeclarationDocComment":{"enabled":false},"wildcardImport":{"enabled":false}}
 JSONEOF
     )"
     fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/LocationFixture.kt "$(
@@ -1257,6 +1257,19 @@ class SuppressionFixture {
 }
 KOTLINEOF
     )"
+    fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/FqnFixture.kt "$(
+        cat <<'KOTLINEOF'
+package fixture
+
+class FqnFixture {
+    val names: java.util.List<String>? = null
+
+    fun create(): Any {
+        return java.util.ArrayList<String>()
+    }
+}
+KOTLINEOF
+    )"
     if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessCheck'; then
         printf '%s\n' '[fixture_assert_gradle_location] expected harnessCheck to report if statement braces' >&2
         fixture_remove_temp_dir "$temp_dir"
@@ -1282,6 +1295,12 @@ KOTLINEOF
         exit 1
     fi
     if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'src/main/kotlin/fixture/SuppressionFixture[.]kt' 'uncheckedCastSuppression' 'gradle unchecked suppression structural fixture' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'buildSrc/src/main/kotlin/fixture/FqnFixture[.]kt' 'importOverFqn' 'gradle import-over-fqn type and call fixture' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
@@ -1367,6 +1386,63 @@ JAVAEOF
     fixture_remove_temp_dir "$temp_dir"
 }
 
+# Verify Maven import-over-FQN detection covers JavaParser type references.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 when the Maven import-over-FQN fixture fails.
+fixture_assert_maven_import_over_fqn() {
+    if ! mvn_path=$(command -v mvn 2>&1); then
+        printf 'warning: mvn not in PATH; skipping maven import-over-fqn fixture check\n' >&2
+        return 0
+    fi
+    : "$mvn_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" maven
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"maven-import-over-fqn-fixture","importOverFqn":{"enabled":true,"severity":"ERROR","messages":{"default":"fully qualified name `{name}` used inline; add an import and use the simple name"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"allowedFqnPatterns":[]}}}
+JSONEOF
+    )"
+    fixture_write_file "$temp_dir" src/main/java/fixture/ImportFixture.java "$(
+        cat <<'JAVAEOF'
+package fixture;
+
+final class ImportFixture {
+    private java.util.List<String> names;
+    private java.util.Optional<java.util.Set<String>> values;
+    private java.util.function.Supplier<java.util.ArrayList<String>> supplier = java.util.ArrayList::new;
+
+    java.util.HashMap<String, String> create() {
+        return new java.util.HashMap<>();
+    }
+}
+JAVAEOF
+    )"
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
+        printf '%s\n' '[fixture_assert_maven_import_over_fqn] expected harnessCheck to report inline fully qualified type references' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'importOverFqn: src/main/java/fixture/ImportFixture.java:' 'maven import-over-fqn type reference fixture' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    for name in 'java.util.List' 'java.util.Optional' 'java.util.Set' 'java.util.ArrayList' 'java.util.HashMap'; do
+        if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" "$name" "maven import-over-fqn reports $name" 2>&1); then
+            printf '%s\n' "$fixture_assertion_output" >&2
+            printf '%s\n' "$fixture_combined_output" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+    done
+    : "$fixture_assertion_output"
+    fixture_remove_temp_dir "$temp_dir"
+}
 # Smoke-check the uv stack runtime by importing harness_check and counting registered rules.
 #
 #     Requires `uv` in PATH. Loads libcst on demand via `uv run --with libcst`.
@@ -1931,6 +2007,7 @@ fixture_assert_bun_format
 fixture_assert_uv_format
 fixture_assert_gradle_location
 fixture_assert_maven_silent_catch
+fixture_assert_maven_import_over_fqn
 smoke_check_uv_runtime
 smoke_check_bun_runtime
 smoke_check_gradle_runtime
