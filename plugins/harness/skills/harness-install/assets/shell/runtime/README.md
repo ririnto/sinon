@@ -42,7 +42,7 @@ Exit code is `0` when zero `ERROR` findings are emitted; `1` otherwise. `WARN` a
 sh docs/harness/shell/harness-format.sh
 ```
 
-Formats all `.sh` files under the current directory using `shfmt` with 4-space indent and compact if-statement style.
+Formats all `.sh` files under the current directory using `shfmt` with 4-space indent and compact if-statement style, then runs `harness-check.sh`. The command prints formatted paths or `no files formatted`, prints `remaining findings after format:`, and exits with the validation status.
 
 ## Output format
 

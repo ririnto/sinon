@@ -21,6 +21,7 @@ from pathlib import Path
 from core.rule_context import RuleContext, create_rule_context
 from harness_check import HarnessCheck, MANIFEST_PATH
 from harness_check_rule import Finding, FindingEdit, FixSafety
+from reporter import render_findings
 
 sys.stdout.reconfigure(encoding="utf-8")
 sys.stderr.reconfigure(encoding="utf-8")
@@ -317,7 +318,11 @@ def main() -> None:
             print(f"  {path}")
     else:
         print("no files formatted")
-    sys.exit(0)
+    print("remaining findings after format:")
+    remaining_findings = collect_findings(ctx)
+    for line in render_findings(ctx.root, remaining_findings):
+        print(line)
+    sys.exit(1 if any(finding.severity == "ERROR" for finding in remaining_findings) else 0)
 
 
 if __name__ == "__main__":

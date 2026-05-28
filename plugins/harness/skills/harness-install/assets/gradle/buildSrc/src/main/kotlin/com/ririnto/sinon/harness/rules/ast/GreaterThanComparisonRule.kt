@@ -12,7 +12,9 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import java.nio.file.Path
@@ -41,6 +43,41 @@ object GreaterThanComparisonRule : HarnessAstRule() {
             ktFile?.accept(Visitor(::add, file, ctx, ktFile))
         }
 
+    override fun formatAst(
+        file: Path,
+        ktFile: KtFile,
+        ctx: RuleContext,
+    ): String? {
+        val edits = buildSet {
+            ktFile.accept(FormatVisitor { edit -> add(edit) })
+        }
+        if (edits.isEmpty()) {
+            return null
+        }
+        val builder = StringBuilder(ktFile.text)
+        edits
+            .sortedByDescending { edit -> edit.startOffset }
+            .forEach { edit -> builder.replace(edit.startOffset, edit.endOffset, edit.replacement) }
+        return builder.toString()
+    }
+
+    private fun replacementFor(expression: KtBinaryExpression): String? {
+        val left = expression.left ?: return null
+        val right = expression.right ?: return null
+        if (!left.isSafeOperand() || !right.isSafeOperand()) {
+            return null
+        }
+        val operator = when (expression.operationToken) {
+            KtTokens.GT -> "<"
+            KtTokens.GTEQ -> "<="
+            else -> return null
+        }
+        return "${right.text} $operator ${left.text}"
+    }
+
+    private fun org.jetbrains.kotlin.psi.KtExpression.isSafeOperand(): Boolean =
+        this is KtNameReferenceExpression || this is KtConstantExpression
+
     /**
      * AST visitor for greater-than comparison analysis.
      *
@@ -64,6 +101,34 @@ object GreaterThanComparisonRule : HarnessAstRule() {
                     ),
                 )
             }
+        }
+    }
+
+    /**
+     * Text edit to be applied during source formatting.
+     */
+    private data class TextEdit(
+        val startOffset: Int,
+        val endOffset: Int,
+        val replacement: String,
+    )
+
+    /**
+     * AST visitor for simple greater-than comparison formatting.
+     */
+    private class FormatVisitor(
+        private val record: (TextEdit) -> Unit,
+    ) : KtTreeVisitorVoid() {
+        override fun visitBinaryExpression(expression: KtBinaryExpression) {
+            super.visitBinaryExpression(expression)
+            val replacement = replacementFor(expression) ?: return
+            record(
+                TextEdit(
+                    startOffset = expression.textRange.startOffset,
+                    endOffset = expression.textRange.endOffset,
+                    replacement = replacement,
+                ),
+            )
         }
     }
 }

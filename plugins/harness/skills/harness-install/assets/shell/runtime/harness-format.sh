@@ -4,22 +4,38 @@ set -e
 
 # Format all shell scripts under the current directory using shfmt.
 #
-# Discovers all .sh files matching the repository harness scope
-# (excluding .git and other special directories) and applies shfmt
-# with standard formatting options (4-space indent, compact if).
-#
 # @return Exits with 0 on success after printing a summary.
 format_sh_files() {
     count_file=$(mktemp)
+    path_file=$(mktemp)
     echo 0 >"$count_file"
-    trap 'rm -f "$count_file"' EXIT
+    trap 'rm -f "$count_file" "$path_file"' EXIT
     find . -type f -name '*.sh' -not -path './.git/*' | while IFS= read -r file; do
+        before=$(cksum "$file")
         shfmt -i 4 -ci -w "$file"
-        current=$(cat "$count_file")
-        echo "$((current + 1))" >"$count_file"
+        after=$(cksum "$file")
+        if [ "$before" != "$after" ]; then
+            current=$(cat "$count_file")
+            echo "$((current + 1))" >"$count_file"
+            printf '  %s\n' "${file#./}" >>"$path_file"
+        fi
     done
     count=$(cat "$count_file")
-    echo "Formatted $count file(s)."
+    if [ "$count" -gt 0 ]; then
+        printf 'formatted: %s\n' "$count"
+        cat "$path_file"
+    else
+        printf '%s\n' 'no files formatted'
+    fi
+}
+
+# Run the shell harness validation surface after formatting.
+#
+# @return Exits with the harness-check status.
+check_after_format() {
+    printf '%s\n' 'remaining findings after format:'
+    sh harness-check.sh
 }
 
 format_sh_files
+check_after_format
