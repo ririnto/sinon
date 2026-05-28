@@ -150,13 +150,13 @@ Use JDTLS when the task needs Java symbol navigation, diagnostics, or refactors.
 The wrapper selects a Lombok source at startup in this order:
 
 1. Explicit override jar from `JAVA_ASSISTANT_LOMBOK_JAR`, `JDK_ASSISTANT_LOMBOK_JAR` (legacy alias), or `LOMBOK_JAR`
-2. Compatible project jar discovered from `.classpath` or `.factorypath`
+2. Compatible project jar discovered from `.classpath` or `.factorypath` only when `JAVA_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED=true`
 
-The wrapper chooses the effective Lombok jar at startup and prefers a compatible project jar when it can resolve one. This plugin does not ship its own fallback Lombok jar.
+The wrapper chooses the effective Lombok jar at startup. Explicit override jars are trusted user configuration and work by default. Project-local jar discovery is disabled by default because a discovered jar is executable `-javaagent` code. This plugin does not ship its own fallback Lombok jar.
 
 > [!WARNING]
 >
-> Project-discovered Lombok jars are **trusted executable code** loaded as a `-javaagent`. Only use this auto-discovery behavior in trusted repositories and workspaces. In untrusted environments, set `JAVA_ASSISTANT_LOMBOK_ENABLED=false` to disable it entirely. When Lombok support is needed in an untrusted context, prefer an explicit trusted override jar via one of the environment variables below.
+> Project-discovered Lombok jars are trusted executable code loaded as a `-javaagent`. Only enable project jar discovery in trusted repositories and workspaces. When Lombok support is needed in an untrusted context, prefer an explicit trusted override jar via one of the environment variables below.
 
 To provide an explicit override jar, point one of these environment variables at a local `lombok.jar`:
 
@@ -165,6 +165,8 @@ To provide an explicit override jar, point one of these environment variables at
 - `LOMBOK_JAR`
 
 The wrapper injects the selected jar through `JDK_JAVA_OPTIONS=-javaagent:...`.
+
+To opt into project jar discovery for trusted workspaces, set `JAVA_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED=true` or the legacy alias `JDK_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED=true`.
 
 Project detection signals used to prefer a project jar when it can be resolved:
 

@@ -63,20 +63,20 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             depScope.name,
             "${BuildConfig.KOTLIN_COMPILER_MODULE}:${BuildConfig.KOTLIN_COMPILER_VERSION}",
         )
+        val compilerClasspath = target.configurations.create("harnessKotlinCompilerResolvable") {
+            extendsFrom(depScope)
+        }
         target.tasks.register("harnessCheck", HarnessCheckTask::class.java) {
             group = "verification"
             description = "Validate Claude repository harness assets."
             rootDirectory.set(target.layout.projectDirectory)
-            kotlinCompiler.from(
-                target.configurations.create("harnessKotlinCompilerResolvable") {
-                    extendsFrom(depScope)
-                }
-            )
+            kotlinCompiler.from(compilerClasspath)
         }
         target.tasks.register("harnessFormat", HarnessFormatTask::class.java) {
             group = "verification"
             description = "Auto-format Claude repository harness assets where rules support it."
             rootDirectory.set(target.layout.projectDirectory)
+            kotlinCompiler.from(compilerClasspath)
         }
         target.tasks.named("check").configure {
             dependsOn("harnessCheck")
@@ -279,6 +279,12 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
         abstract val workerExecutor: WorkerExecutor
 
         /**
+         * Classpath of the isolated Kotlin compiler used by the AST format worker action.
+         */
+        @get:Classpath
+        abstract val kotlinCompiler: ConfigurableFileCollection
+
+        /**
          * Project root directory used by the format pass.
          */
         @get:Internal
@@ -345,14 +351,15 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 return emptyList()
             }
             val outputFile = temporaryDir.toPath() / "ast-format-results.json"
-            workerExecutor.classLoaderIsolation()
-                .submit(HarnessAstFormatWorkAction::class.java) {
-                    srcFilePaths.set(srcFiles.map { it.invariantSeparatorsPathString })
-                    rootDir.set(root.invariantSeparatorsPathString)
-                    manifestText.set(Json.encodeToString(manifest))
-                    this.outputFile.set(outputFile.toFile())
-                }
-                .await()
+            workerExecutor.classLoaderIsolation { classpath.from(kotlinCompiler) }
+                .apply {
+                    submit(HarnessAstFormatWorkAction::class.java) {
+                        srcFilePaths.set(srcFiles.map { it.invariantSeparatorsPathString })
+                        rootDir.set(root.invariantSeparatorsPathString)
+                        manifestText.set(Json.encodeToString(manifest))
+                        this.outputFile.set(outputFile.toFile())
+                    }
+                }.await()
             val changed = Json.decodeFromString<List<String>>(outputFile.readText())
             return changed.map { Path(it) }.map { root.relativize(it) }
         }

@@ -55,12 +55,14 @@ assert_not_contains() {
 # @param workspace_dir Fake project directory to run from.
 # @param jar_path Lombok jar path to set as override (empty string for no override).
 # @param support_enabled Whether Lombok support is enabled ("true" or "false").
+# @param project_jar_enabled Whether project jar discovery is enabled ("true" or "false").
 # @return Prints "capture_dir|stderr_file" path pair.
 run_case() {
     case_name="$1"
     workspace_dir="$2"
     jar_path="$3"
     support_enabled="${4:-true}"
+    project_jar_enabled="${5:-false}"
     capture_dir="${temp_dir}/${case_name}-capture"
     stderr_file="${temp_dir}/${case_name}.stderr"
     mkdir -p "${capture_dir}"
@@ -70,6 +72,7 @@ run_case() {
             JDTLS_CAPTURE_DIR="${capture_dir}" \
             JAVA_ASSISTANT_LOMBOK_JAR="${jar_path}" \
             JAVA_ASSISTANT_LOMBOK_ENABLED="${support_enabled}" \
+            JAVA_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED="${project_jar_enabled}" \
             "${wrapper_path}" >"${capture_dir}/stdout.txt" 2>"${stderr_file}"
     )
     printf '%s\n' "${capture_dir}|${stderr_file}"
@@ -193,9 +196,13 @@ assert_contains "-javaagent:${lombok_jar}" "${multimodule_capture_dir}/jdk_java_
 
 classpath_result=$(run_case "classpath" "${classpath_workspace}" "")
 classpath_capture_dir=${classpath_result%|*}
-classpath_stderr_file=${classpath_result#*|}
-assert_contains "-javaagent:${project_lombok_jar}" "${classpath_capture_dir}/jdk_java_options.txt"
-assert_contains "Enabled Lombok support from project source" "${classpath_stderr_file}"
+assert_not_contains "-javaagent:" "${classpath_capture_dir}/jdk_java_options.txt"
+
+classpath_opt_in_result=$(run_case "classpath-opt-in" "${classpath_workspace}" "" "true" "true")
+classpath_opt_in_capture_dir=${classpath_opt_in_result%|*}
+classpath_opt_in_stderr_file=${classpath_opt_in_result#*|}
+assert_contains "-javaagent:${project_lombok_jar}" "${classpath_opt_in_capture_dir}/jdk_java_options.txt"
+assert_contains "Enabled Lombok support from project source" "${classpath_opt_in_stderr_file}"
 
 resolver_output=$(run_resolver_case "${classpath_workspace}")
 if [ "${resolver_output}" != "${project_lombok_jar}" ]; then
@@ -211,7 +218,7 @@ missing_result=$(run_case "missing-jar" "${maven_workspace}" "${temp_dir}/missin
 missing_capture_dir=${missing_result%|*}
 missing_stderr_file=${missing_result#*|}
 assert_not_contains "-javaagent:" "${missing_capture_dir}/jdk_java_options.txt"
-assert_contains "Ignoring override and continuing with automatic selection" "${missing_stderr_file}"
+assert_contains "Ignoring override" "${missing_stderr_file}"
 
 unsafe_path_result=$(run_case "unsafe-path" "${maven_workspace}" "${temp_dir}/unsafe lombok.jar")
 unsafe_path_capture_dir=${unsafe_path_result%|*}

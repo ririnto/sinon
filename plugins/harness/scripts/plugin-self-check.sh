@@ -1053,7 +1053,7 @@ KOTLINEOF
     )"
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-  {"name":"gradle-location-fixture","filePresence":{"enabled":true,"severity":"ERROR","paths":["MISSING.md"],"parameters":{}},"ifStatementBraces":{"enabled":false},"implicitLambdaIt":{"enabled":false},"publicDeclarationDocComment":{"enabled":false},"silentCatch":{"enabled":false},"wildcardImport":{"enabled":false},"classMemberOrdering":{"enabled":true,"severity":"ERROR","messages":{"default":"{file}:{line}: class `{className}` member `{memberName}` ({memberOverrideState}:{memberVisibility}:{memberKind}) is out of order"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"kindOrder":["companionObject","constProperty","fieldOrProperty","initializer","constructor","function","interface","class","enum"],"visibilityOrder":["public","protected","internal","package","private"],"overrideOrder":["override","nonOverride"]}}}
+  {"name":"gradle-location-fixture","filePresence":{"enabled":true,"severity":"ERROR","paths":["MISSING.md"],"parameters":{}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","messages":{"default":"if/else without braces; wrap the body in `{ ... }`"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"implicitLambdaIt":{"enabled":false},"publicDeclarationDocComment":{"enabled":false},"silentCatch":{"enabled":false},"wildcardImport":{"enabled":false}}
 JSONEOF
     )"
     fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/LocationFixture.kt "$(
@@ -1061,18 +1061,20 @@ JSONEOF
 package fixture
 
 class LocationFixture {
-    fun later(): String = "value"
-    val earlier: String = "value"
+    fun later(flag: Boolean): String {
+        if (flag) return "value"
+        return "other"
+    }
 }
 KOTLINEOF
     )"
     if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessCheck'; then
-        printf '%s\n' '[fixture_assert_gradle_location] expected harnessCheck to report class member ordering' >&2
+        printf '%s\n' '[fixture_assert_gradle_location] expected harnessCheck to report if statement braces' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'buildSrc/src/main/kotlin/fixture/LocationFixture[.]kt' 'classMemberOrdering' 'gradle AST canonical finding prefix' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'buildSrc/src/main/kotlin/fixture/LocationFixture[.]kt' 'ifStatementBraces' 'gradle AST canonical finding prefix' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
@@ -1209,7 +1211,6 @@ for path in \
     "$root/skills/harness-install/assets/common/AGENTS.md" \
     "$root/skills/harness-install/assets/common/ARCHITECTURE.md" \
     "$root/skills/harness-install/assets/common/CLAUDE.md" \
-    "$root/skills/harness-install/assets/common/docs/harness/manifest.json" \
     "$root/skills/harness-install/assets/common/docs/harness/README.md" \
     "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-commit" \
     "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-push" \
@@ -1242,7 +1243,6 @@ for path in \
     "$root/skills/harness-install/assets/shell/runtime/harness-check.sh" \
     "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/plugin/HarnessValidationPlugin.kt" \
     "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/ast/AstFinding.kt" \
-    "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/rules/ast/ClassMemberOrderingRule.kt" \
     "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/rules/ast/TerminalBranchWhenRule.kt" \
     "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/HarnessCheckMojo.java" \
     "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/rules/ast/ClassMemberOrderingRule.java"; do
@@ -1340,11 +1340,7 @@ import sys
 
 root = pathlib.Path(sys.argv[1])
 plugin = json.loads((root / ".claude-plugin/plugin.json").read_text())
-manifest = json.loads((root / "skills/harness-install/assets/common/docs/harness/manifest.json").read_text())
-manifest_base_schema_path = root / "skills/harness-install/assets/common/docs/harness/manifest.base.schema.json"
-manifest_code_schema_path = root / "skills/harness-install/assets/common/docs/harness/manifest.code.schema.json"
-manifest_base_schema = json.loads(manifest_base_schema_path.read_text())
-manifest_code_schema = json.loads(manifest_code_schema_path.read_text())
+manifest = json.loads((root / "skills/harness-install/assets/gradle/docs/harness/manifest.json").read_text())
 install_script = (root / "skills/harness-install/scripts/install-harness.sh").read_text()
 errors = []
 if plugin.get("$schema") != "https://anthropic.com/claude-code/plugin.schema.json":
@@ -1393,32 +1389,19 @@ if settings_json_exists != has_settings:
     else:
         errors.append("settings.json target file missing for settings declaration")
 required_metadata_properties = {"$schema", "name", "description", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns"}
-base_schema_properties = set(manifest_base_schema.get("properties", {}).keys())
-missing_metadata = required_metadata_properties - base_schema_properties
-if missing_metadata:
-    errors.append(f"manifest base schema missing metadata properties: {sorted(missing_metadata)}")
-base_additional = manifest_base_schema.get("additionalProperties")
-if not isinstance(base_additional, dict) or base_additional.get("$ref") != "#/$defs/addOn":
-    errors.append("manifest base schema must accept unknown rules via additionalProperties addOn $ref")
-code_all_of = manifest_code_schema.get("allOf")
-if not isinstance(code_all_of, list) or {"$ref": "./manifest.base.schema.json"} not in code_all_of:
-    errors.append("manifest code schema must extend base via allOf $ref to ./manifest.base.schema.json")
-per_stack_schema_expectations = {
-    "shell": "./manifest.base.schema.json",
-    "gradle": "./manifest.code.schema.json",
-    "maven": "./manifest.code.schema.json",
-    "bun": "./manifest.code.schema.json",
-    "uv": "./manifest.code.schema.json",
-}
-for stack, expected_parent_ref in per_stack_schema_expectations.items():
+for stack in ("shell", "gradle", "maven", "bun", "uv"):
     stack_schema_path = root / f"skills/harness-install/assets/{stack}/docs/harness/manifest.schema.json"
     if not stack_schema_path.is_file():
         errors.append(f"missing stack schema: {stack}/docs/harness/manifest.schema.json")
         continue
     stack_schema = json.loads(stack_schema_path.read_text())
-    stack_all_of = stack_schema.get("allOf")
-    if not isinstance(stack_all_of, list) or {"$ref": expected_parent_ref} not in stack_all_of:
-        errors.append(f"{stack} manifest schema must extend {expected_parent_ref} via allOf")
+    stack_schema_text = stack_schema_path.read_text()
+    if "manifest.base.schema.json" in stack_schema_text or "manifest.code.schema.json" in stack_schema_text:
+        errors.append(f"{stack} manifest schema must be self-contained")
+    stack_schema_properties = set(stack_schema.get("properties", {}).keys())
+    missing_metadata = required_metadata_properties - stack_schema_properties
+    if missing_metadata:
+        errors.append(f"{stack} manifest schema missing metadata properties: {sorted(missing_metadata)}")
 if "copy_stack_manifest" not in install_script or "docs/harness/manifest.json" not in install_script:
     errors.append("installer must apply the selected stack manifest slice")
 def reject_prefixed_rule_ids(value, path, inside_parameters=False):
@@ -1435,7 +1418,7 @@ def reject_prefixed_rule_ids(value, path, inside_parameters=False):
         errors.append(f"manifest canonical rule reference must be neutral: {path}={value}")
 reject_prefixed_rule_ids(manifest, "common manifest")
 stack_expectations = {
-    "gradle": {"must": {"implicitLambdaIt", "classMemberOrdering", "companionObjectPosition", "terminalBranchWhen"}, "forbidden_keys": set()},
+    "gradle": {"must": {"implicitLambdaIt", "companionObjectPosition", "terminalBranchWhen"}, "forbidden_keys": {"classMemberOrdering"}},
     "maven": {"must": {"classMemberOrdering"}, "forbidden_keys": {"companionObjectPosition", "terminalBranchWhen"}},
     "uv": {"must": {"greaterThanComparison"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
     "bun": {"must": {"greaterThanComparison"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
@@ -1591,7 +1574,7 @@ require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradle
 require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradlew harnessCheck'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'resolve_existing_hooks_path'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'refusing to copy non-generated hook source'
-manifest_json="$root/skills/harness-install/assets/common/docs/harness/manifest.json"
+manifest_json="$root/skills/harness-install/assets/gradle/docs/harness/manifest.json"
 require_text "$manifest_json" 'pre-commit hook must not run full stack validation commands'
 require_text "$manifest_json" 'must declare Harness validation command'
 require_text "$manifest_json" 'declares unsupported validation command'

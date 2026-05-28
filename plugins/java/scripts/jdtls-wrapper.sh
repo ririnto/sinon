@@ -5,6 +5,7 @@ set -e
 script_dir=$(CDPATH='' cd -- "$(dirname "$0")" && pwd)
 lombok_override_jar="${JAVA_ASSISTANT_LOMBOK_JAR:-${JDK_ASSISTANT_LOMBOK_JAR:-${LOMBOK_JAR:-}}}"
 lombok_support_enabled="${JAVA_ASSISTANT_LOMBOK_ENABLED:-${JDK_ASSISTANT_LOMBOK_ENABLED:-true}}"
+lombok_project_jar_enabled="${JAVA_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED:-${JDK_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED:-false}}"
 
 # Check whether a path contains no whitespace or unsafe characters.
 #
@@ -30,6 +31,18 @@ is_lombok_support_enabled() {
             ;;
     esac
     return 0
+}
+
+# Check whether project-local Lombok jar discovery is enabled.
+#
+# @return 0 if enabled, 1 unless explicitly enabled.
+is_project_lombok_jar_enabled() {
+    case "${lombok_project_jar_enabled}" in
+        1 | true | TRUE | True | on | ON | On | yes | YES | Yes)
+            return 0
+            ;;
+    esac
+    return 1
 }
 
 # Walk up from PWD to find the project root directory.
@@ -82,15 +95,15 @@ select_lombok_jar() {
     project_root="$1"
     if [ -n "${lombok_override_jar}" ]; then
         if ! is_safe_path_token "${lombok_override_jar}"; then
-            warn_optional_lombok_support "java: Lombok jar path must be a single filesystem token without whitespace. Ignoring override and continuing with automatic selection."
+            warn_optional_lombok_support "java: Lombok jar path must be a single filesystem token without whitespace. Ignoring override."
         elif [ -f "${lombok_override_jar}" ]; then
             printf '%s|%s\n' "override" "${lombok_override_jar}"
             return 0
         else
-            warn_optional_lombok_support "java: Lombok override jar was not found at ${lombok_override_jar}. Ignoring override and continuing with automatic selection."
+            warn_optional_lombok_support "java: Lombok override jar was not found at ${lombok_override_jar}. Ignoring override."
         fi
     fi
-    if [ -n "${project_root}" ]; then
+    if [ -n "${project_root}" ] && is_project_lombok_jar_enabled; then
         project_lombok_jar=$(resolve_project_lombok_jar "${project_root}")
         if [ -n "${project_lombok_jar}" ]; then
             printf '%s|%s\n' "project" "${project_lombok_jar}"
