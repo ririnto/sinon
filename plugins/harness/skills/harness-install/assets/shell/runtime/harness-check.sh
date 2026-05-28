@@ -554,12 +554,22 @@ def has_symlink_component(path):
         if probe.is_symlink():
             return True
     return False
+
+def is_allowed_root_contract_symlink(value):
+    path = Path(value)
+    if value == 'AGENTS.md':
+        return path.is_symlink() and path.readlink() == Path('CLAUDE.md') and Path('CLAUDE.md').is_file() and not Path('CLAUDE.md').is_symlink()
+    if value == 'CLAUDE.md':
+        return path.is_symlink() and path.readlink() == Path('AGENTS.md') and Path('AGENTS.md').is_file() and not Path('AGENTS.md').is_symlink()
+    return False
 files = []
 for base in bases:
     if not isinstance(base, str) or not is_safe_relative_root(base):
         print(f"[{severity}] {category}: {base} is not a safe relative scan root")
         continue
     base_path = Path(base)
+    if is_allowed_root_contract_symlink(base):
+        continue
     if has_symlink_component(base_path):
         print(f"[{symlink_severity}] symlinkSafety: symlink scan root is not allowed: {base}")
         continue
