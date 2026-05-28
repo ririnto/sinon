@@ -44,6 +44,7 @@ Run the command for the repository stack:
 - Maven: `mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check`
 - uv: `uv run --script docs/harness/uv/harness_check.py`
 - bun: `bun --install=fallback run docs/harness/bun/harness-check.ts`
+- shell: `sh docs/harness/shell/harness-check.sh`
 
 The generated Gradle `pre-commit` hook runs `harnessCheck`; non-Gradle `pre-commit` hooks check lightweight harness-rule compliance only. The generated `pre-push` hook runs the selected final check command and should match CI when CI snippets are present.
 

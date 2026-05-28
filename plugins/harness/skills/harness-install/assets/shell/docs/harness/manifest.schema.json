@@ -36,6 +36,12 @@
     "hookExecutable": {
       "$ref": "#/$defs/addOnWithHookList"
     },
+    "hookCommand": {
+      "$ref": "#/$defs/addOnWithHookCommand"
+    },
+    "ciHookCommandParity": {
+      "$ref": "#/$defs/addOnWithCiHookCommandParity"
+    },
     "uncheckedTasks": {
       "$ref": "#/$defs/addOnWithUncheckedTasks"
     },
@@ -330,6 +336,113 @@
                 "type": "string"
               },
               "description": "Hook file paths that must have executable bit set."
+            }
+          }
+        }
+      }
+    },
+    "addOnWithHookCommand": {
+      "type": "object",
+      "description": "Add-on with typed hook command parity parameters.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "prePushHook",
+            "preCommitHook",
+            "allowedCommands",
+            "allowedPreCommitCommands"
+          ],
+          "properties": {
+            "prePushHook": {
+              "type": "string",
+              "description": "Generated pre-push hook path."
+            },
+            "preCommitHook": {
+              "type": "string",
+              "description": "Generated pre-commit hook path."
+            },
+            "allowedCommands": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Final validation commands the pre-push hook may declare and run."
+            },
+            "allowedPreCommitCommands": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Intermediate validation commands the pre-commit hook may run. Empty means no full-stack validation command is allowed."
+            }
+          }
+        }
+      }
+    },
+    "addOnWithCiHookCommandParity": {
+      "type": "object",
+      "description": "Add-on with typed CI to hook command parity parameters.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ciFiles",
+            "referenceHook"
+          ],
+          "properties": {
+            "ciFiles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "CI files that should contain the generated pre-push command when present."
+            },
+            "referenceHook": {
+              "type": "string",
+              "description": "Hook file whose declared validation command is authoritative for CI."
             }
           }
         }
