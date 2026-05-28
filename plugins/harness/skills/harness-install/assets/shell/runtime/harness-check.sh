@@ -555,20 +555,26 @@ def has_symlink_component(path):
             return True
     return False
 
-def is_allowed_root_contract_symlink(value):
+def root_contract_symlink_target(value):
     path = Path(value)
     if value == 'AGENTS.md':
-        return path.is_symlink() and path.readlink() == Path('CLAUDE.md') and Path('CLAUDE.md').is_file() and not Path('CLAUDE.md').is_symlink()
+        if path.is_symlink() and path.readlink() == Path('CLAUDE.md') and Path('CLAUDE.md').is_file() and not Path('CLAUDE.md').is_symlink():
+            return 'CLAUDE.md'
     if value == 'CLAUDE.md':
-        return path.is_symlink() and path.readlink() == Path('AGENTS.md') and Path('AGENTS.md').is_file() and not Path('AGENTS.md').is_symlink()
-    return False
+        if path.is_symlink() and path.readlink() == Path('AGENTS.md') and Path('AGENTS.md').is_file() and not Path('AGENTS.md').is_symlink():
+            return 'AGENTS.md'
+    return None
 files = []
 for base in bases:
     if not isinstance(base, str) or not is_safe_relative_root(base):
         print(f"[{severity}] {category}: {base} is not a safe relative scan root")
         continue
     base_path = Path(base)
-    if is_allowed_root_contract_symlink(base):
+    root_contract_target = root_contract_symlink_target(base)
+    if root_contract_target in bases:
+        continue
+    if root_contract_target is not None:
+        files.append(Path(root_contract_target))
         continue
     if has_symlink_component(base_path):
         print(f"[{symlink_severity}] symlinkSafety: symlink scan root is not allowed: {base}")
