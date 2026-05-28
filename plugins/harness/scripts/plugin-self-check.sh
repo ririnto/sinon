@@ -1306,6 +1306,14 @@ KOTLINEOF
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
+    for name in 'java.util.List' 'java.util.ArrayList'; do
+        if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" "$name" "gradle import-over-fqn reports $name" 2>&1); then
+            printf '%s\n' "$fixture_assertion_output" >&2
+            printf '%s\n' "$fixture_combined_output" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+    done
     if printf '%s\n' "$fixture_combined_output" | grep -Eq '^[^:]+:0:0'; then
         printf '%s\n' '[fixture_assert_gradle_location] repository-level finding rendered a fabricated :0:0 location' >&2
         printf '%s\n' "$fixture_combined_output" >&2
@@ -1412,9 +1420,13 @@ package fixture;
 final class ImportFixture {
     private java.util.List<String> names;
     private java.util.Optional<java.util.Set<String>> values;
-    private java.util.function.Supplier<java.util.ArrayList<String>> supplier = java.util.ArrayList::new;
+    private Runnable task = java.lang.Thread::yield;
 
-    java.util.HashMap<String, String> create() {
+    java.util.TreeMap<String, String> createTree() {
+        return null;
+    }
+
+    Object createHash() {
         return new java.util.HashMap<>();
     }
 }
@@ -1432,7 +1444,7 @@ JAVAEOF
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    for name in 'java.util.List' 'java.util.Optional' 'java.util.Set' 'java.util.ArrayList' 'java.util.HashMap'; do
+    for name in 'java.util.List' 'java.util.Optional' 'java.util.Set' 'java.lang.Thread' 'java.util.TreeMap' 'java.util.HashMap'; do
         if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" "$name" "maven import-over-fqn reports $name" 2>&1); then
             printf '%s\n' "$fixture_assertion_output" >&2
             printf '%s\n' "$fixture_combined_output" >&2
