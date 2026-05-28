@@ -11,6 +11,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -126,7 +127,15 @@ object ImportOverFqnRule : HarnessAstRule() {
             if (expression.parent is KtDotQualifiedExpression) {
                 return
             }
-            addFqnFinding(expressionParts(expression.receiverExpression), expression.receiverExpression)
+            classCandidateParts(expression)?.let { nameParts ->
+                addFqnFinding(nameParts, expression.receiverExpression)
+            }
+        }
+
+        private fun classCandidateParts(expression: KtDotQualifiedExpression): List<String>? {
+            val parts = expressionParts(expression)
+            val classIndex = parts.indexOfFirst { part -> part.firstOrNull()?.isUpperCase() == true }
+            return classIndex.takeIf { index -> 2 <= index }?.let { index -> parts.take(index + 1) }
         }
 
         private fun expressionParts(expression: KtExpression): List<String> =
@@ -134,6 +143,7 @@ object ImportOverFqnRule : HarnessAstRule() {
                 is KtNameReferenceExpression -> listOf(expression.getReferencedName())
                 is KtDotQualifiedExpression -> expressionParts(expression.receiverExpression) +
                     expression.selectorExpression?.let(::expressionParts).orEmpty()
+                is KtCallExpression -> expression.calleeExpression?.let(::expressionParts).orEmpty()
                 else -> emptyList()
             })
     }

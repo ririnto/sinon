@@ -18,7 +18,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -64,7 +63,7 @@ public enum MutableCollectionRule implements AstRule {
                             .map(expr -> finding(root, file, severity, expr, expr.getType().asString())),
                     cu.findAll(MethodCallExpr.class).stream()
                             .filter(expr -> config.accumulationMethods().contains(expr.getNameAsString()))
-                            .filter(expr -> expr.getScope().flatMap(MutableCollectionRule::qualifiedExpressionName).map(scope -> !config.allowedBuilders().contains(scope)).orElse(true))
+                            .filter(expr -> expr.getScope().map(scope -> !isAllowedBuilderScope(scope, config.allowedBuilders())).orElse(true))
                             .map(expr -> finding(root, file, severity, expr, expr.getNameAsString())))
                     .toList();
         } catch (IOException e) {
@@ -98,11 +97,6 @@ public enum MutableCollectionRule implements AstRule {
         return Set.copyOf(configured.isEmpty() ? defaults : configured);
     }
 
-    private static Optional<String> qualifiedExpressionName(Expression expression) {
-        final List<String> parts = expressionParts(expression);
-        return parts.isEmpty() ? Optional.empty() : Optional.of(String.join(".", parts));
-    }
-
     private static List<String> expressionParts(Expression expression) {
         if (expression.isNameExpr()) {
             return List.of(expression.asNameExpr().getNameAsString());
@@ -114,6 +108,11 @@ public enum MutableCollectionRule implements AstRule {
             return parts;
         }
         return List.of();
+    }
+
+    private static boolean isAllowedBuilderScope(Expression expression, Set<String> allowedBuilders) {
+        final List<String> parts = expressionParts(expression);
+        return !parts.isEmpty() && allowedBuilders.contains(parts.get(parts.size() - 1));
     }
 
     private record MutableConfig(Set<String> constructors, Set<String> forbiddenFqns, Set<String> accumulationMethods, Set<String> allowedBuilders) {
