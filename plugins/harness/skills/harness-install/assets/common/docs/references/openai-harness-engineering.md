@@ -9,7 +9,7 @@
 >
 > The body below is the English source text reproduced verbatim, including section headings and the in-repository knowledge store layout diagram. Copyright remains with OpenAI. This document is included because the repository harness installed here is directly modeled on these patterns: AGENTS.md as table of contents, `docs/` as system of record, plans as first-class artifacts, mechanical enforcement via linters/CI, and doc-gardening as continuous maintenance.
 >
-> Editor's note on root-contract naming and symlinks: the original post names `AGENTS.md` as the table-of-contents entry point. This repository keeps the table-of-contents document as `CLAUDE.md` and exposes `AGENTS.md` as a symlink to `CLAUDE.md`, and additionally exposes `.agents/` as a symlink to `.claude/`. Both filenames and both directory entry points resolve to the same content, so any reference to `AGENTS.md` or `.agents/` in the body below should be read as a reference to the canonical `CLAUDE.md` / `.claude/` of this repository. No other content is altered.
+> Editor's note on root-contract naming and symlinks: the original post names `AGENTS.md` as the table-of-contents entry point. This repository keeps the root contract available through both `CLAUDE.md` and `AGENTS.md`; fresh installs use `CLAUDE.md` as the real file, while AGENTS-only refreshes may preserve `AGENTS.md` as the real file. The two filenames resolve to the same content via a symlink in one direction, and `.agents/` resolves to `.claude/`. Any reference to `AGENTS.md` or `.agents/` in the body below should be read as a reference to the installed root contract / `.claude/` of this repository. No other content is altered.
 
 By Ryan Lopopolo, Member of the Technical Staff
 
