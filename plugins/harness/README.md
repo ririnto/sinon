@@ -152,7 +152,7 @@ In installed target repositories, `AGENTS.md` is the primary harness contract. `
 | bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun --install=fallback run docs/harness/bun/harness-check.ts` |
 | shell | `Makefile` or root-level `*.sh` with no other stack | `sh docs/harness/shell/harness-check.sh` |
 
-Run validation commands from the target repository root. The uv, bun, Maven, and shell validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes. The shell adapter implements a portable subset (file/directory existence, hook shebang/executable, hook command parity, CI command parity, scaffold-leak scan, completed-plan unchecked-task scan, and shellcheck) and requires `python3` available on PATH for JSON parsing of the manifest.
+Run validation commands from the target repository root. The uv, bun, Maven, and shell validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes. The shell adapter implements a portable subset (file/directory existence, hook shebang/executable, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scan, completed-plan unchecked-task scan, and shellcheck) and requires `python3` available on PATH for JSON parsing of the manifest.
 
 ## Language-Specific Validator Coverage
 
@@ -166,7 +166,7 @@ AST/PSI validators use semantic tree traversal for code-structure rules rather t
 | Maven/Java | JavaParser inside the Maven plugin | Java class member ordering and Java code-style checks. Java enum constants are treated as language-mandated enum preamble items, not ordinary sortable members. Maven+Kotlin source validation is not currently enabled because the Maven adapter does not embed Kotlin PSI. |
 | uv/Python | LibCST for Python source checks | Python code-style checks for the selected uv slice. |
 | Bun/TypeScript | TypeScript compiler API | TypeScript code-style checks for the selected Bun slice. |
-| Shell | POSIX shell plus `python3` for manifest reads | Hook shebang and executable validation, hook command parity, CI command parity, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. |
+| Shell | POSIX shell plus `python3` for manifest reads | Hook shebang and executable validation, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. |
 
 Gradle installer wiring prepends a `buildSrc/` directory. Existing `buildSrc/` directories in the target repo MUST be reviewed before install; the harness expects a fresh `buildSrc/` and will conflict otherwise.
 
@@ -217,7 +217,7 @@ Gradle and Maven formatting is deferred and not implemented in this change set.
 
 ### Shell formatting
 
-The shell runtime ships `harness-check.sh` and `harness-format.sh`. Shell validation covers file presence, directory structure, hook shebangs and executable bits, hook command parity, CI command parity, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. Shell formatting runs `shfmt` across `.sh` files under the target root.
+The shell runtime ships `harness-check.sh` and `harness-format.sh`. Shell validation covers file presence, directory structure, hook shebangs and executable bits, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. Shell formatting runs `shfmt` across `.sh` files under the target root.
 
 ## Git Hooks
 

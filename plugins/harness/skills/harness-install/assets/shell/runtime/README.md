@@ -15,6 +15,7 @@ The shell adapter implements a minimum-viable subset of the harness manifest, su
 - `ciHookCommandParity` — each present CI snippet contains the generated `pre-push` validation command.
 - `scaffoldLeaks` — no leak pattern (unresolved template tokens, deferred-work markers, scaffold prompt text, or example identifiers) appears in active assets. The exact patterns are read from the manifest at runtime.
 - `uncheckedTasks` — no completed plan retains unchecked `- [ ]` task lines.
+- `symlinkSafety` — manifest-controlled file, directory, hook, CI, and scan paths are rejected before probes when they are absolute, traverse parents, begin with `-`, are empty, or cross non-allowed symlinks.
 - `shellcheck` — every shell script in the repository passes `shellcheck` validation with no violations.
 
 The richer set of add-ons (manifest-driven Kotlin / Java / Python / TypeScript checks) live in the matching language-specific adapters and is out of scope for the shell adapter.
