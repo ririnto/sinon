@@ -13,7 +13,7 @@ Validate this target repository's installed harness. This target skill uses the 
 1. Read `docs/harness/README.md` for the stack command.
 2. Read `docs/harness/manifest.json` for required files, directories, and generated-artifact policy.
 3. Confirm you are running from the target repository root.
-4. Confirm whether the repository is Gradle, Maven, uv, or bun based on local files.
+4. Confirm whether the repository is Gradle, Maven, uv, bun, or shell based on local files.
 
 ## Commands
 
@@ -21,11 +21,12 @@ Run the matching command:
 
 | Stack | Command |
 | --- | --- |
-| Gradle harness validation | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
+| Gradle harness validation | `./gradlew harnessCheck`, or `gradle harnessCheck` when the target uses system Gradle without a wrapper |
 | Gradle final check | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
 | Maven | `mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check` |
 | uv | `uv run --script docs/harness/uv/harness_check.py` |
 | bun | `bun --install=fallback run docs/harness/bun/harness-check.ts` |
+| shell | `sh docs/harness/shell/harness-check.sh` |
 
 ## Workflow
 
@@ -37,7 +38,7 @@ Run the matching command:
 ## Invariants
 
 - The installed manifest is the target repository harness contract.
-- Generated Gradle pre-commit runs `harnessValidate`; non-Gradle pre-commit checks harness-rule compliance only. Generated pre-push runs the selected final check command.
+- Generated Gradle pre-commit runs `harnessCheck`; non-Gradle pre-commit checks harness-rule compliance only. Generated pre-push runs the selected final check command.
 - `docs/generated/` may be empty, but generated files that exist need regeneration metadata.
 - Seed references may be replaced when they do not match the target stack or domain.
 
