@@ -220,5 +220,8 @@ async function main(): Promise<void> {
 }
 
 if (import.meta.main) {
-    main();
+    main().catch((error: unknown) => {
+        logger.error(error instanceof Error ? error.message : String(error));
+        process.exit(1);
+    });
 }

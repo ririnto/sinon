@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 set -e
 
+script_dir=$(CDPATH='' cd "$(dirname "$0")" && pwd)
+
 # Format all shell scripts under the current directory using shfmt.
 #
 # @return Exits with 0 on success after printing a summary.
@@ -34,7 +36,7 @@ format_sh_files() {
 # @return Exits with the harness-check status.
 check_after_format() {
     printf '%s\n' 'remaining findings after format:'
-    sh harness-check.sh
+    sh "$script_dir/harness-check.sh"
 }
 
 format_sh_files

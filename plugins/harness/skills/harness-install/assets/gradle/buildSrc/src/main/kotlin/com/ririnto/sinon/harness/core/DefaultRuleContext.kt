@@ -156,6 +156,9 @@ class DefaultRuleContext(
 
         return buildList {
             for (pattern in sourcePatterns) {
+                if (!isSafeRelativeRoot(pattern)) {
+                    continue
+                }
                 for (dir in
                     when {
                         "*" in pattern || "?" in pattern -> {
@@ -190,5 +193,10 @@ class DefaultRuleContext(
                 }
             }
         }
+    }
+
+    private fun isSafeRelativeRoot(rootEntry: String): Boolean {
+        val path = Path.of(rootEntry)
+        return rootEntry.isNotBlank() && !path.isAbsolute && (0..<path.nameCount).none { index -> path.getName(index).pathString == ".." }
     }
 }
