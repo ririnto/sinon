@@ -7,7 +7,7 @@
 >
 > The body below is the upstream `SPEC.md` reproduced verbatim. Copyright remains with the upstream authors. This document is included because the repository harness installed here implements many Symphony-aligned conventions: in-repo `WORKFLOW.md` as versioned policy, isolated per-issue workspaces, observable agent runs, and stable execution-plan artifacts.
 >
-> Editor's note on root-contract naming and symlinks: where the Symphony specification refers to `AGENTS.md`, this repository keeps the canonical document at `CLAUDE.md` and exposes `AGENTS.md` as a symlink to it. Likewise `.agents/` is a symlink to `.claude/`. Treat any reference to `AGENTS.md` or `.agents/` in the body below as a reference to the canonical `CLAUDE.md` / `.claude/` of this repository. No other content is altered.
+> Editor's note on root-contract naming and symlinks: where the Symphony specification refers to `AGENTS.md`, this repository exposes the root contract through both `CLAUDE.md` and `AGENTS.md`. Fresh installs use `CLAUDE.md` as the real file, while AGENTS-only refreshes may preserve `AGENTS.md` as the real file; the two filenames resolve to the same content via a symlink in one direction. Likewise `.agents/` resolves to `.claude/`. Treat any reference to `AGENTS.md` or `.agents/` in the body below as a reference to the installed root contract / `.claude/` of this repository. No other content is altered.
 
 <!-- @formatter:on -->
 

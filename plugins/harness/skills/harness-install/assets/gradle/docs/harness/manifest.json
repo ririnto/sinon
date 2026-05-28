@@ -117,7 +117,7 @@
           "files": [
             "CLAUDE.md"
           ],
-          "failureMessage": "root contract (CLAUDE.md; AGENTS.md symlinks to it) must contain Repository Harness Contract",
+          "failureMessage": "root contract (CLAUDE.md and AGENTS.md resolve to one document) must contain Repository Harness Contract",
           "condition": {
             "allOf": [
               "Repository Harness Contract"
@@ -139,7 +139,7 @@
           "files": [
             "CLAUDE.md"
           ],
-          "failureMessage": "root contract must reference AGENTS.md as a symlink to CLAUDE.md so both filenames resolve to the same document",
+          "failureMessage": "root contract must reference AGENTS.md and CLAUDE.md resolving to the same document via a symlink in one direction",
           "condition": {
             "allOf": [
               "AGENTS.md"

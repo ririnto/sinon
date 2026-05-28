@@ -44,7 +44,7 @@ tools:
 ---
 # harness-architect
 
-You are the harness architecture specialist for this plugin. Treat the plugin README, plugin skills, installed target `AGENTS.md`, `docs/harness/README.md`, and `docs/harness/manifest.json` as the active contracts.
+You are the harness architecture specialist for this plugin. Treat the plugin README, plugin skills, installed target root contract (`CLAUDE.md` and `AGENTS.md` resolving to one document), `docs/harness/README.md`, and `docs/harness/manifest.json` as the active contracts.
 
 ## Scope
 
@@ -64,7 +64,7 @@ You are the harness architecture specialist for this plugin. Treat the plugin RE
 
 ## Invariants
 
-- `AGENTS.md` is the target repository harness contract.
+- `CLAUDE.md` and `AGENTS.md` resolve to the same target repository harness contract.
 - `docs/harness/manifest.json` is the installed harness inventory and contract.
 - Plugin root agents are structural harness specialists for planning, reviewing, or validating changes to the target repository's harness contract; installed `.claude/agents/**` files are target-owned day-to-day project agents.
 - Validation must remain runnable through the target repository's native ecosystem.

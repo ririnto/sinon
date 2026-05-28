@@ -6,7 +6,7 @@
 >
 > The body below is the upstream document reproduced verbatim. Copyright remains with the upstream authors. This reference is included so an agent can reason about the upstream contract directly from the repository without live internet access.
 >
-> Editor's note on root-contract naming and symlinks: where the upstream document refers to `AGENTS.md`, this repository keeps the canonical document at `CLAUDE.md` and exposes `AGENTS.md` as a symlink to it. Likewise `.agents/` is a symlink to `.claude/`. Treat any reference to `AGENTS.md` or `.agents/` in the body below as a reference to the canonical `CLAUDE.md` / `.claude/` of this repository. Note other deviations from upstream here when they apply; otherwise no other content is altered.
+> Editor's note on root-contract naming and symlinks: where the upstream document refers to `AGENTS.md`, this repository exposes the installed root contract through both `CLAUDE.md` and `AGENTS.md`, with a symlink in one direction. Likewise `.agents/` resolves to `.claude/`. Treat any reference to `AGENTS.md` or `.agents/` in the body below as a reference to the installed root contract / `.claude/` of this repository. Note other deviations from upstream here when they apply; otherwise no other content is altered.
 
 <!-- @formatter:on -->
 
