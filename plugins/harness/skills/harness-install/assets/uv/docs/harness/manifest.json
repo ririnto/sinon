@@ -426,7 +426,7 @@
     }
   },
   "symlinkSafety": {
-    "description": "All scanned files and directories MUST NOT be symbolic links, except symlinks within parameters.allowedSymlinkPairs (root contract symlinks).",
+    "description": "Scanned uv harness roots MUST NOT be symbolic links, except the root contract AGENTS.md / CLAUDE.md alias pair.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
@@ -441,10 +441,6 @@
         [
           "AGENTS.md",
           "CLAUDE.md"
-        ],
-        [
-          ".agents",
-          ".claude"
         ]
       ]
     }

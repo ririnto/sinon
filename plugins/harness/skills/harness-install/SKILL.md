@@ -1,7 +1,7 @@
 ---
 name: harness-install
 description: >-
-  Install target-owned repository harness assets from the plugin asset package: AGENTS.md contract, ARCHITECTURE.md, docs structure, Claude entry point, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use when setting up or refreshing a repository harness, adding target-owned Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
+  Install target-owned repository harness assets from the plugin asset package: CLAUDE.md contract, AGENTS.md alias, ARCHITECTURE.md, docs structure, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use when setting up or refreshing a repository harness, adding target-owned Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
 argument-hint: '--mode gradle|maven|uv|bun|shell [--target DIR] [--hooks none|copy] [--force] [--no-ci]'
 disable-model-invocation: true
 allowed-tools:
@@ -82,8 +82,8 @@ Install or refresh target-owned repository harness files from this plugin. This 
 
 - The installed harness is target-owned after copying.
 - The generated hook templates are target-owned: Gradle pre-commit runs `harnessCheck`, Gradle pre-push runs `check`, non-Gradle pre-commit checks harness-rule compliance only, non-Gradle pre-push runs selected validation, and custom templates are preserved unless `--force` was requested.
-- `AGENTS.md` is the primary target repository harness contract.
-- `CLAUDE.md` remains the Claude Code entry point and points back to `AGENTS.md`.
+- `CLAUDE.md` is the primary target repository harness contract and Claude Code entry point.
+- `AGENTS.md` remains a symlink alias to `CLAUDE.md` so runtimes that load either filename resolve to the same document.
 - `docs/harness/manifest.json` is the installed harness inventory and contract.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
 - Plugin skills install, validate, and evolve the harness package; installed target skills and agents guide day-to-day work inside the target repository.
