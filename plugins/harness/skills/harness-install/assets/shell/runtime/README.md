@@ -11,6 +11,8 @@ The shell adapter implements a minimum-viable subset of the harness manifest, su
 - `emptyDirectoryPlaceholders` — every `parameters.directories` entry contains a `.gitkeep` or real file.
 - `hookShebang` — each pre-commit / pre-push hook begins with the expected shebang.
 - `hookExecutable` — each hook has the executable bit set.
+- `hookCommand` — generated `pre-push` declares and runs an allowed shell validation command, while non-Gradle `pre-commit` does not run full-stack validation.
+- `ciHookCommandParity` — each present CI snippet contains the generated `pre-push` validation command.
 - `scaffoldLeaks` — no leak pattern (unresolved template tokens, deferred-work markers, scaffold prompt text, or example identifiers) appears in active assets. The exact patterns are read from the manifest at runtime.
 - `uncheckedTasks` — no completed plan retains unchecked `- [ ]` task lines.
 - `shellcheck` — every shell script in the repository passes `shellcheck` validation with no violations.

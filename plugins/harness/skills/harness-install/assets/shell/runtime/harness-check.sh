@@ -156,6 +156,33 @@ is_allowed_file_symlink() {
     is_allowed_root_contract_symlink "$path"
 }
 
+# Return whether a manifest path is a safe relative path.
+#
+# @param path Manifest-controlled path to check.
+# @return Returns 0 when the path is relative and contains no parent traversal.
+is_safe_manifest_path() {
+    path=$1
+    case "$path" in
+        '' | /* | .. | ../* | */.. | */../*) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
+# Return whether a manifest file path may be read safely.
+#
+# @param path Manifest-controlled file path to check.
+# @return Returns 0 when the path is safe and not a symlink.
+is_safe_manifest_file() {
+    path=$1
+    if ! is_safe_manifest_path "$path"; then
+        return 1
+    fi
+    if [ -L "$path" ]; then
+        return 1
+    fi
+    return 0
+}
+
 # Validate that every parameters.paths entry exists as a regular file.
 #
 # @return Emits findings for missing files.
@@ -269,6 +296,9 @@ check_hook_executable() {
 # @return Writes the declared validation command, or an empty string.
 declared_hook_command() {
     hook=$1
+    if ! is_safe_manifest_file "$hook"; then
+        return 0
+    fi
     if [ ! -f "$hook" ]; then
         return 0
     fi
@@ -292,7 +322,12 @@ check_hook_command() {
     pre_push=$(manifest_string "M['$category']['parameters']['prePushHook']")
     pre_commit=$(manifest_string "M['$category']['parameters']['preCommitHook']")
     declared=$(declared_hook_command "$pre_push")
-    if [ -f "$pre_push" ] && [ -z "$declared" ]; then
+    if ! is_safe_manifest_path "$pre_push"; then
+        emit "$sev" "$category" "$pre_push is not a safe relative hook path"
+    elif [ -L "$pre_push" ]; then
+        symlink_sev=$(severity_of symlinkSafety)
+        emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$pre_push"
+    elif [ -f "$pre_push" ] && [ -z "$declared" ]; then
         emit "$sev" "$category" "$pre_push must declare Harness validation command"
     elif [ -n "$declared" ]; then
         allowed=0
@@ -312,7 +347,12 @@ check_hook_command() {
             emit "$sev" "$category" "$pre_push must run the declared validation command"
         fi
     fi
-    if [ -f "$pre_commit" ]; then
+    if ! is_safe_manifest_path "$pre_commit"; then
+        emit "$sev" "$category" "$pre_commit is not a safe relative hook path"
+    elif [ -L "$pre_commit" ]; then
+        symlink_sev=$(severity_of symlinkSafety)
+        emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$pre_commit"
+    elif [ -f "$pre_commit" ]; then
         manifest_query "M['$category']['parameters']['allowedCommands']" | while IFS= read -r command; do
             if [ -n "$command" ] && grep -Fxq "$command" "$pre_commit"; then
                 emit "$sev" "$category" "pre-commit hook must not run full stack validation commands"
@@ -341,7 +381,12 @@ check_ci_hook_command_parity() {
         return 0
     fi
     manifest_query "M['$category']['parameters']['ciFiles']" | while IFS= read -r ci_file; do
-        if [ -f "$ci_file" ] && ! grep -Fq "$command" "$ci_file"; then
+        if ! is_safe_manifest_path "$ci_file"; then
+            emit "$sev" "$category" "$ci_file is not a safe relative CI path"
+        elif [ -L "$ci_file" ]; then
+            symlink_sev=$(severity_of symlinkSafety)
+            emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$ci_file"
+        elif [ -f "$ci_file" ] && ! grep -Fq "$command" "$ci_file"; then
             emit "$sev" "$category" "$ci_file: CI command mismatch - expected $command"
         fi
     done

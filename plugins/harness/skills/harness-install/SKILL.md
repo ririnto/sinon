@@ -87,7 +87,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 - `docs/harness/manifest.json` is the installed harness inventory and contract.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
 - Plugin skills install, validate, and evolve the harness package; installed target skills and agents guide day-to-day work inside the target repository.
-- Bun and uv runtimes install `harness-check` and `harness-format`. `harnessFormat` applies only allowlisted safe fixes and is idempotent. The shell runtime installs `harness-check.sh`. Gradle and Maven formatting is deferred.
+- Bun and uv runtimes install `harness-check` and `harness-format`. `harnessFormat` applies only allowlisted safe fixes and is idempotent. The shell runtime installs `harness-check.sh` and `harness-format.sh`. Gradle and Maven formatting is deferred.
 
 ## Pitfalls
 

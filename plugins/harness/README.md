@@ -48,7 +48,7 @@ This plugin ships no commands.
 
 ## Packaged Scripts and Assets
 
-- `scripts/plugin-self-check.sh` validates packaged and tracked plugin files. It also runs four-stack runtime smoke checks (uv import via `uv run --with libcst`, bun dynamic `import('./harness-check.ts')`, gradle `buildSrc:compileKotlin`, mvn `validate`) and skips each stack gracefully when the toolchain is absent.
+- `scripts/plugin-self-check.sh` validates packaged and tracked plugin files. It also runs five-stack runtime smoke checks (uv import via `uv run --with libcst`, bun dynamic `import('./harness-check.ts')`, shell fixture validation, gradle `buildSrc:compileKotlin`, mvn `validate`) and skips external-tool stacks gracefully when the toolchain is absent.
 - `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs/harness`, docs, CI, validation adapters, and Git hook scaffolds.
 
 ## Runtime Model
@@ -61,9 +61,9 @@ Target repositories own every installed harness file. Copied docs, scripts, CI f
 
 ## Install Harness Assets
 
-From a target repository, ask Claude Code to use the `harness-install` skill with stack mode `auto` or an explicit mode such as `gradle`, `maven`, `uv`, `bun`, or `shell`.
+From a target repository, ask Claude Code to use the `harness-install` skill with an explicit stack mode: `gradle`, `maven`, `uv`, `bun`, or `shell`.
 
-The skill invokes `skills/harness-install/scripts/install-harness.sh` with the target repository as `--target`, detects or accepts the stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command. Supported modes are `auto`, `gradle`, `maven`, `uv`, `bun`, and `shell`.
+The skill invokes `skills/harness-install/scripts/install-harness.sh` with the target repository as `--target`, requires the selected stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command. Supported modes are `gradle`, `maven`, `uv`, `bun`, and `shell`.
 
 By default the installer writes both GitHub Actions and GitLab CI examples for the selected stack: `.github/workflows/harness.yml` and `.gitlab-ci.yml`. Both CI snippets are rendered from templates and run the same final check command as generated `pre-push`; for Gradle this is `check`. Pass `--no-ci` to skip both CI files.
 
@@ -152,7 +152,7 @@ In installed target repositories, `AGENTS.md` is the primary harness contract. `
 | bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun --install=fallback run docs/harness/bun/harness-check.ts` |
 | shell | `Makefile` or root-level `*.sh` with no other stack | `sh docs/harness/shell/harness-check.sh` |
 
-Run validation commands from the target repository root. The uv, bun, Maven, and shell validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes. The shell adapter implements a minimum-viable subset (file/directory existence, hook shebang/executable, scaffold-leak scan, completed-plan unchecked-task scan) and requires `python3` available on PATH for JSON parsing of the manifest.
+Run validation commands from the target repository root. The uv, bun, Maven, and shell validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes. The shell adapter implements a portable subset (file/directory existence, hook shebang/executable, hook command parity, CI command parity, scaffold-leak scan, completed-plan unchecked-task scan, and shellcheck) and requires `python3` available on PATH for JSON parsing of the manifest.
 
 ## Language-Specific Validator Coverage
 
@@ -211,13 +211,13 @@ Repository-level findings apply to the harness as a whole (for example, missing 
 | `hookShebang` | Allow | Allow | Defer | Defer | Replace missing or incorrect hook shebang |
 | `shebangEncodingMarker` | Allow | Allow | Defer | Defer | Insert encoding marker after shebang |
 
-Rules not in this table are not formatted. `harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications.
+Rules not in this table are not formatted. `harnessFormat` is idempotent for Bun and uv: a second run immediately after the first produces no additional modifications.
 
 Gradle and Maven formatting is deferred and not implemented in this change set.
 
-### Shell exclusion
+### Shell formatting
 
-The shell runtime ships `harness-check.sh`. Shell `harnessFormat` is added in a follow-up phase. Shell validation covers file presence, directory structure, hook shebangs and executable bits, scaffold-leak scanning, and completed-plan unchecked-task scanning.
+The shell runtime ships `harness-check.sh` and `harness-format.sh`. Shell validation covers file presence, directory structure, hook shebangs and executable bits, hook command parity, CI command parity, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. Shell formatting runs `shfmt` across `.sh` files under the target root.
 
 ## Git Hooks
 
