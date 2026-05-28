@@ -207,7 +207,7 @@ path/to/file [SEVERITY] category: file-level message
 
 `harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications.
 
-The shell runtime ships `harness-check.sh`. Shell `harnessFormat` is added in a follow-up phase.
+The shell runtime ships `harness-check.sh` and `harness-format.sh`.
 
 ## Invariants
 
