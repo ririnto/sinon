@@ -38,6 +38,7 @@ Optional assets such as `README.md`, `commands/`, `agents/`, `skills/`, `hooks/`
 The following plugins are maintained in this repository and may be published to the Claude marketplace catalog. For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
 - `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.
+- `plugins/document-creator`: Authoring skills for AI-consumable engineering documents, including SPEC.md creation.
 - `plugins/harness`: Repository harness plugin for installing, validating, and evolving agent instructions, docs structure, project agents, project skills, templates, stack validators, CI snippets, and opt-in Git hook templates.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
 - `plugins/jvm`: JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
@@ -97,6 +98,7 @@ Examples:
 
 ```sh
 /plugin install agent-capability-kit@sinon
+/plugin install document-creator@sinon
 /plugin install harness@sinon
 /plugin install java@sinon
 /plugin install jvm@sinon

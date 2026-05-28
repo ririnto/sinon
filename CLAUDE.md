@@ -280,7 +280,9 @@ Root-level documentation MUST describe repository-wide marketplace structure and
 
 Before merging changes, run the narrowest relevant validation for the changed surface:
 
+- Repository contract changes: inspect `CLAUDE.md`, `README.md`, symlink entries, and root structure for consistency with the Sinon plugin marketplace contract.
 - Marketplace changes: inspect `.claude-plugin/marketplace.json` and verify every listed plugin source exists.
 - Plugin packaging changes: validate the affected plugin root against the manifest and filesystem rules in this document.
+- Security-sensitive plugin surface changes: review changed hooks, MCP servers, LSP servers, settings, scripts, and packaged target assets for command execution, filesystem, network, credential, and publication risks.
 - Agent Skill changes: review the changed `SKILL.md` against the Authoring Agent Skills contract above.
 - Harness plugin implementation changes: run `sh plugins/harness/scripts/plugin-self-check.sh` when the change touches `plugins/harness/` runtime, installer, validator, or packaged assets.
