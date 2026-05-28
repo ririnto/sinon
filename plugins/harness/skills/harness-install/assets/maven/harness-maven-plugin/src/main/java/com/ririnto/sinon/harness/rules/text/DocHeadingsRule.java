@@ -39,7 +39,7 @@ public enum DocHeadingsRule implements HarnessCheckRule {
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         final List<String> headings = HarnessCheckHelper.extractPaths(parameters.get("headings"));
         return HarnessCheckHelper.extractPaths(manifest.get("filePresence").get("parameters").get("paths")).stream()
-                .filter(f -> f.startsWith(sourceFilter.get("prefix").asText()) && f.endsWith(sourceFilter.get("suffix").asText()))
+                .filter(f -> f.startsWith(sourceFilter.get("prefix").asString()) && f.endsWith(sourceFilter.get("suffix").asString()))
                 .flatMap(f -> validateHeadings(root, f, headings, severity).stream())
                 .toList();
     }

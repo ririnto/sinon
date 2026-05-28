@@ -1,7 +1,7 @@
 ---
 name: reactor-sinks
 description: >-
-  Author Reactor hot sources with Sinks for manual emission, replay/multicast selection, and emit-result handling.
+  Author Reactor hot sources with Sinks for manual emission, replay/multicast selection, and emit-result handling. Use when choosing between `Sinks.one()`, `Sinks.empty()`, or `Sinks.many()`, handling `EmitResult` or `EmitFailureHandler` outcomes, or deciding between unicast, multicast, and replay behavior for multiple subscribers.
 metadata:
   title: "Reactor Sinks"
   official_project_url: "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures/sinks.html"

@@ -1,7 +1,7 @@
 ---
 name: jvm-runtime-diagnostics
 description: >-
-  Triage JVM runtime incidents with stack traces, thread dumps, jcmd, JFR, and memory-pressure evidence.
+  Triage JVM runtime incidents with stack traces, thread dumps, jcmd, JFR, and memory-pressure evidence. Use when diagnosing deadlocks, analyzing thread dumps, capturing JFR recordings, interpreting `jcmd` output, or classifying runtime symptoms as blocking, contention, memory pressure, or startup failure.
 metadata:
   title: JVM Runtime Diagnostics
   official_project_url: "https://docs.oracle.com/en/java/"
@@ -14,9 +14,9 @@ metadata:
   version: "LTS"
 ---
 
-## Overview
+## Goal
 
-Use this skill to triage JVM runtime problems with standard JDK diagnostic tools and an evidence-first workflow. The common case is not "guess the root cause" but "collect the smallest next capture that reduces uncertainty". Prefer `jcmd` first for live JVMs, keep `jstack` and `jmap` as legacy or narrower-purpose tools, and reserve `jhsdb` for Serviceability Agent cases such as core dumps or deeper postmortem inspection.
+Triage JVM runtime problems with standard JDK diagnostic tools and an evidence-first workflow. The common case is not "guess the root cause" but "collect the smallest next capture that reduces uncertainty". Prefer `jcmd` first for live JVMs, keep `jstack` and `jmap` as legacy or narrower-purpose tools, and reserve `jhsdb` for Serviceability Agent cases such as core dumps or deeper postmortem inspection.
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and confirm runtime-specific command availability on the target JVM before assuming a newer flag or event exists.
 

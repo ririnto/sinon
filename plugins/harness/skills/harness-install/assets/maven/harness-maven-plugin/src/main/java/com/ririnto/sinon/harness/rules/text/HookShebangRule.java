@@ -39,7 +39,7 @@ public enum HookShebangRule implements HarnessCheckRule {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
-        final String expected = catNode.get("parameters").get("expectedShebang").asText();
+        final String expected = catNode.get("parameters").get("expectedShebang").asString();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks")).stream()
                 .flatMap(hook -> {
@@ -64,7 +64,7 @@ public enum HookShebangRule implements HarnessCheckRule {
         if (catNode == null || catNode.get("parameters") == null || catNode.get("parameters").get("hooks") == null) {
             return List.of();
         }
-        final String expected = catNode.get("parameters").get("expectedShebang").asText();
+        final String expected = catNode.get("parameters").get("expectedShebang").asString();
         final List<Path> formatted = new ArrayList<>();
         for (final String hook : HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks"))) {
             final Path hookPath = root.resolve(hook);

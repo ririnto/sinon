@@ -1,7 +1,7 @@
 ---
 name: spring-pulsar
 description: >-
-  Build Apache Pulsar producers, consumers, and readers in Spring with `PulsarTemplate`, `@PulsarListener`, schema mapping, and DLQ patterns. Use this skill when building Apache Pulsar producers, consumers, or readers in Spring with `PulsarTemplate`, `@PulsarListener`, schema mapping, subscription type and DLQ decisions, customizers, transactions, or Pulsar-specific testing and administration.
+  Build Apache Pulsar producers, consumers, and readers in Spring with `PulsarTemplate`, `@PulsarListener`, schema mapping, and DLQ patterns. Use when choosing subscription types, configuring customizers or transactions, writing Pulsar-focused tests, or performing Pulsar administration tasks within a Spring application.
 metadata:
   title: "Spring for Apache Pulsar"
   official-project-url: "https://spring.io/projects/spring-pulsar"
@@ -9,8 +9,6 @@ metadata:
     - "https://docs.spring.io/spring-pulsar/reference/"
   version: "2.0.5"
 ---
-
-Use this skill when building Apache Pulsar producers, consumers, or readers in Spring with `PulsarTemplate`, `@PulsarListener`, schema mapping, subscription type and DLQ decisions, customizers, transactions, or Pulsar-specific testing and administration.
 
 ## Boundaries
 

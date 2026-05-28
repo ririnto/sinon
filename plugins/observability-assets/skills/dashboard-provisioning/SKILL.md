@@ -1,7 +1,7 @@
 ---
 name: dashboard-provisioning
 description: >-
-  Author Grafana dashboard provisioning with version-controlled provider YAML files and dashboard JSON source organization. Use this skill when provisioning Grafana dashboards from reviewed YAML files, organizing folder strategies and drift-controlled delivery, managing UI-edit versus file-source-of-truth workflows, or needing guidance on provider YAML schema, dashboard JSON normalization, environment variable substitution, and provisioning lifecycle behavior.
+  Author Grafana dashboard provisioning with version-controlled provider YAML files and dashboard JSON source organization. Use when provisioning Grafana dashboards from reviewed YAML files, organizing folder strategies and drift-controlled delivery, managing UI-edit versus file-source-of-truth workflows, or needing guidance on provider YAML schema, dashboard JSON normalization, environment variable substitution, and provisioning lifecycle behavior.
 ---
 
 # Dashboard Provisioning

@@ -1,7 +1,7 @@
 ---
 name: spec-creator
 description: >-
-  Author a self-sufficient SPEC.md that serves as a single-file implementation contract for a project, modelled on the OpenAI Symphony specification structure. Use this skill when the user asks to create or refactor SPEC.md, write a system specification, draft an implementation contract, draft RFC-style or SRS-style requirements, or define normative behavior for a project before implementation.
+  Author a self-sufficient SPEC.md that serves as a single-file implementation contract for a project, modelled on the OpenAI Symphony specification structure. Use when creating or refactoring SPEC.md, writing a system specification, drafting an implementation contract, drafting RFC-style or SRS-style requirements, or defining normative behavior for a project before implementation.
 ---
 
 # Spec Creator

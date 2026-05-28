@@ -1,7 +1,7 @@
 ---
 name: spring-cloud-data-flow
 description: >-
-  Maintain, deploy, and operate Spring Cloud Data Flow streams and tasks with app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations.
+  Maintain, deploy, and operate Spring Cloud Data Flow streams and tasks with app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations. Use when registering stream or task apps, composing stream DSL pipelines, launching tasks on platform accounts, or configuring schedules and audit trails.
 metadata:
   title: "Spring Cloud Data Flow"
   official-project-url: "https://spring.io/projects/spring-cloud-dataflow"
@@ -10,8 +10,6 @@ metadata:
     - "https://dataflow.spring.io/docs/installation/local/"
   version: "2.11.5"
 ---
-
-Use this skill when maintaining, deploying, and operating Spring Cloud Data Flow streams or tasks, including app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations.
 
 ## Boundaries
 

@@ -1,7 +1,7 @@
 ---
 name: spring-amqp
 description: >-
-  Build RabbitMQ or AMQP producers and consumers in Spring with RabbitTemplate, @RabbitListener, queue and exchange topology, message conversion, retry, and dead-letter handling.
+  Build RabbitMQ or AMQP producers and consumers in Spring with RabbitTemplate, @RabbitListener, queue and exchange topology, message conversion, retry, and dead-letter handling. Use when declaring queues and exchanges, configuring message converters, setting up retry or DLQ policies, or writing listener container configuration.
 metadata:
   title: "Spring AMQP"
   official-project-url: "https://spring.io/projects/spring-amqp"
@@ -14,8 +14,6 @@ metadata:
     - "https://docs.spring.io/spring-amqp/reference/amqp/request-reply.html"
   version: "4.0.3"
 ---
-
-Use this skill when building RabbitMQ or AMQP producers and consumers in Spring with `RabbitTemplate`, `@RabbitListener`, queue and exchange topology, message conversion, listener containers, batching, retry, dead-letter handling, broker configuration, testing, observability, or stream and multi-broker variants.
 
 The latest released Spring AMQP line is 4.0.3. Keep this skill on the 4.0.x stable line unless the project is intentionally evaluating the 4.1 preview line.
 

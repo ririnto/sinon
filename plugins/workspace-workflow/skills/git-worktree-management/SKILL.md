@@ -1,24 +1,14 @@
 ---
 name: git-worktree-management
 description: >-
-  Create and manage isolated git worktrees to work on multiple branches in parallel without switching HEAD.
+  Create and manage isolated git worktrees to work on multiple branches in parallel without switching HEAD. Use when adding, listing, pruning, or removing worktrees, checking branch-to-worktree bindings, or reasoning about worktree isolation before parallel task setup.
 ---
 
 # Git Worktree Management
 
-## Overview
+## Goal
 
-Use this skill to create isolated working directories tied to separate branches, allowing parallel development without changing the main repository HEAD. Each worktree is a cloned directory tree with its own staging area, working directory, and index but shares the object database and refs with the base repository.
-
-## Use This Skill When
-
-- You need to create an isolated worktree tied to a specific branch for parallel work.
-- You need to list active worktrees and understand which branch each is bound to.
-- You need to remove a worktree and its associated branch safely.
-- You need to repair stale worktree references with `prune`.
-- You need to verify that the same branch is not checked out in multiple worktrees simultaneously.
-- You need to reason about worktree isolation guarantees when starting parallel tasks.
-- Do not use this skill when the issue is understanding general Git branching, switching HEAD, rewriting history, or merging branches.
+Create isolated working directories tied to separate branches, allowing parallel development without changing the main repository HEAD. Each worktree is a cloned directory tree with its own staging area, working directory, and index but shares the object database and refs with the base repository.
 
 ## Common-Case Workflow
 

@@ -57,6 +57,45 @@ require_absent() {
     fi
 }
 
+# Require a path to not be a symbolic link.
+#
+# @param path Path to check.
+# @exit Exits with status 1 when path is a symbolic link.
+require_not_symlink() {
+    path=$1
+    if [ -L "$path" ]; then
+        printf '%s\n' "[require_not_symlink] path must not be a symbolic link: $path" >&2
+        exit 1
+    fi
+}
+
+# Require a path to not be a symbolic link unless it is the packaged root contract link.
+#
+# @param path Path to check.
+# @exit Exits with status 1 when path is an unsupported symbolic link.
+require_not_symlink_or_common_root_contract() {
+    path=$1
+    if [ ! -L "$path" ]; then
+        return 0
+    fi
+    case "$path" in
+        "$root/skills/harness-install/assets/common/AGENTS.md")
+            target=$(readlink "$path")
+            if [ "$target" = CLAUDE.md ] && [ -f "$root/skills/harness-install/assets/common/CLAUDE.md" ] && [ ! -L "$root/skills/harness-install/assets/common/CLAUDE.md" ]; then
+                return 0
+            fi
+            ;;
+        "$root/skills/harness-install/assets/common/CLAUDE.md")
+            target=$(readlink "$path")
+            if [ "$target" = AGENTS.md ] && [ -f "$root/skills/harness-install/assets/common/AGENTS.md" ] && [ ! -L "$root/skills/harness-install/assets/common/AGENTS.md" ]; then
+                return 0
+            fi
+            ;;
+    esac
+    printf '%s\n' "[require_not_symlink] path must not be a symbolic link: $path" >&2
+    exit 1
+}
+
 # Require a file to contain a fixed string.
 #
 # @param path File path to search.
@@ -576,13 +615,13 @@ fixture_write_file() {
 # Copy a stack runtime into a temporary fixture directory.
 #
 # @param temp_dir Temporary directory root.
-# @param stack_name Stack name: bun, uv, or gradle.
+# @param stack_name Stack name: bun, uv, gradle, maven, or shell.
 # @return Returns 0 when the runtime is copied.
 fixture_copy_runtime() {
     temp_dir=$1
     stack_name=$2
     case "$stack_name" in
-        bun | uv)
+        bun | shell | uv)
             source_dir=$root/skills/harness-install/assets/$stack_name/runtime
             mkdir -p "$temp_dir"
             cp -R "$source_dir"/. "$temp_dir"/
@@ -591,6 +630,11 @@ fixture_copy_runtime() {
             source_dir=$root/skills/harness-install/assets/gradle/buildSrc
             mkdir -p "$temp_dir/buildSrc"
             cp -R "$source_dir"/. "$temp_dir/buildSrc"/
+            ;;
+        maven)
+            source_dir=$root/skills/harness-install/assets/maven
+            mkdir -p "$temp_dir"
+            cp -R "$source_dir"/. "$temp_dir"/
             ;;
         *)
             printf '%s\n' "[fixture_copy_runtime] unsupported stack: $stack_name" >&2
@@ -820,6 +864,55 @@ fixture_self_check_helpers() {
     fixture_remove_temp_dir "$temp_dir"
 }
 
+# Verify shell runtime rejects required-file, required-directory, and hook symlinks.
+#
+# @exit Exits with status 1 when symlink violations are not reported.
+fixture_assert_shell_symlink_safety() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" shell
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"shell-symlink-fixture","filePresence":{"enabled":true,"severity":"ERROR","parameters":{"paths":["required-file.md","docs/harness/git-hooks/pre-commit","docs/harness/git-hooks/pre-push"]}},"directoryPresence":{"enabled":true,"severity":"ERROR","parameters":{"paths":["required-dir"]}},"hookShebang":{"enabled":true,"severity":"ERROR","parameters":{"hooks":["docs/harness/git-hooks/pre-commit","docs/harness/git-hooks/pre-push"],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":true,"severity":"ERROR","parameters":{"hooks":["docs/harness/git-hooks/pre-commit","docs/harness/git-hooks/pre-push"]}},"symlinkSafety":{"enabled":true,"severity":"ERROR","messages":{"fileNotAllowed":"symlink file is not allowed: {path}","directoryNotAllowed":"symlink directory is not allowed: {path}","scanRootNotAllowed":"symlink scan root is not allowed: {path}","scanEntryNotAllowed":"symlink scan entry is not allowed: {path}","pathNotAllowed":"symlink path is not allowed: {path}"},"parameters":{"allowedSymlinkPairs":[["AGENTS.md","CLAUDE.md"],[".agents",".claude"]]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}
+JSONEOF
+    )"
+    fixture_write_file "$temp_dir" target-file.md 'fixture target'
+    fixture_write_file "$temp_dir" target-hook '#!/usr/bin/env sh
+printf "%s\n" "fixture hook"
+'
+    chmod +x "$temp_dir/target-hook"
+    mkdir -p "$temp_dir/target-dir" "$temp_dir/docs/harness/git-hooks"
+    ln -s target-file.md "$temp_dir/required-file.md"
+    ln -s target-dir "$temp_dir/required-dir"
+    ln -s ../../../target-hook "$temp_dir/docs/harness/git-hooks/pre-commit"
+    ln -s ../../../target-hook "$temp_dir/docs/harness/git-hooks/pre-push"
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        printf '%s\n' '[fixture_assert_shell_symlink_safety] expected shell harness-check to reject symlinks' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'symlink file is not allowed: required-file.md' 'shell required file symlink rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'symlink directory is not allowed: required-dir' 'shell required directory symlink rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'symlink file is not allowed: docs/harness/git-hooks/pre-commit' 'shell pre-commit symlink rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'symlink file is not allowed: docs/harness/git-hooks/pre-push' 'shell pre-push symlink rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+
 # Verify Bun formatter allowlists safe edits and remains idempotent.
 #
 #     Requires `bun` in PATH. Gracefully skips with a warning when bun is
@@ -844,7 +937,7 @@ fixture_assert_bun_format() {
     ln -s typescript "$temp_dir/node_modules/typescript@6.0.3"
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-format-fixture","leafFunctionBlankLines":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"maxConsecutiveBlankLines":1}},"greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-format-fixture","leafFunctionBlankLines":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"maxConsecutiveBlankLines":1}},"greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     fixture_write_file "$temp_dir" src/example.ts "$(
@@ -861,6 +954,28 @@ TSEOF
         cat <<'TSEOF'
 export function unsafe(value: number): boolean {
   return value > 1;
+}
+TSEOF
+    )"
+    fixture_write_file "$temp_dir" src/silent.ts "$(
+        cat <<'TSEOF'
+declare const logger: { error(value: unknown): void };
+
+export function unsafeSilent(): string {
+  try {
+    throw new Error("boom");
+  } catch (error) {
+    const message = "logger.error";
+    return message;
+  }
+}
+
+export function safeSilent(): void {
+  try {
+    throw new Error("boom");
+  } catch (error) {
+    logger.error(error);
+  }
 }
 TSEOF
     )"
@@ -918,6 +1033,11 @@ TSEOF
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
+    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_stdout" 'src/silent[.]ts' 'silentCatch' 'bun silent catch structural fixture' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
     if ! grep -Fq 'value > baseline' "$temp_dir/src/example.ts"; then
         printf '%s\n' '[fixture_assert_bun_format] unsafe greaterThanComparison edit was unexpectedly formatted' >&2
         fixture_remove_temp_dir "$temp_dir"
@@ -944,7 +1064,7 @@ fixture_assert_uv_format() {
     fixture_copy_runtime "$temp_dir" uv
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"uv-format-fixture","leafFunctionBlankLines":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[],"maxConsecutiveBlankLines":1}},"greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}
+{"name":"uv-format-fixture","leafFunctionBlankLines":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[],"maxConsecutiveBlankLines":1}},"greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[],"allowedLoggingCalls":["\\blogging\\b","\\blogger\\b","\\blog\\b"]}}}
 JSONEOF
     )"
     fixture_write_file "$temp_dir" src/example.py "$(
@@ -960,6 +1080,23 @@ PYEOF
         cat <<'PYEOF'
 def unsafe(value: int) -> bool:
     return value > 1
+PYEOF
+    )"
+    fixture_write_file "$temp_dir" src/silent.py "$(
+        cat <<'PYEOF'
+def unsafe_silent() -> str:
+    try:
+        raise RuntimeError("boom")
+    except Exception as error:
+        message = "logger.error"
+        return message
+
+
+def safe_silent(logger) -> None:
+    try:
+        raise RuntimeError("boom")
+    except Exception as error:
+        logger.exception("failed: %s", error)
 PYEOF
     )"
     fixture_target_file=$temp_dir/src/example.py
@@ -1016,6 +1153,11 @@ PYEOF
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
+    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_stdout" 'src/silent[.]py' 'silentCatch' 'uv silent catch structural fixture' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
     if ! grep -Fq 'value > baseline' "$temp_dir/src/example.py"; then
         printf '%s\n' '[fixture_assert_uv_format] unsafe greaterThanComparison edit was unexpectedly formatted' >&2
         fixture_remove_temp_dir "$temp_dir"
@@ -1053,7 +1195,7 @@ KOTLINEOF
     )"
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-  {"name":"gradle-location-fixture","filePresence":{"enabled":true,"severity":"ERROR","paths":["MISSING.md"],"parameters":{}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","messages":{"default":"if/else without braces; wrap the body in `{ ... }`"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"implicitLambdaIt":{"enabled":false},"publicDeclarationDocComment":{"enabled":false},"silentCatch":{"enabled":false},"wildcardImport":{"enabled":false}}
+  {"name":"gradle-location-fixture","filePresence":{"enabled":true,"severity":"ERROR","paths":["MISSING.md"],"parameters":{}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","messages":{"default":"if/else without braces; wrap the body in `{ ... }`"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","messages":{"default":"avoid suppression of forbidden tokens (`{snippet}`); refactor to type-safe cast or explicit handling"},"parameters":{"sourceRoots":["src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenSuppressions":["UNCHECKED_CAST"],"allowedSuppressions":[]}},"implicitLambdaIt":{"enabled":false},"publicDeclarationDocComment":{"enabled":false},"wildcardImport":{"enabled":false}}
 JSONEOF
     )"
     fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/LocationFixture.kt "$(
@@ -1064,6 +1206,53 @@ class LocationFixture {
     fun later(flag: Boolean): String {
         if (flag) return "value"
         return "other"
+    }
+}
+KOTLINEOF
+    )"
+    fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/SilentFixture.kt "$(
+        cat <<'KOTLINEOF'
+package fixture
+
+class SilentFixture {
+    fun unsafeSilent(): String {
+        return try {
+            risky()
+            "ok"
+        } catch (error: RuntimeException) {
+            val message = "logger.warn"
+            message
+        }
+    }
+
+    fun safeSilent(logger: FixtureLogger) {
+        try {
+            risky()
+        } catch (error: RuntimeException) {
+            logger.warn(error.message)
+        }
+    }
+
+    private fun risky() {
+        throw RuntimeException("boom")
+    }
+}
+
+class FixtureLogger {
+    fun warn(message: String?) {
+        message?.length
+    }
+}
+KOTLINEOF
+    )"
+    fixture_write_file "$temp_dir" src/main/kotlin/fixture/SuppressionFixture.kt "$(
+        cat <<'KOTLINEOF'
+package fixture
+
+class SuppressionFixture {
+    @Suppress(value = ["UNCHECKED_CAST"])
+    fun unsafeCast(value: Any): List<String> {
+        return value as List<String>
     }
 }
 KOTLINEOF
@@ -1086,8 +1275,90 @@ KOTLINEOF
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
+    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'buildSrc/src/main/kotlin/fixture/SilentFixture[.]kt' 'silentCatch' 'gradle silent catch structural fixture' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'src/main/kotlin/fixture/SuppressionFixture[.]kt' 'uncheckedCastSuppression' 'gradle unchecked suppression structural fixture' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
     if printf '%s\n' "$fixture_combined_output" | grep -Eq '^[^:]+:0:0'; then
         printf '%s\n' '[fixture_assert_gradle_location] repository-level finding rendered a fabricated :0:0 location' >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    : "$fixture_assertion_output"
+    fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify Maven silent-catch detection uses JavaParser structure rather than body text.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 when the Maven silent-catch fixture fails.
+fixture_assert_maven_silent_catch() {
+    if ! mvn_path=$(command -v mvn 2>&1); then
+        printf 'warning: mvn not in PATH; skipping maven silent-catch fixture check\n' >&2
+        return 0
+    fi
+    : "$mvn_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" maven
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"maven-silent-catch-fixture","silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenLoggingApis":["System.out.println","System.out.print","System.err.println","System.err.print"],"allowedLoggingApis":[]}}}
+JSONEOF
+    )"
+    fixture_write_file "$temp_dir" src/main/java/fixture/SilentFixture.java "$(
+        cat <<'JAVAEOF'
+package fixture;
+
+final class SilentFixture {
+    String unsafeSilent() {
+        try {
+            risky();
+            return "ok";
+        } catch (RuntimeException error) {
+            String message = "logger.warn";
+            return message;
+        }
+    }
+
+    void safeSilent(FixtureLogger logger) {
+        try {
+            risky();
+        } catch (RuntimeException error) {
+            logger.warn(error.getMessage());
+        }
+    }
+
+    private void risky() {
+        throw new RuntimeException("boom");
+    }
+}
+
+final class FixtureLogger {
+    void warn(String message) {
+        message.length();
+    }
+}
+JAVAEOF
+    )"
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
+        printf '%s\n' '[fixture_assert_maven_silent_catch] expected harnessCheck to report silent catch' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'silentCatch: src/main/java/fixture/SilentFixture.java:' 'maven silent catch structural fixture' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
         printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
@@ -1247,6 +1518,7 @@ for path in \
     "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/HarnessCheckMojo.java" \
     "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/rules/ast/ClassMemberOrderingRule.java"; do
     require_file "$path"
+    require_not_symlink_or_common_root_contract "$path"
 done
 
 for path in \
@@ -1274,6 +1546,7 @@ for path in \
     "$root/skills/harness-install/assets/common/docs/harness/templates/ci" \
     "$root/skills/harness-install/assets/common/docs/harness/templates/docs"; do
     require_dir "$path"
+    require_not_symlink "$path"
 done
 
 require_executable "$root/scripts/plugin-self-check.sh"
@@ -1458,10 +1731,16 @@ for group in manifest_items(manifest, "templateGroups"):
         errors.append(f"manifest template group missing: {group}")
 for key in ("requiredFiles", "emptyDirectoryKeepFiles"):
     for item in manifest_items(manifest, key):
-        if not (root / "skills/harness-install/assets/common" / item).is_file():
+        asset_path = root / "skills/harness-install/assets/common" / item
+        if asset_path.is_symlink():
+            errors.append(f"manifest {key} path must not be a symlink: {item}")
+        elif not asset_path.is_file():
             errors.append(f"manifest {key} missing file: {item}")
 for item in manifest_items(manifest, "requiredDirectories"):
-    if not (root / "skills/harness-install/assets/common" / item).is_dir():
+    asset_path = root / "skills/harness-install/assets/common" / item
+    if asset_path.is_symlink():
+        errors.append(f"manifest requiredDirectories path must not be a symlink: {item}")
+    elif not asset_path.is_dir():
         errors.append(f"manifest requiredDirectories missing directory: {item}")
 if errors:
     for error in errors:
@@ -1647,9 +1926,11 @@ for text in 'example-' 'Describe ' 'Describe...' 'TODO' 'TBD' 'replace-with-stac
 done
 
 fixture_self_check_helpers
+fixture_assert_shell_symlink_safety
 fixture_assert_bun_format
 fixture_assert_uv_format
 fixture_assert_gradle_location
+fixture_assert_maven_silent_catch
 smoke_check_uv_runtime
 smoke_check_bun_runtime
 smoke_check_gradle_runtime

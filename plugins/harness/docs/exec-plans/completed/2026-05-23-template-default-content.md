@@ -33,7 +33,7 @@ target repository에 install된 직후 docs/ + ARCHITECTURE.md template들이 "�
 - [x] Task 1.1 — ARCHITECTURE.md: Domain Map (Identity/Catalog/Notifications) + Package Layering mermaid (title + OpenAI-style theme) + Data Flow + External Integrations + Validation Surfaces default
 - [x] Task 1.2 — docs/PLANS.md: Roadmap 표 5 milestones (M1~M5: Discovery → GA) + Sequencing Rationale + Dependencies default
 - [x] Task 1.3 — docs/DESIGN.md: mermaid title + theme + Cross-cutting 5 categories + 6 Taste Invariants + 5 Review Criteria default
-- [x] Task 1.4 — docs/PRODUCT_SENSE.md: 5 Product Principles + User Model (daily power user + 3 secondary) + 5 Design Tone + 5 Refusal Signals default
+- [x] Task 1.4 — docs/change descriptionODUCT_SENSE.md: 5 Product Principles + User Model (daily power user + 3 secondary) + 5 Design Tone + 5 Refusal Signals default
 - [x] Task 1.5 — docs/QUALITY_SCORE.md: A-D Grading Scale + Domain Scores 3 rows + Layer Scores 3 rows + Gap Tracking example
 - [x] Task 1.6 — docs/RELIABILITY.md: SLO 4 rows + 5 Failure Modes + 4 Recovery Procedures + 4 Observability bullets default
 - [x] Task 1.7 — docs/SECURITY.md: STRIDE 6 categories + Secret Management 4 + Permission Boundaries 4 + Audit Logging 4 default

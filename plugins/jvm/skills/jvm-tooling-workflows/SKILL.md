@@ -1,7 +1,7 @@
 ---
 name: jvm-tooling-workflows
 description: >-
-  Guide JDK command-line toolchain workflows for compilation, documentation, dependency analysis, packaging, and custom runtime images.
+  Guide JDK command-line toolchain workflows for compilation, documentation, dependency analysis, packaging, and custom runtime images. Use when running `javac`, `javadoc`, `jdeps`, `jlink`, or `jpackage` directly, building custom runtime images, or choosing the smallest JDK tool sequence for a packaging or compilation task.
 metadata:
   title: JVM Tooling Workflows
   official_project_url: "https://docs.oracle.com/en/java/"
@@ -14,9 +14,9 @@ metadata:
   version: "LTS"
 ---
 
-## Overview
+## Goal
 
-Use this skill to guide tasks that depend on official JDK command-line tools and packaging flows. The common case is choosing the smallest standard tool sequence that produces a real deliverable without hiding behind build wrappers. Prefer direct JDK commands first, then layer repository-specific build glue on top only if needed.
+Guide tasks that depend on official JDK command-line tools and packaging flows. The common case is choosing the smallest standard tool sequence that produces a real deliverable without hiding behind build wrappers. Prefer direct JDK commands first, then layer repository-specific build glue on top only if needed.
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and call out when a tool or packaging behavior changes across those releases.
 

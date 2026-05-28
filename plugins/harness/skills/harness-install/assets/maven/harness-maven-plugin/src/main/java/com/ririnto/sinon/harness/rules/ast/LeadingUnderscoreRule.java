@@ -96,12 +96,12 @@ public enum LeadingUnderscoreRule implements AstRule {
             final Set<String> names = Stream.concat(
                     Stream.of("_"),
                     allowedNamesNode != null && allowedNamesNode.isArray()
-                            ? StreamSupport.stream(allowedNamesNode.spliterator(), false).map(JsonNode::asText)
+                            ? StreamSupport.stream(allowedNamesNode.spliterator(), false).map(JsonNode::asString)
                             : Stream.empty())
                     .collect(Collectors.toUnmodifiableSet());
             final JsonNode patternsNode = params.get("allowedPatterns");
             final List<Pattern> patterns = patternsNode != null && patternsNode.isArray()
-                    ? StreamSupport.stream(patternsNode.spliterator(), false).map(JsonNode::asText).map(Pattern::compile).toList()
+                    ? StreamSupport.stream(patternsNode.spliterator(), false).map(JsonNode::asString).map(Pattern::compile).toList()
                     : List.of();
             return new RuleConfig(names, patterns);
         }

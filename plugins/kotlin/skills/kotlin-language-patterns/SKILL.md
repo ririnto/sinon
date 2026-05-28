@@ -1,7 +1,7 @@
 ---
 name: kotlin-language-patterns
 description: >-
-  Write idiomatic Kotlin with null safety, value types, extensions, collections, string handling, and standard-library boundary choices.
+  Write idiomatic Kotlin with null safety, value types, extensions, collections, string handling, and standard-library boundary choices. Use when choosing between `data class` and `value class`, writing extension functions, selecting collection operators, or deciding between standard-library alternatives for a Kotlin codebase.
 ---
 
 # Kotlin Language Patterns

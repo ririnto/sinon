@@ -1,7 +1,7 @@
 ---
 name: promql
 description: >-
-  Write and review PromQL expressions for correctness, aggregation and matching shape, and consumer fit (dashboard, alert, recording rule).
+  Write and review PromQL expressions for correctness, aggregation and matching shape, and consumer fit (dashboard, alert, recording rule). Use when composing range or instant queries, choosing aggregation operators, building recording rules for dashboards, or validating alert expression logic.
 ---
 
 # PromQL

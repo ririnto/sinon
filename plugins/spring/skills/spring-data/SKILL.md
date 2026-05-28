@@ -1,7 +1,7 @@
 ---
 name: spring-data
 description: >-
-  Design Spring Data repositories, derived queries, projections, auditing, paging, and scrolling across multiple Spring Data modules.
+  Design Spring Data repositories, derived queries, projections, auditing, paging, and scrolling across multiple Spring Data modules. Use when writing derived or `@Query` repository methods, choosing between JPA, MongoDB, Redis, JDBC, or R2DBC modules, configuring auditing, or implementing projections and DTO mappings.
 metadata:
   title: "Spring Data"
   official-project-url: "https://spring.io/projects/spring-data"
@@ -18,8 +18,6 @@ metadata:
   commons-version: "4.0.5"
   version: "2025.1.5"
 ---
-
-Use this skill when designing Spring Data repositories, derived queries, projections, auditing, paging, scrolling, null-safe repository contracts, and repository-based persistence patterns that span multiple Spring Data modules.
 
 ## Boundaries
 

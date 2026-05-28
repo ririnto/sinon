@@ -177,7 +177,7 @@ shell-only 프로젝트 stack adapter 추가는 minimum viable validator + CI wo
 - [x] Task 13.1 — `plugin-self-check.sh` PASS
 - [x] Task 13.2 — gradle / maven / uv / bun dry-run 모두 성공. target layout 확인: `buildSrc/`, `harness-maven-plugin/`, `docs/harness/uv/`, `docs/harness/bun/`
 - [x] Task 13.3 — 4 stack grep style audit. Java `ArrayList/HashMap` 0건; Kotlin `Severity.X` 사용은 enum value comparison + manifest 로딩 실패 fallback에 한정 (정책 허용 예외); Python `Finding("ERROR", ...)`는 manifest 항목 누락/regex 파싱 실패 fallback에 한정; TS `severity: "ERROR"`는 type 선언 + symlink fail-fast walker 한정. 그 외 hardcoded severity 0건
-- [x] Task 13.4 — shellcheck on install-harness.sh + plugin-self-check.sh + detect-stack.sh: 0 issues
+- [x] Task 13.4 — shellcheck on install-harness.sh + plugin-self-check.sh + detect-stack.sh: 0 findings
 
 ### [x] Phase 14: Plan completion
 

@@ -197,7 +197,7 @@ public enum ClassMemberOrderingRule implements AstRule {
 
     private static String message(Path root, Path file, JsonNode messages, String className, String memberName, String memberOverrideState, String memberVisibility, String memberKind, int line) {
         return (messages != null && messages.get("default") != null
-                ? messages.get("default").asText()
+                ? messages.get("default").asString()
                 : "{file}:{line}: class `{className}` member `{memberName}` ({memberKind}) is out of order")
                 .replace("{file}", root.relativize(file).toString())
                 .replace("{line}", Integer.toString(line))

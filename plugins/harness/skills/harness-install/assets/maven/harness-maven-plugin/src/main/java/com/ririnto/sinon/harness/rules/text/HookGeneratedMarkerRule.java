@@ -39,8 +39,8 @@ public enum HookGeneratedMarkerRule implements HarnessCheckRule {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
-        final String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();
-        final String placeholderForbidden = catNode.get("parameters").get("placeholderForbidden").asText();
+        final String markerTemplate = catNode.get("parameters").get("markerTemplate").asString();
+        final String placeholderForbidden = catNode.get("parameters").get("placeholderForbidden").asString();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("hooks")).stream()
                 .flatMap(hook -> {
@@ -77,7 +77,7 @@ public enum HookGeneratedMarkerRule implements HarnessCheckRule {
         if (hooksNode == null) {
             return List.of();
         }
-        final String markerTemplate = parametersNode.get("markerTemplate").asText();
+        final String markerTemplate = parametersNode.get("markerTemplate").asString();
         final List<Path> formatted = new ArrayList<>();
         for (final String hook : HarnessCheckHelper.extractPaths(hooksNode)) {
             final Path hookPath = root.resolve(hook);

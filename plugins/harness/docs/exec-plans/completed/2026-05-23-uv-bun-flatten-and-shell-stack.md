@@ -4,7 +4,7 @@ created: 2026-05-23
 updated: 2026-05-23
 completed: 2026-05-23
 author: ririnto
-assignee: ririnto
+owner: ririnto
 ---
 
 # 2026-05-23-uv-bun-flatten-and-shell-stack

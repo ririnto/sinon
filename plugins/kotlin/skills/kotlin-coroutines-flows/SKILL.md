@@ -1,7 +1,7 @@
 ---
 name: kotlin-coroutines-flows
 description: >-
-  Design Kotlin coroutine and Flow APIs with explicit ownership, honest async semantics, and cancellation-safe behavior. Use this skill when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
+  Design Kotlin coroutine and Flow APIs with explicit ownership, honest async semantics, and cancellation-safe behavior. Use when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
 ---
 
 # Kotlin Coroutines Flows

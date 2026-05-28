@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Tech-debt-tracker.md records Sinon repository debt with retirement criteria: work the maintainers consciously chose not to do right now, and the specific condition under which each item should be reopened. This file is repository-owned and separate from the harness-installed tracker template under `plugins/harness/skills/harness-install/assets/common/docs/exec-plans/tech-debt-tracker.md`.
+Tech-debt-tracker.md records Sinon repository debt with retirement criteria: work the maintainers consciously chose not to do right now, and the specific condition under which each item should be reopened. This file is plugin-owned by `plugins/harness/` and separate from the harness-installed tracker template under `plugins/harness/skills/harness-install/assets/common/docs/exec-plans/tech-debt-tracker.md`.
 
 ## Entries
 
@@ -39,7 +39,7 @@ Tech-debt-tracker.md records Sinon repository debt with retirement criteria: wor
 - Write retirement criteria as a condition, not a date.
 - Close an entry by moving it from `Active` to `Completed`, then replace `Updated` with `Completed`.
 - Re-evaluate any entry open longer than 6 months and update its retirement criteria if the condition has changed.
-- Record `Author` and `Assignees` in the same spirit as a GitHub Issue: the author captures who opened the debt item, and assignees capture who owns follow-up.
+- Record `Author` and `Assignees` as repository metadata: the author captures who opened the debt item, and assignees capture who owns follow-up.
 - Record dates in `yyyy-MM-dd` format: active entries use `Created` and `Updated`, while completed entries use `Created` and `Completed`.
 
 ## When To Update
@@ -51,5 +51,5 @@ Tech-debt-tracker.md records Sinon repository debt with retirement criteria: wor
 
 ## Required Evidence
 
-- Cite the PR thread, review comment, or design-doc decision that records the original deferral.
-- When an entry is retired, link to the PR or completed `docs/exec-plans/completed/` file that retired it.
+- Cite the self-contained change description, review record, or design-doc decision that records the original deferral.
+- When an entry is retired, link to the completed change description or execution plan under `plugins/harness/docs/exec-plans/completed/` that retired it.

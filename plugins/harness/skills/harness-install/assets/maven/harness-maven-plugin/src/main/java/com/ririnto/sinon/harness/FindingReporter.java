@@ -10,8 +10,8 @@ import java.util.stream.Stream;
 
 /**
  * Renders findings in structured diagnostic format.
- * Handles both full-featured findings (with location/fix metadata) and legacy findings
- * (severity/category/message only).
+ * Handles both findings with location/fix metadata and locationless findings
+ * with severity/category/message only.
  */
 public final class FindingReporter {
     private FindingReporter() {
@@ -21,7 +21,7 @@ public final class FindingReporter {
      * Renders a list of findings in structured diagnostic format.
      *
      * @param root     project root path used to resolve file paths for snippet rendering
-     * @param findings findings to render, may include mixed full and legacy shapes
+     * @param findings findings to render, may include entries with and without location metadata
      * @return list of formatted output lines, ready for logging; "OK" if findings list is empty
      * @throws IOException if file content cannot be read
      */
