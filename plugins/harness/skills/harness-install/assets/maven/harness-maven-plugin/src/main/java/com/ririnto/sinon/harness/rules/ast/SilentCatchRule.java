@@ -50,7 +50,7 @@ public enum SilentCatchRule implements AstRule {
             final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(CatchClause.class).stream()
                     .filter(catchClause -> !usesCatchParameter(catchClause) && !hasThrow(catchClause) && !hasLoggingCall(catchClause))
-                    .map(catchClause -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + catchClause.getBegin().map(p -> p.line).orElse(-1) + ": silent catch block"))
+                    .map(catchClause -> new Finding(severity, CATEGORY, "silent catch block", root.relativize(file).toString(), catchClause.getBegin().map(p -> p.line).orElse(1), catchClause.getBegin().map(p -> p.column).orElse(1), null, null, null))
                     .toList();
         } catch (IOException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
