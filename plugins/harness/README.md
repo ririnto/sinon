@@ -93,49 +93,48 @@ AGENTS.md
 ARCHITECTURE.md
 CLAUDE.md
 .claude/
-├── agents/
-│   ├── harness-implementation-agent.md
-│   ├── harness-orchestrator.md
-│   └── harness-review-agent.md
-├── skills/
-│   ├── harness-orchestrate/
-│   │   └── SKILL.md
-│   ├── harness-review/
-│   │   └── SKILL.md
-│   └── harness-validate/
-│       └── SKILL.md
-└── harness/
-    ├── git-hooks/
-    │   ├── pre-commit
-    │   └── pre-push
-    ├── manifest.json
-    └── templates/
+|-- agents/
+|   |-- harness-implementation-agent.md
+|   |-- harness-orchestrator.md
+|   `-- harness-review-agent.md
+`-- skills/
+    |-- harness-orchestrate/
+    |   `-- SKILL.md
+    |-- harness-review/
+    |   `-- SKILL.md
+    `-- harness-validate/
+        `-- SKILL.md
 docs/
-├── design-docs/
-│   ├── index.md
-│   └── core-beliefs.md
-├── exec-plans/
-│   ├── active/
-│   │   └── .gitkeep
-│   ├── completed/
-│   │   └── .gitkeep
-│   └── tech-debt-tracker.md
-├── generated/
-│   └── .gitkeep
-├── product-specs/
-│   ├── index.md
-│   └── new-user-onboarding.md
-├── references/
-│   ├── design-system-reference-llms.txt
-│   ├── nixpacks-llms.txt
-│   └── uv-llms.txt
-├── DESIGN.md
-├── FRONTEND.md
-├── PLANS.md
-├── PRODUCT_SENSE.md
-├── QUALITY_SCORE.md
-├── RELIABILITY.md
-└── SECURITY.md
+|-- design-docs/
+|   `-- core-beliefs.md
+|-- exec-plans/
+|   |-- active/
+|   |   `-- .gitkeep
+|   |-- completed/
+|   |   `-- .gitkeep
+|   `-- tech-debt-tracker.md
+|-- generated/
+|   `-- .gitkeep
+|-- harness/
+|   |-- README.md
+|   |-- manifest.json
+|   |-- git-hooks/
+|   |   |-- pre-commit
+|   |   `-- pre-push
+|   `-- templates/
+|-- product-specs/
+|   `-- new-user-onboarding.md
+|-- references/
+|   |-- openai-harness-engineering.md
+|   |-- README.md
+|   `-- symphony-spec.md
+|-- DESIGN.md
+|-- FRONTEND.md
+|-- PLANS.md
+|-- PRODUCT_SENSE.md
+|-- QUALITY_SCORE.md
+|-- RELIABILITY.md
+`-- SECURITY.md
 ```
 
 Empty required directories are kept in version control with `.gitkeep`. `docs/harness/git-hooks/pre-commit` is a generated, target-owned hook template: Gradle uses it for `harnessCheck`, while non-Gradle stacks use it for compliance checks. `docs/harness/git-hooks/pre-push` is the generated final-check hook template: Gradle uses `check`, while non-Gradle stacks use the selected validation command. Neither is an active Git hook unless the target repository opts in. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
