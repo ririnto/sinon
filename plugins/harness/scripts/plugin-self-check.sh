@@ -813,6 +813,80 @@ fixture_assert_format_unchanged() {
     fixture_assert_output_contains "$haystack" 'no files formatted' "$label reports no-op format"
 }
 
+# Verify shell formatting reports edits and remaining validation findings.
+#
+#     Requires `shfmt` in PATH. Gracefully skips with a warning when shfmt is unavailable.
+#
+# @return Returns 0 on success or when shfmt is missing.
+# @exit Exits with status 1 when the shell format fixture fails.
+fixture_assert_shell_format_check_after_format() {
+    if ! shfmt_path=$(command -v shfmt 2>&1); then
+        printf 'warning: shfmt not in PATH; skipping shell format fixture check\n' >&2
+        return 0
+    fi
+    : "$shfmt_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" shell
+    fixture_write_manifest "$temp_dir" '{"name":"shell-format-fixture","filePresence":{"enabled":true,"severity":"ERROR","parameters":{"paths":["required.md"]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":"docs/harness/git-hooks/pre-push"}},"symlinkSafety":{"enabled":false,"parameters":{"allowedSymlinkPairs":[]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}'
+    fixture_write_file "$temp_dir" fixture.sh '#!/usr/bin/env sh
+if [ 1 -eq 1 ]; then
+printf "%s\n" "fixture"
+fi
+'
+    fixture_before_checksum=$(fixture_file_checksum "$temp_dir/fixture.sh")
+    if fixture_run_command "$temp_dir" 'sh harness-format.sh'; then
+        printf '%s\n' '[fixture_assert_shell_format_check_after_format] expected first format to report remaining missing file' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_first_checksum=$(fixture_file_checksum "$temp_dir/fixture.sh")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_changed "$fixture_before_checksum" "$fixture_after_first_checksum" 'shell format first run changes fixture file' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'formatted:' 'shell format first run reports formatted files' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'fixture.sh' 'shell format first run reports fixture path' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'remaining findings after format:' 'shell format reports remaining findings' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" '[ERROR] filePresence: missing file: required.md' 'shell format reports check error' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" 'sh harness-format.sh'; then
+        printf '%s\n' '[fixture_assert_shell_format_check_after_format] expected second format to report remaining missing file' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_second_checksum=$(fixture_file_checksum "$temp_dir/fixture.sh")
+    if ! fixture_assertion_output=$(fixture_assert_format_unchanged "$fixture_after_first_checksum" "$fixture_after_second_checksum" "$fixture_combined_output" 'shell format second run' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+
 # Assert that captured output contains a canonical finding for a runtime fixture.
 #
 # @param haystack Captured output text.
@@ -1251,17 +1325,22 @@ TSEOF
     fixture_before_format_checksum=$(fixture_file_checksum "$fixture_target_file")
     fixture_unsafe_before_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
     if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-format.ts\""; then
-        :
-    else
-        printf '%s\n' "$fixture_stdout" >&2
-        printf '%s\n' "$fixture_stderr" >&2
+        printf '%s\n' '[fixture_assert_bun_format] expected first format to report remaining findings' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
     fixture_after_first_format_checksum=$(fixture_file_checksum "$fixture_target_file")
     fixture_unsafe_after_first_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
-    if ! fixture_assertion_output=$(fixture_assert_format_changed "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" "$fixture_stdout" 'src/example.ts' 'bun format first run' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_format_changed "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" "$fixture_combined_output" 'src/example.ts' 'bun format first run' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'remaining findings after format:' 'bun format reports remaining findings' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
@@ -1271,17 +1350,16 @@ TSEOF
         exit 1
     fi
     if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-format.ts\""; then
-        :
-    else
-        printf '%s\n' "$fixture_stdout" >&2
-        printf '%s\n' "$fixture_stderr" >&2
+        printf '%s\n' '[fixture_assert_bun_format] expected second format to report remaining findings' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
     fixture_after_second_format_checksum=$(fixture_file_checksum "$fixture_target_file")
     fixture_unsafe_after_second_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
-    if ! fixture_assertion_output=$(fixture_assert_format_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" "$fixture_stdout" 'bun format second run' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_format_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" "$fixture_combined_output" 'bun format second run' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
@@ -1371,17 +1449,22 @@ PYEOF
     fixture_before_format_checksum=$(fixture_file_checksum "$fixture_target_file")
     fixture_unsafe_before_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
     if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_format.py\""; then
-        :
-    else
-        printf '%s\n' "$fixture_stdout" >&2
-        printf '%s\n' "$fixture_stderr" >&2
+        printf '%s\n' '[fixture_assert_uv_format] expected first format to report remaining findings' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
     fixture_after_first_format_checksum=$(fixture_file_checksum "$fixture_target_file")
     fixture_unsafe_after_first_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
-    if ! fixture_assertion_output=$(fixture_assert_format_changed "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" "$fixture_stdout" 'src/example.py' 'uv format first run' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_format_changed "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" "$fixture_combined_output" 'src/example.py' 'uv format first run' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'remaining findings after format:' 'uv format reports remaining findings' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
@@ -1391,17 +1474,16 @@ PYEOF
         exit 1
     fi
     if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_format.py\""; then
-        :
-    else
-        printf '%s\n' "$fixture_stdout" >&2
-        printf '%s\n' "$fixture_stderr" >&2
+        printf '%s\n' '[fixture_assert_uv_format] expected second format to report remaining findings' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
     fixture_after_second_format_checksum=$(fixture_file_checksum "$fixture_target_file")
     fixture_unsafe_after_second_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
-    if ! fixture_assertion_output=$(fixture_assert_format_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" "$fixture_stdout" 'uv format second run' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_format_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" "$fixture_combined_output" 'uv format second run' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
@@ -1591,6 +1673,100 @@ KOTLINEOF
     fixture_remove_temp_dir "$temp_dir"
 }
 
+# Verify Gradle greater-than formatting rewrites only side-effect-free operands.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 when the Gradle greater-than format fixture fails.
+fixture_assert_gradle_greater_than_format() {
+    if ! gradle_path=$(command -v gradle 2>&1); then
+        printf 'warning: gradle not in PATH; skipping gradle greater-than format fixture check\n' >&2
+        return 0
+    fi
+    : "$gradle_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" gradle
+    fixture_write_file "$temp_dir" settings.gradle.kts 'rootProject.name = "gradle-greater-than-format-fixture"'
+    fixture_write_file "$temp_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
+
+repositories { mavenCentral() }
+'
+    fixture_write_manifest "$temp_dir" '{"name":"gradle-greater-than-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin/fixture"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt "$(
+        cat <<'KOTLINEOF'
+package fixture
+
+class ComparisonFixture {
+    fun safe(left: Int): Boolean {
+        return left > 1
+    }
+
+    fun unsafe(left: Int): Boolean {
+        return compute() > left
+    }
+
+    private fun compute(): Int {
+        return 2
+    }
+}
+KOTLINEOF
+    )"
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
+        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected first format to report remaining unsafe comparison' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'remaining findings after format:' 'gradle greater-than format reports remaining findings' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_after_first_format_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt")
+    if ! grep -Fq 'return 1 < left' "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt"; then
+        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected simple comparison to be rewritten' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq 'return compute() > left' "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt"; then
+        printf '%s\n' '[fixture_assert_gradle_greater_than_format] unsafe comparison was unexpectedly rewritten' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
+        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected second format to report remaining unsafe comparison' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_second_format_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" 'gradle greater-than format second run' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'no files formatted' 'gradle greater-than format reports no-op second run' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessCheck'; then
+        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected unsafe comparison to remain a finding' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'buildSrc/src/main/kotlin/fixture/ComparisonFixture[.]kt' 'greaterThanComparison' 'gradle greater-than unsafe remainder' 2>&1; then
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+
 # Verify Maven silent-catch detection uses JavaParser structure rather than body text.
 #
 #     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
@@ -1720,6 +1896,95 @@ JAVAEOF
         fi
     done
     : "$fixture_assertion_output"
+    fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify Maven greater-than formatting rewrites only side-effect-free operands.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 when the Maven greater-than format fixture fails.
+fixture_assert_maven_greater_than_format() {
+    if ! mvn_path=$(command -v mvn 2>&1); then
+        printf 'warning: mvn not in PATH; skipping maven greater-than format fixture check\n' >&2
+        return 0
+    fi
+    : "$mvn_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" maven
+    fixture_write_manifest "$temp_dir" '{"name":"maven-greater-than-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$temp_dir" src/main/java/fixture/ComparisonFixture.java "$(
+        cat <<'JAVAEOF'
+package fixture;
+
+final class ComparisonFixture {
+    boolean safe(int left) {
+        return left > 1;
+    }
+
+    boolean unsafe(int left) {
+        return compute() > left;
+    }
+
+    private int compute() {
+        return 2;
+    }
+}
+JAVAEOF
+    )"
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
+        printf '%s\n' '[fixture_assert_maven_greater_than_format] expected first format to report remaining unsafe comparison' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'remaining findings after format:' 'maven greater-than format reports remaining findings' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_after_first_format_checksum=$(fixture_file_checksum "$temp_dir/src/main/java/fixture/ComparisonFixture.java")
+    if ! grep -Fq 'return 1 < left;' "$temp_dir/src/main/java/fixture/ComparisonFixture.java"; then
+        printf '%s\n' '[fixture_assert_maven_greater_than_format] expected simple comparison to be rewritten' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq 'return compute() > left;' "$temp_dir/src/main/java/fixture/ComparisonFixture.java"; then
+        printf '%s\n' '[fixture_assert_maven_greater_than_format] unsafe comparison was unexpectedly rewritten' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
+        printf '%s\n' '[fixture_assert_maven_greater_than_format] expected second format to report remaining unsafe comparison' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_second_format_checksum=$(fixture_file_checksum "$temp_dir/src/main/java/fixture/ComparisonFixture.java")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" 'maven greater-than format second run' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'no files formatted' 'maven greater-than format reports no-op second run' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
+        printf '%s\n' '[fixture_assert_maven_greater_than_format] expected unsafe comparison to remain a finding' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'src/main/java/fixture/ComparisonFixture[.]java' 'greaterThanComparison' 'maven greater-than unsafe remainder' 2>&1; then
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
     fixture_remove_temp_dir "$temp_dir"
 }
 # Smoke-check the uv stack runtime by importing harness_check and counting registered rules.
@@ -2163,6 +2428,7 @@ require_text "$root/skills/harness-install/assets/shell/docs/harness/manifest.sc
 require_text "$root/skills/harness-install/assets/shell/docs/harness/manifest.schema.json" '"ciHookCommandParity"'
 require_text "$root/skills/harness-install/assets/shell/runtime/harness-check.sh" 'check_hook_command'
 require_text "$root/skills/harness-install/assets/shell/runtime/harness-check.sh" 'check_ci_hook_command_parity'
+require_text "$root/skills/harness-install/assets/shell/runtime/harness-format.sh" 'remaining findings after format:'
 require_text "$root/skills/harness-install/assets/shell/runtime/README.md" 'hookCommand'
 require_text "$root/skills/harness-install/assets/shell/runtime/README.md" 'ciHookCommandParity'
 require_text "$root/skills/harness-install/assets/shell/runtime/README.md" 'harness-format.sh'
@@ -2174,6 +2440,7 @@ reject_text 'docs/harness/uv/harness_validate.py' "$root/skills/harness-install/
 reject_text 'docs/harness/bun/harness-validate.ts' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"
 require_text "$root/skills/harness-evolve/SKILL.md" "active \`.git/hooks/pre-commit\` and \`.git/hooks/pre-push\` remain target repository files"
 require_markdown_heading "$root/skills/harness-evolve/SKILL.md" 2 'Ownership Boundary'
+require_markdown_heading "$root/skills/harness-evolve/SKILL.md" 2 'Cleanup Evolution'
 require_markdown_heading "$root/skills/harness-evolve/SKILL.md" 2 'Invariants'
 
 generated_doc_package_file_list=$(package_files "$root/skills/harness-install/assets/common/docs/generated")
@@ -2317,11 +2584,14 @@ fixture_self_check_helpers
 fixture_assert_shell_symlink_safety
 fixture_assert_shell_root_contract_scaffold_symlink
 smoke_check_shell_unsafe_hook_paths
+fixture_assert_shell_format_check_after_format
 fixture_assert_bun_format
 fixture_assert_uv_format
 fixture_assert_gradle_location
+fixture_assert_gradle_greater_than_format
 fixture_assert_maven_silent_catch
 fixture_assert_maven_import_over_fqn
+fixture_assert_maven_greater_than_format
 smoke_check_uv_runtime
 smoke_check_bun_runtime
 smoke_check_shell_runtime

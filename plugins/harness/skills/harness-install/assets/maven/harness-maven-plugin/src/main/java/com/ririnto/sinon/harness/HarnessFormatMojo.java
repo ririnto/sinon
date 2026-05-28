@@ -44,9 +44,32 @@ public final class HarnessFormatMojo extends AbstractMojo {
             } else {
                 getLog().info("no files formatted");
             }
+            final List<Finding> remainingFindings = buildRemainingFindings(ctx);
+            getLog().info("remaining findings after format:");
+            FindingReporter.renderFindings(root, remainingFindings).forEach(getLog()::info);
+            if (remainingFindings.stream().anyMatch(finding -> "ERROR".equals(finding.severity()))) {
+                throw new MojoExecutionException("Harness validation failed after format");
+            }
         } catch (IOException error) {
             throw new MojoExecutionException("formatting failed", error);
         }
+    }
+
+    /**
+     * Collects validation findings remaining after formatting.
+     */
+    private List<Finding> buildRemainingFindings(RuleContext ctx) throws MojoExecutionException {
+        return Arrays.stream(HarnessCheck.values())
+                .filter(check -> check.applies(ctx))
+                .flatMap(check -> {
+                    try {
+                        return check.validate(ctx).stream();
+                    } catch (MojoExecutionException e) {
+                        return Stream.of(Finding.of("ERROR", check.category(), "validation failed after format: " + e.getMessage()));
+                    }
+                })
+                .distinct()
+                .toList();
     }
 
     /**

@@ -73,6 +73,39 @@ Use the stack validation command from `docs/harness/README.md`; do not guess a c
 | Product code changed but harness contracts still match reality | reject as drift | Report that the change is product work, not harness evolution. |
 | Validator is too strict for ignored or generated files | evolve | Adjust validator rules only after confirming gitignore-aware behavior. |
 | Proposed change removes validation to make a failure pass | reject as drift | Keep validation and fix the underlying contract or target content. |
+| A target no longer uses an optional surface | evolve | Remove that surface only when docs, templates, manifest policy, validators, CI/hooks, and self-check agree it is optional or replaced. |
+
+## Cleanup Evolution
+
+Treat cleanup as harness evolution when a repository stops using a previously installed surface. Examples include a GitLab-only target removing GitHub Actions examples, an API-free target removing generated API docs, or a project-specific workflow retiring a seed template.
+
+Use this sequence before recommending deletion:
+
+1. Identify the owning surface: CI, hooks, docs, generated artifacts, agents, skills, seed references, or stack runtime.
+2. Classify the artifact as required, optional seed, generated output, or target-owned runtime state.
+3. Check `docs/harness/manifest.json`, `docs/harness/README.md`, installer assets, validators, hook/CI examples, and self-check fixtures for the same expectation.
+4. If every contract marks the surface optional or replaced, propose removal plus the matching manifest/docs/validator updates.
+5. If any contract still requires it, reject the deletion as drift or first evolve the contract that makes it required.
+
+Cleanup MUST NOT delete active target truth just because it is unused by the default template. It MUST leave one validation source of truth: GitHub Actions and GitLab CI are alternative renderings of the selected final check command, not independent policy definitions.
+
+### Cleanup examples
+
+```text
+delta: Target repository runs GitLab CI only and wants to remove `.github/workflows/harness.yml`.
+decision: evolve if GitHub Actions is documented as an optional CI rendering and `.gitlab-ci.yml` still runs the selected final check command.
+contract updates: update manifest optional seed policy, CI docs, and self-check expectations together; remove GitHub-only template references if the installed target should no longer receive them.
+validation impact: selected stack command must pass, and CI parity must still prove `.gitlab-ci.yml` mirrors the generated pre-push command.
+risks: downstream docs may still mention GitHub pull request checks.
+```
+
+```text
+delta: Target has no generated API schema and wants to remove `docs/generated/api-schema.md`.
+decision: evolve only if generated-artifact policy no longer requires that artifact.
+contract updates: update `docs/harness/manifest.json`, generated-artifact docs, and any references that link to the removed output.
+validation impact: selected stack command must pass without fake generated files.
+risks: product docs may still link to the removed schema.
+```
 
 ## Lifecycle Stages
 

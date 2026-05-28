@@ -206,24 +206,17 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             manifest: JsonObject?,
         ): HarnessAstResults =
             manifest?.let { manifest ->
+                val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
+                val srcFiles = astSourceFiles(ctx)
+                if (srcFiles.isEmpty()) {
+                    return HarnessAstResults(emptyList())
+                }
                 val outputFile = temporaryDir.toPath() / "ast-results.json"
                 workerExecutor
                     .classLoaderIsolation { classpath.from(kotlinCompiler) }
                     .apply {
                         submit(HarnessAstWorkAction::class.java) {
-                            srcFilePaths.set(
-                                listOf(
-                                    root / "buildSrc" / "src" / "main" / "kotlin",
-                                    root / "buildSrc" / "src" / "test" / "kotlin",
-                                ).filter { srcRoot -> srcRoot.isDirectory() }
-                                    .flatMap { dir ->
-                                        dir
-                                            .walk()
-                                            .filter { file -> !file.isSymbolicLink() }
-                                            .filter { file -> file.isRegularFile() }
-                                            .filter { file -> file.extension == "kt" }
-                                    }.map { srcFile -> srcFile.invariantSeparatorsPathString },
-                            )
+                            srcFilePaths.set(srcFiles.map { srcFile -> srcFile.invariantSeparatorsPathString })
                             rootDir.set(root.invariantSeparatorsPathString)
                             manifestText.set(Json.encodeToString(manifest))
                             this.outputFile.set(outputFile.toFile())
@@ -231,6 +224,14 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                     }.await()
                 Json.decodeFromString<HarnessAstResults>(outputFile.readText())
             } ?: HarnessAstResults(emptyList())
+
+        private fun astSourceFiles(ctx: DefaultRuleContext): List<Path> =
+            HarnessCheck.entries
+                .map { check -> check.rule }
+                .filter { rule -> rule.applies(ctx) }
+                .filterIsInstance<HarnessAstRule>()
+                .flatMap { rule -> ctx.stackSources(rule.category) }
+                .distinct()
 
         private fun loadManifest(root: Path): ManifestLoadResult {
             val manifestFile = root / "docs" / "harness" / "manifest.json"
@@ -332,7 +333,56 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                     }
                 }
             }
+            val remainingFindings = collectFindings(root, manifest)
+            logger.lifecycle("remaining findings after format:")
+            FindingReporter.renderFindings(root, remainingFindings).forEach { line -> logger.lifecycle(line) }
+            if (remainingFindings.any { finding -> finding.severity == Severity.ERROR }) {
+                throw GradleException("Harness validation failed after format")
+            }
         }
+
+        private fun collectFindings(
+            root: Path,
+            manifest: JsonObject,
+        ): List<Finding> =
+            buildSet {
+                val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
+                HarnessCheck.entries.filter { check -> check.rule.applies(ctx) }.forEach { check ->
+                    addAll(check.rule.validate(ctx))
+                }
+                addAll(computeAstResults(root, manifest).findings)
+            }.toList()
+
+        private fun computeAstResults(
+            root: Path,
+            manifest: JsonObject,
+        ): HarnessAstResults {
+            val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
+            val srcFiles = astSourceFiles(ctx)
+            if (srcFiles.isEmpty()) {
+                return HarnessAstResults(emptyList())
+            }
+            val outputFile = temporaryDir.toPath() / "ast-format-check-results.json"
+            workerExecutor
+                .classLoaderIsolation { classpath.from(kotlinCompiler) }
+                .apply {
+                    submit(HarnessAstWorkAction::class.java) {
+                        srcFilePaths.set(srcFiles.map { srcFile -> srcFile.invariantSeparatorsPathString })
+                        rootDir.set(root.invariantSeparatorsPathString)
+                        manifestText.set(Json.encodeToString(manifest))
+                        this.outputFile.set(outputFile.toFile())
+                    }
+                }.await()
+            return Json.decodeFromString<HarnessAstResults>(outputFile.readText())
+        }
+
+        private fun astSourceFiles(ctx: DefaultRuleContext): List<Path> =
+            HarnessCheck.entries
+                .map { check -> check.rule }
+                .filter { rule -> rule.applies(ctx) }
+                .filterIsInstance<HarnessAstRule>()
+                .flatMap { rule -> ctx.stackSources(rule.category) }
+                .distinct()
 
         private fun formatAstRules(
             root: Path,
@@ -429,6 +479,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 .map { check -> check.rule }
                 .filter { rule -> rule.applies(ctx) }
                 .filterIsInstance<HarnessAstRule>()
+                .filter { astRule -> ctx.stackSources(astRule.category).isNotEmpty() }
                 .flatMap { astRule ->
                     astRule.renderAstFindings(
                         ctx,
@@ -507,6 +558,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                     .map { check -> check.rule }
                     .filter { rule -> rule.applies(ctx) }
                     .filterIsInstance<HarnessAstRule>()
+                    .filter { astRule -> ctx.stackSources(astRule.category).isNotEmpty() }
                     .forEach { astRule ->
                         parameters.srcFilePaths.get().forEach { srcFilePath ->
                             val filePath = Path(srcFilePath)
