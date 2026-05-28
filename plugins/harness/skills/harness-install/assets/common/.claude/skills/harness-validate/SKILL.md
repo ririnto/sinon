@@ -23,9 +23,9 @@ Run the matching command:
 | --- | --- |
 | Gradle harness validation | `./gradlew harnessValidate`, or `gradle harnessValidate` when the target uses system Gradle without a wrapper |
 | Gradle final check | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| Maven | `mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate` |
-| uv | `uv run --script docs/harness/uv/harness_validate.py` |
-| bun | `bun --install=fallback run docs/harness/bun/harness-validate.ts` |
+| Maven | `mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check` |
+| uv | `uv run --script docs/harness/uv/harness_check.py` |
+| bun | `bun --install=fallback run docs/harness/bun/harness-check.ts` |
 
 ## Workflow
 
