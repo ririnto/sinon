@@ -913,6 +913,36 @@ printf "%s\n" "fixture hook"
     fixture_remove_temp_dir "$temp_dir"
 }
 
+# Verify shell scaffold scanning allows the installed root contract symlink.
+#
+# @exit Exits with status 1 when a valid AGENTS.md / CLAUDE.md symlink fails.
+fixture_assert_shell_root_contract_scaffold_symlink() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" shell
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"shell-root-contract-symlink-fixture","filePresence":{"enabled":false,"parameters":{"paths":[]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":"docs/harness/git-hooks/pre-push"}},"symlinkSafety":{"enabled":true,"severity":"ERROR","messages":{"fileNotAllowed":"symlink file is not allowed: {path}","directoryNotAllowed":"symlink directory is not allowed: {path}","scanRootNotAllowed":"symlink scan root is not allowed: {path}","scanEntryNotAllowed":"symlink scan entry is not allowed: {path}","pathNotAllowed":"symlink path is not allowed: {path}"},"parameters":{"allowedSymlinkPairs":[["AGENTS.md","CLAUDE.md"],[".agents",".claude"]]}},"scaffoldLeaks":{"enabled":true,"severity":"ERROR","parameters":{"scope":{"bases":["AGENTS.md","CLAUDE.md"],"extensions":["md"]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}
+JSONEOF
+    )"
+    fixture_write_file "$temp_dir" CLAUDE.md '# Entry Point
+'
+    ln -s CLAUDE.md "$temp_dir/AGENTS.md"
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        :
+    else
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" 'Harness validation passed' 'shell root contract symlink scaffold pass' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+
 # Smoke-check the shell stack runtime rejects unsafe manifest-controlled hook paths.
 #
 # @exit Exits with status 1 when unsafe hook paths are not rejected.
@@ -2271,6 +2301,7 @@ done
 
 fixture_self_check_helpers
 fixture_assert_shell_symlink_safety
+fixture_assert_shell_root_contract_scaffold_symlink
 smoke_check_shell_unsafe_hook_paths
 fixture_assert_bun_format
 fixture_assert_uv_format
