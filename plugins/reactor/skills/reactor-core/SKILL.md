@@ -15,9 +15,13 @@ metadata:
 
 Author the ordinary Reactor path with `Flux` and `Mono`.
 
+## Goal
+
 This skill covers source selection, operator composition, combination, empty/error behavior, ordinary demand decisions, and request-scoped `Context` usage. Keep dedicated scheduler design, sink-driven hot sources, and `reactor-test` work in their own domains.
 
-## Use this skill when
+## Scope
+
+Activate this skill for:
 
 - choosing between `Flux<T>` and `Mono<T>`
 - creating a sequence from fixed values, collections, one lazy value, a future, or one blocking call
@@ -26,7 +30,7 @@ This skill covers source selection, operator composition, combination, empty/err
 - deciding whether ordinary backpressure defaults are enough or an overflow policy must be chosen
 - carrying tracing, request, tenant, or auth metadata through `Context`
 
-## Do not use this skill for
+Do not activate for:
 
 - scheduler selection as the main problem
 - manual emission design with `Sinks`

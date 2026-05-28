@@ -10,7 +10,9 @@ import com.ririnto.sinon.harness.rules.HarnessAstRule
 import kotlinx.serialization.json.jsonObject
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import java.nio.file.Path
@@ -72,7 +74,7 @@ object UnstructuredLoggingRule : HarnessAstRule() {
     ) : KtTreeVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
             super.visitCallExpression(expression)
-            val callName = expression.calleeExpression?.text ?: return
+            val callName = calleeName(expression) ?: return
             val qualifiedCall = qualifiedCallName(expression, callName)
             if (callName in allowedApis || qualifiedCall in allowedApis) {
                 return
@@ -92,11 +94,22 @@ object UnstructuredLoggingRule : HarnessAstRule() {
         private fun qualifiedCallName(
             expression: KtCallExpression,
             callName: String,
-        ): String {
-            return when {
-                (expression.parent as? KtDotQualifiedExpression)?.selectorExpression == expression -> "${(expression.parent as KtDotQualifiedExpression).receiverExpression.text}.$callName"
-                else -> callName
-            }
-        }
+        ): String =
+            (expression.parent as? KtDotQualifiedExpression)
+                ?.takeIf { qualified -> qualified.selectorExpression == expression }
+                ?.let { qualified -> (expressionParts(qualified.receiverExpression) + callName).joinToString(".") }
+                ?: callName
+
+        private fun calleeName(expression: KtCallExpression): String? =
+            (expression.calleeExpression as? KtNameReferenceExpression)?.getReferencedName()
+
+        private fun expressionParts(expression: KtExpression): List<String> =
+            (when (expression) {
+                is KtNameReferenceExpression -> listOf(expression.getReferencedName())
+                is KtDotQualifiedExpression -> expressionParts(expression.receiverExpression) +
+                    expression.selectorExpression?.let(::expressionParts).orEmpty()
+                is KtCallExpression -> listOfNotNull(calleeName(expression))
+                else -> emptyList()
+            })
     }
 }

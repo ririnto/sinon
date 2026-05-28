@@ -1,7 +1,7 @@
 ---
 name: commit-convention
 description: >-
-  Write Conventional Commits-style commit messages with appropriate type, optional scope, breaking-change markers, and structured body or footer. Use when composing or reviewing commit message text, choosing a commit type, formatting breaking-change footers, or validating message structure against the Conventional Commits spec.
+  Write Conventional Commits-style commit messages with appropriate type, optional scope, breaking-change markers, and structured body or footer. Triggers on commit message text composition or review, commit type selection, breaking-change footer formatting, or message structure validation against the Conventional Commits spec.
 ---
 
 # Commit Convention

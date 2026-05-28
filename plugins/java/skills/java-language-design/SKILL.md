@@ -3,7 +3,7 @@ name: java-language-design
 description: >-
   Design idiomatic Java APIs, review class structure for immutability and clarity,
   choose between records and sealed classes, decide checked vs unchecked exception boundaries,
-  and shape public contracts with narrow surfaces and explicit value semantics. Use when choosing between records, sealed classes, enums, or ordinary classes, designing immutable value types, or deciding exception boundaries for public APIs.
+  and shape public contracts with narrow surfaces and explicit value semantics. Triggers on records vs sealed classes vs enums vs ordinary classes tradeoffs, immutable value type modeling, or exception boundary decisions for public APIs.
 ---
 
 # Java Language Design

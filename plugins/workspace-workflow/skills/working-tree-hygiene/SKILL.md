@@ -1,7 +1,7 @@
 ---
 name: working-tree-hygiene
 description: >-
-  Inspect, maintain, and verify clean working trees before starting work or publishing changes. Use when checking staged or unstaged status, stashing changes, classifying untracked files, verifying upstream sync, or establishing a baseline hygiene state before or after a task.
+  Inspect, maintain, and verify clean working trees before starting work or publishing changes. Triggers on staged or unstaged status checks, stash operations, untracked file classification, upstream sync verification, or baseline hygiene state establishment before or after a task.
 ---
 
 # Working Tree Hygiene

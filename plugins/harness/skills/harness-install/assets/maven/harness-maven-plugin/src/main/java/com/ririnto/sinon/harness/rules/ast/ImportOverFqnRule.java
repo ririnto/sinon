@@ -8,14 +8,18 @@ import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodReferenceExpr;
+import com.github.javaparser.ast.expr.TypeExpr;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -54,19 +58,15 @@ public enum ImportOverFqnRule implements AstRule {
             final CompilationUnit cu = StaticJavaParser.parse(file);
             final Set<String> importedSimpleNames = cu.getImports().stream()
                     .filter(imp -> !imp.isAsterisk())
-                    .map(imp -> {
-                        final String name = imp.getNameAsString();
-                        final int lastDot = name.lastIndexOf('.');
-                        return 0 < lastDot ? name.substring(lastDot + 1) : null;
-                    })
-                    .filter(Objects::nonNull)
+                    .map(imp -> imp.getName().getIdentifier())
                     .collect(Collectors.toSet());
             return Stream.concat(
                             cu.findAll(FieldAccessExpr.class).stream()
-                                    .map(expr -> candidate(expr.toString(), expr.getNameAsString(), expr.getBegin().map(p -> p.line).orElse(-1))),
+                                    .map(expr -> candidate(expressionParts(expr), expr.getBegin().map(p -> p.line).orElse(-1))),
                             cu.findAll(MethodReferenceExpr.class).stream()
-                                    .map(expr -> candidate(expr.getScope().toString(), simpleName(expr.getScope().toString()), expr.getBegin().map(p -> p.line).orElse(-1))))
-                    .filter(candidate -> isPackageQualifiedName(candidate.qualifiedName()))
+                                    .map(expr -> candidate(expressionParts(expr.getScope()), expr.getBegin().map(p -> p.line).orElse(-1))))
+                    .flatMap(optional -> optional.stream())
+                    .filter(candidate -> isPackageQualifiedName(candidate.nameParts()))
                     .filter(candidate -> !importedSimpleNames.contains(candidate.simpleName()))
                     .filter(candidate -> allowedFqnPatterns(manifest).stream().noneMatch(pattern -> pattern.matcher(candidate.qualifiedName()).matches()))
                     .sorted(Comparator.comparingInt(FqnCandidate::line).thenComparing(FqnCandidate::qualifiedName))
@@ -76,9 +76,9 @@ public enum ImportOverFqnRule implements AstRule {
             return List.of(Finding.of(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }
     }
-    private static boolean isPackageQualifiedName(String qualifiedName) {
-        final String[] parts = qualifiedName.split("\\.");
-        return 3 <= parts.length && startsLowercase(parts[0]) && startsLowercase(parts[1]) && startsUppercase(parts[parts.length - 1]);
+
+    private static boolean isPackageQualifiedName(List<String> parts) {
+        return 3 <= parts.size() && startsLowercase(parts.get(0)) && startsLowercase(parts.get(1)) && startsUppercase(parts.get(parts.size() - 1));
     }
 
     private static boolean startsLowercase(String value) {
@@ -89,8 +89,40 @@ public enum ImportOverFqnRule implements AstRule {
         return !value.isEmpty() && Character.isUpperCase(value.charAt(0));
     }
 
-    private static FqnCandidate candidate(String qualifiedName, String simpleName, int line) {
-        return new FqnCandidate(qualifiedName, simpleName, line);
+    private static Optional<FqnCandidate> candidate(List<String> nameParts, int line) {
+        return nameParts.isEmpty() ? Optional.empty() : Optional.of(new FqnCandidate(nameParts, line));
+    }
+
+    private static List<String> expressionParts(Expression expression) {
+        if (expression.isNameExpr()) {
+            return List.of(expression.asNameExpr().getNameAsString());
+        }
+        if (expression.isFieldAccessExpr()) {
+            final FieldAccessExpr fieldAccess = expression.asFieldAccessExpr();
+            final List<String> parts = new ArrayList<>(expressionParts(fieldAccess.getScope()));
+            parts.add(fieldAccess.getNameAsString());
+            return parts;
+        }
+        if (expression.isTypeExpr()) {
+            return typeParts(expression.asTypeExpr());
+        }
+        return List.of();
+    }
+
+    private static List<String> typeParts(TypeExpr expression) {
+        if (expression.getType().isClassOrInterfaceType()) {
+            return typeParts(expression.getType().asClassOrInterfaceType());
+        }
+        return List.of();
+    }
+
+    private static List<String> typeParts(ClassOrInterfaceType type) {
+        final List<String> parts = type.getScope()
+                .map(ImportOverFqnRule::typeParts)
+                .map(ArrayList::new)
+                .orElseGet(ArrayList::new);
+        parts.add(type.getNameAsString());
+        return parts;
     }
 
     private List<Pattern> allowedFqnPatterns(JsonNode manifest) {
@@ -102,11 +134,13 @@ public enum ImportOverFqnRule implements AstRule {
                 .toList();
     }
 
-    private static String simpleName(String qualifiedName) {
-        final int lastDot = qualifiedName.lastIndexOf('.');
-        return 0 < lastDot ? qualifiedName.substring(lastDot + 1) : qualifiedName;
-    }
+    private record FqnCandidate(List<String> nameParts, int line) {
+        private String qualifiedName() {
+            return String.join(".", nameParts);
+        }
 
-    private record FqnCandidate(String qualifiedName, String simpleName, int line) {
+        private String simpleName() {
+            return nameParts.get(nameParts.size() - 1);
+        }
     }
 }

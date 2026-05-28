@@ -15,9 +15,13 @@ metadata:
 
 Choose execution context deliberately in Reactor.
 
+## Goal
+
 This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `subscribeOn(...)`, blocking offload, thread-affinity boundaries, and local scheduling diagnostics. Keep custom scheduler factories, automatic context propagation, global hooks, and test-only virtual-time work in blocker references or dedicated Reactor test guidance.
 
-## Use this skill when
+## Scope
+
+Activate this skill for:
 
 - deciding where a Reactor chain should run
 - choosing among `Schedulers.parallel()`, `boundedElastic()`, `single()`, or `immediate()`
@@ -26,7 +30,7 @@ This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `s
 - checking whether ThreadLocal assumptions break once the pipeline becomes asynchronous
 - diagnosing thread hops or execution placement with local Reactor tools
 
-## Do not use this skill for
+Do not activate for:
 
 - `Flux` / `Mono` source creation and ordinary operator composition as the main problem
 - sink design, manual emission APIs, or replay/multicast policy

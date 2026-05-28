@@ -1,7 +1,7 @@
 ---
 name: reactor-testing
 description: >-
-  Test Reactor publishers with reactor-test using StepVerifier, virtual time, TestPublisher, and PublisherProbe. Use when writing `StepVerifier` assertions for `Flux` or `Mono`, testing time-based operators with virtual time, controlling upstream emission with `TestPublisher`, or verifying alternate branch subscription with `PublisherProbe`.
+  Test Reactor publishers with reactor-test using StepVerifier, virtual time, TestPublisher, and PublisherProbe. Triggers on `StepVerifier` assertion authoring for `Flux` or `Mono`, time-based operator verification with virtual time, upstream emission control with `TestPublisher`, or alternate branch subscription checks with `PublisherProbe`.
 metadata:
   title: "Reactor Testing"
   official_project_url: "https://projectreactor.io/docs/core/3.7.18/reference/testing.html"
@@ -16,11 +16,15 @@ metadata:
 
 Test Reactor publishers with the ordinary `reactor-test` path.
 
+## Goal
+
 This skill covers everyday `StepVerifier` flow, success/empty/error assertions, virtual time, request and cancellation assertions, `TestPublisher`, `PublisherProbe`, and ordinary post-verification checks. Keep advanced `StepVerifierOptions`, context-specific expectations, timeout-heavy scenarios, and noncompliant publishers in blocker references.
 
 Use `consumeRecordedWith(...)` only after `recordWith(...)` and before terminal verification in the verifier chain.
 
-## Use this skill when
+## Scope
+
+Activate this skill for:
 
 - testing a `Flux` or `Mono` with `StepVerifier`
 - verifying value order, completion, emptiness, or errors
@@ -29,7 +33,7 @@ Use `consumeRecordedWith(...)` only after `recordWith(...)` and before terminal 
 - checking whether a fallback or alternate branch was actually subscribed with `PublisherProbe`
 - asserting request, cancellation, or dropped/discarded signal behavior after verification
 
-## Do not use this skill for
+Do not activate for:
 
 - ordinary `Flux` / `Mono` operator design as the main problem
 - scheduler tuning or thread placement as the main problem

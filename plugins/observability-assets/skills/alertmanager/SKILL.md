@@ -1,7 +1,7 @@
 ---
 name: alertmanager
 description: >-
-  Configure AlertManager routing, grouping, silencing, and notification flow. Use when designing Alertmanager route trees and receiver mapping to match alert labels, tuning group batching and notification timing, implementing inhibition or mute schedules to suppress noise without hiding critical signals, configuring notification channels (email, Slack, PagerDuty, Webhook, OpsGenie, Telegram, Discord, MS Teams, Jira, Mattermost, and others), or needing guidance on alert routing quality and template-driven notification content.
+  Configure AlertManager routing, grouping, silencing, and notification flow. Triggers on Alertmanager route tree design and receiver mapping to match alert labels, group batching and notification timing tuning, inhibition or mute schedule implementation to suppress noise without hiding critical signals, notification channel setup (email, Slack, PagerDuty, Webhook, OpsGenie, Telegram, Discord, MS Teams, Jira, Mattermost, and others), or alert routing quality and template-driven notification content guidance.
 ---
 
 # Alertmanager
@@ -39,7 +39,6 @@ route:
 receivers:
   - name: platform-default
   - name: api-pager
-
 ```
 
 Use when: you need one readable Alertmanager baseline with a default receiver and one label-based branch.
@@ -52,7 +51,6 @@ Start by validating the configuration file that will actually ship:
 
 ```sh
 amtool check-config alertmanager.yml
-
 ```
 
 Use when: the config was just edited, `amtool` is available in `PATH`, and you need the first safe syntax and schema check. If `amtool` is unavailable, stop at a blocked validation state instead of claiming the config is ready.
@@ -151,7 +149,6 @@ route:
         - business-hours
       matchers:
         - severity="warning"
-
 ```
 
 ## Global Configuration
@@ -191,7 +188,6 @@ global:
   http_config:
     tls_config:
       insecure_skip_verify: false
-
 ```
 
 ## Inhibition Rules
@@ -230,7 +226,6 @@ inhibit_rules:
       - alertname
       - cluster
       - namespace
-
 ```
 
 For guidance on choosing `equal` labels safely and reviewing source/target shape, see [`./references/inhibition-rules.md`](./references/inhibition-rules.md).
@@ -258,7 +253,6 @@ matchers:
   - severity="critical"
   - alertname=~"NodeDown|InstanceDown"
   - environment!="staging"
-
 ```
 
 ### UTF-8 Label Names
@@ -285,7 +279,6 @@ time_intervals:
   - name: <string>
     time_intervals:
       - <TimeIntervalSpec>
-
 ```
 
 `name` is the required unique identifier, and the nested `time_intervals` key is the required list of interval specs.
@@ -331,7 +324,6 @@ time_intervals:
         times:
           - start_time: "09:00"
             end_time: "17:00"
-
 ```
 
 Month-specific maintenance window:
@@ -347,7 +339,6 @@ time_intervals:
         times:
           - start_time: "02:00"
             end_time: "06:00"
-
 ```
 
 For timezone pitfalls, split-window patterns, year-limited schedules, and version notes, see [`./references/time-intervals.md`](./references/time-intervals.md).
@@ -363,7 +354,6 @@ receivers:
   - name: <string>
     <type>_configs:
       - ...
-
 ```
 
 Every receiver MUST have a unique `name`. This name is referenced by `receiver:` in route blocks. Each `<type>_configs` key contains one or more notification type blocks. A receiver with no notification configs is valid (acts as a null sink).
@@ -424,7 +414,6 @@ route:
 receivers:
   - name: platform-default
   - name: api-pager
-
 ```
 
 Use when: one team owns a clearly labeled alert stream.
@@ -440,7 +429,6 @@ route:
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 4h
-
 ```
 
 Use when: you need a sane default notification cadence before adding more routes.
@@ -456,7 +444,6 @@ inhibit_rules:
     equal:
       - service
       - cluster
-
 ```
 
 Use when: multiple alerts describe the same outage and the lower-severity signal would only add noise.
@@ -476,14 +463,12 @@ receivers:
     email_configs:
       - to: oncall@example.org
         html: '{{ template "alert.summary" . }}'
-
 ```
 
 ```gotemplate
 {{ define "alert.summary" }}
 {{ .CommonLabels.alertname }} for {{ .CommonLabels.service }}
 {{ end }}
-
 ```
 
 Use when: the route is already correct and the common path only needs one small template surface for clearer notifications. Keep the template file on disk at the path matched by `templates:` so Alertmanager can actually load it, and wire it through a receiver field that actually supports templated strings.
@@ -508,7 +493,6 @@ time_intervals:
         times:
           - start_time: "00:00"
             end_time: "08:00"
-
 ```
 
 Use when: a route should stay valid, but notifications from that route should pause during a known schedule.
@@ -526,7 +510,6 @@ receivers:
         title: '{{ template "slack.default.title" . }}'
         text: '{{ template "slack.default.text" . }}'
         send_resolved: true
-
 ```
 
 PagerDuty receiver with routing key:
@@ -543,7 +526,6 @@ receivers:
         class: prometheus-alert
         component: monitoring
         group: platform
-
 ```
 
 Webhook receiver using Alertmanager's fixed JSON body:
@@ -555,7 +537,6 @@ receivers:
       - url: https://hooks.example.com/alertmanager
         send_resolved: true
         max_alerts: 0
-
 ```
 
 Generic webhook receivers always receive Alertmanager's fixed JSON body built from the notification `Data` object. If the downstream service needs a different payload shape, put that transformation in the HTTP receiver or an intermediary adapter.
@@ -574,7 +555,6 @@ Template files are loaded from paths listed under the top-level `templates:` key
 templates:
   - '/etc/alertmanager/templates/*.tmpl'
   - '/etc/alertmanager/templates/custom/*.tmpl'
-
 ```
 
 Paths are resolved relative to the config file location. Globs are supported. Alertmanager ships built-in templates (`default.tmpl`, `email.tmpl`) that provide default rendering for every receiver type.
