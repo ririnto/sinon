@@ -9,6 +9,10 @@ metadata:
     - "https://docs.spring.io/spring-graphql/reference/index.html"
   version: "2.0.3"
 ---
+## Purpose
+
+Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests.
+
 - Use narrower guidance for ordinary REST or non-GraphQL HTTP endpoint design.
 - Keep transport and resolver concerns at the GraphQL boundary. Domain services should not depend on GraphQL-specific annotations or response shapes.
 - Keep federation out of the ordinary path. Open the federation reference only when the graph is intentionally split across several services.

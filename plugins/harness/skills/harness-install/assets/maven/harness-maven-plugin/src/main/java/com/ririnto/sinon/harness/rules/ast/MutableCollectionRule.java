@@ -9,12 +9,16 @@ import org.apache.maven.plugin.MojoExecutionException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -60,7 +64,7 @@ public enum MutableCollectionRule implements AstRule {
                             .map(expr -> finding(root, file, severity, expr, expr.getType().asString())),
                     cu.findAll(MethodCallExpr.class).stream()
                             .filter(expr -> config.accumulationMethods().contains(expr.getNameAsString()))
-                            .filter(expr -> expr.getScope().map(scope -> !config.allowedBuilders().contains(scope.toString())).orElse(true))
+                            .filter(expr -> expr.getScope().flatMap(MutableCollectionRule::qualifiedExpressionName).map(scope -> !config.allowedBuilders().contains(scope)).orElse(true))
                             .map(expr -> finding(root, file, severity, expr, expr.getNameAsString())))
                     .toList();
         } catch (IOException e) {
@@ -92,6 +96,24 @@ public enum MutableCollectionRule implements AstRule {
         }
         final List<String> configured = HarnessCheckHelper.extractPaths(parameters.get(key));
         return Set.copyOf(configured.isEmpty() ? defaults : configured);
+    }
+
+    private static Optional<String> qualifiedExpressionName(Expression expression) {
+        final List<String> parts = expressionParts(expression);
+        return parts.isEmpty() ? Optional.empty() : Optional.of(String.join(".", parts));
+    }
+
+    private static List<String> expressionParts(Expression expression) {
+        if (expression.isNameExpr()) {
+            return List.of(expression.asNameExpr().getNameAsString());
+        }
+        if (expression.isFieldAccessExpr()) {
+            final FieldAccessExpr fieldAccess = expression.asFieldAccessExpr();
+            final List<String> parts = new ArrayList<>(expressionParts(fieldAccess.getScope()));
+            parts.add(fieldAccess.getNameAsString());
+            return parts;
+        }
+        return List.of();
     }
 
     private record MutableConfig(Set<String> constructors, Set<String> forbiddenFqns, Set<String> accumulationMethods, Set<String> allowedBuilders) {

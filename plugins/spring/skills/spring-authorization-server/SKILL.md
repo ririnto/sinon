@@ -1,7 +1,7 @@
 ---
 name: spring-authorization-server
 description: >-
-  Implement an OAuth2 or OpenID Connect provider with Spring Authorization Server including registered clients, PKCE authorization code, token issuance, JWK exposure, consent, PAR, device authorization, introspection, and revocation. Use when configuring registered client stores, customizing token claims, exposing JWK sets, or implementing consent and device-authorization flows.
+  Implement an OAuth2 or OpenID Connect provider with Spring Authorization Server including registered clients, PKCE authorization code, token issuance, JWK exposure, consent, PAR, device authorization, introspection, and revocation. Triggers on registered client store configuration, token claim customization, JWK set exposure, or consent and device-authorization flow implementation.
 metadata:
   title: "Spring Authorization Server"
   official-project-url: "https://spring.io/projects/spring-authorization-server"
@@ -12,6 +12,10 @@ metadata:
     - "https://docs.spring.io/spring-authorization-server/reference/protocol-endpoints.html"
   version: "1.5.7"
 ---
+
+## Purpose
+
+Implement an OAuth2 or OpenID Connect provider with Spring Authorization Server, covering registered clients, token issuance, JWK exposure, consent, and authorization code with PKCE.
 
 ## Boundaries
 

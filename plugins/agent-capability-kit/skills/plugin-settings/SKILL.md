@@ -1,7 +1,7 @@
 ---
 name: plugin-settings
 description: >-
-  Author plugin-level configuration via `settings.json` and per-project state via `.claude/{{plugin-name}}.local.md` with YAML frontmatter parsing patterns. Use when creating or reading plugin settings, designing per-project state files, parsing YAML frontmatter from markdown, or wiring settings into hooks, commands, and agents.
+  Author plugin-level configuration via `settings.json` and per-project state via `.claude/{{plugin-name}}.local.md` with YAML frontmatter parsing patterns. Triggers on plugin settings creation or reads, per-project state file design, YAML frontmatter extraction from markdown, or wiring settings into hooks, commands, and agents.
 ---
 
 # Plugin Settings

@@ -1,7 +1,7 @@
 ---
 name: agent-authoring
 description: >-
-  Create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work. Use when writing agent frontmatter, defining tool allowlists, or designing system prompts that keep agents scoped to a single responsibility.
+  Create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work. Triggers on agent frontmatter fields, tool allowlist boundaries, or system-prompt structure that keeps agents scoped to a single responsibility.
 ---
 
 # Agent Authoring
