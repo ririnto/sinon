@@ -164,8 +164,39 @@ is_safe_manifest_path() {
     path=$1
     case "$path" in
         '' | /* | .. | ../* | */.. | */../*) return 1 ;;
+        -*) return 1 ;;
         *) return 0 ;;
     esac
+}
+
+# Return whether every path component of a manifest path is free of symlinks.
+#
+# @param path Manifest-controlled path to check.
+# @return Returns 0 when no intermediate or final component is a symlink.
+is_safe_manifest_path_symlinks() {
+    path=$1
+    probe=
+    remaining=$path
+    while [ -n "$remaining" ]; do
+        component=${remaining%%/*}
+        if [ "$remaining" = "$component" ]; then
+            remaining=
+        else
+            remaining=${remaining#*/}
+        fi
+        if [ -z "$component" ]; then
+            continue
+        fi
+        if [ -n "$probe" ]; then
+            probe=$probe/$component
+        else
+            probe=$component
+        fi
+        if [ -L "$probe" ]; then
+            return 1
+        fi
+    done
+    return 0
 }
 
 # Return whether a manifest file path may be read safely.
@@ -177,7 +208,7 @@ is_safe_manifest_file() {
     if ! is_safe_manifest_path "$path"; then
         return 1
     fi
-    if [ -L "$path" ]; then
+    if ! is_safe_manifest_path_symlinks "$path"; then
         return 1
     fi
     return 0
@@ -258,10 +289,19 @@ check_hook_shebang() {
     sev=$(severity_of "$category")
     expected=$(manifest_string "M['$category']['parameters']['expectedShebang']")
     manifest_query "M['$category']['parameters']['hooks']" | while IFS= read -r hook; do
-        if [ -n "$hook" ] && [ -L "$hook" ]; then
+        if [ -z "$hook" ]; then
+            continue
+        fi
+        if ! is_safe_manifest_path "$hook"; then
+            emit "$sev" "$category" "$hook is not a safe relative hook path"
+            continue
+        fi
+        if ! is_safe_manifest_path_symlinks "$hook"; then
             symlink_sev=$(severity_of symlinkSafety)
             emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$hook"
-        elif [ -n "$hook" ] && [ -f "$hook" ]; then
+            continue
+        fi
+        if [ -f "$hook" ]; then
             first=$(sed -n '1p' "$hook")
             if [ "$first" != "$expected" ]; then
                 emit "$sev" "$category" "$hook must start with $expected"
@@ -281,10 +321,19 @@ check_hook_executable() {
     fi
     sev=$(severity_of "$category")
     manifest_query "M['$category']['parameters']['hooks']" | while IFS= read -r hook; do
-        if [ -n "$hook" ] && [ -L "$hook" ]; then
+        if [ -z "$hook" ]; then
+            continue
+        fi
+        if ! is_safe_manifest_path "$hook"; then
+            emit "$sev" "$category" "$hook is not a safe relative hook path"
+            continue
+        fi
+        if ! is_safe_manifest_path_symlinks "$hook"; then
             symlink_sev=$(severity_of symlinkSafety)
             emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$hook"
-        elif [ -n "$hook" ] && [ -f "$hook" ] && [ ! -x "$hook" ]; then
+            continue
+        fi
+        if [ -f "$hook" ] && [ ! -x "$hook" ]; then
             emit "$sev" "$category" "$hook must be executable"
         fi
     done
@@ -324,7 +373,7 @@ check_hook_command() {
     declared=$(declared_hook_command "$pre_push")
     if ! is_safe_manifest_path "$pre_push"; then
         emit "$sev" "$category" "$pre_push is not a safe relative hook path"
-    elif [ -L "$pre_push" ]; then
+    elif ! is_safe_manifest_path_symlinks "$pre_push"; then
         symlink_sev=$(severity_of symlinkSafety)
         emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$pre_push"
     elif [ -f "$pre_push" ] && [ -z "$declared" ]; then
@@ -349,7 +398,7 @@ check_hook_command() {
     fi
     if ! is_safe_manifest_path "$pre_commit"; then
         emit "$sev" "$category" "$pre_commit is not a safe relative hook path"
-    elif [ -L "$pre_commit" ]; then
+    elif ! is_safe_manifest_path_symlinks "$pre_commit"; then
         symlink_sev=$(severity_of symlinkSafety)
         emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$pre_commit"
     elif [ -f "$pre_commit" ]; then
@@ -376,6 +425,15 @@ check_ci_hook_command_parity() {
     fi
     sev=$(severity_of "$category")
     reference_hook=$(manifest_string "M['$category']['parameters']['referenceHook']")
+    if ! is_safe_manifest_path "$reference_hook"; then
+        emit "$sev" "$category" "$reference_hook is not a safe relative hook path"
+        return 0
+    fi
+    if ! is_safe_manifest_path_symlinks "$reference_hook"; then
+        symlink_sev=$(severity_of symlinkSafety)
+        emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$reference_hook"
+        return 0
+    fi
     command=$(declared_hook_command "$reference_hook")
     if [ -z "$command" ]; then
         return 0
@@ -383,7 +441,7 @@ check_ci_hook_command_parity() {
     manifest_query "M['$category']['parameters']['ciFiles']" | while IFS= read -r ci_file; do
         if ! is_safe_manifest_path "$ci_file"; then
             emit "$sev" "$category" "$ci_file is not a safe relative CI path"
-        elif [ -L "$ci_file" ]; then
+        elif ! is_safe_manifest_path_symlinks "$ci_file"; then
             symlink_sev=$(severity_of symlinkSafety)
             emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$ci_file"
         elif [ -f "$ci_file" ] && ! grep -Fq "$command" "$ci_file"; then

@@ -913,6 +913,62 @@ printf "%s\n" "fixture hook"
     fixture_remove_temp_dir "$temp_dir"
 }
 
+# Smoke-check the shell stack runtime rejects unsafe manifest-controlled hook paths.
+#
+# @exit Exits with status 1 when unsafe hook paths are not rejected.
+smoke_check_shell_unsafe_hook_paths() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" shell
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"shell-unsafe-hook-fixture","filePresence":{"enabled":false,"parameters":{"paths":[]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":true,"severity":"ERROR","parameters":{"hooks":["../escape.sh","-flag.sh","linked/pre-push",""],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":true,"severity":"ERROR","parameters":{"hooks":["../escape.sh","-flag.sh","linked/pre-push",""]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":true,"severity":"ERROR","parameters":{"ciFiles":[],"referenceHook":"../outside.sh"}},"symlinkSafety":{"enabled":false,"parameters":{"allowedSymlinkPairs":[]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}
+JSONEOF
+    )"
+    mkdir -p "$temp_dir/outside"
+    fixture_write_file "$temp_dir" outside/pre-push '#!/usr/bin/env sh
+printf "%s\n" "outside"
+'
+    ln -s outside "$temp_dir/linked"
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        printf '%s\n' '[smoke_check_shell_unsafe_hook_paths] expected unsafe hook paths to fail' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" '../escape.sh is not a safe relative hook path' 'shell unsafe hookShebang parent traversal rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" '-flag.sh is not a safe relative hook path' 'shell unsafe hookShebang leading-dash rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'symlink file is not allowed: linked/pre-push' 'shell unsafe hookShebang parent symlink rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" '../outside.sh is not a safe relative hook path' 'shell unsafe ciHookCommandParity referenceHook rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_write_manifest "$temp_dir" '{"name":"shell-unsafe-ci-reference-fixture","filePresence":{"enabled":false,"parameters":{"paths":[]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":true,"severity":"ERROR","parameters":{"ciFiles":[],"referenceHook":"linked/pre-push"}},"symlinkSafety":{"enabled":false,"parameters":{"allowedSymlinkPairs":[]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}'
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        printf '%s\n' '[smoke_check_shell_unsafe_hook_paths] expected unsafe CI reference hook symlink to fail' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'symlink file is not allowed: linked/pre-push' 'shell unsafe ciHookCommandParity referenceHook symlink rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    printf '%s\n' 'shell runtime: unsafe hook path rejection OK'
+    fixture_remove_temp_dir "$temp_dir"
+}
+
 # Smoke-check the shell stack runtime with command parity fixtures.
 #
 # @exit Exits with status 1 when shell runtime command parity fails.
@@ -2153,6 +2209,7 @@ done
 
 fixture_self_check_helpers
 fixture_assert_shell_symlink_safety
+smoke_check_shell_unsafe_hook_paths
 fixture_assert_bun_format
 fixture_assert_uv_format
 fixture_assert_gradle_location
