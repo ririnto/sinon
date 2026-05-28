@@ -204,20 +204,19 @@ Repository-level findings apply to the harness as a whole (for example, missing 
 
 | Rule category | Bun | uv | Gradle | Maven | Mutation type |
 | --- | --- | --- | --- | --- | --- |
-| `leafFunctionBlankLines` | Allow | Allow | Defer | Defer | Remove blank lines inside leaf function bodies |
-| `emptyDirectoryPlaceholders` | Allow | Allow | Defer | Defer | Create `.gitkeep` in empty required directories |
-| `envShebangUsage` | Allow | Allow | Defer | Defer | Replace script shebang with `/usr/bin/env` form |
-| `hookGeneratedMarker` | Allow | Allow | Defer | Defer | Insert generated marker in managed hook template |
-| `hookShebang` | Allow | Allow | Defer | Defer | Replace missing or incorrect hook shebang |
+| `greaterThanComparison` | Defer | Defer | Partial | Partial | Rewrite simple identifier/literal `>` and `>=` comparisons to `<` and `<=` with operands swapped; expressions that may affect evaluation order stay check-only |
+| `leafFunctionBlankLines` | Allow | Allow | Allow | Allow | Remove blank lines inside leaf function bodies |
+| `emptyDirectoryPlaceholders` | Allow | Allow | Allow | Allow | Create `.gitkeep` in empty required directories |
+| `envShebangUsage` | Allow | Allow | Allow | Allow | Replace script shebang with `/usr/bin/env` form |
+| `hookGeneratedMarker` | Allow | Allow | Allow | Allow | Insert generated marker in managed hook template |
+| `hookShebang` | Allow | Allow | Allow | Allow | Replace missing or incorrect hook shebang |
 | `shebangEncodingMarker` | Allow | Allow | Defer | Defer | Insert encoding marker after shebang |
 
-Rules not in this table are not formatted. `harnessFormat` is idempotent for Bun and uv: a second run immediately after the first produces no additional modifications.
-
-Gradle and Maven formatting is deferred and not implemented in this change set.
+Rules not in this table are not formatted. `harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications. Format commands run validation after applying fixes, print remaining findings, and fail when any remaining finding has `ERROR` severity.
 
 ### Shell formatting
 
-The shell runtime ships `harness-check.sh` and `harness-format.sh`. Shell validation covers file presence, directory structure, hook shebangs and executable bits, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. Shell formatting runs `shfmt` across `.sh` files under the target root.
+The shell runtime ships `harness-check.sh` and `harness-format.sh`. Shell validation covers file presence, directory structure, hook shebangs and executable bits, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. Shell formatting runs `shfmt` across `.sh` files under the target root, then runs `harness-check.sh` and returns the remaining validation status.
 
 ## Git Hooks
 

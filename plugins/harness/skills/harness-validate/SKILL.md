@@ -203,9 +203,9 @@ path/to/file [SEVERITY] category: file-level message
 
 ## Safe-Format Allowlist
 
-`harnessFormat` applies only explicitly allowlisted safe fixes. A safe fix is a deterministic, semantics-preserving edit. The current allowlist covers `leafFunctionBlankLines`, `emptyDirectoryPlaceholders`, `envShebangUsage`, `hookGeneratedMarker`, `hookShebang`, and `shebangEncodingMarker`. Bun and uv allow these fixes; Gradle and Maven formatting is deferred. Rules not in the allowlist are not formatted.
+`harnessFormat` applies only explicitly allowlisted safe fixes. A safe fix is a deterministic, semantics-preserving edit. The current allowlist covers `leafFunctionBlankLines`, `emptyDirectoryPlaceholders`, `envShebangUsage`, `hookGeneratedMarker`, `hookShebang`, and `shebangEncodingMarker`; Gradle and Maven also partially format `greaterThanComparison` when both operands are side-effect-free names or literals. Rules not in the allowlist are not formatted.
 
-`harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications.
+`harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications. Format commands run validation after applying fixes, print remaining findings, and fail when any remaining finding has `ERROR` severity.
 
 The shell runtime ships `harness-check.sh` and `harness-format.sh`.
 

@@ -6,6 +6,7 @@ import type { HarnessManifest } from "./core/manifest";
 import { createRuleContext, type RuleContext } from "./core/rule-context";
 import { HARNESS_CHECKS, MANIFEST_PATH } from "./harness-check";
 import { logger } from "./logger";
+import { renderFindings } from "./reporter";
 import type { Finding, FindingEdit } from "./rules/harness-check-rule";
 
 const root = process.cwd();
@@ -179,6 +180,19 @@ function applyEdits(byFile: Map<string, PreparedEdit[]>): readonly string[] {
     return Array.from(modified).sort();
 }
 
+function collectFindings(ctx: RuleContext): readonly Finding[] {
+    return Array.from(
+        new Map(
+            HARNESS_CHECKS.filter((rule) => rule.applies(ctx))
+                .flatMap((rule) => rule.validate(ctx))
+                .map((finding) => [
+                    `${finding.severity}|${finding.category}|${finding.message}|${finding.file ?? ""}|${finding.startLine ?? ""}|${finding.startColumn ?? ""}`,
+                    finding,
+                ]),
+        ).values(),
+    );
+}
+
 async function main(): Promise<void> {
     const manifestPath = join(root, MANIFEST_PATH);
     if (!existsSync(manifestPath)) {
@@ -187,9 +201,7 @@ async function main(): Promise<void> {
     }
     const manifest: HarnessManifest = JSON.parse(readFileSync(manifestPath, "utf8"));
     const executionContext = createRuleContext(root, manifest);
-    const findings = HARNESS_CHECKS.filter((rule) => rule.applies(executionContext)).flatMap((rule) =>
-        rule.validate(executionContext),
-    );
+    const findings = collectFindings(executionContext);
     const modified = applyEdits(collectSafeEdits(executionContext, findings));
     if (0 < modified.length) {
         logger.log(`formatted: ${modified.length}`);
@@ -199,7 +211,12 @@ async function main(): Promise<void> {
     } else {
         logger.log("no files formatted");
     }
-    process.exit(0);
+    logger.log("remaining findings after format:");
+    const remainingFindings = collectFindings(executionContext);
+    renderFindings(root, remainingFindings).forEach((line) => {
+        logger.log(line);
+    });
+    process.exit(remainingFindings.some((finding) => finding.severity === "ERROR") ? 1 : 0);
 }
 
 if (import.meta.main) {
