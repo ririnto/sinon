@@ -1872,9 +1872,13 @@ require_text "$root/skills/harness-validate/SKILL.md" 'Unsupported validation co
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'manifest drift'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'generated-artifact metadata'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'unsupported pre-push validation command'
+require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" './gradlew harnessCheck'
+require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'gradle harnessCheck'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'uv run --script docs/harness/uv/harness_check.py'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'bun --install=fallback run docs/harness/bun/harness-check.ts'
+require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'sh docs/harness/shell/harness-check.sh'
+reject_text 'harnessValidate' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"
 reject_text 'ai.harness:harness-maven-plugin:0.1.0:validate' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"
 reject_text 'docs/harness/uv/harness_validate.py' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"
 reject_text 'docs/harness/bun/harness-validate.ts' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"
