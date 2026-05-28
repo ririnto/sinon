@@ -1,7 +1,7 @@
 ---
 name: mcp-integration
 description: >-
-  Integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key with stdio, SSE, HTTP, or WebSocket transports.
+  Integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key with stdio, SSE, HTTP, or WebSocket transports. Use when configuring MCP server entries, choosing between stdio and network transports, or wiring external tool servers into a plugin manifest.
 ---
 
 # MCP Integration

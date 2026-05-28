@@ -1,7 +1,7 @@
 ---
 name: spring-vault
 description: >-
-  Integrate Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, and transit encryption.
+  Integrate Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, and transit encryption. Use when configuring `VaultTemplate` operations, setting up AppRole or token authentication, loading Vault-backed property sources, or applying transit encryption and decryption.
 metadata:
   title: "Spring Vault"
   official-project-url: "https://spring.io/projects/spring-vault"
@@ -9,8 +9,6 @@ metadata:
     - "https://docs.spring.io/spring-vault/reference/index.html"
   version: "4.0.2"
 ---
-
-Use this skill when integrating Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, or transit encryption.
 
 The latest released Spring Vault line is 4.0.2. Keep the frontmatter docs URL unversioned, but pin the concrete artifact example in this skill to 4.0.2 because this skill documents the current released standalone client path rather than a Spring BOM-managed path.
 

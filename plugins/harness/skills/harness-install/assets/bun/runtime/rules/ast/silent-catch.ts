@@ -4,8 +4,10 @@ import type { Block, Node, SourceFile } from "typescript@6.0.3";
 import {
     createSourceFile,
     forEachChild,
+    isCallExpression,
     isCatchClause,
     isIdentifier,
+    isPropertyAccessExpression,
     isThrowStatement,
     SyntaxKind,
 } from "typescript@6.0.3";
@@ -38,7 +40,7 @@ export const silentCatchRule: HarnessCheckRule = {
                     if (isThrowStatement(node)) {
                         return true;
                     }
-                    if (isIdentifier(node) && node.text && /^(console|logger|log)/.test(node.text)) {
+                    if (isLoggingCall(node)) {
                         return true;
                     }
                     let found = false;
@@ -84,3 +86,35 @@ export const silentCatchRule: HarnessCheckRule = {
         });
     },
 };
+
+/**
+ * Detect logging calls from TypeScript AST call/property nodes.
+ */
+function isLoggingCall(node: Node): boolean {
+    if (!isCallExpression(node)) {
+        return false;
+    }
+    const expression = node.expression;
+    if (isIdentifier(expression)) {
+        return ["logger", "log"].includes(expression.text);
+    }
+    if (!isPropertyAccessExpression(expression)) {
+        return false;
+    }
+    const receiver = dottedExpressionName(expression.expression);
+    return receiver === "console" || receiver === "logger" || receiver === "log" || receiver.endsWith(".logger") || receiver.endsWith(".log");
+}
+
+/**
+ * Return a dotted identifier path for property-access receivers.
+ */
+function dottedExpressionName(node: Node): string {
+    if (isIdentifier(node)) {
+        return node.text;
+    }
+    if (isPropertyAccessExpression(node)) {
+        const receiver = dottedExpressionName(node.expression);
+        return receiver ? `${receiver}.${node.name.text}` : node.name.text;
+    }
+    return "";
+}

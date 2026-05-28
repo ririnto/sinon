@@ -44,7 +44,7 @@ public enum DocContentRule implements HarnessCheckRule {
     }
 
     private List<Finding> validateCheck(Path root, JsonNode check, String severity) {
-        final String failureMessage = check.get("failureMessage").asText();
+        final String failureMessage = check.get("failureMessage").asString();
         final String combined = HarnessCheckHelper.extractPaths(check.get("files")).stream()
                 .map(f -> {
                     try {
@@ -71,8 +71,8 @@ public enum DocContentRule implements HarnessCheckRule {
         if (condition == null || condition.isNull()) {
             return false;
         }
-        if (condition.isTextual()) {
-            return combined.contains(condition.asText());
+        if (condition.isString()) {
+            return combined.contains(condition.asString());
         }
         if (condition.isArray()) {
             return StreamSupport.stream(condition.spliterator(), false)
@@ -116,15 +116,15 @@ public enum DocContentRule implements HarnessCheckRule {
         if (node == null || node.isNull()) {
             return List.of();
         }
-        if (node.isTextual()) {
-            return List.of(node.asText());
+        if (node.isString()) {
+            return List.of(node.asString());
         }
         if (!node.isArray()) {
             return List.of();
         }
         return StreamSupport.stream(node.spliterator(), false)
-                .filter(JsonNode::isTextual)
-                .map(JsonNode::asText)
+                .filter(JsonNode::isString)
+                .map(JsonNode::asString)
                 .collect(Collectors.toList());
     }
 }

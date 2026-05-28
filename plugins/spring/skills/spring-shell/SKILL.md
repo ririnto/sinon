@@ -1,7 +1,7 @@
 ---
 name: spring-shell
 description: >-
-  Build Spring Shell command-line applications with validated commands, completion, availability rules, terminal prompts, and shell-focused tests. Use this skill when building Spring Shell command-line applications, interactive REPL workflows, validated commands, completion, command availability rules, terminal prompts, and shell-focused tests.
+  Build Spring Shell command-line applications with validated commands, completion, availability rules, terminal prompts, and shell-focused tests. Use when registering commands with options and validation, configuring tab completion, controlling command availability at runtime, or building interactive REPL workflows.
 metadata:
   title: "Spring Shell"
   official-project-url: "https://spring.io/projects/spring-shell"
@@ -9,8 +9,6 @@ metadata:
     - "https://docs.spring.io/spring-shell/reference/index.html"
   version: "4.0.2"
 ---
-
-Use this skill when building operational CLIs, administrative shells, interactive command workflows, or shell-focused tests with Spring Shell command registration, option parsing, completion, availability, and terminal-aware input or output.
 
 The current GA Spring Shell starter is `4.0.2`. Keep dependency examples on that released line; this matches the current Spring docs release line and the published Maven artifact metadata for `org.springframework.shell:spring-shell-starter`.
 

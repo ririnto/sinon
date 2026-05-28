@@ -1,7 +1,7 @@
 ---
 name: spring-boot
 description: >-
-  Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging.
+  Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging. Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, or packaging executable archives.
 metadata:
   title: "Spring Boot"
   official-project-url: "https://spring.io/projects/spring-boot"
@@ -11,8 +11,6 @@ metadata:
     - "https://docs.spring.io/spring-boot/reference/index.html"
   version: "4.0.6"
 ---
-
-Use this skill when the task is about Spring Boot application bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator operations, packaging, or Boot-level runtime wiring.
 
 ## Boundaries
 

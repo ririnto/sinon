@@ -1,7 +1,7 @@
 ---
 name: spring-graphql
 description: >-
-  Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests.
+  Build Spring GraphQL servers with schema resources, annotated query or mutation mappings, batching, transport-aware execution, and `GraphQlTester`-based tests. Use when defining schema-first or annotation-first resolvers, configuring DataLoader batching, wiring WebSocket or SSE transports, or writing integration tests with `GraphQlTester`.
 metadata:
   title: "Spring for GraphQL"
   official-project-url: "https://spring.io/projects/spring-graphql"

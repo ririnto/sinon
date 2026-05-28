@@ -1,12 +1,14 @@
 {
-  "lspServers": {
-    "example": {
-      "command": "uv",
-      "args": [
-        "run",
-        "${CLAUDE_PLUGIN_ROOT}/lsp/example-lsp.py",
-        "--stdio"
-      ]
-    }
+  "example-lsp": {
+    "command": "uv",
+    "args": [
+      "run",
+      "${CLAUDE_PLUGIN_ROOT}/lsp/example-lsp.py",
+      "--stdio"
+    ],
+    "extensionToLanguage": {
+      ".example": "example"
+    },
+    "startupTimeout": 120000
   }
 }

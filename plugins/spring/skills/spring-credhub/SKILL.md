@@ -1,7 +1,7 @@
 ---
 name: spring-credhub
 description: >-
-  Integrate Spring applications with CredHub for credential reads, writes, generated passwords or certificates, interpolation, and mutual-TLS or OAuth2 authenticated client access.
+  Integrate Spring applications with CredHub for credential reads, writes, generated passwords or certificates, interpolation, and mutual-TLS or OAuth2 authenticated client access. Use when reading or writing CredHub credentials, configuring mutual-TLS or OAuth2 authentication, or interpolating credential placeholders in application properties.
 metadata:
   title: "Spring CredHub"
   official-project-url: "https://spring.io/projects/spring-credhub"
@@ -9,8 +9,6 @@ metadata:
     - "https://docs.spring.io/spring-credhub/docs/current/reference/"
   version: "4.0.1"
 ---
-
-Use this skill when integrating a Spring application with CredHub for credential reads, writes, generated passwords or certificates, interpolation, and mutual-TLS or OAuth2 authenticated client access.
 
 The current stable Spring CredHub line is 4.0.1. Use the official Spring CredHub starter and keep mutual TLS or OAuth2 selection aligned with the platform's existing CredHub authentication path instead of inventing a second auth mode inside the application.
 

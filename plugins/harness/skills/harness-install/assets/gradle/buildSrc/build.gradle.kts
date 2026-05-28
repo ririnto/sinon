@@ -1,6 +1,7 @@
 plugins {
     `kotlin-dsl`
-    alias(libs.plugins.kotlin.serialization)
+    `java-gradle-plugin`
+    kotlin("plugin.serialization") version embeddedKotlinVersion
 }
 
 val kotlinCompilerLibrary =

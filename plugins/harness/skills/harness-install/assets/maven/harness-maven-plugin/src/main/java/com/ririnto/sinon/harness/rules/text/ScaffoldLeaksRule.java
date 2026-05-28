@@ -70,8 +70,8 @@ public enum ScaffoldLeaksRule implements HarnessCheckRule {
     private List<Finding> checkLeaks(Path root, Path file, JsonNode patternsNode, String severity) throws MojoExecutionException {
         final String text = stripMarkdownCode(HarnessCheckHelper.readFile(root, file));
         return StreamSupport.stream(patternsNode.spliterator(), false)
-                .filter(p -> Pattern.compile(p.get("pattern").asText()).matcher(text).find())
-                .map(p -> Finding.of(severity, CATEGORY, p.get("label").asText() + " in active asset: " + root.relativize(file)))
+                .filter(p -> Pattern.compile(p.get("pattern").asString()).matcher(text).find())
+                .map(p -> Finding.of(severity, CATEGORY, p.get("label").asString() + " in active asset: " + root.relativize(file)))
                 .toList();
     }
 

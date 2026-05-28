@@ -1,7 +1,7 @@
 ---
 name: spring-web-flow
 description: >-
-  Build stateful multi-step web conversations with Spring Web Flow definitions, conversation-scoped state, transitions, validation, subflows, and flow execution tests.
+  Build stateful multi-step web conversations with Spring Web Flow definitions, conversation-scoped state, transitions, validation, subflows, and flow execution tests. Use when defining flow XML or Java configurations, managing conversation and flash scope, wiring view-state transitions, or testing flow execution outcomes.
 metadata:
   title: "Spring Web Flow"
   official-project-url: "https://spring.io/projects/spring-webflow"
@@ -9,8 +9,6 @@ metadata:
     - "https://docs.spring.io/spring-webflow/docs/current/reference/"
   version: "4.0.0"
 ---
-
-Use this skill when building stateful multi-step web conversations with Spring Web Flow, including flow definitions, conversation-scoped state, transitions, validation, subflows, and flow execution tests.
 
 ## Boundaries
 

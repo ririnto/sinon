@@ -48,8 +48,8 @@ parameters:
 
 ## Plan Convention
 
-- Phase는 순차. 같은 phase 내 task는 독립 파일이라 병렬 가능하지만, 한 stack 내 task는 동일 파일을 다루므로 *stack 단위로 한 sub-agent에 통합*.
-- 각 stack section은 self-contained하게 sub-agent prompt로 활용 가능.
+- Phase는 순차. 같은 phase 내 task는 독립 파일이라 병렬 가능하지만, 한 stack 내 task는 동일 파일을 다루므로 *stack 단위로 한 bounded execution context에 통합*.
+- 각 stack section은 self-contained하게 bounded execution context prompt로 활용 가능.
 
 ## Phases
 
@@ -58,7 +58,7 @@ parameters:
 - [x] Task 1.1 — manifest.json에 11개 add-on 등록(2 enabled + 8 disabled + 기존 Kotlin 2개)
 - [x] Task 1.2 — `sourceRootsPerStack` (glob) + `extensionsPerStack` (dot-less) schema 확정
 
-### [x] Phase 2: Python AST (uv stack) — sub-agent prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
+### [x] Phase 2: Python AST (uv stack) — bounded execution context prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
 
 대상 파일: `plugins/harness/skills/harness-install/assets/uv/runtime/harness_check.py`
 
@@ -107,7 +107,7 @@ parameters:
     - `for line_no in range(node.body[0].lineno, node.end_lineno + 1):` (decorator/signature 제외)
     - `if source_lines[line_no - 1].strip() == "":` Finding 추가.
 
-위반/통과 fixture (sub-agent가 임시 생성, validator 실행 후 위반 잡힘 확인):
+위반/통과 fixture (bounded execution context가 임시 생성, validator 실행 후 위반 잡힘 확인):
 
 ```python
 # violation: forbidden > comparison
@@ -145,7 +145,7 @@ python3 docs/harness/uv/harness_validate.py
 - [ ] Task 2.1 — uv harness_check.py에 helper + 2 enum value + validator 함수 추가
 - [ ] Task 2.2 — 위반/통과 fixture로 검증
 
-### [x] Phase 3: TypeScript AST (bun stack) — sub-agent prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
+### [x] Phase 3: TypeScript AST (bun stack) — bounded execution context prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
 
 대상 파일: `plugins/harness/skills/harness-install/assets/bun/runtime/harness-check.ts`
 
@@ -235,7 +235,7 @@ bun --install=fallback run docs/harness/bun/harness-validate.ts
 - [ ] Task 3.2 — harness-check.ts에 helper + 2 spec 추가
 - [ ] Task 3.3 — 위반/통과 fixture로 검증
 
-### [x] Phase 4: Java AST (maven stack) — sub-agent prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
+### [x] Phase 4: Java AST (maven stack) — bounded execution context prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
 
 대상 파일: `plugins/harness/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/ai/harness/maven/HarnessCheck.java`
 
@@ -320,7 +320,7 @@ class Violation {
 - [ ] Task 4.2 — HarnessCheck.java에 helper + 2 enum value 추가
 - [ ] Task 4.3 — 위반/통과 fixture로 검증 (`mvn -q -f harness-maven-plugin/pom.xml install ai.harness:harness-maven-plugin:0.1.0:validate`)
 
-### [x] Phase 5: Kotlin AST (gradle stack) — sub-agent prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
+### [x] Phase 5: Kotlin AST (gradle stack) — bounded execution context prompt 자료 ↓ (Phase 400~417에 dispatch 완료 보고)
 
 대상 파일:
 
@@ -399,24 +399,24 @@ class Violation {
 - [ ] Task 5.4 — 기존 REQUIRE_SINGLE_TOP_LEVEL_KOTLIN_DECLARATION을 PSI 기반으로 마이그레이션
 - [ ] Task 5.5 — 위반/통과 fixture로 검증 (`./gradlew harnessValidate`)
 
-### [x] Phase 2: Python AST (uv) — sub-agent 완료
+### [x] Phase 2: Python AST (uv) — bounded execution context 완료
 
 - [x] helper `_stack_sources` / `_parse_python` / `_has_nested_function` 추가
 - [x] `_validate_forbid_greater_than_comparison` / `_validate_forbid_blank_line_in_leaf_function`
 - [x] `FORBID_GREATER_THAN_COMPARISON` / `FORBID_BLANK_LINE_IN_LEAF_FUNCTION` enum 추가
 
-### [x] Phase 3: TypeScript AST (bun) — sub-agent 완료
+### [x] Phase 3: TypeScript AST (bun) — bounded execution context 완료
 
 - [x] `import * as ts from "typescript@6.0.3";` inline import (PEP 723 style; package.json / bun.lock 불요)
 - [x] `stackSources` / `hasNestedFunctions` 헬퍼 + 2 spec
 - [x] CLAUDE.md 정책 위반인 package.json / bun.lock / .gitignore 산출물 제거
 
-### [x] Phase 4: Java AST (maven) — sub-agent 완료
+### [x] Phase 4: Java AST (maven) — bounded execution context 완료
 
 - [x] `javaparser-core:3.28.1` pom.xml dependency
 - [x] `FORBID_GREATER_THAN_COMPARISON` / `FORBID_BLANK_LINE_IN_LEAF_FUNCTION` enum + helper
 
-### [x] Phase 5: Kotlin AST (gradle) — sub-agent 완료, 후속 작업 있음
+### [x] Phase 5: Kotlin AST (gradle) — bounded execution context 완료, 후속 작업 있음
 
 - [x] `kotlin-compiler-embeddable:2.3.0` libs.versions.toml + buildSrc/build.gradle.kts
 - [x] `PsiKotlin` helper (별도 파일)
@@ -455,7 +455,7 @@ Kotlin 2.3.21이 K1 PSI API를 hard compile error로 격상. 대응:
 
 ### [x] Phase 8b: Kotlin 2.1 whatsnew 정식 격리 패턴 회귀 (완료, 다수 commit으로 분산)
 
-사용자가 <https://kotlinlang.org/docs/whatsnew21.html> 의 정확한 Worker API 격리 예제(`@Classpath` + 별도 `myDependencyScope`/`myResolvable` Configuration + `classLoaderIsolation { classpath.from(kotlinCompiler) }`)를 제시. 이전 sub-agent가 `implementation(libs.kotlin.compiler.embeddable)`로 우회했던 부분은 정식 패턴으로 회귀.
+사용자가 <https://kotlinlang.org/docs/whatsnew21.html> 의 정확한 Worker API 격리 예제(`@Classpath` + 별도 `myDependencyScope`/`myResolvable` Configuration + `classLoaderIsolation { classpath.from(kotlinCompiler) }`)를 제시. 이전 bounded execution context가 `implementation(libs.kotlin.compiler.embeddable)`로 우회했던 부분은 정식 패턴으로 회귀.
 
 - [x] Task 8b.1 — `buildSrc/build.gradle.kts`의 `implementation` → `compileOnly(libs.kotlin.compiler.embeddable)` 전환 (commit c039ef8).
 - [x] Task 8b.2 — `HarnessValidationPlugin.apply`에 두 Configuration (`harnessKotlinCompilerDeps` + `harnessKotlinCompilerResolvable`) 및 task에 `kotlinCompiler.from(resolvable)` 주입 (commit c039ef8).
@@ -638,7 +638,7 @@ Rule class를 모아 관리할 전용 하위 네임스페이스를 둠. Python/T
 
 ### [ ] Phase 8: Plan completion
 
-- [ ] Task 8.1 — 본 plan을 `docs/exec-plans/completed/`로 이동
+- [ ] Task 8.1 — 본 plan을 `plugins/harness/docs/exec-plans/completed/`로 이동
 
 ## Validation
 

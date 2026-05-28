@@ -10,6 +10,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -54,9 +55,11 @@ public enum EmptyDirectoryPlaceholdersRule implements HarnessCheckRule {
         if (categoryNode == null || categoryNode.get("parameters") == null || categoryNode.get("parameters").get("directories") == null) {
             return List.of();
         }
-        return HarnessCheckHelper.extractPaths(categoryNode.get("parameters").get("directories")).stream()
-                .flatMap(dir -> createGitkeepIfNeeded(root, dir).stream())
-                .toList();
+        final List<Path> created = new ArrayList<>();
+        for (final String dir : HarnessCheckHelper.extractPaths(categoryNode.get("parameters").get("directories"))) {
+            created.addAll(createGitkeepIfNeeded(root, dir));
+        }
+        return created;
     }
 
     private List<Finding> validateKeepFile(Path root, String dir, String severity) {

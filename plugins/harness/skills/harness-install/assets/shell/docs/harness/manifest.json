@@ -162,6 +162,30 @@
       "uncheckedTaskPattern": "^\\s*-\\s*\\[ \\]\\s"
     }
   },
+  "symlinkSafety": {
+    "description": "All scanned files and directories MUST NOT be symbolic links, except symlinks within parameters.allowedSymlinkPairs (root contract symlinks).",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "fileNotAllowed": "symlink file is not allowed: {path}",
+      "directoryNotAllowed": "symlink directory is not allowed: {path}",
+      "scanRootNotAllowed": "symlink scan root is not allowed: {path}",
+      "scanEntryNotAllowed": "symlink scan entry is not allowed: {path}",
+      "pathNotAllowed": "symlink path is not allowed: {path}"
+    },
+    "parameters": {
+      "allowedSymlinkPairs": [
+        [
+          "AGENTS.md",
+          "CLAUDE.md"
+        ],
+        [
+          ".agents",
+          ".claude"
+        ]
+      ]
+    }
+  },
   "shellcheck": {
     "description": "Every shell script file under the current directory (excluding .git) MUST pass shellcheck validation with no violations.",
     "enabled": true,

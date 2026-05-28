@@ -39,7 +39,7 @@ public enum EnvShebangUsageRule implements HarnessCheckRule {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
-        final String expectedPrefix = catNode.get("parameters").get("expectedPrefix").asText();
+        final String expectedPrefix = catNode.get("parameters").get("expectedPrefix").asString();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("directories")).stream()
                 .flatMap(dir -> {
@@ -74,7 +74,7 @@ public enum EnvShebangUsageRule implements HarnessCheckRule {
         if (catNode == null || catNode.get("parameters") == null || catNode.get("parameters").get("directories") == null) {
             return List.of();
         }
-        final String expectedPrefix = catNode.get("parameters").get("expectedPrefix").asText();
+        final String expectedPrefix = catNode.get("parameters").get("expectedPrefix").asString();
         final List<Path> formatted = new ArrayList<>();
         for (final String dir : HarnessCheckHelper.extractPaths(catNode.get("parameters").get("directories"))) {
             final Path dirPath = root.resolve(dir);

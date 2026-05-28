@@ -1,7 +1,7 @@
 ---
 name: spring-rest-docs
 description: >-
-  Generate Spring REST API documentation from MockMvc or WebTestClient tests and publish snippets via Asciidoctor.
+  Generate Spring REST API documentation from MockMvc or WebTestClient tests and publish snippets via Asciidoctor. Use when writing `MockMvc` or `WebTestClient` test cases that produce documentation snippets, configuring snippet template customization, or assembling published API references with Asciidoctor.
 metadata:
   title: "Spring REST Docs"
   official-project-url: "https://spring.io/projects/spring-restdocs"
@@ -10,8 +10,6 @@ metadata:
     - "https://docs.spring.io/spring-restdocs/tutorial/getting-started/index.html"
   version: "4.0.0"
 ---
-
-Use this skill when generating REST API documentation from Spring tests with MockMvc or WebTestClient snippets, and publishing those snippets through Asciidoctor.
 
 The latest released Spring REST Docs line is 4.0.0. On this line the ordinary supported documentation surfaces are MockMvc and WebTestClient, so older REST Assured guidance must stay out of the common path.
 

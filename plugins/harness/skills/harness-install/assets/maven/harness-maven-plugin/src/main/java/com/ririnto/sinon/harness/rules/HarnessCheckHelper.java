@@ -35,8 +35,8 @@ public class HarnessCheckHelper {
     public static String getSeverity(JsonNode manifest, String category) {
         final JsonNode catNode = manifest.get(category);
         return catNode != null && catNode.has("severity")
-                ? (catNode.get("severity").asText().equals("WARN") || catNode.get("severity").asText().equals("INFO")
-                        ? catNode.get("severity").asText()
+                ? (catNode.get("severity").asString().equals("WARN") || catNode.get("severity").asString().equals("INFO")
+                        ? catNode.get("severity").asString()
                         : "ERROR")
                 : "ERROR";
     }
@@ -144,7 +144,7 @@ public class HarnessCheckHelper {
         return node == null || !node.isArray()
                 ? Collections.emptyList()
                 : StreamSupport.stream(node.spliterator(), false)
-                        .map(JsonNode::asText)
+                        .map(JsonNode::asString)
                         .toList();
     }
 
@@ -192,13 +192,13 @@ public class HarnessCheckHelper {
             return Collections.emptyList();
         }
         final Set<String> extensions = StreamSupport.stream(extsNode.spliterator(), false)
-                .map(JsonNode::asText)
+                .map(JsonNode::asString)
                 .collect(Collectors.toSet());
         final List<String> includes = extractPaths(params.get("includePaths"));
         final List<String> excludes = extractPaths(params.get("excludePaths"));
         final FileSystem fs = FileSystems.getDefault();
         return StreamSupport.stream(rootsNode.spliterator(), false)
-                .flatMap(rootNode -> walkRootSafely(fs, projectRoot, rootNode.asText(), extensions, includes, excludes))
+                .flatMap(rootNode -> walkRootSafely(fs, projectRoot, rootNode.asString(), extensions, includes, excludes))
                 .distinct()
                 .sorted()
                 .toList();
