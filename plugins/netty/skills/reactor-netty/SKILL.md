@@ -18,6 +18,7 @@ Build one Reactor Netty application path end to end: pick the transport, configu
 ## Goal
 
 Keep the common path on Reactor Netty builders and reactive flow: `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, and `UdpClient`.
+
 - Treat `.handle((inbound, outbound) -> ...)` and HTTP route handlers as the main composition points.
 - Do not block inside reactive handlers. Use blocking only at process boundaries such as `bindNow()`, `connectNow()`, terminal response retrieval in top-level sample code, or `onDispose().block()`.
 - Keep low-level Netty details out of the common path. If the task needs `ChannelPipeline`, `ByteBuf.release()`, `ChannelFuture`, or custom codecs, use the lower-level Netty API model rather than forcing the builder surface.

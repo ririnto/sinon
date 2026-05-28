@@ -63,17 +63,17 @@ public enum ImportOverFqnRule implements AstRule {
             return Stream.concat(
                             Stream.concat(
                                     cu.findAll(FieldAccessExpr.class).stream()
-                                            .map(expr -> candidate(expressionParts(expr), expr.getBegin().map(p -> p.line).orElse(-1))),
+                                            .map(expr -> candidate(expressionParts(expr), expr.getBegin().map(p -> p.line).orElse(1), expr.getBegin().map(p -> p.column).orElse(1))),
                                     cu.findAll(MethodReferenceExpr.class).stream()
-                                            .map(expr -> candidate(expressionParts(expr.getScope()), expr.getBegin().map(p -> p.line).orElse(-1)))),
+                                            .map(expr -> candidate(expressionParts(expr.getScope()), expr.getBegin().map(p -> p.line).orElse(1), expr.getBegin().map(p -> p.column).orElse(1)))),
                             cu.findAll(ClassOrInterfaceType.class).stream()
-                                    .map(type -> candidate(typeParts(type), type.getBegin().map(p -> p.line).orElse(-1))))
+                                    .map(type -> candidate(typeParts(type), type.getBegin().map(p -> p.line).orElse(1), type.getBegin().map(p -> p.column).orElse(1))))
                     .flatMap(optional -> optional.stream())
                     .filter(candidate -> isPackageQualifiedName(candidate.nameParts()))
                     .filter(candidate -> !importedSimpleNames.contains(candidate.simpleName()))
                     .filter(candidate -> allowedFqnPatterns(manifest).stream().noneMatch(pattern -> pattern.matcher(candidate.qualifiedName()).matches()))
                     .sorted(Comparator.comparingInt(FqnCandidate::line).thenComparing(FqnCandidate::qualifiedName))
-                    .map(candidate -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + candidate.line() + ": fully qualified name `" + candidate.qualifiedName() + "` used inline; add an import and use the simple name"))
+                    .map(candidate -> new Finding(severity, CATEGORY, "fully qualified name `" + candidate.qualifiedName() + "` used inline; add an import and use the simple name", root.relativize(file).toString(), candidate.line(), candidate.column(), null, null, null))
                     .toList();
         } catch (IOException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
@@ -92,8 +92,8 @@ public enum ImportOverFqnRule implements AstRule {
         return !value.isEmpty() && Character.isUpperCase(value.charAt(0));
     }
 
-    private static Optional<FqnCandidate> candidate(List<String> nameParts, int line) {
-        return nameParts.isEmpty() ? Optional.empty() : Optional.of(new FqnCandidate(nameParts, line));
+    private static Optional<FqnCandidate> candidate(List<String> nameParts, int line, int column) {
+        return nameParts.isEmpty() ? Optional.empty() : Optional.of(new FqnCandidate(nameParts, line, column));
     }
 
     private static List<String> expressionParts(Expression expression) {
@@ -137,7 +137,7 @@ public enum ImportOverFqnRule implements AstRule {
                 .toList();
     }
 
-    private record FqnCandidate(List<String> nameParts, int line) {
+    private record FqnCandidate(List<String> nameParts, int line, int column) {
         private String qualifiedName() {
             return String.join(".", nameParts);
         }
