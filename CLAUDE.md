@@ -224,115 +224,63 @@ When modifying source files, agents and tooling SHOULD use a language-appropriat
 
 Reviewers MUST verify: skill self-sufficiency, coherent-unit sizing, progressive disclosure, blocker-based (not topic-label) references, example and path consistency across workflows, and strict separation of `SKILL.md` common-case content from `references/` additive depth. All identified issues MUST be tracked and resolved, including minor ones. Reviewers MUST NOT dismiss issues as too small to fix.
 
-# Repository Harness Contract
+## Sinon Plugin Marketplace Contract
 
-This repository uses a versioned harness so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution. The canonical pattern is `CLAUDE.md` as the primary contract, with `AGENTS.md` as a symlink to `CLAUDE.md`, so both filenames resolve to this single document, regardless of which agent runtime is running.
+This repository is the Sinon Claude Code plugin marketplace source tree. It is NOT a target repository with an installed harness, and it MUST NOT require target-owned harness files at the repository root.
 
-## Entry Point
+Harness assets such as `ARCHITECTURE.md`, `WORKFLOW.md`, `docs/harness/`, `docs/generated/`, `docs/product-specs/`, `docs/references/`, `docs/DESIGN.md`, `docs/FRONTEND.md`, `docs/PLANS.md`, `docs/PRODUCT_SENSE.md`, `docs/QUALITY_SCORE.md`, `docs/RELIABILITY.md`, and `docs/SECURITY.md` belong to installed target repositories when the `plugins/harness` plugin creates them. They MUST NOT be required at the Sinon repository root.
 
-Any coding agent runtime that loads `AGENTS.md` or `CLAUDE.md` MUST treat this document as its primary contract. Before making changes, an agent MUST read:
+### Entry Point
+
+Any coding agent runtime that loads `AGENTS.md` or `CLAUDE.md` MUST treat this document as the primary repository contract. Before making changes, an agent MUST read:
 
 1. `CLAUDE.md` (this document; also resolvable as `AGENTS.md`)
-2. `ARCHITECTURE.md`
-3. The relevant file under `docs/**` for the task domain
+2. `README.md` for the marketplace overview
+3. The relevant plugin `README.md` and component files under `plugins/<plugin>/`
 
-Validation MUST use the stack-specific command documented in `docs/harness/README.md`.
+### Invariants
 
-`docs/generated/` is for generated repository artifacts. It MAY be empty and retained by `.gitkeep` until generated outputs exist; fake placeholder files MUST NOT be added.
-
-Harness changes MAY be made during development when the current harness no longer matches project reality. Such changes MUST be committed as versioned files and validated before merge.
-
-## Invariants
-
-- The repository MUST keep agent instructions, skills, templates, documentation structure, and validation adapters in versioned files.
-- `CLAUDE.md` MUST be the primary repository harness contract for coding agents.
+- `CLAUDE.md` MUST be the primary repository rules document.
 - `AGENTS.md` MUST resolve to the same document as `CLAUDE.md`, via a symlink.
-- `.agents/` MUST be a symlink to `.claude/`, mirroring the `CLAUDE.md` → `AGENTS.md` pattern, so that runtimes looking up either directory resolve to the same content.
-- `ARCHITECTURE.md` MUST describe system boundaries, major components, data flow, and validation surfaces.
-- `.claude/agents/` MUST contain specialized project agents with `name` and `description` frontmatter.
-- `.claude/skills/*/SKILL.md` MUST contain focused procedures with `description` frontmatter.
-- `docs/harness/templates/` MUST contain structured templates for agents, skills, workflows, CI integration, and repository documentation.
-- `docs/harness/git-hooks/pre-commit` and `docs/harness/git-hooks/pre-push` MUST remain executable and use `/usr/bin/env sh`.
-- Empty required directories MUST be kept in version control with `.gitkeep` until they contain project files.
-- `docs/generated/` MUST contain actual generated repository artifacts when they exist; fake placeholder files MUST NOT be added.
-- Validation SHOULD run through the repository's native build/runtime ecosystem.
-- `docs/harness/git-hooks/pre-commit` MUST follow the stack-specific intermediate gate: Gradle runs `harnessCheck`, and non-Gradle stacks run lightweight harness-rule compliance.
-- `docs/harness/git-hooks/pre-push` SHOULD run the same final check command used by CI; for Gradle this is `check`.
-- CI SHOULD run the same final check command used by generated pre-push.
-- Active execution plans MUST live under `docs/exec-plans/active/` with filenames of the form `yyyy-MM-dd-<slug>.md`. When all tasks are checked, the file MUST move to `docs/exec-plans/completed/` without renaming. Plans in `docs/exec-plans/completed/` MUST NOT contain any unchecked `- [ ]` task lines.
+- `.agents/` MUST be a symlink to `.claude/`, so runtimes looking up either directory resolve to the same local authoring surfaces.
+- `.claude/skills/`, `.claude/agents/`, and `.claude/commands/` MUST resolve to `plugins/agent-capability-kit/{skills,agents,commands}/`.
+- `.claude-plugin/marketplace.json` MUST be the root Claude Code marketplace catalog.
+- Plugin packages MUST live under `plugins/`.
+- Plugin-specific manifests, README files, skills, agents, commands, hooks, MCP servers, LSP servers, settings, scripts, templates, and packaged target assets MUST stay inside the owning plugin root.
+- Target-repository harness assets MUST stay packaged under `plugins/harness/skills/harness-install/assets/`; they MUST NOT be mirrored into the Sinon repository root as active root requirements.
 
-## Required Repository Structure
+### Required Repository Structure
 
 ```text
 CLAUDE.md
 AGENTS.md            (symlink to CLAUDE.md)
-ARCHITECTURE.md
-WORKFLOW.md
-docs/
-├── design-docs/
-│   └── core-beliefs.md  (or real design docs)
-├── exec-plans/
-│   ├── active/
-│   │   └── .gitkeep  (or real active plans named yyyy-MM-dd-<slug>.md)
-│   ├── completed/
-│   │   └── .gitkeep  (or completed plans moved here)
-│   └── tech-debt-tracker.md
-├── generated/
-│   └── .gitkeep  (or real generated artifacts)
-├── harness/
-│   ├── README.md
-│   ├── manifest.json
-│   ├── git-hooks/
-│   │   ├── pre-commit
-│   │   └── pre-push
-│   └── templates/
-├── product-specs/
-│   └── optional product specs such as new-user-onboarding.md
-├── references/
-│   └── optional replaceable reference seeds
-├── DESIGN.md
-├── FRONTEND.md
-├── PLANS.md
-├── PRODUCT_SENSE.md
-├── QUALITY_SCORE.md
-├── RELIABILITY.md
-└── SECURITY.md
+README.md
+LICENSE
+.claude-plugin/
+`-- marketplace.json
+.claude/
+|-- agents/         (symlink to plugins/agent-capability-kit/agents/)
+|-- commands/       (symlink to plugins/agent-capability-kit/commands/)
+`-- skills/         (symlink to plugins/agent-capability-kit/skills/)
+.agents             (symlink to .claude/)
+plugins/
+`-- <plugin>/
+    |-- README.md
+    |-- .claude-plugin/plugin.json
+    `-- skills/, agents/, commands/, scripts/, assets/, or runtime files as needed
 ```
 
-`docs/generated/` is reserved for artifacts produced by commands, schemas, build tools, migrations, reports, or other deterministic generation. Keep `.gitkeep` only while the directory has no real generated artifacts; do not add fake placeholder files. Actual generated items SHOULD document their source command, input files, freshness, and regeneration trigger.
+### Operating Model
 
-## Optional Seed Files
+Humans define marketplace intent, plugin scope, review criteria, and release readiness. Agents perform bounded implementation work inside plugin roots and validate the affected plugin surface.
 
-The harness may install replaceable seed files under `docs/product-specs/` and `docs/references/`. These files are examples of where project-owned context can live; replace, rename, or remove them when they do not match the target repository.
+Root-level documentation MUST describe repository-wide marketplace structure and rules, not fast-changing plugin internals or target-repository harness assets. Plugin-specific details MUST live in the owning plugin `README.md` or component files.
 
-## Operating Model
+### Required Validation
 
-Humans define intent, constraints, review criteria, and acceptance gates. Agents perform bounded implementation work and use validators as feedback loops.
+Before merging changes, run the narrowest relevant validation for the changed surface:
 
-Agent work MUST start by reading `CLAUDE.md`, `ARCHITECTURE.md`, and the relevant `docs/**` file for the task domain.
-
-The harness is sufficient as the development operating surface when the project-specific context is present or explicitly created during the task. The scaffold MUST NOT be treated as a substitute for missing product requirements, source-of-truth schemas, tests, implementation code, runtime configuration, secrets, or domain references.
-
-For an underspecified repository, agents MUST first create or update the relevant product spec, design document, architecture note, and active execution plan before implementation work.
-
-## Harness Evolution
-
-The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance phases.
-
-Harness changes MUST be versioned, reviewable, and validated. When repeated failures reveal a better policy, template, agent role, skill procedure, validation rule, generated-artifact inventory, or documentation structure, update the harness rather than relying on chat-only instructions.
-
-The current committed harness is the active contract. Do not treat the original plugin defaults as permanent.
-
-## Required Validation
-
-Run the stack-specific harness validation command before merging changes that alter:
-
-- `CLAUDE.md`
-- `AGENTS.md`
-- `ARCHITECTURE.md`
-- `docs/**`
-- `.claude/agents/`
-- `.claude/skills/`
-- `docs/harness/`
-- `.git/hooks/` installation instructions
-- CI harness jobs
+- Marketplace changes: inspect `.claude-plugin/marketplace.json` and verify every listed plugin source exists.
+- Plugin packaging changes: validate the affected plugin root against the manifest and filesystem rules in this document.
+- Agent Skill changes: review the changed `SKILL.md` against the Authoring Agent Skills contract above.
+- Harness plugin implementation changes: run `sh plugins/harness/scripts/plugin-self-check.sh` when the change touches `plugins/harness/` runtime, installer, validator, or packaged assets.
