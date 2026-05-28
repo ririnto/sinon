@@ -568,7 +568,7 @@
                   "type": "string"
                 }
               },
-              "description": "Bidirectional root-level symlink pairs allowed by the harness contract."
+              "description": "Bidirectional root-level AGENTS.md / CLAUDE.md symlink pair allowed by the shell harness contract."
             }
           }
         }
