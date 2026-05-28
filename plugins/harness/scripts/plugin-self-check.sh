@@ -913,6 +913,111 @@ printf "%s\n" "fixture hook"
     fixture_remove_temp_dir "$temp_dir"
 }
 
+# Smoke-check the shell stack runtime with command parity fixtures.
+#
+# @exit Exits with status 1 when shell runtime command parity fails.
+smoke_check_shell_runtime() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" shell
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"shell-smoke-fixture","filePresence":{"enabled":false,"parameters":{"paths":[]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":true,"severity":"ERROR","parameters":{"hooks":["docs/harness/git-hooks/pre-commit","docs/harness/git-hooks/pre-push"],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":true,"severity":"ERROR","parameters":{"hooks":["docs/harness/git-hooks/pre-commit","docs/harness/git-hooks/pre-push"]}},"hookCommand":{"enabled":true,"severity":"ERROR","parameters":{"prePushHook":"docs/harness/git-hooks/pre-push","preCommitHook":"docs/harness/git-hooks/pre-commit","allowedCommands":["sh docs/harness/shell/harness-check.sh"],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":true,"severity":"WARN","parameters":{"ciFiles":[".github/workflows/harness.yml",".gitlab-ci.yml"],"referenceHook":"docs/harness/git-hooks/pre-push"}},"symlinkSafety":{"enabled":true,"severity":"ERROR","messages":{"fileNotAllowed":"symlink file is not allowed: {path}","directoryNotAllowed":"symlink directory is not allowed: {path}","scanRootNotAllowed":"symlink scan root is not allowed: {path}","scanEntryNotAllowed":"symlink scan entry is not allowed: {path}","pathNotAllowed":"symlink path is not allowed: {path}"},"parameters":{"allowedSymlinkPairs":[["AGENTS.md","CLAUDE.md"],[".agents",".claude"]]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}
+JSONEOF
+    )"
+    fixture_write_file "$temp_dir" docs/harness/git-hooks/pre-commit '#!/usr/bin/env sh
+# Harness generated hook: pre-commit
+# Harness stage: compliance
+printf "%s\n" "compliance"
+'
+    fixture_write_file "$temp_dir" docs/harness/git-hooks/pre-push '#!/usr/bin/env sh
+# Harness generated hook: pre-push
+# Harness stage: full-validation
+# Harness validation command: sh docs/harness/shell/harness-check.sh
+sh docs/harness/shell/harness-check.sh
+'
+    chmod +x "$temp_dir/docs/harness/git-hooks/pre-commit" "$temp_dir/docs/harness/git-hooks/pre-push"
+    fixture_write_file "$temp_dir" .github/workflows/harness.yml 'run: sh docs/harness/shell/harness-check.sh
+'
+    fixture_write_file "$temp_dir" .gitlab-ci.yml 'script: sh docs/harness/shell/harness-check.sh
+'
+    mkdir -p "$temp_dir/docs/harness/shell"
+    cp "$temp_dir/harness-check.sh" "$temp_dir/docs/harness/shell/harness-check.sh"
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        :
+    else
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" 'Harness validation passed' 'shell runtime smoke valid parity' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_write_file "$temp_dir" docs/harness/git-hooks/pre-push '#!/usr/bin/env sh
+# Harness generated hook: pre-push
+# Harness stage: full-validation
+# Harness validation command: sh wrong.sh
+sh wrong.sh
+'
+    chmod +x "$temp_dir/docs/harness/git-hooks/pre-push"
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        printf '%s\n' '[smoke_check_shell_runtime] expected unsupported shell command to fail' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'declares unsupported validation command: sh wrong.sh' 'shell runtime smoke unsupported command' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_write_file "$temp_dir" docs/harness/git-hooks/pre-push '#!/usr/bin/env sh
+# Harness generated hook: pre-push
+# Harness stage: full-validation
+# Harness validation command: sh docs/harness/shell/harness-check.sh
+sh docs/harness/shell/harness-check.sh
+'
+    chmod +x "$temp_dir/docs/harness/git-hooks/pre-push"
+    fixture_write_file "$temp_dir" .github/workflows/harness.yml 'run: sh unrelated.sh
+'
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        :
+    else
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" '[WARN] ciHookCommandParity' 'shell runtime smoke CI warning' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_write_manifest "$temp_dir" '{"name":"shell-optional-fixture","filePresence":{"enabled":false,"parameters":{"paths":[]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"symlinkSafety":{"enabled":false,"parameters":{"allowedSymlinkPairs":[]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}'
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        :
+    else
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_write_manifest "$temp_dir" '{"name":"shell-unsafe-fixture","filePresence":{"enabled":false,"parameters":{"paths":[]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":true,"severity":"ERROR","parameters":{"prePushHook":"../outside","preCommitHook":"docs/harness/git-hooks/pre-commit","allowedCommands":["sh docs/harness/shell/harness-check.sh"],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":"docs/harness/git-hooks/pre-push"}},"symlinkSafety":{"enabled":false,"parameters":{"allowedSymlinkPairs":[]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}'
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        printf '%s\n' '[smoke_check_shell_runtime] expected unsafe shell hook path to fail' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" '../outside is not a safe relative hook path' 'shell runtime smoke unsafe hook path' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    printf '%s\n' 'shell runtime: harness-check.sh OK'
+    fixture_remove_temp_dir "$temp_dir"
+}
+
 # Verify Bun formatter allowlists safe edits and remains idempotent.
 #
 #     Requires `bun` in PATH. Gracefully skips with a warning when bun is
@@ -1596,10 +1701,14 @@ for path in \
     "$root/skills/harness-install/assets/uv/docs/harness/manifest.json" \
     "$root/skills/harness-install/assets/uv/.github/workflows/harness.yml" \
     "$root/skills/harness-install/assets/uv/.gitlab-ci.yml" \
+    "$root/skills/harness-install/assets/shell/.editorconfig" \
+    "$root/skills/harness-install/assets/shell/.shellcheckrc" \
     "$root/skills/harness-install/assets/shell/.github/workflows/harness.yml" \
     "$root/skills/harness-install/assets/shell/.gitlab-ci.yml" \
     "$root/skills/harness-install/assets/shell/docs/harness/manifest.json" \
+    "$root/skills/harness-install/assets/shell/runtime/README.md" \
     "$root/skills/harness-install/assets/shell/runtime/harness-check.sh" \
+    "$root/skills/harness-install/assets/shell/runtime/harness-format.sh" \
     "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/plugin/HarnessValidationPlugin.kt" \
     "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/ast/AstFinding.kt" \
     "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/rules/ast/TerminalBranchWhenRule.kt" \
@@ -1642,6 +1751,7 @@ require_executable "$root/skills/harness-install/scripts/install-harness.sh"
 require_executable "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-commit"
 require_executable "$root/skills/harness-install/assets/common/docs/harness/git-hooks/pre-push"
 require_executable "$root/skills/harness-install/assets/shell/runtime/harness-check.sh"
+require_executable "$root/skills/harness-install/assets/shell/runtime/harness-format.sh"
 
 require_absent "$root/hooks" 'top-level Claude hooks runtime surface must not be packaged'
 
@@ -1856,11 +1966,14 @@ require_text "$root/README.md" "Gradle \`pre-commit\` runs \`harnessCheck\`"
 require_text "$root/README.md" "Gradle \`pre-push\` runs \`check\`"
 require_text "$root/README.md" 'THIRD_PARTY_NOTICES.md'
 require_text "$root/README.md" 'skills/harness-install/assets/common/docs/harness/git-hooks/'
+require_text "$root/README.md" 'five-stack runtime smoke checks'
+require_text "$root/README.md" 'requires the selected stack mode'
 require_text "$root/README.md" 'v6 archive structure'
 require_markdown_heading "$root/README.md" 2 'Plugin-Owned Structural Agents'
 require_markdown_heading "$root/README.md" 2 'Packaged Scripts and Assets'
 require_markdown_heading "$root/README.md" 2 'Runtime Model'
 require_text "$root/skills/harness-install/SKILL.md" "Gradle pre-commit runs \`harnessCheck\`, Gradle pre-push runs \`check\`"
+require_text "$root/skills/harness-install/SKILL.md" "shell runtime installs \`harness-check.sh\` and \`harness-format.sh\`"
 require_markdown_heading "$root/skills/harness-install/SKILL.md" 2 'Ownership Boundary'
 require_markdown_heading "$root/skills/harness-install/SKILL.md" 2 'Invariants'
 require_text "$root/skills/harness-validate/SKILL.md" "generated \`docs/harness/git-hooks/pre-push\` command marker"
@@ -1870,6 +1983,7 @@ require_text "$root/skills/harness-validate/SKILL.md" 'Manifest drift'
 require_text "$root/skills/harness-validate/SKILL.md" 'Generated artifact metadata'
 require_text "$root/skills/harness-validate/SKILL.md" 'Unsupported validation command'
 require_text "$root/skills/harness-validate/SKILL.md" 'sh docs/harness/shell/harness-check.sh'
+require_text "$root/skills/harness-validate/SKILL.md" "harness-check.sh\` and \`harness-format.sh"
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'manifest drift'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'generated-artifact metadata'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'unsupported pre-push validation command'
@@ -1887,6 +2001,11 @@ require_text "$root/skills/harness-install/assets/shell/docs/harness/manifest.sc
 require_text "$root/skills/harness-install/assets/shell/docs/harness/manifest.schema.json" '"ciHookCommandParity"'
 require_text "$root/skills/harness-install/assets/shell/runtime/harness-check.sh" 'check_hook_command'
 require_text "$root/skills/harness-install/assets/shell/runtime/harness-check.sh" 'check_ci_hook_command_parity'
+require_text "$root/skills/harness-install/assets/shell/runtime/README.md" 'hookCommand'
+require_text "$root/skills/harness-install/assets/shell/runtime/README.md" 'ciHookCommandParity'
+require_text "$root/skills/harness-install/assets/shell/runtime/README.md" 'harness-format.sh'
+require_text "$root/skills/harness-install/assets/shell/.github/workflows/harness.yml" 'python3 shellcheck'
+require_text "$root/skills/harness-install/assets/shell/.gitlab-ci.yml" 'python3 shellcheck'
 reject_text 'harnessValidate' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"
 reject_text 'ai.harness:harness-maven-plugin:0.1.0:validate' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"
 reject_text 'docs/harness/uv/harness_validate.py' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"
@@ -2041,6 +2160,7 @@ fixture_assert_maven_silent_catch
 fixture_assert_maven_import_over_fqn
 smoke_check_uv_runtime
 smoke_check_bun_runtime
+smoke_check_shell_runtime
 smoke_check_gradle_runtime
 smoke_check_maven_runtime
 
