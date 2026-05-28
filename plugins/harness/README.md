@@ -166,7 +166,7 @@ AST/PSI validators use semantic tree traversal for code-structure rules rather t
 | Maven/Java | JavaParser inside the Maven plugin | Java class member ordering and Java code-style checks. Java enum constants are treated as language-mandated enum preamble items, not ordinary sortable members. Maven+Kotlin source validation is not currently enabled because the Maven adapter does not embed Kotlin PSI. |
 | uv/Python | LibCST for Python source checks | Python code-style checks for the selected uv slice. |
 | Bun/TypeScript | TypeScript compiler API | TypeScript code-style checks for the selected Bun slice. |
-| Shell | POSIX shell plus `python3` for manifest reads | Portable baseline checks only: files, directories, hooks, scaffold leaks, and completed-plan tasks. |
+| Shell | POSIX shell plus `python3` for manifest reads | Hook shebang and executable validation, hook command parity, CI command parity, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. |
 
 Gradle installer wiring prepends a `buildSrc/` directory. Existing `buildSrc/` directories in the target repo MUST be reviewed before install; the harness expects a fresh `buildSrc/` and will conflict otherwise.
 
