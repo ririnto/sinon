@@ -1869,6 +1869,7 @@ require_markdown_heading "$root/skills/harness-validate/SKILL.md" 2 'Invariants'
 require_text "$root/skills/harness-validate/SKILL.md" 'Manifest drift'
 require_text "$root/skills/harness-validate/SKILL.md" 'Generated artifact metadata'
 require_text "$root/skills/harness-validate/SKILL.md" 'Unsupported validation command'
+require_text "$root/skills/harness-validate/SKILL.md" 'sh docs/harness/shell/harness-check.sh'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'manifest drift'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'generated-artifact metadata'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'unsupported pre-push validation command'
@@ -1878,6 +1879,14 @@ require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'uv run --script docs/harness/uv/harness_check.py'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'bun --install=fallback run docs/harness/bun/harness-check.ts'
 require_text "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'sh docs/harness/shell/harness-check.sh'
+require_text "$root/skills/harness-install/assets/common/docs/harness/README.md" 'sh docs/harness/shell/harness-check.sh'
+require_text "$root/skills/harness-install/assets/shell/docs/harness/manifest.json" '"hookCommand"'
+require_text "$root/skills/harness-install/assets/shell/docs/harness/manifest.json" '"ciHookCommandParity"'
+require_text "$root/skills/harness-install/assets/shell/docs/harness/manifest.json" 'sh docs/harness/shell/harness-check.sh'
+require_text "$root/skills/harness-install/assets/shell/docs/harness/manifest.schema.json" '"hookCommand"'
+require_text "$root/skills/harness-install/assets/shell/docs/harness/manifest.schema.json" '"ciHookCommandParity"'
+require_text "$root/skills/harness-install/assets/shell/runtime/harness-check.sh" 'check_hook_command'
+require_text "$root/skills/harness-install/assets/shell/runtime/harness-check.sh" 'check_ci_hook_command_parity'
 reject_text 'harnessValidate' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"
 reject_text 'ai.harness:harness-maven-plugin:0.1.0:validate' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"
 reject_text 'docs/harness/uv/harness_validate.py' "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md"

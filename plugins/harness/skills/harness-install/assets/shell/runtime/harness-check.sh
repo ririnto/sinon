@@ -263,6 +263,90 @@ check_hook_executable() {
     done
 }
 
+# Read the Harness validation command marker from a generated hook.
+#
+# @param hook Generated hook path.
+# @return Writes the declared validation command, or an empty string.
+declared_hook_command() {
+    hook=$1
+    if [ ! -f "$hook" ]; then
+        return 0
+    fi
+    sed -n 's/^# Harness validation command: //p' "$hook" | sed -n '1p'
+}
+
+# Validate that generated hooks declare and run supported commands.
+#
+# @return Emits findings for unsupported or missing hook commands.
+check_hook_command() {
+    category=hookCommand
+    exists=$(manifest_string "1 if isinstance(M.get('$category'), dict) else 0")
+    if [ "$exists" -ne 1 ]; then
+        return 0
+    fi
+    enabled=$(enabled_of "$category")
+    if [ "$enabled" -ne 1 ]; then
+        return 0
+    fi
+    sev=$(severity_of "$category")
+    pre_push=$(manifest_string "M['$category']['parameters']['prePushHook']")
+    pre_commit=$(manifest_string "M['$category']['parameters']['preCommitHook']")
+    declared=$(declared_hook_command "$pre_push")
+    if [ -f "$pre_push" ] && [ -z "$declared" ]; then
+        emit "$sev" "$category" "$pre_push must declare Harness validation command"
+    elif [ -n "$declared" ]; then
+        allowed=0
+        manifest_query "M['$category']['parameters']['allowedCommands']" | while IFS= read -r command; do
+            if [ "$command" = "$declared" ]; then
+                printf '%s\n' allowed >"$findings_file.allowed"
+            fi
+        done
+        if [ -f "$findings_file.allowed" ]; then
+            rm -f "$findings_file.allowed"
+            allowed=1
+        fi
+        if [ "$allowed" -ne 1 ]; then
+            emit "$sev" "$category" "$pre_push declares unsupported validation command: $declared"
+        fi
+        if ! grep -Fxq "$declared" "$pre_push"; then
+            emit "$sev" "$category" "$pre_push must run the declared validation command"
+        fi
+    fi
+    if [ -f "$pre_commit" ]; then
+        manifest_query "M['$category']['parameters']['allowedCommands']" | while IFS= read -r command; do
+            if [ -n "$command" ] && grep -Fxq "$command" "$pre_commit"; then
+                emit "$sev" "$category" "pre-commit hook must not run full stack validation commands"
+            fi
+        done
+    fi
+}
+
+# Validate that CI files run the command declared by generated pre-push.
+#
+# @return Emits findings for CI command drift.
+check_ci_hook_command_parity() {
+    category=ciHookCommandParity
+    exists=$(manifest_string "1 if isinstance(M.get('$category'), dict) else 0")
+    if [ "$exists" -ne 1 ]; then
+        return 0
+    fi
+    enabled=$(enabled_of "$category")
+    if [ "$enabled" -ne 1 ]; then
+        return 0
+    fi
+    sev=$(severity_of "$category")
+    reference_hook=$(manifest_string "M['$category']['parameters']['referenceHook']")
+    command=$(declared_hook_command "$reference_hook")
+    if [ -z "$command" ]; then
+        return 0
+    fi
+    manifest_query "M['$category']['parameters']['ciFiles']" | while IFS= read -r ci_file; do
+        if [ -f "$ci_file" ] && ! grep -Fq "$command" "$ci_file"; then
+            emit "$sev" "$category" "$ci_file: CI command mismatch - expected $command"
+        fi
+    done
+}
+
 # Validate that protected harness paths are not symlinks.
 #
 # @return Emits findings for symlinked scan roots and scan entries.
@@ -435,6 +519,8 @@ check_directory_presence
 check_empty_directory_placeholders
 check_hook_shebang
 check_hook_executable
+check_hook_command
+check_ci_hook_command_parity
 check_symlink_safety
 check_scaffold_leaks
 check_unchecked_tasks

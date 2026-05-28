@@ -149,6 +149,40 @@
       ]
     }
   },
+  "hookCommand": {
+    "description": "parameters.prePushHook MUST declare and run a command listed in parameters.allowedCommands. When parameters.allowedPreCommitCommands is non-empty, parameters.preCommitHook MUST also declare and run one of those commands; otherwise pre-commit MUST NOT run any full-stack validation command.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "missingDeclaration": "{hook} must declare Harness validation command",
+      "unsupportedCommand": "{hook} declares unsupported validation command: {command}",
+      "commandNotRun": "{hook} must run the declared validation command",
+      "preCommitMustNotRunFullStack": "pre-commit hook must not run full stack validation commands"
+    },
+    "parameters": {
+      "prePushHook": "docs/harness/git-hooks/pre-push",
+      "preCommitHook": "docs/harness/git-hooks/pre-commit",
+      "allowedCommands": [
+        "sh docs/harness/shell/harness-check.sh"
+      ],
+      "allowedPreCommitCommands": []
+    }
+  },
+  "ciHookCommandParity": {
+    "description": "Each existing file in parameters.ciFiles MUST contain the validation command declared by parameters.referenceHook. Absent files are skipped.",
+    "enabled": true,
+    "severity": "WARN",
+    "messages": {
+      "default": "{ciFile}: CI command mismatch - expected {command}"
+    },
+    "parameters": {
+      "ciFiles": [
+        ".github/workflows/harness.yml",
+        ".gitlab-ci.yml"
+      ],
+      "referenceHook": "docs/harness/git-hooks/pre-push"
+    }
+  },
   "uncheckedTasks": {
     "description": "Every file matching parameters.filenamePattern under parameters.directory MUST NOT contain any line matching parameters.uncheckedTaskPattern. Enforces that plans moved into directory have all tasks marked done.",
     "enabled": true,
