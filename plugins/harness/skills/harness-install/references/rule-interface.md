@@ -350,7 +350,7 @@ Harness validation rules are indexed by manifest category keys (camelCase). This
 | Manifest Key | Gradle (Kotlin) | uv (Python) | Bun (TypeScript) | Maven (Java) | Group |
 | --- | --- | --- | --- | --- | --- |
 | agentFrontmatter | text/AgentFrontmatterRule.kt | runtime/rules/agent_frontmatter.py | rules/agent-frontmatter.ts | text/AgentFrontmatterRule.java | text |
-| classMemberOrdering | ast/ClassMemberOrderingRule.kt | | | ast/ClassMemberOrderingRule.java | ast |
+| classMemberOrdering | | | | ast/ClassMemberOrderingRule.java | ast |
 | ciHookCommandParity | text/CiHookCommandParityRule.kt | runtime/rules/ci_hook_command_parity.py | rules/ci-hook-command-parity.ts | text/CiHookCommandParityRule.java | text |
 | companionObjectPosition | ast/CompanionObjectPositionRule.kt | | | | ast |
 | directoryPresence | fs/DirectoryPresenceRule.kt | runtime/rules/directory_presence.py | rules/directory-presence.ts | fs/DirectoryPresenceRule.java | fs |
