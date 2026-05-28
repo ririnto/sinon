@@ -17,9 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Maven goal that auto-formats installed Claude repository harness assets.
@@ -37,17 +35,23 @@ public final class HarnessFormatMojo extends AbstractMojo {
         try {
             final Path root = currentRoot();
             final RuleContext ctx = new DefaultRuleContext(root, new DefaultManifest(loadManifest(root)));
-            final List<String> modified = buildModifiedPaths(root, ctx);
+            final List<MojoExecutionException> formatFailures = new java.util.ArrayList<>();
+            final List<String> modified = buildModifiedPaths(root, ctx, formatFailures);
             if (!modified.isEmpty()) {
                 getLog().info("formatted: " + modified.size());
                 modified.forEach(path -> getLog().info("  " + path));
             } else {
                 getLog().info("no files formatted");
             }
+
             final List<Finding> remainingFindings = buildRemainingFindings(ctx);
             getLog().info("remaining findings after format:");
             FindingReporter.renderFindings(root, remainingFindings).forEach(getLog()::info);
-            if (remainingFindings.stream().anyMatch(finding -> "ERROR".equals(finding.severity()))) {
+
+            if (!formatFailures.isEmpty()) {
+                formatFailures.forEach(failure -> getLog().warn(failure.getMessage()));
+            }
+            if (remainingFindings.stream().anyMatch(finding -> "ERROR".equals(finding.severity())) || !formatFailures.isEmpty()) {
                 throw new MojoExecutionException("Harness validation failed after format");
             }
         } catch (IOException error) {
@@ -55,19 +59,19 @@ public final class HarnessFormatMojo extends AbstractMojo {
         }
     }
 
+
     /**
      * Collects validation findings remaining after formatting.
      */
     private List<Finding> buildRemainingFindings(RuleContext ctx) throws MojoExecutionException {
-        return Arrays.stream(HarnessCheck.values())
-                .filter(check -> check.applies(ctx))
-                .flatMap(check -> {
-                    try {
-                        return check.validate(ctx).stream();
-                    } catch (MojoExecutionException e) {
-                        return Stream.of(Finding.of("ERROR", check.category(), "validation failed after format: " + e.getMessage()));
-                    }
-                })
+        final List<Finding> findings = new java.util.ArrayList<>();
+        for (final HarnessCheck check : HarnessCheck.values()) {
+            if (check.applies(ctx)) {
+                findings.addAll(check.validate(ctx));
+            }
+        }
+        return findings
+                .stream()
                 .distinct()
                 .toList();
     }
@@ -75,16 +79,18 @@ public final class HarnessFormatMojo extends AbstractMojo {
     /**
      * Collects formatted file paths from applicable checks, relativized and sorted.
      */
-    private List<String> buildModifiedPaths(Path root, RuleContext ctx) throws MojoExecutionException {
-        return Arrays.stream(HarnessCheck.values())
-                .filter(check -> check.applies(ctx))
-                .flatMap(check -> {
-                    try {
-                        return check.format(ctx).stream();
-                    } catch (MojoExecutionException e) {
-                        return Stream.<Path>empty();
-                    }
-                })
+    private List<String> buildModifiedPaths(Path root, RuleContext ctx, List<MojoExecutionException> failures) throws MojoExecutionException {
+        final List<Path> modified = new java.util.ArrayList<>();
+        for (final HarnessCheck check : HarnessCheck.values()) {
+            if (check.applies(ctx)) {
+                try {
+                    modified.addAll(check.format(ctx));
+                } catch (MojoExecutionException error) {
+                    failures.add(error);
+                }
+            }
+        }
+        return modified.stream()
                 .map(path -> root.relativize(path).toString())
                 .distinct()
                 .sorted()

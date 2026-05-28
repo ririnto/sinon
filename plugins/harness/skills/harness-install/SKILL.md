@@ -2,7 +2,7 @@
 name: harness-install
 description: >-
   Install target-owned repository harness assets from the plugin asset package: CLAUDE.md contract, AGENTS.md alias, ARCHITECTURE.md, docs structure, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use when setting up or refreshing a repository harness, adding target-owned Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
-argument-hint: '--mode gradle|maven|uv|bun|shell [--target DIR] [--hooks none|copy] [--force] [--no-ci]'
+argument-hint: '--mode gradle|maven|uv|bun|shell [--target DIR] [--hooks none|copy|build-tool] [--force] [--no-ci]'
 disable-model-invocation: true
 allowed-tools:
   - Bash(sh */skills/harness-install/scripts/install-harness.sh *)
@@ -36,7 +36,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 4. Identify the active CI host. Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither, so unused CI files can be removed as a post-install step.
 5. Detect whether the target is a linked Git worktree. `.git` as a file means the user is inside a `git worktree add` working copy; the installer resolves the worktree hooks directory through the shared common dir.
 6. Read the target's `core.hooksPath` Git config with `git config --get core.hooksPath`. When it already resolves to `docs/harness/git-hooks`, prefer `--hooks none` so generated hook templates refresh in place; the installer refuses `--hooks copy` in that configuration.
-7. Decide hook behavior before running the installer: `--hooks none` skips active hook installation, and `--hooks copy` writes the generated `pre-commit` and `pre-push` files into the worktree hooks directory only when they are absent unless `--force` is used.
+7. Decide hook behavior before running the installer: `--hooks none` skips active hook installation, `--hooks copy` writes the generated `pre-commit` and `pre-push` files into the worktree hooks directory only when they are absent unless `--force` is used, and `--hooks build-tool` prints explicit build-tool activation commands so the user can run them manually. Build-tool mode is only available for Gradle and Maven.
 8. Use `--force` only when the user explicitly wants existing target harness files replaced.
 9. Keep plugin files separate from target files: edit this plugin only when improving the installer; edit target `.claude/**` files only after installation in the target repository.
 
@@ -77,6 +77,12 @@ Install or refresh target-owned repository harness files from this plugin. This 
 | Existing `core.hooksPath` points elsewhere | Use `--hooks none` and report that the target Git config bypasses the worktree hooks directory; `--hooks copy` will be rejected. |
 | Complex Gradle settings already exist | Review `settings.gradle(.kts)` after installer wiring; composite build or plugin-management blocks may need manual adjustment. |
 | Installed placeholders are still generic | Treat installation as incomplete readiness and tell the user which docs need target content. |
+| Installed placeholders are still generic | Treat installation as incomplete readiness and tell the user which docs need target content. |
+| Gradle target wants build-tool hook activation | Use `--hooks build-tool`; the installer prints `./gradlew -Pharness.gitHooks=true help` (or system `gradle`) so the user can run it, then lets `settings.gradle.kts` apply `org.danilopianini.gradle-pre-commit-git-hooks` 2.1.17 and create hooks. |
+| Maven target wants build-tool hook activation | Use `--hooks build-tool`; the installer prints `mvn -q -f harness-maven-plugin/pom.xml -Dharness.gitHooks=true generate-sources` for the user to run, which activates the `harness-git-hooks` profile to set `core.hooksPath` to `docs/harness/git-hooks` via `git-build-hook-maven-plugin` 3.6.0. |
+| uv/bun/shell target requests `--hooks build-tool` | Reject with an error; use `--hooks none` or `--hooks copy` instead. |
+| Existing `core.hooksPath` conflicts with build-tool | The installer rejects `--hooks build-tool` when `core.hooksPath` already points elsewhere to avoid stacking activation. |
+| Gradle linked worktree with build-tool hooks | The Gradle `gradle-pre-commit-git-hooks` plugin creates hooks relative to the repository root directory; in linked worktrees the plugin may place hooks in the wrong `.git` directory. Prefer `--hooks copy` or manual `core.hooksPath` for linked worktree Gradle projects. |
 
 ## Invariants
 
@@ -105,7 +111,7 @@ Report these fields:
 - `mode`: explicit stack mode (`--mode` flag).
 - `installer command`: the command that ran.
 - `files`: written, kept, and skipped file groups.
-- `hooks`: `none` or `copy`; the resolved worktree hooks directory used for copy mode; whether pre-commit and pre-push files were written, kept, refreshed, or force-replaced.
+- `hooks`: `none`, `copy`, or `build-tool`; the resolved worktree hooks directory used for copy mode; whether pre-commit and pre-push files were written, kept, refreshed, or force-replaced; build-tool should report the exact command(s) printed for manual activation.
 - `ci`: which CI files were rendered (`.github/workflows/harness.yml`, `.gitlab-ci.yml`, both, or none) and the active CI host detected from the target remote.
 - `worktree`: `primary` or `linked`, plus the active hooks directory when `--hooks copy` ran.
 - `validation`: command run and result.

@@ -69,4 +69,37 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>harness-git-hooks</id>
+      <activation>
+        <property>
+          <name>harness.gitHooks</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.rudikershaw.gitbuildhook</groupId>
+            <artifactId>git-build-hook-maven-plugin</artifactId>
+            <version>3.6.0</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>configure</goal>
+                </goals>
+                <phase>generate-sources</phase>
+                <configuration>
+                  <gitConfig>
+                    <core.hooksPath>docs/harness/git-hooks</core.hooksPath>
+                  </gitConfig>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

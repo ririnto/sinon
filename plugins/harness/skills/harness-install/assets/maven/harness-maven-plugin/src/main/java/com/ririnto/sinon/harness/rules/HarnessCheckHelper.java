@@ -1,7 +1,9 @@
 package com.ririnto.sinon.harness.rules;
 
+
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,13 +12,14 @@ import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import java.util.stream.IntStream;
-import java.util.stream.Collectors;
 
 /**
  * Helper class containing shared validation utilities.
@@ -183,6 +186,7 @@ public class HarnessCheckHelper {
      * @return list of source file paths
      * @throws IOException if walking fails
      */
+
     public static List<Path> stackSources(JsonNode manifest, String category, String stack, Path projectRoot) throws IOException {
         final JsonNode categoryNode = manifest.get(category);
         final JsonNode params = categoryNode == null ? null : categoryNode.get("parameters");
@@ -197,8 +201,17 @@ public class HarnessCheckHelper {
         final List<String> includes = extractPaths(params.get("includePaths"));
         final List<String> excludes = extractPaths(params.get("excludePaths"));
         final FileSystem fs = FileSystems.getDefault();
-        return StreamSupport.stream(rootsNode.spliterator(), false)
-                .flatMap(rootNode -> walkRootSafely(fs, projectRoot, rootNode.asString(), extensions, includes, excludes))
+        final List<Path> results = new ArrayList<>(extractPaths(rootsNode).size());
+        for (final String rootEntry : extractPaths(rootsNode)) {
+            try (final Stream<Path> pathStream = walkRootSafely(fs, projectRoot, rootEntry, extensions, includes, excludes)) {
+                pathStream.forEach(results::add);
+            } catch (java.io.UncheckedIOException e) {
+                throw new IOException("failed to walk source root: " + rootEntry, e.getCause());
+            } catch (IOException e) {
+                throw new IOException("failed to walk source root: " + rootEntry, e);
+            }
+        }
+        return results.stream()
                 .distinct()
                 .sorted()
                 .toList();
@@ -222,14 +235,19 @@ public class HarnessCheckHelper {
         }
         final List<PathMatcher> includeMatchers = includes.stream().map(p -> fs.getPathMatcher("glob:" + p)).toList();
         final List<PathMatcher> excludeMatchers = excludes.stream().map(p -> fs.getPathMatcher("glob:" + p)).toList();
+        final Path rootPath = base.resolve(rootEntry).normalize();
+        final Path baseReal = base.toRealPath();
+        if (!rootEntry.contains("*") && !isRootContainedDirectory(base, baseReal, rootPath)) {
+            return List.of();
+        }
         final Stream<Path> stream = rootEntry.contains("*")
-                ? Files.walk(base).filter(p -> fs.getPathMatcher("glob:" + rootEntry + "/**/*").matches(p))
-                : Files.walk(base.resolve(rootEntry));
+                ? Files.walk(base).filter(p -> fs.getPathMatcher("glob:" + rootEntry + "/**/*").matches(base.relativize(p)))
+                : Files.walk(rootPath);
         try (stream) {
             return stream
-                    .filter(p -> !Files.isSymbolicLink(p) && Files.isRegularFile(p, LinkOption.NOFOLLOW_LINKS))
+                    .filter(p -> isRootContainedRegularFile(base, baseReal, p))
                     .filter(p -> extensions.contains(extensionOf(p)))
-                    .filter(p -> !containsSegment(p, "target") && !containsSegment(p, "build"))
+                    .filter(p -> !containsSegment(base.relativize(p), "target") && !containsSegment(base.relativize(p), "build"))
                     .filter(p -> applyIncludeFilters(p, base, includeMatchers))
                     .filter(p -> applyExcludeFilters(p, base, excludeMatchers))
                     .map(p -> p.toAbsolutePath().normalize())
@@ -245,6 +263,44 @@ public class HarnessCheckHelper {
      */
     public static boolean isSafeRelativeRootEntry(String rootEntry) {
         return isSafeRelativeRoot(rootEntry);
+    }
+
+    /**
+     * Checks whether a path is a root-contained regular file without symlink components.
+     *
+     * @param root the project root
+     * @param rootReal the resolved project root
+     * @param path the candidate file
+     * @return true when the path is contained under root and is not reached through symlinks
+     */
+    public static boolean isRootContainedRegularFile(Path root, Path rootReal, Path path) {
+        try {
+            final Path realPath = path.toRealPath(LinkOption.NOFOLLOW_LINKS);
+            return realPath.startsWith(rootReal)
+                    && Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
+                    && !hasSymlinkSegment(root, path);
+        } catch (IOException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether a path is a root-contained directory without symlink components.
+     *
+     * @param root the project root
+     * @param rootReal the resolved project root
+     * @param path the candidate directory
+     * @return true when the path is contained under root and is not reached through symlinks
+     */
+    public static boolean isRootContainedDirectory(Path root, Path rootReal, Path path) {
+        try {
+            final Path realPath = path.toRealPath(LinkOption.NOFOLLOW_LINKS);
+            return realPath.startsWith(rootReal)
+                    && Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)
+                    && !hasSymlinkSegment(root, path);
+        } catch (IOException | IllegalArgumentException e) {
+            return false;
+        }
     }
 
     /**
@@ -269,6 +325,36 @@ public class HarnessCheckHelper {
     public static boolean containsSegment(Path p, String segment) {
         return IntStream.range(0, p.getNameCount())
                 .anyMatch(i -> p.getName(i).toString().equals(segment));
+    }
+
+    /**
+     * Checks whether a path contains a symlink at any segment below the root.
+     *
+     * @param root the project root
+     * @param path the candidate path
+     * @return true when any segment is a symlink or path cannot be relativized
+     */
+    private static boolean hasSymlinkSegment(Path root, Path path) {
+        try {
+            final Path relative = root.relativize(path);
+            Path current = root;
+            for (final Path segment : relative) {
+                final String segmentName = segment.toString();
+                if (".".equals(segmentName)) {
+                    continue;
+                }
+                if ("..".equals(segmentName)) {
+                    return true;
+                }
+                current = current.resolve(segment);
+                if (Files.isSymbolicLink(current)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (IllegalArgumentException e) {
+            return true;
+        }
     }
 
     /**
@@ -311,22 +397,19 @@ public class HarnessCheckHelper {
     }
 
     /**
-     * Walks a root entry returning an empty stream when an IO error occurs.
+     * Walks a root entry and propagates IO errors instead of swallowing them.
      *
      * @param fs the file system
      * @param base the base path
      * @param rootEntry the manifest root entry
-     * @param extensions allowed extensions
+     * @param extensions the allowed file extensions
      * @param includes include patterns
      * @param excludes exclude patterns
      * @return stream of matching file paths
+     * @throws IOException if directory walk fails
      */
-    private static Stream<Path> walkRootSafely(FileSystem fs, Path base, String rootEntry, Set<String> extensions, List<String> includes, List<String> excludes) {
-        try {
-            return walkRoot(fs, base, rootEntry, extensions, includes, excludes).stream();
-        } catch (IOException e) {
-            return Stream.empty();
-        }
+    private static Stream<Path> walkRootSafely(FileSystem fs, Path base, String rootEntry, Set<String> extensions, List<String> includes, List<String> excludes) throws IOException {
+        return walkRoot(fs, base, rootEntry, extensions, includes, excludes).stream();
     }
 
     /**

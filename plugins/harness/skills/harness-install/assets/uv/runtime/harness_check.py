@@ -185,7 +185,9 @@ def main() -> int:
         logger.error("Harness validation failed")
         return 1
     for key in manifest.keys():
-        if key not in set(check.category for check in HarnessCheck) and key not in frozenset(
+        if key not in set(
+            check.category for check in HarnessCheck
+        ) and key not in frozenset(
             {
                 "name",
                 "description",

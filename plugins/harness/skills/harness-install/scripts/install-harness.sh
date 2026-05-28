@@ -18,7 +18,7 @@ root_contract_conflicts=0
 # @exit Exits with status 0 when invoked with -h or --help.
 usage() {
     cat <<'EOF'
-usage: install-harness.sh --mode gradle|maven|uv|bun|shell [--target DIR] [--hooks none|copy] [--force] [--no-ci]
+usage: install-harness.sh --mode gradle|maven|uv|bun|shell [--target DIR] [--hooks none|copy|build-tool] [--force] [--no-ci]
 
 modes (required, no auto-detection):
   gradle  Projects using the Gradle build tool.
@@ -71,7 +71,7 @@ while [ $# -gt 0 ]; do
             ;;
         --hooks)
             if [ $# -lt 2 ]; then
-                error '--hooks requires none|copy'
+                error '--hooks requires none|copy|build-tool'
             fi
             hooks=$2
             shift 2
@@ -111,11 +111,14 @@ case "$mode" in
         exit 2
         ;;
 esac
-case "$hooks" in copy | none) ;; *)
+case "$hooks" in copy | none | build-tool) ;; *)
     printf '%s\n' "invalid hooks mode: $hooks" >&2
     exit 2
     ;;
 esac
+if [ "$hooks" = build-tool ] && [ "$mode" != gradle ] && [ "$mode" != maven ]; then
+    error '[hooks] --hooks build-tool is only supported for gradle and maven. Use --hooks none or --hooks copy in uv, bun, or shell modes.'
+fi
 if [ -z "$target_root" ]; then
     error 'target root must not be empty'
 fi
@@ -890,6 +893,9 @@ ensure_hook_activation_policy() {
     if [ "$hooks" = copy ]; then
         error "[hook_activation_policy] target Git config uses hooks path $configured_path; --hooks copy would not activate the worktree hooks. Either unset core.hooksPath or re-run with --hooks none."
     fi
+    if [ "$hooks" = build-tool ]; then
+        error "[hook_activation_policy] target Git config already uses hooks path $configured_path; --hooks build-tool would stack activation. Either unset core.hooksPath or re-run with --hooks none."
+    fi
 }
 
 # Print runtime-availability advisories for the selected stack mode.
@@ -1289,6 +1295,32 @@ install_git_hook_copy() {
     copy_one_git_hook pre-push "$hooks_dir"
 }
 
+# Activate Git hooks through build-tool ecosystem plugins.
+#
+# @return Writes build-tool hook activation status.
+install_git_hook_build_tool() {
+    case "$mode" in
+        gradle)
+            if [ -x ./gradlew ]; then
+                printf '%s\n' './gradlew -Pharness.gitHooks=true help'
+            elif command -v gradle 2>&1 | grep -q .; then
+                printf '%s\n' 'gradle -Pharness.gitHooks=true help'
+            else
+                error '[build-tool-hooks] gradle command not found; install gradle or add a wrapper before running build-tool activation.'
+            fi
+            ;;
+        maven)
+            if ! command -v mvn 2>&1 | grep -q .; then
+                error '[build-tool-hooks] mvn command not found; install maven before running build-tool activation.'
+            fi
+            printf '%s\n' 'mvn -q -f harness-maven-plugin/pom.xml -Dharness.gitHooks=true generate-sources'
+            ;;
+        *)
+            error "[build-tool-hooks] --hooks build-tool is not supported in $mode mode. Use --hooks none or --hooks copy."
+            ;;
+    esac
+}
+
 cmd=$(validation_command_for_mode "$mode")
 pre_commit_cmd=$(pre_commit_command_for_mode "$mode")
 pre_push_cmd=$(pre_push_command_for_mode "$mode")
@@ -1303,7 +1335,7 @@ if [ "$mode" = gradle ]; then
     install_gradle
 fi
 install_target_hook_templates "$pre_commit_cmd" "$pre_push_cmd"
-case "$hooks" in copy) install_git_hook_copy ;; none) printf '%s\n' 'skip git hook install' ;; esac
+case "$hooks" in copy) install_git_hook_copy ;; build-tool) install_git_hook_build_tool ;; none) printf '%s\n' 'skip git hook install' ;; esac
 printf '\n%s\n' "harness target: $target_root"
 printf '%s\n' "harness mode: $mode"
 printf '%s\n' "validation command: $cmd"

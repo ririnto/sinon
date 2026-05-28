@@ -63,7 +63,9 @@ def relative_file_of(file: str, root: Path) -> str | None:
     :param root: Repository root path.
     :returns: Repository-relative path, or None when outside root.
     """
-    resolved_file = (Path(file) if Path(file).is_absolute() else root / file).resolve(strict=False)
+    resolved_file = (Path(file) if Path(file).is_absolute() else root / file).resolve(
+        strict=False
+    )
     resolved_root = root.resolve(strict=False)
     if resolved_file == resolved_root or not resolved_file.is_relative_to(
         resolved_root
@@ -100,7 +102,9 @@ def is_generated_artifact(ctx: RuleContext, relative_file: str, category: str) -
     generated_path = generated_artifacts.get("path")
     if not isinstance(generated_path, str) or generated_path == "":
         return False
-    return relative_file != generated_artifacts.get("placeholder") and relative_file.startswith(
+    return relative_file != generated_artifacts.get(
+        "placeholder"
+    ) and relative_file.startswith(
         generated_path if generated_path.endswith("/") else f"{generated_path}/"
     )
 
@@ -147,7 +151,11 @@ def line_length_at(text: str, line_start: int) -> int:
     :returns: Line length before newline.
     """
     newline_index = text.find("\n", line_start)
-    return len(text[line_start:(len(text) if newline_index == -1 else newline_index)].removesuffix("\r"))
+    return len(
+        text[
+            line_start : (len(text) if newline_index == -1 else newline_index)
+        ].removesuffix("\r")
+    )
 
 
 def offset_of(text: str, line_starts: list[int], line: int, column: int) -> int:
@@ -250,11 +258,15 @@ def collect_safe_edits(
             ):
                 continue
             absolute_file = absolute_file_of(relative_file, ctx.root)
-            by_file[relative_file].append(prepare_edit(
-                absolute_file.read_text(encoding="utf-8") if absolute_file.exists() else "",
-                edit,
-                relative_file
-            ))
+            by_file[relative_file].append(
+                prepare_edit(
+                    absolute_file.read_text(encoding="utf-8")
+                    if absolute_file.exists()
+                    else "",
+                    edit,
+                    relative_file,
+                )
+            )
     return dict(by_file)
 
 
@@ -307,7 +319,9 @@ def main() -> None:
     manifest_path = root / MANIFEST_PATH
     if not manifest_path.is_file() or manifest_path.is_symlink():
         raise SystemExit(f"failed to read {MANIFEST_PATH}")
-    ctx = create_rule_context(root, json.loads(manifest_path.read_text(encoding="utf-8")), stack="python")
+    ctx = create_rule_context(
+        root, json.loads(manifest_path.read_text(encoding="utf-8")), stack="python"
+    )
     try:
         modified = apply_edits(collect_safe_edits(ctx, collect_findings(ctx)), ctx.root)
     except ValueError as error:
@@ -322,7 +336,9 @@ def main() -> None:
     remaining_findings = collect_findings(ctx)
     for line in render_findings(ctx.root, remaining_findings):
         print(line)
-    sys.exit(1 if any(finding.severity == "ERROR" for finding in remaining_findings) else 0)
+    sys.exit(
+        1 if any(finding.severity == "ERROR" for finding in remaining_findings) else 0
+    )
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ git status --short
 ```
 
 ```sh
-git diff -- AGENTS.md CLAUDE.md ARCHITECTURE.md docs .claude
+git diff -- AGENTS.md CLAUDE.md ARCHITECTURE.md docs .claude .github/workflows/harness.yml .gitlab-ci.yml
 ```
 
 Use the stack validation command from `docs/harness/README.md`; do not guess a command when the installed README already names one.
@@ -92,11 +92,19 @@ Cleanup MUST NOT delete active target truth just because it is unused by the def
 ### Cleanup examples
 
 ```text
-delta: Target repository runs GitLab CI only and wants to remove `.github/workflows/harness.yml`.
-decision: evolve if GitHub Actions is documented as an optional CI rendering and `.gitlab-ci.yml` still runs the selected final check command.
-contract updates: update manifest optional seed policy, CI docs, and self-check expectations together; remove GitHub-only template references if the installed target should no longer receive them.
-validation impact: selected stack command must pass, and CI parity must still prove `.gitlab-ci.yml` mirrors the generated pre-push command.
+delta: Target repository runs GitLab CI only and wants to remove `.github/workflows/harness.yml` from the installed repository.
+decision: evolve if GitHub Actions is documented as an optional CI rendering.
+contract updates: remove the GitHub Actions file and any target-facing references that assume it exists.
+validation impact: selected stack command must pass, and the present `.gitlab-ci.yml` must match the generated pre-push final-check command.
 risks: downstream docs may still mention GitHub pull request checks.
+```
+
+```text
+delta: Plugin package should stop receiving GitHub-only CI scaffolding for this policy.
+decision: evolve only when this cleanup is also intended for future installs.
+contract updates: update installer templates, `docs/harness/README.md`, and self-check expectations together; this is separate from target-side cleanup of existing installs.
+validation impact: selected stack command must pass and post-install CI renderings must still match generated `pre-push`.
+risks: mixed-host repositories may still need optional GitHub rendering.
 ```
 
 ```text
@@ -231,6 +239,7 @@ Gradle final check: ./gradlew check or gradle check
 Maven: mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check
 uv: uv run --script docs/harness/uv/harness_check.py
 bun: bun --install=fallback run docs/harness/bun/harness-check.ts
+shell: sh docs/harness/shell/harness-check.sh
 ```
 
 ## Synchronization Checklist

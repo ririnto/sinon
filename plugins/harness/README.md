@@ -57,7 +57,7 @@ The Claude Code manifest declares only `./skills/`. Plugin-root agents remain in
 
 ## Target Ownership
 
-Target repositories own every installed harness file. Copied docs, scripts, CI files, hooks, agents, skills, templates, and validation adapters MAY be edited, renamed, or removed to fit the target project. The installed `docs/harness/manifest.json` is the target repository harness metadata contract; it replaces the old `docs/harness/config.json` convention used by earlier drafts of this plugin.
+Target repositories own every installed harness file. Copied docs, scripts, CI files, hooks, agents, skills, templates, and validation adapters MAY be edited, renamed, or removed only through harness evolution that keeps manifest, docs, validators, CI, and hook policy aligned; optional CI renderings may be deleted under documented host policy.
 
 ## Install Harness Assets
 
@@ -76,7 +76,7 @@ The installer ships both CI examples so it never has to guess where the target p
 - Repositories that mirror to both hosts MAY keep both files; the generated `pre-push` final check command must match both CI scripts so `harness-validate` does not report drift.
 - Targets that do not run CI at all SHOULD pass `--no-ci` on install and document the policy in the project README.
 
-`harness-validate` reports `.github/workflows/harness.yml` and `.gitlab-ci.yml` as missing rather than mismatched when they are intentionally absent for the selected host.
+`harness-validate` skips absent CI files for documented inactive hosts; if a CI file is present, it is validated for command parity against the generated `pre-push` command.
 
 To run the installer directly, pass the target repository explicitly:
 
@@ -202,21 +202,22 @@ Repository-level findings apply to the harness as a whole (for example, missing 
 
 `harnessFormat` applies only explicitly allowlisted safe fixes. A safe fix is a deterministic, semantics-preserving edit that does not change program behavior. The allowlist is:
 
-| Rule category | Bun | uv | Gradle | Maven | Mutation type |
-| --- | --- | --- | --- | --- | --- |
-| `greaterThanComparison` | Defer | Defer | Partial | Partial | Rewrite simple identifier/literal `>` and `>=` comparisons to `<` and `<=` with operands swapped; expressions that may affect evaluation order stay check-only |
-| `leafFunctionBlankLines` | Allow | Allow | Allow | Allow | Remove blank lines inside leaf function bodies |
-| `emptyDirectoryPlaceholders` | Allow | Allow | Allow | Allow | Create `.gitkeep` in empty required directories |
-| `envShebangUsage` | Allow | Allow | Allow | Allow | Replace script shebang with `/usr/bin/env` form |
-| `hookGeneratedMarker` | Allow | Allow | Allow | Allow | Insert generated marker in managed hook template |
-| `hookShebang` | Allow | Allow | Allow | Allow | Replace missing or incorrect hook shebang |
-| `shebangEncodingMarker` | Allow | Allow | Defer | Defer | Insert encoding marker after shebang |
+| Rule category | Bun | uv | Gradle | Maven | Shell | Mutation type |
+| --- | --- | --- | --- | --- | --- | --- |
+| `greaterThanComparison` | Defer | Defer | Partial | Partial | Defer | Rewrite simple identifier/literal `>` and `>=` comparisons to `<` and `<=` with operands swapped; expressions that may affect evaluation order stay check-only |
+| `leafFunctionBlankLines` | Allow | Allow | Allow | Allow | Defer | Remove blank lines inside leaf function bodies |
+| `emptyDirectoryPlaceholders` | Allow | Allow | Allow | Allow | Defer | Create `.gitkeep` in empty required directories |
+| `envShebangUsage` | Allow | Allow | Allow | Allow | Allow | Replace script shebang with `/usr/bin/env` form |
+| `hookGeneratedMarker` | Allow | Allow | Allow | Allow | Allow | Insert generated marker in managed hook template |
+| `hookShebang` | Allow | Allow | Allow | Allow | Allow | Replace missing or incorrect hook shebang |
+| `hookExecutable` | Allow | Allow | Allow | Allow | Allow | Set executable bit on configured hook scripts |
+| `shebangEncodingMarker` | Allow | Allow | Defer | Defer | Defer | Insert encoding marker after shebang |
 
-Rules not in this table are not formatted. `harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications. Format commands run validation after applying fixes, print remaining findings, and fail when any remaining finding has `ERROR` severity.
+Rules not in this table are not formatted. `harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications. Format commands MUST report changed files or a clear no-op summary, then run validation and print remaining findings; commands fail when any remaining finding has `ERROR` severity.
 
 ### Shell formatting
 
-The shell runtime ships `harness-check.sh` and `harness-format.sh`. Shell validation covers file presence, directory structure, hook shebangs and executable bits, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. Shell formatting runs `shfmt` across `.sh` files under the target root, then runs `harness-check.sh` and returns the remaining validation status.
+The shell runtime ships `harness-check.sh` and `harness-format.sh`. Shell validation covers file presence, directory structure, hook shebangs and executable bits, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. Shell formatting runs `shfmt` across `.sh` files under the target root, then applies manifest-aware safe fixes (including executable and generated hook markers), and runs `harness-check.sh` returning the remaining validation status.
 
 ## Git Hooks
 
@@ -227,6 +228,24 @@ sh /path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness
 ```
 
 Use `--hooks none` or omit the flag to skip Git hook activation. Use `--hooks copy` only when the target should copy both generated hooks to `pre-commit` and `pre-push` in the active worktree hooks directory.
+
+Use `--hooks build-tool` to print build-tool activation commands and run them only when the user chooses. This mode is only available for Gradle and Maven targets; uv, bun, and shell modes reject it with an error. No active hook installation occurs during installation.
+
+### Build-tool hook activation (Gradle)
+
+The Gradle asset `settings.gradle.kts` applies [`org.danilopianini.gradle-pre-commit-git-hooks`](https://github.com/DanySK/gradle-pre-commit-git-hooks) version `2.1.17` and configures `preCommit` from `docs/harness/git-hooks/pre-commit` and `pre-push` via `hook("pre-push")` from `docs/harness/git-hooks/pre-push` only when the Gradle property `harness.gitHooks=true` is set. Hooks are not created by default. When `harness.gitHooks.overwrite=true` is also set, existing hooks are overwritten via `createHooks(true)`; otherwise `createHooks()` preserves any existing hook files.
+
+With `--hooks build-tool`, the installer prints the exact command to run manually (`./gradlew -Pharness.gitHooks=true help` or `gradle -Pharness.gitHooks=true help`) and does not run Gradle during install.
+
+**Linked worktree limitation:** The `gradle-pre-commit-git-hooks` plugin resolves the Git directory relative to the project root. In linked Git worktrees, the plugin may place hooks in the wrong `.git` location. For linked worktree Gradle projects, prefer `--hooks copy` or manual `core.hooksPath` configuration.
+
+### Build-tool hook activation (Maven)
+
+The Maven asset `harness-maven-plugin/pom.xml` includes an opt-in profile `harness-git-hooks` activated by `-Dharness.gitHooks=true`. The profile uses [`com.rudikershaw.gitbuildhook:git-build-hook-maven-plugin`](https://github.com/rudikershaw/git-build-hook-maven-plugin) version `3.6.0` with the `configure` goal to set `core.hooksPath` to `docs/harness/git-hooks`. The `configure` goal is preferred over `install` because it points Git at the tracked hook directory without overwriting hook files. The profile is not active by default.
+
+With `--hooks build-tool`, the installer prints `mvn -q -f harness-maven-plugin/pom.xml -Dharness.gitHooks=true generate-sources` for manual execution and does not run Maven during install.
+
+If `core.hooksPath` already points to a directory other than `docs/harness/git-hooks`, the installer rejects `--hooks build-tool` to avoid stacking activation.
 
 Copy mode keeps existing active local hooks unless `--force` is used. With `--force`, the installer replaces both active local hooks with installer-generated content for the selected mode. Use `--hooks copy --force` only with explicit approval because it changes local Git behavior.
 

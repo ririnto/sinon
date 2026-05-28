@@ -6,6 +6,7 @@ import com.ririnto.sinon.harness.Finding;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ParseProblemException;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.expr.BinaryExpr;
 import com.github.javaparser.ast.expr.Expression;
@@ -54,7 +55,7 @@ public enum GreaterThanComparisonRule implements AstRule {
         final List<Path> changed = new ArrayList<>();
         try {
             for (final Path file : ctx.stackSources(CATEGORY)) {
-                if (formatGreaterThanComparisons(file)) {
+                if (formatGreaterThanComparisons(ctx.root(), file)) {
                     changed.add(file);
                 }
             }
@@ -64,16 +65,25 @@ public enum GreaterThanComparisonRule implements AstRule {
         return changed;
     }
 
-    private boolean formatGreaterThanComparisons(Path file) throws MojoExecutionException {
+    private boolean formatGreaterThanComparisons(Path root, Path file) throws MojoExecutionException {
+        final Path target = file.isAbsolute() ? file : root.resolve(file);
+        final Path rootReal;
         try {
-            final CompilationUnit cu = StaticJavaParser.parse(file);
+            rootReal = root.toRealPath();
+        } catch (IOException e) {
+            throw new MojoExecutionException("failed to resolve project root: " + e.getMessage(), e);
+        }
+        if (!HarnessCheckHelper.isRootContainedRegularFile(root, rootReal, target)) {
+            throw new MojoExecutionException("unsafe source path outside project root: " + target);
+        }
+        try {
+            final CompilationUnit cu = StaticJavaParser.parse(target);
             LexicalPreservingPrinter.setup(cu);
             boolean changed = false;
             for (final BinaryExpr expr : cu.findAll(BinaryExpr.class)) {
                 final BinaryExpr.Operator operator = expr.getOperator();
                 if ((operator == BinaryExpr.Operator.GREATER || operator == BinaryExpr.Operator.GREATER_EQUALS)
-                        && isSafeOperand(expr.getLeft())
-                        && isSafeOperand(expr.getRight())) {
+                        && isSafeRewriteOperands(expr.getLeft(), expr.getRight())) {
                     final Expression left = expr.getLeft().clone();
                     final Expression right = expr.getRight().clone();
                     expr.setLeft(right);
@@ -82,17 +92,23 @@ public enum GreaterThanComparisonRule implements AstRule {
                     changed = true;
                 }
             }
+            if (!HarnessCheckHelper.isRootContainedRegularFile(root, rootReal, target)) {
+                throw new MojoExecutionException("unsafe source path outside project root: " + target);
+            }
             if (changed) {
-                Files.writeString(file, LexicalPreservingPrinter.print(cu), StandardCharsets.UTF_8);
+                Files.writeString(target, LexicalPreservingPrinter.print(cu), StandardCharsets.UTF_8);
             }
             return changed;
+        } catch (ParseProblemException e) {
+            return false;
         } catch (IOException e) {
-            throw new MojoExecutionException("failed to format " + file + ": " + e.getMessage(), e);
+            throw new MojoExecutionException("failed to format " + target + ": " + e.getMessage(), e);
         }
     }
 
-    private boolean isSafeOperand(Expression expression) {
-        return expression.isNameExpr() || expression.isLiteralExpr();
+    private boolean isSafeRewriteOperands(Expression left, Expression right) {
+        return (left.isLiteralExpr() && (right.isLiteralExpr() || right.isNameExpr()))
+                || (right.isLiteralExpr() && left.isNameExpr());
     }
 
     private List<Finding> validateGreaterThanComparison(Path root, Path file, String severity) {
@@ -112,6 +128,17 @@ public enum GreaterThanComparisonRule implements AstRule {
                             expr.getEnd().map(p -> p.column).orElse(null),
                             null))
                     .toList();
+        } catch (ParseProblemException e) {
+            return List.of(new Finding(
+                    severity,
+                    CATEGORY,
+                    "failed to parse " + root.relativize(file) + ": " + e.getMessage(),
+                    root.relativize(file).toString(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null));
         } catch (IOException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }
