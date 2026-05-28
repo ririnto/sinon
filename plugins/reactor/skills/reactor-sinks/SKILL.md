@@ -15,9 +15,13 @@ metadata:
 
 Author Reactor hot sources deliberately.
 
+## Goal
+
 This skill covers the ordinary path for choosing `Sinks.one()`, `Sinks.empty()`, or `Sinks.many()`, selecting unicast vs multicast vs replay behavior, handling `tryEmit*` / `emit*` outcomes, and deciding when a sink is the right tool instead of ConnectableFlux-style hot conversion. Keep advanced connection lifecycle, contention tuning, and internal unsafe sinks in blocker references.
 
-## Use this skill when
+## Scope
+
+Activate this skill for:
 
 - creating a programmatic hot source in Reactor
 - deciding whether a sink or a shared/replayed cold source is the correct design
@@ -26,7 +30,7 @@ This skill covers the ordinary path for choosing `Sinks.one()`, `Sinks.empty()`,
 - handling `EmitResult`, `EmitFailureHandler`, or ordinary backpressure outcomes from manual emission
 - reviewing why late subscribers miss values or replay old ones
 
-## Do not use this skill for
+Do not activate for:
 
 - ordinary `Flux` / `Mono` composition as the main problem
 - scheduler choice or thread placement as the main problem

@@ -1,7 +1,7 @@
 ---
 name: grafana-dashboards
 description: >-
-  Author and review Grafana dashboards as version-controlled JSON assets with stable uid, deliberate datasource handling, and operator-centric panel layout. Use when creating or reviewing Grafana dashboards, editing classic dashboard JSON, authoring panel queries and visualization config, using Grafana variables (7 standard classic templating types plus global variables), configuring transformations, field config, thresholds, overrides, and value mappings, stabilizing dashboard uid, applying USE/RED/Golden Signals frameworks, setting up repeat behavior and links, using a Grafana mixin or Jsonnet generation workflow, or needing guidance on Grafana dashboard asset structure and panel JSON schema.
+  Author and review Grafana dashboards as version-controlled JSON assets with stable uid, deliberate datasource handling, and operator-centric panel layout. Triggers on Grafana dashboard creation or review, classic dashboard JSON editing, panel query and visualization config authoring, Grafana variables (7 standard classic templating types plus global variables), transformations, field config, thresholds, overrides, and value mappings configuration, dashboard uid stabilization, USE/RED/Golden Signals frameworks application, repeat behavior and links setup, Grafana mixin or Jsonnet generation workflows, or Grafana dashboard asset structure and panel JSON schema guidance.
 ---
 
 # Grafana Dashboards
@@ -37,7 +37,6 @@ Minimal dashboard JSON -- smallest valid shape for syntax testing:
   "refresh": "30s",
   "panels": []
 }
-
 ```
 
 Use when: you need a minimal valid dashboard shell to validate JSON syntax before adding content.
@@ -48,7 +47,6 @@ Start by validating the JSON structure before the file is treated as a Git-owned
 
 ```sh
 uv run -m json.tool grafana/dashboards/api-overview.json
-
 ```
 
 Use when: the dashboard JSON was edited manually and you need the first fast syntax check.
@@ -88,7 +86,6 @@ Stable `uid`, clear title, one time-picker baseline, and one working panel:
     }
   ]
 }
-
 ```
 
 Use when: you need a small but production-shaped dashboard asset to expand from Git.
@@ -131,7 +128,6 @@ Merge this fragment into the full dashboard shell to drive repeated panels from 
     }
   ]
 }
-
 ```
 
 Use when: one panel shape should repeat across a bounded variable set without copying panel JSON by hand. This is a fragment to merge into the full dashboard shell, not a standalone importable dashboard.
@@ -168,7 +164,6 @@ Merge this fragment into the target panel when the query already returns the rig
     { "id": "organize", "options": {} }
   ]
 }
-
 ```
 
 Use when: the query already returns the right signal and the panel only needs clearer units, thresholds, legend behavior, or column organization. This is a fragment to merge into an existing panel object, not a standalone dashboard asset or dashboard-root object.
@@ -197,7 +192,6 @@ Merge this fragment into the dashboard shell to attach one drilldown path and on
     }
   ]
 }
-
 ```
 
 Use when: operators need one direct drilldown and one timeline context source while reading the dashboard. This is a fragment to merge into the full dashboard shell, not a complete dashboard by itself.
@@ -220,7 +214,6 @@ Query options control how much data is fetched and how queries are evaluated:
     }
   ]
 }
-
 ```
 
 Key fields:
@@ -286,7 +279,6 @@ The default panel for any time-varying metric. Supports multiple series, legends
   },
   "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
 }
-
 ```
 
 Key `options.drawStyle`: `"line"`, `"bars"`, `"points"`. Key `options.stacking.mode`: `"none"`, `"normal"`, `"percent"`.
@@ -327,7 +319,6 @@ Single large number with optional sparkline, progress bar, and text mode.
   },
   "gridPos": { "h": 4, "w": 6, "x": 0, "y": 8 }
 }
-
 ```
 
 Key `options.textMode`: `"auto"`, `"name"`, `"none"`, `"value"`. Key `options.graphMode`: `"none"`, `"area"`, `"linear"`. Key `options.colorMode`: `"none"`, `"value"`, `"background"`.
@@ -351,7 +342,6 @@ Display raw tabular data with column customization, sorting, and cell coloring.
   "options": { "showHeader": true },
   "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 }
 }
-
 ```
 
 For complete JSON schemas covering all remaining panel types (gauge, barchart, heatmap, statetimeline, logs, piechart, histogram, bar gauge, candlestick, trend, XY chart, node graph, traces, flame graph, canvas, geomap, dashboard list, alert list, annotations list, and text/news panels), see [`./references/panel-types.md`](./references/panel-types.md).
@@ -378,7 +368,6 @@ Queries a datasource to populate options dynamically.
   "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
   "hide": 0
 }
-
 ```
 
 Key fields: `query` (datasource-specific), `regex` (filter results), `sort` (0-6), `multi`, `includeAll`, `allValue`.
@@ -401,7 +390,6 @@ Hardcoded list of options defined inline. Use when the set of values is small, s
   ],
   "hide": 0
 }
-
 ```
 
 ### Textbox Variable
@@ -417,7 +405,6 @@ Free-text input for ad-hoc values. Always sanitize textbox values in queries to 
   "current": { "selected": false, "text": "", "value": "" },
   "hide": 0
 }
-
 ```
 
 ## Transformation Types (Common Path)
@@ -441,7 +428,6 @@ Rename, hide, and reorder columns returned by queries.
     }
   ]
 }
-
 ```
 
 ### Merge
@@ -454,7 +440,6 @@ Combine results from multiple queries into one table by joining on shared fields
     { "id": "merge", "options": {} }
   ]
 }
-
 ```
 
 ### Filter Data by Values
@@ -475,7 +460,6 @@ Remove rows that do not match a condition.
     }
   ]
 }
-
 ```
 
 Filter types: `"include"`, `"exclude"`. Match modes: `"value"`, `"regex"`, `"is"`, `"isNot"`.
@@ -511,7 +495,6 @@ Applied via `fieldConfig.defaults` at the panel level.
     }
   }
 }
-
 ```
 
 Common unit specifiers: `"short"`, `"percent"`, `"percentunit"`, `"bytes"`, `"bps"`, `"s"`, `"ms"`, `"reqps"`, `"ops"`. Custom unit prefix/suffix: `"prefix:suffix"` (e.g., `"$:USD"` displays as `$123 USD`). For the complete unit catalog, see [`./references/field-config.md`](./references/field-config.md).
@@ -529,7 +512,6 @@ Steps trigger at exact numeric values. The first step always has `value: null` (
     { "color": "red", "value": 100 }
   ]
 }
-
 ```
 
 For percentage mode (requires explicit `min`/`max` on the field), see [`./references/field-config.md`](./references/field-config.md).
@@ -552,7 +534,6 @@ Overrides let you apply different visual settings to specific fields or series w
     ]
   }
 }
-
 ```
 
 For all 5 matcher types (`byName`, `byRegexp`, `byType`, `byFrameRefID`, `byValue`) and common override property IDs, see [`./references/field-config.md`](./references/field-config.md).
@@ -576,7 +557,6 @@ Value mapping (most common): exact match on specific values.
     }
   ]
 }
-
 ```
 
 For range, regex, and special mapping types (null/NaN/boolean handling), see [`./references/field-config.md`](./references/field-config.md). Multiple mapping types can coexist in the same `mappings` array; they are evaluated in order and the first match wins.
@@ -600,7 +580,6 @@ Attach clickable URLs to data points that open external resources with interpola
     }
   }
 }
-
 ```
 
 For the full data link variable catalog (`${__series.name}`, `${__field.labels.*}`, `${__value.*}`, etc.), see [`./references/field-config.md`](./references/field-config.md).
@@ -634,7 +613,6 @@ Dashboard layout following USE:
     { "title": "Network Errors", "type": "timeseries" }
   ]
 }
-
 ```
 
 ### RED Method
@@ -661,7 +639,6 @@ Dashboard layout following RED:
     { "title": "Latency p99", "type": "timeseries" }
   ]
 }
-
 ```
 
 ### Four Golden Signals
@@ -690,7 +667,6 @@ Dashboard layout following Four Golden Signals:
     { "title": "Connection Pool Usage", "type": "gauge" }
   ]
 }
-
 ```
 
 ### Dashboard Maturity Model
@@ -724,7 +700,6 @@ Control how the dashboard time range behaves.
     "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
   }
 }
-
 ```
 
 Key fields:
@@ -745,7 +720,6 @@ Panel-level time override -- individual panels can shift or constrain their own 
   "timeShift": "1d",
   "hideTimeOverride": false
 }
-
 ```
 
 Add these fields directly to a panel object (not inside `options`). `timeFrom` sets the earliest data point relative to now. `timeShift` shifts the entire query window (useful for day-over-day comparisons). `hideTimeOverride` hides the panel's custom time indicator.
@@ -760,7 +734,6 @@ Control how repeated panels lay out across the dashboard.
   "repeatDirection": "h",
   "maxPerRow": 3
 }
-
 ```
 
 | Field | Values | Effect |
@@ -778,7 +751,6 @@ Keep dashboard authoring and dashboard delivery separated even when both are rev
 ```text
 reviewed source of truth: grafana/dashboards/api-overview.json
 adjacent but separate concern: provisioning file that points at this dashboard
-
 ```
 
 Dashboard authoring belongs here; provisioning configuration and rollout concerns stay in the adjacent delivery domain.
@@ -789,7 +761,6 @@ Direct dashboard asset layout -- keep the repository path explicit:
 grafana/
   dashboards/
     api-overview.json
-
 ```
 
 Use when: the team keeps reviewed dashboard JSON directly in the repository rather than generating it from Jsonnet.

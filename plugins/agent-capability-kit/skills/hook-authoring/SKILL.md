@@ -1,7 +1,7 @@
 ---
 name: hook-authoring
 description: >-
-  Author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails. Use when writing PreToolUse or PostToolUse hooks, configuring event matchers, or adding safety boundaries around tool execution in a plugin.
+  Author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails. Triggers on PreToolUse or PostToolUse hook setup, event matcher configuration, or safety boundaries around tool execution in a plugin.
 ---
 
 # Hook Authoring

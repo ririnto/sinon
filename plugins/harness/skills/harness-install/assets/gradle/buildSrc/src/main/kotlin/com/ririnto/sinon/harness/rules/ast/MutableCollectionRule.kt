@@ -8,9 +8,12 @@ import com.ririnto.sinon.harness.core.Severity
 import com.ririnto.sinon.harness.rules.HarnessAstRule
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtUserType
@@ -161,9 +164,10 @@ object MutableCollectionRule : HarnessAstRule() {
     ) : KtTreeVisitorVoid() {
         override fun visitCallExpression(expression: KtCallExpression) {
             super.visitCallExpression(expression)
-            val calleeName = expression.calleeExpression?.text ?: ""
-            val qualifiedName = expression.getQualifiedExpressionForSelector()?.text?.substringBefore("(") ?: calleeName
-            val receiverName = qualifiedName.substringBeforeLast(".", "")
+            val calleeName = calleeName(expression).orEmpty()
+            val qualifiedParts = qualifiedCallParts(expression) ?: listOf(calleeName)
+            val qualifiedName = qualifiedParts.joinToString(".")
+            val receiverParts = qualifiedParts.dropLast(1)
             val isAccumulation = calleeName in config.accumulationMethods
             val findingName =
                 when {
@@ -171,7 +175,7 @@ object MutableCollectionRule : HarnessAstRule() {
 
                     qualifiedName in config.forbiddenFqns -> qualifiedName
 
-                    isAccumulation && !isReceiverAllowed(receiverName) &&
+                    isAccumulation && !isReceiverAllowed(receiverParts) &&
                         !isInsideAllowedBuilderLambda(expression) -> calleeName
 
                     else -> ""
@@ -183,10 +187,12 @@ object MutableCollectionRule : HarnessAstRule() {
 
         override fun visitUserType(type: KtUserType) {
             super.visitUserType(type)
-            val typeName = type.text.substringBefore("<")
+            val typeParts = userTypeParts(type)
+            val typeName = typeParts.lastOrNull().orEmpty()
+            val qualifiedTypeName = typeParts.joinToString(".")
             val findingName = when {
                 typeName in config.types -> typeName
-                typeName in config.forbiddenFqns -> typeName
+                qualifiedTypeName in config.forbiddenFqns -> qualifiedTypeName
                 else -> ""
             }
             if (findingName.isNotEmpty()) {
@@ -201,12 +207,8 @@ object MutableCollectionRule : HarnessAstRule() {
             }
         }
 
-        private fun isReceiverAllowed(receiverName: String): Boolean =
-            when {
-                receiverName.isEmpty() -> false
-                receiverName in config.allowedBuilders -> true
-                else -> config.allowedBuilders.any { allowed -> receiverName.endsWith(".$allowed") }
-            }
+        private fun isReceiverAllowed(receiverParts: List<String>): Boolean =
+            receiverParts.lastOrNull() in config.allowedBuilders
 
         private fun isInsideAllowedBuilderLambda(call: KtCallExpression): Boolean =
             generateSequence(call.parent as PsiElement?) { element -> element.parent }
@@ -217,8 +219,31 @@ object MutableCollectionRule : HarnessAstRule() {
                         is KtLambdaArgument -> argument.parent as? KtCallExpression
                         is KtValueArgument -> argument.parent?.parent as? KtCallExpression
                         else -> null
-                    }?.calleeExpression?.text ?: "") in config.allowedBuilders
+                    }?.let(::calleeName).orEmpty()) in config.allowedBuilders
                 }
+
+        private fun calleeName(expression: KtCallExpression): String? =
+            (expression.calleeExpression as? KtNameReferenceExpression)?.getReferencedName()
+
+        private fun qualifiedCallParts(expression: KtCallExpression): List<String>? =
+            (expression.getQualifiedExpressionForSelector() as? KtDotQualifiedExpression)?.let { qualified ->
+                expressionParts(qualified.receiverExpression) + listOfNotNull(calleeName(expression))
+            }
+
+        private fun expressionParts(expression: KtExpression): List<String> =
+            (when (expression) {
+                is KtNameReferenceExpression -> listOf(expression.getReferencedName())
+                is KtDotQualifiedExpression -> expressionParts(expression.receiverExpression) +
+                    expression.selectorExpression?.let(::expressionParts).orEmpty()
+                is KtCallExpression -> listOfNotNull(calleeName(expression))
+                else -> emptyList()
+            })
+
+        private fun userTypeParts(type: KtUserType): List<String> =
+            generateSequence(type) { userType -> userType.qualifier }
+                .mapNotNull { userType -> userType.referencedName }
+                .toList()
+                .asReversed()
 
         private fun recordFinding(
             expression: KtCallExpression,

@@ -81,19 +81,43 @@ function findingForNode(
 }
 
 function isAllowedOneShot(node: Node, allowedOneShotPatterns: readonly string[]): boolean {
-    const text = node.parent?.getText() ?? "";
     return allowedOneShotPatterns.some((pattern) => {
         if (pattern === "Array.from(new Set(...))") {
-            return text.startsWith("Array.from(new Set(");
+            return isArrayFromNewSet(node);
         }
         if (pattern === "Array.from(new Map(...).values())") {
-            return text.startsWith("Array.from(new Map(") && text.includes(".values()");
+            return isArrayFromNewMapValues(node);
         }
         if (pattern === "new Set(readonlyArray)") {
-            return node.getText().startsWith("new Set(");
+            return isNewNamedExpression(node, "Set");
         }
         return false;
     });
+}
+
+function isArrayFromNewSet(node: Node): boolean {
+    const parent = node.parent;
+    return isArrayFromCall(parent) && parent.arguments.length === 1 && parent.arguments[0] === node &&
+        isNewNamedExpression(node, "Set");
+}
+
+function isArrayFromNewMapValues(node: Node): boolean {
+    const valuesCall = node.parent?.parent;
+    const arrayFromCall = valuesCall?.parent;
+    return isCallExpression(valuesCall) && isPropertyAccessExpression(valuesCall.expression) &&
+        valuesCall.expression.expression === node && valuesCall.expression.name.text === "values" &&
+        isNewNamedExpression(node, "Map") && isArrayFromCall(arrayFromCall) &&
+        arrayFromCall.arguments.length === 1 && arrayFromCall.arguments[0] === valuesCall;
+}
+
+function isArrayFromCall(node: Node | undefined): node is import("typescript@6.0.3").CallExpression {
+    return !!node && isCallExpression(node) && isPropertyAccessExpression(node.expression) &&
+        isIdentifier(node.expression.expression) && node.expression.expression.text === "Array" &&
+        node.expression.name.text === "from";
+}
+
+function isNewNamedExpression(node: Node, name: string): boolean {
+    return isNewExpression(node) && isIdentifier(node.expression) && node.expression.text === name;
 }
 
 function mutableFinding(ctx: RuleContext, file: string, sourceFile: SourceFile, node: Node, name: string): Finding {

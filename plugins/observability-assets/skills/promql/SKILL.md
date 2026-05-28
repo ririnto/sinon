@@ -1,7 +1,7 @@
 ---
 name: promql
 description: >-
-  Write and review PromQL expressions for correctness, aggregation and matching shape, and consumer fit (dashboard, alert, recording rule). Use when composing range or instant queries, choosing aggregation operators, building recording rules for dashboards, or validating alert expression logic.
+  Write and review PromQL expressions for correctness, aggregation and matching shape, and consumer fit (dashboard, alert, recording rule). Triggers on range or instant query composition, aggregation operator selection, recording rule construction for dashboards, or alert expression logic validation.
 ---
 
 # PromQL
@@ -42,7 +42,6 @@ Three forms; all follow Go escaping rules for single/double-quoted forms:
 "double-quoted with \n escapes"
 'single-quoted with \t escapes'
 `backtick: no escape processing`
-
 ```
 
 Escape sequences in single/double quotes: `\a`, `\b`, `\f`, `\n`, `\r`, `\t`, `\v`, `\\`. Octal (`\nnn`), hex (`\xnn`), Unicode (`\unnnn`, `\Unnnnnnnn`). Backtick strings preserve all characters literally including newlines.
@@ -52,7 +51,6 @@ Escape sequences in single/double quotes: `\a`, `\b`, `\f`, `\n`, `\r`, `\t`, `\
 ```text
 23          -2.43    3.4e-9    0x8f    -Inf    NaN
 1_000_000   .123_456_789   0x_53_AB_F3_82
-
 ```
 
 Underscores may appear between decimal or hex digits for readability. Special values: `NaN`, `Inf`, `-Inf`.
@@ -73,7 +71,6 @@ Suffix a decimal integer with time units. Units must be ordered longest-to-short
 
 ```promql
 5m        1h30m      12h34m56s      54s321ms      -2h
-
 ```
 
 Invalid: `0xABm` (no hex suffix), `1.5h` (no float suffix), `+Infd` (no Inf/NaN suffix).
@@ -92,7 +89,6 @@ http_requests_total{job="api", method="GET"}
 http_requests_total{env=~"staging|dev", method!="GET"}
 {__name__=~"http_.*"}
 {__name__="on"}
-
 ```
 
 Label matcher operators:
@@ -126,7 +122,6 @@ These examples show a five-minute range selector on a filtered metric and the co
 ```promql
 http_requests_total{job="api"}[5m]
 rate(http_requests_total[5m])
-
 ```
 
 ## Modifiers
@@ -145,7 +140,6 @@ sum(http_requests_total{method="GET"}) offset 5m
 rate(http_requests_total[5m] offset 1w)
 
 rate(http_requests_total[5m] offset -1w)
-
 ```
 
 ### @ modifier (evaluation-time override)
@@ -163,7 +157,6 @@ rate(http_requests_total[5m] @ end())
 
 http_requests_total @ 1609746000 offset 5m
 http_requests_total offset 5m @ 1609746000
-
 ```
 
 For range queries: `start()` resolves to the range start, `end()` to the range end (both constant across steps). For instant queries: both resolve to the evaluation time.
@@ -174,7 +167,6 @@ Runs an instant query over a range at a given resolution, producing a range vect
 
 ```text
 <instant_query> '[' <range> ':' [<resolution> ']' [ @ <float_literal> ] [ offset <float_literal> ]
-
 ```
 
 Resolution defaults to the global evaluation interval if omitted.
@@ -185,7 +177,6 @@ The examples below show a subquery sampled every minute over a five-minute rate 
 avg_over_time(rate(http_requests_total[5m:1m])[1h:])
 
 sum by (job) (increase(http_requests_total[1m:30s] @ start()))
-
 ```
 
 ## Operators
@@ -437,7 +428,6 @@ method_code:http_errors:rate5m / method:http_requests:rate5m
 method_code:http_errors:rate5m{code="500"} / ignoring(code) method:http_requests:rate5m
 
 method_code:http_errors:rate5m on(method) method:http_requests:rate5m
-
 ```
 
 ### Many-to-one / one-to-many matching
@@ -450,7 +440,6 @@ The first example keeps the higher-cardinality left-hand series; the second also
 method_code:http_errors:rate5m / ignoring(code) group_left method:http_requests:rate5m
 
 method_code:http_errors:rate5m / ignoring(code) group_left(instance) method:http_requests:rate5m
-
 ```
 
 The optional label list after `group_left`/`group_right` specifies labels from the "one" side to propagate into the result. With `on`, a label cannot appear in both lists.
@@ -469,7 +458,6 @@ expr1 / fill_left(0) expr2
 expr1 / fill_right(0) expr2
 
 expr1 / fill_left(0) fill_right(0) expr2
-
 ```
 
 Fill modifiers go last, after `bool`, `on`, `ignoring`, `group_left`, `group_right`. Not supported for set operators (`and`, `or`, `unless`). Only float samples supported (no histograms).
@@ -499,7 +487,6 @@ Base path: `/api/v1`. All responses use this JSON envelope:
   "warnings": ["<string>"],
   "infos": ["<string>"]
 }
-
 ```
 
 ### Expression query endpoints
@@ -561,7 +548,6 @@ Minimal selector and aggregation shape:
 
 ```promql
 sum by (job) (rate(http_requests_total{job="api"}[5m]))
-
 ```
 
 Use when: you need one readable baseline query with explicit label filtering, a range-vector function, and a stable grouped output.
@@ -572,7 +558,6 @@ Start with a query shape that makes the vector type obvious before you optimize 
 
 ```promql
 rate(http_requests_total{job="api",status=~"5.."}[5m])
-
 ```
 
 Use when: you need the smallest safe starting point for a counter-based error-rate query.
@@ -595,7 +580,6 @@ Basic selector -- use one metric and one bounded label set:
 
 ```promql
 up{job="api",instance=~"api-.+"}
-
 ```
 
 Use when: you need a simple instant-vector selector for current target health.
@@ -604,7 +588,6 @@ Range-vector aggregation -- convert a counter into a grouped per-second rate:
 
 ```promql
 sum by (job) (rate(http_requests_total{job="api"}[5m]))
-
 ```
 
 Use when: you need one stable rate query for dashboards, recording rules, or alert thresholds.
@@ -618,7 +601,6 @@ Alert-oriented shape -- keep the query stable and symptom-oriented:
   sum(rate(http_requests_total{job="api"}[5m])),
   0.001
 )
-
 ```
 
 Use when: you need a threshold query that can be embedded in an alert rule without hiding the user-facing symptom.
@@ -627,7 +609,6 @@ Dashboard-oriented shape -- use `irate()` only for visually volatile counters:
 
 ```promql
 sum by (instance) (irate(node_network_receive_bytes_total{job="node"}[1m]))
-
 ```
 
 Use when: you are shaping a fast-moving dashboard panel rather than a stable alert condition.
@@ -638,7 +619,6 @@ Basic vector matching -- start without a modifier when both sides already share 
 sum by (job) (rate(http_requests_total{job="api",status=~"5.."}[5m]))
 /
 sum by (job) (rate(http_requests_total{job="api"}[5m]))
-
 ```
 
 Use when: you need to preserve one shared label set across both sides of a binary operation and both sides already align without extra matching rules.
@@ -650,7 +630,6 @@ rate(container_cpu_usage_seconds_total{job="kubelet"}[5m])
 * on (namespace, pod)
 group_left(node)
 kube_pod_info
-
 ```
 
 Use when: enriching a metric with labels from a uniquely-scoped metadata series.
@@ -659,7 +638,6 @@ Missing-series shape -- page on disappearance instead of on a low numeric thresh
 
 ```promql
 absent(up{job="api"})
-
 ```
 
 Use when: the query should return a signal only when the expected series is missing.
@@ -669,7 +647,6 @@ Temporal comparison -- compare current value against past using offset:
 ```promql
 rate(http_requests_total[5m])
 / rate(http_requests_total[5m] offset 1w) > 1.5
-
 ```
 
 Use when: detecting week-over-week changes in a counter rate.
@@ -678,7 +655,6 @@ Subquery for downsampling -- compute average over coarse windows:
 
 ```promql
 avg_over_time(rate(http_requests_total[5m])[1h:1m])
-
 ```
 
 Use when: smoothing a rate into hourly averages at 1-minute resolution.
@@ -690,7 +666,6 @@ histogram_quantile(
   0.99,
   sum by (job, le) (rate(http_request_duration_seconds_bucket[5m]))
 )
-
 ```
 
 Use when: computing the 99th percentile request duration per job from classic histogram buckets.
@@ -702,7 +677,6 @@ histogram_quantile(
   0.99,
   sum by (job) (rate(http_request_duration_seconds[5m]))
 )
-
 ```
 
 Use when: computing percentiles from native histograms.
@@ -711,7 +685,6 @@ Gauge prediction -- forecast disk fill:
 
 ```promql
 predict_linear(node_filesystem_avail_bytes{mount="/data"}[1h], 4 * 3600) < 0
-
 ```
 
 Use when: predicting whether a gauge will cross zero within a future window.
