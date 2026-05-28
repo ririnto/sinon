@@ -61,10 +61,13 @@ public enum ImportOverFqnRule implements AstRule {
                     .map(imp -> imp.getName().getIdentifier())
                     .collect(Collectors.toSet());
             return Stream.concat(
-                            cu.findAll(FieldAccessExpr.class).stream()
-                                    .map(expr -> candidate(expressionParts(expr), expr.getBegin().map(p -> p.line).orElse(-1))),
-                            cu.findAll(MethodReferenceExpr.class).stream()
-                                    .map(expr -> candidate(expressionParts(expr.getScope()), expr.getBegin().map(p -> p.line).orElse(-1))))
+                            Stream.concat(
+                                    cu.findAll(FieldAccessExpr.class).stream()
+                                            .map(expr -> candidate(expressionParts(expr), expr.getBegin().map(p -> p.line).orElse(-1))),
+                                    cu.findAll(MethodReferenceExpr.class).stream()
+                                            .map(expr -> candidate(expressionParts(expr.getScope()), expr.getBegin().map(p -> p.line).orElse(-1)))),
+                            cu.findAll(ClassOrInterfaceType.class).stream()
+                                    .map(type -> candidate(typeParts(type), type.getBegin().map(p -> p.line).orElse(-1))))
                     .flatMap(optional -> optional.stream())
                     .filter(candidate -> isPackageQualifiedName(candidate.nameParts()))
                     .filter(candidate -> !importedSimpleNames.contains(candidate.simpleName()))
