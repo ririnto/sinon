@@ -48,10 +48,10 @@ PYEOF
 # @param message Human-readable message.
 # @return Appends one line to the findings buffer.
 emit() {
-    severity=$1
-    category=$2
-    message=$3
-    printf '[%s] %s: %s\n' "$severity" "$category" "$message" >>"$findings_file"
+    emit_severity=$1
+    emit_category=$2
+    emit_message=$3
+    printf '[%s] %s: %s\n' "$emit_severity" "$emit_category" "$emit_message" >>"$findings_file"
 }
 
 # Resolve a severity from the manifest with ERROR fallback.
@@ -59,8 +59,8 @@ emit() {
 # @param category Add-on category name.
 # @return Writes the severity string.
 severity_of() {
-    category=$1
-    manifest_string "M.get('$category', {}).get('severity', 'ERROR')"
+    severity_category=$1
+    manifest_string "M.get('$severity_category', {}).get('severity', 'ERROR')"
 }
 
 # Resolve a message template from the manifest with a fallback.
@@ -70,10 +70,10 @@ severity_of() {
 # @param fallback Fallback message template.
 # @return Writes the message template.
 message_of() {
-    category=$1
-    key=$2
-    fallback=$3
-    python3 - "$MANIFEST" "$category" "$key" "$fallback" <<'PYEOF'
+    message_category=$1
+    message_key=$2
+    message_fallback=$3
+    python3 - "$MANIFEST" "$message_category" "$message_key" "$message_fallback" <<'PYEOF'
 import json
 import sys
 path = sys.argv[1]
@@ -95,14 +95,14 @@ PYEOF
 # @param path Relative path for {path} substitution.
 # @return Appends one line to the findings buffer.
 emit_path_message() {
-    severity=$1
-    category=$2
-    key=$3
-    fallback=$4
-    path=$5
-    template=$(message_of "$category" "$key" "$fallback")
-    message=$(printf '%s\n' "$template" | sed "s|{path}|$path|g")
-    emit "$severity" "$category" "$message"
+    path_message_severity=$1
+    path_message_category=$2
+    path_message_key=$3
+    path_message_fallback=$4
+    path_message_path=$5
+    path_message_template=$(message_of "$path_message_category" "$path_message_key" "$path_message_fallback")
+    path_message_text=$(printf '%s\n' "$path_message_template" | sed "s|{path}|$path_message_path|g")
+    emit "$path_message_severity" "$path_message_category" "$path_message_text"
 }
 
 # Resolve whether an add-on is enabled (default true).
@@ -110,8 +110,8 @@ emit_path_message() {
 # @param category Add-on category name.
 # @return Writes 1 when enabled, 0 otherwise.
 enabled_of() {
-    category=$1
-    manifest_string "1 if M.get('$category', {}).get('enabled', True) else 0"
+    enabled_category=$1
+    manifest_string "1 if M.get('$enabled_category', {}).get('enabled', True) else 0"
 }
 
 # Return whether a path is an allowed root contract symlink.
@@ -225,10 +225,16 @@ check_file_presence() {
     fi
     sev=$(severity_of "$category")
     manifest_query "M['$category']['parameters']['paths']" | while IFS= read -r path; do
-        if [ -n "$path" ] && [ -L "$path" ] && ! is_allowed_file_symlink "$path"; then
+        if ! is_safe_manifest_path "$path"; then
+            emit "$sev" "$category" "$path is not a safe relative file path"
+        elif [ -L "$path" ] && is_allowed_file_symlink "$path"; then
+            if [ ! -f "$path" ]; then
+                emit "$sev" "$category" "missing file: $path"
+            fi
+        elif ! is_safe_manifest_path_symlinks "$path"; then
             symlink_sev=$(severity_of symlinkSafety)
             emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$path"
-        elif [ -n "$path" ] && [ ! -f "$path" ]; then
+        elif [ ! -f "$path" ]; then
             emit "$sev" "$category" "missing file: $path"
         fi
     done
@@ -245,10 +251,12 @@ check_directory_presence() {
     fi
     sev=$(severity_of "$category")
     manifest_query "M['$category']['parameters']['paths']" | while IFS= read -r path; do
-        if [ -n "$path" ] && [ -L "$path" ]; then
+        if ! is_safe_manifest_path "$path"; then
+            emit "$sev" "$category" "$path is not a safe relative directory path"
+        elif ! is_safe_manifest_path_symlinks "$path"; then
             symlink_sev=$(severity_of symlinkSafety)
             emit_path_message "$symlink_sev" symlinkSafety directoryNotAllowed 'symlink directory is not allowed: {path}' "$path"
-        elif [ -n "$path" ] && [ ! -d "$path" ]; then
+        elif [ ! -d "$path" ]; then
             emit "$sev" "$category" "missing directory: $path"
         fi
     done
@@ -266,10 +274,12 @@ check_empty_directory_placeholders() {
     fi
     sev=$(severity_of "$category")
     manifest_query "M['$category']['parameters']['directories']" | while IFS= read -r directory; do
-        if [ -n "$directory" ] && [ -L "$directory" ]; then
+        if ! is_safe_manifest_path "$directory"; then
+            emit "$sev" "$category" "$directory is not a safe relative directory path"
+        elif ! is_safe_manifest_path_symlinks "$directory"; then
             symlink_sev=$(severity_of symlinkSafety)
             emit_path_message "$symlink_sev" symlinkSafety directoryNotAllowed 'symlink directory is not allowed: {path}' "$directory"
-        elif [ -n "$directory" ] && [ -d "$directory" ]; then
+        elif [ -d "$directory" ]; then
             if [ -z "$(find "$directory" -mindepth 1 -print -quit)" ]; then
                 emit "$sev" "$category" "empty directory must keep placeholder or real files: $directory"
             fi
@@ -290,6 +300,7 @@ check_hook_shebang() {
     expected=$(manifest_string "M['$category']['parameters']['expectedShebang']")
     manifest_query "M['$category']['parameters']['hooks']" | while IFS= read -r hook; do
         if [ -z "$hook" ]; then
+            emit "$sev" "$category" "$hook is not a safe relative hook path"
             continue
         fi
         if ! is_safe_manifest_path "$hook"; then
@@ -322,6 +333,7 @@ check_hook_executable() {
     sev=$(severity_of "$category")
     manifest_query "M['$category']['parameters']['hooks']" | while IFS= read -r hook; do
         if [ -z "$hook" ]; then
+            emit "$sev" "$category" "$hook is not a safe relative hook path"
             continue
         fi
         if ! is_safe_manifest_path "$hook"; then
@@ -370,30 +382,32 @@ check_hook_command() {
     sev=$(severity_of "$category")
     pre_push=$(manifest_string "M['$category']['parameters']['prePushHook']")
     pre_commit=$(manifest_string "M['$category']['parameters']['preCommitHook']")
-    declared=$(declared_hook_command "$pre_push")
     if ! is_safe_manifest_path "$pre_push"; then
         emit "$sev" "$category" "$pre_push is not a safe relative hook path"
     elif ! is_safe_manifest_path_symlinks "$pre_push"; then
         symlink_sev=$(severity_of symlinkSafety)
         emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$pre_push"
-    elif [ -f "$pre_push" ] && [ -z "$declared" ]; then
-        emit "$sev" "$category" "$pre_push must declare Harness validation command"
-    elif [ -n "$declared" ]; then
-        allowed=0
-        manifest_query "M['$category']['parameters']['allowedCommands']" | while IFS= read -r command; do
-            if [ "$command" = "$declared" ]; then
-                printf '%s\n' allowed >"$findings_file.allowed"
+    else
+        declared=$(declared_hook_command "$pre_push")
+        if [ -f "$pre_push" ] && [ -z "$declared" ]; then
+            emit "$sev" "$category" "$pre_push must declare Harness validation command"
+        elif [ -n "$declared" ]; then
+            allowed=0
+            manifest_query "M['$category']['parameters']['allowedCommands']" | while IFS= read -r command; do
+                if [ "$command" = "$declared" ]; then
+                    printf '%s\n' allowed >"$findings_file.allowed"
+                fi
+            done
+            if [ -f "$findings_file.allowed" ]; then
+                rm -f "$findings_file.allowed"
+                allowed=1
             fi
-        done
-        if [ -f "$findings_file.allowed" ]; then
-            rm -f "$findings_file.allowed"
-            allowed=1
-        fi
-        if [ "$allowed" -ne 1 ]; then
-            emit "$sev" "$category" "$pre_push declares unsupported validation command: $declared"
-        fi
-        if ! grep -Fxq "$declared" "$pre_push"; then
-            emit "$sev" "$category" "$pre_push must run the declared validation command"
+            if [ "$allowed" -ne 1 ]; then
+                emit "$sev" "$category" "$pre_push declares unsupported validation command: $declared"
+            fi
+            if ! grep -Fxq "$declared" "$pre_push"; then
+                emit "$sev" "$category" "$pre_push must run the declared validation command"
+            fi
         fi
     fi
     if ! is_safe_manifest_path "$pre_commit"; then
@@ -484,7 +498,8 @@ check_scaffold_leaks() {
         return 0
     fi
     sev=$(severity_of "$category")
-    python3 - "$MANIFEST" "$category" "$sev" >>"$findings_file" <<'PYEOF'
+    symlink_sev=$(severity_of symlinkSafety)
+    python3 - "$MANIFEST" "$category" "$sev" "$symlink_sev" >>"$findings_file" <<'PYEOF'
 import json
 import re
 import sys
@@ -492,6 +507,7 @@ from pathlib import Path
 manifest_path = sys.argv[1]
 category = sys.argv[2]
 severity = sys.argv[3]
+symlink_severity = sys.argv[4]
 with open(manifest_path, 'r', encoding='utf-8') as fh:
     manifest = json.load(fh)
 spec = manifest[category]['parameters']
@@ -529,19 +545,32 @@ def is_excluded(path_str):
     return False
 def is_safe_relative_root(value):
     path = Path(value)
-    return value != '' and not path.is_absolute() and '..' not in path.parts
+    return value != '' and not value.startswith('-') and not path.is_absolute() and '..' not in path.parts
+
+def has_symlink_component(path):
+    probe = Path()
+    for part in path.parts:
+        probe = probe / part
+        if probe.is_symlink():
+            return True
+    return False
 files = []
 for base in bases:
     if not isinstance(base, str) or not is_safe_relative_root(base):
+        print(f"[{severity}] {category}: {base} is not a safe relative scan root")
         continue
     base_path = Path(base)
-    if not base_path.exists() or base_path.is_symlink():
+    if has_symlink_component(base_path):
+        print(f"[{symlink_severity}] symlinkSafety: symlink scan root is not allowed: {base}")
+        continue
+    if not base_path.exists():
         continue
     if base_path.is_file():
         files.append(base_path)
         continue
     for entry in base_path.rglob('*'):
         if entry.is_symlink():
+            print(f"[{symlink_severity}] symlinkSafety: symlink scan entry is not allowed: {entry}")
             continue
         if entry.is_file():
             files.append(entry)
@@ -574,7 +603,9 @@ check_unchecked_tasks() {
     sev=$(severity_of "$category")
     directory=$(manifest_string "M['$category']['parameters']['directory']")
     pattern=$(manifest_string "M['$category']['parameters']['uncheckedTaskPattern']")
-    if [ -L "$directory" ]; then
+    if ! is_safe_manifest_path "$directory"; then
+        emit "$sev" "$category" "$directory is not a safe relative directory path"
+    elif ! is_safe_manifest_path_symlinks "$directory"; then
         symlink_sev=$(severity_of symlinkSafety)
         emit_path_message "$symlink_sev" symlinkSafety directoryNotAllowed 'symlink directory is not allowed: {path}' "$directory"
     elif [ -d "$directory" ]; then
