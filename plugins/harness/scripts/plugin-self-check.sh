@@ -1384,7 +1384,7 @@ JAVAEOF
         exit 1
     fi
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'silentCatch: src/main/java/fixture/SilentFixture.java:' 'maven silent catch structural fixture' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'src/main/java/fixture/SilentFixture[.]java' 'silentCatch' 'maven silent catch structural fixture' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
@@ -1438,7 +1438,7 @@ JAVAEOF
         exit 1
     fi
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'importOverFqn: src/main/java/fixture/ImportFixture.java:' 'maven import-over-fqn type reference fixture' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'src/main/java/fixture/ImportFixture[.]java' 'importOverFqn' 'maven import-over-fqn type reference fixture' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
