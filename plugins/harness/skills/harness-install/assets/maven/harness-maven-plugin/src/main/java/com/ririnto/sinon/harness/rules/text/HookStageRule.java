@@ -35,11 +35,11 @@ public enum HookStageRule implements HarnessCheckRule {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
-        final String markerTemplate = catNode.get("parameters").get("markerTemplate").asText();
+        final String markerTemplate = catNode.get("parameters").get("markerTemplate").asString();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return Stream.ofNullable(catNode.get("parameters").get("stages"))
                 .flatMap(s -> s.propertyNames().stream()
-                        .flatMap(hookName -> validateStage(root, hookName, s.get(hookName).asText(), markerTemplate, severity).stream()))
+                        .flatMap(hookName -> validateStage(root, hookName, s.get(hookName).asString(), markerTemplate, severity).stream()))
                 .toList();
     }
 

@@ -1,6 +1,4 @@
 [versions]
-kotlin = "2.3.21"
-kotlin-serialization-plugin = "2.3.21"
 kotlinx-serialization = "1.11.0"
 kotlin-compiler-embeddable = "2.3.21"
 javaparser = "3.28.1"
@@ -16,4 +14,3 @@ kotlinx-serialization-bom = { module = "org.jetbrains.kotlinx:kotlinx-serializat
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json" }
 
 [plugins]
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-serialization-plugin" }

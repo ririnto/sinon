@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Tech-debt-tracker.md records Sinon repository debt with retirement criteria: work the maintainers consciously chose not to do right now, and the specific condition under which each item should be reopened. This file is repository-owned and separate from the harness-installed tracker template under `plugins/harness/skills/harness-install/assets/common/docs/exec-plans/tech-debt-tracker.md`.
+Tech-debt-tracker.md records Sinon repository debt with retirement criteria: work the maintainers consciously chose not to do right now, and the specific condition under which each item should be reopened. This file is plugin-owned by `plugins/harness/` and separate from the harness-installed tracker template under `plugins/harness/skills/harness-install/assets/common/docs/exec-plans/tech-debt-tracker.md`.
 
 ## Entries
 
@@ -52,4 +52,4 @@ Tech-debt-tracker.md records Sinon repository debt with retirement criteria: wor
 ## Required Evidence
 
 - Cite the PR thread, review comment, or design-doc decision that records the original deferral.
-- When an entry is retired, link to the PR or completed `docs/exec-plans/completed/` file that retired it.
+- When an entry is retired, link to the PR or completed execution plan under `plugins/harness/docs/exec-plans/completed/` that retired it.

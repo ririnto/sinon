@@ -1,7 +1,7 @@
 ---
 name: spring-statemachine
 description: >-
-  Model explicit application lifecycles with Spring Statemachine states, events, guards, actions, extended state, persistence, and state-machine tests.
+  Model explicit application lifecycles with Spring Statemachine states, events, guards, actions, extended state, persistence, and state-machine tests. Use when defining state machine factories, configuring guards and actions on transitions, persisting machine state to a repository, or writing state-machine integration tests.
 metadata:
   title: "Spring Statemachine"
   official-project-url: "https://spring.io/projects/spring-statemachine"
@@ -9,8 +9,6 @@ metadata:
     - "https://docs.spring.io/spring-statemachine/docs/current/reference/"
   version: "4.0.1"
 ---
-
-Use this skill when modeling explicit application lifecycles with Spring Statemachine, including states, events, guards, actions, extended state, persistence boundaries, and state-machine tests.
 
 The current stable Spring Statemachine line is 4.0.1. The official project README marks the project as maintenance mode, so prefer the ordinary, well-supported configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
 

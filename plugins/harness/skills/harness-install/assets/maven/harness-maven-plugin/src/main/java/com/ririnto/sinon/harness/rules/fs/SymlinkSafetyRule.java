@@ -41,7 +41,7 @@ public enum SymlinkSafetyRule implements HarnessCheckRule {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
         final Set<String> allowedNames = StreamSupport.stream(manifest.get(CATEGORY).get("parameters").get("allowedSymlinkPairs").spliterator(), false)
-                .flatMap(pair -> Stream.of(pair.get(0).asText(), pair.get(1).asText()))
+                .flatMap(pair -> Stream.of(pair.get(0).asString(), pair.get(1).asString()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return List.of("AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md", "docs", ".claude", ".github").stream()

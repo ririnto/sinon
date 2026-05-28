@@ -1,7 +1,7 @@
 ---
 name: command-authoring
 description: >-
-  Create or refactor Claude Code commands and prompt files with clear arguments, frontmatter, reusable prompt structure, and bounded tool expectations. Use this skill when authoring or reviewing `commands/*.md` files offline.
+  Create or refactor Claude Code commands and prompt files with clear arguments, frontmatter, reusable prompt structure, and bounded tool expectations. Use when authoring or reviewing `commands/*.md` files offline.
 ---
 
 # Command Authoring

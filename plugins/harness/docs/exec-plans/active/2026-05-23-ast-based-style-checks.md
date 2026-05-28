@@ -638,7 +638,7 @@ Rule class를 모아 관리할 전용 하위 네임스페이스를 둠. Python/T
 
 ### [ ] Phase 8: Plan completion
 
-- [ ] Task 8.1 — 본 plan을 `docs/exec-plans/completed/`로 이동
+- [ ] Task 8.1 — 본 plan을 `plugins/harness/docs/exec-plans/completed/`로 이동
 
 ## Validation
 

@@ -38,9 +38,9 @@ public enum HookCommandRule implements HarnessCheckRule {
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
         final JsonNode allowedCmds = catNode.get("parameters").get("allowedCommands");
-        final String expectedCmd = allowedCmds == null || allowedCmds.size() == 0 ? "" : allowedCmds.get(0).asText();
+        final String expectedCmd = allowedCmds == null || allowedCmds.size() == 0 ? "" : allowedCmds.get(0).asString();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
-        final String prePushPath = catNode.get("parameters").get("prePushHook").asText();
+        final String prePushPath = catNode.get("parameters").get("prePushHook").asString();
         final Path prePush = root.resolve(prePushPath);
         final List<Finding> prePushIssues = Stream.of(prePush)
                 .filter(p -> HarnessCheckHelper.isSafeRegularFile(root, p))
@@ -61,7 +61,7 @@ public enum HookCommandRule implements HarnessCheckRule {
                 })
                 .filter(Objects::nonNull)
                 .toList();
-        final String preCommitPath = catNode.get("parameters").get("preCommitHook").asText();
+        final String preCommitPath = catNode.get("parameters").get("preCommitHook").asString();
         final Path preCommit = root.resolve(preCommitPath);
         final List<Finding> preCommitIssues = validatePreCommitHook(root, severity, preCommit);
         return Stream.concat(prePushIssues.stream(), preCommitIssues.stream()).toList();

@@ -39,6 +39,9 @@
     "uncheckedTasks": {
       "$ref": "#/$defs/addOnWithUncheckedTasks"
     },
+    "symlinkSafety": {
+      "$ref": "#/$defs/addOnWithSymlinkSafety"
+    },
     "shellcheck": {
       "$ref": "#/$defs/addOnWithShellcheck"
     },
@@ -408,6 +411,53 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {}
+        }
+      }
+    },
+    "addOnWithSymlinkSafety": {
+      "type": "object",
+      "description": "Add-on with typed allowed symlink-pair parameters.",
+      "required": [
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "messages": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "allowedSymlinkPairs"
+          ],
+          "properties": {
+            "allowedSymlinkPairs": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": "Bidirectional root-level symlink pairs allowed by the harness contract."
+            }
+          }
         }
       }
     },

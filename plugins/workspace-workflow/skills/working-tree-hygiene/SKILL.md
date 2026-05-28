@@ -1,25 +1,14 @@
 ---
 name: working-tree-hygiene
 description: >-
-  Inspect, maintain, and verify clean working trees before starting work or publishing changes.
+  Inspect, maintain, and verify clean working trees before starting work or publishing changes. Use when checking staged or unstaged status, stashing changes, classifying untracked files, verifying upstream sync, or establishing a baseline hygiene state before or after a task.
 ---
 
 # Working Tree Hygiene
 
-## Overview
+## Goal
 
-Use this skill to establish and maintain the discipline of clean, predictable working trees. A clean working tree is one with all changes committed or stashed, all branches in a known sync state with their upstreams, and no untracked files blocking work. This skill covers the inspection, classification, and remediation steps that occur before starting a task and after completing one.
-
-## Use This Skill When
-
-- You need to verify a working tree is clean before starting a new task.
-- You need to stash and restore changes to isolate work.
-- You need to inspect staged vs unstaged changes before deciding how to proceed.
-- You need to check whether a branch is ahead of or behind its upstream.
-- You need to classify untracked files and decide whether they should be committed, ignored, or removed.
-- You need to establish a baseline hygiene state when picking up a worktree or branch after time away.
-- You need to ensure a branch is push-able before attempting publication.
-- Do not use this skill when the main task is resolving merge conflicts, rewriting history, or cherry-picking specific commits.
+Establish and maintain the discipline of clean, predictable working trees. A clean working tree is one with all changes committed or stashed, all branches in a known sync state with their upstreams, and no untracked files blocking work. This skill covers the inspection, classification, and remediation steps that occur before starting a task and after completing one.
 
 ## Common-Case Workflow
 

@@ -56,6 +56,6 @@ Split styles when the response contract diverges. Do not overload one style with
 
 The tradeoff is operational overhead: monitors need a clear observed subsystem, persistent state only when necessary, and a reason to run in the background instead of reacting once.
 
-The starter monitor (`assets/monitors.json` + `assets/monitors/watch.sh`) runs a local shell script from `${CLAUDE_PLUGIN_ROOT}` and writes timestamped state under `${CLAUDE_PLUGIN_DATA}/monitor-state/`. Extend it by changing the command, adding more monitor entries, or replacing the shell script with another local executable.
+The starter monitor (`assets/monitors/monitors.json` + `assets/monitors/watch.sh`) runs a local shell script from `${CLAUDE_PLUGIN_ROOT}` and writes timestamped state under `${CLAUDE_PLUGIN_DATA}/monitor-state/`. The monitor file is a top-level JSON array and is published from `plugin.json` as `"experimental": { "monitors": "./monitors/monitors.json" }`. Extend it by changing the command, adding more monitor entries, or replacing the shell script with another local executable.
 
 If the condition is transient, event-driven, or cheap to check on demand, prefer the simpler surface and leave monitors out.

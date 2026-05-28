@@ -37,7 +37,7 @@ public enum CiHookCommandParityRule implements HarnessCheckRule {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
-        final String refHook = catNode.get("parameters").get("referenceHook").asText();
+        final String refHook = catNode.get("parameters").get("referenceHook").asString();
         final Path refPath = root.resolve(refHook);
         if (!HarnessCheckHelper.isSafeRegularFile(root, refPath)) {
             return List.of();

@@ -6,7 +6,7 @@ import type { Finding } from "./rules/harness-check-rule";
 
 /**
  * Renders a collection of validation findings in structured diagnostic format.
- * Handles both new findings with location/fix metadata and legacy findings with only severity/category/message.
+ * Handles both findings with location/fix metadata and locationless findings with only severity/category/message.
  *
  * @param root Absolute filesystem root for resolving relative file paths.
  * @param findings Read-only array of validation findings to render.

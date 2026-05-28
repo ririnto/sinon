@@ -1,7 +1,7 @@
 ---
 name: reactor-testing
 description: >-
-  Test Reactor publishers with reactor-test using StepVerifier, virtual time, TestPublisher, and PublisherProbe.
+  Test Reactor publishers with reactor-test using StepVerifier, virtual time, TestPublisher, and PublisherProbe. Use when writing `StepVerifier` assertions for `Flux` or `Mono`, testing time-based operators with virtual time, controlling upstream emission with `TestPublisher`, or verifying alternate branch subscription with `PublisherProbe`.
 metadata:
   title: "Reactor Testing"
   official_project_url: "https://projectreactor.io/docs/core/3.7.18/reference/testing.html"

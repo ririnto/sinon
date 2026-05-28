@@ -11,7 +11,6 @@ Detects catch handlers that silently swallow exceptions:
 - Missing configured logging call
 """
 
-import re
 import sys
 
 from collections.abc import Iterable
@@ -106,12 +105,11 @@ class SilentCatchRule(HarnessCheckRule):
                                     )
                                 )
                                 continue
-                    body_text = _body_text(handler)
                     param_name = _handler_param_name(handler)
-                    has_raise = "raise" in body_text
-                    if not has_raise and not any(
-                        re.search(pattern, body_text) for pattern in allowed_logging
-                    ):
+                    inspector = _HandlerBodyInspector(param_name, allowed_logging)
+                    handler.body.visit(inspector)
+                    has_raise = inspector.has_raise
+                    if not has_raise and not inspector.has_logging_call:
                         self.findings.append(
                             Finding(
                                 severity,
@@ -129,7 +127,7 @@ class SilentCatchRule(HarnessCheckRule):
                                 ),
                             )
                         )
-                    elif param_name is not None and not uses_param and not has_raise:
+                    elif param_name is not None and not inspector.uses_param and not has_raise:
                         self.findings.append(
                             Finding(
                                 severity,
@@ -175,19 +173,59 @@ class SilentCatchRule(HarnessCheckRule):
         params = section.get("parameters", {})
         tokens = params.get("allowedLoggingCalls")
         return (
-            list(tokens)
+            [_logging_token_name(token) for token in tokens]
             if tokens
-            else [
-                r"\blogging\b",
-                r"\blogger\b",
-                r"\blog\b",
-            ]
+            else ["logging", "logger", "log"]
         )
 
 
-def _body_text(handler: cst.ExceptHandler) -> str:
-    """Extract the text content of a handler body for pattern matching."""
-    return str(handler.body)
+class _HandlerBodyInspector(cst.CSTVisitor):
+    """Inspect a handler body structurally for handling signals."""
+
+    def __init__(self, param_name: str | None, allowed_logging: list[str]) -> None:
+        self.param_name = param_name
+        self.allowed_logging = set(allowed_logging)
+        self.has_raise = False
+        self.has_logging_call = False
+        self.uses_param = False
+
+    def visit_Raise(self, node: cst.Raise) -> bool:
+        """Record an actual raise statement."""
+        self.has_raise = True
+        return False
+
+    def visit_Name(self, node: cst.Name) -> None:
+        """Record an actual reference to the exception parameter."""
+        if self.param_name is not None and node.value == self.param_name:
+            self.uses_param = True
+
+    def visit_Call(self, node: cst.Call) -> bool:
+        """Record configured logging calls without scanning source text."""
+        call_name = _call_name(node.func)
+        if call_name is not None and _matches_logging_call(call_name, self.allowed_logging):
+            self.has_logging_call = True
+        return True
+
+
+def _logging_token_name(token: str) -> str:
+    """Convert common word-boundary logging patterns to identifier tokens."""
+    return token.replace(r"\b", "").replace("\\", "")
+
+
+def _matches_logging_call(call_name: str, allowed_logging: set[str]) -> bool:
+    """Check a dotted call name against configured logging identifiers."""
+    parts = call_name.split(".")
+    return any(token in parts or call_name == token or call_name.startswith(f"{token}.") for token in allowed_logging)
+
+
+def _call_name(node: cst.BaseExpression) -> str | None:
+    """Return the dotted call target name for Name and Attribute calls."""
+    if isinstance(node, cst.Name):
+        return node.value
+    if isinstance(node, cst.Attribute):
+        parent_name = _call_name(node.value)
+        return f"{parent_name}.{node.attr.value}" if parent_name is not None else node.attr.value
+    return None
 
 
 def _handler_param_name(handler: cst.ExceptHandler) -> str | None:

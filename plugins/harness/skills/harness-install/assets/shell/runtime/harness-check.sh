@@ -63,6 +63,48 @@ severity_of() {
     manifest_string "M.get('$category', {}).get('severity', 'ERROR')"
 }
 
+# Resolve a message template from the manifest with a fallback.
+#
+# @param category Add-on category name.
+# @param key Message key.
+# @param fallback Fallback message template.
+# @return Writes the message template.
+message_of() {
+    category=$1
+    key=$2
+    fallback=$3
+    python3 - "$MANIFEST" "$category" "$key" "$fallback" <<'PYEOF'
+import json
+import sys
+path = sys.argv[1]
+category = sys.argv[2]
+key = sys.argv[3]
+fallback = sys.argv[4]
+with open(path, 'r', encoding='utf-8') as fh:
+    M = json.load(fh)
+print(M.get(category, {}).get('messages', {}).get(key, fallback))
+PYEOF
+}
+
+# Emit a path message resolved from the manifest.
+#
+# @param severity ERROR / WARN / INFO.
+# @param category Add-on category name.
+# @param key Message key.
+# @param fallback Fallback message template.
+# @param path Relative path for {path} substitution.
+# @return Appends one line to the findings buffer.
+emit_path_message() {
+    severity=$1
+    category=$2
+    key=$3
+    fallback=$4
+    path=$5
+    template=$(message_of "$category" "$key" "$fallback")
+    message=$(printf '%s\n' "$template" | sed "s|{path}|$path|g")
+    emit "$severity" "$category" "$message"
+}
+
 # Resolve whether an add-on is enabled (default true).
 #
 # @param category Add-on category name.
@@ -70,6 +112,48 @@ severity_of() {
 enabled_of() {
     category=$1
     manifest_string "1 if M.get('$category', {}).get('enabled', True) else 0"
+}
+
+# Return whether a path is an allowed root contract symlink.
+#
+# @param path Relative path to check.
+# @return Returns 0 when AGENTS.md and CLAUDE.md point to each other safely.
+is_allowed_root_contract_symlink() {
+    path=$1
+    case "$path" in
+        AGENTS.md)
+            if [ ! -L "$path" ]; then
+                return 1
+            fi
+            target=$(readlink "$path") || return 1
+            if [ "$target" = CLAUDE.md ] && [ -f CLAUDE.md ] && [ ! -L CLAUDE.md ]; then
+                return 0
+            fi
+            return 1
+            ;;
+        CLAUDE.md)
+            if [ ! -L "$path" ]; then
+                return 1
+            fi
+            target=$(readlink "$path") || return 1
+            if [ "$target" = AGENTS.md ] && [ -f AGENTS.md ] && [ ! -L AGENTS.md ]; then
+                return 0
+            fi
+            return 1
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# Return whether a required file symlink is allowed by the root contract.
+#
+# @param path Relative path to check.
+# @return Returns 0 when the symlink may be treated as a required file.
+is_allowed_file_symlink() {
+    path=$1
+    is_allowed_root_contract_symlink "$path"
 }
 
 # Validate that every parameters.paths entry exists as a regular file.
@@ -83,7 +167,10 @@ check_file_presence() {
     fi
     sev=$(severity_of "$category")
     manifest_query "M['$category']['parameters']['paths']" | while IFS= read -r path; do
-        if [ -n "$path" ] && [ ! -f "$path" ]; then
+        if [ -n "$path" ] && [ -L "$path" ] && ! is_allowed_file_symlink "$path"; then
+            symlink_sev=$(severity_of symlinkSafety)
+            emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$path"
+        elif [ -n "$path" ] && [ ! -f "$path" ]; then
             emit "$sev" "$category" "missing file: $path"
         fi
     done
@@ -100,7 +187,10 @@ check_directory_presence() {
     fi
     sev=$(severity_of "$category")
     manifest_query "M['$category']['parameters']['paths']" | while IFS= read -r path; do
-        if [ -n "$path" ] && [ ! -d "$path" ]; then
+        if [ -n "$path" ] && [ -L "$path" ]; then
+            symlink_sev=$(severity_of symlinkSafety)
+            emit_path_message "$symlink_sev" symlinkSafety directoryNotAllowed 'symlink directory is not allowed: {path}' "$path"
+        elif [ -n "$path" ] && [ ! -d "$path" ]; then
             emit "$sev" "$category" "missing directory: $path"
         fi
     done
@@ -118,7 +208,10 @@ check_empty_directory_placeholders() {
     fi
     sev=$(severity_of "$category")
     manifest_query "M['$category']['parameters']['directories']" | while IFS= read -r directory; do
-        if [ -n "$directory" ] && [ -d "$directory" ]; then
+        if [ -n "$directory" ] && [ -L "$directory" ]; then
+            symlink_sev=$(severity_of symlinkSafety)
+            emit_path_message "$symlink_sev" symlinkSafety directoryNotAllowed 'symlink directory is not allowed: {path}' "$directory"
+        elif [ -n "$directory" ] && [ -d "$directory" ]; then
             if [ -z "$(find "$directory" -mindepth 1 -print -quit)" ]; then
                 emit "$sev" "$category" "empty directory must keep placeholder or real files: $directory"
             fi
@@ -138,7 +231,10 @@ check_hook_shebang() {
     sev=$(severity_of "$category")
     expected=$(manifest_string "M['$category']['parameters']['expectedShebang']")
     manifest_query "M['$category']['parameters']['hooks']" | while IFS= read -r hook; do
-        if [ -n "$hook" ] && [ -f "$hook" ]; then
+        if [ -n "$hook" ] && [ -L "$hook" ]; then
+            symlink_sev=$(severity_of symlinkSafety)
+            emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$hook"
+        elif [ -n "$hook" ] && [ -f "$hook" ]; then
             first=$(sed -n '1p' "$hook")
             if [ "$first" != "$expected" ]; then
                 emit "$sev" "$category" "$hook must start with $expected"
@@ -158,8 +254,35 @@ check_hook_executable() {
     fi
     sev=$(severity_of "$category")
     manifest_query "M['$category']['parameters']['hooks']" | while IFS= read -r hook; do
-        if [ -n "$hook" ] && [ -f "$hook" ] && [ ! -x "$hook" ]; then
+        if [ -n "$hook" ] && [ -L "$hook" ]; then
+            symlink_sev=$(severity_of symlinkSafety)
+            emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$hook"
+        elif [ -n "$hook" ] && [ -f "$hook" ] && [ ! -x "$hook" ]; then
             emit "$sev" "$category" "$hook must be executable"
+        fi
+    done
+}
+
+# Validate that protected harness paths are not symlinks.
+#
+# @return Emits findings for symlinked scan roots and scan entries.
+check_symlink_safety() {
+    category=symlinkSafety
+    enabled=$(enabled_of "$category")
+    if [ "$enabled" -ne 1 ]; then
+        return 0
+    fi
+    sev=$(severity_of "$category")
+    for base in .claude docs .github AGENTS.md CLAUDE.md ARCHITECTURE.md; do
+        if [ -L "$base" ]; then
+            if ! is_allowed_root_contract_symlink "$base"; then
+                emit_path_message "$sev" "$category" scanRootNotAllowed 'symlink scan root is not allowed: {path}' "$base"
+            fi
+        elif [ -d "$base" ]; then
+            find "$base" -type l | while IFS= read -r symlink_path; do
+                path=${symlink_path#./}
+                emit_path_message "$sev" "$category" pathNotAllowed 'symlink path is not allowed: {path}' "$path"
+            done
         fi
     done
 }
@@ -264,7 +387,10 @@ check_unchecked_tasks() {
     sev=$(severity_of "$category")
     directory=$(manifest_string "M['$category']['parameters']['directory']")
     pattern=$(manifest_string "M['$category']['parameters']['uncheckedTaskPattern']")
-    if [ -d "$directory" ]; then
+    if [ -L "$directory" ]; then
+        symlink_sev=$(severity_of symlinkSafety)
+        emit_path_message "$symlink_sev" symlinkSafety directoryNotAllowed 'symlink directory is not allowed: {path}' "$directory"
+    elif [ -d "$directory" ]; then
         find "$directory" -type f -name '*.md' | while IFS= read -r plan_file; do
             if grep -qE "$pattern" "$plan_file"; then
                 emit "$sev" "$category" "completed plan has unchecked tasks: $plan_file"
@@ -309,6 +435,7 @@ check_directory_presence
 check_empty_directory_placeholders
 check_hook_shebang
 check_hook_executable
+check_symlink_safety
 check_scaffold_leaks
 check_unchecked_tasks
 check_shellcheck

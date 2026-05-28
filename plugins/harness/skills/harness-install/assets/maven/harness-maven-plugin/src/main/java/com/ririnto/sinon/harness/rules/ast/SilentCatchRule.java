@@ -7,7 +7,12 @@ import com.ririnto.sinon.harness.Finding;
 import org.apache.maven.plugin.MojoExecutionException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.stmt.CatchClause;
+import com.github.javaparser.ast.stmt.ThrowStmt;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -44,15 +49,48 @@ public enum SilentCatchRule implements AstRule {
         try {
             final CompilationUnit cu = StaticJavaParser.parse(file);
             return cu.findAll(CatchClause.class).stream()
-                    .filter(catchClause -> {
-                        final String catchParam = catchClause.getParameter().getNameAsString();
-                        final String bodyText = catchClause.getBody().toString();
-                        return !bodyText.contains(catchParam) && !bodyText.contains("throw ") && !bodyText.matches("(?s).*\\b(getLog|logger|log)\\s*\\..*");
-                    })
+                    .filter(catchClause -> !usesCatchParameter(catchClause) && !hasThrow(catchClause) && !hasLoggingCall(catchClause))
                     .map(catchClause -> Finding.of(severity, CATEGORY, root.relativize(file) + ":" + catchClause.getBegin().map(p -> p.line).orElse(-1) + ": silent catch block"))
                     .toList();
         } catch (IOException e) {
             return List.of(Finding.of(severity, CATEGORY, "failed to parse " + root.relativize(file) + ": " + e.getMessage()));
         }
+    }
+
+    private boolean usesCatchParameter(CatchClause catchClause) {
+        final String catchParam = catchClause.getParameter().getNameAsString();
+        return catchClause.getBody().findAll(NameExpr.class).stream()
+                .anyMatch(expr -> expr.getNameAsString().equals(catchParam));
+    }
+
+    private boolean hasThrow(CatchClause catchClause) {
+        return !catchClause.getBody().findAll(ThrowStmt.class).isEmpty();
+    }
+
+    private boolean hasLoggingCall(CatchClause catchClause) {
+        return catchClause.getBody().findAll(MethodCallExpr.class).stream()
+                .anyMatch(this::isLoggingCall);
+    }
+
+    private boolean isLoggingCall(MethodCallExpr expr) {
+        return expr.getScope()
+                .map(this::isLoggingTarget)
+                .orElse(false);
+    }
+
+    private boolean isLoggingTarget(Expression expr) {
+        if (expr.isNameExpr()) {
+            final String name = expr.asNameExpr().getNameAsString();
+            return "logger".equals(name) || "log".equals(name);
+        }
+        if (expr.isFieldAccessExpr()) {
+            final FieldAccessExpr field = expr.asFieldAccessExpr();
+            return "logger".equals(field.getNameAsString()) || "log".equals(field.getNameAsString()) || isLoggingTarget(field.getScope());
+        }
+        if (expr.isMethodCallExpr()) {
+            final MethodCallExpr call = expr.asMethodCallExpr();
+            return "getLog".equals(call.getNameAsString()) || call.getScope().map(this::isLoggingTarget).orElse(false);
+        }
+        return false;
     }
 }

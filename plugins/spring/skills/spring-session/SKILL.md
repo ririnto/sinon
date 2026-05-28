@@ -1,7 +1,7 @@
 ---
 name: spring-session
 description: >-
-  Replace container bound sessions with Spring Session across Spring Security, WebFlux, and WebSocket endpoints using a chosen backing store and customized cookies or headers. Use this skill when replacing container bound sessions with Spring Session, choosing a backing session store, customizing session cookies or headers, and integrating shared sessions with Spring Security, WebFlux, or WebSocket endpoints.
+  Replace container bound sessions with Spring Session across Spring Security, WebFlux, and WebSocket endpoints using a chosen backing store and customized cookies or headers. Use when selecting a session repository (Redis, JDBC, Hazelcast), configuring session id transport, wiring shared sessions into Spring Security, or tuning session timeout and concurrency policy.
 metadata:
   title: "Spring Session"
   official-project-url: "https://spring.io/projects/spring-session"
@@ -9,8 +9,6 @@ metadata:
     - "https://docs.spring.io/spring-session/reference/index.html"
   version: "4.0.3"
 ---
-
-Use this skill when replacing container bound sessions with Spring-managed shared sessions, choosing a backing store, customizing session id transport, or wiring shared sessions into Spring Security and related web behavior.
 
 ## Boundaries
 

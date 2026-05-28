@@ -1,7 +1,7 @@
 ---
 name: jvm-gc-diagnostics
 description: >-
-  Analyze JVM garbage-collection behavior, compare collector tradeoffs, and interpret pause-time and heap-pressure evidence.
+  Analyze JVM garbage-collection behavior, compare collector tradeoffs, and interpret pause-time and heap-pressure evidence. Use when reading GC logs, comparing Serial, Parallel, G1, or ZGC collector options, interpreting JFR GC events, or deciding whether GC is the actual bottleneck before tuning.
 metadata:
   title: JVM GC Diagnostics
   official_project_url: "https://docs.oracle.com/en/java/"
@@ -14,9 +14,9 @@ metadata:
   version: "LTS"
 ---
 
-## Overview
+## Goal
 
-Use this skill to analyze garbage-collection symptoms, collector choices, and runtime evidence using standard JDK and HotSpot tooling. The common case is not switching collectors immediately; it is proving whether GC is actually the bottleneck, then comparing realistic collector options against the deployed Java baseline. Focus on pauses, throughput, allocation pressure, heap behavior, and what is actually available on the running JDK before touching tuning folklore.
+Analyze garbage-collection symptoms, collector choices, and runtime evidence using standard JDK and HotSpot tooling. The common case is not switching collectors immediately; it is proving whether GC is actually the bottleneck, then comparing realistic collector options against the deployed Java baseline. Focus on pauses, throughput, allocation pressure, heap behavior, and what is actually available on the running JDK before touching tuning folklore.
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and anchor collector guidance to the actual deployed runtime instead of assuming the newest LTS behavior.
 

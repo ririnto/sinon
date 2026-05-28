@@ -35,8 +35,8 @@ public enum UncheckedTasksRule implements HarnessCheckRule {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
-        final String directory = catNode.get("parameters").get("directory").asText();
-        final String uncheckedPattern = catNode.get("parameters").get("uncheckedTaskPattern").asText();
+        final String directory = catNode.get("parameters").get("directory").asString();
+        final String uncheckedPattern = catNode.get("parameters").get("uncheckedTaskPattern").asString();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         final Path dirPath = root.resolve(directory);
         final Pattern pattern = Pattern.compile(uncheckedPattern);

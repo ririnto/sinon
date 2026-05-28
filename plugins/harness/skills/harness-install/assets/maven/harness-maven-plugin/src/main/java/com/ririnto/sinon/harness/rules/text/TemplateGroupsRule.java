@@ -33,7 +33,7 @@ public enum TemplateGroupsRule implements HarnessCheckRule {
         final Path root = ctx.root();
         final JsonNode manifest = ctx.manifest().raw();
         final JsonNode catNode = manifest.get(CATEGORY);
-        final String targetRoot = catNode.get("parameters").get("targetRoot").asText();
+        final String targetRoot = catNode.get("parameters").get("targetRoot").asString();
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return HarnessCheckHelper.extractPaths(catNode.get("parameters").get("groups")).stream()
                 .filter(g -> !HarnessCheckHelper.isSafeDirectory(root, root.resolve(targetRoot).resolve(g)))

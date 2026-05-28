@@ -1,7 +1,7 @@
 ---
 name: alert-rule-testing
 description: >-
-  Test Prometheus alert rules against time-series fixtures and compare outputs for correctness and readiness. Use this skill when validating alert rule firing behavior against captured or synthetic metric series before deploying changes to a Prometheus instance, protecting alert regressions via promtool test cases, or needing guidance on test file schema, input_series notation, eval_time placement, and alert state assertions.
+  Test Prometheus alert rules against time-series fixtures and compare outputs for correctness and readiness. Use when validating alert rule firing behavior against captured or synthetic metric series before deploying changes to a Prometheus instance, protecting alert regressions via promtool test cases, or needing guidance on test file schema, input_series notation, eval_time placement, and alert state assertions.
 ---
 
 # Alert Rule Testing

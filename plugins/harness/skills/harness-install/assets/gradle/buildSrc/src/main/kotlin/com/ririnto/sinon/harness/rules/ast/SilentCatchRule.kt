@@ -3,6 +3,7 @@ package com.ririnto.sinon.harness.rules.ast
 import com.ririnto.sinon.harness.ast.AstFinding
 import com.ririnto.sinon.harness.ast.AstFindingRenderer
 import com.ririnto.sinon.harness.ast.AstSupport
+import com.ririnto.sinon.harness.ast.AstSupport.hasDescendantOfType
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.rules.HarnessAstRule
@@ -11,8 +12,12 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.kotlin.psi.KtCatchClause
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtThrowExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import java.nio.file.Path
 
@@ -67,10 +72,9 @@ object SilentCatchRule : HarnessAstRule() {
             if (
                 paramName != null &&
                 body != null &&
-                !body.text.contains(paramName) &&
-                !body.text.contains("throw") &&
-                !body.text.contains("logger") &&
-                !body.text.contains("println")
+                !body.hasDescendantOfType<KtNameReferenceExpression> { expression -> expression.getReferencedName() == paramName } &&
+                !body.hasDescendantOfType<KtThrowExpression>() &&
+                !body.hasDescendantOfType<KtCallExpression> { expression -> isLoggingCall(expression) }
             ) {
                 record(
                     AstFinding(
@@ -80,6 +84,15 @@ object SilentCatchRule : HarnessAstRule() {
                     ),
                 )
             }
+        }
+
+        private fun isLoggingCall(expression: KtCallExpression): Boolean {
+            val callName = expression.calleeExpression?.text ?: return false
+            val receiver = (expression.parent as? KtDotQualifiedExpression)
+                ?.takeIf { qualified -> qualified.selectorExpression == expression }
+                ?.receiverExpression
+                ?.text
+            return callName == "println" || callName == "log" || receiver == "logger" || receiver == "log" || receiver?.endsWith(".logger") == true || receiver?.endsWith(".log") == true
         }
     }
 }

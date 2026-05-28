@@ -56,6 +56,6 @@ public enum MultilineDocStyleRule implements AstRule {
             return "multiline";
         }
         final JsonNode mode = section.get("parameters").get("docStyleMode");
-        return mode == null ? "multiline" : mode.asText("multiline");
+        return mode == null ? "multiline" : mode.asString("multiline");
     }
 }

@@ -1,7 +1,7 @@
 ---
 name: spring-security
 description: >-
-  Secure Spring applications with `SecurityFilterChain`, authentication and authorization rules, bearer-token resource servers, method security, session and CSRF policy, and Spring Security tests. Use this skill when securing Spring applications with `SecurityFilterChain`, authentication and authorization rules, password storage, bearer-token resource servers using JWT verification or opaque-token introspection, method security, session and CSRF policy, and Spring Security tests.
+  Secure Spring applications with `SecurityFilterChain`, authentication and authorization rules, bearer-token resource servers, method security, session and CSRF policy, and Spring Security tests. Use when configuring password storage, JWT verification, opaque-token introspection, CORS policy, security headers, or logout behavior in a servlet or reactive Spring application.
 metadata:
   title: "Spring Security"
   official-project-url: "https://spring.io/projects/spring-security"
@@ -9,8 +9,6 @@ metadata:
     - "https://docs.spring.io/spring-security/reference/index.html"
   version: "7.0.5"
 ---
-
-Use this skill when securing Spring applications with `SecurityFilterChain`, authentication and authorization rules, password storage, bearer-token resource servers using JWT verification or opaque-token introspection, method security, session and CSRF policy, and Spring Security tests.
 
 ## Boundaries
 

@@ -3,7 +3,7 @@ name: java-performance-concurrency
 description: >-
   Review Java performance and concurrency decisions with evidence-driven profiling,
   classify bottlenecks as CPU, I/O, contention, or allocation,
-  evaluate virtual-thread fit, and recommend the smallest measured change.
+  evaluate virtual-thread fit, and recommend the smallest measured change. Use when interpreting profiling results, choosing between platform and virtual threads, evaluating lock contention or allocation churn, or deciding whether a concurrency change is justified by measured evidence.
 ---
 
 # Java Performance Concurrency

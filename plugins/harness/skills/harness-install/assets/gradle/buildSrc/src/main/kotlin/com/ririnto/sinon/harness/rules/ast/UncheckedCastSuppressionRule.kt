@@ -4,18 +4,19 @@ import com.ririnto.sinon.harness.ast.AstFinding
 import com.ririnto.sinon.harness.ast.AstFindingRenderer
 import com.ririnto.sinon.harness.ast.AstSupport
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
+import com.ririnto.sinon.harness.core.JsonAccess
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.rules.HarnessAstRule
+import kotlinx.serialization.json.jsonObject
+import org.jetbrains.kotlin.com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtArrayAccessExpression
+import org.jetbrains.kotlin.psi.KtCollectionLiteralExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
-import org.jetbrains.kotlin.psi.KtValueArgument
 import java.nio.file.Path
-import kotlin.io.path.Path
 
 /**
  * Verifies that @Suppress annotations do not use forbidden suppression tokens.
@@ -79,11 +80,11 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
      * @return Set of forbidden suppression tokens.
      */
     internal fun resolveForbiddenSuppressions(ctx: RuleContext): Set<String> {
-        val manifest = ctx.manifest.raw
-        val section = manifest[category] as? Map<*, *> ?: return setOf("UNCHECKED_CAST")
-        val params = section["parameters"] as? Map<*, *> ?: return setOf("UNCHECKED_CAST")
-        val tokens = params["forbiddenSuppressions"] as? List<*> ?: return setOf("UNCHECKED_CAST")
-        return tokens.filterIsInstance<String>().toSet()
+        val tokens = JsonAccess.stringArrayFromObject(
+            ctx.manifest.raw[category]?.jsonObject?.get("parameters")?.jsonObject,
+            "forbiddenSuppressions",
+        )
+        return tokens.takeIf { values -> values.isNotEmpty() }?.toSet() ?: setOf("UNCHECKED_CAST")
     }
 
     /**
@@ -93,11 +94,10 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
      * @return Set of allowed suppression tokens.
      */
     internal fun resolveAllowedSuppressions(ctx: RuleContext): Set<String> {
-        val manifest = ctx.manifest.raw
-        val section = manifest[category] as? Map<*, *> ?: return emptySet()
-        val params = section["parameters"] as? Map<*, *> ?: return emptySet()
-        val tokens = params["allowedSuppressions"] as? List<*> ?: return emptySet()
-        return tokens.filterIsInstance<String>().toSet()
+        return JsonAccess.stringArrayFromObject(
+            ctx.manifest.raw[category]?.jsonObject?.get("parameters")?.jsonObject,
+            "allowedSuppressions",
+        ).toSet()
     }
 
     /**
@@ -154,7 +154,7 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
                             }
                         }
 
-                        argExpr != null && argExpr.text.startsWith("[") -> {
+                        argExpr is KtCollectionLiteralExpression -> {
                             for (token in arrayLiteralTokens(argExpr)) {
                                 add(token)
                             }
@@ -169,13 +169,13 @@ object UncheckedCastSuppressionRule : HarnessAstRule() {
          * @param arrayExpr The array expression AST node.
          * @return List of extracted string values in source order.
          */
-        private fun arrayLiteralTokens(arrayExpr: Any): List<String> =
-            arrayExpr
-                .toString()
-                .trim()
-                .removeSurrounding("[", "]")
-                .split(Regex(",\\s*"))
-                .map { elemText -> elemText.trim().removeSurrounding("\"") }
-                .filter { trimmed -> trimmed.isNotEmpty() }
+        private fun arrayLiteralTokens(arrayExpr: PsiElement): List<String> =
+            generateSequence(listOf(arrayExpr)) { layer ->
+                layer.flatMap { element -> element.children.toList() }.takeIf { children -> children.isNotEmpty() }
+            }.flatten()
+                .filterIsInstance<KtStringTemplateExpression>()
+                .map(::extractStringValue)
+                .filter { value -> value.isNotEmpty() }
+                .toList()
     }
 }

@@ -1,7 +1,7 @@
 ---
 name: spring-cloud
 description: >-
-  Implement Spring Cloud distributed-system building blocks for ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, and circuit-breaker boundaries.
+  Implement Spring Cloud distributed-system building blocks for ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, and circuit-breaker boundaries. Use when configuring Spring Cloud Config client or server, registering services with Eureka or Consul, wiring load-balanced `RestClient` or `WebClient`, or applying circuit-breaker patterns with Resilience4J.
 metadata:
   title: "Spring Cloud"
   official-project-url: "https://spring.io/projects/spring-cloud"
@@ -13,8 +13,6 @@ metadata:
     - "https://docs.spring.io/spring-cloud-contract/reference/"
   version: "2025.1.1"
 ---
-
-Use this skill when implementing Spring Cloud distributed-system building blocks such as ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, circuit-breaker boundaries, and release-train-aligned dependency management.
 
 The current Boot 4.x Spring Cloud release-train line is 2025.1.1 (Oakwood). Spring Cloud 2025.0.2 is a parallel Boot 3.5.x line, not a newer replacement, so the common path in this skill stays anchored to 2025.1.1 unless the project is intentionally on the 3.5.x generation.
 

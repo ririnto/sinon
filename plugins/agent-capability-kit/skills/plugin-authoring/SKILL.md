@@ -1,7 +1,7 @@
 ---
 name: plugin-authoring
 description: >-
-  Create or refactor a Claude Code plugin root with a manifest, README, and only the runtime components the plugin actually uses.
+  Create or refactor a Claude Code plugin root with a manifest, README, and only the runtime components the plugin actually uses. Use when scaffolding a new plugin, validating `plugin.json` manifest fields, or trimming unused runtime surfaces from an existing plugin.
 ---
 
 # Plugin Authoring
@@ -26,7 +26,7 @@ This skill owns the plugin root and plugin-level runtime files:
 - `.lsp.json`
 - `settings.json`
 - `output-styles/`
-- `monitors/`
+- `monitors/monitors.json`
 
 ## Operating rules
 
@@ -34,7 +34,7 @@ This skill owns the plugin root and plugin-level runtime files:
 2. Runtime components live at the plugin root.
 3. Add only the directories and config files the plugin actually needs.
 4. Inside `plugin.json`, every declared path MUST begin with `./`. Directory-typed fields MUST use the trailing-slash directory form (`"skills": "./skills/"`, `"commands": "./commands/"`); array-of-paths and bare `./skills` are prohibited. File-typed fields MUST point to the canonical filename at the plugin root: `"hooks": "./hooks/hooks.json"`, `"mcpServers": "./.mcp.json"`, `"lspServers": "./.lsp.json"`, `"settings": "./settings.json"`.
-5. The manifest and the filesystem MUST stay bidirectionally consistent. When `lspServers` is declared, plugin-root `.lsp.json` MUST exist; when plugin-root `.lsp.json` exists, the manifest SHOULD declare `"lspServers": "./.lsp.json"`. The same bidirectional rule applies to `mcpServers` and plugin-root `.mcp.json`, to `hooks` and `hooks/hooks.json`, and to `settings` and `settings.json`.
+5. The manifest and the filesystem MUST stay bidirectionally consistent. When `lspServers` is declared, plugin-root `.lsp.json` MUST exist; when plugin-root `.lsp.json` exists, the manifest SHOULD declare `"lspServers": "./.lsp.json"`. The same bidirectional rule applies to `mcpServers` and plugin-root `.mcp.json`, to `hooks` and `hooks/hooks.json`, to `settings` and `settings.json`, and to `experimental.monitors` and `monitors/monitors.json`.
 6. The manifest MUST NOT declare an `agents` key, MUST NOT declare a `version` field, and MUST NOT declare an `interface` block. These keys are rejected by current host schemas or by repository policy.
 7. Keep plugin metadata concise and operational.
 8. Keep bundled source files under `${CLAUDE_PLUGIN_ROOT}` and keep generated or persistent runtime data under `${CLAUDE_PLUGIN_DATA}`.
@@ -71,13 +71,13 @@ Use the matching subset when the plugin ships only one component type. Add `agen
    - add `lspServers` only when the plugin configures LSP servers
    - add `settings` only when the plugin needs plugin-level settings
    - add `outputStyles` only when the plugin ships reusable output styles
-   - add `monitors` only when the plugin genuinely needs monitor definitions
+   - add `experimental.monitors` only when the plugin genuinely needs monitor definitions
 7. Keep plugin data boundaries explicit:
    - use `${CLAUDE_PLUGIN_ROOT}` for bundled scripts, templates, servers, and other files that ship with the plugin
    - use `${CLAUDE_PLUGIN_DATA}` for generated caches, logs, indexes, or other persistent runtime data
 8. Validate bidirectionally:
-   - Manifest → Filesystem: Every manifest key declaration (e.g., `lspServers: "./.lsp.json"`, `mcpServers: "./.mcp.json"`, `hooks: "./hooks/hooks.json"`, `settings: "./settings.json"`) MUST have a matching plugin-root file or directory.
-   - Filesystem → Manifest: Every plugin-root configuration file (`.lsp.json`, `.mcp.json`, `hooks/hooks.json`, `settings.json`) SHOULD be declared in the manifest with the correct key and exact path so the runtime knows to publish it.
+   - Manifest → Filesystem: Every manifest key declaration (e.g., `lspServers: "./.lsp.json"`, `mcpServers: "./.mcp.json"`, `hooks: "./hooks/hooks.json"`, `settings: "./settings.json"`, `experimental.monitors: "./monitors/monitors.json"`) MUST have a matching plugin-root file or directory.
+   - Filesystem → Manifest: Every plugin-root configuration file (`.lsp.json`, `.mcp.json`, `hooks/hooks.json`, `settings.json`, `monitors/monitors.json`) SHOULD be declared in the manifest with the correct key and exact path so the runtime knows to publish it.
    - Every declared path MUST begin with `./`, every declared component MUST exist, and every runtime manifest directory MUST contain only `plugin.json`.
 
 ## Minimal example
@@ -143,7 +143,7 @@ Use these defaults during normal authoring:
 - `.lsp.json`: add when the plugin needs LSP server registrations
 - `settings.json`: add when the plugin needs plugin-level settings
 - `output-styles/`: add when the plugin ships reusable response formatting
-- `monitors/`: add only for genuine monitor behavior, not as a default scaffold
+- `monitors/monitors.json`: add only for genuine monitor behavior, not as a default scaffold
 
 If a plugin does not need a surface yet, omit both the file or directory and the manifest key.
 
@@ -159,7 +159,7 @@ Add optional surfaces only when the plugin genuinely needs that behavior. Omit b
 | LSP | `"lspServers": "./.lsp.json"` | the plugin configures a language server | copy `assets/.lsp.json` + `assets/lsp/example-lsp.py` |
 | Settings | `"settings": "./settings.json"` | the plugin needs plugin-level settings | copy `assets/settings.json` |
 | Output styles | `"outputStyles": "./output-styles/"` | the plugin ships reusable response formats | copy `assets/output-style.md` |
-| Monitors | `"monitors": "./monitors.json"` | the plugin needs background observation | copy `assets/monitors.json` + `assets/monitors/watch.sh` |
+| Monitors | `"experimental": { "monitors": "./monitors/monitors.json" }` | the plugin needs background observation | copy `assets/monitors/monitors.json` + `assets/monitors/watch.sh` |
 
 Open `references/plugin-runtime-components.md` for per-surface extension points, tradeoffs, and deeper wiring guidance beyond the ordinary copy path above.
 
@@ -178,7 +178,7 @@ Never treat `${CLAUDE_PLUGIN_ROOT}` as a writable data directory. Open `referenc
 - Do not create a runtime manifest directory unless the plugin publishes to that runtime.
 - Do not declare paths that do not begin with `./`.
 - Do not use array-of-paths form for `skills` or `commands`; always use the directory form with trailing slash.
-- Do not declare `lspServers`, `mcpServers`, `hooks`, or `settings` keys without their corresponding plugin-root files.
+- Do not declare `lspServers`, `mcpServers`, `hooks`, `settings`, or `experimental.monitors` keys without their corresponding plugin-root files.
 - Do not declare `agents`, `version`, or `interface` keys.
 - Do not let `plugin.json` promise components that the tree does not contain.
 - Do not treat `${CLAUDE_PLUGIN_ROOT}` as a writable data directory.

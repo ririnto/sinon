@@ -55,7 +55,7 @@ public final class DefaultManifest implements Manifest {
             return "";
         }
         final JsonNode value = parameters.get(key);
-        return value == null || !value.isTextual() ? "" : value.asText();
+        return value == null || !value.isString() ? "" : value.asString();
     }
 
     @Override
