@@ -4,6 +4,54 @@ set -e
 
 root=${CLAUDE_PLUGIN_ROOT:-$(CDPATH='' cd "$(dirname "$0")/../../.." && pwd)}
 
+# List production shell scripts covered by repository checks.
+#
+# @return Writes one path per line.
+list_shell_files() {
+    printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/hooks/check.sh"
+    printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/monitors/watch.sh"
+    printf '%s\n' "$root/plugins/harness/scripts/plugin-self-check.sh"
+    printf '%s\n' "$root/plugins/harness/scripts/harness-check.sh"
+    printf '%s\n' "$root/plugins/harness/scripts/harness-format.sh"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install-harness.sh"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/runtime/harness-check.sh"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/runtime/harness-format.sh"
+    printf '%s\n' "$root/plugins/java/scripts/has-lombok.sh"
+    printf '%s\n' "$root/plugins/java/scripts/jdtls-wrapper.sh"
+    printf '%s\n' "$root/plugins/java/scripts/test-jdtls-wrapper.sh"
+}
+
+# List production Python scripts covered by repository checks.
+#
+# @return Writes one path per line.
+list_python_files() {
+    printf '%s\n' "$root/plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd.py"
+    printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/lsp/example-lsp.py"
+    printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/servers/example-mcp.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/runtime/harness_check.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/runtime/harness_format.py"
+}
+
+# List Markdown files covered by repository checks.
+#
+# @return Writes one path per line.
+list_markdown_files() {
+    find "$root" -type f -name '*.md' ! -path "$root/node_modules/*" ! -path "$root/.git/*" ! -path "$root/.omo/*" ! -path "$root/.claude/worktrees/*"
+}
+
+# Count listed paths that exist as files.
+#
+# @return Writes existing file count.
+count_existing_files() {
+    existing_count=0
+    while IFS= read -r path; do
+        if [ -f "$path" ]; then
+            existing_count=$((existing_count + 1))
+        fi
+    done
+    printf '%d\n' "$existing_count"
+}
+
 # Check shell files with shellcheck and shfmt.
 #
 # Runs shellcheck and shfmt on production shell scripts, collecting findings
@@ -12,30 +60,36 @@ root=${CLAUDE_PLUGIN_ROOT:-$(CDPATH='' cd "$(dirname "$0")/../../.." && pwd)}
 # @return Accumulates error count.
 check_shell_files() {
     error_count=0
-    shell_files="$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/hooks/check.sh"
-    shell_files="$shell_files $root/plugins/harness/scripts/plugin-self-check.sh"
-    shell_files="$shell_files $root/plugins/harness/scripts/harness-check.sh"
-    shell_files="$shell_files $root/plugins/harness/scripts/harness-format.sh"
-    shell_files="$shell_files $root/plugins/harness/skills/harness-install/scripts/install-harness.sh"
-    shell_files="$shell_files $root/plugins/java/scripts/has-lombok.sh"
-    shell_files="$shell_files $root/plugins/java/scripts/jdtls-wrapper.sh"
-    shell_files="$shell_files $root/plugins/java/scripts/test-jdtls-wrapper.sh"
-    for path in $shell_files; do
+    shellcheck_tool_checked=0
+    shfmt_tool_checked=0
+    for path in $(list_shell_files); do
         if [ ! -f "$path" ]; then
             continue
         fi
-        if ! shellcheck_bin=$(command -v shellcheck 2>&1); then
-            printf 'warning: shellcheck not in PATH; skipping shellcheck for %s\n' "$path" >&2
-        else
+        if [ "$shellcheck_tool_checked" -eq 0 ]; then
+            if ! shellcheck_bin=$(command -v shellcheck 2>&1); then
+                printf 'warning: shellcheck not in PATH; skipping shellcheck for %s\n' "$path" >&2
+                warn_count=$((warn_count + 1))
+                shellcheck_bin=
+            fi
+            shellcheck_tool_checked=1
+        fi
+        if [ -n "$shellcheck_bin" ]; then
             shellcheck_output=$("$shellcheck_bin" "$path" 2>&1) && shellcheck_rc=0 || shellcheck_rc=$?
             if [ "$shellcheck_rc" -ne 0 ]; then
                 printf '%s\n' "$shellcheck_output" >&2
                 error_count=$((error_count + 1))
             fi
         fi
-        if ! shfmt_bin=$(command -v shfmt 2>&1); then
-            printf 'warning: shfmt not in PATH; skipping shfmt for %s\n' "$path" >&2
-        else
+        if [ "$shfmt_tool_checked" -eq 0 ]; then
+            if ! shfmt_bin=$(command -v shfmt 2>&1); then
+                printf 'warning: shfmt not in PATH; skipping shfmt for %s\n' "$path" >&2
+                warn_count=$((warn_count + 1))
+                shfmt_bin=
+            fi
+            shfmt_tool_checked=1
+        fi
+        if [ -n "$shfmt_bin" ]; then
             shfmt_diff=$("$shfmt_bin" -d -i 4 -ci "$path" 2>&1) && shfmt_rc=0 || shfmt_rc=$?
             if [ "$shfmt_rc" -ne 0 ]; then
                 printf '%s\n' "$shfmt_diff" >&2
@@ -59,10 +113,11 @@ check_markdown_files() {
     error_count=0
     if ! markdownlint_bin=$(command -v markdownlint-cli2 2>&1); then
         printf 'warning: markdownlint-cli2 not in PATH; skipping markdown linting\n' >&2
+        warn_count=$((warn_count + 1))
         printf '0\n'
         return
     fi
-    lint_output=$("$markdownlint_bin" "**/*.md" "#node_modules" "#.git" "#.omo" 2>&1) && lint_rc=0 || lint_rc=$?
+    lint_output=$(cd "$root" && "$markdownlint_bin" "**/*.md" "#node_modules" "#.git" "#.omo" "#.claude/worktrees" 2>&1) && lint_rc=0 || lint_rc=$?
     if [ "$lint_rc" -ne 0 ]; then
         printf '%s\n' "$lint_output" >&2
         error_count=1
@@ -78,16 +133,20 @@ check_markdown_files() {
 # @return Accumulates error count.
 check_python_files() {
     error_count=0
-    python_files="$root/plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd.py"
-    python_files="$python_files $root/plugins/agent-capability-kit/skills/plugin-authoring/assets/lsp/example-lsp.py"
-    python_files="$python_files $root/plugins/agent-capability-kit/skills/plugin-authoring/assets/servers/example-mcp.py"
-    for path in $python_files; do
+    uv_tool_checked=0
+    for path in $(list_python_files); do
         if [ ! -f "$path" ]; then
             continue
         fi
-        if ! uv_bin=$(command -v uv 2>&1); then
-            printf 'warning: uv not in PATH; skipping ruff checks for %s\n' "$path" >&2
-        else
+        if [ "$uv_tool_checked" -eq 0 ]; then
+            if ! uv_bin=$(command -v uv 2>&1); then
+                printf 'warning: uv not in PATH; skipping ruff checks for %s\n' "$path" >&2
+                warn_count=$((warn_count + 1))
+                uv_bin=
+            fi
+            uv_tool_checked=1
+        fi
+        if [ -n "$uv_bin" ]; then
             check_output=$("$uv_bin" run --with ruff==0.15.14 ruff check "$path" 2>&1) && check_rc=0 || check_rc=$?
             if [ "$check_rc" -ne 0 ]; then
                 printf '%s\n' "$check_output" >&2
@@ -103,12 +162,15 @@ check_python_files() {
     printf '%d\n' "$error_count"
 }
 
+warn_count=0
 shell_errors=$(check_shell_files)
 python_errors=$(check_python_files)
 markdown_errors=$(check_markdown_files)
 error_count=$((shell_errors + python_errors + markdown_errors))
-total_checked=$((11 + 519))
-warn_count=0
+shell_checked=$(list_shell_files | count_existing_files)
+python_checked=$(list_python_files | count_existing_files)
+markdown_checked=$(list_markdown_files | count_existing_files)
+total_checked=$((shell_checked + python_checked + markdown_checked))
 
 printf 'Checked %d file(s). %d error(s), %d warn(s).\n' "$total_checked" "$error_count" "$warn_count"
 

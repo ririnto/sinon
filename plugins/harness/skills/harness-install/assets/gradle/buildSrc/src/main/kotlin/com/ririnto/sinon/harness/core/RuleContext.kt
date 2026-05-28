@@ -55,6 +55,14 @@ interface RuleContext {
     fun stackSources(category: String): List<Path>
 
     /**
+     * Get source-root safety findings for a specific category.
+     *
+     * @param category The category name.
+     * @return Findings describing unsafe source roots (absolute roots, traversal roots, symlink roots, invalid globs).
+     */
+    fun stackSourceFindings(category: String): List<HarnessAstResults.Finding>
+
+    /**
      * Result of a safe directory walk.
      */
     data class WalkResult(

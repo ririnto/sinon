@@ -104,7 +104,7 @@ require_not_symlink_or_common_root_contract() {
 require_text() {
     path=$1
     text=$2
-    if ! grep -Fq "$text" "$path"; then
+    if ! grep -Fq -- "$text" "$path"; then
         printf '%s\n' "[require_text] missing required text in $path: $text" >&2
         exit 1
     fi
@@ -1775,7 +1775,7 @@ KOTLINEOF
 #     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
 #
 # @return Returns 0 on success or when gradle is missing.
-# @exit Exits with status 1 when an unsafe source root is formatted.
+# @exit Exits with status 1 when an unsafe source root is accepted or not reported.
 fixture_assert_gradle_source_root_safety() {
     if ! gradle_path=$(command -v gradle 2>&1); then
         printf 'warning: gradle not in PATH; skipping gradle source-root safety fixture check\n' >&2
@@ -1797,12 +1797,10 @@ class OutsideFixture {
     fun unsafe(left: Int): Boolean {
         return left > 1
     }
-}
-'
+}'
     fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.kt")
     if fixture_run_command "$target_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
-        :
-    else
+        printf '%s\n' "[fixture_assert_gradle_source_root_safety] expected harnessFormat to fail on unsafe source roots"
         printf '%s\n' "$fixture_stdout" >&2
         printf '%s\n' "$fixture_stderr" >&2
         fixture_remove_temp_dir "$fixture_root"
@@ -1816,7 +1814,7 @@ class OutsideFixture {
         fixture_remove_temp_dir "$fixture_root"
         exit 1
     fi
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'no files formatted' 'gradle unsafe source root reports no-op format' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'source root traversal is not allowed: ../outside' 'gradle unsafe source root reports traversal finding' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$fixture_root"
@@ -2566,6 +2564,22 @@ require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradle
 require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradlew harnessCheck'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'resolve_existing_hooks_path'
 require_text "$root/skills/harness-install/scripts/install-harness.sh" 'refusing to copy non-generated hook source'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" 'build-tool'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" 'install_git_hook_build_tool'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" '-Pharness.gitHooks=true'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" '-Dharness.gitHooks=true'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" './gradlew -Pharness.gitHooks=true help'
+require_text "$root/skills/harness-install/scripts/install-harness.sh" 'mvn -q -f harness-maven-plugin/pom.xml -Dharness.gitHooks=true generate-sources'
+require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" 'org.danilopianini.gradle-pre-commit-git-hooks'
+require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" '2.1.17'
+require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" 'harness.gitHooks'
+require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/pom.xml" 'git-build-hook-maven-plugin'
+require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/pom.xml" '3.6.0'
+require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/pom.xml" 'core.hooksPath'
+require_text "$root/skills/harness-install/SKILL.md" 'build-tool'
+require_text "$root/README.md" 'build-tool'
+require_text "$root/README.md" 'org.danilopianini.gradle-pre-commit-git-hooks'
+require_text "$root/README.md" 'git-build-hook-maven-plugin'
 manifest_json="$root/skills/harness-install/assets/gradle/docs/harness/manifest.json"
 require_text "$manifest_json" 'pre-commit hook must not run full stack validation commands'
 require_text "$manifest_json" 'must declare Harness validation command'
