@@ -827,6 +827,9 @@ fixture_assert_shell_format_check_after_format() {
     : "$shfmt_path"
     temp_dir=$(fixture_create_temp_dir)
     fixture_copy_runtime "$temp_dir" shell
+    mkdir -p "$temp_dir/docs/harness/shell"
+    cp "$temp_dir/harness-check.sh" "$temp_dir/docs/harness/shell/harness-check.sh"
+    cp "$temp_dir/harness-format.sh" "$temp_dir/docs/harness/shell/harness-format.sh"
     fixture_write_manifest "$temp_dir" '{"name":"shell-format-fixture","filePresence":{"enabled":true,"severity":"ERROR","parameters":{"paths":["required.md"]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":"docs/harness/git-hooks/pre-push"}},"symlinkSafety":{"enabled":false,"parameters":{"allowedSymlinkPairs":[]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}'
     fixture_write_file "$temp_dir" fixture.sh '#!/usr/bin/env sh
 if [ 1 -eq 1 ]; then
@@ -834,7 +837,7 @@ printf "%s\n" "fixture"
 fi
 '
     fixture_before_checksum=$(fixture_file_checksum "$temp_dir/fixture.sh")
-    if fixture_run_command "$temp_dir" 'sh harness-format.sh'; then
+    if fixture_run_command "$temp_dir" 'sh docs/harness/shell/harness-format.sh'; then
         printf '%s\n' '[fixture_assert_shell_format_check_after_format] expected first format to report remaining missing file' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
@@ -871,7 +874,7 @@ fi
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    if fixture_run_command "$temp_dir" 'sh harness-format.sh'; then
+    if fixture_run_command "$temp_dir" 'sh docs/harness/shell/harness-format.sh'; then
         printf '%s\n' '[fixture_assert_shell_format_check_after_format] expected second format to report remaining missing file' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
@@ -1767,6 +1770,61 @@ KOTLINEOF
     fixture_remove_temp_dir "$temp_dir"
 }
 
+# Verify Gradle AST source roots cannot escape the target root.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 when an unsafe source root is formatted.
+fixture_assert_gradle_source_root_safety() {
+    if ! gradle_path=$(command -v gradle 2>&1); then
+        printf 'warning: gradle not in PATH; skipping gradle source-root safety fixture check\n' >&2
+        return 0
+    fi
+    : "$gradle_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" gradle
+    fixture_write_file "$target_dir" settings.gradle.kts 'rootProject.name = "gradle-source-root-safety-fixture"'
+    fixture_write_file "$target_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
+
+repositories { mavenCentral() }
+'
+    fixture_write_manifest "$target_dir" '{"name":"gradle-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["../outside"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$fixture_root" outside/OutsideFixture.kt 'package outside
+
+class OutsideFixture {
+    fun unsafe(left: Int): Boolean {
+        return left > 1
+    }
+}
+'
+    fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.kt")
+    if fixture_run_command "$target_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
+        :
+    else
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.kt")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'gradle unsafe source root leaves outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'no files formatted' 'gradle unsafe source root reports no-op format' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$fixture_root"
+}
+
 # Verify Maven silent-catch detection uses JavaParser structure rather than body text.
 #
 #     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
@@ -2589,6 +2647,7 @@ fixture_assert_bun_format
 fixture_assert_uv_format
 fixture_assert_gradle_location
 fixture_assert_gradle_greater_than_format
+fixture_assert_gradle_source_root_safety
 fixture_assert_maven_silent_catch
 fixture_assert_maven_import_over_fqn
 fixture_assert_maven_greater_than_format
