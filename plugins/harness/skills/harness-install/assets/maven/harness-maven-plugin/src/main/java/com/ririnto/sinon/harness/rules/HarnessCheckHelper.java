@@ -102,25 +102,23 @@ public class HarnessCheckHelper {
     }
 
     /**
-     * Lists files in a directory or returns a single file if path is a file.
-     * Symlinks are included so that rules such as SymlinkSafetyRule can classify them.
+     * Lists safe regular files in a directory or returns a single file if path is a file.
+     * Symlinks are excluded so that formatting and parsing rules cannot follow
+     * symlink targets outside the project root.
      *
      * @param root the project root directory
      * @param base the base path (file or directory)
-     * @return list of regular files and symlinks
+     * @return list of safe regular files
      * @throws MojoExecutionException if inspection fails
      */
     public static List<Path> safeFileOrWalk(Path root, Path base) throws MojoExecutionException {
-        if (!isContainedUnderRoot(root, base)) {
+        if (!isContainedUnderRoot(root, base) || Files.isSymbolicLink(base)) {
             return List.of();
-        }
-        if (Files.isSymbolicLink(base)) {
-            return List.of(base);
         }
         if (isSafeRegularFile(root, base)) {
             return List.of(base);
         }
-        if (!Files.isDirectory(base, LinkOption.NOFOLLOW_LINKS)) {
+        if (!isSafeDirectory(root, base)) {
             return List.of();
         }
 
@@ -129,12 +127,12 @@ public class HarnessCheckHelper {
             Files.walkFileTree(base, new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                    return isWorktreePath(root, dir) ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
+                    return isWorktreePath(root, dir) || !isSafeDirectory(root, dir) ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
                 }
 
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
-                    if (!path.equals(base) && (Files.isSymbolicLink(path) || Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))) {
+                    if (!path.equals(base) && Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
                         files.add(path);
                     }
                     return FileVisitResult.CONTINUE;
@@ -149,6 +147,65 @@ public class HarnessCheckHelper {
             throw new MojoExecutionException("failed to inspect " + base, error);
         }
         return files;
+    }
+
+    /**
+     * Result of a symlink safety scan.
+     */
+    public record SymlinkScanResult(List<Path> symlinks, List<Finding> findings) {
+    }
+
+    /**
+     * Collects symlink paths and scan-time findings for a scan root.
+     * Returns symlink paths so that rules such as SymlinkSafetyRule can classify them.
+     * The findings are safe for callers that need to continue reporting
+     * discoveries when one path is unreadable.
+     *
+     * @param root the project root directory
+     * @param base the base path (file or directory)
+     * @return symlink paths and inspection findings
+     */
+    public static SymlinkScanResult symlinkScanResult(Path root, Path base) {
+        if (!isContainedUnderRoot(root, base)) {
+            return new SymlinkScanResult(List.of(), List.of());
+        }
+        if (Files.isSymbolicLink(base)) {
+            return new SymlinkScanResult(List.of(base), List.of());
+        }
+        if (isSafeRegularFile(root, base)) {
+            return new SymlinkScanResult(List.of(), List.of());
+        }
+        if (!isSafeDirectory(root, base)) {
+            return new SymlinkScanResult(List.of(), List.of());
+        }
+
+        final List<Path> symlinks = new ArrayList<>();
+        final List<Finding> findings = new ArrayList<>();
+        try {
+            Files.walkFileTree(base, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                    return isWorktreePath(root, dir) || !isSafeDirectory(root, dir) ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
+                    if (!path.equals(base) && Files.isSymbolicLink(path)) {
+                        symlinks.add(path);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) {
+                    findings.add(Finding.of("ERROR", "symlinkSafety", "failed to inspect symlinks under " + base + ": " + exc.getMessage()));
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException error) {
+            findings.add(Finding.of("ERROR", "symlinkSafety", "failed to inspect symlinks under " + base + ": " + error.getMessage()));
+        }
+        return new SymlinkScanResult(symlinks, findings);
     }
 
     /**
