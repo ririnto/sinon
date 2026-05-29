@@ -460,6 +460,9 @@ ensure_root_contracts() {
     if [ "$claude_is_symlink" -eq 1 ]; then
         claude_target=$(root_contract_symlink_target CLAUDE.md)
     fi
+    if [ "$agents_target" != "$claude_target" ] && [ "$agents_exists" -eq 1 ] && [ "$claude_exists" -eq 1 ]; then
+        error "root contract files diverge: AGENTS.md and CLAUDE.md point to different targets; resolve divergent root contract files before install"
+    fi
     check_root_contract_conflict "$agents_target" '# Repository Harness Contract'
     check_root_contract_conflict "$claude_target" '# Entry Point'
     if [ "$root_contract_conflicts" -ne 0 ]; then

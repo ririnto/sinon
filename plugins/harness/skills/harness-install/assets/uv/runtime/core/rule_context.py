@@ -7,10 +7,11 @@ Shared context passed to all rule instances.
 from __future__ import annotations
 
 import os
+import re
 import stat
 import sys
 
-from fnmatch import fnmatch
+from fnmatch import fnmatch, translate
 from pathlib import Path
 from typing import Protocol
 
@@ -100,11 +101,177 @@ class RuleContext(Protocol):
         ...
 
     def stack_sources(
-        self,
         category: str,
     ) -> tuple[Path, ...]:
-        """Collect source files for a stack."""
-        ...
+        """
+        Collect source files declared by the flat ``sourceRoots`` list.
+
+        :param category: Category key under the manifest root.
+        :returns: Tuple of source file paths.
+        """
+        section = manifest.raw.get(category, {})
+        if not isinstance(section, dict):
+            return ()
+        params = section.get("parameters", {})
+        if not isinstance(params, dict):
+            return ()
+        source_roots = params.get("sourceRoots", [])
+        if not isinstance(source_roots, list):
+            return ()
+        exts = params.get("extensions", [])
+        if not isinstance(exts, list):
+            return ()
+        include_globs = params.get("includePaths", [])
+        if not isinstance(include_globs, list):
+            include_globs = []
+        exclude_globs = params.get("excludePaths", [])
+        if not isinstance(exclude_globs, list):
+            exclude_globs = []
+        ext_set = frozenset(e for e in exts if isinstance(e, str))
+
+        def has_parent_traversal(root_entry: str) -> bool:
+            return ".." in Path(root_entry).parts
+
+        def has_glob_tokens(root_entry: str) -> bool:
+            return any(token in root_entry for token in ("*", "?", "[", "{"))
+
+        def has_symlink_segment(path: Path) -> bool:
+            try:
+                relative = path.relative_to(root_dir)
+            except ValueError:
+                return True
+            current = root_dir
+            for segment in relative.parts:
+                if segment in {"", ".."}:
+                    return True
+                if segment == ".":
+                    continue
+                current = current / segment
+                if current.is_symlink():
+                    return True
+            return False
+
+        def is_worktree_path(path: Path) -> bool:
+            try:
+                relative = path.relative_to(root_dir)
+            except ValueError:
+                return False
+            return (
+                len(relative.parts) >= 2
+                and relative.parts[0] == ".claude"
+                and relative.parts[1] == "worktrees"
+            )
+
+        def is_within_root(path: Path) -> bool:
+            try:
+                return path.is_relative_to(root_dir) and not has_symlink_segment(path) and not is_worktree_path(path)
+            except ValueError:
+                return False
+
+        def is_safe_root_path(path: Path) -> bool:
+            return path.is_dir() and not path.is_symlink() and is_within_root(path)
+
+        def is_safe_file(path: Path) -> bool:
+            if not path.is_file() or path.is_symlink():
+                return False
+            if "__pycache__" in path.parts:
+                return False
+            return is_within_root(path)
+
+        def is_valid_pattern(pattern: str) -> bool:
+            try:
+                re.compile(translate(pattern))
+                return True
+            except re.error:
+                return False
+
+        valid_include_patterns = [
+            pattern
+            for pattern in (p for p in include_globs if isinstance(p, str) and p)
+            if is_valid_pattern(pattern)
+        ]
+        valid_exclude_patterns = [
+            pattern
+            for pattern in (p for p in exclude_globs if isinstance(p, str) and p)
+            if is_valid_pattern(pattern)
+        ]
+
+        def walk_source_root(root_entry: Path, collected: list[Path]) -> None:
+            for current, directories, filenames in os.walk(root_entry, followlinks=False):
+                current_path = Path(current).resolve(strict=False)
+                if not is_safe_root_path(current_path):
+                    directories[:] = []
+                    continue
+                directories[:] = [
+                    entry
+                    for entry in directories
+                    if not (current_path / entry).resolve(strict=False).is_symlink()
+                    and not is_worktree_path((current_path / entry).resolve(strict=False))
+                    and not has_symlink_segment((current_path / entry).resolve(strict=False))
+                ]
+                for name in filenames:
+                    candidate = (current_path / name).resolve(strict=False)
+                    if not is_safe_file(candidate):
+                        continue
+                    if candidate.suffix.lstrip(".") not in ext_set:
+                        continue
+                    collected.append(candidate)
+
+        def collect_root_files(root_entry: str, collected: list[Path]) -> None:
+            if Path(root_entry).is_absolute():
+                return
+            if has_parent_traversal(root_entry):
+                return
+            if has_glob_tokens(root_entry):
+                try:
+                    matches = root_dir.glob(root_entry)
+                except ValueError:
+                    return
+                for match in matches:
+                    resolved_match = match.resolve(strict=False)
+                    if resolved_match.is_dir() and is_safe_root_path(resolved_match):
+                        walk_source_root(resolved_match, collected)
+            else:
+                resolved_root = (root_dir / root_entry).resolve(strict=False)
+                if is_safe_root_path(resolved_root):
+                    walk_source_root(resolved_root, collected)
+
+        def collect_all() -> list[Path]:
+            collected: list[Path] = []
+            for root_entry in source_roots:
+                if not isinstance(root_entry, str):
+                    continue
+                if root_entry == "":
+                    continue
+                if Path(root_entry).is_absolute():
+                    continue
+                collect_root_files(root_entry, collected)
+            return collected
+
+        deduped = list(dict.fromkeys(collect_all()))
+        included = []
+        for file_path in deduped:
+            if not is_safe_file(file_path):
+                continue
+            relative_path = file_path.relative_to(root_dir).as_posix()
+            if valid_include_patterns:
+                matched_include = False
+                for pattern in valid_include_patterns:
+                    if fnmatch(relative_path, pattern):
+                        matched_include = True
+                        break
+                if not matched_include:
+                    continue
+            excluded = False
+            for pattern in valid_exclude_patterns:
+                if fnmatch(relative_path, pattern):
+                    excluded = True
+                    break
+            if excluded:
+                continue
+            included.append(file_path)
+
+        return tuple(sorted(included))
 
     def walk_directory(self, path: str) -> tuple[tuple[Path, ...], tuple]:
         """Walk directory tree."""
@@ -251,72 +418,150 @@ def create_rule_context(
         if not isinstance(exclude_globs, list):
             exclude_globs = []
         ext_set = frozenset(e for e in exts if isinstance(e, str))
-        include_glob_list = [g for g in include_globs if isinstance(g, str)]
-        exclude_glob_list = [g for g in exclude_globs if isinstance(g, str)]
+
+        def has_parent_traversal(root_entry: str) -> bool:
+            return ".." in Path(root_entry).parts
+
+        def has_glob_tokens(root_entry: str) -> bool:
+            return any(token in root_entry for token in ("*", "?", "[", "{"))
+
+        def has_symlink_segment(path: Path) -> bool:
+            try:
+                relative = path.relative_to(root_dir)
+            except ValueError:
+                return True
+            current = root_dir
+            for segment in relative.parts:
+                if segment in {"", ".."}:
+                    return True
+                if segment == ".":
+                    continue
+                current = current / segment
+                if current.is_symlink():
+                    return True
+            return False
+
+        def is_worktree_path(path: Path) -> bool:
+            try:
+                relative = path.relative_to(root_dir)
+            except ValueError:
+                return False
+            return (
+                len(relative.parts) >= 2
+                and relative.parts[0] == ".claude"
+                and relative.parts[1] == "worktrees"
+            )
+
+        def is_within_root(path: Path) -> bool:
+            try:
+                return path.is_relative_to(root_dir) and not has_symlink_segment(path) and not is_worktree_path(path)
+            except ValueError:
+                return False
+
+        def is_safe_root_path(path: Path) -> bool:
+            return path.is_dir() and not path.is_symlink() and is_within_root(path)
+
+        def is_safe_file(path: Path) -> bool:
+            if not path.is_file() or path.is_symlink():
+                return False
+            if "__pycache__" in path.parts:
+                return False
+            return is_within_root(path)
+
+        def is_valid_pattern(pattern: str) -> bool:
+            try:
+                re.compile(translate(pattern))
+                return True
+            except re.error:
+                return False
+
+        valid_include_patterns = [
+            pattern
+            for pattern in (p for p in include_globs if isinstance(p, str) and p)
+            if is_valid_pattern(pattern)
+        ]
+        valid_exclude_patterns = [
+            pattern
+            for pattern in (p for p in exclude_globs if isinstance(p, str) and p)
+            if is_valid_pattern(pattern)
+        ]
+
+        def walk_source_root(root_entry: Path, collected: list[Path]) -> None:
+            for current, directories, filenames in os.walk(root_entry, followlinks=False):
+                current_path = Path(current).resolve(strict=False)
+                if not is_safe_root_path(current_path):
+                    directories[:] = []
+                    continue
+                directories[:] = [
+                    entry
+                    for entry in directories
+                    if not (current_path / entry).resolve(strict=False).is_symlink()
+                    and not is_worktree_path((current_path / entry).resolve(strict=False))
+                    and not has_symlink_segment((current_path / entry).resolve(strict=False))
+                ]
+                for name in filenames:
+                    candidate = (current_path / name).resolve(strict=False)
+                    if not is_safe_file(candidate):
+                        continue
+                    if candidate.suffix.lstrip(".") not in ext_set:
+                        continue
+                    collected.append(candidate)
+
+        def collect_root_files(root_entry: str, collected: list[Path]) -> None:
+            if Path(root_entry).is_absolute():
+                return
+            if has_parent_traversal(root_entry):
+                return
+            if has_glob_tokens(root_entry):
+                try:
+                    matches = root_dir.glob(root_entry)
+                except ValueError:
+                    return
+                for match in matches:
+                    resolved_match = match.resolve(strict=False)
+                    if resolved_match.is_dir() and is_safe_root_path(resolved_match):
+                        walk_source_root(resolved_match, collected)
+            else:
+                resolved_root = (root_dir / root_entry).resolve(strict=False)
+                if is_safe_root_path(resolved_root):
+                    walk_source_root(resolved_root, collected)
 
         def collect_all() -> list[Path]:
-            collected = []
+            collected: list[Path] = []
             for root_entry in source_roots:
                 if not isinstance(root_entry, str):
                     continue
-                if "*" in root_entry:
-                    for resolved_path in root_dir.glob(root_entry):
-                        if (
-                            resolved_path.is_dir()
-                            and not resolved_path.is_symlink()
-                            and resolved_path.is_relative_to(root_dir)
-                        ):
-                            collected.extend(
-                                file_path
-                                for file_path in resolved_path.rglob("*")
-                                if (
-                                    file_path.is_file()
-                                    and not file_path.is_symlink()
-                                    and "__pycache__" not in file_path.parts
-                                    and file_path.is_relative_to(root_dir)
-                                    and file_path.suffix.lstrip(".") in ext_set
-                                )
-                            )
-                else:
-                    dir_path = root_dir / root_entry
-                    if (
-                        dir_path.is_dir()
-                        and not dir_path.is_symlink()
-                        and dir_path.is_relative_to(root_dir)
-                    ):
-                        collected.extend(
-                            file_path
-                            for file_path in dir_path.rglob("*")
-                            if (
-                                file_path.is_file()
-                                and not file_path.is_symlink()
-                                and "__pycache__" not in file_path.parts
-                                and file_path.is_relative_to(root_dir)
-                                and file_path.suffix.lstrip(".") in ext_set
-                            )
-                        )
+                if root_entry == "":
+                    continue
+                if Path(root_entry).is_absolute():
+                    continue
+                collect_root_files(root_entry, collected)
             return collected
 
         deduped = list(dict.fromkeys(collect_all()))
-        included = [
-            file_path
-            for file_path in deduped
-            if not include_glob_list
-            or any(
-                fnmatch(file_path.relative_to(root_dir).as_posix(), glob_pattern)
-                for glob_pattern in include_glob_list
-            )
-        ]
-        excluded = [
-            file_path
-            for file_path in included
-            if not exclude_glob_list
-            or not any(
-                fnmatch(file_path.relative_to(root_dir).as_posix(), glob_pattern)
-                for glob_pattern in exclude_glob_list
-            )
-        ]
-        return tuple(sorted(excluded))
+        included = []
+        for file_path in deduped:
+            if not is_safe_file(file_path):
+                continue
+            relative_path = file_path.relative_to(root_dir).as_posix()
+            if valid_include_patterns:
+                matched_include = False
+                for pattern in valid_include_patterns:
+                    if fnmatch(relative_path, pattern):
+                        matched_include = True
+                        break
+                if not matched_include:
+                    continue
+            excluded = False
+            for pattern in valid_exclude_patterns:
+                if fnmatch(relative_path, pattern):
+                    excluded = True
+                    break
+            if excluded:
+                continue
+            included.append(file_path)
+
+        return tuple(sorted(included))
 
     def walk_directory(path_str: str) -> tuple[tuple[Path, ...], tuple]:
         """Walk directory tree, excluding symlinks."""
