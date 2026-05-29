@@ -1910,6 +1910,148 @@ PYEOF
     fixture_remove_temp_dir "$temp_dir"
 }
 
+# Verify Bun AST source roots cannot escape the target root.
+#
+#     Requires `bun` in PATH. Gracefully skips with a warning when bun is
+#     unavailable.
+#
+# @return Returns 0 on success or when bun is missing.
+# @exit Exits with status 1 when an unsafe source root is accepted or not reported.
+fixture_assert_bun_source_root_safety() {
+    if ! bun_path=$(command -v bun 2>&1); then
+        printf 'warning: bun not in PATH; skipping bun source-root safety fixture check\n' >&2
+        return 0
+    fi
+    : "$bun_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" bun
+    fixture_write_file "$target_dir" package.json '{"dependencies":{"typescript":"6.0.3"}}'
+    if ! install_output=$(cd "$target_dir" && bun install 2>&1); then
+        printf '%s\n' "$install_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    ln -s typescript "$target_dir/node_modules/typescript@6.0.3"
+    fixture_write_manifest "$target_dir" '{"name":"bun-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["../outside"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}'
+    fixture_write_file "$fixture_root" outside/OutsideFixture.ts 'export function unsafe(value: number): boolean {
+    return value > 1;
+}
+'
+    fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.ts")
+    if fixture_run_command "$target_dir" "bun \"$target_dir/harness-format.ts\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.ts")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'bun unsafe source root leaves outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_write_file "$fixture_root" outside/OutsideFixture.ts 'export function unsafe(value: number): boolean {
+    return value > 1;
+}
+'
+    fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.ts")
+    if fixture_run_command "$target_dir" "bun \"$target_dir/harness-check.ts\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.ts")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'bun unsafe source root check leaves outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -Fq 'OutsideFixture'; then
+        printf '%s\n' '[fixture_assert_bun_source_root_safety] outside file was scanned' >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$fixture_root"
+}
+
+# Verify Bun runtime rejects manifest paths through symlink components.
+#
+#     Creates a symlink directory inside the target root pointing outside,
+#     then runs harness-check and harness-format with a sourceRoot that
+#     traverses the symlink. Proves the runtime never reads files reached
+#     through a symlink component.
+#
+#     Requires `bun` in PATH. Gracefully skips with a warning when bun is
+#     unavailable.
+#
+# @return Returns 0 on success or when bun is missing.
+# @exit Exits with status 1 when a file behind a symlink component is read.
+fixture_assert_bun_symlink_component_safety() {
+    if ! bun_path=$(command -v bun 2>&1); then
+        printf 'warning: bun not in PATH; skipping bun symlink component safety fixture check\n' >&2
+        return 0
+    fi
+    : "$bun_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" bun
+    fixture_write_file "$target_dir" package.json '{"dependencies":{"typescript":"6.0.3"}}'
+    if ! install_output=$(cd "$target_dir" && bun install 2>&1); then
+        printf '%s\n' "$install_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    ln -s typescript "$target_dir/node_modules/typescript@6.0.3"
+    fixture_write_file "$fixture_root" outside/LinkedFixture.ts 'export function unsafe(value: number): boolean {
+    return value > 1;
+}
+'
+    mkdir -p "$fixture_root/outside-real"
+    fixture_write_file "$fixture_root" outside-real/LinkedFixture2.ts 'export function unsafe(value: number): boolean {
+    return value > 1;
+}
+'
+    ln -s "$fixture_root/outside-real" "$target_dir/linked-outside"
+    fixture_write_manifest "$target_dir" '{"name":"bun-symlink-component-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["linked-outside"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}'
+    linked_outside_checksum_before=$(fixture_file_checksum "$fixture_root/outside-real/LinkedFixture2.ts")
+    if fixture_run_command "$target_dir" "bun \"$target_dir/harness-format.ts\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    linked_outside_checksum_after=$(fixture_file_checksum "$fixture_root/outside-real/LinkedFixture2.ts")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$linked_outside_checksum_before" "$linked_outside_checksum_after" 'bun symlink component source root leaves outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if fixture_run_command "$target_dir" "bun \"$target_dir/harness-check.ts\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    linked_outside_checksum_after_check=$(fixture_file_checksum "$fixture_root/outside-real/LinkedFixture2.ts")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$linked_outside_checksum_before" "$linked_outside_checksum_after_check" 'bun symlink component source root check leaves outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -Fq 'LinkedFixture2'; then
+        printf '%s\n' '[fixture_assert_bun_symlink_component_safety] symlink component file was scanned' >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$fixture_root"
+}
+
 # Verify uv AST source roots cannot escape the target root.
 #
 #     Requires `uv` in PATH. Gracefully skips with a warning when uv is
@@ -2002,6 +2144,139 @@ fixture_assert_uv_worktree_excluded() {
         exit 1
     fi
     fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify uv hookShebang validation and formatting reports instead of NameError.
+#
+#     Requires `uv` in PATH. Gracefully skips with a warning when uv is
+#     unavailable.
+#
+# @return Returns 0 on success or when uv is missing.
+# @exit Exits with status 1 when the uv hookShebang fixture fails.
+fixture_assert_uv_hook_shebang() {
+    if ! uv_path=$(command -v uv 2>&1); then
+        printf 'warning: uv not in PATH; skipping uv hookShebang fixture check\n' >&2
+        return 0
+    fi
+    : "$uv_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" uv
+    fixture_write_manifest "$temp_dir" '{"name":"uv-hook-shebang-fixture","hookShebang":{"enabled":true,"severity":"ERROR","messages":{"default":"{hook} must start with {expectedShebang}"},"parameters":{"hooks":["docs/harness/git-hooks/pre-commit"],"expectedShebang":"#!/usr/bin/env sh"}}}'
+    fixture_write_file "$temp_dir" docs/harness/git-hooks/pre-commit 'echo "wrong shebang hook"
+'
+    fixture_before_checksum=$(fixture_file_checksum "$temp_dir/docs/harness/git-hooks/pre-commit")
+    if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_check.py\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_stdout" 'docs/harness/git-hooks/pre-commit' 'hookShebang' 'uv hookShebang reports canonical finding' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_format.py\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_checksum=$(fixture_file_checksum "$temp_dir/docs/harness/git-hooks/pre-commit")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_changed "$fixture_before_checksum" "$fixture_after_checksum" 'uv hookShebang formatter inserts expected shebang' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq '#!/usr/bin/env sh' "$temp_dir/docs/harness/git-hooks/pre-commit"; then
+        printf '%s\n' '[fixture_assert_uv_hook_shebang] expected shebang not found after format' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_format.py\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_second_checksum=$(fixture_file_checksum "$temp_dir/docs/harness/git-hooks/pre-commit")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_after_checksum" "$fixture_after_second_checksum" 'uv hookShebang second format is idempotent' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify uv read/stat helpers cannot read or accept files outside root or
+# through symlink components. Outside file content must remain unchanged.
+#
+#     Requires `uv` in PATH. Gracefully skips with a warning when uv is
+#     unavailable.
+#
+# @return Returns 0 on success or when uv is missing.
+# @exit Exits with status 1 when an unsafe path is accepted or outside content changes.
+fixture_assert_uv_unsafe_manifest_paths() {
+    if ! uv_path=$(command -v uv 2>&1); then
+        printf 'warning: uv not in PATH; skipping uv unsafe manifest path fixture check\n' >&2
+        return 0
+    fi
+    : "$uv_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" uv
+    fixture_write_manifest "$target_dir" "$(
+        cat <<'JSONEOF'
+{"name":"uv-unsafe-path-fixture","filePresence":{"enabled":true,"severity":"ERROR","parameters":{"paths":["../outside.md","-unsafe.md","linked/target.md"]}},"hookShebang":{"enabled":true,"severity":"ERROR","parameters":{"hooks":["docs/harness/git-hooks/pre-commit","../outside.sh","linked/hook.sh"],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":true,"severity":"ERROR","parameters":{"hooks":["docs/harness/git-hooks/pre-commit","../outside.sh","linked/hook.sh"]}}}
+JSONEOF
+    )"
+    fixture_write_file "$fixture_root" outside.md 'outside content'
+    fixture_write_file "$fixture_root" outside.sh '#!/usr/bin/env sh
+echo "outside"
+'
+    chmod +x "$fixture_root/outside.sh"
+    mkdir -p "$target_dir/docs/harness/git-hooks"
+    fixture_write_file "$target_dir" docs/harness/git-hooks/pre-commit '#!/usr/bin/env sh
+echo "valid hook"
+'
+    chmod +x "$target_dir/docs/harness/git-hooks/pre-commit"
+    ln -s "$fixture_root/outside.md" "$target_dir/linked.md"
+    mkdir -p "$target_dir/linked"
+    ln -s "$fixture_root/outside.sh" "$target_dir/linked/hook.sh"
+    ln -s "$fixture_root/outside.md" "$target_dir/linked/target.md"
+    outside_before_checksum=$(fixture_file_checksum "$fixture_root/outside.md")
+    outside_sh_before_checksum=$(fixture_file_checksum "$fixture_root/outside.sh")
+    if fixture_run_command "$target_dir" "uv run --quiet --with libcst \"$target_dir/harness_check.py\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'filePresence' 'uv unsafe path reports filePresence' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if fixture_run_command "$target_dir" "uv run --quiet --with libcst \"$target_dir/harness_format.py\""; then
+        :
+    else
+        :
+    fi
+    outside_after_checksum=$(fixture_file_checksum "$fixture_root/outside.md")
+    outside_sh_after_checksum=$(fixture_file_checksum "$fixture_root/outside.sh")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$outside_before_checksum" "$outside_after_checksum" 'uv unsafe path leaves outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$outside_sh_before_checksum" "$outside_sh_after_checksum" 'uv unsafe path leaves outside hook unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$fixture_root"
 }
 
 # Verify Gradle AST findings render canonical file:line:column prefixes.
@@ -4224,9 +4499,13 @@ smoke_check_shell_unsafe_hook_paths
 fixture_assert_shell_format_check_after_format
 fixture_assert_shell_format_malformed_manifest
 fixture_assert_bun_format
+fixture_assert_bun_source_root_safety
+fixture_assert_bun_symlink_component_safety
 fixture_assert_uv_format
 fixture_assert_uv_source_root_safety
 fixture_assert_uv_worktree_excluded
+fixture_assert_uv_hook_shebang
+fixture_assert_uv_unsafe_manifest_paths
 fixture_assert_gradle_location
 fixture_assert_gradle_greater_than_format
 fixture_assert_gradle_source_root_safety
@@ -4245,6 +4524,49 @@ fixture_assert_maven_parse_error
 fixture_assert_gradle_hook_format_safety
 fixture_assert_maven_hook_format_safety
 fixture_assert_doc_separator_rejection
+# Verify Gradle emptyDirectoryPlaceholders formatter does not create .gitkeep outside root.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 when .gitkeep is created outside root or format does not report safely.
+fixture_assert_gradle_empty_directory_format_safety() {
+    if ! gradle_path=$(command -v gradle 2>&1); then
+        printf 'warning: gradle not in PATH; skipping gradle empty directory format safety fixture check\n' >&2
+        return 0
+    fi
+    : "$gradle_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" gradle
+    fixture_write_file "$target_dir" settings.gradle.kts 'rootProject.name = "gradle-empty-directory-format-safety-fixture"'
+    fixture_write_file "$target_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
+
+repositories { mavenCentral() }
+'
+    fixture_write_manifest "$target_dir" '{"name":"gradle-empty-directory-format-safety-fixture","emptyDirectoryPlaceholders":{"enabled":true,"severity":"ERROR","messages":{"default":"empty directory must keep placeholder or real files: {directory}"},"parameters":{"directories":["../outside-empty","safe-empty"]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":""}},"symlinkSafety":{"enabled":false,"parameters":{"allowedSymlinkPairs":[]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"","uncheckedTaskPattern":""}}}'
+    mkdir -p "$target_dir/safe-empty"
+    mkdir -p "$fixture_root/outside-empty"
+    outside_gitkeep="$fixture_root/outside-empty/.gitkeep"
+    if fixture_run_command "$target_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
+        :
+    else
+        :
+    fi
+    if [ -f "$outside_gitkeep" ]; then
+        printf '%s\n' '[fixture_assert_gradle_empty_directory_format_safety] .gitkeep was created outside root' >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'is not a safe relative directory path' 'gradle empty directory format reports unsafe path finding' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$fixture_root"
+}
 fixture_assert_double_bracket_rejection
 fixture_assert_gradle_hook_from_parameters
 fixture_assert_maven_silent_catch_parse_error
@@ -4253,6 +4575,7 @@ fixture_assert_shell_format_fail_closed_preflight
 fixture_assert_emit_path_message_special_chars
 fixture_assert_harness_check_warn_counter
 fixture_assert_install_hooks_copy_symlink_rejection
+fixture_assert_gradle_empty_directory_format_safety
 smoke_check_uv_runtime
 smoke_check_bun_runtime
 smoke_check_shell_runtime
