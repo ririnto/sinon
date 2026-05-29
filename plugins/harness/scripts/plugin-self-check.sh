@@ -1170,7 +1170,12 @@ fixture_assert_build_tool_hook_mode() {
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    fixture_write_file "$temp_dir" pom.xml '<project></project>'
+    pom_xml=$(
+        cat <<'POM_XML'
+<project></project>
+POM_XML
+    )
+    fixture_write_file "$temp_dir" pom.xml "$pom_xml"
     if ! fixture_run_command "$temp_dir" "sh \"$root/skills/harness-install/scripts/install-harness.sh\" --mode maven --hooks build-tool --target ."; then
         printf '%s\n' '[fixture_assert_build_tool_hook_mode] expected maven build-tool to succeed with print-only' >&2
         printf '%s\n' "$fixture_stderr" >&2

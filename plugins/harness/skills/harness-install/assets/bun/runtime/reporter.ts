@@ -1,9 +1,76 @@
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { lstatSync, readFileSync, realpathSync, statSync } from "node:fs";
+import { isAbsolute, normalize, resolve, sep } from "node:path";
 import type { Finding } from "./rules/harness-check-rule";
 
+interface SafePathResult {
+    readonly resolved: string;
+    readonly safe: boolean;
+}
+
+const hasLeadingDashComponent = (path: string): boolean => path.split(/[\\/]/).some((segment) => segment !== "" && segment.startsWith("-"));
+
+const safeRoot = (root: string): string => realpathSync(resolve(root));
+
+const resolveSafeManifestPath = (root: string, path: string): SafePathResult => {
+    if (path === "" || isAbsolute(path)) {
+        return { resolved: "", safe: false };
+    }
+
+    const normalized = normalize(path);
+    if (
+        normalized === "." ||
+        normalized === ".." ||
+        normalized.startsWith("..") ||
+        normalized.startsWith(`..${sep}`)
+    ) {
+        return { resolved: "", safe: false };
+    }
+
+    if (hasLeadingDashComponent(normalized)) {
+        return { resolved: "", safe: false };
+    }
+
+    const absolutePath = resolve(root, normalized);
+    const resolvedRoot = safeRoot(root);
+    if (absolutePath !== resolvedRoot && !absolutePath.startsWith(`${resolvedRoot}${sep}`)) {
+        return { resolved: "", safe: false };
+    }
+
+    let probe = root;
+    for (const segment of normalized.split(/[\\/]/)) {
+        if (segment === "" || segment === ".") {
+            continue;
+        }
+        probe = resolve(probe, segment);
+        try {
+            if (lstatSync(probe).isSymbolicLink()) {
+                return { resolved: "", safe: false };
+            }
+        } catch {
+            break;
+        }
+    }
+
+    try {
+        const real = realpathSync(absolutePath);
+        if (real !== resolvedRoot && !real.startsWith(`${resolvedRoot}${sep}`)) {
+            return { resolved: "", safe: false };
+        }
+        if (!statSync(real).isFile()) {
+            return { resolved: "", safe: false };
+        }
+        return { resolved: real, safe: true };
+    } catch {
+        return { resolved: "", safe: false };
+    }
+};
+
+const resolveSafeManifestFile = (root: string, path: string): string | null => {
+    const resolved = resolveSafeManifestPath(root, path);
+    return resolved.safe ? resolved.resolved : null;
+};
 /**
  * Renders a collection of validation findings in structured diagnostic format.
  * Handles both findings with location/fix metadata and locationless findings with only severity/category/message.
@@ -87,8 +154,8 @@ export function renderFindings(root: string, findings: readonly Finding[]): read
  * @returns Array of formatted context lines.
  */
 function getSnippet(root: string, file: string, lineNumber: number): readonly string[] {
-    const absolutePath = file.startsWith("/") ? file : resolve(root, file);
-    if (!existsSync(absolutePath)) {
+    const absolutePath = resolveSafeManifestFile(root, file);
+    if (absolutePath === null) {
         return [];
     }
     const fileLines = readFileSync(absolutePath, "utf8").split("\n");
@@ -120,8 +187,8 @@ function extractEditText(
     root: string,
     edit: { file: string; startLine: number; startColumn: number; endLine: number; endColumn: number },
 ): string {
-    const absolutePath = edit.file.startsWith("/") ? edit.file : resolve(root, edit.file);
-    if (!existsSync(absolutePath)) {
+    const absolutePath = resolveSafeManifestFile(root, edit.file);
+    if (absolutePath === null) {
         return "";
     }
     const lines = readFileSync(absolutePath, "utf8").split("\n");
