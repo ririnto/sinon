@@ -1287,6 +1287,143 @@ JSONEOF
     fi
     fixture_remove_temp_dir "$temp_dir"
 }
+# Verify install repairs a dangling AGENTS.md -> CLAUDE.md alias safely.
+#
+# @exit Exits with status 1 when repair is incorrect or partial.
+fixture_assert_install_root_contract_dangling_agents_alias() {
+    temp_dir=$(fixture_create_temp_dir)
+    ln -s CLAUDE.md "$temp_dir/AGENTS.md"
+    if fixture_run_command "$temp_dir" "sh \"$root/skills/harness-install/scripts/install-harness.sh\" --mode shell --target ."; then
+        :
+    else
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_agents_alias] expected install to succeed with dangling AGENTS.md alias' >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" 'create shared root contract: CLAUDE.md' 'install dangling AGENTS alias creates shared CLAUDE contract' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if printf '%s' "$fixture_stdout$fixture_stderr" | grep -Fq 'create symlink: CLAUDE.md -> AGENTS.md'; then
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_agents_alias] unexpected CLAUDE symlink creation after dangling AGENTS alias' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if [ ! -L "$temp_dir/AGENTS.md" ] || [ "$(readlink "$temp_dir/AGENTS.md")" != "CLAUDE.md" ]; then
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_agents_alias] expected AGENTS.md to remain a symlink to CLAUDE.md' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if [ ! -f "$temp_dir/CLAUDE.md" ] || [ -L "$temp_dir/CLAUDE.md" ]; then
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_agents_alias] expected CLAUDE.md to become a real root-contract file' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq '# Repository Harness Contract' "$temp_dir/CLAUDE.md"; then
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_agents_alias] CLAUDE.md missing Repository Harness Contract marker' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq '## Entry Point' "$temp_dir/CLAUDE.md"; then
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_agents_alias] CLAUDE.md missing Entry Point marker' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify install repairs a dangling CLAUDE.md -> AGENTS.md alias safely.
+#
+# @exit Exits with status 1 when repair is incorrect or partial.
+fixture_assert_install_root_contract_dangling_claude_alias() {
+    temp_dir=$(fixture_create_temp_dir)
+    ln -s AGENTS.md "$temp_dir/CLAUDE.md"
+    if fixture_run_command "$temp_dir" "sh \"$root/skills/harness-install/scripts/install-harness.sh\" --mode shell --target ."; then
+        :
+    else
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_claude_alias] expected install to succeed with dangling CLAUDE.md alias' >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" 'create shared root contract: AGENTS.md' 'install dangling CLAUDE alias creates shared AGENTS contract' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if printf '%s' "$fixture_stdout$fixture_stderr" | grep -Fq 'create symlink: AGENTS.md -> CLAUDE.md'; then
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_claude_alias] unexpected AGENTS symlink creation after dangling CLAUDE alias' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if [ ! -L "$temp_dir/CLAUDE.md" ] || [ "$(readlink "$temp_dir/CLAUDE.md")" != "AGENTS.md" ]; then
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_claude_alias] expected CLAUDE.md to remain a symlink to AGENTS.md' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if [ ! -f "$temp_dir/AGENTS.md" ] || [ -L "$temp_dir/AGENTS.md" ]; then
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_claude_alias] expected AGENTS.md to become a real root-contract file' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq '# Repository Harness Contract' "$temp_dir/AGENTS.md"; then
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_claude_alias] AGENTS.md missing Repository Harness Contract marker' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq '## Entry Point' "$temp_dir/AGENTS.md"; then
+        printf '%s\n' '[fixture_assert_install_root_contract_dangling_claude_alias] AGENTS.md missing Entry Point marker' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify install rejects both real AGENTS.md and CLAUDE.md files as divergent contracts.
+#
+# @exit Exits with status 1 when divergent real root contracts are partially rewritten.
+fixture_assert_install_root_contract_real_files_rejected() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_write_file "$temp_dir" AGENTS.md '# Repository Harness Contract'
+    fixture_write_file "$temp_dir" CLAUDE.md '# Entry Point'
+    agents_checksum_before=$(fixture_file_checksum "$temp_dir/AGENTS.md")
+    claude_checksum_before=$(fixture_file_checksum "$temp_dir/CLAUDE.md")
+    if fixture_run_command "$temp_dir" "sh \"$root/skills/harness-install/scripts/install-harness.sh\" --mode shell --target ."; then
+        printf '%s\n' '[fixture_assert_install_root_contract_real_files_rejected] expected install to reject separate real AGENTS.md and CLAUDE.md files' >&2
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'resolve divergent root contract files before install' 'install rejects divergent real root contracts' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if [ -L "$temp_dir/AGENTS.md" ] || [ ! -f "$temp_dir/AGENTS.md" ]; then
+        printf '%s\n' '[fixture_assert_install_root_contract_real_files_rejected] expected AGENTS.md to remain a real file' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if [ -L "$temp_dir/CLAUDE.md" ] || [ ! -f "$temp_dir/CLAUDE.md" ]; then
+        printf '%s\n' '[fixture_assert_install_root_contract_real_files_rejected] expected CLAUDE.md to remain a real file' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if [ "$(fixture_file_checksum "$temp_dir/AGENTS.md")" != "$agents_checksum_before" ]; then
+        printf '%s\n' '[fixture_assert_install_root_contract_real_files_rejected] expected AGENTS.md to remain unchanged' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if [ "$(fixture_file_checksum "$temp_dir/CLAUDE.md")" != "$claude_checksum_before" ]; then
+        printf '%s\n' '[fixture_assert_install_root_contract_real_files_rejected] expected CLAUDE.md to remain unchanged' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
 
 # Smoke-check the shell stack runtime rejects unsafe manifest-controlled hook paths.
 #
@@ -1770,6 +1907,100 @@ PYEOF
         exit 1
     fi
     : "$fixture_assertion_output"
+    fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify uv AST source roots cannot escape the target root.
+#
+#     Requires `uv` in PATH. Gracefully skips with a warning when uv is
+#     unavailable.
+#
+# @return Returns 0 on success or when uv is missing.
+# @exit Exits with status 1 when an unsafe source root is accepted or not reported.
+fixture_assert_uv_source_root_safety() {
+    if ! uv_path=$(command -v uv 2>&1); then
+        printf 'warning: uv not in PATH; skipping uv source-root safety fixture check\n' >&2
+        return 0
+    fi
+    : "$uv_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" uv
+    fixture_write_manifest "$target_dir" '{"name":"uv-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["../outside"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}'
+    fixture_write_file "$fixture_root" outside/OutsideFixture.py 'def unsafe(value: int) -> bool:
+    return value > 1
+'
+    fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.py")
+    if fixture_run_command "$target_dir" "uv run --quiet --with libcst \"$target_dir/harness_format.py\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.py")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'uv unsafe source root leaves outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$fixture_root"
+}
+
+# Verify uv runtime prunes .claude/worktrees when sourceRoots include broad globs.
+#
+#     Requires `uv` in PATH. Gracefully skips with a warning when uv is
+#     unavailable.
+#
+# @return Returns 0 on success or when uv is missing.
+# @exit Exits with status 1 when worktree content is scanned or mutated.
+fixture_assert_uv_worktree_excluded() {
+    if ! uv_path=$(command -v uv 2>&1); then
+        printf 'warning: uv not in PATH; skipping uv worktree exclusion fixture check\n' >&2
+        return 0
+    fi
+    : "$uv_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" uv
+    fixture_write_manifest "$temp_dir" '{"name":"uv-worktree-exclusion-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}'
+    fixture_write_file "$temp_dir" src/GoodFixture.py 'def safe(value: int) -> bool:
+    return value > 1
+'
+    mkdir -p "$temp_dir/.claude/worktrees/abc1234/src"
+    fixture_write_file "$temp_dir" ".claude/worktrees/abc1234/src/WorktreeFixture.py" 'def bad(value: int) -> bool:
+    return value > 1
+'
+    worktree_file=$temp_dir/.claude/worktrees/abc1234/src/WorktreeFixture.py
+    worktree_before_checksum=$(fixture_file_checksum "$worktree_file")
+    if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_check.py\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'greaterThanComparison' 'uv worktree exclusion reports legitimate finding' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -Fq 'WorktreeFixture.py'; then
+        printf '%s\n' '[fixture_assert_uv_worktree_excluded] worktree file was scanned during check' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_format.py\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    worktree_after_checksum=$(fixture_file_checksum "$worktree_file")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$worktree_before_checksum" "$worktree_after_checksum" 'uv worktree file unchanged by format' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
     fixture_remove_temp_dir "$temp_dir"
 }
 
@@ -3239,35 +3470,26 @@ fi
 # @exit Exits with status 1 when emit_path_message output is corrupted for special paths.
 fixture_assert_emit_path_message_special_chars() {
     temp_dir=$(fixture_create_temp_dir)
-    path_test_script=$(
-        cat <<'EOF'
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-emit_path_message() {
-    path_message_severity=$1
-    path_message_category=$2
-    path_message_key=$3
-    path_message_fallback=$4
-    path_message_path=$5
-    path_message_template="$path_message_fallback"
-    path_message_text=$(python3 - "$path_message_template" "$path_message_path" <<'PYEOF'
-import sys
-print(sys.argv[1].replace("{path}", sys.argv[2]))
-PYEOF
-)
-    printf "[%s] %s: %s\n" "$path_message_severity" "$path_message_category" "$path_message_text"
-}
-test_path=$1
-emit_path_message ERROR symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$test_path"
-EOF
-    )
-    fixture_write_file "$temp_dir" path-test.sh "$path_test_script"
-    for test_path in 'dir&file' 'a|b' 'back\\slash'; do
-        output=$(sh "$temp_dir/path-test.sh" "$test_path")
+    fixture_copy_runtime "$temp_dir" shell
+    for test_path in 'dir&file' 'a|b' 'back\slash'; do
+        rm -f "$temp_dir/$test_path"
+        ln -s target "$temp_dir/$test_path"
+    done
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"special-path-message-fixture","filePresence":{"enabled":true,"severity":"ERROR","messages":{"fileNotAllowed":"symlink file is not allowed: {path}","directoryNotAllowed":"symlink directory is not allowed: {path}","scanRootNotAllowed":"symlink scan root is not allowed: {path}","scanEntryNotAllowed":"symlink scan entry is not allowed: {path}","pathNotAllowed":"symlink path is not allowed: {path}"},"parameters":{"paths":["dir&file","a|b","back\\slash"]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":"docs/harness/git-hooks/pre-push"}},"symlinkSafety":{"enabled":true,"severity":"ERROR","messages":{"fileNotAllowed":"symlink file is not allowed: {path}","directoryNotAllowed":"symlink directory is not allowed: {path}","scanRootNotAllowed":"symlink scan root is not allowed: {path}","scanEntryNotAllowed":"symlink scan entry is not allowed: {path}","pathNotAllowed":"symlink path is not allowed: {path}"},"parameters":{"allowedSymlinkPairs":[]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}
+JSONEOF
+    )"
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        printf '%s\n' '[fixture_assert_emit_path_message_special_chars] expected harness-check to report special-path diagnostics' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    for test_path in 'dir&file' 'a|b' 'back\slash'; do
         expected="[ERROR] symlinkSafety: symlink file is not allowed: $test_path"
-        if [ "$output" != "$expected" ]; then
-            printf '%s\n' "[fixture_assert_emit_path_message_special_chars] corrupted output for path '$test_path': got '$output'" >&2
+        if ! printf '%s\n' "$fixture_stderr" | grep -Fxq "$expected"; then
+            printf '%s\n' "[fixture_assert_emit_path_message_special_chars] missing expected diagnostic for path '$test_path'" >&2
+            printf '%s\n' "$fixture_stderr" >&2
             fixture_remove_temp_dir "$temp_dir"
             exit 1
         fi
@@ -3277,30 +3499,60 @@ EOF
 # Verify root harness-check warning counter accumulates warnings correctly.
 #
 # @exit Exits with status 1 when the warning counter does not increment.
+
 fixture_assert_harness_check_warn_counter() {
     temp_dir=$(fixture_create_temp_dir)
-    warn_file=$(mktemp)
-    printf '0\n' >"$warn_file"
-    current=$(cat "$warn_file")
-    current=$((current + 1))
-    printf '%d\n' "$current" >"$warn_file"
-    current=$(cat "$warn_file")
-    if [ "$current" -ne 1 ]; then
-        printf '%s\n' '[fixture_assert_harness_check_warn_counter] expected warn counter to be 1' >&2
-        rm -f "$warn_file"
+    warn_bin_dir=$temp_dir/bin
+    mkdir -p "$warn_bin_dir"
+    for required_command in cat sh mktemp find grep python3 printf env rm; do
+        required_command_path=$(command -v "$required_command")
+        ln -s "$required_command_path" "$warn_bin_dir/$required_command"
+    done
+    shell_file=$temp_dir/plugins/agent-capability-kit/skills/plugin-authoring/assets/hooks/check.sh
+    python_file=$temp_dir/plugins/harness/skills/harness-install/assets/uv/runtime/harness_check.py
+    mkdir -p "$(dirname "$shell_file")"
+    mkdir -p "$(dirname "$python_file")"
+    : >"$shell_file"
+    : >"$python_file"
+    if ! fixture_run_command "$temp_dir" "PATH=$warn_bin_dir CLAUDE_PLUGIN_ROOT=\"$temp_dir\" sh \"$root/scripts/harness-check.sh\""; then
+        printf '%s\n' "[fixture_assert_harness_check_warn_counter] expected harness-check to pass with warnings: $fixture_stderr" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    current=$((current + 1))
-    printf '%d\n' "$current" >"$warn_file"
-    current=$(cat "$warn_file")
-    if [ "$current" -ne 2 ]; then
-        printf '%s\n' '[fixture_assert_harness_check_warn_counter] expected warn counter to be 2' >&2
-        rm -f "$warn_file"
+    summary=$(printf '%s\n' "$fixture_stdout" | grep '^Checked ')
+    if [ -z "$summary" ]; then
+        printf '%s\n' '[fixture_assert_harness_check_warn_counter] expected Checked summary output from harness-check' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    rm -f "$warn_file"
+    error_count=$(printf '%s\n' "$summary" | awk '{print $4}')
+    warn_count=$(printf '%s\n' "$summary" | awk '{print $6}' | sed 's/,$//')
+    case "$error_count" in
+        "" | *[!0-9]*)
+            printf '%s\n' "[fixture_assert_harness_check_warn_counter] expected numeric error count in summary, got: $summary" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+            ;;
+    esac
+    case "$warn_count" in
+        "" | *[!0-9]*)
+            printf '%s\n' "[fixture_assert_harness_check_warn_counter] expected numeric warn count in summary, got: $summary" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+            ;;
+    esac
+    if [ "$warn_count" -ne 4 ]; then
+        printf '%s\n' "[fixture_assert_harness_check_warn_counter] expected warn count to be 4, got $warn_count" >&2
+        printf '%s\n' "$summary" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if [ "$error_count" -ne 0 ]; then
+        printf '%s\n' "[fixture_assert_harness_check_warn_counter] expected zero errors, got $error_count" >&2
+        printf '%s\n' "$summary" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
     fixture_remove_temp_dir "$temp_dir"
 }
 # Verify install --hooks copy refuses to write through a symlinked .git/hooks directory.
@@ -3308,7 +3560,15 @@ fixture_assert_harness_check_warn_counter() {
 # @exit Exits with status 1 when copy mode writes through a symlinked hooks directory.
 fixture_assert_install_hooks_copy_symlink_rejection() {
     temp_dir=$(fixture_create_temp_dir)
-    mkdir -p "$temp_dir/.git"
+    if git_path=$(command -v git 2>&1); then
+        : "$git_path"
+        git -C "$temp_dir" init -q
+    else
+        printf 'warning: git not in PATH; skipping hooks copy symlink rejection fixture\n' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        return 0
+    fi
+    rm -rf "$temp_dir/.git/hooks"
     mkdir -p "$temp_dir/real-hooks"
     ln -s "$temp_dir/real-hooks" "$temp_dir/.git/hooks"
     fixture_write_file "$temp_dir/settings.gradle.kts" 'rootProject.name = "hooks-copy-symlink-fixture"'
@@ -3957,11 +4217,16 @@ fixture_assert_shell_worktree_excluded
 fixture_assert_build_tool_hook_mode
 fixture_assert_shell_symlink_safety
 fixture_assert_shell_root_contract_scaffold_symlink
+fixture_assert_install_root_contract_dangling_agents_alias
+fixture_assert_install_root_contract_dangling_claude_alias
+fixture_assert_install_root_contract_real_files_rejected
 smoke_check_shell_unsafe_hook_paths
 fixture_assert_shell_format_check_after_format
 fixture_assert_shell_format_malformed_manifest
 fixture_assert_bun_format
 fixture_assert_uv_format
+fixture_assert_uv_source_root_safety
+fixture_assert_uv_worktree_excluded
 fixture_assert_gradle_location
 fixture_assert_gradle_greater_than_format
 fixture_assert_gradle_source_root_safety

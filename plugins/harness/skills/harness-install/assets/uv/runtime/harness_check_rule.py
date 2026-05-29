@@ -292,13 +292,52 @@ class HarnessCheckRule(ABC):
         python_exts = params.get("extensions", [])
         if not isinstance(python_exts, list):
             return ()
-        def matches_filter(file_path: Path) -> bool:
+        def has_symlink_segment(path: Path) -> bool:
+            try:
+                relative = path.relative_to(root)
+            except ValueError:
+                return True
+            current = root
+            for segment in relative.parts:
+                if segment in {"", ".."}:
+                    return True
+                if segment == ".":
+                    continue
+                current = current / segment
+                if current.is_symlink():
+                    return True
+            return False
+
+        def is_worktree_path(path: Path) -> bool:
+            try:
+                relative = path.relative_to(root)
+            except ValueError:
+                return False
+            return (
+                len(relative.parts) >= 2
+                and relative.parts[0] == ".claude"
+                and relative.parts[1] == "worktrees"
+            )
+
+        def is_safe_file(file_path: Path) -> bool:
             return (
                 file_path.is_file()
                 and not file_path.is_symlink()
                 and "__pycache__" not in file_path.parts
                 and HarnessCheckRule.is_relative_to(file_path.resolve(), root)
+                and not has_symlink_segment(file_path.resolve())
+                and not is_worktree_path(file_path.resolve())
                 and file_path.suffix.lstrip(".") in frozenset(e for e in python_exts if isinstance(e, str))
+            )
+
+        def is_safe_root(path: Path) -> bool:
+            resolved = path.resolve()
+            return (
+                path.is_dir()
+                and not path.is_symlink()
+                and HarnessCheckRule.is_relative_to(resolved, root)
+                and not has_symlink_segment(resolved)
+                and not is_worktree_path(resolved)
             )
 
         def collect_all() -> list[Path]:
@@ -306,32 +345,26 @@ class HarnessCheckRule(ABC):
             for root_entry in python_roots:
                 if not isinstance(root_entry, str):
                     continue
+                if root_entry == "":
+                    continue
+                if Path(root_entry).is_absolute():
+                    continue
+                if ".." in Path(root_entry).parts:
+                    continue
                 if "*" in root_entry:
                     for resolved_path in root.glob(root_entry):
-                        if (
-                            resolved_path.is_dir()
-                            and not resolved_path.is_symlink()
-                            and HarnessCheckRule.is_relative_to(
-                                resolved_path.resolve(), root
-                            )
-                        ):
-                            collected.extend(
-                                file_path.resolve()
-                                for file_path in resolved_path.rglob("*")
-                                if matches_filter(file_path)
-                            )
+                        if is_safe_root(resolved_path):
+                            for file_path in resolved_path.rglob("*"):
+                                candidate = file_path.resolve()
+                                if is_safe_file(candidate):
+                                    collected.append(candidate)
                 else:
                     dir_path = root / root_entry
-                    if (
-                        dir_path.is_dir()
-                        and not dir_path.is_symlink()
-                        and HarnessCheckRule.is_relative_to(dir_path.resolve(), root)
-                    ):
-                        collected.extend(
-                            file_path.resolve()
-                            for file_path in dir_path.rglob("*")
-                            if matches_filter(file_path)
-                        )
+                    if is_safe_root(dir_path):
+                        for file_path in dir_path.rglob("*"):
+                            candidate = file_path.resolve()
+                            if is_safe_file(candidate):
+                                collected.append(candidate)
             return collected
 
         return tuple(sorted(dict.fromkeys(collect_all())))
