@@ -61,12 +61,13 @@ class HookShebangRule(HarnessCheckRule):
         result = []
         for hook in hooks:
             if isinstance(hook, str) and ctx.first_line(hook) != expected_shebang:
+                relative_path = relative(ctx.path_of(hook), ctx.root)
                 result.append(
                     Finding(
                         ctx.severity_of(self.category),
                         self.category,
                         messages.get("default", "{hook} must start with {expectedShebang}").format(hook=hook, expectedShebang=expected_shebang),
-                        file=relative(ctx.path_of(hook), ctx.root),
+                        file=relative_path,
                         start_line=1,
                         start_column=1,
                         end_line=1,

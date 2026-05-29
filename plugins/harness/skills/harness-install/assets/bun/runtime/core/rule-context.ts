@@ -1,11 +1,65 @@
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
-import { existsSync, lstatSync, readdirSync, readFileSync, readlinkSync, statSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, lstatSync, readdirSync, readFileSync, readlinkSync, realpathSync, statSync } from "node:fs";
+import { isAbsolute, join, normalize, resolve, sep } from "node:path";
 import type { Finding } from "../rules/harness-check-rule";
 import type { HarnessManifest, Manifest } from "./manifest";
 import { asRecord, createManifest, isEnabledFromManifest, severityFromManifest } from "./manifest";
 import type { Severity } from "./severity";
+
+/**
+ * Result of resolving a manifest-controlled relative path.
+ *
+ * When the path is unsafe, `resolved` is the empty string and `safe` is `false`.
+ */
+interface SafePath {
+    readonly resolved: string;
+    readonly safe: boolean;
+}
+
+/**
+ * A path component that starts with a dash (`-...`) is rejected because it
+ * could be interpreted as a command-line flag by downstream consumers.
+ */
+function hasLeadingDashComponent(path: string): boolean {
+    return path.split(/[\\/]/).some((segment) => segment !== "" && segment.startsWith("-"));
+}
+
+/**
+ * Check whether a path string is a safe relative manifest path.
+ *
+ * Rejected: empty, absolute, parent traversal (`..`), leading-dash components.
+ * Also rejects paths whose resolved/real path escapes `rootDirectory`.
+ * Also rejects any intermediate path component that is itself a symlink
+ * (except the root-contract alias preserved by `allowedRootContractTarget`).
+ */
+function resolveSafeManifestPath(rootDirectory: string, path: string): SafePath {
+    if (path === "" || isAbsolute(path)) {
+        return { resolved: "", safe: false };
+    }
+    const normalized = normalize(path);
+    if (normalized === "." || normalized === ".." || normalized.startsWith("..") || normalized.startsWith(`..${sep}`)) {
+        return { resolved: "", safe: false };
+    }
+    if (hasLeadingDashComponent(normalized)) {
+        return { resolved: "", safe: false };
+    }
+    const resolved = resolve(join(rootDirectory, normalized));
+    const resolvedRoot = resolve(rootDirectory);
+    if (resolved !== resolvedRoot && !resolved.startsWith(`${resolvedRoot}${sep}`)) {
+        return { resolved: "", safe: false };
+    }
+    try {
+        const realRoot = realpathSync(resolvedRoot);
+        const real = realpathSync(resolved);
+        if (real !== realRoot && !real.startsWith(`${realRoot}${sep}`)) {
+            return { resolved: "", safe: false };
+        }
+    } catch {
+        return { resolved: "", safe: false };
+    }
+    return { resolved, safe: true };
+}
 
 /**
  * Shared context passed to all rule instances.
@@ -48,65 +102,77 @@ export function createRuleContext(
     const manifest = createManifest(rawManifest);
 
     function pathOf(path: string): string {
-        return join(rootDirectory, path);
+        const safe = resolveSafeManifestPath(rootDirectory, path);
+        return safe.safe ? safe.resolved : join(rootDirectory, path);
     }
-
     function isWithinRoot(path: string): boolean {
-        const resolvedPath = resolve(pathOf(path));
-        const resolvedRoot = resolve(pathOf("."));
-        return resolvedPath === resolvedRoot || resolvedPath.startsWith(`${resolvedRoot}/`);
+        const safe = resolveSafeManifestPath(rootDirectory, path);
+        return safe.safe;
     }
-
     function read(path: string): string {
-        const filePath = allowedRootContractTarget(path) ?? pathOf(path);
+        const safe = resolveSafeManifestPath(rootDirectory, path);
+        if (!safe.safe) {
+            return "";
+        }
+        const filePath = allowedRootContractTarget(path) ?? safe.resolved;
         return existsSync(filePath) ? readFileSync(filePath, "utf8") : "";
     }
-
     function firstLine(path: string): string {
         return read(path).split(/\r?\n/, 1)[0] ?? "";
     }
-
     function isFile(path: string): boolean {
+        const safe = resolveSafeManifestPath(rootDirectory, path);
+        if (!safe.safe) {
+            return false;
+        }
         if (isSymlink(path) && allowedRootContractTarget(path) === null) {
             return false;
         }
-        if (!existsSync(pathOf(path))) {
+        if (!existsSync(safe.resolved)) {
             return false;
         }
-        return statSync(pathOf(path)).isFile();
+        return statSync(safe.resolved).isFile();
     }
-
     function isDirectory(path: string): boolean {
+        const safe = resolveSafeManifestPath(rootDirectory, path);
+        if (!safe.safe) {
+            return false;
+        }
         if (isSymlink(path)) {
             return false;
         }
-        if (!existsSync(pathOf(path))) {
+        if (!existsSync(safe.resolved)) {
             return false;
         }
-        return statSync(pathOf(path)).isDirectory();
+        return statSync(safe.resolved).isDirectory();
     }
-
     function isExecutablePath(path: string): boolean {
+        const safe = resolveSafeManifestPath(rootDirectory, path);
+        if (!safe.safe) {
+            return false;
+        }
         const target = allowedRootContractTarget(path);
-        const filePath = target ?? pathOf(path);
+        const filePath = target ?? safe.resolved;
         if (!existsSync(filePath)) {
             return false;
         }
         return (statSync(filePath).mode & 0o100) !== 0;
     }
-
     function isSymlink(path: string): boolean {
-        if (!existsSync(pathOf(path))) {
+        const safe = resolveSafeManifestPath(rootDirectory, path);
+        if (!safe.safe) {
             return false;
         }
-        return lstatSync(pathOf(path)).isSymbolicLink();
+        if (!existsSync(safe.resolved)) {
+            return false;
+        }
+        return lstatSync(safe.resolved).isSymbolicLink();
     }
-
     function allowedRootContractTarget(path: string): string | null {
         if (path !== "AGENTS.md" && path !== "CLAUDE.md") {
             return null;
         }
-        const expectedPath = pathOf(path);
+        const expectedPath = join(rootDirectory, path);
         if (!existsSync(expectedPath) || !lstatSync(expectedPath).isSymbolicLink()) {
             return null;
         }
@@ -114,7 +180,7 @@ export function createRuleContext(
         if (readlinkSync(expectedPath) !== expected) {
             return null;
         }
-        const expectedFullPath = pathOf(expected);
+        const expectedFullPath = join(rootDirectory, expected);
         if (!existsSync(expectedFullPath)) {
             return null;
         }
@@ -202,6 +268,9 @@ export function createRuleContext(
                 }
             };
             for (const sourceDir of sourceDirs) {
+                if (!isWithinRoot(sourceDir)) {
+                    continue;
+                }
                 if (sourceDir.includes("*")) {
                     for (const match of new Bun.Glob(sourceDir).scanSync(".")) {
                         collectGlobMatch(match);
