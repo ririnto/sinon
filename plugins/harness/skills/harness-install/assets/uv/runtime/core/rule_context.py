@@ -276,7 +276,6 @@ class RuleContext(Protocol):
     def walk_directory(self, path: str) -> tuple[tuple[Path, ...], tuple]:
         """Walk directory tree."""
         ...
-
     def collect_files_under(self, path: str) -> tuple[tuple[Path, ...], tuple]:
         """Collect files under path."""
         ...
@@ -329,6 +328,84 @@ def create_rule_context(
     def path_of(path: str) -> Path:
         return root_dir / path
 
+    def is_safe_manifest_path(path_str: str) -> bool:
+        """
+        Reject empty, absolute, traversal, leading-dash path components.
+
+        :param path_str: Manifest-controlled path string.
+        :returns: ``True`` when path passes lexical safety checks.
+        """
+        if not path_str or path_str == "":
+            return False
+        parsed = Path(path_str)
+        if parsed.is_absolute():
+            return False
+        for part in parsed.parts:
+            if part == "..":
+                return False
+            if part.startswith("-"):
+                return False
+        return True
+
+    def has_symlink_component(path_str: str) -> bool:
+        """
+        Check whether any intermediate or final component of a path is a symlink.
+
+        :param path_str: Manifest-controlled path string.
+        :returns: ``True`` when any path component is a symlink.
+        """
+        probe = root_dir
+        for part in Path(path_str).parts:
+            if part == ".":
+                continue
+            probe = probe / part
+            if probe.is_symlink():
+                return True
+        return False
+
+    def resolves_within_root(path_str: str) -> bool:
+        """
+        Check whether the resolved path stays within root.
+
+        :param path_str: Manifest-controlled path string.
+        :returns: ``True`` when the resolved path is root or a child of root.
+        """
+        resolved = (root_dir / path_str).resolve(strict=False)
+        return resolved == root_dir or resolved.is_relative_to(root_dir)
+
+    def is_allowed_root_contract(path_str: str) -> bool:
+        """
+        Check whether the path is the allowed root contract symlink pair.
+
+        :param path_str: Manifest-controlled path string.
+        :returns: ``True`` when path_str is AGENTS.md or CLAUDE.md with a valid contract symlink.
+        """
+        if path_str not in {"AGENTS.md", "CLAUDE.md"}:
+            return False
+        path = root_dir / path_str
+        if not path.is_symlink():
+            return False
+        return allowed_root_contract_target(path_str) is not None
+
+    def is_safe_path(path_str: str) -> bool:
+        """
+        Full manifest path safety check.
+
+        Rejects empty, absolute, traversal, leading-dash paths and paths
+        outside root after resolve(strict=False). Rejects symlink components
+        except for the allowed root contract alias (AGENTS.md/CLAUDE.md).
+
+        :param path_str: Manifest-controlled path string.
+        :returns: ``True`` when the path is safe for read/stat operations.
+        """
+        if not is_safe_manifest_path(path_str):
+            return False
+        if not resolves_within_root(path_str):
+            return False
+        if is_allowed_root_contract(path_str):
+            return True
+        return not has_symlink_component(path_str)
+
     def is_within_root(path_str: str) -> bool:
         resolved_path = path_of(path_str).resolve()
         return resolved_path == root_dir or str(resolved_path).startswith(
@@ -336,6 +413,8 @@ def create_rule_context(
         )
 
     def read(path_str: str) -> str:
+        if not is_safe_path(path_str):
+            return ""
         target = allowed_root_contract_target(path_str)
         file_path = target if target is not None else path_of(path_str)
         if not file_path.is_file():
@@ -347,16 +426,22 @@ def create_rule_context(
         return lines[0] if lines else ""
 
     def is_file(path_str: str) -> bool:
+        if not is_safe_path(path_str):
+            return False
         if is_symlink(path_str) and allowed_root_contract_target(path_str) is None:
             return False
         return path_of(path_str).is_file()
 
     def is_directory(path_str: str) -> bool:
+        if not is_safe_path(path_str):
+            return False
         if is_symlink(path_str):
             return False
         return path_of(path_str).is_dir()
 
     def is_executable(path_str: str) -> bool:
+        if not is_safe_path(path_str):
+            return False
         target = allowed_root_contract_target(path_str)
         target_path = target if target is not None else path_of(path_str)
         if not target_path.exists():
@@ -364,6 +449,8 @@ def create_rule_context(
         return bool(target_path.stat().st_mode & stat.S_IXUSR)
 
     def is_symlink(path_str: str) -> bool:
+        if not is_safe_manifest_path(path_str):
+            return False
         return path_of(path_str).is_symlink()
 
     def allowed_root_contract_target(path_str: str) -> Path | None:
@@ -565,6 +652,8 @@ def create_rule_context(
 
     def walk_directory(path_str: str) -> tuple[tuple[Path, ...], tuple]:
         """Walk directory tree, excluding symlinks."""
+        if not is_safe_path(path_str):
+            return ((), ())
         path = path_of(path_str)
         if path.is_symlink() or path.is_file() or not path.is_dir():
             return ((), ())
@@ -584,7 +673,7 @@ def create_rule_context(
 
     def collect_files_under(path_str: str) -> tuple[tuple[Path, ...], tuple]:
         """Collect files under path."""
-        if not is_within_root(path_str):
+        if not is_safe_path(path_str):
             return ((), ())
         if is_symlink(path_str) and allowed_root_contract_target(path_str) is None:
             return ((), ())
