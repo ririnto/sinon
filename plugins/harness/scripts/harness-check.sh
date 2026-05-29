@@ -3,6 +3,16 @@
 set -e
 
 root=${CLAUDE_PLUGIN_ROOT:-$(CDPATH='' cd "$(dirname "$0")/../../.." && pwd)}
+warn_counter_file=$(mktemp)
+printf '0\n' >"$warn_counter_file"
+# Increment the shared warning counter by one.
+#
+# @return Updates the warn counter file.
+warn_count_increment() {
+    current=$(cat "$warn_counter_file")
+    current=$((current + 1))
+    printf '%d\n' "$current" >"$warn_counter_file"
+}
 
 # List production shell scripts covered by repository checks.
 #
@@ -69,7 +79,7 @@ check_shell_files() {
         if [ "$shellcheck_tool_checked" -eq 0 ]; then
             if ! shellcheck_bin=$(command -v shellcheck 2>&1); then
                 printf 'warning: shellcheck not in PATH; skipping shellcheck for %s\n' "$path" >&2
-                warn_count=$((warn_count + 1))
+                warn_count_increment
                 shellcheck_bin=
             fi
             shellcheck_tool_checked=1
@@ -84,7 +94,7 @@ check_shell_files() {
         if [ "$shfmt_tool_checked" -eq 0 ]; then
             if ! shfmt_bin=$(command -v shfmt 2>&1); then
                 printf 'warning: shfmt not in PATH; skipping shfmt for %s\n' "$path" >&2
-                warn_count=$((warn_count + 1))
+                warn_count_increment
                 shfmt_bin=
             fi
             shfmt_tool_checked=1
@@ -113,7 +123,7 @@ check_markdown_files() {
     error_count=0
     if ! markdownlint_bin=$(command -v markdownlint-cli2 2>&1); then
         printf 'warning: markdownlint-cli2 not in PATH; skipping markdown linting\n' >&2
-        warn_count=$((warn_count + 1))
+        warn_count_increment
         printf '0\n'
         return
     fi
@@ -141,7 +151,7 @@ check_python_files() {
         if [ "$uv_tool_checked" -eq 0 ]; then
             if ! uv_bin=$(command -v uv 2>&1); then
                 printf 'warning: uv not in PATH; skipping ruff checks for %s\n' "$path" >&2
-                warn_count=$((warn_count + 1))
+                warn_count_increment
                 uv_bin=
             fi
             uv_tool_checked=1
@@ -162,10 +172,11 @@ check_python_files() {
     printf '%d\n' "$error_count"
 }
 
-warn_count=0
 shell_errors=$(check_shell_files)
 python_errors=$(check_python_files)
 markdown_errors=$(check_markdown_files)
+warn_count=$(cat "$warn_counter_file")
+rm -f "$warn_counter_file"
 error_count=$((shell_errors + python_errors + markdown_errors))
 shell_checked=$(list_shell_files | count_existing_files)
 python_checked=$(list_python_files | count_existing_files)

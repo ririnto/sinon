@@ -644,13 +644,58 @@ resolve_git_hooks_dir() {
         printf '%s\n' "[resolve_git_hooks] skip git hook install: $common_dir not found" >&2
         return 1
     fi
+    current=
+    rest=${common_dir#/}
+    while [ -n "$rest" ]; do
+        case "$rest" in
+            */*)
+                part=${rest%%/*}
+                rest=${rest#*/}
+                ;;
+            *)
+                part=$rest
+                rest=
+                ;;
+        esac
+        if [ -z "$part" ]; then
+            continue
+        fi
+        current=/${current:+$current/}$part
+        if [ -L "$current" ]; then
+            printf '%s\n' "[resolve_git_hooks] skip git hook install: refusing symlink component in git common dir: $current" >&2
+            return 1
+        fi
+    done
+    common_dir=$(CDPATH='' cd "$common_dir" && pwd -P) || {
+        printf '%s\n' "[resolve_git_hooks] skip git hook install: cannot resolve git common dir: $common_dir" >&2
+        return 1
+    }
     hooks_dir=$common_dir/hooks
+    if [ -L "$hooks_dir" ]; then
+        printf '%s\n' "[resolve_git_hooks] skip git hook install: refusing symlink hooks directory: $hooks_dir" >&2
+        return 1
+    fi
+    if [ -e "$hooks_dir" ] && [ ! -d "$hooks_dir" ]; then
+        printf '%s\n' "[resolve_git_hooks] skip git hook install: hooks path is not a directory: $hooks_dir" >&2
+        return 1
+    fi
     if [ ! -d "$hooks_dir" ]; then
         mkdir -p "$hooks_dir" || {
             printf '%s\n' "[resolve_git_hooks] skip git hook install: cannot create $hooks_dir" >&2
             return 1
         }
     fi
+    hooks_dir=$(CDPATH='' cd "$hooks_dir" && pwd -P) || {
+        printf '%s\n' "[resolve_git_hooks] skip git hook install: cannot resolve git hooks directory: $hooks_dir" >&2
+        return 1
+    }
+    case "$hooks_dir" in
+        "$common_dir"/hooks) ;;
+        *)
+            printf '%s\n' "[resolve_git_hooks] skip git hook install: resolved hooks directory is not under git common dir: $hooks_dir" >&2
+            return 1
+            ;;
+    esac
     printf '%s\n' "$hooks_dir"
 }
 

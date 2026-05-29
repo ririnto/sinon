@@ -29,10 +29,10 @@ object HookGeneratedMarkerRule : HarnessCheckRule() {
         val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList()).get("parameters")?.jsonObject ?: return emptyList()
         val markerTemplate = JsonAccess.stringFromObject(parametersObj, "markerTemplate")
         val placeholderForbidden = JsonAccess.stringFromObject(parametersObj, "placeholderForbidden")
+        val hooks = JsonAccess.stringArrayFromObject(parametersObj, "hooks")
         return buildList {
             addAll(
-                ctx.manifest
-                    .stringArray(category, "hooks")
+                hooks
                     .mapNotNull { hookPath -> safeHookPath(ctx.root, hookPath)?.let { hook -> hookPath to hook } }
                     .flatMap { (hookPath, hook) ->
                         val text = hook.readText()
@@ -76,8 +76,7 @@ object HookGeneratedMarkerRule : HarnessCheckRule() {
         val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList()).get("parameters")?.jsonObject ?: return emptyList()
         val markerTemplate = JsonAccess.stringFromObject(parametersObj, "markerTemplate")
         return buildList {
-            ctx.manifest
-                .stringArray(category, "hooks")
+            JsonAccess.stringArrayFromObject(parametersObj, "hooks")
                 .forEach { hookPath ->
                     val hook = safeHookPath(ctx.root, hookPath) ?: return@forEach
                     val text = hook.readText()

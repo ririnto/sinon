@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.rules.text
 
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
+import com.ririnto.sinon.harness.core.JsonAccess
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.rules.HarnessCheckRule
 import java.nio.file.Files
@@ -11,6 +12,7 @@ import kotlin.io.path.isExecutable
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.pathString
 import kotlin.io.path.relativeTo
+import kotlinx.serialization.json.jsonObject
 
 /**
  * Rule that requires hooks to be executable.
@@ -24,11 +26,10 @@ object HookExecutableRule : HarnessCheckRule() {
     override val category: String = "hookExecutable"
 
     override fun validate(ctx: RuleContext): Collection<Finding> {
-        if (ctx.manifest.categoryObject(category) == null) {
-            return emptyList()
-        }
-        return ctx.manifest
-            .stringArray(category, "hooks")
+        val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList()).get("parameters")?.jsonObject
+            ?: return emptyList()
+        val hooks = JsonAccess.stringArrayFromObject(parametersObj, "hooks")
+        return hooks
             .mapNotNull { hookPath -> safeHookPath(ctx.root, hookPath) }
             .filter { hook -> !hook.isExecutable() }
             .map { hook ->
@@ -42,11 +43,10 @@ object HookExecutableRule : HarnessCheckRule() {
     }
 
     override fun format(ctx: RuleContext): Collection<Path> {
-        if (ctx.manifest.categoryObject(category) == null) {
-            return emptyList()
-        }
-        return ctx.manifest
-            .stringArray(category, "hooks")
+        val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList()).get("parameters")?.jsonObject
+            ?: return emptyList()
+        val hooks = JsonAccess.stringArrayFromObject(parametersObj, "hooks")
+        return hooks
             .mapNotNull { hookPath -> safeHookPath(ctx.root, hookPath) }
             .filter { hook -> !hook.isExecutable() }
             .mapNotNull { hook ->
