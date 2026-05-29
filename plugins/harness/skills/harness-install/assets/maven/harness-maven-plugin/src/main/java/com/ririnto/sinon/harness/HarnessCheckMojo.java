@@ -50,13 +50,16 @@ public final class HarnessCheckMojo extends AbstractMojo {
         final Set<String> knownCategories = Arrays.stream(HarnessCheck.values())
                 .map(HarnessCheck::category)
                 .collect(Collectors.toUnmodifiableSet());
+        final List<Finding> sourceRootFindings = collectSourceRootFindings(ctx);
         final List<Finding> findings = Stream.concat(
                 manifest.propertyNames().stream()
                         .filter(key -> !knownCategories.contains(key) && !Set.of("name", "description", "$schema", "seedFiles", "generatedArtifacts", "harnessEvolution", "teamPatterns").contains(key))
                         .map(key -> Finding.of("WARN", "manifestSchema", "unknown manifest key: " + key)),
-                Arrays.stream(HarnessCheck.values())
-                        .filter(check -> check.applies(ctx))
-                        .flatMap(check -> validateCheck(ctx, check).stream()))
+                Stream.concat(
+                        sourceRootFindings.stream(),
+                        Arrays.stream(HarnessCheck.values())
+                                .filter(check -> check.applies(ctx))
+                                .flatMap(check -> validateCheck(ctx, check).stream())))
                 .sorted((a, b) -> {
                     final int severityOrder = severityRank(b.severity()) - severityRank(a.severity());
                     return severityOrder != 0 ? severityOrder : a.message().compareTo(b.message());
@@ -68,6 +71,21 @@ public final class HarnessCheckMojo extends AbstractMojo {
         if (findings.stream().anyMatch(f -> "ERROR".equals(f.severity()))) {
             throw new MojoExecutionException("Harness validation failed");
         }
+    }
+
+    /**
+     * Collects source-root safety findings across all applicable rule categories.
+     */
+    private static List<Finding> collectSourceRootFindings(RuleContext ctx) throws MojoExecutionException {
+        final List<Finding> findings = new java.util.ArrayList<>();
+        final Set<String> categories = Arrays.stream(HarnessCheck.values())
+                .filter(check -> check.applies(ctx))
+                .map(HarnessCheck::category)
+                .collect(Collectors.toUnmodifiableSet());
+        for (final String category : categories) {
+            findings.addAll(ctx.stackSourceFindings(category));
+        }
+        return findings.stream().distinct().toList();
     }
 
     /**

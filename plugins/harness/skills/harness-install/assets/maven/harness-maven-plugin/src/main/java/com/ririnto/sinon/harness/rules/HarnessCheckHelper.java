@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.rules;
 
 
+import com.ririnto.sinon.harness.Finding;
 import tools.jackson.databind.JsonNode;
 import org.apache.maven.plugin.MojoExecutionException;
 
@@ -53,6 +54,9 @@ public class HarnessCheckHelper {
      * @throws MojoExecutionException if reading fails
      */
     public static String readFile(Path root, Path path) throws MojoExecutionException {
+        if (!isContainedUnderRoot(root, path)) {
+            throw new MojoExecutionException("path escapes project root: " + path);
+        }
         final Path resolved = Files.isSymbolicLink(path) ? allowedRootContractTarget(root, path) : path;
         if (resolved == null) {
             throw new MojoExecutionException("symlink not allowed: " + path);
@@ -72,6 +76,9 @@ public class HarnessCheckHelper {
      * @return true if path is a safe regular file
      */
     public static boolean isSafeRegularFile(Path root, Path path) {
+        if (!isContainedUnderRoot(root, path)) {
+            return false;
+        }
         return Files.isSymbolicLink(path)
                 ? allowedRootContractTarget(root, path) != null
                 : Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS);
@@ -85,20 +92,27 @@ public class HarnessCheckHelper {
      * @return true if path is a safe directory
      */
     public static boolean isSafeDirectory(Path root, Path path) {
+        if (!isContainedUnderRoot(root, path)) {
+            return false;
+        }
         return !Files.isSymbolicLink(path) && Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS);
     }
 
     /**
      * Lists files in a directory or returns a single file if path is a file.
+     * Symlinks are included so that rules such as SymlinkSafetyRule can classify them.
      *
      * @param root the project root directory
      * @param base the base path (file or directory)
-     * @return list of regular files
+     * @return list of regular files and symlinks
      * @throws MojoExecutionException if inspection fails
      */
     public static List<Path> safeFileOrWalk(Path root, Path base) throws MojoExecutionException {
-        if (Files.isSymbolicLink(base) && allowedRootContractTarget(root, base) == null) {
+        if (!isContainedUnderRoot(root, base)) {
             return List.of();
+        }
+        if (Files.isSymbolicLink(base)) {
+            return allowedRootContractTarget(root, base) != null ? List.of(base) : List.of(base);
         }
         if (isSafeRegularFile(root, base)) {
             return List.of(base);
@@ -108,7 +122,7 @@ public class HarnessCheckHelper {
         }
         try (final Stream<Path> stream = Files.walk(base)) {
             return stream
-                    .filter(f -> !f.equals(base) && !Files.isSymbolicLink(f) && Files.isRegularFile(f, LinkOption.NOFOLLOW_LINKS))
+                    .filter(f -> !f.equals(base) && (Files.isSymbolicLink(f) || Files.isRegularFile(f, LinkOption.NOFOLLOW_LINKS)))
                     .toList();
         } catch (IOException error) {
             throw new MojoExecutionException("failed to inspect " + base, error);
@@ -164,6 +178,97 @@ public class HarnessCheckHelper {
     }
 
     /**
+     * Collects source-root safety findings for manifest categories and roots.
+     *
+     * @param manifest the manifest JSON node
+     * @param category the category name
+     * @return list of findings for unsafe source-root entries
+     * @throws IOException if manifest processing fails
+     */
+    public static List<Finding> stackSourceFindings(JsonNode manifest, String category) throws IOException {
+        return stackSourceFindings(manifest, category, "java", Path.of("."));
+    }
+
+    /**
+     * Collects source-root safety findings for manifest categories and roots.
+     *
+     * @param manifest the manifest JSON node
+     * @param category the category name
+     * @param stack retained for signature compatibility; ignored under flat parameter shape
+     * @return list of findings for unsafe source-root entries
+     * @throws IOException if manifest processing fails
+     */
+    public static List<Finding> stackSourceFindings(JsonNode manifest, String category, String stack) throws IOException {
+        return stackSourceFindings(manifest, category, stack, Path.of("."));
+    }
+
+    /**
+     * Collects source-root safety findings for manifest categories and roots.
+     *
+     * @param manifest the manifest JSON node
+     * @param category the category name
+     * @param stack retained for signature compatibility; ignored under flat parameter shape
+     * @param projectRoot the project root for relative path resolution
+     * @return list of findings for unsafe source-root entries
+     * @throws IOException if manifest processing fails
+     */
+    public static List<Finding> stackSourceFindings(JsonNode manifest, String category, String stack, Path projectRoot) throws IOException {
+        final List<Finding> rootFindings = collectRootSafetyFindings(manifest, category, projectRoot);
+        final StackSourceResult result = collectStackSourcesWithFindings(manifest, category, stack, projectRoot);
+        return Stream.concat(rootFindings.stream(), result.findings().stream())
+                .distinct()
+                .toList();
+    }
+
+    /**
+     * Collects source-root safety findings for manifest categories and roots.
+     */
+    private static List<Finding> collectRootSafetyFindings(JsonNode manifest, String category, Path projectRoot) throws IOException {
+        final JsonNode categoryNode = manifest.get(category);
+        final JsonNode params = categoryNode == null ? null : categoryNode.get("parameters");
+        final JsonNode rootsNode = params == null ? null : params.get("sourceRoots");
+        final JsonNode extsNode = params == null ? null : params.get("extensions");
+        if (rootsNode == null || extsNode == null) {
+            return List.of();
+        }
+        final FileSystem fs = FileSystems.getDefault();
+        final Path base = projectRoot;
+        final Path baseReal = base.toRealPath();
+        final List<Finding> findings = new ArrayList<>(extractPaths(rootsNode).size());
+        for (final String rootEntry : extractPaths(rootsNode)) {
+            if (rootEntry.isBlank()) {
+                continue;
+            }
+            final Path rootPath = Path.of(rootEntry);
+            if (rootPath.isAbsolute()) {
+                findings.add(Finding.of("ERROR", "symlinkSafety", "absolute source root is not allowed: " + rootEntry));
+                continue;
+            }
+            if (hasRelativeTraversal(rootPath)) {
+                findings.add(Finding.of("ERROR", "symlinkSafety", "source root traversal is not allowed: " + rootEntry));
+                continue;
+            }
+            final boolean hasGlob = hasGlobTokens(rootEntry);
+            if (hasGlob) {
+                try {
+                    fs.getPathMatcher("glob:" + rootEntry);
+                } catch (IllegalArgumentException ignored) {
+                    findings.add(Finding.of("ERROR", "symlinkSafety", "invalid glob source root pattern: " + rootEntry));
+                }
+                continue;
+            }
+            final Path candidateRoot = base.resolve(rootPath).normalize();
+            if (!Files.exists(candidateRoot, LinkOption.NOFOLLOW_LINKS)) {
+                continue;
+            }
+            if (!isRootContainedDirectory(base, baseReal, candidateRoot)) {
+                findings.add(Finding.of("ERROR", "symlinkSafety", "source root is not contained or is a symlink: " + rootEntry));
+            }
+        }
+        return findings.stream().distinct().toList();
+    }
+
+    /**
      * Collects all source files for a specific stack from roots and extensions specified in the manifest.
      *
      * @param manifest the manifest JSON node
@@ -177,6 +282,52 @@ public class HarnessCheckHelper {
     }
 
     /**
+     * Stack source result with collected findings (glob errors and parse errors).
+     */
+    public record StackSourceResult(List<Path> paths, List<Finding> findings) {
+    }
+
+    /**
+     * Collects all source files for a category, collecting glob and parse-error findings.
+     *
+     * @param manifest the manifest JSON node
+     * @param category the category name
+     * @param stack the stack identifier
+     * @param projectRoot the project root for relative path resolution
+     * @return stack source result with paths and findings
+     */
+    public static StackSourceResult collectStackSourcesWithFindings(JsonNode manifest, String category, String stack, Path projectRoot) {
+        final JsonNode categoryNode = manifest.get(category);
+        final JsonNode params = categoryNode == null ? null : categoryNode.get("parameters");
+        final JsonNode rootsNode = params == null ? null : params.get("sourceRoots");
+        final JsonNode extsNode = params == null ? null : params.get("extensions");
+        if (rootsNode == null || extsNode == null) {
+            return new StackSourceResult(Collections.emptyList(), List.of());
+        }
+        final Set<String> extensions = StreamSupport.stream(extsNode.spliterator(), false)
+                .map(JsonNode::asString)
+                .collect(Collectors.toSet());
+        final List<String> includes = extractPaths(params.get("includePaths"));
+        final List<String> excludes = extractPaths(params.get("excludePaths"));
+        final FileSystem fs = FileSystems.getDefault();
+        final List<Path> results = new ArrayList<>(extractPaths(rootsNode).size());
+        final List<Finding> globFindings = new ArrayList<>();
+        for (final String rootEntry : extractPaths(rootsNode)) {
+            try (final Stream<Path> pathStream = walkRootSafely(fs, projectRoot, rootEntry, extensions, includes, excludes, globFindings)) {
+                pathStream.forEach(results::add);
+            } catch (java.io.UncheckedIOException e) {
+                globFindings.add(Finding.of("ERROR", "symlinkSafety", "failed to walk source root: " + rootEntry));
+            } catch (IOException e) {
+                globFindings.add(Finding.of("ERROR", "symlinkSafety", "failed to walk source root: " + rootEntry));
+            }
+        }
+        final List<Finding> parseFindings = collectParseErrorFindings(results);
+        return new StackSourceResult(
+                results.stream().distinct().sorted().toList(),
+                Stream.concat(globFindings.stream(), parseFindings.stream()).distinct().toList());
+    }
+
+    /**
      * Collects all source files for a category, honoring include and exclude patterns.
      *
      * @param manifest the manifest JSON node
@@ -186,39 +337,22 @@ public class HarnessCheckHelper {
      * @return list of source file paths
      * @throws IOException if walking fails
      */
-
     public static List<Path> stackSources(JsonNode manifest, String category, String stack, Path projectRoot) throws IOException {
-        final JsonNode categoryNode = manifest.get(category);
-        final JsonNode params = categoryNode == null ? null : categoryNode.get("parameters");
-        final JsonNode rootsNode = params == null ? null : params.get("sourceRoots");
-        final JsonNode extsNode = params == null ? null : params.get("extensions");
-        if (rootsNode == null || extsNode == null) {
-            return Collections.emptyList();
-        }
-        final Set<String> extensions = StreamSupport.stream(extsNode.spliterator(), false)
-                .map(JsonNode::asString)
-                .collect(Collectors.toSet());
-        final List<String> includes = extractPaths(params.get("includePaths"));
-        final List<String> excludes = extractPaths(params.get("excludePaths"));
-        final FileSystem fs = FileSystems.getDefault();
-        final List<Path> results = new ArrayList<>(extractPaths(rootsNode).size());
-        for (final String rootEntry : extractPaths(rootsNode)) {
-            try (final Stream<Path> pathStream = walkRootSafely(fs, projectRoot, rootEntry, extensions, includes, excludes)) {
-                pathStream.forEach(results::add);
-            } catch (java.io.UncheckedIOException e) {
-                throw new IOException("failed to walk source root: " + rootEntry, e.getCause());
-            } catch (IOException e) {
-                throw new IOException("failed to walk source root: " + rootEntry, e);
-            }
-        }
-        return results.stream()
-                .distinct()
-                .sorted()
-                .toList();
+        return collectStackSourcesWithFindings(manifest, category, stack, projectRoot).paths();
+    }
+
+    private static boolean hasRelativeTraversal(Path path) {
+        return IntStream.range(0, path.getNameCount())
+                .anyMatch(i -> path.getName(i).toString().equals(".."));
+    }
+
+    private static boolean hasGlobTokens(String value) {
+        return value.contains("*") || value.contains("?") || value.contains("[") || value.contains("{");
     }
 
     /**
      * Walks a root directory matching file extensions, with include/exclude filters.
+     * Malformed include/exclude glob patterns emit ERROR findings and are skipped.
      *
      * @param fs the file system
      * @param base the base path
@@ -226,26 +360,38 @@ public class HarnessCheckHelper {
      * @param extensions the set of allowed extensions
      * @param includes glob patterns for inclusion (empty = match all)
      * @param excludes glob patterns for exclusion (empty = exclude none)
+     * @param globFindings accumulator for malformed glob findings
      * @return list of matching files
      * @throws IOException if directory walk fails
      */
-    public static List<Path> walkRoot(FileSystem fs, Path base, String rootEntry, Set<String> extensions, List<String> includes, List<String> excludes) throws IOException {
+    public static List<Path> walkRoot(FileSystem fs, Path base, String rootEntry, Set<String> extensions, List<String> includes, List<String> excludes, List<Finding> globFindings) throws IOException {
         if (!isSafeRelativeRoot(rootEntry)) {
             return Collections.emptyList();
         }
-        final List<PathMatcher> includeMatchers = includes.stream().map(p -> fs.getPathMatcher("glob:" + p)).toList();
-        final List<PathMatcher> excludeMatchers = excludes.stream().map(p -> fs.getPathMatcher("glob:" + p)).toList();
+        final boolean hasGlob = hasGlobTokens(rootEntry);
+        final List<PathMatcher> includeMatchers = compileGlobMatchers(fs, includes, "includePaths", globFindings);
+        final List<PathMatcher> excludeMatchers = compileGlobMatchers(fs, excludes, "excludePaths", globFindings);
         final Path rootPath = base.resolve(rootEntry).normalize();
         final Path baseReal = base.toRealPath();
-        if (!rootEntry.contains("*") && !isRootContainedDirectory(base, baseReal, rootPath)) {
+        if (!hasGlob && !isRootContainedDirectory(base, baseReal, rootPath)) {
             return List.of();
         }
-        final Stream<Path> stream = rootEntry.contains("*")
-                ? Files.walk(base).filter(p -> fs.getPathMatcher("glob:" + rootEntry + "/**/*").matches(base.relativize(p)))
-                : Files.walk(rootPath);
+        final Stream<Path> stream;
+        if (hasGlob) {
+            final PathMatcher rootMatcher;
+            try {
+                rootMatcher = fs.getPathMatcher("glob:" + rootEntry + "/**/*");
+            } catch (IllegalArgumentException ignored) {
+                return List.of();
+            }
+            stream = Files.walk(base).filter(p -> rootMatcher.matches(base.relativize(p)));
+        } else {
+            stream = Files.walk(rootPath);
+        }
         try (stream) {
             return stream
                     .filter(p -> isRootContainedRegularFile(base, baseReal, p))
+                    .filter(p -> !isWorktreePath(base, p))
                     .filter(p -> extensions.contains(extensionOf(p)))
                     .filter(p -> !containsSegment(base.relativize(p), "target") && !containsSegment(base.relativize(p), "build"))
                     .filter(p -> applyIncludeFilters(p, base, includeMatchers))
@@ -408,8 +554,27 @@ public class HarnessCheckHelper {
      * @return stream of matching file paths
      * @throws IOException if directory walk fails
      */
-    private static Stream<Path> walkRootSafely(FileSystem fs, Path base, String rootEntry, Set<String> extensions, List<String> includes, List<String> excludes) throws IOException {
-        return walkRoot(fs, base, rootEntry, extensions, includes, excludes).stream();
+    private static Stream<Path> walkRootSafely(FileSystem fs, Path base, String rootEntry, Set<String> extensions, List<String> includes, List<String> excludes, List<Finding> globFindings) throws IOException {
+        return walkRoot(fs, base, rootEntry, extensions, includes, excludes, globFindings).stream();
+    }
+
+    /**
+     * Attempts to parse each source file and collects parse-error findings.
+     * Files that fail to parse are identified so AST rules can skip them.
+     *
+     * @param sources the source file paths
+     * @return list of parse-error findings
+     */
+    static List<Finding> collectParseErrorFindings(List<Path> sources) {
+        final List<Finding> findings = new ArrayList<>();
+        for (final Path source : sources) {
+            try {
+                com.github.javaparser.StaticJavaParser.parse(source);
+            } catch (IOException | com.github.javaparser.ParseProblemException e) {
+                findings.add(Finding.of("ERROR", "parseError", "java parse error in " + source.getFileName() + ": " + e.getMessage()));
+            }
+        }
+        return findings.stream().distinct().toList();
     }
 
     /**
@@ -435,6 +600,26 @@ public class HarnessCheckHelper {
     private static boolean applyExcludeFilters(Path file, Path base, List<PathMatcher> matchers) {
         return matchers.isEmpty() || matchers.stream().noneMatch(m -> m.matches(base.relativize(file)));
     }
+    /**
+     * Compiles glob matchers from pattern strings, collecting malformed patterns as ERROR findings.
+     *
+     * @param fs the file system
+     * @param patterns glob pattern strings
+     * @param label parameter label for finding messages
+     * @param findings accumulator for malformed glob findings
+     * @return list of compiled path matchers
+     */
+    static List<PathMatcher> compileGlobMatchers(FileSystem fs, List<String> patterns, String label, List<Finding> findings) {
+        final List<PathMatcher> matchers = new ArrayList<>(patterns.size());
+        for (final String pattern : patterns) {
+            try {
+                matchers.add(fs.getPathMatcher("glob:" + pattern));
+            } catch (IllegalArgumentException e) {
+                findings.add(Finding.of("ERROR", "symlinkSafety", "invalid " + label + " glob pattern: " + pattern));
+            }
+        }
+        return matchers;
+    }
 
     /**
      * Checks whether a manifest source root is target-relative and cannot escape upward.
@@ -448,5 +633,41 @@ public class HarnessCheckHelper {
                 && !path.isAbsolute()
                 && IntStream.range(0, path.getNameCount())
                         .noneMatch(i -> path.getName(i).toString().equals(".."));
+    }
+    /**
+     * Checks whether a path is contained under the given root (does not escape upward).
+     * Absolute paths are rejected unless they start with the root.
+     *
+     * @param root the project root directory
+     * @param path the candidate path
+     * @return true when the path is contained under root
+     */
+    static boolean isContainedUnderRoot(Path root, Path path) {
+        if (path.isAbsolute()) {
+            final Path normalizedRoot = root.normalize();
+            final Path normalizedPath = path.normalize();
+            return normalizedPath.startsWith(normalizedRoot);
+        }
+        final Path resolved = root.resolve(path).normalize();
+        return resolved.startsWith(root.normalize());
+    }
+
+    /**
+     * Checks whether a path or any ancestor segment contains a worktree directory
+     * that should be excluded from source enumeration.
+     *
+     * @param base the base directory
+     * @param path the candidate path (relative to base)
+     * @return true when the path is under .claude/worktrees
+     */
+    static boolean isWorktreePath(Path base, Path path) {
+        final Path relative = base.relativize(path).normalize();
+        return containsSegment(relative, ".claude")
+                && IntStream.range(0, relative.getNameCount()).anyMatch(i -> {
+                    if (relative.getName(i).toString().equals(".claude")) {
+                        return i + 1 < relative.getNameCount() && relative.getName(i + 1).toString().equals("worktrees");
+                    }
+                    return false;
+                });
     }
 }

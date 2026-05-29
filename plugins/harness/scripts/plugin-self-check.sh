@@ -889,6 +889,45 @@ fi
     fi
     fixture_remove_temp_dir "$temp_dir"
 }
+# Verify shell formatter fails on malformed list parameters.
+#
+# @exit Exits with status 1 when formatter fails to reject malformed parameters.
+fixture_assert_shell_format_malformed_manifest() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" shell
+    mkdir -p "$temp_dir/docs/harness/shell"
+    cp "$temp_dir/harness-check.sh" "$temp_dir/docs/harness/shell/harness-check.sh"
+    cp "$temp_dir/harness-format.sh" "$temp_dir/docs/harness/shell/harness-format.sh"
+    fixture_write_file "$temp_dir" docs/harness/shell/harness-check.sh '#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+exit 0
+'
+    fixture_write_manifest "$temp_dir" '{"name":"shell-format-malformed-fixture","emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":true,"parameters":{"hooks":"not-an-array"}}}'
+    fixture_write_file "$temp_dir" docs/harness/git-hooks/pre-commit '#!/usr/bin/env sh
+echo "fixture pre-commit hook"
+'
+    fixture_before_checksum=$(fixture_file_checksum "$temp_dir/docs/harness/git-hooks/pre-commit")
+    if fixture_run_command "$temp_dir" 'sh docs/harness/shell/harness-format.sh'; then
+        printf '%s\n' '[fixture_assert_shell_format_malformed_manifest] expected malformed manifest to fail' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'invalid hookExecutable parameters' 'shell format malformed manifest error' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_after_checksum=$(fixture_file_checksum "$temp_dir/docs/harness/git-hooks/pre-commit")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'shell format malformed manifest leaves hook file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
 
 # Assert that captured output contains a canonical finding for a runtime fixture.
 #
@@ -938,6 +977,168 @@ fixture_self_check_helpers() {
         exit 1
     fi
     : "$fixture_assertion_output"
+    fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify shell runtime rejects malformed enabled manifest parameters.
+#
+# @exit Exits with status 1 when malformed manifest does not fail visibly.
+fixture_assert_shell_malformed_manifest() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" shell
+    fixture_write_manifest "$temp_dir" '{"name":"shell-malformed-fixture","filePresence":{"enabled":true,"severity":"ERROR","parameters":{"paths":"not-an-array"}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":"docs/harness/git-hooks/pre-push"}},"symlinkSafety":{"enabled":false,"parameters":{"allowedSymlinkPairs":[]}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"shellcheck":{"enabled":false,"parameters":{}}}'
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        printf '%s\n' '[fixture_assert_shell_malformed_manifest] expected malformed manifest to fail' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'invalid filePresence parameters' 'shell malformed manifest filePresence error' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify shell runtime excludes .claude/worktrees from format, check, and symlink scans.
+#
+# @exit Exits with status 1 when worktree content is not excluded.
+fixture_assert_shell_worktree_excluded() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" shell
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"shell-worktree-exclusion-fixture","filePresence":{"enabled":false,"parameters":{"paths":[]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":"docs/harness/git-hooks/pre-push"}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"symlinkSafety":{"enabled":true,"severity":"ERROR","messages":{"fileNotAllowed":"symlink file is not allowed: {path}","directoryNotAllowed":"symlink directory is not allowed: {path}","scanRootNotAllowed":"symlink scan root is not allowed: {path}","scanEntryNotAllowed":"symlink scan entry is not allowed: {path}","pathNotAllowed":"symlink path is not allowed: {path}"}},"shellcheck":{"enabled":false,"parameters":{}}}
+JSONEOF
+    )"
+    mkdir -p "$temp_dir/.claude/worktrees/abc1234"
+    ln -s ../../docs "$temp_dir/.claude/worktrees/abc1234/docs-link"
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        :
+    else
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" 'Harness validation passed' 'shell worktree exclusion passed' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! shfmt_path=$(command -v shfmt 2>&1); then
+        printf 'warning: shfmt not in PATH; skipping shell runtime format worktree exclusion check\n' >&2
+    else
+        : "$shfmt_path"
+        worktree_formatter_file="$temp_dir/.claude/worktrees/abc1234/format-fixture.sh"
+        fixture_write_file "$temp_dir" ".claude/worktrees/abc1234/format-fixture.sh" '#!/usr/bin/env sh
+if [ 1 -eq 1 ];then
+printf "%s\n" "shell runtime format worktree fixture"
+fi
+'
+        fixture_before_formatter_checksum=$(fixture_file_checksum "$worktree_formatter_file")
+        mkdir -p "$temp_dir/docs/harness/shell"
+        cp "$temp_dir/harness-check.sh" "$temp_dir/docs/harness/shell/harness-check.sh"
+        cp "$temp_dir/harness-format.sh" "$temp_dir/docs/harness/shell/harness-format.sh"
+        if fixture_run_command "$temp_dir" 'sh docs/harness/shell/harness-format.sh'; then
+            :
+        else
+            printf '%s\n' "$fixture_stdout" >&2
+            printf '%s\n' "$fixture_stderr" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+        worktree_formatter_after_checksum=$(fixture_file_checksum "$worktree_formatter_file")
+        if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_formatter_checksum" "$worktree_formatter_after_checksum" 'shell worktree excluded from formatter scan' 2>&1); then
+            printf '%s\n' "$fixture_assertion_output" >&2
+            printf '%s\n' "$fixture_stdout" >&2
+            printf '%s\n' "$fixture_stderr" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+    fi
+    if ! shellcheck_path=$(command -v shellcheck 2>&1); then
+        printf 'warning: shellcheck not in PATH; skipping shell runtime shellcheck worktree exclusion check\n' >&2
+    else
+        : "$shellcheck_path"
+        worktree_shellcheck_file=".claude/worktrees/abc1234/shellcheck-violation.sh"
+        fixture_write_file "$temp_dir" "$worktree_shellcheck_file" "$(
+            cat <<'SHELLCHECK_FIXTURE'
+#!/usr/bin/env sh
+echo "\$unset_variable"
+SHELLCHECK_FIXTURE
+        )"
+        fixture_write_manifest "$temp_dir" "$(
+            cat <<'JSONEOF'
+{"name":"shell-worktree-exclusion-fixture","filePresence":{"enabled":false,"parameters":{"paths":[]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":"docs/harness/git-hooks/pre-push"}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"symlinkSafety":{"enabled":true,"severity":"ERROR","messages":{"fileNotAllowed":"symlink file is not allowed: {path}","directoryNotAllowed":"symlink directory is not allowed: {path}","scanRootNotAllowed":"symlink scan root is not allowed: {path}","scanEntryNotAllowed":"symlink scan entry is not allowed: {path}","pathNotAllowed":"symlink path is not allowed: {path}"}},"shellcheck":{"enabled":true,"severity":"ERROR","parameters":{}}}
+JSONEOF
+        )"
+        if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+            :
+        else
+            printf '%s\n' "$fixture_stdout" >&2
+            printf '%s\n' "$fixture_stderr" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+        if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" 'Harness validation passed' 'shell worktree shellcheck exclusion passed' 2>&1); then
+            printf '%s\n' "$fixture_assertion_output" >&2
+            printf '%s\n' "$fixture_stdout" >&2
+            printf '%s\n' "$fixture_stderr" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+        if printf '%s' "$fixture_stdout$fixture_stderr" | grep -Fq "$worktree_shellcheck_file"; then
+            printf '%s\n' "[fixture_assert_shell_worktree_excluded] expected shellcheck scan to ignore worktree file: $worktree_shellcheck_file" >&2
+            printf '%s\n' "$fixture_stdout" >&2
+            printf '%s\n' "$fixture_stderr" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify build-tool hook mode prints commands for supported stacks and rejects unsupported ones.
+#
+# @exit Exits with status 1 when build-tool mode safety fails.
+fixture_assert_build_tool_hook_mode() {
+    temp_dir=$(fixture_create_temp_dir)
+    mkdir -p "$temp_dir/.git"
+    fixture_write_file "$temp_dir/settings.gradle.kts" 'rootProject.name = "build-tool-fixture"'
+    if ! fixture_run_command "$temp_dir" "sh \"$root/skills/harness-install/scripts/install-harness.sh\" --mode gradle --hooks build-tool --target ."; then
+        printf '%s\n' '[fixture_assert_build_tool_hook_mode] expected gradle build-tool to succeed with print-only' >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" '-Pharness.gitHooks=true' 'gradle build-tool prints activation command' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_write_file "$temp_dir/pom.xml" '<project></project>'
+    if ! fixture_run_command "$temp_dir" "sh \"$root/skills/harness-install/scripts/install-harness.sh\" --mode maven --hooks build-tool --target ."; then
+        printf '%s\n' '[fixture_assert_build_tool_hook_mode] expected maven build-tool to succeed with print-only' >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" '-Dharness.gitHooks=true' 'maven build-tool prints activation command' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" "sh \"$root/skills/harness-install/scripts/install-harness.sh\" --mode shell --hooks build-tool --target ."; then
+        printf '%s\n' '[fixture_assert_build_tool_hook_mode] expected shell build-tool to be rejected' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stderr" 'build-tool is only supported for gradle and maven' 'shell build-tool rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
     fixture_remove_temp_dir "$temp_dir"
 }
 
@@ -1701,11 +1902,19 @@ repositories { mavenCentral() }
 package fixture
 
 class ComparisonFixture {
-    fun safe(left: Int): Boolean {
+    fun safeNameVsLiteral(left: Int): Boolean {
         return left > 1
     }
 
-    fun unsafe(left: Int): Boolean {
+    fun safeLiteralVsName(left: Int): Boolean {
+        return 2 > left
+    }
+
+    fun unsafeNameVsName(left: Int, right: Int): Boolean {
+        return left > right
+    }
+
+    fun unsafeCall(left: Int): Boolean {
         return compute() > left
     }
 
@@ -1729,12 +1938,22 @@ KOTLINEOF
     fi
     fixture_after_first_format_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt")
     if ! grep -Fq 'return 1 < left' "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt"; then
-        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected simple comparison to be rewritten' >&2
+        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected name-vs-literal comparison to be rewritten' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq 'return left < 2' "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt"; then
+        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected literal-vs-name comparison to be rewritten' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq 'return left > right' "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt"; then
+        printf '%s\n' '[fixture_assert_gradle_greater_than_format] name-vs-name comparison was unexpectedly rewritten' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
     if ! grep -Fq 'return compute() > left' "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt"; then
-        printf '%s\n' '[fixture_assert_gradle_greater_than_format] unsafe comparison was unexpectedly rewritten' >&2
+        printf '%s\n' '[fixture_assert_gradle_greater_than_format] call comparison was unexpectedly rewritten' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
@@ -1821,6 +2040,67 @@ class OutsideFixture {
         exit 1
     fi
     fixture_remove_temp_dir "$fixture_root"
+}
+
+# Verify Gradle parse-error detection reports errors and skips rule scanning.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 when the Gradle parse-error fixture fails.
+fixture_assert_gradle_parse_error() {
+    if ! gradle_path=$(command -v gradle 2>&1); then
+        printf 'warning: gradle not in PATH; skipping gradle parse-error fixture check\n' >&2
+        return 0
+    fi
+    : "$gradle_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" gradle
+    fixture_write_file "$temp_dir" settings.gradle.kts 'rootProject.name = "gradle-parse-error-fixture"'
+    fixture_write_file "$temp_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
+
+repositories { mavenCentral() }
+'
+    fixture_write_manifest "$temp_dir" '{"name":"gradle-parse-error-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/harness-fixtures/kotlin/fixture"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$temp_dir" src/harness-fixtures/kotlin/fixture/BrokenFixture.kt 'package fixture
+
+class BrokenFixture {
+    fun broken( {
+        return 1 > 2
+    }
+}
+'
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessCheck'; then
+        printf '%s\n' '[fixture_assert_gradle_parse_error] expected harnessCheck to fail on parse error' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'src/harness-fixtures/kotlin/fixture/BrokenFixture[.]kt' 'parseError' 'gradle parse error finding' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
+        printf '%s\n' '[fixture_assert_gradle_parse_error] expected harnessFormat to fail due to parse errors' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_before_checksum=$(fixture_file_checksum "$temp_dir/src/harness-fixtures/kotlin/fixture/BrokenFixture.kt")
+    if ! grep -Fq 'return 1 > 2' "$temp_dir/src/harness-fixtures/kotlin/fixture/BrokenFixture.kt"; then
+        printf '%s\n' '[fixture_assert_gradle_parse_error] malformed file was unexpectedly formatted' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_after_checksum=$(fixture_file_checksum "$temp_dir/src/harness-fixtures/kotlin/fixture/BrokenFixture.kt")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'gradle parse error file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
 }
 
 # Verify Maven silent-catch detection uses JavaParser structure rather than body text.
@@ -2042,6 +2322,626 @@ JAVAEOF
         exit 1
     fi
     fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Maven AST source roots cannot escape the target root.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 when an unsafe source root is accepted or not reported.
+fixture_assert_maven_source_root_safety() {
+    if ! mvn_path=$(command -v mvn 2>&1); then
+        printf 'warning: mvn not in PATH; skipping maven source-root safety fixture check\n' >&2
+        return 0
+    fi
+    : "$mvn_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" maven
+    fixture_write_file "$target_dir" docs/harness/manifest.json '{"name":"maven-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["../outside"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$fixture_root" outside/OutsideFixture.java 'package outside;
+
+class OutsideFixture {
+    boolean unsafe(int left) {
+        return left > 1;
+    }
+}'
+    fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.java")
+    if fixture_run_command "$target_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
+        printf '%s\n' "[fixture_assert_maven_source_root_safety] expected harnessFormat to fail on unsafe source roots"
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    fixture_after_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.java")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'maven unsafe source root leaves outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'source root traversal is not allowed: ../outside' 'maven unsafe source root reports traversal finding' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_write_manifest "$target_dir" '{"name":"maven-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/main/{java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.java")
+    if fixture_run_command "$target_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
+        printf '%s\n' "[fixture_assert_maven_source_root_safety] expected harnessFormat to fail on invalid source roots"
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'invalid glob source root pattern: src/main/{java' 'maven invalid glob source root reports finding during format' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_after_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.java")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'maven invalid glob source root leaves outside file unchanged in format' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if fixture_run_command "$target_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
+        printf '%s\n' "[fixture_assert_maven_source_root_safety] expected harnessCheck to fail on invalid source roots"
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'invalid glob source root pattern: src/main/{java' 'maven invalid glob source root reports finding during check' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$fixture_root"
+}
+
+# Verify shell runtime prunes .claude/worktrees from traversal rather than filtering output.
+#
+#     Creates nested worktree content with files that would produce findings if traversed:
+#     a no-read-permission directory (format), a shellcheck violation, and a symlink target.
+#     Restores permissions before cleanup. Proves the runtime never walks into .claude/worktrees.
+#
+# @exit Exits with status 1 when worktree content is traversed by any scan path.
+fixture_assert_shell_worktree_pruned() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" shell
+    fixture_write_manifest "$temp_dir" '{"name":"shell-worktree-pruned-fixture","filePresence":{"enabled":false,"parameters":{"paths":[]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":"docs/harness/git-hooks/pre-push"}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"symlinkSafety":{"enabled":true,"severity":"ERROR","messages":{"fileNotAllowed":"symlink file is not allowed: {path}","directoryNotAllowed":"symlink directory is not allowed: {path}","allowedSymlinkPairs":[]}},"shellcheck":{"enabled":true,"severity":"WARN","parameters":{"paths":["docs/harness/git-hooks/*.sh"]}}}'
+    worktree_nested=$temp_dir/.claude/worktrees/deep/nested
+    mkdir -p "$worktree_nested"
+    fixture_write_file "$temp_dir" ".claude/worktrees/deep/nested/bad-hook.sh" '#!/usr/bin/env sh
+echo "bad worktree hook"
+'
+    chmod 000 "$worktree_nested"
+    if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+        :
+    else
+        chmod 755 "$worktree_nested"
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    chmod 755 "$worktree_nested"
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" 'Harness validation passed' 'shell worktree pruned check passed' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if printf '%s' "$fixture_stdout$fixture_stderr" | grep -Fq 'bad-hook.sh'; then
+        printf '%s\n' "[fixture_assert_shell_worktree_pruned] worktree file was traversed during check" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! shfmt_path=$(command -v shfmt 2>&1); then
+        printf 'warning: shfmt not in PATH; skipping shell worktree format prune check\n' >&2
+    else
+        : "$shfmt_path"
+        fixture_write_file "$temp_dir" ".claude/worktrees/deep/nested/format-bad.sh" '#!/usr/bin/env sh
+if [ 1 -eq 1 ];then
+printf "bad"
+fi
+'
+        worktree_file=$temp_dir/.claude/worktrees/deep/nested/format-bad.sh
+        fixture_before_checksum=$(fixture_file_checksum "$worktree_file")
+        mkdir -p "$temp_dir/docs/harness/shell"
+        cp "$temp_dir/harness-check.sh" "$temp_dir/docs/harness/shell/harness-check.sh"
+        cp "$temp_dir/harness-format.sh" "$temp_dir/docs/harness/shell/harness-format.sh"
+        if fixture_run_command "$temp_dir" 'sh docs/harness/shell/harness-format.sh'; then
+            :
+        else
+            printf '%s\n' "$fixture_stdout" >&2
+            printf '%s\n' "$fixture_stderr" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+        fixture_after_checksum=$(fixture_file_checksum "$worktree_file")
+        if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'shell worktree format pruned file unchanged' 2>&1); then
+            printf '%s\n' "$fixture_assertion_output" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+    fi
+    if ! shellcheck_path=$(command -v shellcheck 2>&1); then
+        printf 'warning: shellcheck not in PATH; skipping shell worktree shellcheck prune check\n' >&2
+    else
+        : "$shellcheck_path"
+        fixture_write_file "$temp_dir" ".claude/worktrees/deep/nested/sc-violation.sh" "$(
+            cat <<'SCVIOLATION_FIXTURE'
+#!/usr/bin/env sh
+echo "$unset_variable"
+SCVIOLATION_FIXTURE
+        )"
+        fixture_write_manifest "$temp_dir" '{"name":"shell-worktree-pruned-fixture","filePresence":{"enabled":false,"parameters":{"paths":[]}},"directoryPresence":{"enabled":false,"parameters":{"paths":[]}},"emptyDirectoryPlaceholders":{"enabled":false,"parameters":{"directories":[]}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}},"hookCommand":{"enabled":false,"parameters":{"prePushHook":"","preCommitHook":"","allowedCommands":[],"allowedPreCommitCommands":[]}},"ciHookCommandParity":{"enabled":false,"parameters":{"ciFiles":[],"referenceHook":"docs/harness/git-hooks/pre-push"}},"scaffoldLeaks":{"enabled":false,"parameters":{"scope":{"bases":[],"extensions":[]},"patterns":[]}},"uncheckedTasks":{"enabled":false,"parameters":{"directory":"docs/exec-plans/completed","uncheckedTaskPattern":"^\\s*-\\s*\\[ \\]\\s"}},"symlinkSafety":{"enabled":false,"parameters":{"allowedSymlinkPairs":[]}},"shellcheck":{"enabled":true,"severity":"WARN","parameters":{"paths":[]}}}'
+        if fixture_run_command "$temp_dir" 'sh harness-check.sh'; then
+            :
+        else
+            printf '%s\n' "$fixture_stdout" >&2
+            printf '%s\n' "$fixture_stderr" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+        if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_stdout" 'Harness validation passed' 'shell worktree shellcheck pruned check passed' 2>&1); then
+            printf '%s\n' "$fixture_assertion_output" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+        if printf '%s' "$fixture_stdout$fixture_stderr" | grep -Fq 'sc-violation.sh'; then
+            printf '%s\n' "[fixture_assert_shell_worktree_pruned] worktree file was traversed during shellcheck" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+    fi
+    if printf '%s' "$fixture_stdout$fixture_stderr" | grep -Fq '.claude/worktrees'; then
+        printf '%s\n' "[fixture_assert_shell_worktree_pruned] worktree path leaked into output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Gradle malformed includePaths and excludePaths render findings and do not crash.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 when malformed globs crash or produce no findings.
+fixture_assert_gradle_malformed_include_exclude() {
+    if ! gradle_path=$(command -v gradle 2>&1); then
+        printf 'warning: gradle not in PATH; skipping gradle malformed include/exclude fixture check\n' >&2
+        return 0
+    fi
+    : "$gradle_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" gradle
+    fixture_write_file "$temp_dir" settings.gradle.kts 'rootProject.name = "gradle-malformed-include-exclude-fixture"'
+    fixture_write_file "$temp_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
+
+repositories { mavenCentral() }
+'
+    fixture_write_manifest "$temp_dir" '{"name":"gradle-malformed-include-exclude-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin/fixture"],"extensions":["kt"],"includePaths":["[["],"excludePaths":["[[["],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/MalformedGlobFixture.kt 'package fixture
+
+class MalformedGlobFixture {
+    fun bad(left: Int): Boolean {
+        return left > 1
+    }
+}'
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessCheck'; then
+        printf '%s\n' '[fixture_assert_gradle_malformed_include_exclude] expected harnessCheck to fail on malformed globs' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'invalid includePaths glob pattern: [[' 'gradle malformed includePaths finding during check' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'invalid excludePaths glob pattern: [[[' 'gradle malformed excludePaths finding during check' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
+        printf '%s\n' '[fixture_assert_gradle_malformed_include_exclude] expected harnessFormat to fail on malformed globs' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'invalid includePaths glob pattern: [[' 'gradle malformed includePaths finding during format' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'invalid excludePaths glob pattern: [[[' 'gradle malformed excludePaths finding during format' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_before_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/MalformedGlobFixture.kt")
+    fixture_after_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/MalformedGlobFixture.kt")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'gradle malformed glob leaves source file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Gradle runtime prunes .claude/worktrees when sourceRoots use broad globs.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 when worktree content is scanned or mutated.
+fixture_assert_gradle_worktree_excluded() {
+    if ! gradle_path=$(command -v gradle 2>&1); then
+        printf 'warning: gradle not in PATH; skipping gradle worktree exclusion fixture check\n' >&2
+        return 0
+    fi
+    : "$gradle_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" gradle
+    fixture_write_file "$temp_dir" settings.gradle.kts 'rootProject.name = "gradle-worktree-exclusion-fixture"'
+    fixture_write_file "$temp_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
+
+repositories { mavenCentral() }
+'
+    fixture_write_manifest "$temp_dir" '{"name":"gradle-worktree-exclusion-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["app/src/main/kotlin",".claude/worktrees/**/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$temp_dir" app/src/main/kotlin/fixture/GoodFixture.kt 'package fixture
+
+class GoodFixture {
+    fun safe(left: Int): Boolean {
+        return left > 1
+    }
+}'
+    mkdir -p "$temp_dir/.claude/worktrees/abc1234/src/main/kotlin"
+    fixture_write_file "$temp_dir" ".claude/worktrees/abc1234/src/main/kotlin/WorktreeFixture.kt" 'package fixture
+
+class WorktreeFixture {
+    fun bad(left: Int): Boolean {
+        return left > 1
+    }
+}'
+    worktree_file=$temp_dir/.claude/worktrees/abc1234/src/main/kotlin/WorktreeFixture.kt
+    worktree_before_checksum=$(fixture_file_checksum "$worktree_file")
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessCheck'; then
+        printf '%s\n' '[fixture_assert_gradle_worktree_excluded] expected harnessCheck to report findings in legit source' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'greaterThanComparison' 'gradle worktree exclusion reports legitimate finding' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -Fq 'WorktreeFixture.kt'; then
+        printf '%s\n' '[fixture_assert_gradle_worktree_excluded] worktree file was scanned during check' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    worktree_after_checksum=$(fixture_file_checksum "$worktree_file")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$worktree_before_checksum" "$worktree_after_checksum" 'gradle worktree file unchanged by format' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Gradle greater-than formatter preserves commented expressions.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 when commented comparison is rewritten.
+fixture_assert_gradle_greater_than_commented() {
+    if ! gradle_path=$(command -v gradle 2>&1); then
+        printf 'warning: gradle not in PATH; skipping gradle greater-than commented fixture check\n' >&2
+        return 0
+    fi
+    : "$gradle_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" gradle
+    fixture_write_file "$temp_dir" settings.gradle.kts 'rootProject.name = "gradle-greater-than-commented-fixture"'
+    fixture_write_file "$temp_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
+
+repositories { mavenCentral() }
+'
+    fixture_write_manifest "$temp_dir" '{"name":"gradle-greater-than-commented-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin/fixture"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/CommentedFixture.kt "$(
+        cat <<'KOTLINEOF'
+package fixture
+
+class CommentedFixture {
+    fun safe(left: Int): Boolean {
+        // left > 1 is intentionally commented
+        return left < 1
+    }
+}
+KOTLINEOF
+    )"
+    fixture_before_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/CommentedFixture.kt")
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
+        :
+    else
+        :
+    fi
+    fixture_after_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/CommentedFixture.kt")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'gradle commented expression unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq '// left > 1 is intentionally commented' "$temp_dir/buildSrc/src/main/kotlin/fixture/CommentedFixture.kt"; then
+        printf '%s\n' '[fixture_assert_gradle_greater_than_commented] commented greater-than expression was rewritten' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Maven malformed includePaths and excludePaths render findings and do not crash.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 when malformed globs crash or produce no findings.
+fixture_assert_maven_malformed_include_exclude() {
+    if ! mvn_path=$(command -v mvn 2>&1); then
+        printf 'warning: mvn not in PATH; skipping maven malformed include/exclude fixture check\n' >&2
+        return 0
+    fi
+    : "$mvn_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" maven
+    fixture_write_manifest "$temp_dir" '{"name":"maven-malformed-include-exclude-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":["[["],"excludePaths":["[[["],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$temp_dir" src/main/java/fixture/MalformedGlobFixture.java 'package fixture;
+
+final class MalformedGlobFixture {
+    boolean bad(int left) {
+        return left > 1;
+    }
+}'
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
+        printf '%s\n' '[fixture_assert_maven_malformed_include_exclude] expected harnessCheck to fail on malformed globs' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'invalid includePaths glob pattern: [[' 'maven malformed includePaths finding during check' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'invalid excludePaths glob pattern: [[[' 'maven malformed excludePaths finding during check' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
+        printf '%s\n' '[fixture_assert_maven_malformed_include_exclude] expected harnessFormat to fail on malformed globs' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'invalid includePaths glob pattern: [[' 'maven malformed includePaths finding during format' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'invalid excludePaths glob pattern: [[[' 'maven malformed excludePaths finding during format' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_before_checksum=$(fixture_file_checksum "$temp_dir/src/main/java/fixture/MalformedGlobFixture.java")
+    fixture_after_checksum=$(fixture_file_checksum "$temp_dir/src/main/java/fixture/MalformedGlobFixture.java")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'maven malformed glob leaves source file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Maven runtime prunes .claude/worktrees when sourceRoots use broad globs.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 when worktree content is scanned or mutated.
+fixture_assert_maven_worktree_excluded() {
+    if ! mvn_path=$(command -v mvn 2>&1); then
+        printf 'warning: mvn not in PATH; skipping maven worktree exclusion fixture check\n' >&2
+        return 0
+    fi
+    : "$mvn_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" maven
+    fixture_write_manifest "$temp_dir" '{"name":"maven-worktree-exclusion-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$temp_dir" src/main/java/fixture/GoodFixture.java 'package fixture;
+
+final class GoodFixture {
+    boolean safe(int left) {
+        return left > 1;
+    }
+}'
+    mkdir -p "$temp_dir/.claude/worktrees/abc1234/src/main/java"
+    fixture_write_file "$temp_dir" ".claude/worktrees/abc1234/src/main/java/WorktreeFixture.java" 'package fixture;
+
+class WorktreeFixture {
+    boolean bad(int left) {
+        return left > 1;
+    }
+}'
+    worktree_file=$temp_dir/.claude/worktrees/abc1234/src/main/java/WorktreeFixture.java
+    worktree_before_checksum=$(fixture_file_checksum "$worktree_file")
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
+        printf '%s\n' '[fixture_assert_maven_worktree_excluded] expected harnessCheck to report findings in legit source' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'greaterThanComparison' 'maven worktree exclusion reports legitimate finding' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -Fq 'WorktreeFixture.java'; then
+        printf '%s\n' '[fixture_assert_maven_worktree_excluded] worktree file was scanned during check' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    worktree_after_checksum=$(fixture_file_checksum "$worktree_file")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$worktree_before_checksum" "$worktree_after_checksum" 'maven worktree file unchanged by format' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Maven parse-error detection reports findings and skips formatting.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 when parse errors crash or files are mutated.
+fixture_assert_maven_parse_error() {
+    if ! mvn_path=$(command -v mvn 2>&1); then
+        printf 'warning: mvn not in PATH; skipping maven parse-error fixture check\n' >&2
+        return 0
+    fi
+    : "$mvn_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" maven
+    fixture_write_manifest "$temp_dir" '{"name":"maven-parse-error-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$temp_dir" src/main/java/fixture/BrokenFixture.java 'package fixture;
+
+class BrokenFixture {
+    boolean broken( {
+        return 1 > 2;
+    }
+}'
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
+        printf '%s\n' '[fixture_assert_maven_parse_error] expected harnessCheck to fail on parse error' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'parseError' 'maven parse error finding during check' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_before_checksum=$(fixture_file_checksum "$temp_dir/src/main/java/fixture/BrokenFixture.java")
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
+        :
+    else
+        :
+    fi
+    fixture_after_checksum=$(fixture_file_checksum "$temp_dir/src/main/java/fixture/BrokenFixture.java")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'maven parse error file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -Fq 'return 1 > 2;' "$temp_dir/src/main/java/fixture/BrokenFixture.java"; then
+        printf '%s\n' '[fixture_assert_maven_parse_error] malformed file was unexpectedly formatted' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Gradle hook formatter does not mutate outside-root hook paths.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 when outside-root hook file is mutated.
+fixture_assert_gradle_hook_format_safety() {
+    if ! gradle_path=$(command -v gradle 2>&1); then
+        printf 'warning: gradle not in PATH; skipping gradle hook format safety fixture check\n' >&2
+        return 0
+    fi
+    : "$gradle_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" gradle
+    fixture_write_file "$target_dir" settings.gradle.kts 'rootProject.name = "gradle-hook-format-safety-fixture"'
+    fixture_write_file "$target_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
+
+repositories { mavenCentral() }
+'
+    fixture_write_manifest "$target_dir" '{"name":"gradle-hook-format-safety-fixture","hookShebang":{"enabled":true,"severity":"ERROR","messages":{"default":"{hook} must start with #!/usr/bin/env sh"},"parameters":{"hooks":["../outside-hook.sh"],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}}}'
+    fixture_write_file "$fixture_root" outside-hook.sh 'echo "outside hook without shebang"
+'
+    fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside-hook.sh")
+    if fixture_run_command "$target_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
+        :
+    else
+        :
+    fi
+    fixture_after_checksum=$(fixture_file_checksum "$fixture_root/outside-hook.sh")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'gradle hook format safety leaves outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$fixture_root"
+}
+# Verify Maven hook formatter does not mutate outside-root hook paths.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 when outside-root hook file is mutated.
+fixture_assert_maven_hook_format_safety() {
+    if ! mvn_path=$(command -v mvn 2>&1); then
+        printf 'warning: mvn not in PATH; skipping maven hook format safety fixture check\n' >&2
+        return 0
+    fi
+    : "$mvn_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" maven
+    fixture_write_manifest "$target_dir" '{"name":"maven-hook-format-safety-fixture","hookShebang":{"enabled":true,"severity":"ERROR","messages":{"default":"{hook} must start with #!/usr/bin/env sh"},"parameters":{"hooks":["../outside-hook.sh"],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}}}'
+    fixture_write_file "$fixture_root" outside-hook.sh 'echo "outside hook without shebang"
+'
+    fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside-hook.sh")
+    if fixture_run_command "$target_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
+        :
+    else
+        :
+    fi
+    fixture_after_checksum=$(fixture_file_checksum "$fixture_root/outside-hook.sh")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'maven hook format safety leaves outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$fixture_root"
 }
 # Smoke-check the uv stack runtime by importing harness_check and counting registered rules.
 #
@@ -2573,6 +3473,8 @@ require_text "$root/skills/harness-install/scripts/install-harness.sh" 'mvn -q -
 require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" 'org.danilopianini.gradle-pre-commit-git-hooks'
 require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" '2.1.17'
 require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" 'harness.gitHooks'
+require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" 'from(file("docs/harness/git-hooks/pre-commit"))'
+require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" 'from(file("docs/harness/git-hooks/pre-push"))'
 require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/pom.xml" 'git-build-hook-maven-plugin'
 require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/pom.xml" '3.6.0'
 require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/pom.xml" 'core.hooksPath'
@@ -2651,20 +3553,34 @@ for text in 'example-' 'Describe ' 'Describe...' 'TODO' 'TBD' 'replace-with-stac
         done
     done
 done
-
 fixture_self_check_helpers
+fixture_assert_shell_malformed_manifest
+fixture_assert_shell_worktree_excluded
+fixture_assert_build_tool_hook_mode
 fixture_assert_shell_symlink_safety
 fixture_assert_shell_root_contract_scaffold_symlink
 smoke_check_shell_unsafe_hook_paths
 fixture_assert_shell_format_check_after_format
+fixture_assert_shell_format_malformed_manifest
 fixture_assert_bun_format
 fixture_assert_uv_format
 fixture_assert_gradle_location
 fixture_assert_gradle_greater_than_format
 fixture_assert_gradle_source_root_safety
+fixture_assert_gradle_parse_error
 fixture_assert_maven_silent_catch
 fixture_assert_maven_import_over_fqn
 fixture_assert_maven_greater_than_format
+fixture_assert_maven_source_root_safety
+fixture_assert_shell_worktree_pruned
+fixture_assert_gradle_malformed_include_exclude
+fixture_assert_gradle_worktree_excluded
+fixture_assert_gradle_greater_than_commented
+fixture_assert_maven_malformed_include_exclude
+fixture_assert_maven_worktree_excluded
+fixture_assert_maven_parse_error
+fixture_assert_gradle_hook_format_safety
+fixture_assert_maven_hook_format_safety
 smoke_check_uv_runtime
 smoke_check_bun_runtime
 smoke_check_shell_runtime

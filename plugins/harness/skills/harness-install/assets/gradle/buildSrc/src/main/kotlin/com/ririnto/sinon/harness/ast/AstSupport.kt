@@ -1,6 +1,7 @@
 package com.ririnto.sinon.harness.ast
 
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.com.intellij.psi.PsiErrorElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import java.nio.file.Path
@@ -46,4 +47,35 @@ object AstSupport {
             layer.flatMap { node -> node.children.toList() }.takeIf { nodes -> nodes.isNotEmpty() }
         }.flatten()
             .any { element -> element is T && predicate(element) }
+
+    /**
+     * Parse error metadata reported from Kotlin PSI.
+     */
+    data class ParseError(
+        val line: Int,
+        val message: String,
+    )
+
+    /**
+     * Detect parser errors for a Kotlin PSI file and report line/message pairs.
+     */
+    fun parseErrors(file: KtFile): List<ParseError> =
+        file.descendantsOfType<PsiErrorElement>().map { error ->
+            ParseError(
+                line = lineOf(file, error.textOffset),
+                message = error.errorDescription?.trim()?.takeIf { it.isNotEmpty() } ?: "parse error",
+            )
+        }.toList()
+
+    /**
+     * Return all descendants of a requested element type.
+     */
+    inline fun <reified T : PsiElement> PsiElement.descendantsOfType(
+        crossinline predicate: (T) -> Boolean = { true },
+    ): Sequence<T> =
+        generateSequence(listOf(this)) { layer ->
+            layer.flatMap { node -> node.children.toList() }.takeIf { nodes -> nodes.isNotEmpty() }
+        }.flatten()
+            .filter { element -> element is T && predicate(element) }
+            .map { element -> element as T }
 }
