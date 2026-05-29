@@ -1,23 +1,35 @@
-rootProject.name = "harness-target"
+import org.gradle.kotlin.dsl.withGroovyBuilder
 
-plugins {
-    id("org.danilopianini.gradle-pre-commit-git-hooks") version "2.1.17" apply false
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+    plugins {
+        id("org.danilopianini.gradle-pre-commit-git-hooks") version "2.1.17"
+    }
 }
 
-if (providers.gradleProperty("harness.gitHooks").orNull == "true") {
-    apply(plugin = "org.danilopianini.gradle-pre-commit-git-hooks")
+rootProject.name = "harness-target"
 
-    gitHooks {
-        preCommit {
-            from(file("docs/harness/git-hooks/pre-commit"))
+val useGitHooks = providers.gradleProperty("harness.gitHooks").map(String::toBoolean).getOrElse(false)
+
+if (useGitHooks) {
+    plugins.apply("org.danilopianini.gradle-pre-commit-git-hooks")
+
+    extensions.getByName("gitHooks").withGroovyBuilder {
+        "preCommit" {
+            "from"(file("docs/harness/git-hooks/pre-commit"))
         }
-        hook("pre-push") {
-            from(file("docs/harness/git-hooks/pre-push"))
+
+        "hook"("pre-push") {
+            "from"(file("docs/harness/git-hooks/pre-push"))
         }
-        if (providers.gradleProperty("harness.gitHooks.overwrite").orNull == "true") {
-            createHooks(true)
+
+        if (providers.gradleProperty("harness.gitHooks.overwrite").map(String::toBoolean).getOrElse(false)) {
+            "createHooks"(true)
         } else {
-            createHooks()
+            "createHooks"()
         }
     }
 }

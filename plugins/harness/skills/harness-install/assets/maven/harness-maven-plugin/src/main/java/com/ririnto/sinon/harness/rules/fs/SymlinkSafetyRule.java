@@ -45,15 +45,16 @@ public enum SymlinkSafetyRule implements HarnessCheckRule {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         final String severity = HarnessCheckHelper.getSeverity(manifest, CATEGORY);
         return List.of("AGENTS.md", "CLAUDE.md", "ARCHITECTURE.md", "docs", ".claude", ".github").stream()
-                .flatMap(baseName -> {
-                    final Path base = root.resolve(baseName);
-                    try {
-                        return validateSymlinks(root, base, allowedNames, severity).stream();
-                    } catch (MojoExecutionException e) {
-                        return Stream.empty();
-                    }
-                })
+                .flatMap(baseName -> validateScanRoot(root, root.resolve(baseName), allowedNames, severity).stream())
                 .toList();
+    }
+
+    private List<Finding> validateScanRoot(Path root, Path base, Set<String> allowedNames, String severity) {
+        try {
+            return validateSymlinks(root, base, allowedNames, severity);
+        } catch (MojoExecutionException e) {
+            return List.of(Finding.of("ERROR", CATEGORY, "failed to inspect symlinks under " + root.relativize(base) + ": " + e.getMessage()));
+        }
     }
 
     private List<Finding> validateSymlinks(Path root, Path base, Set<String> allowedNames, String severity) throws MojoExecutionException {

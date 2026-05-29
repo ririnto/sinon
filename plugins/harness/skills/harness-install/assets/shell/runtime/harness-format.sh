@@ -158,6 +158,51 @@ record_changed() {
         printf '%s\n' "$changed_path" >>"$changed_file"
     fi
 }
+# Validate manifest parameters for all enabled format sections before any mutation.
+#
+# @return Exits non-zero when any enabled section has malformed parameters.
+preflight_manifest_sections() {
+    preflight_failed=0
+    preflight_category=emptyDirectoryPlaceholders
+    preflight_enabled=$(enabled_of "$preflight_category")
+    if [ "$preflight_enabled" -eq 1 ]; then
+        if ! preflight_result=$(manifest_query "M['$preflight_category']['parameters']['directories']"); then
+            printf '[harness-format] preflight: invalid %s parameters\n' "$preflight_category" >&2
+            preflight_failed=1
+        else
+            : "$preflight_result"
+        fi
+    fi
+    preflight_category=hookShebang
+    preflight_enabled=$(enabled_of "$preflight_category")
+    if [ "$preflight_enabled" -eq 1 ]; then
+        if ! preflight_result=$(manifest_query "M['$preflight_category']['parameters']['hooks']"); then
+            printf '[harness-format] preflight: invalid %s parameters\n' "$preflight_category" >&2
+            preflight_failed=1
+        else
+            : "$preflight_result"
+        fi
+        if ! preflight_result=$(manifest_string "M['$preflight_category']['parameters']['expectedShebang']"); then
+            printf '[harness-format] preflight: invalid %s expectedShebang\n' "$preflight_category" >&2
+            preflight_failed=1
+        else
+            : "$preflight_result"
+        fi
+    fi
+    preflight_category=hookExecutable
+    preflight_enabled=$(enabled_of "$preflight_category")
+    if [ "$preflight_enabled" -eq 1 ]; then
+        if ! preflight_result=$(manifest_query "M['$preflight_category']['parameters']['hooks']"); then
+            printf '[harness-format] preflight: invalid %s parameters\n' "$preflight_category" >&2
+            preflight_failed=1
+        else
+            : "$preflight_result"
+        fi
+    fi
+    if [ "$preflight_failed" -ne 0 ]; then
+        exit 1
+    fi
+}
 
 # Format all shell scripts under the current directory using shfmt.
 #
@@ -284,6 +329,7 @@ check_after_format() {
     printf '%s\n' 'remaining findings after format:'
     sh "$script_dir/harness-check.sh"
 }
+preflight_manifest_sections
 
 format_sh_files
 format_empty_directory_placeholders

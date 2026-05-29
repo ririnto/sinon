@@ -4,9 +4,7 @@ import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.JsonAccess
 import com.ririnto.sinon.harness.core.RuleContext
 import com.ririnto.sinon.harness.rules.HarnessCheckRule
-import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import java.nio.file.Path
 import kotlin.io.path.div
 import kotlin.io.path.isRegularFile
@@ -27,60 +25,54 @@ object HookShebangRule : HarnessCheckRule() {
      */
     override val category: String = "hookShebang"
 
-    override fun validate(ctx: RuleContext): Collection<Finding> =
-        buildList {
-            val catObj = ctx.manifest.categoryObject(category)
-            val parametersObj = catObj?.get("parameters")?.jsonObject
-            if (catObj != null && parametersObj != null) {
-                addAll(
-                    ctx.manifest
-                        .stringArray(category, "hooks")
-                        .filter { hookPath ->
-                            val hook = safeHookPath(ctx.root, hookPath) ?: return@filter false
-                            (hook.readLines().firstOrNull() ?: "") !=
-                                JsonAccess.stringFromObject(parametersObj, "expectedShebang")
-                        }.map { hookPath ->
-                            Finding(
-                                ctx.manifest.severityOf(category),
-                                category,
-                                ctx.manifest.stringValue(category, "default").takeIf { message ->
-                                    message.isNotEmpty()
-                                }
-                                    ?: "$hookPath must start with ${JsonAccess.stringFromObject(
-                                        parametersObj,
-                                        "expectedShebang",
-                                    )}",
-                            )
-                        },
-                )
-            }
+    override fun validate(ctx: RuleContext): Collection<Finding> {
+        val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList())
+            .get("parameters")?.jsonObject
+            ?: return emptyList()
+        val hooks = JsonAccess.stringArrayFromObject(parametersObj, "hooks")
+        val expectedShebang = JsonAccess.stringFromObject(parametersObj, "expectedShebang")
+        return buildList {
+            addAll(
+                hooks
+                    .filter { hookPath ->
+                        val hook = safeHookPath(ctx.root, hookPath) ?: return@filter false
+                        (hook.readLines().firstOrNull() ?: "") != expectedShebang
+                    }.map { hookPath ->
+                        Finding(
+                            ctx.manifest.severityOf(category),
+                            category,
+                            ctx.manifest.stringValue(category, "default").takeIf { message ->
+                                message.isNotEmpty()
+                            }
+                                ?: "$hookPath must start with ${JsonAccess.stringFromObject(
+                                    parametersObj,
+                                    "expectedShebang",
+                                )}",
+                        )
+                    },
+            )
         }
+    }
 
-    /**
-     * Insert expectedShebang as line 1 when missing.
-     *
-     * For each hook file in manifest where the first line differs from expectedShebang,
-     * prepend the shebang as a new line 1 and write the file back.
-     */
-    override fun format(ctx: RuleContext): Collection<Path> =
-        buildList {
-            val catObj = ctx.manifest.categoryObject(category)
-            val parametersObj = catObj?.get("parameters")?.jsonObject
-            if (catObj != null && parametersObj != null) {
-                val expectedShebang = JsonAccess.stringFromObject(parametersObj, "expectedShebang")
-                ctx.manifest
-                    .stringArray(category, "hooks")
-                    .forEach { hookPath ->
-                        val hook = safeHookPath(ctx.root, hookPath) ?: return@forEach
-                        val currentText = hook.readText()
-                        val currentFirstLine = currentText.lines().firstOrNull() ?: ""
-                        if (currentFirstLine != expectedShebang) {
-                            hook.writeText("$expectedShebang\n$currentText")
-                            add(hook)
-                        }
+    override fun format(ctx: RuleContext): Collection<Path> {
+        val parametersObj = (ctx.manifest.categoryObject(category) ?: return emptyList())
+            .get("parameters")?.jsonObject
+            ?: return emptyList()
+        val expectedShebang = JsonAccess.stringFromObject(parametersObj, "expectedShebang")
+        val hooks = JsonAccess.stringArrayFromObject(parametersObj, "hooks")
+        return buildList {
+            hooks
+                .forEach { hookPath ->
+                    val hook = safeHookPath(ctx.root, hookPath) ?: return@forEach
+                    val currentText = hook.readText()
+                    val currentFirstLine = currentText.lines().firstOrNull() ?: ""
+                    if (currentFirstLine != expectedShebang) {
+                        hook.writeText("$expectedShebang\n$currentText")
+                        add(hook)
                     }
-            }
+                }
         }
+    }
 }
 
 /**

@@ -7,12 +7,15 @@ import org.apache.maven.plugin.MojoExecutionException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.FileSystems;
 import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
+import java.nio.file.SimpleFileVisitor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -112,7 +115,7 @@ public class HarnessCheckHelper {
             return List.of();
         }
         if (Files.isSymbolicLink(base)) {
-            return allowedRootContractTarget(root, base) != null ? List.of(base) : List.of(base);
+            return List.of(base);
         }
         if (isSafeRegularFile(root, base)) {
             return List.of(base);
@@ -120,13 +123,32 @@ public class HarnessCheckHelper {
         if (!Files.isDirectory(base, LinkOption.NOFOLLOW_LINKS)) {
             return List.of();
         }
-        try (final Stream<Path> stream = Files.walk(base)) {
-            return stream
-                    .filter(f -> !f.equals(base) && (Files.isSymbolicLink(f) || Files.isRegularFile(f, LinkOption.NOFOLLOW_LINKS)))
-                    .toList();
+
+        final List<Path> files = new ArrayList<>();
+        try {
+            Files.walkFileTree(base, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                    return isWorktreePath(root, dir) ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
+                    if (!path.equals(base) && (Files.isSymbolicLink(path) || Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS))) {
+                        files.add(path);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                    throw exc;
+                }
+            });
         } catch (IOException error) {
             throw new MojoExecutionException("failed to inspect " + base, error);
         }
+        return files;
     }
 
     /**
@@ -313,18 +335,16 @@ public class HarnessCheckHelper {
         final List<Path> results = new ArrayList<>(extractPaths(rootsNode).size());
         final List<Finding> globFindings = new ArrayList<>();
         for (final String rootEntry : extractPaths(rootsNode)) {
-            try (final Stream<Path> pathStream = walkRootSafely(fs, projectRoot, rootEntry, extensions, includes, excludes, globFindings)) {
-                pathStream.forEach(results::add);
-            } catch (java.io.UncheckedIOException e) {
-                globFindings.add(Finding.of("ERROR", "symlinkSafety", "failed to walk source root: " + rootEntry));
+            try {
+                results.addAll(walkRoot(fs, projectRoot, rootEntry, extensions, includes, excludes, globFindings));
             } catch (IOException e) {
                 globFindings.add(Finding.of("ERROR", "symlinkSafety", "failed to walk source root: " + rootEntry));
             }
         }
-        final List<Finding> parseFindings = collectParseErrorFindings(results);
+        final ParseSourceResult parseResult = collectParseErrorFindings(results.stream().distinct().toList());
         return new StackSourceResult(
-                results.stream().distinct().sorted().toList(),
-                Stream.concat(globFindings.stream(), parseFindings.stream()).distinct().toList());
+                parseResult.parseableSources().stream().distinct().sorted().toList(),
+                Stream.concat(globFindings.stream(), parseResult.parseErrorFindings().stream()).distinct().toList());
     }
 
     /**
@@ -376,29 +396,49 @@ public class HarnessCheckHelper {
         if (!hasGlob && !isRootContainedDirectory(base, baseReal, rootPath)) {
             return List.of();
         }
-        final Stream<Path> stream;
+        final PathMatcher rootMatcher;
         if (hasGlob) {
-            final PathMatcher rootMatcher;
             try {
                 rootMatcher = fs.getPathMatcher("glob:" + rootEntry + "/**/*");
             } catch (IllegalArgumentException ignored) {
                 return List.of();
             }
-            stream = Files.walk(base).filter(p -> rootMatcher.matches(base.relativize(p)));
         } else {
-            stream = Files.walk(rootPath);
+            rootMatcher = null;
         }
-        try (stream) {
-            return stream
-                    .filter(p -> isRootContainedRegularFile(base, baseReal, p))
-                    .filter(p -> !isWorktreePath(base, p))
-                    .filter(p -> extensions.contains(extensionOf(p)))
-                    .filter(p -> !containsSegment(base.relativize(p), "target") && !containsSegment(base.relativize(p), "build"))
-                    .filter(p -> applyIncludeFilters(p, base, includeMatchers))
-                    .filter(p -> applyExcludeFilters(p, base, excludeMatchers))
-                    .map(p -> p.toAbsolutePath().normalize())
-                    .toList();
-        }
+
+        final List<Path> files = new ArrayList<>();
+        final Path start = hasGlob ? base : rootPath;
+        Files.walkFileTree(start, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                return isWorktreePath(base, dir) ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
+                if ((rootMatcher == null || rootMatcher.matches(base.relativize(path))) && isSourceRootMatch(base, baseReal, path, extensions, includeMatchers, excludeMatchers)) {
+                    files.add(path.toAbsolutePath().normalize());
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                throw exc;
+            }
+        });
+        return files;
+    }
+
+    private static boolean isSourceRootMatch(Path base, Path baseReal, Path path, Set<String> extensions, List<PathMatcher> includeMatchers, List<PathMatcher> excludeMatchers) {
+        return isRootContainedRegularFile(base, baseReal, path)
+                && !isWorktreePath(base, path)
+                && extensions.contains(extensionOf(path))
+                && !containsSegment(base.relativize(path), "target")
+                && !containsSegment(base.relativize(path), "build")
+                && applyIncludeFilters(path, base, includeMatchers)
+                && applyExcludeFilters(path, base, excludeMatchers);
     }
 
     /**
@@ -543,38 +583,27 @@ public class HarnessCheckHelper {
     }
 
     /**
-     * Walks a root entry and propagates IO errors instead of swallowing them.
-     *
-     * @param fs the file system
-     * @param base the base path
-     * @param rootEntry the manifest root entry
-     * @param extensions the allowed file extensions
-     * @param includes include patterns
-     * @param excludes exclude patterns
-     * @return stream of matching file paths
-     * @throws IOException if directory walk fails
-     */
-    private static Stream<Path> walkRootSafely(FileSystem fs, Path base, String rootEntry, Set<String> extensions, List<String> includes, List<String> excludes, List<Finding> globFindings) throws IOException {
-        return walkRoot(fs, base, rootEntry, extensions, includes, excludes, globFindings).stream();
-    }
-
-    /**
      * Attempts to parse each source file and collects parse-error findings.
      * Files that fail to parse are identified so AST rules can skip them.
      *
      * @param sources the source file paths
      * @return list of parse-error findings
      */
-    static List<Finding> collectParseErrorFindings(List<Path> sources) {
+    private record ParseSourceResult(List<Path> parseableSources, List<Finding> parseErrorFindings) {
+    }
+
+    static ParseSourceResult collectParseErrorFindings(List<Path> sources) {
+        final List<Path> parseableSources = new ArrayList<>(sources.size());
         final List<Finding> findings = new ArrayList<>();
         for (final Path source : sources) {
             try {
                 com.github.javaparser.StaticJavaParser.parse(source);
+                parseableSources.add(source);
             } catch (IOException | com.github.javaparser.ParseProblemException e) {
                 findings.add(Finding.of("ERROR", "parseError", "java parse error in " + source.getFileName() + ": " + e.getMessage()));
             }
         }
-        return findings.stream().distinct().toList();
+        return new ParseSourceResult(parseableSources.stream().distinct().toList(), findings.stream().distinct().toList());
     }
 
     /**
@@ -661,13 +690,17 @@ public class HarnessCheckHelper {
      * @return true when the path is under .claude/worktrees
      */
     static boolean isWorktreePath(Path base, Path path) {
-        final Path relative = base.relativize(path).normalize();
-        return containsSegment(relative, ".claude")
-                && IntStream.range(0, relative.getNameCount()).anyMatch(i -> {
-                    if (relative.getName(i).toString().equals(".claude")) {
-                        return i + 1 < relative.getNameCount() && relative.getName(i + 1).toString().equals("worktrees");
-                    }
-                    return false;
-                });
+        try {
+            final Path relative = base.relativize(path).normalize();
+            return containsSegment(relative, ".claude")
+                    && IntStream.range(0, relative.getNameCount()).anyMatch(i -> {
+                        if (relative.getName(i).toString().equals(".claude")) {
+                            return i + 1 < relative.getNameCount() && relative.getName(i + 1).toString().equals("worktrees");
+                        }
+                        return false;
+                    });
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

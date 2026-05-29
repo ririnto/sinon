@@ -123,7 +123,12 @@ emit_path_message() {
     path_message_fallback=$4
     path_message_path=$5
     path_message_template=$(message_of "$path_message_category" "$path_message_key" "$path_message_fallback")
-    path_message_text=$(printf '%s\n' "$path_message_template" | sed "s|{path}|$path_message_path|g")
+    path_message_text=$(
+        python3 - "$path_message_template" "$path_message_path" <<'PYEOF'
+import sys
+print(sys.argv[1].replace("{path}", sys.argv[2]))
+PYEOF
+    )
     emit "$path_message_severity" "$path_message_category" "$path_message_text"
 }
 
@@ -547,7 +552,7 @@ check_symlink_safety() {
                 emit_path_message "$sev" "$category" scanRootNotAllowed 'symlink scan root is not allowed: {path}' "$base"
             fi
         elif [ -d "$base" ]; then
-            find "$base" \( -path '.claude/worktrees' -o -path '.claude/worktrees/*' \) -prune -o -type l -print | while IFS= read -r symlink_path; do
+            find "$base" \( -path '.claude/worktrees' -o -path '.claude/worktrees/*' -o -path './.claude/worktrees' -o -path './.claude/worktrees/*' \) -prune -o -type l -print | while IFS= read -r symlink_path; do
                 path=${symlink_path#./}
                 emit_path_message "$sev" "$category" pathNotAllowed 'symlink path is not allowed: {path}' "$path"
             done

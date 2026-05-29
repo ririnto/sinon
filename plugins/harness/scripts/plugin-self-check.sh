@@ -316,7 +316,60 @@ reject_devnull_redirect_in_shell() {
 # @exit Exits with status 1 when [[ ]] is found.
 reject_double_bracket_in_shell() {
     path=$1
-    awk '/^[[:space:]]*(if|elif|while|until)[[:space:]]+\[\[/ { print FILENAME":"NR":"$0; exit 1; }' "$path" && return 0
+    if python3 - "$path" <<'PYEOF'; then
+import sys
+from pathlib import Path
+path = Path(sys.argv[1])
+heredoc = None
+for lineno, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    line = raw_line
+    if heredoc is not None:
+        if line.strip() == heredoc:
+            heredoc = None
+        continue
+    if "<<" in line:
+        import re
+        match = re.search(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z0-9_]*)['\"]?", line)
+        if match:
+            heredoc = match.group(1)
+    stripped = []
+    quote = None
+    escaped = False
+    for char in line:
+        if escaped:
+            escaped = False
+            if quote is None:
+                stripped.append(" ")
+            continue
+        if quote == '"':
+            if char == "\\":
+                escaped = True
+                stripped.append(" ")
+            elif char == '"':
+                quote = None
+                stripped.append(" ")
+            else:
+                stripped.append(" ")
+            continue
+        if quote == "'":
+            if char == "'":
+                quote = None
+            stripped.append(" ")
+            continue
+        if char == "#":
+            break
+        if char in ("'", '"'):
+            quote = char
+            stripped.append(" ")
+            continue
+        stripped.append(char)
+    code = "".join(stripped)
+    if "[[" in code or "]]" in code:
+        print(f"{path}:{lineno}:{raw_line}", file=sys.stderr)
+        raise SystemExit(1)
+PYEOF
+        return 0
+    fi
     printf '%s\n' "[reject_double_bracket_in_shell] uses non-POSIX '[[ ]]' (use POSIX '[ ]' or 'case'): $path" >&2
     exit 1
 }
@@ -458,7 +511,7 @@ reject_missing_doc_separator_in_shell() {
     path=$1
     if awk '
     function classify(l) {
-      if (l ~ /^#[[:space:]]+@[A-Za-z_][A-Za-z0-9_]*\b/) return "tag";
+      if (l ~ /^#[[:space:]]+@[A-Za-z_][A-Za-z0-9_]*([[:space:]]|$)/) return "tag";
       if (l ~ /^#$/) return "sep";
       if (l ~ /^#[[:space:]]/) return "desc";
       return "other";
@@ -1117,7 +1170,7 @@ fixture_assert_build_tool_hook_mode() {
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    fixture_write_file "$temp_dir/pom.xml" '<project></project>'
+    fixture_write_file "$temp_dir" pom.xml '<project></project>'
     if ! fixture_run_command "$temp_dir" "sh \"$root/skills/harness-install/scripts/install-harness.sh\" --mode maven --hooks build-tool --target ."; then
         printf '%s\n' '[fixture_assert_build_tool_hook_mode] expected maven build-tool to succeed with print-only' >&2
         printf '%s\n' "$fixture_stderr" >&2
@@ -2943,6 +2996,351 @@ fixture_assert_maven_hook_format_safety() {
     fi
     fixture_remove_temp_dir "$fixture_root"
 }
+# Verify reject_missing_doc_separator_in_shell catches missing separator.
+#
+# @exit Exits with status 1 when a docstring without separator passes.
+fixture_assert_doc_separator_rejection() {
+    temp_dir=$(fixture_create_temp_dir)
+    doc_description='# Do something useful.'
+    doc_param='# @param name The name.'
+    doc_separator='#'
+
+    bad_doc_content=$(
+        printf '%s\n' '#!/usr/bin/env sh'
+        printf '%s\n' '# -*- coding: utf-8 -*-'
+        printf '%s\n' 'set -e'
+        printf '%s\n' "$doc_description"
+        printf '%s\n' "$doc_param"
+        printf '%s\n' 'do_thing() {'
+        printf '%s\n' "    printf \"%s\\n\" \"\\$name\""
+        printf '%s\n' '}'
+    )
+    fixture_write_file "$temp_dir" bad-docstring.sh "$bad_doc_content"
+
+    _discard=$(reject_missing_doc_separator_in_shell "$temp_dir/bad-docstring.sh" 2>&1) && {
+        printf '%s\n' '[fixture_assert_doc_separator_rejection] expected missing separator to be rejected' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    }
+
+    good_doc_content=$(
+        printf '%s\n' '#!/usr/bin/env sh'
+        printf '%s\n' '# -*- coding: utf-8 -*-'
+        printf '%s\n' 'set -e'
+        printf '%s\n' "$doc_description"
+        printf '%s\n' "$doc_separator"
+        printf '%s\n' "$doc_param"
+        printf '%s\n' 'do_thing() {'
+        printf '%s\n' "    printf \"%s\\n\" \"\\$name\""
+        printf '%s\n' '}'
+    )
+    fixture_write_file "$temp_dir" good-docstring.sh "$good_doc_content"
+
+    reject_missing_doc_separator_in_shell "$temp_dir/good-docstring.sh"
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify reject_double_bracket_in_shell rejects standalone and embedded [[.
+#
+# @exit Exits with status 1 when standalone or embedded [[ passes.
+fixture_assert_double_bracket_rejection() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_write_file "$temp_dir" standalone-bracket.sh "$(
+        cat <<'STANDALONEEOF'
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+if [[ -f x ]]; then
+    printf "%s\n" "bad"
+fi
+STANDALONEEOF
+    )"
+    _discard=$(reject_double_bracket_in_shell "$temp_dir/standalone-bracket.sh" 2>&1) && {
+        printf '%s\n' '[fixture_assert_double_bracket_rejection] expected standalone [[ to be rejected' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    }
+    _bracket_line='[[ -f x ]] && printf "%s\n" "bad"'
+    fixture_write_file "$temp_dir" and-list-bracket.sh "$(
+        printf '%s\n%s\n%s\n%s\n' '#!/usr/bin/env sh' '# -*- coding: utf-8 -*-' 'set -e' "$_bracket_line"
+    )"
+    _discard=$(reject_double_bracket_in_shell "$temp_dir/and-list-bracket.sh" 2>&1) && {
+        printf '%s\n' '[fixture_assert_double_bracket_rejection] expected &&-style [[ to be rejected' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    }
+    fixture_write_file "$temp_dir" comment-bracket.sh "$(
+        cat <<'COMMEOF'
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+# echo "[[ should be ignored in comments"
+COMMEOF
+    )"
+    reject_double_bracket_in_shell "$temp_dir/comment-bracket.sh"
+    fixture_write_file "$temp_dir" string-bracket.sh "$(
+        cat <<'STREOF'
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+printf "%s\n" "[[ should be ignored in strings]]"
+STREOF
+    )"
+    reject_double_bracket_in_shell "$temp_dir/string-bracket.sh"
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Gradle hook rules read from parameters.hooks when declared.
+#
+#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
+#
+# @return Returns 0 on success or when gradle is missing.
+# @exit Exits with status 1 when hook rule parameters.hooks is not exercised.
+fixture_assert_gradle_hook_from_parameters() {
+    if ! gradle_path=$(command -v gradle 2>&1); then
+        printf 'warning: gradle not in PATH; skipping gradle hook parameters fixture check\n' >&2
+        return 0
+    fi
+    : "$gradle_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" gradle
+    fixture_write_file "$temp_dir" settings.gradle.kts 'rootProject.name = "gradle-hook-params-fixture"'
+    fixture_write_file "$temp_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
+repositories { mavenCentral() }
+'
+    fixture_write_manifest "$temp_dir" '{"name":"gradle-hook-params-fixture","hookShebang":{"enabled":true,"severity":"ERROR","messages":{"default":"{hook} must start with #!/usr/bin/env sh"},"parameters":{"hooks":["docs/harness/git-hooks/pre-commit"],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":true,"severity":"ERROR","parameters":{"hooks":["docs/harness/git-hooks/pre-commit"]}}}'
+    fixture_write_file "$temp_dir" docs/harness/git-hooks/pre-commit '#!/usr/bin/env sh
+echo "ok"
+'
+    chmod +x "$temp_dir/docs/harness/git-hooks/pre-commit"
+    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessCheck'; then
+        :
+    else
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Maven silent-catch with malformed Java reports parseError without crashing.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 when parseError finding is missing for malformed Java.
+fixture_assert_maven_silent_catch_parse_error() {
+    if ! mvn_path=$(command -v mvn 2>&1); then
+        printf 'warning: mvn not in PATH; skipping maven silent-catch parse-error fixture check\n' >&2
+        return 0
+    fi
+    : "$mvn_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" maven
+    fixture_write_manifest "$temp_dir" '{"name":"maven-silent-catch-parse-error-fixture","silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[]}}}'
+    fixture_write_file "$temp_dir" src/main/java/fixture/BrokenCatch.java 'package fixture;
+class BrokenCatch {
+    void bad( {
+        try {} catch (Exception e) {}
+    }
+}
+'
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
+        printf '%s\n' '[fixture_assert_maven_silent_catch_parse_error] expected check to fail' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'parseError' 'maven silent-catch parse error reports parseError' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify Maven worktree symlink under .claude/worktrees is excluded from violation reports.
+#
+#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
+#
+# @return Returns 0 on success or when mvn is missing.
+# @exit Exits with status 1 when worktree symlink triggers Maven harness violation.
+fixture_assert_maven_worktree_symlink_excluded() {
+    if ! mvn_path=$(command -v mvn 2>&1); then
+        printf 'warning: mvn not in PATH; skipping maven worktree symlink exclusion fixture check\n' >&2
+        return 0
+    fi
+    : "$mvn_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" maven
+    fixture_write_manifest "$temp_dir" '{"name":"maven-worktree-symlink-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"bad"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$temp_dir" src/main/java/fixture/Ok.java 'package fixture;
+final class Ok {
+    boolean safe() { return true; }
+}
+'
+    mkdir -p "$temp_dir/.claude/worktrees/abc1234/src/main/java"
+    ln -s "$temp_dir/src/main/java/Ok.java" "$temp_dir/.claude/worktrees/abc1234/src/main/java/Link.java"
+    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
+        :
+    else
+        printf '%s\n' "$fixture_stdout" >&2
+        printf '%s\n' "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if printf '%s' "$fixture_combined_output" | grep -Fq '.claude/worktrees'; then
+        printf '%s\n' "[fixture_assert_maven_worktree_symlink_excluded] worktree path leaked into output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify shell formatter fail-closed preflight with malformed manifest and bad .sh.
+#
+# @exit Exits with status 1 when formatter does not exit non-zero or mutates files.
+fixture_assert_shell_format_fail_closed_preflight() {
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" shell
+    mkdir -p "$temp_dir/docs/harness/shell"
+    cp "$temp_dir/harness-check.sh" "$temp_dir/docs/harness/shell/harness-check.sh"
+    cp "$temp_dir/harness-format.sh" "$temp_dir/docs/harness/shell/harness-format.sh"
+    fixture_write_file "$temp_dir" docs/harness/shell/harness-check.sh '#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+exit 0
+'
+    fixture_write_manifest "$temp_dir" '{"name":"shell-fail-closed-fixture","emptyDirectoryPlaceholders":{"enabled":true,"parameters":{"directories":"not-an-array"}},"hookShebang":{"enabled":false,"parameters":{"hooks":[],"expectedShebang":"#!/usr/bin/env sh"}},"hookExecutable":{"enabled":false,"parameters":{"hooks":[]}}}'
+    fixture_write_file "$temp_dir" bad-format.sh '#!/usr/bin/env sh
+if [ 1 -eq 1 ];then
+printf "bad"
+fi
+'
+    mkdir -p "$temp_dir/placeholder-dir"
+    fixture_before_checksum=$(fixture_file_checksum "$temp_dir/bad-format.sh")
+    if fixture_run_command "$temp_dir" 'sh docs/harness/shell/harness-format.sh'; then
+        printf '%s\n' '[fixture_assert_shell_format_fail_closed_preflight] expected malformed manifest to fail' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_after_checksum=$(fixture_file_checksum "$temp_dir/bad-format.sh")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'shell fail-closed preflight leaves bad .sh unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if [ -f "$temp_dir/placeholder-dir/.gitkeep" ]; then
+        printf '%s\n' '[fixture_assert_shell_format_fail_closed_preflight] placeholder .gitkeep should not exist after failed preflight' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify emit_path_message renders paths with special characters without sed corruption.
+#
+# @exit Exits with status 1 when emit_path_message output is corrupted for special paths.
+fixture_assert_emit_path_message_special_chars() {
+    temp_dir=$(fixture_create_temp_dir)
+    path_test_script=$(
+        cat <<'EOF'
+#!/usr/bin/env sh
+# -*- coding: utf-8 -*-
+set -e
+emit_path_message() {
+    path_message_severity=$1
+    path_message_category=$2
+    path_message_key=$3
+    path_message_fallback=$4
+    path_message_path=$5
+    path_message_template="$path_message_fallback"
+    path_message_text=$(python3 - "$path_message_template" "$path_message_path" <<'PYEOF'
+import sys
+print(sys.argv[1].replace("{path}", sys.argv[2]))
+PYEOF
+)
+    printf "[%s] %s: %s\n" "$path_message_severity" "$path_message_category" "$path_message_text"
+}
+test_path=$1
+emit_path_message ERROR symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$test_path"
+EOF
+    )
+    fixture_write_file "$temp_dir" path-test.sh "$path_test_script"
+    for test_path in 'dir&file' 'a|b' 'back\\slash'; do
+        output=$(sh "$temp_dir/path-test.sh" "$test_path")
+        expected="[ERROR] symlinkSafety: symlink file is not allowed: $test_path"
+        if [ "$output" != "$expected" ]; then
+            printf '%s\n' "[fixture_assert_emit_path_message_special_chars] corrupted output for path '$test_path': got '$output'" >&2
+            fixture_remove_temp_dir "$temp_dir"
+            exit 1
+        fi
+    done
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify root harness-check warning counter accumulates warnings correctly.
+#
+# @exit Exits with status 1 when the warning counter does not increment.
+fixture_assert_harness_check_warn_counter() {
+    temp_dir=$(fixture_create_temp_dir)
+    warn_file=$(mktemp)
+    printf '0\n' >"$warn_file"
+    current=$(cat "$warn_file")
+    current=$((current + 1))
+    printf '%d\n' "$current" >"$warn_file"
+    current=$(cat "$warn_file")
+    if [ "$current" -ne 1 ]; then
+        printf '%s\n' '[fixture_assert_harness_check_warn_counter] expected warn counter to be 1' >&2
+        rm -f "$warn_file"
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    current=$((current + 1))
+    printf '%d\n' "$current" >"$warn_file"
+    current=$(cat "$warn_file")
+    if [ "$current" -ne 2 ]; then
+        printf '%s\n' '[fixture_assert_harness_check_warn_counter] expected warn counter to be 2' >&2
+        rm -f "$warn_file"
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    rm -f "$warn_file"
+    fixture_remove_temp_dir "$temp_dir"
+}
+# Verify install --hooks copy refuses to write through a symlinked .git/hooks directory.
+#
+# @exit Exits with status 1 when copy mode writes through a symlinked hooks directory.
+fixture_assert_install_hooks_copy_symlink_rejection() {
+    temp_dir=$(fixture_create_temp_dir)
+    mkdir -p "$temp_dir/.git"
+    mkdir -p "$temp_dir/real-hooks"
+    ln -s "$temp_dir/real-hooks" "$temp_dir/.git/hooks"
+    fixture_write_file "$temp_dir/settings.gradle.kts" 'rootProject.name = "hooks-copy-symlink-fixture"'
+    fixture_write_file "$temp_dir" docs/harness/git-hooks/pre-commit '#!/usr/bin/env sh
+echo "hook"
+'
+    fixture_write_file "$temp_dir" docs/harness/git-hooks/pre-push '#!/usr/bin/env sh
+echo "hook"
+'
+    if fixture_run_command "$temp_dir" "sh \"$root/skills/harness-install/scripts/install-harness.sh\" --mode gradle --hooks copy --target ."; then
+        :
+    else
+        if printf '%s' "$fixture_stderr" | grep -Fq 'refusing'; then
+            fixture_remove_temp_dir "$temp_dir"
+            return 0
+        fi
+        if printf '%s' "$fixture_stderr" | grep -Fq 'symlink'; then
+            fixture_remove_temp_dir "$temp_dir"
+            return 0
+        fi
+        if printf '%s' "$fixture_stderr" | grep -Fq 'not a directory'; then
+            fixture_remove_temp_dir "$temp_dir"
+            return 0
+        fi
+    fi
+    if [ -f "$temp_dir/real-hooks/pre-commit" ]; then
+        printf '%s\n' '[fixture_assert_install_hooks_copy_symlink_rejection] hook was written through symlinked .git/hooks' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$temp_dir"
+}
 # Smoke-check the uv stack runtime by importing harness_check and counting registered rules.
 #
 #     Requires `uv` in PATH. Loads libcst on demand via `uv run --with libcst`.
@@ -3473,8 +3871,8 @@ require_text "$root/skills/harness-install/scripts/install-harness.sh" 'mvn -q -
 require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" 'org.danilopianini.gradle-pre-commit-git-hooks'
 require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" '2.1.17'
 require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" 'harness.gitHooks'
-require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" 'from(file("docs/harness/git-hooks/pre-commit"))'
-require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" 'from(file("docs/harness/git-hooks/pre-push"))'
+require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" '"from"(file("docs/harness/git-hooks/pre-commit"))'
+require_text "$root/skills/harness-install/assets/gradle/settings.gradle.kts" '"from"(file("docs/harness/git-hooks/pre-push"))'
 require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/pom.xml" 'git-build-hook-maven-plugin'
 require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/pom.xml" '3.6.0'
 require_text "$root/skills/harness-install/assets/maven/harness-maven-plugin/pom.xml" 'core.hooksPath'
@@ -3581,6 +3979,15 @@ fixture_assert_maven_worktree_excluded
 fixture_assert_maven_parse_error
 fixture_assert_gradle_hook_format_safety
 fixture_assert_maven_hook_format_safety
+fixture_assert_doc_separator_rejection
+fixture_assert_double_bracket_rejection
+fixture_assert_gradle_hook_from_parameters
+fixture_assert_maven_silent_catch_parse_error
+fixture_assert_maven_worktree_symlink_excluded
+fixture_assert_shell_format_fail_closed_preflight
+fixture_assert_emit_path_message_special_chars
+fixture_assert_harness_check_warn_counter
+fixture_assert_install_hooks_copy_symlink_rejection
 smoke_check_uv_runtime
 smoke_check_bun_runtime
 smoke_check_shell_runtime
