@@ -10,6 +10,73 @@ if TYPE_CHECKING:
     from harness_check_rule import Finding, FindingEdit
 
 
+def _is_safe_reporter_path(root: Path, file_path: str) -> bool:
+    """
+    Check whether a finding/edit file path is safe for reporter reads.
+
+    Rejects empty, absolute, parent traversal, symlink components, paths
+    whose real path escapes root, and non-regular files.
+
+    :param root: Repository root path.
+    :param file_path: Relative file path from a finding or edit.
+    :returns: True when the path is safe to read.
+    :rtype: bool
+    """
+    if not file_path:
+        return False
+    from pathlib import PurePosixPath
+
+    parsed = PurePosixPath(file_path)
+    if parsed.is_absolute():
+        return False
+    for part in parsed.parts:
+        if part == ".." or part.startswith("-"):
+            return False
+    resolved = (root / file_path).resolve(strict=False)
+    root_resolved = root.resolve()
+    if resolved != root_resolved and not str(resolved).startswith(f"{root_resolved}/"):
+        return False
+    try:
+        real = resolved.resolve()
+        if real != root_resolved and not str(real).startswith(f"{root_resolved}/"):
+            return False
+        if not real.is_file():
+            return False
+    except (OSError, ValueError):
+        return False
+    probe = root
+    for part in parsed.parts:
+        if part == ".":
+            continue
+        probe = probe / part
+        try:
+            if probe.is_symlink():
+                return False
+        except (OSError, ValueError):
+            break
+    return True
+
+
+def _safe_read_lines(root: Path, file_path: str) -> list[str] | None:
+    """
+    Safely read file lines for reporting, returning None on unsafe paths.
+
+    :param root: Repository root path.
+    :param file_path: Relative file path from a finding or edit.
+    :returns: File lines when safe, None otherwise.
+    :rtype: list[str] | None
+    """
+    if not _is_safe_reporter_path(root, file_path):
+        return None
+    resolved = (root / file_path).resolve(strict=False)
+    try:
+        if not resolved.is_file():
+            return None
+    except (OSError, ValueError):
+        return None
+    return resolved.read_text(encoding="utf-8").splitlines()
+
+
 def severity_label(severity: str) -> str:
     """
     Map severity value to uppercase label for output.
@@ -46,10 +113,9 @@ def format_code_snippet(root: Path, finding: "Finding") -> list[str]:
     """
     if finding.file is None or finding.start_line is None:
         return []
-    file_path = root / finding.file
-    if not file_path.is_file():
+    lines = _safe_read_lines(root, finding.file)
+    if lines is None:
         return []
-    lines = file_path.read_text(encoding="utf-8").splitlines()
     line_idx = finding.start_line - 1
     if line_idx < 0 or line_idx >= len(lines):
         return []
@@ -71,10 +137,9 @@ def extract_removed_text(root: Path, edit: "FindingEdit") -> list[str]:
     :returns: Original text spanning the edit range, one entry per source line.
     :rtype: list[str]
     """
-    file_path = root / edit.file
-    if not file_path.is_file():
+    file_lines = _safe_read_lines(root, edit.file)
+    if file_lines is None:
         return []
-    file_lines = file_path.read_text(encoding="utf-8").splitlines()
     start_idx = edit.start_line - 1
     end_idx = edit.end_line - 1
     if start_idx < 0 or end_idx >= len(file_lines):

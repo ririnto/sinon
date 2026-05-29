@@ -63,21 +63,21 @@ class DefaultRuleContext(
 
     override fun walkSafe(base: Path): RuleContext.WalkResult =
         when {
-            !base.exists() -> {
-                RuleContext.WalkResult(emptyList<Path>(), emptyList<HarnessAstResults.Finding>())
-            }
-
-            base.isSymbolicLink() && !isAllowedRootContractSymlink(base) -> {
+            !isSafeWalkRoot(base) -> {
                 RuleContext.WalkResult(
                     emptyList(),
                     listOf(
                         HarnessAstResults.Finding(
                             Severity.ERROR,
                             "symlinkSafety",
-                            "symlink scan root is not allowed: ${base.relativeTo(root)}",
+                            "symlink scan root is not allowed: ${safePathMessage(base)}",
                         ),
                     ),
                 )
+            }
+
+            !base.exists() -> {
+                RuleContext.WalkResult(emptyList<Path>(), emptyList<HarnessAstResults.Finding>())
             }
 
             base.isRegularFile() -> {
@@ -85,7 +85,7 @@ class DefaultRuleContext(
             }
 
             base.isDirectory() -> {
-                val entries = base.listDirectoryEntries()
+                val entries = base.listDirectoryEntries().filterNot { entry -> isWorktreeOrDescendant(entry) }
                 RuleContext.WalkResult(
                     buildList {
                         entries
@@ -118,6 +118,31 @@ class DefaultRuleContext(
                 RuleContext.WalkResult(emptyList<Path>(), emptyList<HarnessAstResults.Finding>())
             }
         }
+
+    private fun isSafeWalkRoot(base: Path): Boolean =
+        runCatching {
+            if (hasTraversalSegment(base)) {
+                return@runCatching false
+            }
+            val normalized = base.toAbsolutePath().normalize()
+            val rootAbsolute = root.toAbsolutePath().normalize()
+            if (!normalized.startsWith(rootAbsolute)) {
+                return@runCatching false
+            }
+            if (!Files.exists(normalized, LinkOption.NOFOLLOW_LINKS)) {
+                return@runCatching true
+            }
+            val rootReal = root.toRealPath()
+            val baseReal = normalized.toRealPath(LinkOption.NOFOLLOW_LINKS)
+            baseReal.startsWith(rootReal) && !hasSymlinkSegment(normalized)
+        }.getOrElse { false }
+
+    private fun safePathMessage(base: Path): String =
+        runCatching { base.normalize().relativeTo(root).pathString }
+            .getOrElse { base.pathString }
+
+    private fun hasTraversalSegment(path: Path): Boolean =
+        (0..<path.nameCount).any { i -> path.getName(i).pathString == ".." }
 
     override fun isAllowedRootContractSymlink(path: Path): Boolean {
         if (path.parent != root || path.name !in setOf("AGENTS.md", "CLAUDE.md") || !path.isSymbolicLink()) {

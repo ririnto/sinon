@@ -10,6 +10,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -50,28 +51,26 @@ public enum SymlinkSafetyRule implements HarnessCheckRule {
     }
 
     private List<Finding> validateScanRoot(Path root, Path base, Set<String> allowedNames, String severity) {
-        try {
-            return validateSymlinks(root, base, allowedNames, severity);
-        } catch (MojoExecutionException e) {
-            return List.of(Finding.of("ERROR", CATEGORY, "failed to inspect symlinks under " + root.relativize(base) + ": " + e.getMessage()));
-        }
+        return validateSymlinks(root, base, allowedNames, severity);
     }
 
-    private List<Finding> validateSymlinks(Path root, Path base, Set<String> allowedNames, String severity) throws MojoExecutionException {
+    private List<Finding> validateSymlinks(Path root, Path base, Set<String> allowedNames, String severity) {
         if (Files.isSymbolicLink(base)) {
             final String name = base.getFileName().toString();
             return !allowedNames.contains(name) || HarnessCheckHelper.allowedRootContractTarget(root, base) == null
                     ? List.of(Finding.of(severity, CATEGORY, "symlink scan root is not allowed: " + root.relativize(base)))
                     : List.of();
         }
-        return HarnessCheckHelper.safeFileOrWalk(root, base).stream()
-                .filter(Files::isSymbolicLink)
+        final HarnessCheckHelper.SymlinkScanResult scanResult = HarnessCheckHelper.symlinkScanResult(root, base);
+        final List<Finding> allFindings = new ArrayList<>(scanResult.findings());
+        scanResult.symlinks().stream()
                 .flatMap(file -> {
                     final String name = file.getFileName().toString();
                     return !allowedNames.contains(name) || HarnessCheckHelper.allowedRootContractTarget(root, file) == null
                             ? Stream.of(Finding.of(severity, CATEGORY, "symlink " + (Files.isDirectory(file, LinkOption.NOFOLLOW_LINKS) ? "directory" : "file") + " is not allowed: " + root.relativize(file)))
                             : Stream.empty();
                 })
-                .toList();
+                .forEach(allFindings::add);
+        return allFindings;
     }
 }
