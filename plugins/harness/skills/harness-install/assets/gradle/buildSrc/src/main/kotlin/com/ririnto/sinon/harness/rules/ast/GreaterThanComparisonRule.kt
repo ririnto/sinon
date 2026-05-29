@@ -17,6 +17,8 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.com.intellij.psi.PsiComment
+import org.jetbrains.kotlin.com.intellij.psi.util.PsiTreeUtil
 import java.nio.file.Path
 
 /**
@@ -67,6 +69,9 @@ object GreaterThanComparisonRule : HarnessAstRule() {
         if (!left.isSafeOperand() || !right.isSafeOperand()) {
             return null
         }
+        if (left is KtNameReferenceExpression && right is KtNameReferenceExpression) {
+            return null
+        }
         val operator = when (expression.operationToken) {
             KtTokens.GT -> "<"
             KtTokens.GTEQ -> "<="
@@ -105,6 +110,13 @@ object GreaterThanComparisonRule : HarnessAstRule() {
     }
 
     /**
+     * Checks whether the given expression contains any PSI comment descendants.
+     * Comment-bearing expressions are skipped during formatting to prevent comment loss.
+     */
+    private fun hasCommentDescendant(expression: KtBinaryExpression): Boolean =
+        PsiTreeUtil.findChildOfType(expression, PsiComment::class.java) != null
+
+    /**
      * Text edit to be applied during source formatting.
      */
     private data class TextEdit(
@@ -122,6 +134,7 @@ object GreaterThanComparisonRule : HarnessAstRule() {
         override fun visitBinaryExpression(expression: KtBinaryExpression) {
             super.visitBinaryExpression(expression)
             val replacement = replacementFor(expression) ?: return
+            if (hasCommentDescendant(expression)) return
             record(
                 TextEdit(
                     startOffset = expression.textRange.startOffset,

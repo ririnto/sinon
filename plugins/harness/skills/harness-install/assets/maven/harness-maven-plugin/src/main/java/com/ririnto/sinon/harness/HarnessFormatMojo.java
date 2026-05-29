@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Arrays;
 
 /**
  * Maven goal that auto-formats installed Claude repository harness assets.
@@ -61,19 +62,44 @@ public final class HarnessFormatMojo extends AbstractMojo {
 
 
     /**
-     * Collects validation findings remaining after formatting.
+     * Collects validation findings remaining after formatting,
+     * including source-root safety findings.
      */
-    private List<Finding> buildRemainingFindings(RuleContext ctx) throws MojoExecutionException {
+    private List<Finding> buildRemainingFindings(RuleContext ctx) {
         final List<Finding> findings = new java.util.ArrayList<>();
+        findings.addAll(collectSourceRootFindings(ctx));
         for (final HarnessCheck check : HarnessCheck.values()) {
             if (check.applies(ctx)) {
-                findings.addAll(check.validate(ctx));
+                try {
+                    findings.addAll(check.validate(ctx));
+                } catch (MojoExecutionException error) {
+                    findings.add(Finding.of("ERROR", check.category(), "failed to validate " + check.category() + ": " + error.getMessage()));
+                }
             }
         }
         return findings
                 .stream()
                 .distinct()
                 .toList();
+    }
+
+    /**
+     * Collects source-root safety findings across all applicable rule categories.
+     */
+    private static List<Finding> collectSourceRootFindings(RuleContext ctx) {
+        final List<Finding> findings = new java.util.ArrayList<>();
+        final java.util.Set<String> categories = Arrays.stream(HarnessCheck.values())
+                .filter(check -> check.applies(ctx))
+                .map(HarnessCheck::category)
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        for (final String category : categories) {
+            try {
+                findings.addAll(ctx.stackSourceFindings(category));
+            } catch (MojoExecutionException error) {
+                findings.add(Finding.of("ERROR", category, "failed to collect source-root findings: " + error.getMessage()));
+            }
+        }
+        return findings.stream().distinct().toList();
     }
 
     /**

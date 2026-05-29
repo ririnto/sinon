@@ -153,20 +153,26 @@ class DefaultRuleContext(
         val excludePaths =
             parametersObj["excludePaths"]?.jsonArray?.mapNotNull { elem -> elem.jsonPrimitive.contentOrNull }
                 ?: emptyList()
-        val pathMatcher = FileSystems.getDefault()
-        val includeMatchers: List<PathMatcher> =
-            buildList {
-                if (includePaths.isNotEmpty()) {
-                    addAll(includePaths.map { pattern -> pathMatcher.getPathMatcher("glob:$pattern") })
-                }
-            }
-        val excludeMatchers: List<PathMatcher> =
-            buildList {
-                addAll(excludePaths.map { pattern -> pathMatcher.getPathMatcher("glob:$pattern") })
-            }
-
         val paths = mutableSetOf<Path>()
         val findings = mutableSetOf<HarnessAstResults.Finding>()
+
+        val pathMatcher = FileSystems.getDefault()
+        val includeMatchers: MutableList<PathMatcher> = mutableListOf()
+        val excludeMatchers: MutableList<PathMatcher> = mutableListOf()
+        for (pattern in includePaths) {
+            try {
+                includeMatchers.add(pathMatcher.getPathMatcher("glob:$pattern"))
+            } catch (_: Exception) {
+                findings.add(sourceRootFinding("symlinkSafety", "invalid includePaths glob pattern: $pattern"))
+            }
+        }
+        for (pattern in excludePaths) {
+            try {
+                excludeMatchers.add(pathMatcher.getPathMatcher("glob:$pattern"))
+            } catch (_: Exception) {
+                findings.add(sourceRootFinding("symlinkSafety", "invalid excludePaths glob pattern: $pattern"))
+            }
+        }
 
         for (pattern in sourcePatterns) {
             val patternPath = Path.of(pattern)
@@ -199,7 +205,7 @@ class DefaultRuleContext(
                 }
 
                 val directories = buildList {
-                    root.walk().filter { file -> isContainedDirectory(file) }.forEach { dir ->
+                    root.walk().filter { file -> isContainedDirectory(file) }.filter { dir -> !isWorktreeOrDescendant(dir) }.forEach { dir ->
                         if (
                             matcher.matches(root.relativeTo(root).resolve(dir.relativeTo(root))) ||
                             matcher.matches(dir.relativeTo(root))
@@ -246,6 +252,7 @@ class DefaultRuleContext(
         dir
             .walk()
             .filter { file -> isContainedRegularFile(file) }
+            .filter { file -> !isWorktreeOrDescendant(file) }
             .filter { file -> file.extension in extensions }
             .filter { file ->
                 val relative = file.relativeTo(root)
@@ -257,6 +264,14 @@ class DefaultRuleContext(
     private fun hasGlobTokens(value: String): Boolean {
         return "*" in value || "?" in value || "[" in value || "{" in value
     }
+
+    private fun isWorktreeOrDescendant(path: Path): Boolean =
+        try {
+            val relative = path.relativeTo(root)
+            relative.startsWith(Path.of(".claude", "worktrees"))
+        } catch (_: Exception) {
+            false
+        }
 
     private fun sourceRootFinding(category: String, message: String): HarnessAstResults.Finding {
         return HarnessAstResults.Finding(Severity.ERROR, category, message)

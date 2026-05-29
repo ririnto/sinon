@@ -67,6 +67,15 @@ public interface RuleContext {
     List<Path> stackSources(String category) throws MojoExecutionException;
 
     /**
+     * Collects findings for source root entries that are unsafe for a manifest category.
+     *
+     * @param category manifest category name
+     * @return list of findings
+     * @throws MojoExecutionException when validation fails
+     */
+    List<Finding> stackSourceFindings(String category) throws MojoExecutionException;
+
+    /**
      * Safe walk result with filesystem findings.
      *
      * @param files safe files discovered
