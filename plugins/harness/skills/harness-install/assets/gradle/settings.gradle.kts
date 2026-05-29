@@ -9,10 +9,10 @@ if (providers.gradleProperty("harness.gitHooks").orNull == "true") {
 
     gitHooks {
         preCommit {
-            from("docs/harness/git-hooks/pre-commit")
+            from(file("docs/harness/git-hooks/pre-commit"))
         }
         hook("pre-push") {
-            from("docs/harness/git-hooks/pre-push")
+            from(file("docs/harness/git-hooks/pre-push"))
         }
         if (providers.gradleProperty("harness.gitHooks.overwrite").orNull == "true") {
             createHooks(true)

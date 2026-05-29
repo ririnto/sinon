@@ -1,7 +1,9 @@
 package com.ririnto.sinon.harness.core;
 
+import com.ririnto.sinon.harness.Finding;
 import com.ririnto.sinon.harness.rules.HarnessCheckHelper;
 import org.apache.maven.plugin.MojoExecutionException;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -74,6 +76,15 @@ public final class DefaultRuleContext implements RuleContext {
             return HarnessCheckHelper.stackSources(manifest.raw(), category, stack, root);
         } catch (IOException e) {
             throw new MojoExecutionException("failed to collect stack sources: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Finding> stackSourceFindings(String category) throws MojoExecutionException {
+        try {
+            return HarnessCheckHelper.stackSourceFindings(manifest.raw(), category, stack, root);
+        } catch (IOException e) {
+            throw new MojoExecutionException("failed to collect stack source findings: " + e.getMessage(), e);
         }
     }
 }

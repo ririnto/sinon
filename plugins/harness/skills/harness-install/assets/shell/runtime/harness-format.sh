@@ -18,16 +18,52 @@ import json
 import sys
 path = sys.argv[1]
 expr = sys.argv[2]
-try:
-    with open(path, 'r', encoding='utf-8') as fh:
-        M = json.load(fh)
-    for line in eval(expr):
-        print(line)
-except Exception:
-    pass
+with open(path, 'r', encoding='utf-8') as fh:
+    M = json.load(fh)
+value = eval(expr)
+if not isinstance(value, list):
+    raise SystemExit(1)
+for item in value:
+    if not isinstance(item, str):
+        raise SystemExit(1)
+    print(item)
 PYEOF
 }
 
+# Read a manifest list field into a file.
+# Return non-zero when the query returns invalid parameters.
+#
+# @param category Add-on category name.
+# @param expr Python expression evaluating to an iterable of strings.
+# @param output_file Temporary file path to write values into.
+# @return Returns 0 when values were written.
+manifest_query_file() {
+    query_category=$1
+    query_expr=$2
+    query_output_file=$3
+    if manifest_query "$query_expr" >"$query_output_file"; then
+        return 0
+    fi
+    printf '%s\n' "[harness-format] invalid $query_category parameters" >&2
+    return 1
+}
+
+# Return a manifest list field file for an enabled category.
+#
+# @param category Add-on category name.
+# @param expr Python expression evaluating to an iterable of strings.
+# @return Writes the temp file path when lookup succeeds.
+manifest_query_required() {
+    required_category=$1
+    required_expr=$2
+    required_file=$(mktemp)
+    if manifest_query_file "$required_category" "$required_expr" "$required_file"; then
+        printf '%s\n' "$required_file"
+        return 0
+    fi
+    rm -f "$required_file"
+    return 1
+}
 # Read a single string field from the manifest.
 #
 # @param expr Python expression evaluating to a string.
@@ -39,12 +75,9 @@ import json
 import sys
 path = sys.argv[1]
 expr = sys.argv[2]
-try:
-    with open(path, 'r', encoding='utf-8') as fh:
-        M = json.load(fh)
-    print(eval(expr))
-except Exception:
-    print('')
+with open(path, 'r', encoding='utf-8') as fh:
+    M = json.load(fh)
+print(eval(expr))
 PYEOF
 }
 
@@ -136,7 +169,7 @@ format_sh_files() {
     fi
     shell_format_failed=0
     shell_file_list=$(mktemp)
-    find . -type f -name '*.sh' ! -path './.git/*' >"$shell_file_list"
+    find . \( -path './.git' -o -path './.claude/worktrees' \) -prune -o -type f -name '*.sh' -print >"$shell_file_list"
     while IFS= read -r file; do
         before=$(cksum "$file")
         if ! "$shfmt_bin" -i 4 -ci -w "$file"; then
@@ -164,7 +197,8 @@ format_empty_directory_placeholders() {
     if [ "$enabled" -ne 1 ]; then
         return 0
     fi
-    manifest_query "M['$category']['parameters']['directories']" | while IFS= read -r directory; do
+    directories_file=$(manifest_query_required "$category" "M['$category']['parameters']['directories']") || return 1
+    while IFS= read -r directory; do
         if ! is_safe_manifest_path_for_write "$directory"; then
             continue
         fi
@@ -172,7 +206,8 @@ format_empty_directory_placeholders() {
             touch "$directory/.gitkeep"
             record_changed "$directory/.gitkeep"
         fi
-    done
+    done <"$directories_file"
+    rm -f "$directories_file"
 }
 
 # Repair configured hook shebang lines.
@@ -188,7 +223,8 @@ format_hook_shebangs() {
     if [ -z "$expected" ]; then
         return 0
     fi
-    manifest_query "M['$category']['parameters']['hooks']" | while IFS= read -r hook; do
+    hooks_file=$(manifest_query_required "$category" "M['$category']['parameters']['hooks']") || return 1
+    while IFS= read -r hook; do
         if ! is_safe_manifest_path_for_write "$hook" || [ ! -f "$hook" ]; then
             continue
         fi
@@ -200,7 +236,8 @@ format_hook_shebangs() {
             mv "$temp_file" "$hook"
             record_changed "$hook"
         fi
-    done
+    done <"$hooks_file"
+    rm -f "$hooks_file"
 }
 
 # Mark configured hook scripts executable.
@@ -212,7 +249,8 @@ format_hook_executable() {
     if [ "$enabled" -ne 1 ]; then
         return 0
     fi
-    manifest_query "M['$category']['parameters']['hooks']" | while IFS= read -r hook; do
+    hooks_file=$(manifest_query_required "$category" "M['$category']['parameters']['hooks']") || return 1
+    while IFS= read -r hook; do
         if ! is_safe_manifest_path_for_write "$hook" || [ ! -f "$hook" ]; then
             continue
         fi
@@ -220,7 +258,8 @@ format_hook_executable() {
             chmod +x "$hook"
             record_changed "$hook"
         fi
-    done
+    done <"$hooks_file"
+    rm -f "$hooks_file"
 }
 
 # Print changed paths or no-op status.

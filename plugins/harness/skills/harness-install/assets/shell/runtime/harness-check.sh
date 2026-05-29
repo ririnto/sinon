@@ -19,9 +19,31 @@ path = sys.argv[1]
 expr = sys.argv[2]
 with open(path, 'r', encoding='utf-8') as fh:
     M = json.load(fh)
-for line in eval(expr):
-    print(line)
+value = eval(expr)
+if not isinstance(value, list):
+    raise SystemExit(1)
+for item in value:
+    if not isinstance(item, str):
+        raise SystemExit(1)
+    print(item)
 PYEOF
+}
+
+# Read a manifest list field into a temp file and fail visibly on malformed config.
+#
+# @param category Add-on category name.
+# @param expr Python expression evaluating to an iterable of strings.
+# @param output_file Temporary file path to write values into.
+# @return Returns 0 when values were written, 1 when lookup failed.
+manifest_query_file() {
+    query_category=$1
+    query_expr=$2
+    query_output_file=$3
+    if manifest_query "$query_expr" >"$query_output_file"; then
+        return 0
+    fi
+    emit ERROR manifestSchema "invalid $query_category parameters"
+    return 1
 }
 
 # Read a single string field from the manifest.
@@ -214,6 +236,23 @@ is_safe_manifest_file() {
     return 0
 }
 
+# Return a manifest list field file for an enabled category.
+#
+# @param category Add-on category name.
+# @param expr Python expression evaluating to an iterable of strings.
+# @return Writes the temp file path when lookup succeeds.
+manifest_query_required() {
+    required_category=$1
+    required_expr=$2
+    required_file=$(mktemp)
+    if manifest_query_file "$required_category" "$required_expr" "$required_file"; then
+        printf '%s\n' "$required_file"
+        return 0
+    fi
+    rm -f "$required_file"
+    return 1
+}
+
 # Validate that every parameters.paths entry exists as a regular file.
 #
 # @return Emits findings for missing files.
@@ -224,7 +263,8 @@ check_file_presence() {
         return 0
     fi
     sev=$(severity_of "$category")
-    manifest_query "M['$category']['parameters']['paths']" | while IFS= read -r path; do
+    paths_file=$(manifest_query_required "$category" "M['$category']['parameters']['paths']") || return 0
+    while IFS= read -r path; do
         if ! is_safe_manifest_path "$path"; then
             emit "$sev" "$category" "$path is not a safe relative file path"
         elif [ -L "$path" ] && is_allowed_file_symlink "$path"; then
@@ -237,7 +277,8 @@ check_file_presence() {
         elif [ ! -f "$path" ]; then
             emit "$sev" "$category" "missing file: $path"
         fi
-    done
+    done <"$paths_file"
+    rm -f "$paths_file"
 }
 
 # Validate that every parameters.paths entry exists as a directory.
@@ -250,7 +291,8 @@ check_directory_presence() {
         return 0
     fi
     sev=$(severity_of "$category")
-    manifest_query "M['$category']['parameters']['paths']" | while IFS= read -r path; do
+    paths_file=$(manifest_query_required "$category" "M['$category']['parameters']['paths']") || return 0
+    while IFS= read -r path; do
         if ! is_safe_manifest_path "$path"; then
             emit "$sev" "$category" "$path is not a safe relative directory path"
         elif ! is_safe_manifest_path_symlinks "$path"; then
@@ -259,7 +301,8 @@ check_directory_presence() {
         elif [ ! -d "$path" ]; then
             emit "$sev" "$category" "missing directory: $path"
         fi
-    done
+    done <"$paths_file"
+    rm -f "$paths_file"
 }
 
 # Validate that each parameters.directories entry has at least one tracked file
@@ -273,7 +316,8 @@ check_empty_directory_placeholders() {
         return 0
     fi
     sev=$(severity_of "$category")
-    manifest_query "M['$category']['parameters']['directories']" | while IFS= read -r directory; do
+    directories_file=$(manifest_query_required "$category" "M['$category']['parameters']['directories']") || return 0
+    while IFS= read -r directory; do
         if ! is_safe_manifest_path "$directory"; then
             emit "$sev" "$category" "$directory is not a safe relative directory path"
         elif ! is_safe_manifest_path_symlinks "$directory"; then
@@ -284,7 +328,8 @@ check_empty_directory_placeholders() {
                 emit "$sev" "$category" "empty directory must keep placeholder or real files: $directory"
             fi
         fi
-    done
+    done <"$directories_file"
+    rm -f "$directories_file"
 }
 
 # Validate that each parameters.hooks file starts with parameters.expectedShebang.
@@ -298,7 +343,8 @@ check_hook_shebang() {
     fi
     sev=$(severity_of "$category")
     expected=$(manifest_string "M['$category']['parameters']['expectedShebang']")
-    manifest_query "M['$category']['parameters']['hooks']" | while IFS= read -r hook; do
+    hooks_file=$(manifest_query_required "$category" "M['$category']['parameters']['hooks']") || return 0
+    while IFS= read -r hook; do
         if [ -z "$hook" ]; then
             emit "$sev" "$category" "$hook is not a safe relative hook path"
             continue
@@ -318,7 +364,8 @@ check_hook_shebang() {
                 emit "$sev" "$category" "$hook must start with $expected"
             fi
         fi
-    done
+    done <"$hooks_file"
+    rm -f "$hooks_file"
 }
 
 # Validate that each parameters.hooks file has executable bit set.
@@ -331,7 +378,8 @@ check_hook_executable() {
         return 0
     fi
     sev=$(severity_of "$category")
-    manifest_query "M['$category']['parameters']['hooks']" | while IFS= read -r hook; do
+    hooks_file=$(manifest_query_required "$category" "M['$category']['parameters']['hooks']") || return 0
+    while IFS= read -r hook; do
         if [ -z "$hook" ]; then
             emit "$sev" "$category" "$hook is not a safe relative hook path"
             continue
@@ -348,7 +396,8 @@ check_hook_executable() {
         if [ -f "$hook" ] && [ ! -x "$hook" ]; then
             emit "$sev" "$category" "$hook must be executable"
         fi
-    done
+    done <"$hooks_file"
+    rm -f "$hooks_file"
 }
 
 # Read the Harness validation command marker from a generated hook.
@@ -393,11 +442,17 @@ check_hook_command() {
             emit "$sev" "$category" "$pre_push must declare Harness validation command"
         elif [ -n "$declared" ]; then
             allowed=0
-            manifest_query "M['$category']['parameters']['allowedCommands']" | while IFS= read -r command; do
+            allowed_file=$(mktemp)
+            manifest_query_file "$category" "M['$category']['parameters']['allowedCommands']" "$allowed_file" || {
+                rm -f "$allowed_file"
+                return 0
+            }
+            while IFS= read -r command; do
                 if [ "$command" = "$declared" ]; then
                     printf '%s\n' allowed >"$findings_file.allowed"
                 fi
-            done
+            done <"$allowed_file"
+            rm -f "$allowed_file"
             if [ -f "$findings_file.allowed" ]; then
                 rm -f "$findings_file.allowed"
                 allowed=1
@@ -416,11 +471,17 @@ check_hook_command() {
         symlink_sev=$(severity_of symlinkSafety)
         emit_path_message "$symlink_sev" symlinkSafety fileNotAllowed 'symlink file is not allowed: {path}' "$pre_commit"
     elif [ -f "$pre_commit" ]; then
-        manifest_query "M['$category']['parameters']['allowedCommands']" | while IFS= read -r command; do
+        allowed_file=$(mktemp)
+        manifest_query_file "$category" "M['$category']['parameters']['allowedCommands']" "$allowed_file" || {
+            rm -f "$allowed_file"
+            return 0
+        }
+        while IFS= read -r command; do
             if [ -n "$command" ] && grep -Fxq "$command" "$pre_commit"; then
                 emit "$sev" "$category" "pre-commit hook must not run full stack validation commands"
             fi
-        done
+        done <"$allowed_file"
+        rm -f "$allowed_file"
     fi
 }
 
@@ -452,7 +513,12 @@ check_ci_hook_command_parity() {
     if [ -z "$command" ]; then
         return 0
     fi
-    manifest_query "M['$category']['parameters']['ciFiles']" | while IFS= read -r ci_file; do
+    ci_files=$(mktemp)
+    manifest_query_file "$category" "M['$category']['parameters']['ciFiles']" "$ci_files" || {
+        rm -f "$ci_files"
+        return 0
+    }
+    while IFS= read -r ci_file; do
         if ! is_safe_manifest_path "$ci_file"; then
             emit "$sev" "$category" "$ci_file is not a safe relative CI path"
         elif ! is_safe_manifest_path_symlinks "$ci_file"; then
@@ -461,7 +527,8 @@ check_ci_hook_command_parity() {
         elif [ -f "$ci_file" ] && ! grep -Fq "$command" "$ci_file"; then
             emit "$sev" "$category" "$ci_file: CI command mismatch - expected $command"
         fi
-    done
+    done <"$ci_files"
+    rm -f "$ci_files"
 }
 
 # Validate that protected harness paths are not symlinks.
@@ -480,7 +547,7 @@ check_symlink_safety() {
                 emit_path_message "$sev" "$category" scanRootNotAllowed 'symlink scan root is not allowed: {path}' "$base"
             fi
         elif [ -d "$base" ]; then
-            find "$base" -type l | while IFS= read -r symlink_path; do
+            find "$base" \( -path '.claude/worktrees' -o -path '.claude/worktrees/*' \) -prune -o -type l -print | while IFS= read -r symlink_path; do
                 path=${symlink_path#./}
                 emit_path_message "$sev" "$category" pathNotAllowed 'symlink path is not allowed: {path}' "$path"
             done
@@ -654,7 +721,7 @@ for file in "$@"; do
 done
 BODY
     )
-    violators=$(find . -type f -name '*.sh' ! -path './.git/*' -exec sh -c "$sh_body" sh {} +)
+    violators=$(find . \( -path './.git' -o -path './.claude/worktrees' \) -prune -o -type f -name '*.sh' -exec sh -c "$sh_body" sh {} +)
     if [ -n "$violators" ]; then
         printf '%s\n' "$violators" | while IFS= read -r file; do
             emit "$sev" "$category" "$file: shellcheck violations found"

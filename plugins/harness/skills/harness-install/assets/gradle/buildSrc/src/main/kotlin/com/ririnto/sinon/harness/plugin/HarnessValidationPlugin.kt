@@ -489,19 +489,50 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             val ctx = DefaultRuleContext(
                 root,
                 DefaultManifest(Json.parseToJsonElement(parameters.manifestText.get()).jsonObject),
-                stack = "kotlin"
+                stack = "kotlin",
             )
-            val findings = HarnessCheck.entries
+            val astFactory = KtPsiFactory(environment.project)
+            val astRules = HarnessCheck.entries
                 .map { check -> check.rule }
                 .filter { rule -> rule.applies(ctx) }
                 .filterIsInstance<HarnessAstRule>()
+            val parseErrorFiles = mutableSetOf<Path>()
+            val sourceFiles = astRules
+                .flatMap { astRule -> ctx.stackSources(astRule.category) }
+                .distinct()
+            val parseErrorFindings = buildList {
+                sourceFiles.forEach { srcFilePath ->
+                    val ktFile = AstSupport.parse(srcFilePath, astFactory)
+                    if (ktFile == null) {
+                        return@forEach
+                    }
+                    val parseErrors = AstSupport.parseErrors(ktFile)
+                    if (parseErrors.isNotEmpty()) {
+                        parseErrorFiles.add(srcFilePath)
+                        parseErrors.forEach { parseError ->
+                            add(
+                                Finding(
+                                    severity = Severity.ERROR,
+                                    category = "parseError",
+                                    message = "kotlin parse error: ${parseError.message}",
+                                    file = AstSupport.relativeFilePath(srcFilePath, root),
+                                    startLine = parseError.line,
+                                    startColumn = 1,
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+            val findings = parseErrorFindings + astRules
                 .flatMap { astRule ->
                     astRule.renderAstFindings(
                         ctx,
                         ctx
                             .stackSources(astRule.category)
+                            .filterNot { parseErrorFiles.contains(it) }
                             .flatMap { srcFilePath ->
-                                astRule.findAstFindings(srcFilePath, ctx, KtPsiFactory(environment.project))
+                                astRule.findAstFindings(srcFilePath, ctx, astFactory)
                             },
                     )
                 }
@@ -569,31 +600,43 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             )
             val astFactory = KtPsiFactory(environment.project)
             val rootReal = root.toRealPath()
+            val astRules = HarnessCheck.entries
+                .map { it.rule }
+                .filter { rule -> rule.applies(ctx) }
+                .filterIsInstance<HarnessAstRule>()
+                .filter { astRule -> astRule.applies(ctx) && ctx.stackSources(astRule.category).isNotEmpty() }
+            val sourceFiles = astRules
+                .flatMap { astRule -> ctx.stackSources(astRule.category) }
+                .distinct()
+            val parseErrorFiles = sourceFiles
+                .filter { srcFilePath ->
+                    val ktFile = AstSupport.parse(srcFilePath, astFactory)
+                    ktFile != null && AstSupport.parseErrors(ktFile).isNotEmpty()
+                }
+                .toSet()
             val changed = buildSet {
-                HarnessCheck.entries
-                    .map { check -> check.rule }
-                    .filter { rule -> rule.applies(ctx) }
-                    .filterIsInstance<HarnessAstRule>()
-                    .filter { astRule -> astRule.applies(ctx) && ctx.stackSources(astRule.category).isNotEmpty() }
+                astRules
                     .forEach { astRule ->
-                        ctx.stackSources(astRule.category).forEach { filePath ->
-                            if (!isContainedRegularSource(root, rootReal, filePath)) {
-                                error("unsafe source path outside project root: $filePath")
-                            }
-                            val ktFile = AstSupport.parse(filePath, astFactory)
-                            if (ktFile != null) {
-                                val newText = astRule.formatAst(filePath, ktFile, ctx)
-                                if (newText != null) {
-                                    if (!isContainedRegularSource(root, rootReal, filePath)) {
-                                        error("unsafe write path outside project root: $filePath")
+                        ctx.stackSources(astRule.category)
+                            .filterNot { parseErrorFiles.contains(it) }
+                            .forEach { filePath ->
+                                if (!isContainedRegularSource(root, rootReal, filePath)) {
+                                    error("unsafe source path outside project root: $filePath")
+                                }
+                                val ktFile = AstSupport.parse(filePath, astFactory)
+                                if (ktFile != null) {
+                                    val newText = astRule.formatAst(filePath, ktFile, ctx)
+                                    if (newText != null) {
+                                        if (!isContainedRegularSource(root, rootReal, filePath)) {
+                                            error("unsafe write path outside project root: $filePath")
+                                        }
+                                        filePath.writeText(newText)
+                                        add(filePath.invariantSeparatorsPathString)
                                     }
-                                    filePath.writeText(newText)
-                                    add(filePath.invariantSeparatorsPathString)
                                 }
                             }
-                        }
                     }
-                }
+            }
             parameters.outputFile
                 .get()
                 .asFile
