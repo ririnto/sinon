@@ -172,7 +172,7 @@ object LeafFunctionBlankLinesRule : HarnessAstRule() {
                     .filter { child -> child is PsiWhiteSpace }
                     .forEach { child ->
                         val blankLines = child.text.count { c -> c == '\n' } - 1
-                        if (blankLines > maxBlankLines) {
+                        if (maxBlankLines < blankLines) {
                             val newText = "\n".repeat(maxBlankLines + 1)
                             record(
                                 TextEdit(

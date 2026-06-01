@@ -210,7 +210,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             manifest?.let { manifest ->
                 val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
                 val astRules = HarnessCheck.entries
-                    .map { it.rule }
+                    .map { entry -> entry.rule }
                     .filter { rule -> rule.applies(ctx) }
                     .filterIsInstance<HarnessAstRule>()
                 if (!astRules.any { rule -> ctx.stackSources(rule.category).isNotEmpty() }) {
@@ -324,7 +324,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 .filter { check -> check.rule.applies(ctx) }
                 .map { check -> check.rule }
             val textFsResults = applicableRules
-                .filterNot { it is HarnessAstRule }
+                .filterNot { rule -> rule is HarnessAstRule }
                 .flatMap { rule -> rule.format(ctx) }
                 .map { absolute -> root.relativize(absolute) }
             val astChangedPaths = formatAstRules(root, manifest, applicableRules)
@@ -332,7 +332,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 .map { path -> path.invariantSeparatorsPathString }
                 .distinct()
                 .sorted()
-                .map { Path(it) }
+                .map { pathString -> Path(pathString) }
             when {
                 relativePaths.isEmpty() -> {
                     logger.lifecycle("no files formatted")
@@ -384,7 +384,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
         ): HarnessAstResults {
             val ctx = DefaultRuleContext(root, DefaultManifest(manifest), stack = "kotlin")
             val astRules = HarnessCheck.entries
-                .map { it.rule }
+                .map { entry -> entry.rule }
                 .filter { rule -> rule.applies(ctx) }
                 .filterIsInstance<HarnessAstRule>()
             if (!astRules.any { rule -> ctx.stackSources(rule.category).isNotEmpty() }) {
@@ -428,7 +428,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                     }
                 }.await()
             val changed = Json.decodeFromString<List<String>>(outputFile.readText())
-            return changed.map { Path(it) }.map { root.relativize(it) }
+            return changed.map { pathString -> Path(pathString) }.map { absolute -> root.relativize(absolute) }
         }
         private fun loadManifest(root: Path): ManifestLoadResult {
             val manifestFile = root / "docs" / "harness" / "manifest.json"
@@ -470,79 +470,6 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
      * Worker action that runs Kotlin AST scans in an isolated classloader.
      */
     abstract class HarnessAstWorkAction : WorkAction<HarnessAstWorkParameters> {
-        /**
-         * Runs Kotlin AST scans and writes findings to JSON output.
-         *
-         * KotlinCoreEnvironment disposal is intentionally omitted: the Disposer.dispose()
-         * call in worker threads violates IntelliJ Platform's EDT requirement (write-action
-         * context). Since Gradle workers are short-lived task processes, JVM shutdown cleanup
-         * is sufficient.
-         */
-        override fun execute() {
-            val root: Path = Path(parameters.rootDir.get())
-            System.setProperty("idea.home.path", System.getProperty("java.io.tmpdir"))
-            System.setProperty("idea.use.native.fs.for.win", "false")
-            val configuration = CompilerConfiguration().apply {
-                put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
-            }
-            val environment = Companion.createKotlinCoreEnvironmentViaReflection(configuration)
-            val ctx = DefaultRuleContext(
-                root,
-                DefaultManifest(Json.parseToJsonElement(parameters.manifestText.get()).jsonObject),
-                stack = "kotlin",
-            )
-            val astFactory = KtPsiFactory(environment.project)
-            val astRules = HarnessCheck.entries
-                .map { check -> check.rule }
-                .filter { rule -> rule.applies(ctx) }
-                .filterIsInstance<HarnessAstRule>()
-            val parseErrorFiles = mutableSetOf<Path>()
-            val sourceFiles = astRules
-                .flatMap { astRule -> ctx.stackSources(astRule.category) }
-                .distinct()
-            val parseErrorFindings = buildList {
-                sourceFiles.forEach { srcFilePath ->
-                    val ktFile = AstSupport.parse(srcFilePath, astFactory)
-                    if (ktFile == null) {
-                        return@forEach
-                    }
-                    val parseErrors = AstSupport.parseErrors(ktFile)
-                    if (parseErrors.isNotEmpty()) {
-                        parseErrorFiles.add(srcFilePath)
-                        parseErrors.forEach { parseError ->
-                            add(
-                                Finding(
-                                    severity = Severity.ERROR,
-                                    category = "parseError",
-                                    message = "kotlin parse error: ${parseError.message}",
-                                    file = AstSupport.relativeFilePath(srcFilePath, root),
-                                    startLine = parseError.line,
-                                    startColumn = 1,
-                                ),
-                            )
-                        }
-                    }
-                }
-            }
-            val findings = parseErrorFindings + astRules
-                .flatMap { astRule ->
-                    astRule.renderAstFindings(
-                        ctx,
-                        ctx
-                            .stackSources(astRule.category)
-                            .filterNot { parseErrorFiles.contains(it) }
-                            .flatMap { srcFilePath ->
-                                astRule.findAstFindings(srcFilePath, ctx, astFactory)
-                            },
-                    )
-                }
-            parameters.outputFile
-                .get()
-                .asFile
-                .toPath()
-                .writeText(Json.encodeToString(HarnessAstResults(findings)))
-        }
-
         companion object {
             /**
              * Creates a KotlinCoreEnvironment via reflection to access private createForTests factory.
@@ -573,6 +500,86 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 }
             }
         }
+
+        /**
+         * Runs Kotlin AST scans and writes findings to JSON output.
+         *
+         * KotlinCoreEnvironment disposal is intentionally omitted: the Disposer.dispose()
+         * call in worker threads violates IntelliJ Platform's EDT requirement (write-action
+         * context). Since Gradle workers are short-lived task processes, JVM shutdown cleanup
+         * is sufficient.
+         */
+        override fun execute() {
+            val root: Path = Path(parameters.rootDir.get())
+            System.setProperty("idea.home.path", System.getProperty("java.io.tmpdir"))
+            System.setProperty("idea.use.native.fs.for.win", "false")
+            val configuration = CompilerConfiguration().apply {
+                put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
+            }
+            val environment = Companion.createKotlinCoreEnvironmentViaReflection(configuration)
+            val ctx = DefaultRuleContext(
+                root,
+                DefaultManifest(Json.parseToJsonElement(parameters.manifestText.get()).jsonObject),
+                stack = "kotlin",
+            )
+            val astFactory = KtPsiFactory(environment.project)
+            val astRules = HarnessCheck.entries
+                .map { check -> check.rule }
+                .filter { rule -> rule.applies(ctx) }
+                .filterIsInstance<HarnessAstRule>()
+            val sourceFiles = astRules
+                .flatMap { astRule -> ctx.stackSources(astRule.category) }
+                .distinct()
+            val parseErrorFiles = buildSet<Path> {
+                sourceFiles.forEach { srcFilePath ->
+                    val ktFile = AstSupport.parse(srcFilePath, astFactory)
+                    if (ktFile == null) {
+                        return@forEach
+                    }
+                    val parseErrors = AstSupport.parseErrors(ktFile)
+                    if (parseErrors.isNotEmpty()) {
+                        add(srcFilePath)
+                    }
+                }
+            }
+            val parseErrorFindings = buildList {
+                sourceFiles.forEach { srcFilePath ->
+                    val ktFile = AstSupport.parse(srcFilePath, astFactory)
+                    if (ktFile == null) {
+                        return@forEach
+                    }
+                    AstSupport.parseErrors(ktFile).forEach { parseError ->
+                        add(
+                            Finding(
+                                severity = Severity.ERROR,
+                                category = "parseError",
+                                message = "kotlin parse error: ${parseError.message}",
+                                file = AstSupport.relativeFilePath(srcFilePath, root),
+                                startLine = parseError.line,
+                                startColumn = 1,
+                            ),
+                        )
+                    }
+                }
+            }
+            val findings = parseErrorFindings + astRules
+                .flatMap { astRule ->
+                    astRule.renderAstFindings(
+                        ctx,
+                        ctx
+                            .stackSources(astRule.category)
+                            .filterNot { file -> parseErrorFiles.contains(file) }
+                            .flatMap { srcFilePath ->
+                                astRule.findAstFindings(srcFilePath, ctx, astFactory)
+                            },
+                    )
+                }
+            parameters.outputFile
+                .get()
+                .asFile
+                .toPath()
+                .writeText(Json.encodeToString(HarnessAstResults(findings)))
+        }
     }
 
     /**
@@ -601,7 +608,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
             val astFactory = KtPsiFactory(environment.project)
             val rootReal = root.toRealPath()
             val astRules = HarnessCheck.entries
-                .map { it.rule }
+                .map { entry -> entry.rule }
                 .filter { rule -> rule.applies(ctx) }
                 .filterIsInstance<HarnessAstRule>()
                 .filter { astRule -> astRule.applies(ctx) && ctx.stackSources(astRule.category).isNotEmpty() }
@@ -618,7 +625,7 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                 astRules
                     .forEach { astRule ->
                         ctx.stackSources(astRule.category)
-                            .filterNot { parseErrorFiles.contains(it) }
+                            .filterNot { file -> parseErrorFiles.contains(file) }
                             .forEach { filePath ->
                                 if (!isContainedRegularSource(root, rootReal, filePath)) {
                                     error("unsafe source path outside project root: $filePath")
@@ -645,19 +652,21 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
         }
 
         private fun isContainedRegularSource(root: Path, rootReal: Path, filePath: Path): Boolean {
-            val normalizedPath = if (filePath.isAbsolute) filePath else root.resolve(filePath)
-            return try {
+            val normalizedPath = if (filePath.isAbsolute) {
+                filePath
+            } else {
+                root.resolve(filePath)
+            }
+            return runCatching {
                 val fileReal = normalizedPath.toRealPath(LinkOption.NOFOLLOW_LINKS)
                 fileReal.startsWith(rootReal) &&
                     Files.isRegularFile(normalizedPath, LinkOption.NOFOLLOW_LINKS) &&
                     !hasSymlinkSegment(root, normalizedPath)
-            } catch (_: Exception) {
-                false
-            }
+            }.getOrDefault(false)
         }
 
-        private fun hasSymlinkSegment(root: Path, filePath: Path): Boolean {
-            return try {
+        private fun hasSymlinkSegment(root: Path, filePath: Path): Boolean =
+            runCatching {
                 val relative = filePath.relativeTo(root)
                 var current = root
                 for (segment in relative) {
@@ -665,18 +674,15 @@ abstract class HarnessValidationPlugin : Plugin<Project> {
                         continue
                     }
                     if (segment.pathString == "..") {
-                        return true
+                        return@runCatching true
                     }
                     current /= segment
                     if (Files.isSymbolicLink(current)) {
-                        return true
+                        return@runCatching true
                     }
                 }
                 false
-            } catch (_: Exception) {
-                true
-            }
-        }
+            }.getOrDefault(true)
     }
 
     private data class ManifestLoadResult(
