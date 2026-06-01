@@ -11,6 +11,7 @@ import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.PathMatcher
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.div
 import kotlin.io.path.exists
 import kotlin.io.path.extension
@@ -155,7 +156,7 @@ class DefaultRuleContext(
         return path.readSymbolicLink().fileName.pathString == targetName && (root / targetName).isRegularFile()
     }
 
-    private val stackSourceCache = mutableMapOf<String, StackSourceResult>()
+    private val stackSourceCache = ConcurrentHashMap<String, StackSourceResult>()
 
     override fun stackSourceFindings(category: String): List<HarnessAstResults.Finding> =
         stackSourceCache.getOrPut(category) { collectStackSources(category) }.findings
@@ -178,102 +179,114 @@ class DefaultRuleContext(
         val excludePaths =
             parametersObj["excludePaths"]?.jsonArray?.mapNotNull { elem -> elem.jsonPrimitive.contentOrNull }
                 ?: emptyList()
-        val paths = mutableSetOf<Path>()
-        val findings = mutableSetOf<HarnessAstResults.Finding>()
 
         val pathMatcher = FileSystems.getDefault()
-        val includeMatchers: MutableList<PathMatcher> = mutableListOf()
-        val excludeMatchers: MutableList<PathMatcher> = mutableListOf()
-        for (pattern in includePaths) {
-            try {
-                includeMatchers.add(pathMatcher.getPathMatcher("glob:$pattern"))
-            } catch (_: Exception) {
-                findings.add(sourceRootFinding("symlinkSafety", "invalid includePaths glob pattern: $pattern"))
-            }
-        }
-        for (pattern in excludePaths) {
-            try {
-                excludeMatchers.add(pathMatcher.getPathMatcher("glob:$pattern"))
-            } catch (_: Exception) {
-                findings.add(sourceRootFinding("symlinkSafety", "invalid excludePaths glob pattern: $pattern"))
-            }
-        }
-
-        for (pattern in sourcePatterns) {
-            val patternPath = Path.of(pattern)
-            if (pattern.isBlank()) {
-                continue
-            }
-
-            if (patternPath.isAbsolute) {
-                findings.add(sourceRootFinding("symlinkSafety", "absolute source root is not allowed: $pattern"))
-                continue
-            }
-
-            if ((0..<patternPath.nameCount).any { patternPath.getName(it).pathString == ".." }) {
-                findings.add(sourceRootFinding("symlinkSafety", "source root traversal is not allowed: $pattern"))
-                continue
-            }
-
-            val patternHasGlob = hasGlobTokens(pattern)
-            if (patternHasGlob) {
-                val matcher = try {
+        val includeFindings = buildList {
+            for (pattern in includePaths) {
+                try {
                     pathMatcher.getPathMatcher("glob:$pattern")
-                } catch (_: Exception) {
-                    findings.add(
-                        sourceRootFinding(
-                            "symlinkSafety",
-                            "invalid glob source root pattern: $pattern",
-                        ),
-                    )
+                } catch (ignored: Exception) {
+                    add(sourceRootFinding("symlinkSafety", "invalid includePaths glob pattern: $pattern: ${ignored.message}"))
+                }
+            }
+        }
+        val excludeFindings = buildList {
+            for (pattern in excludePaths) {
+                try {
+                    pathMatcher.getPathMatcher("glob:$pattern")
+                } catch (ignored: Exception) {
+                    add(sourceRootFinding("symlinkSafety", "invalid excludePaths glob pattern: $pattern: ${ignored.message}"))
+                }
+            }
+        }
+        val includeMatchers = includePaths.mapNotNull { pattern ->
+            runCatching { pathMatcher.getPathMatcher("glob:$pattern") }.getOrNull()
+        }
+        val excludeMatchers = excludePaths.mapNotNull { pattern ->
+            runCatching { pathMatcher.getPathMatcher("glob:$pattern") }.getOrNull()
+        }
+
+        /**
+         * Validated source pattern result: either a glob matcher, a concrete source root, or a finding.
+         */
+        data class ValidatedPattern(val matcher: PathMatcher? = null, val sourceRoot: Path? = null, val finding: HarnessAstResults.Finding? = null)
+
+        val validated = buildList {
+            for (pattern in sourcePatterns) {
+                val patternPath = Path.of(pattern)
+                if (pattern.isBlank()) {
                     continue
                 }
 
-                val directories = buildList {
-                    root.walk().filter { file -> isContainedDirectory(file) }.filter { dir -> !isWorktreeOrDescendant(dir) }.forEach { dir ->
-                        if (
-                            matcher.matches(root.relativeTo(root).resolve(dir.relativeTo(root))) ||
-                            matcher.matches(dir.relativeTo(root))
-                        ) {
-                            add(dir)
+                if (patternPath.isAbsolute) {
+                    add(ValidatedPattern(finding = sourceRootFinding("symlinkSafety", "absolute source root is not allowed: $pattern")))
+                    continue
+                }
+
+                if ((0..<patternPath.nameCount).any { index -> patternPath.getName(index).pathString == ".." }) {
+                    add(ValidatedPattern(finding = sourceRootFinding("symlinkSafety", "source root traversal is not allowed: $pattern")))
+                    continue
+                }
+
+                val patternHasGlob = hasGlobTokens(pattern)
+                if (patternHasGlob) {
+                    val matcher = try {
+                        pathMatcher.getPathMatcher("glob:$pattern")
+                    } catch (ignored: Exception) {
+                        add(ValidatedPattern(finding = sourceRootFinding("symlinkSafety", "invalid glob source root pattern: $pattern: ${ignored.message}")))
+                        continue
+                    }
+                    add(ValidatedPattern(matcher = matcher))
+                    continue
+                }
+
+                val sourceRoot = root / pattern
+                if (!Files.exists(sourceRoot, LinkOption.NOFOLLOW_LINKS)) {
+                    continue
+                }
+
+                if (!isContainedDirectory(sourceRoot)) {
+                    add(ValidatedPattern(finding = sourceRootFinding("symlinkSafety", "source root is not contained or is a symlink: $pattern")))
+                    continue
+                }
+
+                add(ValidatedPattern(sourceRoot = sourceRoot))
+            }
+        }
+
+        val findings = (includeFindings + excludeFindings + validated.mapNotNull { vp -> vp.finding }).toSet()
+        val paths = buildSet<Path> {
+            for (vp in validated) {
+                if (vp.matcher != null) {
+                    val directories = buildList {
+                        root.walk().filter { file -> isContainedDirectory(file) }.filter { dir -> !isWorktreeOrDescendant(dir) }.forEach { dir ->
+                            if (
+                                vp.matcher.matches(root.relativeTo(root).resolve(dir.relativeTo(root))) ||
+                                vp.matcher.matches(dir.relativeTo(root))
+                            ) {
+                                add(dir)
+                            }
                         }
                     }
+                    for (dir in directories) {
+                        addAll(collectStackSourcePaths(dir, extensions, includeMatchers, excludeMatchers))
+                    }
                 }
-
-                for (dir in directories) {
-                    addStackSources(paths, dir, extensions, includeMatchers, excludeMatchers)
+                if (vp.sourceRoot != null) {
+                    addAll(collectStackSourcePaths(vp.sourceRoot, extensions, includeMatchers, excludeMatchers))
                 }
-                continue
             }
-
-            val sourceRoot = root / pattern
-            if (!Files.exists(sourceRoot, LinkOption.NOFOLLOW_LINKS)) {
-                continue
-            }
-
-            if (!isContainedDirectory(sourceRoot)) {
-                findings.add(
-                    sourceRootFinding(
-                        "symlinkSafety",
-                        "source root is not contained or is a symlink: $pattern",
-                    ),
-                )
-                continue
-            }
-
-            addStackSources(paths, sourceRoot, extensions, includeMatchers, excludeMatchers)
         }
 
         return StackSourceResult(paths.toList(), findings.toList())
     }
 
-    private fun addStackSources(
-        paths: MutableCollection<Path>,
+    private fun collectStackSourcePaths(
         dir: Path,
         extensions: Set<String>,
         includeMatchers: List<PathMatcher>,
         excludeMatchers: List<PathMatcher>,
-    ) {
+    ): Set<Path> =
         dir
             .walk()
             .filter { file -> isContainedRegularFile(file) }
@@ -283,20 +296,17 @@ class DefaultRuleContext(
                 val relative = file.relativeTo(root)
                 (includeMatchers.isEmpty() || includeMatchers.any { matcher -> matcher.matches(relative) }) &&
                     excludeMatchers.none { matcher -> matcher.matches(relative) }
-            }.forEach { file -> paths.add(file) }
-    }
+            }.toSet()
 
     private fun hasGlobTokens(value: String): Boolean {
         return "*" in value || "?" in value || "[" in value || "{" in value
     }
 
     private fun isWorktreeOrDescendant(path: Path): Boolean =
-        try {
+        runCatching {
             val relative = path.relativeTo(root)
             relative.startsWith(Path.of(".claude", "worktrees"))
-        } catch (_: Exception) {
-            false
-        }
+        }.getOrDefault(false)
 
     private fun sourceRootFinding(category: String, message: String): HarnessAstResults.Finding {
         return HarnessAstResults.Finding(Severity.ERROR, category, message)
@@ -315,18 +325,15 @@ class DefaultRuleContext(
         return isContainedPath(path) && Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)
     }
 
-    private fun isContainedPath(path: Path): Boolean {
-        return try {
+    private fun isContainedPath(path: Path): Boolean =
+        runCatching {
             val rootReal = root.toRealPath()
             val pathReal = path.toRealPath(LinkOption.NOFOLLOW_LINKS)
             pathReal.startsWith(rootReal) && !hasSymlinkSegment(path)
-        } catch (_: Exception) {
-            false
-        }
-    }
+        }.getOrDefault(false)
 
-    private fun hasSymlinkSegment(path: Path): Boolean {
-        return try {
+    private fun hasSymlinkSegment(path: Path): Boolean =
+        runCatching {
             val relative = path.relativeTo(root)
             var current = root
             for (segment in relative) {
@@ -334,16 +341,13 @@ class DefaultRuleContext(
                     continue
                 }
                 if (segment.pathString == "..") {
-                    return true
+                    return@runCatching true
                 }
                 current /= segment
                 if (current.isSymbolicLink()) {
-                    return true
+                    return@runCatching true
                 }
             }
             false
-        } catch (_: Exception) {
-            true
-        }
-    }
+        }.getOrDefault(true)
 }

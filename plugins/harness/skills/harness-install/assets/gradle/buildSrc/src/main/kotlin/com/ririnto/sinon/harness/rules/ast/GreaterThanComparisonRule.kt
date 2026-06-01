@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
@@ -80,7 +81,7 @@ object GreaterThanComparisonRule : HarnessAstRule() {
         return "${right.text} $operator ${left.text}"
     }
 
-    private fun org.jetbrains.kotlin.psi.KtExpression.isSafeOperand(): Boolean =
+    private fun KtExpression.isSafeOperand(): Boolean =
         this is KtNameReferenceExpression || this is KtConstantExpression
 
     /**
@@ -134,7 +135,9 @@ object GreaterThanComparisonRule : HarnessAstRule() {
         override fun visitBinaryExpression(expression: KtBinaryExpression) {
             super.visitBinaryExpression(expression)
             val replacement = replacementFor(expression) ?: return
-            if (hasCommentDescendant(expression)) return
+            if (hasCommentDescendant(expression)) {
+                return
+            }
             record(
                 TextEdit(
                     startOffset = expression.textRange.startOffset,

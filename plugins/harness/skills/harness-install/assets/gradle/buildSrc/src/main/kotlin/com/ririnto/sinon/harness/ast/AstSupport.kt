@@ -63,7 +63,7 @@ object AstSupport {
         file.descendantsOfType<PsiErrorElement>().map { error ->
             ParseError(
                 line = lineOf(file, error.textOffset),
-                message = error.errorDescription?.trim()?.takeIf { it.isNotEmpty() } ?: "parse error",
+                message = error.errorDescription?.trim()?.takeIf { description -> description.isNotEmpty() } ?: "parse error",
             )
         }.toList()
 

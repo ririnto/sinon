@@ -93,7 +93,12 @@ object EnvShebangUsageRule : HarnessCheckRule() {
                                 val interpreter = interpreterLine.split(Regex("\\s+")).lastOrNull() ?: "sh"
                                 val newShebang = expectedPrefix.trimEnd() + " " + interpreter
                                 val newLines = listOf(newShebang) + lines.drop(1)
-                                val newText = newLines.joinToString("\n") + if (originalText.endsWith("\n")) "\n" else ""
+                                val trailingNewline = if (originalText.endsWith("\n")) {
+                                    "\n"
+                                } else {
+                                    ""
+                                }
+                                val newText = newLines.joinToString("\n") + trailingNewline
                                 file.writeText(newText)
                                 file
                             }
