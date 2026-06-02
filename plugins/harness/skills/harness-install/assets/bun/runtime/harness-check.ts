@@ -5,20 +5,8 @@ import { join } from "node:path";
 import { createRuleContext } from "./core/rule-context";
 import { logger } from "./logger";
 import { renderFindings } from "./reporter";
-import { earlyReturnRule } from "./rules/ast/early-return";
-import { emptyCatchBlockRule } from "./rules/ast/empty-catch-block";
-import { greaterThanComparisonRule } from "./rules/ast/greater-than-comparison";
-import { ifStatementBracesRule } from "./rules/ast/if-statement-braces";
-import { implicitLambdaItRule } from "./rules/ast/implicit-lambda-it";
-import { importOverFqnRule } from "./rules/ast/import-over-fqn";
-import { leadingUnderscoreRule } from "./rules/ast/leading-underscore";
-import { leafFunctionBlankLinesRule } from "./rules/ast/leaf-function-blank-lines";
-import { multilineDocStyleRule } from "./rules/ast/multiline-doc-style";
-import { publicDeclarationDocCommentRule } from "./rules/ast/public-declaration-doc-comment";
-import { silentCatchRule } from "./rules/ast/silent-catch";
-import { uncheckedCastSuppressionRule } from "./rules/ast/unchecked-cast-suppression";
-import { unstructuredLoggingRule } from "./rules/ast/unstructured-logging";
-import { wildcardImportRule } from "./rules/ast/wildcard-import";
+import { runOxlint } from "./oxlint/oxlint-adapter";
+import { OXLINT_CATEGORIES } from "./oxlint/oxlint-code-map";
 import { directoryPresenceRule } from "./rules/fs/directory-presence";
 import { emptyDirectoryPlaceholdersRule } from "./rules/fs/empty-directory-placeholders";
 import { filePresenceRule } from "./rules/fs/file-presence";
@@ -64,20 +52,6 @@ function createHarnessChecks(): Record<string, HarnessCheckRule> {
         SHEBANG_ENCODING_MARKER: shebangEncodingMarkerRule,
         UNCHECKED_TASKS: uncheckedTasksRule,
         SYMLINK_SAFETY: symlinkSafetyRule,
-        IMPLICIT_LAMBDA_IT: implicitLambdaItRule,
-        IMPORT_OVER_FQN: importOverFqnRule,
-        GREATER_THAN_COMPARISON: greaterThanComparisonRule,
-        LEAF_FUNCTION_BLANK_LINES: leafFunctionBlankLinesRule,
-        EARLY_RETURN: earlyReturnRule,
-        SILENT_CATCH: silentCatchRule,
-        UNSTRUCTURED_LOGGING: unstructuredLoggingRule,
-        WILDCARD_IMPORT: wildcardImportRule,
-        EMPTY_CATCH_BLOCK: emptyCatchBlockRule,
-        IF_STATEMENT_BRACES: ifStatementBracesRule,
-        PUBLIC_DECLARATION_DOC_COMMENT: publicDeclarationDocCommentRule,
-        UNCHECKED_CAST_SUPPRESSION: uncheckedCastSuppressionRule,
-        LEADING_UNDERSCORE: leadingUnderscoreRule,
-        MULTILINE_DOC_STYLE: multilineDocStyleRule,
     } as const;
 }
 
@@ -92,7 +66,7 @@ function main(): void {
     if (manifest === null || Object.keys(manifest).length === 0) {
         throw new Error(`manifest is empty or malformed: ${MANIFEST_PATH}`);
     }
-    const knownCategories = new Set(HARNESS_CHECKS.map((c) => c.category));
+    const knownCategories = new Set([...HARNESS_CHECKS.map((c) => c.category), ...OXLINT_CATEGORIES]);
     const knownKeys = new Set([
         "name",
         "description",
@@ -102,6 +76,12 @@ function main(): void {
         "harnessEvolution",
         "teamPatterns",
     ]);
+    const oxlintFindings = runOxlint(context);
+    const allRuleFindings = [
+        ...HARNESS_CHECKS.filter((rule) => rule.applies(context))
+            .flatMap((rule) => rule.validate(context)),
+        ...oxlintFindings,
+    ];
     const findings = [
         ...Object.keys(manifest)
             .filter((key) => !knownCategories.has(key) && !knownKeys.has(key))
@@ -112,12 +92,10 @@ function main(): void {
             })),
         ...Array.from(
             new Map(
-                HARNESS_CHECKS.filter((rule) => rule.applies(context))
-                    .flatMap((rule) => rule.validate(context))
-                    .map((finding) => [
-                        `${finding.severity}|${finding.category}|${finding.message}|${finding.file ?? ""}|${finding.startLine ?? ""}|${finding.startColumn ?? ""}`,
-                        finding,
-                    ]),
+                allRuleFindings.map((finding) => [
+                    `${finding.severity}|${finding.category}|${finding.message}|${finding.file ?? ""}|${finding.startLine ?? ""}|${finding.startColumn ?? ""}`,
+                    finding,
+                ]),
             ).values(),
         ),
     ];
