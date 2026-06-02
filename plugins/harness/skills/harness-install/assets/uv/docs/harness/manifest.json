@@ -464,25 +464,6 @@
       "forbiddenOperators": [">", ">="]
     }
   },
-  "leafFunctionBlankLines": {
-    "description": "Leaf functions (function bodies that do not contain any nested function or lambda) under parameters.sourceRoots MUST NOT contain more than one consecutive blank line. Outer functions that contain nested functions are exempt. Validators implement this via Python AST. The allowed blank-line run length is controlled by parameters.maxConsecutiveBlankLines. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "WARN",
-    "messages": {
-      "default": "leaf function `{function}` contains too many blank lines; remove or extract the section"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "py"
-      ],
-      "maxConsecutiveBlankLines": 1,
-      "includePaths": [],
-      "excludePaths": []
-    }
-  },
   "earlyReturn": {
     "description": "Functions under parameters.sourceRoots MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via Python AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that raises). Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
