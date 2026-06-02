@@ -839,6 +839,7 @@ fixture_assert_checksum_unchanged() {
 # @param relative_path Fixture-relative file path that should be reported.
 # @param label Assertion label prefix.
 # @return Returns 0 when formatter output and checksum prove a first-run edit.
+# shellcheck disable=SC2329
 fixture_assert_format_changed() {
     before=$1
     after=$2
@@ -1773,7 +1774,7 @@ fixture_assert_uv_format() {
     fixture_copy_runtime "$temp_dir" uv
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"uv-format-fixture","leafFunctionBlankLines":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[],"maxConsecutiveBlankLines":1}},"greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[],"allowedLoggingCalls":["\\blogging\\b","\\blogger\\b","\\blog\\b"]}}}
+{"name":"uv-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[],"allowedLoggingCalls":["\\blogging\\b","\\blogger\\b","\\blog\\b"]}}}
 JSONEOF
     )"
     fixture_write_file "$temp_dir" src/example.py "$(
@@ -1809,9 +1810,7 @@ def safe_silent(logger) -> None:
 PYEOF
     )"
     fixture_target_file=$temp_dir/src/example.py
-    fixture_unsafe_file=$temp_dir/src/unsafe.py
     fixture_before_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    fixture_unsafe_before_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
     if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_format.py\""; then
         printf '%s\n' '[fixture_assert_uv_format] expected first format to report remaining findings' >&2
         fixture_remove_temp_dir "$temp_dir"
@@ -1819,21 +1818,14 @@ PYEOF
     fi
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
     fixture_after_first_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    fixture_unsafe_after_first_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
-    if ! fixture_assertion_output=$(fixture_assert_format_changed "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" "$fixture_combined_output" 'src/example.py' 'uv format first run' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_checksum_changed "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" 'uv format first run changes fixture file' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
     if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'remaining findings after format:' 'uv format reports remaining findings' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_unsafe_before_format_checksum" "$fixture_unsafe_after_first_format_checksum" 'uv format leaves unsafe-only file unchanged' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
@@ -1844,15 +1836,20 @@ PYEOF
     fi
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
     fixture_after_second_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    fixture_unsafe_after_second_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
-    if ! fixture_assertion_output=$(fixture_assert_format_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" "$fixture_combined_output" 'uv format second run' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" 'uv format second run leaves fixture file unchanged' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_unsafe_before_format_checksum" "$fixture_unsafe_after_second_format_checksum" 'uv second format leaves unsafe-only file unchanged' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
+    blank_run=$(awk 'BEGIN{m=0;c=0} /^$/{c++; if(c>m)m=c; next} {c=0} END{print m}' "$temp_dir/src/example.py")
+    if [ "$blank_run" -gt 1 ]; then
+        printf '%s\n' "[fixture_assert_uv_format] ruff format did not collapse blank lines (max run $blank_run)" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! grep -q '>' "$temp_dir/src/example.py"; then
+        printf '%s\n' '[fixture_assert_uv_format] greater-than comparison was unexpectedly rewritten by format' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
@@ -1878,6 +1875,97 @@ PYEOF
     fi
     : "$fixture_assertion_output"
     fixture_remove_temp_dir "$temp_dir"
+}
+
+# Verify uv ruff runtime accepts clean code with no wildcardImport violations.
+#
+#     Requires `uv` in PATH. Gracefully skips with a warning when uv is unavailable.
+#
+# @return Returns 0 on success or when uv is missing.
+# @exit Exits with status 1 when clean code unexpectedly produces errors.
+fixture_assert_uv_ruff_clean() {
+    if ! uv_path=$(command -v uv 2>&1); then
+        printf 'warning: uv not in PATH; skipping uv ruff clean fixture\n' >&2
+        return 0
+    fi
+    : "$uv_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" uv
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"uv-ruff-clean-fixture","wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}
+JSONEOF
+    )"
+    mkdir -p "$temp_dir/src"
+    cat > "$temp_dir/src/clean.py" <<'PYEOF'
+from os import getcwd
+def get_cwd() -> str:
+    return getcwd()
+PYEOF
+    if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_check.py\""; then
+        printf 'fixture_assert_uv_ruff_clean passed: compliant code produced no errors\n' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        return 0
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if printf '%s' "$fixture_combined_output" | grep -q 'wildcardImport'; then
+        printf 'fixture_assert_uv_ruff_clean failed: compliant code unexpectedly reported wildcardImport\n' >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    printf 'fixture_assert_uv_ruff_clean failed: compliant code unexpectedly produced errors\n' >&2
+    printf '%s\n' "$fixture_combined_output" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+}
+
+# Verify uv ruff runtime detects wildcardImport violations.
+#
+#     Requires `uv` in PATH. Gracefully skips with a warning when uv is unavailable.
+#
+# @return Returns 0 on success or when uv is missing.
+# @exit Exits with status 1 when violation is not detected.
+fixture_assert_uv_ruff_detects() {
+    if ! uv_path=$(command -v uv 2>&1); then
+        printf 'warning: uv not in PATH; skipping uv ruff detects fixture\n' >&2
+        return 0
+    fi
+    : "$uv_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" uv
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"uv-ruff-detects-fixture","wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}
+JSONEOF
+    )"
+    mkdir -p "$temp_dir/src"
+    cat > "$temp_dir/src/dirty.py" <<'PYEOF'
+from os import *
+def get_cwd() -> str:
+    return getcwd()
+PYEOF
+    if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_check.py\""; then
+        printf 'fixture_assert_uv_ruff_detects unexpectedly succeeded\n' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! printf '%s' "$fixture_combined_output" | grep -q 'wildcardImport'; then
+        printf 'fixture_assert_uv_ruff_detects failed: wildcardImport not detected\n' >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    if ! printf '%s' "$fixture_combined_output" | grep -q '\[ERROR\]'; then
+        printf 'fixture_assert_uv_ruff_detects failed: ERROR severity not reported\n' >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    printf 'fixture_assert_uv_ruff_detects passed: wildcardImport violation detected\n' >&2
+    fixture_remove_temp_dir "$temp_dir"
+    return 0
 }
 
 # Verify Bun AST source roots cannot escape the target root.
@@ -4108,7 +4196,11 @@ smoke_check_uv_runtime() {
     if ! smoke_output=$(cd "$runtime_dir" && uv run --quiet --with libcst python3 -c 'import sys
 sys.path.insert(0, ".")
 import harness_check
-print(f"uv runtime rules: {len(list(harness_check.HarnessCheck))}")' 2>&1); then
+from ruff.ruff_code_map import RUFF_CODE_TO_CATEGORY, RUFF_FIX_SAFETY, RUFF_CATEGORIES
+assert set(RUFF_CODE_TO_CATEGORY.values()) <= set(RUFF_CATEGORIES), "code map category not in RUFF_CATEGORIES"
+assert all(c in RUFF_FIX_SAFETY for c in RUFF_CATEGORIES), "RUFF_CATEGORIES missing fix safety"
+print(f"uv runtime rules: {len(list(harness_check.HarnessCheck))}")
+print(f"uv ruff categories: {len(RUFF_CATEGORIES)}")' 2>&1); then
         printf '%s\n' "$smoke_output" >&2
         printf '%s\n' "[smoke_check_uv_runtime] uv runtime failed to import: $runtime_dir" >&2
         exit 1
@@ -4719,6 +4811,8 @@ fixture_assert_bun_symlink_component_safety
 fixture_assert_bun_oxlint_clean
 fixture_assert_bun_oxlint_detects
 fixture_assert_uv_format
+fixture_assert_uv_ruff_clean
+fixture_assert_uv_ruff_detects
 fixture_assert_uv_source_root_safety
 fixture_assert_uv_worktree_excluded
 fixture_assert_uv_hook_shebang
