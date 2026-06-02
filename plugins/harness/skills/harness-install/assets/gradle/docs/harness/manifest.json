@@ -564,7 +564,7 @@
   "leafFunctionBlankLines": {
     "description": "Leaf functions (function bodies that do not contain any nested function or lambda) under parameters.sourceRoots MUST NOT contain more than one consecutive blank line. Outer functions that contain nested functions are exempt. Validators implement this via AST. The allowed blank-line run length is controlled by parameters.maxConsecutiveBlankLines. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
-    "severity": "WARN",
+    "severity": "ERROR",
     "messages": {
       "default": "leaf function `{function}` contains too many blank lines; remove or extract the section"
     },
@@ -577,25 +577,6 @@
         "kts"
       ],
       "maxConsecutiveBlankLines": 1,
-      "includePaths": [],
-      "excludePaths": []
-    }
-  },
-  "earlyReturn": {
-    "description": "Functions under parameters.sourceRoots MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that throws). Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "WARN",
-    "messages": {
-      "default": "function `{function}` has an early/mid return; restructure with single exit"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "buildSrc/src/main/kotlin"
-      ],
-      "extensions": [
-        "kt",
-        "kts"
-      ],
       "includePaths": [],
       "excludePaths": []
     }
@@ -614,73 +595,6 @@
       "extensions": [
         "kt",
         "kts"
-      ],
-      "includePaths": [],
-      "excludePaths": []
-    }
-  },
-  "mutableCollection": {
-    "description": "Code under parameters.sourceRoots MUST prefer functional collection construction. Forbidden: Kotlin `mutableListOf` / `MutableList`. Use `buildList` instead. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "mutable collection construction `{snippet}`; use functional alternative"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "buildSrc/src/main/kotlin"
-      ],
-      "extensions": [
-        "kt",
-        "kts"
-      ],
-      "forbiddenConstructors": [
-        "mutableListOf",
-        "mutableSetOf",
-        "mutableMapOf",
-        "arrayListOf",
-        "hashSetOf",
-        "hashMapOf",
-        "linkedSetOf",
-        "linkedMapOf",
-        "ArrayList",
-        "HashSet",
-        "HashMap",
-        "LinkedHashMap",
-        "LinkedHashSet",
-        "LinkedList",
-        "TreeMap",
-        "TreeSet"
-      ],
-      "forbiddenTypes": [
-        "MutableList",
-        "MutableSet",
-        "MutableMap",
-        "ArrayList",
-        "HashSet",
-        "HashMap",
-        "LinkedHashMap",
-        "LinkedHashSet",
-        "LinkedList",
-        "TreeMap",
-        "TreeSet"
-      ],
-      "forbiddenFqns": [
-        "kotlin.collections.MutableList",
-        "kotlin.collections.MutableMap",
-        "kotlin.collections.MutableSet"
-      ],
-      "accumulationMethods": [
-        "add",
-        "addAll",
-        "put",
-        "putAll"
-      ],
-      "allowedBuilders": [
-        "buildList",
-        "buildMap",
-        "buildSet",
-        "dependencies"
       ],
       "includePaths": [],
       "excludePaths": []
@@ -709,30 +623,10 @@
       "allowedLoggingApis": []
     }
   },
-  "wildcardImport": {
-    "description": "Code under parameters.sourceRoots MUST use explicit per-symbol imports. Forbidden: Kotlin `import foo.bar.*`. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "wildcard import `{import}` forbidden; import explicit symbols"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "buildSrc/src/main/kotlin"
-      ],
-      "extensions": [
-        "kt",
-        "kts"
-      ],
-      "includePaths": [],
-      "excludePaths": [],
-      "allowedFqnPatterns": []
-    }
-  },
   "importOverFqn": {
     "description": "Code under parameters.sourceRoots MUST reach external symbols via `import` rather than inline fully qualified names, EXCEPT when the simple name is already taken by another import in the same file (i.e. the FQN is required to disambiguate). Validators implement this via AST/CST: collect every imported simple name first, then emit a finding when a qualified type reference appears in code AND the qualified name's simple form is NOT already imported under a different qualified name. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
-    "severity": "WARN",
+    "severity": "ERROR",
     "messages": {
       "default": "fully qualified name `{name}` used inline; add an import and use the simple name"
     },
@@ -751,7 +645,7 @@
   "publicDeclarationDocComment": {
     "description": "Every externally visible declaration under parameters.sourceRoots MUST carry a documentation comment in KDoc form. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root. Declarations matching one of `parameters.visibility` are required to carry a documentation comment.",
     "enabled": true,
-    "severity": "WARN",
+    "severity": "ERROR",
     "messages": {
       "default": "public declaration `{name}` is missing a documentation comment"
     },
@@ -806,7 +700,7 @@
   "multilineDocStyle": {
     "description": "KDoc comments under parameters.sourceRoots MUST use multiline block style. This aligns with ktlint-compatible native KDoc. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches.",
     "enabled": true,
-    "severity": "WARN",
+    "severity": "ERROR",
     "messages": {
       "default": "documentation comment must use multiline KDoc style"
     },

@@ -507,55 +507,6 @@
       "allowedLoggingApis": []
     }
   },
-  "mutableCollection": {
-    "description": "Code under parameters.sourceRoots MUST prefer functional collection construction. Forbidden: Java `new ArrayList` / `new HashMap`. Use `Stream.toList()` or other immutable collectors. Validators implement this via AST: detect forbidden constructor calls and accumulation patterns. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "mutable collection construction `{snippet}`; use functional alternative"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "harness-maven-plugin/src/main/java"
-      ],
-      "extensions": [
-        "java"
-      ],
-      "forbiddenConstructors": [
-        "ArrayList",
-        "HashMap",
-        "HashSet",
-        "LinkedList",
-        "LinkedHashMap",
-        "LinkedHashSet",
-        "TreeMap",
-        "TreeSet"
-      ],
-      "forbiddenFqns": [
-        "java.util.ArrayList",
-        "java.util.HashMap",
-        "java.util.HashSet",
-        "java.util.LinkedList",
-        "java.util.LinkedHashMap",
-        "java.util.LinkedHashSet",
-        "java.util.TreeMap",
-        "java.util.TreeSet"
-      ],
-      "accumulationMethods": [
-        "add",
-        "addAll",
-        "put",
-        "putAll"
-      ],
-      "allowedBuilders": [
-        "builder",
-        "streamBuilder"
-      ],
-      "includePaths": [],
-      "excludePaths": [],
-      "allowedFqnPatterns": []
-    }
-  },
   "unstructuredLogging": {
     "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: Java `System.out.println` / `System.err.println`. Use Slf4j or java.util.logging. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,

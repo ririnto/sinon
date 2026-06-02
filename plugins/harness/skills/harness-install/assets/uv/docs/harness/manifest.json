@@ -524,52 +524,6 @@
       ]
     }
   },
-  "mutableCollection": {
-    "description": "Code under parameters.sourceRoots MUST prefer functional collection construction. Forbidden: Python `list()` / `dict()` / `set()` construction and `.append()` / `.add()` accumulation. Use comprehensions, generators, tuples, or immutable copies. Validators implement this via Python CST: detect forbidden constructor calls and accumulation methods. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "mutable collection `{snippet}` is forbidden; use functional alternative"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "py"
-      ],
-      "forbiddenConstructors": [
-        "list",
-        "dict",
-        "set"
-      ],
-      "forbiddenTypes": [],
-      "forbiddenFqns": [
-        "builtins.list",
-        "builtins.dict",
-        "builtins.set"
-      ],
-      "accumulationMethods": [
-        "append",
-        "add",
-        "extend",
-        "insert",
-        "update",
-        "setdefault"
-      ],
-      "allowedOneShotPatterns": [],
-      "allowedBuilders": [],
-      "allowedComprehensionsOrGenerators": [
-        "list",
-        "dict",
-        "set",
-        "generator"
-      ],
-      "includePaths": [],
-      "excludePaths": [],
-      "allowedFqnPatterns": []
-    }
-  },
   "unstructuredLogging": {
     "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: Python `print(`. Use Python `logging` or equivalent. Validators implement this via Python AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,

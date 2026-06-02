@@ -25,7 +25,6 @@ import com.ririnto.sinon.harness.rules.ast.LeafFunctionBlankLinesRule;
 import com.ririnto.sinon.harness.rules.ast.LeadingUnderscoreRule;
 import com.ririnto.sinon.harness.rules.ast.EarlyReturnRule;
 import com.ririnto.sinon.harness.rules.ast.SilentCatchRule;
-import com.ririnto.sinon.harness.rules.ast.MutableCollectionRule;
 import com.ririnto.sinon.harness.rules.ast.UnstructuredLoggingRule;
 import com.ririnto.sinon.harness.rules.ast.WildcardImportRule;
 import com.ririnto.sinon.harness.rules.ast.ImportOverFqnRule;
@@ -65,7 +64,6 @@ enum HarnessCheck {
     LEAF_FUNCTION_BLANK_LINES(LeafFunctionBlankLinesRule.INSTANCE),
     EARLY_RETURN(EarlyReturnRule.INSTANCE),
     SILENT_CATCH(SilentCatchRule.INSTANCE),
-    MUTABLE_COLLECTION(MutableCollectionRule.INSTANCE),
     UNSTRUCTURED_LOGGING(UnstructuredLoggingRule.INSTANCE),
     WILDCARD_IMPORT(WildcardImportRule.INSTANCE),
     IMPORT_OVER_FQN(ImportOverFqnRule.INSTANCE),
