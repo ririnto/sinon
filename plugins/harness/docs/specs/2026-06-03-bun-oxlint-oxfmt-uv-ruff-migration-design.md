@@ -19,6 +19,19 @@ This spec covers migrating the harness bespoke rule engines toward ecosystem lin
 - Migrating the 19 structural/manifest/filesystem rules off the harness engine. oxlint and ruff are source linters and cannot express directory presence, manifest-field-to-file consistency, hook executability, frontmatter, CI parity, or symlink-safety checks.
 - Touching maven/Java or shell stacks in this spec.
 
+## Maven/Java and shell: end-state boundary and tracked tech-debt
+
+The Maven/Java stack intentionally stays on the JavaParser harness engine and is NOT migrated to an ecosystem linter. This is the correct end-state under the per-stack policy, not an unfinished migration:
+
+- The only ecosystem Java tool in the stack is Spotless (`harness-maven-plugin/pom.xml`, configured with `removeUnusedImports`/`trimTrailingWhitespace`/`endWithNewline`). Spotless is a formatter, not a detector, so it cannot express the 14 Java AST detection rules — the same intrinsic-scope reason oxlint and ruff cannot own the 19 structural rules.
+- The pom deliberately omits a full Java formatter (no google-java-format, palantir, or eclipse formatter). Subsuming `leafFunctionBlankLines` the way `oxfmt` and `ruff format` do would require introducing such a formatter, which imposes an opinionated whole-repo Java reformat with high blast radius. Maven instead keeps `LeafFunctionBlankLinesRule.format()` (JavaParser `LexicalPreservingPrinter`) as a deliberate, documented end-state.
+- The shell stack exposes no AST code-style rule surface to migrate; its checks are structural.
+
+Tracked tech-debt (each requires an explicit user decision before adoption; out of scope for autonomous work):
+
+- Checkstyle- or PMD-based detection migration for the Java code-style rules. This introduces a new build-tool dependency and a detector engine the per-stack policy does not currently include.
+- Full-formatter (google-java-format or palantir) subsumption of `leafFunctionBlankLines`, replacing the bespoke JavaParser `format()`. This imposes an opinionated whole-repo Java format.
+
 ## Key Insight: The 33 bun Rules Are Not Homogeneous
 
 | Category | Count | oxlint-eligible |
