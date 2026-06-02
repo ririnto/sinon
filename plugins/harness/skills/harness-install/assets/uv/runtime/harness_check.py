@@ -20,6 +20,8 @@ from pathlib import Path
 from harness_check_rule import Finding, HarnessCheckRule
 from core.rule_context import create_rule_context
 from reporter import render_findings
+from ruff.ruff_adapter import run_ruff
+from ruff.ruff_code_map import RUFF_CATEGORIES
 
 from rules.fs.file_presence import RULE as file_presence
 from rules.fs.directory_presence import RULE as directory_presence
@@ -162,6 +164,16 @@ def validate(manifest: dict) -> tuple[Finding, ...]:
             )
             if key not in seen:
                 seen[key] = finding
+    for finding in run_ruff(create_rule_context(ROOT, manifest)):
+        key = (
+            finding.severity,
+            finding.category,
+            finding.message,
+            finding.file,
+            finding.start_line,
+        )
+        if key not in seen:
+            seen[key] = finding
     return tuple(seen.values())
 
 
@@ -183,18 +195,21 @@ def main() -> int:
         logger.error("Harness validation failed")
         return 1
     for key in manifest.keys():
-        if key not in set(
-            check.category for check in HarnessCheck
-        ) and key not in frozenset(
-            {
-                "name",
-                "description",
-                "$schema",
-                "seedFiles",
-                "generatedArtifacts",
-                "harnessEvolution",
-                "teamPatterns",
-            }
+        if (
+            key not in set(check.category for check in HarnessCheck)
+            and key not in RUFF_CATEGORIES
+            and key
+            not in frozenset(
+                {
+                    "name",
+                    "description",
+                    "$schema",
+                    "seedFiles",
+                    "generatedArtifacts",
+                    "harnessEvolution",
+                    "teamPatterns",
+                }
+            )
         ):
             logger.warning("unknown manifest key: %s", key)
     findings = validate(manifest)
