@@ -1,6 +1,5 @@
 package com.ririnto.sinon.harness.rules.fs
 
-import com.ririnto.sinon.harness.ast.AstFinding
 import com.ririnto.sinon.harness.ast.HarnessAstResults.Finding
 import com.ririnto.sinon.harness.core.HarnessCheck
 import com.ririnto.sinon.harness.core.RuleContext

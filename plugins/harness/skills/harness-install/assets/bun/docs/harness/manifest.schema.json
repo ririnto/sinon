@@ -89,9 +89,6 @@
     "ifStatementBraces": {
       "$ref": "#/$defs/addOn"
     },
-    "mutableCollection": {
-      "$ref": "#/$defs/addOn"
-    },
     "unstructuredLogging": {
       "$ref": "#/$defs/loggingAddOn"
     },

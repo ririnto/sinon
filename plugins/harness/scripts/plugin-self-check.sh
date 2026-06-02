@@ -4031,8 +4031,8 @@ for path in \
     "$root/skills/harness-install/assets/shell/runtime/harness-check.sh" \
     "$root/skills/harness-install/assets/shell/runtime/harness-format.sh" \
     "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/plugin/HarnessValidationPlugin.kt" \
-    "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/ast/AstFinding.kt" \
-    "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/rules/ast/TerminalBranchWhenRule.kt" \
+    "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/ktlint/HarnessKtlintEngine.kt" \
+    "$root/skills/harness-install/assets/gradle/buildSrc/src/main/kotlin/com/ririnto/sinon/harness/ktlint/HarnessKotlinRules.kt" \
     "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/HarnessCheckMojo.java" \
     "$root/skills/harness-install/assets/maven/harness-maven-plugin/src/main/java/com/ririnto/sinon/harness/rules/ast/ClassMemberOrderingRule.java"; do
     require_file "$path"

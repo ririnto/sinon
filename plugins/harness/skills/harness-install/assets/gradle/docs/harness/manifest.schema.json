@@ -86,9 +86,6 @@
     "symlinkSafety": {
       "$ref": "#/$defs/addOn"
     },
-    "earlyReturn": {
-      "$ref": "#/$defs/addOn"
-    },
     "emptyCatchBlock": {
       "$ref": "#/$defs/addOn"
     },
@@ -104,9 +101,6 @@
     "unstructuredLogging": {
       "$ref": "#/$defs/loggingAddOn"
     },
-    "wildcardImport": {
-      "$ref": "#/$defs/addOn"
-    },
     "importOverFqn": {
       "$ref": "#/$defs/importOverFqnAddOn"
     },
@@ -120,9 +114,6 @@
       "$ref": "#/$defs/addOn"
     },
     "nonNullAssertion": {
-      "$ref": "#/$defs/addOn"
-    },
-    "mutableCollection": {
       "$ref": "#/$defs/addOn"
     },
     "ifStatementBraces": {
