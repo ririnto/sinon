@@ -48,7 +48,6 @@ from rules.ast.multiline_doc_style import RULE as multiline_doc_style
 from rules.ast.early_return import RULE as early_return
 from rules.ast.silent_catch import RULE as silent_catch
 from rules.ast.unstructured_logging import RULE as unstructured_logging
-from rules.ast.wildcard_import import RULE as wildcard_import
 from rules.ast.import_over_fqn import RULE as import_over_fqn
 from rules.ast.public_declaration_doc_comment import (
     RULE as public_declaration_doc_comment,
@@ -106,7 +105,6 @@ class HarnessCheck(enum.Enum):
     EARLY_RETURN = ("earlyReturn", early_return)
     SILENT_CATCH = ("silentCatch", silent_catch)
     UNSTRUCTURED_LOGGING = ("unstructuredLogging", unstructured_logging)
-    WILDCARD_IMPORT = ("wildcardImport", wildcard_import)
     IMPORT_OVER_FQN = ("importOverFqn", import_over_fqn)
     PUBLIC_DECLARATION_DOC_COMMENT = (
         "publicDeclarationDocComment",
