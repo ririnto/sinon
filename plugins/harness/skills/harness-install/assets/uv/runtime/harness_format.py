@@ -13,6 +13,7 @@ Format harness files by applying safe validate() fixes.
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
@@ -28,7 +29,6 @@ sys.stderr.reconfigure(encoding="utf-8")
 
 FORMAT_ALLOWLIST = frozenset(
     {
-        "leafFunctionBlankLines",
         "emptyDirectoryPlaceholders",
         "envShebangUsage",
         "hookGeneratedMarker",
@@ -322,6 +322,28 @@ def main() -> None:
     ctx = create_rule_context(
         root, json.loads(manifest_path.read_text(encoding="utf-8")), stack="python"
     )
+    ruff_sources = ctx.stack_sources("greaterThanComparison")
+    if ruff_sources:
+        ruff_config = Path(__file__).resolve().parent / "ruff" / "ruff.toml"
+        format_result = subprocess.run(
+            [
+                "uvx",
+                "ruff@0.15.15",
+                "format",
+                "--config",
+                str(ruff_config),
+                *[str(path) for path in ruff_sources],
+            ],
+            cwd=ctx.root,
+            capture_output=True,
+            text=True,
+        )
+        if format_result.returncode == 127 or "command not found" in format_result.stderr:
+            print("[ruff] uvx not provisioned; skipping format", file=sys.stderr)
+        elif format_result.returncode != 0:
+            raise SystemExit(f"[ruff] format error:\n{format_result.stderr}")
+        else:
+            print("[ruff] format applied")
     try:
         modified = apply_edits(collect_safe_edits(ctx, collect_findings(ctx)), ctx.root)
     except ValueError as error:
