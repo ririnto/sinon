@@ -154,6 +154,8 @@ In fresh installed target repositories, `CLAUDE.md` is the primary harness contr
 
 Run validation commands from the target repository root. The uv, bun, Maven, and shell validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes. The shell adapter implements a portable subset (file/directory existence, hook shebang/executable, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scan, completed-plan unchecked-task scan, and shellcheck) and requires `python3` available on PATH for JSON parsing of the manifest.
 
+The bun validator self-provisions pinned tools on first use via `bunx oxlint@1.68.0` and `bunx oxfmt@0.53.0`, so network access is required the first time `check` or `format` runs. The 6 custom oxlint rules execute on bun's own JavaScript runtime and do not require a separate Node.js binary; when `bunx` is unavailable the validator skips custom-rule detection and continues.
+
 ## Language-Specific Validator Coverage
 
 Each install mode now ships the manifest slice for its selected language or runtime, so target repositories receive only the add-ons their installed validator understands. Shared structural checks remain common across slices; code-structure checks stay stack-specific.
@@ -165,7 +167,7 @@ AST/PSI validators use semantic tree traversal for code-structure rules rather t
 | Gradle/Kotlin+Java | Kotlin PSI through the Gradle worker classloader plus JavaParser for Java sources | Kotlin class member ordering, Java class member ordering, companion-object position, top-level declaration shape, terminal Kotlin if/else-to-when enforcement, and Kotlin code-style checks. Kotlin enum entries and Java enum constants are treated as language-mandated enum preamble items, not ordinary sortable members. |
 | Maven/Java | JavaParser inside the Maven plugin | Java class member ordering and Java code-style checks. Java enum constants are treated as language-mandated enum preamble items, not ordinary sortable members. Maven+Kotlin source validation is not currently enabled because the Maven adapter does not embed Kotlin PSI. |
 | uv/Python | LibCST for Python source checks | Python code-style checks for the selected uv slice. |
-| Bun/TypeScript | TypeScript compiler API | TypeScript code-style checks for the selected Bun slice. |
+| Bun/TypeScript | oxlint (Oxc parser) for code-style; harness engine for structural, manifest, and filesystem rules | oxlint enforces 12 TypeScript code-style rules (6 built-in: no-console, no-empty, curly, no-underscore-dangle, no-namespace, ban-ts-comment; 6 custom oxlint JS-plugin rules: greaterThanComparison, earlyReturn, silentCatch, importOverFqn, multilineDocStyle, publicDeclarationDocComment) and oxfmt normalizes layout (indentation and blank-line collapsing). The harness engine retains 19 structural, manifest, and filesystem rules for the selected Bun slice. |
 | Shell | POSIX shell plus `python3` for manifest reads | Hook shebang and executable validation, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. |
 
 Gradle installer wiring prepends a `buildSrc/` directory. Existing `buildSrc/` directories in the target repo MUST be reviewed before install; the harness expects a fresh `buildSrc/` and will conflict otherwise.
@@ -205,7 +207,7 @@ Repository-level findings apply to the harness as a whole (for example, missing 
 | Rule category | Bun | uv | Gradle | Maven | Shell | Mutation type |
 | --- | --- | --- | --- | --- | --- | --- |
 | `greaterThanComparison` | Defer | Defer | Partial | Partial | Defer | Rewrite simple identifier/literal `>` and `>=` comparisons to `<` and `<=` with operands swapped; expressions that may affect evaluation order stay check-only |
-| `leafFunctionBlankLines` | Allow | Allow | Allow | Allow | Defer | Remove blank lines inside leaf function bodies |
+| `leafFunctionBlankLines` | oxfmt | Allow | Allow | Allow | Defer | Remove blank lines inside leaf function bodies |
 | `emptyDirectoryPlaceholders` | Allow | Allow | Allow | Allow | Defer | Create `.gitkeep` in empty required directories |
 | `envShebangUsage` | Allow | Allow | Allow | Allow | Allow | Replace script shebang with `/usr/bin/env` form |
 | `hookGeneratedMarker` | Allow | Allow | Allow | Allow | Allow | Insert generated marker in managed hook template |
@@ -213,7 +215,7 @@ Repository-level findings apply to the harness as a whole (for example, missing 
 | `hookExecutable` | Allow | Allow | Allow | Allow | Allow | Set executable bit on configured hook scripts |
 | `shebangEncodingMarker` | Allow | Allow | Defer | Defer | Defer | Insert encoding marker after shebang |
 
-Rules not in this table are not formatted. `harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications. Format commands MUST report changed files or a clear no-op summary, then run validation and print remaining findings; commands fail when any remaining finding has `ERROR` severity.
+Rules not in this table are not formatted. `harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications. Format commands MUST report changed files or a clear no-op summary, then run validation and print remaining findings; commands fail when any remaining finding has `ERROR` severity. For the bun stack, `leafFunctionBlankLines` is not a harness safe-fix; oxfmt performs blank-line normalization during `format`.
 
 ### Shell formatting
 
@@ -299,3 +301,4 @@ plugins/harness/
 - The installed `.claude/skills/harness-validate/` directory is a project skill. Prefer that project skill when validating an installed target repository. Use the plugin-provided `harness-validate` skill when working from this plugin checkout or before the target repository has its project copy. If a host cannot distinguish the project skill from the plugin skill, rename the installed project directory to `.claude/skills/project-harness-validate/`, update its `SKILL.md` `name` field to `project-harness-validate`, and update local project docs to use that name.
 - GitHub Actions and GitLab CI templates use ordinary version tags from the archive; projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.
 - Maven, Gradle, Python, and test self-checks may create cache, IDE, or build metadata under asset directories. Repository `.gitignore` and installer filters exclude ignored byproducts such as `__pycache__/`, `.pytest_cache/`, `*.pyc`, `.classpath`, `.project`, `.factorypath`, `.settings/`, `.gradle/`, `bin/`, `build/`, and `target/`; plugin self-checks validate packaged/tracked asset files rather than failing on ignored working-tree byproducts.
+- The bun harness runtime under `docs/harness/bun/` is excluded from the target's `sourceRoots` and is not self-linted; harness self-checks exercise the bun rules through positive/negative fixture corpora rather than linting the shipped runtime.
