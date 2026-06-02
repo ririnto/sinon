@@ -371,7 +371,7 @@ Harness validation rules are indexed by manifest category keys (camelCase). This
 | implicitLambdaIt | ast/ImplicitLambdaItRule.kt | | rules/implicit-lambda-it.ts | | ast |
 | importOverFqn | ast/ImportOverFqnRule.kt | runtime/rules/import_over_fqn.py | rules/import-over-fqn.ts | ast/ImportOverFqnRule.java | text/ast |
 | kotlinTopLevelDeclarationCount | ast/KotlinTopLevelDeclarationCountRule.kt | | | | ast |
-| leafFunctionBlankLines | ast/LeafFunctionBlankLinesRule.kt | runtime/rules/leaf_function_blank_lines.py | rules/leaf-function-blank-lines.ts | ast/LeafFunctionBlankLinesRule.java | text/ast |
+| leafFunctionBlankLines | ast/LeafFunctionBlankLinesRule.kt (check-only) | `ruff format` | `oxfmt` | ast/LeafFunctionBlankLinesRule.java | text/ast |
  | mutableCollection | ast/MutableCollectionRule.kt | runtime/rules/ast/mutable_collection.py | rules/mutable-collection.ts | ast/MutableCollectionRule.java | ast |
 | nonNullAssertion | ast/NonNullAssertionRule.kt (checks `!!`) | | | | ast |
 | publicDeclarationDocComment | ast/PublicDeclarationDocCommentRule.kt | runtime/rules/public_declaration_doc_comment.py | rules/public-declaration-doc-comment.ts | ast/PublicDeclarationDocCommentRule.java | text/ast |
