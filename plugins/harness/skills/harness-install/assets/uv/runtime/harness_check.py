@@ -42,7 +42,6 @@ from rules.text.shebang_encoding_marker import RULE as shebang_encoding_marker
 from rules.text.unchecked_tasks import RULE as unchecked_tasks
 from rules.fs.symlink_safety import RULE as symlink_safety
 from rules.ast.greater_than_comparison import RULE as greater_than_comparison
-from rules.ast.leaf_function_blank_lines import RULE as leaf_function_blank_lines
 from rules.ast.leading_underscore import RULE as leading_underscore
 from rules.ast.multiline_doc_style import RULE as multiline_doc_style
 from rules.ast.early_return import RULE as early_return
@@ -98,10 +97,6 @@ class HarnessCheck(enum.Enum):
     )
     SYMLINK_SAFETY = ("symlinkSafety", symlink_safety)
     GREATER_THAN_COMPARISON = ("greaterThanComparison", greater_than_comparison)
-    LEAF_FUNCTION_BLANK_LINES = (
-        "leafFunctionBlankLines",
-        leaf_function_blank_lines,
-    )
     EARLY_RETURN = ("earlyReturn", early_return)
     SILENT_CATCH = ("silentCatch", silent_catch)
     UNSTRUCTURED_LOGGING = ("unstructuredLogging", unstructured_logging)
