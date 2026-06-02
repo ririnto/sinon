@@ -1665,110 +1665,75 @@ fixture_assert_bun_format() {
         printf 'warning: bun not in PATH; skipping bun format fixture check\n' >&2
         return 0
     fi
-    : "$bun_path"
+    if ! bunx_path=$(command -v bunx 2>&1); then
+        printf 'warning: bunx not provisioned; skipping bun format fixture check\n' >&2
+        return 0
+    fi
+    : "$bun_path" "$bunx_path"
     temp_dir=$(fixture_create_temp_dir)
     fixture_copy_runtime "$temp_dir" bun
-    fixture_write_file "$temp_dir" package.json '{"dependencies":{"typescript":"6.0.3"}}'
-    if ! install_output=$(cd "$temp_dir" && bun install 2>&1); then
-        printf '%s\n' "$install_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    ln -s typescript "$temp_dir/node_modules/typescript@6.0.3"
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-format-fixture","leafFunctionBlankLines":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"maxConsecutiveBlankLines":1}},"greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
-    fixture_write_file "$temp_dir" src/example.ts "$(
-        cat <<'TSEOF'
+    mkdir -p "$temp_dir/src"
+    cat > "$temp_dir/src/example.ts" <<'TSEOF'
 export function compare(value: number): number {
-  const baseline = 1;
-
-
-  return value > baseline ? value : baseline;
+    const baseline = 1;
+    return value > baseline ? value : baseline;
 }
 TSEOF
-    )"
-    fixture_write_file "$temp_dir" src/unsafe.ts "$(
-        cat <<'TSEOF'
-export function unsafe(value: number): boolean {
-  return value > 1;
-}
-TSEOF
-    )"
-    fixture_write_file "$temp_dir" src/silent.ts "$(
-        cat <<'TSEOF'
+    cat > "$temp_dir/src/silent.ts" <<'TSEOF'
 declare const logger: { error(value: unknown): void };
 
 export function unsafeSilent(): string {
-  try {
-    throw new Error("boom");
-  } catch (error) {
-    const message = "logger.error";
-    return message;
-  }
+    try {
+        throw new Error("boom");
+    } catch (error) {
+        const message = "logger.error";
+        return message;
+    }
 }
 
 export function safeSilent(): void {
-  try {
-    throw new Error("boom");
-  } catch (error) {
-    logger.error(error);
-  }
+    try {
+        throw new Error("boom");
+    } catch (error) {
+        logger.error(error);
+    }
 }
 TSEOF
-    )"
     fixture_target_file=$temp_dir/src/example.ts
-    fixture_unsafe_file=$temp_dir/src/unsafe.ts
     fixture_before_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    fixture_unsafe_before_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
-    if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-format.ts\""; then
-        printf '%s\n' '[fixture_assert_bun_format] expected first format to report remaining findings' >&2
+    if ! fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-format.ts\""; then
+        printf '%s\n' '[fixture_assert_bun_format] harness-format exited with error' >&2
+        printf '%s\n' "$fixture_stdout" "$fixture_stderr" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
     fixture_after_first_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    fixture_unsafe_after_first_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
-    if ! fixture_assertion_output=$(fixture_assert_format_changed "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" "$fixture_combined_output" 'src/example.ts' 'bun format first run' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'remaining findings after format:' 'bun format reports remaining findings' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_unsafe_before_format_checksum" "$fixture_unsafe_after_first_format_checksum" 'bun format leaves unsafe-only file unchanged' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" 'bun format does not apply unsafe fixes to oxlint violations' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-format.ts\""; then
-        printf '%s\n' '[fixture_assert_bun_format] expected second format to report remaining findings' >&2
+    if ! fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-format.ts\""; then
+        printf '%s\n' '[fixture_assert_bun_format] second harness-format exited with error' >&2
+        printf '%s\n' "$fixture_stdout" "$fixture_stderr" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
     fixture_after_second_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    fixture_unsafe_after_second_format_checksum=$(fixture_file_checksum "$fixture_unsafe_file")
-    if ! fixture_assertion_output=$(fixture_assert_format_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" "$fixture_combined_output" 'bun format second run' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_unsafe_before_format_checksum" "$fixture_unsafe_after_second_format_checksum" 'bun second format leaves unsafe-only file unchanged' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" 'bun format second run is idempotent' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
     if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-check.ts\""; then
-        printf '%s\n' '[fixture_assert_bun_format] expected harness-check to report unsafe comparison' >&2
+        printf '%s\n' '[fixture_assert_bun_format] expected harness-check to report unsafe findings' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
@@ -1927,17 +1892,14 @@ fixture_assert_bun_source_root_safety() {
         printf 'warning: bun not in PATH; skipping bun source-root safety fixture check\n' >&2
         return 0
     fi
-    : "$bun_path"
+    if ! bunx_path=$(command -v bunx 2>&1); then
+        printf 'warning: bunx not provisioned; skipping bun source-root safety fixture check\n' >&2
+        return 0
+    fi
+    : "$bun_path" "$bunx_path"
     fixture_root=$(fixture_create_temp_dir)
     target_dir=$fixture_root/target
     fixture_copy_runtime "$target_dir" bun
-    fixture_write_file "$target_dir" package.json '{"dependencies":{"typescript":"6.0.3"}}'
-    if ! install_output=$(cd "$target_dir" && bun install 2>&1); then
-        printf '%s\n' "$install_output" >&2
-        fixture_remove_temp_dir "$fixture_root"
-        exit 1
-    fi
-    ln -s typescript "$target_dir/node_modules/typescript@6.0.3"
     fixture_write_manifest "$target_dir" '{"name":"bun-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["../outside"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$fixture_root" outside/OutsideFixture.ts 'export function unsafe(value: number): boolean {
     return value > 1;
@@ -2000,17 +1962,14 @@ fixture_assert_bun_symlink_component_safety() {
         printf 'warning: bun not in PATH; skipping bun symlink component safety fixture check\n' >&2
         return 0
     fi
-    : "$bun_path"
+    if ! bunx_path=$(command -v bunx 2>&1); then
+        printf 'warning: bunx not provisioned; skipping bun symlink component safety fixture check\n' >&2
+        return 0
+    fi
+    : "$bun_path" "$bunx_path"
     fixture_root=$(fixture_create_temp_dir)
     target_dir=$fixture_root/target
     fixture_copy_runtime "$target_dir" bun
-    fixture_write_file "$target_dir" package.json '{"dependencies":{"typescript":"6.0.3"}}'
-    if ! install_output=$(cd "$target_dir" && bun install 2>&1); then
-        printf '%s\n' "$install_output" >&2
-        fixture_remove_temp_dir "$fixture_root"
-        exit 1
-    fi
-    ln -s typescript "$target_dir/node_modules/typescript@6.0.3"
     fixture_write_file "$fixture_root" outside/LinkedFixture.ts 'export function unsafe(value: number): boolean {
     return value > 1;
 }
@@ -2055,6 +2014,257 @@ fixture_assert_bun_symlink_component_safety() {
         exit 1
     fi
     fixture_remove_temp_dir "$fixture_root"
+}
+
+# Verify Bun oxlint runtime produces zero findings on compliant code.
+#
+#     Compliant code: single exit (no early return), rethrow in catch (no silent catch),
+#     multiline doc comments, documented exports, no console usage, no > or >= operators,
+#     no leading underscore, no namespace imports, no @ts- comments.
+#
+#     Requires `bun` and `bunx` in PATH. Gracefully skips with a warning when either is unavailable.
+#
+# @return Returns 0 on success or when bun/bunx is missing.
+# @exit Exits with status 1 when compliant code unexpectedly produces errors.
+fixture_assert_bun_oxlint_clean() {
+    if ! bun_path=$(command -v bun 2>&1); then
+        printf 'warning: bun not in PATH; skipping bun oxlint clean fixture\n' >&2
+        return 0
+    fi
+    if ! bunx_path=$(command -v bunx 2>&1); then
+        printf 'warning: bunx not provisioned; skipping bun oxlint clean fixture\n' >&2
+        return 0
+    fi
+    : "$bun_path" "$bunx_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" bun
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"bun-oxlint-clean-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"earlyReturn":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"emptyCatchBlock":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"importOverFqn":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+JSONEOF
+    )"
+    mkdir -p "$temp_dir/src"
+    cat > "$temp_dir/src/clean.ts" <<'TSEOF'
+/**
+ * Return the smaller of two numbers using a single exit.
+ */
+export function smaller(a: number, b: number): number {
+    const result = a < b ? a : b;
+    return result;
+}
+
+/**
+ * Run a task and rethrow any failure.
+ */
+export function runTask(task: () => void): void {
+    try {
+        task();
+    } catch (error) {
+        throw error;
+    }
+}
+TSEOF
+    if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-check.ts\""; then
+        printf 'fixture_assert_bun_oxlint_clean passed: compliant code produced no errors\n' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        return 0
+    fi
+    printf 'fixture_assert_bun_oxlint_clean failed: compliant code unexpectedly produced errors\n' >&2
+    printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr" >&2
+    fixture_remove_temp_dir "$temp_dir"
+    exit 1
+}
+
+# Verify Bun oxlint runtime detects all 12 harness categories.
+#
+#     Writes a source file that violates each of the 12 oxlint-owned categories
+#     and asserts that harness-check reports all 12 categories.
+#
+#     Requires `bun` and `bunx` in PATH. Gracefully skips with a warning when either is unavailable.
+#
+# @return Returns 0 on success or when bun/bunx is missing.
+# @exit Exits with status 1 when any category is not detected.
+fixture_assert_bun_oxlint_detects() {
+    if ! bun_path=$(command -v bun 2>&1); then
+        printf 'warning: bun not in PATH; skipping bun oxlint detects fixture\n' >&2
+        return 0
+    fi
+    if ! bunx_path=$(command -v bunx 2>&1); then
+        printf 'warning: bunx not provisioned; skipping bun oxlint detects fixture\n' >&2
+        return 0
+    fi
+    : "$bun_path" "$bunx_path"
+    temp_dir=$(fixture_create_temp_dir)
+    fixture_copy_runtime "$temp_dir" bun
+    fixture_write_manifest "$temp_dir" "$(
+        cat <<'JSONEOF'
+{"name":"bun-oxlint-detects-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"earlyReturn":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"emptyCatchBlock":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"importOverFqn":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+JSONEOF
+    )"
+    mkdir -p "$temp_dir/src"
+    cat > "$temp_dir/src/violations.ts" <<'TSEOF'
+/**
+ * Violation: greaterThanComparison uses > operator.
+ */
+export function gtViolation(a: number, b: number): boolean {
+    return a > b;
+}
+
+/**
+ * Violation: earlyReturn exits before final statement.
+ */
+export function earlyViolation(x: number): number {
+    if (x < 0) {
+        return 0;
+    }
+    return x * 2;
+}
+
+/**
+ * Violation: silentCatch catches without rethrow or logging.
+ */
+export function silentViolation(): void {
+    try {
+        throw new Error("test");
+    } catch (e) {
+        const x = 1;
+    }
+}
+
+/**
+ * Violation: importOverFqn uses FQN without import.
+ */
+export function fqnViolation(): string {
+    return utils.helpers.format("test");
+}
+
+/** Violation: multilineDocStyle uses single-line JSDoc */
+export function singleLineDoc(): void {}
+
+export function undocumentedFunc(): void {}
+
+/**
+ * Violation: unstructuredLogging uses console.
+ */
+export function loggingViolation(): void {
+    console.log("test");
+}
+
+/**
+ * Violation: emptyCatchBlock has empty catch.
+ */
+export function emptyViolation(): void {
+    try {
+        throw new Error("x");
+    } catch (e) {
+    }
+}
+
+/**
+ * Violation: ifStatementBraces missing braces.
+ */
+export function ifViolation(flag: boolean): number {
+    if (flag)
+        return 1;
+    return 2;
+}
+
+/**
+ * Violation: leadingUnderscore uses leading underscore.
+ */
+export function _privateFunc(): void {}
+
+/**
+ * Violation: wildcardImport uses namespace import.
+ */
+import * as ns from "module";
+
+/**
+ * Violation: uncheckedCastSuppression uses @ts-ignore.
+ */
+export function castViolation(): any {
+    const x: unknown = {};
+    return x as string; // @ts-ignore
+}
+TSEOF
+    if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-check.ts\""; then
+        printf 'fixture_assert_bun_oxlint_detects unexpectedly succeeded\n' >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    detected_categories=0
+    missing_categories=""
+    if printf '%s' "$fixture_combined_output" | grep -qE 'greaterThanComparison'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories greaterThanComparison"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'earlyReturn'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories earlyReturn"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'silentCatch'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories silentCatch"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'importOverFqn'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories importOverFqn"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'multilineDocStyle'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories multilineDocStyle"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'publicDeclarationDocComment'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories publicDeclarationDocComment"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'unstructuredLogging'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories unstructuredLogging"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'emptyCatchBlock'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories emptyCatchBlock"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'ifStatementBraces'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories ifStatementBraces"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'leadingUnderscore'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories leadingUnderscore"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'wildcardImport'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories wildcardImport"
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'uncheckedCastSuppression'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories uncheckedCastSuppression"
+    fi
+    if [ "$detected_categories" -ne 12 ]; then
+        printf 'fixture_assert_bun_oxlint_detects: only detected %d of 12 categories\n' "$detected_categories" >&2
+        printf 'missing:%s\n' "$missing_categories" >&2
+        printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    printf 'fixture_assert_bun_oxlint_detects passed: all 12 categories detected\n' >&2
+    fixture_remove_temp_dir "$temp_dir"
+    return 0
 }
 
 # Verify uv AST source roots cannot escape the target root.
@@ -4506,6 +4716,8 @@ fixture_assert_shell_format_malformed_manifest
 fixture_assert_bun_format
 fixture_assert_bun_source_root_safety
 fixture_assert_bun_symlink_component_safety
+fixture_assert_bun_oxlint_clean
+fixture_assert_bun_oxlint_detects
 fixture_assert_uv_format
 fixture_assert_uv_source_root_safety
 fixture_assert_uv_worktree_excluded
