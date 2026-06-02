@@ -532,7 +532,7 @@
     }
   },
   "wildcardImport": {
-    "description": "Code under parameters.sourceRoots MUST use explicit per-symbol imports. Forbidden: Python `from foo import *`. Validators implement this via Python AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "description": "Code under parameters.sourceRoots MUST use explicit per-symbol imports. Forbidden: Python `from foo import *`. Validators implement this via ruff (rule `F403`). Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
     "severity": "ERROR",
     "messages": {
