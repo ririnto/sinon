@@ -11,7 +11,6 @@ import type { Finding, FindingEdit } from "./rules/harness-check-rule";
 
 const root = process.cwd();
 const FORMAT_ALLOWLIST = new Set([
-    "leafFunctionBlankLines",
     "emptyDirectoryPlaceholders",
     "envShebangUsage",
     "hookGeneratedMarker",
@@ -201,6 +200,25 @@ async function main(): Promise<void> {
     }
     const manifest: HarnessManifest = JSON.parse(readFileSync(manifestPath, "utf8"));
     const executionContext = createRuleContext(root, manifest);
+    const oxfmtFiles = executionContext.stackSources("greaterThanComparison");
+    if (oxfmtFiles.length > 0) {
+        const oxfmtConfigPath = join(import.meta.dir, ".oxfmtrc.json");
+        const oxfmtProc = Bun.spawnSync(
+            ["bunx", "oxfmt@0.53.0", "--config", oxfmtConfigPath, "--write", ...oxfmtFiles],
+            { cwd: root },
+        );
+        const oxfmtStderr = oxfmtProc.stderr ? new TextDecoder().decode(oxfmtProc.stderr) : "";
+        if (!oxfmtProc.success) {
+            if (oxfmtProc.exitCode === 127 || oxfmtStderr.includes("bunx")) {
+                logger.warn("[oxfmt] bunx not provisioned; skipping format");
+            } else {
+                logger.error(`[oxfmt] error:\n${oxfmtStderr}`);
+                process.exit(1);
+            }
+        } else {
+            logger.log("[oxfmt] format applied");
+        }
+    }
     const findings = collectFindings(executionContext);
     const modified = applyEdits(collectSafeEdits(executionContext, findings));
     if (0 < modified.length) {
