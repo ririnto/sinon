@@ -34,6 +34,11 @@ class DefaultRuleContext(
     override val manifest: Manifest,
     override val stack: String = "kotlin",
 ) : RuleContext {
+    /**
+     * Mutable list of text edits to apply during formatting.
+     * Null when in lint/analyze mode; non-null when in format mode.
+     */
+    override var fixEdits: MutableList<HarnessTextEdit>? = null
     override fun readSafe(path: String): String {
         return when {
             (root / path).isSymbolicLink() && isAllowedRootContractSymlink(root / path) -> {

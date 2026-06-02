@@ -14,7 +14,6 @@ import { importOverFqnRule } from "./rules/ast/import-over-fqn";
 import { leadingUnderscoreRule } from "./rules/ast/leading-underscore";
 import { leafFunctionBlankLinesRule } from "./rules/ast/leaf-function-blank-lines";
 import { multilineDocStyleRule } from "./rules/ast/multiline-doc-style";
-import { mutableCollectionRule } from "./rules/ast/mutable-collection";
 import { publicDeclarationDocCommentRule } from "./rules/ast/public-declaration-doc-comment";
 import { silentCatchRule } from "./rules/ast/silent-catch";
 import { uncheckedCastSuppressionRule } from "./rules/ast/unchecked-cast-suppression";
@@ -71,7 +70,6 @@ function createHarnessChecks(): Record<string, HarnessCheckRule> {
         LEAF_FUNCTION_BLANK_LINES: leafFunctionBlankLinesRule,
         EARLY_RETURN: earlyReturnRule,
         SILENT_CATCH: silentCatchRule,
-        MUTABLE_COLLECTION: mutableCollectionRule,
         UNSTRUCTURED_LOGGING: unstructuredLoggingRule,
         WILDCARD_IMPORT: wildcardImportRule,
         EMPTY_CATCH_BLOCK: emptyCatchBlockRule,

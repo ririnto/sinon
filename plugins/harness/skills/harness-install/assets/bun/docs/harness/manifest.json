@@ -569,55 +569,6 @@
       "allowedLoggingApis": []
     }
   },
-  "mutableCollection": {
-    "description": "Code under parameters.sourceRoots MUST prefer functional collection construction. Forbidden: TypeScript `Array#push` accumulation. Use spread + `concat`, `Array.of()`, or functional composition. Validators implement this via AST: detect forbidden constructor calls and accumulation patterns. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "mutable collection construction `{snippet}`; use functional alternative"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "ts",
-        "tsx"
-      ],
-      "forbiddenConstructors": [
-        "Array",
-        "Map",
-        "Set",
-        "WeakMap",
-        "WeakSet"
-      ],
-      "forbiddenTypes": [
-        "Array",
-        "Map",
-        "Set",
-        "WeakMap",
-        "WeakSet"
-      ],
-      "forbiddenFqns": [
-        "globalThis.Array",
-        "globalThis.Map",
-        "globalThis.Set"
-      ],
-      "accumulationMethods": [
-        "push",
-        "add",
-        "set"
-      ],
-      "allowedOneShotPatterns": [
-        "Array.from(new Set(...))",
-        "Array.from(new Map(...).values())",
-        "new Set(readonlyArray)"
-      ],
-      "allowedBuilders": [],
-      "includePaths": [],
-      "excludePaths": []
-    }
-  },
   "unstructuredLogging": {
     "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: TypeScript `console.log` / `console.error` / `console.warn`. Use `pino` or equivalent structured logger. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,

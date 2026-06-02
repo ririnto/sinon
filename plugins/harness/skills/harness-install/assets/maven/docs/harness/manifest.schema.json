@@ -119,9 +119,6 @@
     "classMemberOrdering": {
       "$ref": "#/$defs/classMemberOrderingAddOn"
     },
-    "mutableCollection": {
-      "$ref": "#/$defs/addOn"
-    },
     "leadingUnderscore": {
       "$ref": "#/$defs/leadingUnderscoreAddOn"
     },

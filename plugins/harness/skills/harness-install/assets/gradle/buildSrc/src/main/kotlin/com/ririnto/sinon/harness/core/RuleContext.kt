@@ -23,6 +23,12 @@ interface RuleContext {
     val stack: String
 
     /**
+     * Mutable list of text edits to apply during formatting.
+     * Null when in lint/analyze mode; non-null when in format mode.
+     */
+    var fixEdits: MutableList<HarnessTextEdit>?
+
+    /**
      * Safely read file content.
      *
      * @param path The file path relative to root.
