@@ -209,7 +209,7 @@ async function main(): Promise<void> {
         );
         const oxfmtStderr = oxfmtProc.stderr ? new TextDecoder().decode(oxfmtProc.stderr) : "";
         if (!oxfmtProc.success) {
-            if (oxfmtProc.exitCode === 127 || oxfmtStderr.includes("bunx")) {
+            if (oxfmtProc.exitCode === 127 || oxfmtStderr.includes("command not found")) {
                 logger.warn("[oxfmt] bunx not provisioned; skipping format");
             } else {
                 logger.error(`[oxfmt] error:\n${oxfmtStderr}`);
