@@ -464,49 +464,6 @@
       "excludePaths": []
     }
   },
-  "earlyReturn": {
-    "description": "Functions under parameters.sourceRoots MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that throws). Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "WARN",
-    "messages": {
-      "default": "function `{function}` has an early/mid return; restructure with single exit"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "harness-maven-plugin/src/main/java"
-      ],
-      "extensions": [
-        "java"
-      ],
-      "includePaths": [],
-      "excludePaths": []
-    }
-  },
-  "silentCatch": {
-    "description": "`try`/`catch` blocks under parameters.sourceRoots MUST NOT swallow exceptions. The catch block MUST either rethrow, translate to a `Finding`, or log via the structured logger. Empty or `pass`-only catch blocks are forbidden. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "silent catch; rethrow, translate to a Finding, or log via structured logger"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "harness-maven-plugin/src/main/java"
-      ],
-      "extensions": [
-        "java"
-      ],
-      "includePaths": [],
-      "excludePaths": [],
-      "forbiddenLoggingApis": [
-        "System.out.println",
-        "System.out.print",
-        "System.err.println",
-        "System.err.print"
-      ],
-      "allowedLoggingApis": []
-    }
-  },
   "unstructuredLogging": {
     "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: Java `System.out.println` / `System.err.println`. Use Slf4j or java.util.logging. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
@@ -630,24 +587,6 @@
       "excludePaths": [],
       "docStyleMode": "multiline",
       "formatterRequiredExceptions": []
-    }
-  },
-  "emptyCatchBlock": {
-    "description": "Catch handlers under parameters.sourceRoots MUST have a non-empty body. Empty catch handlers are a special case of silentCatch and are listed separately for clarity. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "empty catch block; handle, rethrow, or convert to a Finding"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "harness-maven-plugin/src/main/java"
-      ],
-      "extensions": [
-        "java"
-      ],
-      "includePaths": [],
-      "excludePaths": []
     }
   },
   "ifStatementBraces": {

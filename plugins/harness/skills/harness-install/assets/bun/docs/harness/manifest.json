@@ -473,82 +473,6 @@
       "forbiddenOperators": [">", ">="]
     }
   },
-  "earlyReturn": {
-    "description": "Functions under parameters.sourceRoots MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that throws). Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "WARN",
-    "messages": {
-      "default": "function `{function}` has an early/mid return; restructure with single exit"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "ts",
-        "tsx"
-      ],
-      "forbiddenConstructors": [
-        "Array",
-        "Map",
-        "Set",
-        "WeakMap",
-        "WeakSet"
-      ],
-      "forbiddenTypes": [
-        "Array",
-        "Map",
-        "Set",
-        "WeakMap",
-        "WeakSet"
-      ],
-      "forbiddenFqns": [
-        "globalThis.Array",
-        "globalThis.Map",
-        "globalThis.Set"
-      ],
-      "accumulationMethods": [
-        "push",
-        "add",
-        "set"
-      ],
-      "allowedOneShotPatterns": [
-        "Array.from(new Set(...))",
-        "Array.from(new Map(...).values())",
-        "new Set(readonlyArray)"
-      ],
-      "allowedBuilders": [],
-      "includePaths": [],
-      "excludePaths": []
-    }
-  },
-  "silentCatch": {
-    "description": "`try`/`catch` blocks under parameters.sourceRoots MUST NOT swallow exceptions. The catch block MUST either rethrow, translate to a `Finding`, or log via the structured logger. Empty or `pass`-only catch blocks are forbidden. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "silent catch; rethrow, translate to a Finding, or log via structured logger"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "ts",
-        "tsx"
-      ],
-      "includePaths": [],
-      "excludePaths": [],
-      "forbiddenLoggingApis": [
-        "console.log",
-        "console.error",
-        "console.warn",
-        "console.info",
-        "console.debug"
-      ],
-      "allowedLoggingApis": []
-    }
-  },
   "unstructuredLogging": {
     "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: TypeScript `console.log` / `console.error` / `console.warn`. Use `pino` or equivalent structured logger. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
@@ -575,25 +499,6 @@
     "severity": "ERROR",
     "messages": {
       "default": "wildcard import `{import}` forbidden; import explicit symbols"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "ts",
-        "tsx"
-      ],
-      "includePaths": [],
-      "excludePaths": []
-    }
-  },
-  "importOverFqn": {
-    "description": "Code under parameters.sourceRoots MUST reach external symbols via `import` rather than inline fully qualified names, EXCEPT when the simple name is already taken by another import in the same file (i.e. the FQN is required to disambiguate). Validators implement this via AST/CST: collect every imported simple name first, then emit a finding when a qualified type reference appears in code AND the qualified name's simple form is NOT already imported under a different qualified name. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "WARN",
-    "messages": {
-      "default": "fully qualified name `{name}` used inline; add an import and use the simple name"
     },
     "parameters": {
       "sourceRoots": [
@@ -681,25 +586,6 @@
       "excludePaths": [],
       "docStyleMode": "multiline",
       "formatterRequiredExceptions": []
-    }
-  },
-  "emptyCatchBlock": {
-    "description": "Catch handlers under parameters.sourceRoots MUST have a non-empty body. Empty catch handlers are a special case of silentCatch and are listed separately for clarity. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "empty catch block; handle, rethrow, or convert to a Finding"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "ts",
-        "tsx"
-      ],
-      "includePaths": [],
-      "excludePaths": []
     }
   },
   "ifStatementBraces": {

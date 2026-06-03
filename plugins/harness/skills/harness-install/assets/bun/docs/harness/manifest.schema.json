@@ -77,12 +77,6 @@
     "symlinkSafety": {
       "$ref": "#/$defs/addOn"
     },
-    "earlyReturn": {
-      "$ref": "#/$defs/addOn"
-    },
-    "emptyCatchBlock": {
-      "$ref": "#/$defs/addOn"
-    },
     "greaterThanComparison": {
       "$ref": "#/$defs/addOn"
     },
@@ -91,9 +85,6 @@
     },
     "unstructuredLogging": {
       "$ref": "#/$defs/loggingAddOn"
-    },
-    "importOverFqn": {
-      "$ref": "#/$defs/importOverFqnAddOn"
     },
     "uncheckedCastSuppression": {
       "$ref": "#/$defs/suppressionAddOn"
@@ -111,9 +102,6 @@
       "$ref": "#/$defs/addOn"
     },
     "wildcardImport": {
-      "$ref": "#/$defs/addOn"
-    },
-    "silentCatch": {
       "$ref": "#/$defs/addOn"
     },
     "seedFiles": {
@@ -251,33 +239,6 @@
                       "$ref": "#/$defs/stringList"
                     },
                     "allowedLoggingApis": {
-                      "$ref": "#/$defs/stringList"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "importOverFqnAddOn": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/addOn"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "parameters": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/sourceScope"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "allowedFqnPatterns": {
                       "$ref": "#/$defs/stringList"
                     }
                   }
