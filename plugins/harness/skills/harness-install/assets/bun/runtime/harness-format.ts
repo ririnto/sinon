@@ -202,9 +202,8 @@ async function main(): Promise<void> {
     const executionContext = createRuleContext(root, manifest);
     const oxfmtFiles = executionContext.stackSources("greaterThanComparison");
     if (oxfmtFiles.length > 0) {
-        const oxfmtConfigPath = join(import.meta.dir, ".oxfmtrc.json");
         const oxfmtProc = Bun.spawnSync(
-            ["bunx", "oxfmt@0.53.0", "--config", oxfmtConfigPath, "--write", ...oxfmtFiles],
+            ["bunx", "oxfmt@0.53.0", "--write", ...oxfmtFiles],
             { cwd: root },
         );
         const oxfmtStderr = oxfmtProc.stderr ? new TextDecoder().decode(oxfmtProc.stderr) : "";

@@ -678,6 +678,9 @@ fixture_copy_runtime() {
             source_dir=$root/skills/harness-install/assets/$stack_name/runtime
             mkdir -p "$temp_dir"
             cp -R "$source_dir"/. "$temp_dir"/
+            if [ "$stack_name" = bun ] && [ -f "$root/skills/harness-install/assets/$stack_name/.oxfmtrc.json" ]; then
+                cp "$root/skills/harness-install/assets/$stack_name/.oxfmtrc.json" "$temp_dir/"
+            fi
             ;;
         gradle)
             source_dir=$root/skills/harness-install/assets/gradle/buildSrc
