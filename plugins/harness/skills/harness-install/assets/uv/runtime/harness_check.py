@@ -44,14 +44,10 @@ from rules.fs.symlink_safety import RULE as symlink_safety
 from rules.ast.greater_than_comparison import RULE as greater_than_comparison
 from rules.ast.leading_underscore import RULE as leading_underscore
 from rules.ast.multiline_doc_style import RULE as multiline_doc_style
-from rules.ast.early_return import RULE as early_return
-from rules.ast.silent_catch import RULE as silent_catch
 from rules.ast.unstructured_logging import RULE as unstructured_logging
-from rules.ast.import_over_fqn import RULE as import_over_fqn
 from rules.ast.public_declaration_doc_comment import (
     RULE as public_declaration_doc_comment,
 )
-from rules.ast.empty_catch_block import RULE as empty_catch_block
 from rules.ast.unchecked_cast_suppression import RULE as unchecked_cast_suppression
 from rules.ast.triple_quote_inline_comment import RULE as triple_quote_inline_comment
 from rules.text.ci_hook_command_parity import RULE as ci_hook_command_parity
@@ -97,17 +93,13 @@ class HarnessCheck(enum.Enum):
     )
     SYMLINK_SAFETY = ("symlinkSafety", symlink_safety)
     GREATER_THAN_COMPARISON = ("greaterThanComparison", greater_than_comparison)
-    EARLY_RETURN = ("earlyReturn", early_return)
-    SILENT_CATCH = ("silentCatch", silent_catch)
     UNSTRUCTURED_LOGGING = ("unstructuredLogging", unstructured_logging)
-    IMPORT_OVER_FQN = ("importOverFqn", import_over_fqn)
     PUBLIC_DECLARATION_DOC_COMMENT = (
         "publicDeclarationDocComment",
         public_declaration_doc_comment,
     )
     LEADING_UNDERSCORE = ("leadingUnderscore", leading_underscore)
     MULTILINE_DOC_STYLE = ("multilineDocStyle", multiline_doc_style)
-    EMPTY_CATCH_BLOCK = ("emptyCatchBlock", empty_catch_block)
     UNCHECKED_CAST_SUPPRESSION = (
         "uncheckedCastSuppression",
         unchecked_cast_suppression,

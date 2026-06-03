@@ -10,9 +10,6 @@
     "import/no-namespace": "error",
     "typescript/ban-ts-comment": "error",
     "harness/greaterThanComparison": "error",
-    "harness/earlyReturn": "error",
-    "harness/silentCatch": "error",
-    "harness/importOverFqn": "error",
     "harness/multilineDocStyle": "error",
     "harness/publicDeclarationDocComment": "error"
   }

@@ -1675,7 +1675,7 @@ fixture_assert_bun_format() {
     fixture_copy_runtime "$temp_dir" bun
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
@@ -1683,26 +1683,6 @@ JSONEOF
 export function compare(value: number): number {
     const baseline = 1;
     return value > baseline ? value : baseline;
-}
-TSEOF
-    cat > "$temp_dir/src/silent.ts" <<'TSEOF'
-declare const logger: { error(value: unknown): void };
-
-export function unsafeSilent(): string {
-    try {
-        throw new Error("boom");
-    } catch (error) {
-        const message = "logger.error";
-        return message;
-    }
-}
-
-export function safeSilent(): void {
-    try {
-        throw new Error("boom");
-    } catch (error) {
-        logger.error(error);
-    }
 }
 TSEOF
     fixture_target_file=$temp_dir/src/example.ts
@@ -1743,11 +1723,6 @@ TSEOF
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_stdout" 'src/silent[.]ts' 'silentCatch' 'bun silent catch structural fixture' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
     if ! grep -Fq 'value > baseline' "$temp_dir/src/example.ts"; then
         printf '%s\n' '[fixture_assert_bun_format] unsafe greaterThanComparison edit was unexpectedly formatted' >&2
         fixture_remove_temp_dir "$temp_dir"
@@ -1774,7 +1749,7 @@ fixture_assert_uv_format() {
     fixture_copy_runtime "$temp_dir" uv
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"uv-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[],"allowedLoggingCalls":["\\blogging\\b","\\blogger\\b","\\blog\\b"]}}}
+{"name":"uv-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     fixture_write_file "$temp_dir" src/example.py "$(
@@ -1790,23 +1765,6 @@ PYEOF
         cat <<'PYEOF'
 def unsafe(value: int) -> bool:
     return value > 1
-PYEOF
-    )"
-    fixture_write_file "$temp_dir" src/silent.py "$(
-        cat <<'PYEOF'
-def unsafe_silent() -> str:
-    try:
-        raise RuntimeError("boom")
-    except Exception as error:
-        message = "logger.error"
-        return message
-
-
-def safe_silent(logger) -> None:
-    try:
-        raise RuntimeError("boom")
-    except Exception as error:
-        logger.exception("failed: %s", error)
 PYEOF
     )"
     fixture_target_file=$temp_dir/src/example.py
@@ -1859,11 +1817,6 @@ PYEOF
         exit 1
     fi
     if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_stdout" 'src/example[.]py' 'greaterThanComparison' 'uv check canonical finding prefix' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_stdout" 'src/silent[.]py' 'silentCatch' 'uv silent catch structural fixture' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
@@ -2128,7 +2081,7 @@ fixture_assert_bun_oxlint_clean() {
     fixture_copy_runtime "$temp_dir" bun
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-oxlint-clean-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"earlyReturn":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"emptyCatchBlock":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"importOverFqn":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-oxlint-clean-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
@@ -2163,10 +2116,10 @@ TSEOF
     exit 1
 }
 
-# Verify Bun oxlint runtime detects all 12 harness categories.
+# Verify Bun oxlint runtime detects all 8 harness categories.
 #
-#     Writes a source file that violates each of the 12 oxlint-owned categories
-#     and asserts that harness-check reports all 12 categories.
+#     Writes a source file that violates each of the 8 oxlint-owned categories
+#     and asserts that harness-check reports all 8 categories.
 #
 #     Requires `bun` and `bunx` in PATH. Gracefully skips with a warning when either is unavailable.
 #
@@ -2186,7 +2139,7 @@ fixture_assert_bun_oxlint_detects() {
     fixture_copy_runtime "$temp_dir" bun
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-oxlint-detects-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"earlyReturn":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"emptyCatchBlock":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"importOverFqn":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-oxlint-detects-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
@@ -2196,34 +2149,6 @@ JSONEOF
  */
 export function gtViolation(a: number, b: number): boolean {
     return a > b;
-}
-
-/**
- * Violation: earlyReturn exits before final statement.
- */
-export function earlyViolation(x: number): number {
-    if (x < 0) {
-        return 0;
-    }
-    return x * 2;
-}
-
-/**
- * Violation: silentCatch catches without rethrow or logging.
- */
-export function silentViolation(): void {
-    try {
-        throw new Error("test");
-    } catch (e) {
-        const x = 1;
-    }
-}
-
-/**
- * Violation: importOverFqn uses FQN without import.
- */
-export function fqnViolation(): string {
-    return utils.helpers.format("test");
 }
 
 /** Violation: multilineDocStyle uses single-line JSDoc */
@@ -2236,16 +2161,6 @@ export function undocumentedFunc(): void {}
  */
 export function loggingViolation(): void {
     console.log("test");
-}
-
-/**
- * Violation: emptyCatchBlock has empty catch.
- */
-export function emptyViolation(): void {
-    try {
-        throw new Error("x");
-    } catch (e) {
-    }
 }
 
 /**
@@ -2288,21 +2203,6 @@ TSEOF
     else
         missing_categories="$missing_categories greaterThanComparison"
     fi
-    if printf '%s' "$fixture_combined_output" | grep -qE 'earlyReturn'; then
-        detected_categories=$((detected_categories + 1))
-    else
-        missing_categories="$missing_categories earlyReturn"
-    fi
-    if printf '%s' "$fixture_combined_output" | grep -qE 'silentCatch'; then
-        detected_categories=$((detected_categories + 1))
-    else
-        missing_categories="$missing_categories silentCatch"
-    fi
-    if printf '%s' "$fixture_combined_output" | grep -qE 'importOverFqn'; then
-        detected_categories=$((detected_categories + 1))
-    else
-        missing_categories="$missing_categories importOverFqn"
-    fi
     if printf '%s' "$fixture_combined_output" | grep -qE 'multilineDocStyle'; then
         detected_categories=$((detected_categories + 1))
     else
@@ -2317,11 +2217,6 @@ TSEOF
         detected_categories=$((detected_categories + 1))
     else
         missing_categories="$missing_categories unstructuredLogging"
-    fi
-    if printf '%s' "$fixture_combined_output" | grep -qE 'emptyCatchBlock'; then
-        detected_categories=$((detected_categories + 1))
-    else
-        missing_categories="$missing_categories emptyCatchBlock"
     fi
     if printf '%s' "$fixture_combined_output" | grep -qE 'ifStatementBraces'; then
         detected_categories=$((detected_categories + 1))
@@ -2343,14 +2238,14 @@ TSEOF
     else
         missing_categories="$missing_categories uncheckedCastSuppression"
     fi
-    if [ "$detected_categories" -ne 12 ]; then
-        printf 'fixture_assert_bun_oxlint_detects: only detected %d of 12 categories\n' "$detected_categories" >&2
+    if [ "$detected_categories" -ne 8 ]; then
+        printf 'fixture_assert_bun_oxlint_detects: only detected %d of 8 categories\n' "$detected_categories" >&2
         printf 'missing:%s\n' "$missing_categories" >&2
         printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    printf 'fixture_assert_bun_oxlint_detects passed: all 12 categories detected\n' >&2
+    printf 'fixture_assert_bun_oxlint_detects passed: all 8 categories detected\n' >&2
     fixture_remove_temp_dir "$temp_dir"
     return 0
 }
@@ -2610,7 +2505,7 @@ KOTLINEOF
     )"
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-  {"name":"gradle-location-fixture","filePresence":{"enabled":true,"severity":"ERROR","paths":["MISSING.md"],"parameters":{}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","messages":{"default":"if/else without braces; wrap the body in `{ ... }`"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"importOverFqn":{"enabled":true,"severity":"ERROR","messages":{"default":"fully qualified name `{name}` used inline; add an import and use the simple name"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"allowedFqnPatterns":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","messages":{"default":"avoid suppression of forbidden tokens (`{snippet}`); refactor to type-safe cast or explicit handling"},"parameters":{"sourceRoots":["src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenSuppressions":["UNCHECKED_CAST"],"allowedSuppressions":[]}},"implicitLambdaIt":{"enabled":false},"publicDeclarationDocComment":{"enabled":false},"wildcardImport":{"enabled":false}}
+  {"name":"gradle-location-fixture","filePresence":{"enabled":true,"severity":"ERROR","paths":["MISSING.md"],"parameters":{}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","messages":{"default":"if/else without braces; wrap the body in `{ ... }`"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}},"importOverFqn":{"enabled":true,"severity":"ERROR","messages":{"default":"fully qualified name `{name}` used inline; add an import and use the simple name"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"allowedFqnPatterns":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","messages":{"default":"avoid suppression of forbidden tokens (`{snippet}`); refactor to type-safe cast or explicit handling"},"parameters":{"sourceRoots":["src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenSuppressions":["UNCHECKED_CAST"],"allowedSuppressions":[]}},"implicitLambdaIt":{"enabled":false},"publicDeclarationDocComment":{"enabled":false},"wildcardImport":{"enabled":false}}
 JSONEOF
     )"
     fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/LocationFixture.kt "$(
@@ -2621,41 +2516,6 @@ class LocationFixture {
     fun later(flag: Boolean): String {
         if (flag) return "value"
         return "other"
-    }
-}
-KOTLINEOF
-    )"
-    fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/SilentFixture.kt "$(
-        cat <<'KOTLINEOF'
-package fixture
-
-class SilentFixture {
-    fun unsafeSilent(): String {
-        return try {
-            risky()
-            "ok"
-        } catch (error: RuntimeException) {
-            val message = "logger.warn"
-            message
-        }
-    }
-
-    fun safeSilent(logger: FixtureLogger) {
-        try {
-            risky()
-        } catch (error: RuntimeException) {
-            logger.warn(error.message)
-        }
-    }
-
-    private fun risky() {
-        throw RuntimeException("boom")
-    }
-}
-
-class FixtureLogger {
-    fun warn(message: String?) {
-        message?.length
     }
 }
 KOTLINEOF
@@ -2698,12 +2558,6 @@ KOTLINEOF
         exit 1
     fi
     if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" '[ERROR] filePresence: missing file: MISSING.md' 'gradle repository-level finding' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'buildSrc/src/main/kotlin/fixture/SilentFixture[.]kt' 'silentCatch' 'gradle silent catch structural fixture' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
@@ -2962,76 +2816,6 @@ class BrokenFixture {
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    fixture_remove_temp_dir "$temp_dir"
-}
-
-# Verify Maven silent-catch detection uses JavaParser structure rather than body text.
-#
-#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
-#
-# @return Returns 0 on success or when mvn is missing.
-# @exit Exits with status 1 when the Maven silent-catch fixture fails.
-fixture_assert_maven_silent_catch() {
-    if ! mvn_path=$(command -v mvn 2>&1); then
-        printf 'warning: mvn not in PATH; skipping maven silent-catch fixture check\n' >&2
-        return 0
-    fi
-    : "$mvn_path"
-    temp_dir=$(fixture_create_temp_dir)
-    fixture_copy_runtime "$temp_dir" maven
-    fixture_write_manifest "$temp_dir" "$(
-        cat <<'JSONEOF'
-{"name":"maven-silent-catch-fixture","silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch; rethrow, translate to a Finding, or log via structured logger"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenLoggingApis":["System.out.println","System.out.print","System.err.println","System.err.print"],"allowedLoggingApis":[]}}}
-JSONEOF
-    )"
-    fixture_write_file "$temp_dir" src/main/java/fixture/SilentFixture.java "$(
-        cat <<'JAVAEOF'
-package fixture;
-
-final class SilentFixture {
-    String unsafeSilent() {
-        try {
-            risky();
-            return "ok";
-        } catch (RuntimeException error) {
-            String message = "logger.warn";
-            return message;
-        }
-    }
-
-    void safeSilent(FixtureLogger logger) {
-        try {
-            risky();
-        } catch (RuntimeException error) {
-            logger.warn(error.getMessage());
-        }
-    }
-
-    private void risky() {
-        throw new RuntimeException("boom");
-    }
-}
-
-final class FixtureLogger {
-    void warn(String message) {
-        message.length();
-    }
-}
-JAVAEOF
-    )"
-    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
-        printf '%s\n' '[fixture_assert_maven_silent_catch] expected harnessCheck to report silent catch' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'src/main/java/fixture/SilentFixture[.]java' 'silentCatch' 'maven silent catch structural fixture' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    : "$fixture_assertion_output"
     fixture_remove_temp_dir "$temp_dir"
 }
 
@@ -3930,41 +3714,6 @@ echo "ok"
     fi
     fixture_remove_temp_dir "$temp_dir"
 }
-# Verify Maven silent-catch with malformed Java reports parseError without crashing.
-#
-#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
-#
-# @return Returns 0 on success or when mvn is missing.
-# @exit Exits with status 1 when parseError finding is missing for malformed Java.
-fixture_assert_maven_silent_catch_parse_error() {
-    if ! mvn_path=$(command -v mvn 2>&1); then
-        printf 'warning: mvn not in PATH; skipping maven silent-catch parse-error fixture check\n' >&2
-        return 0
-    fi
-    : "$mvn_path"
-    temp_dir=$(fixture_create_temp_dir)
-    fixture_copy_runtime "$temp_dir" maven
-    fixture_write_manifest "$temp_dir" '{"name":"maven-silent-catch-parse-error-fixture","silentCatch":{"enabled":true,"severity":"ERROR","messages":{"default":"silent catch"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[]}}}'
-    fixture_write_file "$temp_dir" src/main/java/fixture/BrokenCatch.java 'package fixture;
-class BrokenCatch {
-    void bad( {
-        try {} catch (Exception e) {}
-    }
-}
-'
-    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
-        printf '%s\n' '[fixture_assert_maven_silent_catch_parse_error] expected check to fail' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'parseError' 'maven silent-catch parse error reports parseError' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_remove_temp_dir "$temp_dir"
-}
 # Verify Maven worktree symlink under .claude/worktrees is excluded from violation reports.
 #
 #     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
@@ -4821,7 +4570,6 @@ fixture_assert_gradle_location
 fixture_assert_gradle_greater_than_format
 fixture_assert_gradle_source_root_safety
 fixture_assert_gradle_parse_error
-fixture_assert_maven_silent_catch
 fixture_assert_maven_import_over_fqn
 fixture_assert_maven_greater_than_format
 fixture_assert_maven_source_root_safety
@@ -4880,7 +4628,6 @@ repositories { mavenCentral() }
 }
 fixture_assert_double_bracket_rejection
 fixture_assert_gradle_hook_from_parameters
-fixture_assert_maven_silent_catch_parse_error
 fixture_assert_maven_worktree_symlink_excluded
 fixture_assert_shell_format_fail_closed_preflight
 fixture_assert_emit_path_message_special_chars

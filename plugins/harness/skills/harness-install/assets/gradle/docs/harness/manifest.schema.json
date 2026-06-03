@@ -86,16 +86,10 @@
     "symlinkSafety": {
       "$ref": "#/$defs/addOn"
     },
-    "emptyCatchBlock": {
-      "$ref": "#/$defs/addOn"
-    },
     "greaterThanComparison": {
       "$ref": "#/$defs/addOn"
     },
     "leafFunctionBlankLines": {
-      "$ref": "#/$defs/addOn"
-    },
-    "silentCatch": {
       "$ref": "#/$defs/addOn"
     },
     "unstructuredLogging": {

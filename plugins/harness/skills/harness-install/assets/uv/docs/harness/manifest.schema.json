@@ -77,22 +77,10 @@
     "ciHookCommandParity": {
       "$ref": "#/$defs/addOn"
     },
-    "earlyReturn": {
-      "$ref": "#/$defs/addOn"
-    },
-    "emptyCatchBlock": {
-      "$ref": "#/$defs/addOn"
-    },
     "greaterThanComparison": {
       "$ref": "#/$defs/addOn"
     },
-    "importOverFqn": {
-      "$ref": "#/$defs/addOn"
-    },
     "publicDeclarationDocComment": {
-      "$ref": "#/$defs/addOn"
-    },
-    "silentCatch": {
       "$ref": "#/$defs/addOn"
     },
     "unstructuredLogging": {
