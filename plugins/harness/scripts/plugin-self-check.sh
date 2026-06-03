@@ -678,8 +678,21 @@ fixture_copy_runtime() {
             source_dir=$root/skills/harness-install/assets/$stack_name/runtime
             mkdir -p "$temp_dir"
             cp -R "$source_dir"/. "$temp_dir"/
-            if [ "$stack_name" = bun ] && [ -f "$root/skills/harness-install/assets/$stack_name/.oxfmtrc.json" ]; then
-                cp "$root/skills/harness-install/assets/$stack_name/.oxfmtrc.json" "$temp_dir/"
+            if [ "$stack_name" = bun ]; then
+                if [ -f "$root/skills/harness-install/assets/$stack_name/.oxfmtrc.json" ]; then
+                    cp "$root/skills/harness-install/assets/$stack_name/.oxfmtrc.json" "$temp_dir/"
+                fi
+                if [ -f "$root/skills/harness-install/assets/$stack_name/.oxlintrc.json" ]; then
+                    cp "$root/skills/harness-install/assets/$stack_name/.oxlintrc.json" "$temp_dir/"
+                fi
+                if [ -d "$root/skills/harness-install/assets/$stack_name/docs" ]; then
+                    mkdir -p "$temp_dir/docs"
+                    cp -R "$root/skills/harness-install/assets/$stack_name/docs/." "$temp_dir/docs/"
+                fi
+                if [ -d "$temp_dir/oxlint-plugins" ]; then
+                    mkdir -p "$temp_dir/docs/harness/bun"
+                    mv "$temp_dir/oxlint-plugins" "$temp_dir/docs/harness/bun/"
+                fi
             fi
             ;;
         gradle)

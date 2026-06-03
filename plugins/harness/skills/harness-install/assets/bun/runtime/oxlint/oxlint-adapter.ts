@@ -1,6 +1,5 @@
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
-import { join } from "node:path";
 import type { RuleContext } from "../core/rule-context";
 import type { Finding } from "../rules/harness-check-rule";
 import { logger } from "../logger";
@@ -38,9 +37,8 @@ export function runOxlint(ctx: RuleContext): Finding[] {
   if (files.length === 0) {
     return [];
   }
-  const configPath = join(import.meta.dir, "..", ".oxlintrc.json");
   const proc = Bun.spawnSync(
-    ["bunx", "oxlint@1.68.0", "--config", configPath, "--format", "json", ...files],
+    ["bunx", "oxlint@1.68.0", "--format", "json", ...files],
     { cwd: process.cwd() },
   );
   const stdout = proc.stdout ? new TextDecoder().decode(proc.stdout) : "";
