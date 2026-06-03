@@ -1960,6 +1960,105 @@ fixture_assert_bun_glob_source_root_safety() {
     fixture_remove_temp_dir "$fixture_root"
 }
 
+# Verify Bun scaffoldLeaks scan bases distinguish absent from escaping paths.
+#
+#     scaffoldLeaks resolves scope.bases through collectFilesUnder. An absent
+#     but in-root base (for example `.github` on a `--no-ci` install) MUST be
+#     skipped with no finding, while a present base is still scanned (no
+#     whole-rule short-circuit), a lexically escaping base (`../outside`) still
+#     reports an escape, and an in-root symlink whose target is outside the root
+#     still reports an escape. Locks the born-broken `--no-ci` regression without
+#     weakening containment.
+#
+#     Requires `bun` in PATH. Gracefully skips with a warning when bun is
+#     unavailable.
+#
+# @return Returns 0 on success or when bun is missing.
+# @exit Exits with status 1 when an absent base is reported, a present base is
+#     skipped, or an escaping base is not reported.
+fixture_assert_bun_scaffold_leaks_source_root_safety() {
+    if ! bun_path=$(command -v bun 2>&1); then
+        printf 'warning: bun not in PATH; skipping bun scaffoldLeaks source-root safety fixture check\n' >&2
+        return 0
+    fi
+    : "$bun_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" bun
+    mkdir -p "$target_dir/active"
+    fixture_write_file "$target_dir" active/leak.md '# Active asset
+
+This file still carries an {{UNRESOLVED}} template token.
+'
+    fixture_write_manifest "$target_dir" '{"name":"bun-scaffold-absent-base-fixture","scaffoldLeaks":{"enabled":true,"severity":"ERROR","parameters":{"scope":{"bases":["active",".github"],"excludedSubtrees":[],"extensions":["md"]},"patterns":[{"pattern":"\\{\\{","label":"unresolved template token"}]}}}'
+    if fixture_run_command "$target_dir" "bun \"$target_dir/harness-check.ts\""; then
+        printf '%s\n' '[fixture_assert_bun_scaffold_leaks_source_root_safety] present-base leak unexpectedly produced no error' >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'unresolved template token in active asset: active/leak.md' 'bun scaffoldLeaks present base scanned' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -Fq 'escapes repository root: .github'; then
+        printf '%s\n' '[fixture_assert_bun_scaffold_leaks_source_root_safety] absent in-root base .github was reported as escaping' >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_write_file "$fixture_root" outside/leak.md '# Outside asset
+
+Carries an {{UNRESOLVED}} token outside the root.
+'
+    fixture_write_manifest "$target_dir" '{"name":"bun-scaffold-parent-escape-fixture","scaffoldLeaks":{"enabled":true,"severity":"ERROR","parameters":{"scope":{"bases":["../outside"],"excludedSubtrees":[],"extensions":["md"]},"patterns":[{"pattern":"\\{\\{","label":"unresolved template token"}]}}}'
+    if fixture_run_command "$target_dir" "bun \"$target_dir/harness-check.ts\""; then
+        printf '%s\n' '[fixture_assert_bun_scaffold_leaks_source_root_safety] parent-traversal base unexpectedly produced no error' >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'source path escapes repository root: ../outside' 'bun scaffoldLeaks parent traversal base rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -Fq 'token outside the root'; then
+        printf '%s\n' '[fixture_assert_bun_scaffold_leaks_source_root_safety] parent-traversal base was scanned' >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    mkdir -p "$fixture_root/outside-real"
+    fixture_write_file "$fixture_root" outside-real/leak.md '# Symlinked outside asset
+
+Carries an {{UNRESOLVED}} token behind a symlink.
+'
+    ln -s "$fixture_root/outside-real" "$target_dir/linked-base"
+    fixture_write_manifest "$target_dir" '{"name":"bun-scaffold-symlink-escape-fixture","scaffoldLeaks":{"enabled":true,"severity":"ERROR","parameters":{"scope":{"bases":["linked-base"],"excludedSubtrees":[],"extensions":["md"]},"patterns":[{"pattern":"\\{\\{","label":"unresolved template token"}]}}}'
+    if fixture_run_command "$target_dir" "bun \"$target_dir/harness-check.ts\""; then
+        printf '%s\n' '[fixture_assert_bun_scaffold_leaks_source_root_safety] symlink-to-outside base unexpectedly produced no error' >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'source path escapes repository root: linked-base' 'bun scaffoldLeaks symlink-to-outside base rejection' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if printf '%s' "$fixture_combined_output" | grep -Fq 'token behind a symlink'; then
+        printf '%s\n' '[fixture_assert_bun_scaffold_leaks_source_root_safety] symlinked base was scanned' >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    printf 'fixture_assert_bun_scaffold_leaks_source_root_safety passed: absent base skipped, present base scanned, escaping bases rejected\n' >&2
+    fixture_remove_temp_dir "$fixture_root"
+}
+
 # Verify Bun oxlint runtime produces zero findings on compliant code.
 #
 #     Compliant code: single exit (no early return), rethrow in catch (no silent catch),
@@ -4211,6 +4310,7 @@ fixture_assert_shell_format_malformed_manifest
 fixture_assert_bun_source_root_safety
 fixture_assert_bun_symlink_component_safety
 fixture_assert_bun_glob_source_root_safety
+fixture_assert_bun_scaffold_leaks_source_root_safety
 fixture_assert_bun_oxlint_clean
 fixture_assert_bun_oxlint_detects
 fixture_assert_uv_ruff_clean
