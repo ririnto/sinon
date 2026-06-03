@@ -132,15 +132,17 @@ object HarnessKtlintEngine {
         file: Path,
     ): Path? {
         val original = file.readText()
-        val edits = mutableListOf<HarnessTextEdit>()
-        try {
-            ctx.fixEdits = edits
-            runCatching {
-                engine.lint(Code.fromFile(file.toFile())) { }
+        val edits =
+            buildList {
+                ctx.fixEdits = this
+                try {
+                    runCatching {
+                        engine.lint(Code.fromFile(file.toFile())) { }
+                    }
+                } finally {
+                    ctx.fixEdits = null
+                }
             }
-        } finally {
-            ctx.fixEdits = null
-        }
         if (edits.isEmpty()) {
             return null
         }
