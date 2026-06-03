@@ -11,10 +11,15 @@ import type { Severity } from "./severity";
  * Result of resolving a manifest-controlled relative path.
  *
  * When the path is unsafe, `resolved` is the empty string and `safe` is `false`.
+ * When the path is lexically in-root but no filesystem entry exists at it,
+ * `safe` is `false`, `absent` is `true`, and `resolved` holds the resolved path.
+ * An absent path is not a containment violation: there is nothing to read, so
+ * scan callers skip it rather than reporting an escape.
  */
 interface SafePath {
     readonly resolved: string;
     readonly safe: boolean;
+    readonly absent?: boolean;
 }
 
 /**
@@ -23,6 +28,16 @@ interface SafePath {
  */
 function hasLeadingDashComponent(path: string): boolean {
     return path.split(/[\\/]/).some((segment) => segment !== "" && segment.startsWith("-"));
+}
+
+/**
+ * Check whether a filesystem entry physically exists at `path` without
+ * following symlinks. A dangling symlink counts as present so that symlink
+ * containment checks still apply to it. Returns `false` only when no entry
+ * (file, directory, or symlink) exists at the path.
+ */
+function physicallyExists(path: string): boolean {
+    return lstatSync(path, { throwIfNoEntry: false }) !== undefined;
 }
 
 /**
@@ -48,6 +63,9 @@ function resolveSafeManifestPath(rootDirectory: string, path: string): SafePath 
     const resolvedRoot = resolve(rootDirectory);
     if (resolved !== resolvedRoot && !resolved.startsWith(`${resolvedRoot}${sep}`)) {
         return { resolved: "", safe: false };
+    }
+    if (!physicallyExists(resolved)) {
+        return { resolved, safe: false, absent: true };
     }
     try {
         const realRoot = realpathSync(resolvedRoot);
@@ -358,8 +376,12 @@ export function createRuleContext(
     }
 
     function collectFilesUnder(path: string): readonly [readonly string[], readonly Finding[]] {
+        const status = resolveSafeManifestPath(rootDirectory, path);
+        if (status.absent) {
+            return [[], []];
+        }
         const earlyFindings: readonly Finding[] = [
-            ...(!isWithinRoot(path)
+            ...(!status.safe
                 ? [
                       {
                           severity: "ERROR" as const,
