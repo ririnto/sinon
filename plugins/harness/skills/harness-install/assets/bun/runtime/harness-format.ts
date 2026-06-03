@@ -200,7 +200,7 @@ async function main(): Promise<void> {
     }
     const manifest: HarnessManifest = JSON.parse(readFileSync(manifestPath, "utf8"));
     const executionContext = createRuleContext(root, manifest);
-    const oxfmtFiles = executionContext.stackSources("greaterThanComparison");
+    const oxfmtFiles = executionContext.stackSources("publicDeclarationDocComment");
     if (oxfmtFiles.length > 0) {
         const oxfmtProc = Bun.spawnSync(
             ["bunx", "oxfmt@0.53.0", "--write", ...oxfmtFiles],

@@ -3,13 +3,11 @@
 import { expect, test } from "bun:test";
 import { OXLINT_CODE_TO_CATEGORY, OXLINT_FIX_SAFETY, OXLINT_CATEGORIES } from "./oxlint-code-map";
 
-test("OXLINT_CODE_TO_CATEGORY has all 8 codes", () => {
+test("OXLINT_CODE_TO_CATEGORY has all 7 codes", () => {
   const codes = [
-    "harness(greaterThanComparison)",
     "harness(multilineDocStyle)",
     "harness(publicDeclarationDocComment)",
     "eslint(no-console)",
-    "eslint(no-empty)",
     "eslint(curly)",
     "eslint(no-underscore-dangle)",
     "import(no-namespace)",
@@ -18,7 +16,7 @@ test("OXLINT_CODE_TO_CATEGORY has all 8 codes", () => {
   codes.forEach((code) => {
     expect(OXLINT_CODE_TO_CATEGORY[code]).toBeDefined();
   });
-  expect(Object.keys(OXLINT_CODE_TO_CATEGORY).length).toBe(9);
+  expect(Object.keys(OXLINT_CODE_TO_CATEGORY).length).toBe(7);
 });
 
 test("OXLINT_FIX_SAFETY has entries for all categories", () => {
@@ -33,13 +31,13 @@ test("OXLINT_CATEGORIES matches OXLINT_FIX_SAFETY", () => {
   OXLINT_CATEGORIES.forEach((category) => {
     expect(OXLINT_FIX_SAFETY[category]).toBeDefined();
   });
-  expect(OXLINT_CATEGORIES.length).toBe(12);
+  expect(OXLINT_CATEGORIES.length).toBe(7);
 });
 
 test("code to category mappings are consistent", () => {
   const codeToCategory = OXLINT_CODE_TO_CATEGORY;
   const categories = new Set(Object.values(codeToCategory));
-  expect(categories.size).toBe(12);
+  expect(categories.size).toBe(7);
   categories.forEach((category) => {
     expect(OXLINT_CATEGORIES).toContain(category);
   });

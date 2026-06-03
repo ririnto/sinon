@@ -453,26 +453,6 @@
       ]
     }
   },
-  "greaterThanComparison": {
-    "description": "Source files under parameters.sourceRoots MUST NOT use `>` or `>=` comparison operators; smaller value always belongs on the left (`<` / `<=`). Validators implement this via AST: TypeScript compiler API. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "forbidden `>`/`>=` comparison; rewrite with `<`/`<=` so the smaller value is on the left"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "ts",
-        "tsx"
-      ],
-      "includePaths": [],
-      "excludePaths": [],
-      "forbiddenOperators": [">", ">="]
-    }
-  },
   "unstructuredLogging": {
     "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: TypeScript `console.log` / `console.error` / `console.warn`. Use `pino` or equivalent structured logger. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,

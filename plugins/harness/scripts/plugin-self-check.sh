@@ -1670,181 +1670,6 @@ sh docs/harness/shell/harness-check.sh
     fixture_remove_temp_dir "$temp_dir"
 }
 
-# Verify Bun formatter allowlists safe edits and remains idempotent.
-#
-#     Requires `bun` in PATH. Gracefully skips with a warning when bun is
-#     unavailable.
-#
-# @return Returns 0 on success or when bun is missing.
-# @exit Exits with status 1 when the Bun formatter fixture fails.
-fixture_assert_bun_format() {
-    if ! bun_path=$(command -v bun 2>&1); then
-        printf 'warning: bun not in PATH; skipping bun format fixture check\n' >&2
-        return 0
-    fi
-    if ! bunx_path=$(command -v bunx 2>&1); then
-        printf 'warning: bunx not provisioned; skipping bun format fixture check\n' >&2
-        return 0
-    fi
-    : "$bun_path" "$bunx_path"
-    temp_dir=$(fixture_create_temp_dir)
-    fixture_copy_runtime "$temp_dir" bun
-    fixture_write_manifest "$temp_dir" "$(
-        cat <<'JSONEOF'
-{"name":"bun-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
-JSONEOF
-    )"
-    mkdir -p "$temp_dir/src"
-    cat > "$temp_dir/src/example.ts" <<'TSEOF'
-export function compare(value: number): number {
-    const baseline = 1;
-    return value > baseline ? value : baseline;
-}
-TSEOF
-    fixture_target_file=$temp_dir/src/example.ts
-    fixture_before_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    if ! fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-format.ts\""; then
-        printf '%s\n' '[fixture_assert_bun_format] harness-format exited with error' >&2
-        printf '%s\n' "$fixture_stdout" "$fixture_stderr" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    fixture_after_first_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" 'bun format does not apply unsafe fixes to oxlint violations' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-format.ts\""; then
-        printf '%s\n' '[fixture_assert_bun_format] second harness-format exited with error' >&2
-        printf '%s\n' "$fixture_stdout" "$fixture_stderr" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    fixture_after_second_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" 'bun format second run is idempotent' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-check.ts\""; then
-        printf '%s\n' '[fixture_assert_bun_format] expected harness-check to report unsafe findings' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_stdout" 'src/example[.]ts' 'greaterThanComparison' 'bun check canonical finding prefix' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! grep -Fq 'value > baseline' "$temp_dir/src/example.ts"; then
-        printf '%s\n' '[fixture_assert_bun_format] unsafe greaterThanComparison edit was unexpectedly formatted' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    : "$fixture_assertion_output"
-    fixture_remove_temp_dir "$temp_dir"
-}
-
-# Verify uv formatter allowlists safe edits and remains idempotent.
-#
-#     Requires `uv` in PATH. Gracefully skips with a warning when uv is
-#     unavailable.
-#
-# @return Returns 0 on success or when uv is missing.
-# @exit Exits with status 1 when the uv formatter fixture fails.
-fixture_assert_uv_format() {
-    if ! uv_path=$(command -v uv 2>&1); then
-        printf 'warning: uv not in PATH; skipping uv format fixture check\n' >&2
-        return 0
-    fi
-    : "$uv_path"
-    temp_dir=$(fixture_create_temp_dir)
-    fixture_copy_runtime "$temp_dir" uv
-    fixture_write_manifest "$temp_dir" "$(
-        cat <<'JSONEOF'
-{"name":"uv-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}
-JSONEOF
-    )"
-    fixture_write_file "$temp_dir" src/example.py "$(
-        cat <<'PYEOF'
-def compare(value: int) -> int:
-    baseline = 1
-
-
-    return value > baseline
-PYEOF
-    )"
-    fixture_write_file "$temp_dir" src/unsafe.py "$(
-        cat <<'PYEOF'
-def unsafe(value: int) -> bool:
-    return value > 1
-PYEOF
-    )"
-    fixture_target_file=$temp_dir/src/example.py
-    fixture_before_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_format.py\""; then
-        printf '%s\n' '[fixture_assert_uv_format] expected first format to report remaining findings' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    fixture_after_first_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    if ! fixture_assertion_output=$(fixture_assert_checksum_changed "$fixture_before_format_checksum" "$fixture_after_first_format_checksum" 'uv format first run changes fixture file' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'remaining findings after format:' 'uv format reports remaining findings' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_format.py\""; then
-        printf '%s\n' '[fixture_assert_uv_format] expected second format to report remaining findings' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    fixture_after_second_format_checksum=$(fixture_file_checksum "$fixture_target_file")
-    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" 'uv format second run leaves fixture file unchanged' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    blank_run=$(awk 'BEGIN{m=0;c=0} /^$/{c++; if(c>m)m=c; next} {c=0} END{print m}' "$temp_dir/src/example.py")
-    if [ "$blank_run" -gt 1 ]; then
-        printf '%s\n' "[fixture_assert_uv_format] ruff format did not collapse blank lines (max run $blank_run)" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! grep -q '>' "$temp_dir/src/example.py"; then
-        printf '%s\n' '[fixture_assert_uv_format] greater-than comparison was unexpectedly rewritten by format' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if fixture_run_command "$temp_dir" "uv run --quiet --with libcst \"$temp_dir/harness_check.py\""; then
-        printf '%s\n' '[fixture_assert_uv_format] expected harness-check to report unsafe comparison' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_canonical_finding_prefix "$fixture_stdout" 'src/example[.]py' 'greaterThanComparison' 'uv check canonical finding prefix' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! grep -Fq 'value > baseline' "$temp_dir/src/example.py"; then
-        printf '%s\n' '[fixture_assert_uv_format] unsafe greaterThanComparison edit was unexpectedly formatted' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    : "$fixture_assertion_output"
-    fixture_remove_temp_dir "$temp_dir"
-}
 
 # Verify uv ruff runtime accepts clean code with no wildcardImport violations.
 #
@@ -1957,7 +1782,7 @@ fixture_assert_bun_source_root_safety() {
     fixture_root=$(fixture_create_temp_dir)
     target_dir=$fixture_root/target
     fixture_copy_runtime "$target_dir" bun
-    fixture_write_manifest "$target_dir" '{"name":"bun-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["../outside"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}'
+    fixture_write_manifest "$target_dir" '{"name":"bun-source-root-safety-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["../outside"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$fixture_root" outside/OutsideFixture.ts 'export function unsafe(value: number): boolean {
     return value > 1;
 }
@@ -2037,7 +1862,7 @@ fixture_assert_bun_symlink_component_safety() {
 }
 '
     ln -s "$fixture_root/outside-real" "$target_dir/linked-outside"
-    fixture_write_manifest "$target_dir" '{"name":"bun-symlink-component-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["linked-outside"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}'
+    fixture_write_manifest "$target_dir" '{"name":"bun-symlink-component-safety-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["linked-outside"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}'
     linked_outside_checksum_before=$(fixture_file_checksum "$fixture_root/outside-real/LinkedFixture2.ts")
     if fixture_run_command "$target_dir" "bun \"$target_dir/harness-format.ts\""; then
         :
@@ -2097,7 +1922,7 @@ fixture_assert_bun_oxlint_clean() {
     fixture_copy_runtime "$temp_dir" bun
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-oxlint-clean-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-oxlint-clean-fixture","multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
@@ -2155,18 +1980,11 @@ fixture_assert_bun_oxlint_detects() {
     fixture_copy_runtime "$temp_dir" bun
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-oxlint-detects-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-oxlint-detects-fixture","multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
     cat > "$temp_dir/src/violations.ts" <<'TSEOF'
-/**
- * Violation: greaterThanComparison uses > operator.
- */
-export function gtViolation(a: number, b: number): boolean {
-    return a > b;
-}
-
 /** Violation: multilineDocStyle uses single-line JSDoc */
 export function singleLineDoc(): void {}
 
@@ -2214,11 +2032,6 @@ TSEOF
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
     detected_categories=0
     missing_categories=""
-    if printf '%s' "$fixture_combined_output" | grep -qE 'greaterThanComparison'; then
-        detected_categories=$((detected_categories + 1))
-    else
-        missing_categories="$missing_categories greaterThanComparison"
-    fi
     if printf '%s' "$fixture_combined_output" | grep -qE 'multilineDocStyle'; then
         detected_categories=$((detected_categories + 1))
     else
@@ -2254,14 +2067,14 @@ TSEOF
     else
         missing_categories="$missing_categories uncheckedCastSuppression"
     fi
-    if [ "$detected_categories" -ne 8 ]; then
+    if [ "$detected_categories" -ne 7 ]; then
         printf 'fixture_assert_bun_oxlint_detects: only detected %d of 8 categories\n' "$detected_categories" >&2
         printf 'missing:%s\n' "$missing_categories" >&2
         printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    printf 'fixture_assert_bun_oxlint_detects passed: all 8 categories detected\n' >&2
+    printf 'fixture_assert_bun_oxlint_detects passed: all 7 categories detected\n' >&2
     fixture_remove_temp_dir "$temp_dir"
     return 0
 }
@@ -2282,7 +2095,7 @@ fixture_assert_uv_source_root_safety() {
     fixture_root=$(fixture_create_temp_dir)
     target_dir=$fixture_root/target
     fixture_copy_runtime "$target_dir" uv
-    fixture_write_manifest "$target_dir" '{"name":"uv-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["../outside"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}'
+    fixture_write_manifest "$target_dir" '{"name":"uv-source-root-safety-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["../outside"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$fixture_root" outside/OutsideFixture.py 'def unsafe(value: int) -> bool:
     return value > 1
 '
@@ -2318,7 +2131,7 @@ fixture_assert_uv_worktree_excluded() {
     : "$uv_path"
     temp_dir=$(fixture_create_temp_dir)
     fixture_copy_runtime "$temp_dir" uv
-    fixture_write_manifest "$temp_dir" '{"name":"uv-worktree-exclusion-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}'
+    fixture_write_manifest "$temp_dir" '{"name":"uv-worktree-exclusion-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$temp_dir" src/GoodFixture.py 'def safe(value: int) -> bool:
     return value > 1
 '
@@ -2334,7 +2147,7 @@ fixture_assert_uv_worktree_excluded() {
         :
     fi
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'greaterThanComparison' 'uv worktree exclusion reports legitimate finding' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'publicDeclarationDocComment' 'uv worktree exclusion reports legitimate finding' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         printf '%s\n' "$fixture_combined_output" >&2
         fixture_remove_temp_dir "$temp_dir"
@@ -2609,117 +2422,6 @@ KOTLINEOF
     fixture_remove_temp_dir "$temp_dir"
 }
 
-# Verify Gradle greater-than formatting rewrites only side-effect-free operands.
-#
-#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
-#
-# @return Returns 0 on success or when gradle is missing.
-# @exit Exits with status 1 when the Gradle greater-than format fixture fails.
-fixture_assert_gradle_greater_than_format() {
-    if ! gradle_path=$(command -v gradle 2>&1); then
-        printf 'warning: gradle not in PATH; skipping gradle greater-than format fixture check\n' >&2
-        return 0
-    fi
-    : "$gradle_path"
-    temp_dir=$(fixture_create_temp_dir)
-    fixture_copy_runtime "$temp_dir" gradle
-    fixture_write_file "$temp_dir" settings.gradle.kts 'rootProject.name = "gradle-greater-than-format-fixture"'
-    fixture_write_file "$temp_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
-
-repositories { mavenCentral() }
-'
-    fixture_write_manifest "$temp_dir" '{"name":"gradle-greater-than-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin/fixture"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
-    fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt "$(
-        cat <<'KOTLINEOF'
-package fixture
-
-class ComparisonFixture {
-    fun safeNameVsLiteral(left: Int): Boolean {
-        return left > 1
-    }
-
-    fun safeLiteralVsName(left: Int): Boolean {
-        return 2 > left
-    }
-
-    fun unsafeNameVsName(left: Int, right: Int): Boolean {
-        return left > right
-    }
-
-    fun unsafeCall(left: Int): Boolean {
-        return compute() > left
-    }
-
-    private fun compute(): Int {
-        return 2
-    }
-}
-KOTLINEOF
-    )"
-    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
-        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected first format to report remaining unsafe comparison' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'remaining findings after format:' 'gradle greater-than format reports remaining findings' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_after_first_format_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt")
-    if ! grep -Fq 'return 1 < left' "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt"; then
-        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected name-vs-literal comparison to be rewritten' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! grep -Fq 'return left < 2' "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt"; then
-        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected literal-vs-name comparison to be rewritten' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! grep -Fq 'return left > right' "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt"; then
-        printf '%s\n' '[fixture_assert_gradle_greater_than_format] name-vs-name comparison was unexpectedly rewritten' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! grep -Fq 'return compute() > left' "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt"; then
-        printf '%s\n' '[fixture_assert_gradle_greater_than_format] call comparison was unexpectedly rewritten' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
-        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected second format to report remaining unsafe comparison' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    fixture_after_second_format_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/ComparisonFixture.kt")
-    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" 'gradle greater-than format second run' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'no files formatted' 'gradle greater-than format reports no-op second run' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessCheck'; then
-        printf '%s\n' '[fixture_assert_gradle_greater_than_format] expected unsafe comparison to remain a finding' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'buildSrc/src/main/kotlin/fixture/ComparisonFixture[.]kt' 'greaterThanComparison' 'gradle greater-than unsafe remainder' 2>&1; then
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_remove_temp_dir "$temp_dir"
-}
 
 # Verify Gradle AST source roots cannot escape the target root.
 #
@@ -2741,13 +2443,11 @@ fixture_assert_gradle_source_root_safety() {
 
 repositories { mavenCentral() }
 '
-    fixture_write_manifest "$target_dir" '{"name":"gradle-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["../outside"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_manifest "$target_dir" '{"name":"gradle-source-root-safety-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["../outside"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$fixture_root" outside/OutsideFixture.kt 'package outside
 
-class OutsideFixture {
-    fun unsafe(left: Int): Boolean {
-        return left > 1
-    }
+fun undocumented(left: Int): Boolean {
+    return left > 1
 }'
     fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.kt")
     if fixture_run_command "$target_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
@@ -2793,7 +2493,7 @@ fixture_assert_gradle_parse_error() {
 
 repositories { mavenCentral() }
 '
-    fixture_write_manifest "$temp_dir" '{"name":"gradle-parse-error-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/harness-fixtures/kotlin/fixture"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_manifest "$temp_dir" '{"name":"gradle-parse-error-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src/harness-fixtures/kotlin/fixture"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$temp_dir" src/harness-fixtures/kotlin/fixture/BrokenFixture.kt 'package fixture
 
 class BrokenFixture {
@@ -2897,94 +2597,6 @@ JAVAEOF
     fixture_remove_temp_dir "$temp_dir"
 }
 
-# Verify Maven greater-than formatting rewrites only side-effect-free operands.
-#
-#     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
-#
-# @return Returns 0 on success or when mvn is missing.
-# @exit Exits with status 1 when the Maven greater-than format fixture fails.
-fixture_assert_maven_greater_than_format() {
-    if ! mvn_path=$(command -v mvn 2>&1); then
-        printf 'warning: mvn not in PATH; skipping maven greater-than format fixture check\n' >&2
-        return 0
-    fi
-    : "$mvn_path"
-    temp_dir=$(fixture_create_temp_dir)
-    fixture_copy_runtime "$temp_dir" maven
-    fixture_write_manifest "$temp_dir" '{"name":"maven-greater-than-format-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
-    fixture_write_file "$temp_dir" src/main/java/fixture/ComparisonFixture.java "$(
-        cat <<'JAVAEOF'
-package fixture;
-
-final class ComparisonFixture {
-    boolean safe(int left) {
-        return left > 1;
-    }
-
-    boolean unsafe(int left) {
-        return compute() > left;
-    }
-
-    private int compute() {
-        return 2;
-    }
-}
-JAVAEOF
-    )"
-    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
-        printf '%s\n' '[fixture_assert_maven_greater_than_format] expected first format to report remaining unsafe comparison' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'remaining findings after format:' 'maven greater-than format reports remaining findings' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_after_first_format_checksum=$(fixture_file_checksum "$temp_dir/src/main/java/fixture/ComparisonFixture.java")
-    if ! grep -Fq 'return 1 < left;' "$temp_dir/src/main/java/fixture/ComparisonFixture.java"; then
-        printf '%s\n' '[fixture_assert_maven_greater_than_format] expected simple comparison to be rewritten' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! grep -Fq 'return compute() > left;' "$temp_dir/src/main/java/fixture/ComparisonFixture.java"; then
-        printf '%s\n' '[fixture_assert_maven_greater_than_format] unsafe comparison was unexpectedly rewritten' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
-        printf '%s\n' '[fixture_assert_maven_greater_than_format] expected second format to report remaining unsafe comparison' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    fixture_after_second_format_checksum=$(fixture_file_checksum "$temp_dir/src/main/java/fixture/ComparisonFixture.java")
-    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_after_first_format_checksum" "$fixture_after_second_format_checksum" 'maven greater-than format second run' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'no files formatted' 'maven greater-than format reports no-op second run' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
-        printf '%s\n' '[fixture_assert_maven_greater_than_format] expected unsafe comparison to remain a finding' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assert_canonical_finding_prefix "$fixture_combined_output" 'src/main/java/fixture/ComparisonFixture[.]java' 'greaterThanComparison' 'maven greater-than unsafe remainder' 2>&1; then
-        printf '%s\n' "$fixture_combined_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_remove_temp_dir "$temp_dir"
-}
 # Verify Maven AST source roots cannot escape the target root.
 #
 #     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
@@ -3000,13 +2612,10 @@ fixture_assert_maven_source_root_safety() {
     fixture_root=$(fixture_create_temp_dir)
     target_dir=$fixture_root/target
     fixture_copy_runtime "$target_dir" maven
-    fixture_write_file "$target_dir" docs/harness/manifest.json '{"name":"maven-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["../outside"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_file "$target_dir" docs/harness/manifest.json '{"name":"maven-source-root-safety-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["../outside"],"extensions":["java"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$fixture_root" outside/OutsideFixture.java 'package outside;
 
-class OutsideFixture {
-    boolean unsafe(int left) {
-        return left > 1;
-    }
+public class OutsideFixture {
 }'
     fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.java")
     if fixture_run_command "$target_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
@@ -3030,7 +2639,7 @@ class OutsideFixture {
         fixture_remove_temp_dir "$fixture_root"
         exit 1
     fi
-    fixture_write_manifest "$target_dir" '{"name":"maven-source-root-safety-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/main/{java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_manifest "$target_dir" '{"name":"maven-source-root-safety-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src/main/{java"],"extensions":["java"],"includePaths":[],"excludePaths":[]}}}'
     fixture_before_checksum=$(fixture_file_checksum "$fixture_root/outside/OutsideFixture.java")
     if fixture_run_command "$target_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:format'; then
         printf '%s\n' "[fixture_assert_maven_source_root_safety] expected harnessFormat to fail on invalid source roots"
@@ -3192,13 +2801,11 @@ fixture_assert_gradle_malformed_include_exclude() {
 
 repositories { mavenCentral() }
 '
-    fixture_write_manifest "$temp_dir" '{"name":"gradle-malformed-include-exclude-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin/fixture"],"extensions":["kt"],"includePaths":["[["],"excludePaths":["[[["],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_manifest "$temp_dir" '{"name":"gradle-malformed-include-exclude-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["buildSrc/src/main/kotlin/fixture"],"extensions":["kt"],"includePaths":["[["],"excludePaths":["[[["]}}}'
     fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/MalformedGlobFixture.kt 'package fixture
 
-class MalformedGlobFixture {
-    fun bad(left: Int): Boolean {
-        return left > 1
-    }
+fun undocumented(left: Int): Boolean {
+    return left > 1
 }'
     if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessCheck'; then
         printf '%s\n' '[fixture_assert_gradle_malformed_include_exclude] expected harnessCheck to fail on malformed globs' >&2
@@ -3260,21 +2867,17 @@ fixture_assert_gradle_worktree_excluded() {
 
 repositories { mavenCentral() }
 '
-    fixture_write_manifest "$temp_dir" '{"name":"gradle-worktree-exclusion-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["app/src/main/kotlin",".claude/worktrees/**/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_manifest "$temp_dir" '{"name":"gradle-worktree-exclusion-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["app/src/main/kotlin",".claude/worktrees/**/src/main/kotlin"],"extensions":["kt"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$temp_dir" app/src/main/kotlin/fixture/GoodFixture.kt 'package fixture
 
-class GoodFixture {
-    fun safe(left: Int): Boolean {
-        return left > 1
-    }
+fun undocumented(left: Int): Boolean {
+    return left > 1
 }'
     mkdir -p "$temp_dir/.claude/worktrees/abc1234/src/main/kotlin"
     fixture_write_file "$temp_dir" ".claude/worktrees/abc1234/src/main/kotlin/WorktreeFixture.kt" 'package fixture
 
-class WorktreeFixture {
-    fun bad(left: Int): Boolean {
-        return left > 1
-    }
+fun alsoUndocumented(left: Int): Boolean {
+    return left > 1
 }'
     worktree_file=$temp_dir/.claude/worktrees/abc1234/src/main/kotlin/WorktreeFixture.kt
     worktree_before_checksum=$(fixture_file_checksum "$worktree_file")
@@ -3284,7 +2887,7 @@ class WorktreeFixture {
         exit 1
     fi
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'greaterThanComparison' 'gradle worktree exclusion reports legitimate finding' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'publicDeclarationDocComment' 'gradle worktree exclusion reports legitimate finding' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
@@ -3308,57 +2911,6 @@ class WorktreeFixture {
     fi
     fixture_remove_temp_dir "$temp_dir"
 }
-# Verify Gradle greater-than formatter preserves commented expressions.
-#
-#     Requires `gradle` in PATH. Gracefully skips with a warning when gradle is unavailable.
-#
-# @return Returns 0 on success or when gradle is missing.
-# @exit Exits with status 1 when commented comparison is rewritten.
-fixture_assert_gradle_greater_than_commented() {
-    if ! gradle_path=$(command -v gradle 2>&1); then
-        printf 'warning: gradle not in PATH; skipping gradle greater-than commented fixture check\n' >&2
-        return 0
-    fi
-    : "$gradle_path"
-    temp_dir=$(fixture_create_temp_dir)
-    fixture_copy_runtime "$temp_dir" gradle
-    fixture_write_file "$temp_dir" settings.gradle.kts 'rootProject.name = "gradle-greater-than-commented-fixture"'
-    fixture_write_file "$temp_dir" build.gradle.kts 'plugins { id("com.ririnto.sinon.harness") }
-
-repositories { mavenCentral() }
-'
-    fixture_write_manifest "$temp_dir" '{"name":"gradle-greater-than-commented-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["buildSrc/src/main/kotlin/fixture"],"extensions":["kt"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
-    fixture_write_file "$temp_dir" buildSrc/src/main/kotlin/fixture/CommentedFixture.kt "$(
-        cat <<'KOTLINEOF'
-package fixture
-
-class CommentedFixture {
-    fun safe(left: Int): Boolean {
-        // left > 1 is intentionally commented
-        return left < 1
-    }
-}
-KOTLINEOF
-    )"
-    fixture_before_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/CommentedFixture.kt")
-    if fixture_run_command "$temp_dir" 'gradle --console=plain --no-daemon harnessFormat'; then
-        :
-    else
-        :
-    fi
-    fixture_after_checksum=$(fixture_file_checksum "$temp_dir/buildSrc/src/main/kotlin/fixture/CommentedFixture.kt")
-    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$fixture_before_checksum" "$fixture_after_checksum" 'gradle commented expression unchanged' 2>&1); then
-        printf '%s\n' "$fixture_assertion_output" >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    if ! grep -Fq '// left > 1 is intentionally commented' "$temp_dir/buildSrc/src/main/kotlin/fixture/CommentedFixture.kt"; then
-        printf '%s\n' '[fixture_assert_gradle_greater_than_commented] commented greater-than expression was rewritten' >&2
-        fixture_remove_temp_dir "$temp_dir"
-        exit 1
-    fi
-    fixture_remove_temp_dir "$temp_dir"
-}
 # Verify Maven malformed includePaths and excludePaths render findings and do not crash.
 #
 #     Requires `mvn` in PATH. Gracefully skips with a warning when mvn is unavailable.
@@ -3373,13 +2925,10 @@ fixture_assert_maven_malformed_include_exclude() {
     : "$mvn_path"
     temp_dir=$(fixture_create_temp_dir)
     fixture_copy_runtime "$temp_dir" maven
-    fixture_write_manifest "$temp_dir" '{"name":"maven-malformed-include-exclude-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":["[["],"excludePaths":["[[["],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_manifest "$temp_dir" '{"name":"maven-malformed-include-exclude-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":["[["],"excludePaths":["[[["]}}}'
     fixture_write_file "$temp_dir" src/main/java/fixture/MalformedGlobFixture.java 'package fixture;
 
-final class MalformedGlobFixture {
-    boolean bad(int left) {
-        return left > 1;
-    }
+public class MalformedGlobFixture {
 }'
     if fixture_run_command "$temp_dir" 'mvn -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check'; then
         printf '%s\n' '[fixture_assert_maven_malformed_include_exclude] expected harnessCheck to fail on malformed globs' >&2
@@ -3436,21 +2985,15 @@ fixture_assert_maven_worktree_excluded() {
     : "$mvn_path"
     temp_dir=$(fixture_create_temp_dir)
     fixture_copy_runtime "$temp_dir" maven
-    fixture_write_manifest "$temp_dir" '{"name":"maven-worktree-exclusion-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_manifest "$temp_dir" '{"name":"maven-worktree-exclusion-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$temp_dir" src/main/java/fixture/GoodFixture.java 'package fixture;
 
-final class GoodFixture {
-    boolean safe(int left) {
-        return left > 1;
-    }
+public class GoodFixture {
 }'
     mkdir -p "$temp_dir/.claude/worktrees/abc1234/src/main/java"
     fixture_write_file "$temp_dir" ".claude/worktrees/abc1234/src/main/java/WorktreeFixture.java" 'package fixture;
 
-class WorktreeFixture {
-    boolean bad(int left) {
-        return left > 1;
-    }
+public class WorktreeFixture {
 }'
     worktree_file=$temp_dir/.claude/worktrees/abc1234/src/main/java/WorktreeFixture.java
     worktree_before_checksum=$(fixture_file_checksum "$worktree_file")
@@ -3460,7 +3003,7 @@ class WorktreeFixture {
         exit 1
     fi
     fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
-    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'greaterThanComparison' 'maven worktree exclusion reports legitimate finding' 2>&1); then
+    if ! fixture_assertion_output=$(fixture_assert_output_contains "$fixture_combined_output" 'publicDeclarationDocComment' 'maven worktree exclusion reports legitimate finding' 2>&1); then
         printf '%s\n' "$fixture_assertion_output" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
@@ -3498,7 +3041,7 @@ fixture_assert_maven_parse_error() {
     : "$mvn_path"
     temp_dir=$(fixture_create_temp_dir)
     fixture_copy_runtime "$temp_dir" maven
-    fixture_write_manifest "$temp_dir" '{"name":"maven-parse-error-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"forbidden greater-than comparison; rewrite with less-than form so the smaller value is on the left"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_manifest "$temp_dir" '{"name":"maven-parse-error-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$temp_dir" src/main/java/fixture/BrokenFixture.java 'package fixture;
 
 class BrokenFixture {
@@ -3744,7 +3287,7 @@ fixture_assert_maven_worktree_symlink_excluded() {
     : "$mvn_path"
     temp_dir=$(fixture_create_temp_dir)
     fixture_copy_runtime "$temp_dir" maven
-    fixture_write_manifest "$temp_dir" '{"name":"maven-worktree-symlink-fixture","greaterThanComparison":{"enabled":true,"severity":"ERROR","messages":{"default":"bad"},"parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[],"forbiddenOperators":[">",">="]}}}'
+    fixture_write_manifest "$temp_dir" '{"name":"maven-worktree-symlink-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src/main/java"],"extensions":["java"],"includePaths":[],"excludePaths":[]}}}'
     fixture_write_file "$temp_dir" src/main/java/fixture/Ok.java 'package fixture;
 final class Ok {
     boolean safe() { return true; }
@@ -4279,9 +3822,9 @@ reject_prefixed_rule_ids(manifest, "common manifest")
 stack_expectations = {
     "gradle": {"must": {"implicitLambdaIt", "companionObjectPosition", "terminalBranchWhen"}, "forbidden_keys": {"classMemberOrdering"}},
     "maven": {"must": {"classMemberOrdering"}, "forbidden_keys": {"companionObjectPosition", "terminalBranchWhen"}},
-    "uv": {"must": {"greaterThanComparison"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
-    "bun": {"must": {"greaterThanComparison"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
-    "shell": {"must": {"filePresence", "scaffoldLeaks"}, "forbidden_keys": {"classMemberOrdering", "greaterThanComparison", "importOverFqn", "terminalBranchWhen"}},
+    "uv": {"must": {"publicDeclarationDocComment"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
+    "bun": {"must": {"publicDeclarationDocComment"}, "forbidden_keys": {"classMemberOrdering", "companionObjectPosition", "kotlinTopLevelDeclarationCount", "terminalBranchWhen"}},
+    "shell": {"must": {"filePresence", "scaffoldLeaks"}, "forbidden_keys": {"classMemberOrdering", "importOverFqn", "terminalBranchWhen"}},
 }
 forbidden_param_keys = ("sourceRootsPerStack", "extensionsPerStack", "includePathsPerStack", "excludePathsPerStack", "visibilityPerStack")
 for stack, expectation in stack_expectations.items():
@@ -4570,12 +4113,10 @@ fixture_assert_install_root_contract_real_files_rejected
 smoke_check_shell_unsafe_hook_paths
 fixture_assert_shell_format_check_after_format
 fixture_assert_shell_format_malformed_manifest
-fixture_assert_bun_format
 fixture_assert_bun_source_root_safety
 fixture_assert_bun_symlink_component_safety
 fixture_assert_bun_oxlint_clean
 fixture_assert_bun_oxlint_detects
-fixture_assert_uv_format
 fixture_assert_uv_ruff_clean
 fixture_assert_uv_ruff_detects
 fixture_assert_uv_source_root_safety
@@ -4583,16 +4124,13 @@ fixture_assert_uv_worktree_excluded
 fixture_assert_uv_hook_shebang
 fixture_assert_uv_unsafe_manifest_paths
 fixture_assert_gradle_location
-fixture_assert_gradle_greater_than_format
 fixture_assert_gradle_source_root_safety
 fixture_assert_gradle_parse_error
 fixture_assert_maven_import_over_fqn
-fixture_assert_maven_greater_than_format
 fixture_assert_maven_source_root_safety
 fixture_assert_shell_worktree_pruned
 fixture_assert_gradle_malformed_include_exclude
 fixture_assert_gradle_worktree_excluded
-fixture_assert_gradle_greater_than_commented
 fixture_assert_maven_malformed_include_exclude
 fixture_assert_maven_worktree_excluded
 fixture_assert_maven_parse_error

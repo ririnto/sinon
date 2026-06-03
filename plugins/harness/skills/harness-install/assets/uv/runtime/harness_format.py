@@ -322,7 +322,7 @@ def main() -> None:
     ctx = create_rule_context(
         root, json.loads(manifest_path.read_text(encoding="utf-8")), stack="python"
     )
-    ruff_sources = ctx.stack_sources("greaterThanComparison")
+    ruff_sources = ctx.stack_sources("publicDeclarationDocComment")
     if ruff_sources:
         ruff_config = Path(__file__).resolve().parent / "ruff" / "ruff.toml"
         format_result = subprocess.run(

@@ -41,7 +41,6 @@ from rules.text.env_shebang_usage import RULE as env_shebang_usage
 from rules.text.shebang_encoding_marker import RULE as shebang_encoding_marker
 from rules.text.unchecked_tasks import RULE as unchecked_tasks
 from rules.fs.symlink_safety import RULE as symlink_safety
-from rules.ast.greater_than_comparison import RULE as greater_than_comparison
 from rules.ast.leading_underscore import RULE as leading_underscore
 from rules.ast.multiline_doc_style import RULE as multiline_doc_style
 from rules.ast.unstructured_logging import RULE as unstructured_logging
@@ -92,7 +91,6 @@ class HarnessCheck(enum.Enum):
         unchecked_tasks,
     )
     SYMLINK_SAFETY = ("symlinkSafety", symlink_safety)
-    GREATER_THAN_COMPARISON = ("greaterThanComparison", greater_than_comparison)
     UNSTRUCTURED_LOGGING = ("unstructuredLogging", unstructured_logging)
     PUBLIC_DECLARATION_DOC_COMMENT = (
         "publicDeclarationDocComment",

@@ -40,10 +40,10 @@ class KtlintEngineTest {
                     "messages": { "default": "avoid non-null assertion `!!` on `{expression}`" },
                     $scope
                   },
-                  "greaterThanComparison": {
-                    "description": "test", "severity": "ERROR",
-                    "messages": { "default": "forbidden `>`/`>=` comparison" },
-                    $scope
+                  "publicDeclarationDocComment": {
+                    "description": "test", "severity": "ERROR", "enabled": true,
+                    "messages": { "default": "public declaration lacks doc comment" },
+                    "parameters": { "visibility": ["public","protected","internal"], "sourceRoots": ["src"], "extensions": ["kt"], "includePaths": [], "excludePaths": [] }
                   }
                 }
                 """.trimIndent(),
@@ -53,7 +53,7 @@ class KtlintEngineTest {
         val findings = HarnessKtlintEngine.analyze(ctx)
         val categories = findings.map { finding -> finding.category }.toSet()
         assertTrue(categories.contains("nonNullAssertion")) { "missing nonNullAssertion, got $findings" }
-        assertTrue(categories.contains("greaterThanComparison")) { "missing greaterThanComparison (KtFile-root pattern), got $findings" }
+        assertTrue(categories.contains("publicDeclarationDocComment")) { "missing publicDeclarationDocComment (KtFile-root pattern), got $findings" }
         assertTrue(findings.all { finding -> finding.severity == Severity.ERROR }) { "expected all ERROR, got $findings" }
         assertTrue(findings.first { f -> f.category == "nonNullAssertion" }.message.contains("value")) {
             "expected expression token, got $findings"

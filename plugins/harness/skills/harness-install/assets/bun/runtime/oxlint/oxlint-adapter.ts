@@ -33,7 +33,7 @@ interface OxlintOutput {
  * Throws/logs ERROR if oxlint is available but config or plugin loading fails.
  */
 export function runOxlint(ctx: RuleContext): Finding[] {
-  const files = ctx.stackSources("greaterThanComparison");
+  const files = ctx.stackSources("publicDeclarationDocComment");
   if (files.length === 0) {
     return [];
   }

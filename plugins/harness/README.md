@@ -168,15 +168,15 @@ Each stack delegates code-style detection to the most capable tool available (AS
 
 | Stack | Structural (harness engine) | Code-style (ecosystem or harness) |
 | --- | --- | --- |
-| Gradle/Kotlin | 18 (Kotlin buildSrc core engine; no shebangEncodingMarker) | 14 (ktlint: greaterThanComparison, leafFunctionBlankLines, implicitLambdaIt, kotlinTopLevelDeclarationCount, ifStatementBraces, terminalBranchWhen, nonNullAssertion, uncheckedCastSuppression, unstructuredLogging, importOverFqn, publicDeclarationDocComment, leadingUnderscore, multilineDocStyle, companionObjectPosition) |
-| Maven/Java | 18 (file presence, directory presence, empty-dir placeholders, templates, docs, agents, skills, hooks, CI parity, script shebangs, unchecked tasks, symlinks; no shebangEncodingMarker) | 11 (JavaParser: greaterThanComparison, leafFunctionBlankLines, unstructuredLogging, wildcardImport, importOverFqn, publicDeclarationDocComment, leadingUnderscore, multilineDocStyle, ifStatementBraces, classMemberOrdering, uncheckedCastSuppression) |
-| uv/Python | 19 (structural + shebangEncodingMarker for .py files) | 7 code-style via libcst (greaterThanComparison, leadingUnderscore, multilineDocStyle, unstructuredLogging, publicDeclarationDocComment, uncheckedCastSuppression, tripleQuoteInlineComment) + 1 via ruff (wildcardImport via `F403`) |
-| Bun/TypeScript | 19 (structural + shebangEncodingMarker for .ts files) | 6 built-in oxlint rules (no-console, no-empty, curly, no-underscore-dangle, no-namespace, ban-ts-comment) + 3 custom oxlint JS-plugin rules (greaterThanComparison, multilineDocStyle, publicDeclarationDocComment) |
+| Gradle/Kotlin | 18 (Kotlin buildSrc core engine; no shebangEncodingMarker) | 13 (ktlint: leafFunctionBlankLines, implicitLambdaIt, kotlinTopLevelDeclarationCount, ifStatementBraces, terminalBranchWhen, nonNullAssertion, uncheckedCastSuppression, unstructuredLogging, importOverFqn, publicDeclarationDocComment, leadingUnderscore, multilineDocStyle, companionObjectPosition) |
+| Maven/Java | 18 (file presence, directory presence, empty-dir placeholders, templates, docs, agents, skills, hooks, CI parity, script shebangs, unchecked tasks, symlinks; no shebangEncodingMarker) | 10 (JavaParser: leafFunctionBlankLines, unstructuredLogging, wildcardImport, importOverFqn, publicDeclarationDocComment, leadingUnderscore, multilineDocStyle, ifStatementBraces, classMemberOrdering, uncheckedCastSuppression) |
+| uv/Python | 19 (structural + shebangEncodingMarker for .py files) | 6 code-style via libcst (leadingUnderscore, multilineDocStyle, unstructuredLogging, publicDeclarationDocComment, uncheckedCastSuppression, tripleQuoteInlineComment) + 1 via ruff (wildcardImport via `F403`) |
+| Bun/TypeScript | 19 (structural + shebangEncodingMarker for .ts files) | 6 built-in oxlint rules (no-console, no-empty, curly, no-underscore-dangle, no-namespace, ban-ts-comment) + 2 custom oxlint JS-plugin rules (multilineDocStyle, publicDeclarationDocComment) |
 | Shell | 8 (file/dir presence, hooks, CI parity, shebangs, executable bits, symlinks, scaffold leaks, unchecked tasks) | 0 (shell has no AST code-style rules) |
 
 **Note on structural-rule counts:** Structural counts differ slightly per stack: uv and Bun include `shebangEncodingMarker` (a structural rule for `.py`/`.ts` script sources) and so carry 19 structural rules, while Gradle and Maven omit it (Java/Kotlin sources need no encoding marker) and carry 18. Gradle enumerates its 18 structural rules in the `buildSrc` core engine and its 14 code-style rules via ktlint; Maven uses JavaParser for both surfaces. Shell implements a portable 8-rule structural subset and no code-style rules. The per-stack boundary is the same in every case: ecosystem linters (or the native AST engine) own code-style detection, leaving the harness engine focused on repository-wide structural invariants.
 
-**Optional conventions (droppable on request):** The code-style rules are opinionated by design and enabled by default. `greaterThanComparison`, `unstructuredLogging`, `wildcardImport`, and `classMemberOrdering` encode strong stylistic conventions; a team whose conventions differ may disable any of them per repository via the manifest. They are kept enabled by default rather than removed, because a strict audit found they fire no false positives. `greaterThanComparison` is the prime candidate if conventions are trimmed further.
+**Optional conventions (droppable on request):** The code-style rules are opinionated by design and enabled by default. `unstructuredLogging`, `wildcardImport`, and `classMemberOrdering` encode strong stylistic conventions; a team whose conventions differ may disable any of them per repository via the manifest. They are kept enabled by default rather than removed, because a strict audit found they fire no false positives.
 
 AST/PSI validators use semantic tree traversal for code-structure rules rather than per-check CLI switches or regex-only scans. Inspired by the LY Tech Blog AST validation posture, formatting can remain a separate concern while structural validators compare declarations, ownership, and member order in the parsed tree, leaving room for before/after tree validation through the existing manifest-driven categories.
 
@@ -185,7 +185,7 @@ AST/PSI validators use semantic tree traversal for code-structure rules rather t
 | Gradle/Kotlin+Java | Kotlin PSI through the Gradle worker classloader plus JavaParser for Java sources | Kotlin class member ordering, Java class member ordering, companion-object position, top-level declaration shape, terminal Kotlin if/else-to-when enforcement, and Kotlin code-style checks. Kotlin enum entries and Java enum constants are treated as language-mandated enum preamble items, not ordinary sortable members. |
 | Maven/Java | JavaParser inside the Maven plugin | Java class member ordering and Java code-style checks. Java enum constants are treated as language-mandated enum preamble items, not ordinary sortable members. Maven+Kotlin source validation is not currently enabled because the Maven adapter does not embed Kotlin PSI. |
 | uv/Python | ruff (`F403` via ruff CLI) for wildcard-import detection; LibCST for the remaining 7 AST rules | Python code-style checks for the selected uv slice via ruff and LibCST. |
-| Bun/TypeScript | oxlint (Oxc parser) for code-style; harness engine for structural, manifest, and filesystem rules | oxlint enforces 9 TypeScript code-style rules (6 built-in: no-console, no-empty (allowEmptyCatch:false), curly, no-underscore-dangle (allow:["_"]), no-namespace, ban-ts-comment; 3 custom oxlint JS-plugin rules: greaterThanComparison, multilineDocStyle, publicDeclarationDocComment) and oxfmt normalizes layout (indentation and blank-line collapsing). The harness engine retains 19 structural, manifest, and filesystem rules for the selected Bun slice. |
+| Bun/TypeScript | oxlint (Oxc parser) for code-style; harness engine for structural, manifest, and filesystem rules | oxlint enforces 9 TypeScript code-style rules (6 built-in: no-console, no-empty (allowEmptyCatch:false), curly, no-underscore-dangle (allow:["_"]), no-namespace, ban-ts-comment; 2 custom oxlint JS-plugin rules: multilineDocStyle, publicDeclarationDocComment) and oxfmt normalizes layout (indentation and blank-line collapsing). The harness engine retains 19 structural, manifest, and filesystem rules for the selected Bun slice. |
 | Shell | POSIX shell plus `python3` for manifest reads | Hook shebang and executable validation, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scanning, completed-plan unchecked-task scanning, and shellcheck. |
 
 Gradle installer wiring prepends a `buildSrc/` directory. Existing `buildSrc/` directories in the target repo MUST be reviewed before install; the harness expects a fresh `buildSrc/` and will conflict otherwise.
@@ -202,7 +202,7 @@ When a finding maps to a specific position in a source file, the diagnostic pref
 path:line:column [SEVERITY] category: message
 ```
 
-Lines and columns are one-based. `SEVERITY` is one of `ERROR`, `WARN`, or `INFO`. `category` is the manifest rule identifier (for example, `classMemberOrdering`, `greaterThanComparison`, `leafFunctionBlankLines`).
+Lines and columns are one-based. `SEVERITY` is one of `ERROR`, `WARN`, or `INFO`. `category` is the manifest rule identifier (for example, `classMemberOrdering`, `leafFunctionBlankLines`, `publicDeclarationDocComment`).
 
 ### Non-location fallbacks
 
@@ -224,7 +224,6 @@ Repository-level findings apply to the harness as a whole (for example, missing 
 
 | Rule category | Bun | uv | Gradle | Maven | Shell | Mutation type |
 | --- | --- | --- | --- | --- | --- | --- |
-| `greaterThanComparison` | Defer | Defer | Partial | Partial | Defer | Rewrite simple identifier/literal `>` and `>=` comparisons to `<` and `<=` with operands swapped; expressions that may affect evaluation order stay check-only |
 | `leafFunctionBlankLines` | oxfmt | ruff format | Allow | Allow | Defer | Remove blank lines inside leaf function bodies |
 | `emptyDirectoryPlaceholders` | Allow | Allow | Allow | Allow | Defer | Create `.gitkeep` in empty required directories |
 | `envShebangUsage` | Allow | Allow | Allow | Allow | Allow | Replace script shebang with `/usr/bin/env` form |

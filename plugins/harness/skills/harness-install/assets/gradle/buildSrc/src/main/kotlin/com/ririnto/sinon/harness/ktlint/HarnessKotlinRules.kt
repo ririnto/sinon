@@ -14,7 +14,6 @@ object HarnessKotlinRules {
      */
     val specs: List<RuleSpec> =
         listOf(
-            RuleSpec("greaterThanComparison") { ctx -> GreaterThanComparisonKtlintRule(ctx) },
             RuleSpec("leafFunctionBlankLines") { ctx -> LeafFunctionBlankLinesKtlintRule(ctx) },
             RuleSpec("implicitLambdaIt") { ctx -> ImplicitLambdaItKtlintRule(ctx) },
             RuleSpec("kotlinTopLevelDeclarationCount") { ctx -> KotlinTopLevelDeclarationCountKtlintRule(ctx) },
