@@ -83,6 +83,9 @@
     "unstructuredLogging": {
       "$ref": "#/$defs/loggingAddOn"
     },
+    "emptyCatchBlock": {
+      "$ref": "#/$defs/addOn"
+    },
     "uncheckedCastSuppression": {
       "$ref": "#/$defs/suppressionAddOn"
     },

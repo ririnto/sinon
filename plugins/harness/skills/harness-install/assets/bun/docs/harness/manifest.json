@@ -473,6 +473,25 @@
       "allowedFqnPatterns": []
     }
   },
+  "emptyCatchBlock": {
+    "description": "Code under parameters.sourceRoots MUST NOT contain empty block statements, including empty `catch` clauses. Detection is owned by oxlint's `eslint/no-empty` built-in (configured with allowEmptyCatch:false). Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
+    "enabled": true,
+    "severity": "ERROR",
+    "messages": {
+      "default": "empty block statement; remove it or add a handler/comment"
+    },
+    "parameters": {
+      "sourceRoots": [
+        "**/src"
+      ],
+      "extensions": [
+        "ts",
+        "tsx"
+      ],
+      "includePaths": [],
+      "excludePaths": []
+    }
+  },
   "wildcardImport": {
     "description": "Code under parameters.sourceRoots MUST use explicit per-symbol imports. Forbidden: TypeScript `import * as foo from 'foo'` outside of namespace re-export modules. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
