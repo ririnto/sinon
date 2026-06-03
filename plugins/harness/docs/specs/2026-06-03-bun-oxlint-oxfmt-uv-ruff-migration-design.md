@@ -31,6 +31,15 @@ Tracked tech-debt (each requires an explicit user decision before adoption; out 
 
 - Checkstyle- or PMD-based detection migration for the Java code-style rules. This introduces a new build-tool dependency and a detector engine the per-stack policy does not currently include.
 - Full-formatter (google-java-format or palantir) subsumption of `leafFunctionBlankLines`, replacing the bespoke JavaParser `format()`. This imposes an opinionated whole-repo Java format.
+- `.oxlintrc.json` relocation to the target project root for symmetry with `.oxfmtrc.json` (the oxfmt config moved to the project root in `656dfd6`). The oxlint config currently installs at `docs/harness/bun/.oxlintrc.json` and is resolved via an explicit `--config` path in `oxlint-adapter.ts`. Moving it to the root would require verifying oxlint's own config auto-discovery and updating the adapter. Low-risk follow-up, deferred pending an explicit user decision; it is intentionally NOT bundled with the oxfmt relocation, which was the only config move the user requested.
+
+## Rule-pruning extension (B1/B2): removed rules and kept conventions
+
+B1 removed four rules under the per-stack policy: `earlyReturn` (single-exit dogma, an anti-pattern by modern convention), `silentCatch` (false positives on legitimate handled catches such as `catch { return fallback }`), `emptyCatchBlock` as a harness rule (bun retains empty-catch detection via the `eslint/no-empty` built-in), all removed from every stack; and `importOverFqn`, removed from bun and uv only because inline FQN is non-idiomatic there, while gradle and maven retain it.
+
+A follow-up audit (B2) then classified every remaining rule across all stacks against strict removal criteria — false-positive on idiomatic code, semantically invalid for the language, or covered by a true ecosystem-builtin equivalent. No rule beyond the B1 set qualified. The opinionated-but-functional conventions — `greaterThanComparison`, `unstructuredLogging`, `publicDeclarationDocComment`, `multilineDocStyle`, `leadingUnderscore`, `uncheckedCastSuppression`, and the maven-only `wildcardImport`/`classMemberOrdering` — are kept enabled by default as deliberate conventions. They fire zero false positives and are NOT removal candidates under the criteria; they remain droppable on explicit request.
+
+`greaterThanComparison` (forbids `>`/`>=`, requiring the flipped `<`/`<=` form) is the closest parallel to the B1-removed `earlyReturn`: it encodes an arbitrary stylistic premise rather than a correctness or operational rationale. It is therefore the prime droppable candidate if the conventions are trimmed further, and stays enabled pending an explicit user decision.
 
 ## Key Insight: The 28 bun Rules Are Not Homogeneous
 
