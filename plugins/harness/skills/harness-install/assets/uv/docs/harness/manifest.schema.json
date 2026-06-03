@@ -77,9 +77,6 @@
     "ciHookCommandParity": {
       "$ref": "#/$defs/addOn"
     },
-    "greaterThanComparison": {
-      "$ref": "#/$defs/addOn"
-    },
     "publicDeclarationDocComment": {
       "$ref": "#/$defs/addOn"
     },

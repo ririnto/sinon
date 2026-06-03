@@ -86,9 +86,6 @@
     "symlinkSafety": {
       "$ref": "#/$defs/addOn"
     },
-    "greaterThanComparison": {
-      "$ref": "#/$defs/addOn"
-    },
     "leafFunctionBlankLines": {
       "$ref": "#/$defs/addOn"
     },

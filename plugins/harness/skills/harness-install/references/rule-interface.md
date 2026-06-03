@@ -359,7 +359,6 @@ Harness validation rules are indexed by manifest category keys (camelCase). This
 | emptyDirectoryPlaceholders | fs/EmptyDirectoryPlaceholdersRule.kt | runtime/rules/empty_directory_placeholders.py | rules/empty-directory-placeholders.ts | fs/EmptyDirectoryPlaceholdersRule.java | fs |
 | envShebangUsage | text/EnvShebangUsageRule.kt | runtime/rules/env_shebang_usage.py | rules/env-shebang-usage.ts | text/EnvShebangUsageRule.java | text |
 | filePresence | fs/FilePresenceRule.kt | runtime/rules/file_presence.py | rules/file-presence.ts | fs/FilePresenceRule.java | fs |
-| greaterThanComparison | ast/GreaterThanComparisonRule.kt | runtime/rules/greater_than_comparison.py | rules/greater-than-comparison.ts | ast/GreaterThanComparisonRule.java | ast |
 | hookCommand | text/HookCommandRule.kt | runtime/rules/hook_command.py | rules/hook-command.ts | text/HookCommandRule.java | text/ast |
 | hookExecutable | text/HookExecutableRule.kt | runtime/rules/hook_executable.py | rules/hook-executable.ts | text/HookExecutableRule.java | text |
 | hookGeneratedMarker | text/HookGeneratedMarkerRule.kt | runtime/rules/hook_generated_marker.py | rules/hook-generated-marker.ts | text/HookGeneratedMarkerRule.java | text |

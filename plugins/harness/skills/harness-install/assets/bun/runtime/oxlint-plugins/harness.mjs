@@ -92,27 +92,6 @@ function declarationName(declaration) {
 export default {
     meta: { name: "harness" },
     rules: {
-        greaterThanComparison: {
-            meta: { fixable: "code" },
-            create(context) {
-                return {
-                    BinaryExpression(node) {
-                        if (node.operator === ">" || node.operator === ">=") {
-                            const inverse = node.operator === ">" ? "<" : "<=";
-                            context.report({
-                                node,
-                                message: `forbidden \`${node.operator}\` comparison; use \`${inverse}\` with operands flipped`,
-                                fix(fixer) {
-                                    const left = context.sourceCode.getText(node.left);
-                                    const right = context.sourceCode.getText(node.right);
-                                    return fixer.replaceText(node, `${right} ${inverse} ${left}`);
-                                },
-                            });
-                        }
-                    },
-                };
-            },
-        },
         multilineDocStyle: {
             meta: { fixable: "code" },
             create(context) {

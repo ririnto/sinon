@@ -45,7 +45,7 @@ class KtlintPositiveTest {
     private fun allRulesManifest(): JsonObject {
         val categories =
             listOf(
-                "greaterThanComparison", "leafFunctionBlankLines", "implicitLambdaIt",
+                "leafFunctionBlankLines", "implicitLambdaIt",
                 "kotlinTopLevelDeclarationCount", "ifStatementBraces",
                 "terminalBranchWhen", "nonNullAssertion",
                 "uncheckedCastSuppression", "unstructuredLogging", "importOverFqn", "publicDeclarationDocComment",
@@ -66,7 +66,6 @@ class KtlintPositiveTest {
 
     private fun violationCases(): List<Pair<String, String>> =
         listOf(
-            "greaterThanComparison" to "fun f(a: Int, b: Int): Boolean = a > b\n",
             "nonNullAssertion" to "fun f(x: Int?): Int = x!!\n",
             "ifStatementBraces" to "fun f(c: Boolean) { if (c) g() }\nfun g() {}\n",
             "terminalBranchWhen" to "fun f(c: Boolean): Int = if (c) 1 else 2\n",

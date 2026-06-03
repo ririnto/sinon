@@ -20,7 +20,6 @@ import com.ririnto.sinon.harness.rules.text.CiHookCommandParityRule;
 import com.ririnto.sinon.harness.rules.text.EnvShebangUsageRule;
 import com.ririnto.sinon.harness.rules.text.UncheckedTasksRule;
 import com.ririnto.sinon.harness.rules.fs.SymlinkSafetyRule;
-import com.ririnto.sinon.harness.rules.ast.GreaterThanComparisonRule;
 import com.ririnto.sinon.harness.rules.ast.LeafFunctionBlankLinesRule;
 import com.ririnto.sinon.harness.rules.ast.LeadingUnderscoreRule;
 import com.ririnto.sinon.harness.rules.ast.UnstructuredLoggingRule;
@@ -57,7 +56,6 @@ enum HarnessCheck {
     ENV_SHEBANG_USAGE(EnvShebangUsageRule.INSTANCE),
     UNCHECKED_TASKS(UncheckedTasksRule.INSTANCE),
     SYMLINK_SAFETY(SymlinkSafetyRule.INSTANCE),
-    GREATER_THAN_COMPARISON(GreaterThanComparisonRule.INSTANCE),
     LEAF_FUNCTION_BLANK_LINES(LeafFunctionBlankLinesRule.INSTANCE),
     UNSTRUCTURED_LOGGING(UnstructuredLoggingRule.INSTANCE),
     WILDCARD_IMPORT(WildcardImportRule.INSTANCE),
