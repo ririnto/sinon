@@ -268,9 +268,6 @@ export function createRuleContext(
                 }
             };
             for (const sourceDir of sourceDirs) {
-                if (!isWithinRoot(sourceDir)) {
-                    continue;
-                }
                 if (sourceDir.includes("*")) {
                     for (const match of new Bun.Glob(sourceDir).scanSync(".")) {
                         collectGlobMatch(match);
@@ -279,6 +276,9 @@ export function createRuleContext(
                         collectGlobMatch(match);
                     }
                 } else {
+                    if (!isWithinRoot(sourceDir)) {
+                        continue;
+                    }
                     for (const file of walkDirGen(sourceDir)) {
                         collected.add(file);
                     }

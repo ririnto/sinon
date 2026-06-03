@@ -1687,7 +1687,7 @@ fixture_assert_uv_ruff_clean() {
     fixture_copy_runtime "$temp_dir" uv
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"uv-ruff-clean-fixture","wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}
+{"name":"uv-ruff-clean-fixture","wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
@@ -1730,7 +1730,7 @@ fixture_assert_uv_ruff_detects() {
     fixture_copy_runtime "$temp_dir" uv
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"uv-ruff-detects-fixture","wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}
+{"name":"uv-ruff-detects-fixture","wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["py"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
@@ -1898,6 +1898,68 @@ fixture_assert_bun_symlink_component_safety() {
     fixture_remove_temp_dir "$fixture_root"
 }
 
+# Verify Bun runtime never reads files behind a symlinked component matched by a recursive glob sourceRoot.
+#
+#     The recursive-glob source resolution path (Bun.Glob descent with per-match
+#     containment) became live only after source-root containment moved out of the
+#     per-pattern gate. This fixture declares a `**/src` sourceRoot whose only match
+#     sits behind an in-root symlink pointing outside the target, then proves the
+#     runtime neither reads nor mutates the file reached through the symlinked match.
+#
+#     Requires `bun` and `bunx` in PATH. Gracefully skips with a warning when either
+#     is unavailable.
+#
+# @return Returns 0 on success or when bun/bunx is missing.
+# @exit Exits with status 1 when a file behind a symlinked glob match is read.
+fixture_assert_bun_glob_source_root_safety() {
+    if ! bun_path=$(command -v bun 2>&1); then
+        printf 'warning: bun not in PATH; skipping bun glob source-root safety fixture check\n' >&2
+        return 0
+    fi
+    if ! bunx_path=$(command -v bunx 2>&1); then
+        printf 'warning: bunx not provisioned; skipping bun glob source-root safety fixture check\n' >&2
+        return 0
+    fi
+    : "$bun_path" "$bunx_path"
+    fixture_root=$(fixture_create_temp_dir)
+    target_dir=$fixture_root/target
+    fixture_copy_runtime "$target_dir" bun
+    mkdir -p "$fixture_root/outside-real/src"
+    fixture_write_file "$fixture_root" outside-real/src/LinkedGlob.ts 'export function undocumentedOutside(value: number): boolean {
+    return value > 1;
+}
+'
+    ln -s "$fixture_root/outside-real" "$target_dir/linked"
+    fixture_write_manifest "$target_dir" '{"name":"bun-glob-source-root-safety-fixture","publicDeclarationDocComment":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}'
+    linked_glob_checksum_before=$(fixture_file_checksum "$fixture_root/outside-real/src/LinkedGlob.ts")
+    if fixture_run_command "$target_dir" "bun \"$target_dir/harness-format.ts\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    linked_glob_checksum_after=$(fixture_file_checksum "$fixture_root/outside-real/src/LinkedGlob.ts")
+    if ! fixture_assertion_output=$(fixture_assert_checksum_unchanged "$linked_glob_checksum_before" "$linked_glob_checksum_after" 'bun glob source root leaves symlinked outside file unchanged' 2>&1); then
+        printf '%s\n' "$fixture_assertion_output" >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    if fixture_run_command "$target_dir" "bun \"$target_dir/harness-check.ts\""; then
+        :
+    else
+        :
+    fi
+    fixture_combined_output=$(printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr")
+    if printf '%s' "$fixture_combined_output" | grep -Fq 'LinkedGlob'; then
+        printf '%s\n' '[fixture_assert_bun_glob_source_root_safety] symlinked glob match was scanned' >&2
+        printf '%s\n' "$fixture_combined_output" >&2
+        fixture_remove_temp_dir "$fixture_root"
+        exit 1
+    fi
+    fixture_remove_temp_dir "$fixture_root"
+}
+
 # Verify Bun oxlint runtime produces zero findings on compliant code.
 #
 #     Compliant code: single exit (no early return), rethrow in catch (no silent catch),
@@ -1922,7 +1984,7 @@ fixture_assert_bun_oxlint_clean() {
     fixture_copy_runtime "$temp_dir" bun
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-oxlint-clean-fixture","multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"emptyCatchBlock":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-oxlint-clean-fixture","multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"emptyCatchBlock":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
@@ -1980,7 +2042,7 @@ fixture_assert_bun_oxlint_detects() {
     fixture_copy_runtime "$temp_dir" bun
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-oxlint-detects-fixture","multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"emptyCatchBlock":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-oxlint-detects-fixture","multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"emptyCatchBlock":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["**/src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
@@ -2032,6 +2094,18 @@ import * as ns from "module";
 export function castViolation(): any {
     const x: unknown = {};
     return x as string; // @ts-ignore
+}
+TSEOF
+    mkdir -p "$temp_dir/pkg/src"
+    cat > "$temp_dir/pkg/src/nested.ts" <<'TSEOF'
+/**
+ * Violation in a nested source root: proves the recursive glob sourceRoot descends below the project root.
+ */
+export function nestedEmptyCatch(): void {
+    try {
+        console.log("nested");
+    } catch (error) {
+    }
 }
 TSEOF
     if fixture_run_command "$temp_dir" "bun \"$temp_dir/harness-check.ts\""; then
@@ -2089,7 +2163,13 @@ TSEOF
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    printf 'fixture_assert_bun_oxlint_detects passed: all 8 categories detected\n' >&2
+    if ! printf '%s' "$fixture_combined_output" | grep -Fq 'pkg/src/nested.ts'; then
+        printf 'fixture_assert_bun_oxlint_detects: recursive sourceRoot did not descend into pkg/src/nested.ts\n' >&2
+        printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr" >&2
+        fixture_remove_temp_dir "$temp_dir"
+        exit 1
+    fi
+    printf 'fixture_assert_bun_oxlint_detects passed: all 8 categories detected, recursive sourceRoot descended into nested dir\n' >&2
     fixture_remove_temp_dir "$temp_dir"
     return 0
 }
@@ -4130,6 +4210,7 @@ fixture_assert_shell_format_check_after_format
 fixture_assert_shell_format_malformed_manifest
 fixture_assert_bun_source_root_safety
 fixture_assert_bun_symlink_component_safety
+fixture_assert_bun_glob_source_root_safety
 fixture_assert_bun_oxlint_clean
 fixture_assert_bun_oxlint_detects
 fixture_assert_uv_ruff_clean
