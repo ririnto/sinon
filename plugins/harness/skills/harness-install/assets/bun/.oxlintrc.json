@@ -1,7 +1,7 @@
 {
   "$schema": "https://oxc.rs/oxlint.schema.json",
   "plugins": ["import", "typescript"],
-  "jsPlugins": ["./oxlint-plugins/harness.mjs"],
+  "jsPlugins": ["./docs/harness/bun/oxlint-plugins/harness.mjs"],
   "rules": {
     "eslint/no-console": "error",
     "eslint/no-empty": ["error", { "allowEmptyCatch": false }],
