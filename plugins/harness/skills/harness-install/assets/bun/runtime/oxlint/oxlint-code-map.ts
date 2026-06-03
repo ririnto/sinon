@@ -6,7 +6,6 @@
  * The `code` field in oxlint JSON output uses paren form: `eslint(no-console)`.
  */
 export const OXLINT_CODE_TO_CATEGORY: Record<string, string> = {
-  "harness(greaterThanComparison)": "greaterThanComparison",
   "harness(multilineDocStyle)": "multilineDocStyle",
   "harness(publicDeclarationDocComment)": "publicDeclarationDocComment",
   "eslint(no-console)": "unstructuredLogging",
@@ -23,7 +22,6 @@ export const OXLINT_CODE_TO_CATEGORY: Record<string, string> = {
  * Manual verification needed: "manual".
  */
 export const OXLINT_FIX_SAFETY: Record<string, "safe" | "unsafe" | "manual"> = {
-  greaterThanComparison: "unsafe",
   multilineDocStyle: "safe",
   publicDeclarationDocComment: "manual",
   unstructuredLogging: "unsafe",
@@ -39,7 +37,6 @@ export const OXLINT_FIX_SAFETY: Record<string, "safe" | "unsafe" | "manual"> = {
  * don't trigger "unknown manifest key" warnings after the 14 AST rule modules are deleted.
  */
 export const OXLINT_CATEGORIES = [
-  "greaterThanComparison",
   "multilineDocStyle",
   "publicDeclarationDocComment",
   "unstructuredLogging",

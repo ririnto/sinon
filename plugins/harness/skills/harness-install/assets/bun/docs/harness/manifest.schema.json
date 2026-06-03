@@ -77,9 +77,6 @@
     "symlinkSafety": {
       "$ref": "#/$defs/addOn"
     },
-    "greaterThanComparison": {
-      "$ref": "#/$defs/addOn"
-    },
     "ifStatementBraces": {
       "$ref": "#/$defs/addOn"
     },

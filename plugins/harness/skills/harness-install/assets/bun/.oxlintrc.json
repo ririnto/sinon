@@ -9,7 +9,6 @@
     "eslint/no-underscore-dangle": ["error", { "allow": ["_"] }],
     "import/no-namespace": "error",
     "typescript/ban-ts-comment": "error",
-    "harness/greaterThanComparison": "error",
     "harness/multilineDocStyle": "error",
     "harness/publicDeclarationDocComment": "error"
   }

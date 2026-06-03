@@ -16,7 +16,6 @@ object HarnessKotlinCategories {
      */
     val categories: List<String> =
         listOf(
-            "greaterThanComparison",
             "leafFunctionBlankLines",
             "implicitLambdaIt",
             "kotlinTopLevelDeclarationCount",
