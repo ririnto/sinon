@@ -98,8 +98,17 @@ Only the 9 TS AST rules are oxlint candidates. The 19 structural rules remain in
 
 - ruff has no custom-rule plugin API (authoritative: official FAQ). Therefore ruff owns only the standard rule families it implements plus `ruff format`.
 - The bespoke libcst engine retains the custom Python-convention rules ruff cannot express (detection-only on the ruff side; existing libcst behavior preserved).
-- Config in `pyproject.toml [tool.ruff]` or `ruff.toml`. Verify selected rule families and `ruff format` behavior against official ruff docs at implementation.
+- Config is in `ruff/ruff.toml` (`[lint] select`), with the adapter in `ruff/ruff_adapter.py` mapping `ruff check --output-format json` diagnostics into the harness `Finding` shape and `ruff/ruff_code_map.py` partitioning ruff-owned categories. `ruff format` is wired in `harness_format.py` (`uvx ruff@0.15.15 format`).
 - Output mapping mirrors the bun adapter approach so the harness reporter shape stays consistent.
+
+### uv ruff ownership: verified end-state (single-owner partition)
+
+A rule-by-rule equivalence assessment determined that `wildcardImport` → ruff `F403` is the only safe migration; ruff owns it as a single-owner category (`select = ["F403"]`). The remaining seven libcst code-style rules stay on libcst as the policy-correct end-state, for two distinct reasons:
+
+- No ruff equivalent exists: `greaterThanComparison` (no rule forbids the `>`/`>=` operator as policy), `leadingUnderscore` (ruff pep8-naming respects PEP 8's `_` weak-private convention rather than forbidding it), `multilineDocStyle` (no rule enforces block-only docstrings), and `tripleQuoteInlineComment` (no tokenizer rule for comments sharing a triple-quote line).
+- A candidate ruff rule exists but is NOT a true equivalent because it cannot honor the harness rule's manifest-driven configurability, which would change behavior for target repos: `unstructuredLogging` (ruff `T201`/`T203` cannot honor `forbiddenLoggingApis`/`allowedLoggingApis`/`functionalOutputPaths`), `publicDeclarationDocComment` (ruff `D103`/`D104` cannot honor `visibility`/`exemptDecorators`), and `uncheckedCastSuppression` (ruff `PGH003` covers only blanket `type: ignore`, not `noqa`, and cannot honor `allowedSuppressions`/`forbiddenSuppressions`).
+
+Under the per-stack policy (migrate only on a true semantic equivalent that preserves configured behavior; single owner per category), uv is at its ruff ceiling. Widening `select` to these families is explicitly NOT a goal: it would drop manifest-controlled behavior. This is a closed end-state, not unfinished migration.
 
 ## Tradeoffs (Surfaced)
 
