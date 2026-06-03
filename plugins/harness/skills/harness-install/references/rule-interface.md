@@ -356,8 +356,6 @@ Harness validation rules are indexed by manifest category keys (camelCase). This
 | directoryPresence | fs/DirectoryPresenceRule.kt | runtime/rules/directory_presence.py | rules/directory-presence.ts | fs/DirectoryPresenceRule.java | fs |
 | docContent | text/DocContentRule.kt | runtime/rules/doc_content.py | rules/doc-content.ts | text/DocContentRule.java | text |
 | docHeadings | text/DocHeadingsRule.kt (CommonMark AST) | runtime/rules/doc_headings.py | rules/doc-headings.ts | text/DocHeadingsRule.java | text |
-| earlyReturn | ast/EarlyReturnRule.kt | runtime/rules/early_return.py | rules/early-return.ts | ast/EarlyReturnRule.java | ast |
-| emptyCatchBlock | ast/EmptyCatchBlockRule.kt | runtime/rules/empty_catch_block.py | rules/empty-catch-block.ts | ast/EmptyCatchBlockRule.java | ast |
 | emptyDirectoryPlaceholders | fs/EmptyDirectoryPlaceholdersRule.kt | runtime/rules/empty_directory_placeholders.py | rules/empty-directory-placeholders.ts | fs/EmptyDirectoryPlaceholdersRule.java | fs |
 | envShebangUsage | text/EnvShebangUsageRule.kt | runtime/rules/env_shebang_usage.py | rules/env-shebang-usage.ts | text/EnvShebangUsageRule.java | text |
 | filePresence | fs/FilePresenceRule.kt | runtime/rules/file_presence.py | rules/file-presence.ts | fs/FilePresenceRule.java | fs |
@@ -369,7 +367,7 @@ Harness validation rules are indexed by manifest category keys (camelCase). This
 | hookStage | text/HookStageRule.kt | runtime/rules/hook_stage.py | rules/hook-stage.ts | text/HookStageRule.java | text |
 | ifStatementBraces | ast/IfStatementBracesRule.kt | | rules/if-statement-braces.ts | ast/IfStatementBracesRule.java | ast |
 | implicitLambdaIt | ast/ImplicitLambdaItRule.kt | | rules/implicit-lambda-it.ts | | ast |
-| importOverFqn | ast/ImportOverFqnRule.kt | runtime/rules/import_over_fqn.py | rules/import-over-fqn.ts | ast/ImportOverFqnRule.java | text/ast |
+| importOverFqn | ast/ImportOverFqnRule.kt | | | ast/ImportOverFqnRule.java | text/ast |
 | kotlinTopLevelDeclarationCount | ast/KotlinTopLevelDeclarationCountRule.kt | | | | ast |
 | leafFunctionBlankLines | ast/LeafFunctionBlankLinesRule.kt (check-only) | `ruff format` | `oxfmt` | ast/LeafFunctionBlankLinesRule.java | text/ast |
  | mutableCollection | ast/MutableCollectionRule.kt | runtime/rules/ast/mutable_collection.py | rules/mutable-collection.ts | ast/MutableCollectionRule.java | ast |
@@ -378,7 +376,6 @@ Harness validation rules are indexed by manifest category keys (camelCase). This
 | leadingUnderscore | ast/LeadingUnderscoreRule.kt | runtime/rules/leading_underscore.py | rules/leading-underscore.ts | ast/LeadingUnderscoreRule.java | ast |
 | multilineDocStyle | ast/MultilineDocStyleRule.kt | runtime/rules/multiline_doc_style.py | rules/multiline-doc-style.ts | ast/MultilineDocStyleRule.java | ast |
 | scaffoldLeaks | fs/ScaffoldLeaksRule.kt | runtime/rules/scaffold_leaks.py | rules/scaffold-leaks.ts | text/ScaffoldLeaksRule.java | fs/text |
-| silentCatch | ast/SilentCatchRule.kt | runtime/rules/silent_catch.py | rules/silent-catch.ts | ast/SilentCatchRule.java | text/ast |
 | skillFrontmatter | text/SkillFrontmatterRule.kt (YamlFrontMatterVisitor) | runtime/rules/skill_frontmatter.py | rules/skill-frontmatter.ts | text/SkillFrontmatterRule.java | text |
 | symlinkSafety | fs/SymlinkSafetyRule.kt | runtime/rules/symlink_safety.py | rules/symlink-safety.ts | fs/SymlinkSafetyRule.java | fs |
 | templateGroups | fs/TemplateGroupsRule.kt | runtime/rules/template_groups.py | rules/template-groups.ts | text/TemplateGroupsRule.java | fs/text |

@@ -7,13 +7,9 @@
  */
 export const OXLINT_CODE_TO_CATEGORY: Record<string, string> = {
   "harness(greaterThanComparison)": "greaterThanComparison",
-  "harness(earlyReturn)": "earlyReturn",
-  "harness(silentCatch)": "silentCatch",
-  "harness(importOverFqn)": "importOverFqn",
   "harness(multilineDocStyle)": "multilineDocStyle",
   "harness(publicDeclarationDocComment)": "publicDeclarationDocComment",
   "eslint(no-console)": "unstructuredLogging",
-  "eslint(no-empty)": "emptyCatchBlock",
   "eslint(curly)": "ifStatementBraces",
   "eslint(no-underscore-dangle)": "leadingUnderscore",
   "import(no-namespace)": "wildcardImport",
@@ -28,13 +24,9 @@ export const OXLINT_CODE_TO_CATEGORY: Record<string, string> = {
  */
 export const OXLINT_FIX_SAFETY: Record<string, "safe" | "unsafe" | "manual"> = {
   greaterThanComparison: "unsafe",
-  earlyReturn: "unsafe",
-  silentCatch: "unsafe",
-  importOverFqn: "unsafe",
   multilineDocStyle: "safe",
   publicDeclarationDocComment: "manual",
   unstructuredLogging: "unsafe",
-  emptyCatchBlock: "unsafe",
   ifStatementBraces: "safe",
   leadingUnderscore: "unsafe",
   wildcardImport: "unsafe",
@@ -48,13 +40,9 @@ export const OXLINT_FIX_SAFETY: Record<string, "safe" | "unsafe" | "manual"> = {
  */
 export const OXLINT_CATEGORIES = [
   "greaterThanComparison",
-  "earlyReturn",
-  "silentCatch",
-  "importOverFqn",
   "multilineDocStyle",
   "publicDeclarationDocComment",
   "unstructuredLogging",
-  "emptyCatchBlock",
   "ifStatementBraces",
   "leadingUnderscore",
   "wildcardImport",

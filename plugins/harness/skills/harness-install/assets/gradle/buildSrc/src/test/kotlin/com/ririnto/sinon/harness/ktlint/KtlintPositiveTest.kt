@@ -46,8 +46,8 @@ class KtlintPositiveTest {
         val categories =
             listOf(
                 "greaterThanComparison", "leafFunctionBlankLines", "implicitLambdaIt",
-                "kotlinTopLevelDeclarationCount", "emptyCatchBlock", "ifStatementBraces",
-                "terminalBranchWhen", "silentCatch", "nonNullAssertion",
+                "kotlinTopLevelDeclarationCount", "ifStatementBraces",
+                "terminalBranchWhen", "nonNullAssertion",
                 "uncheckedCastSuppression", "unstructuredLogging", "importOverFqn", "publicDeclarationDocComment",
                 "leadingUnderscore", "multilineDocStyle", "companionObjectPosition",
             )
@@ -68,8 +68,6 @@ class KtlintPositiveTest {
         listOf(
             "greaterThanComparison" to "fun f(a: Int, b: Int): Boolean = a > b\n",
             "nonNullAssertion" to "fun f(x: Int?): Int = x!!\n",
-            "emptyCatchBlock" to "fun f() { try { g() } catch (e: Exception) {} }\nfun g() {}\n",
-            "silentCatch" to "fun f() { try { g() } catch (e: Exception) { val ignored = 1 } }\nfun g() {}\n",
             "ifStatementBraces" to "fun f(c: Boolean) { if (c) g() }\nfun g() {}\n",
             "terminalBranchWhen" to "fun f(c: Boolean): Int = if (c) 1 else 2\n",
             "leafFunctionBlankLines" to "fun f() {\n    val a = 1\n\n\n    val b = a\n}\n",

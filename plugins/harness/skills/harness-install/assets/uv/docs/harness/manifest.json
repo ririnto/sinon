@@ -464,47 +464,6 @@
       "forbiddenOperators": [">", ">="]
     }
   },
-  "earlyReturn": {
-    "description": "Functions under parameters.sourceRoots MUST have a single exit point. `return` is allowed only as the final statement of the function body, or inside a `guard`-style fail-fast helper. Validators implement this via Python AST: visit every function declaration, walk the body, and emit a finding for any `return` that is not the last statement (or inside a top-level guard clause that raises). Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "WARN",
-    "messages": {
-      "default": "function `{function}` has an early/mid return; restructure with single exit"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "py"
-      ],
-      "includePaths": [],
-      "excludePaths": []
-    }
-  },
-  "silentCatch": {
-    "description": "`try`/`except` blocks under parameters.sourceRoots MUST NOT swallow exceptions. The except block MUST either reraise, translate to a `Finding`, or log via the structured logger. Empty or `pass`-only except blocks are forbidden. Validators implement this via Python AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "silent catch; rethrow, translate to a Finding, or log via structured logger"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "py"
-      ],
-      "includePaths": [],
-      "excludePaths": [],
-      "allowedLoggingCalls": [
-        "\\blogging\\b",
-        "\\blogger\\b",
-        "\\blog\\b"
-      ]
-    }
-  },
   "unstructuredLogging": {
     "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: Python `print(`. Use Python `logging` or equivalent. Validators implement this via Python AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
@@ -537,24 +496,6 @@
     "severity": "ERROR",
     "messages": {
       "default": "wildcard import `{import}` forbidden; import explicit symbols"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "py"
-      ],
-      "includePaths": [],
-      "excludePaths": []
-    }
-  },
-  "importOverFqn": {
-    "description": "Code under parameters.sourceRoots MUST reach external symbols via `import` rather than inline fully qualified names, EXCEPT when the simple name is already taken by another import in the same file (i.e. the FQN is required to disambiguate). Validators implement this via Python AST/CST: collect every imported simple name first, then emit a finding when a qualified type reference appears in code AND the qualified name's simple form is NOT already imported under a different qualified name. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "WARN",
-    "messages": {
-      "default": "fully qualified name `{name}` used inline; add an import and use the simple name"
     },
     "parameters": {
       "sourceRoots": [
@@ -639,24 +580,6 @@
       "excludePaths": [],
       "docStyleMode": "multiline",
       "formatterRequiredExceptions": []
-    }
-  },
-  "emptyCatchBlock": {
-    "description": "Except handlers under parameters.sourceRoots MUST have a non-empty body. Empty except handlers are a special case of silentCatch and are listed separately for clarity. Validators implement this via Python AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "empty catch block; handle, rethrow, or convert to a Finding"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "**/src"
-      ],
-      "extensions": [
-        "py"
-      ],
-      "includePaths": [],
-      "excludePaths": []
     }
   },
   "tripleQuoteInlineComment": {

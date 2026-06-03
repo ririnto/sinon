@@ -3,12 +3,9 @@
 import { expect, test } from "bun:test";
 import { OXLINT_CODE_TO_CATEGORY, OXLINT_FIX_SAFETY, OXLINT_CATEGORIES } from "./oxlint-code-map";
 
-test("OXLINT_CODE_TO_CATEGORY has all 12 codes", () => {
+test("OXLINT_CODE_TO_CATEGORY has all 8 codes", () => {
   const codes = [
     "harness(greaterThanComparison)",
-    "harness(earlyReturn)",
-    "harness(silentCatch)",
-    "harness(importOverFqn)",
     "harness(multilineDocStyle)",
     "harness(publicDeclarationDocComment)",
     "eslint(no-console)",
@@ -21,7 +18,7 @@ test("OXLINT_CODE_TO_CATEGORY has all 12 codes", () => {
   codes.forEach((code) => {
     expect(OXLINT_CODE_TO_CATEGORY[code]).toBeDefined();
   });
-  expect(Object.keys(OXLINT_CODE_TO_CATEGORY).length).toBe(12);
+  expect(Object.keys(OXLINT_CODE_TO_CATEGORY).length).toBe(9);
 });
 
 test("OXLINT_FIX_SAFETY has entries for all categories", () => {

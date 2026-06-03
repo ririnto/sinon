@@ -23,14 +23,11 @@ import com.ririnto.sinon.harness.rules.fs.SymlinkSafetyRule;
 import com.ririnto.sinon.harness.rules.ast.GreaterThanComparisonRule;
 import com.ririnto.sinon.harness.rules.ast.LeafFunctionBlankLinesRule;
 import com.ririnto.sinon.harness.rules.ast.LeadingUnderscoreRule;
-import com.ririnto.sinon.harness.rules.ast.EarlyReturnRule;
-import com.ririnto.sinon.harness.rules.ast.SilentCatchRule;
 import com.ririnto.sinon.harness.rules.ast.UnstructuredLoggingRule;
 import com.ririnto.sinon.harness.rules.ast.WildcardImportRule;
 import com.ririnto.sinon.harness.rules.ast.ImportOverFqnRule;
 import com.ririnto.sinon.harness.rules.ast.PublicDeclarationDocCommentRule;
 import com.ririnto.sinon.harness.rules.ast.MultilineDocStyleRule;
-import com.ririnto.sinon.harness.rules.ast.EmptyCatchBlockRule;
 import com.ririnto.sinon.harness.rules.ast.IfStatementBracesRule;
 import com.ririnto.sinon.harness.rules.ast.ClassMemberOrderingRule;
 import com.ririnto.sinon.harness.rules.ast.UncheckedCastSuppressionRule;
@@ -62,15 +59,12 @@ enum HarnessCheck {
     SYMLINK_SAFETY(SymlinkSafetyRule.INSTANCE),
     GREATER_THAN_COMPARISON(GreaterThanComparisonRule.INSTANCE),
     LEAF_FUNCTION_BLANK_LINES(LeafFunctionBlankLinesRule.INSTANCE),
-    EARLY_RETURN(EarlyReturnRule.INSTANCE),
-    SILENT_CATCH(SilentCatchRule.INSTANCE),
     UNSTRUCTURED_LOGGING(UnstructuredLoggingRule.INSTANCE),
     WILDCARD_IMPORT(WildcardImportRule.INSTANCE),
     IMPORT_OVER_FQN(ImportOverFqnRule.INSTANCE),
     PUBLIC_DECLARATION_DOC_COMMENT(PublicDeclarationDocCommentRule.INSTANCE),
     LEADING_UNDERSCORE(LeadingUnderscoreRule.INSTANCE),
     MULTILINE_DOC_STYLE(MultilineDocStyleRule.INSTANCE),
-    EMPTY_CATCH_BLOCK(EmptyCatchBlockRule.INSTANCE),
     IF_STATEMENT_BRACES(IfStatementBracesRule.INSTANCE),
     CLASS_MEMBER_ORDERING(ClassMemberOrderingRule.INSTANCE),
     UNCHECKED_CAST_SUPPRESSION(UncheckedCastSuppressionRule.INSTANCE);

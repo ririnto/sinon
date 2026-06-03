@@ -581,25 +581,6 @@
       "excludePaths": []
     }
   },
-  "silentCatch": {
-    "description": "`try`/`catch` blocks under parameters.sourceRoots MUST NOT swallow exceptions. The catch block MUST either rethrow, translate to a `Finding`, or log via the structured logger. Empty or `pass`-only catch blocks are forbidden. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "silent catch; rethrow, translate to a Finding, or log via structured logger"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "buildSrc/src/main/kotlin"
-      ],
-      "extensions": [
-        "kt",
-        "kts"
-      ],
-      "includePaths": [],
-      "excludePaths": []
-    }
-  },
   "unstructuredLogging": {
     "description": "Code under parameters.sourceRoots MUST log via the structured logger only. Forbidden: Kotlin `println`. Use Slf4j or equivalent. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
     "enabled": true,
@@ -716,25 +697,6 @@
       "excludePaths": [],
       "docStyleMode": "multiline",
       "formatterRequiredExceptions": []
-    }
-  },
-  "emptyCatchBlock": {
-    "description": "Catch handlers under parameters.sourceRoots MUST have a non-empty body. Empty catch handlers are a special case of silentCatch and are listed separately for clarity. Validators implement this via AST. Files under `parameters.sourceRoots` are scanned; `parameters.includePaths` further narrows the set (empty array means match-all) and `parameters.excludePaths` removes matches. Globs use Ant-style `**/*` semantics relative to the project root.",
-    "enabled": true,
-    "severity": "ERROR",
-    "messages": {
-      "default": "empty catch block; handle, rethrow, or convert to a Finding"
-    },
-    "parameters": {
-      "sourceRoots": [
-        "buildSrc/src/main/kotlin"
-      ],
-      "extensions": [
-        "kt",
-        "kts"
-      ],
-      "includePaths": [],
-      "excludePaths": []
     }
   },
   "ifStatementBraces": {
