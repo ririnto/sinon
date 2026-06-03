@@ -89,7 +89,7 @@ Only the 9 TS AST rules are oxlint candidates. The 19 structural rules remain in
 
 ### Testing
 
-- A self-scan equivalent: the harness's own TS runtime sources MUST pass the migrated oxlint config.
+- The shipped bun TS runtime under `docs/harness/bun/` is excluded from the target `sourceRoots` and is NOT self-linted; verification relies on the fixture corpora below rather than linting the runtime, matching how the runtime is excluded in target installs.
 - Positive/negative fixtures per migrated rule (built-in and custom plugin), mirroring the gradle `KtlintPositiveTest`/self-scan pattern.
 - Rule-count and manifest invariants updated and asserted by `plugin-self-check.sh`.
 

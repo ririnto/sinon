@@ -154,7 +154,7 @@ In fresh installed target repositories, `CLAUDE.md` is the primary harness contr
 
 Run validation commands from the target repository root. The uv, bun, Maven, and shell validators bind that current directory as the target root, and native validators compare the installed `docs/harness/manifest.json` fields that this plugin writes. The shell adapter implements a portable subset (file/directory existence, hook shebang/executable, hook command parity, CI command parity, symlink/path safety for manifest-controlled filesystem paths, scaffold-leak scan, completed-plan unchecked-task scan, and shellcheck) and requires `python3` available on PATH for JSON parsing of the manifest.
 
-The bun validator self-provisions pinned tools on first use via `bunx oxlint@1.68.0` and `bunx oxfmt@0.53.0`, so network access is required the first time `check` or `format` runs. The 3 custom oxlint rules execute on bun's own JavaScript runtime and do not require a separate Node.js binary; when `bunx` is unavailable the validator skips custom-rule detection and continues.
+The bun validator self-provisions pinned tools on first use via `bunx oxlint@1.68.0` and `bunx oxfmt@0.53.0`, so network access is required the first time `check` or `format` runs. The 2 custom oxlint rules execute on bun's own JavaScript runtime and do not require a separate Node.js binary; when `bunx` is unavailable the validator skips custom-rule detection and continues.
 
 The uv validator self-provisions `uvx ruff@0.15.15` on first use, so network access is required the first time it runs; the ruff binary is then cached. No separate Node.js or other runtime is required beyond `uv` itself.
 
