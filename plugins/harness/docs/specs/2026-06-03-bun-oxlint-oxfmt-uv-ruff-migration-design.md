@@ -121,9 +121,9 @@ Resolved by spike (oxlint 1.68.0, oxfmt 0.53.0, 2026-06-03):
 - Comment access for the doc-comment custom rules (`multilineDocStyle`, `publicDeclarationDocComment`): the plugin `context.sourceCode` exposes `getAllComments()`/`getCommentsBefore(node)`; comments carry `range`/`start`/`end`/`loc`, and fixers can rewrite them via `replaceTextRange(range, text)`. Both doc rules migrate as custom plugins (detection; `publicDeclarationDocComment` fix safety `manual`, `multilineDocStyle` `safe`).
 - `silentCatch` removal (B1): spike verification confirmed `eslint/no-empty` does not detect non-empty catch blocks that still swallow the error; detection of swallow-behavior (catch must rethrow, translate, or log) was therefore not reducible to built-ins. Removed in B1 due to false positives on legitimate patterns like `catch { return fallback }`.
 
-Remaining (resolve at implementation):
+Resolved at implementation:
 
-- Exact oxlint built-in rule IDs that cover each mappable convention, in particular whether `eslint/no-underscore-dangle` exists for `leadingUnderscore` (confirm via `oxlint --rules`).
-- ruff rule-family selection that maps to existing uv conventions (uv follow-up).
+- oxlint built-in rule IDs are confirmed and wired in `.oxlintrc.json`, exercised by the `plugin-self-check.sh` bun fixtures: `eslint/no-console`, `eslint/no-empty` (`allowEmptyCatch:false`), `eslint/curly`, `eslint/no-underscore-dangle` (`allow:["_"]`), `import/no-namespace`, `typescript/ban-ts-comment`.
+- uv maps `wildcardImport` to ruff `F403` (run via the ruff CLI) and keeps the remaining conventions on LibCST; the uv migration is implemented and gated by the uv ruff fixtures in `plugin-self-check.sh`.
 
 <!-- @formatter:on -->
