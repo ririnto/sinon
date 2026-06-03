@@ -1922,7 +1922,7 @@ fixture_assert_bun_oxlint_clean() {
     fixture_copy_runtime "$temp_dir" bun
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-oxlint-clean-fixture","multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-oxlint-clean-fixture","multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"emptyCatchBlock":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
@@ -1980,7 +1980,7 @@ fixture_assert_bun_oxlint_detects() {
     fixture_copy_runtime "$temp_dir" bun
     fixture_write_manifest "$temp_dir" "$(
         cat <<'JSONEOF'
-{"name":"bun-oxlint-detects-fixture","multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
+{"name":"bun-oxlint-detects-fixture","multilineDocStyle":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"docStyleMode":"multiline"}},"publicDeclarationDocComment":{"enabled":true,"severity":"WARN","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[],"visibility":["export"]}},"unstructuredLogging":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"emptyCatchBlock":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"ifStatementBraces":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"leadingUnderscore":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"wildcardImport":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}},"uncheckedCastSuppression":{"enabled":true,"severity":"ERROR","parameters":{"sourceRoots":["src"],"extensions":["ts"],"includePaths":[],"excludePaths":[]}}}
 JSONEOF
     )"
     mkdir -p "$temp_dir/src"
@@ -1995,6 +1995,16 @@ export function undocumentedFunc(): void {}
  */
 export function loggingViolation(): void {
     console.log("test");
+}
+
+/**
+ * Violation: emptyCatchBlock uses empty catch.
+ */
+export function emptyCatchViolation(): void {
+    try {
+        console.log("do something");
+    } catch (error) {
+    }
 }
 
 /**
@@ -2047,6 +2057,11 @@ TSEOF
     else
         missing_categories="$missing_categories unstructuredLogging"
     fi
+    if printf '%s' "$fixture_combined_output" | grep -qE 'emptyCatchBlock'; then
+        detected_categories=$((detected_categories + 1))
+    else
+        missing_categories="$missing_categories emptyCatchBlock"
+    fi
     if printf '%s' "$fixture_combined_output" | grep -qE 'ifStatementBraces'; then
         detected_categories=$((detected_categories + 1))
     else
@@ -2067,14 +2082,14 @@ TSEOF
     else
         missing_categories="$missing_categories uncheckedCastSuppression"
     fi
-    if [ "$detected_categories" -ne 7 ]; then
+    if [ "$detected_categories" -ne 8 ]; then
         printf 'fixture_assert_bun_oxlint_detects: only detected %d of 8 categories\n' "$detected_categories" >&2
         printf 'missing:%s\n' "$missing_categories" >&2
         printf '%s\n%s\n' "$fixture_stdout" "$fixture_stderr" >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     fi
-    printf 'fixture_assert_bun_oxlint_detects passed: all 7 categories detected\n' >&2
+    printf 'fixture_assert_bun_oxlint_detects passed: all 8 categories detected\n' >&2
     fixture_remove_temp_dir "$temp_dir"
     return 0
 }
