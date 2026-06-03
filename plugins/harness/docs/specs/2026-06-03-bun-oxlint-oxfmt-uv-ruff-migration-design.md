@@ -2,7 +2,7 @@
 
 # Harness Linter Migration: bun (oxlint + oxfmt) and uv (ruff)
 
-Status: design. Author: ririnto. Date: 2026-06-03.
+Status: implemented. Author: ririnto. Date: 2026-06-03. Implementation status: B1 rule removals applied (earlyReturn, silentCatch, emptyCatchBlock, importOverFqn from bun/uv), B2 classification completed (no further removals qualify), oxfmt config relocated to bun stack root, formatters operational, and all per-stack validation passing.
 
 This spec covers migrating the harness bespoke rule engines toward ecosystem linters for the bun/TypeScript stack (primary) and the uv/Python stack (follow-up). It extends the per-stack migration policy already applied to gradle/Kotlin (ktlint, committed in `46aecf1`).
 
@@ -23,7 +23,7 @@ This spec covers migrating the harness bespoke rule engines toward ecosystem lin
 
 The Maven/Java stack intentionally stays on the JavaParser harness engine and is NOT migrated to an ecosystem linter. This is the correct end-state under the per-stack policy, not an unfinished migration:
 
-- The only ecosystem Java tool in the stack is Spotless (`harness-maven-plugin/pom.xml`, configured with `removeUnusedImports`/`trimTrailingWhitespace`/`endWithNewline`). Spotless is a formatter, not a detector, so it cannot express the 14 Java AST detection rules — the same intrinsic-scope reason oxlint and ruff cannot own the 19 structural rules.
+- The only ecosystem Java tool in the stack is Spotless (`harness-maven-plugin/pom.xml`, configured with `removeUnusedImports`/`trimTrailingWhitespace`/`endWithNewline`). Spotless is a formatter, not a detector, so it cannot express the 11 Java AST detection rules — the same intrinsic-scope reason oxlint and ruff cannot own the structural rules.
 - The pom deliberately omits a full Java formatter (no google-java-format, palantir, or eclipse formatter). Subsuming `leafFunctionBlankLines` the way `oxfmt` and `ruff format` do would require introducing such a formatter, which imposes an opinionated whole-repo Java reformat with high blast radius. Maven instead keeps `LeafFunctionBlankLinesRule.format()` (JavaParser `LexicalPreservingPrinter`) as a deliberate, documented end-state.
 - The shell stack exposes no AST code-style rule surface to migrate; its checks are structural.
 
@@ -32,43 +32,46 @@ Tracked tech-debt (each requires an explicit user decision before adoption; out 
 - Checkstyle- or PMD-based detection migration for the Java code-style rules. This introduces a new build-tool dependency and a detector engine the per-stack policy does not currently include.
 - Full-formatter (google-java-format or palantir) subsumption of `leafFunctionBlankLines`, replacing the bespoke JavaParser `format()`. This imposes an opinionated whole-repo Java format.
 
-## Key Insight: The 33 bun Rules Are Not Homogeneous
+## Key Insight: The 28 bun Rules Are Not Homogeneous
+
+After B1 removals (earlyReturn, silentCatch, emptyCatchBlock, importOverFqn from bun/uv stacks), the bun surface is:
 
 | Category | Count | oxlint-eligible |
 | --- | --- | --- |
-| TypeScript AST code-style | 14 | yes (built-in or custom JS plugin) |
+| TypeScript AST code-style | 9 | yes (6 built-in + 3 custom JS plugin) |
 | Structural / manifest / filesystem | 19 | no (not expressible as a source-lint rule) |
 
-Only the 14 TS AST rules are oxlint candidates. The 19 structural rules remain in the bun harness engine. This boundary is intrinsic to what oxlint is, independent of the custom-plugin API maturity.
+Only the 9 TS AST rules are oxlint candidates. The 19 structural rules remain in the bun harness engine. This boundary is intrinsic to what oxlint is, independent of the custom-plugin API maturity.
 
 ## Architecture: bun Stack
 
 ### Rule ownership
 
-- oxlint owns 12 of the 14 TS AST code-style rules (6 built-in + 6 custom). The bun manifest carries 13 TS AST keys; `implicitLambdaIt` is registered in code only (no manifest key, Kotlin-only convention) and is DROPPED, not migrated.
-  - Built-in coverage (config keys use the slash form; the JSON `code` field uses the paren form, see Data flow): `eslint/no-console` (unstructuredLogging, ERROR), `eslint/no-empty` with `allowEmptyCatch:false` (emptyCatchBlock, ERROR), `eslint/curly` (ifStatementBraces, ERROR), `eslint/no-underscore-dangle` with `allow:["_"]` (leadingUnderscore, ERROR — confirm rule exists via `oxlint --rules` at implementation), `import/no-namespace` (wildcardImport, ERROR), `typescript/ban-ts-comment` (uncheckedCastSuppression, ERROR).
-  - Custom JS-plugin rules WITH fixers for the bespoke conventions that have no built-in: `greaterThanComparison` (ERROR), `earlyReturn` (WARN), `silentCatch` (ERROR), `importOverFqn` (WARN), `publicDeclarationDocComment` (WARN), `multilineDocStyle` (WARN). The alpha status of the JS-plugin API is accepted (user decision, 2026-06-03), mirroring the gradle/ktlint full detection+fix integration.
-  - `silentCatch` is custom, NOT built-in: spike verification (oxlint 1.68.0) confirmed `eslint/no-empty` flags only truly empty catch blocks and does NOT flag a non-empty catch that still swallows the error (e.g. `catch (e) { return 0; }`). Its swallow-detection (catch must rethrow, translate, or log) is therefore not reducible to built-ins. `emptyCatchBlock` (empty-only) remains built-in via `eslint/no-empty`.
+- oxlint owns 9 of the TS AST code-style rules: 6 built-in + 3 custom. B1 removals eliminated `earlyReturn`, `silentCatch`, `emptyCatchBlock` (as a harness rule), and `importOverFqn` from the bun manifest.
+  - Built-in coverage (config keys use the slash form; the JSON `code` field uses the paren form, see Data flow): `eslint/no-console` (unstructuredLogging, ERROR), `eslint/no-empty` with `allowEmptyCatch:false` (built-in empty-catch detection only, ERROR), `eslint/curly` (ifStatementBraces, ERROR), `eslint/no-underscore-dangle` with `allow:["_"]` (leadingUnderscore, ERROR), `import/no-namespace` (wildcardImport, ERROR), `typescript/ban-ts-comment` (uncheckedCastSuppression, ERROR).
+  - Custom JS-plugin rules WITH fixers for the remaining bespoke conventions: `greaterThanComparison` (ERROR), `publicDeclarationDocComment` (WARN), `multilineDocStyle` (WARN). The alpha status of the JS-plugin API is accepted (user decision, 2026-06-03), mirroring the gradle/ktlint full detection+fix integration. After B1 removals, no custom rules for `earlyReturn`, `silentCatch`, `emptyCatchBlock`, or `importOverFqn` remain on the bun stack.
+  - `silentCatch` (non-empty-but-swallowing catch blocks) was removed in B1 because it produced false positives on legitimate error handling patterns (e.g. `catch { return fallback }`). The bun stack retained `eslint/no-empty` for empty-catch detection, which is the ecosystem built-in equivalent.
+  - `emptyCatchBlock` as a harness rule was removed in B1, but bun retains empty-catch detection via the `eslint/no-empty` built-in with `allowEmptyCatch:false`.
 - oxfmt owns formatting, including blank-line normalization. `leafFunctionBlankLines` is NOT a custom oxlint rule: spike verification (oxfmt 0.53.0) confirmed oxfmt collapses consecutive blank lines inside function bodies to one by default, so this convention is subsumed by `harness-format` running oxfmt and is removed as a lint rule.
-- The bun harness engine retains only the 19 structural rules. The 14 TS AST rule modules are removed once oxlint (12 rules) and oxfmt (`leafFunctionBlankLines`) cover them and `implicitLambdaIt` is dropped.
+- The bun harness engine retains only the 19 structural rules. TS AST code-style detection is fully migrated to oxlint (6 built-in + 3 custom, 9 total).
 
 ### Components
 
 - `.oxlintrc.json` (config) at `docs/harness/bun/.oxlintrc.json`: built-in rule severities (slash form, all set to `error` so oxlint always emits — the harness re-derives the authoritative severity from the manifest), `jsPlugins: ["./oxlint-plugins/harness.mjs"]`, and `overrides` as needed. Spike-verified (Q3): `jsPlugins` paths resolve relative to the config file location, so the adapter may run oxlint from the repo root while keeping config-relative plugin paths.
-- Custom oxlint rule plugin: a single ESM module `docs/harness/bun/oxlint-plugins/harness.mjs` (default export `{ meta: { name: "harness" }, rules: { "<rule-id>": { meta: { fixable: "code" }, create(context) { ... } } } }`) declaring the 6 custom rules and reporting via `context.report({ node, message, fix })`. Spike verification (oxlint 1.68.0): a `.mjs` ESM plugin loads and autofixes WITHOUT any `package.json` (Q1), so the existing standalone-Bun self-install model is preserved — no `package.json`, no declared devDependencies. Provisioning is by `bunx oxlint@1.68.0` / `bunx oxfmt@0.53.0`, which self-provision the pinned binaries with no separate install step (Q4, Q5). oxlint shells out to `node` to load the JS plugin (Q6), so Node availability is a prerequisite for the custom-rule path; built-in oxlint rules and oxfmt run from the binary and do not need Node.
-- `.oxfmtrc.json` (config) at `docs/harness/bun/.oxfmtrc.json`: `printWidth`, `tabWidth`, `semi`, `singleQuote`, import sorting. Verify defaults and key names against official oxfmt docs at implementation.
+- Custom oxlint rule plugin: a single ESM module `docs/harness/bun/oxlint-plugins/harness.mjs` (default export `{ meta: { name: "harness" }, rules: { "<rule-id>": { meta: { fixable: "code" }, create(context) { ... } } } }`) declaring the 3 custom rules (`greaterThanComparison`, `multilineDocStyle`, `publicDeclarationDocComment`) and reporting via `context.report({ node, message, fix })`. Spike verification (oxlint 1.68.0): a `.mjs` ESM plugin loads and autofixes WITHOUT any `package.json` (Q1), so the existing standalone-Bun self-install model is preserved — no `package.json`, no declared devDependencies. Provisioning is by `bunx oxlint@1.68.0` / `bunx oxfmt@0.53.0`, which self-provision the pinned binaries with no separate install step (Q4, Q5). oxlint shells out to `node` to load the JS plugin (Q6), so Node availability is a prerequisite for the custom-rule path; built-in oxlint rules and oxfmt run from the binary and do not need Node.
+- `.oxfmtrc.json` (config) at `.oxfmtrc.json` (bun stack root, not runtime subdir): `printWidth`, `tabWidth`, `semi`, `singleQuote`, import sorting. Verify defaults and key names against official oxfmt docs at implementation. Relocated from `docs/harness/bun/.oxfmtrc.json` to the stack root so it installs at the target PROJECT ROOT; `harness-format.ts` relies on oxfmt's auto-discovery of `.oxfmtrc.json` from cwd (project root) and does NOT use an explicit `--config` flag.
 - Adapter in `harness-check`: spawns `bunx oxlint@1.68.0 --config docs/harness/bun/.oxlintrc.json --format json <ts files>`, parses results, maps each diagnostic into the harness `Finding` shape (severity/category/message/file/startLine/startColumn + fix safety) so output stays uniform.
 
 ### Data flow (check)
 
 1. `harness-check` runs the harness engine for the 19 structural rules, producing `Finding[]`.
-2. `harness-check` invokes `oxlint --format=json` over the target's TS sources.
+2. `harness-check` invokes `oxlint --format=json` over the target's TS sources, covering 6 built-in + 3 custom rules (9 total code-style).
 3. The adapter maps oxlint diagnostics into `Finding[]`. The diagnostic `code` field uses the paren form `plugin(rule)` (spike-verified Q2: `eslint(no-console)`, `import(no-namespace)`, `typescript(ban-ts-comment)` for built-ins; `harness(<rule-id>)` for the custom plugin) — note this differs from the slash form (`eslint/no-console`) used in `.oxlintrc.json` rule keys. A static `OXLINT_CODE_TO_CATEGORY` map keyed on the paren-form `code` resolves the harness category. The manifest is the single source of truth for severity and enablement: the adapter DROPS diagnostics whose mapped category is disabled in the manifest and sets each `Finding.severity` from `ctx.severityOf(category)` (not from the oxlint severity). Spike verification confirmed oxlint `--format json` does NOT expose per-diagnostic fix availability or safety (diagnostic keys are `message`, `code`, `severity`, `filename`, `labels`, `help`, `url`, `causes`, `related` only). The adapter therefore assigns `fix` safety from a static per-category policy (built-in safe-fixable rules → `safe`; custom-plugin rules and suggestion/dangerous-tier built-ins → `unsafe`/`manual`). The `harness-check` reporter records that a finding is fixable plus its safety (so `[*] fixable` still renders) but does NOT carry `edits`. The default `harness-format` path does NOT run `oxlint --fix`: formatting is owned by `oxfmt --write` only, and lint-fix application is left to the explicit `oxlint --fix` command a developer may run directly. This is behavior-preserving — it mirrors the current state where, e.g., `greaterThanComparison` is `safety="safe"` yet ∉ `FORMAT_ALLOWLIST`, so it is reported-as-fixable but never auto-applied during format. The custom oxlint rules still ship fixers (`meta.fixable="code"`); only the auto-application from `harness-format` is withheld.
 4. Findings are merged, deduped on the existing key, and reported. Exit non-zero if any ERROR finding exists.
 
 ### Data flow (format)
 
-1. `harness-format` invokes `oxfmt` over the target's TS sources for write-mode formatting.
+1. `harness-format` invokes `oxfmt --write` over the target's TS sources, relying on `.oxfmtrc.json` auto-discovery from the project root for configuration.
 2. `leafFunctionBlankLines` is removed from the harness FORMAT_ALLOWLIST and from the lint rules: oxfmt subsumes it (verified: collapses consecutive blank lines to one). No reconciliation of conflicting edits is needed because the harness no longer emits blank-line edits for TS sources.
 
 ### Error handling
@@ -116,7 +119,7 @@ Resolved by spike (oxlint 1.68.0, oxfmt 0.53.0, 2026-06-03):
 - `jsPlugins` paths resolve relative to the config file (Q3), so the adapter runs oxlint from the repo root with config-relative plugin paths.
 - Node prerequisite + load-failure signal (Q6): oxlint requires `node` to load JS plugins and emits a clear `Failed to load JS plugin: <path>` error on failure.
 - Comment access for the doc-comment custom rules (`multilineDocStyle`, `publicDeclarationDocComment`): the plugin `context.sourceCode` exposes `getAllComments()`/`getCommentsBefore(node)`; comments carry `range`/`start`/`end`/`loc`, and fixers can rewrite them via `replaceTextRange(range, text)`. Both doc rules migrate as custom plugins (detection; `publicDeclarationDocComment` fix safety `manual`, `multilineDocStyle` `safe`).
-- `silentCatch` is not reducible to `eslint/no-empty` (non-empty-but-swallowing catch is not flagged); it stays a custom rule.
+- `silentCatch` removal (B1): spike verification confirmed `eslint/no-empty` does not detect non-empty catch blocks that still swallow the error; detection of swallow-behavior (catch must rethrow, translate, or log) was therefore not reducible to built-ins. Removed in B1 due to false positives on legitimate patterns like `catch { return fallback }`.
 
 Remaining (resolve at implementation):
 
