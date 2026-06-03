@@ -3613,7 +3613,7 @@ fixture_assert_doc_separator_rejection() {
     )
     fixture_write_file "$temp_dir" bad-docstring.sh "$bad_doc_content"
 
-    _discard=$(reject_missing_doc_separator_in_shell "$temp_dir/bad-docstring.sh" 2>&1) && {
+    _=$(reject_missing_doc_separator_in_shell "$temp_dir/bad-docstring.sh" 2>&1) && {
         printf '%s\n' '[fixture_assert_doc_separator_rejection] expected missing separator to be rejected' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
@@ -3650,16 +3650,16 @@ if [[ -f x ]]; then
 fi
 STANDALONEEOF
     )"
-    _discard=$(reject_double_bracket_in_shell "$temp_dir/standalone-bracket.sh" 2>&1) && {
+    _=$(reject_double_bracket_in_shell "$temp_dir/standalone-bracket.sh" 2>&1) && {
         printf '%s\n' '[fixture_assert_double_bracket_rejection] expected standalone [[ to be rejected' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1
     }
-    _bracket_line='[[ -f x ]] && printf "%s\n" "bad"'
+    bracket_line='[[ -f x ]] && printf "%s\n" "bad"'
     fixture_write_file "$temp_dir" and-list-bracket.sh "$(
-        printf '%s\n%s\n%s\n%s\n' '#!/usr/bin/env sh' '# -*- coding: utf-8 -*-' 'set -e' "$_bracket_line"
+        printf '%s\n%s\n%s\n%s\n' '#!/usr/bin/env sh' '# -*- coding: utf-8 -*-' 'set -e' "$bracket_line"
     )"
-    _discard=$(reject_double_bracket_in_shell "$temp_dir/and-list-bracket.sh" 2>&1) && {
+    _=$(reject_double_bracket_in_shell "$temp_dir/and-list-bracket.sh" 2>&1) && {
         printf '%s\n' '[fixture_assert_double_bracket_rejection] expected &&-style [[ to be rejected' >&2
         fixture_remove_temp_dir "$temp_dir"
         exit 1

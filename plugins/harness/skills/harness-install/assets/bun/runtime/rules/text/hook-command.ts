@@ -2,6 +2,9 @@
 // -*- coding: utf-8 -*-
 import type { Finding, HarnessCheckRule, RuleContext } from "../harness-check-rule";
 
+/**
+ * Require hooks to declare and run validation commands.
+ */
 export const hookCommandRule: HarnessCheckRule = {
     category: "hookCommand",
     applies(ctx: RuleContext): boolean {

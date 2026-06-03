@@ -2,6 +2,9 @@
 // -*- coding: utf-8 -*-
 import type { Finding, HarnessCheckRule, RuleContext } from "../harness-check-rule";
 
+/**
+ * Require hooks to contain stage markers.
+ */
 export const hookStageRule: HarnessCheckRule = {
     category: "hookStage",
     applies(ctx: RuleContext): boolean {
