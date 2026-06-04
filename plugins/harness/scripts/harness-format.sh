@@ -16,8 +16,8 @@ list_shell_files() {
     printf '%s\n' "$root/plugins/harness/scripts/harness-check.sh"
     printf '%s\n' "$root/plugins/harness/scripts/harness-format.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install-harness.sh"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/runtime/harness-check.sh"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/runtime/harness-format.sh"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/check.sh"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/format.sh"
     printf '%s\n' "$root/plugins/java/scripts/has-lombok.sh"
     printf '%s\n' "$root/plugins/java/scripts/jdtls-wrapper.sh"
     printf '%s\n' "$root/plugins/java/scripts/test-jdtls-wrapper.sh"
@@ -30,8 +30,8 @@ list_python_files() {
     printf '%s\n' "$root/plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd.py"
     printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/lsp/example-lsp.py"
     printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/servers/example-mcp.py"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/runtime/harness_check.py"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/runtime/harness_format.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/check.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/format.py"
 }
 
 # List Markdown files covered by repository formatting.
@@ -85,8 +85,8 @@ record_changed_file() {
 # @return Writes changed file count and exits 0 or 1.
 format_shell_files() {
     if ! shfmt_bin=$(command -v shfmt 2>&1); then
-        printf 'warning: shfmt not in PATH; skipping shfmt formatting\n' >&2
-        printf '0\n'
+        echo 'warning: shfmt not in PATH; skipping shfmt formatting' >&2
+        echo '0'
         return 0
     fi
     formatted_count=0
@@ -123,8 +123,8 @@ format_shell_files() {
 # @return Writes changed file count and exits 0 or 1.
 format_markdown_files() {
     if ! markdownlint_bin=$(command -v markdownlint-cli2 2>&1); then
-        printf 'warning: markdownlint-cli2 not in PATH; skipping markdown formatting\n' >&2
-        printf '0\n'
+        echo 'warning: markdownlint-cli2 not in PATH; skipping markdown formatting' >&2
+        echo '0'
         return 0
     fi
     before_file=$(mktemp)
@@ -148,7 +148,7 @@ format_markdown_files() {
         return 0
     else
         rm "$before_file" "$after_file"
-        printf 'error: markdownlint-cli2 --fix failed\n' >&2
+        echo 'error: markdownlint-cli2 --fix failed' >&2
         return 1
     fi
 }
@@ -161,8 +161,8 @@ format_markdown_files() {
 # @return Writes changed file count and exits 0 or 1.
 format_python_files() {
     if ! uv_bin=$(command -v uv 2>&1); then
-        printf 'warning: uv not in PATH; skipping ruff formatting\n' >&2
-        printf '0\n'
+        echo 'warning: uv not in PATH; skipping ruff formatting' >&2
+        echo '0'
         return 0
     fi
     formatted_count=0
@@ -228,11 +228,11 @@ if [ "$shell_formatted" -gt 0 ] || [ "$python_formatted" -gt 0 ] || [ "$markdown
         done
     fi
 else
-    printf 'no files formatted\n'
+    echo 'no files formatted'
 fi
 
 printf 'no-op: %d shell file(s), %d python file(s), %d markdown file(s).\n' "$shell_noop" "$python_noop" "$markdown_noop"
-printf 'remaining findings after format:\n'
+echo 'remaining findings after format:'
 if sh "$root/plugins/harness/scripts/harness-check.sh"; then
     check_status=0
 else

@@ -10,7 +10,7 @@ allowed-tools:
   - Bash(mvn *)
   - Bash(uv *)
   - Bash(bun *)
-  - Bash(sh docs/harness/shell/harness-check.sh)
+  - Bash(sh scripts/check.sh)
   - Read
   - Grep
   - Glob
@@ -29,12 +29,12 @@ Run the native harness validation command for the target repository. This plugin
 
 ## First Safe Checks
 
-1. Read `docs/harness/README.md` and `docs/harness/manifest.json` when they exist.
+1. Read `docs/harness/README.md` to confirm the selected stack and validation command.
 2. Confirm the target stack from the argument or repository files.
 3. Check that validation is being run from the target repository root; uv, bun, and Maven validators bind the current working directory as the target root.
 4. Prefer the stack command documented in `docs/harness/README.md` over ad hoc checks.
-5. Inspect `.github/workflows/harness.yml` or `.gitlab-ci.yml` when validation is being checked through CI, but run local validation from the target root first.
-6. Open `docs/harness/README.md` when command selection is unclear; open `docs/harness/manifest.json` when required files, directories, or generated-artifact policy are disputed.
+5. Inspect `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml` when validation is being checked through CI, but run local validation from the target root first.
+6. Open `docs/harness/README.md` when command selection is unclear.
 
 ## Preflight
 
@@ -43,8 +43,7 @@ Check these support surfaces before running the stack command.
 | Path | Use it for | Failure example |
 | --- | --- | --- |
 | `docs/harness/README.md` | Selected validation command and stack notes | `docs/harness/README.md: missing harness file - run harness-install or restore target-owned README` |
-| `docs/harness/manifest.json` | Required files, optional seeds, empty directories, generated-artifact policy | `docs/harness/manifest.json: missing harness file - run harness-install or restore target-owned manifest` |
-| `.github/workflows/harness.yml` | GitHub Actions command parity | `.github/workflows/harness.yml: CI command mismatch - expected generated pre-push final check command` |
+| `.github/workflows/<tool>.yaml` | GitHub Actions command parity (when present) | `.github/workflows/<tool>.yaml: CI command mismatch - expected generated pre-push final check command` |
 | `.gitlab-ci.yml` | GitLab CI command parity | `.gitlab-ci.yml: CI command mismatch - expected generated pre-push final check command` |
 
 ## Mode Detection
@@ -54,70 +53,61 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | Evidence | Mode | Notes |
 | --- | --- | --- |
 | `settings.gradle`, `settings.gradle.kts`, `build.gradle`, or `build.gradle.kts` | `gradle` | Prefer `./gradlew` when executable. |
-| `pom.xml` | `maven` | The harness Maven plugin lives under `harness-maven-plugin/`. |
+| `pom.xml` | `maven` | Maven project with Spotless validation. |
 | `uv.lock` or Python `pyproject.toml` | `uv` | Run through `uv` so dependencies and Python version resolution stay target-owned. |
 | `bun.lock`, `bun.lockb`, or JavaScript `package.json` without a stronger stack signal | `bun` | Use only when Bun is the intended project runtime. |
-| Shell scripts, `Makefile`, or no stronger stack signal | `shell` | Requires `python3` on PATH for manifest parsing. |
+| Shell scripts, `Makefile`, or no stronger stack signal | `shell` | Shell-script-only or Makefile-driven project. |
 | Multiple stack signals | explicit user mode | Report ambiguous stack when non-interactive, or use the installed README command if present. |
 
 ## Stack Commands
 
 | Mode | Use when | Command |
 | --- | --- | --- |
-| `gradle` harness validation | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew harnessCheck`, or `gradle harnessCheck` when the target uses system Gradle without a wrapper |
-| `gradle` final check | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| `maven` | `pom.xml` exists | `mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check` |
-| `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run --script docs/harness/uv/harness_check.py` |
-| `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun --install=fallback run docs/harness/bun/harness-check.ts` |
-| `shell` | shell-script-only or Makefile-driven repository | `sh docs/harness/shell/harness-check.sh` |
+| `gradle` | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew ktlintCheck`, or `gradle ktlintCheck` when the target uses system Gradle without a wrapper |
+| `maven` | `pom.xml` exists | `mvn verify` |
+| `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run scripts/check.py` |
+| `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun run check` |
+| `shell` | shell-script-only or Makefile-driven repository | `sh scripts/check.sh` |
 
-The installed README command is the local harness validation command. The generated `docs/harness/git-hooks/pre-push` command marker is the final check command; for Gradle that command is `check`, while `pre-commit` runs `harnessCheck`. Do not introduce `docs/harness/check.sh` as a dispatcher unless the installer, CI templates, hook generation, validators, and self-check all adopt that dispatcher contract together.
+The installed README command is the local harness validation command. The generated `docs/harness/git-hooks/pre-commit` and `pre-push` command markers both carry this same stack validation command listed above.
 
 ## Command Examples
 
 Run from the target repository root.
 
 ```sh
-./gradlew harnessCheck
+./gradlew ktlintCheck
 ```
 
 ```sh
-gradle harnessCheck
+gradle ktlintCheck
 ```
 
 ```sh
-mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check
+mvn verify
 ```
 
 ```sh
-uv run --script docs/harness/uv/harness_check.py
+uv run scripts/check.py
 ```
 
 ```sh
-bun --install=fallback run docs/harness/bun/harness-check.ts
-```
-
-```sh
-sh docs/harness/shell/harness-check.sh
+sh scripts/check.sh
 ```
 
 Do not suppress validator output.
 
 ```sh
-uv run --script docs/harness/uv/harness_check.py
+uv run --script scripts/check.py
 ```
 
 Reject any pattern that discards validator output or forces a successful exit after failure because it hides diagnostics and turns failure into success.
-
-```sh
-uv run --script docs/harness/uv/harness_check.py
-```
 
 ## Workflow
 
 1. Detect mode when the argument is empty or `auto`.
 2. Run exactly one stack command from the table.
-3. If validation fails, classify the failure using the table below, including manifest, directory, docs, agent, skill, hook, CI, generated-artifact, symlink, shebang, and stack-tool failures.
+3. If validation fails, classify the failure using the table below, including directory, docs, agent, skill, hook, CI, generated-artifact, symlink, shebang, and stack-tool failures.
 4. Fix only issues in the user's requested scope; otherwise report the failing contract and the owning file.
 5. Re-run the same validation command after any fix.
 
@@ -146,7 +136,6 @@ failures:
 | Category | Evidence | Smallest valid action |
 | --- | --- | --- |
 | Missing harness file | Validator names an absent `AGENTS.md`, `docs/harness/**`, docs file, agent, or skill | Re-run installation or restore the missing target-owned file. |
-| Manifest drift | Manifest JSON is invalid or manifest lists differ from validator constants | Restore `docs/harness/manifest.json` or update validators and manifest together. |
 | Missing harness directory | Validator names an absent docs, `.claude/agents`, `.claude/skills`, or template directory | Restore the directory and required `.gitkeep` files when empty. |
 | Stale placeholder | File exists but still contains generic scaffold content | Replace placeholder with target truth; do not invent product facts. |
 | Agent or skill metadata | Agent or skill frontmatter lacks required `name` or `description` | Fix the specific agent or skill metadata. |
@@ -157,7 +146,7 @@ failures:
 | Script shebang | Executable script does not use `/usr/bin/env` shebang | Update the executable script shebang. |
 | Unsupported validation command | Generated `pre-push` declares a command outside the installer allow-list | Regenerate selected-mode hook content from the installer. |
 | Hook wiring | Generated `pre-commit` does not match the stack-specific hook contract, generated `pre-push` lacks the selected final check command, or CI drifts from generated `pre-push` | Regenerate selected-mode hook content only with explicit hook approval. |
-| CI command mismatch | `.github/workflows/harness.yml` or `.gitlab-ci.yml` uses a different validation command | Align CI with the generated pre-push final check command for the selected mode. |
+| CI command mismatch | `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml` uses a different validation command | Align CI with the generated pre-push final check command. |
 | Stack-tool failure | The native tool exits before harness checks run | Report the tool failure separately from harness contract health. |
 
 ## CI Checks
@@ -166,7 +155,7 @@ Local validation is the source of truth. CI files are examples that should run t
 
 | CI file | Expected validation shape |
 | --- | --- |
-| `.github/workflows/harness.yml` | One harness job whose run step matches the generated pre-push final check command. |
+| `.github/workflows/<tool>.yaml` | One job whose run step matches the generated pre-push final check command. |
 | `.gitlab-ci.yml` | One `harness` job whose script entry matches the generated pre-push final check command. |
 
 If CI is skipped during install, report that local validation passed and CI snippets were intentionally absent.
@@ -176,7 +165,7 @@ GitHub-only and GitLab-only repositories may intentionally delete the unused CI 
 Report CI drift with the expected command.
 
 ```text
-ci: mismatch - .github/workflows/harness.yml runs `bun run check`, expected `uv run --script docs/harness/uv/harness_check.py`
+ci: mismatch - .github/workflows/ultracite.yaml runs `bun run format`, expected `bun run check`
 ```
 
 ## Diagnostic Format
@@ -199,24 +188,20 @@ When position is unavailable, validators fall back to shorter forms:
 path/to/file [SEVERITY] category: file-level message
 ```
 
-`SEVERITY` is one of `ERROR`, `WARN`, or `INFO`. `category` matches the manifest rule identifier.
+`SEVERITY` is one of `ERROR`, `WARN`, or `INFO`. `category` matches the rule identifier.
 
-## Safe-Format Allowlist
+## Safe-Format Conventions
 
-`harnessFormat` applies only explicitly allowlisted safe fixes. A safe fix is a deterministic, semantics-preserving edit. The current allowlist covers `emptyDirectoryPlaceholders`, `envShebangUsage`, `hookGeneratedMarker`, `hookShebang`, and `shebangEncodingMarker`. Blank-line normalization in leaf functions is not an allowlisted safe fix: the Python and TypeScript stacks delegate it to `ruff format` and `oxfmt` respectively, Maven applies it through its own formatter, and Gradle reports it as a check-only finding. Rules not in the allowlist are not formatted.
-
-`harnessFormat` is idempotent: a second run immediately after the first produces no additional modifications. Format commands run validation after applying fixes, print remaining findings, and fail when any remaining finding has `ERROR` severity.
-
-The shell runtime ships `harness-check.sh` and `harness-format.sh`.
+Format commands apply fixes through their native tools. All fixes are idempotent: a second run immediately after the first produces no additional modifications. Format commands run validation after applying fixes, print remaining findings, and fail when any remaining finding has `ERROR` severity.
 
 ## Invariants
 
 - Validation checks the target repository harness, not this plugin package.
-- The installed manifest and installed README define the expected target repository contract.
-- Native validators support the installed `docs/harness/manifest.json` schema and compare the known list fields from that schema.
+- The installed README and native-tool contracts define the expected target repository contract.
+- Stack validators invoke native ecosystem tools (ktlint, Spotless, ruff, ultracite, shellcheck).
 - File presence alone does not prove project readiness when placeholders still lack project-specific content.
 - Generated artifacts are valid only when they document source command, source inputs, freshness, and regeneration trigger.
-- GitHub Actions, GitLab CI, and the generated pre-push hook MUST remain examples of the same final check command. Gradle pre-commit runs `harnessCheck`; non-Gradle pre-commit remains compliance-only.
+- GitHub Actions, GitLab CI, and the generated pre-push hook MUST remain examples of the same final check command. Gradle pre-commit runs `./gradlew ktlintCheck`; non-Gradle pre-commit remains compliance-only.
 - Check and validation findings MUST use the canonical diagnostic prefix with one-based line and column numbers when position is available.
 
 ## Pitfalls

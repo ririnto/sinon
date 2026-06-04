@@ -1,9 +1,8 @@
 stages:
   - validate
 
-harness:
+ruff:
   stage: validate
   image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
   script:
-    - >-
-      {{validation_command}}
+    - uv run scripts/check.py
