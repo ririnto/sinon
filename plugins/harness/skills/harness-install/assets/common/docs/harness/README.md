@@ -37,21 +37,18 @@ The repository harness MAY evolve as the project moves through discovery, implem
 
 ## Validation
 
-Run the command for the repository stack:
+Run the native stack tool command from the repository root:
 
-- Gradle harness validation: `./gradlew harnessCheck`, or `gradle harnessCheck` when this repository uses system Gradle without a wrapper
-- Gradle final check: `./gradlew check`, or `gradle check` when this repository uses system Gradle without a wrapper
-- Maven: `mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check`
-- uv: `uv run --script docs/harness/uv/harness_check.py`
-- bun: `bun --install=fallback run docs/harness/bun/harness-check.ts`
-- shell: `sh docs/harness/shell/harness-check.sh`
+| Stack | Validation command |
+| --- | --- |
+| Gradle | `./gradlew ktlintCheck` (or `gradle ktlintCheck` if using system Gradle without a wrapper) |
+| Maven | `mvn verify` |
+| uv | `uv run scripts/check.py` |
+| Bun | `bun run check` |
+| shell | `sh scripts/check.sh` |
 
-The generated Gradle `pre-commit` hook runs `harnessCheck`; non-Gradle `pre-commit` hooks check lightweight harness-rule compliance only. The generated `pre-push` hook runs the selected final check command and should match CI when CI snippets are present.
+The generated `pre-commit` hook runs the stack-specific validation command above. The generated `pre-push` hook also runs the same validation command and should match CI when CI workflows are present.
 
-Run validation from the repository root. The uv, bun, and Maven validators bind the current working directory as the target root. Native validators support the installed `docs/harness/manifest.json` schema and compare the list fields written by this harness.
+Native validation uses the ecosystem's built-in tools (ktlint, Spotless, ruff, ultracite over oxlint, shellcheck) configured at the repository root via `.editorconfig`, `ruff.toml`, `oxlint.config.ts`, `oxfmt.config.ts`, `.shellcheckrc`, and stack-specific build files.
 
-## Manifest schema
-
-`docs/harness/manifest.json` is validated against `docs/harness/manifest.schema.json`. Each stack ships a self-contained schema; there is no shared base or code-tier schema across stacks. The schema declares the rule keys that the installed stack's validator recognises.
-
-If the installer wired Gradle into a complex existing `settings.gradle(.kts)`, review the resulting plugin management and composite build blocks manually before relying on `check` in CI.
+If the installer wired Gradle into a complex existing `settings.gradle(.kts)`, review the resulting plugin management and composite build blocks manually before relying on CI.

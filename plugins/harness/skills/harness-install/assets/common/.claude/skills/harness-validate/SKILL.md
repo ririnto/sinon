@@ -11,9 +11,8 @@ Validate this target repository's installed harness. This target skill uses the 
 ## First Safe Checks
 
 1. Read `docs/harness/README.md` for the stack command.
-2. Read `docs/harness/manifest.json` for required files, directories, and generated-artifact policy.
-3. Confirm you are running from the target repository root.
-4. Confirm whether the repository is Gradle, Maven, uv, bun, or shell based on local files.
+2. Confirm you are running from the target repository root.
+3. Confirm whether the repository is Gradle, Maven, uv, bun, or shell based on local files.
 
 ## Commands
 
@@ -21,24 +20,23 @@ Run the matching command:
 
 | Stack | Command |
 | --- | --- |
-| Gradle harness validation | `./gradlew harnessCheck`, or `gradle harnessCheck` when the target uses system Gradle without a wrapper |
-| Gradle final check | `./gradlew check`, or `gradle check` when the target uses system Gradle without a wrapper |
-| Maven | `mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check` |
-| uv | `uv run --script docs/harness/uv/harness_check.py` |
-| bun | `bun --install=fallback run docs/harness/bun/harness-check.ts` |
-| shell | `sh docs/harness/shell/harness-check.sh` |
+| Gradle | `./gradlew ktlintCheck` (or `gradle ktlintCheck` if using system Gradle without a wrapper) |
+| Maven | `mvn verify` |
+| uv | `uv run scripts/check.py` |
+| Bun | `bun run check` |
+| shell | `sh scripts/check.sh` |
 
 ## Workflow
 
 1. Run the matching command.
-2. If it fails, classify the failure as missing contract file or directory, manifest drift, missing `.gitkeep`, stale placeholder, metadata/frontmatter problem, generated-artifact metadata gap, symlink safety issue, executable-bit or shebang problem, unsupported pre-push validation command, CI/pre-push command mismatch or pre-commit stage mismatch, or stack-tool failure.
+2. If it fails, classify the failure as missing contract file or directory, missing `.gitkeep`, stale placeholder, metadata/frontmatter problem, generated-artifact metadata gap, symlink safety issue, executable-bit or shebang problem, CI/pre-push command mismatch or pre-commit stage mismatch, or native stack-tool failure.
 3. Fix only failures within the requested scope.
 4. Re-run the same command after fixes.
 
 ## Invariants
 
-- The installed manifest is the target repository harness contract.
-- Generated Gradle pre-commit runs `harnessCheck`; non-Gradle pre-commit checks harness-rule compliance only. Generated pre-push runs the selected final check command.
+- The installed `CLAUDE.md` and `.editorconfig`/stack config files are the target repository harness contract.
+- Generated pre-commit and pre-push hooks both run the stack-specific validation command.
 - `docs/generated/` may be empty, but generated files that exist need regeneration metadata.
 - Seed references may be replaced when they do not match the target stack or domain.
 

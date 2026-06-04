@@ -1,11 +1,10 @@
 stages:
   - validate
 
-harness:
+shellcheck:
   stage: validate
   image: debian:stable-slim
   before_script:
-    - apt-get update && apt-get install -y python3 shellcheck
+    - apt-get update && apt-get install -y shellcheck
   script:
-    - >-
-      {{validation_command}}
+    - sh scripts/check.sh

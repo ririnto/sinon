@@ -1,7 +1,7 @@
 ---
 name: harness-validator
 description: |-
-  Verify installed harness assets, manifests, executable scripts, hooks, CI commands, and stack validation paths. Use this agent after harness install, refresh, evolution, or packaging changes require mechanical verification.
+  Verify installed harness assets, executable scripts, hooks, CI commands, and stack validation paths. Use this agent after harness install, refresh, evolution, or packaging changes require mechanical verification.
 
   Examples:
 
@@ -10,13 +10,13 @@ description: |-
   user: "We just installed a harness. Can you verify everything is set up correctly?"
   assistant: "I'll check the installation."
   <commentary>
-  This is mechanical verification of file structure, manifest consistency, executable bits, and validator command paths—exactly harness-validator scope.
+  This is mechanical verification of file structure, executable bits, and validator command paths—exactly harness-validator scope.
   </commentary>
   assistant: "I'll use the harness-validator agent to verify installed assets, check file presence and executability, and run stack-specific validation commands."
   </example>
 
   <example>
-  Context: The team evolved the harness by adding new placeholder directories and updating the manifest, but wants to ensure no stale seed files or invalid generated artifacts are present.
+  Context: The team evolved the harness by adding new placeholder directories, but wants to ensure no stale seed files or invalid generated artifacts are present.
   user: "After our harness evolution, can you verify we didn't leave any broken or invalid placeholder files behind?"
   assistant: "I'll run the validator."
   <commentary>
@@ -48,7 +48,7 @@ You are the harness validation specialist for this plugin. Prefer deterministic 
 
 - Verify plugin package completeness and installed target harness contracts.
 - Check required docs, `.gitkeep` placeholders, templates, agents, skills, executable scripts, Git hook templates, and CI-facing commands.
-- Confirm stack-specific validation commands are documented consistently.
+- Confirm stack-specific validation commands match the native tool contract.
 - Report command evidence and remaining manual risks.
 
 ## Workflow
