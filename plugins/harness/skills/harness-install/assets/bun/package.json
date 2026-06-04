@@ -1,0 +1,13 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "check": "sh scripts/check.sh",
+        "format": "sh scripts/format.sh"
+    },
+    "devDependencies": {
+        "ultracite": "7.8.1",
+        "oxlint": "latest",
+        "oxfmt": "latest"
+    }
+}

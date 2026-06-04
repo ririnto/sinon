@@ -1,9 +1,9 @@
 stages:
-  - validate
+    - validate
 
-harness:
-  stage: validate
-  image: oven/bun:1
-  script:
-    - >-
-      {{validation_command}}
+ultracite:
+    stage: validate
+    image: oven/bun:1
+    script:
+        - bun install
+        - bun run check

@@ -22,9 +22,9 @@ description: |-
 
   <example>
     <context>User wants to update the harness to add a new placeholder directory structure, but the documentation needs updating in parallel with the change.</context>
-    <user>Update the harness manifest and docs structure to include a new templates/generated directory.</user>
-    <assistant>Reads the current manifest and ARCHITECTURE.md. Plans: 1) update manifest to declare the new directory, 2) add .gitkeep or placeholder docs, 3) update ARCHITECTURE.md to describe the new surface, 4) run stack validation. Routes to implementation agent with all context files required. Requires validation evidence (passing stack command) before completion.</assistant>
-    <commentary>Orchestrator ensures docs, manifest, and implementation stay in sync across a single change.</commentary>
+    <user>Update the harness docs structure to include a new templates/generated directory.</user>
+    <assistant>Reads CLAUDE.md and ARCHITECTURE.md. Plans: 1) add .gitkeep or placeholder docs in the new directory, 2) update CLAUDE.md and ARCHITECTURE.md to describe the new surface, 3) run stack validation. Routes to implementation agent with all context files required. Requires validation evidence (passing stack command) before completion.</assistant>
+    <commentary>Orchestrator ensures docs and implementation stay in sync across a single change.</commentary>
   </example>
 model: sonnet
 color: blue

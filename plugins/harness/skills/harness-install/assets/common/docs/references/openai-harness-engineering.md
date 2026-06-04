@@ -13,11 +13,11 @@
 
 By Ryan Lopopolo, Member of the Technical Staff
 
-Over the past five months, our team has been running an experiment: building and shipping an internal beta of a software product with **0 lines of manually-written code**.
+Over the past five months, our team has been running an experiment: building and shipping an internal beta of a software product with 0 lines of manually-written code.
 
 The product has internal daily users and external alpha testers. It ships, deploys, breaks, and gets fixed. What's different is that every line of code—application logic, tests, CI configuration, documentation, observability, and internal tooling—has been written by Codex. We estimate that we built this in about 1/10th the time it would have taken to write the code by hand.
 
-**Humans steer. Agents execute.**
+Humans steer. Agents execute.
 
 We intentionally chose this constraint so we would build what was necessary to increase engineering velocity by orders of magnitude. We had weeks to ship what ended up being a million lines of code. To do that, we needed to understand what changes when a software engineering team's primary job is no longer to write code, but to design environments, specify intent, and build feedback loops that allow Codex agents to do reliable work.
 
@@ -33,11 +33,11 @@ There was no pre-existing human-written code to anchor the system. From the begi
 
 Five months later, the repository contains on the order of a million lines of code across application logic, infrastructure, tooling, documentation, and internal developer utilities. Over that period, roughly 1,500 pull requests have been opened and merged with a small team of just three engineers driving Codex. This translates to an average throughput of 3.5 PRs per engineer per day, and surprisingly the throughput has *increased* as the team has grown to now seven engineers. Importantly, this wasn't output for output's sake: the product has been used by hundreds of users internally, including daily internal power users.
 
-Throughout the development process, humans never directly contributed any code. This became a core philosophy for the team: **no manually-written code**.
+Throughout the development process, humans never directly contributed any code. This became a core philosophy for the team: no manually-written code.
 
 ## Redefining the role of the engineer
 
-The lack of hands-on human coding **introduced a different kind of engineering work, focused on systems, scaffolding, and leverage**.
+The lack of hands-on human coding introduced a different kind of engineering work, focused on systems, scaffolding, and leverage.
 
 Early progress was slower than we expected, not because Codex was incapable, but because the environment was underspecified. The agent lacked the tools, abstractions, and internal structure required to make progress toward high-level goals. The primary job of our engineering team became enabling the agents to do useful work.
 
@@ -130,16 +130,16 @@ We regularly see single Codex runs work on a single task for upwards of six hour
 
 ## We made repository knowledge the system of record
 
-Context management is one of the biggest challenges in making agents effective at large and complex tasks. One of the earliest lessons we learned was simple: **give Codex a map, not a 1,000-page instruction manual.**
+Context management is one of the biggest challenges in making agents effective at large and complex tasks. One of the earliest lessons we learned was simple: give Codex a map, not a 1,000-page instruction manual.
 
 We tried the "one big `AGENTS.md`" approach (<https://agents.md/>). It failed in predictable ways:
 
-- **Context is a scarce resource.** A giant instruction file crowds out the task, the code, and the relevant docs—so the agent either misses key constraints or starts optimizing for the wrong ones.
-- **Too much guidance becomes *non-guidance*.** When everything is "important," nothing is. Agents end up pattern-matching locally instead of navigating intentionally.
-- **It rots instantly.** A monolithic manual turns into a graveyard of stale rules. Agents can't tell what's still true, humans stop maintaining it, and the file quietly becomes an attractive nuisance.
-- **It's hard to verify.** A single blob doesn't lend itself to mechanical checks (coverage, freshness, ownership, cross-links), so drift is inevitable.
+- Context is a scarce resource. A giant instruction file crowds out the task, the code, and the relevant docs—so the agent either misses key constraints or starts optimizing for the wrong ones.
+- Too much guidance becomes *non-guidance*. When everything is "important," nothing is. Agents end up pattern-matching locally instead of navigating intentionally.
+- It rots instantly. A monolithic manual turns into a graveyard of stale rules. Agents can't tell what's still true, humans stop maintaining it, and the file quietly becomes an attractive nuisance.
+- It's hard to verify. A single blob doesn't lend itself to mechanical checks (coverage, freshness, ownership, cross-links), so drift is inevitable.
 
-So instead of treating `AGENTS.md` as the encyclopedia, we treat it as **the table of contents**.
+So instead of treating `AGENTS.md` as the encyclopedia, we treat it as the table of contents.
 
 The repository's knowledge base lives in a structured `docs/` directory treated as the system of record. A short `AGENTS.md` (roughly 100 lines) is injected into context and serves primarily as a map, with pointers to deeper sources of truth elsewhere.
 
@@ -183,7 +183,7 @@ Design documentation is catalogued and indexed, including verification status an
 
 Plans are treated as first-class artifacts. Ephemeral lightweight plans are used for small changes, while complex work is captured in execution plans (<https://cookbook.openai.com/articles/codex_exec_plans>) with progress and decision logs that are checked into the repository. Active plans, completed plans, and known technical debt are all versioned and co-located, allowing agents to operate without relying on external context.
 
-This enables **progressive disclosure**: agents start with a small, stable entry point and are taught where to look next, rather than being overwhelmed up front.
+This enables progressive disclosure: agents start with a small, stable entry point and are taught where to look next, rather than being overwhelmed up front.
 
 We enforce this mechanically. Dedicated linters and CI jobs validate that the knowledge base is up to date, cross-linked, and structured correctly. A recurring "doc-gardening" agent scans for stale or obsolete documentation that does not reflect the real code behavior and opens fix-up pull requests.
 
@@ -191,7 +191,7 @@ We enforce this mechanically. Dedicated linters and CI jobs validate that the kn
 
 As the codebase evolved, Codex's framework for design decisions needed to evolve, too.
 
-Because the repository is entirely agent-generated, it's optimized first for *Codex's* *legibility*. In the same way teams aim to improve navigability of their code for new engineering hires, our human engineers' goal was making it possible for an agent to reason about the full business domain **directly from the repository itself.**
+Because the repository is entirely agent-generated, it's optimized first for *Codex's* *legibility*. In the same way teams aim to improve navigability of their code for new engineering hires, our human engineers' goal was making it possible for an agent to reason about the full business domain directly from the repository itself.
 
 From the agent's point of view, anything it can't access in-context while running effectively doesn't exist. Knowledge that lives in Google Docs, chat threads, or people's heads are not accessible to the system. Repository-local, versioned artifacts (e.g., code, markdown, schemas, executable plans) are all it can see.
 
@@ -232,7 +232,7 @@ Pulling more of the system into a form the agent can inspect, validate, and modi
 
 ## Enforcing architecture and taste
 
-Documentation alone doesn't keep a fully agent-generated codebase coherent. **By enforcing invariants, not micromanaging implementations, we let agents ship fast without undermining the foundation.** For example, we require Codex to parse data shapes at the boundary (<https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/>), but are not prescriptive on how that happens (the model seems to like Zod, but we didn't specify that specific library).
+Documentation alone doesn't keep a fully agent-generated codebase coherent. By enforcing invariants, not micromanaging implementations, we let agents ship fast without undermining the foundation. For example, we require Codex to parse data shapes at the boundary (<https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/>), but are not prescriptive on how that happens (the model seems to like Zod, but we didn't specify that specific library).
 
 Agents are most effective in environments with strict boundaries and predictable structure (<https://bits.logic.inc/p/ai-is-forcing-us-to-write-good-code>), so we built the application around a rigid architectural model. Each business domain is divided into a fixed set of layers, with strictly validated dependency directions and a limited set of permissible edges. These constraints are enforced mechanically via custom linters (Codex-generated, of course!) and structural tests.
 
@@ -337,7 +337,7 @@ This behavior depends heavily on the specific structure and tooling of this repo
 
 ## Entropy and garbage collection
 
-**Full agent autonomy also introduces novel problems.** Codex replicates patterns that already exist in the repository—even uneven or suboptimal ones. Over time, this inevitably leads to drift.
+Full agent autonomy also introduces novel problems. Codex replicates patterns that already exist in the repository—even uneven or suboptimal ones. Over time, this inevitably leads to drift.
 
 Initially, humans addressed this manually. Our team used to spend every Friday (20% of the week) cleaning up "AI slop." Unsurprisingly, that didn't scale.
 
@@ -353,7 +353,7 @@ What we don't yet know is how architectural coherence evolves over years in a fu
 
 What's become clear: building software still demands discipline, but the discipline shows up more in the scaffolding rather than the code. The tooling, abstractions, and feedback loops that keep the codebase coherent are increasingly important.
 
-**Our most difficult challenges now center on designing environments, feedback loops, and control systems** that help agents accomplish our goal: build and maintain complex, reliable software at scale.
+Our most difficult challenges now center on designing environments, feedback loops, and control systems that help agents accomplish our goal: build and maintain complex, reliable software at scale.
 
 As agents like Codex take on larger portions of the software lifecycle, these questions will matter even more. We hope that sharing some early lessons helps you reason about where to invest your effort so you can just build things.
 

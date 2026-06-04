@@ -21,7 +21,7 @@ Agents cannot backtrack through unclear intent or re-read undocumented decisions
 
 - All externally visible declarations (functions, APIs, config fields) carry documentation comments in their native style (JSDoc, KDoc, TSDoc, reStructuredText docstrings).
 - Execution plans and design decisions use frontmatter and clear task/decision structure so agents parse content deterministically without re-reading.
-- Harness manifests, validators, and template examples name their purpose and constraints upfront; naming conventions are explicit, not inferred from context.
+- Harness contracts, validators, and template examples name their purpose and constraints upfront; naming conventions are explicit, not inferred from context.
 - Tool output shapes (e.g., validation results, plan formats) are specified with concrete examples, not just prose descriptions.
 
 ### Enforce invariants, do not micromanage implementations
@@ -29,7 +29,7 @@ Agents cannot backtrack through unclear intent or re-read undocumented decisions
 Heavy-handed style reviews and approval gates on minor details create friction in agent workflows and slow down routine changes. When every commit needs sign-off on formatting or tooling choices, agents cannot iterate; when rules are not clear about what is actually non-negotiable, agents apply caution where they should act freely.
 
 - Harness rules state *what must not vary* (e.g., CLAUDE.md and AGENTS.md resolve to the same root contract, validators must not fail silently); implementation order, refactoring patterns, and local style are left to the implementer's judgment.
-- Validators check invariants only (boundary enforcement, manifest schema, required directories), not code style, comment density, or variable names.
+- Validators check invariants only (boundary enforcement, required files and directories, hook executability), not code style, comment density, or variable names.
 - Design docs distinguish hard constraints (cannot be changed without breaking the contract) from guidelines (recommendations, patterns, examples); agents and reviewers treat them accordingly.
 - Review feedback focuses on invariant violations and new patterns that reveal missing beliefs, not on local implementation choices that do not affect the contract.
 

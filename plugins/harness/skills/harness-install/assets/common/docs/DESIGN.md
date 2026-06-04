@@ -37,20 +37,20 @@ The canonical pattern is Types → Config → Repo → Service → Runtime → U
 
 Anything that enters the domain from outside MUST come through Providers. Allowed categories:
 
-- **Authentication / Authorization** — RBAC, session management, token verification; enters only through Providers.
-- **Telemetry** — Structured logging, OpenTelemetry traces, metrics; enters only through Providers.
-- **Feature flags** — Feature toggles and configuration flags; enters only through Providers.
-- **Connectors** — External system clients (databases, APIs, message queues); enters only through Providers.
-- **Configuration loading and secret resolution** — Environment parsing, secret access, configuration assembly; enters only through Providers.
+- Authentication / Authorization — RBAC, session management, token verification; enters only through Providers.
+- Telemetry — Structured logging, OpenTelemetry traces, metrics; enters only through Providers.
+- Feature flags — Feature toggles and configuration flags; enters only through Providers.
+- Connectors — External system clients (databases, APIs, message queues); enters only through Providers.
+- Configuration loading and secret resolution — Environment parsing, secret access, configuration assembly; enters only through Providers.
 
 ## Taste Invariants
 
-- **Parse don't validate at boundaries** — Enforce at the entry point where external data enters. Use `parse-don't-validate` (<https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/>) as the canonical reference.
-- **Structured logging only** — No `print` / `console.log` in production paths; enforce via lint.
-- **Boundary schemas use `<Domain>(Request|Response|Event)` naming** — Apply this convention to all boundary types; enforce via structural test.
-- **File size cap** — Default 400 lines per file; enforce via custom lint.
-- **Reject `any` / dynamic-typed values inside domain layer** — Reject at type-check time; enforce via type system.
-- **Reject silent error swallowing** — Every `catch` MUST translate into a typed result or `Finding`; enforce via structural test.
+- Parse don't validate at boundaries — Enforce at the entry point where external data enters. Use `parse-don't-validate` (<https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/>) as the canonical reference.
+- Structured logging only — No `print` / `console.log` in production paths; enforce via lint.
+- Boundary schemas use `<Domain>(Request|Response|Event)` naming — Apply this convention to all boundary types; enforce via structural test.
+- File size cap — Default 400 lines per file; enforce via custom lint.
+- Reject `any` / dynamic-typed values inside domain layer — Reject at type-check time; enforce via type system.
+- Reject silent error swallowing — Every `catch` MUST translate into a typed result or `Finding`; enforce via structural test.
 
 ## Review Criteria
 

@@ -27,7 +27,7 @@ This skill is report-only unless the user separately asks for implementation. Pr
 
 ## First Safe Checks
 
-1. Read `AGENTS.md`, `docs/harness/README.md`, `docs/harness/manifest.json`, and any active `docs/exec-plans/active/yyyy-MM-dd-*.md` that touches the harness.
+1. Read `AGENTS.md`, `docs/harness/README.md`, and any active `docs/exec-plans/active/yyyy-MM-dd-*.md` that touches the harness.
 2. Inspect the user-provided delta summary and current `git diff` for harness-owned files.
 3. Separate product changes from harness changes.
 4. Confirm that every proposed harness change has a matching validation path or an explicit informational-only reason.
@@ -38,7 +38,7 @@ git status --short
 ```
 
 ```sh
-git diff -- AGENTS.md CLAUDE.md ARCHITECTURE.md docs .claude .github/workflows/harness.yml .gitlab-ci.yml
+git diff -- AGENTS.md CLAUDE.md ARCHITECTURE.md docs .claude .github/workflows .gitlab-ci.yml
 ```
 
 Use the stack validation command from `docs/harness/README.md`; do not guess a command when the installed README already names one.
@@ -53,7 +53,7 @@ Use the stack validation command from `docs/harness/README.md`; do not guess a c
     | Documentation structure | `docs/**`, `docs/harness/templates/docs/**` |
     | Work surface | `.claude/agents/**`, `.claude/skills/**` |
     | Validation surface | `docs/harness/**`, CI snippets, hook templates |
-    | Generated artifacts | `docs/generated/**`, generated-artifact template, manifest policy |
+    | Generated artifacts | `docs/generated/**`, generated-artifact template |
 
 2. Decide whether the change is a legitimate evolution or a local drift.
 3. Keep valid minor improvements; reject only changes that break the harness contract or product fit.
@@ -65,7 +65,7 @@ Use the stack validation command from `docs/harness/README.md`; do not guess a c
 | Situation | Decision | Required action |
 | --- | --- | --- |
 | Product architecture changed and docs are stale | evolve | Update `ARCHITECTURE.md`, relevant design docs, and validation expectations together. |
-| A generated artifact moved or was renamed | evolve | Update `docs/harness/manifest.json`, generated-artifact docs, and any template references. |
+| A generated artifact moved or was renamed | evolve | Update generated-artifact docs and any template or CI references. |
 | CI should run the same final check command on a new platform | evolve | Add or update CI template examples while preserving the selected pre-push command. |
 | Validation fails because a required file was deleted accidentally | reject as drift | Restore the file or re-run installation; do not weaken the contract. |
 | Placeholder content is still generic after installation | defer | Ask for target truth or create the relevant spec/design task first. |
@@ -73,7 +73,7 @@ Use the stack validation command from `docs/harness/README.md`; do not guess a c
 | Product code changed but harness contracts still match reality | reject as drift | Report that the change is product work, not harness evolution. |
 | Validator is too strict for ignored or generated files | evolve | Adjust validator rules only after confirming gitignore-aware behavior. |
 | Proposed change removes validation to make a failure pass | reject as drift | Keep validation and fix the underlying contract or target content. |
-| A target no longer uses an optional surface | evolve | Remove that surface only when docs, templates, manifest policy, validators, CI/hooks, and self-check agree it is optional or replaced. |
+| A target no longer uses an optional surface | evolve | Remove that surface only when docs, templates, validators, CI/hooks, and self-check agree it is optional or replaced. |
 
 ## Cleanup Evolution
 
@@ -83,8 +83,8 @@ Use this sequence before recommending deletion:
 
 1. Identify the owning surface: CI, hooks, docs, generated artifacts, agents, skills, seed references, or stack runtime.
 2. Classify the artifact as required, optional seed, generated output, or target-owned runtime state.
-3. Check `docs/harness/manifest.json`, `docs/harness/README.md`, installer assets, validators, hook/CI examples, and self-check fixtures for the same expectation.
-4. If every contract marks the surface optional or replaced, propose removal plus the matching manifest/docs/validator updates.
+3. Check `docs/harness/README.md`, installer assets, validators, hook/CI examples, and self-check fixtures for the same expectation.
+4. If every contract marks the surface optional or replaced, propose removal plus the matching docs/validator/CI updates.
 5. If any contract still requires it, reject the deletion as drift or first evolve the contract that makes it required.
 
 Cleanup MUST NOT delete active target truth just because it is unused by the default template. It MUST leave one validation source of truth: GitHub Actions and GitLab CI are alternative renderings of the selected final check command, not independent policy definitions.
@@ -92,7 +92,7 @@ Cleanup MUST NOT delete active target truth just because it is unused by the def
 ### Cleanup examples
 
 ```text
-delta: Target repository runs GitLab CI only and wants to remove `.github/workflows/harness.yml` from the installed repository.
+delta: Target repository runs GitLab CI only and wants to remove `.github/workflows/<tool>.yaml` from the installed repository.
 decision: evolve if GitHub Actions is documented as an optional CI rendering.
 contract updates: remove the GitHub Actions file and any target-facing references that assume it exists.
 validation impact: selected stack command must pass, and the present `.gitlab-ci.yml` must match the generated pre-push final-check command.
@@ -110,7 +110,7 @@ risks: mixed-host repositories may still need optional GitHub rendering.
 ```text
 delta: Target has no generated API schema and wants to remove `docs/generated/api-schema.md`.
 decision: evolve only if generated-artifact policy no longer requires that artifact.
-contract updates: update `docs/harness/manifest.json`, generated-artifact docs, and any references that link to the removed output.
+contract updates: update generated-artifact docs and any references that link to the removed output.
 validation impact: selected stack command must pass without fake generated files.
 risks: product docs may still link to the removed schema.
 ```
@@ -133,10 +133,10 @@ Use this checklist before proposing or applying harness evolution.
 
 - `AGENTS.md` and `CLAUDE.md` still describe the same target contract.
 - `docs/harness/README.md` names the current validation command.
-- `docs/harness/manifest.json` matches required files, optional seed files, empty directory keep files, and generated-artifact policy.
+- `docs/harness/README.md` documents the selected stack validation command and CI host configuration.
 - `.claude/agents/**` and `.claude/skills/**` remain self-sufficient for target repository use.
 - `docs/harness/templates/**` still contain placeholders only where the template renderer or human copy step expects them.
-- `.github/workflows/harness.yml` and `.gitlab-ci.yml`, when present, run the selected final check command.
+- `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml`, when present, run the selected final check command.
 - `docs/generated/**` contains real generated artifacts or `.gitkeep`, not fake readiness files.
 - A `docs/exec-plans/active/yyyy-MM-dd-<slug>.md` entry records the reason, files changed, validation command, and remaining follow-up for any non-trivial evolution.
 
@@ -182,8 +182,8 @@ risks: image tags may need pinning under strict supply-chain policy.
 
 ```text
 delta: `docs/generated/api-schema.md` was deleted because the project no longer exposes that API.
-decision: evolve only if the manifest and generated-artifact docs also remove the requirement.
-contract updates: update `docs/harness/manifest.json` and generated-artifact index.
+decision: evolve only if generated-artifact docs also remove the requirement.
+contract updates: update generated-artifact index and any references.
 validation impact: selected stack command must pass without requiring the removed artifact.
 risks: downstream docs may still link to the old artifact.
 ```
@@ -199,12 +199,9 @@ risks: downstream docs may still link to the old artifact.
 - Contract updates:
   - Add stack-specific `.gitlab-ci.yml.tmpl` files.
   - Update installer renderer to render `.gitlab-ci.yml` from `{{validation_command}}`.
-  - Update plugin self-check to require GitLab templates.
 - Validation impact:
-  - Run `sh plugins/harness/scripts/plugin-self-check.sh`.
   - Run one temp install per stack and verify rendered `.gitlab-ci.yml` has no placeholder tokens.
-- Rejected changes:
-  - No top-level plugin `hooks` manifest entry.
+- Rejected changes: none.
 - Risks:
   - GitLab YAML is structurally checked but not executed against a live GitLab runner.
 ```
@@ -234,20 +231,19 @@ risks: adding the dispatcher early creates a second validation source of truth.
 Use `harness-validate` after implementing an evolution. The expected stack commands are:
 
 ```text
-Gradle harness validation: ./gradlew harnessCheck or gradle harnessCheck
-Gradle final check: ./gradlew check or gradle check
-Maven: mvn -q -f harness-maven-plugin/pom.xml install com.ririnto.sinon:harness-maven-plugin:0.1.0:check
-uv: uv run --script docs/harness/uv/harness_check.py
-bun: bun --install=fallback run docs/harness/bun/harness-check.ts
-shell: sh docs/harness/shell/harness-check.sh
+Gradle: ./gradlew ktlintCheck or gradle ktlintCheck
+Maven: mvn verify
+uv: uv run scripts/check.py
+bun: bun run check
+shell: sh scripts/check.sh
 ```
 
 ## Synchronization Checklist
 
 - If `AGENTS.md` changes, check `CLAUDE.md` symlink or shared-contract behavior.
-- If `docs/harness/manifest.json` changes, update validators and self-checks.
+- If stack mode changes, update validators, CI examples, and hook templates.
 - If templates move, update README, installer paths, and self-check required directories.
-- If stack commands change, update README, `harness-validate`, installed target `harness-check`, CI templates, hook generation, and printed installer output.
+- If stack commands change, update README, `harness-validate`, the installed target check scripts (`scripts/check.py` or `scripts/check.sh`) and build-tool hook-sync wiring, CI templates, hook generation, and printed installer output.
 - If generated artifact policy changes, update `docs/generated` guidance and template examples.
 - If installer behavior changes, confirm ordinary harness evolution actually needs an installer change rather than a target-owned docs/template edit.
 
@@ -258,7 +254,7 @@ shell: sh docs/harness/shell/harness-check.sh
 - Validation must remain runnable after the evolution.
 - Placeholder changes must guide target truth without inventing fake product content.
 - Seed references may be replaced when the target stack or domain changes.
-- CI additions and the generated pre-push hook MUST mirror the selected final check command rather than creating a second source of truth.
+- CI additions and the generated pre-push hook MUST mirror the selected stack validation command rather than creating a second source of truth.
 - Generated-artifact policy MUST distinguish source templates, generated outputs, and keep files.
 - Plugin evolution MUST keep the Claude plugin manifest free of `hooks`, `agents`, `version`, and `interface` keys.
 - Hook evolution MUST NOT mutate `core.hooksPath` or create harness-specific backup files.
@@ -268,15 +264,15 @@ shell: sh docs/harness/shell/harness-check.sh
 - Do not remove validation because it is failing.
 - Do not keep obsolete placeholder files as required readiness evidence.
 - Do not treat chat-only instructions as harness evolution.
-- Do not update templates without checking the installed docs or manifest they support.
-- Do not version the harness; treat the current committed manifest and validators as the only authoritative shape. Do not add shims, deprecation paths, or "previous schema" handling — replace, don't layer.
+- Do not update templates without checking the installed docs they support.
+- Do not version the harness; treat the current committed validators as the only authoritative shape. Do not add shims, deprecation paths, or "previous schema" handling — replace, don't layer.
 - Do not treat GitHub Actions and GitLab CI as separate validation definitions; they are renderings of the same command.
 - Do not edit product implementation code while performing harness evolution unless the user separately asked for that implementation.
-- Do not introduce top-level `hooks/hooks.json` for this plugin.
+- Do not introduce top-level plugin manifest `hooks` or `agents` keys.
 - Do not discard validation output; diagnostic output is review evidence.
 - Do not force successful exits after validation failure; classify non-fatal findings as WARN explicitly.
 - Do not introduce fake placeholder files under `docs/generated/`; keep the directory empty with `.gitkeep` until a real generation step exists.
-- Do not keep duplicate template roots unless README, installer, validators, and self-checks all declare which one is canonical.
+- Do not keep duplicate template roots unless README and installer declare which one is canonical.
 - Do not edit installer scripts during ordinary evolution unless install behavior itself is the evolution target.
 
 ## Report Template

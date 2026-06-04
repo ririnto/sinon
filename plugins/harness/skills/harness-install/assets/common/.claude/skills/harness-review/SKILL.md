@@ -10,7 +10,7 @@ Review changes in this target repository against the installed harness. Findings
 
 ## First Safe Checks
 
-1. Read `CLAUDE.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and `docs/harness/manifest.json`.
+1. Read `CLAUDE.md`, `ARCHITECTURE.md`, and `docs/harness/README.md`.
 2. Inspect the changed files and the relevant domain docs under `docs/**`.
 3. Identify the stack-specific validation command from `docs/harness/README.md`.
 4. Separate product-code findings from harness-contract findings.

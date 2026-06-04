@@ -4,7 +4,7 @@ set -e
 
 root=${CLAUDE_PLUGIN_ROOT:-$(CDPATH='' cd "$(dirname "$0")/../../.." && pwd)}
 warn_counter_file=$(mktemp)
-printf '0\n' >"$warn_counter_file"
+echo '0' >"$warn_counter_file"
 # Increment the shared warning counter by one.
 #
 # @return Updates the warn counter file.
@@ -24,8 +24,8 @@ list_shell_files() {
     printf '%s\n' "$root/plugins/harness/scripts/harness-check.sh"
     printf '%s\n' "$root/plugins/harness/scripts/harness-format.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install-harness.sh"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/runtime/harness-check.sh"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/runtime/harness-format.sh"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/check.sh"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/format.sh"
     printf '%s\n' "$root/plugins/java/scripts/has-lombok.sh"
     printf '%s\n' "$root/plugins/java/scripts/jdtls-wrapper.sh"
     printf '%s\n' "$root/plugins/java/scripts/test-jdtls-wrapper.sh"
@@ -38,8 +38,8 @@ list_python_files() {
     printf '%s\n' "$root/plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd.py"
     printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/lsp/example-lsp.py"
     printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/servers/example-mcp.py"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/runtime/harness_check.py"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/runtime/harness_format.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/check.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/format.py"
 }
 
 # List Markdown files covered by repository checks.
@@ -122,9 +122,9 @@ check_shell_files() {
 check_markdown_files() {
     error_count=0
     if ! markdownlint_bin=$(command -v markdownlint-cli2 2>&1); then
-        printf 'warning: markdownlint-cli2 not in PATH; skipping markdown linting\n' >&2
+        echo 'warning: markdownlint-cli2 not in PATH; skipping markdown linting' >&2
         warn_count_increment
-        printf '0\n'
+        echo '0'
         return
     fi
     lint_output=$(cd "$root" && "$markdownlint_bin" "**/*.md" "#node_modules" "#.git" "#.omo" "#.claude/worktrees" 2>&1) && lint_rc=0 || lint_rc=$?

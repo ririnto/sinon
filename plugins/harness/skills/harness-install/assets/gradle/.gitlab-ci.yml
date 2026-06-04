@@ -1,9 +1,8 @@
 stages:
   - validate
 
-harness:
+ktlint:
   stage: validate
   image: eclipse-temurin:17
   script:
-    - >-
-      {{validation_command}}
+    - ./gradlew ktlintCheck

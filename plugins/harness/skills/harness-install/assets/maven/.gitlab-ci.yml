@@ -1,9 +1,8 @@
 stages:
   - validate
 
-harness:
+spotless:
   stage: validate
   image: maven:3.9-eclipse-temurin-17
   script:
-    - >-
-      {{validation_command}}
+    - mvn verify

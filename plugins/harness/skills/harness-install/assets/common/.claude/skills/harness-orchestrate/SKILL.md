@@ -11,9 +11,8 @@ Plan and coordinate work inside this target repository using the installed harne
 ## First Safe Checks
 
 1. Read `CLAUDE.md`, `ARCHITECTURE.md`, `docs/harness/README.md`, and the relevant `docs/**` file for the task domain.
-2. Read `docs/harness/manifest.json` when file or validation scope is unclear.
-3. Identify whether the task is implementation, documentation, validation, review, or harness evolution.
-4. Confirm the stack-specific validation command from `docs/harness/README.md`.
+2. Identify whether the task is implementation, documentation, validation, review, or harness evolution.
+3. Confirm the stack-specific validation command from `docs/harness/README.md`.
 
 ## Workflow
 

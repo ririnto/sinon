@@ -1,0 +1,13 @@
+name: ktlint
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  ktlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew ktlintCheck
