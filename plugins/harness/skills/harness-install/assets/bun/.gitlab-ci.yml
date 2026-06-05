@@ -1,9 +1,9 @@
 stages:
-    - validate
+  - validate
 
 ultracite:
-    stage: validate
-    image: oven/bun:1
-    script:
-        - bun install
-        - bun run check
+  stage: validate
+  image: oven/bun:1
+  script:
+    - bun install
+    - bun run check

@@ -49,6 +49,6 @@ Run the native stack tool command from the repository root:
 
 The generated `pre-commit` hook runs the stack-specific validation command above. The generated `pre-push` hook also runs the same validation command and should match CI when CI workflows are present.
 
-Native validation uses the ecosystem's built-in tools (ktlint, Spotless, ruff, ultracite over oxlint, shellcheck) configured at the repository root via `.editorconfig`, `ruff.toml`, `oxlint.config.ts`, `oxfmt.config.ts`, `.shellcheckrc`, and stack-specific build files.
+Native validation uses the ecosystem's built-in tools (ktlint, Spotless, ruff, ultracite over oxlint, shellcheck) configured at the repository root via `.editorconfig`, `ruff.toml`, `oxlint.config.ts`, `oxfmt.config.ts`, and stack-specific build files.
 
 If the installer wired Gradle into a complex existing `settings.gradle(.kts)`, review the resulting plugin management and composite build blocks manually before relying on CI.

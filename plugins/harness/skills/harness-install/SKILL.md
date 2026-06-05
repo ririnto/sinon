@@ -83,7 +83,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 - Refreshes of existing AGENTS-only repositories may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias; either orientation MUST resolve both filenames to the same document.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
 - Plugin skills install, validate, and evolve the harness package; installed target skills and agents guide day-to-day work inside the target repository.
-- Stack-specific check and format commands run native ecosystem tools against Git-tracked files: Gradle `./gradlew ktlintCheck` and `./gradlew ktlintFormat`; Maven Spotless with `git ls-files` and `spotlessFiles`; uv `uv run scripts/check.py` and `uv run scripts/format.py`; Bun `bun run check` and `bun run format`; shell `sh scripts/check.sh` and `sh scripts/format.sh`.
+- Stack-specific check and fix commands run native ecosystem tools against Git-tracked files: Gradle `./gradlew ktlintCheck` and `./gradlew ktlintFormat`; Maven Spotless with `git ls-files` and `spotlessFiles`; uv `uv run scripts/check.py` and `uv run scripts/fix.py`; Bun `bun run check` and `bun run fix`; shell `sh scripts/check.sh` and `sh scripts/fix.sh`.
 
 ## Pitfalls
 

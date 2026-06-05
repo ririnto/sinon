@@ -79,6 +79,9 @@ reject_file_text() {
         fi
     else
         git -C "$root" ls-files -- "$path" | while IFS= read -r file; do
+            if [ ! -f "$root/$file" ]; then
+                continue
+            fi
             if grep -Fq -- "$text" "$root/$file"; then
                 printf '%s\n' "$file" >>"$matches_file"
             fi
@@ -147,10 +150,10 @@ assert_bun_assets() {
     require_file "$assets_root/oxlint.config.ts"
     require_file "$assets_root/oxfmt.config.ts"
     require_file "$assets_root/scripts/check.sh"
-    require_file "$assets_root/scripts/format.sh"
-    require_text "$assets_root/package.json" '"ultracite"'
-    require_text "$assets_root/package.json" '"oxlint": "1.68.0"'
-    require_text "$assets_root/package.json" '"oxfmt": "0.53.0"'
+    require_file "$assets_root/scripts/fix.sh"
+    require_text "$assets_root/package.json" '"ultracite": "^7.8.1"'
+    require_text "$assets_root/package.json" '"oxlint": "^1.68.0"'
+    require_text "$assets_root/package.json" '"oxfmt": "^0.53.0"'
     require_text "$assets_root/oxlint.config.ts" 'ultracite/oxlint/core'
     require_text "$assets_root/oxfmt.config.ts" 'ultracite/oxfmt'
     require_text "$assets_root/oxfmt.config.ts" 'ignorePatterns'
@@ -158,9 +161,10 @@ assert_bun_assets() {
     require_text "$assets_root/scripts/check.sh" 'bun install --no-save'
     require_text "$assets_root/scripts/check.sh" 'bunx ultracite check --'
     require_text "$assets_root/scripts/check.sh" "[ -L \"\$dst\" ]"
-    require_text "$assets_root/scripts/format.sh" 'git ls-files -z'
-    require_text "$assets_root/scripts/format.sh" 'bun install --no-save'
-    require_text "$assets_root/scripts/format.sh" 'bunx ultracite fix --'
+    require_text "$assets_root/package.json" '"fix": "sh scripts/fix.sh"'
+    require_text "$assets_root/scripts/fix.sh" 'git ls-files -z'
+    require_text "$assets_root/scripts/fix.sh" 'bun install --no-save'
+    require_text "$assets_root/scripts/fix.sh" 'bunx ultracite fix --'
     reject_file "$assets_root/.oxlintrc.json"
     reject_file "$assets_root/.oxfmtrc.json"
     reject_file "$assets_root/scripts/plugin.mjs"
@@ -173,14 +177,16 @@ assert_uv_assets() {
     assets_root=$root/skills/harness-install/assets/uv
     require_file "$assets_root/ruff.toml"
     require_file "$assets_root/scripts/check.py"
-    require_file "$assets_root/scripts/format.py"
+    require_file "$assets_root/scripts/fix.py"
     require_text "$assets_root/scripts/check.py" '--git-path'
     require_text "$assets_root/scripts/check.py" 'git", "ls-files", "-z"'
+    require_text "$assets_root/scripts/check.py" 'ruff>=0.15.16,<0.16.0'
     require_text "$assets_root/scripts/check.py" '"check",'
     require_text "$assets_root/scripts/check.py" '"--",'
-    require_text "$assets_root/scripts/format.py" 'git", "ls-files", "-z"'
-    require_text "$assets_root/scripts/format.py" '"format",'
-    require_text "$assets_root/scripts/format.py" '"--",'
+    require_text "$assets_root/scripts/fix.py" 'git", "ls-files", "-z"'
+    require_text "$assets_root/scripts/fix.py" 'ruff>=0.15.16,<0.16.0'
+    require_text "$assets_root/scripts/fix.py" '"format",'
+    require_text "$assets_root/scripts/fix.py" '"--",'
     printf '[uv assets] OK\n' >&2
 }
 
@@ -195,6 +201,8 @@ assert_maven_assets() {
     require_text "$root/skills/harness-install/scripts/install-harness.sh" 'spotlessFiles'
     require_text "$root/skills/harness-install/scripts/install-harness.sh" "root=\$(pwd -P)"
     require_text "$root/skills/harness-install/scripts/install-harness.sh" 'git ls-files -- "*.java"'
+    require_text "$root/skills/harness-install/scripts/install-harness.sh" "list_tracked_tree_files \"\$src_dir\""
+    reject_file_contains "$root/skills/harness-install/scripts/install-harness.sh" "find \"\$src_dir\" -type f"
     require_text "$root/skills/harness-install/scripts/install-harness.sh" 'Java path contains comma'
     require_text "$root/skills/harness-install/scripts/install-harness.sh" "printf '%s/%s\\n'"
     require_text "$root/skills/harness-install/scripts/install-harness.sh" 's/[][\\.^$*+?{}()|]/\\&/g'
@@ -208,14 +216,15 @@ assert_maven_assets() {
 assert_shell_assets() {
     assets_root=$root/skills/harness-install/assets/shell
     require_file "$assets_root/scripts/check.sh"
-    require_file "$assets_root/scripts/format.sh"
-    require_file "$assets_root/.shellcheckrc"
+    require_file "$assets_root/scripts/fix.sh"
+    reject_file "$assets_root/.editorconfig"
+    reject_file "$assets_root/.shellcheckrc"
     require_text "$assets_root/scripts/check.sh" 'git rev-parse --git-path hooks'
     require_text "$assets_root/scripts/check.sh" 'git ls-files -z'
     require_text "$assets_root/scripts/check.sh" 'xargs -0 shellcheck -S warning --'
     require_text "$assets_root/scripts/check.sh" "[ -L \"\$dst\" ]"
-    require_text "$assets_root/scripts/format.sh" 'git ls-files -z'
-    require_text "$assets_root/scripts/format.sh" "xargs -0 \"\$shfmt_bin\" -i 4 -ci -w --"
+    require_text "$assets_root/scripts/fix.sh" 'git ls-files -z'
+    require_text "$assets_root/scripts/fix.sh" "xargs -0 \"\$shfmt_bin\" -i 4 -ci -w --"
     printf '[shell assets] OK\n' >&2
 }
 
@@ -264,6 +273,14 @@ smoke_test_tool() {
 }
 
 printf 'Validating harness plugin native-lint end-state...\n' >&2
+
+# Validate common assets.
+printf '\n--- common assets ---\n' >&2
+common_assets=$root/skills/harness-install/assets/common
+require_file "$common_assets/.editorconfig"
+require_text "$common_assets/.editorconfig" '[{*.json,*.jsonc,*.yaml,*.yml,*.js,*.jsx,*.mjs,*.cjs,*.ts,*.tsx,*.md,*.markdown}]'
+require_text "$common_assets/.editorconfig" 'indent_size = 2'
+printf '[common assets] OK\n' >&2
 
 # Validate gradle assets and CI.
 printf '\n--- gradle stack ---\n' >&2
@@ -344,6 +361,20 @@ if [ -f "$shell_assets/.gitlab-ci.yml" ]; then
 fi
 reject_file_text "$shell_assets" "harness-check"
 reject_file_text "$shell_assets" "manifest.json"
+
+# Validate harness check/fix scripts use git ls-files for Markdown.
+printf '\n--- harness markdown discovery ---\n' >&2
+require_text "$root/scripts/check.sh" "git -C"
+require_text "$root/scripts/check.sh" "ls-files -z -- '*.md'"
+require_text "$root/scripts/check.sh" "xargs -0"
+reject_file_contains "$root/scripts/check.sh" "find "
+reject_file_contains "$root/scripts/check.sh" "\"**/*.md\""
+require_text "$root/scripts/fix.sh" "git -C"
+require_text "$root/scripts/fix.sh" "ls-files -z -- '*.md'"
+require_text "$root/scripts/fix.sh" "xargs -0"
+reject_file_contains "$root/scripts/fix.sh" "find "
+reject_file_contains "$root/scripts/fix.sh" "\"**/*.md\""
+printf '[harness markdown discovery] OK\n' >&2
 
 # Reject stale manifest/bespoke references throughout assets.
 printf '\n--- manifest/bespoke rejection ---\n' >&2

@@ -6,7 +6,7 @@
 # dependencies = []
 # ///
 """
-Harness format runner using native ruff.
+Harness fix runner using native ruff.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ def tracked_python_files() -> list[str]:
 
 def main() -> int:
     """
-    Run ruff format on the project.
+    Run ruff format fixes on the project.
     """
     try:
         files = tracked_python_files()
@@ -42,12 +42,12 @@ def main() -> int:
         print(f"error: {error}", file=sys.stderr)
         return 1
     if not files:
-        print("ruff: no tracked Python files to format")
+        print("ruff: no tracked Python files to fix")
         return 0
     command = [
         "uvx",
         "--with",
-        "ruff>=0.15.15,<0.16.0",
+        "ruff>=0.15.16,<0.16.0",
         "ruff",
         "format",
         "--",

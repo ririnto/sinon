@@ -276,6 +276,21 @@ render_validation_placeholders() {
     printf '%s\n' "render validation command: $file"
 }
 
+# List tracked source files from a packaged asset tree.
+#
+# @param src_dir Source directory path under this skill.
+# @return Writes absolute source file paths.
+list_tracked_tree_files() {
+    src_dir=$1
+    src_rel=${src_dir#"$skill_dir"/}
+    git -C "$skill_dir" ls-files -- "$src_rel" | while IFS= read -r tracked_path; do
+        src=$skill_dir/$tracked_path
+        if [ -f "$src" ]; then
+            printf '%s\n' "$src"
+        fi
+    done
+}
+
 # Copy all files from one directory tree except root contracts.
 #
 # @param src_dir Source directory path.
@@ -287,7 +302,7 @@ copy_tree() {
     if [ ! -d "$src_dir" ]; then
         return 0
     fi
-    find "$src_dir" -type f | while IFS= read -r src; do
+    list_tracked_tree_files "$src_dir" | while IFS= read -r src; do
         rel=${src#"$src_dir"/}
         case "$rel" in
             AGENTS.md | CLAUDE.md | docs/harness/git-hooks/pre-commit | docs/harness/git-hooks/pre-push | target/* | */target/* | build/* | */build/* | bin/* | */bin/* | .gradle/* | */.gradle/* | .factorypath | */.factorypath | .classpath | */.classpath | .project | */.project | .settings/* | */.settings/* | __pycache__/* | */__pycache__/* | *.pyc) continue ;;
@@ -516,7 +531,7 @@ copy_stack_tree() {
     if [ ! -d "$src_dir" ]; then
         return 0
     fi
-    find "$src_dir" -type f | while IFS= read -r src; do
+    list_tracked_tree_files "$src_dir" | while IFS= read -r src; do
         rel=${src#"$src_dir"/}
         case "$rel" in
             target/* | */target/* | build/* | */build/* | bin/* | */bin/* | .gradle/* | */.gradle/* | .ruff_cache/* | */.ruff_cache/* | .factorypath | */.factorypath | .classpath | */.classpath | .project | */.project | .settings/* | */.settings/* | __pycache__/* | */__pycache__/* | *.pyc) continue ;;
