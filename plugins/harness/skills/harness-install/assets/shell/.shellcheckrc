@@ -1,3 +1,0 @@
-shell=sh
-disable=SC1090,SC1091
-enable=avoid-nullary-conditions,deprecate-which,quote-safe-variables

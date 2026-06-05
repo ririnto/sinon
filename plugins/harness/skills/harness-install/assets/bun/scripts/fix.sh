@@ -14,7 +14,7 @@ write_tracked_source_files() {
     fi
 }
 
-# Apply ultracite formatting and safe lint fixes.
+# Apply ultracite safe lint fixes.
 #
 # @return Exits with the ultracite fix status.
 main() {
@@ -22,7 +22,7 @@ main() {
     trap 'rm -f "$tracked_file_list"' EXIT
     write_tracked_source_files "$tracked_file_list"
     if [ ! -s "$tracked_file_list" ]; then
-        echo 'ultracite: no tracked source files to format'
+        echo 'ultracite: no tracked source files to fix'
         return 0
     fi
     bun install --no-save

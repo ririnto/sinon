@@ -21,11 +21,11 @@ list_shell_files() {
     printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/hooks/check.sh"
     printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/monitors/watch.sh"
     printf '%s\n' "$root/plugins/harness/scripts/plugin-self-check.sh"
-    printf '%s\n' "$root/plugins/harness/scripts/harness-check.sh"
-    printf '%s\n' "$root/plugins/harness/scripts/harness-format.sh"
+    printf '%s\n' "$root/plugins/harness/scripts/check.sh"
+    printf '%s\n' "$root/plugins/harness/scripts/fix.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install-harness.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/check.sh"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/format.sh"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/fix.sh"
     printf '%s\n' "$root/plugins/java/scripts/has-lombok.sh"
     printf '%s\n' "$root/plugins/java/scripts/jdtls-wrapper.sh"
     printf '%s\n' "$root/plugins/java/scripts/test-jdtls-wrapper.sh"
@@ -39,14 +39,16 @@ list_python_files() {
     printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/lsp/example-lsp.py"
     printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/servers/example-mcp.py"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/check.py"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/format.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/fix.py"
 }
 
-# List Markdown files covered by repository checks.
+# List git-tracked Markdown files covered by repository checks.
 #
 # @return Writes one path per line.
 list_markdown_files() {
-    find "$root" -type f -name '*.md' ! -path "$root/node_modules/*" ! -path "$root/.git/*" ! -path "$root/.omo/*" ! -path "$root/.claude/worktrees/*"
+    git -C "$root" ls-files --full-name -- '*.md' | while IFS= read -r path; do
+        printf '%s/%s\n' "$root" "$path"
+    done
 }
 
 # Count listed paths that exist as files.
@@ -127,7 +129,20 @@ check_markdown_files() {
         echo '0'
         return
     fi
-    lint_output=$(cd "$root" && "$markdownlint_bin" "**/*.md" "#node_modules" "#.git" "#.omo" "#.claude/worktrees" 2>&1) && lint_rc=0 || lint_rc=$?
+    markdown_file_list=$(mktemp)
+    if ! git -C "$root" ls-files -z -- '*.md' >"$markdown_file_list"; then
+        echo 'error: git ls-files failed while listing Markdown files' >&2
+        rm -f "$markdown_file_list"
+        echo '1'
+        return
+    fi
+    if [ ! -s "$markdown_file_list" ]; then
+        rm -f "$markdown_file_list"
+        echo '0'
+        return
+    fi
+    lint_output=$(cd "$root" && xargs -0 "$markdownlint_bin" <"$markdown_file_list" 2>&1) && lint_rc=0 || lint_rc=$?
+    rm -f "$markdown_file_list"
     if [ "$lint_rc" -ne 0 ]; then
         printf '%s\n' "$lint_output" >&2
         error_count=1
@@ -157,12 +172,12 @@ check_python_files() {
             uv_tool_checked=1
         fi
         if [ -n "$uv_bin" ]; then
-            check_output=$("$uv_bin" run --with ruff==0.15.14 ruff check "$path" 2>&1) && check_rc=0 || check_rc=$?
+            check_output=$("$uv_bin" run --with ruff==0.15.16 ruff check "$path" 2>&1) && check_rc=0 || check_rc=$?
             if [ "$check_rc" -ne 0 ]; then
                 printf '%s\n' "$check_output" >&2
                 error_count=$((error_count + 1))
             fi
-            format_check_output=$("$uv_bin" run --with ruff==0.15.14 ruff format --check "$path" 2>&1) && format_rc=0 || format_rc=$?
+            format_check_output=$("$uv_bin" run --with ruff==0.15.16 ruff format --check "$path" 2>&1) && format_rc=0 || format_rc=$?
             if [ "$format_rc" -ne 0 ]; then
                 printf '%s\n' "$format_check_output" >&2
                 error_count=$((error_count + 1))

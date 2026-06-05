@@ -1,14 +1,14 @@
 name: ultracite
 
 on:
-    - push
-    - pull_request
+  - push
+  - pull_request
 
 jobs:
-    ultracite:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: oven-sh/setup-bun@v2
-            - run: bun install
-            - run: bun run check
+  ultracite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bun run check

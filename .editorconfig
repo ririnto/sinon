@@ -36,6 +36,7 @@ ij_shell_use_unix_line_separator = true
 
 [{*.markdown,*.md}]
 indent_size = 2
+tab_width = 2
 max_line_length = unset
 ij_markdown_force_one_space_after_blockquote_symbol = true
 ij_markdown_force_one_space_after_header_symbol = true
@@ -56,9 +57,17 @@ ij_markdown_wrap_text_inside_blockquotes = false
 
 [{*.json}]
 indent_size = 2
+tab_width = 2
+max_line_length = unset
+
+[{*.js,*.jsx,*.mjs,*.cjs,*.ts,*.tsx}]
+indent_size = 2
+tab_width = 2
+max_line_length = unset
 
 [{*.yaml,*.yml}]
 indent_size = 2
+tab_width = 2
 max_line_length = unset
 ij_yaml_align_values_properties = do_not_align
 ij_yaml_autoinsert_sequence_marker = true
