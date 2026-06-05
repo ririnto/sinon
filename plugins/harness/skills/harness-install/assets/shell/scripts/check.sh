@@ -18,6 +18,9 @@ sync_git_hooks() {
             continue
         fi
         dst=$hooks_dir/$name
+        if [ -L "$dst" ]; then
+            continue
+        fi
         if [ -f "$dst" ] && cmp -s "$src" "$dst"; then
             continue
         fi
@@ -28,18 +31,34 @@ sync_git_hooks() {
     done
 }
 
-# Synchronize Git hooks to the user environment, then validate all shell scripts using shellcheck.
+# Write Git-tracked shell scripts.
+#
+# @param shell_file_list Destination file for null-delimited paths.
+# @return Writes tracked shell paths to shell_file_list.
+write_tracked_shell_files() {
+    shell_file_list="$1"
+    if ! git ls-files -z -- '*.sh' >"$shell_file_list"; then
+        echo 'error: git ls-files failed while listing shell files' >&2
+        return 1
+    fi
+}
+
+# Synchronize Git hooks, then validate tracked shell scripts using shellcheck.
 #
 # @return Exits with 0 when all scripts pass, 1 on violations.
 main() {
     sync_git_hooks || true
     failures_file=$(mktemp)
-    trap 'rm -f "$failures_file"' EXIT
-    find . \( -path './.git' -o -path './.claude/worktrees' \) -prune -o -type f -name '*.sh' -print | sort | while IFS= read -r file; do
-        if ! shellcheck -S warning "$file" 2>&1; then
-            echo "$file" >>"$failures_file"
-        fi
-    done
+    shell_file_list=$(mktemp)
+    trap 'rm -f "$failures_file" "$shell_file_list"' EXIT
+    write_tracked_shell_files "$shell_file_list"
+    if [ ! -s "$shell_file_list" ]; then
+        echo 'shellcheck: no tracked shell files to check'
+        return 0
+    fi
+    if ! xargs -0 shellcheck -S warning -- <"$shell_file_list" 2>&1; then
+        echo 'shellcheck' >"$failures_file"
+    fi
     if [ -s "$failures_file" ]; then
         exit 1
     fi

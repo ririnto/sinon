@@ -213,7 +213,7 @@ delta: `docs/harness/git-hooks/pre-push` was deleted because hook validation fai
 decision: reject as drift
 contract updates: restore or regenerate the selected-mode two-stage hook templates.
 validation impact: rerun the selected stack command and inspect hook docs.
-risks: active `.git/hooks/pre-commit` and `.git/hooks/pre-push` remain target repository files and require explicit approval to replace.
+risks: active `pre-commit` and `pre-push` hook files remain target repository files and require explicit approval to replace.
 ```
 
 ### Deferred dispatcher migration
@@ -232,7 +232,7 @@ Use `harness-validate` after implementing an evolution. The expected stack comma
 
 ```text
 Gradle: ./gradlew ktlintCheck or gradle ktlintCheck
-Maven: mvn verify
+Maven: root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then mvn validate; echo "spotless: no tracked Java files to check"; else mvn validate spotless:check -DspotlessFiles="$files"; fi
 uv: uv run scripts/check.py
 bun: bun run check
 shell: sh scripts/check.sh

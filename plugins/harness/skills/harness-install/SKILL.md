@@ -2,7 +2,7 @@
 name: harness-install
 description: >-
   Install target-owned repository harness assets from the plugin asset package: CLAUDE.md contract, AGENTS.md alias, ARCHITECTURE.md, docs structure, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use when setting up or refreshing a repository harness, adding target-owned Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
-argument-hint: '--mode gradle|maven|uv|bun|shell [--target DIR] [--force] [--no-ci]'
+argument-hint: '--mode gradle|maven|uv|bun|shell --ci-host github|gitlab|both|none [--target DIR] [--force]'
 disable-model-invocation: true
 allowed-tools:
   - Bash(sh */skills/harness-install/scripts/install-harness.sh *)
@@ -34,7 +34,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 2. Read the target repository root files if present: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, and `docs/harness/README.md`.
 3. Determine the target stack from explicit user choice. The installer no longer auto-detects; confirm the stack with the user (inspect manifests such as `pom.xml`, `build.gradle*`, `pyproject.toml`/`uv.lock`, `package.json`/`bun.lock`, or `Makefile`/`*.sh`) before passing `--mode`.
 4. Identify the active CI host. Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither, so unused CI files can be removed as a post-install step.
-5. The installer writes tracked `pre-commit` and `pre-push` templates under `docs/harness/git-hooks/`; it does not write into `.git/hooks/`. Each stack's check command syncs these templates into the active hooks directory (resolved via `git rev-parse --git-path hooks`) when it runs, so the hooks activate after the first local check rather than at install time. Both hooks run the selected stack validation command. Existing active hooks are preserved unless `--force` is used.
+5. The installer writes tracked `pre-commit` and `pre-push` templates under `docs/harness/git-hooks/`; it does not write into `.git/hooks/`. Each stack's check command syncs these templates into the active hooks directory (resolved via `git rev-parse --git-path hooks`) when it runs, so the hooks activate after the first local check rather than at install time. Both hooks run the selected stack validation command. After installation, the selected stack check command owns the active `pre-commit` and `pre-push` files and refreshes them from the tracked templates when content differs.
 6. Use `--force` only when the user explicitly wants existing target harness files replaced.
 7. Keep plugin files separate from target files: edit this plugin only when improving the installer; edit target `.claude/**` files only after installation in the target repository.
 
@@ -53,7 +53,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 2. Run the installer with the target repository as `--target` and an explicit `--mode`.
 
     ```sh
-    sh "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.sh" --target "$PWD" --mode gradle
+    sh "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.sh" --target "$PWD" --mode gradle --ci-host github
     ```
 
 3. Run the validation command printed by the installer before reporting completion.
@@ -66,7 +66,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 | --- | --- |
 | Target has no obvious stack files | Ask for `gradle`, `maven`, `uv`, `bun`, or `shell`; do not guess. |
 | Existing harness files are present | Preserve them unless `--force` was requested. |
-| Existing Git hook is present | The installer keeps existing active `.git/hooks/` files unless `--force` is used; with `--force` it replaces `pre-commit` and `pre-push` with installer-generated content. Request explicit approval before `--force`. |
+| Existing Git hook is present | The installer writes tracked hook templates only; active hook files are refreshed later by the selected stack check command when template content differs. Request explicit approval before changing active hooks directly. |
 | Target uses GitHub CI | Pass `--ci-host github` to write only `.github/workflows/<tool>.yaml`. |
 | Target uses GitLab CI | Pass `--ci-host gitlab` to write only `.gitlab-ci.yml`. |
 | Target mirrors to GitHub and GitLab | Pass `--ci-host both` to write both CI files. The generated `pre-push` final check command must match both scripts. |
@@ -78,12 +78,12 @@ Install or refresh target-owned repository harness files from this plugin. This 
 ## Invariants
 
 - The installed harness is target-owned after copying.
-- The generated hook templates are target-owned: both `pre-commit` and `pre-push` run the selected stack validation command (Gradle `./gradlew ktlintCheck`, Maven `mvn verify`, uv `uv run scripts/check.py`, Bun `bun run check`, shell `sh scripts/check.sh`); each stack's check command syncs them into the active hooks directory (resolved via `git rev-parse --git-path hooks`) at check time rather than at install, and existing active hooks are preserved unless `--force` was requested.
+- The generated hook templates are target-owned: both `pre-commit` and `pre-push` run the selected stack validation command (Gradle `./gradlew ktlintCheck`, Maven Spotless with `git ls-files` and `spotlessFiles`, uv `uv run scripts/check.py`, Bun `bun run check`, shell `sh scripts/check.sh`); each stack's check command syncs them into the active hooks directory (resolved via `git rev-parse --git-path hooks`) at check time rather than at install, and refreshes active `pre-commit` and `pre-push` files from the tracked templates when content differs.
 - Fresh installs use `CLAUDE.md` as the primary target repository harness contract and `AGENTS.md` as its symlink alias.
 - Refreshes of existing AGENTS-only repositories may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias; either orientation MUST resolve both filenames to the same document.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
 - Plugin skills install, validate, and evolve the harness package; installed target skills and agents guide day-to-day work inside the target repository.
-- Stack-specific check and format commands run native ecosystem tools: Gradle `./gradlew ktlintCheck` and `./gradlew ktlintFormat`; Maven `mvn verify` and `mvn spotless:apply`; uv `uv run scripts/check.py` and `uv run scripts/format.py`; Bun `bun run check` and `bun run format`; shell `sh scripts/check.sh` and `sh scripts/format.sh`.
+- Stack-specific check and format commands run native ecosystem tools against Git-tracked files: Gradle `./gradlew ktlintCheck` and `./gradlew ktlintFormat`; Maven Spotless with `git ls-files` and `spotlessFiles`; uv `uv run scripts/check.py` and `uv run scripts/format.py`; Bun `bun run check` and `bun run format`; shell `sh scripts/check.sh` and `sh scripts/format.sh`.
 
 ## Pitfalls
 
@@ -101,7 +101,7 @@ Report these fields:
 - `mode`: explicit stack mode (`--mode` flag).
 - `installer command`: the command that ran.
 - `files`: written, kept, and skipped file groups.
-- `hooks`: whether the `pre-commit` and `pre-push` templates under `docs/harness/git-hooks/` were written, kept, refreshed, or force-replaced, and the `.git/hooks/` directory they were copied into.
+- `hooks`: whether the `pre-commit` and `pre-push` templates under `docs/harness/git-hooks/` were written, kept, refreshed, or force-replaced, and the active hooks directory they were copied into.
 - `ci`: which CI files were rendered (GitHub Actions, GitLab CI, both, or none per --ci-host flag) and the active CI host detected from the target remote.
 - `validation`: command run and result.
 - `target follow-up`: placeholders, seed references, or unused CI files that require project-specific action.

@@ -21,10 +21,16 @@ Run the matching command:
 | Stack | Command |
 | --- | --- |
 | Gradle | `./gradlew ktlintCheck` (or `gradle ktlintCheck` if using system Gradle without a wrapper) |
-| Maven | `mvn verify` |
+| Maven | See the Maven command below. |
 | uv | `uv run scripts/check.py` |
 | Bun | `bun run check` |
 | shell | `sh scripts/check.sh` |
+
+Maven command:
+
+```sh
+root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then mvn validate; echo "spotless: no tracked Java files to check"; else mvn validate spotless:check -DspotlessFiles="$files"; fi
+```
 
 ## Workflow
 

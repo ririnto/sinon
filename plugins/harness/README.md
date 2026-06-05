@@ -65,7 +65,7 @@ From a target repository, ask Claude Code to use the `harness-install` skill wit
 
 The skill invokes `skills/harness-install/scripts/install-harness.sh` with the target repository as `--target`, requires the selected stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command. Supported modes are `gradle`, `maven`, `uv`, `bun`, and `shell`.
 
-The installer requires `--ci-host` to select which CI files to create: `--ci-host github` writes `.github/workflows/<tool>.yaml`, `--ci-host gitlab` writes `.gitlab-ci.yml`, `--ci-host both` writes both, and `--ci-host none` writes neither. Both CI snippets run the same final check command as generated `pre-push`; for Gradle this is `check`, for other stacks this is the stack-specific validation command.
+The installer requires `--ci-host` to select which CI files to create: `--ci-host github` writes `.github/workflows/<tool>.yaml`, `--ci-host gitlab` writes `.gitlab-ci.yml`, `--ci-host both` writes both, and `--ci-host none` writes neither. Both CI snippets run the same validation command as generated `pre-push`; for Gradle this is `./gradlew ktlintCheck`, and other stacks use their stack-specific validation command.
 
 ## CI Host Selection
 
@@ -136,7 +136,7 @@ docs/
 `-- SECURITY.md
 ```
 
-Empty required directories are kept in version control with `.gitkeep`. `docs/harness/git-hooks/pre-commit` and `docs/harness/git-hooks/pre-push` are generated, target-owned hook templates that both run the selected stack validation command (Gradle `./gradlew ktlintCheck`, Maven `mvn verify`, uv `uv run scripts/check.py`, Bun `bun run check`, or shell `sh scripts/check.sh`); each stack's check command syncs these templates into the active hooks directory (resolved via `git rev-parse --git-path hooks`) when it runs, so the hooks activate on the first local check rather than at install time. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
+Empty required directories are kept in version control with `.gitkeep`. `docs/harness/git-hooks/pre-commit` and `docs/harness/git-hooks/pre-push` are generated, target-owned hook templates that both run the selected stack validation command (Gradle `./gradlew ktlintCheck`, Maven Spotless with `git ls-files` and `spotlessFiles`, uv `uv run scripts/check.py`, Bun `bun run check`, or shell `sh scripts/check.sh`); each stack's check command syncs these templates into the active hooks directory (resolved via `git rev-parse --git-path hooks`) when it runs, so the hooks activate on the first local check rather than at install time. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
 In fresh installed target repositories, `CLAUDE.md` is the primary harness contract and Claude Code entry point, and `AGENTS.md` is a symlink alias to `CLAUDE.md`. When refreshing an existing AGENTS-only repository, the installer may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias instead. In either orientation, runtimes that load either filename resolve to the same document.
 
@@ -145,16 +145,16 @@ In fresh installed target repositories, `CLAUDE.md` is the primary harness contr
 | Stack | Detection | Validation command |
 | --- | --- | --- |
 | Gradle | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew ktlintCheck`, or `gradle ktlintCheck` when the target uses system Gradle without a wrapper |
-| Maven | `pom.xml` | `mvn verify` |
+| Maven | `pom.xml` | Generated Maven Spotless command with escaped, repo-root-anchored `spotlessFiles` from `git ls-files` |
 | uv | `uv.lock` or Python `pyproject.toml` | `uv run scripts/check.py` |
 | bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun run check` |
 | shell | `Makefile` or root-level `*.sh` with no other stack | `sh scripts/check.sh` |
 
 Run validation commands from the target repository root. The shell validator is a portable POSIX shell script and requires `shellcheck` on PATH.
 
-The bun validator runs through `bun run check` (a package.json script that runs `sh scripts/check.sh`, which syncs Git hooks then runs `bunx ultracite check`); bunx self-provisions ultracite, oxlint, and oxfmt on first use, so network access is required on the first run; it runs on the bun runtime and needs no separate Node.js binary.
+The bun validator runs through `bun run check` (a package.json script that runs `sh scripts/check.sh`, which syncs Git hooks, prepares dev dependencies with `bun install --no-save`, then runs `bunx ultracite check --` on Git-tracked source files); first use requires network access to install ultracite, oxlint, and oxfmt into `node_modules`, and it needs no separate Node.js binary.
 
-The uv validator self-provisions ruff on first use via `uvx --with "ruff>=0.15.15,<0.16.0" ruff check .`, so network access is required on first run; the ruff binary is then cached. No separate Node.js or other runtime is required beyond `uv` itself.
+The uv validator self-provisions ruff on first use via `uvx --with "ruff>=0.15.15,<0.16.0" ruff check` over Git-tracked Python files, so network access is required on first run; the ruff binary is then cached. No separate Node.js or other runtime is required beyond `uv` itself.
 
 ## Native Tool Enforcement
 
@@ -162,7 +162,7 @@ Each stack uses its native ecosystem tool for validation. Structural checks that
 
 | Stack | Validator | Custom extensions | Structural checks |
 | --- | --- | --- | --- |
-| Gradle/Kotlin | ktlint custom ruleset (family `code`) | 12 rules in buildSrc (if-statement-braces, import-over-fqn, kotlin-top-level-declaration-count, implicit-lambda-it, leading-underscore, unchecked-cast-suppression, non-null-assertion, multiline-doc-style, unstructured-logging, companion-object-position, terminal-branch-when, public-declaration-doc-comment) + 4 EditorConfig knobs | File/directory presence, symlinks, hooks, CI command parity, agent/skill frontmatter, execution-plan unchecked tasks |
+| Gradle/Kotlin | ktlint custom ruleset (family `code`) | 13 rules in buildSrc (if-statement-braces, import-over-fqn, kotlin-top-level-declaration-count, implicit-lambda-it, leading-underscore, unchecked-cast-suppression, non-null-assertion, multiline-doc-style, unstructured-logging, companion-object-position, explicit-property-type, terminal-branch-when, public-declaration-doc-comment) + 4 EditorConfig knobs | File/directory presence, symlinks, hooks, CI command parity, agent/skill frontmatter, execution-plan unchecked tasks |
 | Maven/Java | Spotless (Palantir format) | Format-only; code-structure detection is prose-only | File/directory presence, symlinks, hooks, CI command parity, agent/skill frontmatter, execution-plan unchecked tasks |
 | uv/Python | ruff (`F403` + defaults) | 7 code conventions are prose-only (leading-underscore, multiline-doc-style, unstructured-logging, public-declaration-doc-comment, unchecked-cast-suppression, triple-quote-inline-comment, mutable-collection) — no automated enforcement | File/directory presence, symlinks, hooks, CI command parity, agent/skill frontmatter, execution-plan unchecked tasks, shebang-encoding-marker for .py files |
 | Bun/TypeScript | ultracite (oxlint linter + oxfmt formatter) | ultracite preset ruleset (ultracite/oxlint/core) | File/directory presence, symlinks, hooks, CI command parity, agent/skill frontmatter, execution-plan unchecked tasks, shebang-encoding-marker for .ts files |
@@ -203,18 +203,18 @@ Repository-level findings apply to the harness as a whole (for example, missing 
 Format commands apply fixes through native ecosystem tools:
 
 - Gradle: `./gradlew ktlintFormat` applies ktlint's built-in formatting.
-- Maven: `mvn spotless:apply` applies Palantir format and import order.
+- Maven: run `mvn spotless:apply -DspotlessFiles=<escaped-git-tracked-java-regexes>` with the same escaped, repo-root-anchored patterns as the generated check command to apply Palantir format and import order to Git-tracked Java files.
 - uv: `uv run scripts/format.py` applies ruff format (double-quote style, line length, trailing commas).
-- Bun: `bun run format` runs `bunx ultracite fix`, applying ultracite formatting and safe lint fixes.
+- Bun: `bun run format` prepares dev dependencies with `bun install --no-save`, then runs `bunx ultracite fix --` on Git-tracked JavaScript and TypeScript files.
 - Shell: `sh scripts/format.sh` applies shfmt formatting, then re-runs the shell check and prints any remaining findings.
 
 Format commands are idempotent: a second run produces no additional modifications. Each format command applies fixes only (the shell format command additionally re-runs its check); run the stack check command afterward to verify that no ERROR-level findings remain.
 
 ## Git Hooks
 
-The installer writes two selected-mode hook templates under `docs/harness/git-hooks/` (tracked in the repository). Both `pre-commit` and `pre-push` run the selected stack validation command: Gradle `./gradlew ktlintCheck`, Maven `mvn verify`, uv `uv run scripts/check.py`, Bun `bun run check`, or shell `sh scripts/check.sh`.
+The installer writes two selected-mode hook templates under `docs/harness/git-hooks/` (tracked in the repository). Both `pre-commit` and `pre-push` run the selected stack validation command: Gradle `./gradlew ktlintCheck`, Maven Spotless with `git ls-files` and `spotlessFiles`, uv `uv run scripts/check.py`, Bun `bun run check`, or shell `sh scripts/check.sh`.
 
-The installer does not write into `.git/hooks/`. Instead, every stack's check command syncs the tracked templates into the active hooks directory each time it runs: it resolves the directory through `git rev-parse --git-path hooks` (so linked worktrees and custom Git layouts resolve correctly), copies any `pre-commit`/`pre-push` whose content differs, and marks them executable. Gradle and Maven perform this sync through the build tool (a `ktlintCheck` `doLast` action and a `maven-antrun-plugin` execution bound to `verify`); uv, bun, and shell perform it inside their check scripts. Hooks therefore activate after the first local check run rather than at install time, and they stay in sync automatically as the tracked templates change.
+The installer does not write into `.git/hooks/`. Instead, every stack's check command syncs the tracked templates into the active hooks directory each time it runs: it resolves the directory through `git rev-parse --git-path hooks` (so linked worktrees and custom Git layouts resolve correctly), copies any `pre-commit`/`pre-push` whose content differs, and marks them executable. Gradle and Maven perform this sync through the build tool (a `ktlintCheck` `doLast` action and a `maven-antrun-plugin` execution bound to `validate`); uv, bun, and shell perform it inside their check scripts. Hooks therefore activate after the first local check run rather than at install time, and they stay in sync automatically as the tracked templates change.
 
 ## Metadata and Attribution
 
@@ -250,6 +250,6 @@ plugins/harness/
 - The installed `.claude/skills/harness-validate/` directory is a project skill. Prefer that project skill when validating an installed target repository. Use the plugin-provided `harness-validate` skill when working from this plugin checkout or before the target repository has its project copy. If a host cannot distinguish the project skill from the plugin skill, rename the installed project directory to `.claude/skills/project-harness-validate/`, update its `SKILL.md` `name` field to `project-harness-validate`, and update local project docs to use that name.
 - GitHub Actions and GitLab CI templates use ordinary version tags from the archive; projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.
 - Maven, Gradle, Python, and test self-checks may create cache, IDE, or build metadata under asset directories. Repository `.gitignore` and installer filters exclude ignored byproducts such as `__pycache__/`, `.pytest_cache/`, `*.pyc`, `.classpath`, `.project`, `.factorypath`, `.settings/`, `.gradle/`, `bin/`, `build/`, and `target/`; plugin self-checks validate packaged/tracked asset files rather than failing on ignored working-tree byproducts.
-- The bun harness runtime under `docs/harness/bun/` is excluded from the target's `sourceRoots` and is not self-linted; harness self-checks exercise the bun rules through positive/negative fixture corpora rather than linting the shipped runtime.
-- The uv harness runtime under `docs/harness/uv/` is excluded from the target's `sourceRoots` and is not self-linted by `ruff` or `ruff format`. Wildcard-import detection via `ruff` and the remaining 7 AST rules via LibCST apply only to installed-target sources. Enforcement of excess in-function blank lines moved from `check` (read-only CI reporting) to `format` (destructive edit); a check-only target will no longer see blank-line findings, only `format` collapses them.
+- The bun asset wrapper validates Git-tracked JavaScript and TypeScript files through ultracite; generated dependency directories such as `node_modules/` are ignored by Git and are not package contents.
+- The uv asset wrapper validates and formats Git-tracked Python files through ruff; the remaining Python conventions documented as prose-only rules are not enforced by a packaged AST runtime.
 - The Maven/Java stack uses Spotless for format-only fixes (`removeUnusedImports`/`trimTrailingWhitespace`/`endWithNewline`). Code-structure detection rules are documented as prose conventions because the project deliberately avoids a full Java formatter or Checkstyle/PMD integration.

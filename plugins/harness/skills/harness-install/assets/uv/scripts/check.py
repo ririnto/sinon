@@ -13,10 +13,8 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import os
 from pathlib import Path
-
-sys.stdout.reconfigure(encoding="utf-8")
-sys.stderr.reconfigure(encoding="utf-8")
 
 
 def sync_git_hooks() -> None:
@@ -37,10 +35,33 @@ def sync_git_hooks() -> None:
         if not source.is_file():
             continue
         target = hooks_dir / name
-        if target.is_file() and target.read_bytes() == source.read_bytes():
+        if (
+            target.is_file()
+            and not target.is_symlink()
+            and target.read_bytes() == source.read_bytes()
+        ):
             continue
-        target.write_bytes(source.read_bytes())
-        target.chmod(0o755)
+        temporary = hooks_dir / f".sync-git-hooks-{os.getpid()}-{name}"
+        _ = temporary.write_bytes(source.read_bytes())
+        temporary.chmod(0o755)
+        _ = temporary.replace(target)
+
+
+def tracked_python_files() -> list[str]:
+    """
+    Return Python files tracked by Git.
+    """
+    result = subprocess.run(
+        ["git", "ls-files", "-z", "--", "*.py"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        message = (
+            result.stderr.strip() or result.stdout.strip() or "git ls-files failed"
+        )
+        raise RuntimeError(message)
+    return [path for path in result.stdout.split("\0") if path]
 
 
 def main() -> int:
@@ -48,13 +69,22 @@ def main() -> int:
     Synchronize Git hooks, then run ruff check on the project.
     """
     sync_git_hooks()
+    try:
+        files = tracked_python_files()
+    except RuntimeError as error:
+        print(f"error: {error}", file=sys.stderr)
+        return 1
+    if not files:
+        print("ruff: no tracked Python files to check")
+        return 0
     command = [
         "uvx",
         "--with",
         "ruff>=0.15.15,<0.16.0",
         "ruff",
         "check",
-        ".",
+        "--",
+        *files,
     ]
     result = subprocess.run(command)
     return result.returncode
