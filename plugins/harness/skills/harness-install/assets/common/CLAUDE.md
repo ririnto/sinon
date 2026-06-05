@@ -30,8 +30,8 @@ Harness changes MAY be made during development when the current harness no longe
 - Empty required directories MUST be kept in version control with `.gitkeep` until they contain project files.
 - `docs/generated/` MUST contain actual generated repository artifacts when they exist; fake placeholder files MUST NOT be added.
 - Validation SHOULD run through the repository's native build/runtime ecosystem.
-- `docs/harness/git-hooks/pre-commit` MUST run the stack validation command: `./gradlew ktlintCheck` (Gradle), `mvn verify` (Maven), `uv run scripts/check.py` (uv), `bun run check` (Bun), or `sh scripts/check.sh` (shell).
-- `docs/harness/git-hooks/pre-push` MUST run the same stack validation command as `pre-commit` and CI: `./gradlew ktlintCheck` (Gradle), `mvn verify` (Maven), `uv run scripts/check.py` (uv), `bun run check` (Bun), or `sh scripts/check.sh` (shell).
+- `docs/harness/git-hooks/pre-commit` MUST run the stack validation command: `./gradlew ktlintCheck` (Gradle), Maven Spotless with `git ls-files` and `spotlessFiles` (Maven), `uv run scripts/check.py` (uv), `bun run check` (Bun), or `sh scripts/check.sh` (shell).
+- `docs/harness/git-hooks/pre-push` MUST run the same stack validation command as `pre-commit` and CI: `./gradlew ktlintCheck` (Gradle), Maven Spotless with `git ls-files` and `spotlessFiles` (Maven), `uv run scripts/check.py` (uv), `bun run check` (Bun), or `sh scripts/check.sh` (shell).
 - CI SHOULD run the same stack validation command used by the generated hooks.
 - Active execution plans MUST live under `docs/exec-plans/active/` with filenames of the form `yyyy-MM-dd-<slug>.md`. When all tasks are checked, the file MUST move to `docs/exec-plans/completed/` without renaming. Plans in `docs/exec-plans/completed/` MUST NOT contain any unchecked `- [ ]` task lines.
 

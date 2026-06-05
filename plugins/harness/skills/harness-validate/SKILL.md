@@ -64,7 +64,7 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | Mode | Use when | Command |
 | --- | --- | --- |
 | `gradle` | `settings.gradle(.kts)` or `build.gradle(.kts)` exists | `./gradlew ktlintCheck`, or `gradle ktlintCheck` when the target uses system Gradle without a wrapper |
-| `maven` | `pom.xml` exists | `mvn verify` |
+| `maven` | `pom.xml` exists | Maven Spotless with `git ls-files` and `spotlessFiles` |
 | `uv` | `uv.lock` or Python `pyproject.toml` exists | `uv run scripts/check.py` |
 | `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun run check` |
 | `shell` | shell-script-only or Makefile-driven repository | `sh scripts/check.sh` |
@@ -84,11 +84,15 @@ gradle ktlintCheck
 ```
 
 ```sh
-mvn verify
+root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then mvn validate; echo "spotless: no tracked Java files to check"; else mvn validate spotless:check -DspotlessFiles="$files"; fi
 ```
 
 ```sh
 uv run scripts/check.py
+```
+
+```sh
+bun run check
 ```
 
 ```sh
@@ -98,7 +102,7 @@ sh scripts/check.sh
 Do not suppress validator output.
 
 ```sh
-uv run --script scripts/check.py
+uv run scripts/check.py
 ```
 
 Reject any pattern that discards validator output or forces a successful exit after failure because it hides diagnostics and turns failure into success.
@@ -201,7 +205,7 @@ Format commands apply fixes through their native tools. All fixes are idempotent
 - Stack validators invoke native ecosystem tools (ktlint, Spotless, ruff, ultracite, shellcheck).
 - File presence alone does not prove project readiness when placeholders still lack project-specific content.
 - Generated artifacts are valid only when they document source command, source inputs, freshness, and regeneration trigger.
-- GitHub Actions, GitLab CI, and the generated pre-push hook MUST remain examples of the same final check command. Gradle pre-commit runs `./gradlew ktlintCheck`; non-Gradle pre-commit remains compliance-only.
+- GitHub Actions, GitLab CI, and the generated `pre-commit` and `pre-push` hooks MUST remain examples of the same selected stack validation command.
 - Check and validation findings MUST use the canonical diagnostic prefix with one-based line and column numbers when position is available.
 
 ## Pitfalls
