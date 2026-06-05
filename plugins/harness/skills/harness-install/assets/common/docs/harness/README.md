@@ -42,7 +42,7 @@ Run the native stack tool command from the repository root:
 | Stack | Validation command |
 | --- | --- |
 | Gradle | `./gradlew ktlintCheck` (or `gradle ktlintCheck` if using system Gradle without a wrapper) |
-| Maven | `mvn verify` |
+| Maven | Generated Maven Spotless command with escaped, repo-root-anchored `spotlessFiles` from `git ls-files` |
 | uv | `uv run scripts/check.py` |
 | Bun | `bun run check` |
 | shell | `sh scripts/check.sh` |

@@ -647,7 +647,11 @@ validation_command_for_mode() {
     selected_mode=$1
     case "$selected_mode" in
         gradle) printf '%s\n' './gradlew ktlintCheck' ;;
-        maven) printf '%s\n' 'mvn verify' ;;
+        maven)
+            cat <<'MAVEN_COMMAND'
+root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then mvn validate; echo "spotless: no tracked Java files to check"; else mvn validate spotless:check -DspotlessFiles="$files"; fi
+MAVEN_COMMAND
+            ;;
         uv) printf '%s\n' 'uv run scripts/check.py' ;;
         bun) printf '%s\n' 'bun run check' ;;
         shell) printf '%s\n' 'sh scripts/check.sh' ;;

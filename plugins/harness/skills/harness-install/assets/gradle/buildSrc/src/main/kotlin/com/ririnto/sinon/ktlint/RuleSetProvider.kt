@@ -19,6 +19,7 @@ class RuleSetProvider : RuleSetProviderV3(RuleSetId("code")) {
         RuleProvider { MultilineDocStyleKtlintRule() },
         RuleProvider { UnstructuredLoggingKtlintRule() },
         RuleProvider { CompanionObjectPositionKtlintRule() },
+        RuleProvider { ExplicitPropertyTypeKtlintRule() },
         RuleProvider { TerminalBranchWhenKtlintRule() },
         RuleProvider { PublicDeclarationDocCommentKtlintRule() },
     )
