@@ -80,7 +80,7 @@ def main() -> int:
     command = [
         "uvx",
         "--with",
-        "ruff>=0.15.15,<0.16.0",
+        "ruff>=0.15.16,<0.16.0",
         "ruff",
         "check",
         "--",

@@ -154,7 +154,7 @@ Run validation commands from the target repository root. The shell validator is 
 
 The bun validator runs through `bun run check` (a package.json script that runs `sh scripts/check.sh`, which syncs Git hooks, prepares dev dependencies with `bun install --no-save`, then runs `bunx ultracite check --` on Git-tracked source files); first use requires network access to install ultracite, oxlint, and oxfmt into `node_modules`, and it needs no separate Node.js binary.
 
-The uv validator self-provisions ruff on first use via `uvx --with "ruff>=0.15.15,<0.16.0" ruff check` over Git-tracked Python files, so network access is required on first run; the ruff binary is then cached. No separate Node.js or other runtime is required beyond `uv` itself.
+The uv validator self-provisions ruff on first use via `uvx --with "ruff>=0.15.16,<0.16.0" ruff check` over Git-tracked Python files, so network access is required on first run; the ruff binary is then cached. No separate Node.js or other runtime is required beyond `uv` itself.
 
 ## Native Tool Enforcement
 
@@ -200,15 +200,15 @@ Repository-level findings apply to the harness as a whole (for example, missing 
 
 ## Format Commands
 
-Format commands apply fixes through native ecosystem tools:
+Fix commands apply changes through native ecosystem tools:
 
 - Gradle: `./gradlew ktlintFormat` applies ktlint's built-in formatting.
 - Maven: run `mvn spotless:apply -DspotlessFiles=<escaped-git-tracked-java-regexes>` with the same escaped, repo-root-anchored patterns as the generated check command to apply Palantir format and import order to Git-tracked Java files.
-- uv: `uv run scripts/format.py` applies ruff format (double-quote style, line length, trailing commas).
-- Bun: `bun run format` prepares dev dependencies with `bun install --no-save`, then runs `bunx ultracite fix --` on Git-tracked JavaScript and TypeScript files.
-- Shell: `sh scripts/format.sh` applies shfmt formatting, then re-runs the shell check and prints any remaining findings.
+- uv: `uv run scripts/fix.py` applies ruff format (double-quote style, line length, trailing commas).
+- Bun: `bun run fix` prepares dev dependencies with `bun install --no-save`, then runs `bunx ultracite fix --` on Git-tracked JavaScript and TypeScript files.
+- Shell: `sh scripts/fix.sh` applies shfmt fixes, then re-runs the shell check and prints any remaining findings.
 
-Format commands are idempotent: a second run produces no additional modifications. Each format command applies fixes only (the shell format command additionally re-runs its check); run the stack check command afterward to verify that no ERROR-level findings remain.
+Fix commands are idempotent: a second run produces no additional modifications. Each fix command applies fixes only (the shell fix command additionally re-runs its check); run the stack check command afterward to verify that no ERROR-level findings remain.
 
 ## Git Hooks
 

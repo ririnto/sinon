@@ -169,7 +169,7 @@ GitHub-only and GitLab-only repositories may intentionally delete the unused CI 
 Report CI drift with the expected command.
 
 ```text
-ci: mismatch - .github/workflows/ultracite.yaml runs `bun run format`, expected `bun run check`
+ci: mismatch - .github/workflows/ultracite.yaml runs `bun run fix`, expected `bun run check`
 ```
 
 ## Diagnostic Format
@@ -196,7 +196,7 @@ path/to/file [SEVERITY] category: file-level message
 
 ## Safe-Format Conventions
 
-Format commands apply fixes through their native tools. All fixes are idempotent: a second run immediately after the first produces no additional modifications. Format commands run validation after applying fixes, print remaining findings, and fail when any remaining finding has `ERROR` severity.
+Fix commands apply changes through their native tools. All fixes are idempotent: a second run immediately after the first produces no additional modifications. Fix commands run validation after applying changes, print remaining findings, and fail when any remaining finding has `ERROR` severity.
 
 ## Invariants
 
