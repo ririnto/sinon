@@ -69,9 +69,9 @@ run_ultracite_check() {
     fi
 }
 
-# Synchronize Git hooks to the user environment, then run ultracite.
+# Synchronize Git hooks, run markdown-link validation, then run Ultracite.
 #
-# @return Exits with the ultracite check status.
+# @return Exits non-zero on the first failing validation stage.
 main() {
     sync_git_hooks
     sh docs/harness/scripts/check-markdown-links.sh
