@@ -43,11 +43,10 @@ write_tracked_source_files() {
     fi
 }
 
-# Synchronize Git hooks to the user environment, then run the native linter.
+# Run ultracite check against tracked JavaScript and TypeScript files.
 #
 # @return Exits with the ultracite check status.
-main() {
-    sync_git_hooks || true
+run_ultracite_check() {
     tracked_file_list=$(mktemp)
     trap 'rm -f "$tracked_file_list"' EXIT
     write_tracked_source_files "$tracked_file_list"
@@ -57,6 +56,14 @@ main() {
     fi
     bun install --no-save
     xargs -0 bunx ultracite check -- <"$tracked_file_list"
+}
+
+# Synchronize Git hooks to the user environment, then run the native linter.
+#
+# @return Exits with the ultracite check status.
+main() {
+    sync_git_hooks || true
+    run_ultracite_check
 }
 
 main "$@"

@@ -557,53 +557,6 @@ copy_stack_tree() {
     done
 }
 
-# Append one line to a file when a marker is absent.
-#
-# @param file Target-relative file path.
-# @param marker Marker string used for idempotency.
-# @param line Line to append.
-# @return Writes appended or skipped status.
-append_line_once() {
-    file=$1
-    marker=$2
-    line=$3
-    ensure_safe_file_destination "$file"
-    if [ -f "$file" ] && grep -Fq "$marker" "$file"; then
-        printf '%s\n' "keep existing marker: $file $marker"
-        return 0
-    fi
-    tmp=$file.harness.tmp.$$
-    ensure_safe_file_destination "$tmp"
-    {
-        if [ -f "$file" ]; then
-            cat "$file"
-            printf '\n'
-        fi
-        printf '%s\n' "$line"
-    } >"$tmp"
-    mv "$tmp" "$file"
-    printf '%s\n' "append line: $file"
-}
-
-# Install Gradle plugin wiring into the root build file.
-#
-# The harness plugin lives in `buildSrc/`, which Gradle picks up automatically
-# without any `settings.gradle.kts` change. Only the root `build.gradle.kts`
-# needs to apply the plugin id.
-#
-# @return Writes modified Gradle integration files.
-install_gradle() {
-    build_file=build.gradle.kts
-    if [ -f build.gradle ] && [ ! -f build.gradle.kts ]; then
-        build_file=build.gradle
-    fi
-    if [ "$build_file" = build.gradle.kts ]; then
-        append_line_once "$build_file" 'apply(plugin = "com.ririnto.sinon.harness")' 'apply(plugin = "com.ririnto.sinon.harness")'
-    else
-        append_line_once "$build_file" "apply plugin: 'com.ririnto.sinon.harness'" "apply plugin: 'com.ririnto.sinon.harness'"
-    fi
-}
-
 # Return the GitHub workflow file name for the selected stack mode.
 #
 # @param selected_mode Resolved harness stack mode.
@@ -796,9 +749,6 @@ ensure_agents_symlink
 ensure_gitkeep_paths
 copy_stack_tree "$template_dir/$mode" . "$mode"
 
-if [ "$mode" = gradle ]; then
-    install_gradle
-fi
 install_target_hook_templates "$validation_cmd" "$validation_cmd"
 printf '\n%s\n' "harness target: $target_root"
 printf '%s\n' "harness mode: $mode"

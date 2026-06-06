@@ -1,0 +1,8 @@
+[versions]
+kotlin = "2.4.0"
+ktlint = "14.2.0"
+ktlint-cli = "1.8.0"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }

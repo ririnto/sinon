@@ -59,12 +59,16 @@ class TerminalBranchWhenKtlintRule : KtlintRule(
         buildList {
             when (expression) {
                 is KtIfExpression -> {
-                    val elseExpr = expression.`else`
-                    if (elseExpr != null && elseExpr !is KtIfExpression) {
+                    if (expression.hasFinalElseBranch()) {
                         add(expression)
                     }
                 }
                 is KtReturnExpression -> addAll(terminalIfElseExpressions(expression.returnedExpression))
             }
         }
+
+    private tailrec fun KtIfExpression.hasFinalElseBranch(): Boolean {
+        val elseExpression = `else` ?: return false
+        return elseExpression !is KtIfExpression || elseExpression.hasFinalElseBranch()
+    }
 }
