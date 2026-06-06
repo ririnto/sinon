@@ -79,10 +79,18 @@ allprojects {
 
 tasks.register("checkHarnessMarkdownLinks") {
     doLast {
-        val checker = layout.projectDirectory.file("docs/harness/scripts/check-markdown-links.sh").asFile
-        exec {
-            commandLine("sh", checker.path)
-        }
+        providers
+            .exec {
+                commandLine(
+                    "sh",
+                    layout.projectDirectory
+                        .file("docs/harness/scripts/check-markdown-links.sh")
+                        .asFile
+                        .path,
+                )
+            }.result
+            .get()
+            .assertNormalExitValue()
     }
 }
 
