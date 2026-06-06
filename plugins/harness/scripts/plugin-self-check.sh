@@ -390,6 +390,37 @@ assert_common_assets_rendered_validation_command() {
     reject_file_text "$common_assets_root/.claude/skills/harness-validate/SKILL.md" "| Stack | Command |"
     printf '[common assets] validation rendering OK\n' >&2
 }
+# Reject references to execution-plan active/completed directories outside the tracker.
+#
+# @param assets_root Path to the install asset tree.
+# @exit Exits with status 1 when disallowed references are found.
+assert_exec_plan_reference_policy() {
+    assets_root=$1
+    matches_file=$(mktemp)
+    git -C "$root" ls-files -- "$assets_root" | while IFS= read -r file; do
+        if [ -z "$file" ]; then
+            continue
+        fi
+        if [ "$file" = "$assets_root/common/docs/exec-plans/tech-debt-tracker.md" ]; then
+            continue
+        fi
+        if [ ! -f "$root/$file" ]; then
+            continue
+        fi
+        if grep -Fq -- "docs/exec-plans/active/" "$root/$file" ||
+            grep -Fq -- "docs/exec-plans/completed/" "$root/$file"; then
+            printf '%s\n' "$file" >>"$matches_file"
+        fi
+    done
+
+    if [ -s "$matches_file" ]; then
+        printf '[assert_exec_plan_reference_policy] disallowed docs/exec-plans/{active,completed} references in assets:\n' >&2
+        cat "$matches_file" >&2
+        rm -f "$matches_file"
+        exit 1
+    fi
+    rm -f "$matches_file"
+}
 
 printf 'Validating harness plugin native-lint end-state...\n' >&2
 
@@ -500,6 +531,10 @@ reject_file_contains "$root/scripts/fix.sh" "find "
 reject_file_contains "$root/scripts/fix.sh" "\"**/*.md\""
 printf '[harness markdown discovery] OK\n' >&2
 
+# Enforce docs/exec-plans path policy for packaged assets.
+printf '\n--- exec-plan reference policy ---\n' >&2
+assert_exec_plan_reference_policy "skills/harness-install/assets"
+printf '[rejection] exec-plan path policy OK\n' >&2
 # Validate Python installer surface.
 printf '\n--- Python installer surface ---\n' >&2
 require_file "$root/skills/harness-install/scripts/install-harness.py"

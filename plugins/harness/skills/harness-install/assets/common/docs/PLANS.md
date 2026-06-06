@@ -2,7 +2,7 @@
 
 ## Purpose
 
-PLANS.md is the project-wide development plan: the long-horizon roadmap, milestone-level scope, target outcomes per milestone, and sequencing rationale. It documents *what* the project intends to build and in what order, not *how* work moves through the repository (which WORKFLOW.md documents). This is not a list of currently in-flight tasks—those live in `docs/exec-plans/active/` with heavyweight execution details. It is not a tech-debt tracker—that lives at `docs/exec-plans/tech-debt-tracker.md`.
+PLANS.md is the project-wide development plan: the long-horizon roadmap, milestone-level scope, target outcomes per milestone, and sequencing rationale. It documents *what* the project intends to build and in what order, not *how* work moves through the repository (which WORKFLOW.md documents). This is not a list of currently in-flight tasks—those are maintained in `docs/exec-plans/` with execution status metadata. It is not a tech-debt tracker—that lives at `docs/exec-plans/tech-debt-tracker.md`.
 
 ## Roadmap
 
@@ -37,5 +37,6 @@ Replace the example milestones below with your own; keep the columns and status 
 ## Required Evidence
 
 - Cite the product spec, design document, or decision record that motivates each milestone.
-- Link to the matching `docs/exec-plans/active/` file when a milestone enters concrete execution.
-- Link to `docs/exec-plans/completed/` files when a milestone ships.
+- Link to the matching execution-plan entry under `docs/exec-plans/` when a milestone enters concrete execution.
+
+- Link to completed execution-plan entries in `docs/exec-plans/` when a milestone ships.
