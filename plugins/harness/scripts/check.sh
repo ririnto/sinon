@@ -18,27 +18,36 @@ warn_count_increment() {
 #
 # @return Writes one path per line.
 list_shell_files() {
-    printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/hooks/check.sh"
-    printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/monitors/watch.sh"
     printf '%s\n' "$root/plugins/harness/scripts/plugin-self-check.sh"
+    printf '%s\n' "$root/plugins/harness/scripts/plugin-self-check/common.sh"
+    printf '%s\n' "$root/plugins/harness/scripts/plugin-self-check/asset-checks.sh"
+    printf '%s\n' "$root/plugins/harness/scripts/plugin-self-check/ci-checks.sh"
+    printf '%s\n' "$root/plugins/harness/scripts/plugin-self-check/policy-checks.sh"
     printf '%s\n' "$root/plugins/harness/scripts/check.sh"
     printf '%s\n' "$root/plugins/harness/scripts/fix.sh"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install-harness.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/check.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/common/docs/harness/scripts/check-markdown-links.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/fix.sh"
-    printf '%s\n' "$root/plugins/java/scripts/has-lombok.sh"
-    printf '%s\n' "$root/plugins/java/scripts/jdtls-wrapper.sh"
-    printf '%s\n' "$root/plugins/java/scripts/test-jdtls-wrapper.sh"
 }
 
 # List production Python scripts covered by repository checks.
 #
 # @return Writes one path per line.
 list_python_files() {
-    printf '%s\n' "$root/plugins/spec-driven-development/skills/spec-driven-development/scripts/sdd.py"
-    printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/lsp/example-lsp.py"
-    printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/servers/example-mcp.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install-harness.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/__init__.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/advisory.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/cli.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/commands.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/contracts.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/errors.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/hooks.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/installer.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/models.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/operations.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/paths.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/planning.py"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/preview.py"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/check.py"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/fix.py"
 }
@@ -66,7 +75,7 @@ check_shell_files() {
             shellcheck_tool_checked=1
         fi
         if [ -n "$shellcheck_bin" ]; then
-            shellcheck_output=$("$shellcheck_bin" "$path" 2>&1) && shellcheck_rc=0 || shellcheck_rc=$?
+            shellcheck_output=$("$shellcheck_bin" -x -P "$root/plugins/harness/scripts/plugin-self-check" "$path" 2>&1) && shellcheck_rc=0 || shellcheck_rc=$?
             if [ "$shellcheck_rc" -ne 0 ]; then
                 printf '%s\n' "$shellcheck_output" >&2
                 error_count=$((error_count + 1))
