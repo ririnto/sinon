@@ -62,7 +62,7 @@ Route incoming Java architecture and design questions to the correct plugin skil
 
 ### Language Feature Selection
 
-#### JDK Version Baseline: Java 21+ recommended for new projects
+#### JDK Version Baseline: determine the repository baseline first
 
 - `Java 21 baseline`: Records, sealed types, pattern matching, virtual threads available
 - `Java 17 (LTS)`: Records, sealed types, pattern matching; standard virtual threads from 21+
@@ -124,7 +124,7 @@ Parent-child task relationships:
    - Transitive dependency alignment
 
 2. Version Selection
-   - Prefer LTS versions (Java 21, Spring 6.1 LTS, etc.)
+   - Prefer LTS Java baselines and platform versions already governed by the repository.
    - Minimize major version dependencies if possible
    - Lock transitive versions explicitly to avoid conflicts
 
@@ -147,7 +147,7 @@ Parent-child task relationships:
 
 3. Apply the domain expertise from the loaded skill to the user's question
 
-4. Recommend Java 21+ baseline features when designing new APIs or patterns
+4. Identify the repository's Java baseline before recommending version-sensitive features.
 
 5. Integrate with other agents: If the question involves Spring frameworks, suggest consulting `spring-architect`; if observability/metrics are included, suggest `observability-architect`
 

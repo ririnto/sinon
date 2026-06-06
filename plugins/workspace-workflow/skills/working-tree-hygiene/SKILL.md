@@ -53,7 +53,7 @@ Changes not staged for commit:
  modified:   src/Helper.java
 
 Untracked files:
-  (use "git list-files --others --exclude-standard")
+  (use "git ls-files --others --exclude-standard")
  build/
  .DS_Store
 ```
@@ -289,7 +289,7 @@ git restore --staged <file>
 
 ```sh
 git add <file>
-git commit -m "..."
+git commit -m "type(scope): describe change"
 ```
 
 - Stash them:

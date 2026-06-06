@@ -162,7 +162,7 @@ jdk.GCConfiguration {
 }
 ```
 
-Read: This confirms G1 is active with 6 GC thread. If `youngCollector` says "ParallelScavenge", the runtime is using Parallel GC, not G1.
+Read: This confirms G1 is active with 6 GC threads. If `youngCollector` says "ParallelScavenge", the runtime is using Parallel GC, not G1.
 
 ### `jdk.GarbageCollection` Output
 

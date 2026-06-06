@@ -797,7 +797,7 @@ Conformance requirement:
 
 ## Tailoring the Template
 
-### Scale Down (Feature-to-System)
+### Scale Down (System-to-Feature)
 
 If the project is smaller than full system scale:
 

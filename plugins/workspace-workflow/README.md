@@ -81,7 +81,7 @@ plugins/workspace-workflow/
 ## Shipped Surfaces
 
 - Six reusable skills under `skills/` cover the full workspace-to-integration handoff workflow.
-- One agent under `agents/` (workspace-architect) coordinates cross-skill decisions.
+- Three agents under `agents/` cover workflow coordination, commit-message drafting, and change description body drafting.
 - Three slash commands under `commands/` (workspace-commit, workspace-pr, workspace-worktree) wrap the most frequent workflow entry points.
 - The plugin does not ship hooks, MCP servers, LSP servers, output styles, monitors, or custom runtime data surfaces.
 

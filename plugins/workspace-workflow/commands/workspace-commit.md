@@ -1,7 +1,7 @@
 ---
 description: >-
   Compose a Conventional Commits-style commit message from the staged or HEAD diff. Use when committing the current change with a structured, scope-aware message that matches commit-convention rules.
-argument-hint: Optional additional context about the change
+argument-hint: [optional-context]
 allowed-tools:
   - Bash
   - Read
@@ -33,7 +33,6 @@ Capture the output to understand:
 
 If nothing is staged, ask the user whether they want to:
 
-- Include staged changes only
 - Include HEAD changes (last commit)
 - Stage specific files first
 
