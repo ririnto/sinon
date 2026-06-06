@@ -49,9 +49,10 @@ This plugin ships no commands.
 
 ## Packaged Scripts and Assets
 
-- `scripts/plugin-self-check.sh` validates packaged and tracked plugin files: per-stack asset presence, hook-sync wiring, CI command parity, style hardening contracts (no leading-underscore declarations in implementation files, no one-line Python docstrings on public symbols, no static `SKIP_TREE_PARTS` path filtering), and native-tool smoke checks (`bunx`, `uv`, `shellcheck`, `shfmt` version probes). It skips a stack gracefully when its toolchain is absent from PATH.
-- `skills/harness-install/scripts/install-harness.py` discovers installable assets via `git ls-files` rather than hardcoded directory-name filtering, ensuring only version-controlled files enter the install plan.
+- `scripts/plugin-self-check.sh` validates packaged and tracked plugin files: per-stack asset presence, hook-sync wiring, CI command parity, split helper packaging under `scripts/plugin-self-check/`, installer module packaging under `skills/harness-install/scripts/install_harness/`, source-size policy, style hardening contracts (no leading-underscore declarations in implementation files, no one-line Python docstrings on public symbols, no static `SKIP_TREE_PARTS` path filtering), and native-tool smoke checks (`bunx`, `uv`, `shellcheck`, `shfmt` version probes). It skips a stack gracefully when its toolchain is absent from PATH.
+- `skills/harness-install/scripts/install-harness.py` is the executable installer entry point; `skills/harness-install/scripts/install_harness/` contains the packaged implementation modules. The installer discovers installable target assets via `git ls-files` rather than hardcoded directory-name filtering, ensuring only version-controlled files enter the install plan.
 - `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs/harness`, docs, CI, validation adapters, and Git hook scaffolds.
+- Long Markdown files under `skills/harness-install/assets/common/docs/references/` are packaged reference material, not source modules. The plugin self-check rejects oversized first-party source files and long Markdown outside that reference location.
 
 ## Runtime Model
 
