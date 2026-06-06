@@ -46,12 +46,12 @@ class CompanionObjectPositionKtlintRule : KtlintRule(
                             val declarations = body.declarations.filter { declaration -> declaration !is KtEnumEntry }
                             declarations.forEachIndexed { index, declaration ->
                                 if (declaration is KtObjectDeclaration && declaration.isCompanion()) {
-                                    val lastIndex = declarations.lastIndex
-                                    val isWrongPosition = when (position) {
-                                        "bottom" -> index != lastIndex
-                                        else -> index != 0
-                                    }
-                                    if (isWrongPosition) {
+                                    if (
+                                        when (position) {
+                                            "bottom" -> index != declarations.lastIndex
+                                            else -> index != 0
+                                        }
+                                    ) {
                                         emit(
                                             declaration.textOffset,
                                             "companion object position violates parameters.position=$position",

@@ -16,10 +16,9 @@ class NonNullAssertionKtlintRule : KtlintRule(
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision,
     ) {
         if (node.elementType == OPERATION_REFERENCE && node.text == "!!") {
-            val expression = node.treeParent?.firstChildNode?.text ?: node.text
             emit(
                 node.startOffset,
-                "avoid non-null assertion `!!` on `$expression`; use safe call (?.), Elvis (?:), or explicit guard",
+                "avoid non-null assertion `!!` on `${node.treeParent?.firstChildNode?.text ?: node.text}`; use safe call (?.), Elvis (?:), or explicit guard",
                 false,
             )
         }

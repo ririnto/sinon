@@ -23,11 +23,8 @@ class ImplicitLambdaItKtlintRule : KtlintRule(
                     override fun visitLambdaExpression(lambdaExpression: KtLambdaExpression) {
                         super.visitLambdaExpression(lambdaExpression)
                         if (lambdaExpression.valueParameters.isEmpty()) {
-                            val lambdaText = lambdaExpression.text
-                            val regex = Regex("""\bit\b""")
-                            regex.findAll(lambdaText).forEach { match ->
-                                val offset = lambdaExpression.textOffset + match.range.first
-                                emit(offset, "Kotlin file uses implicit `it` lambda parameter; use an explicit name", false)
+                            Regex("""\bit\b""").findAll(lambdaExpression.text).forEach { match ->
+                                emit(lambdaExpression.textOffset + match.range.first, "Kotlin file uses implicit `it` lambda parameter; use an explicit name", false)
                             }
                         }
                     }
