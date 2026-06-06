@@ -2,19 +2,33 @@
 # -*- coding: utf-8 -*-
 set -e
 
-# Return success when a Markdown file may reference exec-plan state directories.
+# Return success when a Markdown file belongs to execution-plan state.
 #
 # @param path Repository-relative Markdown path.
-# @return Returns 0 only for the tech-debt tracker exception.
+# @return Returns 0 only for execution-plan files.
 is_exec_plan_reference_exempt() {
     path=$1
-    if [ "$path" = "docs/exec-plans/tech-debt-tracker.md" ]; then
+    case "$path" in
+        docs/exec-plans/*)
+            return 0
+            ;;
+    esac
+    return 1
+}
+
+# Return success when a line references the durable tech-debt tracker.
+#
+# @param line Markdown line content.
+# @return Returns 0 for tech-debt tracker references.
+is_tech_debt_tracker_reference() {
+    line=$1
+    if printf '%s\n' "$line" | grep -Eq '(^|[[(<`"[:space:]])(\.\./)*(docs/)?exec-plans/tech-debt-tracker\.md'; then
         return 0
     fi
     return 1
 }
 
-# Reject Markdown references to active/completed execution-plan state directories.
+# Reject Markdown references to removable execution-plan files from durable docs.
 #
 # @return Prints violations and returns 1 when disallowed references exist.
 check_exec_plan_state_links() {
@@ -26,19 +40,28 @@ check_exec_plan_state_links() {
         return 1
     fi
     while IFS= read -r file; do
+        if [ ! -f "$file" ]; then
+            continue
+        fi
         if is_exec_plan_reference_exempt "$file"; then
             continue
         fi
-        if grep -Eq '(^|[[(<`"[:space:]])(\.\./)*(docs/)?exec-plans/(active|completed)/' "$file"; then
-            printf '%s\n' "$file" >>"$failures_file"
-        fi
+        while IFS= read -r line; do
+            if is_tech_debt_tracker_reference "$line"; then
+                continue
+            fi
+            if printf '%s\n' "$line" | grep -Eq '(^|[[(<`"[:space:]])[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*\.md([^a-zA-Z0-9_.-]|$)'; then
+                printf '%s\n' "$file" >>"$failures_file"
+                break
+            fi
+        done <"$file"
     done <"$markdown_file_list"
     if [ -s "$failures_file" ]; then
-        echo 'error: Markdown must not reference docs/exec-plans/active/ or docs/exec-plans/completed/ outside docs/exec-plans/tech-debt-tracker.md' >&2
+        echo 'error: Durable Markdown must not reference removable exec-plans/(active|completed)/ state files; link docs/exec-plans/tech-debt-tracker.md or durable design/product docs instead' >&2
         sort -u "$failures_file" >&2
         return 1
     fi
-    echo 'markdown links: exec-plan state references passed'
+    echo 'markdown links: removable exec-plan references passed'
 }
 
 check_exec_plan_state_links "$@"

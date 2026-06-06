@@ -33,13 +33,13 @@ Each stack delegates code-style and structure detection to its native ecosystem 
 
 ### Bun
 
-- Validator: `bun run check` (package.json script -> `sh scripts/check.sh`: syncs Git hooks, prepares dev dependencies with `bun install --no-save`, then runs `bunx ultracite check --` followed by `bun scripts/validate-jsdoc.mjs` on Git-tracked JavaScript and TypeScript files; ultracite preset over oxlint).
+- Validator: `bun run check` (package.json script -> `sh scripts/check.sh`: syncs Git hooks, prepares dev dependencies with `bun install --no-save`, then runs `bunx ultracite check --` on Git-tracked JavaScript and TypeScript files; ultracite preset over oxlint).
 - Fix command: `bun run fix` (-> `sh scripts/fix.sh` -> `bun install --no-save` -> `bunx ultracite fix --` on Git-tracked JavaScript and TypeScript files).
-- Configuration files: `oxlint.config.ts` and `oxfmt.config.ts` (extend `ultracite/oxlint/core` and `ultracite/oxfmt`).
-- JSDoc enforcement (oxlint): `oxlint.config.ts` enables the jsdoc plugin with `jsdoc/require-param`, `jsdoc/require-param-type`, `jsdoc/require-param-name`, `jsdoc/require-returns`, and `jsdoc/require-returns-type` set to `deny`. These rules flag functions and methods with JSDoc that omit `@param`/`@returns` tags or their types/names.
-- JSDoc enforcement (Bun-side validator): `scripts/validate-jsdoc.mjs` is a TypeScript AST-based validator (depends on `typescript` ^6.0.3) that runs after oxlint. It requires JSDoc on every top-level function declaration, top-level variable statement, and class method; it also rejects broad `{object}`/`{Object}` JSDoc tag types so concrete structural types are required. The validator itself uses concrete JSDoc types on all public functions and constants and has no leading-underscore declarations.
-- Plugin style hardening: `sh plugins/harness/scripts/plugin-self-check.sh` enforces style contracts for the Python installer and Bun JSDoc validator: no leading-underscore function/class/variable declarations, no one-line Python docstrings on public declarations, concrete JSDoc types, and no static `SKIP_TREE_PARTS` directory-name filtering (asset discovery uses `git ls-files` exclusively).
-- Tool self-provisioning: `bun install --no-save` prepares ultracite, oxlint, oxfmt, and typescript on first use before `bunx` runs the local executable.
+- Configuration files: `oxlint.config.ts` and `oxfmt.config.ts` (extend `ultracite/oxlint/core` with `core.ignorePatterns` and `ultracite/oxfmt`).
+- JSDoc enforcement (oxlint): `oxlint.config.ts` follows the Ultracite provider shape and relies on `extends: [core]` for the preset plugin set, including the built-in `jsdoc` plugin. It adds a JavaScript-only override for `**/*.{js,jsx,mjs,cjs}` with `jsdoc/require-param`, `jsdoc/require-param-type`, `jsdoc/require-param-name`, `jsdoc/require-returns`, and `jsdoc/require-returns-type` set to `deny`. TypeScript does not need an override for those tag rules because Ultracite core already sets them to `off`.
+- TypeScript public API docs (local oxlint JS plugin): `scripts/tsdoc-plugin.mjs` provides `tsdoc/require-export-tsdoc`, which requires TSDoc on directly exported TypeScript top-level functions, directly exported top-level variables/constants, directly exported classes, and public methods/accessors on directly exported classes. The plugin name `tsdoc` is local and does not collide with oxlint's documented built-in plugin names.
+- Plugin style hardening: `sh plugins/harness/scripts/plugin-self-check.sh` enforces style contracts for the Python installer and Bun oxlint JS plugin: no leading-underscore function/class/variable declarations, no one-line Python docstrings on public declarations, and no static `SKIP_TREE_PARTS` directory-name filtering (asset discovery uses `git ls-files` exclusively).
+- Tool self-provisioning: `bun install --no-save` prepares ultracite, oxlint, and oxfmt on first use before `bunx` runs the local executable.
 
 ### Shell
 
