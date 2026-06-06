@@ -27,14 +27,14 @@ class ExplicitPropertyTypeKtlintRule : KtlintRule(
                         if (property.isLocal || property.parent !is KtClassBody || property.typeReference != null) {
                             return
                         }
-                        val owner = property.parent?.parent
-                        val propertyKind = when {
-                            owner is KtObjectDeclaration && owner.isCompanion() -> "companion object property"
-                            else -> "member property"
-                        }
                         emit(
                             property.textOffset,
-                            "$propertyKind `${property.name ?: "property"}` must declare an explicit type",
+                            "${
+                                when {
+                                    (property.parent?.parent as? KtObjectDeclaration)?.isCompanion() == true -> "companion object property"
+                                    else -> "member property"
+                                }
+                            } `${property.name ?: "property"}` must declare an explicit type",
                             false,
                         )
                     }

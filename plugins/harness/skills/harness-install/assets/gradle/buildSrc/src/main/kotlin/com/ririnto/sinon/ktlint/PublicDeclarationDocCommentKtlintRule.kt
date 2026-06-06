@@ -27,8 +27,7 @@ class PublicDeclarationDocCommentKtlintRule : KtlintRule(
     }
 
     private fun effectiveVisibility(declaration: KtModifierListOwner): String {
-        val visibilityModifierType = declaration.visibilityModifierType()
-        return when (visibilityModifierType) {
+        return when (declaration.visibilityModifierType()) {
             KtTokens.PUBLIC_KEYWORD -> "public"
             KtTokens.PROTECTED_KEYWORD -> "protected"
             KtTokens.INTERNAL_KEYWORD -> "internal"
@@ -53,24 +52,22 @@ class PublicDeclarationDocCommentKtlintRule : KtlintRule(
 
                     override fun visitNamedFunction(function: KtNamedFunction) {
                         super.visitNamedFunction(function)
-                        val isOverride = exemptOverrideDeclarations && function.hasModifier(KtTokens.OVERRIDE_KEYWORD)
-                        if (!isOverride && shouldCheck(function, "function") && function.docComment == null) {
+                        if (!(exemptOverrideDeclarations && function.hasModifier(KtTokens.OVERRIDE_KEYWORD)) && shouldCheck(function, "function") && function.docComment == null) {
                             emit(function.textOffset, "public declaration `${function.name ?: "unknown"}` is missing a documentation comment", false)
                         }
                     }
 
                     override fun visitProperty(property: KtProperty) {
                         super.visitProperty(property)
-                        val isLocal = exemptLocalDeclarations && property.isLocal
-                        if (!isLocal && shouldCheck(property, "property") && property.docComment == null) {
+                        if (!(exemptLocalDeclarations && property.isLocal) && shouldCheck(property, "property") && property.docComment == null) {
                             emit(property.textOffset, "public declaration `${property.name ?: "unknown"}` is missing a documentation comment", false)
                         }
                     }
 
                     private fun shouldCheck(declaration: KtModifierListOwner, kind: String): Boolean {
-                        val visib = effectiveVisibility(declaration)
-                        val inBlockExpression = declaration is KtNamedFunction && declaration.parent is KtBlockExpression
-                        return visib in visibility && kind in allowedDeclarationKinds && !inBlockExpression
+                        return effectiveVisibility(declaration) in visibility &&
+                            kind in allowedDeclarationKinds &&
+                            !(declaration is KtNamedFunction && declaration.parent is KtBlockExpression)
                     }
                 },
             )

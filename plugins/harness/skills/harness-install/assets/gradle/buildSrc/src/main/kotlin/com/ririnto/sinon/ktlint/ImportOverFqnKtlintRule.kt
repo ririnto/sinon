@@ -86,8 +86,10 @@ class ImportOverFqnKtlintRule : KtlintRule(
 
         private fun classCandidateParts(expression: KtDotQualifiedExpression): List<String>? {
             val parts = expressionParts(expression)
-            val classIndex = parts.indexOfFirst { part -> part.firstOrNull()?.isUpperCase() == true }
-            return classIndex.takeIf { index -> 2 <= index }?.let { index -> parts.take(index + 1) }
+            return parts
+                .indexOfFirst { part -> part.firstOrNull()?.isUpperCase() == true }
+                .takeIf { index -> 2 <= index }
+                ?.let { index -> parts.take(index + 1) }
         }
 
         private fun expressionParts(expression: KtExpression): List<String> =
