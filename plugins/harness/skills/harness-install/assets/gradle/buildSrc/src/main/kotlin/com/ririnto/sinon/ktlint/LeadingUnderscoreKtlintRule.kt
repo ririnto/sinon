@@ -5,12 +5,11 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
-import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import kotlin.io.path.nameWithoutExtension
 
 /**
- * Flags leading underscores in Kotlin file basenames and declarations.
+ * Flags leading underscores in Kotlin file basenames and declarations, including parameters.
  */
 class LeadingUnderscoreKtlintRule : KtlintRule(
     ruleId = RuleId("code:leading-underscore"),
@@ -34,7 +33,7 @@ class LeadingUnderscoreKtlintRule : KtlintRule(
                     override fun visitNamedDeclaration(declaration: KtNamedDeclaration) {
                         super.visitNamedDeclaration(declaration)
                         val name = declaration.name ?: return
-                        if (isForbidden(name) && declaration !is KtParameter) {
+                        if (isForbidden(name)) {
                             emit(declaration.textOffset, "declaration `$name` uses a leading underscore", false)
                         }
                     }

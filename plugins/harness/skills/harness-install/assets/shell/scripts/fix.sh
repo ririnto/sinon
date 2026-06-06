@@ -19,9 +19,9 @@ write_tracked_shell_files() {
 # @return Exits with 0 on success, 1 on format or validation failure.
 main() {
     script_dir=$(CDPATH='' cd "$(dirname "$0")" && pwd)
-    if ! shfmt_bin=$(command -v shfmt 2>&1); then
-        echo 'warning: shfmt not in PATH; skipping shell fixes' >&2
-        exit 0
+    if ! shfmt_bin=$(command -v shfmt); then
+        echo 'error: shfmt is required for shell formatting. Install shfmt and rerun this fixer.' >&2
+        exit 1
     fi
     shell_file_list=$(mktemp)
     trap 'rm -f "$shell_file_list"' EXIT

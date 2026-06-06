@@ -84,9 +84,9 @@
             </goals>
             <configuration>
               <target>
-                <exec executable="sh" failonerror="false">
+                <exec executable="sh">
                   <arg value="-c"/>
-                  <arg value="hooks_dir=$(git rev-parse --git-path hooks 2&gt;&amp;1) || exit 0; mkdir -p &quot;$hooks_dir&quot;; for name in pre-commit pre-push; do src=&quot;docs/harness/git-hooks/$name&quot;; if [ -f &quot;$src&quot; ]; then dst=&quot;$hooks_dir/$name&quot;; if [ ! -L &quot;$dst&quot; ] &amp;&amp; [ -f &quot;$dst&quot; ] &amp;&amp; cmp -s &quot;$src&quot; &quot;$dst&quot;; then continue; fi; tmp=&quot;$hooks_dir/.sync-git-hooks-$$-$name&quot;; cp &quot;$src&quot; &quot;$tmp&quot; &amp;&amp; chmod 755 &quot;$tmp&quot; &amp;&amp; mv &quot;$tmp&quot; &quot;$dst&quot;; fi; done"/>
+                  <arg value="if ! hooks_dir=$(git rev-parse --git-path hooks); then exit 0; fi; mkdir -p &quot;$hooks_dir&quot;; for name in pre-commit pre-push; do src=&quot;docs/harness/git-hooks/$name&quot;; if [ -f &quot;$src&quot; ]; then dst=&quot;$hooks_dir/$name&quot;; if [ -L &quot;$dst&quot; ]; then continue; fi; if [ -f &quot;$dst&quot; ] && cmp -s &quot;$src&quot; &quot;$dst&quot;; then continue; fi; tmp=&quot;$hooks_dir/.sync-git-hooks-$$-$name&quot;; cp &quot;$src&quot; &quot;$tmp&quot;; chmod +x &quot;$tmp&quot;; mv &quot;$tmp&quot; &quot;$dst&quot;; fi; done"/>
                 </exec>
               </target>
             </configuration>
