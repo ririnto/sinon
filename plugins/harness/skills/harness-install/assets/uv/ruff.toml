@@ -1,5 +1,5 @@
 [lint]
-select = ["F403"]
+extend-select = ["F403"]
 
 [format]
 quote-style = "double"

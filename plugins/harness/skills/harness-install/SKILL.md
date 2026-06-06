@@ -5,11 +5,11 @@ description: >-
 argument-hint: '--mode gradle|maven|uv|bun|shell --ci-host github|gitlab|both|none [--target DIR] [--force]'
 disable-model-invocation: true
 allowed-tools:
-  - Bash(sh */skills/harness-install/scripts/install-harness.sh *)
+  - Bash(*/skills/harness-install/scripts/install-harness.py *)
+  - Bash(uv */skills/harness-install/scripts/install-harness.py *)
   - Bash(git *)
   - Bash(./gradlew *)
-  - Bash(gradle *)
-  - Bash(mvn *)
+  - Bash(./mvnw *)
   - Bash(uv *)
   - Bash(bun *)
   - Read
@@ -53,11 +53,17 @@ Install or refresh target-owned repository harness files from this plugin. This 
 2. Run the installer with the target repository as `--target` and an explicit `--mode`.
 
     ```sh
-    sh "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.sh" --target "$PWD" --mode gradle --ci-host github
+    "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.py" --target "$PWD" --mode gradle --ci-host github
     ```
 
-3. Run the validation command printed by the installer before reporting completion.
+    ```sh
+    uv run "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.py" --target "$PWD" --mode gradle --ci-host github
+    ```
+
+3. Run the selected-mode validation command rendered into common assets (shown as `{{validation_command}}`) before reporting completion.
+
 4. Inspect changed files and distinguish kept files from written files in the final report.
+
 5. Report hook behavior, validation status, and any target-owned files the user must fill with project truth.
 
 ## Decisions
@@ -78,17 +84,17 @@ Install or refresh target-owned repository harness files from this plugin. This 
 ## Invariants
 
 - The installed harness is target-owned after copying.
-- The generated hook templates are target-owned: both `pre-commit` and `pre-push` run the selected stack validation command (Gradle `./gradlew ktlintCheck`, Maven Spotless with `git ls-files` and `spotlessFiles`, uv `uv run scripts/check.py`, Bun `bun run check`, shell `sh scripts/check.sh`); each stack's check command syncs them into the active hooks directory (resolved via `git rev-parse --git-path hooks`) at check time rather than at install, and refreshes active `pre-commit` and `pre-push` files from the tracked templates when content differs.
+- The generated hook templates are target-owned: both `pre-commit` and `pre-push` run the selected-mode validation command rendered from `{{validation_command}}`; each stack's check command syncs templates into the active hooks directory (resolved via `git rev-parse --git-path hooks`) at check time, and refreshes active `pre-commit` and `pre-push` files from the tracked templates when content differs.
 - Fresh installs use `CLAUDE.md` as the primary target repository harness contract and `AGENTS.md` as its symlink alias.
 - Refreshes of existing AGENTS-only repositories may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias; either orientation MUST resolve both filenames to the same document.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
 - Plugin skills install, validate, and evolve the harness package; installed target skills and agents guide day-to-day work inside the target repository.
-- Stack-specific check and fix commands run native ecosystem tools against Git-tracked files: Gradle `./gradlew ktlintCheck` and `./gradlew ktlintFormat`; Maven Spotless with `git ls-files` and `spotlessFiles`; uv `uv run scripts/check.py` and `uv run scripts/fix.py`; Bun `bun run check` and `bun run fix`; shell `sh scripts/check.sh` and `sh scripts/fix.sh`.
+- Stack-specific check and fix commands run native ecosystem tools against Git-tracked files: Gradle `./gradlew ktlintCheck` and `./gradlew ktlintFormat`; Maven Checkstyle plus Spotless with `git ls-files` and `spotlessFiles`; uv `uv run scripts/check.py` and `uv run scripts/fix.py`; Bun `bun run check` and `bun run fix`; shell `sh scripts/check.sh` and `sh scripts/fix.sh`.
 
 ## Pitfalls
 
 - Do not run the installer on a dirty working tree. Require the target repository to be committed or stashed first; `--force` overwrites tracked files, and any post-install rollback against an unclean tree will entangle harness changes with unrelated edits.
-- Do not edit `scripts/install-harness.sh` during ordinary installation.
+- Do not edit `scripts/install-harness.py` during ordinary installation.
 - Do not claim harness-only readiness when product specs, architecture decisions, acceptance criteria, or generated artifacts are still placeholders.
 - Do not force-replace target-owned hook templates with `--force` without explicit approval for that repository.
 - Do not treat seed references as universal target truth; they are replaceable starting points.

@@ -65,7 +65,7 @@ def tracked_python_files() -> list[str]:
 
 def main() -> int:
     """
-    Synchronize Git hooks, then run ruff check on the project.
+    Synchronize Git hooks, then run ruff lint and format checks on the project.
     """
     sync_git_hooks()
     try:
@@ -76,17 +76,26 @@ def main() -> int:
     if not files:
         print("ruff: no tracked Python files to check")
         return 0
-    return subprocess.run(
-        [
-            "uvx",
-            "--with",
-            "ruff>=0.15.16,<0.16.0",
-            "ruff",
-            "check",
-            "--",
-            *files,
-        ],
-    ).returncode
+    commands = (
+        ("check",),
+        ("format", "--check"),
+    )
+    status = 0
+    for command in commands:
+        result = subprocess.run(
+            [
+                "uvx",
+                "--with",
+                "ruff>=0.15.16,<0.16.0",
+                "ruff",
+                *command,
+                "--",
+                *files,
+            ],
+        )
+        if result.returncode != 0:
+            status = result.returncode
+    return status
 
 
 if __name__ == "__main__":

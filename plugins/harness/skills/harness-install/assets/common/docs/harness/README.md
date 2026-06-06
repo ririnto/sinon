@@ -37,18 +37,12 @@ The repository harness MAY evolve as the project moves through discovery, implem
 
 ## Validation
 
-Run the native stack tool command from the repository root:
+Run the selected stack validation command from the repository root:
 
-| Stack | Validation command |
-| --- | --- |
-| Gradle | `./gradlew ktlintCheck` (or `gradle ktlintCheck` if using system Gradle without a wrapper) |
-| Maven | Generated Maven Spotless command with escaped, repo-root-anchored `spotlessFiles` from `git ls-files` |
-| uv | `uv run scripts/check.py` |
-| Bun | `bun run check` |
-| shell | `sh scripts/check.sh` |
+`{{validation_command}}`
 
-The generated `pre-commit` hook runs the stack-specific validation command above. The generated `pre-push` hook also runs the same validation command and should match CI when CI workflows are present.
+The generated `pre-commit` hook runs `{{validation_command}}`. The generated `pre-push` hook also runs the same command and should match CI when CI workflows are present.
 
-Native validation uses the ecosystem's built-in tools (ktlint, Spotless, ruff, ultracite over oxlint, shellcheck) configured at the repository root via `.editorconfig`, `ruff.toml`, `oxlint.config.ts`, `oxfmt.config.ts`, and stack-specific build files.
+Native validation configuration is owned by the selected stack's tooling and shared repository conventions, such as `.editorconfig` and stack-specific build/tooling config.
 
-If the installer wired Gradle into a complex existing `settings.gradle(.kts)`, review the resulting plugin management and composite build blocks manually before relying on CI.
+If installer wiring produced complex existing build/tooling integration, review generated integration blocks manually before relying on CI.

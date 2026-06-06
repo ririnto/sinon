@@ -46,7 +46,7 @@ flowchart LR
 
 ## Validation Surfaces
 
-- Native stack validation: enforces code style via the selected ecosystem tool (ktlint for Kotlin, Spotless for Java, ruff for Python, ultracite over oxlint for TypeScript, shellcheck for shell scripts). Configuration lives at the repository root in `.editorconfig`, `ruff.toml`, `oxlint.config.ts`, `oxfmt.config.ts`, and stack-specific build files.
+- Native stack validation: validates code style and repository health using the selected stack validation command (`{{validation_command}}`) and stack-owned tooling configuration (for example `.editorconfig` and stack-specific build/config files).
 - Structural conventions: enforce file presence, directory structure, hooks, CI command parity, agent/skill frontmatter, and execution-plan discipline via prose contract in `CLAUDE.md` and code review.
 - CI workflow: enforces full build, test, and integration pass at `.github/workflows/<tool>.yaml` (per-stack) or `.gitlab-ci.yml` before merge, running the stack-specific validation command.
 

@@ -16,25 +16,17 @@ Validate this target repository's installed harness. This target skill uses the 
 
 ## Commands
 
-Run the matching command:
+Run the command rendered into `docs/harness/README.md` (shown as `{{validation_command}}` in packaged assets). The installer renders the selected-mode command into common target assets at install time.
 
-| Stack | Command |
-| --- | --- |
-| Gradle | `./gradlew ktlintCheck` (or `gradle ktlintCheck` if using system Gradle without a wrapper) |
-| Maven | See the Maven command below. |
-| uv | `uv run scripts/check.py` |
-| Bun | `bun run check` |
-| shell | `sh scripts/check.sh` |
-
-Maven command:
+Maven command (rendered for Maven-mode targets):
 
 ```sh
-root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then mvn validate; echo "spotless: no tracked Java files to check"; else mvn validate spotless:check -DspotlessFiles="$files"; fi
+root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then ./mvnw validate; echo "spotless: no tracked Java files to check"; else ./mvnw validate -DspotlessFiles="$files"; fi
 ```
 
 ## Workflow
 
-1. Run the matching command.
+1. Run the rendered validation command from `docs/harness/README.md`.
 2. If it fails, classify the failure as missing contract file or directory, missing `.gitkeep`, stale placeholder, metadata/frontmatter problem, generated-artifact metadata gap, symlink safety issue, executable-bit or shebang problem, CI/pre-push command mismatch or pre-commit stage mismatch, or native stack-tool failure.
 3. Fix only failures within the requested scope.
 4. Re-run the same command after fixes.
