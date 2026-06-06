@@ -9,6 +9,7 @@ export default defineConfig({
     "jsdoc/require-param-name": "deny",
     "jsdoc/require-param-type": "deny",
     "jsdoc/require-returns": "deny",
+    "jsdoc/require-returns-description": "allow",
     "jsdoc/require-returns-type": "deny",
   },
 });
