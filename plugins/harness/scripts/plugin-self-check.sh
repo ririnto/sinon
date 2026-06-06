@@ -187,6 +187,8 @@ assert_gradle_assets() {
     require_text "$assets_root/buildSrc/build.gradle.kts" 'alias(libs.plugins.kotlin.jvm)'
     require_text "$assets_root/buildSrc/build.gradle.kts" 'libs.versions.ktlint.cli.get()'
     require_text "$assets_root/buildSrc/settings.gradle.kts" '../gradle/libs.versions.toml'
+    require_text "$assets_root/build.gradle.kts" 'checkHarnessMarkdownLinks'
+    require_text "$assets_root/build.gradle.kts" 'docs/harness/scripts/check-markdown-links.sh'
     require_text "$assets_root/gradle/libs.versions.toml" 'kotlin = "2.4.0"'
     require_text "$assets_root/gradle/libs.versions.toml" 'ktlint = "14.2.0"'
     require_text "$assets_root/gradle/libs.versions.toml" 'ktlint-cli = "1.8.0"'
@@ -199,6 +201,8 @@ assert_gradle_assets() {
     require_text "$assets_root/build.gradle.kts" 'docs/harness/git-hooks'
     reject_file_contains "$assets_root/.editorconfig" "ktlint_unchecked_cast_suppression_forbidden"
     reject_file_contains "$assets_root/.editorconfig" "ktlint_unchecked_cast_suppression_allowed"
+    require_text "$assets_root/.editorconfig" "ij_kotlin_allow_trailing_comma = false"
+    require_text "$assets_root/.editorconfig" "ktlint_standard_no-wildcard-imports = disabled"
     printf '[gradle assets] OK\n' >&2
 }
 
@@ -225,6 +229,7 @@ assert_bun_assets() {
     require_text "$assets_root/scripts/check.sh" 'bun install --no-save'
     require_text "$assets_root/scripts/check.sh" 'bunx ultracite check --'
     require_text "$assets_root/scripts/check.sh" 'bun scripts/validate-jsdoc.mjs'
+    require_text "$assets_root/scripts/check.sh" 'docs/harness/scripts/check-markdown-links.sh'
     require_text "$assets_root/scripts/check.sh" "[ -L \"\$dst\" ]"
     require_text "$assets_root/package.json" '"fix": "sh scripts/fix.sh"'
     require_text "$assets_root/scripts/fix.sh" 'git ls-files -z'
@@ -244,7 +249,8 @@ assert_bun_assets() {
 assert_uv_assets() {
     assets_root=$root/skills/harness-install/assets/uv
     require_file "$assets_root/ruff.toml"
-    require_text "$assets_root/ruff.toml" 'extend-select = ["F403"]'
+    reject_file_contains "$assets_root/ruff.toml" 'extend-select'
+    require_text "$assets_root/scripts/check.py" 'docs/harness/scripts/check-markdown-links.sh'
     require_file "$assets_root/scripts/check.py"
     require_file "$assets_root/scripts/fix.py"
     require_text "$assets_root/scripts/check.py" '--git-path'
@@ -284,6 +290,7 @@ assert_maven_assets() {
     require_text "$assets_root/pom.xml" 'cmp -s'
     require_text "$assets_root/pom.xml" "if [ -L &quot;\$dst&quot; ]; then continue; fi"
     require_text "$assets_root/pom.xml" 'failonerror="true"'
+    require_text "$assets_root/pom.xml" 'docs/harness/scripts/check-markdown-links.sh'
     reject_file_contains "$assets_root/pom.xml" 'failonerror="false"'
     require_text "$root/skills/harness-install/scripts/install-harness.py" 'spotlessFiles'
     require_text "$root/skills/harness-install/scripts/install-harness.py" './mvnw validate'
@@ -314,6 +321,7 @@ assert_shell_assets() {
     require_text "$assets_root/scripts/check.sh" 'xargs -0 shellcheck -S warning --'
     require_text "$assets_root/scripts/check.sh" 'xargs -0 shfmt -d -i 4 -ci --'
     require_text "$assets_root/scripts/check.sh" "[ -L \"\$dst\" ]"
+    require_text "$assets_root/scripts/check.sh" 'docs/harness/scripts/check-markdown-links.sh'
     require_text "$assets_root/scripts/fix.sh" 'git ls-files -z'
     require_text "$assets_root/scripts/fix.sh" "xargs -0 \"\$shfmt_bin\" -i 4 -ci -w --"
     require_text "$assets_root/scripts/fix.sh" 'error: shfmt is required for shell formatting.'
@@ -389,6 +397,9 @@ assert_common_assets_rendered_validation_command() {
     # Avoid stale per-stack command matrices in common validate guidance.
     reject_file_text "$common_assets_root/.claude/skills/harness-validate/SKILL.md" "| Stack | Command |"
     printf '[common assets] validation rendering OK\n' >&2
+    require_file "$common_assets_root/docs/harness/scripts/check-markdown-links.sh"
+    require_text "$common_assets_root/docs/harness/scripts/check-markdown-links.sh" "docs/exec-plans/tech-debt-tracker.md"
+    require_text "$common_assets_root/docs/harness/scripts/check-markdown-links.sh" "exec-plans/(active|completed)/"
 }
 # Reject references to execution-plan active/completed directories outside the tracker.
 #
@@ -402,6 +413,9 @@ assert_exec_plan_reference_policy() {
             continue
         fi
         if [ "$file" = "$assets_root/common/docs/exec-plans/tech-debt-tracker.md" ]; then
+            continue
+        fi
+        if [ "$file" = "$assets_root/common/docs/harness/scripts/check-markdown-links.sh" ]; then
             continue
         fi
         if [ ! -f "$root/$file" ]; then
@@ -459,6 +473,7 @@ if [ -f "$maven_assets/.github/workflows/spotless.yaml" ]; then
     reject_file_contains "$maven_assets/.github/workflows/spotless.yaml" './mvnw verify'
     reject_file_contains "$maven_assets/.github/workflows/spotless.yaml" 's#^#.*#'
     reject_file_contains "$maven_assets/.github/workflows/spotless.yaml" '>-'
+    require_text "$maven_assets/.github/workflows/spotless.yaml" 'run: |-'
     printf '[GitHub workflow spotless.yaml] command OK\n' >&2
 fi
 if [ -f "$maven_assets/.gitlab-ci.yml" ]; then
@@ -471,6 +486,7 @@ if [ -f "$maven_assets/.gitlab-ci.yml" ]; then
     reject_file_contains "$maven_assets/.gitlab-ci.yml" './mvnw verify'
     reject_file_contains "$maven_assets/.gitlab-ci.yml" 's#^#.*#'
     reject_file_contains "$maven_assets/.gitlab-ci.yml" '>-'
+    require_text "$maven_assets/.gitlab-ci.yml" '- |-'
     printf '[GitLab CI] spotless job command OK\n' >&2
 fi
 reject_file_text "$maven_assets" "harness-check"
@@ -524,11 +540,18 @@ require_text "$root/scripts/check.sh" "ls-files -z -- '*.md'"
 require_text "$root/scripts/check.sh" "xargs -0"
 reject_file_contains "$root/scripts/check.sh" "find "
 reject_file_contains "$root/scripts/check.sh" "\"**/*.md\""
+require_text "$root/scripts/check.sh" "Repository validation passed."
+reject_file_contains "$root/scripts/check.sh" "Checked %d file(s)"
+reject_file_contains "$root/scripts/check.sh" "%d error(s)"
 require_text "$root/scripts/fix.sh" "git -C"
 require_text "$root/scripts/fix.sh" "ls-files -z -- '*.md'"
 require_text "$root/scripts/fix.sh" "xargs -0"
 reject_file_contains "$root/scripts/fix.sh" "find "
 reject_file_contains "$root/scripts/fix.sh" "\"**/*.md\""
+require_text "$root/scripts/fix.sh" "fixed files:"
+reject_file_contains "$root/scripts/fix.sh" "unchanged files were left as-is."
+reject_file_contains "$root/scripts/fix.sh" "fixed: %d"
+reject_file_contains "$root/scripts/fix.sh" "no-op: %d"
 printf '[harness markdown discovery] OK\n' >&2
 
 # Enforce docs/exec-plans path policy for packaged assets.

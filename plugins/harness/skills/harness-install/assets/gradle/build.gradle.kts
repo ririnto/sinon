@@ -77,7 +77,17 @@ allprojects {
     }
 }
 
+tasks.register("checkHarnessMarkdownLinks") {
+    doLast {
+        val checker = layout.projectDirectory.file("docs/harness/scripts/check-markdown-links.sh").asFile
+        exec {
+            commandLine("sh", checker.path)
+        }
+    }
+}
+
 tasks.named("ktlintCheck") {
+    dependsOn("checkHarnessMarkdownLinks")
     doLast {
         val hooksDir = gitHooksDir() ?: return@doLast
         hooksDir.createDirectories()

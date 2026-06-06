@@ -25,6 +25,7 @@ list_shell_files() {
     printf '%s\n' "$root/plugins/harness/scripts/fix.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install-harness.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/check.sh"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/common/docs/harness/scripts/check-markdown-links.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/fix.sh"
     printf '%s\n' "$root/plugins/java/scripts/has-lombok.sh"
     printf '%s\n' "$root/plugins/java/scripts/jdtls-wrapper.sh"
@@ -40,28 +41,6 @@ list_python_files() {
     printf '%s\n' "$root/plugins/agent-capability-kit/skills/plugin-authoring/assets/servers/example-mcp.py"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/check.py"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/fix.py"
-}
-
-# List git-tracked Markdown files covered by repository checks.
-#
-# @return Writes one path per line.
-list_markdown_files() {
-    git -C "$root" ls-files --full-name -- '*.md' | while IFS= read -r path; do
-        printf '%s/%s\n' "$root" "$path"
-    done
-}
-
-# Count listed paths that exist as files.
-#
-# @return Writes existing file count.
-count_existing_files() {
-    existing_count=0
-    while IFS= read -r path; do
-        if [ -f "$path" ]; then
-            existing_count=$((existing_count + 1))
-        fi
-    done
-    printf '%d\n' "$existing_count"
 }
 
 # Check shell files with shellcheck and shfmt.
@@ -193,12 +172,11 @@ markdown_errors=$(check_markdown_files)
 warn_count=$(cat "$warn_counter_file")
 rm -f "$warn_counter_file"
 error_count=$((shell_errors + python_errors + markdown_errors))
-shell_checked=$(list_shell_files | count_existing_files)
-python_checked=$(list_python_files | count_existing_files)
-markdown_checked=$(list_markdown_files | count_existing_files)
-total_checked=$((shell_checked + python_checked + markdown_checked))
-
-printf 'Checked %d file(s). %d error(s), %d warn(s).\n' "$total_checked" "$error_count" "$warn_count"
+if [ "$error_count" -eq 0 ] && [ "$warn_count" -eq 0 ]; then
+    echo 'Repository validation passed.'
+else
+    echo 'Repository validation reported diagnostics.'
+fi
 
 if [ "$error_count" -gt 0 ]; then
     exit 1

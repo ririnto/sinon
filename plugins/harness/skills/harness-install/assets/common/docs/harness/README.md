@@ -32,7 +32,7 @@ The harness alone does not define product requirements, domain rules, architectu
 
 ## Harness evolution
 
-The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active contract. When the harness changes, update this directory, `CLAUDE.md`, validators, and templates as needed; record the evolution in the relevant `docs/exec-plans/` entry rather than in a separate log file.
+The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active contract. When the harness changes, update this directory, `CLAUDE.md`, validators, and templates that the change affects; record the evolution in the relevant `docs/exec-plans/` entry rather than in a separate log file.
 
 ## Validation
 
@@ -41,6 +41,7 @@ Run the selected stack validation command from the repository root:
 `{{validation_command}}`
 
 The generated `pre-commit` hook runs `{{validation_command}}`. The generated `pre-push` hook also runs the same command and should match CI when CI workflows are present.
+The selected stack validation command also runs `docs/harness/scripts/check-markdown-links.sh`, which rejects Markdown references to execution-plan state directories outside `docs/exec-plans/tech-debt-tracker.md`.
 
 Native validation configuration is owned by the selected stack's tooling and shared repository conventions, such as `.editorconfig` and stack-specific build/tooling config.
 

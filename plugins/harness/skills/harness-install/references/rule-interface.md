@@ -26,7 +26,7 @@ Each stack delegates code-style and structure detection to its native ecosystem 
 ### uv
 
 - Validator: `uv run scripts/check.py` (thin wrapper invoking `uvx --with "ruff>=0.15.16,<0.16.0" ruff check` and `ruff format --check` on Git-tracked Python files)
-- Ruff configuration: `ruff.toml` at repository root; extends defaults with `F403` (wildcard import detection); ruff defaults otherwise.
+- Ruff configuration: `ruff.toml` at repository root; keeps Ruff lint defaults and sets ruff format quote style.
 - Custom Python AST conventions: 7 prose-only rules (leading-underscore, multiline-doc-style, unstructured-logging, public-declaration-doc-comment, unchecked-cast-suppression, triple-quote-inline-comment, mutable-collection) — no automated enforcement; documented as code conventions only.
 - Fix command: `uv run scripts/fix.py` (thin wrapper invoking `uvx --with "ruff>=0.15.16,<0.16.0" ruff check --fix` and `ruff format` on Git-tracked Python files)
 - Quote style: ruff format uses double quotes.

@@ -4,7 +4,7 @@ Document the project's day-to-day workflow for human and agent contributors: how
 
 ## Purpose
 
-Give agents a single page they can read to know *how things get done here* — branch naming, commit conventions, review gates, deployment promotion, and runbook entry points. This document is the procedural counterpart of `CLAUDE.md` (the harness contract) and `ARCHITECTURE.md` (the system shape).
+Give agents a single page that defines repository workflow: branch naming, commit conventions, review gates, deployment promotion, and runbook entry points. This document is the procedural counterpart of `CLAUDE.md` (the harness contract) and `ARCHITECTURE.md` (the system shape).
 
 ## When To Update
 

@@ -8,21 +8,21 @@ description: |-
   <example>
   Context: A pull request updates `docs/harness/README.md` to add a new validation step but the corresponding validator skill and CI snippet were not updated.
   user: "Review this PR—it adds a new validation requirement to the README but I'm not sure if everything is consistent."
-  assistant: "I'll check the docs and commands."
+  assistant: "Review the README, validator skill, and CI command as one contract surface."
   <commentary>
   This is a correctness and contract-drift review: docs, validators, and CI commands must tell one story. This is harness-reviewer scope.
   </commentary>
-  assistant: "I'll use the harness-reviewer agent to verify that the README change, validator skill, and CI command are aligned."
+  assistant: "Use harness-reviewer to verify that the README change, validator skill, and CI command are aligned."
   </example>
 
   <example>
   Context: A contributor added a new agent to the target repository but forgot to document the trigger conditions.
   user: "We added a new agent. Can you check that it's properly wired into the harness?"
-  assistant: "I'll review the changes."
+  assistant: "Review the agent metadata, filename, and documented trigger conditions."
   <commentary>
   This requires checking that agent names match filenames, that descriptions expose clear triggers, and that metadata is consistent—harness-reviewer work.
   </commentary>
-  assistant: "I'll use the harness-reviewer agent to verify agent metadata and description triggers."
+  assistant: "Use harness-reviewer to verify agent metadata and description triggers."
   </example>
 
   <example>
@@ -32,7 +32,7 @@ description: |-
   <commentary>
   This requires reviewing whether seed artifacts are genuinely platform-agnostic or bake in stack assumptions—a harness-reviewer concern about contract clarity and fake product risk.
   </commentary>
-  assistant: "I'll use the harness-reviewer agent to assess placeholder safety and identify stack assumptions that should be validated or documented."
+  assistant: "Use harness-reviewer to assess placeholder safety and identify stack assumptions that should be validated or documented."
   </example>
 model: sonnet
 color: yellow
