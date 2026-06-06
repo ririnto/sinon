@@ -16,10 +16,11 @@ class KotlinTopLevelDeclarationCountKtlintRule : KtlintRule(
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision,
     ) {
         (node.psi as? KtFile)?.let { ktFile ->
-            val declarations = ktFile.declarations.filter { decl ->
-                decl.javaClass.simpleName !in setOf("KtImportDirective", "KtPackageDirective", "KtScript")
-            }
-            if (declarations.size != 1) {
+            if (
+                ktFile.declarations
+                    .filter { decl -> decl.javaClass.simpleName !in setOf("KtImportDirective", "KtPackageDirective", "KtScript") }
+                    .size != 1
+            ) {
                 emit(0, "file must have single top-level declaration", false)
             }
         }

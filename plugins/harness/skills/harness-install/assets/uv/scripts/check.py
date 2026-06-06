@@ -57,10 +57,9 @@ def tracked_python_files() -> list[str]:
         text=True,
     )
     if result.returncode != 0:
-        message = (
+        raise RuntimeError(
             result.stderr.strip() or result.stdout.strip() or "git ls-files failed"
         )
-        raise RuntimeError(message)
     return [path for path in result.stdout.split("\0") if path]
 
 
@@ -77,17 +76,17 @@ def main() -> int:
     if not files:
         print("ruff: no tracked Python files to check")
         return 0
-    command = [
-        "uvx",
-        "--with",
-        "ruff>=0.15.16,<0.16.0",
-        "ruff",
-        "check",
-        "--",
-        *files,
-    ]
-    result = subprocess.run(command)
-    return result.returncode
+    return subprocess.run(
+        [
+            "uvx",
+            "--with",
+            "ruff>=0.15.16,<0.16.0",
+            "ruff",
+            "check",
+            "--",
+            *files,
+        ],
+    ).returncode
 
 
 if __name__ == "__main__":

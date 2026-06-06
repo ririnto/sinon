@@ -35,8 +35,7 @@ class TerminalBranchWhenKtlintRule : KtlintRule(
                     override fun visitNamedFunction(function: KtNamedFunction) {
                         super.visitNamedFunction(function)
                         terminalIfElseExpressions(function.bodyExpression).forEach { terminalIf ->
-                            val functionName = function.name ?: "unknown"
-                            emit(terminalIf.textOffset, "terminal if/else expression in function `$functionName`; use when instead", false)
+                            emit(terminalIf.textOffset, "terminal if/else expression in function `${function.name ?: "unknown"}`; use when instead", false)
                         }
                     }
 
@@ -46,8 +45,7 @@ class TerminalBranchWhenKtlintRule : KtlintRule(
                             return
                         }
                         terminalIfElseExpressions(property.initializer).forEach { terminalIf ->
-                            val propertyName = property.name ?: "property"
-                            emit(terminalIf.textOffset, "terminal if/else expression in property `$propertyName`; use when instead", false)
+                            emit(terminalIf.textOffset, "terminal if/else expression in property `${property.name ?: "property"}`; use when instead", false)
                         }
                     }
                 },
