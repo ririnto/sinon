@@ -243,7 +243,7 @@ The choice between feature-scale and system-scale is determined by:
 
 ## Reference Files
 
-- `[requirements-style.md](requirements-style.md)` — Requirement IDs, RFC 2119 keywords, patterns, and examples.
-- `[scenarios-and-acceptance.md](scenarios-and-acceptance.md)` — Scenario format, acceptance criteria, success criteria, and conformance matrices.
-- `[spec-template.md](spec-template.md)` — Comprehensive system-scale SPEC.md skeleton with all sections.
-- `[quality-checklist.md](quality-checklist.md)` — Pre-delivery validation checklist for self-sufficiency and completeness.
+- `[requirements-style.md](references/requirements-style.md)` — Requirement IDs, RFC 2119 keywords, patterns, and examples.
+- `[scenarios-and-acceptance.md](references/scenarios-and-acceptance.md)` — Scenario format, acceptance criteria, success criteria, and conformance matrices.
+- `[spec-template.md](references/spec-template.md)` — Comprehensive system-scale SPEC.md skeleton with all sections.
+- `[quality-checklist.md](references/quality-checklist.md)` — Pre-delivery validation checklist for self-sufficiency and completeness.

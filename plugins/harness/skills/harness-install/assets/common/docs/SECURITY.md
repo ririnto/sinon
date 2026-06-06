@@ -18,7 +18,7 @@ SECURITY.md captures the durable security contract: what the team protects, who 
 - Database credentials live in the configured secret manager and are injected via environment variables at boot; rotate every 90 days.
 - Third-party API keys live in the configured secret manager under per-service paths; rotate every 90 days or immediately on compromise.
 - Signing keys for outbound webhooks live in the configured secret manager/signing/; rotate every 180 days with overlapping validity window.
-- Never write secrets into the repository; pre-commit hook (`docs/harness/git-hooks/pre-commit`) blocks committed secret patterns.
+- Never write secrets into the repository; add a target-owned secret scanner or CI policy when the project needs mechanical secret-pattern enforcement.
 
 ## Permission Boundaries
 

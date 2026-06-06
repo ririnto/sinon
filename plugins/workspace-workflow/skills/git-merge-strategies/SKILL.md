@@ -30,7 +30,7 @@ This skill does not cover:
 - **Fetch latest before merge MUST occur**: Run `git fetch` before merging to ensure you have the latest upstream state.
 - **Pushed branches MUST NOT be force-pushed after merge**: Once a branch is merged and pushed, do not use `git push --force`. Use `git revert` instead.
 - **Merge commits SHOULD have clear intent**: Add `-m` message to merge commits (beyond the default); state the feature and branch name.
-- **Conflicting files MUST be fully resolved**: MUST NOT commit a merge with `<<<<<<` or `>>>>>>` markers remaining.
+- **Conflicting files MUST be fully resolved**: MUST NOT commit a merge with `<<<<<<<` or `>>>>>>>` markers remaining.
 
 ## Decision: Which Merge Strategy?
 
@@ -39,7 +39,7 @@ This skill does not cover:
 | **fast-forward** | `git merge {{branch}}` | Linear; no merge commit | Branch is a clean extension of the base; feature is small and clean | Want to preserve feature branch as a named commit; feature has long history |
 | **--no-ff** | `git merge --no-ff {{branch}}` | Tree; explicit merge commit | Want to preserve branch identity; feature is significant; need bisect anchors | Linear history preferred; single-commit features |
 | **--squash** | `git merge --squash {{branch}}` | Linear; combined into one commit | Many small feature commits; want clean history; feature work is experimental | Need to preserve individual commit attribution; long feedback history is valuable |
-| **octopus** | `git merge -X octopus branch1 branch2 ...` | Multi-parent; all branches merged at once | Integrating 3+ parallel features at once; all are complete and non-conflicting | Any conflicts exist; need to debug individual merges; most merges (use for special cases) |
+| **octopus** | `git merge -s octopus branch1 branch2 ...` | Multi-parent; all branches merged at once | Integrating 3+ parallel features at once; all are complete and non-conflicting | Any conflicts exist; need to debug individual merges; most merges (use for special cases) |
 
 ### Quick decision rules
 
@@ -130,7 +130,7 @@ Merge with explicit commit (preserves branch identity):
 git merge --no-ff -m "Merge branch '<feature-branch>' into <base-branch>" <feature-branch>
 ```
 
-This opens your editor to confirm the merge message. Accept or edit, then save.
+This uses the provided merge message without opening an editor.
 
 Example output:
 
