@@ -8,11 +8,11 @@ description: |-
   <example>
   Context: A new project needs a harness install and the team must decide whether to split agent responsibility between plugin-owned install guidance and target-owned day-to-day workflow.
   user: "I'm installing a harness for a Gradle project. Should skill/agent boundaries be split between the plugin root and .claude/agents/?"
-  assistant: "I need to understand your project lifecycle first."
+  assistant: "The install boundary depends on the target repository lifecycle."
   <commentary>
   This is an architectural decision requiring design of document structure and ownership boundaries—the core harness-architect mandate.
   </commentary>
-  assistant: "I'll use the harness-architect agent to map install stages, evaluate plugin vs. target ownership, and recommend file structure."
+  assistant: "Use harness-architect to map install stages, evaluate plugin vs. target ownership, and recommend file structure."
   </example>
 
   <example>
@@ -22,7 +22,7 @@ description: |-
   <commentary>
   This requires rearchitecting how `AGENTS.md`, native-tool validators, and prose conventions relate to each other—exactly harness-architect scope.
   </commentary>
-  assistant: "I'll use the harness-architect agent to design an evolution plan that realigns contracts and closes validation gaps."
+  assistant: "Use harness-architect to design an evolution plan that realigns contracts and closes validation gaps."
   </example>
 
   <example>
@@ -32,7 +32,7 @@ description: |-
   <commentary>
   This requires decisions about validation boundaries, what goes into plugin seed files vs. target placeholders, and how to keep validation runnable in any stack—harness architecture work.
   </commentary>
-  assistant: "I'll use the harness-architect agent to propose a structure that keeps validation portable and placeholders genuinely fillable."
+  assistant: "Use harness-architect to propose a structure that keeps validation portable and placeholders genuinely fillable."
   </example>
 model: sonnet
 color: blue

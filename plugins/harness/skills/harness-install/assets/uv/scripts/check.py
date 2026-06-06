@@ -68,6 +68,11 @@ def main() -> int:
     Synchronize Git hooks, then run ruff lint and format checks on the project.
     """
     sync_git_hooks()
+    markdown_result = subprocess.run(
+        ["sh", "docs/harness/scripts/check-markdown-links.sh"]
+    )
+    if markdown_result.returncode != 0:
+        return markdown_result.returncode
     try:
         files = tracked_python_files()
     except RuntimeError as error:
