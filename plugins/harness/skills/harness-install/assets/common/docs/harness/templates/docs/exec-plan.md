@@ -21,8 +21,9 @@ Tech Stack: {{key-technologies-and-the-stack-validation-command}}
 
 <!--
 Template notes:
-- Save active plans as `docs/exec-plans/active/yyyy-MM-dd-<slug>.md`; keep the slug kebab-case and work-focused.
-- Update `updated` whenever the plan body changes; set `completed` only when moving the plan to `docs/exec-plans/completed/`.
+- Save execution plans as files under `docs/exec-plans/` named `yyyy-MM-dd-<slug>.md`; keep the slug kebab-case and work-focused.
+
+- Update `updated` whenever the plan body changes; set `completed` only when moving the plan to the completed-state location in `docs/exec-plans/`.
 - `author` records who drafted the plan; `assignee` records who executes it and MAY list multiple owners.
 - Decompose work into bite-sized tasks: each step is one 2-5 minute action with exact file paths, the exact code or command, and the expected result.
 - No placeholders in a real plan: replace every `{{...}}` slot with concrete content before execution. `TBD`, `add error handling`, or `write tests for the above` without the actual test code are plan failures.
@@ -123,5 +124,5 @@ Run the stack-specific harness validation command after each task that touches r
 ## Completion
 
 <!--
-When every task checkbox is checked, move this file from `docs/exec-plans/active/` to `docs/exec-plans/completed/` without renaming, then change `status: active` to `status: completed` and set `completed: yyyy-MM-dd` in frontmatter. The filename date stays the original creation date. Plans in `docs/exec-plans/completed/` MUST NOT contain any unchecked `- [ ]` task lines.
+When every task checkbox is checked, move this file between execution-plan locations in `docs/exec-plans/` without renaming, then change `status: active` to `status: completed` and set `completed: yyyy-MM-dd` in frontmatter. The filename date stays the original creation date. Plans in completed-state entries under `docs/exec-plans/` MUST NOT contain any unchecked `- [ ]` task lines.
 -->

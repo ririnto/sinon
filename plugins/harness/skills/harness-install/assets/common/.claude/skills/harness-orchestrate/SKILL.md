@@ -27,7 +27,7 @@ Plan and coordinate work inside this target repository using the installed harne
 | Situation | Action |
 | --- | --- |
 | Task lacks product or acceptance criteria | Update the relevant `docs/product-specs/**` or `docs/exec-plans/**` first. |
-| Task changes harness contracts | Open or update `docs/exec-plans/active/yyyy-MM-dd-<slug>.md` and run the stack validator. |
+| Task changes harness contracts | Open or update the relevant `docs/exec-plans/` execution-plan entry and run the stack validator. |
 | Task changes generated outputs | Require source command, inputs, freshness, and regeneration trigger. |
 | Task asks for hook activation | Confirm explicit user intent before changing Git hook behavior. |
 
