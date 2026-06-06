@@ -43,11 +43,13 @@ write_tracked_shell_files() {
     fi
 }
 
-# Synchronize Git hooks, then validate tracked shell scripts using shellcheck.
+# Synchronize Git hooks, then validate tracked shell scripts using shellcheck and shfmt.
 #
-# @return Exits with 0 when all scripts pass, 1 on violations.
+# @return Exits with 0 when all scripts pass lint and format checks, 1 on violations.
 main() {
-    sync_git_hooks || true
+    if ! sync_git_hooks; then
+        :
+    fi
     failures_file=$(mktemp)
     shell_file_list=$(mktemp)
     trap 'rm -f "$failures_file" "$shell_file_list"' EXIT
@@ -59,10 +61,13 @@ main() {
     if ! xargs -0 shellcheck -S warning -- <"$shell_file_list" 2>&1; then
         echo 'shellcheck' >"$failures_file"
     fi
+    if ! xargs -0 shfmt -d -i 4 -ci -- <"$shell_file_list" 2>&1; then
+        echo 'shfmt' >"$failures_file"
+    fi
     if [ -s "$failures_file" ]; then
         exit 1
     fi
-    echo 'shellcheck: all scripts passed'
+    echo 'shellcheck and shfmt: all scripts passed'
 }
 
 main "$@"

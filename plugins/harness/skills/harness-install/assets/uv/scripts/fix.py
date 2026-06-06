@@ -33,7 +33,7 @@ def tracked_python_files() -> list[str]:
 
 def main() -> int:
     """
-    Run ruff format fixes on the project.
+    Run ruff lint fixes and format fixes on the project.
     """
     try:
         files = tracked_python_files()
@@ -43,17 +43,26 @@ def main() -> int:
     if not files:
         print("ruff: no tracked Python files to fix")
         return 0
-    return subprocess.run(
-        [
-            "uvx",
-            "--with",
-            "ruff>=0.15.16,<0.16.0",
-            "ruff",
-            "format",
-            "--",
-            *files,
-        ],
-    ).returncode
+    commands = (
+        ("check", "--fix"),
+        ("format",),
+    )
+    status = 0
+    for command in commands:
+        result = subprocess.run(
+            [
+                "uvx",
+                "--with",
+                "ruff>=0.15.16,<0.16.0",
+                "ruff",
+                *command,
+                "--",
+                *files,
+            ],
+        )
+        if result.returncode != 0:
+            status = result.returncode
+    return status
 
 
 if __name__ == "__main__":

@@ -43,26 +43,37 @@ write_tracked_source_files() {
     fi
 }
 
-# Run ultracite check against tracked JavaScript and TypeScript files.
+# Run ultracite and Bun-side JSDoc validation against tracked JavaScript and TypeScript files.
 #
-# @return Exits with the ultracite check status.
+# @return Exits with the combined lint and JSDoc validation status.
 run_ultracite_check() {
     tracked_file_list=$(mktemp)
-    trap 'rm -f "$tracked_file_list"' EXIT
+    failures_file=$(mktemp)
+    trap 'rm -f "$tracked_file_list" "$failures_file"' EXIT
     write_tracked_source_files "$tracked_file_list"
     if [ ! -s "$tracked_file_list" ]; then
         echo 'ultracite: no tracked source files to check'
         return 0
     fi
     bun install --no-save
-    xargs -0 bunx ultracite check -- <"$tracked_file_list"
+    if ! xargs -0 bunx ultracite check -- <"$tracked_file_list"; then
+        echo 'ultracite' >"$failures_file"
+    fi
+    if ! bun scripts/validate-jsdoc.mjs <"$tracked_file_list"; then
+        echo 'jsdoc' >"$failures_file"
+    fi
+    if [ -s "$failures_file" ]; then
+        return 1
+    fi
 }
 
-# Synchronize Git hooks to the user environment, then run the native linter.
+# Synchronize Git hooks to the user environment, then run ultracite.
 #
 # @return Exits with the ultracite check status.
 main() {
-    sync_git_hooks || true
+    if ! sync_git_hooks; then
+        :
+    fi
     run_ultracite_check
 }
 

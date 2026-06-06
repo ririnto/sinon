@@ -11,7 +11,6 @@ indent_size = 4
 max_line_length = 120
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_code_style_defaults = KOTLIN_STYLE_GUIDE
-ktlint_unchecked_cast_suppression_forbidden = UNCHECKED_CAST
-ktlint_unchecked_cast_suppression_allowed =
+
 ktlint_multiline_doc_style_mode = multiline
 ktlint_companion_object_position_position = top
