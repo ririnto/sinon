@@ -67,5 +67,5 @@ These checks are now DOCUMENT-LEVEL PROSE CONVENTIONS enforced by code review an
 - hookCommand: Generated hooks MUST invoke the selected stack validation command for both `pre-commit` and `pre-push`.
 - ciHookCommandParity: The `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml` files MUST run the same final-check command as the generated pre-push hook.
 - envShebangUsage: Shell scripts MUST use the `/usr/bin/env` shebang pattern rather than direct interpreters.
-- uncheckedTasks: Completed execution plans under docs/exec-plans/completed/ MUST NOT contain any unchecked `- [ ]` task items.
+- uncheckedTasks: Completed execution plans in `docs/exec-plans/` MUST NOT contain any unchecked `- [ ]` task items.
 - templateGroups: Templates under docs/harness/templates/ MUST match the installed template structure and renderable variable names used by the installer.

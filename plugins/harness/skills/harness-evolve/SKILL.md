@@ -27,7 +27,8 @@ This skill is report-only unless the user separately asks for implementation. Pr
 
 ## First Safe Checks
 
-1. Read `AGENTS.md`, `docs/harness/README.md`, and any active `docs/exec-plans/active/yyyy-MM-dd-*.md` that touches the harness.
+1. Read `AGENTS.md`, `docs/harness/README.md`, and any active execution-plan entry under `docs/exec-plans/` that touches the harness.
+
 2. Inspect the user-provided delta summary and current `git diff` for harness-owned files.
 3. Separate product changes from harness changes.
 4. Confirm that every proposed harness change has a matching validation path or an explicit informational-only reason.
@@ -138,11 +139,11 @@ Use this checklist before proposing or applying harness evolution.
 - `docs/harness/templates/**` still contain placeholders only where the template renderer or human copy step expects them.
 - `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml`, when present, run the selected final check command.
 - `docs/generated/**` contains real generated artifacts or `.gitkeep`, not fake readiness files.
-- A `docs/exec-plans/active/yyyy-MM-dd-<slug>.md` entry records the reason, files changed, validation command, and remaining follow-up for any non-trivial evolution.
+- A `docs/exec-plans/` entry records the reason, files changed, validation command, and remaining follow-up for any non-trivial evolution.
 
 ## Evolution Plan Entry
 
-Record the evolution in a new or existing execution plan under `docs/exec-plans/active/` using the project's standard `yyyy-MM-dd-<slug>.md` template. The plan SHOULD include:
+Record the evolution in a new or existing execution plan under `docs/exec-plans/` using the project's standard execution-plan template format (typically `yyyy-MM-dd-<slug>.md`). The plan SHOULD include:
 
 ```markdown
 ## Trigger

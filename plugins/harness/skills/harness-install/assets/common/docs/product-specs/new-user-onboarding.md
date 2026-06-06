@@ -13,4 +13,4 @@ Update when the spec describes a feature whose scope, success criteria, or accep
 ## Required Evidence
 
 - Cite the user research, PRD, or stakeholder decision that motivates the spec.
-- Link the related entry under `docs/exec-plans/active/` while the work is in flight.
+- Link the related entry under `docs/exec-plans/` while the work is in flight.

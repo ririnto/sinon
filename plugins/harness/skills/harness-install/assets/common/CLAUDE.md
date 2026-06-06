@@ -33,7 +33,7 @@ Harness changes MAY be made during development when the current harness no longe
 - `docs/harness/git-hooks/pre-commit` MUST run the selected stack validation command: `{{validation_command}}`.
 - `docs/harness/git-hooks/pre-push` MUST run the same selected stack validation command as pre-commit and CI: `{{validation_command}}`.
 - CI SHOULD run the same stack validation command used by the generated hooks.
-- Active execution plans MUST live under `docs/exec-plans/active/` with filenames of the form `yyyy-MM-dd-<slug>.md`. When all tasks are checked, the file MUST move to `docs/exec-plans/completed/` without renaming. Plans in `docs/exec-plans/completed/` MUST NOT contain any unchecked `- [ ]` task lines.
+- Execution plans belong in `docs/exec-plans/` with filenames of the form `yyyy-MM-dd-<slug>.md`; completed plans preserve their name while moving to the completed-state location in `docs/exec-plans/`. Plan files in completed state MUST NOT contain any unchecked `- [ ]` task lines.
 
 ## Required Repository Structure
 

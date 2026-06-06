@@ -11,8 +11,7 @@ This directory contains versioned harness assets used by local agents and CI val
 | `.claude/` | Primary directory for agents, skills, commands, and runtime state |
 | `.agents/` | Symlink alias of `.claude/` so runtimes that load `.agents/` resolve to the same content |
 | `ARCHITECTURE.md` | System architecture, boundaries, data flow, and validation surface |
-| `docs/exec-plans/active/` | Contains active execution plans, or `.gitkeep` until active plans exist |
-| `docs/exec-plans/completed/` | Contains completed execution plans, or `.gitkeep` until completed plans exist |
+| `docs/exec-plans/` | Contains execution plans by state, with `.gitkeep` placeholders while empty |
 | `docs/generated/` | Contains generated artifacts, or `.gitkeep` until generated artifacts exist |
 
 ## Generated artifacts
