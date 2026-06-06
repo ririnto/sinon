@@ -16,12 +16,10 @@ Validate this target repository's installed harness. This target skill uses the 
 
 ## Commands
 
-Run the command rendered into `docs/harness/README.md` (shown as `{{validation_command}}` in packaged assets). The installer renders the selected-mode command into common target assets at install time.
-
-Maven command (rendered for Maven-mode targets):
+Run the command rendered into `docs/harness/README.md`:
 
 ```sh
-root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then ./mvnw validate; echo "spotless: no tracked Java files to check"; else ./mvnw validate -DspotlessFiles="$files"; fi
+{{validation_command}}
 ```
 
 ## Workflow

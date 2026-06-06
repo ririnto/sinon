@@ -16,13 +16,13 @@ This directory contains versioned harness assets used by local agents and CI val
 
 ## Generated artifacts
 
-`docs/generated/` is a generated-artifact location. Valid contents include API snapshots, dependency inventories, build metadata, generated architecture maps, schema dumps, report outputs, or other reviewable outputs — only when the project actually generates them.
+`docs/generated/` is a generated-artifact location. Valid contents include API snapshots, dependency inventories, build metadata, generated architecture maps, schema dumps, report outputs, or other reviewable outputs only when the project actually generates them.
 
 Keep `docs/generated/.gitkeep` only while the path has no real generated artifacts. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
 ## Optional seed files
 
-Files such as `docs/product-specs/new-user-onboarding.md` are replaceable seeds. Keep them only when they match the target repository, or replace them with project-specific context and evidence.
+Seed files are replaceable project-starting context. Keep them only when they match the target repository, or replace them with project-specific context and evidence.
 
 ## Harness-only development readiness
 
@@ -34,6 +34,18 @@ The harness alone does not define product requirements, domain rules, architectu
 
 The repository harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active contract. When the harness changes, update this directory, `CLAUDE.md`, validators, and templates that the change affects; record the evolution in the relevant `docs/exec-plans/` entry rather than in a separate log file.
 
+## Template catalog
+
+`docs/harness/templates/` contains the current common asset templates used by this repository:
+
+| Directory | Contents |
+| --- | --- |
+| `templates/agent/` | Agent definition template (`AGENT.md`) |
+| `templates/ci/` | Generic validation workflow template (`harness.yaml`) |
+| `templates/docs/` | Design docs, execution plans, generated artifacts, product specs, and LLM reference templates |
+| `templates/skill/` | Skill and reference templates (`SKILL.md`, `reference.md`) |
+| `templates/workflow/` | Workflow template (`WORKFLOW.md`) |
+
 ## Validation
 
 Run the selected stack validation command from the repository root:
@@ -41,7 +53,7 @@ Run the selected stack validation command from the repository root:
 `{{validation_command}}`
 
 The generated `pre-commit` hook runs `{{validation_command}}`. The generated `pre-push` hook also runs the same command and should match CI when CI workflows are present.
-The selected stack validation command also runs `docs/harness/scripts/check-markdown-links.sh`, which rejects Markdown references to execution-plan state directories outside `docs/exec-plans/tech-debt-tracker.md`.
+The selected stack validation command also runs `docs/harness/scripts/check-markdown-links.sh`, which rejects durable Markdown references to removable execution-plan state files. Durable references should point to `docs/exec-plans/tech-debt-tracker.md`, design docs, or product specs instead.
 
 Native validation configuration is owned by the selected stack's tooling and shared repository conventions, such as `.editorconfig` and stack-specific build/tooling config.
 

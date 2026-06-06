@@ -143,18 +143,18 @@ reject_file_regex() {
 # Enforce installer script style hardening contracts.
 #
 # @param installer_script Path to Python installer script.
-# @param jsdoc_validator_script Path to Bun JSDoc validator script.
+# @param bun_plugin_script Path to Bun oxlint JS plugin script.
 # @exit Exits with status 1 when style contracts are violated.
 assert_code_style_contracts() {
     installer_script=$1
-    jsdoc_validator_script=$2
+    bun_plugin_script=$2
 
     # No leading underscore declarations in public implementation files.
     # Language-reserved dunder identifiers (e.g. __init__, __name__) are allowed;
     # the ban targets user-defined single-underscore prefixes. Standalone _ is allowed.
     reject_file_regex "$installer_script" '^[[:space:]]*(def|class)[[:space:]]+_([A-Za-z0-9][A-Za-z0-9_]*)'
     reject_file_regex "$installer_script" '^[[:space:]]*_([A-Za-z0-9][A-Za-z0-9_]*)[[:space:]]*='
-    reject_file_regex "$jsdoc_validator_script" '^[[:space:]]*(const|let|var|function|class)[[:space:]]+_([A-Za-z0-9][A-Za-z0-9_]*)'
+    reject_file_regex "$bun_plugin_script" '^[[:space:]]*(const|let|var|function|class)[[:space:]]+_([A-Za-z0-9][A-Za-z0-9_]*)'
 
     # Disallow one-line triple-quoted docstrings in the installer script.
     reject_file_regex "$installer_script" '^[[:space:]]*"""[^"\n]+"""$'
@@ -214,21 +214,23 @@ assert_bun_assets() {
     require_file "$assets_root/oxfmt.config.ts"
     require_file "$assets_root/scripts/check.sh"
     require_file "$assets_root/scripts/fix.sh"
+    require_file "$assets_root/scripts/tsdoc-plugin.mjs"
     require_text "$assets_root/package.json" '"ultracite": "^7.8.1"'
     require_text "$assets_root/package.json" '"oxlint": "^1.68.0"'
     require_text "$assets_root/package.json" '"oxfmt": "^0.53.0"'
-    require_text "$assets_root/package.json" '"typescript": "^6.0.3"'
     require_text "$assets_root/oxlint.config.ts" 'ultracite/oxlint/core'
+    require_text "$assets_root/oxlint.config.ts" 'jsPlugins: ["./scripts/tsdoc-plugin.mjs"]'
+    require_text "$assets_root/oxlint.config.ts" 'tsdoc/require-export-tsdoc'
+    require_text "$assets_root/oxlint.config.ts" '"**/*.{js,jsx,mjs,cjs}"'
     require_text "$assets_root/oxlint.config.ts" 'jsdoc/require-param'
     require_text "$assets_root/oxlint.config.ts" 'jsdoc/require-returns'
-    reject_file_contains "$assets_root/oxlint.config.ts" "ignorePatterns"
+    require_text "$assets_root/oxlint.config.ts" "ignorePatterns: core.ignorePatterns"
     reject_file_contains "$assets_root/oxlint.config.ts" "disabledRules"
     require_text "$assets_root/oxfmt.config.ts" 'ultracite/oxfmt'
     require_text "$assets_root/oxfmt.config.ts" '...ultracite'
     require_text "$assets_root/scripts/check.sh" 'git ls-files -z'
     require_text "$assets_root/scripts/check.sh" 'bun install --no-save'
     require_text "$assets_root/scripts/check.sh" 'bunx ultracite check --'
-    require_text "$assets_root/scripts/check.sh" 'bun scripts/validate-jsdoc.mjs'
     require_text "$assets_root/scripts/check.sh" 'docs/harness/scripts/check-markdown-links.sh'
     require_text "$assets_root/scripts/check.sh" "[ -L \"\$dst\" ]"
     require_text "$assets_root/package.json" '"fix": "sh scripts/fix.sh"'
@@ -238,6 +240,8 @@ assert_bun_assets() {
     reject_file "$assets_root/.oxlintrc.json"
     reject_file "$assets_root/.oxfmtrc.json"
     reject_file "$assets_root/scripts/plugin.mjs"
+    reject_file "$assets_root/scripts/validate-jsdoc.mjs"
+    reject_file "$assets_root/scripts/typescript-public-jsdoc-plugin.mjs"
     reject_file_contains "$assets_root/scripts/check.sh" 'bunx oxlint'
     reject_file_contains "$assets_root/scripts/check.sh" 'bunx oxfmt'
     reject_file_contains "$assets_root/scripts/fix.sh" 'bunx oxlint'
@@ -574,7 +578,7 @@ require_text "$root/skills/harness-install/scripts/install-harness.py" '{{valida
 reject_file_contains "$root/skills/harness-install/scripts/install-harness.py" 'install-harness.sh'
 assert_code_style_contracts \
     "$root/skills/harness-install/scripts/install-harness.py" \
-    "$root/skills/harness-install/assets/bun/scripts/validate-jsdoc.mjs"
+    "$root/skills/harness-install/assets/bun/scripts/tsdoc-plugin.mjs"
 printf '[Python installer surface] OK\n' >&2
 
 # Reject stale manifest/bespoke references throughout assets.

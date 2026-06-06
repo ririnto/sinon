@@ -3,13 +3,22 @@ import core from "ultracite/oxlint/core";
 
 export default defineConfig({
   extends: [core],
-  plugins: ["jsdoc"],
+  ignorePatterns: core.ignorePatterns,
+  jsPlugins: ["./scripts/tsdoc-plugin.mjs"],
+  overrides: [
+    {
+      files: ["**/*.{js,jsx,mjs,cjs}"],
+      rules: {
+        "jsdoc/require-param": "deny",
+        "jsdoc/require-param-name": "deny",
+        "jsdoc/require-param-type": "deny",
+        "jsdoc/require-returns": "deny",
+        "jsdoc/require-returns-description": "allow",
+        "jsdoc/require-returns-type": "deny",
+      },
+    },
+  ],
   rules: {
-    "jsdoc/require-param": "deny",
-    "jsdoc/require-param-name": "deny",
-    "jsdoc/require-param-type": "deny",
-    "jsdoc/require-returns": "deny",
-    "jsdoc/require-returns-description": "allow",
-    "jsdoc/require-returns-type": "deny",
+    "tsdoc/require-export-tsdoc": "deny",
   },
 });

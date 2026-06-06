@@ -6,7 +6,11 @@ set -e
 #
 # @return Copies pre-commit and pre-push into the Git hooks directory when content differs.
 sync_git_hooks() {
-    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if ! inside_work_tree=$(git rev-parse --is-inside-work-tree 2>&1); then
+        printf '%s\n' "$inside_work_tree" >&2
+        return 0
+    fi
+    if [ "$inside_work_tree" != true ]; then
         return 0
     fi
     hooks_dir=$(git rev-parse --git-path hooks)
@@ -44,9 +48,9 @@ write_tracked_source_files() {
     fi
 }
 
-# Run ultracite and Bun-side JSDoc validation against tracked JavaScript and TypeScript files.
+# Run ultracite against tracked JavaScript and TypeScript files.
 #
-# @return Exits with the combined lint and JSDoc validation status.
+# @return Exits with the lint status.
 run_ultracite_check() {
     tracked_file_list=$(mktemp)
     failures_file=$(mktemp)
@@ -59,9 +63,6 @@ run_ultracite_check() {
     bun install --no-save
     if ! xargs -0 bunx ultracite check -- <"$tracked_file_list"; then
         echo 'ultracite' >"$failures_file"
-    fi
-    if ! bun scripts/validate-jsdoc.mjs <"$tracked_file_list"; then
-        echo 'jsdoc' >"$failures_file"
     fi
     if [ -s "$failures_file" ]; then
         return 1
