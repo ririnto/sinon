@@ -1,9 +1,19 @@
-plugins {
-    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
-}
+import org.jlleitschuh.gradle.ktlint.KtlintExtension
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
+import java.nio.file.Path
+import java.nio.file.attribute.PosixFilePermission
+import kotlin.io.path.copyTo
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createTempFile
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.isSymbolicLink
+import kotlin.io.path.moveTo
+import kotlin.io.path.readBytes
+import kotlin.io.path.setPosixFilePermissions
 
-repositories {
-    mavenCentral()
+plugins {
+    alias(libs.plugins.ktlint) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
 }
 
 fun gitTrackedFiles(vararg patterns: String): Set<String> {
@@ -20,13 +30,12 @@ fun gitTrackedFiles(vararg patterns: String): Set<String> {
     return output
         .lineSequence()
         .filter { path -> path.isNotBlank() }
-        .map { path -> file(path).canonicalPath }
         .toSet()
 }
 
 val trackedKotlinFiles = gitTrackedFiles("*.kt", "*.kts")
 
-fun gitHooksDir(): File? {
+fun gitHooksDir(): Path? {
     val process =
         ProcessBuilder(
             listOf("git", "rev-parse", "--git-path", "hooks"),
@@ -37,49 +46,78 @@ fun gitHooksDir(): File? {
     if (process.waitFor() != 0 || output.isBlank()) {
         return null
     }
-    return file(output).canonicalFile
+    return rootDir.toPath().resolve(output).normalize()
 }
 
-ktlint {
-    version.set("1.8.0")
-    android.set(false)
-    ignoreFailures.set(false)
-    filter {
-        exclude { element -> element.file.canonicalPath !in trackedKotlinFiles }
-    }
-    reporters {
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+allprojects {
+    val projectPathPrefix = if (this == rootProject) "" else "${project.path.removePrefix(":").replace(':', '/')}/"
+    apply(
+        plugin =
+            rootProject.libs.plugins.ktlint
+                .get()
+                .pluginId,
+    )
+    configure<KtlintExtension> {
+        version.set(rootProject.libs.versions.ktlint.cli)
+        android.set(false)
+        ignoreFailures.set(false)
+        filter {
+            include(
+                trackedKotlinFiles
+                    .filter { trackedFile -> projectPathPrefix.isEmpty() || trackedFile.startsWith(projectPathPrefix) }
+                    .map { trackedFile -> trackedFile.removePrefix(projectPathPrefix) },
+            )
+            exclude { element ->
+                !element.isDirectory && rootProject.relativePath(element.file) !in trackedKotlinFiles
+            }
+        }
+        reporters {
+            reporter(ReporterType.PLAIN)
+        }
     }
 }
 
 tasks.named("ktlintCheck") {
     doLast {
         val hooksDir = gitHooksDir() ?: return@doLast
-        hooksDir.mkdirs()
+        hooksDir.createDirectories()
         listOf("pre-commit", "pre-push").forEach { hookName ->
-            val source = layout.projectDirectory.file("docs/harness/git-hooks/$hookName").asFile
-            if (source.isFile) {
+            val source =
+                layout.projectDirectory
+                    .file("docs/harness/git-hooks/$hookName")
+                    .asFile
+                    .toPath()
+            if (source.isRegularFile()) {
                 val target = hooksDir.resolve(hookName)
+                if (target.isSymbolicLink()) {
+                    return@forEach
+                }
                 if (
-                    !java.nio.file.Files
-                        .isSymbolicLink(target.toPath()) &&
-                    target.isFile &&
+                    target.isRegularFile() &&
                     target.readBytes().contentEquals(source.readBytes())
                 ) {
                     return@forEach
                 }
                 val temporaryTarget =
-                    java.nio.file.Files
-                        .createTempFile(hooksDir.toPath(), ".sync-git-hooks-", "-$hookName")
-                        .toFile()
-                source.copyTo(temporaryTarget, overwrite = false)
-                temporaryTarget.setExecutable(true)
-                java.nio.file.Files.move(
-                    temporaryTarget.toPath(),
-                    target.toPath(),
-                    java.nio.file.StandardCopyOption.ATOMIC_MOVE,
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING,
-                )
+                    createTempFile(hooksDir, ".sync-git-hooks-", "-$hookName")
+                source.copyTo(temporaryTarget, overwrite = true)
+                temporaryTarget
+                    .also { path ->
+                        path.setPosixFilePermissions(
+                            setOf(
+                                PosixFilePermission.OWNER_READ,
+                                PosixFilePermission.OWNER_WRITE,
+                                PosixFilePermission.OWNER_EXECUTE,
+                                PosixFilePermission.GROUP_READ,
+                                PosixFilePermission.GROUP_EXECUTE,
+                                PosixFilePermission.OTHERS_READ,
+                                PosixFilePermission.OTHERS_EXECUTE,
+                            ),
+                        )
+                    }.moveTo(
+                        target,
+                        overwrite = true,
+                    )
             }
         }
     }
