@@ -125,6 +125,47 @@ reject_file_contains() {
         exit 1
     fi
 }
+# Reject text in a file by extended regular expression.
+#
+# @param path File path to search.
+# @param pattern Regular expression to reject.
+# @exit Exits with status 1 when pattern is found.
+reject_file_regex() {
+    path=$1
+    pattern=$2
+    if grep -Eq -- "$pattern" "$path"; then
+        printf '[reject_file_regex] forbidden pattern in %s: %s\n' "$path" "$pattern" >&2
+        grep -En -- "$pattern" "$path" >&2
+        exit 1
+    fi
+}
+
+# Enforce installer script style hardening contracts.
+#
+# @param installer_script Path to Python installer script.
+# @param jsdoc_validator_script Path to Bun JSDoc validator script.
+# @exit Exits with status 1 when style contracts are violated.
+assert_code_style_contracts() {
+    installer_script=$1
+    jsdoc_validator_script=$2
+
+    # No leading underscore declarations in public implementation files.
+    # Language-reserved dunder identifiers (e.g. __init__, __name__) are allowed;
+    # the ban targets user-defined single-underscore prefixes. Standalone _ is allowed.
+    reject_file_regex "$installer_script" '^[[:space:]]*(def|class)[[:space:]]+_([A-Za-z0-9][A-Za-z0-9_]*)'
+    reject_file_regex "$installer_script" '^[[:space:]]*_([A-Za-z0-9][A-Za-z0-9_]*)[[:space:]]*='
+    reject_file_regex "$jsdoc_validator_script" '^[[:space:]]*(const|let|var|function|class)[[:space:]]+_([A-Za-z0-9][A-Za-z0-9_]*)'
+
+    # Disallow one-line triple-quoted docstrings in the installer script.
+    reject_file_regex "$installer_script" '^[[:space:]]*"""[^"\n]+"""$'
+
+    # No static SKIP_TREE_PARTS-style path filtering; git ls-files handles it.
+    reject_file_contains "$installer_script" "SKIP_TREE_PARTS"
+    reject_file_contains "$installer_script" "is_generated_or_ignored_path"
+
+    # Sanity-check Python syntax.
+    python3 -m py_compile "$installer_script"
+}
 
 # Require gradle buildSrc assets exist.
 assert_gradle_assets() {
@@ -156,6 +197,8 @@ assert_gradle_assets() {
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" 'ExplicitPropertyTypeKtlintRule()'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" 'TerminalBranchWhenKtlintRule()'
     require_text "$assets_root/build.gradle.kts" 'docs/harness/git-hooks'
+    reject_file_contains "$assets_root/.editorconfig" "ktlint_unchecked_cast_suppression_forbidden"
+    reject_file_contains "$assets_root/.editorconfig" "ktlint_unchecked_cast_suppression_allowed"
     printf '[gradle assets] OK\n' >&2
 }
 
@@ -170,12 +213,18 @@ assert_bun_assets() {
     require_text "$assets_root/package.json" '"ultracite": "^7.8.1"'
     require_text "$assets_root/package.json" '"oxlint": "^1.68.0"'
     require_text "$assets_root/package.json" '"oxfmt": "^0.53.0"'
+    require_text "$assets_root/package.json" '"typescript": "^6.0.3"'
     require_text "$assets_root/oxlint.config.ts" 'ultracite/oxlint/core'
+    require_text "$assets_root/oxlint.config.ts" 'jsdoc/require-param'
+    require_text "$assets_root/oxlint.config.ts" 'jsdoc/require-returns'
+    reject_file_contains "$assets_root/oxlint.config.ts" "ignorePatterns"
+    reject_file_contains "$assets_root/oxlint.config.ts" "disabledRules"
     require_text "$assets_root/oxfmt.config.ts" 'ultracite/oxfmt'
     require_text "$assets_root/oxfmt.config.ts" '...ultracite'
     require_text "$assets_root/scripts/check.sh" 'git ls-files -z'
     require_text "$assets_root/scripts/check.sh" 'bun install --no-save'
     require_text "$assets_root/scripts/check.sh" 'bunx ultracite check --'
+    require_text "$assets_root/scripts/check.sh" 'bun scripts/validate-jsdoc.mjs'
     require_text "$assets_root/scripts/check.sh" "[ -L \"\$dst\" ]"
     require_text "$assets_root/package.json" '"fix": "sh scripts/fix.sh"'
     require_text "$assets_root/scripts/fix.sh" 'git ls-files -z'
@@ -185,6 +234,9 @@ assert_bun_assets() {
     reject_file "$assets_root/.oxfmtrc.json"
     reject_file "$assets_root/scripts/plugin.mjs"
     reject_file_contains "$assets_root/scripts/check.sh" 'bunx oxlint'
+    reject_file_contains "$assets_root/scripts/check.sh" 'bunx oxfmt'
+    reject_file_contains "$assets_root/scripts/fix.sh" 'bunx oxlint'
+    reject_file_contains "$assets_root/scripts/fix.sh" 'bunx oxfmt'
     printf '[bun assets] OK\n' >&2
 }
 
@@ -192,6 +244,7 @@ assert_bun_assets() {
 assert_uv_assets() {
     assets_root=$root/skills/harness-install/assets/uv
     require_file "$assets_root/ruff.toml"
+    require_text "$assets_root/ruff.toml" 'extend-select = ["F403"]'
     require_file "$assets_root/scripts/check.py"
     require_file "$assets_root/scripts/fix.py"
     require_text "$assets_root/scripts/check.py" '--git-path'
@@ -203,6 +256,9 @@ assert_uv_assets() {
     require_text "$assets_root/scripts/fix.py" 'ruff>=0.15.16,<0.16.0'
     require_text "$assets_root/scripts/fix.py" '"format",'
     require_text "$assets_root/scripts/fix.py" '"--",'
+    reject_file_contains "$assets_root/ruff.toml" 'extend-ignore'
+    reject_file_contains "$assets_root/ruff.toml" 'ignore ='
+    reject_file_contains "$assets_root/ruff.toml" 'per-file-ignores'
     printf '[uv assets] OK\n' >&2
 }
 
@@ -210,21 +266,37 @@ assert_uv_assets() {
 assert_maven_assets() {
     assets_root=$root/skills/harness-install/assets/maven
     require_file "$assets_root/pom.xml"
+    reject_file "$assets_root/config/checkstyle/checkstyle.xml"
+    require_text "$assets_root/pom.xml" '<artifactId>maven-checkstyle-plugin</artifactId>'
+    require_text "$assets_root/pom.xml" '<artifactId>checkstyle</artifactId>'
+    require_text "$assets_root/pom.xml" '<version>13.5.0</version>'
+    require_text "$assets_root/pom.xml" '<checkstyleRules>'
+    require_text "$assets_root/pom.xml" '<module name="AvoidStarImport"/>'
+    require_text "$assets_root/pom.xml" '<module name="UnusedImports"/>'
+    require_text "$assets_root/pom.xml" '<module name="NeedBraces"/>'
+    reject_file_text "$assets_root/pom.xml" '<configLocation>'
+    reject_file_text "$assets_root/pom.xml" '<suppressions>'
+    reject_file_text "$assets_root/pom.xml" '<excludes>'
+    reject_file_text "$assets_root/pom.xml" '<skip>'
+    reject_file_text "$assets_root/pom.xml" 'failOnViolation>false</failOnViolation>'
     require_text "$assets_root/pom.xml" 'sync-git-hooks'
     require_text "$assets_root/pom.xml" 'git rev-parse --git-path hooks'
     require_text "$assets_root/pom.xml" 'cmp -s'
     require_text "$assets_root/pom.xml" "[ ! -L &quot;\$dst&quot; ]"
-    require_text "$root/skills/harness-install/scripts/install-harness.sh" 'spotlessFiles'
-    require_text "$root/skills/harness-install/scripts/install-harness.sh" "root=\$(pwd -P)"
-    require_text "$root/skills/harness-install/scripts/install-harness.sh" 'git ls-files -- "*.java"'
-    require_text "$root/skills/harness-install/scripts/install-harness.sh" "list_tracked_tree_files \"\$src_dir\""
-    reject_file_contains "$root/skills/harness-install/scripts/install-harness.sh" "find \"\$src_dir\" -type f"
-    require_text "$root/skills/harness-install/scripts/install-harness.sh" 'Java path contains comma'
-    require_text "$root/skills/harness-install/scripts/install-harness.sh" "printf '%s/%s\\n'"
-    require_text "$root/skills/harness-install/scripts/install-harness.sh" 's/[][\\.^$*+?{}()|]/\\&/g'
-    reject_file_contains "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" 'mvn verify'
+    require_text "$root/skills/harness-install/scripts/install-harness.py" 'spotlessFiles'
+    require_text "$root/skills/harness-install/scripts/install-harness.py" './mvnw validate'
+    require_text "$root/skills/harness-install/scripts/install-harness.py" './mvnw validate -DspotlessFiles'
+    require_text "$root/skills/harness-install/scripts/install-harness.py" "root=\$(pwd -P)"
+    require_text "$root/skills/harness-install/scripts/install-harness.py" 'git ls-files -- "*.java"'
+    require_text "$root/skills/harness-install/scripts/install-harness.py" "list_tracked_tree_files"
+    reject_file_contains "$root/skills/harness-install/scripts/install-harness.py" "find \"\$src_dir\" -type f"
+    require_text "$root/skills/harness-install/scripts/install-harness.py" 'Java path contains comma'
+    require_text "$root/skills/harness-install/scripts/install-harness.py" "case \\\"\$file\\\" in *,*)"
+    require_text "$root/skills/harness-install/scripts/install-harness.py" 'paste -sd, -'
+    require_text "$root/skills/harness-install/scripts/install-harness.py" 's/[][\\.^$*+?{}()|]/\\&/g'
+    reject_file_contains "$root/skills/harness-install/assets/common/.claude/skills/harness-validate/SKILL.md" './mvnw verify'
     reject_file_contains "$assets_root/pom.xml" '<phase>verify</phase>'
-    reject_file_contains "$root/skills/harness-install/scripts/install-harness.sh" 's#^#.*#'
+    reject_file_contains "$root/skills/harness-install/scripts/install-harness.py" 's#^#.*#'
     printf '[maven assets] OK\n' >&2
 }
 
@@ -238,6 +310,7 @@ assert_shell_assets() {
     require_text "$assets_root/scripts/check.sh" 'git rev-parse --git-path hooks'
     require_text "$assets_root/scripts/check.sh" 'git ls-files -z'
     require_text "$assets_root/scripts/check.sh" 'xargs -0 shellcheck -S warning --'
+    require_text "$assets_root/scripts/check.sh" 'xargs -0 shfmt -d -i 4 -ci --'
     require_text "$assets_root/scripts/check.sh" "[ -L \"\$dst\" ]"
     require_text "$assets_root/scripts/fix.sh" 'git ls-files -z'
     require_text "$assets_root/scripts/fix.sh" "xargs -0 \"\$shfmt_bin\" -i 4 -ci -w --"
@@ -288,11 +361,38 @@ smoke_test_tool() {
     return 0
 }
 
+# Require common assets to render the selected validation command and stay stack-neutral.
+#
+# @param common_assets_root Path to common assets root.
+assert_common_assets_rendered_validation_command() {
+    common_assets_root=$1
+    require_file "$common_assets_root/.editorconfig"
+    require_file "$common_assets_root/docs/harness/README.md"
+    require_text "$common_assets_root/docs/harness/README.md" "{{validation_command}}"
+    reject_file_text "$common_assets_root/docs/harness/README.md" "| Gradle |"
+    reject_file_text "$common_assets_root/docs/harness/README.md" "| Maven |"
+    reject_file_text "$common_assets_root/docs/harness/README.md" "| uv |"
+    reject_file_text "$common_assets_root/docs/harness/README.md" "| Bun |"
+    reject_file_text "$common_assets_root/docs/harness/README.md" "| shell |"
+    require_file "$common_assets_root/AGENTS.md"
+    require_text "$common_assets_root/AGENTS.md" "{{validation_command}}"
+
+    reject_file_text "$common_assets_root/AGENTS.md" './gradlew ktlintCheck'
+    reject_file_text "$common_assets_root/AGENTS.md" 'uv run scripts/check.py'
+    reject_file_text "$common_assets_root/AGENTS.md" 'bun run check'
+    reject_file_text "$common_assets_root/AGENTS.md" 'sh scripts/check.sh'
+    require_file "$common_assets_root/.claude/skills/harness-validate/SKILL.md"
+    # Avoid stale per-stack command matrices in common validate guidance.
+    reject_file_text "$common_assets_root/.claude/skills/harness-validate/SKILL.md" "| Stack | Command |"
+    printf '[common assets] validation rendering OK\n' >&2
+}
+
 printf 'Validating harness plugin native-lint end-state...\n' >&2
 
 # Validate common assets.
 printf '\n--- common assets ---\n' >&2
 common_assets=$root/skills/harness-install/assets/common
+assert_common_assets_rendered_validation_command "$common_assets"
 require_file "$common_assets/.editorconfig"
 require_text "$common_assets/.editorconfig" '[{*.json,*.jsonc,*.yaml,*.yml,*.js,*.jsx,*.mjs,*.cjs,*.ts,*.tsx,*.md,*.markdown}]'
 require_text "$common_assets/.editorconfig" 'indent_size = 2'
@@ -319,10 +419,11 @@ if [ -f "$maven_assets/.github/workflows/spotless.yaml" ]; then
     require_text "$maven_assets/.github/workflows/spotless.yaml" "root=\$(pwd -P)"
     require_text "$maven_assets/.github/workflows/spotless.yaml" 'git ls-files -- "*.java"'
     require_text "$maven_assets/.github/workflows/spotless.yaml" 'Java path contains comma'
-    require_text "$maven_assets/.github/workflows/spotless.yaml" 'mvn validate spotless:check'
+    require_text "$maven_assets/.github/workflows/spotless.yaml" './mvnw validate -DspotlessFiles'
     require_text "$maven_assets/.github/workflows/spotless.yaml" 'spotlessFiles'
-    reject_file_contains "$maven_assets/.github/workflows/spotless.yaml" 'mvn verify'
+    reject_file_contains "$maven_assets/.github/workflows/spotless.yaml" './mvnw verify'
     reject_file_contains "$maven_assets/.github/workflows/spotless.yaml" 's#^#.*#'
+    reject_file_contains "$maven_assets/.github/workflows/spotless.yaml" '>-'
     printf '[GitHub workflow spotless.yaml] command OK\n' >&2
 fi
 if [ -f "$maven_assets/.gitlab-ci.yml" ]; then
@@ -330,10 +431,11 @@ if [ -f "$maven_assets/.gitlab-ci.yml" ]; then
     require_text "$maven_assets/.gitlab-ci.yml" "root=\$(pwd -P)"
     require_text "$maven_assets/.gitlab-ci.yml" 'git ls-files -- "*.java"'
     require_text "$maven_assets/.gitlab-ci.yml" 'Java path contains comma'
-    require_text "$maven_assets/.gitlab-ci.yml" 'mvn validate spotless:check'
+    require_text "$maven_assets/.gitlab-ci.yml" './mvnw validate -DspotlessFiles'
     require_text "$maven_assets/.gitlab-ci.yml" 'spotlessFiles'
-    reject_file_contains "$maven_assets/.gitlab-ci.yml" 'mvn verify'
+    reject_file_contains "$maven_assets/.gitlab-ci.yml" './mvnw verify'
     reject_file_contains "$maven_assets/.gitlab-ci.yml" 's#^#.*#'
+    reject_file_contains "$maven_assets/.gitlab-ci.yml" '>-'
     printf '[GitLab CI] spotless job command OK\n' >&2
 fi
 reject_file_text "$maven_assets" "harness-check"
@@ -371,9 +473,11 @@ assert_shell_assets
 shell_assets=$root/skills/harness-install/assets/shell
 if [ -f "$shell_assets/.github/workflows/shellcheck.yaml" ]; then
     assert_github_workflow_command "$shell_assets/.github/workflows/shellcheck.yaml" "sh scripts/check.sh"
+    require_text "$shell_assets/.github/workflows/shellcheck.yaml" 'shellcheck shfmt'
 fi
 if [ -f "$shell_assets/.gitlab-ci.yml" ]; then
     assert_gitlab_ci_command "$shell_assets/.gitlab-ci.yml" "shellcheck" "sh scripts/check.sh"
+    require_text "$shell_assets/.gitlab-ci.yml" 'shellcheck shfmt'
 fi
 reject_file_text "$shell_assets" "harness-check"
 reject_file_text "$shell_assets" "manifest.json"
@@ -392,6 +496,23 @@ reject_file_contains "$root/scripts/fix.sh" "find "
 reject_file_contains "$root/scripts/fix.sh" "\"**/*.md\""
 printf '[harness markdown discovery] OK\n' >&2
 
+# Validate Python installer surface.
+printf '\n--- Python installer surface ---\n' >&2
+require_file "$root/skills/harness-install/scripts/install-harness.py"
+require_text "$root/skills/harness-install/scripts/install-harness.py" '#!/usr/bin/env -S uv run --script'
+require_text "$root/skills/harness-install/scripts/install-harness.py" '# /// script'
+require_text "$root/skills/harness-install/scripts/install-harness.py" 'requires-python'
+require_text "$root/skills/harness-install/scripts/install-harness.py" 'def parse_args'
+require_text "$root/skills/harness-install/scripts/install-harness.py" 'def preview_install_set'
+require_text "$root/skills/harness-install/scripts/install-harness.py" 'def show_one_target_path'
+require_text "$root/skills/harness-install/scripts/install-harness.py" 'def install_one_target_path'
+require_text "$root/skills/harness-install/scripts/install-harness.py" '{{validation_command}}'
+reject_file_contains "$root/skills/harness-install/scripts/install-harness.py" 'install-harness.sh'
+assert_code_style_contracts \
+    "$root/skills/harness-install/scripts/install-harness.py" \
+    "$root/skills/harness-install/assets/bun/scripts/validate-jsdoc.mjs"
+printf '[Python installer surface] OK\n' >&2
+
 # Reject stale manifest/bespoke references throughout assets.
 printf '\n--- manifest/bespoke rejection ---\n' >&2
 reject_file_text "$root/skills/harness-install/assets" "manifest.json"
@@ -399,12 +520,11 @@ reject_file_text "$root/skills/harness-install/assets" "harness-check"
 reject_file_text "$root/skills/harness-install/assets" "leafFunctionBlankLines"
 printf '[rejection] No manifest/bespoke references in assets OK\n' >&2
 
-# Smoke tests for native tools (optional, graceful skip).
+# Smoke tests for native tools available in this plugin checkout (optional, graceful skip).
 printf '\n--- native tool smoke tests ---\n' >&2
-smoke_test_tool "mvn" "mvn -version"
-smoke_test_tool "gradle" "gradle -version"
 smoke_test_tool "bunx" "bunx --version"
 smoke_test_tool "uv" "uv --version"
 smoke_test_tool "shellcheck" "shellcheck --version"
+smoke_test_tool "shfmt" "shfmt --version"
 
 printf '\nAll checks passed.\n' >&2
