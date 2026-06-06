@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.4.0"
+    alias(libs.plugins.kotlin.jvm)
 }
 
 repositories {
@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly(platform("com.pinterest.ktlint:ktlint-bom:1.8.0"))
+    compileOnly(platform("com.pinterest.ktlint:ktlint-bom:${libs.versions.ktlint.cli.get()}"))
     compileOnly("com.pinterest.ktlint:ktlint-rule-engine-core")
     compileOnly("com.pinterest.ktlint:ktlint-cli-ruleset-core")
 }

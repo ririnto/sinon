@@ -131,14 +131,30 @@ assert_gradle_assets() {
     assets_root=$root/skills/harness-install/assets/gradle
     require_file "$assets_root/build.gradle.kts"
     require_file "$assets_root/settings.gradle.kts"
+    require_file "$assets_root/gradle/libs.versions.toml"
+    require_file "$assets_root/buildSrc/settings.gradle.kts"
     require_file "$assets_root/buildSrc/build.gradle.kts"
     require_dir "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint"
     require_file "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ExplicitPropertyTypeKtlintRule.kt"
+    require_file "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt"
     require_file "$assets_root/buildSrc/src/main/resources/META-INF/services/com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3"
     require_text "$assets_root/build.gradle.kts" 'gitTrackedFiles("*.kt", "*.kts")'
+    require_text "$assets_root/build.gradle.kts" 'alias(libs.plugins.ktlint) apply false'
+    require_text "$assets_root/build.gradle.kts" 'alias(libs.plugins.kotlin.jvm) apply false'
+    require_text "$assets_root/build.gradle.kts" 'rootProject.libs.plugins.ktlint'
+    require_text "$assets_root/build.gradle.kts" 'libs.versions.ktlint.cli'
+    require_text "$assets_root/buildSrc/build.gradle.kts" 'alias(libs.plugins.kotlin.jvm)'
+    require_text "$assets_root/buildSrc/build.gradle.kts" 'libs.versions.ktlint.cli.get()'
+    require_text "$assets_root/buildSrc/settings.gradle.kts" '../gradle/libs.versions.toml'
+    require_text "$assets_root/gradle/libs.versions.toml" 'kotlin = "2.4.0"'
+    require_text "$assets_root/gradle/libs.versions.toml" 'ktlint = "14.2.0"'
+    require_text "$assets_root/gradle/libs.versions.toml" 'ktlint-cli = "1.8.0"'
     require_text "$assets_root/build.gradle.kts" '"rev-parse"'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ExplicitPropertyTypeKtlintRule.kt" 'code:explicit-property-type'
+    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'code:terminal-branch-when'
+    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'hasFinalElseBranch'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" 'ExplicitPropertyTypeKtlintRule()'
+    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" 'TerminalBranchWhenKtlintRule()'
     require_text "$assets_root/build.gradle.kts" 'docs/harness/git-hooks'
     printf '[gradle assets] OK\n' >&2
 }
@@ -156,7 +172,7 @@ assert_bun_assets() {
     require_text "$assets_root/package.json" '"oxfmt": "^0.53.0"'
     require_text "$assets_root/oxlint.config.ts" 'ultracite/oxlint/core'
     require_text "$assets_root/oxfmt.config.ts" 'ultracite/oxfmt'
-    require_text "$assets_root/oxfmt.config.ts" 'ignorePatterns'
+    require_text "$assets_root/oxfmt.config.ts" '...ultracite'
     require_text "$assets_root/scripts/check.sh" 'git ls-files -z'
     require_text "$assets_root/scripts/check.sh" 'bun install --no-save'
     require_text "$assets_root/scripts/check.sh" 'bunx ultracite check --'

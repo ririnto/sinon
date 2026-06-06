@@ -3,6 +3,6 @@ stages:
 
 ktlint:
   stage: validate
-  image: eclipse-temurin:17
+  image: eclipse-temurin:25
   script:
     - ./gradlew ktlintCheck
