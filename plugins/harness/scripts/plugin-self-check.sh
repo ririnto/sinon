@@ -283,6 +283,7 @@ assert_maven_assets() {
     require_text "$assets_root/pom.xml" 'git rev-parse --git-path hooks'
     require_text "$assets_root/pom.xml" 'cmp -s'
     require_text "$assets_root/pom.xml" "if [ -L &quot;\$dst&quot; ]; then continue; fi"
+    require_text "$assets_root/pom.xml" 'failonerror="true"'
     reject_file_contains "$assets_root/pom.xml" 'failonerror="false"'
     require_text "$root/skills/harness-install/scripts/install-harness.py" 'spotlessFiles'
     require_text "$root/skills/harness-install/scripts/install-harness.py" './mvnw validate'
