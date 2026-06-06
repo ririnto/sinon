@@ -47,9 +47,7 @@ write_tracked_shell_files() {
 #
 # @return Exits with 0 when all scripts pass lint and format checks, 1 on violations.
 main() {
-    if ! sync_git_hooks; then
-        :
-    fi
+    sync_git_hooks
     failures_file=$(mktemp)
     shell_file_list=$(mktemp)
     trap 'rm -f "$failures_file" "$shell_file_list"' EXIT

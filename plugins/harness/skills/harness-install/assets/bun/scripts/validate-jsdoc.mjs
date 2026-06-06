@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+
 import ts from "typescript";
 
 /**
@@ -10,7 +11,14 @@ import ts from "typescript";
  *
  * @type {Set<string>}
  */
-const supportedExtensions = new Set([".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx"]);
+const supportedExtensions = new Set([
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".ts",
+  ".tsx",
+]);
 
 /**
  * Tracked source paths read from standard input as a NUL-delimited list.
@@ -18,7 +26,7 @@ const supportedExtensions = new Set([".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx
  * @type {string[]}
  */
 const sourceFiles = fs
-  .readFileSync(0, "utf8")
+  .readFileSync(0, "utf-8")
   .split("\0")
   .filter((file) => file.length > 0)
   .filter((file) => supportedExtensions.has(path.extname(file).toLowerCase()));
@@ -38,15 +46,17 @@ const findings = [];
  * @param {string} message Diagnostic message to emit.
  * @returns {void}
  */
-function addFinding(file, node, message) {
-  const { line, character } = node.getSourceFile().getLineAndCharacterOfPosition(node.getStart());
+const addFinding = function addFinding(file, node, message) {
+  const { line, character } = node
+    .getSourceFile()
+    .getLineAndCharacterOfPosition(node.getStart());
   findings.push({
+    column: character + 1,
     file,
     line: line + 1,
-    column: character + 1,
     message,
   });
-}
+};
 
 /**
  * Resolves the TypeScript script kind for a file extension.
@@ -54,7 +64,7 @@ function addFinding(file, node, message) {
  * @param {string} filePath File path from stdin.
  * @returns {ts.ScriptKind} Script kind to pass into TypeScript parser creation.
  */
-function getScriptKind(filePath) {
+const getScriptKind = function getScriptKind(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   if (ext === ".tsx" || ext === ".jsx") {
     return ts.ScriptKind.TSX;
@@ -63,7 +73,7 @@ function getScriptKind(filePath) {
     return ts.ScriptKind.TS;
   }
   return ts.ScriptKind.JS;
-}
+};
 
 /**
  * Tests whether a node has at least one JSDoc comment attached.
@@ -71,9 +81,9 @@ function getScriptKind(filePath) {
  * @param {ts.Node} node Node being validated.
  * @returns {boolean} True when the node has a JSDoc comment.
  */
-function hasJSDoc(node) {
+const hasJSDoc = function hasJSDoc(node) {
   return ts.getJSDocCommentsAndTags(node).length > 0;
-}
+};
 
 /**
  * Returns true for top-level variable/constant declarations.
@@ -81,9 +91,12 @@ function hasJSDoc(node) {
  * @param {ts.Node} node Candidate AST node.
  * @returns {boolean} True when node is a source-file variable statement.
  */
-function isVariableLikeDeclaration(node) {
-  return ts.isVariableStatement(node) && node.parent.kind === ts.SyntaxKind.SourceFile;
-}
+const isVariableLikeDeclaration = function isVariableLikeDeclaration(node) {
+  return (
+    ts.isVariableStatement(node) &&
+    node.parent.kind === ts.SyntaxKind.SourceFile
+  );
+};
 
 /**
  * Returns true for function-like nodes that should carry JSDoc under this rule.
@@ -91,12 +104,14 @@ function isVariableLikeDeclaration(node) {
  * @param {ts.Node} node Candidate AST node.
  * @returns {boolean} True when node is function-like and not a function-expression child of a variable declaration.
  */
-function isFunctionLikeForJSDoc(node) {
-  if (!ts.isFunctionDeclaration(node) &&
-      !ts.isMethodDeclaration(node) &&
-      !ts.isSetAccessorDeclaration(node) &&
-      !ts.isGetAccessorDeclaration(node) &&
-      !ts.isFunctionExpression(node)) {
+const isFunctionLikeForJSDoc = function isFunctionLikeForJSDoc(node) {
+  if (
+    !ts.isFunctionDeclaration(node) &&
+    !ts.isMethodDeclaration(node) &&
+    !ts.isSetAccessorDeclaration(node) &&
+    !ts.isGetAccessorDeclaration(node) &&
+    !ts.isFunctionExpression(node)
+  ) {
     return false;
   }
 
@@ -104,14 +119,16 @@ function isFunctionLikeForJSDoc(node) {
     return false;
   }
 
-  if (ts.isFunctionExpression(node) &&
-      node.parent !== undefined &&
-      ts.isVariableDeclaration(node.parent)) {
+  if (
+    ts.isFunctionExpression(node) &&
+    node.parent !== undefined &&
+    ts.isVariableDeclaration(node.parent)
+  ) {
     return false;
   }
 
   return true;
-}
+};
 
 /**
  * Returns true for function declarations that live directly under the source file.
@@ -119,10 +136,11 @@ function isFunctionLikeForJSDoc(node) {
  * @param {ts.Node} node Candidate AST node.
  * @returns {boolean} True when node is a source-file function declaration.
  */
-function isTopLevelFunction(node) {
-  return node.parent !== undefined &&
-    node.parent.kind === ts.SyntaxKind.SourceFile;
-}
+const isTopLevelFunction = function isTopLevelFunction(node) {
+  return (
+    node.parent !== undefined && node.parent.kind === ts.SyntaxKind.SourceFile
+  );
+};
 
 /**
  * Returns true for class methods and property accessors.
@@ -130,9 +148,13 @@ function isTopLevelFunction(node) {
  * @param {ts.Node} node Candidate AST node.
  * @returns {boolean} True when node is a method/getter/setter declaration.
  */
-function isClassMethod(node) {
-  return ts.isMethodDeclaration(node) || ts.isSetAccessorDeclaration(node) || ts.isGetAccessorDeclaration(node);
-}
+const isClassMethod = function isClassMethod(node) {
+  return (
+    ts.isMethodDeclaration(node) ||
+    ts.isSetAccessorDeclaration(node) ||
+    ts.isGetAccessorDeclaration(node)
+  );
+};
 
 /**
  * Returns a human-readable name for function/variable diagnostics.
@@ -140,19 +162,26 @@ function isClassMethod(node) {
  * @param {ts.Node} node Candidate AST node.
  * @returns {string} Renderable node name.
  */
-function nodeName(node) {
+const nodeName = function nodeName(node) {
   if (ts.isFunctionDeclaration(node) && node.name) {
     return node.name.getText();
   }
   if (ts.isVariableStatement(node)) {
-    const declaration = node.declarationList.declarations[0];
-    return declaration && declaration.name ? declaration.name.getText() : "variable declaration";
+    const [declaration] = node.declarationList.declarations;
+    return declaration && declaration.name
+      ? declaration.name.getText()
+      : "variable declaration";
   }
-  if ((ts.isMethodDeclaration(node) || ts.isSetAccessorDeclaration(node) || ts.isGetAccessorDeclaration(node)) && node.name) {
+  if (
+    (ts.isMethodDeclaration(node) ||
+      ts.isSetAccessorDeclaration(node) ||
+      ts.isGetAccessorDeclaration(node)) &&
+    node.name
+  ) {
     return node.name.getText();
   }
   return "[anonymous]";
-}
+};
 
 /**
  * Adds a missing-JSDoc finding for a function- or variable-like node.
@@ -162,10 +191,18 @@ function nodeName(node) {
  * @param {string} ruleId Rule id for diagnostics.
  * @returns {void}
  */
-function addFunctionMissingTagFinding(file, node, ruleId) {
+const addFunctionMissingTagFinding = function addFunctionMissingTagFinding(
+  file,
+  node,
+  ruleId
+) {
   const kind = ts.isVariableStatement(node) ? "variable" : "function";
-  addFinding(file, node, `${ruleId}: missing JSDoc for ${kind} "${nodeName(node)}"`);
-}
+  addFinding(
+    file,
+    node,
+    `${ruleId}: missing JSDoc for ${kind} "${nodeName(node)}"`
+  );
+};
 
 /**
  * Extracts raw JSDoc tag type text from source.
@@ -174,11 +211,11 @@ function addFunctionMissingTagFinding(file, node, ruleId) {
  * @param {ts.JSDocType | undefined} typeNode JSDoc type node.
  * @returns {string} JSDoc tag type text with surrounding trivia removed.
  */
-function jsdocTagTypeText(sourceText, typeNode) {
+const jsdocTagTypeText = function jsdocTagTypeText(sourceText, typeNode) {
   const start = typeNode.getStart();
   const end = typeNode.getEnd();
-  return sourceText.substring(start, end).trim();
-}
+  return sourceText.slice(start, end).trim();
+};
 
 /**
  * Detects broad JSDoc object types.
@@ -187,16 +224,23 @@ function jsdocTagTypeText(sourceText, typeNode) {
  * @param {string} sourceText Full source text of the containing file.
  * @returns {boolean} True when the type is `object`/`Object`.
  */
-function isObjectTagType(typeNode, sourceText) {
+const isObjectTagType = function isObjectTagType(typeNode, sourceText) {
   if (!typeNode) {
     return false;
   }
   const typeText = jsdocTagTypeText(sourceText, typeNode);
-  if (typeNode.kind === ts.SyntaxKind.ObjectKeyword || typeText.toLowerCase() === "object") {
+  if (
+    typeNode.kind === ts.SyntaxKind.ObjectKeyword ||
+    typeText.toLowerCase() === "object"
+  ) {
     return true;
   }
-  return ts.isTypeReferenceNode(typeNode) && ts.isIdentifier(typeNode.typeName) && typeNode.typeName.text.toLowerCase() === "object";
-}
+  return (
+    ts.isTypeReferenceNode(typeNode) &&
+    ts.isIdentifier(typeNode.typeName) &&
+    typeNode.typeName.text.toLowerCase() === "object"
+  );
+};
 
 /**
  * Enforces concrete JSDoc types by rejecting broad object type tags.
@@ -207,7 +251,12 @@ function isObjectTagType(typeNode, sourceText) {
  * @param {string} kind Human-readable node kind label.
  * @returns {void}
  */
-function ensureJSDocTypeSafety(filePath, sourceText, node, kind) {
+const ensureJSDocTypeSafety = function ensureJSDocTypeSafety(
+  filePath,
+  sourceText,
+  node,
+  kind
+) {
   for (const tag of ts.getJSDocTags(node)) {
     if (tag && tag.typeExpression && tag.typeExpression.type) {
       const tagType = tag.typeExpression.type;
@@ -215,12 +264,12 @@ function ensureJSDocTypeSafety(filePath, sourceText, node, kind) {
         addFinding(
           filePath,
           tagType,
-          `${kind}: replace broad JSDoc ${tag.tagName.getText()} type ${jsdocTagTypeText(sourceText, tagType)} with a structural type`,
+          `${kind}: replace broad JSDoc ${tag.tagName.getText()} type ${jsdocTagTypeText(sourceText, tagType)} with a structural type`
         );
       }
     }
   }
-}
+};
 
 /**
  * Traverses AST nodes and validates JSDoc presence and type safety expectations.
@@ -230,7 +279,7 @@ function ensureJSDocTypeSafety(filePath, sourceText, node, kind) {
  * @param {ts.Node} node AST node being visited.
  * @returns {void}
  */
-function visit(filePath, sourceText, node) {
+const visit = function visit(filePath, sourceText, node) {
   if (isVariableLikeDeclaration(node)) {
     if (!hasJSDoc(node)) {
       addFunctionMissingTagFinding(filePath, node, "jsdoc");
@@ -238,7 +287,10 @@ function visit(filePath, sourceText, node) {
     ensureJSDocTypeSafety(filePath, sourceText, node, "Variable JSDoc");
   }
 
-  if (isFunctionLikeForJSDoc(node) && (isTopLevelFunction(node) || isClassMethod(node))) {
+  if (
+    isFunctionLikeForJSDoc(node) &&
+    (isTopLevelFunction(node) || isClassMethod(node))
+  ) {
     if (!hasJSDoc(node)) {
       addFunctionMissingTagFinding(filePath, node, "jsdoc");
     }
@@ -248,11 +300,17 @@ function visit(filePath, sourceText, node) {
   ts.forEachChild(node, (child) => {
     visit(filePath, sourceText, child);
   });
-}
+};
 
 for (const filePath of sourceFiles) {
-  const sourceText = fs.readFileSync(filePath, "utf8");
-  const sourceFile = ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.ESNext, true, getScriptKind(filePath));
+  const sourceText = fs.readFileSync(filePath, "utf-8");
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    sourceText,
+    ts.ScriptTarget.ESNext,
+    true,
+    getScriptKind(filePath)
+  );
   visit(filePath, sourceText, sourceFile);
 }
 
@@ -269,7 +327,9 @@ if (findings.length > 0) {
   });
 
   for (const finding of findings) {
-    console.error(`${finding.file}:${finding.line}:${finding.column} [ERROR] ${finding.message}`);
+    console.error(
+      `${finding.file}:${finding.line}:${finding.column} [ERROR] ${finding.message}`
+    );
   }
   process.exit(1);
 }

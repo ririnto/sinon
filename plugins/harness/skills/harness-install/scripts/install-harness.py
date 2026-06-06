@@ -633,13 +633,14 @@ class HarnessInstaller:
         claude_target = self.root_contract_symlink_target("CLAUDE.md") if claude_is_symlink else "CLAUDE.md"
         if agents_exists and claude_exists and agents_target != claude_target:
             fail("root contract files diverge: AGENTS.md and CLAUDE.md point to different targets; resolve divergent root contract files before install")
-        root_conflicts = 0
-        if self.check_root_contract_conflict(agents_target, AGENTS_MARKER):
-            root_conflicts += 1
-        if self.check_root_contract_conflict(claude_target, CLAUDE_MARKER):
-            root_conflicts += 1
-        if root_conflicts != 0:
-            fail("root contract conflicts must be resolved before installing harness assets")
+        if not self.config.force:
+            root_conflicts = 0
+            if self.check_root_contract_conflict(agents_target, AGENTS_MARKER):
+                root_conflicts += 1
+            if self.check_root_contract_conflict(claude_target, CLAUDE_MARKER):
+                root_conflicts += 1
+            if root_conflicts != 0:
+                fail("root contract conflicts must be resolved before installing harness assets")
         if agents_exists and claude_exists and agents_target == claude_target:
             self.ensure_shared_root_contract(agents_target)
             return

@@ -282,7 +282,8 @@ assert_maven_assets() {
     require_text "$assets_root/pom.xml" 'sync-git-hooks'
     require_text "$assets_root/pom.xml" 'git rev-parse --git-path hooks'
     require_text "$assets_root/pom.xml" 'cmp -s'
-    require_text "$assets_root/pom.xml" "[ ! -L &quot;\$dst&quot; ]"
+    require_text "$assets_root/pom.xml" "if [ -L &quot;\$dst&quot; ]; then continue; fi"
+    reject_file_contains "$assets_root/pom.xml" 'failonerror="false"'
     require_text "$root/skills/harness-install/scripts/install-harness.py" 'spotlessFiles'
     require_text "$root/skills/harness-install/scripts/install-harness.py" './mvnw validate'
     require_text "$root/skills/harness-install/scripts/install-harness.py" './mvnw validate -DspotlessFiles'
@@ -314,6 +315,8 @@ assert_shell_assets() {
     require_text "$assets_root/scripts/check.sh" "[ -L \"\$dst\" ]"
     require_text "$assets_root/scripts/fix.sh" 'git ls-files -z'
     require_text "$assets_root/scripts/fix.sh" "xargs -0 \"\$shfmt_bin\" -i 4 -ci -w --"
+    require_text "$assets_root/scripts/fix.sh" 'error: shfmt is required for shell formatting.'
+    reject_file_contains "$assets_root/scripts/fix.sh" "skipping shell fixes"
     printf '[shell assets] OK\n' >&2
 }
 
@@ -503,6 +506,8 @@ require_text "$root/skills/harness-install/scripts/install-harness.py" '#!/usr/b
 require_text "$root/skills/harness-install/scripts/install-harness.py" '# /// script'
 require_text "$root/skills/harness-install/scripts/install-harness.py" 'requires-python'
 require_text "$root/skills/harness-install/scripts/install-harness.py" 'def parse_args'
+require_text "$root/skills/harness-install/scripts/install-harness.py" 'if not self.config.force:'
+require_text "$root/skills/harness-install/scripts/install-harness.py" 'root contract conflicts must be resolved before installing harness assets'
 require_text "$root/skills/harness-install/scripts/install-harness.py" 'def preview_install_set'
 require_text "$root/skills/harness-install/scripts/install-harness.py" 'def show_one_target_path'
 require_text "$root/skills/harness-install/scripts/install-harness.py" 'def install_one_target_path'
