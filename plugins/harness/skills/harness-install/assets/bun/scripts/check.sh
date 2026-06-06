@@ -6,9 +6,10 @@ set -e
 #
 # @return Copies pre-commit and pre-push into the Git hooks directory when content differs.
 sync_git_hooks() {
-    if ! hooks_dir=$(git rev-parse --git-path hooks 2>&1); then
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
         return 0
     fi
+    hooks_dir=$(git rev-parse --git-path hooks)
     if [ ! -d "$hooks_dir" ]; then
         mkdir -p "$hooks_dir"
     fi
@@ -71,9 +72,7 @@ run_ultracite_check() {
 #
 # @return Exits with the ultracite check status.
 main() {
-    if ! sync_git_hooks; then
-        :
-    fi
+    sync_git_hooks
     run_ultracite_check
 }
 
