@@ -1,7 +1,7 @@
 ---
 title: Document Creator
 description: >-
-  Plugin hosting skills for authoring AI-consumable engineering documents with structured requirements, scenarios, and acceptance criteria. Currently provides SPEC.md authoring and will support additional document types.
+  Plugin hosting skills for authoring AI-consumable engineering documents with structured requirements, scenarios, and acceptance criteria. Currently provides SPEC.md authoring.
 ---
 
 Document Creator is a skill-first plugin for authoring AI-consumable engineering documents in the Sinon Claude marketplace.

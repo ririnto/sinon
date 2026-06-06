@@ -189,7 +189,7 @@ Before starting work in a new worktree, confirm that the target branch is not al
 git worktree list | grep <branch-name>
 ```
 
-Expected: exactly one line, pointing to the correct worktree.
+Expected: no matching line when creating a new worktree for that branch; one line only when intentionally reusing an existing worktree.
 
 If the same branch appears twice, the second `git worktree add` will fail with an error. Remove the old worktree first or use a different branch.
 

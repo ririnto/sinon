@@ -1,7 +1,7 @@
 ---
 description: >-
   Compose a pull/merge request body from the current branch's commits with structured Summary / Changes / Testing sections. Use when opening or updating a PR or MR and the body must follow pr-mr-convention rules.
-argument-hint: Optional PR/MR title or summary hint
+argument-hint: [optional-title-or-summary]
 allowed-tools:
   - Bash
   - Read
@@ -213,8 +213,6 @@ gh pr edit <PR_NUMBER> \
 # 4. Once CI passes and checklist is complete, mark as ready
 gh pr ready <PR_NUMBER>
 
-# 5. Merge when approved (squash strategy recommended)
-gh pr merge <PR_NUMBER> --squash --delete-branch
 ```
 
 Alternatively, guide the user to the GitHub web UI if CLI is unavailable.
@@ -245,8 +243,6 @@ glab mr create --title "Your MR Title" \
 # 4. Once CI passes and checklist is complete, mark as ready
 glab mr update <MR_NUMBER> --ready
 
-# 5. Merge when approved (squash strategy recommended)
-glab mr merge <MR_NUMBER> --squash --when-pipeline-succeeds --remove-source-branch
 ```
 
 Alternative: Body text can include GitLab quick actions (e.g., `/assign @user`, `/label ~type::feature`) which execute after MR creation.

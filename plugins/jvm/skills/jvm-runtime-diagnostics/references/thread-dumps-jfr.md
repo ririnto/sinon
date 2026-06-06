@@ -64,7 +64,7 @@ Key JFR events for runtime diagnostics:
 
 Diagnosis: Classic lock contention. Thread-2 holds a lock that threads 1 and 3 are waiting for.
 
-## Many threads RUNNABLE deep in I/O
+### Many threads RUNNABLE deep in I/O
 
 ```text
 "http-nio-exec-1" RUNNABLE
@@ -74,7 +74,7 @@ Diagnosis: Classic lock contention. Thread-2 holds a lock that threads 1 and 3 a
 
 Diagnosis: Threads blocked on network I/O (not actually consuming CPU). The RUNNABLE state in native I/O is normal but may indicate slow downstream dependencies.
 
-## Repeated identical stacks across many threads
+### Repeated identical stacks across many threads
 
 ```text
 "http-nio-exec-1" ... at com.example.slow.Service.process(Service.java:42)
@@ -84,7 +84,7 @@ Diagnosis: Threads blocked on network I/O (not actually consuming CPU). The RUNN
 
 Diagnosis: All threads converging on one slow method = bottleneck. Profile this method.
 
-## Deadlock section present (jstack -l format)
+### Deadlock section present (jstack -l format)
 
 ```text
 Found one Java-level deadlock:

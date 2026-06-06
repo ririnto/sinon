@@ -304,7 +304,7 @@ gh pr create --draft \
 gh pr edit <number> --add-label "type:feature,scope:api,priority:high"
 
 # Assign reviewer
-gh pr edit <number> --add-assignee @reviewer-name
+gh pr edit <number> --add-reviewer @reviewer-name
 
 # Convert to ready when tests pass and checklist is complete
 gh pr ready <number>

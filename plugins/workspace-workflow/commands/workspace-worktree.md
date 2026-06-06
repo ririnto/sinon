@@ -1,7 +1,7 @@
 ---
 description: >-
   Operate on git worktrees—create, list, switch, or clean up isolated worktrees for parallel branch work. Use when starting parallel branch work, isolating an experiment, or cleaning up stale worktrees.
-argument-hint: Optional action (create/list/switch/remove) and branch or path
+argument-hint: [optional-action] [optional-branch-or-path]
 allowed-tools:
   - Bash
   - Read
@@ -47,7 +47,7 @@ Ask or infer the user's intent from context:
 1. **Create** — Start a new worktree for a new branch
 2. **Switch** — Move to an existing worktree
 3. **List** — Show all active worktrees (already done above)
-4. **Remove** — Delete a worktree and its branch
+4. **Remove** — Delete a worktree directory; branch deletion is separate
 5. **Prune** — Clean up stale/broken worktree references
 
 If intent is ambiguous, ask:
@@ -231,8 +231,8 @@ Active Worktrees:
 
 Next Steps:
 - Work on branch: edit files, commit, push
-- Switch worktree: cd <path> or use /worktree switch
-- Clean up: /worktree remove <path> when done
+- Switch worktree: cd <path> or use /workspace-worktree switch
+- Clean up: /workspace-worktree remove <path> when done
 ===== END STATUS =====
 ```
 

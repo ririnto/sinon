@@ -77,10 +77,10 @@ Open this reference when `SKILL.md` handles the common case but you still need o
 ```java
 import java.util.function.Function;
 
-Function<String, String> normalize = (@Nonnull var input) -> input.trim().toLowerCase();
+Function<String, String> normalize = (final var input) -> input.trim().toLowerCase();
 ```
 
-Use when: the whole parameter list needs modifiers or annotations and you still want inferred local syntax.
+Use when: the whole parameter list needs a modifier and you still want inferred local syntax.
 
 ### Try-with-resources with effectively final values `(JDK 11+)`
 

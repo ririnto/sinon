@@ -97,7 +97,7 @@ Avoid vague, compound, or implementation-led requirements.
   - Problems: Two separate behaviors in one requirement; "support rollback" is too vague.
 ```
 
-Each problem above violates one rule: observe-able behavior, no implementation detail unless mandated, no vague terms, one behavior per requirement.
+Each problem above violates one rule: observable behavior, no implementation detail unless mandated, no vague terms, one behavior per requirement.
 
 ## Requirement Rules
 

@@ -8,6 +8,7 @@ allowed-tools:
   - Bash(./gradlew *)
   - Bash(gradle *)
   - Bash(mvn *)
+  - Bash(./mvnw *)
   - Bash(uv *)
   - Bash(bun *)
   - Bash(sh scripts/check.sh)
@@ -84,7 +85,7 @@ gradle ktlintCheck
 ```
 
 ```sh
-root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then mvn validate; echo "spotless: no tracked Java files to check"; else mvn validate spotless:check -DspotlessFiles="$files"; fi
+root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then ./mvnw validate; echo "spotless: no tracked Java files to check"; else ./mvnw validate -DspotlessFiles="$files"; fi
 ```
 
 ```sh
