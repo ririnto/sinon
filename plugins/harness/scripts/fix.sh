@@ -17,6 +17,7 @@ list_shell_files() {
     printf '%s\n' "$root/plugins/harness/scripts/fix.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install-harness.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/check.sh"
+    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/common/docs/harness/scripts/check-markdown-links.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/fix.sh"
     printf '%s\n' "$root/plugins/java/scripts/has-lombok.sh"
     printf '%s\n' "$root/plugins/java/scripts/jdtls-wrapper.sh"
@@ -53,19 +54,6 @@ count_changed_checksums() {
     after_file=$2
     changed_count=$(comm -13 "$before_file" "$after_file" | wc -l | tr -d ' ')
     printf '%s\n' "$changed_count"
-}
-
-# Count listed paths that exist as files.
-#
-# @return Writes existing file count.
-count_existing_files() {
-    existing_count=0
-    while IFS= read -r path; do
-        if [ -f "$path" ]; then
-            existing_count=$((existing_count + 1))
-        fi
-    done
-    printf '%d\n' "$existing_count"
 }
 
 # Record one changed path if not already recorded.
@@ -216,26 +204,8 @@ if ! markdown_fixed=$(fix_markdown_files); then
     exit 1
 fi
 
-shell_checked=$(list_shell_files | count_existing_files)
-python_checked=$(list_python_files | count_existing_files)
-markdown_checked=$(list_markdown_files | count_existing_files)
-shell_noop=$((shell_checked - shell_fixed))
-python_noop=$((python_checked - python_fixed))
-markdown_noop=$((markdown_checked - markdown_fixed))
-
-if [ "$shell_noop" -lt 0 ]; then
-    shell_noop=0
-fi
-if [ "$python_noop" -lt 0 ]; then
-    python_noop=0
-fi
-if [ "$markdown_noop" -lt 0 ]; then
-    markdown_noop=0
-fi
-
 if [ "$shell_fixed" -gt 0 ] || [ "$python_fixed" -gt 0 ] || [ "$markdown_fixed" -gt 0 ]; then
-    total_fixed=$((shell_fixed + python_fixed + markdown_fixed))
-    printf 'fixed: %d\n' "$total_fixed"
+    echo 'fixed files:'
     if [ -s "$changed_file" ]; then
         sort "$changed_file" | while IFS= read -r changed_path; do
             printf '  %s\n' "$changed_path"
@@ -244,8 +214,6 @@ if [ "$shell_fixed" -gt 0 ] || [ "$python_fixed" -gt 0 ] || [ "$markdown_fixed" 
 else
     echo 'no files fixed'
 fi
-
-printf 'no-op: %d shell file(s), %d python file(s), %d markdown file(s).\n' "$shell_noop" "$python_noop" "$markdown_noop"
 echo 'remaining findings after fixes:'
 if sh "$root/plugins/harness/scripts/check.sh"; then
     check_status=0

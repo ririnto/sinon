@@ -73,6 +73,7 @@ run_ultracite_check() {
 # @return Exits with the ultracite check status.
 main() {
     sync_git_hooks
+    sh docs/harness/scripts/check-markdown-links.sh
     run_ultracite_check
 }
 

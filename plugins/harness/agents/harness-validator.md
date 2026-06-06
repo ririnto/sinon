@@ -8,31 +8,31 @@ description: |-
   <example>
   Context: A harness install completed and the team wants to confirm all required files are in place, hooks are executable, and validators match the documented commands.
   user: "We just installed a harness. Can you verify everything is set up correctly?"
-  assistant: "I'll check the installation."
+  assistant: "Verify installed files, executable bits, hooks, and validator command paths."
   <commentary>
   This is mechanical verification of file structure, executable bits, and validator command paths—exactly harness-validator scope.
   </commentary>
-  assistant: "I'll use the harness-validator agent to verify installed assets, check file presence and executability, and run stack-specific validation commands."
+  assistant: "Use harness-validator to verify installed assets, check file presence and executability, and run stack-specific validation commands."
   </example>
 
   <example>
   Context: The team evolved the harness by adding new placeholder directories, but wants to ensure no stale seed files or invalid generated artifacts are present.
   user: "After our harness evolution, can you verify we didn't leave any broken or invalid placeholder files behind?"
-  assistant: "I'll run the validator."
+  assistant: "Run deterministic harness validation."
   <commentary>
   This requires checking that required directories exist, that fake generated artifacts are not baked in, and that validation commands complete successfully—harness-validator work.
   </commentary>
-  assistant: "I'll use the harness-validator agent to scan for stale artifacts, verify `.gitkeep` files, and confirm all validation commands pass."
+  assistant: "Use harness-validator to scan for stale artifacts, verify `.gitkeep` files, and confirm all validation commands pass."
   </example>
 
   <example>
   Context: A Git hook template was added to the plugin but the team wants to ensure it's properly executable and won't break in the target repository.
   user: "We added a new Git hook template. Can you verify it's executable and compatible?"
-  assistant: "I'll check the hook."
+  assistant: "Check the hook file mode, syntax, and target-side behavior."
   <commentary>
   This requires deterministic checks of executable bits, script syntax validation, and confirmation that hook behavior doesn't destructively modify local state—harness-validator concerns.
   </commentary>
-  assistant: "I'll use the harness-validator agent to verify hook executability, check for destructive Git commands, and confirm syntax."
+  assistant: "Use harness-validator to verify hook executability, check for destructive Git commands, and confirm syntax."
   </example>
 model: haiku
 color: green

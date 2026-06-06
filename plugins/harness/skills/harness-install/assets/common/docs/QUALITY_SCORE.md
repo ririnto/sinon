@@ -8,7 +8,7 @@ QUALITY_SCORE.md grades each product domain and architectural layer on an ordina
 
 - A: meets every invariant; documentation, tests, and runtime contracts are complete and aligned.
 - B: minor gaps under a remediation plan; scheduled closure tracked in tech-debt-tracker.
-- C: meaningful gaps tracked in tech-debt-tracker; affects some new work but blocks nothing critical.
+- C: meaningful gaps tracked in tech-debt-tracker; affects non-critical work but blocks nothing critical.
 - D: actively misaligned, blocks new work; requires immediate remediation before feature expansion.
 
 Target teams may adjust the labels and number of levels but MUST keep them ordinal and small.
