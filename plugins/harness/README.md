@@ -155,13 +155,13 @@ In fresh installed target repositories, `CLAUDE.md` is the primary harness contr
 
 Each installed mode renders `{{validation_command}}` to the concrete command (`./gradlew ktlintCheck`, the Maven `./mvnw validate`/`-DspotlessFiles` command, `uv run scripts/check.py`, `bun run check`, or `sh scripts/check.sh`) in target common assets.
 
-Run validation commands from the target repository root. The shell validator is a portable POSIX shell script and requires both `shellcheck` and `shfmt` on PATH.
+Run validation commands from the target repository root. Every stack validator runs `npx -y markdownlint-cli2@0.22.1` against installed `.markdownlint-cli2.jsonc` and the local rule at `docs/harness/scripts/exec-plan-links.ts`; this requires Node.js >=22.18.0 with npm/npx available and may download markdownlint-cli2 on first use. The shell validator is a portable POSIX shell script and also requires both `shellcheck` and `shfmt` on PATH.
 
 The bun validator runs through `bun run check` (a package.json script that runs `sh scripts/check.sh`, which syncs Git hooks, prepares dev dependencies with `bun install --no-save`, then runs `bunx ultracite check --`; JavaScript files use oxlint JSDoc tag rules so JSDoc remains usable as type input, while the local oxlint JS plugin rule `tsdoc/require-export-tsdoc` from `scripts/tsdoc-plugin.ts` requires TSDoc only on TypeScript exported top-level functions, exported top-level constants/variables, exported classes, and public methods/accessors on exported classes.
 
 The Bun-side validator and the plugin installer are style-hardened by plugin checks: `sh plugins/harness/scripts/plugin-self-check.sh` enforces no leading-underscore public declarations in these implementation files and no one-line public Python docstrings.
 
-The uv validator self-provisions ruff on first use via `uvx --with "ruff>=0.15.16,<0.16.0" ruff check` and `ruff format --check` over Git-tracked Python files, so network access is required on first run; the ruff binary is then cached. No separate Node.js or other runtime is required beyond `uv` itself.
+The uv validator self-provisions ruff on first use via `uvx --with "ruff>=0.15.16,<0.16.0" ruff check` and `ruff format --check` over Git-tracked Python files, so network access is required on first run; the ruff binary is then cached. Markdown validation still requires Node.js/npm/npx as described above.
 
 ## Native Tool Enforcement
 

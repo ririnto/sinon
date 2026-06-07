@@ -37,9 +37,6 @@ assert_exec_plan_reference_policy() {
         if [ "$file" = "$assets_root/common/docs/exec-plans/tech-debt-tracker.md" ]; then
             continue
         fi
-        if [ "$file" = "$assets_root/common/docs/harness/scripts/check-markdown-links.sh" ]; then
-            continue
-        fi
         if [ ! -f "$root/$file" ]; then
             continue
         fi
