@@ -18,7 +18,6 @@ list_shell_files() {
     printf '%s\n' "$root/plugins/harness/scripts/check.sh"
     printf '%s\n' "$root/plugins/harness/scripts/fix.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/check.sh"
-    printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/common/docs/harness/scripts/check-markdown-links.sh"
     printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/shell/scripts/fix.sh"
 }
 
