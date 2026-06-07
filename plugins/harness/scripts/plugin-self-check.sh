@@ -170,10 +170,10 @@ require_text "$root/skills/harness-install/scripts/install_harness/models.py" '{
 reject_file_contains "$root/skills/harness-install/scripts/install-harness.py" 'install-harness.sh'
 assert_code_style_contracts \
     "$root/skills/harness-install/scripts/install-harness.py" \
-    "$root/skills/harness-install/assets/bun/scripts/tsdoc-plugin.mjs"
+    "$root/skills/harness-install/assets/bun/scripts/tsdoc-plugin.ts"
 assert_code_style_contracts \
     "$root/skills/harness-install/scripts/install_harness" \
-    "$root/skills/harness-install/assets/bun/scripts/tsdoc-plugin.mjs"
+    "$root/skills/harness-install/assets/bun/scripts/tsdoc-plugin.ts"
 printf '[Python installer surface] OK\n' >&2
 
 printf '\n--- manifest/bespoke rejection ---\n' >&2
