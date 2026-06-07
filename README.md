@@ -20,7 +20,7 @@ Plugins live under `plugins/`. The Claude marketplace catalog lives at the repos
 - `CLAUDE.md`: stable repository rules, skill-authoring contracts, and layout policies. `AGENTS.md` is a symlink to the same file.
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
-- `.markdownlint.jsonc`: Markdown lint configuration.
+- `.markdownlint-cli2.jsonc`: Markdown lint configuration.
 - `.claude-plugin/marketplace.json`: Claude marketplace catalog.
 - `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, and `.agents`: mirrored symlink entries that resolve to the same `.claude` tree, which maps to `plugins/agent-capability-kit/{skills,agents,commands}/`.
 - `plugins/`: plugins maintained in this repository.

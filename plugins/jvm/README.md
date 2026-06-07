@@ -45,7 +45,6 @@ The actual reusable content lives beside the manifest at the plugin root.
 ```text
 plugins/jvm/
 ├── .claude-plugin/plugin.json
-├── .markdownlint.jsonc
 ├── README.md
 └── skills/
     ├── jvm-gc-diagnostics/

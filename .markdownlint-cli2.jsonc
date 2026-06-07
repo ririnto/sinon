@@ -1,0 +1,29 @@
+{
+  "$schema": "https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/tags/v0.22.1/schema/markdownlint-cli2-config-schema.json",
+  "config": {
+    "line-length": false,
+    "no-inline-html": {
+      "allowed_elements": [
+        "details",
+        "summary",
+        "kbd",
+        "img",
+        "code"
+      ],
+      "table_allowed_elements": [
+        "br"
+      ]
+    },
+    "no-duplicate-heading": {
+      "siblings_only": true
+    },
+    "code-block-style": {
+      "style": "fenced"
+    },
+    "no-emphasis-as-heading": true
+  },
+  "gitignore": ".gitignore",
+  "globs": [
+    "**/*.md"
+  ]
+}
