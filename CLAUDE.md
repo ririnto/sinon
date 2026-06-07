@@ -170,6 +170,8 @@ Scripts in non-shell runtimes SHOULD declare runtime dependencies inline. Each r
 Python scripts SHOULD declare runtime dependencies inline using PEP 723 metadata.
 
 ```python
+#!/usr/bin/env -S uv run
+# -*- coding: utf-8 -*-
 # /// script
 # dependencies = [
 #   "beautifulsoup4",
@@ -185,6 +187,7 @@ Deno scripts SHOULD declare dependencies using `npm:` specifiers for direct npm 
 
 ```ts
 #!/usr/bin/env -S deno run
+// -*- coding: utf-8 -*-
 
 import * as cheerio from "npm:cheerio@1.0.0";
 ```
@@ -195,6 +198,7 @@ Bun scripts SHOULD declare dependencies using direct npm package imports.
 
 ```ts
 #!/usr/bin/env bun
+// -*- coding: utf-8 -*-
 
 import * as cheerio from "cheerio@1.0.0";
 ```
