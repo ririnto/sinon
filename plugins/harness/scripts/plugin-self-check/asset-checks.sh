@@ -51,12 +51,12 @@ assert_bun_assets() {
     require_file "$assets_root/oxfmt.config.ts"
     require_file "$assets_root/scripts/check.sh"
     require_file "$assets_root/scripts/fix.sh"
-    require_file "$assets_root/scripts/tsdoc-plugin.mjs"
+    require_file "$assets_root/scripts/tsdoc-plugin.ts"
     require_text "$assets_root/package.json" '"ultracite": "^7.8.1"'
     require_text "$assets_root/package.json" '"oxlint": "^1.68.0"'
     require_text "$assets_root/package.json" '"oxfmt": "^0.53.0"'
     require_text "$assets_root/oxlint.config.ts" 'ultracite/oxlint/core'
-    require_text "$assets_root/oxlint.config.ts" 'jsPlugins: ["./scripts/tsdoc-plugin.mjs"]'
+    require_text "$assets_root/oxlint.config.ts" 'jsPlugins: ["./scripts/tsdoc-plugin.ts"]'
     require_text "$assets_root/oxlint.config.ts" 'tsdoc/require-export-tsdoc'
     require_text "$assets_root/oxlint.config.ts" '"**/*.{js,jsx,mjs,cjs}"'
     require_text "$assets_root/oxlint.config.ts" 'jsdoc/require-param'

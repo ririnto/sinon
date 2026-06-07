@@ -74,7 +74,7 @@ assert_source_size_policy() {
         esac
         case "$file" in
             *.py | *.sh | *.mjs | *.ts | *.kt | *.kts)
-                pure_loc=$(awk '!/^[[:space:]]*$/ && !/^[[:space:]]*(#|\/\/)/ { c++ } END { print c + 0 }' "$root/$file")
+                pure_loc=$(awk '!/^[[:space:]]*$/ && !/^[[:space:]]*(#|\/\/|\/\*\*?|\*|\*\/)/ { c++ } END { print c + 0 }' "$root/$file")
                 if [ "$pure_loc" -gt 250 ]; then
                     printf '%s %s\n' "$pure_loc" "$file" >>"$matches_file"
                 fi
