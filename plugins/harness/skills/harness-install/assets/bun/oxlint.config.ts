@@ -4,7 +4,7 @@ import core from "ultracite/oxlint/core";
 export default defineConfig({
   extends: [core],
   ignorePatterns: core.ignorePatterns,
-  jsPlugins: ["./scripts/tsdoc-plugin.mjs"],
+  jsPlugins: ["./scripts/tsdoc-plugin.ts"],
   overrides: [
     {
       files: ["**/*.{js,jsx,mjs,cjs}"],
