@@ -43,12 +43,12 @@ write_tracked_shell_files() {
     fi
 }
 
-# Synchronize Git hooks, then validate tracked shell scripts using shellcheck and shfmt.
+# Synchronize Git hooks, then validate Markdown and tracked shell scripts.
 #
 # @return Exits with 0 when all scripts pass lint and format checks, 1 on violations.
 main() {
     sync_git_hooks
-    sh docs/harness/scripts/check-markdown-links.sh
+    npx -y markdownlint-cli2@0.22.1
     failures_file=$(mktemp)
     shell_file_list=$(mktemp)
     trap 'rm -f "$failures_file" "$shell_file_list"' EXIT

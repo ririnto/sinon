@@ -1,3 +1,6 @@
+#!/usr/bin/env bun
+// -*- coding: utf-8 -*-
+
 import type {
   Class,
   ClassElement,

@@ -84,8 +84,9 @@
             </goals>
             <configuration>
               <target>
-                <exec executable="sh" failonerror="true">
-                  <arg value="docs/harness/scripts/check-markdown-links.sh"/>
+                <exec executable="npx" failonerror="true">
+                  <arg value="-y"/>
+                  <arg value="markdownlint-cli2@0.22.1"/>
                 </exec>
                 <exec executable="sh" failonerror="true">
                   <arg value="-c"/>

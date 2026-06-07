@@ -24,8 +24,9 @@ assert_gradle_assets() {
     require_text "$assets_root/buildSrc/build.gradle.kts" 'alias(libs.plugins.kotlin.jvm)'
     require_text "$assets_root/buildSrc/build.gradle.kts" 'libs.versions.ktlint.cli.get()'
     require_text "$assets_root/buildSrc/settings.gradle.kts" '../gradle/libs.versions.toml'
-    require_text "$assets_root/build.gradle.kts" 'checkHarnessMarkdownLinks'
-    require_text "$assets_root/build.gradle.kts" 'docs/harness/scripts/check-markdown-links.sh'
+    require_text "$assets_root/build.gradle.kts" 'checkHarnessMarkdown'
+    require_text "$assets_root/build.gradle.kts" 'markdownlint-cli2@0.22.1'
+    reject_file_contains "$assets_root/build.gradle.kts" 'docs/harness/scripts/check-markdown-links.sh'
     require_text "$assets_root/gradle/libs.versions.toml" 'kotlin = "2.4.0"'
     require_text "$assets_root/gradle/libs.versions.toml" 'ktlint = "14.2.0"'
     require_text "$assets_root/gradle/libs.versions.toml" 'ktlint-cli = "1.8.0"'
@@ -52,6 +53,8 @@ assert_bun_assets() {
     require_file "$assets_root/scripts/check.sh"
     require_file "$assets_root/scripts/fix.sh"
     require_file "$assets_root/scripts/tsdoc-plugin.ts"
+    require_text "$assets_root/package.json" '"markdownlint": "^0.40.0"'
+    require_text "$assets_root/package.json" '"markdownlint-cli2": "^0.22.1"'
     require_text "$assets_root/package.json" '"ultracite": "^7.8.1"'
     require_text "$assets_root/package.json" '"oxlint": "^1.68.0"'
     require_text "$assets_root/package.json" '"oxfmt": "^0.53.0"'
@@ -68,7 +71,8 @@ assert_bun_assets() {
     require_text "$assets_root/scripts/check.sh" 'git ls-files -z'
     require_text "$assets_root/scripts/check.sh" 'bun install --no-save'
     require_text "$assets_root/scripts/check.sh" 'bunx ultracite check --'
-    require_text "$assets_root/scripts/check.sh" 'docs/harness/scripts/check-markdown-links.sh'
+    require_text "$assets_root/scripts/check.sh" 'npx -y markdownlint-cli2@0.22.1'
+    reject_file_contains "$assets_root/scripts/check.sh" 'docs/harness/scripts/check-markdown-links.sh'
     require_text "$assets_root/scripts/check.sh" "[ -L \"\$dst\" ]"
     require_text "$assets_root/package.json" '"fix": "sh scripts/fix.sh"'
     require_text "$assets_root/scripts/fix.sh" 'git ls-files -z'
@@ -91,8 +95,9 @@ assert_uv_assets() {
     assets_root=$root/skills/harness-install/assets/uv
     require_file "$assets_root/ruff.toml"
     reject_file_contains "$assets_root/ruff.toml" 'extend-select'
-    require_text "$assets_root/scripts/check.py" 'docs/harness/scripts/check-markdown-links.sh'
     require_file "$assets_root/scripts/check.py"
+    require_text "$assets_root/scripts/check.py" 'markdownlint-cli2@0.22.1'
+    reject_file_contains "$assets_root/scripts/check.py" 'docs/harness/scripts/check-markdown-links.sh'
     require_file "$assets_root/scripts/fix.py"
     require_text "$assets_root/scripts/check.py" '--git-path'
     require_text "$assets_root/scripts/check.py" 'git", "ls-files", "-z"'
@@ -134,7 +139,8 @@ assert_maven_assets() {
     require_text "$assets_root/pom.xml" 'cmp -s'
     require_text "$assets_root/pom.xml" "if [ -L &quot;\$dst&quot; ]; then continue; fi"
     require_text "$assets_root/pom.xml" 'failonerror="true"'
-    require_text "$assets_root/pom.xml" 'docs/harness/scripts/check-markdown-links.sh'
+    require_text "$assets_root/pom.xml" 'markdownlint-cli2@0.22.1'
+    reject_file_contains "$assets_root/pom.xml" 'docs/harness/scripts/check-markdown-links.sh'
     reject_file_contains "$assets_root/pom.xml" 'failonerror="false"'
     require_text "$installer_commands" 'spotlessFiles'
     require_text "$installer_commands" './mvnw validate'
@@ -165,7 +171,8 @@ assert_shell_assets() {
     require_text "$assets_root/scripts/check.sh" 'xargs -0 shellcheck -S warning --'
     require_text "$assets_root/scripts/check.sh" 'xargs -0 shfmt -d -i 4 -ci --'
     require_text "$assets_root/scripts/check.sh" "[ -L \"\$dst\" ]"
-    require_text "$assets_root/scripts/check.sh" 'docs/harness/scripts/check-markdown-links.sh'
+    require_text "$assets_root/scripts/check.sh" 'npx -y markdownlint-cli2@0.22.1'
+    reject_file_contains "$assets_root/scripts/check.sh" 'docs/harness/scripts/check-markdown-links.sh'
     require_text "$assets_root/scripts/fix.sh" 'git ls-files -z'
     require_text "$assets_root/scripts/fix.sh" "xargs -0 \"\$shfmt_bin\" -i 4 -ci -w --"
     require_text "$assets_root/scripts/fix.sh" 'error: shfmt is required for shell formatting.'
@@ -197,7 +204,25 @@ assert_common_assets_rendered_validation_command() {
     # Avoid stale per-stack command matrices in common validate guidance.
     reject_file_text "$common_assets_root/.claude/skills/harness-validate/SKILL.md" "| Stack | Command |"
     printf '[common assets] validation rendering OK\n' >&2
-    require_file "$common_assets_root/docs/harness/scripts/check-markdown-links.sh"
-    require_text "$common_assets_root/docs/harness/scripts/check-markdown-links.sh" "docs/exec-plans/tech-debt-tracker.md"
-    require_text "$common_assets_root/docs/harness/scripts/check-markdown-links.sh" "exec-plans/(active|completed)/"
+    require_file "$common_assets_root/.markdownlint-cli2.jsonc"
+    require_file "$common_assets_root/docs/harness/scripts/exec-plan-links.ts"
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" "\"\$schema\": \"https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/tags/v0.22.1/schema/markdownlint-cli2-config-schema.json\""
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"line-length": false'
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"no-inline-html": {'
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"allowed_elements": ['
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"table_allowed_elements": ['
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"siblings_only": true'
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"code-block-style": {'
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"style": "fenced"'
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"no-emphasis-as-heading": true'
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"customRules": ['
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" './docs/harness/scripts/exec-plan-links.ts'
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"docs/exec-plans/links": true'
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"gitignore": ".gitignore"'
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"**/*.md"'
+    require_text "$common_assets_root/docs/harness/scripts/exec-plan-links.ts" 'import type { Rule } from "markdownlint@0.40.0"'
+    require_text "$common_assets_root/docs/harness/scripts/exec-plan-links.ts" 'parser: "none"'
+    require_text "$common_assets_root/docs/harness/scripts/exec-plan-links.ts" 'tech-debt-tracker.md'
+    reject_file "$common_assets_root/docs/harness/scripts/check-markdown-links.sh"
+    reject_file_text "$root/skills/harness-install/assets" 'docs/harness/scripts/check-markdown-links.sh'
 }

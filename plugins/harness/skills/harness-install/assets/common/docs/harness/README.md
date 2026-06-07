@@ -53,7 +53,9 @@ Run the selected stack validation command from the repository root:
 `{{validation_command}}`
 
 The generated `pre-commit` hook runs `{{validation_command}}`. The generated `pre-push` hook also runs the same command and should match CI when CI workflows are present.
-The selected stack validation command also runs `docs/harness/scripts/check-markdown-links.sh`, which rejects durable Markdown references to removable execution-plan state files. Durable references should point to `docs/exec-plans/tech-debt-tracker.md`, design docs, or product specs instead.
+The selected stack validation command also runs `npx -y markdownlint-cli2@0.22.1` from the repository root. Markdown validation uses `.markdownlint-cli2.jsonc` plus the local custom rule at `docs/harness/scripts/exec-plan-links.ts`, which rejects durable Markdown references to removable dated execution-plan state files. Durable references should point to `docs/exec-plans/tech-debt-tracker.md`, design docs, or product specs instead.
+
+Markdown validation requires Node.js >=22.18.0 with npm/npx available. The first run may download `markdownlint-cli2@0.22.1` through npx.
 
 Native validation configuration is owned by the selected stack's tooling and shared repository conventions, such as `.editorconfig` and stack-specific build/tooling config.
 

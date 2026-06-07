@@ -1,6 +1,5 @@
 #!/usr/bin/env -S uv run
 # -*- coding: utf-8 -*-
-
 # /// script
 # requires-python = ">=3.13"
 # dependencies = []
@@ -68,9 +67,7 @@ def main() -> int:
     Synchronize Git hooks, then run ruff lint and format checks on the project.
     """
     sync_git_hooks()
-    markdown_result = subprocess.run(
-        ["sh", "docs/harness/scripts/check-markdown-links.sh"]
-    )
+    markdown_result = subprocess.run(["npx", "-y", "markdownlint-cli2@0.22.1"])
     if markdown_result.returncode != 0:
         return markdown_result.returncode
     try:
