@@ -1,15 +1,5 @@
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
-import java.nio.file.Path
-import java.nio.file.attribute.PosixFilePermission
-import kotlin.io.path.copyTo
-import kotlin.io.path.createDirectories
-import kotlin.io.path.createTempFile
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.isSymbolicLink
-import kotlin.io.path.moveTo
-import kotlin.io.path.readBytes
-import kotlin.io.path.setPosixFilePermissions
 
 plugins {
     alias(libs.plugins.ktlint) apply false
@@ -34,20 +24,6 @@ fun gitTrackedFiles(vararg patterns: String): Set<String> {
 }
 
 val trackedKotlinFiles = gitTrackedFiles("*.kt", "*.kts")
-
-fun gitHooksDir(): Path? {
-    val process =
-        ProcessBuilder(
-            listOf("git", "rev-parse", "--git-path", "hooks"),
-        ).directory(rootDir)
-            .redirectErrorStream(true)
-            .start()
-    val output = process.inputStream.bufferedReader().use { reader -> reader.readText().trim() }
-    if (process.waitFor() != 0 || output.isBlank()) {
-        return null
-    }
-    return rootDir.toPath().resolve(output).normalize()
-}
 
 allprojects {
     val projectPathPrefix = if (this == rootProject) "" else "${project.path.removePrefix(":").replace(':', '/')}/"
@@ -82,9 +58,8 @@ tasks.register("checkHarnessMarkdown") {
         providers
             .exec {
                 commandLine(
-                    "npx",
-                    "-y",
-                    "markdownlint-cli2@0.22.1",
+                    "bunx",
+                    "markdownlint-cli2",
                 )
             }.result
             .get()
@@ -94,47 +69,5 @@ tasks.register("checkHarnessMarkdown") {
 
 tasks.named("ktlintCheck") {
     dependsOn("checkHarnessMarkdown")
-    doLast {
-        val hooksDir = gitHooksDir() ?: return@doLast
-        hooksDir.createDirectories()
-        listOf("pre-commit", "pre-push").forEach { hookName ->
-            val source =
-                layout.projectDirectory
-                    .file("docs/harness/git-hooks/$hookName")
-                    .asFile
-                    .toPath()
-            if (source.isRegularFile()) {
-                val target = hooksDir.resolve(hookName)
-                if (target.isSymbolicLink()) {
-                    return@forEach
-                }
-                if (
-                    target.isRegularFile() &&
-                    target.readBytes().contentEquals(source.readBytes())
-                ) {
-                    return@forEach
-                }
-                val temporaryTarget =
-                    createTempFile(hooksDir, ".sync-git-hooks-", "-$hookName")
-                source.copyTo(temporaryTarget, overwrite = true)
-                temporaryTarget
-                    .also { path ->
-                        path.setPosixFilePermissions(
-                            setOf(
-                                PosixFilePermission.OWNER_READ,
-                                PosixFilePermission.OWNER_WRITE,
-                                PosixFilePermission.OWNER_EXECUTE,
-                                PosixFilePermission.GROUP_READ,
-                                PosixFilePermission.GROUP_EXECUTE,
-                                PosixFilePermission.OTHERS_READ,
-                                PosixFilePermission.OTHERS_EXECUTE,
-                            ),
-                        )
-                    }.moveTo(
-                        target,
-                        overwrite = true,
-                    )
-            }
-        }
-    }
 }
+

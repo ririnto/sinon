@@ -16,7 +16,6 @@ class PreviewMixin(InstallerSupport):
         print(f"harness mode: {self.config.mode}")
         print(f"ci-host: {self.config.ci_host}")
         print(f"validation command: {self.config.validation_command}")
-        print(f"pre-commit command: {self.config.validation_command}")
         for candidate in self.build_plan().candidates:
             self.preview_candidate_status(candidate)
 
@@ -26,8 +25,6 @@ class PreviewMixin(InstallerSupport):
             self.preview_file_candidate(candidate)
         elif candidate.kind == "root-contract":
             self.preview_root_contract_candidate(candidate)
-        elif candidate.kind == "generated-hook":
-            self.preview_generated_hook_candidate(candidate)
         elif candidate.kind == "symlink":
             self.preview_symlink_candidate(candidate)
         elif candidate.kind == "gitkeep":
@@ -65,33 +62,6 @@ class PreviewMixin(InstallerSupport):
         else:
             print(f"create root contract: {candidate.dst}")
 
-    def preview_generated_hook_candidate(self, candidate: InstallCandidate) -> None:
-
-        dst = candidate.dst
-        if (
-            Path(dst).exists()
-            and not self.config.force
-            and not self.is_managed_generated_hook(dst, candidate.marker)
-        ):
-            if (
-                "packaged placeholder is replaced during harness installation"
-                in read_text(dst)
-            ):
-                print(
-                    f"error: {dst} is a packaged placeholder; rerun with --force to replace",
-                    file=sys.stderr,
-                )
-                return
-            print(f"keep existing: {dst}")
-            return
-        if Path(dst).exists():
-            if self.config.force:
-                print(f"overwrite (--force): {dst}")
-            else:
-                print(f"refresh generated {candidate.stage} hook: {dst}")
-            return
-        print(f"write: {dst}")
-
     def preview_symlink_candidate(self, candidate: InstallCandidate) -> None:
 
         if Path(candidate.dst).is_symlink():
@@ -126,12 +96,6 @@ class PreviewMixin(InstallerSupport):
         candidate = self.build_plan().match(requested_path)
         if candidate.kind in {"file", "seed", "stack-file"}:
             print(self.render_template(required_src(candidate)), end="")
-            return
-        if candidate.kind == "generated-hook":
-            if candidate.dst.endswith("/pre-commit"):
-                print(self.pre_commit_hook_text(), end="")
-            else:
-                print(self.pre_push_hook_text(), end="")
             return
         if candidate.kind == "root-contract":
             real_target = required_real_target(candidate)

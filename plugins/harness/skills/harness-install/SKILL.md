@@ -34,7 +34,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 2. Read the target repository root files if present: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, and `docs/harness/README.md`.
 3. Determine the target stack from explicit user choice. The installer no longer auto-detects; confirm the stack with the user (inspect manifests such as `pom.xml`, `build.gradle*`, `pyproject.toml`/`uv.lock`, `package.json`/`bun.lock`, or `Makefile`/`*.sh`) before passing `--mode`.
 4. Identify the active CI host. Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither, so unused CI files can be removed as a post-install step.
-5. The installer writes tracked `pre-commit` and `pre-push` templates under `docs/harness/git-hooks/`; it does not write into `.git/hooks/`. Each stack's check command syncs these templates into the active hooks directory (resolved via `git rev-parse --git-path hooks`) when it runs, so the hooks activate after the first local check rather than at install time. Both hooks run the selected stack validation command. After installation, the selected stack check command owns the active `pre-commit` and `pre-push` files and refreshes them from the tracked templates when content differs.
+5. Git hooks are managed by ecosystem-standard tools: Husky for Bun, pre-commit framework for uv, and `core.hooksPath` for Gradle, Maven, and Shell. Each stack ships static hook files in its asset tree (`.husky/` for Bun, `.pre-commit-config.yaml` for uv, `.githooks/` for Gradle/Maven/Shell). The installer copies these as regular stack assets and activates hooks as a post-install step: `git config core.hooksPath .githooks/` for Gradle/Maven/Shell, `uv run pre-commit install` for uv, and `bun install` triggers Husky via the `prepare` script for Bun.
 6. Use `--force` only when the user explicitly wants existing target harness files replaced.
 7. Keep plugin files separate from target files: edit this plugin only when improving the installer; edit target `.claude/**` files only after installation in the target repository.
 
@@ -72,7 +72,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 | --- | --- |
 | Target has no obvious stack files | Ask for `gradle`, `maven`, `uv`, `bun`, or `shell`; do not guess. |
 | Existing harness files are present | Preserve them unless `--force` was requested. |
-| Existing Git hook is present | The installer writes tracked hook templates only; active hook files are refreshed later by the selected stack check command when template content differs. Request explicit approval before changing active hooks directly. |
+| Existing Git hook is present | Each stack uses ecosystem-standard hook management (Husky, pre-commit, or `core.hooksPath`). The installer activates hooks as a post-install step. Request explicit approval before changing active hooks directly. |
 | Target uses GitHub CI | Pass `--ci-host github` to write only `.github/workflows/<tool>.yaml`. |
 | Target uses GitLab CI | Pass `--ci-host gitlab` to write only `.gitlab-ci.yml`. |
 | Target mirrors to GitHub and GitLab | Pass `--ci-host both` to write both CI files. The generated `pre-push` final check command must match both scripts. |
@@ -84,7 +84,8 @@ Install or refresh target-owned repository harness files from this plugin. This 
 ## Invariants
 
 - The installed harness is target-owned after copying.
-- The generated hook templates are target-owned: both `pre-commit` and `pre-push` run the selected-mode validation command rendered from `{{validation_command}}`; each stack's check command syncs templates into the active hooks directory (resolved via `git rev-parse --git-path hooks`) at check time, and refreshes active `pre-commit` and `pre-push` files from the tracked templates when content differs.
+- Git hooks use ecosystem-standard tools: Husky for Bun (`.husky/`), pre-commit framework for uv (`.pre-commit-config.yaml`), and `core.hooksPath` pointing to `.githooks/` for Gradle, Maven, and Shell. The installer activates hooks as a post-install step for Gradle, Maven, Shell, and uv; Bun hooks activate via `bun install` through the Husky `prepare` script.
+- `pre-commit` hooks run the stack lint check (including markdownlint). `pre-push` hooks run the full validation including tests and broader checks where applicable (`./gradlew check`, `./mvnw verify`, `bun test`).
 - Fresh installs use `CLAUDE.md` as the primary target repository harness contract and `AGENTS.md` as its symlink alias.
 - Refreshes of existing AGENTS-only repositories may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias; either orientation MUST resolve both filenames to the same document.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
@@ -96,7 +97,7 @@ Install or refresh target-owned repository harness files from this plugin. This 
 - Do not run the installer on a dirty working tree. Require the target repository to be committed or stashed first; `--force` overwrites tracked files, and any post-install rollback against an unclean tree will entangle harness changes with unrelated edits.
 - Do not edit `scripts/install-harness.py` during ordinary installation.
 - Do not claim harness-only readiness when product specs, architecture decisions, acceptance criteria, or generated artifacts are still placeholders.
-- Do not force-replace target-owned hook templates with `--force` without explicit approval for that repository.
+- Do not force-replace target-owned hook files with `--force` without explicit approval for that repository.
 - Do not treat seed references as universal target truth; they are replaceable starting points.
 - Do not make the plugin responsible for runtime services, issue queues, workspace management, or team generation.
 
@@ -107,7 +108,7 @@ Report these fields:
 - `mode`: explicit stack mode (`--mode` flag).
 - `installer command`: the command that ran.
 - `files`: written, kept, and skipped file groups.
-- `hooks`: whether the `pre-commit` and `pre-push` templates under `docs/harness/git-hooks/` were written, kept, refreshed, or force-replaced, and the active hooks directory they were copied into.
+- `hooks`: ecosystem tool activation status for the selected stack (Husky, pre-commit, or `core.hooksPath`).
 - `ci`: which CI files were rendered (GitHub Actions, GitLab CI, both, or none per --ci-host flag) and the active CI host detected from the target remote.
 - `validation`: command run and result.
 - `target follow-up`: placeholders, seed references, or unused CI files that require project-specific action.

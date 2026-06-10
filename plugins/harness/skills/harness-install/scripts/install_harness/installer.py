@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 
 from .advisory import AdvisoryMixin
 from .contracts import ContractsMixin
@@ -50,5 +51,50 @@ class HarnessInstaller(
             self.runtime_advisory_for_mode()
             return
         self.install_full_plan()
+        self.activate_git_hooks()
         self.print_summary()
         self.runtime_advisory_for_mode()
+
+    def activate_git_hooks(self) -> None:
+
+        mode = self.config.mode
+        if mode == "gradle":
+            print(
+                "activate git hooks: Gradle plugin creates hooks on first build",
+            )
+        elif mode in {"maven", "shell"}:
+            result = subprocess.run(
+                ["git", "config", "core.hooksPath", ".githooks/"],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode == 0:
+                print("activate git hooks: git config core.hooksPath .githooks/")
+            else:
+                print(
+                    f"[warning] git config core.hooksPath failed: {result.stderr.strip()}",
+                )
+        elif mode == "uv":
+            result = subprocess.run(
+                ["uv", "run", "pre-commit", "install"],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode == 0:
+                print("activate git hooks: uv run pre-commit install")
+            else:
+                print(
+                    f"[warning] pre-commit install failed: {result.stderr.strip()}",
+                )
+        elif mode == "bun":
+            result = subprocess.run(
+                ["bun", "install"],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode == 0:
+                print("activate git hooks: bun install (Husky prepare)")
+            else:
+                print(
+                    f"[warning] bun install failed: {result.stderr.strip()}",
+                )

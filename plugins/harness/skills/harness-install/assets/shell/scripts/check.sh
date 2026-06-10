@@ -2,35 +2,6 @@
 # -*- coding: utf-8 -*-
 set -e
 
-# Synchronize tracked Git hook templates into the active hooks directory.
-#
-# @return Copies pre-commit and pre-push into the Git hooks directory when content differs.
-sync_git_hooks() {
-    if ! hooks_dir=$(git rev-parse --git-path hooks 2>&1); then
-        return 0
-    fi
-    if [ ! -d "$hooks_dir" ]; then
-        mkdir -p "$hooks_dir"
-    fi
-    for name in pre-commit pre-push; do
-        src=docs/harness/git-hooks/$name
-        if [ ! -f "$src" ]; then
-            continue
-        fi
-        dst=$hooks_dir/$name
-        if [ -L "$dst" ]; then
-            continue
-        fi
-        if [ -f "$dst" ] && cmp -s "$src" "$dst"; then
-            continue
-        fi
-        tmp=$hooks_dir/.sync-git-hooks-$$-$name
-        cp "$src" "$tmp"
-        chmod +x "$tmp"
-        mv "$tmp" "$dst"
-    done
-}
-
 # Write Git-tracked shell scripts.
 #
 # @param shell_file_list Destination file for null-delimited paths.
@@ -43,12 +14,11 @@ write_tracked_shell_files() {
     fi
 }
 
-# Synchronize Git hooks, then validate Markdown and tracked shell scripts.
+# Validate Markdown and tracked shell scripts.
 #
 # @return Exits with 0 when all scripts pass lint and format checks, 1 on violations.
 main() {
-    sync_git_hooks
-    npx -y markdownlint-cli2@0.22.1
+    bunx markdownlint-cli2
     failures_file=$(mktemp)
     shell_file_list=$(mktemp)
     trap 'rm -f "$failures_file" "$shell_file_list"' EXIT

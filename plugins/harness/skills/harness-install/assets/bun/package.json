@@ -2,13 +2,20 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "sh scripts/check.sh",
-    "fix": "sh scripts/fix.sh"
+    "prepare": "husky",
+    "check": "run-s check:*",
+    "check:markdownlint-cli2": "bunx markdownlint-cli2",
+    "check:ultracite": "sh scripts/check.sh",
+    "fix": "run-s fix:*",
+    "fix:markdownlint-cli2": "bunx markdownlint-cli2 --fix",
+    "fix:ultracite": "sh scripts/fix.sh"
   },
   "devDependencies": {
     "@oxc-project/types": "^0.134.0",
+    "husky": "^9.0.0",
     "markdownlint": "^0.40.0",
     "markdownlint-cli2": "^0.22.1",
+    "npm-run-all2": "^8.0.0",
     "oxfmt": "^0.53.0",
     "oxlint": "^1.68.0",
     "ultracite": "^7.8.1"
