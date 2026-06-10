@@ -5,7 +5,7 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleProvider
 import com.pinterest.ktlint.rule.engine.core.api.RuleSetId
 
 /**
- * Provider for the Harness custom ktlint rule set.
+ * Provider for the custom ktlint rule set.
  */
 class RuleSetProvider : RuleSetProviderV3(RuleSetId("code")) {
     override fun getRuleProviders(): Set<RuleProvider> = setOf(

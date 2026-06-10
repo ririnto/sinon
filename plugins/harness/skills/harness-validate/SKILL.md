@@ -30,12 +30,12 @@ Run the native harness validation command for the target repository. This plugin
 
 ## First Safe Checks
 
-1. Read `docs/harness/README.md` to confirm the selected stack and validation command.
+1. Read `docs/README.md` to confirm the selected stack and validation command.
 2. Confirm the target stack from the argument or repository files.
 3. Check that validation is being run from the target repository root; uv, bun, and Maven validators bind the current working directory as the target root.
-4. Prefer the stack command documented in `docs/harness/README.md` over ad hoc checks.
+4. Prefer the stack command documented in `docs/README.md` over ad hoc checks.
 5. Inspect `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml` when validation is being checked through CI, but run local validation from the target root first.
-6. Open `docs/harness/README.md` when command selection is unclear.
+6. Open `docs/README.md` when command selection is unclear.
 
 ## Preflight
 
@@ -43,7 +43,7 @@ Check these support surfaces before running the stack command.
 
 | Path | Use it for | Failure example |
 | --- | --- | --- |
-| `docs/harness/README.md` | Selected validation command and stack notes | `docs/harness/README.md: missing harness file - run harness-install or restore target-owned README` |
+| `docs/README.md` | Selected validation command and stack notes | `docs/README.md: missing harness file - run harness-install or restore target-owned README` |
 | `.github/workflows/<tool>.yaml` | GitHub Actions command parity (when present) | `.github/workflows/<tool>.yaml: CI command mismatch - expected generated pre-push final check command` |
 | `.gitlab-ci.yml` | GitLab CI command parity | `.gitlab-ci.yml: CI command mismatch - expected generated pre-push final check command` |
 
@@ -70,7 +70,7 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun run check` |
 | `shell` | shell-script-only or Makefile-driven repository | `sh scripts/check.sh` |
 
-The installed README command is the local harness validation command. The generated `docs/harness/git-hooks/pre-commit` and `pre-push` command markers both carry this same stack validation command listed above.
+The installed README command is the local harness validation command. The generated `docs/git-hooks/pre-commit` and `pre-push` command markers both carry this same stack validation command listed above.
 
 ## Command Examples
 
@@ -140,7 +140,7 @@ failures:
 
 | Category | Evidence | Smallest valid action |
 | --- | --- | --- |
-| Missing harness file | Validator names an absent `AGENTS.md`, `docs/harness/**`, docs file, agent, or skill | Re-run installation or restore the missing target-owned file. |
+| Missing harness file | Validator names an absent `AGENTS.md`, `docs/**`, agent, or skill | Re-run installation or restore the missing target-owned file. |
 | Missing harness directory | Validator names an absent docs, `.claude/agents`, `.claude/skills`, or template directory | Restore the directory and required `.gitkeep` files when empty. |
 | Stale placeholder | File exists but still contains generic scaffold content | Replace placeholder with target truth; do not invent product facts. |
 | Agent or skill metadata | Agent or skill frontmatter lacks required `name` or `description` | Fix the specific agent or skill metadata. |

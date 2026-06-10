@@ -27,7 +27,7 @@ This skill is report-only unless the user separately asks for implementation. Pr
 
 ## First Safe Checks
 
-1. Read `AGENTS.md`, `docs/harness/README.md`, and any active execution-plan entry under `docs/exec-plans/` that touches the harness.
+1. Read `AGENTS.md`, `docs/README.md`, and any active execution-plan entry under `docs/exec-plans/` that touches the harness.
 
 2. Inspect the user-provided delta summary and current `git diff` for harness-owned files.
 3. Separate product changes from harness changes.
@@ -42,7 +42,7 @@ git status --short
 git diff -- AGENTS.md CLAUDE.md ARCHITECTURE.md docs .claude .github/workflows .gitlab-ci.yml
 ```
 
-Use the stack validation command from `docs/harness/README.md`; do not guess a command when the installed README already names one.
+Use the stack validation command from `docs/README.md`; do not guess a command when the installed README already names one.
 
 ## Workflow
 
@@ -51,9 +51,9 @@ Use the stack validation command from `docs/harness/README.md`; do not guess a c
     | Change type | Typical files |
     | --- | --- |
     | Context contract | `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md` |
-    | Documentation structure | `docs/**`, `docs/harness/templates/docs/**` |
+    | Documentation structure | `docs/**`, `docs/templates/docs/**` |
     | Work surface | `.claude/agents/**`, `.claude/skills/**` |
-    | Validation surface | `docs/harness/**`, CI snippets, hook templates |
+    | Validation surface | `docs/git-hooks/**`, CI snippets, hook templates |
     | Generated artifacts | `docs/generated/**`, generated-artifact template |
 
 2. Decide whether the change is a legitimate evolution or a local drift.
@@ -84,7 +84,7 @@ Use this sequence before recommending deletion:
 
 1. Identify the owning surface: CI, hooks, docs, generated artifacts, agents, skills, seed references, or stack runtime.
 2. Classify the artifact as required, optional seed, generated output, or target-owned runtime state.
-3. Check `docs/harness/README.md`, installer assets, validators, hook/CI examples, and self-check fixtures for the same expectation.
+3. Check `docs/README.md`, installer assets, validators, hook/CI examples, and self-check fixtures for the same expectation.
 4. If every contract marks the surface optional or replaced, propose removal plus the matching docs/validator/CI updates.
 5. If any contract still requires it, reject the deletion as drift or first evolve the contract that makes it required.
 
@@ -103,7 +103,7 @@ risks: downstream docs may still mention GitHub pull request checks.
 ```text
 delta: Plugin package should stop receiving GitHub-only CI scaffolding for this policy.
 decision: evolve only when this cleanup is also intended for future installs.
-contract updates: update installer templates, `docs/harness/README.md`, and self-check expectations together; this is separate from target-side cleanup of existing installs.
+contract updates: update installer templates, `docs/README.md`, and self-check expectations together; this is separate from target-side cleanup of existing installs.
 validation impact: selected stack command must pass and post-install CI renderings must still match generated `pre-push`.
 risks: mixed-host repositories may still need optional GitHub rendering.
 ```
@@ -133,10 +133,10 @@ Use the project phase to decide how strict the evolution should be.
 Use this checklist before proposing or applying harness evolution.
 
 - `AGENTS.md` and `CLAUDE.md` still describe the same target contract.
-- `docs/harness/README.md` names the current validation command.
-- `docs/harness/README.md` documents the selected stack validation command and CI host configuration.
+- `docs/README.md` names the current validation command.
+- `docs/README.md` documents the selected stack validation command and CI host configuration.
 - `.claude/agents/**` and `.claude/skills/**` remain self-sufficient for target repository use.
-- `docs/harness/templates/**` still contain placeholders only where the template renderer or human copy step expects them.
+- `docs/templates/**` still contain placeholders only where the template renderer or human copy step expects them.
 - `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml`, when present, run the selected final check command.
 - `docs/generated/**` contains real generated artifacts or `.gitkeep`, not fake readiness files.
 - A `docs/exec-plans/` entry records the reason, files changed, validation command, and remaining follow-up for any non-trivial evolution.
@@ -210,7 +210,7 @@ risks: downstream docs may still link to the old artifact.
 ### Rejected drift
 
 ```text
-delta: `docs/harness/git-hooks/pre-push` was deleted because hook validation failed.
+delta: `docs/git-hooks/pre-push` was deleted because hook validation failed.
 decision: reject as drift
 contract updates: restore or regenerate the selected-mode two-stage hook templates.
 validation impact: rerun the selected stack command and inspect hook docs.
@@ -220,7 +220,7 @@ risks: active `pre-commit` and `pre-push` hook files remain target repository fi
 ### Deferred dispatcher migration
 
 ```text
-delta: Adopt `docs/harness/validate.sh` as a generic dispatcher.
+delta: Adopt `docs/validate.sh` as a generic dispatcher.
 decision: defer until README, installer, CI templates, hook generation, validators, and self-check agree on the dispatcher contract.
 contract updates: none yet.
 validation impact: keep the current selected stack command.

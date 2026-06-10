@@ -51,12 +51,12 @@ This plugin ships no commands.
 
 - `scripts/plugin-self-check.sh` validates packaged and tracked plugin files: per-stack asset presence, hook-sync wiring, CI command parity, split helper packaging under `scripts/plugin-self-check/`, installer module packaging under `skills/harness-install/scripts/install_harness/`, source-size policy, style hardening contracts (no leading-underscore declarations in implementation files, no one-line Python docstrings on public symbols, no static `SKIP_TREE_PARTS` path filtering), and native-tool smoke checks (`bunx`, `uv`, `shellcheck`, `shfmt` version probes). It skips a stack gracefully when its toolchain is absent from PATH.
 - `skills/harness-install/scripts/install-harness.py` is the executable installer entry point; `skills/harness-install/scripts/install_harness/` contains the packaged implementation modules. The installer discovers installable target assets via `git ls-files` rather than hardcoded directory-name filtering, ensuring only version-controlled files enter the install plan.
-- `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs/harness`, docs, CI, validation adapters, and Git hook scaffolds.
+- `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs`, CI, validation adapters, and Git hook scaffolds.
 - Long Markdown files under `skills/harness-install/assets/common/docs/references/` are packaged reference material, not source modules. The plugin self-check rejects oversized first-party source files and long Markdown outside that reference location.
 
 ## Runtime Model
 
-The Claude Code manifest declares only `./skills/`. Plugin-root agents remain in `agents/` as optional structural specialists for changing the target repository's harness contract, but they are not declared in `.claude-plugin/plugin.json` and are not copied into target repositories. Target repository agents, project skills, docs, CI snippets, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become target-owned only after installation. The plugin does not expose top-level hooks; packaged hook scaffolds live under `skills/harness-install/assets/common/docs/harness/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
+The Claude Code manifest declares only `./skills/`. Plugin-root agents remain in `agents/` as optional structural specialists for changing the target repository's harness contract, but they are not declared in `.claude-plugin/plugin.json` and are not copied into target repositories. Target repository agents, project skills, docs, CI snippets, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become target-owned only after installation. The plugin does not expose top-level hooks; packaged hook scaffolds live under `skills/harness-install/assets/common/docs/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
 
 ## Target Ownership
 
@@ -97,15 +97,15 @@ ARCHITECTURE.md
 CLAUDE.md
 .claude/
 |-- agents/
-|   |-- harness-implementation-agent.md
-|   |-- harness-orchestrator.md
-|   `-- harness-review-agent.md
+|   |-- implementation-agent.md
+|   |-- orchestrator.md
+|   `-- review-agent.md
 `-- skills/
-    |-- harness-orchestrate/
+    |-- orchestrate/
     |   `-- SKILL.md
-    |-- harness-review/
+    |-- review/
     |   `-- SKILL.md
-    `-- harness-validate/
+    `-- validate/
         `-- SKILL.md
 docs/
 |-- design-docs/
@@ -118,18 +118,19 @@ docs/
 |   `-- tech-debt-tracker.md
 |-- generated/
 |   `-- .gitkeep
-|-- harness/
-|   |-- README.md
-|   |-- git-hooks/
-|   |   |-- pre-commit
-|   |   `-- pre-push
-|   `-- templates/
+|-- git-hooks/
+|   |-- pre-commit
+|   `-- pre-push
 |-- product-specs/
 |   `-- new-user-onboarding.md
 |-- references/
 |   |-- openai-harness-engineering.md
 |   |-- README.md
 |   `-- symphony-spec.md
+|-- README.md
+|-- scripts/
+|   `-- exec-plan-links.ts
+|-- templates/
 |-- DESIGN.md
 |-- FRONTEND.md
 |-- PLANS.md
@@ -139,7 +140,7 @@ docs/
 `-- SECURITY.md
 ```
 
-Empty required directories are kept in version control with `.gitkeep`. `docs/harness/git-hooks/pre-commit` and `docs/harness/git-hooks/pre-push` are generated, target-owned hook templates that both run the selected-mode command rendered from `{{validation_command}}`; each stack's check command syncs these templates into the active hooks directory (resolved via `git rev-parse --git-path hooks`) when it runs, so the hooks activate on the first local check rather than at install time. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
+Empty required directories are kept in version control with `.gitkeep`. `docs/git-hooks/pre-commit` and `docs/git-hooks/pre-push` are generated, target-owned hook templates that both run the selected-mode command rendered from `{{validation_command}}`; each stack's check command syncs these templates into the active hooks directory (resolved via `git rev-parse --git-path hooks`) when it runs, so the hooks activate on the first local check rather than at install time. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
 In fresh installed target repositories, `CLAUDE.md` is the primary harness contract and Claude Code entry point, and `AGENTS.md` is a symlink alias to `CLAUDE.md`. When refreshing an existing AGENTS-only repository, the installer may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias instead. In either orientation, runtimes that load either filename resolve to the same document.
 
@@ -155,7 +156,7 @@ In fresh installed target repositories, `CLAUDE.md` is the primary harness contr
 
 Each installed mode renders `{{validation_command}}` to the concrete command (`./gradlew ktlintCheck`, the Maven `./mvnw validate`/`-DspotlessFiles` command, `uv run scripts/check.py`, `bun run check`, or `sh scripts/check.sh`) in target common assets.
 
-Run validation commands from the target repository root. Every stack validator runs `npx -y markdownlint-cli2@0.22.1` against installed `.markdownlint-cli2.jsonc` and the local rule at `docs/harness/scripts/exec-plan-links.ts`; this requires Node.js >=22.18.0 with npm/npx available and may download markdownlint-cli2 on first use. The shell validator is a portable POSIX shell script and also requires both `shellcheck` and `shfmt` on PATH.
+Run validation commands from the target repository root. Every stack validator runs `npx -y markdownlint-cli2@0.22.1` against installed `.markdownlint-cli2.jsonc` and the local rule at `docs/scripts/exec-plan-links.ts`; this requires Node.js >=22.18.0 with npm/npx available and may download markdownlint-cli2 on first use. The shell validator is a portable POSIX shell script and also requires both `shellcheck` and `shfmt` on PATH.
 
 The bun validator runs through `bun run check` (a package.json script that runs `sh scripts/check.sh`, which syncs Git hooks, prepares dev dependencies with `bun install --no-save`, then runs `bunx ultracite check --`; JavaScript files use oxlint JSDoc tag rules so JSDoc remains usable as type input, while the local oxlint JS plugin rule `tsdoc/require-export-tsdoc` from `scripts/tsdoc-plugin.ts` requires TSDoc only on TypeScript exported top-level functions, exported top-level constants/variables, exported classes, and public methods/accessors on exported classes.
 
@@ -219,7 +220,7 @@ Fix commands are idempotent: a second run produces no additional modifications. 
 
 ## Git Hooks
 
-The installer writes two selected-mode hook templates under `docs/harness/git-hooks/` (tracked in the repository). Both `pre-commit` and `pre-push` run the selected-mode command rendered from `{{validation_command}}`.
+The installer writes two selected-mode hook templates under `docs/git-hooks/` (tracked in the repository). Both `pre-commit` and `pre-push` run the selected-mode command rendered from `{{validation_command}}`.
 
 The installer does not write into `.git/hooks/`. Instead, every stack's check command syncs the tracked templates into the active hooks directory each time it runs: it resolves the directory through `git rev-parse --git-path hooks` (so linked worktrees and custom Git layouts resolve correctly), copies any `pre-commit`/`pre-push` whose content differs, and marks them executable. Gradle and Maven perform this sync through the build tool (a `ktlintCheck` `doLast` action and a `maven-antrun-plugin` execution bound to `validate`); uv, bun, and shell perform it inside their check scripts. Hooks therefore activate after the first local check run rather than at install time, and they stay in sync automatically as the tracked templates change.
 

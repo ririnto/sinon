@@ -94,7 +94,7 @@
         <version>3.2.0</version>
         <executions>
           <execution>
-            <id>check-harness-markdown</id>
+            <id>check-markdown</id>
             <phase>validate</phase>
             <goals>
               <goal>run</goal>

@@ -16,7 +16,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "harness-target"
+rootProject.name = "project"
 
 gitHooks {
     preCommit {

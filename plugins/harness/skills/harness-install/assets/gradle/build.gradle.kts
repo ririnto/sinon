@@ -53,7 +53,7 @@ allprojects {
     }
 }
 
-tasks.register("checkHarnessMarkdown") {
+tasks.register("checkMarkdown") {
     doLast {
         providers
             .exec {
@@ -68,6 +68,6 @@ tasks.register("checkHarnessMarkdown") {
 }
 
 tasks.named("ktlintCheck") {
-    dependsOn("checkHarnessMarkdown")
+    dependsOn("checkMarkdown")
 }
 

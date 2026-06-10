@@ -6,7 +6,7 @@
 # ///
 
 """
-Harness check runner using native ruff.
+Check runner using native ruff.
 """
 
 from __future__ import annotations

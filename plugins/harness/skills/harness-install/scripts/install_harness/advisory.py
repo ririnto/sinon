@@ -80,8 +80,8 @@ class AdvisoryMixin(models.InstallerSupport):
     def print_summary(self, only_selected: str | None = None) -> None:
 
         print("")
-        print(f"harness target: {Path.cwd()}")
-        print(f"harness mode: {self.config.mode}")
+        print(f"target: {Path.cwd()}")
+        print(f"mode: {self.config.mode}")
         print(f"ci-host: {self.config.ci_host}")
         print(f"validation command: {self.config.validation_command}")
         if only_selected is not None:

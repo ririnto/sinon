@@ -21,7 +21,7 @@ Delete rows below that do not apply to this project. Replace placeholders with r
 
 ## Surface Legibility
 
-- Mark stable interactive and test-indexable UI elements with `data-testid` attributes so headless drivers (Chrome DevTools MCP, Playwright, agent harnesses) can locate state without fragile selectors.
+- Mark stable interactive and test-indexable UI elements with `data-testid` attributes so headless drivers (Chrome DevTools MCP, Playwright, agent frameworks) can locate state without fragile selectors.
 - Use canonical state markers (`data-state="loading"`, `data-state="error"`, `data-state="empty"`) on UI containers so agents detect state transitions deterministically.
 - Mirror structured log lines for surface-level events (request received, validation rejected, response sent) into the dev console and the central log stream so the same query language works for UI debugging and API debugging.
 - For non-UI surfaces (CLI, API, SDK), publish a machine-readable surface contract (OpenAPI / GraphQL schema / typed SDK definition / `--help` output schema) and treat that contract as the source of truth for changes.

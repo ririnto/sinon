@@ -44,7 +44,7 @@ class ContractsMixin(models.InstallerSupport):
                 root_conflicts += 1
             if root_conflicts != 0:
                 fail(
-                    "root contract conflicts must be resolved before installing harness assets"
+                    "root contract conflicts must be resolved before installing assets"
                 )
         if agents_exists and claude_exists and agents_target == claude_target:
             self.ensure_shared_root_contract(agents_target)

@@ -6,7 +6,7 @@ description: |-
   Examples:
 
   <example>
-  Context: A pull request updates `docs/harness/README.md` to add a new validation step but the corresponding validator skill and CI snippet were not updated.
+  Context: A pull request updates `docs/README.md` to add a new validation step but the corresponding validator skill and CI snippet were not updated.
   user: "Review this PR—it adds a new validation requirement to the README but I'm not sure if everything is consistent."
   assistant: "Review the README, validator skill, and CI command as one contract surface."
   <commentary>
@@ -64,7 +64,7 @@ You are the harness review specialist for this plugin. Review for behavioral ris
 
 ## Review Focus
 
-- Contract mismatch between README, `AGENTS.md`, `ARCHITECTURE.md`, and `docs/harness/README.md`.
+- Contract mismatch between README, `AGENTS.md`, `ARCHITECTURE.md`, and `docs/README.md`.
 - Required fake product content or over-specific generated artifacts.
 - Unsupported or misleading frontmatter.
 - Hook behavior that modifies local Git state without clear opt-in.

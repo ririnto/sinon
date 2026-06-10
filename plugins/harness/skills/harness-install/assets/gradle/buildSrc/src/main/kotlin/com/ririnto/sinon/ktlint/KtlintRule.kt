@@ -10,9 +10,9 @@ import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.psi.KtFile
 
 /**
- * Base class for Harness custom ktlint rules.
+ * Base class for custom ktlint rules.
  *
- * Restricts every Harness rule to Kotlin source files by skipping Kotlin script files such as
+ * Restricts every rule to Kotlin source files by skipping Kotlin script files such as
  * `build.gradle.kts` and `settings.gradle.kts`, so build scripts are linted only by the standard
  * rule set. Subclasses implement [visitNode] instead of overriding the node visitor directly.
  */

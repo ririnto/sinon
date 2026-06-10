@@ -11,20 +11,20 @@ Replace the example milestones below with your own; keep the columns and status 
 | Milestone | Target outcome | Status | Owner | Notes |
 | --- | --- | --- | --- | --- |
 | M1: Discovery and product spec | Validated product spec under `docs/product-specs/` | shipped | project-owner | |
-| M2: Architecture and harness installed | `ARCHITECTURE.md` + harness validator green | shipped | project-owner | |
+| M2: Architecture and contracts installed | `ARCHITECTURE.md` + validator green | shipped | project-owner | |
 | M3: Internal beta with daily-driver agents | End-to-end agent workflow with hooks + CI green | in flight | project-owner | |
 | M4: External alpha | Opt-in alpha users, observability and feedback loop | planned | project-owner | |
 | M5: General availability | SLOs met for one full month + retention dashboards green | planned | project-owner | |
 
 ## Sequencing Rationale
 
-- M1 precedes everything because the harness needs a product spec to validate against. See `docs/product-specs/`.
+- M1 precedes everything because the repository needs a product spec to validate against. See `docs/product-specs/`.
 - M2 precedes M3 because the validator must be green before any agent-driven implementation lands. See `docs/design-docs/`.
 - M4 precedes M5 because external alpha feedback is required to confirm the SLOs targeted at GA. See `docs/RELIABILITY.md`.
 
 ## Dependencies
 
-- M3 depends on M2 because the harness validator gates every implementation PR.
+- M3 depends on M2 because the validator gates every implementation PR.
 - M4 depends on observability landing in M3 because alpha users will surface failures that need traces.
 - M5 depends on SLO definitions in `docs/RELIABILITY.md` being green for the GA window.
 

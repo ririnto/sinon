@@ -73,7 +73,7 @@ def is_common_skip_path(rel: str) -> bool:
 
 def is_direct_template_entry(rel: str) -> bool:
 
-    return rel.startswith("docs/harness/templates/") and rel.count("/") == 3
+    return rel.startswith("docs/templates/") and rel.count("/") == 2
 
 
 def required_selected_path(config) -> str:
