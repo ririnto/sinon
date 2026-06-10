@@ -15,7 +15,7 @@ metadata:
     - "https://docs.spring.io/spring-integration/reference/http.html"
     - "https://docs.spring.io/spring-integration/reference/jdbc.html"
     - "https://docs.spring.io/spring-integration/reference/testing.html"
-  version: "7.0.4"
+  version: "7.1.0"
 ---
 
 ## Boundaries
@@ -54,7 +54,7 @@ Choose the simplest channel and endpoint pair that matches the delivery semantic
 
 Use the Boot starter for core Integration features and add only the protocol modules the flow actually needs.
 
-For the current stable line, Spring Integration is 7.0.4. The latest released Spring Boot line, 4.0.6, already manages Spring Integration 7.0.4. Older Boot 3.5.x applications still manage Spring Integration 6.5.8 and therefore remain a separate compatibility branch.
+For the current stable line, Spring Integration is 7.1.0. The latest released Spring Boot line, 4.1.0, already manages Spring Integration 7.1.0. Older Boot 3.5.x applications still manage Spring Integration 6.5.8 and therefore remain a separate compatibility branch.
 
 ### Core baseline
 

@@ -8,7 +8,7 @@ metadata:
   reference-doc-urls:
     - "https://docs.spring.io/spring-hateoas/docs/current/reference/html/"
   compatibility-note: "Keep examples aligned with the Spring HATEOAS version already chosen in the project when docs and plugin listings differ slightly."
-  version: "3.0.3"
+  version: "3.1.1"
 ---
 
 ## Boundaries

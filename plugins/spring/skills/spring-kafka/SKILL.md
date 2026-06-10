@@ -7,7 +7,7 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-kafka"
   reference-doc-urls:
     - "https://docs.spring.io/spring-kafka/reference/index.html"
-  version: "4.0.5"
+  version: "4.1.0"
 ---
 
 ## Boundaries
@@ -44,7 +44,7 @@ Keep the default path small: one producer, one listener, one serialization strat
 
 Use Spring Kafka for application code and the Kafka test module for integration tests.
 
-The current stable Spring Kafka line is `4.0.5`. The `4.1.x` line is still milestone-only and should be treated as upcoming until it reaches GA. Spring Boot `4.0.x` manages Spring Kafka `4.0.x`; older Spring Boot `3.5.x` and `3.4.x` applications remain on the `3.3.x` line and should be treated as a separate compatibility branch.
+The current stable Spring Kafka line is `4.1.0`. Spring Boot `4.1.x` manages Spring Kafka `4.1.x`; older Spring Boot `3.5.x` and `3.4.x` applications remain on the `3.3.x` line and should be treated as a separate compatibility branch.
 
 ```xml
 <dependencies>

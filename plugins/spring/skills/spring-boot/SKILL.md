@@ -9,7 +9,7 @@ metadata:
     - "https://docs.spring.io/spring-boot/index.html"
     - "https://docs.spring.io/spring-boot/system-requirements.html"
     - "https://docs.spring.io/spring-boot/reference/index.html"
-  version: "4.0.6"
+  version: "4.1.0"
 ---
 
 ## Boundaries
@@ -39,7 +39,7 @@ Use Boot dependency management and only the starters the application actually ne
 <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.6</version>
+        <version>4.1.0</version>
     <relativePath/>
 </parent>
 

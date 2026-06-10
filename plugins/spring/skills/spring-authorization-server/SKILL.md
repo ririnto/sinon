@@ -10,7 +10,7 @@ metadata:
     - "https://docs.spring.io/spring-authorization-server/reference/configuration-model.html"
     - "https://docs.spring.io/spring-authorization-server/reference/core-model-components.html"
     - "https://docs.spring.io/spring-authorization-server/reference/protocol-endpoints.html"
-  version: "1.5.7"
+  version: "1.5.8"
 ---
 
 ## Purpose

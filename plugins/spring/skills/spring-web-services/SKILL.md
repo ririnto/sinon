@@ -7,7 +7,7 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-ws"
   reference-doc-urls:
     - "https://docs.spring.io/spring-ws/docs/current/reference/html/"
-  version: "5.0.1"
+  version: "5.0.2"
   compatibility-note: "When the reference page and project listing disagree, align examples to the Spring Web Services version already selected in the build."
 ---
 

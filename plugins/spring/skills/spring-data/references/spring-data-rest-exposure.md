@@ -6,7 +6,7 @@ Use Spring Data REST only when repository exposure is an intentional API choice.
 
 This path is for Spring MVC / servlet-based repository exposure. For reactive HTTP endpoints, keep the repository internal and build the contract explicitly in the reactive web layer.
 
-This reference assumes the current stable Spring Data REST line shipped with release train `2025.1.5`. Treat `2026.0.x` material as upcoming until that train reaches GA.
+This reference assumes the current stable Spring Data REST line shipped with release train `2026.0.0`.
 
 Do not expose repositories directly just because the feature exists.
 

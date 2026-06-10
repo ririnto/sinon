@@ -7,7 +7,7 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-session"
   reference-doc-urls:
     - "https://docs.spring.io/spring-session/reference/index.html"
-  version: "4.0.3"
+  version: "4.1.0"
 ---
 
 ## Boundaries

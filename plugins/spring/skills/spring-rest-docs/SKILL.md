@@ -8,10 +8,10 @@ metadata:
   reference-doc-urls:
     - "https://docs.spring.io/spring-restdocs/"
     - "https://docs.spring.io/spring-restdocs/tutorial/getting-started/index.html"
-  version: "4.0.0"
+  version: "4.0.1"
 ---
 
-The latest released Spring REST Docs line is 4.0.0. On this line the ordinary supported documentation surfaces are MockMvc and WebTestClient, so older REST Assured guidance must stay out of the common path.
+The latest released Spring REST Docs line is 4.0.1. On this line the ordinary supported documentation surfaces are MockMvc and WebTestClient, so older REST Assured guidance must stay out of the common path.
 
 ## Boundaries
 
@@ -49,7 +49,7 @@ Use only the test module that matches the chosen test surface.
     <dependency>
         <groupId>org.springframework.restdocs</groupId>
         <artifactId>spring-restdocs-mockmvc</artifactId>
-        <version>4.0.0</version>
+        <version>4.0.1</version>
         <scope>test</scope>
     </dependency>
 </dependencies>
@@ -157,7 +157,7 @@ tasks.asciidoctor {
             <dependency>
                 <groupId>org.springframework.restdocs</groupId>
                 <artifactId>spring-restdocs-asciidoctor</artifactId>
-                <version>4.0.0</version>
+                <version>4.0.1</version>
             </dependency>
         </dependencies>
         <executions>

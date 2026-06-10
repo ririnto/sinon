@@ -7,10 +7,10 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-vault"
   reference-doc-urls:
     - "https://docs.spring.io/spring-vault/reference/index.html"
-  version: "4.0.2"
+  version: "4.1.0"
 ---
 
-The latest released Spring Vault line is 4.0.2. Keep the frontmatter docs URL unversioned, but pin the concrete artifact example in this skill to 4.0.2 because this skill documents the current released standalone client path rather than a Spring BOM-managed path.
+The latest released Spring Vault line is 4.1.0. Keep the frontmatter docs URL unversioned, but pin the concrete artifact example in this skill to 4.1.0 because this skill documents the current released standalone client path rather than a Spring BOM-managed path.
 
 ## Boundaries
 
@@ -59,7 +59,7 @@ Use `spring-vault-core` for direct client access. Add Spring Boot config integra
     <dependency>
         <groupId>org.springframework.vault</groupId>
         <artifactId>spring-vault-core</artifactId>
-        <version>4.0.2</version>
+        <version>4.1.0</version>
     </dependency>
 </dependencies>
 ```

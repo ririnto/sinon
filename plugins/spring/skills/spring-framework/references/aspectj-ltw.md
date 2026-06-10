@@ -21,7 +21,7 @@ Add the minimum AspectJ load-time weaving libraries first. In this standalone Sp
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-framework-bom</artifactId>
-            <version>7.0.7</version>
+            <version>7.0.8</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>

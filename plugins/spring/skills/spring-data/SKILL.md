@@ -14,9 +14,9 @@ metadata:
     - "https://docs.spring.io/spring-data/relational/reference/r2dbc.html"
     - "https://docs.spring.io/spring-data/rest/reference/index.html"
   release-line-kind: "stable-ga"
-  release-train: "2025.1.5"
-  commons-version: "4.0.5"
-  version: "2025.1.5"
+  release-train: "2026.0.0"
+  commons-version: "4.1.0"
+  version: "2026.0.0"
 ---
 
 ## Boundaries
@@ -56,7 +56,7 @@ Keep `spring-data` itself focused on repository abstractions shared across those
 
 If the project already imports the Spring Data BOM for this release train, omit child Spring Data versions from dependency examples and keep the BOM import as the single version anchor.
 
-The current stable Spring Data release train is `2025.1.5` with Commons `4.0.5`. `2026.0.0-RC1` exists as the next train candidate, but it is not the default baseline until that train reaches GA.
+The current stable Spring Data release train is `2026.0.0` with Commons `4.1.0`.
 
 ## First safe configuration
 
