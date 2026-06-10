@@ -22,7 +22,6 @@ class PlanningMixin(InstallerSupport):
             self.common_install_candidates()
             + self.root_contract_install_candidates()
             + self.stack_install_candidates()
-            + self.hook_install_candidates()
             + self.gitkeep_install_candidates()
         )
         return InstallPlan(tuple(candidates))
@@ -160,23 +159,6 @@ class PlanningMixin(InstallerSupport):
             real_target="CLAUDE.md",
             marker=marker,
         )
-
-    def hook_install_candidates(self) -> list[InstallCandidate]:
-
-        return [
-            InstallCandidate(
-                "generated-hook",
-                "docs/harness/git-hooks/pre-commit",
-                marker="Harness generated hook: pre-commit",
-                stage="pre-commit",
-            ),
-            InstallCandidate(
-                "generated-hook",
-                "docs/harness/git-hooks/pre-push",
-                marker="Harness generated hook: pre-push",
-                stage="pre-push",
-            ),
-        ]
 
     def gitkeep_install_candidates(self) -> list[InstallCandidate]:
 

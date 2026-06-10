@@ -35,17 +35,3 @@ def validation_command_for_mode(mode: str) -> str:
     fail(
         f"[validation_command] unsupported mode (must be gradle|maven|uv|bun|shell): {mode}"
     )
-
-
-def generated_hook_text(stage: str, stage_label: str, validation_command: str) -> str:
-
-    return (
-        "#!/usr/bin/env sh\n"
-        "# -*- coding: utf-8 -*-\n"
-        f"# Harness generated hook: {stage}\n"
-        f"# Harness stage: {stage_label}\n"
-        f"# Harness validation command: {validation_command}\n"
-        "set -e\n"
-        "\n"
-        f"{validation_command}\n"
-    )

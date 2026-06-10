@@ -50,7 +50,6 @@ class InstallCandidate:
     seed: bool = False
     real_target: str | None = None
     marker: str = ""
-    stage: str = ""
     symlink_target: str = ""
 
 
@@ -87,10 +86,6 @@ class InstallerSupport:
     def build_plan(self) -> InstallPlan:
         raise NotImplementedError
 
-    def install_one_target_hook_template(self, candidate: InstallCandidate) -> None:
-        del candidate
-        raise NotImplementedError
-
     def install_one_gitkeep_path(self, keep: str, *, create_only: bool = False) -> None:
         del keep, create_only
         raise NotImplementedError
@@ -108,9 +103,6 @@ class InstallerSupport:
     def ensure_gitkeep_paths(self) -> None:
         raise NotImplementedError
 
-    def install_target_hook_templates(self) -> None:
-        raise NotImplementedError
-
     def list_tracked_tree_files(self, src_dir: Path) -> list[Path]:
         del src_dir
         raise NotImplementedError
@@ -123,19 +115,7 @@ class InstallerSupport:
         del template_file
         raise NotImplementedError
 
-    def hook_install_candidates(self) -> list[InstallCandidate]:
-        raise NotImplementedError
-
     def root_contract_symlink_target(self, file_path: str) -> str:
         del file_path
         raise NotImplementedError
 
-    def is_managed_generated_hook(self, dst: str, marker: str) -> bool:
-        del dst, marker
-        raise NotImplementedError
-
-    def pre_commit_hook_text(self) -> str:
-        raise NotImplementedError
-
-    def pre_push_hook_text(self) -> str:
-        raise NotImplementedError
