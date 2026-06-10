@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`docs/references/` is the system of record for external documents that agents need to access offline. References are verbatim upstream content with attribution and an editor's note documenting repository-local deviations (such as CLAUDE.md vs. AGENTS.md naming, or .agents vs. .claude directory symlinks). The harness validator excludes this directory from leak and scaffold-token checks precisely because upstream may contain `TODO`, `{{...}}`, or other tokens that agents must not alter.
+`docs/references/` is the system of record for external documents that agents need to access offline. References are verbatim upstream content with attribution and an editor's note documenting repository-local deviations (such as CLAUDE.md vs. AGENTS.md naming, or .agents vs. .claude directory symlinks). The validator excludes this directory from leak and scaffold-token checks precisely because upstream may contain `TODO`, `{{...}}`, or other tokens that agents must not alter.
 
 ## Shipped References
 
@@ -19,10 +19,10 @@
 
 ## Template
 
-See `docs/harness/templates/docs/reference-llms.txt` for the canonical attribution skeleton. Use the template unchanged for the attribution block; only the verbatim body changes.
+See `docs/templates/docs/reference-llms.txt` for the canonical attribution skeleton. Use the template unchanged for the attribution block; only the verbatim body changes.
 
 ## Validation
 
-- The harness validator excludes this directory from leak checks.
+- The validator excludes this directory from leak checks.
 - Manual review by another agent or human is the only quality gate.
 - The editor's note must document every deviation from upstream.

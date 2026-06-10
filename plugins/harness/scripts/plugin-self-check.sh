@@ -162,7 +162,7 @@ require_text "$root/skills/harness-install/scripts/install-harness.py" '# /// sc
 require_text "$root/skills/harness-install/scripts/install-harness.py" 'requires-python'
 require_text "$root/skills/harness-install/scripts/install_harness/cli.py" 'def parse_args'
 require_text "$root/skills/harness-install/scripts/install_harness/contracts.py" 'if not self.config.force:'
-require_text "$root/skills/harness-install/scripts/install_harness/contracts.py" 'root contract conflicts must be resolved before installing harness assets'
+require_text "$root/skills/harness-install/scripts/install_harness/contracts.py" 'root contract conflicts must be resolved before installing assets'
 require_text "$root/skills/harness-install/scripts/install_harness/preview.py" 'def preview_install_set'
 require_text "$root/skills/harness-install/scripts/install_harness/preview.py" 'def show_one_target_path'
 require_text "$root/skills/harness-install/scripts/install_harness/operations.py" 'def install_one_target_path'

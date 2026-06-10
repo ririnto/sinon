@@ -9,7 +9,7 @@ assignee: "{{assignee}}"
 
 # {{yyyy-MM-dd}}-{{plan-slug}} Implementation Plan
 
-> For agentic workers: REQUIRED SUB-SKILL: use the installed `.claude/skills/harness-orchestrate` skill to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking; flip a checkbox only after the step's work and its named validation command pass.
+> For agentic workers: REQUIRED SUB-SKILL: use the installed `.claude/skills/orchestrate` skill to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking; flip a checkbox only after the step's work and its named validation command pass.
 
 Goal: {{single-sentence-outcome}}
 
@@ -62,7 +62,7 @@ Files:
 
     Expected: PASS
 
-- [ ] Step 5: Run the harness validator
+- [ ] Step 5: Run the stack validator
 
     Run: `{{stack-validation-command}}`
 
@@ -115,7 +115,7 @@ Files:
 
 ## Validation
 
-Run the stack-specific harness validation command after each task that touches required harness assets, and record the command and result in that task's checkbox.
+Run the stack-specific validation command after each task that touches required contract assets, and record the command and result in that task's checkbox.
 
 ## Rollback Criteria
 

@@ -11,9 +11,9 @@ from .models import CI_HOSTS, MODES, InstallerConfig
 
 
 class HarnessArgumentParser(argparse.ArgumentParser):
-    """Emit harness-specific CLI parser errors.
+    """Emit installer CLI parser errors.
 
-    The installer keeps argparse output consistent with the rest of the harness.
+    The installer keeps argparse output consistent.
     """
 
     def error(self, message: str) -> NoReturn:
@@ -33,7 +33,7 @@ def parse_args(argv: list[str]) -> InstallerConfig:
 
     parser = HarnessArgumentParser(
         prog="install-harness.py",
-        description="Install target-owned repository harness assets.",
+        description="Install target-owned repository assets.",
     )
     parser.add_argument(
         "--mode", choices=MODES, required=True, help="Target stack mode."
@@ -93,7 +93,7 @@ def parse_args(argv: list[str]) -> InstallerConfig:
 
 
 def main(argv: list[str]) -> int:
-    """Run the harness installer CLI.
+    """Run the installer CLI.
 
     Returns zero after the selected installer action completes.
     """

@@ -5,7 +5,7 @@
 # dependencies = []
 # ///
 """
-Harness fix runner using native ruff.
+Fix runner using native ruff.
 """
 
 from __future__ import annotations
