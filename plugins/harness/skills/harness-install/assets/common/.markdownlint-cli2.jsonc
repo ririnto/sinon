@@ -24,7 +24,7 @@
     "docs/exec-plans/links": true
   },
   "customRules": [
-    "./docs/harness/scripts/exec-plan-links.ts"
+    "./docs/scripts/exec-plan-links.ts"
   ],
   "gitignore": ".gitignore",
   "globs": [

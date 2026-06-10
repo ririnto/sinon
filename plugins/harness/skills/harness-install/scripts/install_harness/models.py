@@ -6,7 +6,7 @@ from pathlib import Path
 MODES = ("gradle", "maven", "uv", "bun", "shell")
 CI_HOSTS = ("github", "gitlab", "both", "none")
 VALIDATION_PLACEHOLDER = "{{validation_command}}"
-AGENTS_MARKER = "# Repository Harness Contract"
+AGENTS_MARKER = "# Repository Contract"
 CLAUDE_MARKER = "# Entry Point"
 
 SCRIPT_PATH = Path(__file__).resolve().parent.parent / "install-harness.py"
