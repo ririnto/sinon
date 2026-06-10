@@ -7,7 +7,7 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-graphql"
   reference-doc-urls:
     - "https://docs.spring.io/spring-graphql/reference/index.html"
-  version: "2.0.3"
+  version: "2.0.4"
 ---
 ## Purpose
 

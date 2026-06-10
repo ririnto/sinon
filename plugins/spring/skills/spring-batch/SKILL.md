@@ -33,7 +33,7 @@ The ordinary Spring Batch job is:
 
 Use the Boot starter for application code and the Batch test module for job and step tests.
 
-For the latest released line, Spring Batch itself is 6.0.3. The current Boot-managed path is Spring Boot 4.0.x with Spring Batch 6.0.x. Spring Boot 3.4.x and 3.5.x applications remain on the Spring Batch 5.2.x compatibility branch, so Batch 6-specific APIs require either the Boot 4.0.x path or an intentional direct Spring Batch 6.x path.
+For the latest released line, Spring Batch itself is 6.0.4. The current Boot-managed path is Spring Boot 4.1.x with Spring Batch 6.0.x. Spring Boot 3.4.x and 3.5.x applications remain on the Spring Batch 5.2.x compatibility branch, so Batch 6-specific APIs require either the Boot 4.1.x path or an intentional direct Spring Batch 6.x path.
 
 ```xml
 <dependencies>

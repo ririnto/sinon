@@ -9,7 +9,7 @@ metadata:
     - "https://docs.spring.io/spring-framework/reference/index.html"
     - "https://docs.spring.io/spring-framework/reference/core.html"
     - "https://docs.spring.io/spring-framework/reference/testing.html"
-  version: "7.0.7"
+  version: "7.0.8"
 ---
 
 ## Boundaries
@@ -58,7 +58,7 @@ Use only the Spring Framework modules the application actually needs.
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-framework-bom</artifactId>
-            <version>7.0.7</version>
+            <version>7.0.8</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>

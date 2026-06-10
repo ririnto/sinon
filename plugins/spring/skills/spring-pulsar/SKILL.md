@@ -7,7 +7,7 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-pulsar"
   reference-doc-urls:
     - "https://docs.spring.io/spring-pulsar/reference/"
-  version: "2.0.5"
+  version: "2.0.6"
 ---
 
 ## Boundaries

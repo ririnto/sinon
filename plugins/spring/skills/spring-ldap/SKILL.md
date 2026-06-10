@@ -8,10 +8,10 @@ metadata:
   reference-doc-urls:
     - "https://docs.spring.io/spring-ldap/reference/"
     - "https://docs.spring.io/spring-data/ldap/reference/"
-  version: "4.0.3"
+  version: "4.1.0"
 ---
 
-The latest released Spring LDAP line is 4.0.3. That 4.x line targets Spring Framework 7+, while Spring Boot 3.x still manages the parallel 3.x line, so keep the direct 4.0.3 path in this skill only when the project baseline already matches the 4.x generation. If the job needs `LdapRepository`, the current stable repository module is Spring Data LDAP 4.0.5, which depends on Spring LDAP 4.0.3.
+The latest released Spring LDAP line is 4.1.0. That 4.x line targets Spring Framework 7+, while Spring Boot 3.x still manages the parallel 3.x line, so keep the direct 4.1.0 path in this skill only when the project baseline already matches the 4.x generation. If the job needs `LdapRepository`, the current stable repository module is Spring Data LDAP 4.1.0, which depends on Spring LDAP 4.1.0.
 
 ## Boundaries
 
@@ -54,7 +54,7 @@ Prefer one mapping style per aggregate unless the schema forces a mixed approach
 
 ## Dependency baseline
 
-Use direct Spring LDAP artifacts for the ordinary 4.0.3 path. Treat Spring Boot starter wiring as a parallel Boot-managed path only when the project is already on the matching Boot generation.
+Use direct Spring LDAP artifacts for the ordinary 4.1.0 path. Treat Spring Boot starter wiring as a parallel Boot-managed path only when the project is already on the matching Boot generation.
 
 ### Runtime baseline
 
@@ -63,7 +63,7 @@ Use direct Spring LDAP artifacts for the ordinary 4.0.3 path. Treat Spring Boot 
     <dependency>
         <groupId>org.springframework.ldap</groupId>
         <artifactId>spring-ldap-core</artifactId>
-        <version>4.0.3</version>
+        <version>4.1.0</version>
     </dependency>
 </dependencies>
 ```
@@ -75,12 +75,12 @@ Use direct Spring LDAP artifacts for the ordinary 4.0.3 path. Treat Spring Boot 
     <dependency>
         <groupId>org.springframework.ldap</groupId>
         <artifactId>spring-ldap-core</artifactId>
-        <version>4.0.3</version>
+        <version>4.1.0</version>
     </dependency>
     <dependency>
         <groupId>org.springframework.data</groupId>
         <artifactId>spring-data-ldap</artifactId>
-        <version>4.0.5</version>
+        <version>4.1.0</version>
     </dependency>
 </dependencies>
 ```
@@ -198,7 +198,7 @@ class LdapConfiguration {
 }
 ```
 
-Use this direct bean path as the ordinary 4.0.3 baseline when the project is not relying on Boot-managed LDAP configuration.
+Use this direct bean path as the ordinary 4.1.0 baseline when the project is not relying on Boot-managed LDAP configuration.
 
 ### Direct repository configuration shape
 
