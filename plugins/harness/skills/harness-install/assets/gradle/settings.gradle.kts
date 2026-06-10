@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("org.danilopianini.gradle-pre-commit-git-hooks") version "2.0.9"
+    alias(libs.plugins.git.hooks)
 }
 
 dependencyResolutionManagement {
