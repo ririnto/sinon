@@ -68,8 +68,6 @@ def is_common_skip_path(rel: str) -> bool:
     return rel in {
         "AGENTS.md",
         "CLAUDE.md",
-        "docs/harness/git-hooks/pre-commit",
-        "docs/harness/git-hooks/pre-push",
     }
 
 

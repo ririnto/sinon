@@ -24,9 +24,6 @@ class OperationsMixin(InstallerSupport):
                 required_src(candidate), candidate.dst, seed=candidate.seed
             )
             return
-        if candidate.kind == "generated-hook":
-            self.install_one_target_hook_template(candidate)
-            return
         if candidate.kind == "gitkeep":
             self.install_one_gitkeep_path(candidate.dst)
             return
@@ -46,7 +43,6 @@ class OperationsMixin(InstallerSupport):
         self.ensure_agents_symlink()
         self.ensure_gitkeep_paths()
         self.copy_stack_tree(TEMPLATE_DIR / self.config.mode, ".")
-        self.install_target_hook_templates()
 
     def copy_tree(self, src_dir: Path, dst_dir: str, *, common: bool) -> None:
 
