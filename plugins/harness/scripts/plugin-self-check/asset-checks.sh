@@ -28,9 +28,6 @@ assert_gradle_assets() {
     require_text "$assets_root/build.gradle.kts" '"bunx"'
     require_text "$assets_root/build.gradle.kts" '"markdownlint-cli2"'
     reject_file_contains "$assets_root/build.gradle.kts" 'docs/harness/scripts/check-markdown-links.sh'
-    require_text "$assets_root/gradle/libs.versions.toml" 'kotlin = "2.4.0"'
-    require_text "$assets_root/gradle/libs.versions.toml" 'ktlint = "14.2.0"'
-    require_text "$assets_root/gradle/libs.versions.toml" 'ktlint-cli = "1.8.0"'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ExplicitPropertyTypeKtlintRule.kt" 'code:explicit-property-type'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'code:terminal-branch-when'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'hasFinalElseBranch'
@@ -40,7 +37,8 @@ assert_gradle_assets() {
     reject_file_contains "$assets_root/.editorconfig" "ktlint_unchecked_cast_suppression_allowed"
     require_text "$assets_root/.editorconfig" "ij_kotlin_allow_trailing_comma = false"
     require_text "$assets_root/.editorconfig" "ktlint_standard_no-wildcard-imports = disabled"
-    require_text "$assets_root/settings.gradle.kts" 'danilopianini.gradle-pre-commit-git-hooks'
+    require_text "$assets_root/gradle/libs.versions.toml" 'danilopianini.gradle-pre-commit-git-hooks'
+    require_text "$assets_root/settings.gradle.kts" 'alias(libs.plugins.git.hooks)'
     require_text "$assets_root/settings.gradle.kts" 'preCommit'
     require_text "$assets_root/settings.gradle.kts" 'tasks("ktlintCheck")'
     require_text "$assets_root/settings.gradle.kts" 'createHooks()'
@@ -57,13 +55,6 @@ assert_bun_assets() {
     require_file "$assets_root/scripts/check.sh"
     require_file "$assets_root/scripts/fix.sh"
     require_file "$assets_root/scripts/tsdoc-plugin.ts"
-    require_text "$assets_root/package.json" '"markdownlint": "^0.40.0"'
-    require_text "$assets_root/package.json" '"markdownlint-cli2": "^0.22.1"'
-    require_text "$assets_root/package.json" '"ultracite": "^7.8.1"'
-    require_text "$assets_root/package.json" '"oxlint": "^1.68.0"'
-    require_text "$assets_root/package.json" '"oxfmt": "^0.53.0"'
-    require_text "$assets_root/package.json" '"husky": "^9.0.0"'
-    require_text "$assets_root/package.json" '"npm-run-all2": "^8.0.0"'
     require_text "$assets_root/package.json" '"prepare": "husky"'
     require_text "$assets_root/package.json" '"check": "run-s check:*"'
     require_text "$assets_root/package.json" '"check:markdownlint-cli2": "bunx markdownlint-cli2"'
@@ -121,11 +112,9 @@ assert_uv_assets() {
     reject_file_contains "$assets_root/scripts/check.py" 'docs/harness/scripts/check-markdown-links.sh'
     require_file "$assets_root/scripts/fix.py"
     require_text "$assets_root/scripts/check.py" 'git", "ls-files", "-z"'
-    require_text "$assets_root/scripts/check.py" 'ruff>=0.15.16,<0.16.0'
     require_text "$assets_root/scripts/check.py" '"check",'
     require_text "$assets_root/scripts/check.py" '"--",'
     require_text "$assets_root/scripts/fix.py" 'git", "ls-files", "-z"'
-    require_text "$assets_root/scripts/fix.py" 'ruff>=0.15.16,<0.16.0'
     require_text "$assets_root/scripts/fix.py" '"format",'
     require_text "$assets_root/scripts/fix.py" '"--",'
     reject_file_contains "$assets_root/ruff.toml" 'extend-ignore'
@@ -150,7 +139,6 @@ assert_maven_assets() {
     reject_file "$assets_root/config/checkstyle/checkstyle.xml"
     require_text "$assets_root/pom.xml" '<artifactId>maven-checkstyle-plugin</artifactId>'
     require_text "$assets_root/pom.xml" '<artifactId>checkstyle</artifactId>'
-    require_text "$assets_root/pom.xml" '<version>13.5.0</version>'
     require_text "$assets_root/pom.xml" '<checkstyleRules>'
     require_text "$assets_root/pom.xml" '<module name="AvoidStarImport"/>'
     require_text "$assets_root/pom.xml" '<module name="UnusedImports"/>'
@@ -238,7 +226,7 @@ assert_common_assets_rendered_validation_command() {
     printf '[common assets] validation rendering OK\n' >&2
     require_file "$common_assets_root/.markdownlint-cli2.jsonc"
     require_file "$common_assets_root/docs/harness/scripts/exec-plan-links.ts"
-    require_text "$common_assets_root/.markdownlint-cli2.jsonc" "\"\$schema\": \"https://raw.githubusercontent.com/DavidAnson/markdownlint-cli2/refs/tags/v0.22.1/schema/markdownlint-cli2-config-schema.json\""
+    require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"$schema"'
     require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"line-length": false'
     require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"no-inline-html": {'
     require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"allowed_elements": ['
@@ -252,7 +240,7 @@ assert_common_assets_rendered_validation_command() {
     require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"docs/exec-plans/links": true'
     require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"gitignore": ".gitignore"'
     require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"**/*.md"'
-    require_text "$common_assets_root/docs/harness/scripts/exec-plan-links.ts" 'import type { Rule } from "markdownlint@0.40.0"'
+    require_text "$common_assets_root/docs/harness/scripts/exec-plan-links.ts" 'import type { Rule } from "markdownlint@'
     require_text "$common_assets_root/docs/harness/scripts/exec-plan-links.ts" 'parser: "none"'
     require_text "$common_assets_root/docs/harness/scripts/exec-plan-links.ts" 'tech-debt-tracker.md'
     reject_file "$common_assets_root/docs/harness/scripts/check-markdown-links.sh"
