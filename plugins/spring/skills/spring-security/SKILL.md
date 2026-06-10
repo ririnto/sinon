@@ -7,7 +7,7 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-security"
   reference-doc-urls:
     - "https://docs.spring.io/spring-security/reference/index.html"
-  version: "7.0.5"
+  version: "7.1.0"
 ---
 
 ## Boundaries
@@ -48,7 +48,7 @@ The ordinary Spring Security job is:
 
 ### Core starter and test support
 
-The standalone examples in this section pin the current stable Spring Security BOM, 7.0.5.
+The standalone examples in this section pin the current stable Spring Security BOM, 7.1.0.
 
 #### Spring Boot-managed path
 
@@ -77,7 +77,7 @@ Use this path when the build must target the standalone Spring Security BOM inst
 ```xml
 <dependencyManagement>
     <dependencies>
-        <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-bom</artifactId><version>7.0.5</version><type>pom</type><scope>import</scope></dependency>
+        <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-bom</artifactId><version>7.1.0</version><type>pom</type><scope>import</scope></dependency>
     </dependencies>
 </dependencyManagement>
 ```

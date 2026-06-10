@@ -12,10 +12,10 @@ metadata:
     - "https://docs.spring.io/spring-amqp/reference/amqp/receiving-messages/async-annotation-driven/container-management.html"
     - "https://docs.spring.io/spring-amqp/reference/amqp/resilience-recovering-from-errors-and-broker-failures.html"
     - "https://docs.spring.io/spring-amqp/reference/amqp/request-reply.html"
-  version: "4.0.3"
+  version: "4.1.0"
 ---
 
-The latest released Spring AMQP line is 4.0.3. Keep this skill on the 4.0.x stable line unless the project is intentionally evaluating the 4.1 preview line.
+The latest released Spring AMQP line is 4.1.0. Keep this skill on the 4.1.x stable line unless the project is intentionally evaluating the 4.2 preview line.
 
 ## Boundaries
 

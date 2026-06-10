@@ -7,10 +7,10 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-grpc"
   reference-doc-urls:
     - "https://docs.spring.io/spring-grpc/reference/"
-  version: "1.0.3"
+  version: "1.1.0"
 ---
 
-The latest stable Spring gRPC starter line is 1.0.3. The official reference is currently ahead on the 1.1.0-M1 line, where Spring Boot autoconfiguration and starters move into Spring Boot itself, so the ordinary path in this skill stays on the published 1.0.3 starter artifacts unless the project is intentionally opting into the milestone branch.
+The latest stable Spring gRPC line is 1.1.0. Starting with this release, Spring Boot 4.1 provides auto-configuration for gRPC servers and clients, so the ordinary path in this skill uses the Boot-managed starter artifacts.
 
 ## Boundaries
 
@@ -35,7 +35,7 @@ The ordinary Spring gRPC job is:
 | Situation | Stay here or open a branch |
 | --- | --- |
 | Stable server or client implementation using published starters | Stay in `SKILL.md` |
-| Project explicitly adopts the 1.1.0-M1 milestone line | Use the milestone branch below and re-verify Boot ownership of starters |
+| Project uses Boot-managed gRPC starters (4.1+) | Use the Boot-managed starters below |
 | Unary request-response is enough | Stay in `SKILL.md` |
 | Streaming RPCs or async stubs are required | Open [references/streaming-and-async-stubs.md](references/streaming-and-async-stubs.md) |
 | TLS, mTLS, bearer tokens, or OAuth2 are the blocker | Open [references/security-tls-mtls.md](references/security-tls-mtls.md) |
@@ -53,7 +53,7 @@ Keep reflection and optional support services out of the default path unless a c
 
 ## Dependency baseline
 
-Use only the starter set the application actually needs on the stable 1.0.3 line.
+Use only the starter set the application actually needs on the stable 1.1.0 line.
 
 ### Stable BOM baseline
 
@@ -63,7 +63,7 @@ Use only the starter set the application actually needs on the stable 1.0.3 line
         <dependency>
             <groupId>org.springframework.grpc</groupId>
             <artifactId>spring-grpc-dependencies</artifactId>
-            <version>1.0.3</version>
+            <version>1.1.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -163,7 +163,7 @@ Check generated sources into the ordinary build output, not into hand-maintained
 
 ### Milestone branch note
 
-The 1.1.0-M1 BOM and `spring-grpc-core` are published, but the dedicated server and client starter artifacts stop at 1.0.3 because the 1.1 line moves starters and autoconfiguration into Spring Boot. Treat that milestone path as an explicit compatibility branch, not the default path for this skill.
+Spring gRPC 1.1.0 moves starters and autoconfiguration into Spring Boot 4.1. Use the Boot-managed gRPC starters on this line.
 
 ## First safe configuration
 
@@ -476,7 +476,7 @@ GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalG
 - Prefer the autoconfigured observability interceptor when Actuator is already in use instead of hand-rolling duplicate metrics logic.
 - Distinguish server health publication from client health gating and enable each intentionally.
 - Expose reflection only when operations tooling requires it.
-- Keep the stable 1.0.3 starter line and the 1.1.0-M1 milestone branch separate in dependency guidance so starter coordinates never point at unpublished versions.
+- Use the Boot-managed gRPC starters on the 1.1.0 line; starter coordinates should align with the Boot version.
 - Keep transport errors and application errors distinct so retries and observability stay meaningful.
 
 ## References

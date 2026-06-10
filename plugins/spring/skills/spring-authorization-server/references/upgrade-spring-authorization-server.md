@@ -8,7 +8,7 @@ Problem: a version upgrade changes endpoint behavior, JWK handling, claims, or r
 
 Solution: treat the dependency upgrade as a compatibility review across issuer, keys, claims, and registered-client data.
 
-Spring Authorization Server `1.5.7` is the final standalone generation. The current active line is `7.0.5`, where authorization-server work continues under Spring Security 7.
+Spring Authorization Server `1.5.8` is the final standalone generation. The current active line is `7.1.0`, where authorization-server work continues under Spring Security 7.
 
 ```xml
 <dependency>
@@ -28,7 +28,7 @@ Spring Authorization Server `1.5.7` is the final standalone generation. The curr
 
 | Situation | First check |
 | --- | --- |
-| Upgrade branch fails to start | verify whether the target is the final standalone `1.5.7` line or the active Spring Security `7.0.5` line |
+| Upgrade branch fails to start | verify whether the target is the final standalone `1.5.8` line or the active Spring Security `7.1.0` line |
 | Resource servers reject new tokens | verify JWK material, `kid`, and claim compatibility |
 | Clients fail discovery after upgrade | verify issuer URL, metadata endpoint, and redirect URI compatibility |
 
