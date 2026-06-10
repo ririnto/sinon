@@ -37,8 +37,7 @@ assert_gradle_assets() {
     reject_file_contains "$assets_root/.editorconfig" "ktlint_unchecked_cast_suppression_allowed"
     require_text "$assets_root/.editorconfig" "ij_kotlin_allow_trailing_comma = false"
     require_text "$assets_root/.editorconfig" "ktlint_standard_no-wildcard-imports = disabled"
-    require_text "$assets_root/gradle/libs.versions.toml" 'danilopianini.gradle-pre-commit-git-hooks'
-    require_text "$assets_root/settings.gradle.kts" 'alias(libs.plugins.git.hooks)'
+    require_text "$assets_root/settings.gradle.kts" 'danilopianini.gradle-pre-commit-git-hooks'
     require_text "$assets_root/settings.gradle.kts" 'preCommit'
     require_text "$assets_root/settings.gradle.kts" 'tasks("ktlintCheck")'
     require_text "$assets_root/settings.gradle.kts" 'createHooks()'
