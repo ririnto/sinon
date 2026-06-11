@@ -51,7 +51,7 @@ Use shared-scheduler replacement only when scheduler policy must change applicat
 
 > [!NOTE]
 >
-> `Schedulers.fromExecutor(Executor)` remains available in Reactor 3.7.18, but Reactor's scheduler guide discourages it when an `ExecutorService` is available. Prefer `Schedulers.fromExecutorService(ExecutorService)` for clearer lifecycle management and disposal semantics.
+> `Schedulers.fromExecutor(Executor)` remains available in Reactor 3.8.6, but Reactor's scheduler guide discourages it when an `ExecutorService` is available. Prefer `Schedulers.fromExecutorService(ExecutorService)` for clearer lifecycle management and disposal semantics.
 
 ## Dedicated scheduler factory methods
 

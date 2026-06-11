@@ -61,7 +61,7 @@ Use the matching subset when the plugin ships only one component type. Add `agen
 ## Procedure
 
 1. Define the plugin purpose in one sentence.
-2. Create `.claude-plugin/plugin.json` from `assets/plugin.json`.
+2. Create `.claude-plugin/plugin.json` from the inline minimal manifest below; optionally copy `assets/plugin.json` when a starter file is useful.
 3. Create `README.md` describing the plugin purpose, included skills, agents, commands, runtime model, layout, and scope notes.
 4. Keep only the manifest keys that point to real component paths in the current tree.
 5. Create root-level component directories only when the plugin ships that component.
@@ -149,42 +149,42 @@ If a plugin does not need a surface yet, omit both the file or directory and the
 
 ## Optional runtime surfaces
 
-Add optional surfaces only when the plugin genuinely needs that behavior. Omit both the manifest key and the filesystem artifact when the surface is not in use.
+Add optional surfaces only when the plugin genuinely needs them. Omit both the manifest key and filesystem artifact when a surface is not in use.
 
-| Surface | Manifest key | When to add | Starter |
+| Surface | Manifest key | Add when | Starter path |
 | --- | --- | --- | --- |
-| Agents | none | the plugin ships agents or subagents as a root-level directory | create `agents/` at the plugin root and document the shipped agents in the plugin README |
-| Hooks | `"hooks": "./hooks/hooks.json"` | the plugin must react to Claude Code lifecycle events | copy `assets/hooks.json` + `assets/hooks/check.sh` |
-| MCP | `"mcpServers": "./.mcp.json"` | the plugin ships a local MCP server | copy `assets/.mcp.json` + `assets/servers/example-mcp.py` |
-| LSP | `"lspServers": "./.lsp.json"` | the plugin configures a language server | copy `assets/.lsp.json` + `assets/lsp/example-lsp.py` |
-| Settings | `"settings": "./settings.json"` | the plugin needs plugin-level settings | copy `assets/settings.json` |
-| Output styles | `"outputStyles": "./output-styles/"` | the plugin ships reusable response formats | copy `assets/output-style.md` |
-| Monitors | `"experimental": { "monitors": "./monitors/monitors.json" }` | the plugin needs background observation | copy `assets/monitors/monitors.json` + `assets/monitors/watch.sh` |
+| Agents | none | Plugin ships agents or subagents at the plugin root. | `agents/` |
+| Hooks | `"hooks": "./hooks/hooks.json"` | Plugin intercepts Claude Code lifecycle events. | `hooks/hooks.json` |
+| MCP | `"mcpServers": "./.mcp.json"` | Plugin registers MCP servers. | `.mcp.json` |
+| LSP | `"lspServers": "./.lsp.json"` | Plugin configures LSP servers. | `.lsp.json` |
+| Settings | `"settings": "./settings.json"` | Plugin exposes plugin-level settings. | `settings.json` |
+| Output styles | `"outputStyles": "./output-styles/"` | Plugin ships reusable output styles. | `output-styles/` |
+| Monitors | `"experimental": { "monitors": "./monitors/monitors.json" }` | Plugin ships genuine monitor behavior, not a default scaffold. | `monitors/monitors.json` |
 
-Open `references/plugin-runtime-components.md` for per-surface extension points, tradeoffs, and deeper wiring guidance beyond the ordinary copy path above.
+Open `references/plugin-runtime-components.md` for per-surface extension points, tradeoffs, and wiring guidance.
 
 ## Data boundary guidance
 
-Keep these boundaries invariant across all plugin assets and starter files:
+Keep plugin-owned data in the correct location:
 
-- `${CLAUDE_PLUGIN_ROOT}`: read-only for bundled scripts, templates, servers, and other shipped files
-- `${CLAUDE_PLUGIN_DATA}`: writable only for generated caches, logs, indexes, or other persistent runtime data
+- `${CLAUDE_PLUGIN_ROOT}`: read-only bundled scripts, templates, servers, and shipped files.
+- `${CLAUDE_PLUGIN_DATA}`: writable generated caches, logs, indexes, and persistent runtime data.
 
-Never treat `${CLAUDE_PLUGIN_ROOT}` as a writable data directory. Open `references/plugin-release.md` for the full example split and release-review context.
+Never treat `${CLAUDE_PLUGIN_ROOT}` as a writable data directory. Open `references/plugin-release.md` for data split and release-review context.
 
 ## Pitfalls
 
 - Do not place component files inside `.claude-plugin/`.
 - Do not create a runtime manifest directory unless the plugin publishes to that runtime.
 - Do not declare paths that do not begin with `./`.
-- Do not use array-of-paths form for `skills` or `commands`; always use the directory form with trailing slash.
-- Do not declare `lspServers`, `mcpServers`, `hooks`, `settings`, or `experimental.monitors` keys without their corresponding plugin-root files.
+- Do not use array-of-paths form for `skills` or `commands`; use directory form with a trailing slash.
+- Do not declare `lspServers`, `mcpServers`, `hooks`, `settings`, or `experimental.monitors` keys without corresponding plugin-root files.
 - Do not declare `agents`, `version`, or `interface` keys.
 - Do not let `plugin.json` promise components that the tree does not contain.
 - Do not treat `${CLAUDE_PLUGIN_ROOT}` as a writable data directory.
 - Do not require support files to complete ordinary plugin authoring.
 
-## First safe commands
+## Validation
 
 Use this command first when checking a real plugin root:
 
@@ -198,7 +198,7 @@ The command above validates JSON syntax offline. For runtime validation with a l
 claude --plugin-dir /absolute/path/to/your-plugin
 ```
 
-This second command requires a live Claude Code installation and is optional for ordinary offline authoring.
+The second command requires a live Claude Code installation and is optional for ordinary offline authoring.
 
 ## Output contract
 
@@ -211,8 +211,8 @@ Return:
 
 ## Optional support files
 
-- Open `references/plugin-layout.md` when you need expanded tree examples for minimal, command-only, or full plugin roots.
-- Open `references/plugin-runtime-components.md` when a plugin needs deeper per-surface examples, extension points, or local file layout beyond the ordinary copy path above.
+- Open `references/plugin-layout.md` when expanded tree examples for minimal, command-only, or full plugin roots are needed.
+- Open `references/plugin-runtime-components.md` when a plugin needs deeper per-surface examples, extension points, or local file layout beyond the ordinary manifest path above.
 - Open `references/plugin-release.md` when reviewing install scope, packaging, or release checks.
-- Copy from `assets/plugin.json` for the Claude starter manifest.
-- Copy the other files under `assets/` only when the matching optional surface is part of the plugin you are authoring.
+- Optionally copy `assets/plugin.json` when a starter manifest file is useful.
+- Copy other files under `assets/` only when the matching optional surface is part of the plugin being authored.

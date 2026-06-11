@@ -1,16 +1,22 @@
 ---
 name: reactor-netty
 description: >-
-  Build Reactor Netty HTTP, TCP, or UDP clients and servers with reactive request handling, lifecycle hooks, and resource-aware startup or shutdown. Use when the work is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, or `UdpClient` rather than low-level Netty pipeline APIs.
+  Build Reactor Netty HTTP, TCP, UDP, or QUIC clients and servers with reactive request handling, lifecycle hooks, and resource-aware startup or shutdown. Use when the work is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, `UdpClient`, `QuicServer`, or `QuicClient` rather than low-level Netty pipeline APIs.
 ---
 
 # Reactor Netty
+
+## Official Baseline
+
+- Use the official Reactor Netty 1.3.x reference guide for this skill; this review checked `reactor-netty-core` 1.3.6 and `reactor-netty-http` 1.3.6.
+- Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
+- Keep HTTP, TCP, UDP, and QUIC aligned with the Reactor Netty reference guide chapters for the same release line.
 
 Build one Reactor Netty application path end to end: pick the transport, configure the builder, compose inbound and outbound flow, and shut resources down cleanly without dropping into low-level Netty internals.
 
 ## Goal
 
-Keep the common path on Reactor Netty builders and reactive flow: `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, and `UdpClient`.
+Keep the common path on Reactor Netty builders and reactive flow: `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, `UdpClient`, `QuicServer`, and `QuicClient`.
 
 - Treat `.handle((inbound, outbound) -> ...)` and HTTP route handlers as the main composition points.
 - Do not block inside reactive handlers. Use blocking only at process boundaries such as `bindNow()`, `connectNow()`, terminal response retrieval in top-level sample code, or `onDispose().block()`.
@@ -22,7 +28,7 @@ Keep the common path on Reactor Netty builders and reactive flow: `HttpServer`, 
 Use this skill for:
 
 - reactive HTTP servers and clients
-- reactive TCP or UDP servers and clients
+- reactive TCP, UDP, or QUIC servers and clients
 - builder-based configuration with lifecycle callbacks such as `doOnBound`, `doOnConnected`, and `doOnConnection`
 - resource-aware startup, warmup, and shutdown using Reactor Netty abstractions
 
@@ -45,6 +51,7 @@ Keep low-level Netty concerns out of this common path:
     - HTTP server: `.route(...)` or `.handle(...)`
     - HTTP client: request + body send/receive + status inspection
     - TCP or UDP: `.handle((inbound, outbound) -> ...)`
+    - QUIC: `handleStream(...)` for stream handling.
 4. Bind or connect.
     - server: `bindNow()` returns `DisposableServer`
     - client: `connectNow()` returns `Connection`

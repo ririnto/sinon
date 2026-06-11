@@ -6,6 +6,11 @@ description: >-
 
 # Reactor Testing
 
+## Official Baseline
+
+- Use the official Project Reactor 3.8.x testing reference for this skill; this review checked `reactor-test` 3.8.6.
+- Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
+
 Test Reactor publishers with the ordinary `reactor-test` path.
 
 ## Goal
