@@ -136,9 +136,11 @@ Use one converter strategy per module unless interoperability requirements force
 ```java
 @Bean
 JacksonJsonMessageConverter jsonConverter() {
-    return new JacksonJsonMessageConverter();
+    return new JacksonJsonMessageConverter("com.example.orders");
 }
 ```
+
+Since 4.1.0 the no-arg constructor trusts no packages. Provide the package of your payload types as the trusted package argument.
 
 The ordinary path is one JSON payload type per message contract, with the listener receiving the already-converted domain payload. Open [references/conversion-and-listener-method-signatures.md](references/conversion-and-listener-method-signatures.md) when the blocker is listener argument design, header access, validation, or custom conversion behavior.
 

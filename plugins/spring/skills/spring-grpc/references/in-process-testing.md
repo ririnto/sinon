@@ -6,7 +6,7 @@ Open this reference when integration tests should avoid a real network port, inj
 
 | Situation | Use |
 | --- | --- |
-| Full local server on an allocated port is acceptable | `@LocalGrpcPort` |
+| Full local server on an allocated port is acceptable | `@LocalGrpcServerPort` |
 | Test should avoid opening a real port | in-process transport |
 | Client bean should exist only for tests | test-scoped `@Bean` stub wiring |
 
@@ -17,7 +17,7 @@ Open this reference when integration tests should avoid a real network port, inj
 class GrpcTestConfiguration {
     @Bean
     @Lazy
-    GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalGrpcPort int port) {
+    GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalGrpcServerPort int port) {
         return GreeterGrpc.newBlockingStub(channels.createChannel("static://localhost:" + port));
     }
 }
@@ -27,7 +27,7 @@ class GrpcTestConfiguration {
 
 ```java
 @SpringBootTest
-@AutoConfigureInProcessTransport
+@AutoConfigureTestGrpcTransport
 class GreetingIntegrationTests {
 }
 ```

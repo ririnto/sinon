@@ -61,9 +61,9 @@ Use only the starter set the application actually needs on the stable 1.1.0 line
 <dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>org.springframework.grpc</groupId>
-            <artifactId>spring-grpc-dependencies</artifactId>
-            <version>1.1.0</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>4.1.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -71,15 +71,15 @@ Use only the starter set the application actually needs on the stable 1.1.0 line
 </dependencyManagement>
 ```
 
-Keep starter coordinates versionless underneath the BOM.
+Boot starters are versioned by the Spring Boot BOM. Keep starter coordinates versionless underneath it.
 
 ### Server-only baseline
 
 ```xml
 <dependencies>
     <dependency>
-        <groupId>org.springframework.grpc</groupId>
-        <artifactId>spring-grpc-server-spring-boot-starter</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-grpc-server</artifactId>
     </dependency>
 </dependencies>
 ```
@@ -89,8 +89,8 @@ Keep starter coordinates versionless underneath the BOM.
 ```xml
 <dependencies>
     <dependency>
-        <groupId>org.springframework.grpc</groupId>
-        <artifactId>spring-grpc-client-spring-boot-starter</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-grpc-client</artifactId>
     </dependency>
 </dependencies>
 ```
@@ -100,12 +100,12 @@ Keep starter coordinates versionless underneath the BOM.
 ```xml
 <dependencies>
     <dependency>
-        <groupId>org.springframework.grpc</groupId>
-        <artifactId>spring-grpc-server-spring-boot-starter</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-grpc-server</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.springframework.grpc</groupId>
-        <artifactId>spring-grpc-client-spring-boot-starter</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-grpc-client</artifactId>
     </dependency>
 </dependencies>
 ```
@@ -192,9 +192,9 @@ spring:
 spring:
   grpc:
     client:
-      channels:
+      channel:
         greeter:
-          address: static://localhost:9090
+          target: static://localhost:9090
 ```
 
 Start with explicit static addresses in local development. Add service discovery or advanced channel customization only when the deployment actually needs it.
@@ -249,7 +249,7 @@ Unary request-response is the ordinary path. Open the streaming reference only w
 | Situation | Use |
 | --- | --- |
 | Server should report serving state | server health support |
-| Actuator health should include selected gRPC services | `spring.grpc.server.health.actuator.health-indicator-paths` |
+| Actuator health should include selected gRPC services | `spring.grpc.server.health.service.<name>.include` |
 | Client should stop calling an unhealthy upstream | per-channel client health checks |
 | Actuator is already on the classpath | use the autoconfigured observability interceptor |
 
@@ -393,9 +393,9 @@ throw Status.INVALID_ARGUMENT
 spring:
   grpc:
     client:
-      channels:
+      channel:
         greeter:
-          address: static://localhost:9090
+          target: static://localhost:9090
 ```
 
 ### Deadline shape
@@ -424,11 +424,12 @@ spring:
     server:
       health:
         enabled: true
-        actuator:
-          health-indicator-paths: Greeter
+        service:
+          Greeter:
+            include: "*"
 ```
 
-`health-indicator-paths` is the list of gRPC service paths the Actuator health bridge should report. Keep it intentional instead of publishing every service by default.
+Use `spring.grpc.server.health.service.<name>.include` to list the health indicators each gRPC service should report. Keep it intentional instead of publishing every service by default.
 
 ### Client health-check shape
 
@@ -436,9 +437,9 @@ spring:
 spring:
   grpc:
     client:
-      channels:
+      channel:
         greeter:
-          address: static://localhost:9090
+          target: static://localhost:9090
           health:
             enabled: true
 ```
@@ -452,7 +453,7 @@ If the upstream does not publish the gRPC health service, leave client health di
 ```java
 @Bean
 @Lazy
-GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalGrpcPort int port) {
+GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalGrpcServerPort int port) {
     return GreeterGrpc.newBlockingStub(channels.createChannel("static://localhost:" + port));
 }
 ```
@@ -484,5 +485,5 @@ GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalG
 - Open [references/streaming-and-async-stubs.md](references/streaming-and-async-stubs.md) when the ordinary blocking unary path is not enough and the task needs future-style stubs or streaming RPC patterns.
 - Open [references/channel-customization.md](references/channel-customization.md) when the deployment needs richer client-channel construction, global client interceptors, compression, keepalive, retries, or per-channel tuning.
 - Open [references/exception-handling.md](references/exception-handling.md) when exception-to-status mapping needs reusable handler beans, `@GrpcExceptionHandler`, or different behavior per service.
-- Open [references/in-process-testing.md](references/in-process-testing.md) when integration tests should use in-process transport, `@LocalGrpcPort`, or explicit test-only channel wiring.
+- Open [references/in-process-testing.md](references/in-process-testing.md) when integration tests should use in-process transport, `@LocalGrpcServerPort`, or explicit test-only channel wiring.
 - Open [references/security-tls-mtls.md](references/security-tls-mtls.md) when the deployment needs TLS or mTLS, Basic authentication, bearer tokens, or OAuth2 and server-authentication integration.

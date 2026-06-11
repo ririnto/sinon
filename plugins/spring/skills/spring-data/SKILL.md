@@ -67,6 +67,22 @@ interface CustomerRepository extends ListCrudRepository<Customer, Long> {
 }
 ```
 
+### Type-safe property paths
+
+Spring Data Commons 4.1 introduces type-safe property path references. Prefer method references over string-based property names when the property is known at compile time.
+
+```java
+Sort.by(Person::getFirstName, Person::getLastName)
+```
+
+Nested paths compose through chaining:
+
+```java
+PropertyPath.of(Person::getAddress).then(Address::getCountry)
+```
+
+Keep string-based `PropertyPath.from("name", Person.class)` only when the property name is not known at compile time.
+
 ### Derived query shape
 
 ```java
@@ -74,6 +90,17 @@ Optional<Customer> findByEmailIgnoreCase(String email);
 ```
 
 ### Projection shape
+
+Spring Data Commons 4.1 requires `@ProjectedPayload` on projection types used as controller parameters. Annotate interface or DTO projections that serve as `@RequestParam` or `@Payload` targets:
+
+```java
+@ProjectedPayload
+interface CustomerView {
+    String getEmail();
+}
+```
+
+Record-based DTO projections used as repository return types do not require `@ProjectedPayload`. The annotation is only needed when the projection type is bound from an external payload (web controller parameters, message payloads).
 
 ```java
 record CustomerView(Long id, String email) {
@@ -168,8 +195,6 @@ class CustomerRepositoryTests {
 8. Keep shared mapping callbacks and conversions intentional rather than hidden in store-specific infrastructure.
 9. Test the repository behavior with the narrowest matching test slice.
 
-If the project stays on the stable `2025.1.x` line, keep examples aligned with that line. Open a release-train or migration reference before copying `2026.0.x` RC behavior into a stable branch.
-
 ## Implementation examples
 
 ### Repository abstraction
@@ -238,7 +263,7 @@ findByAddressCity
 Use declared queries when derived query method names become unwieldy. The annotation name is shared across Spring Data modules, but the actual query language and advanced attributes stay store-specific.
 
 ```java
-@Query("...")
+@Query("select c from Customer c where c.active = true")
 List<Customer> findActiveCustomers();
 ```
 
@@ -265,6 +290,14 @@ Optional<Customer> findCustomerById(Long id);
 ```
 
 `findById` targets the declared identifier property, while `findCustomerById` targets the property named `id`. Prefer explicit derived query names when a domain property could be confused with the identifier.
+
+### Sort null handling
+
+Spring Data Commons 4.1 adds `nullHandling` to `@SortDefault` and allows configuring default null-handling behavior for `Sort` resolution:
+
+```java
+Page<Customer> findAll(@SortDefault(sort = "lastname", nullHandling = Sort.NullHandling.NULLS_LAST) Pageable pageable);
+```
 
 ### Paging and scrolling shapes
 

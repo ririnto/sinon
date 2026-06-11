@@ -16,7 +16,7 @@ AOT support works best with imperative repository methods that stay within suppo
 
 Reactive repositories are outside this repository-AOT path.
 
-For JPA specifically, AOT repository generation excludes methods that accept `ScrollPosition` and dynamic projection methods.
+For JPA specifically, AOT repository generation excludes methods that accept `ScrollPosition` and dynamic projection methods. AOT support for JPA in 4.1 covers sequence-based identifier generation, named `@EntityGraph` application, `LockModeType` on queries, and improved `@Modifying` query handling.
 
 Good fit:
 

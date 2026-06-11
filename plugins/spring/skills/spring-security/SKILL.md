@@ -7,6 +7,7 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-security"
   reference-doc-urls:
     - "https://docs.spring.io/spring-security/reference/index.html"
+    - "https://docs.spring.io/spring-boot/reference/security/oauth2.html"
   version: "7.1.0"
 ---
 
@@ -38,7 +39,7 @@ The ordinary Spring Security job is:
 - Open [references/ldap-authentication.md](references/ldap-authentication.md) when directory-backed authentication is part of the job.
 - Open [references/saml2-login.md](references/saml2-login.md) only when enterprise identity-provider requirements specifically depend on SAML2.
 - Open [references/multiple-security-filter-chains.md](references/multiple-security-filter-chains.md) when different URL spaces need separate servlet chains or a custom filter must be placed relative to Spring Security's built-in filters.
-- Open [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) when default `scope` to authority conversion is not enough or issuer, audience, algorithm, or principal-claim rules must be customized.
+- Open [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) when default `scope` to authority conversion is not enough, nested or multi-location claim extraction is needed, or issuer, audience, algorithm, or principal-claim rules must be customized.
 - Open [references/security-exception-handling.md](references/security-exception-handling.md) when 401 and 403 responses need custom JSON bodies, custom entry points, or custom access-denied handling.
 - Open [references/session-management-and-logout.md](references/session-management-and-logout.md) when the job depends on concurrent-session control, custom logout success handling, or stateful session persistence rules beyond the ordinary path.
 - Open [references/security-headers.md](references/security-headers.md) when defaults are not enough and the application needs custom CSP, HSTS, frame, or permissions-policy behavior.
@@ -179,6 +180,10 @@ class SecurityConfig {
 ```
 
 Keep `securityMatcher(...)` out of a single-chain baseline unless the application also defines an explicit fallback chain, because unmatched requests are left unprotected.
+
+### Non-webapp resource server (Spring Boot 4.1+)
+
+Spring Boot 4.1 auto-configures `JwtDecoder`, `OpaqueTokenIntrospector`, and the authentication converter in non-web applications (no servlet or reactive web server). The `SecurityFilterChain` bean is not created -- the application must authenticate tokens programmatically. Use [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) for authority extraction configuration in non-webapp contexts.
 
 ### SPA CSRF handling
 
@@ -468,7 +473,7 @@ Return:
 - Open [references/ldap-authentication.md](references/ldap-authentication.md) when the task specifically depends on LDAP-backed authentication.
 - Open [references/saml2-login.md](references/saml2-login.md) when the task specifically depends on SAML2.
 - Open [references/multiple-security-filter-chains.md](references/multiple-security-filter-chains.md) when path-specific chains or custom filters are required.
-- Open [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) when default JWT conversion is not sufficient.
+- Open [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) when default JWT conversion is not sufficient or nested/multi-location authority extraction is needed.
 - Open [references/security-exception-handling.md](references/security-exception-handling.md) when custom 401 or 403 responses are required.
 - Open [references/session-management-and-logout.md](references/session-management-and-logout.md) when concurrent-session control or advanced logout behavior is required.
 - Open [references/security-headers.md](references/security-headers.md) when the application needs custom security-header behavior.

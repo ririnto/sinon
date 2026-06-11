@@ -1,6 +1,6 @@
 # Spring Boot metrics
 
-Open this reference when the task is about metrics exports.
+Open this reference when the task is about metrics exports, OTLP compression, or truststore certificate metrics.
 
 ## Add the Prometheus registry when exposing `/actuator/prometheus`
 
@@ -36,6 +36,21 @@ management:
       exposure:
         include: metrics,prometheus
 ```
+
+## OTLP metrics export with compression
+
+```yaml
+management:
+  otlp:
+    metrics:
+      export:
+        compression-mode: gzip
+        url: https://collector:4318/v1/metrics
+```
+
+## Truststore certificate expiry metrics
+
+Expiry times from certificates in the truststore are automatically exposed as metrics when an SSL bundle with a truststore is configured. No additional setup is required.
 
 ## Record a metric
 

@@ -48,9 +48,23 @@ services:
 
 Boot connects through the mapped host port that Docker Compose publishes for the service.
 
+Boot also supports `docker.elastic.co/elasticsearch/elasticsearch` images for Docker Compose service discovery.
+
 - keep `compose.yaml` versioned with the application so the local service contract stays reviewable
 - let Boot manage service discovery and lifecycle only after the Compose project itself is stable
 - treat `spring.docker.compose.*` settings as explicit local environment wiring, not hidden magic
+
+## Failure logging
+
+When `docker compose up` or `docker compose start` fails, Boot logs container output at the configured level. Defaults to `info`.
+
+```yaml
+spring:
+  docker:
+    compose:
+      start:
+        log-level: debug
+```
 
 ## Gotchas
 
