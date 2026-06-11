@@ -19,6 +19,14 @@ Use `spring-web-services` for SOAP transport, XML contract publication, endpoint
 - Keep business logic outside endpoint handlers. SOAP endpoints should translate XML payloads to application services and back.
 - Keep WS-Security, XPath-centric payload parsing, and specialized client transports out of the ordinary path unless those are the actual blocker.
 
+## Baseline
+
+Spring Web Services 5.0 requires JDK 17+ (compatible through JDK 27), Jakarta EE 11 (Servlet 6.1, Jakarta XML Bind 4.0, Jakarta Activation 2.1), Spring Framework 7.0, Spring Security 7.0, Apache WSS4J 4.0, and JUnit 6.0.
+
+- Spring WS 5.0.x aligns with Spring Boot 4.0.x and 4.1.x. The Boot starter manages the Spring WS version.
+- `XwsSecurityInterceptor` was removed in Spring WS 4.0 and is not available. Use `Wss4jSecurityInterceptor` for all WS-Security configuration.
+- `WsConfigurerAdapter` was removed in Spring WS 5.0. Implement `WsConfigurer` directly (it provides default methods).
+
 ## Common path
 
 The ordinary Spring Web Services job is:
@@ -43,7 +51,7 @@ In Spring Boot, prefer the starter-managed ordinary path first: keep the starter
 
 Use the Boot starter for ordinary SOAP server or client work and add test support for SOAP contract verification.
 
-For the current Boot 4.x line, use `spring-boot-starter-webservices`. Older Boot lines may still use `spring-boot-starter-web-services`.
+For Boot 4.0.x and 4.1.x, use `spring-boot-starter-webservices`. The starter manages the Spring WS version automatically.
 
 ```xml
 <dependencies>
@@ -84,6 +92,8 @@ spring.webservices.path=/ws
 spring.webservices.wsdl-locations=classpath:/wsdl
 ```
 
+When the Boot starter is present, `spring.webservices.path` defaults to `/services`. Set it explicitly when the integration contract expects a different path.
+
 ### SOAP servlet registration shape
 
 ```java
@@ -117,11 +127,16 @@ DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema holidaysSchema) {
 ```java
 @Bean
 WebServiceTemplate webServiceTemplate(WebServiceTemplateBuilder builder, Jaxb2Marshaller marshaller) {
-    return builder.setMarshaller(marshaller).setUnmarshaller(marshaller).build();
+    return builder.setMarshaller(marshaller).setUnmarshaller(marshaller)
+        .setDefaultUri("https://example.com/ws").build();
 }
 ```
 
+`setDefaultUri` is required so that `marshalSendAndReceive` has a destination. Override per-call with a URI argument or `WebServiceMessageCallback` when needed.
+
 ### Basic SOAP fault mapping shape
+
+Use `SoapFaultMappingExceptionResolver` to map exception types to SOAP fault codes.
 
 ```java
 @Bean
@@ -152,6 +167,8 @@ SoapFaultMappingExceptionResolver soapFaultMappingExceptionResolver() {
 - Open [references/ws-security.md](references/ws-security.md) when the contract requires SOAP-level authentication, signing, or encryption.
 - Open [references/xpath-endpoints.md](references/xpath-endpoints.md) when payload parsing is too dynamic for JAXB.
 - Open [references/client-variants.md](references/client-variants.md) when the client must use a non-ordinary transport or alternate message factory.
+- Use `@Action` annotation on endpoint methods and `ActionEndpointMapping` or `AnnotationActionEndpointMapping` when the integration contract routes by WS-Addressing Action header. Spring WS supports WS-Addressing 1.0 and the August 2004 draft.
+- Use `AddressingEndpointInterceptor` for WS-Addressing validation, duplicate message detection, and out-of-band response delivery. Configure `preInterceptors` and `postInterceptors` on `AbstractAddressingEndpointMapping` subclasses.
 
 ## Implementation examples
 
@@ -175,12 +192,29 @@ class HolidayEndpoint {
 }
 ```
 
+`@PayloadRoot` is the primary routing annotation. Use `@SoapAction` on the same method when the integration contract routes by SOAP Action header instead of payload root.
+
+Spring WS supports both SOAP 1.1 and SOAP 1.2. The default `AxiomSoapMessageFactory` produces SOAP 1.1 messages. Use `SaajSoapMessageFactory` with a SOAP 1.2 protocol when the contract requires SOAP 1.2. See [references/client-variants.md](references/client-variants.md) for message factory details.
+
 ### SOAP server configuration
 
 ```java
 @Configuration
 @EnableWs
-class WsConfig extends WsConfigurerAdapter {
+class WsConfig implements WsConfigurer {
+    @Override
+    public void addInterceptors(List<EndpointInterceptor> interceptors) {
+        interceptors.add(securityInterceptor());
+    }
+
+    @Bean
+    Wss4jSecurityInterceptor securityInterceptor() {
+        Wss4jSecurityInterceptor interceptor = new Wss4jSecurityInterceptor();
+        interceptor.setValidationActions("UsernameToken");
+        interceptor.setValidationCallbackHandler(callbackHandler());
+        return interceptor;
+    }
+
     @Bean
     ServletRegistrationBean<MessageDispatcherServlet> messageDispatcherServlet(ApplicationContext context) {
         MessageDispatcherServlet servlet = new MessageDispatcherServlet();
@@ -201,6 +235,8 @@ class WsConfig extends WsConfigurerAdapter {
 }
 ```
 
+Use `implements WsConfigurer` and override `addInterceptors` for interceptor registration. Do not extend `WsConfigurerAdapter` -- it was removed in Spring WS 5.0.
+
 ### `WebServiceTemplate` client call
 
 ```java
@@ -218,9 +254,21 @@ class HolidayClient {
 }
 ```
 
+Use `WebServiceMessageCallback` for per-call SOAP Action headers, authentication, or URI overrides.
+
 ### Server-side contract test with `MockWebServiceClient`
 
 ```java
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
+import org.springframework.ws.test.server.MockWebServiceClient;
+import static org.springframework.ws.test.server.RequestCreators.withPayload;
+import static org.springframework.ws.test.server.ResponseMatchers.noFault;
+import static org.springframework.ws.test.server.ResponseMatchers.payload;
+import org.springframework.xml.transform.StringSource;
+
 @SpringBootTest
 class HolidayEndpointTests {
     @Autowired
@@ -239,6 +287,15 @@ class HolidayEndpointTests {
 ### Client-side test with `MockWebServiceServer`
 
 ```java
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.ws.client.core.WebServiceTemplate;
+import org.springframework.ws.test.client.MockWebServiceServer;
+import static org.springframework.ws.test.client.RequestMatchers.payload;
+import static org.springframework.ws.test.client.ResponseCreators.withPayload;
+import org.springframework.xml.transform.StringSource;
+
 @SpringBootTest
 class HolidayClientTests {
     @Autowired
@@ -259,6 +316,10 @@ class HolidayClientTests {
 ```
 
 ## Output and configuration shapes
+
+### Default message factory
+
+Spring WS defaults to `AxiomSoapMessageFactory` producing SOAP 1.1 messages. Use `SaajSoapMessageFactory` for SOAP 1.2 or when SAAJ features are required. See [references/client-variants.md](references/client-variants.md) for the message factory decision path.
 
 ### Endpoint URI shape
 

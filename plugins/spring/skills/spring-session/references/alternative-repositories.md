@@ -1,86 +1,130 @@
 # Spring Session alternative repositories
 
-Open this reference only when Redis and JDBC are both poor fits and an existing platform standard already mandates another repository.
+Open reference only when Redis and JDBC are both poor fits and an existing platform standard already mandates another repository.
 
-Prefer Redis or JDBC unless the deployment already operates another repository as a stable platform dependency.
+Prefer Redis or JDBC unless the deployment explicitly requires a different store. A custom repository changes durability and operational behavior at the core session layer.
 
-## Common alternatives
+## Community-led modules
 
-| Repository | Good fit |
-| --- | --- |
-| Community extension with a published 4.1.0-compatible release | The platform already mandates that store and the exact release line has been verified before adoption |
-| Custom `SessionRepository` | Regulatory or proprietary infrastructure requirements make the built-in repositories unsuitable |
+Starting with Spring Session 4.0, Hazelcast and MongoDB session modules are no longer maintained in the main Spring Session repository. They are now led by their respective communities:
 
-## Custom repository configuration shape
+- Hazelcast: maintained by the Hazelcast team
+- MongoDB: maintained by the MongoDB team
 
-Use this shape when the platform already exposes a durable session store API and the application must adapt Spring Session to it.
+Verify that the community module publishes a 4.1.0-compatible release before adopting it.
 
-```java
-@Configuration
-@EnableSpringHttpSession
-class PlatformSessionConfig {
-    @Bean
-    SessionRepository<MapSession> sessionRepository(PlatformSessionStore store) {
-        return new PlatformSessionRepository(store, Duration.ofMinutes(30));
-    }
-}
-```
+## Custom SessionRepository
+
+Implement `SessionRepository<S>` or `ReactiveSessionRepository<S>` when no existing module fits:
 
 ```java
-final class PlatformSessionRepository implements FindByIndexNameSessionRepository<MapSession> {
-    private final PlatformSessionStore store;
-    private final Duration defaultMaxInactiveInterval;
-
-    PlatformSessionRepository(PlatformSessionStore store, Duration defaultMaxInactiveInterval) {
-        this.store = store;
-        this.defaultMaxInactiveInterval = defaultMaxInactiveInterval;
-    }
+class InMemorySessionRepository implements SessionRepository<Session>, FindByIndexNameSessionRepository<Session> {
+    private final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
+    private Duration defaultMaxInactiveInterval = Duration.ofMinutes(30);
 
     @Override
-    public MapSession createSession() {
+    public Session createSession() {
         MapSession session = new MapSession();
         session.setMaxInactiveInterval(defaultMaxInactiveInterval);
         return session;
     }
 
     @Override
-    public void save(MapSession session) {
-        store.save(session);
+    public void save(Session session) {
+        sessions.put(session.getId(), session);
     }
 
     @Override
-    public MapSession findById(String id) {
-        return store.load(id);
+    public Session findById(String id) {
+        Session session = sessions.get(id);
+        if (session == null) {
+            return null;
+        }
+        if (session.isExpired()) {
+            deleteById(id);
+            return null;
+        }
+        return session;
     }
 
     @Override
     public void deleteById(String id) {
-        store.delete(id);
+        sessions.remove(id);
     }
 
     @Override
-    public Map<String, MapSession> findByIndexNameAndIndexValue(String indexName, String indexValue) {
-        if (!PRINCIPAL_NAME_INDEX_NAME.equals(indexName)) {
-            return Map.of();
-        }
-        return store.findByPrincipal(indexValue);
+    public Map<String, Session> findByPrincipalName(String principalName) {
+        return sessions.values().stream()
+            .filter(s -> principalName.equals(
+                s.getAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME)))
+            .collect(Collectors.toMap(Session::getId, Function.identity()));
+    }
+
+    void setDefaultMaxInactiveInterval(Duration interval) {
+        this.defaultMaxInactiveInterval = interval;
     }
 }
 ```
 
-This keeps Spring Session responsible for the HTTP integration while the platform-owned store remains responsible for persistence and principal indexing.
+Register the repository and filter:
 
-## Store-backed test shape
+```java
+@Configuration
+@EnableWebSecurity
+class CustomSessionConfig {
+    @Bean
+    InMemorySessionRepository sessionRepository() {
+        return new InMemorySessionRepository();
+    }
+
+    @Bean
+    FindByIndexNameSessionRepository<? extends Session> indexedSessionRepository() {
+        return sessionRepository();
+    }
+}
+```
+
+### Reactive custom repository
+
+```java
+class ReactiveInMemorySessionRepository implements ReactiveSessionRepository<Session> {
+    private final ConcurrentHashMap<String, Session> sessions = new ConcurrentHashMap<>();
+
+    @Override
+    public Mono<Session> createSession() {
+        return Mono.just(new MapSession());
+    }
+
+    @Override
+    public Mono<Void> save(Session session) {
+        sessions.put(session.getId(), session);
+        return Mono.empty();
+    }
+
+    @Override
+    public Mono<Session> findById(String id) {
+        return Mono.justOrEmpty(sessions.get(id));
+    }
+
+    @Override
+    public Mono<Void> deleteById(String id) {
+        sessions.remove(id);
+        return Mono.empty();
+    }
+}
+```
+
+## Example integration test with custom repository
 
 ```java
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-class PlatformSessionFlowTest {
+class CustomRepositorySessionFlowTest {
     @Autowired
     MockMvc mockMvc;
 
     @Test
-    void customRepositoryReusesTheSameSessionAcrossRequests() throws Exception {
+    void sessionStateIsReusedAcrossRequests() throws Exception {
         MvcResult first = mockMvc.perform(post("/cart/items")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"sku\":\"SKU-1\"}"))

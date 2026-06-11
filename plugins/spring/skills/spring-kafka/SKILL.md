@@ -1,7 +1,7 @@
 ---
 name: spring-kafka
 description: >-
-  Build Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, and embedded Kafka tests. Use when configuring producer or consumer factories, setting up concurrent listener containers, implementing retry and DLQ routing, or writing embedded Kafka integration tests.
+  Build Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, share consumers, and embedded Kafka tests. Use when configuring producer or consumer factories, setting up concurrent listener containers, implementing retry and DLQ routing, building share consumer listeners, or writing embedded Kafka integration tests.
 metadata:
   title: "Spring for Apache Kafka"
   official-project-url: "https://spring.io/projects/spring-kafka"
@@ -37,6 +37,8 @@ The ordinary Spring Kafka job is:
 | Listener must control when acknowledgment is requested instead of using the ordinary container-managed path | manual acknowledgment |
 | Listener should process many records together | batch listener |
 | Ordinary failure path needs delayed reprocessing and a DLT | `@RetryableTopic` |
+| Listener must override container factory ack mode without a separate factory | `@KafkaListener(ackMode = ...)` |
+| Multiple consumers cooperatively consume from the same partitions | share consumer (KIP-932) |
 
 Keep the default path small: one producer, one listener, one serialization strategy per topic, container-managed acknowledgment unless explicit offset control is required, and one explicit retry/DLT policy.
 
@@ -44,7 +46,7 @@ Keep the default path small: one producer, one listener, one serialization strat
 
 Use Spring Kafka for application code and the Kafka test module for integration tests.
 
-The current stable Spring Kafka line is `4.1.0`. Spring Boot `4.1.x` manages Spring Kafka `4.1.x`; older Spring Boot `3.5.x` and `3.4.x` applications remain on the `3.3.x` line and should be treated as a separate compatibility branch.
+The current stable Spring Kafka line is `4.1.0`, requiring Spring Framework 7.0.x and Apache Kafka `kafka-clients` 4.2.x. Spring Boot `4.0.x` manages Spring Kafka `4.0.x`; Spring Boot `3.5.x` and `3.4.x` manage Spring Kafka `3.3.x`. Applications on Boot 3.4.x or earlier must stay on the `3.3.x` line and should be treated as a separate compatibility branch.
 
 ```xml
 <dependencies>
@@ -97,7 +99,8 @@ spring:
 3. Choose acknowledgment mode deliberately and do not assume defaults match delivery guarantees.
 4. Keep listeners idempotent because retries and rebalances can re-deliver records.
 5. Choose retry topics or dead-letter topics before enabling concurrency at scale.
-6. Test both successful handling and one representative retry or dead-letter path.
+6. Decide between consumer groups (partition-exclusive) and share groups (cooperative, record-level distribution) based on whether listeners need partition isolation or cooperative consumption.
+7. Test both successful handling and one representative retry or dead-letter path.
 
 ## Failure classification
 
@@ -146,6 +149,8 @@ class PaymentListener {
 
 ### Retry topic shape
 
+Since 4.1, `RetryTopicConfigurationBuilder` defaults `sameIntervalTopicReuseStrategy` to `SINGLE_TOPIC` (previously `MULTIPLE_TOPICS`). This aligns the builder default with the `@RetryableTopic` annotation default. No migration is needed for users of `@RetryableTopic`, but programmatic builder users should verify their topic naming behavior matches intent.
+
 ```java
 @Configuration
 @EnableKafkaRetryTopic
@@ -184,7 +189,52 @@ void handle(PaymentEvent event, Acknowledgment ack) {
 
 Use manual acknowledgment only when listener code must control the commit point explicitly.
 
+### Per-listener ack mode override
+
+Since 4.1, `@KafkaListener` supports an `ackMode` attribute that overrides the container factory default without a separate factory bean. Use this when most listeners share one factory but one listener needs a different acknowledgment strategy.
+
+```java
+@KafkaListener(topics = "payments", groupId = "billing", ackMode = "MANUAL")
+void handle(PaymentEvent event, Acknowledgment ack) {
+    processor.process(event);
+    ack.acknowledge();
+}
+```
+
+The attribute accepts `AckMode` enum names and supports SpEL expressions and property placeholders.
+
 Keep the ordinary path on single-record listeners unless throughput or downstream batching requirements justify batch consumption. Open [references/batch-listeners.md](references/batch-listeners.md) when the listener should actually switch to batch mode.
+
+### Share consumer shape (KIP-932)
+
+Share consumers allow multiple consumers in the same share group to cooperatively consume from the same partitions, with the Kafka broker distributing records at the record level. This differs from consumer groups where each partition is exclusively assigned to one consumer.
+
+```java
+@Bean
+ShareConsumerFactory<String, String> shareConsumerFactory() {
+    Map<String, Object> props = new HashMap<>();
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+    props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+    return new DefaultShareConsumerFactory<>(props);
+}
+
+@Bean
+ShareKafkaListenerContainerFactory<String, String> shareKafkaListenerContainerFactory(ShareConsumerFactory<String, String> shareConsumerFactory) {
+    return new ShareKafkaListenerContainerFactory<>(shareConsumerFactory);
+}
+```
+
+```java
+@KafkaListener(topics = "order-queue", containerFactory = "shareKafkaListenerContainerFactory", groupId = "order-processors")
+void handle(ConsumerRecord<String, String> record) {
+    process(record.value());
+}
+```
+
+Three acknowledgment modes control record delivery: `EXPLICIT` (default, container-managed), `MANUAL` (listener-driven), and `IMPLICIT` (broker auto-accept). In `MANUAL` mode the listener accepts a `ShareAcknowledgment` parameter and must call one terminal method per record: `acknowledge()` (ACCEPT), `release()` (redelivery), or `reject()` (permanent failure). Call `renew()` to extend the acquisition lock for long-running processing.
+
+Share consumers do not support batch processing, topic patterns, explicit partition assignment, or the `CommonErrorHandler` interface. Error recovery uses the `ShareConsumerRecordRecoverer` interface instead. Open [references/share-consumers.md](references/share-consumers.md) when building share consumer listeners that need manual acknowledgment, error recovery, concurrency, or lifecycle integration.
 
 ### Embedded Kafka test shape
 
@@ -256,6 +306,7 @@ billing
 - Open [references/transactions.md](references/transactions.md) when the application needs atomic consume-produce workflows.
 - Open [references/exactly-once-semantics.md](references/exactly-once-semantics.md) when the workflow must combine Kafka transactions with exactly-once delivery expectations.
 - Open [references/batch-listeners.md](references/batch-listeners.md) when the consumer should process `List<T>` batches instead of one record at a time.
+- Open [references/share-consumers.md](references/share-consumers.md) when building share consumer listeners (KIP-932) that need manual acknowledgment, error recovery, concurrency configuration, or lifecycle event integration.
 - Open [references/deserialization-failures.md](references/deserialization-failures.md) when bad payloads fail before listener code runs and retry or DLT policy must still be intentional.
 - Open [references/listener-replay.md](references/listener-replay.md) when the consumer must seek or replay records deliberately.
 - Open [references/tombstones.md](references/tombstones.md) when the topic uses compacted-record delete semantics.

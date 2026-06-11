@@ -1,12 +1,12 @@
-# Spring Modulith Moments
+# Moments
 
 Open this reference when the application reacts to business-relevant time events such as day, week, or month boundaries.
 
 ## Moments boundary
 
-Use Moments when the application reacts to domain-relevant time events, not for generic infrastructure cron jobs.
+Use Moments for domain-relevant time events, not for generic infrastructure cron jobs. Use scheduled tasks for infrastructure-level periodic work that has no domain meaning.
 
-## Moments starter shape
+## Starter shape
 
 ```xml
 <dependency>
@@ -15,37 +15,51 @@ Use Moments when the application reacts to domain-relevant time events, not for 
 </dependency>
 ```
 
-## Time-machine configuration shape
+## Configuration shape
 
 ```properties
 spring.modulith.moments.enable-time-machine=true
 spring.modulith.moments.zone-id=UTC
+spring.modulith.moments.granularity=HOURS
+spring.modulith.moments.locale=en-US
 ```
+
+| Property | Default | Description |
+| --- | --- | --- |
+| `enable-time-machine` | `false` | Enables the `TimeMachine` bean for testing. |
+| `zone-id` | `UTC` | Timezone for published time events. |
+| `granularity` | `HOURS` | Granularity of events: `HOURS` or `DAYS`. |
+| `locale` | JVM default | Locale used when determining week boundaries. |
 
 ## Listener shape
 
 ```java
 @Component
 class BillingCycleListener {
-    @EventListener
+
+    @ApplicationModuleListener
     void on(DayHasPassed event) {
     }
 }
 ```
 
-Use plain `@EventListener` here because Moments emits application events from the time abstraction itself; this is not the same cross-module boundary contract as `@ApplicationModuleListener` for ordinary module collaboration.
+Both `@EventListener` and `@ApplicationModuleListener` work for Moments events. Use `@ApplicationModuleListener` when the listener belongs to the cross-module boundary.
 
-## Verification shape
+## Time machine test shape
 
 ```java
-@ExtendWith(PublishedEventsExtension.class)
-@SpringBootTest(properties = "spring.modulith.moments.enable-time-machine=true")
-class BillingCycleMomentsTest {
+@ApplicationModuleTest
+class BillingCycleTest {
+
     @Autowired
     TimeMachine timeMachine;
 
+    @Autowired
+    BillingCycleListener listener;
+
+    @ExtendWith(PublishedEventsExtension.class)
     @Test
-    void emitsDayHasPassed(PublishedEvents events) {
+    void dayPassesTriggersBilling(PublishedEvents events) {
         timeMachine.shiftBy(Duration.ofDays(1));
         assertThat(events.ofType(DayHasPassed.class)).hasSize(1);
     }
@@ -57,8 +71,8 @@ class BillingCycleMomentsTest {
 | Situation | Use |
 | --- | --- |
 | Domain reacts to calendar boundaries | Moments |
-| Generic scheduled infrastructure work | other scheduling support |
+| Generic scheduled infrastructure tasks | `@Scheduled` or Spring scheduler |
 
 ## Verification rule
 
-Verify one time-machine-driven test proves the expected business-time event fires in the configured zone before wiring production listeners to it.
+Verify one time-machine-driven test proves a business-time event fires in the configured zone before wiring production listeners to it.

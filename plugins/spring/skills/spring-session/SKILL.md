@@ -18,6 +18,17 @@ Use `spring-session` for session persistence, clustered session sharing, cookie 
 - Keep controller, handler, and endpoint design outside this skill's scope. Keep this skill focused on session infrastructure and transport.
 - Keep general Redis data modeling and broad `RedisTemplate` usage outside this skill's scope when the task is not primarily about session storage.
 
+## Version alignment
+
+Spring Session 4.1.x targets Spring Boot 4.0.x and 4.1.x. Spring Boot manages the Spring Session version; add the session starter and Boot resolves the correct artifact.
+
+Minimum requirements:
+
+- Java 17+
+- Spring Framework 6.0+ (7.0 for Boot 4.x)
+- Servlet 3.1+ when running in a servlet container
+- Redis 2.8+ when using `@EnableRedisHttpSession`
+
 ## Common path
 
 The ordinary Spring Session job is:
@@ -35,7 +46,7 @@ The ordinary Spring Session job is:
 - Open [references/jdbc-store.md](references/jdbc-store.md) when the session store is relational and table naming, cleanup, transactions, or JSON attribute storage matter.
 - Open [references/webflux-websession.md](references/webflux-websession.md) when the application is reactive and uses `WebSession` instead of servlet `HttpSession`.
 - Open [references/websocket-integration.md](references/websocket-integration.md) when WebSocket or STOMP traffic must share the same backing session lifecycle as HTTP traffic.
-- Open [references/redis-advanced.md](references/redis-advanced.md) when Redis repository type, session events, JSON serialization, expiration-store behavior, or Spring Security listener integration must be customized.
+- Open [references/redis-advanced.md](references/redis-advanced.md) when Redis repository type, session events, JSON serialization, expiration-store behavior, session mapper, or Spring Security listener integration must be customized.
 - Open [references/alternative-repositories.md](references/alternative-repositories.md) only when Redis and JDBC are both poor fits and the deployment already mandates another repository.
 
 ## Dependency baseline
@@ -45,16 +56,27 @@ Prefer the Spring Session module that matches the store, plus the matching data-
 ### Redis-backed servlet sessions
 
 ```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.session</groupId>
-        <artifactId>spring-session-data-redis</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-redis</artifactId>
-    </dependency>
-</dependencies>
+<dependency>
+    <groupId>org.springframework.session</groupId>
+    <artifactId>spring-session-data-redis</artifactId>
+</dependency>
+```
+
+```groovy
+implementation 'org.springframework.session:spring-session-data-redis'
+```
+
+### JDBC-backed servlet sessions
+
+```xml
+<dependency>
+    <groupId>org.springframework.session</groupId>
+    <artifactId>spring-session-jdbc</artifactId>
+</dependency>
+```
+
+```groovy
+implementation 'org.springframework.session:spring-session-jdbc'
 ```
 
 ## Store selection
@@ -65,8 +87,8 @@ Prefer the Spring Session module that matches the store, plus the matching data-
 
 ### Redis repository choice
 
-- Use the default Redis repository when the application only needs normal read, write, and expiration behavior for each session.
-- Use the indexed Redis repository when Spring Security, administration, or messaging needs `findByPrincipalName(...)` or session lifecycle events.
+- Use the default Redis repository (`RedisSessionRepository`) when the application only needs normal read, write, and expiration behavior for each session.
+- Use the indexed Redis repository (`RedisIndexedSessionRepository`) when Spring Security, administration, or messaging needs `findByPrincipalName(...)`, `SessionCreatedEvent`, `SessionDeletedEvent`, `SessionDestroyedEvent`, or `SessionExpiredEvent`.
 - Keep timeout, namespace, and expiration behavior explicit so operators can reason about TTL and cleanup behavior.
 
 ## First safe configuration
@@ -153,7 +175,7 @@ The default Redis serializer is acceptable for one application controlling both 
 - Open [references/jdbc-store.md](references/jdbc-store.md) when the database schema, cleanup cadence, transaction strategy, or JSON attribute storage needs explicit control.
 - Open [references/webflux-websession.md](references/webflux-websession.md) when the app is reactive and `WebSession` semantics replace servlet `HttpSession` semantics.
 - Open [references/websocket-integration.md](references/websocket-integration.md) when WebSocket or STOMP traffic must close or invalidate alongside the backing HTTP session.
-- Open [references/redis-advanced.md](references/redis-advanced.md) when repository type, session events, listener bridging, expiration-store behavior, or JSON serialization must be customized.
+- Open [references/redis-advanced.md](references/redis-advanced.md) when repository type, session events, listener bridging, expiration-store behavior, session mapper, or JSON serialization must be customized.
 - Open [references/alternative-repositories.md](references/alternative-repositories.md) only when an existing platform standard already mandates Hazelcast, MongoDB, or a custom repository.
 
 ## Implementation examples
@@ -229,6 +251,7 @@ Return:
 - Keep session payloads small and serialization-safe. Store identifiers and lightweight state, not large object graphs.
 - Align cookie domain, `SameSite`, and secure flags with the actual deployment topology before release.
 - For Redis, confirm TTL behavior, namespace isolation, repository type, serializer compatibility, and failover latency under node loss.
+- For Redis Cluster with the indexed repository, note that events are subscribed from a single random node; some session indexes may not be cleaned up if the event occurs on a different node.
 - Expose login, active session, and session expiration behavior through application metrics or audit events when operations need visibility.
 - Ensure secret rotation or node restarts do not silently invalidate every active session unless that behavior is intentional.
 

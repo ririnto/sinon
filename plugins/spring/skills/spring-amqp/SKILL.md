@@ -19,11 +19,12 @@ The latest released Spring AMQP line is 4.1.0. Keep this skill on the 4.1.x stab
 
 ## Boundaries
 
-Use `spring-amqp` for RabbitMQ-oriented producers, consumers, listener containers, queue and exchange topology, delivery retries, dead-letter flows, and RabbitMQ-specific operational seams.
+Use `spring-amqp` for RabbitMQ-oriented producers, consumers, listener containers, queue and exchange topology, delivery retries, dead-letter flows, and RabbitMQ-specific operational seams. The `spring-amqp-client` module provides generic AMQP 1.0 protocol support for any AMQP 1.0 peer, but it is a separate surface with its own `@EnableAmqp` / `@AmqpListener` annotations and distinct client APIs.
 
 - Kafka or Pulsar semantics and client APIs are outside this skill's scope.
 - Keep business logic outside listeners. Listeners should deserialize, validate, and delegate.
 - Keep queue, exchange, routing-key, and delivery-policy names stable once publishers and consumers are deployed.
+- When deploying against RabbitMQ 4.3+, note that `queue-master-locator` is denied by default and delivery-count semantics changed -- retry and dead-letter policies may need adjustment.
 
 ## Official surface map
 
@@ -40,6 +41,7 @@ Use this map to keep the official Spring AMQP 4.x surface visible without pushin
 | Batching and async listeners | The consumer path is no longer one-message-in, one-message-out | Batch listeners are the blocker in [references/batch-listeners.md](references/batch-listeners.md), async returns are the blocker in [references/async-return-listeners.md](references/async-return-listeners.md), polling receive is the blocker in [references/polling-receive.md](references/polling-receive.md), or consumer threading is the blocker in [references/listener-threading-and-back-pressure.md](references/listener-threading-and-back-pressure.md) |
 | Streams | Queue semantics are not enough | RabbitMQ stream plugin semantics are the blocker in [references/stream-variants.md](references/stream-variants.md) |
 | Multiple brokers | One broker connection is no longer enough | Broker isolation is the blocker in [references/multi-broker-variants.md](references/multi-broker-variants.md) |
+| Generic AMQP 1.0 | RabbitMQ-specific API is not needed or the peer uses AMQP 1.0 natively | Generic AMQP 1.0 client, `@AmqpListener`, and `AmqpClient` are the blocker in [references/generic-amqp10-support.md](references/generic-amqp10-support.md) |
 | Testing | The contract needs broker-focused or listener-focused verification | Test harness depth is the blocker in [references/testing-support-and-listener-harnesses.md](references/testing-support-and-listener-harnesses.md) |
 | Observability and debugging | Delivery behavior must be measured or diagnosed in production | Listener metrics are the blocker in [references/listener-metrics-and-micrometer.md](references/listener-metrics-and-micrometer.md), tracing is the blocker in [references/distributed-tracing-for-amqp.md](references/distributed-tracing-for-amqp.md), or delivery diagnosis is the blocker in [references/delivery-debugging-checklist.md](references/delivery-debugging-checklist.md) |
 
@@ -80,6 +82,7 @@ Use the Boot starter for application code and the Rabbit test module for listene
 | Ordinary publisher and listener path | `spring-boot-starter-amqp` |
 | Listener and broker-focused tests | `spring-rabbit-test` |
 | RabbitMQ stream semantics | stream client support from [references/stream-variants.md](references/stream-variants.md) |
+| Generic AMQP 1.0 protocol | `spring-amqp-client` (see [references/generic-amqp10-support.md](references/generic-amqp10-support.md)) |
 
 ## First safe commands
 
@@ -140,7 +143,7 @@ JacksonJsonMessageConverter jsonConverter() {
 }
 ```
 
-Since 4.1.0 the no-arg constructor trusts no packages. Provide the package of your payload types as the trusted package argument.
+Since 4.1.0 the no-arg constructor trusts no packages. Omitting the trusted-package argument causes deserialization to fail for all payload types. Provide the package of your payload types as the trusted package argument.
 
 The ordinary path is one JSON payload type per message contract, with the listener receiving the already-converted domain payload. Open [references/conversion-and-listener-method-signatures.md](references/conversion-and-listener-method-signatures.md) when the blocker is listener argument design, header access, validation, or custom conversion behavior.
 
@@ -325,6 +328,21 @@ void handle(OrderCreated event) {
 SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
 ```
 
+### Boot auto-configuration hooks
+
+Boot 4.1.x auto-configures several customization points. Declare these beans to customize the auto-configured defaults without replacing the entire infrastructure.
+
+| Bean | Effect |
+| --- | --- |
+| `ConnectionFactoryCustomizer` | Customize the underlying `CachingConnectionFactory` properties |
+| `ConnectionNameStrategy` | Name connections from application context |
+| `RabbitTemplateCustomizer` | Apply additive customizations to the auto-configured `RabbitTemplate` |
+| `RabbitTemplateConfigurer` | Build additional `RabbitTemplate` instances with auto-configured settings |
+| `RabbitTemplateRetrySettingsCustomizer` | Programmatic retry customization for the template |
+| `RabbitListenerRetrySettingsCustomizer` | Programmatic retry customization for listeners |
+| `RabbitTemplateObservationConvention` | Custom observation naming for template operations |
+| `RabbitListenerObservationConvention` | Custom observation naming for listener operations |
+
 ## Output contract
 
 Return:
@@ -362,3 +380,4 @@ Return:
 - Open [references/listener-metrics-and-micrometer.md](references/listener-metrics-and-micrometer.md) when the blocker is listener metrics or Micrometer wiring.
 - Open [references/distributed-tracing-for-amqp.md](references/distributed-tracing-for-amqp.md) when the blocker is end-to-end tracing for publish and consume paths.
 - Open [references/delivery-debugging-checklist.md](references/delivery-debugging-checklist.md) when the blocker is connection debugging or delivery diagnosis.
+- Open [references/generic-amqp10-support.md](references/generic-amqp10-support.md) when the blocker is generic AMQP 1.0 protocol interaction using `spring-amqp-client`.

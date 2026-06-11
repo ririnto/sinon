@@ -4,64 +4,39 @@ Open this reference when built-in snippets are not enough.
 
 Add custom snippets only when the built-in field, parameter, header, and request or response snippets are not enough.
 
-- Good fit: domain-specific tables, enum catalogs, or repeated error envelope documentation.
-- Poor fit: rewriting standard request and response snippet behavior for style reasons alone.
+- Good fit: domain-specific tables, enum catalogs, repeated error envelope documentation, constraint columns.
+- Poor fit: rewriting standard request or response snippets.
+
+## Adding snippet attributes
+
+```java
+requestFields(attributes(key("title").value("Fields for user creation")),
+    fieldWithPath("name").description("The user's name")
+        .attributes(key("constraints").value("Must not be null. Must not be empty")),
+    fieldWithPath("email").description("The user's email address"))
+```
+
+## Custom Mustache templates
+
+Templates are loaded from the classpath under `org.springframework.restdocs.templates.asciidoctor`. Each template is named after the snippet it produces, for example `request-fields.snippet` at `src/test/resources/org/springframework/restdocs/templates/asciidoctor/request-fields.snippet`.
+
+```mustache
+.{{title}}
+|===
+|Path|Type|Description|Constraints
+
+{{#fields}}
+|{{path}}
+|{{type}}
+|{{description}}
+|{{constraints}}
+
+{{/fields}}
+|===
+```
+
+Use the `tableCellContent` lambda when writing custom templates that render user-provided text containing Asciidoctor table cell characters.
 
 ## Validation rule
 
 Verify the custom snippet adds contract value not already covered by built-in snippets.
-
-## Minimal custom snippet example
-
-Use a custom snippet when the endpoint contract includes a domain-specific table that the built-in snippets do not model well.
-
-```java
-final class ErrorCodeSnippet extends TemplatedSnippet {
-    private final List<ErrorCodeRow> rows;
-
-    ErrorCodeSnippet(List<ErrorCodeRow> rows) {
-        super("error-codes");
-        this.rows = rows;
-    }
-
-    @Override
-    protected Map<String, Object> createModel(Operation operation) {
-        return Map.of("rows", rows);
-    }
-
-    record ErrorCodeRow(String code, String description) {
-    }
-}
-```
-
-```java
-@WebMvcTest(OrderController.class)
-@AutoConfigureRestDocs
-class OrderDocumentationTests {
-    @Autowired
-    MockMvc mvc;
-
-    @Test
-    void createOrderDocumentsErrorCodes() throws Exception {
-        mvc.perform(post("/orders")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"sku\":\"ABC\",\"quantity\":2}"))
-            .andExpect(status().isCreated())
-            .andDo(document("orders-create", responseFields(fieldWithPath("id").description("Created order id")), new ErrorCodeSnippet(List.of(new ErrorCodeSnippet.ErrorCodeRow("OUT_OF_STOCK", "Inventory is insufficient for the request")))));
-    }
-}
-```
-
-```adoc
-.Error codes
-|===
-|Code |Description
-
-{{#rows}}
-|{{code}} |{{description}}
-{{/rows}}
-
-|===
-```
-
-Place the template at `src/test/resources/org/springframework/restdocs/templates/error-codes.snippet` so the generated `error-codes.adoc` snippet is available to the same `document("orders-create", ...)` call.

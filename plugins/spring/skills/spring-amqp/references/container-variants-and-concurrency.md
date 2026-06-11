@@ -58,3 +58,27 @@ Solution: tune concurrency and prefetch together, then verify ordering and back-
 - Do not raise concurrency before checking whether the listener logic is idempotent.
 - Do not change prefetch in isolation; it changes both memory pressure and fairness.
 - Do not use a dedicated factory when a shared baseline is sufficient.
+
+## Immediate scale-down (4.1)
+
+Problem: `SimpleMessageListenerContainer` scales consumers up under load but retains idle consumers for too long, wasting broker resources.
+
+Solution: set `immediateScaleDown(true)` on the container or factory. Each consumer checks after every message whether it is in excess and stops itself when processing completes, rather than waiting for idle-trigger or stop-interval timeouts.
+
+```java
+factory.getContainerProperties().setImmediateScaleDown(true);
+```
+
+This option bypasses `consecutiveIdleTrigger` and `stopConsumerMinInterval` for scale-down decisions. Scale-up behavior is unaffected. Requires `maxConcurrentConsumers` to be configured.
+
+## Error handler fatal-stop option (4.1)
+
+Problem: fatal exceptions in a listener cause message rejection and requeue loops because the container keeps consuming from a broken state.
+
+Solution: use `ConditionalRejectingErrorHandler` with `stopListenerOnFatal(true)`. Fatal exceptions throw `FatalListenerExecutionException` instead of `AmqpRejectAndDontRequeueException`, stopping the container and requeuing the message for other consumers.
+
+```java
+ConditionalRejectingErrorHandler errorHandler = new ConditionalRejectingErrorHandler();
+errorHandler.setStopListenerOnFatal(true);
+factory.setErrorHandler(errorHandler);
+```

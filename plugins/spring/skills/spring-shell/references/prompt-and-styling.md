@@ -18,7 +18,8 @@ Use prompt theming to surface environment or login state, not to decorate the sh
 ## Risk-signaling output shape
 
 ```java
-String delete(CommandContext ctx, @Option(longNames = "cluster", required = true) String cluster) {
+@Command(name = "cluster delete", description = "Delete a cluster resource", group = "cluster")
+String delete(CommandContext ctx, @Option(longName = "cluster", required = true) String cluster) {
     ctx.outputWriter().println(new AttributedString("warning: deleting from %s".formatted(cluster), AttributedStyle.DEFAULT.foreground(AttributedStyle.RED)));
     ctx.outputWriter().flush();
     return "accepted";

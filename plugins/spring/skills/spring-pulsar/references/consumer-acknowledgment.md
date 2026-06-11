@@ -2,6 +2,23 @@
 
 Open this reference when listener acknowledgment should be controlled explicitly instead of using the ordinary listener flow.
 
+## Acknowledgment modes
+
+Spring Pulsar provides three acknowledgment modes:
+
+- `BATCH` (default) -- the container acknowledges the entire batch after all records in the batch are processed.
+- `RECORD` -- the container acknowledges each record individually after it is processed.
+- `MANUAL` -- the application controls when each message is acknowledged.
+
+Set the ack mode on the listener annotation or on the container properties.
+
+```java
+@PulsarListener(topics = "shipments", subscriptionName = "warehouse", ackMode = AckMode.RECORD)
+void handle(ShipmentEvent event) {
+    service.handle(event);
+}
+```
+
 ## Manual acknowledgment shape
 
 ```java

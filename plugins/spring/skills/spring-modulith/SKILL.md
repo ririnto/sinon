@@ -35,6 +35,9 @@ The ordinary Spring Modulith job is:
 | Cross-module reaction should happen after work completes | application event |
 | Boundary drift must fail fast in CI | `ApplicationModules.verify()` |
 | One module interaction needs isolated integration coverage | `@ApplicationModuleTest` |
+| Module arrangement needs runtime metadata or startup verification | `@Modulithic` |
+| Events must survive listener failures | event publication registry |
+| Domain reacts to calendar boundaries | Moments |
 
 Keep named interfaces small and intention-revealing. Prefer events over direct internal bean calls when the interaction does not need immediate synchronous coupling.
 
@@ -44,7 +47,7 @@ When one module may depend on only specific neighbors, make that dependency rule
 
 Import the BOM and use the core and test starters for the common path.
 
-The current GA Spring Modulith BOM is `2.0.6`. Keep the ordinary dependency path on that released line; it matches the current GA project and docs guidance, while separately published RC artifacts for newer pre-release lines do not change the baseline for this skill.
+The current GA Spring Modulith BOM is `2.0.6`. It is compiled against Spring Boot 4.0.x and tested against Boot 4.0.x. Keep the ordinary dependency path on the 2.0.x released line; separately published RC artifacts for newer pre-release lines do not change the baseline for this skill.
 
 ```xml
 <dependencyManagement>
@@ -72,6 +75,19 @@ The current GA Spring Modulith BOM is `2.0.6`. Keep the ordinary dependency path
 </dependencies>
 ```
 
+```groovy
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.modulith:spring-modulith-bom:2.0.6'
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.modulith:spring-modulith-starter-core'
+    testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
+}
+```
+
 ## First safe configuration
 
 ### First safe commands
@@ -84,10 +100,28 @@ The current GA Spring Modulith BOM is `2.0.6`. Keep the ordinary dependency path
 ./gradlew test --tests ModularityTests
 ```
 
+### Application class shape
+
+```java
+@Modulithic
+@SpringBootApplication
+class Application {
+}
+```
+
+Use `@Modulithic` to enable runtime metadata, startup verification, and `ApplicationModuleInitializer` ordering. Set `systemName` for human-readable documentation names.
+
 ### Boundary verification shape
 
 ```java
 ApplicationModules.of(Application.class).verify();
+```
+
+Exclude packages from inspection when needed:
+
+```java
+ApplicationModules.of(Application.class,
+    JavaClass.Predicates.resideInAPackage("com.example.db")).verify();
 ```
 
 ### Module event publication shape
@@ -107,7 +141,7 @@ class InventoryProjection {
 }
 ```
 
-Use `@ApplicationModuleListener` when the listener should clearly belong to the cross-module event boundary.
+Use `@ApplicationModuleListener` when the listener should clearly belong to the cross-module event boundary. The annotation is syntactic sugar for `@Async @Transactional(propagation = REQUIRES_NEW) @TransactionalEventListener`.
 
 ### Package declaration shape
 
@@ -122,6 +156,16 @@ package example.orders.api;
 ```
 
 Use these `package-info.java` declarations when the module boundary and the exported named interface should be explicit in code rather than implied only by package names.
+
+### Module detection strategy
+
+By default, direct sub-packages of the main application class package are modules. Switch to explicit annotation only:
+
+```properties
+spring.modulith.detection-strategy=explicitly-annotated
+```
+
+Or provide a custom `ApplicationModuleDetectionStrategy` implementation.
 
 Start by making verification pass before adding richer module test scenarios.
 
@@ -138,10 +182,13 @@ Start by making verification pass before adding richer module test scenarios.
 
 | Situation | Use |
 | --- | --- |
-| One module should start with only its direct collaborators | `@ApplicationModuleTest(mode = STANDALONE)` |
-| Test should see direct dependency modules too | `@ApplicationModuleTest(mode = DIRECT_DEPENDENCIES)` |
+| One module should run in isolation | `@ApplicationModuleTest(mode = STANDALONE)` |
+| Test should see direct dependency modules | `@ApplicationModuleTest(mode = DIRECT_DEPENDENCIES)` |
+| Test should see the full dependency tree | `@ApplicationModuleTest(mode = ALL_DEPENDENCIES)` |
 | Event publication must be asserted directly | `PublishedEvents` or `AssertablePublishedEvents` |
+| Fluent assertions on published events | `AssertablePublishedEvents` |
 | Efferent dependency should stay mocked in the module test | `@MockitoBean` |
+| Event-driven interaction needs richer async verification | `Scenario` API |
 
 ## Implementation examples
 
@@ -208,7 +255,7 @@ class OrdersModuleTest {
 }
 ```
 
-### Published events test shape
+### Assertable published events test shape
 
 ```java
 @ApplicationModuleTest
@@ -217,9 +264,11 @@ class OrdersModuleTest {
     Orders orders;
 
     @Test
-    void publishesOrderCompleted(PublishedEvents events) {
+    void publishesOrderCompleted(AssertablePublishedEvents events) {
         orders.complete(new Order("o-1"));
-        assertThat(events.ofType(OrderCompleted.class)).hasSize(1);
+        assertThat(events)
+            .contains(OrderCompleted.class)
+            .matching(OrderCompleted::orderId, "o-1");
     }
 }
 ```
@@ -236,27 +285,24 @@ example.orders.internal
 package example.orders;
 ```
 
-## Output and configuration shapes
-
-### Verification call shape
+### Documentation generation shape
 
 ```java
-ApplicationModules.of(Application.class).verify();
-```
+class DocumentationTests {
+    ApplicationModules modules = ApplicationModules.of(Application.class);
 
-### Module event shape
-
-```java
-new OrderCompleted(order.id())
-```
-
-### Module-focused test shape
-
-```java
-@ApplicationModuleTest
-class OrdersModuleTest {
+    @Test
+    void writeDocumentationSnippets() {
+        new Documenter(modules)
+            .writeModulesAsPlantUml()
+            .writeIndividualModulesAsPlantUml()
+            .writeModuleCanvases()
+            .writeAggregatingDocument();
+    }
 }
 ```
+
+Generate C4 component diagrams, per-module diagrams, module canvases, and an aggregating Asciidoctor file. Output goes to `spring-modulith-docs` in the build folder by default.
 
 ## Testing checklist
 
@@ -280,3 +326,6 @@ class OrdersModuleTest {
 - Open [references/scenario-tests.md](references/scenario-tests.md) when event-driven module tests need richer `Scenario` verification than the ordinary module test path.
 - Open [references/event-publication-registry.md](references/event-publication-registry.md) when module events must be tracked, replayed, or completed reliably after failures.
 - Open [references/moments.md](references/moments.md) when the application reacts to business-relevant time events such as day, week, or month boundaries.
+- Open [references/event-externalization.md](references/event-externalization.md) when module events must be published to external brokers such as Kafka, AMQP, or JMS.
+- Open [references/documentation-generation.md](references/documentation-generation.md) when module arrangement diagrams and canvases must be generated for developer documentation.
+- Open [references/runtime-support.md](references/runtime-support.md) when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, or change-aware test execution.
