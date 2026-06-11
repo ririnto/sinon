@@ -65,3 +65,12 @@ Those categories often need different retry and dead-letter outcomes.
 - Do not combine multiple retry strategies on one listener path without a clear reason.
 - Do not use transactions to paper over non-idempotent business logic.
 - Do not treat recoverer choice as an afterthought. It defines the exhausted-message contract.
+- When deploying against RabbitMQ 4.3+, delivery-count semantics changed: `x-delivery-count` is now managed by the broker and is not incremented by the consumer on reject/nack. Retry and dead-letter policies that relied on the previous consumer-managed delivery-count behavior must be reviewed and adjusted.
+
+## Fatal exception handling (4.1)
+
+Problem: fatal exceptions such as `MessageConversionException` or `MethodArgumentNotValidException` cause message rejection and requeue loops.
+
+Solution: configure `ConditionalRejectingErrorHandler` with `stopListenerOnFatal(true)` to stop the container on fatal errors and requeue the message for other consumers. See [container-variants-and-concurrency.md](container-variants-and-concurrency.md) for the container-level configuration.
+
+The default `ConditionalRejectingErrorHandler` rejects messages with fatal exceptions without requeuing. With `stopListenerOnFatal(true)`, the container stops entirely, preventing the requeue loop while making the failure visible to operators.

@@ -21,18 +21,16 @@ Use flow components when a command must lead the operator through several depend
 - Single-select and multi-select input: use when the choice set is bounded and operator discoverability matters.
 
 ```java
-@Command(group = "cluster")
+@Component
 class ClusterCommands {
     private final ClusterService clusterService;
     private final ComponentFlow.Builder componentFlowBuilder;
-
     ClusterCommands(ClusterService clusterService, ComponentFlow.Builder componentFlowBuilder) {
         this.clusterService = clusterService;
         this.componentFlowBuilder = componentFlowBuilder;
     }
-
-    @Command(command = "cluster reset", description = "Reset a target cluster")
-    String reset(@Option(longNames = "cluster", required = true) String cluster) {
+    @Command(name = "cluster reset", description = "Reset a target cluster", group = "cluster")
+    String reset(@Option(longName = "cluster", required = true) String cluster) {
         ComponentFlow flow = componentFlowBuilder.clone()
             .reset()
             .withStringInput("namespace")

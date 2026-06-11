@@ -33,6 +33,10 @@ public void configure(StateMachineTransitionConfigurer<States, Events> transitio
 }
 ```
 
+For choice, `.first()` evaluates guards in order. The first transition whose guard returns true is taken. `.then()` adds additional guarded branches. `.last()` is the fallback when no guard matches.
+
+For junction, use the same `.first()`/`.then()`/`.last()` pattern but define multiple incoming transitions to the junction state.
+
 ## Fork and join
 
 - Fork: split into parallel regions.
@@ -40,11 +44,36 @@ public void configure(StateMachineTransitionConfigurer<States, Events> transitio
 
 Use fork and join only when concurrency is truly part of the workflow model rather than an implementation detail.
 
+Fork transitions originate from a single source and target multiple region initial states. Join transitions originate from multiple region end states and target a single state outside the region parent.
+
 ## History
 
 Use history when a nested state machine must resume the last active child state after interruption.
 
 History is a lifecycle modeling decision, not a shortcut for persistence.
+
+Two history variants exist: shallow history (remembers only the immediate child state) and deep history (remembers the full nested state path). Configure with `.history(...)` specifying `SHALLOW` or `DEEP`.
+
+```java
+states.withStates()
+    .parent(States.ACTIVE)
+    .initial(States.INIT)
+    .history(States.HISTORY, StateMachineStateConfigurer.History.SHALLOW);
+```
+
+## Terminate state
+
+Use terminate to stop a state machine in a non-terminal fashion. Unlike `end()`, a terminated machine cannot be restarted without building a new instance.
+
+```java
+states.withStates()
+    .initial(States.RUNNING)
+    .terminate(States.TERMINATED);
+```
+
+## Exit and entry point states
+
+Use entry and exit points with hierarchical (nested) states to control which sub-state is activated on entry and which exit path is taken without going through the default initial state sequence.
 
 ## Decision points
 
@@ -56,12 +85,15 @@ History is a lifecycle modeling decision, not a shortcut for persistence.
 | Parallel sub-lifecycles start together | fork |
 | Parallel sub-lifecycles must all finish before continuing | join |
 | Nested states must resume the last active child | history |
+| Machine must stop and cannot restart | terminate |
+| Controlled entry or exit from nested states | entry/exit point |
 
 ## Gotchas
 
 - Do not reach for pseudo states when a simple external transition with a guard is enough.
 - Do not model implementation concurrency with fork and join unless the business lifecycle itself is parallel.
 - Do not confuse history with restart persistence; they solve different problems.
+- Do not confuse terminate with end; terminated machines cannot restart, while end states are final but the machine lifecycle can be restarted.
 
 ## Verification rule
 

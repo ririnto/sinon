@@ -1,4 +1,4 @@
-# Spring Modulith named interfaces
+# Named Interfaces
 
 Open this reference when module exposure rules need explicit `allowedDependencies` or several named interface packages.
 
@@ -9,8 +9,6 @@ Open this reference when module exposure rules need explicit `allowedDependencie
 package example.orders;
 ```
 
-Use explicit allowed dependencies when package structure alone is not enough to express which neighboring modules may be called.
-
 ## Package-level named interface shape
 
 ```java
@@ -18,13 +16,21 @@ Use explicit allowed dependencies when package structure alone is not enough to 
 package example.orders.api;
 ```
 
-Use this shape when one module exposes several named interface packages and other modules may depend on only one of them.
-
 ## Consuming-module shape
 
 ```java
 @ApplicationModule(allowedDependencies = "orders::api")
 package example.inventory;
+```
+
+Consuming-module code can only reach into `orders::api` packages, not internal ones.
+
+## Multi-interface package shape
+
+```text
+example.orders.api
+example.orders.spi
+example.orders.internal
 ```
 
 ```java
@@ -35,22 +41,45 @@ public interface OrderLookup {
 }
 ```
 
-## Multi-interface package shape
+## Allowed-dependency wildcard
 
-```text
-example.orders.api
-example.orders.spi
-example.orders.internal
+Allow access to all explicitly declared named interfaces of a module:
+
+```java
+@ApplicationModule(allowedDependencies = "orders::*")
+package example.inventory;
 ```
 
 ## Decision points
 
 | Situation | Use |
 | --- | --- |
-| Module should expose only one API subset | named interface |
-| Only specific neighbor modules may be referenced | `allowedDependencies` |
-| Ordinary package conventions are already enough | stay on the common path |
+| Module should expose only one API subset | named interface on base package |
+| Module should expose multiple named subsets | multiple `@NamedInterface` packages |
+| Only specific neighbor modules may reference this one | `allowedDependencies` |
+| Ordinary package conventions are enough | no annotation needed |
+
+## Customizing named interface detection
+
+Provide a custom `ApplicationModuleDetectionStrategy` and override `detectNamedInterfaces`:
+
+```java
+class CustomStrategy implements ApplicationModuleDetectionStrategy {
+    @Override
+    Stream<JavaPackage> getModuleBasePackages(JavaPackage basePackage) {
+    }
+
+    @Override
+    NamedInterfaces detectNamedInterfaces(
+            JavaPackage basePackage, ApplicationModuleInformation information) {
+        return NamedInterfaces.builder()
+            .recursive()
+            .matching("api")
+            .build();
+    }
+}
+```
 
 ## Verification rule
 
-Verify `ApplicationModules.of(Application.class).verify()` fails when a consuming module reaches into `internal` packages instead of the named interface.
+Verify `ApplicationModules.of(Application.class).verify()` fails when a consuming module reaches into `internal` packages or into named interfaces not listed in its `allowedDependencies`.

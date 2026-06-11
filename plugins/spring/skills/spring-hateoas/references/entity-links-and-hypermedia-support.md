@@ -15,22 +15,32 @@ Use explicit hypermedia support when the application is not already getting the 
 
 The ordinary Boot starter path already enables the common HAL setup. Open this reference only when that default is insufficient or when aggregate-type-based link derivation is clearer than assembler-owned controller links.
 
-## Entity links
+## Entity links controller setup
 
 ```java
 @Controller
 @ExposesResourceFor(Order.class)
+@RequestMapping("/orders")
 class OrderController {
-    @GetMapping("/orders/{id}")
-    OrderModel one(@PathVariable long id) {
-        throw new UnsupportedOperationException();
-    }
-}
 
+    @GetMapping
+    ResponseEntity<?> orders() { ... }
+
+    @GetMapping("/{id}")
+    ResponseEntity<?> order(@PathVariable Long id) { ... }
+}
+```
+
+`@ExposesResourceFor(Order.class)` declares which entity type the controller manages. The type-level `@RequestMapping` is the collection resource base. The method-level mapping extending with an identifier is the item resource.
+
+## Entity links usage
+
+```java
 @Autowired
 EntityLinks entityLinks;
 
 Link self = entityLinks.linkToItemResource(Order.class, 1L).withSelfRel();
+Link collection = entityLinks.linkToCollectionResource(Order.class).withRel("orders");
 ```
 
 Use entity links when links should be derived from the exposed aggregate type instead of repeating controller method references in many places.

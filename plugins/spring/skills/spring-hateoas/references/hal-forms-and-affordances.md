@@ -17,6 +17,21 @@ Use HAL-FORMS only when clients will actually consume form templates and action 
 
 Use plain affordances when the representation should advertise actionable transitions but the client still consumes ordinary HAL. Move to HAL-FORMS only when the client must also consume form templates and action metadata directly from `_templates`.
 
+## Building affordances
+
+```java
+import org.springframework.hateoas.Affordances;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
+Link self = linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel();
+Link update = Affordances.of(self)
+    .afford(methodOn(OrderController.class).update(order.id(), null))
+    .toLink();
+model.add(update);
+```
+
+`Affordances.of(link)` is the entry point. Call `.afford(...)` with a controller method reference to derive HTTP method, request body type, and URI from the method signature. Call `.toLink()` to produce a `Link` carrying the affordance metadata.
+
 ## HAL-FORMS response expectation
 
 ```text
@@ -47,7 +62,8 @@ Use this media type when the API must expose HAL-FORMS templates rather than ord
 | Situation | Use |
 | --- | --- |
 | Link-only navigation is enough | plain HAL |
-| Clients need discoverable action metadata | HAL-FORMS |
+| Clients need discoverable action metadata | affordances on HAL links |
+| Clients need form templates and input field metadata | HAL-FORMS |
 | Representation should advertise state transitions | affordances |
 
 ## Validation rule

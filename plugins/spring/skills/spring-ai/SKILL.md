@@ -14,9 +14,11 @@ metadata:
     - "https://docs.spring.io/spring-ai/reference/api/image/"
     - "https://docs.spring.io/spring-ai/reference/api/audio/"
     - "https://docs.spring.io/spring-ai/reference/api/moderation/"
+    - "https://docs.spring.io/spring-ai/reference/api/advisors.html"
     - "https://docs.spring.io/spring-ai/reference/api/effective-agents.html"
     - "https://docs.spring.io/spring-ai/reference/api/usage-handling.html"
-  version: "1.1.6"
+    - "https://docs.spring.io/spring-ai/reference/api/mcp.html"
+  version: "1.1.7"
 ---
 
 ## Boundaries
@@ -36,8 +38,8 @@ Use this map to keep the official Spring AI surface visible without pushing the 
 | Chat + prompt templates | The feature reads text and returns text or structured data | Provider fit or model capability is the blocker in [references/provider-selection-and-model-capability-fit.md](references/provider-selection-and-model-capability-fit.md) |
 | Structured output | Downstream code needs fields, records, or typed objects | Upgrade or provider behavior changes the output contract in [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) |
 | Tool calling | The model may request a narrow, side-effect-safe application capability | Sequential tool choreography is the blocker in [references/advanced-tool-orchestration.md](references/advanced-tool-orchestration.md), tool-set curation is the blocker in [references/tool-set-curation.md](references/tool-set-curation.md), or fallback policy is the blocker in [references/tool-failure-and-fallback.md](references/tool-failure-and-fallback.md) |
-| Advisors + chat memory | Requests need prompt decoration, history, or token-window control | Advisor ordering or persistent memory is the blocker in [references/advisors-memory-and-conversation-state.md](references/advisors-memory-and-conversation-state.md) |
-| RAG + vector stores | The answer must use retrieved enterprise context | Ingestion, chunking, embeddings, or store choice is the blocker in [references/rag-pipeline-and-vector-store-decisions.md](references/rag-pipeline-and-vector-store-decisions.md) |
+| Advisors + chat memory | Requests need prompt decoration, history, token-window control, reasoning augmentation, or content safety | Advisor ordering or persistent memory is the blocker in [references/advisors-memory-and-conversation-state.md](references/advisors-memory-and-conversation-state.md) |
+| RAG + vector stores | The answer must use retrieved enterprise context | Ingestion, chunking, embeddings, store choice, or advanced RAG flow design is the blocker in [references/rag-pipeline-and-vector-store-decisions.md](references/rag-pipeline-and-vector-store-decisions.md) |
 | MCP | Tools or prompts cross a process or service boundary | Client/server choice or transport setup is the blocker in [references/mcp-client-server-boundaries.md](references/mcp-client-server-boundaries.md) |
 | Vision + image generation | The feature must inspect images or generate images from prompts | Vision payload shape is the blocker in [references/image-generation-and-vision-inputs.md](references/image-generation-and-vision-inputs.md), multiple-image comparison is the blocker in [references/multiple-image-comparison.md](references/multiple-image-comparison.md), or image-model output is the blocker in [references/image-generation.md](references/image-generation.md) |
 | Audio transcription + speech | The feature transcribes audio or returns synthesized speech | Transcription or TTS configuration is the blocker in [references/audio-transcription-and-speech-output.md](references/audio-transcription-and-speech-output.md) |
@@ -71,7 +73,7 @@ Import the Spring AI BOM and add only the starters needed for the current model 
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-bom</artifactId>
-            <version>1.1.6</version>
+            <version>1.1.7</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -90,7 +92,7 @@ Import the Spring AI BOM and add only the starters needed for the current model 
 </dependencies>
 ```
 
-Add retrieval, image, audio, moderation, or MCP starters only when that surface is part of the current job. Open [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) when the target Spring AI version differs from the version pinned here.
+Add retrieval, image, audio, moderation, or MCP starters only when that surface is part of the current job. Use `spring-ai-starter-model-openai-sdk` instead of `spring-ai-starter-model-openai` when the official OpenAI Java SDK is preferred. Open [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) when the target Spring AI version differs from the version pinned here.
 
 ## First safe setup
 
@@ -202,6 +204,8 @@ record InventorySnapshot(String sku, int availableQuantity) {}
 ## Memory and retrieval escalation
 
 Use advisors when the request or response must be decorated around the model call. Use `ChatMemory` through an advisor instead of manually appending prior turns.
+
+Spring AI ships built-in advisors: `MessageChatMemoryAdvisor` (message history), `VectorStoreChatMemoryAdvisor` (vector store-backed memory retrieval), `QuestionAnswerAdvisor` (naive RAG), `RetrievalAugmentationAdvisor` (modular RAG with query transformation, document post-processing, and context augmentation), `ReReadingAdvisor` (re-reading reasoning improvement), and `SafeGuardAdvisor` (content safety gate). Use in-memory `MessageWindowChatMemory` for demos and tests; use repository-backed memory for production multi-session workloads.
 
 ```java
 @Bean

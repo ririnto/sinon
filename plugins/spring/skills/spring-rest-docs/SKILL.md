@@ -11,7 +11,7 @@ metadata:
   version: "4.0.1"
 ---
 
-The latest released Spring REST Docs line is 4.0.1. On this line the ordinary supported documentation surfaces are MockMvc and WebTestClient, so older REST Assured guidance must stay out of the common path.
+Spring REST Docs 4.0.1 requires Spring Framework 7.0 (Spring Boot 4.x), JUnit 6.0, AsciidoctorJ 3.0, Jackson 3, and Bean Validation 3.1 (Hibernate Validator 9.0). REST Assured support was removed in 4.0. The only supported documentation surfaces are MockMvc and WebTestClient.
 
 ## Boundaries
 
@@ -38,6 +38,8 @@ The ordinary Spring REST Docs job is:
 | WebTestClient | the endpoint is reactive or the project already uses WebTestClient | open [references/webtestclient-surface.md](references/webtestclient-surface.md) |
 | Payload descriptors | field descriptors are the real blocker | open the payload-specific references below |
 | Hypermedia links | links are part of the contract | open [references/links.md](references/links.md) |
+| HTTP headers | request or response headers are part of the contract | open [references/http-headers.md](references/http-headers.md) |
+| Cookies | cookies are part of the contract | open [references/cookies.md](references/cookies.md) |
 | Multipart requests | multipart parts are part of the contract | open [references/multipart.md](references/multipart.md) |
 
 ## Dependency baseline
@@ -77,6 +79,24 @@ class OrderDocumentationTests {
 ```
 
 `@AutoConfigureRestDocs` wires the REST Docs infrastructure into the Boot test slice. When the output directory or URI rewriting must be customized, keep that customization explicit in the test or in `spring.restdocs.*` configuration.
+
+### Non-Boot test configuration shape
+
+```java
+@ExtendWith(RestDocumentationExtension.class)
+class OrderDocumentationTests {
+    MockMvc mvc;
+
+    @BeforeEach
+    void setUp(WebApplicationContext context, RestDocumentationContextProvider restDocumentation) {
+        this.mvc = MockMvcBuilders.webAppContextSetup(context)
+            .apply(documentationConfiguration(restDocumentation))
+            .build();
+    }
+}
+```
+
+Use `@ExtendWith(RestDocumentationExtension.class)` when the project does not use Boot test slices. `RestDocumentationExtension` provides the output directory automatically based on the build tool.
 
 ### REST Docs property shape
 
@@ -289,6 +309,7 @@ Return:
 - Open [references/query-parameters.md](references/query-parameters.md) when the contract depends on query parameters.
 - Open [references/path-parameters.md](references/path-parameters.md) when the contract depends on URI template variables.
 - Open [references/cookies.md](references/cookies.md) when the contract depends on cookies.
+- Open [references/http-headers.md](references/http-headers.md) when the contract depends on request or response headers.
 - Open [references/preprocessors.md](references/preprocessors.md) when preprocessors must do more than the ordinary pretty-print and URI rewriting path.
 - Open [references/custom-snippets.md](references/custom-snippets.md) when built-in snippets are not enough.
 - Open [references/links.md](references/links.md) when the contract includes hypermedia links.

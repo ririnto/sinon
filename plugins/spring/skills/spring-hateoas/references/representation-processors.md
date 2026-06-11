@@ -7,11 +7,13 @@ Open this reference when one cross-cutting rule must enrich many representations
 Use `RepresentationModelProcessor` when the enrichment rule is shared across many representation types or when enrichment must happen after the ordinary assembler step has already produced the model.
 
 ```java
+import org.springframework.hateoas.IanaLinkRelations;
+
 @Component
 class OrdersCollectionProcessor implements RepresentationModelProcessor<CollectionModel<OrderModel>> {
     @Override
     public CollectionModel<OrderModel> process(CollectionModel<OrderModel> model) {
-        return model.add(Link.of("/docs/orders", "profile"));
+        return model.add(Link.of("/docs/orders", IanaLinkRelations.PROFILE));
     }
 }
 ```
@@ -20,9 +22,9 @@ Prefer assemblers for resource-specific links and processors for cross-cutting e
 
 ## Typical blocker shapes
 
-- add the same documentation or profile link to many collection responses
-- enrich every paged model with one shared top-level link
-- apply one cross-cutting rule without duplicating it across many assemblers
+- Add the same documentation or profile link to many collection responses
+- Enrich every paged model with one shared top-level link
+- Apply one cross-cutting rule without duplicating it across many assemblers
 
 ## Decision points
 

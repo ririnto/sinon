@@ -18,10 +18,19 @@ Open this reference when the ordinary config-gateway-client path in `SKILL.md` i
 
 Choose the binder that matches the real broker.
 
+## Kafka Streams binder (2025.1.x)
+
+Spring Cloud Stream 5.0 adds per-binding KTable materialization controls for cache and logging in the Kafka Streams binder. Consumer priority ordering is also supported to control which consumers receive messages first.
+
+## Function handler integration in Gateway (2025.0.x)
+
+Spring Cloud Gateway 4.3.x supports `spring-cloud-function` and `spring-cloud-stream` handlers as route targets. This lets gateway routes invoke functions directly instead of proxying to a downstream service.
+
 ## Gotchas
 
 - Do not mix binder-specific behavior into a generic service contract casually.
 - Do not add several binders unless the application truly speaks to several brokers.
+- In 2025.1.x, consumer priority and KTable materialization controls are Kafka Streams binder only.
 
 ## Validation rule
 

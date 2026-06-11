@@ -12,6 +12,8 @@ metadata:
 
 The current stable Spring Statemachine line is 4.0.1. The official project README marks the project as maintenance mode, so prefer the ordinary, well-supported configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
 
+Spring Statemachine 4.0.1 requires Spring Boot 3.5.x and Spring Framework 6.2.x.
+
 ## Boundaries
 
 Use `spring-statemachine` for finite-state lifecycle modeling where legal transitions matter and invalid event handling must be explicit.
@@ -21,6 +23,7 @@ Use `spring-statemachine` for finite-state lifecycle modeling where legal transi
 - Keep pseudo states, regions, persistence, and factories out of the ordinary path unless the workflow truly needs them.
 - Keep reactive state-machine support out of the ordinary path. Open the reactive reference only when the application actually uses reactive guards, actions, or event handling.
 - Keep distributed coordination out of the ordinary path. Persistence does not imply a distributed machine, and a distributed machine is not the default solution for restart survival.
+- Keep `@WithStateMachine` context integration, `StateMachineInterceptor`, monitoring, and security out of the ordinary path unless those features are explicitly needed.
 
 ## Common path
 
@@ -30,8 +33,9 @@ The ordinary Spring Statemachine job is:
 2. Model only the valid external transitions and let unsupported events remain explicit failures or no-ops.
 3. Use guards for transition eligibility and actions for side effects tied to a transition.
 4. Keep transient workflow context in extended state only when it truly belongs to the state machine.
-5. Send events through the machine and observe state changes with a listener or test plan.
-6. Add a test that proves the expected event sequence reaches the right terminal or intermediate state.
+5. Send events through the machine using `MessageBuilder` and subscribe to the reactive result.
+6. Observe state changes with a listener or test plan.
+7. Add a test that proves the expected event sequence reaches the right terminal or intermediate state.
 
 ### Branch selector
 
@@ -126,6 +130,119 @@ Start with one machine and one clear lifecycle. Add factories, persistence, pseu
 6. Persist state only when the lifecycle must survive process restarts or multiple runtime instances.
 7. Test the happy path and at least one blocked or invalid transition path.
 
+## Key API patterns
+
+### Event dispatch
+
+In 4.0.x, `sendEvent` accepts `Mono<Message<E>>` and returns `Flux<StateMachineEventResult<S, E>>`. Nothing happens until the returned Flux is subscribed. Build events with `MessageBuilder`.
+
+```java
+Message<Events> message = MessageBuilder
+    .withPayload(Events.PAY)
+    .setHeader("orderId", 42L)
+    .build();
+stateMachine.sendEvent(Mono.just(message)).subscribe();
+```
+
+For synchronous-style usage, block on the result:
+
+```java
+boolean accepted = stateMachine
+    .sendEvent(Mono.just(MessageBuilder.withPayload(Events.PAY).build()))
+    .map(StateMachineEventResult::getResultType)
+    .allMatch(r -> r == StateMachineEventResult.ResultType.ACCEPTED)
+    .blockOptional()
+    .orElse(false);
+```
+
+### Machine startup
+
+Use `startReactively()` instead of `start()`:
+
+```java
+stateMachine.startReactively().block();
+```
+
+### Transition types
+
+Three transition types are supported:
+
+- `withExternal()` — source and target differ; entry and exit actions run.
+- `withInternal()` — source and target are the same; no entry or exit actions run.
+- `withLocal()` — source and target are the same state hierarchy level; no exit or entry actions run for sub-states.
+
+### State entry, exit, and do actions
+
+```java
+states.withStates()
+    .initial(States.NEW)
+    .state(States.PAID, onEnterAction(), onExitAction())
+    .end(States.SHIPPED);
+```
+
+### Timer triggers
+
+Use `timer(ms)` for repeating internal transitions and `timerOnce(ms)` for one-shot delayed transitions on internal transitions.
+
+```java
+transitions.withInternal()
+    .source(States.PAID)
+    .action(timeoutAction())
+    .timer(5000);
+```
+
+### Deferred events
+
+States can defer events for later processing. When the machine enters a state that does not defer the event, previously deferred events are replayed.
+
+```java
+states.withStates()
+    .initial(States.READY)
+    .state(States.READY, null, null, EnumSet.of(Events.DEPLOY));
+```
+
+### Auto-start
+
+Set `autoStartup(true)` in configuration to avoid calling `startReactively()` manually.
+
+```java
+@Override
+public void configure(StateMachineConfigurationConfigurer<States, Events> config) throws Exception {
+    config.withConfiguration().autoStartup(true);
+}
+```
+
+### Disabling context events
+
+When `@EnableStateMachine` context events are not needed, disable them to reduce overhead:
+
+```java
+@Configuration
+@EnableStateMachine(contextEvents = false)
+class OrderStateMachineConfig {
+}
+```
+
+### SpEL guards
+
+Use `guardExpression` for simple eligibility checks without a dedicated Guard bean:
+
+```java
+transitions.withExternal()
+    .source(States.NEW).target(States.PAID).event(Events.PAY)
+    .guardExpression("extendedState.variables.get('paymentAllowed')");
+```
+
+### Error action callback
+
+Provide an error action to handle exceptions thrown by the primary action:
+
+```java
+transitions.withExternal()
+    .source(States.NEW).target(States.PAID).event(Events.PAY)
+    .action(reserveInventory(), handleError());
+```
+
 ## Edge cases
 
 - Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) when one singleton machine must become many machine instances, persistence is enabled, or region modeling enters the design.
@@ -142,7 +259,7 @@ enum Events { PAY, SHIP, CANCEL }
 
 @Configuration
 @EnableStateMachine
-class OrderStateMachineConfig extends StateMachineConfigurerAdapter<States, Events> {
+class OrderStateMachineConfig extends EnumStateMachineConfigurerAdapter<States, Events> {
     @Override
     public void configure(StateMachineStateConfigurer<States, Events> states) throws Exception {
         states.withStates()
@@ -213,7 +330,8 @@ public void configure(StateMachineConfigurationConfigurer<States, Events> config
 ### Event dispatch shape
 
 ```java
-boolean accepted = stateMachine.sendEvent(Events.PAY);
+Message<Events> message = MessageBuilder.withPayload(Events.PAY).build();
+stateMachine.sendEvent(Mono.just(message)).blockLast();
 ```
 
 ### JUnit 5 test shape
@@ -226,8 +344,13 @@ class OrderStateMachineTests {
 
     @Test
     void payTransitionReachesPaidState() {
-        stateMachine.start();
-        boolean accepted = stateMachine.sendEvent(Events.PAY);
+        stateMachine.startReactively().block();
+        boolean accepted = stateMachine
+            .sendEvent(Mono.just(MessageBuilder.withPayload(Events.PAY).build()))
+            .map(StateMachineEventResult::getResultType)
+            .allMatch(r -> r == StateMachineEventResult.ResultType.ACCEPTED)
+            .blockOptional()
+            .orElse(false);
         assertAll(
             () -> assertTrue(accepted),
             () -> assertEquals(States.PAID, stateMachine.getState().getId())
@@ -236,8 +359,8 @@ class OrderStateMachineTests {
 
     @Test
     void invalidEventLeavesStateUnchanged() {
-        stateMachine.start();
-        stateMachine.sendEvent(Events.SHIP);
+        stateMachine.startReactively().block();
+        stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(Events.SHIP).build())).blockLast();
         assertEquals(States.NEW, stateMachine.getState().getId());
     }
 }

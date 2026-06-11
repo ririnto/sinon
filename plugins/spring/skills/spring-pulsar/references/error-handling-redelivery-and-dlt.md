@@ -21,10 +21,71 @@ MultiplierRedeliveryBackoff backoff = MultiplierRedeliveryBackoff.builder()
     .build();
 ```
 
+## PulsarConsumerErrorHandler
+
+Pulsar's native `DeadLetterPolicy` works only with `Shared` subscriptions. For `Exclusive`, `Failover`, or `Key_Shared` subscriptions, use `PulsarConsumerErrorHandler` instead.
+
+```java
+@PulsarListener(
+    topics = "shipments",
+    subscriptionName = "warehouse",
+    subscriptionType = SubscriptionType.Exclusive,
+    pulsarConsumerErrorHandler = "shipmentErrorHandler"
+)
+void handle(ShipmentEvent event) {
+    service.handle(event);
+}
+
+@Bean
+PulsarConsumerErrorHandler<ShipmentEvent> shipmentErrorHandler(PulsarTemplate<ShipmentEvent> template) {
+    return new DefaultPulsarConsumerErrorHandler<>(
+        new PulsarDeadLetterPublishingRecoverer<>(template, event -> "shipments-dlt"),
+        backoff
+    );
+}
+```
+
+The error handler retries the failed message, then sends it to the DLT when retries are exhausted. For batch listeners, the container retries the entire batch starting from the failed message.
+
+## Acknowledgment timeout redelivery
+
+```java
+@PulsarListener(
+    topics = "shipments",
+    subscriptionName = "warehouse",
+    subscriptionType = SubscriptionType.Shared,
+    ackTimeoutMillis = 60_000
+)
+void handle(ShipmentEvent event) {
+    service.handle(event);
+}
+```
+
+When ack timeout has a value above zero and the consumer does not acknowledge within that period, Pulsar redelivers the message.
+
+## Negative acknowledgment redelivery
+
+```java
+@PulsarListener(
+    topics = "shipments",
+    subscriptionName = "warehouse",
+    subscriptionType = SubscriptionType.Shared,
+    negativeAckRedeliveryBackoff = "redeliveryBackoff",
+    properties = {"negativeAckRedeliveryDelay=10ms"}
+)
+void handle(ShipmentEvent event) {
+    if (event.isInvalid()) {
+        throw new RuntimeException("fail " + event);
+    }
+    service.handle(event);
+}
+```
+
 ## Selection rule
 
 - Use plain redelivery first when the listener can recover after a short transient failure.
-- Use Pulsar redelivery backoff and dead-letter policy when retries should be isolated operationally before final DLT handling.
+- Use PulsarConsumerErrorHandler for Spring-native DLQ that works across all subscription types.
+- Use Pulsar-native dead-letter policy when only Shared subscriptions are in use and native Pulsar behavior is preferred.
 - Use DLT publishing when the failed message needs operator review, replay, or a separate compensating workflow.
 - Keep one representative failure test that proves the message lands in the expected retry or dead-letter path.
 

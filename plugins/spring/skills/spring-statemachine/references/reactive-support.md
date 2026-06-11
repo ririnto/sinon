@@ -11,19 +11,47 @@ Reactive support is available in the current 4.0.1 line, but it remains an addit
 - Use reactive guards and actions only when upstream and downstream collaborators are already reactive.
 - Keep one consistent style inside a machine. Do not mix blocking side effects into an otherwise reactive machine path.
 
-## Reactive action and guard rule
+## Reactive guard and action interfaces
+
+The framework internally wraps both `Action` and `Guard` in Reactor types. The `Action` interface (`void execute(StateContext)`) is wrapped as `ReactiveAction` (`Function<StateContext, Mono<Void>>`). The `Guard` interface (`boolean evaluate(StateContext)`) is wrapped as `ReactiveGuard` (`Function<StateContext, Mono<Boolean>>`).
+
+You can implement these directly for fully non-blocking behavior:
+
+```java
+@Bean
+ReactiveAction<States, Events> reactiveReserveInventory() {
+    return context -> inventoryService.reserveReactive(context.getMessageHeaders().get("orderId", Long.class))
+        .then();
+}
+
+@Bean
+ReactiveGuard<States, Events> reactivePaymentAllowed() {
+    return context -> Mono.just(Boolean.TRUE.equals(context.getExtendedState().get("paymentAllowed", Boolean.class)));
+}
+```
 
 Reactive support changes how side effects and eligibility checks are composed, but it does not change the core modeling rule: states, events, transitions, and lifecycle semantics still need to stay explicit.
 
-## Reactive event dispatch shape
+## Reactive event dispatch
+
+Use the reactive event path when event dispatch itself must stay reactive. Unlike the ordinary imperative `sendEvent(Mono<Message>)` shape in `SKILL.md`, sending a `Flux` of messages returns a combined `Flux<StateMachineEventResult>`.
 
 ```java
-Flux<StateMachineEventResult<States, Events>> results = stateMachine.sendEvents(Flux.just(MessageBuilder.withPayload(Events.PAY).build()));
+Flux<StateMachineEventResult<States, Events>> results = stateMachine.sendEvents(
+    Flux.just(
+        MessageBuilder.withPayload(Events.PAY).build(),
+        MessageBuilder.withPayload(Events.SHIP).build()
+    )
+);
 ```
 
-Use the reactive event path when event dispatch itself must stay reactive. Unlike the ordinary imperative `sendEvent(...)` shape in `SKILL.md`, the reactive path returns event results rather than a simple boolean acceptance flag.
+The reactive `sendEvent(Mono<Message>)` and `sendEvents(Flux<Message>)` are the only dispatch APIs. The older synchronous `sendEvent(E event)` returning `boolean` is no longer present in 4.0.x.
 
-Keep result handling explicit so the reactive test proves both completion and the expected machine state.
+## Reactive machine startup
+
+```java
+StepVerifier.create(stateMachine.startReactively()).verifyComplete();
+```
 
 ## Testing rule
 
@@ -32,7 +60,10 @@ Test reactive machines with assertions that prove the event flow completes and r
 ```java
 @Test
 void reactivePayEventReachesPaidState() {
-    Flux<StateMachineEventResult<States, Events>> results = stateMachine.sendEvents(Flux.just(MessageBuilder.withPayload(Events.PAY).build()));
+    StepVerifier.create(stateMachine.startReactively()).verifyComplete();
+    Flux<StateMachineEventResult<States, Events>> results = stateMachine.sendEvents(
+        Flux.just(MessageBuilder.withPayload(Events.PAY).build())
+    );
     StepVerifier.create(results)
         .expectNextCount(1)
         .verifyComplete();

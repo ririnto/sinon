@@ -36,3 +36,4 @@ Verify one representative poison-message path reaches the expected dead-letter t
 
 - Do not choose a DLQ topic name that hides the source topic or subscription.
 - Do not enable dead-letter publishing without one representative poison-message test.
+- Pulsar-native dead-letter policy works only with `Shared` subscriptions. For `Exclusive`, `Failover`, or `Key_Shared` subscriptions, use `PulsarConsumerErrorHandler` instead (see the error handling reference).
