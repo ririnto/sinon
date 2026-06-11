@@ -53,9 +53,9 @@ Run the selected stack validation command from the repository root:
 `{{validation_command}}`
 
 The generated `pre-commit` hook runs `{{validation_command}}`. The generated `pre-push` hook also runs the same command and should match CI when CI workflows are present.
-The selected stack validation command also runs `npx -y markdownlint-cli2@0.22.1` from the repository root. Markdown validation uses `.markdownlint-cli2.jsonc` plus the local custom rule at `docs/scripts/exec-plan-links.ts`, which rejects durable Markdown references to removable dated execution-plan state files. Durable references should point to `docs/exec-plans/tech-debt-tracker.md`, design docs, or product specs instead.
+The selected stack validation command also runs Markdown validation. Bun uses its packaged `markdownlint-cli2` dependency; the other stack validators use `markdownlint-cli2` from PATH when it is installed. Markdown validation uses `.markdownlint-cli2.jsonc` plus the local custom rule at `docs/scripts/exec-plan-links.ts`, which rejects durable Markdown references to removable dated execution-plan state files. Durable references should point to `docs/exec-plans/tech-debt-tracker.md`, design docs, or product specs instead.
 
-Markdown validation requires Node.js >=22.18.0 with npm/npx available. The first run may download `markdownlint-cli2@0.22.1` through npx.
+When `markdownlint-cli2` is not installed for non-Bun stacks, stack validation prints a warning and skips Markdown linting. Gradle, uv, and shell fix commands also run `markdownlint-cli2 --fix` when the tool is installed.
 
 Native validation configuration is owned by the selected stack's tooling and shared repository conventions, such as `.editorconfig` and stack-specific build/tooling config.
 

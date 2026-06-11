@@ -118,4 +118,3 @@ class InstallerSupport:
     def root_contract_symlink_target(self, file_path: str) -> str:
         del file_path
         raise NotImplementedError
-

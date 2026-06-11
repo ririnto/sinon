@@ -103,6 +103,29 @@ version_from_lombok_path() {
     basename "$1" | sed -n 's/^lombok-\([0-9][0-9A-Za-z._-]*\)\.jar$/\1/p'
 }
 
+# Find a compatible Lombok jar path from one metadata file.
+#
+# @param metadata_file Build metadata file that may reference Lombok jars.
+# @return Prints the resolved jar path on success, or returns 1 if none found.
+resolve_lombok_jar_from_metadata_file() {
+    metadata_file="$1"
+    if ! candidate_paths=$(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}"); then
+        return 1
+    fi
+    while IFS= read -r candidate_path; do
+        if resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}"); then
+            candidate_version=$(version_from_lombok_path "${resolved_path}")
+            if [ -n "${candidate_version}" ] && is_compatible_lombok_version "${candidate_version}"; then
+                printf '%s\n' "${resolved_path}"
+                return 0
+            fi
+        fi
+    done <<EOF
+${candidate_paths}
+EOF
+    return 1
+}
+
 # Check whether a Lombok version meets the minimum compatibility threshold.
 #
 # @param current_version Version string to check.
@@ -165,35 +188,17 @@ EOF
 resolve_project_lombok_jar() {
     for metadata_file in "${project_root}/.classpath" "${project_root}/.factorypath"; do
         if [ -f "${metadata_file}" ]; then
-            while IFS= read -r candidate_path; do
-                resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}" || true)
-                if [ -n "${resolved_path}" ]; then
-                    candidate_version=$(version_from_lombok_path "${resolved_path}")
-                    if [ -n "${candidate_version}" ] && is_compatible_lombok_version "${candidate_version}"; then
-                        printf '%s\n' "${resolved_path}"
-                        return 0
-                    fi
-                fi
-            done <<EOF
-$(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}" || true)
-EOF
+            if resolve_lombok_jar_from_metadata_file "${metadata_file}"; then
+                return 0
+            fi
         fi
     done
     while IFS= read -r metadata_file; do
         case "${metadata_file}" in
             */.classpath | */.factorypath)
-                while IFS= read -r candidate_path; do
-                    resolved_path=$(resolve_candidate_jar_path "${candidate_path}" "${metadata_file}" || true)
-                    if [ -n "${resolved_path}" ]; then
-                        candidate_version=$(version_from_lombok_path "${resolved_path}")
-                        if [ -n "${candidate_version}" ] && is_compatible_lombok_version "${candidate_version}"; then
-                            printf '%s\n' "${resolved_path}"
-                            return 0
-                        fi
-                    fi
-                done <<EOF
-$(grep -Eo '([A-Za-z]:[\\/][^"[:space:]]*|[^"[:space:]]*/)?lombok-[0-9][^"[:space:]]*\.jar' "${metadata_file}" || true)
-EOF
+                if resolve_lombok_jar_from_metadata_file "${metadata_file}"; then
+                    return 0
+                fi
                 ;;
         esac
     done <<EOF

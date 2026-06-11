@@ -12,43 +12,34 @@ Check runner using native ruff.
 from __future__ import annotations
 
 import subprocess
+import shutil
 import sys
 
 
-def tracked_python_files() -> list[str]:
+def run_markdownlint() -> int:
     """
-    Return Python files tracked by Git.
+    Run markdownlint-cli2 when it is available on PATH.
     """
-    result = subprocess.run(
-        ["git", "ls-files", "-z", "--", "*.py"],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(
-            result.stderr.strip() or result.stdout.strip() or "git ls-files failed"
+    markdownlint = shutil.which("markdownlint-cli2")
+    if markdownlint is None:
+        print(
+            "warning: markdownlint-cli2 not in PATH; skipping Markdown linting",
+            file=sys.stderr,
         )
-    return [path for path in result.stdout.split("\0") if path]
+        return 0
+    return subprocess.run([markdownlint]).returncode
 
 
 def main() -> int:
     """
     Validate Markdown and run ruff lint and format checks on the project.
     """
-    markdown_result = subprocess.run(["bunx", "markdownlint-cli2"])
-    if markdown_result.returncode != 0:
-        return markdown_result.returncode
-    try:
-        files = tracked_python_files()
-    except RuntimeError as error:
-        print(f"error: {error}", file=sys.stderr)
-        return 1
-    if not files:
-        print("ruff: no tracked Python files to check")
-        return 0
+    markdown_status = run_markdownlint()
+    if markdown_status != 0:
+        return markdown_status
     commands = (
-        ("check",),
-        ("format", "--check"),
+        ("check", "."),
+        ("format", "--check", "."),
     )
     status = 0
     for command in commands:
@@ -59,8 +50,6 @@ def main() -> int:
                 "ruff>=0.15.16,<0.16.0",
                 "ruff",
                 *command,
-                "--",
-                *files,
             ],
         )
         if result.returncode != 0:
