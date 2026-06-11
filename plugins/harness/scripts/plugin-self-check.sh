@@ -183,7 +183,7 @@ reject_file_text "$root/skills/harness-install/assets" "leafFunctionBlankLines"
 printf '[rejection] No manifest/bespoke references in assets OK\n' >&2
 
 printf '\n--- native tool smoke tests ---\n' >&2
-smoke_test_tool "bunx" "bunx --version"
+smoke_test_tool "bun" "bun --version"
 smoke_test_tool "uv" "uv --version"
 smoke_test_tool "shellcheck" "shellcheck --version"
 smoke_test_tool "shfmt" "shfmt --version"

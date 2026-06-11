@@ -6,27 +6,17 @@ plugins {
     alias(libs.plugins.kotlin.jvm) apply false
 }
 
-fun gitTrackedFiles(vararg patterns: String): Set<String> {
-    val process =
-        ProcessBuilder(
-            listOf("git", "ls-files", "--", *patterns),
-        ).directory(rootDir)
-            .redirectErrorStream(true)
-            .start()
-    val output = process.inputStream.bufferedReader().use { reader -> reader.readText() }
-    if (process.waitFor() != 0) {
-        error("git ls-files failed while listing Kotlin files: $output")
-    }
-    return output
-        .lineSequence()
-        .filter { path -> path.isNotBlank() }
-        .toSet()
-}
-
-val trackedKotlinFiles = gitTrackedFiles("*.kt", "*.kts")
+fun findMarkdownlintCommand(): String? =
+    ProcessBuilder("sh", "-c", "command -v markdownlint-cli2")
+        .redirectErrorStream(true)
+        .start()
+        .let { process ->
+            process.inputStream.bufferedReader().use { reader -> reader.readText().trim() }.takeIf {
+                process.waitFor() == 0
+            }
+        }
 
 allprojects {
-    val projectPathPrefix = if (this == rootProject) "" else "${project.path.removePrefix(":").replace(':', '/')}/"
     apply(
         plugin =
             rootProject.libs.plugins.ktlint
@@ -37,16 +27,6 @@ allprojects {
         version.set(rootProject.libs.versions.ktlint.cli)
         android.set(false)
         ignoreFailures.set(false)
-        filter {
-            include(
-                trackedKotlinFiles
-                    .filter { trackedFile -> projectPathPrefix.isEmpty() || trackedFile.startsWith(projectPathPrefix) }
-                    .map { trackedFile -> trackedFile.removePrefix(projectPathPrefix) },
-            )
-            exclude { element ->
-                !element.isDirectory && rootProject.relativePath(element.file) !in trackedKotlinFiles
-            }
-        }
         reporters {
             reporter(ReporterType.PLAIN)
         }
@@ -55,15 +35,27 @@ allprojects {
 
 tasks.register("checkMarkdown") {
     doLast {
-        providers
-            .exec {
-                commandLine(
-                    "bunx",
-                    "markdownlint-cli2",
-                )
-            }.result
-            .get()
-            .assertNormalExitValue()
+        findMarkdownlintCommand()?.let { markdownlint ->
+            providers
+                .exec {
+                    commandLine(markdownlint)
+                }.result
+                .get()
+                .assertNormalExitValue()
+        } ?: logger.warn("markdownlint-cli2 not in PATH; skipping Markdown linting")
+    }
+}
+
+tasks.register("fixMarkdown") {
+    doLast {
+        findMarkdownlintCommand()?.let { markdownlint ->
+            providers
+                .exec {
+                    commandLine(markdownlint, "--fix")
+                }.result
+                .get()
+                .assertNormalExitValue()
+        } ?: logger.warn("markdownlint-cli2 not in PATH; skipping Markdown linting")
     }
 }
 
@@ -71,3 +63,6 @@ tasks.named("ktlintCheck") {
     dependsOn("checkMarkdown")
 }
 
+tasks.named("ktlintFormat") {
+    dependsOn("fixMarkdown")
+}

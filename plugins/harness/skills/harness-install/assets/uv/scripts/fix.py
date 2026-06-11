@@ -10,41 +10,35 @@ Fix runner using native ruff.
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 
 
-def tracked_python_files() -> list[str]:
+def run_markdownlint_fix() -> int:
     """
-    Return Python files tracked by Git.
+    Run markdownlint-cli2 --fix when it is available on PATH.
     """
-    result = subprocess.run(
-        ["git", "ls-files", "-z", "--", "*.py"],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(
-            result.stderr.strip() or result.stdout.strip() or "git ls-files failed"
+    markdownlint = shutil.which("markdownlint-cli2")
+    if markdownlint is None:
+        print(
+            "warning: markdownlint-cli2 not in PATH; skipping Markdown fixes",
+            file=sys.stderr,
         )
-    return [path for path in result.stdout.split("\0") if path]
+        return 0
+    return subprocess.run([markdownlint, "--fix"]).returncode
 
 
 def main() -> int:
     """
-    Run ruff lint fixes and format fixes on the project.
+    Run Markdown fixes, then ruff lint fixes and format fixes on the project.
     """
-    try:
-        files = tracked_python_files()
-    except RuntimeError as error:
-        print(f"error: {error}", file=sys.stderr)
-        return 1
-    if not files:
-        print("ruff: no tracked Python files to fix")
-        return 0
+    markdown_status = run_markdownlint_fix()
+    if markdown_status != 0:
+        return markdown_status
     commands = (
-        ("check", "--fix"),
-        ("format",),
+        ("check", "--fix", "."),
+        ("format", "."),
     )
     status = 0
     for command in commands:
@@ -55,8 +49,6 @@ def main() -> int:
                 "ruff>=0.15.16,<0.16.0",
                 "ruff",
                 *command,
-                "--",
-                *files,
             ],
         )
         if result.returncode != 0:

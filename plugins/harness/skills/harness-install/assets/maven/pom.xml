@@ -101,8 +101,9 @@
             </goals>
             <configuration>
               <target>
-                <exec executable="bunx" failonerror="true">
-                  <arg value="markdownlint-cli2"/>
+                <exec executable="sh" failonerror="true">
+                  <arg value="-c"/>
+                  <arg value="if markdownlint_bin=$(command -v markdownlint-cli2 2&gt;&amp;1); then &quot;$markdownlint_bin&quot;; else echo 'warning: markdownlint-cli2 not in PATH; skipping Markdown linting' &gt;&amp;2; fi"/>
                 </exec>
               </target>
             </configuration>
