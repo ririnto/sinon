@@ -10,6 +10,8 @@ Open this reference when choosing protocol adapters or module boundaries for a c
 | HTTP / WebFlux | `spring-integration-http`, `spring-integration-webflux` | The boundary is request-response HTTP or reactive HTTP. |
 | JDBC / JPA | `spring-integration-jdbc`, `spring-integration-jpa` | Polling databases, metadata stores, or database-backed outbound work is required. |
 | AMQP / Kafka | `spring-integration-amqp`, `spring-integration-kafka` | The Integration flow must bridge broker-backed channels or adapters. |
+| CloudEvents | `spring-integration-cloudevents` | The flow must produce or consume CloudEvents specification v1.0 messages. |
+| gRPC | `spring-integration-grpc` | The flow communicates via gRPC protocol with unary or streaming patterns. |
 
 Treat this table as a representative starting point, not as the full Spring Integration adapter catalog.
 
@@ -40,6 +42,13 @@ IntegrationFlow.from(Http.inboundGateway("/orders"))
     .channel("orders.input")
 ```
 
+```java
+IntegrationFlow.from("http.out.input")
+    .handle(Http.outboundGateway("/api/orders")
+        .restClient(restClient)
+        .expectedResponseType(String.class))
+```
+
 ## File inbound adapter shape
 
 ```java
@@ -53,6 +62,8 @@ IntegrationFlow.from(Files.inboundAdapter(new File("/inbox")), endpoint -> endpo
 - Choose file, FTP, or SFTP when delivery is file-oriented and polling or remote file session semantics drive the flow.
 - Choose JDBC or JPA when the database is the integration boundary, not just an internal repository.
 - Choose AMQP or Kafka when the flow must bridge broker topics, consumer groups, or message-driven channels.
+- Choose CloudEvents when the flow must interoperate with event-driven systems that produce or consume CloudEvents specification v1.0 messages.
+- Choose gRPC when the flow communicates via gRPC with Protobuf service contracts, especially for streaming patterns.
 
 ## Verification rule
 

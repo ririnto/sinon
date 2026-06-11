@@ -32,10 +32,13 @@ Batch 6.x-specific repository path when the deployment intentionally adopts the 
 
 ```java
 @Configuration
+@EnableBatchProcessing
 @EnableJdbcJobRepository
 class JdbcBatchInfrastructureConfiguration {
 }
 ```
+
+On Boot 4.1+, the auto-configured path handles JDBC and MongoDB stores without explicit annotations. Boot backs off when it detects `@EnableBatchProcessing` or a `DefaultBatchConfiguration` subclass. Use the manual path only when you need annotation-level control over `dataSourceRef`, `transactionManagerRef`, `tablePrefix`, or similar attributes that exceed Boot property configuration.
 
 Keep this migration branch separate from the ordinary Boot-managed path. Spring Boot 3.4.x and 3.5.x still use the Spring Batch 5.2.x compatibility branch, so Batch 6-specific repository annotations belong only on an intentionally upgraded line.
 

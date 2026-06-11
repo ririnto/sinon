@@ -78,6 +78,8 @@ When one reactive chain narrows itself with `securityMatcher(...)`, keep an expl
 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
 ```
 
+Authority extraction properties (`authorities-claim-name`, `authorities-claim-expressions`, `authority-prefix`) apply to reactive applications the same as servlet.
+
 ### Opaque token
 
 ```java

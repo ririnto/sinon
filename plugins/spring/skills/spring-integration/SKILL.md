@@ -8,12 +8,14 @@ metadata:
   reference-doc-urls:
     - "https://docs.spring.io/spring-integration/reference/"
     - "https://docs.spring.io/spring-integration/reference/core.html"
-    - "https://docs.spring.io/spring-integration/reference/router.html"
     - "https://docs.spring.io/spring-integration/reference/dsl.html"
+    - "https://docs.spring.io/spring-integration/reference/router.html"
     - "https://docs.spring.io/spring-integration/reference/system-management.html"
-    - "https://docs.spring.io/spring-integration/reference/file.html"
     - "https://docs.spring.io/spring-integration/reference/http.html"
-    - "https://docs.spring.io/spring-integration/reference/jdbc.html"
+    - "https://docs.spring.io/spring-integration/reference/redis.html"
+    - "https://docs.spring.io/spring-integration/reference/jms.html"
+    - "https://docs.spring.io/spring-integration/reference/cloudevents.html"
+    - "https://docs.spring.io/spring-integration/reference/grpc.html"
     - "https://docs.spring.io/spring-integration/reference/testing.html"
   version: "7.1.0"
 ---
@@ -87,9 +89,87 @@ For the current stable line, Spring Integration is 7.1.0. The latest released Sp
 </dependencies>
 ```
 
+### New modules in 7.1
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.integration</groupId>
+        <artifactId>spring-integration-cloudevents</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.integration</groupId>
+        <artifactId>spring-integration-grpc</artifactId>
+    </dependency>
+</dependencies>
+```
+
 Remove any adapter or test module the flow does not actually use.
 
 When Spring Boot already manages the module line, keep Spring Integration artifacts versionless. Add an exact version only on a standalone path that intentionally pins Spring Integration outside Boot-managed dependency control.
+
+## 7.1.0 changes that affect flow design
+
+### HTTP outbound: RestClient
+
+`HttpRequestExecutingMessageHandler` now accepts a `RestClient`. The `RestTemplate` configuration is deprecated. Prefer `RestClient` for new flows.
+
+```java
+@Bean
+IntegrationFlow httpOutboundFlow(RestClient restClient) {
+    return IntegrationFlow.from("http.out.input")
+        .handle(Http.outboundGateway("/api/orders")
+            .restClient(restClient)
+            .expectedResponseType(String.class))
+        .get();
+}
+```
+
+### Redis: DSL, GETDEL, native CAS/CAD
+
+The Redis module provides a Java DSL via `org.springframework.integration.redis.dsl.Redis`. `RedisMessageStore.doRemove` uses `GETDEL` (Redis 6.2+) instead of `GET`+`UNLINK` by default. `RedisLockRegistry` uses native Redis CAS/CAD commands for lock renewal and release (Redis 8.4+) with automatic Lua fallback.
+
+```java
+@Bean
+IntegrationFlow redisFlow() {
+    return IntegrationFlow.from("redis.in")
+        .handle(Redis.outboundEndpoint(redisTemplate())
+            .command(Commands.SET).topic("si.test.topic"))
+        .get();
+}
+```
+
+### JMS: header-to-property mapping and DSL JmsTemplate
+
+JMS-backed message channels now map Spring Integration headers to JMS message properties and back. The JMS DSL allows setting a custom `JmsTemplate` on outbound adapters.
+
+### DSL-only mode
+
+Set `spring.integration.annotations.enable=false` to skip messaging annotation post-processor registration (`MessagingAnnotationPostProcessor`, `MessagingAnnotationBeanPostProcessor`) in pure DSL scenarios. This avoids unnecessary component scanning overhead when the flow uses only Java DSL without annotation-driven endpoints.
+
+```properties
+spring.integration.annotations.enable=false
+```
+
+### Transformer requiresReply
+
+`MessageTransformingHandler.requiresReply` can no longer be modified. An `UnsupportedOperationException` is thrown from `setRequiresReply()` to enforce that the transformer pattern cannot produce null replies.
+
+### IntegrationPatternType: message_store
+
+`MessageStore` now extends `IntegrationPattern` with a default `message_store` type. This change makes message stores visible in the integration graph and monitoring systems.
+
+### HTTP CORS alignment with Spring MVC
+
+The HTTP and WebFlux inbound gateways now align `CrossOrigin` defaults with Spring MVC: `allowedOrigins` defaults to empty and `allowCredentials` defaults to `false`. Use `originPatterns` for flexible origin matching instead of `allowCredentials`.
+
+### CloudEvents support
+
+The `spring-integration-cloudevents` module provides `ToCloudEventTransformer` and `FromCloudEventTransformer` for CloudEvents specification v1.0 interoperability. Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
+
+### gRPC support
+
+The `spring-integration-grpc` module provides `GrpcInboundGateway` and `GrpcOutboundGateway` for unary, server streaming, client streaming, and bidirectional streaming gRPC patterns. Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
 
 ## First safe configuration
 
@@ -260,6 +340,7 @@ Pollers.fixedDelay(Duration.ofSeconds(5))
 
 ## References
 
+- Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) when the flow uses CloudEvents transformation or gRPC gateways.
 - Open [references/error-handling-and-retry-patterns.md](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit error-channel routing.
 - Open [references/testing-integration-flows.md](references/testing-integration-flows.md) when the task needs `@SpringIntegrationTest`, `MockIntegrationContext`, `noAutoStartup`, or graph-level assertions.
 - Open [references/pollers-transactions-and-stores.md](references/pollers-transactions-and-stores.md) when the flow depends on pollers, transactional sources, aggregators, or persistent message stores.

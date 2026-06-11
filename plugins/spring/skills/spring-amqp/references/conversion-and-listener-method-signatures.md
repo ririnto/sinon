@@ -11,9 +11,11 @@ Solution: keep one converter strategy per contract and make the listener signatu
 ```java
 @Bean
 JacksonJsonMessageConverter jsonConverter() {
-    return new JacksonJsonMessageConverter();
+    return new JacksonJsonMessageConverter("com.example.orders");
 }
 ```
+
+Since 4.1.0 the no-arg constructor trusts no packages. Provide the package of your payload types as the trusted package argument.
 
 ## Listener signature blocker
 

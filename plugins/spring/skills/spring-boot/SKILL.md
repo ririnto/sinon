@@ -1,7 +1,7 @@
 ---
 name: spring-boot
 description: >-
-  Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging. Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, or packaging executable archives.
+  Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging. Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, packaging executable archives, configuring Jackson multi-format features, setting up gRPC server or client, using @RedisListener, or managing 4.1.0 removals and deprecations.
 metadata:
   title: "Spring Boot"
   official-project-url: "https://spring.io/projects/spring-boot"
@@ -136,6 +136,241 @@ If the deployment baseline is container-native, keep the image build path explic
 - Keep startup work in runners or dedicated services, not in bean constructors.
 - Let auto-configuration do the ordinary wiring before adding custom Boot infrastructure.
 
+## 4.1.0 new features
+
+### Jackson multi-format configuration
+
+Common read/write features across Jackson formats (JSON, CBOR, XML) are now configurable via `spring.jackson.read.*` and `spring.jackson.write.*` properties. Factory-level read/write constraints use `spring.jackson.factory.*`. Auto-configured mappers use a `HandlerInstantiator` that resolves handler instances from application context beans.
+
+```yaml
+spring:
+  jackson:
+    read:
+      unknown-properties: false
+    write:
+      empty-collections: false
+    factory:
+      stream-read-constraints:
+        max-string-length: "256KB"
+      stream-write-constraints:
+        max-nesting-depth: 50
+```
+
+For advanced customization, register `JsonMapperBuilderCustomizer`, `JsonFactoryBuilderCustomizer`, `CborFactoryBuilderCustomizer`, or `XmlFactoryBuilderCustomizer` beans.
+
+Open [references/jackson-configuration.md](references/jackson-configuration.md) when the blocker is Jackson multi-format setup, factory constraints, or HandlerInstantiator wiring.
+
+### Config import encoding
+
+Config imports now support explicit encoding. Files default to ISO-8859-1 encoding unless overridden.
+
+```properties
+spring.config.import=classpath:file.properties[encoding=utf-8]
+```
+
+### Lazy JDBC connection fetching
+
+Defer physical JDBC connections until a statement is actually executed.
+
+```yaml
+spring:
+  datasource:
+    connection-fetch: lazy
+```
+
+When set to `lazy`, the auto-configured pooled `DataSource` is wrapped with `LazyConnectionDataSourceProxy`.
+
+### Async JPA bootstrapping
+
+Background bootstrap of `LocalContainerEntityManagerFactoryBean` for faster startup.
+
+```yaml
+spring:
+  jpa:
+    bootstrap: deferred
+```
+
+Requires an `AsyncTaskExecutor` bean. If none is available when `deferred` is set, Boot will fail with a clear message.
+
+### WebFlux HTML escaping
+
+Application-wide default HTML escaping for WebFlux views.
+
+```yaml
+spring:
+  webflux:
+    default-html-escape: true
+```
+
+### HTTP client cookie handling
+
+`TestRestTemplate` cookie handling now aligns with `RestTemplate`. Configure via `withCookieHandling`, `RestTemplateBuilder`, or a property.
+
+```yaml
+spring:
+  http:
+    clients:
+      cookie-handling: none
+```
+
+### @Async context propagation
+
+Thread context is automatically propagated to `@Async` methods.
+
+```yaml
+spring:
+  task:
+    execution:
+      propagate-context: true
+```
+
+### @AutoConfigureWebServer
+
+Slice tests that need an embedded web server without the full application context.
+
+```java
+@AutoConfigureWebServer
+class MyWebServerTests {
+    @Autowired
+    TomcatWebServerFactory webServerFactory;
+    // ...
+}
+```
+
+### Response compression MIME types
+
+Additional MIME types beyond the defaults for HTTP response compression.
+
+```yaml
+server:
+  compression:
+    additional-mime-types: application/protobuf,application/octet-stream
+```
+
+### gRPC support
+
+Spring Boot 4.1 adds first-class gRPC auto-configuration. Three new starters are available.
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-grpc-server</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-grpc-client</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-grpc-test</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+```kotlin
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-grpc-server")
+    implementation("org.springframework.boot:spring-boot-starter-grpc-client")
+    testImplementation("org.springframework.boot:spring-boot-grpc-test")
+}
+```
+
+Open [references/grpc.md](references/grpc.md) when the task is about gRPC server, client, or testing setup.
+
+### @RedisListener auto-configuration
+
+Annotate beans with `@RedisListener` to create listener endpoints. Boot auto-configures a `RedisMessageListenerContainer` when none is defined.
+
+```java
+@RedisListener("someChannel")
+public void processMessage(String content) {
+}
+```
+
+### Embedded LDAP SSL (LDAPS)
+
+Enable SSL for the embedded in-memory LDAP server via an SSL bundle.
+
+```yaml
+spring:
+  ldap:
+    embedded:
+      base-dn: dc=spring,dc=io
+      ssl:
+        bundle: example
+```
+
+### OpenTelemetry enhancements
+
+Disable the OTel SDK while keeping propagators active.
+
+```yaml
+management:
+  opentelemetry:
+    enabled: false
+    tracing:
+      sampler: always_on
+```
+
+OTLP exporters support SSL bundles and metrics compression.
+
+```yaml
+management:
+  otlp:
+    metrics:
+      export:
+        compression-mode: gzip
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: https://collector:4318/v1/traces
+          ssl:
+            bundle: example
+```
+
+Open [references/tracing.md](references/tracing.md) for OTel configuration, OTLP SSL bundles, metrics compression, truststore cert metrics, and exemplar filtering.
+
+### Docker Compose failure logging
+
+On compose startup failure, Boot logs container output at the configured level.
+
+```yaml
+spring:
+  docker:
+    compose:
+      start:
+        log-level: debug
+```
+
+Docker Compose now supports `docker.elastic.co/elasticsearch/elasticsearch` services.
+
+### Build updates
+
+- `bootBuildImage --environment KEY=VALUE` for Gradle CLI environment overrides.
+- `BuildInfo` task output changed to `META-INF/build-info.properties`. Use the `filename` property to customize.
+- Maven plugin loads `layers.xml` from classpath at `META-INF/spring/layers/.xml`.
+- `-DskipTests` no longer skips AOT. Use `maven.test.skip` instead.
+
+### Spock support restored
+
+Spock 2.4 with Groovy 5 support is restored. Add the `spring-boot-starter-test` dependency as usual; Spock tests work out of the box when `spock-spring` is on the classpath.
+
+### Spring Batch with MongoDB
+
+Auto-configuration for Spring Batch with MongoDB is now available via the existing `spring-boot-starter-batch` when `spring-data-mongodb` is on the classpath.
+
+## 4.1.0 removals and deprecations
+
+- **Layertools jar mode removed.** Use `tools` jar mode instead (`java -Djarmode=tools -jar app.jar`).
+- **`-DskipTests` no longer skips AOT.** Use `-Dmaven.test.skip` for both test and AOT skip.
+- **Deprecated Logback properties removed.** `logging.file.*` is gone; use `logging.logback.rollingpolicy.*`.
+- **Derby support deprecated.** Migrate to H2 or HSQLDB.
+- **LiveReload in DevTools deprecated.** No replacement planned.
+- **Dynatrace V1 API deprecated.** Migrate to V2 API.
+
+Open [references/deprecations-4.1.md](references/deprecations-4.1.md) for the full migration guide.
+
 ## Test strategy baseline
 
 Choose the narrowest Boot test that proves the behavior.
@@ -203,7 +438,7 @@ Return:
 - Open [references/health-groups.md](references/health-groups.md) when the task is about health groups.
 - Open [references/probes.md](references/probes.md) when the task is about liveness or readiness probe behavior.
 - Open [references/metrics.md](references/metrics.md) when the task is about metrics exports.
-- Open [references/tracing.md](references/tracing.md) when the task is about tracing exports.
+- Open [references/tracing.md](references/tracing.md) when the task is about tracing exports, OTel SDK configuration, OTLP SSL bundles, or exemplar filtering.
 - Open [references/endpoint-exposure.md](references/endpoint-exposure.md) when the blocker is Actuator endpoint exposure policy.
 - Open [references/sanitization.md](references/sanitization.md) when the blocker is sanitizing sensitive Actuator values.
 - Open [references/layered-jars.md](references/layered-jars.md) when container rebuild speed depends on jar layers.
@@ -212,3 +447,6 @@ Return:
 - Open [references/war-packaging.md](references/war-packaging.md) when a traditional servlet container is a hard requirement.
 - Open [references/aot-processing.md](references/aot-processing.md) when the blocker is AOT generation or runtime hints.
 - Open [references/native-image.md](references/native-image.md) when the blocker is native-image build or runtime behavior.
+- Open [references/jackson-configuration.md](references/jackson-configuration.md) when the blocker is Jackson multi-format features, factory constraints, or HandlerInstantiator wiring.
+- Open [references/grpc.md](references/grpc.md) when the task is about gRPC server, client, or testing setup.
+- Open [references/deprecations-4.1.md](references/deprecations-4.1.md) when migrating from 4.0 to 4.1 or replacing removed/deprecated features.
