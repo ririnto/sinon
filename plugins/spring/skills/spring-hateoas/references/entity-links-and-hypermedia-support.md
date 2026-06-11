@@ -1,5 +1,9 @@
 # Spring HATEOAS entity links and hypermedia support
 
+> [!IMPORTANT]
+>
+> `@ExposesResourceFor` and `EntityLinks` are deprecated in Spring HATEOAS 3.x. Prefer `WebMvcLinkBuilder.linkTo()` / `WebFluxLinkBuilder.linkTo()` with method references. Use this reference only when maintaining existing code that already depends on these APIs.
+
 Open this reference when links should derive from aggregate types, the application needs `EntityLinks`, or explicit `@EnableHypermediaSupport` activation is required instead of relying on the ordinary Boot starter path.
 
 ## Explicit hypermedia support
