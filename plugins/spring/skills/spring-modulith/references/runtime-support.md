@@ -1,6 +1,6 @@
 # Runtime Support
 
-Open this reference when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, or change-aware test execution.
+Open this reference when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, observability, change-aware test execution, or Module Slicing.
 
 ## Runtime boundary
 
@@ -44,7 +44,7 @@ class CatalogDataLoader implements ApplicationModuleInitializer {
 
 Initializers run in module dependency order. If module B depends on module A, A's initializers run before B's. This requires `spring-modulith-runtime` on the classpath for topological sorting.
 
-## Module-specific Flyway migrations (2.0)
+## Module-specific Flyway migrations
 
 Enable module-aware Flyway:
 
@@ -61,6 +61,7 @@ With this enabled, the Flyway setup is customized:
 - Migrations execute in module dependency tree order.
 - Module tests only run the root migration and the migrations for modules included in the test run.
 - Locations ending in a wildcard are not customized.
+- Individual modules can skip Flyway migration by setting `spring.modulith.runtime.flyway.modules.$moduleIdentifier.skip-migration=true`.
 
 ## Actuator endpoint
 
@@ -76,7 +77,14 @@ Exposes the application module structure via the Spring Boot actuator.
 
 ## Observability
 
+The observability support is split into an API artifact and a core artifact:
+
 ```xml
+<dependency>
+    <groupId>org.springframework.modulith</groupId>
+    <artifactId>spring-modulith-observability-api</artifactId>
+</dependency>
+
 <dependency>
     <groupId>org.springframework.modulith</groupId>
     <artifactId>spring-modulith-observability</artifactId>
@@ -84,7 +92,20 @@ Exposes the application module structure via the Spring Boot actuator.
 </dependency>
 ```
 
-Adds observability infrastructure for application module interactions.
+The API artifact provides observability interfaces used in application code. The core artifact provides the runtime implementation for application module interaction observability.
+
+## Module Slicing
+
+`@ModuleSlicing` enables modular Spring Boot auto-configuration within a single application. When present on the `@SpringBootApplication` class, only auto-configurations matching the declared modules are registered.
+
+```java
+@ModuleSlicing
+@SpringBootApplication
+class Application {
+}
+```
+
+Module slicing filters auto-configurations by their declared module membership. This allows large applications to run only the auto-configurations relevant to their active modules, reducing startup time and avoiding unwanted bean creation.
 
 ## Insight starter
 
@@ -162,8 +183,12 @@ org.springframework.modulith.core.ApplicationModuleSourceFactory=example.CustomA
 | Verify boundaries at startup | `spring.modulith.runtime.verification-enabled=true` |
 | Module startup code must respect dependency order | `ApplicationModuleInitializer` |
 | Each module owns its database migrations | Module-specific Flyway |
+| A module must skip Flyway migration | `spring.modulith.runtime.flyway.modules.$moduleIdentifier.skip-migration=true` |
 | Module structure should be visible via actuator | `spring-modulith-actuator` |
+| Observability interfaces in application code | `spring-modulith-observability-api` |
+| Runtime observability for module interactions | `spring-modulith-observability` |
 | Skip unaffected module tests during development | `spring-modulith-junit` |
+| Modular auto-configuration filtering | `@ModuleSlicing` |
 
 ## Verification rule
 
