@@ -106,3 +106,13 @@ If the application keeps the default repository detection strategy, repositories
 ## Verification rule
 
 Verify one HTTP test proves the repository resource path, HAL `_links`, and projection parameter behavior before exposing the repository publicly.
+
+## Return body on delete
+
+Spring Data REST 5.1 (with Spring Boot 4.1.0) supports `spring.data.rest.return-body-on-delete`. When set to `true`, DELETE responses include the deleted resource body in the response.
+
+```properties
+spring.data.rest.return-body-on-delete=true
+```
+
+Use this property when clients need the deleted resource representation in the DELETE response (for example, to confirm which resource was removed). The default is `false`, which omits the body from DELETE responses.

@@ -33,13 +33,31 @@ The ordinary Spring Batch job is:
 
 Use the Boot starter for application code and the Batch test module for job and step tests.
 
-For the latest released line, Spring Batch itself is 6.0.4. The current Boot-managed path is Spring Boot 4.1.x with Spring Batch 6.0.x. Spring Boot 3.4.x and 3.5.x applications remain on the Spring Batch 5.2.x compatibility branch, so Batch 6-specific APIs require either the Boot 4.1.x path or an intentional direct Spring Batch 6.x path.
+Spring Boot 4.1.x manages Spring Batch 6.0.x. Spring Boot 3.4.x and 3.5.x remain on the Spring Batch 5.2.x compatibility branch; Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
+
+JDBC store (default when a `DataSource` is present):
 
 ```xml
 <dependencies>
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-batch</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.batch</groupId>
+        <artifactId>spring-batch-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+MongoDB store (Boot 4.1+):
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-batch-data-mongodb</artifactId>
     </dependency>
     <dependency>
         <groupId>org.springframework.batch</groupId>
@@ -85,7 +103,15 @@ class BatchInfrastructureConfiguration {
 }
 ```
 
-On Spring Batch 6, `@EnableBatchProcessing` no longer assumes a JDBC-backed store. It configures the common batch infrastructure and defaults to a `ResourcelessJobRepository` plus `ResourcelessTransactionManager` (in-memory, non-persistent). Opt into a persistent backend explicitly with one of the store-specific annotations:
+On Spring Boot 4.1+, the auto-configured store is selected by classpath and conditions:
+
+- `BatchJdbcAutoConfiguration` activates when a `DataSource` and `PlatformTransactionManager` are present (the default when `spring-boot-starter-batch` is on the classpath alongside any JDBC starter).
+- `BatchDataMongoAutoConfiguration` activates when a `MongoDatabaseFactory` is present and no JDBC store is configured (the default when `spring-boot-starter-batch-data-mongodb` is on the classpath).
+- `BatchAutoConfiguration` provides the in-memory fallback when neither JDBC nor MongoDB conditions are met.
+
+No `@EnableBatchProcessing` or `@EnableJdbcJobRepository`/`@EnableMongoJobRepository` annotations are needed on the Boot 4.1+ auto-configured path. Boot backs off its auto-configuration when it detects `@EnableBatchProcessing` or a `DefaultBatchConfiguration` subclass on the classpath.
+
+On Spring Batch 6 with manual control (for example, when you need custom `tablePrefix`, `transactionManagerRef`, or other annotation attributes that go beyond Boot properties), opt into a persistent backend explicitly:
 
 ```java
 @Configuration
@@ -103,7 +129,27 @@ class BatchInfrastructureConfiguration {
 }
 ```
 
-`@EnableJdbcJobRepository` and `@EnableMongoJobRepository` attributes (`dataSourceRef`, `transactionManagerRef`, `tablePrefix`, etc.) are all optional; add them only when overriding the defaults. Change repository strategy only when operations, scale, or platform constraints require it. Open the infrastructure reference before adopting Batch 6-specific migration behavior beyond these annotations.
+Boot 4.1+ MongoDB schema initialization property:
+
+```yaml
+spring:
+  batch:
+    data:
+      mongodb:
+        schema:
+          initialize: true
+```
+
+Boot 4.1+ JDBC schema initialization property (unchanged from earlier lines):
+
+```yaml
+spring:
+  batch:
+    jdbc:
+      initialize-schema: always
+```
+
+Change repository strategy only when operations, scale, or platform constraints require it. Open the infrastructure reference before adopting Batch 6-specific migration behavior beyond these annotations.
 
 ### Chunk job baseline
 
