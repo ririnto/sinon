@@ -16,14 +16,11 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 
 - `spring-ai`: Spring AI patterns, model invocation, and vector-store integration.
 - `spring-amqp`: AMQP bindings, template-based messaging, and RabbitMQ integration.
-- `spring-authorization-server`: OAuth 2.1/OIDC authorization server setup, token endpoints, and client management.
 - `spring-batch`: Jobs, steps, chunk processing, retry/skip, and scaling-oriented batch design.
 - `spring-boot`: Spring Boot application shape, configuration, beans, profiles, and startup conventions.
-- `spring-cloud`: Common Spring Cloud patterns, service discovery, and distributed configuration.
-- `spring-cloud-data-flow`: Pipeline composition, task scheduling, and runtime operations.
-- `spring-credhub`: CredHub credential management and Spring integration.
-- `spring-data`: Shared Spring Data patterns, repository abstractions, and cross-store conventions.
-- `spring-framework`: Core framework annotations, container behavior, and extension points.
+- `spring-cloud`: Common Spring Cloud patterns, service discovery, distributed configuration, and Data Flow orchestration.
+- `spring-data`: Shared Spring Data patterns, repository abstractions, and cross-store conventions (JPA, JDBC, MongoDB, Redis, R2DBC).
+- `spring-framework`: Core framework annotations, container behavior, extension points, and Spring Web Flow.
 - `spring-graphql`: GraphQL endpoint setup, schema execution, and GraphQL-specific testing.
 - `spring-grpc`: gRPC service definition, channel customization, and in-process testing.
 - `spring-hateoas`: Hypermedia-driven APIs, HAL forms, and entity links.
@@ -33,12 +30,11 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 - `spring-modulith`: Spring Modulith patterns, event publication registry, and module-boundary testing.
 - `spring-pulsar`: Apache Pulsar producers, consumers, and Spring integration.
 - `spring-rest-docs`: API documentation via Spring REST Docs with Asciidoctor.
-- `spring-security`: Filter chain basics, HTTP security, method security, and security configuration.
+- `spring-security`: Filter chain, HTTP security, method security, and OAuth 2.1/OIDC authorization server.
 - `spring-session`: HTTP session abstraction, Redis/JDBC store, and WebSocket session integration.
 - `spring-shell`: Interactive CLI shells, command registration, and terminal UI styling.
 - `spring-statemachine`: State machine setup, transitions, pseudo-states, and persistence.
-- `spring-vault`: Vault secret handling, KV property-source loading, and transit encryption patterns.
-- `spring-web-flow`: Flow-scoped web sessions, conversation management, and stateful navigation.
+- `spring-vault`: Vault secret handling, KV property-source loading, transit encryption, and CredHub credential management.
 - `spring-web-services`: SOAP endpoints, WS-Security, and client-variant patterns.
 
 ## Included Agents
@@ -50,7 +46,7 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 - Spring Boot application shape, configuration, bean wiring, and startup conventions belong in `spring-boot` guidance.
 - Core framework annotations, container behavior, and extension points belong in `spring-framework` guidance.
 - Spring test-slice choice, Spring Boot test scaffolding, and generic Spring context test strategy belong in `spring-boot` and `spring-framework` guidance.
-- Filter chain, HTTP security, and method-security structure belong in `spring-security` guidance.
+- Filter chain, HTTP security, method-security structure, and OAuth 2.1/OIDC authorization server setup belong in `spring-security` guidance.
 - Servlet-style REST controllers, validation, and exception handling belong in `spring-framework` guidance.
 - Reactive endpoints, `Mono`/`Flux`, and `WebClient` design belong in `spring-framework` guidance.
 - Hypermedia-driven APIs, HAL forms, and entity links belong in `spring-hateoas` guidance.
@@ -63,8 +59,8 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 - GraphQL endpoint setup, schema execution, and GraphQL-specific testing belong in `spring-graphql` guidance.
 - gRPC service definition, channel customization, and in-process testing belong in `spring-grpc` guidance.
 - SOAP endpoints, WS-Security, and client-variant patterns belong in `spring-web-services` guidance.
-- Batch pipelines, task scheduling, and runtime operations belong in `spring-cloud-data-flow` guidance. Batch job structure, chunk processing, retry/skip, and scaling-oriented batch design belong in `spring-batch` guidance.
-- Flow-scoped web sessions, conversation management, and stateful navigation belong in `spring-web-flow` guidance.
+- Batch pipelines, task scheduling, and runtime operations belong in `spring-cloud` guidance (Data Flow section). Batch job structure, chunk processing, retry/skip, and scaling-oriented batch design belong in `spring-batch` guidance.
+- Flow-scoped web sessions, conversation management, and stateful navigation belong in `spring-framework` guidance (Web Flow section).
 
 Typical workflow:
 
@@ -124,8 +120,6 @@ plugins/spring/
     ├── spring-batch/
     ├── spring-boot/
     ├── spring-cloud/
-    ├── spring-cloud-data-flow/
-    ├── spring-credhub/
     ├── spring-data/
     ├── spring-framework/
     ├── spring-graphql/
@@ -142,13 +136,12 @@ plugins/spring/
     ├── spring-shell/
     ├── spring-statemachine/
     ├── spring-vault/
-    ├── spring-web-flow/
     └── spring-web-services/
 ```
 
 ## Shipped Surfaces
 
-- The plugin ships twenty-six reusable Spring skills under `skills/`.
+- The plugin ships twenty-two reusable Spring skills under `skills/`.
 - The plugin ships one agent (`spring-architect`) for guiding Spring architecture decisions and component design.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
