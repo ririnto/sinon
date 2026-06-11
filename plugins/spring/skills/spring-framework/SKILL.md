@@ -1,7 +1,7 @@
 ---
 name: spring-framework
 description: >-
-  Apply core Spring Framework APIs for the container, Java configuration, bean lifecycle, transactions, events, validation, servlet MVC, WebFlux, WebClient, and TestContext support. Use when configuring `@Configuration` classes, managing bean scopes and lifecycle callbacks, setting up declarative transaction boundaries, or wiring `WebFlux` or `WebClient` without Boot autoconfiguration. Use when building multi-step stateful web conversations with Spring Web Flow definitions, conversation-scoped state, flow transitions, or flow execution tests.
+  Apply core Spring Framework 7.x APIs for the container, Java configuration, bean lifecycle, transactions, events, validation, scheduling, async, resilience, servlet MVC, WebFlux, WebClient, and TestContext support. Use when configuring `@Configuration` classes, managing bean scopes and lifecycle callbacks, setting up declarative transaction boundaries, enabling `@Retryable` resilience, API versioning, programmatic bean registration, or wiring `WebFlux` and `WebClient` without Boot autoconfiguration. Use when building multi-step stateful web conversations with Spring Web Flow definitions, conversation-scoped state, flow transitions, or flow execution tests.
 metadata:
   title: "Spring Framework"
   official-project-url: "https://spring.io/projects/spring-framework"
@@ -18,6 +18,42 @@ metadata:
 Use spring-framework for core Spring Framework APIs: container behavior, bean wiring, lifecycle hooks, transactions, events, scheduling, property binding, conversion, validation, ordinary servlet MVC, reactive HTTP, WebClient, and TestContext-driven framework tests.
 
 Use narrower guidance when the task is primarily about security or Boot auto-configuration rather than Spring Framework modules and APIs.
+
+## Baseline requirements
+
+Spring Framework 7.0.8 requires:
+
+- JDK 17 minimum; JDK 25 recommended as the latest LTS
+- Jakarta EE 11 (Servlet 6.1, JPA 3.2, Bean Validation 3.1)
+- JUnit 6 (JUnit 4 TestContext support is deprecated)
+- Kotlin 2.2 for Kotlin-based applications
+- Netty 4.2 for reactive stacks
+- GraalVM 25 for native-image support
+
+Only `jakarta.annotation` and `jakarta.inject` annotations are supported. `javax.annotation` and `javax.inject` are no longer recognized.
+
+## Removed and deprecated APIs
+
+Spring Framework 7.0 removed these APIs entirely:
+
+- `spring-jcl` module (replaced by Apache Commons Logging 1.3.0)
+- `javax.annotation` and `javax.inject` annotation support
+- `ListenableFuture` (use `CompletableFuture`)
+- `OkHttp3` support
+- `Theme` support
+- Undertow-specific classes (Undertow does not support Servlet 6.1)
+- Deprecated path mapping options (`suffixPatternMatch`, `trailingSlashMatch`, `favorPathExtension`, `matchOptionalTrailingSeparator`)
+- `org.webjars:webjars-locator-core` (use `webjars-locator-lite`)
+
+Spring Framework 7.0 deprecations heading toward removal:
+
+- `RestTemplate` (deprecated in 7.0, will be `@Deprecated` in 7.1) -- use `RestClient`
+- `PathMatcher` in Spring MVC (use `PathPattern`)
+- JUnit 4 TestContext support (`SpringRunner`, `SpringClassRule`, `AbstractJUnit4SpringContextTests`, etc.)
+- Jackson 2.x support (use Jackson 3.x)
+- Kotlin script templating (JSR 223 removal planned by Kotlin)
+- `org.springframework.web.servlet.view.document` and `view.feed` (XLS, RSS, PDF views)
+- `HandlerMappingIntrospector` SPI
 
 ## Common path
 
@@ -99,6 +135,36 @@ class AppConfig {
 
 Prefer constructor injection and explicit bean graphs. Start with explicit `@Bean` wiring before reaching for broader framework indirection.
 
+### Programmatic bean registration
+
+Use `BeanRegistrar` when multiple beans must be registered conditionally from a single registration point, or when logic beyond a simple `@Bean` method is required:
+
+```java
+class ServiceBeanRegistrar implements BeanRegistrar {
+    @Override
+    void register(BeanRegistrationContext context) {
+        context.registerBean(InventoryService.class);
+        context.registerBean(ShippingService.class, config -> config.primary());
+    }
+}
+```
+
+Declare via `@Configuration` import or `ImportRegistrar`. Use this only when standard `@Bean` methods cannot express the needed registration logic.
+
+### Proxy configuration
+
+Spring Framework 7.0 defaults all proxy processors (including `@Async`) to CGLIB proxies, matching Spring Boot behavior. Opt out for individual beans with `@Proxyable`:
+
+```java
+@Bean
+@Proxyable(ProxyMode.INTERFACES)
+PaymentService paymentService() {
+    return new PaymentServiceImpl();
+}
+```
+
+Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the task needs a custom scope, container extension point, or clarification of `@Configuration` lite mode.
+
 ## Environment, profiles, and resources
 
 ### Activating profiles
@@ -151,8 +217,6 @@ MyPrototypeBean prototypeBean() {
 ```
 
 Use singleton by default. Reach for prototype only when the lifecycle difference genuinely matters. Web-specific scopes belong to web-focused configurations rather than the ordinary framework-core path.
-
-Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the task needs a custom scope, container extension point, or clarification of `@Configuration` lite mode.
 
 ## Bean lifecycle
 
@@ -252,6 +316,17 @@ class AppConfig {
 
 Use `DataBinder` when the framework must bind incoming values onto an object. Add custom converters only when the framework does not provide the needed conversion.
 
+### SpEL expressions
+
+SpEL supports null-safe operations and Elvis-operator unwrapping on `Optional` types in Spring Framework 7.0:
+
+```java
+@Value("#{order.customer?.name ?: 'anonymous'}")
+String customerName;
+```
+
+SpEL expression evaluation is capped at 10,000 operations by default (Spring Framework 7.0.8). Override via `SpelParserConfiguration(maxOperations, ...)` or the property `spring.expression.maxOperations`.
+
 ## Validation
 
 ```java
@@ -327,6 +402,49 @@ class ApiExceptionHandler {
 ```
 
 Keep controllers thin: delegate all logic to services. Use `@RestControllerAdvice` as a single exception boundary rather than scattering `try/catch` blocks across controllers.
+
+### API versioning
+
+Spring MVC and WebFlux provide first-class API versioning. Resolve versions from URI path, header, or parameter, and mark deprecated versions:
+
+```java
+@RestController
+@RequestMapping("/orders")
+class OrderController {
+    @GetMapping(produces = "application/vnd.example.v2+json")
+    Order get(@PathVariable Long id) {
+        return orders.findById(id);
+    }
+}
+```
+
+On the client side, set the API version on `RestClient` and `WebClient` requests. `MockMvc` and `WebTestClient` also support versioning assertions.
+
+### HTTP interface clients
+
+Use `@ImportHttpServices` to batch-register HTTP interface client proxies by group:
+
+```java
+@Configuration(proxyBeanMethods = false)
+@ImportHttpServices(group = "order", types = {OrderClient.class, OrderAdminClient.class})
+static class HttpServicesConfiguration extends AbstractHttpServiceRegistrar {
+    @Bean
+    RestClientHttpServiceGroupConfigurer groupConfigurer() {
+        return groups -> groups.forEachClient((group, builder) -> builder.defaultHeader("User-Agent", "My-App"));
+    }
+}
+```
+
+### Message converter configuration
+
+Use `HttpMessageConverters` (new in 7.0) for centralized message converter setup in `WebMvcConfigurer`:
+
+```java
+@Override
+public void configureMessageConverters(HttpMessageConverters.ServerBuilder builder) {
+    builder.jsonMessageConverter(new JacksonJsonHttpMessageConverter(customMapper));
+}
+```
 
 ## Spring Web Flow
 
@@ -551,6 +669,59 @@ class TransferService {
 
 Keep transaction boundaries on service methods that own one business unit of work. Avoid transactions that span multiple unrelated operations.
 
+## Resilience
+
+Spring Framework 7.0 includes built-in retry support in `spring-core`, replacing standalone Spring Retry for most use cases. Enable with `@EnableResilientMethods`:
+
+```java
+@Configuration
+@EnableResilientMethods
+class ResilienceConfig {
+}
+```
+
+### `@Retryable`
+
+```java
+@Service
+class OrderClient {
+    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 1000, multiplier = 2))
+    Order fetchOrder(Long id) {
+        return remoteService.getOrder(id);
+    }
+}
+```
+
+`@Retryable` automatically adapts to reactive return types (`Mono`, `Flux`), decorating the pipeline with Reactor's retry capabilities. Imperative methods use `RetryTemplate` under the hood.
+
+### `RetryTemplate`
+
+For programmatic retry control:
+
+```java
+RetryTemplate retry = RetryTemplate.builder()
+    .maxAttempts(3)
+    .retryOn(OrderServiceUnavailableException.class)
+    .exponentialBackoff(1000, 2, 10000)
+    .build();
+Order result = retry.execute(ctx -> remoteService.getOrder(id));
+```
+
+### `@ConcurrencyLimit`
+
+Throttle concurrent method invocations:
+
+```java
+@Service
+class ResourceConsumer {
+    @ConcurrencyLimit(5)
+    void process(Resource resource) {
+    }
+}
+```
+
+Use `@Retryable` on methods that call external services prone to transient failure. Use `@ConcurrencyLimit` when a shared resource has a hard concurrency ceiling. Combine both annotations on the same method when the application needs both retry and throttling.
+
 ## Plain JDBC and DataSource
 
 ### DataSource registration
@@ -617,7 +788,14 @@ void insertBatch(List<Item> items) {
 }
 ```
 
-Keep JDBC templates as the data-access primitive when the application needs plain SQL without an ORM layer. Use `NamedParameterJdbcTemplate` when named parameters improve readability over positional `?` placeholders.
+Keep JDBC templates as the data-access primitive when the application needs plain SQL without an ORM layer. Use `NamedParameterJdbcTemplate` when named parameters improve readability over positional `?` placeholders. Use `JdbcClient` (from Spring Framework 6.1+) for a fluent alternative that supports statement-level settings such as fetch size, max rows, and query timeout:
+
+```java
+List<Item> items = jdbcClient.sql("SELECT id, name, quantity FROM items")
+    .fetchSize(500)
+    .query()
+    .list((rs, rowNum) -> new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity")));
+```
 
 Open [references/plain-jdbc-wiring.md](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
 
@@ -703,13 +881,15 @@ Use `@EnableCaching` only when the task explicitly needs framework-managed cache
 
 Treat AOT and native-image hints as an escalation point rather than part of the ordinary path. Keep the default implementation reflective and explicit until the task specifically requires AOT-friendly wiring.
 
+GraalVM 25 introduces the unified reachability metadata format. Resource hints now use glob patterns instead of regex: `"/files/*.ext"` matches only direct children, not subdirectories. Use `"/files/**/*.ext"` for recursive matching. Registering a reflection hint for a type now implies methods, constructors, and fields introspection; `MemberCategory.DECLARED_FIELDS` is deprecated in favor of a simple `hints.reflection().registerType(MyType.class)`.
+
 ## AOP escalation
 
 Open [references/aop-cross-cutting.md](references/aop-cross-cutting.md) when cross-cutting behavior must wrap many beans consistently and the ordinary bean wiring path is not enough.
 
 ## Container extension escalation
 
-Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the task needs to customize bean definitions, post-process beans, register a custom scope, or understand `@Configuration` lite mode versus full configuration.
+Open [references/container-extension-scopes.md](references/container-extension-scopes.md) for `BeanFactoryPostProcessor`, `BeanPostProcessor`, custom scope registration, or advanced listener infrastructure that goes beyond what `SKILL.md` covers.
 
 ## TestContext integration
 
@@ -730,6 +910,35 @@ class AppConfigTests {
 ```
 
 Test the smallest framework integration that proves the behavior. Use `@ExtendWith(SpringExtension.class)` to integrate the Spring `ApplicationContext` with JUnit Jupiter.
+
+### Test context pausing
+
+Spring Framework 7.0 pauses unused application contexts in the test context cache to stop background processes. Configure via `spring.test.context.cache.pause` (`smart` default, `always`, or `never`):
+
+```java
+@SpringBootTest(properties = "spring.test.context.cache.pause=never")
+class OrderServiceTests {
+}
+```
+
+### `@Nested` test hierarchies
+
+`SpringExtension` supports dependency injection into `@Nested` test class constructors and fields. If custom `TestExecutionListener` implementations break after upgrading, use `testContext.getTestInstance().getClass()` instead of `testContext.getTestClass()` for lookups.
+
+### `RestTestClient`
+
+`RestTestClient` provides a non-reactive variant of `WebTestClient` for servlet-based tests with fluent API and nice assertions:
+
+```java
+RestTestClient client = RestTestClient.bindToApplicationContext(ctx).build();
+client.get().uri("/orders/1").exchange()
+    .expectStatus().isOk()
+    .expectBody();
+```
+
+### Bean overrides for non-singleton beans
+
+`@MockitoBean`, `@MockitoSpyBean`, and `@TestBean` can now target non-singleton beans including `prototype` and custom scopes.
 
 ## MVC and reactive tests
 
@@ -835,6 +1044,10 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent>
 - Use lifecycle hooks sparingly and document why they are needed.
 - Keep application events purposeful rather than turning them into hidden control flow.
 - Treat Spring integration tests as part of the framework compatibility surface.
+- Use `RestClient` for new HTTP client code; avoid starting new usage of `RestTemplate`.
+- `HttpHeaders` no longer extends `MultiValueMap` in 7.0. Use `HttpHeaders` methods directly instead of map operations.
+- CORS pre-flight requests are no longer rejected when the CORS configuration is empty.
+- `PathPattern` is the only supported pattern matcher for HTTP request mappings. `AntPathMatcher` is deprecated.
 
 ## References
 

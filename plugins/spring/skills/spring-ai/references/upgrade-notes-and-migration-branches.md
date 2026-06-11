@@ -23,13 +23,13 @@ Open this reference when the task involves:
 <dependency>
     <groupId>org.springframework.ai</groupId>
     <artifactId>spring-ai-bom</artifactId>
-    <version>1.1.4</version>
+    <version>1.1.7</version>
     <type>pom</type>
     <scope>import</scope>
 </dependency>
 ```
 
-Replace `1.1.4` with the target Spring AI version during the upgrade and review starter availability before merging.
+Replace `1.1.7` with the target Spring AI version during the upgrade and review starter availability before merging.
 
 ### 2. Provider starter compatibility check
 
@@ -68,6 +68,20 @@ SearchRequest.builder().query(q).topK(5).similarityThreshold(0.72).build();
 ```
 
 ## Provider migration rules
+
+### 6. Chat memory advisor migration (1.1.6+)
+
+`PromptChatMemoryAdvisor` is deprecated in 1.1.6. Replace with `MessageChatMemoryAdvisor`. Chat memory advisors now require an explicit `CONVERSATION_ID` parameter supplied at the call site.
+
+```java
+// Before (deprecated)
+PromptChatMemoryAdvisor.builder(chatMemory).conversationId("default").build()
+
+// After
+MessageChatMemoryAdvisor.builder(chatMemory).build()
+// Supply conversation ID at call site:
+// .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, "customer-42"))
+```
 
 When moving from one provider family to another:
 

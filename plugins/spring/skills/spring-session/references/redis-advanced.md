@@ -1,13 +1,23 @@
-# Spring Session Redis advanced configuration
+# Redis advanced session configuration
 
-Open this reference when Redis session behavior needs customization beyond the ordinary path, especially repository type, session events, JSON serialization, expiration-store behavior, or Spring Security listener integration.
+Open reference when Redis repository type, JSON serialization, session events, listener bridging, session mapper, expiration-store behavior, or principal-indexed lookup need customization beyond the ordinary Redis path.
 
-Keep repository type, serialization, and event behavior explicit because Redis defaults are not interchangeable with indexed lookup or cross-application payload compatibility.
+## RedisSessionRepository vs RedisIndexedSessionRepository
 
-## Repository type decision
+- Use `RedisSessionRepository` when the application only needs normal read, write, and expiration behavior for each session. This is the default when `spring.session.redis.repository-type=default`.
+- Use `RedisIndexedSessionRepository` when Spring Security, administration, or messaging needs `findByPrincipalName(...)`, session lifecycle events, or concurrent-session control. This is the default when `spring.session.redis.repository-type=indexed`.
 
-- Use the default repository when the application only needs ordinary session persistence.
-- Use the indexed repository when the application needs `findByPrincipalName(...)`, Spring Security concurrent-session integration, or published session events.
+Annotation selection:
+
+```java
+// Default repository — no indexing, no events
+@EnableRedisHttpSession
+
+// Indexed repository — supports findByPrincipalName and session events
+@EnableRedisIndexedHttpSession
+```
+
+Application properties:
 
 ```yaml
 spring:
@@ -16,33 +26,133 @@ spring:
       repository-type: indexed
 ```
 
-## JSON serialization shape
+### RedisIndexedSessionRepository with Spring Security
+
+Register `HttpSessionEventPublisher` as a bean to bridge session lifecycle events into Spring Security's concurrency control:
 
 ```java
 @Bean
-RedisSerializer<Object> springSessionDefaultRedisSerializer(ObjectMapper objectMapper) {
-    return new GenericJackson2JsonRedisSerializer(objectMapper);
+HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
 }
 ```
 
-Use explicit JSON serialization when rolling upgrades, cross-service inspection, or serializer compatibility matter more than opaque default serialization.
+This enables Spring Security's `maximumSessions()` and `sessionRegistry()` to see the same sessions that Spring Session manages in Redis.
 
-## Session events and listener bridge
+## JSON serialization
 
-- Indexed Redis sessions can publish created, deleted, and expired session events.
-- Use listener bridging only when a framework integration or audit requirement actually depends on servlet-style session events.
+The default serializer is Java serialization. Switch to JSON when multiple applications share the Redis instance or when class evolution between deployments makes default serialization fragile.
 
-## Decision points
+```java
+@Configuration
+@EnableRedisIndexedHttpSession
+class SessionConfig {
+    @Bean
+    RedisSerializer<Object> springSessionRedisSerializer() {
+        return new GenericJackson2JsonRedisSerializer();
+    }
+}
+```
 
-| Situation | Use |
-| --- | --- |
-| Spring Security needs principal-indexed lookup | indexed repository |
-| Operations or audit logic need session lifecycle events | indexed repository plus event handling |
-| Rolling upgrades or multiple apps share the same Redis session data | explicit JSON serializer |
-| Expiration handling must be reasoned about explicitly | customize namespace, timeout, and expiration-store behavior together |
+Application property:
+
+```yaml
+spring:
+  session:
+    redis:
+      serializer: json
+```
+
+## Session events
+
+Indexed Redis sessions publish `SessionCreatedEvent`, `SessionDeletedEvent`, `SessionDestroyedEvent`, and `SessionExpiredEvent`. React to them with a Spring application listener:
+
+```java
+@Component
+class SessionLifecycleListener {
+    @EventListener
+    void onSessionCreated(SessionCreatedEvent event) {
+        log.info("Session created: {}", event.getSessionId());
+    }
+    @EventListener
+    void onSessionExpired(SessionExpiredEvent event) {
+        log.info("Session expired: {}", event.getSessionId());
+    }
+    @EventListener
+    void onSessionDeleted(SessionDeletedEvent event) {
+        log.info("Session deleted: {}", event.getSessionId());
+    }
+}
+```
+
+For servlet `HttpSessionListener` bridging, declare `SessionEventHttpSessionListenerAdapter` alongside registered listeners:
+
+```java
+@Bean
+SessionEventHttpSessionListenerAdapter sessionEventAdapter() {
+    return new SessionEventHttpSessionListenerAdapter(
+        List.of(new MyHttpSessionListener())
+    );
+}
+```
+
+## Customizing the session mapper
+
+`RedisSessionMapper` controls how session attributes map to Redis hash fields. Provide a custom bean to change the attribute-to-field strategy:
+
+```java
+@Bean
+RedisSessionMapper redisSessionMapper() {
+    return new RedisSessionMapper(customDeltaUpdateStrategy());
+}
+```
+
+## Customizing the expiration store
+
+`RedisSessionExpirationStore` manages how and when session keys expire in Redis. Provide a custom bean to change expiration behavior:
+
+```java
+@Bean
+RedisSessionExpirationStore redisSessionExpirationStore(RedisIndexedSessionRepository repository) {
+    return new SortedSetRedisSessionExpirationStore(repository);
+}
+```
+
+## Principal-based lookup and administration
+
+Use `FindByIndexNameSessionRepository` directly when the application needs explicit session administration beyond Spring Security's concurrency controls:
+
+```java
+@Service
+class SessionAdministrationService {
+    private final FindByIndexNameSessionRepository<? extends Session> sessions;
+
+    SessionAdministrationService(FindByIndexNameSessionRepository<? extends Session> sessions) {
+        this.sessions = sessions;
+    }
+
+    void expireAllSessionsFor(String username) {
+        Map<String, ? extends Session> active = sessions.findByPrincipalName(username);
+        active.keySet().forEach(sessions::deleteById);
+    }
+
+    Map<String, ? extends Session> activeSessions(String username) {
+        return sessions.findByPrincipalName(username);
+    }
+}
+```
+
+### Indexed session security context name
+
+By default, indexed lookup uses `FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME` which expects `SecurityContextHolder` to be populated. The session attribute key is `spring.security.context`. For custom authentication, set the principal index name attribute on the session:
+
+```java
+session.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, authentication.getName());
+```
 
 ## Gotchas
 
-- Do not inject `FindByIndexNameSessionRepository` unless the repository type actually supports principal indexing.
-- Do not switch serializers without confirming compatibility for existing stored sessions.
-- Do not assume expiration timing is identical across every Redis deployment or failover scenario.
+- Do not switch to the indexed repository just to get events. Use explicit event handling only when the application has a concrete listener that acts on session lifecycle transitions.
+- Do not mix serialization strategies across applications sharing the same Redis namespace. Pick one and enforce it in every application.
+- Do not assume `SessionExpiredEvent` fires at the exact moment of TTL expiry. Redis expiration is approximate and events may arrive with delay.
+- Do not skip `HttpSessionEventPublisher` registration when using Spring Security's `maximumSessions()` with an indexed repository. Without it, Spring Security does not see session lifecycle transitions.

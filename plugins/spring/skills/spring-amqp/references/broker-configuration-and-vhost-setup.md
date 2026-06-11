@@ -22,3 +22,4 @@ spring:
 
 - Do not rely on ambient local defaults once the service is shared across environments.
 - Keep connection settings reviewable alongside queue and exchange contracts.
+- When specifying `spring.rabbitmq.addresses` with an `amqps://` URI, SSL is enabled automatically; the separate `spring.rabbitmq.ssl.enabled` property is not needed in that case.

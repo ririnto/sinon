@@ -64,7 +64,7 @@ class ShipmentFlowTest {
 - Test the same topic, schema, subscription type, and retry or DLQ settings used in production.
 - Use admin-backed verification when the assertion depends on topic provisioning or partition count.
 - Keep one failure-path test that proves the listener reaches the intended redelivery or dead-letter behavior.
-- Keep the broker image aligned with one of the supported Pulsar lines for the Spring Pulsar line in use.
+- Keep the broker image aligned with one of the supported Pulsar client lines. Spring Pulsar 2.0.x uses Pulsar client 4.1.x / 4.0.x / 3.3.x. Pin a specific image version only when the test must prove compatibility with a chosen Pulsar line.
 
 ## Admin verification shape
 

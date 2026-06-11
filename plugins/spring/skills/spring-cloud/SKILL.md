@@ -11,18 +11,30 @@ metadata:
     - "https://docs.spring.io/spring-cloud-openfeign/reference/"
     - "https://docs.spring.io/spring-cloud-stream/reference/"
     - "https://docs.spring.io/spring-cloud-contract/reference/"
-    - "https://dataflow.spring.io/docs/"
+    - "https://docs.spring.io/spring-cloud-circuitbreaker/reference/"
+    - "https://docs.spring.io/spring-cloud-commons/reference/"
+    - "https://docs.spring.io/spring-cloud-vault/reference/"
+    - "https://docs.spring.io/spring-cloud-bus/reference/"
   version: "2025.1.1"
 ---
 
-The current Boot 4.x Spring Cloud release-train line is 2025.1.1 (Oakwood). Spring Cloud 2025.0.2 is a parallel Boot 3.5.x line, not a newer replacement, so the common path in this skill stays anchored to 2025.1.1 unless the project is intentionally on the 3.5.x generation.
+The current Boot 4.x Spring Cloud release-train line is 2025.1.x (Oakwood). The latest service release is 2025.1.1; 2025.1.2 is in milestone. Spring Cloud 2025.0.2 (Northfields) is a parallel Boot 3.5.x line, not a newer replacement. Boot 4.1.x is compatible with the 2025.1.x train (2025.1.2 milestone explicitly targets Boot 4.0.x and 4.1.x). The common path in this skill stays anchored to 2025.1.x unless the project is intentionally on the 3.5.x generation.
+
+| Release Train | Boot Generation | Notes |
+| --- | --- | --- |
+| 2025.1.x (Oakwood) | 4.0.x, 4.1.x | Current GA line; Jackson 3, JSpecify, Spring Framework 7 |
+| 2025.0.x (Northfields) | 3.5.x | Parallel GA line; Gateway artifact rename |
+| 2024.0.x (Moorgate) | 3.4.x | Supported until Boot 3.4.x EOL |
+| 2023.0.x (Leyton) | 3.3.x, 3.2.x | Supported until Boot 3.3.x EOL |
+
+Release trains 2022.0.x and earlier are end-of-life and MUST NOT appear in new work.
 
 ## Boundaries
 
 Use `spring-cloud` for release-train-aligned distributed application wiring, external configuration through ConfigData, refresh-aware configuration, service discovery, load-balanced downstream calls, resilience patterns, and Spring Cloud Data Flow orchestration.
 
 - Use narrower Spring Cloud branches when the task is specifically about Gateway, OpenFeign, Stream binders, Contract, Bus, Kubernetes, or Vault behavior.
-- Data Flow content in this skill is limited to existing stream and task estates, runtime operations, and migration support. Spring Cloud Data Flow is in maintenance mode; verify the current project status before recommending SCDF for greenfield orchestration.
+- Data Flow content in this skill is limited to existing stream and task estates, runtime operations, and migration support. Spring Cloud Data Flow reached end of open-source in April 2025 (archived repository, last OSS release 2.11.5); future releases are commercial-only. Do not recommend SCDF for greenfield orchestration.
 - In-process integration flows inside one application are outside this skill's scope.
 - Batch-job or launchable-task internals are outside this skill's scope. SCDF is the orchestration and platform layer around those apps.
 
@@ -82,7 +94,7 @@ Import the Spring Cloud BOM once and keep Spring Cloud modules versionless under
 
 SCDF is primarily an external orchestration platform, not a business-app dependency. Custom apps normally depend on Spring Cloud Stream or Spring Cloud Task rather than an SCDF library.
 
-The current stable SCDF server line is `2.11.5`. Keep examples on the stable GA line unless the task explicitly targets a newer milestone or snapshot, and treat that stable line as maintenance-oriented rather than a default greenfield recommendation.
+The last open-source SCDF server line is `2.11.5`. No further OSS releases will be made. Future releases are commercial-only (VMware Tanzu). Keep examples on the 2.11.x line for existing estates; do not use SCDF for new work.
 
 ```text
 SCDF server and shell are operated outside the business application.
@@ -95,12 +107,16 @@ Custom stream or task apps use their own Spring Boot + Spring Cloud dependencies
 | --- | --- |
 | ConfigData client import | `spring-cloud-starter-config` |
 | Service discovery client | the discovery implementation starter used by the platform |
-| Load-balanced `RestClient` (preferred) or `RestTemplate` (maintenance) | `spring-cloud-starter-loadbalancer` |
+| Load-balanced `RestClient` or Spring Interface Client (`lb://`) | `spring-cloud-starter-loadbalancer` |
 | Circuit-breaker boundary with Resilience4j | `spring-cloud-starter-circuitbreaker-resilience4j` |
+| Circuit-breaker boundary (Boot 4.x / Spring Framework 7 native) | `spring-cloud-circuitbreaker-spring` (auto-configured on classpath in 2025.1.x) |
 | Edge routing | add the Gateway starter from [references/gateway-routing.md](references/gateway-routing.md) |
 | Declarative HTTP clients | add the OpenFeign starter from [references/openfeign-clients.md](references/openfeign-clients.md) |
 | Broker-backed event transport | add the binder starter from [references/stream-binders.md](references/stream-binders.md) |
+| Vault-backed secrets import | add the Vault starter from [references/cloud-vault-config.md](references/cloud-vault-config.md) |
+| Kubernetes-native config or discovery | add the Kubernetes starter from [references/kubernetes-config.md](references/kubernetes-config.md) or [references/kubernetes-discovery.md](references/kubernetes-discovery.md) |
 | Distributed refresh propagation | add the Bus transport starter from [references/bus-refresh.md](references/bus-refresh.md) |
+| Contract testing (consumer-producer) | add the Contract starter from [references/contract-testing.md](references/contract-testing.md) |
 | Contract verification | add the contract plugin and test support from [references/contract-testing.md](references/contract-testing.md) |
 
 ### Ordinary baseline
@@ -421,6 +437,29 @@ kubernetes:
 lb://catalog-service
 http://inventory-service
 ```
+
+### Spring Interface Client with load balancing (Boot 4.x / 2025.1.x)
+
+Spring Boot 4.0 introduced annotated HTTP interface clients backed by `RestClient` or `WebClient`. Spring Cloud Commons 5.0 adds `lb://` scheme support on these clients and built-in circuit-breaker integration.
+
+```java
+interface InventoryClient {
+    @GetExchange("/api/items/{sku}")
+    ItemDto find(@PathVariable String sku);
+}
+```
+
+```java
+@Bean
+InventoryClient inventoryClient(RestClient.Builder builder) {
+    return HttpServiceProxyFactory
+        .builderFor(RestClientAdapter.create(builder.baseUrl("lb://inventory-service").build()))
+        .build()
+        .createClient(InventoryClient.class);
+}
+```
+
+Prefer Interface Clients over OpenFeign for new Boot 4.x work. OpenFeign remains available for existing estates.
 
 ### Data Flow output shapes
 

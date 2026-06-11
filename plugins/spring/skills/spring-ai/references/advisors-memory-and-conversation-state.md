@@ -26,14 +26,14 @@ Solution: register advisors in the order you want them to wrap the model call, t
 
 ```java
 @Bean
-ChatClient chatClient(ChatClient.Builder builder, PromptChatMemoryAdvisor memoryAdvisor) {
+ChatClient chatClient(ChatClient.Builder builder, ChatMemory chatMemory) {
     return builder
-        .defaultAdvisors(memoryAdvisor)
+        .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
         .build();
 }
 ```
 
-In this shape, `memoryAdvisor` runs before the model call.
+In this shape, `MessageChatMemoryAdvisor` runs before the model call.
 
 Common ordering pattern:
 
@@ -106,13 +106,6 @@ Solution: bound the memory window explicitly and keep the conversation identifie
 
 ```java
 @Bean
-PromptChatMemoryAdvisor memoryAdvisor(ChatMemory memory) {
-    return PromptChatMemoryAdvisor.builder(memory)
-        .conversationId("default")
-        .build();
-}
-
-@Bean
 ChatMemory boundedChatMemory(JdbcChatMemoryRepository repository) {
     return MessageWindowChatMemory.builder()
         .chatMemoryRepository(repository)
@@ -135,6 +128,23 @@ Treat the message window as a tuned deployment parameter, not a magic constant.
 | --- | --- |
 | Single-session demo | `MessageWindowChatMemory` with default in-memory repository |
 | Multi-user production | repository-backed `MessageWindowChatMemory` |
+
+### Chat memory repository starters
+
+Spring AI 1.1.x ships repository-backed chat memory implementations. Add only the starter that matches the production data layer:
+
+| Starter | Repository class | Use when |
+| --- | --- | --- |
+| `spring-ai-starter-model-chat-memory-repository-jdbc` | `JdbcChatMemoryRepository` | JDBC-compatible database is already the data layer |
+| `spring-ai-starter-model-chat-memory-repository-cassandra` | `CassandraChatMemoryRepository` | Apache Cassandra is the data layer |
+| `spring-ai-starter-model-chat-memory-repository-cosmos-db` | `CosmosDbChatMemoryRepository` | Azure Cosmos DB is the data layer |
+| `spring-ai-starter-model-chat-memory-repository-mongodb` | `MongoDbChatMemoryRepository` | MongoDB is the data layer |
+| `spring-ai-starter-model-chat-memory-repository-neo4j` | `Neo4jChatMemoryRepository` | Neo4j is the data layer |
+
+### Token budget and inspection decisions
+
+| Situation | Choice |
+| --- | --- |
 | Token budget is tight | smaller `MessageWindowChatMemory` window with explicit conversation IDs |
 | Need restart-safe continuity | persistent repository plus explicit conversation IDs |
 | Need to inspect prompt decoration order | trace and simplify advisor registration order |

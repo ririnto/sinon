@@ -68,9 +68,23 @@ Solution: Match store characteristics to the deployment constraint.
 | Store | Best when | Limitation |
 | --- | --- | --- |
 | PgVector | PostgreSQL is already in the stack | Requires pgvector extension |
-| Qdrant | High-dimensional similarity at scale | Separate service required |
+| Chroma | Lightweight self-hosted vector DB for prototyping | Not suited for production at scale |
+| Elasticsearch | Elasticsearch is already in the stack | Requires dense vector support |
+| GemFire | GemFire/Tanzu GemFire is the data layer | Separate service required |
+| MariaDB | MariaDB is already in the stack | Requires vector engine |
 | Milvus | High throughput with partitioned data | Separate service required |
+| MongoDB Atlas | MongoDB Atlas is already in the stack | Atlas-specific pricing |
+| Neo4j | Neo4j is already in the stack and graph context is needed | Separate service required |
+| OpenSearch | OpenSearch is already in the stack | Separate service required |
+| Oracle | Oracle Database is already in the stack | Requires Oracle 23ai vector support |
+| Pinecone | Managed vector DB with minimal ops overhead | Cloud-only, per-index pricing |
+| Qdrant | High-dimensional similarity at scale | Separate service required |
 | Redis | Sub-millisecond retrieval is critical | Memory-constrained at scale |
+| SAP Hana | SAP Hana is the enterprise data layer | SAP-specific licensing |
+| Weaviate | Managed vector DB with hybrid search | Cloud or self-hosted |
+| Typesense | Typesense is already the search layer | Vector search is secondary to keyword search |
+| Azure Vector Search | Azure AI Search is the existing search layer | Azure-specific pricing |
+| SimpleVectorStore | Tests and demos | In-memory only, not for production |
 | In-memory | Local development and testing only | No persistence, no shared state |
 
 ```java
@@ -137,6 +151,51 @@ This example first deduplicates by document ID and then assembles the retained d
 - Use `Document::getId` for deduplication, not content similarity.
 - Append source metadata as section headers so the model can attribute answers.
 - Validate that the assembled context fits within the model's context window and token budget.
+
+## RAG advisor choice blocker
+
+Problem: the application needs RAG but the right advisor and architecture pattern are unclear.
+
+Solution: choose between `QuestionAnswerAdvisor` for simple RAG and `RetrievalAugmentationAdvisor` for modular RAG flows.
+
+| Advisor | Use when | Limitation |
+| --- | --- | --- |
+| `QuestionAnswerAdvisor` | Naive RAG with direct vector-store lookup and context injection | No query transformation, no document post-processing pipeline |
+| `RetrievalAugmentationAdvisor` | Modular RAG with query rewriting, custom retrievers, document post-processing, and context augmentation | Requires `spring-ai-rag` dependency; more configuration surface |
+
+### Naive RAG with QuestionAnswerAdvisor
+
+```java
+Advisor ragAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
+    .searchRequest(SearchRequest.builder().topK(5).similarityThreshold(0.72).build())
+    .build();
+
+String answer = chatClient.prompt()
+    .advisors(a -> a.advisors(ragAdvisor))
+    .user(question)
+    .call()
+    .content();
+```
+
+### Modular RAG with RetrievalAugmentationAdvisor
+
+```xml
+<dependency>
+    <groupId>org.springframework.ai</groupId>
+    <artifactId>spring-ai-rag</artifactId>
+</dependency>
+```
+
+```java
+Advisor ragAdvisor = RetrievalAugmentationAdvisor.builder()
+    .documentRetriever(VectorStoreDocumentRetriever.builder()
+        .vectorStore(vectorStore)
+        .build())
+    .queryTransformers(new RewriteQueryTransformer(ChatClient.builder(chatModel).build()))
+    .build();
+```
+
+The modular RAG advisor supports a pipeline of query transformers, retrievers, document post-processors, and context augmenters. Add only the pipeline stages the application needs.
 
 ## Decision checklist
 

@@ -10,6 +10,14 @@ metadata:
   version: "2.0.6"
 ---
 
+## System requirements
+
+- Java 17 or later
+- Spring Boot 4.0.x
+- Apache Pulsar Java Client 4.1.x / 4.0.x / 3.3.x
+
+See the [version compatibility matrix](https://docs.spring.io/spring-pulsar/reference/appendix/version-compatibility.html) for the full matrix.
+
 ## Boundaries
 
 Use `spring-pulsar` for Pulsar producer and consumer code, listeners, readers, topic naming, partitions, and Pulsar-specific admin or transaction decisions.
@@ -76,7 +84,9 @@ Start with explicit topic and subscription names in one namespace. Add tenant or
 5. Decide dead-letter, retry, and redelivery policy before increasing listener parallelism.
 6. Use readers only when the use case is genuinely cursor-style replay or audit traversal rather than normal subscription consumption.
 7. Add producer or consumer customizers only when properties are not enough.
-8. Test both happy-path delivery and one representative failure path with the same schema and subscription settings used in production.
+8. Choose acknowledgment mode (BATCH, RECORD, MANUAL) based on whether the listener needs per-message or per-batch ack control.
+9. Use PulsarConsumerErrorHandler for Spring-native DLQ when the subscription type is not Shared.
+10. Test both happy-path delivery and one representative failure path with the same schema and subscription settings used in production.
 
 ## Implementation examples
 
@@ -155,6 +165,12 @@ shipments
 persistent://public/default/shipments
 ```
 
+### Topic pattern shape
+
+```java
+@PulsarListener(topicsPattern = "shipments-.*", subscriptionName = "warehouse")
+```
+
 ### Subscription shape
 
 ```text
@@ -165,6 +181,12 @@ warehouse
 
 ```java
 @PulsarListener(topics = "shipments", subscriptionName = "warehouse")
+```
+
+### Acknowledgment mode shape
+
+```java
+@PulsarListener(topics = "shipments", subscriptionName = "warehouse", ackMode = AckMode.RECORD)
 ```
 
 ### Dead-letter policy shape
@@ -250,7 +272,6 @@ Pin a concrete broker image only when the test must prove compatibility with a c
 ## References
 
 - Open [references/client-authentication-and-tls.md](references/client-authentication-and-tls.md) when the cluster requires authentication, TLS, or separate administration credentials.
-- Open [references/reactive-pulsar.md](references/reactive-pulsar.md) when the application uses the reactive Pulsar programming model instead of imperative templates and listeners.
 - Open [references/batch-consumption.md](references/batch-consumption.md) when the listener should consume batches instead of one message at a time.
 - Open [references/schema-mapping-and-compatibility.md](references/schema-mapping-and-compatibility.md) when schema type, schema evolution, or message conversion compatibility is unclear.
 - Open [references/producer-consumer-customizers-and-properties.md](references/producer-consumer-customizers-and-properties.md) when `spring.pulsar.*` properties are not enough or builder customizers are required.
@@ -265,3 +286,5 @@ Pin a concrete broker image only when the test must prove compatibility with a c
 - Open [references/tombstones.md](references/tombstones.md) when tombstone records are required.
 - Open [references/testing-with-testcontainers.md](references/testing-with-testcontainers.md) when Pulsar integration tests need Testcontainers or admin-backed verification.
 - Open [references/observability.md](references/observability.md) when metrics, tracing, or production debugging must be added.
+- Open [references/headers.md](references/headers.md) when accessing Pulsar message headers or configuring header mapping.
+- Open [references/container-lifecycle.md](references/container-lifecycle.md) when listener containers must be paused, resumed, or configured for startup failure handling.

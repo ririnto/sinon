@@ -2,6 +2,40 @@
 
 Open this reference when the ordinary ConfigData-discovery-loadbalancer path in [SKILL.md](../SKILL.md) is not enough and the task is specifically about gateway routing or choosing a gateway boundary instead of direct downstream calls.
 
+## Artifact rename (2025.0.x+)
+
+New starter names were introduced in Spring Cloud Gateway 4.3.x. The old names emit deprecation warnings.
+
+| Old (deprecated, emits warnings) | New (2025.0.x+) |
+| --- | --- |
+| `spring-cloud-starter-gateway` | `spring-cloud-starter-gateway-server-webflux` |
+| `spring-cloud-starter-gateway-mvc` | `spring-cloud-starter-gateway-server-webmvc` |
+
+Use the new artifact names for all new work. For existing estates on the old names, add `spring-boot-properties-migrator` to identify property prefix changes during migration.
+
+## Property prefix migration (2025.0.x+)
+
+| Old prefix | New prefix |
+| --- | --- |
+| `spring.cloud.gateway.*` | `spring.cloud.gateway.server.webflux.*` |
+| `spring.cloud.gateway.mvc.*` | `spring.cloud.gateway.server.webmvc.*` |
+| `spring.cloud.gateway.proxy.*` | `spring.cloud.gateway.proxy-exchange.webflux.*` |
+
+Use the new prefixes for all new configuration.
+
+## Trusted proxies (2025.0.x+)
+
+`X-Forwarded-*` and `Forwarded` header handling is disabled by default. Set trusted proxies explicitly:
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          trusted-proxies: "10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|192\\.168\\.\\d{1,3}\\.\\d{1,3}"
+```
+
 ## Gateway route blocker
 
 Use Gateway when the service itself must own a routing boundary, edge policy, or route-level filter chain.

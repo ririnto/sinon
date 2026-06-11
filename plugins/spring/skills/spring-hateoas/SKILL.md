@@ -8,7 +8,6 @@ metadata:
   reference-doc-urls:
     - "https://docs.spring.io/spring-hateoas/docs/current/reference/html/"
   compatibility-note: "Keep examples aligned with the Spring HATEOAS version already chosen in the project when docs and plugin listings differ slightly."
-  version: "3.1.1"
 ---
 
 ## Boundaries
@@ -47,6 +46,7 @@ The ordinary Spring HATEOAS job is:
 | One item with links | `EntityModel<T>` |
 | Collection with top-level links | `CollectionModel<T>` |
 | Page result with navigation metadata | `PagedModel<T>` |
+| Empty collection or empty page | `CollectionModel.empty()` or `PagedModel.empty()` |
 
 Keep link relation names stable and model the representation type the client actually consumes rather than returning domain entities directly.
 
@@ -116,6 +116,52 @@ Default to HAL unless the project already committed to another hypermedia format
 4. Add affordances only when clients will actually act on them.
 5. Keep link relation names stable once clients depend on them.
 6. Test both single-resource and collection-resource responses for the expected link set.
+
+## Link building
+
+### Controller-method links
+
+```java
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
+Link self = linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel();
+Link orders = linkTo(methodOn(OrderController.class).all()).withRel("orders");
+```
+
+### Direct link creation
+
+```java
+Link link = Link.of("/orders/{id}", IanaLinkRelations.SELF).expand(order.id());
+```
+
+### Templated links
+
+```java
+Link templated = Link.of("/orders{?page,size}", "search").withTemplated();
+```
+
+Use `Link.of(...)` with `withTemplated()` when the client should fill in query parameters rather than receiving a fixed href.
+
+### Link relations
+
+Use `IanaLinkRelations` constants for standard relations and `LinkRelation.of("...")` for custom ones.
+
+```java
+import org.springframework.hateoas.IanaLinkRelations;
+
+model.add(linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel());
+model.add(Link.of("/docs/orders", IanaLinkRelations.PROFILE));
+model.add(Link.of("/admin/orders", LinkRelation.of("manage")));
+```
+
+### Links concatenation
+
+```java
+Links combined = assembler.toModel(order).getLinks()
+    .and(Link.of("/docs/orders", IanaLinkRelations.PROFILE));
+```
+
+`RepresentationModel.getLinks()` returns a `Links` instance (not `List<Link>`) with concatenation and merge operations.
 
 ## Processor boundary
 
@@ -190,11 +236,42 @@ PagedModel<OrderModel> model = pagedResourcesAssembler.toModel(page, assembler);
 ### Affordance shape
 
 ```java
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+import org.springframework.hateoas.Affordances;
+
 Link self = linkTo(methodOn(OrderController.class).one(order.id())).withSelfRel();
-Link update = self.andAffordance(afford(methodOn(OrderController.class).update(order.id(), null)));
+Link update = Affordances.of(self)
+    .afford(methodOn(OrderController.class).update(order.id(), null))
+    .toLink();
 ```
 
 Use affordances only when clients or generated UI flows will actually consume them.
+
+### HalModelBuilder for embedded resources
+
+```java
+import org.springframework.hateoas.mediatype.hal.HalModelBuilder;
+
+HalModelBuilder.halModelOf(order)
+    .preview(new CustomerSummary(customer))
+    .forLink(customerLink)
+    .embed(additional)
+    .link(Link.of("/orders/1", IanaLinkRelations.SELF))
+    .build();
+```
+
+Use `HalModelBuilder` when the representation needs HAL `_embedded` entries with previews or nested documents.
+
+### WebFlux links
+
+```java
+import org.springframework.hateoas.server.reactive.WebFluxLinkBuilder;
+
+Link self = WebFluxLinkBuilder.linkTo(methodOn(OrderController.class).one(order.id()))
+    .withSelfRel();
+```
+
+Use `WebFluxLinkBuilder` in reactive applications instead of `WebMvcLinkBuilder`.
 
 ### Hypermedia test shape
 

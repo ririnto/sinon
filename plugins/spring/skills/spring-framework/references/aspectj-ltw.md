@@ -36,7 +36,7 @@ Add the minimum AspectJ load-time weaving libraries first. In this standalone Sp
 <dependency>
     <groupId>org.aspectj</groupId>
     <artifactId>aspectjweaver</artifactId>
-    <version>1.9.25</version>
+    <version>1.9.25.1</version>
 </dependency>
 </dependencies>
 ```
