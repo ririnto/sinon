@@ -59,12 +59,12 @@ Use the starter for normal Spring Boot integration. Add the test artifact whenev
     <dependency>
         <groupId>org.springframework.shell</groupId>
         <artifactId>spring-shell-starter</artifactId>
-        <version>4.0.2</version>
+        <version>4.0.3</version>
     </dependency>
     <dependency>
         <groupId>org.springframework.shell</groupId>
         <artifactId>spring-shell-test</artifactId>
-        <version>4.0.2</version>
+        <version>4.0.3</version>
         <scope>test</scope>
     </dependency>
 </dependencies>
@@ -151,7 +151,7 @@ Spring Shell 4.x provides three `ShellRunner` implementations:
 
 The Spring Boot starter uses `JLineShellRunner` by default. Set `spring.shell.interactive.enabled=false` to switch to `NonInteractiveShellRunner`.
 
-When a command is passed on the command line, Spring Shell 4.0.2+ automatically runs in non-interactive mode even without the property.
+When a command is passed on the command line, Spring Shell 4.0.3+ automatically runs in non-interactive mode even without the property.
 
 ### Debug mode
 
