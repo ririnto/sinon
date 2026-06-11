@@ -1,10 +1,9 @@
 ---
-title: Complete Panel Type Reference
 description: >-
   Open this when you need the full JSON schema for a specific panel type, or when deciding which panel type to use for a given data shape.
 ---
 
-## Complete Panel Type Reference
+# Complete Panel Type Reference
 
 Use this reference when you need the complete JSON structure for any Grafana panel type, including options fields unique to each type. The common panel types (timeseries, stat, gauge, barchart, table, heatmap, statetimeline, logs, piechart, histogram) are summarized in [`../SKILL.md`](../SKILL.md). This file covers ALL 23+ panel types with their complete option schemas.
 

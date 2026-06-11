@@ -1,8 +1,9 @@
 ---
-title: Sinon
 description: >-
   Repository overview for the Sinon Claude Code plugin marketplace, including structure, marketplace layout, and publishing model.
 ---
+
+# Sinon
 
 Sinon is a Claude Code plugin marketplace repository. It publishes curated plugins from a single source tree.
 

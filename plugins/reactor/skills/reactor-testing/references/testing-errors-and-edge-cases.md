@@ -1,8 +1,9 @@
 ---
-title: "Testing Errors and Edge Cases"
 description: >-
   Open this when the test involves error assertion patterns, error matching predicates, virtual-time failure modes, or verification method selection edge cases.
 ---
+
+# Testing Errors and Edge Cases
 
 Open this when the ordinary `expectError(Class)` path is not enough and you need richer error assertions, virtual-time failure scenarios, or verification-method decision logic.
 

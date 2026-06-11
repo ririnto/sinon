@@ -2,17 +2,9 @@
 name: jvm-gc-diagnostics
 description: >-
   Analyze JVM garbage-collection behavior, compare collector tradeoffs, and interpret pause-time and heap-pressure evidence. Use when reading GC logs, comparing Serial, Parallel, G1, or ZGC collector options, interpreting JFR GC events, or deciding whether GC is the actual bottleneck before tuning.
-metadata:
-  title: JVM GC Diagnostics
-  official_project_url: "https://docs.oracle.com/en/java/"
-  reference_doc_urls:
-    - "https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/"
-    - "https://docs.oracle.com/en/java/javase/11/gctuning/"
-    - "https://docs.oracle.com/en/java/javase/17/gctuning/"
-    - "https://docs.oracle.com/en/java/javase/21/gctuning/"
-    - "https://docs.oracle.com/en/java/javase/25/gctuning/"
-  version: "LTS"
 ---
+
+# JVM GC Diagnostics
 
 ## Goal
 

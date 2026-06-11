@@ -1,8 +1,9 @@
 ---
-title: "Connectable Flux Patterns"
 description: >-
   Open this when the real problem is connect, disconnect, replay, or subscriber rendezvous for a shared cold source rather than manual sink emission.
 ---
+
+# Connectable Flux Patterns
 
 Open this when a cold source already exists and the blocker is how multiple subscribers share, trigger, or replay it.
 

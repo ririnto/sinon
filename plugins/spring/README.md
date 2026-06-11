@@ -1,8 +1,9 @@
 ---
-title: Spring
 description: >-
   Overview of the Spring plugin, its included skills, and practical Spring application workflow coverage.
 ---
+
+# Spring
 
 Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and the broader Spring portfolio in the Sinon Claude marketplace.
 
@@ -18,9 +19,11 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 - `spring-amqp`: AMQP bindings, template-based messaging, and RabbitMQ integration.
 - `spring-batch`: Jobs, steps, chunk processing, retry/skip, and scaling-oriented batch design.
 - `spring-boot`: Spring Boot application shape, configuration, beans, profiles, and startup conventions.
-- `spring-cloud`: Common Spring Cloud patterns, service discovery, distributed configuration, and Data Flow orchestration.
+- `spring-cloud`: Common Spring Cloud patterns, service discovery, distributed configuration, load-balanced clients, and circuit-breaker wiring.
+- `spring-cloud-data-flow`: SCDF stream and task estate operations, app registration, schedules, platform accounts, and troubleshooting.
 - `spring-data`: Shared Spring Data patterns, repository abstractions, and cross-store conventions (JPA, JDBC, MongoDB, Redis, R2DBC).
-- `spring-framework`: Core framework annotations, container behavior, extension points, and Spring Web Flow.
+- `spring-framework`: Core framework annotations, container behavior, MVC/WebFlux, WebClient, transactions, events, and TestContext.
+- `spring-web-flow`: Stateful browser conversations, flow scopes, validation, exception handling, and flow execution tests.
 - `spring-graphql`: GraphQL endpoint setup, schema execution, and GraphQL-specific testing.
 - `spring-grpc`: gRPC service definition, channel customization, and in-process testing.
 - `spring-hateoas`: Hypermedia-driven APIs, HAL forms, and entity links.
@@ -59,8 +62,8 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 - GraphQL endpoint setup, schema execution, and GraphQL-specific testing belong in `spring-graphql` guidance.
 - gRPC service definition, channel customization, and in-process testing belong in `spring-grpc` guidance.
 - SOAP endpoints, WS-Security, and client-variant patterns belong in `spring-web-services` guidance.
-- Batch pipelines, task scheduling, and runtime operations belong in `spring-cloud` guidance (Data Flow section). Batch job structure, chunk processing, retry/skip, and scaling-oriented batch design belong in `spring-batch` guidance.
-- Flow-scoped web sessions, conversation management, and stateful navigation belong in `spring-framework` guidance (Web Flow section).
+- SCDF stream/task estate operations belong in `spring-cloud-data-flow` guidance. Batch job structure, chunk processing, retry/skip, and scaling-oriented batch design belong in `spring-batch` guidance.
+- Flow-scoped web sessions, conversation management, and stateful navigation belong in `spring-web-flow` guidance.
 
 Typical workflow:
 
@@ -116,10 +119,10 @@ plugins/spring/
 └── skills/
     ├── spring-ai/
     ├── spring-amqp/
-    ├── spring-authorization-server/
     ├── spring-batch/
     ├── spring-boot/
     ├── spring-cloud/
+    ├── spring-cloud-data-flow/
     ├── spring-data/
     ├── spring-framework/
     ├── spring-graphql/
@@ -136,12 +139,13 @@ plugins/spring/
     ├── spring-shell/
     ├── spring-statemachine/
     ├── spring-vault/
+    ├── spring-web-flow/
     └── spring-web-services/
 ```
 
 ## Shipped Surfaces
 
-- The plugin ships twenty-two reusable Spring skills under `skills/`.
+- The plugin ships twenty-four reusable Spring skills under `skills/`.
 - The plugin ships one agent (`spring-architect`) for guiding Spring architecture decisions and component design.
 - The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
@@ -171,4 +175,4 @@ claude --plugin-dir /path/to/sinon/plugins/spring
 
 This plugin covers Spring-specific application guidance and ships reusable skills plus the `spring-architect` agent surface. It intentionally does not publish commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
-Use Java, JVM, Kotlin, Reactor, Netty, or platform-architecture guidance for concerns that are not shaped by Spring framework behavior. Spring Cloud Data Flow coverage is limited to existing stream/task estates, runtime operations, and migration support rather than new orchestration adoption.
+Use Java, JVM, Kotlin, Reactor, Netty, or platform-architecture guidance for concerns that are not shaped by Spring framework behavior. Spring Cloud Data Flow coverage lives in `spring-cloud-data-flow` and is limited to existing stream/task estates, runtime operations, and migration support rather than new orchestration adoption.

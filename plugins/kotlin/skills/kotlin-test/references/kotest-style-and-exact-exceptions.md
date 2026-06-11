@@ -1,8 +1,9 @@
 ---
-title: Kotest Style and Exact Exceptions
 description: >-
   Open this when Kotest style, soft assertions, or exact exception checks are the blocker.
 ---
+
+# Kotest Style and Exact Exceptions
 
 Open this when the project already uses Kotest and the remaining blocker is keeping assertion style consistent.
 

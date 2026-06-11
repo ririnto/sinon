@@ -1,8 +1,9 @@
 ---
-title: "Context Propagation Across Scheduler Boundaries"
 description: >-
   Open this when ThreadLocal data must cross scheduler hops or automatic context propagation becomes the blocker.
 ---
+
+# Context Propagation Across Scheduler Boundaries
 
 Open this when execution moves correctly but request metadata, logging context, or security context does not survive the thread change.
 

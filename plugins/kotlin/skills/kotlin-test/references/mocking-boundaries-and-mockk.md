@@ -1,8 +1,9 @@
 ---
-title: Mocking Boundaries and MockK
 description: >-
   Open this when mocking boundaries or MockK collaboration checks are the blocker.
 ---
+
+# Mocking Boundaries and MockK
 
 Open this when deciding what stays real, what becomes a test double, and how to verify a Kotlin collaboration boundary with MockK.
 

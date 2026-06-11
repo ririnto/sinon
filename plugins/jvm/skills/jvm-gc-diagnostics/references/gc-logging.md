@@ -1,9 +1,10 @@
 ---
-title: GC Logging Reference
 description: >-
   Reference for GC log configuration, output format interpretation, and version-specific
   logging syntax across JDK 8 (legacy) and JDK 9+ (unified logging).
 ---
+
+# GC Logging Reference
 
 Use this reference when the blocker is configuring GC logging for the next deploy, interpreting existing GC log output, or translating between JDK 8 legacy flags and JDK 9+ unified logging syntax.
 

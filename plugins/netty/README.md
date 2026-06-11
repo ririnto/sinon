@@ -1,8 +1,9 @@
 ---
-title: Netty
 description: >-
   Overview of the Netty plugin, its included skills, and high-performance network application workflow coverage.
 ---
+
+# Netty
 
 Netty is a shared, skill-first plugin for Netty core API and Reactor Netty reactive application work in the Sinon Claude marketplace.
 

@@ -2,22 +2,9 @@
 name: spring-data
 description: >-
   Design Spring Data repositories, derived queries, projections, auditing, paging, and scrolling across multiple Spring Data modules. Use when writing derived or `@Query` repository methods, choosing between JPA, MongoDB, Redis, JDBC, or R2DBC modules, configuring auditing, or implementing projections and DTO mappings.
-metadata:
-  title: "Spring Data"
-  official-project-url: "https://spring.io/projects/spring-data"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-data/commons/reference/index.html"
-    - "https://docs.spring.io/spring-data/jpa/reference/index.html"
-    - "https://docs.spring.io/spring-data/mongodb/reference/index.html"
-    - "https://docs.spring.io/spring-data/redis/reference/index.html"
-    - "https://docs.spring.io/spring-data/relational/reference/jdbc.html"
-    - "https://docs.spring.io/spring-data/relational/reference/r2dbc.html"
-    - "https://docs.spring.io/spring-data/rest/reference/index.html"
-  release-line-kind: "stable-ga"
-  release-train: "2026.0.0"
-  commons-version: "4.1.0"
-  version: "2026.0.0"
 ---
+
+# Spring Data
 
 ## Boundaries
 
@@ -78,7 +65,7 @@ Sort.by(Person::getFirstName, Person::getLastName)
 Nested paths compose through chaining:
 
 ```java
-PropertyPath.of(Person::getAddress).then(Address::getCountry)
+TypedPropertyPath.of(Person::getAddress).then(Address::getCountry)
 ```
 
 Keep string-based `PropertyPath.from("name", Person.class)` only when the property name is not known at compile time.
@@ -91,7 +78,7 @@ Optional<Customer> findByEmailIgnoreCase(String email);
 
 ### Projection shape
 
-Spring Data Commons 4.1 requires `@ProjectedPayload` on projection types used as controller parameters. Annotate interface or DTO projections that serve as `@RequestParam` or `@Payload` targets:
+Use `@ProjectedPayload` only when a projection is bound from an external web payload, such as controller method parameters. Repository return projections do not require this annotation.
 
 ```java
 @ProjectedPayload
@@ -100,7 +87,7 @@ interface CustomerView {
 }
 ```
 
-Record-based DTO projections used as repository return types do not require `@ProjectedPayload`. The annotation is only needed when the projection type is bound from an external payload (web controller parameters, message payloads).
+Record-based DTO projections used as repository return types do not require `@ProjectedPayload`.
 
 ```java
 record CustomerView(Long id, String email) {

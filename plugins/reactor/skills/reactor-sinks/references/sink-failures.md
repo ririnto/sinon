@@ -1,8 +1,9 @@
 ---
-title: "Sink Emission Failures"
 description: >-
   Open this when EmitResult handling, retry policy, overflow, or terminated/cancelled emission is the blocker.
 ---
+
+# Sink Emission Failures
 
 Open this when the sink type is already correct but emission outcomes and retry behavior are the real problem.
 

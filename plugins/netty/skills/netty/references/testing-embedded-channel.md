@@ -1,8 +1,9 @@
 ---
-title: Testing with EmbeddedChannel
 description: >-
   Open this when Netty handlers, codecs, or pipelines must be tested without starting real sockets.
 ---
+
+# Testing with EmbeddedChannel
 
 ## Open this when
 

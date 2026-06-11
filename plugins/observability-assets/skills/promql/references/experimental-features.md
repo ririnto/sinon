@@ -1,8 +1,9 @@
 ---
-title: "PromQL Experimental Features"
 description: >-
   Open this when using experimental functions, feature flags, fill modifiers, or bleeding-edge PromQL capabilities.
 ---
+
+# PromQL Experimental Features
 
 Use this reference when the query requires a function or operator that is gated behind a Prometheus feature flag, or when you need to know which features may change or be removed in future versions.
 

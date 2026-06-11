@@ -1,8 +1,9 @@
 ---
-title: "Dashboard Provisioning Folder Organization"
 description: >-
   Open this when folder mapping, file layout, provider-level folderUid targeting, foldersFromFilesStructure constraints, or no-nested-folders behavior is the blocker.
 ---
+
+# Dashboard Provisioning Folder Organization
 
 Use this reference when the provider exists, but the file tree and folder strategy are still unclear.
 

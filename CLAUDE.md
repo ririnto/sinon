@@ -1,8 +1,9 @@
 ---
-title: Sinon Project Rules
 description: >-
   Stable repository rules for plugin packaging and skill authoring in the Sinon marketplace.
 ---
+
+# Sinon Project Rules
 
 Sinon is a marketplace repository for Claude Code plugins and Agent Skills. These rules govern repository layout, skill authoring, and documentation posture. Normative keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) follow BCP 14. All repository-level and agent-facing rules documents MUST be written in English.
 

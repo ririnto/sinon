@@ -1,10 +1,9 @@
 ---
-title: "Alertmanager Time Intervals"
 description: >-
   Open this when mute schedules, active time intervals, or time-based routing constraints are the blocker.
 ---
 
-## Alertmanager Time Intervals
+# Alertmanager Time Intervals
 
 Use this reference when the blocker is time-based suppression, schedule-aware routing, or any use of `mute_time_intervals` / `active_time_intervals` on routes.
 

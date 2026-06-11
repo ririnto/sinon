@@ -2,13 +2,9 @@
 name: spring-kafka
 description: >-
   Build Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, share consumers, and embedded Kafka tests. Use when configuring producer or consumer factories, setting up concurrent listener containers, implementing retry and DLQ routing, building share consumer listeners, or writing embedded Kafka integration tests.
-metadata:
-  title: "Spring for Apache Kafka"
-  official-project-url: "https://spring.io/projects/spring-kafka"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-kafka/reference/index.html"
-  version: "4.1.0"
 ---
+
+# Spring for Apache Kafka
 
 ## Boundaries
 

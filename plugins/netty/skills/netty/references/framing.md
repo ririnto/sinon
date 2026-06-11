@@ -1,8 +1,9 @@
 ---
-title: Frame Decoders and Message Boundaries
 description: >-
   Open this when a Netty byte stream must be split into complete messages before business handlers run.
 ---
+
+# Frame Decoders and Message Boundaries
 
 Open this reference when a Netty byte stream must be split into complete messages before business handlers run, and TCP stream boundaries are the real problem requiring length-based, delimiter-based, or fixed-size framing.
 

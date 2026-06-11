@@ -2,14 +2,9 @@
 name: spring-vault
 description: >-
   Integrate Spring applications with HashiCorp Vault or Cloud Foundry CredHub for secret and credential reads, writes, authentication, property-source loading, transit encryption, declarative secret rotation, and certificate management. Use when configuring `VaultTemplate` operations, setting up AppRole or token authentication, loading Vault-backed property sources, applying transit encryption and decryption, using `VaultClient` for low-level Vault HTTP access, configuring `ManagedSecret` rotation, issuing certificates through `CertificateContainer`, reading or writing CredHub credentials, configuring mutual-TLS or OAuth2 CredHub authentication, or generating CredHub passwords or certificates.
-metadata:
-  title: "Spring Vault and CredHub"
-  official-project-url: "https://spring.io/projects/spring-vault"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-vault/reference/index.html"
-    - "https://docs.spring.io/spring-credhub/docs/current/reference/htmlsingle/"
-  version: "4.1.0"
 ---
+
+# Spring Vault and CredHub
 
 The latest released Spring Vault line is 4.1.0. Keep the frontmatter docs URL unversioned, but pin the concrete artifact example in this skill to 4.1.0 because this skill documents the current released standalone client path rather than a Spring BOM-managed path.
 
@@ -178,7 +173,7 @@ class SecretServiceTests {
 2. Keep auth configuration outside business services and inject `VaultTemplate` into a narrow boundary service.
 3. Distinguish KV v1 and KV v2 paths explicitly. Prefer `opsForKeyValue(...)` for ordinary KV access instead of teaching raw `data/` path handling as the main integration shape.
 4. `opsForKeyValue(String path)` auto-detects KV v1 vs v2 at runtime (4.1). Explicit `opsForKeyValue(String, KeyValueBackend)` overrides when the mount version is known and detection overhead is unacceptable.
-5. Use `VaultClient` for low-level Vault HTTP access instead of `RestOperations` or `RestTemplate`, which are deprecated since 4.1.
+5. Use `VaultClient` for low-level Vault HTTP access instead of `RestOperations` or `RestTemplate`.
 6. Read typed secret fields into application-specific records or value objects as early as possible.
 7. Use `getRequiredData()` when the read path must fail fast instead of silently tolerating a missing payload.
 8. Use transit only when the application needs Vault-managed encryption or signing without exposing raw key material.

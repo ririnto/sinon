@@ -1,9 +1,10 @@
 ---
-title: Collector Baselines
 description: >-
   Reference for JDK LTS collector availability, default assignments, version-specific notes,
   and collector-selection decision guidance.
 ---
+
+# Collector Baselines
 
 Use this reference when the blocker is confirming which collectors are available, default, or realistic on a specific Java LTS baseline, or when comparing collector tradeoffs across versions.
 

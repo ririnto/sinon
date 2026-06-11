@@ -1,8 +1,9 @@
 ---
-title: Prometheus Alert Patterns Reference
 description: >-
   Open this when choosing between direct alerts, recording-rule-backed alerts, or reusable low-noise alert patterns is the blocker.
 ---
+
+# Prometheus Alert Patterns Reference
 
 Use this reference when the blocker is choosing the right alert shape rather than writing YAML syntax.
 

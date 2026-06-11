@@ -38,7 +38,7 @@ These properties are optional tuning flags once the application already builds w
 ```properties
 spring.aot.data.accessors.enabled=true
 spring.aot.data.accessors.include=com.example.customer.Customer
-spring.aot.data.accessors.exclude=com.example.legacy.LegacyCustomer
+spring.aot.data.accessors.exclude=com.example.previous.PreviousCustomer
 spring.aot.repositories.enabled=true
 spring.aot.repositories.metadata.enabled=true
 spring.aot.jpa.repositories.enabled=true

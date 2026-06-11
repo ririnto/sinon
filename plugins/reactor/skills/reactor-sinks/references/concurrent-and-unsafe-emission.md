@@ -1,8 +1,9 @@
 ---
-title: "Concurrent and Unsafe Emission"
 description: >-
   Open this when multiple producers contend for the same sink or internal performance pressure makes Sinks.unsafe() a serious option.
 ---
+
+# Concurrent and Unsafe Emission
 
 Open this when the sink shape is right but emission contention or internal synchronization cost is the blocker.
 

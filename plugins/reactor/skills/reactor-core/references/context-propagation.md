@@ -1,8 +1,9 @@
 ---
-title: "Context for Library-Facing Flows"
 description: >-
   Open this when ordinary Context usage is not enough and you need nested-write rules, precedence behavior, or Context-sensitive composition in library-facing code.
 ---
+
+# Context for Library-Facing Flows
 
 Open this when the blocker is no longer 'how do I carry request metadata' but 'how does `Context` behave across composition boundaries'.
 

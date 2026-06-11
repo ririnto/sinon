@@ -1,9 +1,10 @@
 ---
-title: Workflow
 description: >-
   Full specification-driven development workflow with conditional research,
   approval gates, review evidence requirements, and implementation sync rules.
 ---
+
+# Workflow
 
 ## Overview
 

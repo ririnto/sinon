@@ -1,8 +1,9 @@
 ---
-title: Idle Handling and Heartbeats
 description: >-
   Open this when a Netty connection needs read-idle, write-idle, or heartbeat handling.
 ---
+
+# Idle Handling and Heartbeats
 
 ## Open this when
 

@@ -2,16 +2,9 @@
 name: reactor-core
 description: >-
   Author Reactor pipelines with Flux and Mono. Use when designing or reviewing Flux/Mono source creation, operator composition, combination, empty/error behavior, ordinary backpressure choices, and everyday Context usage in Project Reactor.
-metadata:
-  title: Reactor Core
-  official_project_url: "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures.html"
-  reference_doc_urls:
-    - "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures.html"
-    - "https://projectreactor.io/docs/core/3.7.18/api/"
-  version: "3.7.18"
-  dependencies:
-    - "io.projectreactor:reactor-core:3.7.18"
 ---
+
+# Reactor Core
 
 Author the ordinary Reactor path with `Flux` and `Mono`.
 

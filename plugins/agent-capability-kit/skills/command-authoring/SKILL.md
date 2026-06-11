@@ -103,7 +103,7 @@ disable-model-invocation: true
 
 For normal authoring, use this order inside the Markdown body after frontmatter:
 
-1. Short title or opening line naming the job
+1. First H1 heading naming the job
 2. Goal or outcome
 3. Required inputs or arguments
 4. Constraints, guardrails, or forbidden actions

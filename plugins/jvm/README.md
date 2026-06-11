@@ -1,8 +1,9 @@
 ---
-title: JVM
 description: >-
   Overview of the JVM plugin, its included skills, and JVM tooling and diagnostics workflows.
 ---
+
+# JVM
 
 JVM is a shared, skill-first plugin for standard JDK tooling, JVM runtime diagnostics, and garbage-collection workflows in the Sinon Claude marketplace.
 

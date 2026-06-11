@@ -5,12 +5,14 @@ Open this reference when the SOAP client must use specialized transports or alte
 ## Variant selector
 
 - Keep the ordinary path in `SKILL.md` when `WebServiceTemplateBuilder` plus the default message factory is enough.
-- Use a custom message factory when the integration needs SOAP 1.2, MTOM, or lower-level SAAJ tuning.
+- Use a custom message factory when the integration needs SOAP 1.2, MTOM, or lower-level message-factory tuning.
 - Use a transport-specific sender when the integration contract requires custom HTTP timeouts, authentication, or a non-default transport stack.
 
 ## Dependency hint
 
 When this branch adds a transport sender beyond the starter-managed ordinary path, add the transport dependency explicitly in the build file and keep it next to the SOAP client configuration it serves.
+
+SAAJ-specific message factory variant:
 
 ```java
 @Bean

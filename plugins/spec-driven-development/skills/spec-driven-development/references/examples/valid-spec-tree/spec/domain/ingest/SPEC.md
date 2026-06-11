@@ -1,5 +1,4 @@
 ---
-title: "Domain Ingest"
 description: >-
   Defines the ingest behavior that validates input, persists accepted work, and
   returns stable outcomes.
@@ -10,6 +9,8 @@ tag:
 call: []
 metadata: {}
 ---
+
+# Domain Ingest
 
 ## Necessity
 

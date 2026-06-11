@@ -1,9 +1,10 @@
 ---
-title: Advanced Java Syntax Recipes
 description: >-
   Version-sensitive Java syntax guide for LTS lookup, migration framing,
   per-version recipes, and preview/withdrawn feature tracking.
 ---
+
+# Advanced Java Syntax Recipes
 
 Open this reference when `SKILL.md` handles the common case but you still need one of these deeper jobs:
 

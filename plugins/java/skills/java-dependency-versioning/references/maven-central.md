@@ -1,10 +1,11 @@
 ---
-title: Maven Central Dependency Lookup
 description: >-
   Reference for Maven Central search API shapes, response field semantics,
   paginated lookup patterns, BOM/plugin artifact handling,
   and installation guidance by artifact kind.
 ---
+
+# Maven Central Dependency Lookup
 
 Open this reference when the coordinate is verified but you still need one of these deeper jobs:
 

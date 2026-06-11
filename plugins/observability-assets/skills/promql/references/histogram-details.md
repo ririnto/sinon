@@ -1,8 +1,9 @@
 ---
-title: "PromQL Histogram Details"
 description: >-
   Open this when working with histogram_quantile, histogram_fraction, native vs classic histograms, bucket interpolation, or monotonicity issues.
 ---
+
+# PromQL Histogram Details
 
 Use this reference when the query involves histograms and the blocker is understanding interpolation behavior, native vs classic differences, or debugging `histogram_quantile` results.
 

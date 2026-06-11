@@ -1,9 +1,10 @@
 ---
-title: Spec-Driven Development
 description: >-
   Plugin for spec-first development workflow with research, specification authoring,
   review gates, and verification.
 ---
+
+# Spec-Driven Development
 
 Spec-Driven Development is a skill-first plugin for spec-first development workflow in the Sinon Claude marketplace.
 

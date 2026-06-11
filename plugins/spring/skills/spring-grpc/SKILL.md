@@ -2,13 +2,9 @@
 name: spring-grpc
 description: >-
   Implement protobuf-first gRPC servers and clients in Spring with generated stubs, configured channels, interceptors, and explicit deadlines, metadata, and reflection. Use when generating protobuf stubs, configuring managed channels, applying server or client interceptors, or setting up gRPC health checking and reflection.
-metadata:
-  title: "Spring gRPC"
-  official-project-url: "https://spring.io/projects/spring-grpc"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-grpc/reference/"
-  version: "1.1.0"
 ---
+
+# Spring gRPC
 
 The latest stable Spring gRPC line is 1.1.0. Starting with this release, Spring Boot 4.1 provides auto-configuration for gRPC servers and clients, so the ordinary path in this skill uses the Boot-managed starter artifacts.
 

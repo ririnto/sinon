@@ -1,6 +1,8 @@
 ---
-title: Changelog
+
 ---
+
+# Changelog
 
 ## {{date}} - {{summary}}
 

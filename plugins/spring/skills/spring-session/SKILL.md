@@ -2,13 +2,9 @@
 name: spring-session
 description: >-
   Replace container bound sessions with Spring Session across Spring Security, WebFlux, and WebSocket endpoints using a chosen backing store and customized cookies or headers. Use when selecting a session repository (Redis, JDBC, Hazelcast), configuring session id transport, wiring shared sessions into Spring Security, or tuning session timeout and concurrency policy.
-metadata:
-  title: "Spring Session"
-  official-project-url: "https://spring.io/projects/spring-session"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-session/reference/index.html"
-  version: "4.1.0"
 ---
+
+# Spring Session
 
 ## Boundaries
 

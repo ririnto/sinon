@@ -1,9 +1,10 @@
 ---
-title: Gradle Dependencies and Test Configuration
 description: >-
   Open this when setting up a Kotlin test suite from scratch, adding a new testing library,
   or configuring Gradle test execution.
 ---
+
+# Gradle Dependencies and Test Configuration
 
 Open this when declaring test dependencies, configuring the Gradle test task, or setting up a new module for testing.
 

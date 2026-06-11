@@ -1,8 +1,9 @@
 ---
-title: Metrics and Observability
 description: >-
   Open this when Reactor Netty needs wiretap logging, Micrometer metrics, HTTP access logging, or operational traffic inspection.
 ---
+
+# Metrics and Observability
 
 ## Open this when
 

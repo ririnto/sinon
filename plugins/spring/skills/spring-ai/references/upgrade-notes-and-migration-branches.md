@@ -71,10 +71,10 @@ SearchRequest.builder().query(q).topK(5).similarityThreshold(0.72).build();
 
 ### 6. Chat memory advisor migration (1.1.6+)
 
-`PromptChatMemoryAdvisor` is deprecated in 1.1.6. Replace with `MessageChatMemoryAdvisor`. Chat memory advisors now require an explicit `CONVERSATION_ID` parameter supplied at the call site.
+Use `MessageChatMemoryAdvisor` instead of `PromptChatMemoryAdvisor`. with `MessageChatMemoryAdvisor`. Chat memory advisors now require an explicit `CONVERSATION_ID` parameter supplied at the call site.
 
 ```java
-// Before (deprecated)
+// Previous
 PromptChatMemoryAdvisor.builder(chatMemory).conversationId("default").build()
 
 // After

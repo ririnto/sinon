@@ -1,9 +1,10 @@
 ---
-title: JDK Tool Index
 description: >-
   Reference index for common JDK tools, version availability, selection guidance,
   and output shape reference.
 ---
+
+# JDK Tool Index
 
 Use this reference when the blocker is choosing among the wider JDK tool set before narrowing down to a specific command sequence, or when you need to confirm tool availability on a specific LTS baseline.
 

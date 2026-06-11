@@ -47,7 +47,7 @@ Before you edit anything:
 
 Use this local loading model as the default basis when authoring or reviewing a skill:
 
-1. Frontmatter metadata helps discovery.
+1. Frontmatter contains only activation metadata needed for discovery: `name` and `description`.
 2. `SKILL.md` is the always-loaded instruction file on activation.
 3. `references/`, `assets/`, and `scripts/` are optional additive depth opened only for a named need.
 
@@ -77,11 +77,7 @@ Required fields:
 - `name`
 - `description`
 
-Optional fields:
-
-- `license`
-- `compatibility`
-- `metadata`
+Do not put display titles, project URLs, version baselines, owner notes, or reference-doc inventories in skill frontmatter. Put the display title in the first H1 heading and put source/version notes in the body only when the ordinary path needs them.
 
 ### `name`
 

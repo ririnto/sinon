@@ -1,9 +1,10 @@
 ---
-title: Java
 description: >-
   Overview of the Java plugin, its included skills, runtime model,
   skill selection guidance, and Java LSP setup guidance.
 ---
+
+# Java
 
 Java is a shared, skill-first plugin for Java language work in the Sinon Claude marketplace.
 

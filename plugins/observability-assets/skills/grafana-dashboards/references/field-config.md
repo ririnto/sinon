@@ -1,10 +1,9 @@
 ---
-title: Field Config, Overrides, Value Mappings, and Data Links Reference
 description: >-
   Open this when you need the complete field config option catalog, all override property IDs per panel type, value mapping patterns, data link variable reference, or data link builder patterns.
 ---
 
-## Field Config, Overrides, Value Mappings, and Data Links Reference
+# Field Config, Overrides, Value Mappings, and Data Links Reference
 
 Use this reference when you need complete details on how to configure field appearance, target specific fields for different visual treatment, map raw values to display text/colors, or attach clickable URLs to data points.
 

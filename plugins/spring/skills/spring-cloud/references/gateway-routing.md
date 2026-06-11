@@ -4,9 +4,9 @@ Open this reference when the ordinary ConfigData-discovery-loadbalancer path in 
 
 ## Artifact rename (2025.0.x+)
 
-New starter names were introduced in Spring Cloud Gateway 4.3.x. The old names emit deprecation warnings.
+New starter names were introduced in Spring Cloud Gateway 4.3.x. Use the current names in new configuration.
 
-| Old (deprecated, emits warnings) | New (2025.0.x+) |
+| Previous | New (2025.0.x+) |
 | --- | --- |
 | `spring-cloud-starter-gateway` | `spring-cloud-starter-gateway-server-webflux` |
 | `spring-cloud-starter-gateway-mvc` | `spring-cloud-starter-gateway-server-webmvc` |

@@ -106,17 +106,32 @@ class GrpcExceptionHandling {
 
 ## Client
 
+Register generated stubs with `@ImportGrpcClients` when the application can use Spring-managed stub beans.
+
 ```java
-@GrpcClient("myService")
-private MyServiceGrpc.MyServiceBlockingStub myService;
+@Configuration
+@ImportGrpcClients(types = MyServiceGrpc.MyServiceBlockingStub.class)
+class GrpcClientConfig {
+}
+```
+
+```java
+@Service
+class MyServiceClient {
+    private final MyServiceGrpc.MyServiceBlockingStub myService;
+    MyServiceClient(MyServiceGrpc.MyServiceBlockingStub myService) {
+        this.myService = myService;
+    }
+}
 ```
 
 ```yaml
 spring:
   grpc:
     client:
-      myService:
-        address: static://localhost:9090
+      channel:
+        myservice:
+          target: static://localhost:9090
 ```
 
 ## Client SSL
@@ -125,10 +140,11 @@ spring:
 spring:
   grpc:
     client:
-      myService:
-        address: static://localhost:9090
-        ssl:
-          enabled: true
+      channel:
+        myservice:
+          target: static://localhost:9090
+          ssl:
+            enabled: true
 ```
 
 For mutual TLS:
@@ -137,10 +153,11 @@ For mutual TLS:
 spring:
   grpc:
     client:
-      myService:
-        address: static://localhost:9090
-        ssl:
-          bundle: example
+      channel:
+        myservice:
+          target: static://localhost:9090
+          ssl:
+            bundle: example
 ```
 
 ## Testing
@@ -149,10 +166,12 @@ spring:
 
 ```java
 @AutoConfigureTestGrpcTransport
+@ImportGrpcClients(types = MyServiceGrpc.MyServiceBlockingStub.class)
 class MyGrpcTests {
-    @GrpcClient("myService")
-    private MyServiceGrpc.MyServiceBlockingStub myService;
-
+    private final MyServiceGrpc.MyServiceBlockingStub myService;
+    MyGrpcTests(MyServiceGrpc.MyServiceBlockingStub myService) {
+        this.myService = myService;
+    }
     @Test
     void testHello() {
         var reply = myService.sayHello(HelloRequest.newBuilder().setName("Test").build());
@@ -163,9 +182,9 @@ class MyGrpcTests {
 
 ## Reflection service
 
-When `grpc-server-spring-autoconfigure` is on the classpath, the gRPC Reflection service is auto-configured automatically.
+Spring Boot gRPC server support can expose gRPC reflection when `io.grpc:grpc-services` is available through the server starter and `spring.grpc.server.reflection.enabled` is enabled.
 
 ## Gotchas
 
 - For Servlet-based gRPC, ensure `server.http2.enabled` is set to `true`.
-- Use type-safe binding with `@GrpcClient` annotation on fields or constructor parameters rather than manual channel construction.
+- Prefer Spring-managed generated stubs with `@ImportGrpcClients`; use `GrpcChannelFactory` only when channel construction must be customized directly.

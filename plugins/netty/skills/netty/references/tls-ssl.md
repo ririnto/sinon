@@ -1,8 +1,9 @@
 ---
-title: TLS and SSL Pipeline Setup
 description: >-
   Open this when a Netty client or server must add TLS, trust configuration, or handshake-aware pipeline setup.
 ---
+
+# TLS and SSL Pipeline Setup
 
 ## Open this when
 

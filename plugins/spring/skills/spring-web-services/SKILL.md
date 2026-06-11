@@ -2,14 +2,9 @@
 name: spring-web-services
 description: >-
   Build contract-first SOAP services and clients in Spring with XSD or WSDL contracts, `@Endpoint` handlers, XML marshalling, `WebServiceTemplate`, and WS-Security integration. Use when generating JAXB types from schema, configuring `MessageDispatcherServlet`, handling SOAP faults, or applying WS-Security policy to SOAP client or server endpoints.
-metadata:
-  title: "Spring Web Services"
-  official-project-url: "https://spring.io/projects/spring-ws"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-ws/docs/current/reference/html/"
-  version: "5.0.2"
-  compatibility-note: "When the reference page and project listing disagree, align examples to the Spring Web Services version already selected in the build."
 ---
+
+# Spring Web Services
 
 ## Boundaries
 
@@ -194,7 +189,7 @@ class HolidayEndpoint {
 
 `@PayloadRoot` is the primary routing annotation. Use `@SoapAction` on the same method when the integration contract routes by SOAP Action header instead of payload root.
 
-Spring WS supports both SOAP 1.1 and SOAP 1.2. The default `AxiomSoapMessageFactory` produces SOAP 1.1 messages. Use `SaajSoapMessageFactory` with a SOAP 1.2 protocol when the contract requires SOAP 1.2. See [references/client-variants.md](references/client-variants.md) for message factory details.
+Spring WS supports both SOAP 1.1 and SOAP 1.2. The default `AxiomSoapMessageFactory` produces SOAP 1.1 messages and can be configured for SOAP 1.2. Use SAAJ when SAAJ-specific behavior is required. See [references/client-variants.md](references/client-variants.md) for message factory details.
 
 ### SOAP server configuration
 
@@ -319,7 +314,7 @@ class HolidayClientTests {
 
 ### Default message factory
 
-Spring WS defaults to `AxiomSoapMessageFactory` producing SOAP 1.1 messages. Use `SaajSoapMessageFactory` for SOAP 1.2 or when SAAJ features are required. See [references/client-variants.md](references/client-variants.md) for the message factory decision path.
+Spring WS defaults to `AxiomSoapMessageFactory` producing SOAP 1.1 messages. Configure the selected message factory for SOAP 1.2; use SAAJ when SAAJ features are required. See [references/client-variants.md](references/client-variants.md) for the message factory decision path.
 
 ### Endpoint URI shape
 

@@ -1,8 +1,9 @@
 ---
-title: Reactor
 description: >-
   Overview of the Reactor plugin, its included skills, selection guidance, and reactive programming workflow coverage.
 ---
+
+# Reactor
 
 Reactor is a shared, skill-first plugin for Project Reactor reactive programming work in the Sinon Claude marketplace.
 

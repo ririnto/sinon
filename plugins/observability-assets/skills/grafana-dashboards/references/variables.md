@@ -1,10 +1,9 @@
 ---
-title: Complete Variable Reference
 description: >-
   Open this when you need the full variable type catalog, syntax formats, global variables, format options, or advanced variable patterns.
 ---
 
-## Complete Variable Reference
+# Complete Variable Reference
 
 Use this reference when you need to understand every variable type in detail, how variable substitution works across different contexts, what global variables are available, and how to build advanced variable patterns like cascading variables and repeat composition.
 

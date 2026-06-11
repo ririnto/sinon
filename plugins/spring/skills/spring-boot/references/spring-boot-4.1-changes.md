@@ -1,6 +1,6 @@
-# Spring Boot 4.1.0 removals and deprecations
+# Spring Boot 4.1.0 changes
 
-Open this reference when migrating from 4.0 to 4.1 or replacing removed/deprecated features.
+Open this reference when migrating from 4.0 to 4.1 or replacing features that changed features.
 
 ## Removed
 
@@ -13,7 +13,7 @@ java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 java -Djarmode=tools -jar app.jar list-layers
 ```
 
-### Deprecated Logback properties
+### Changed Logback properties
 
 The following `logging.file.*` properties were removed. Migrate to `logging.logback.rollingpolicy.*`.
 
@@ -33,11 +33,12 @@ The following `logging.file.*` properties were removed. Migrate to `logging.logb
 ./mvnw spring-boot:process-aot -Dmaven.test.skip
 ```
 
-## Deprecated
+## Changed
 
 ### Derby support
 
-Apache Derby has been retired. The following are deprecated for removal:
+Apache Derby has been retired. Use one of these replacements:
+
 - `org.springframework.boot.jdbc.DatabaseDriver.DERBY`
 - `org.springframework.boot.jdbc.EmbeddedDatabaseConnection.DERBY`
 
@@ -53,13 +54,13 @@ Migrate to H2 or HSQLDB.
 
 ### LiveReload in DevTools
 
-`spring.devtools.livereload.enabled` and `spring.devtools.livereload.port` are deprecated with no replacement. Remove these properties.
+`spring.devtools.livereload.enabled` and `spring.devtools.livereload.port` should be removed. Remove these properties.
 
 ### Dynatrace V1 API
 
-Dynatrace V1 API properties and classes are deprecated. Migrate to the V2 API.
+Dynatrace V1 API properties and classes should move to the V2 API.
 
-| Deprecated property | Action |
+| Changed property | Action |
 | --- | --- |
 | `management.dynatrace.metrics.export.v1.device-id` | Remove, use V2 |
 | `management.dynatrace.metrics.export.v1.group` | Remove, use V2 |
@@ -67,8 +68,8 @@ Dynatrace V1 API properties and classes are deprecated. Migrate to the V2 API.
 
 ### RootUriTemplateHandler
 
-`RootUriTemplateHandler` is deprecated in favor of `DefaultUriBuilderFactory`.
+`RootUriTemplateHandler` should be replaced with `DefaultUriBuilderFactory`.
 
 ## Validation rule
 
-Run the application with `-Ddebug` and check for deprecated property warnings before upgrading.
+Run the application with `-Ddebug` and check for property warnings before upgrading.

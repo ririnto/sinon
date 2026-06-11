@@ -1,8 +1,9 @@
 ---
-title: Null Safety and Scope Functions
 description: >-
   Open this when a null-heavy path or tangled scope-function chain is the real blocker.
 ---
+
+# Null Safety and Scope Functions
 
 Open this when nullable flow and scope-function readability are the hard part.
 

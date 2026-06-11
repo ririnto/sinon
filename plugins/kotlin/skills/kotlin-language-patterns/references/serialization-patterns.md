@@ -1,8 +1,9 @@
 ---
-title: Serialization Boundaries
 description: >-
   Open this when kotlinx.serialization configuration or serializer behavior is the blocker.
 ---
+
+# Serialization Boundaries
 
 Use this reference when the job is to implement Kotlin serialization for one boundary or fix serializer behavior that is already blocking the task. This reference should be sufficient on its own for that work.
 

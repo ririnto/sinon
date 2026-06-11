@@ -1,10 +1,9 @@
 ---
-title: "Alertmanager Receiver Types"
 description: >-
   Open this when configuring any notification receiver and need the complete field schema for a specific receiver type.
 ---
 
-## Alertmanager Receiver Types
+# Alertmanager Receiver Types
 
 Use this reference when you need the complete field schema, required fields, defaults, and validation rules for any of the 18 supported receiver types. Every field is documented with its type, default value (if applicable), and whether it is required.
 
@@ -344,7 +343,6 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 WEBHOOK_TOKEN = os.environ["ALERTMANAGER_WEBHOOK_TOKEN"]
-
 
 @app.post("/alertmanager")
 def alertmanager_webhook():

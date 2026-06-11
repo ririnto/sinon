@@ -1,8 +1,9 @@
 ---
-title: Cancellation, Timeouts, and Failures
 description: >-
   Open this when cancellation propagation, timeout behavior, cleanup, or coroutine failure semantics are the actual blocker.
 ---
+
+# Cancellation, Timeouts, and Failures
 
 Open this when the hard part is cancellation, failure propagation, or timeout-driven control flow.
 

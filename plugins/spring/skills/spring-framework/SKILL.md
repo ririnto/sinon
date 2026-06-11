@@ -1,17 +1,10 @@
 ---
 name: spring-framework
 description: >-
-  Apply core Spring Framework 7.x APIs for the container, Java configuration, bean lifecycle, transactions, events, validation, scheduling, async, resilience, servlet MVC, WebFlux, WebClient, and TestContext support. Use when configuring `@Configuration` classes, managing bean scopes and lifecycle callbacks, setting up declarative transaction boundaries, enabling `@Retryable` resilience, API versioning, programmatic bean registration, or wiring `WebFlux` and `WebClient` without Boot autoconfiguration. Use when building multi-step stateful web conversations with Spring Web Flow definitions, conversation-scoped state, flow transitions, or flow execution tests.
-metadata:
-  title: "Spring Framework"
-  official-project-url: "https://spring.io/projects/spring-framework"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-framework/reference/index.html"
-    - "https://docs.spring.io/spring-framework/reference/core.html"
-    - "https://docs.spring.io/spring-framework/reference/testing.html"
-    - "https://docs.spring.io/spring-webflow/docs/current/reference/"
-  version: "7.0.8"
+  Apply core Spring Framework 7.x APIs for the container, Java configuration, bean lifecycle, transactions, events, validation, scheduling, async, resilience, servlet MVC, WebFlux, WebClient, and TestContext support. Use when configuring `@Configuration` classes, managing bean scopes and lifecycle callbacks, setting up declarative transaction boundaries, enabling `@Retryable` resilience, API versioning, programmatic bean registration, or wiring `WebFlux` and `WebClient` without Boot autoconfiguration.
 ---
+
+# Spring Framework
 
 ## Boundaries
 
@@ -25,14 +18,14 @@ Spring Framework 7.0.8 requires:
 
 - JDK 17 minimum; JDK 25 recommended as the latest LTS
 - Jakarta EE 11 (Servlet 6.1, JPA 3.2, Bean Validation 3.1)
-- JUnit 6 (JUnit 4 TestContext support is deprecated)
+- JUnit 6 (JUnit 6 is the target test line)
 - Kotlin 2.2 for Kotlin-based applications
 - Netty 4.2 for reactive stacks
 - GraalVM 25 for native-image support
 
 Only `jakarta.annotation` and `jakarta.inject` annotations are supported. `javax.annotation` and `javax.inject` are no longer recognized.
 
-## Removed and deprecated APIs
+## Spring Framework 7.0 API changes
 
 Spring Framework 7.0 removed these APIs entirely:
 
@@ -42,12 +35,12 @@ Spring Framework 7.0 removed these APIs entirely:
 - `OkHttp3` support
 - `Theme` support
 - Undertow-specific classes (Undertow does not support Servlet 6.1)
-- Deprecated path mapping options (`suffixPatternMatch`, `trailingSlashMatch`, `favorPathExtension`, `matchOptionalTrailingSeparator`)
+- Changed path mapping options (`suffixPatternMatch`, `trailingSlashMatch`, `favorPathExtension`, `matchOptionalTrailingSeparator`)
 - `org.webjars:webjars-locator-core` (use `webjars-locator-lite`)
 
-Spring Framework 7.0 deprecations heading toward removal:
+Spring Framework 7.0 replacement targets:
 
-- `RestTemplate` (deprecated in 7.0, will be `@Deprecated` in 7.1) -- use `RestClient`
+- `RestTemplate` (changed in 7.0, will be `@Changed` in 7.1) -- use `RestClient`
 - `PathMatcher` in Spring MVC (use `PathPattern`)
 - JUnit 4 TestContext support (`SpringRunner`, `SpringClassRule`, `AbstractJUnit4SpringContextTests`, etc.)
 - Jackson 2.x support (use Jackson 3.x)
@@ -405,7 +398,7 @@ Keep controllers thin: delegate all logic to services. Use `@RestControllerAdvic
 
 ### API versioning
 
-Spring MVC and WebFlux provide first-class API versioning. Resolve versions from URI path, header, or parameter, and mark deprecated versions:
+Spring MVC and WebFlux provide first-class API versioning. Resolve versions from URI path, header, or parameter, and mark changed versions:
 
 ```java
 @RestController
@@ -445,106 +438,6 @@ public void configureMessageConverters(HttpMessageConverters.ServerBuilder build
     builder.jsonMessageConverter(new JacksonJsonHttpMessageConverter(customMapper));
 }
 ```
-
-## Spring Web Flow
-
-Use Web Flow for guided browser conversations such as checkouts, onboarding wizards, and review-confirm-submit journeys that need explicit state transitions. Use standard MVC controller patterns when conversation state is not needed.
-
-Dependency baseline: Spring Web Flow 4.0.0 requires Java 17+, Spring Framework 7.0, and Servlet 6.1.
-
-### Flow registry and executor
-
-Register flows from an XML base path and wire the MVC integration layer:
-
-```java
-@Configuration
-class WebFlowConfig extends AbstractFlowConfiguration {
-    @Bean
-    FlowDefinitionRegistry flowRegistry() {
-        return getFlowDefinitionRegistryBuilder()
-            .setBasePath("/WEB-INF/flows")
-            .addFlowLocationPattern("/**/*-flow.xml")
-            .build();
-    }
-
-    @Bean
-    FlowExecutor flowExecutor() {
-        return getFlowExecutorBuilder(flowRegistry()).build();
-    }
-
-    @Bean
-    FlowHandlerMapping flowHandlerMapping() {
-        FlowHandlerMapping mapping = new FlowHandlerMapping();
-        mapping.setFlowRegistry(flowRegistry());
-        return mapping;
-    }
-
-    @Bean
-    FlowHandlerAdapter flowHandlerAdapter() {
-        FlowHandlerAdapter adapter = new FlowHandlerAdapter();
-        adapter.setFlowExecutor(flowExecutor());
-        return adapter;
-    }
-}
-```
-
-### Flow definition (XML)
-
-Define states as user-visible steps. Use view states for input, decision states for branching, action states for side effects, and end states for completion.
-
-```xml
-<flow xmlns="http://www.springframework.org/schema/webflow"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.springframework.org/schema/webflow
-                          https://www.springframework.org/schema/webflow/spring-webflow.xsd">
-
-    <view-state id="enterDetails" model="booking">
-        <transition on="next" to="confirm" validate="true"/>
-    </view-state>
-
-    <view-state id="confirm" model="booking">
-        <transition on="confirm" to="bookingConfirmed"/>
-        <transition on="revise" to="enterDetails"/>
-    </view-state>
-
-    <end-state id="bookingConfirmed"/>
-
-</flow>
-```
-
-### Flow definition (Java config)
-
-```java
-class BookingFlow extends AbstractFlowBuilder {
-    @Override
-    public void build(Flow flow) {
-        flow
-            .startState(new ViewState(flow, "enterDetails", true))
-                .on("next").to("confirm")
-            .end()
-            .state(new ViewState(flow, "confirm", true))
-                .on("confirm").to("bookingConfirmed")
-                .on("revise").to("enterDetails")
-            .end()
-            .endState(new EndState(flow, "bookingConfirmed"));
-    }
-}
-```
-
-### Coding procedure
-
-1. Draw the user journey as named states and transitions before writing XML or code.
-2. Name states after user-visible steps or domain actions, not technical implementation details.
-3. Keep mutable user input in flow-scoped variables and reserve conversation scope for truly cross-flow state.
-4. Use `model` binding and validation in view states instead of duplicating form parsing in actions.
-5. Invoke a service only at explicit transition points such as validate, price, reserve, or submit.
-6. Use subflows only when a nested journey is reusable or independently testable.
-7. Store only the state needed to continue the conversation; large aggregates belong in services or persistence.
-8. Test both the happy path and at least one backward or invalid-input path.
-
-### Decision point
-
-Use Web Flow only for multi-step stateful navigation requiring explicit flow definition. For ordinary single-form submissions or stateless request-response cycles, use standard MVC controller patterns instead.
 
 ## Reactive HTTP
 
@@ -881,7 +774,7 @@ Use `@EnableCaching` only when the task explicitly needs framework-managed cache
 
 Treat AOT and native-image hints as an escalation point rather than part of the ordinary path. Keep the default implementation reflective and explicit until the task specifically requires AOT-friendly wiring.
 
-GraalVM 25 introduces the unified reachability metadata format. Resource hints now use glob patterns instead of regex: `"/files/*.ext"` matches only direct children, not subdirectories. Use `"/files/**/*.ext"` for recursive matching. Registering a reflection hint for a type now implies methods, constructors, and fields introspection; `MemberCategory.DECLARED_FIELDS` is deprecated in favor of a simple `hints.reflection().registerType(MyType.class)`.
+GraalVM 25 introduces the unified reachability metadata format. Resource hints now use glob patterns instead of regex: `"/files/*.ext"` matches only direct children, not subdirectories. Use `"/files/**/*.ext"` for recursive matching. Registering a reflection hint for a type now implies methods, constructors, and fields introspection; `MemberCategory.DECLARED_FIELDS` is changed in favor of a simple `hints.reflection().registerType(MyType.class)`.
 
 ## AOP escalation
 
@@ -1047,7 +940,7 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent>
 - Use `RestClient` for new HTTP client code; avoid starting new usage of `RestTemplate`.
 - `HttpHeaders` no longer extends `MultiValueMap` in 7.0. Use `HttpHeaders` methods directly instead of map operations.
 - CORS pre-flight requests are no longer rejected when the CORS configuration is empty.
-- `PathPattern` is the only supported pattern matcher for HTTP request mappings. `AntPathMatcher` is deprecated.
+- `PathPattern` is the only supported pattern matcher for HTTP request mappings. `AntPathMatcher` should not be used for HTTP request mappings.
 
 ## References
 
@@ -1059,6 +952,3 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent>
 - Open [references/plain-jdbc-wiring.md](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
 - Open [references/property-binding-conversion-validation.md](references/property-binding-conversion-validation.md) when the task needs advanced data-binding rules, formatter/converter registration, or validation groups beyond the common path.
 - Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when the task needs WebClient filters, transport-specific timeouts, retry selection, or deeper reactive pipeline behavior.
-- Open [references/web-flow-scopes.md](references/web-flow-scopes.md) when Web Flow scope tradeoffs or scope lifetime behavior become the blocker.
-- Open [references/web-flow-validation-and-exception-handling.md](references/web-flow-validation-and-exception-handling.md) when custom Web Flow validation timing or shared recovery paths need deeper guidance.
-- Open [references/web-flow-execution-testing.md](references/web-flow-execution-testing.md) when the ordinary wizard flow test in SKILL.md is not enough and the task needs deeper flow execution testing patterns.

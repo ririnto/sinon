@@ -1,8 +1,9 @@
 ---
-title: jhsdb Reference
 description: >-
   Reference for using jhsdb and its Serviceability Agent subcommands during postmortem or deeper JVM runtime diagnostics.
 ---
+
+# jhsdb Reference
 
 Use this reference when normal live-process `jcmd` diagnostics are not enough and the case requires Serviceability Agent tooling such as core-dump analysis, SA debugger modes, or SA-style inspection.
 

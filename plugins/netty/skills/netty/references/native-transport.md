@@ -1,8 +1,9 @@
 ---
-title: Native Transport Selection
 description: >-
   Open this when a Netty deployment needs epoll, kqueue, or io_uring instead of the default NIO transport.
 ---
+
+# Native Transport Selection
 
 ## Open this when
 

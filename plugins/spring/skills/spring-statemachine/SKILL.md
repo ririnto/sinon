@@ -2,15 +2,11 @@
 name: spring-statemachine
 description: >-
   Model explicit application lifecycles with Spring Statemachine states, events, guards, actions, extended state, persistence, and state-machine tests. Use when defining state machine factories, configuring guards and actions on transitions, persisting machine state to a repository, or writing state-machine integration tests.
-metadata:
-  title: "Spring Statemachine"
-  official-project-url: "https://spring.io/projects/spring-statemachine"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-statemachine/docs/current/reference/"
-  version: "4.0.2"
 ---
 
-The current stable Spring Statemachine line is 4.0.2. The official project README marks the project as maintenance mode, so prefer the ordinary, well-supported configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
+# Spring Statemachine
+
+The current stable Spring Statemachine line is 4.0.2. Prefer the ordinary configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
 
 Spring Statemachine 4.0.2 requires Spring Boot 3.5.x and Spring Framework 6.2.x.
 
@@ -393,7 +389,7 @@ Return:
 - Make transition side effects idempotent or compensate for duplicate delivery.
 - Persist state only when restart or multi-node continuity is actually required.
 - Keep extended state small and serializable when the machine is persisted.
-- When using Kryo-based persistence (e.g. `RedisStateMachineContextRepository`), configure a class allowlist to prevent arbitrary class deserialization (CVE-2026-41862).
+- When using Kryo-based persistence (e.g. `RedisStateMachineContextRepository`), configure a class allowlist to prevent arbitrary class deserialization.
 - Treat state-machine tests as part of the lifecycle compatibility surface.
 
 ## References

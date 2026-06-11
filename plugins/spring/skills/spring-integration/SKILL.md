@@ -2,23 +2,9 @@
 name: spring-integration
 description: >-
   Build message-driven application flows with Spring Integration channels, routers, filters, splitters, aggregators, gateways, pollers, and protocol adapters. Use when designing integration flows with the Java DSL or XML namespace, configuring channel types, wiring file, HTTP, or JMS adapters, or applying content-based routing and aggregation patterns.
-metadata:
-  title: "Spring Integration"
-  official-project-url: "https://spring.io/projects/spring-integration"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-integration/reference/"
-    - "https://docs.spring.io/spring-integration/reference/core.html"
-    - "https://docs.spring.io/spring-integration/reference/dsl.html"
-    - "https://docs.spring.io/spring-integration/reference/router.html"
-    - "https://docs.spring.io/spring-integration/reference/system-management.html"
-    - "https://docs.spring.io/spring-integration/reference/http.html"
-    - "https://docs.spring.io/spring-integration/reference/redis.html"
-    - "https://docs.spring.io/spring-integration/reference/jms.html"
-    - "https://docs.spring.io/spring-integration/reference/cloudevents.html"
-    - "https://docs.spring.io/spring-integration/reference/grpc.html"
-    - "https://docs.spring.io/spring-integration/reference/testing.html"
-  version: "7.1.0"
 ---
+
+# Spring Integration
 
 ## Boundaries
 
@@ -56,7 +42,7 @@ Choose the simplest channel and endpoint pair that matches the delivery semantic
 
 Use the Boot starter for core Integration features and add only the protocol modules the flow actually needs.
 
-For the current stable line, Spring Integration is 7.1.0. The latest released Spring Boot line, 4.1.0, already manages Spring Integration 7.1.0. Older Boot 3.5.x applications still manage Spring Integration 6.5.8 and therefore remain a separate compatibility branch.
+For the current stable line, Spring Integration is 7.1.0. The latest released Spring Boot line, 4.1.0, already manages Spring Integration 7.1.0. Boot 3.5.x applications manage Spring Integration 6.5.9 and therefore remain a separate compatibility branch.
 
 ### Core baseline
 
@@ -112,7 +98,7 @@ When Spring Boot already manages the module line, keep Spring Integration artifa
 
 ### HTTP outbound: RestClient
 
-`HttpRequestExecutingMessageHandler` now accepts a `RestClient`. The `RestTemplate` configuration is deprecated. Prefer `RestClient` for new flows.
+`HttpRequestExecutingMessageHandler` now accepts a `RestClient`. Prefer `RestClient` for new flows instead of `RestTemplate` configuration.
 
 ```java
 @Bean

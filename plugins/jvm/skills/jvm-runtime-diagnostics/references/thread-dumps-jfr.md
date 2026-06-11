@@ -1,9 +1,10 @@
 ---
-title: Thread Dumps and JFR Reference
 description: >-
   Reference for repeated thread-dump comparison, JFR analysis, decision guidance between
   snapshot and time-based evidence, and red-flag thread-dump patterns.
 ---
+
+# Thread Dumps and JFR Reference
 
 Use this reference when the issue needs either repeated snapshot comparison or time-based runtime evidence and the remaining blocker is interpreting the capture, choosing between dump and JFR strategies, or recognizing red-flag patterns.
 

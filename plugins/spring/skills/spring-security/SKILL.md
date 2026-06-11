@@ -2,18 +2,9 @@
 name: spring-security
 description: >-
   Secure Spring applications with `SecurityFilterChain`, authentication and authorization rules, bearer-token resource servers, method security, session and CSRF policy, and Spring Security tests. Use when configuring password storage, JWT verification, opaque-token introspection, CORS policy, security headers, or logout behavior in a servlet or reactive Spring application. Also covers OAuth 2.1 and OpenID Connect authorization server setup with Spring Authorization Server including registered clients, PKCE authorization code, token issuance, JWK exposure, consent, PAR, device authorization, introspection, and revocation.
-metadata:
-  title: "Spring Security"
-  official-project-url: "https://spring.io/projects/spring-security"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-security/reference/index.html"
-    - "https://docs.spring.io/spring-boot/reference/security/oauth2.html"
-    - "https://docs.spring.io/spring-authorization-server/reference/index.html"
-    - "https://docs.spring.io/spring-authorization-server/reference/configuration-model.html"
-    - "https://docs.spring.io/spring-authorization-server/reference/core-model-components.html"
-    - "https://docs.spring.io/spring-authorization-server/reference/protocol-endpoints.html"
-  version: "7.1.0"
 ---
+
+# Spring Security
 
 ## Boundaries
 
@@ -717,7 +708,7 @@ jwk set: /oauth2/jwks
 - Open [references/authorization-server-multitenancy.md](references/authorization-server-multitenancy.md) when issuer resolution, issuer-scoped clients, or issuer-scoped signing keys differ by tenant.
 - Open [references/authorization-server-endpoint-customization.md](references/authorization-server-endpoint-customization.md) when authorization, token, metadata, or consent endpoints need custom request or response handling.
 - Open [references/authorization-server-deployment-and-operations.md](references/authorization-server-deployment-and-operations.md) when the server is moving behind proxies, into production, or into operational hardening work.
-- Open [references/authorization-server-upgrade-spring-authorization-server.md](references/authorization-server-upgrade-spring-authorization-server.md) when moving between Spring Authorization Server versions or replacing legacy Spring Security OAuth server behavior.
+- Open [references/authorization-server-upgrade-spring-authorization-server.md](references/authorization-server-upgrade-spring-authorization-server.md) when moving between Spring Authorization Server versions or replacing Spring Security OAuth server behavior.
 - Open [references/authorization-server-migrate-spring-security-6-to-7.md](references/authorization-server-migrate-spring-security-6-to-7.md) when the blocker is Spring Security 6 to 7 migration work around the authorization server.
 - Open [references/authorization-server-testing-authorization-endpoint.md](references/authorization-server-testing-authorization-endpoint.md) when the task needs deeper authorization-endpoint tests.
 - Open [references/authorization-server-testing-token-metadata-and-jwk-endpoints.md](references/authorization-server-testing-token-metadata-and-jwk-endpoints.md) when the task needs token, metadata, or JWK endpoint tests.

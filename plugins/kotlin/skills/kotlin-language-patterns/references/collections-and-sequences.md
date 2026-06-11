@@ -1,8 +1,9 @@
 ---
-title: Collections and Sequences
 description: >-
   Open this when deciding whether a Kotlin pipeline should stay eager or move to Sequence is the real blocker.
 ---
+
+# Collections and Sequences
 
 Open this when collection shape and laziness tradeoffs are the hard part.
 

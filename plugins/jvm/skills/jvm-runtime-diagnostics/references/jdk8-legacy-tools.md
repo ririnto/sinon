@@ -1,9 +1,10 @@
 ---
-title: JDK 8-Era Legacy Tools Reference
 description: >-
   Reference for JDK 8-era and older standalone jstack and jmap workflows, version-specific
   flags, and operational caveats when jcmd is not the chosen path.
 ---
+
+# JDK 8-Era Legacy Tools Reference
 
 Use this reference when the target workflow explicitly requires classic JDK 8-era `jstack` or `jmap` command shapes instead of the current `jcmd` path, or when operating on a JDK 8 runtime where version-specific flags and constraints apply.
 

@@ -1,8 +1,9 @@
 ---
-title: Date-Time Type Decisions
 description: >-
   Open this when choosing or converting Kotlin date-time types is the blocker.
 ---
+
+# Date-Time Type Decisions
 
 Use this reference when the job is to choose or convert Kotlin date-time types for one concrete model or workflow. This reference should be sufficient on its own for that task.
 

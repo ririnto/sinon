@@ -1,8 +1,9 @@
 ---
-title: Workspace Workflow
 description: >-
   Overview of the Workspace Workflow plugin: skills for worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition, plus a workspace architect agent and slash commands for everyday workflow.
 ---
+
+# Workspace Workflow
 
 Workspace Workflow is a shared, skill-first plugin for end-to-end Git workspace and change-publication workflow in the Sinon Claude marketplace. It covers isolated worktree work, working-tree discipline, history integration (merge or rebase), commit message conventions, and pull or merge request composition under one coherent plugin.
 

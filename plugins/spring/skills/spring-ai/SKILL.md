@@ -2,24 +2,9 @@
 name: spring-ai
 description: >-
   Build Spring AI application features with ChatClient, prompt templates, structured output, tool calling, advisors, chat memory, embeddings, vector stores, RAG, and MCP integration. Use when configuring chat models, wiring vector store backends, designing RAG pipelines, or integrating AI tool calling into Spring services.
-metadata:
-  title: "Spring AI"
-  official-project-url: "https://spring.io/projects/spring-ai"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-ai/reference/"
-    - "https://docs.spring.io/spring-ai/reference/api/chatclient.html"
-    - "https://docs.spring.io/spring-ai/reference/api/tools.html"
-    - "https://docs.spring.io/spring-ai/reference/api/retrieval-augmented-generation.html"
-    - "https://docs.spring.io/spring-ai/reference/api/vectordbs.html"
-    - "https://docs.spring.io/spring-ai/reference/api/image/"
-    - "https://docs.spring.io/spring-ai/reference/api/audio/"
-    - "https://docs.spring.io/spring-ai/reference/api/moderation/"
-    - "https://docs.spring.io/spring-ai/reference/api/advisors.html"
-    - "https://docs.spring.io/spring-ai/reference/api/effective-agents.html"
-    - "https://docs.spring.io/spring-ai/reference/api/usage-handling.html"
-    - "https://docs.spring.io/spring-ai/reference/api/mcp.html"
-  version: "1.1.7"
 ---
+
+# Spring AI
 
 ## Boundaries
 
