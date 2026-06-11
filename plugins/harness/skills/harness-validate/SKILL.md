@@ -2,20 +2,6 @@
 name: harness-validate
 description: >-
   Validate target-owned repository harness assets against the installed build/runtime contract. Use when verifying a fresh harness install, checking target harness changes before commit or CI, or diagnosing WARN and ERROR output from stack validators without requiring plugin-root structural agents in the target repository.
-argument-hint: '[auto|gradle|maven|uv|bun|shell]'
-disable-model-invocation: true
-allowed-tools:
-  - Bash(./gradlew *)
-  - Bash(gradle *)
-  - Bash(mvn *)
-  - Bash(./mvnw *)
-  - Bash(uv *)
-  - Bash(bun *)
-  - Bash(sh scripts/check.sh)
-  - Read
-  - Grep
-  - Glob
-  - LS
 ---
 
 # Harness Validate

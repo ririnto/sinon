@@ -6,6 +6,11 @@ description: >-
 
 # Reactor Sinks
 
+## Official Baseline
+
+- Use the official Project Reactor 3.8.x sinks reference for this skill; this review checked `reactor-core` 3.8.6.
+- Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
+
 Author Reactor hot sources deliberately.
 
 ## Goal

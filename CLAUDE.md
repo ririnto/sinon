@@ -1,6 +1,5 @@
 ---
-description: >-
-  Stable repository rules for plugin packaging and skill authoring in the Sinon marketplace.
+description: Stable repository rules for plugin packaging and skill authoring in the Sinon marketplace.
 ---
 
 # Sinon Project Rules
@@ -123,6 +122,13 @@ When a skill documents multiple valid workflows for the same asset class, each w
 - Authors MUST verify against the official reference documentation before writing or modifying any skill content. Verification means checking command syntax, API signatures, and configuration formats against the authoritative source rather than secondary summaries.
 - When example code depends on a specific version of a library, framework, language, or tool, the minimum supported version MUST be explicitly stated.
 - If a review results in modifications, a follow-up review MUST be performed to verify the changes.
+
+YAML writing
+
+- Short single-line string scalars SHOULD use plain or double-quoted style when readability is preserved.
+- Long single-value strings that need physical line wrapping SHOULD use folded block style with strip chomping: `>-`.
+- Strings whose line breaks are semantically meaningful MUST use literal block style with strip chomping: `|-`.
+- Short identifier-like values such as booleans, numbers, simple tokens, and file paths without whitespace MAY use plain or double-quoted scalars.
 
 ## Shell script conventions
 

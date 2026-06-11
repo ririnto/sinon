@@ -1,95 +1,84 @@
 ---
 name: progressive-disclosure
-description: |-
-  What belongs in SKILL.md, references/, assets/, and scripts/; context-budget test and good-vs-bad split examples.
+description: Decide whether skill material belongs in SKILL.md, references/, assets/, or scripts/.
 ---
 
 # Progressive Disclosure
 
-Open this file when `SKILL.md` is getting crowded and you need to decide whether a section belongs in `SKILL.md`, `references/`, `assets/`, or `scripts/`.
+Open this file when `SKILL.md` is getting crowded or when you are unsure whether material belongs in the entrypoint or a support file.
 
-Put the shortest stable guidance in `SKILL.md`, and move depth into support files.
+## Core rule
 
-## What belongs in `SKILL.md`
+`SKILL.md` is the activation entrypoint. Keep every ordinary-path instruction there. Move only optional depth into support files.
 
-Keep only what the model must know immediately after the skill activates:
+## Keep in `SKILL.md`
 
-- purpose
-- hard rules
-- exact step order
-- edge-case handling
-- output contract
-- short progress checklist, if it prevents missed phases
-- short gotchas, if they prevent common mistakes
-- direct references to supporting files
+- Activation-time purpose and scope.
+- Frontmatter rules and display-title placement when the skill authors skills.
+- First safe checks.
+- Main workflow and required decisions.
+- Required validation steps.
+- Default file layout.
+- Output shape.
+- Always-on guardrails.
+- Short representative examples.
 
-## What belongs in `references/`
+## Move to `references/`
 
-Use for material that helps execution but does not need to be injected every time:
+- Host-specific deviations.
+- Extended examples.
+- Troubleshooting after the ordinary workflow fails.
+- Compatibility details that do not apply to every run.
+- Decision material for a named blocker.
 
-- deeper explanations
-- specification summaries
-- checklists that are too detailed for the main file
-- compatibility notes
-- troubleshooting guidance
-- scope-splitting guidance
-- scripts decision guidance
+Each reference must say when to open it and must not be required before `SKILL.md` can be used.
 
-Each file should say when to open it, for example when a host-specific branch is needed or when the main workflow hits a concrete blocker.
+## Move to `assets/`
 
-## What belongs in `assets/`
+- Copyable templates.
+- Starter configuration files.
+- Schemas and fixtures.
+- Reusable checklists.
+- Example artifacts that should be copied rather than read as prose.
 
-Use for copyable deliverables:
+## Move to `scripts/`
 
-- JSON schemas
-- OpenAPI fragments
-- Markdown templates
-- starter config files
-- sample request bodies
-- example prompt blocks
-- validation checklists
+- Deterministic validators.
+- File generators.
+- Static checks.
+- Mechanical transforms.
+- Report formatters.
 
-## What belongs in `scripts/`
+Do not move interactive workflows, web-required setup, or host-specific wrappers into scripts for the ordinary path.
 
-Use for repeatable execution steps that are better expressed as code:
+## Split check
 
-- validation
-- extraction
-- transformation
-- packaging
-- static checks
-- report generation
-
-Do not use `scripts/` as a place to hide required ordinary-path logic.
-
-## Context-budget test
-
-When deciding what to move out of `SKILL.md`, ask:
+Ask these questions before moving material out of `SKILL.md`:
 
 1. Is this needed on most activations?
 2. Is this part of the first safe path?
-3. Is this reusable as a copyable asset instead?
-4. Is this really a blocker-specific branch?
+3. Is this a required decision or output shape?
+4. Would the skill fail without this section?
 
-If the answer to all four is no, move it out of the main file.
+If any answer is yes, keep the material in `SKILL.md`.
 
 ## Good split
 
 ```text
-SKILL.md                           -> 140 lines of action logic and defaults
-references/context-budget.md       -> scope repair guidance
-assets/template.json               -> starter schema
-scripts/validate.sh                -> deterministic checks
+SKILL.md -> ordinary workflow, defaults, invariants, output contract
+references/context-budget.md -> scope repair guidance
+assets/template.md -> starter skeleton
+scripts/validate.sh -> deterministic checks
 ```
 
 ## Bad split
 
 ```text
-SKILL.md -> 700 lines of mixed instructions, tutorials, examples, and raw templates
+SKILL.md -> short routing stub
+references/workflow.md -> required procedure
+references/output.md -> required output shape
 ```
 
 ## Authoring rule
 
-If a section is mostly reference material and not immediate action logic, move it out of `SKILL.md`.
-
-If the section is needed for the ordinary path every time the skill activates, keep it in `SKILL.md` instead.
+If a section is mostly reference material and not immediate action logic, move it out of `SKILL.md`. If the section is needed for the ordinary path every time the skill activates, keep it in `SKILL.md`.

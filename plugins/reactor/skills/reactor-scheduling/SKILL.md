@@ -6,6 +6,11 @@ description: >-
 
 # Reactor Scheduling
 
+## Official Baseline
+
+- Use the official Project Reactor 3.8.x scheduler reference for this skill; this review checked `reactor-core` 3.8.6.
+- Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
+
 Choose execution context deliberately in Reactor.
 
 ## Goal

@@ -2,20 +2,6 @@
 name: harness-install
 description: >-
   Install target-owned repository harness assets from the plugin asset package: CLAUDE.md contract, AGENTS.md alias, ARCHITECTURE.md, docs structure, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use when setting up or refreshing a repository harness, adding target-owned Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
-argument-hint: '--mode gradle|maven|uv|bun|shell --ci-host github|gitlab|both|none [--target DIR] [--force]'
-disable-model-invocation: true
-allowed-tools:
-  - Bash(*/skills/harness-install/scripts/install-harness.py *)
-  - Bash(uv */skills/harness-install/scripts/install-harness.py *)
-  - Bash(git *)
-  - Bash(./gradlew *)
-  - Bash(./mvnw *)
-  - Bash(uv *)
-  - Bash(bun *)
-  - Read
-  - Grep
-  - Glob
-  - LS
 ---
 
 # Harness Install

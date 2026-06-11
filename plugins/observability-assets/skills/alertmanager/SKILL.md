@@ -6,6 +6,11 @@ description: >-
 
 # Alertmanager
 
+## Official Baseline
+
+- Use modern Alertmanager matcher syntax as the common path: prefer the `matchers:` array form for routes and inhibition rules.
+- Alertmanager 0.27 and later use the UTF-8 matcher parser transition path; keep older matcher fields only when the target deployment requires them.
+
 Author and review Alertmanager configuration that routes alerts clearly, groups them deliberately, and avoids noisy or misleading notifications. The common case is one root route, one small set of child routes, one deliberate receiver mapping, and one timing policy that batches related alerts without hiding urgent signal.
 
 ## Common-Case Workflow

@@ -1,114 +1,95 @@
 ---
 name: skill-authoring
 description: >-
-  Write or refactor a cross-platform Agent Skill. Use when the skill must stay self-sufficient in SKILL.md, easy to trigger from its description, and usable offline without mandatory external tooling.
+  Write or refactor a cross-platform Agent Skill. Use when the skill must stay
+  self-sufficient in SKILL.md, easy to trigger from its description, and usable
+  offline without mandatory external tooling.
 ---
 
 # Skill Authoring
 
-Write or refactor one cross-platform Agent Skill so it is self-sufficient on activation, easy to trigger, and usable offline.
+Write or refactor one Agent Skill so `SKILL.md` is the activation entrypoint, the ordinary path is self-sufficient, and support files remain optional additive depth.
 
 ## Quickstart
 
-Use this path for the ordinary case:
-
-1. Read the existing skill directory, or start from `assets/skill-template.md` for a new skill.
-2. Name the one coherent job the skill covers, then remove adjacent jobs from the draft before writing.
-3. Draft a short plan for the main file, support files, and validation pass.
-4. Write `SKILL.md` first so the common path works without `references/`, `assets/`, or `scripts/`.
-5. Plan your validation approach using `assets/validation-checklist.md` as a final verification pass, not a required gate.
-
-If the scope feels broad, the description feels vague, or `SKILL.md` keeps growing, fix that before adding more content.
-
-## First safe checks
-
-Before you edit anything:
-
-1. Confirm the target is the current skill directory.
-2. Read `SKILL.md`, `assets/skill-template.md`, and `assets/validation-checklist.md` together.
-3. Check that the skill still reads as one flat, self-contained skill directory.
-4. Verify that no support file is required to understand the ordinary path.
-5. Keep any added guidance local to this skill and avoid hidden reference chains.
+1. Read the target skill directory, or optionally copy `assets/skill-template.md` when a new skill needs a starter skeleton.
+2. Name the one coherent job the skill owns before writing instructions.
+3. Write or revise `SKILL.md` first, including activation surface, ordinary workflow, decisions, edge cases, and output contract.
+4. Add `references/`, `assets/`, or `scripts/` only for optional depth, copyable artifacts, or deterministic helpers.
+5. Validate the result; optionally use `assets/validation-checklist.md` as a final verification pass.
 
 ## Operating rules
 
-- Keep the skill scope unchanged unless the task explicitly changes it.
-- Treat the skill directory itself as the complete source for the job it covers.
-- Keep the ordinary path in `SKILL.md`; do not require `references/`, `assets/`, or `scripts/` for the common case.
-- Use support files only for named blockers, deeper examples, templates, or deterministic checks.
-- Keep repository-facing and agent-facing rules in English.
-- Prefer direct instructions, explicit file paths, and copy-adaptable examples over background prose.
-- Do not rely on web pages or external documentation as required inputs for ordinary authoring.
-- Do not make external CLIs, hosted validators, or host-specific behaviors part of the required workflow.
-- Do not add guidance about evaluating skill output quality; that is outside this skill's scope.
-- Ordinary authoring remains offline, but maintainers writing or modifying skill content should verify against official reference documentation when available and record any verification blocker.
+- Keep the ordinary path usable from `SKILL.md` alone, even offline.
+- Keep skill frontmatter limited to `name` and `description`.
+- Put the display title in the first H1 heading, not in frontmatter.
+- Put version, baseline, source, owner, license, and official-documentation notes in the body only when the ordinary path needs them.
+- Treat `references/`, `assets/`, and `scripts/` as optional support files, not prerequisites.
+- Verify host, API, command, or library facts against official documentation when available; record blockers instead of inventing facts.
+- Do not add scoring rubrics, generic background essays, or adjacent-domain handoffs.
 
-## Local loading model
+## First safe checks
 
-Use this local loading model as the default basis when authoring or reviewing a skill:
+1. Confirm the target directory is the skill directory and that `SKILL.md` exists or will be created there.
+2. Read `SKILL.md`, existing support files, and any local plugin rules that govern the skill.
+3. Check that no support file is required before an agent can perform the ordinary workflow.
+4. Check that the skill scope can be stated as one job without `and/or` sprawl.
+5. Check that every support-file pointer names the condition for opening that file.
 
-1. Frontmatter contains only activation metadata needed for discovery: `name` and `description`.
-2. `SKILL.md` is the always-loaded instruction file on activation.
-3. `references/`, `assets/`, and `scripts/` are optional additive depth opened only for a named need.
+## Directory model
 
-The ordinary authoring path MUST remain usable from the skill directory alone, even when offline.
-
-## Placement rules
-
-Use this flat layout unless the skill domain has a strong reason to do otherwise:
+Use a flat skill directory unless the existing host requires otherwise.
 
 ```text
 skill-name/
-├── SKILL.md
-├── references/
-├── assets/
-└── scripts/
+|-- SKILL.md
+|-- references/
+|-- assets/
+`-- scripts/
 ```
 
-- `SKILL.md`: activation-time instructions, common-case workflow, key decisions, edge cases, and output contract
-- `references/`: additive depth for a named blocker or branch
-- `assets/`: copyable templates, starter files, schemas, and examples
-- `scripts/`: deterministic, non-interactive helper code only when code is the clearest expression
+- `SKILL.md`: activation-time instructions, ordinary workflow, key decisions, edge cases, output contract, and short support-file index.
+- `references/`: optional additive depth for named blockers, host variants, troubleshooting branches, or extended examples.
+- `assets/`: copyable templates, starter files, schemas, and examples.
+- `scripts/`: deterministic non-interactive helper code when code is safer than prose.
 
-## Frontmatter rules
+## Frontmatter contract
 
 Required fields:
 
 - `name`
 - `description`
 
-Do not put display titles, project URLs, version baselines, owner notes, or reference-doc inventories in skill frontmatter. Put the display title in the first H1 heading and put source/version notes in the body only when the ordinary path needs them.
+Do not add `title`, `metadata`, `owner`, `license`, `version`, `source`, `officialDocs`, URLs, tool allowlists, argument hints, or baseline fields to skill frontmatter. If the information matters during ordinary use, place it under an H2 section in the body.
 
 ### `name`
 
-- 1 to 64 characters
-- lowercase letters, numbers, and hyphens only
-- no leading or trailing hyphen
-- no consecutive hyphens
-- must match the skill directory basename exactly
+- Use only lowercase letters, numbers, and hyphens.
+- Keep it between 1 and 64 characters.
+- Do not use leading, trailing, or consecutive hyphens.
+- Match the skill directory basename exactly.
 
 ### `description`
 
-- 1 to 1024 characters
-- open with a capability statement in imperative form
-- add a trigger clause only when it introduces vocabulary absent from the capability (artifact types, domain terminology, timing cues, or alternate naming)
-- include likely user-intent keywords, nouns, file types, systems, or goals
-- remain valid outside one host product
-- be specific enough to activate the right skill without locking to one host or vendor
+- Keep it between 1 and 1024 characters.
+- Open with an imperative capability statement that names what the skill does.
+- Add a `Use when ...` trigger clause only when it contributes distinct task, artifact, system, timing, or user-intent vocabulary.
+- Include likely prompts, file types, systems, or goals without summarizing the workflow.
+- Keep it valid outside one host product unless the skill is intentionally host-specific.
 
-Default formula:
+Default pattern:
 
 ```text
-[Imperative capability]. Use when [distinct task, inputs, systems, file types, or user intent keywords not already in the capability].
+[Imperative capability]. Use when [distinct task, inputs, systems, file types, or user intent keywords not already covered].
 ```
 
-Strong example (with trigger clause adding new vocabulary):
+Strong example:
 
 ```text
 Draft release automation runbooks and rollback notes. Use when preparing deployment procedures, CI release steps, or operational handoff docs.
 ```
 
-Valid example (capability-only, already keyword-complete):
+Valid capability-only example:
 
 ```text
 Review Markdown documents for structure, headings, and missing sections.
@@ -120,247 +101,131 @@ Weak example:
 Helps with releases.
 ```
 
-Run an offline trigger test before you keep a description:
+Run an offline trigger test before keeping a description:
 
 1. Hide the skill name.
 2. Read only the `description`.
-3. Ask whether another engineer would load it for the intended prompts and avoid it for nearby prompts.
+3. Ask whether another engineer would load it for intended prompts and avoid it for nearby prompts.
 4. Tighten or widen the wording until both answers are yes.
 
-Use `assets/description-patterns.md` for quick rewrites and `references/description-design.md` only when the description still feels vague, too broad, or hard to trigger.
+Use `assets/description-patterns.md` or `references/description-design.md` only when the description is still vague, too broad, or hard to trigger.
 
-### `compatibility`
+## YAML scalar style
 
-- use only for real environment requirements
-- 500 characters maximum
-- reserve it for shell/runtime, packages, network access, or platform expectations that materially affect use
+- Use plain or double-quoted scalars for short readable single-line values.
+- Use folded block style with strip chomping, `>-`, only for one logical string that is long enough to need physical wrapping.
+- Use literal block style with strip chomping, `|-`, only when line breaks are semantic.
+- Do not use `>-` just because a field is a string.
 
-## Ordinary authoring loop
+Example:
 
-Use a plan-validate-revise loop instead of writing the whole skill in one pass.
+```yaml
+name: release-runbook
+description: >-
+  Draft release automation runbooks and rollback notes. Use when preparing
+  deployment procedures, CI release steps, or operational handoff docs.
+```
 
-1. Onboard the current state.
-   - Read the skill directory.
-   - For a refactor, mark what already works and what is missing.
-   - For a new skill, copy the skeleton from `assets/skill-template.md`.
+## Writing procedure
+
+1. Onboard current state.
+   Read the skill directory, local rules, existing support files, and user request. For new skills, copy `assets/skill-template.md`.
 2. Define the coherent unit.
-   - Write one sentence for the job this skill owns.
-   - Remove adjacent jobs, host-specific branches, and optional depth from that sentence.
-   - If the sentence needs 'and', 'or', or a long exception list, the scope is probably too broad.
+   Write one sentence for the job this skill owns. Remove adjacent jobs, optional branches, and host-specific sprawl from that sentence.
 3. Plan the file split.
-   - Put always-needed guidance in `SKILL.md`.
-   - Put copyable artifacts in `assets/`.
-   - Put blocker-specific depth in `references/`.
-   - Put deterministic helper code in `scripts/` only when prose is less safe than code.
-4. Draft the main file first.
-   - Start with outcome, rules, numbered procedure, edge cases, and output contract.
-   - Keep defaults and first actions in the main file.
-   - Add short copyable examples instead of long explanation.
-5. Validate the draft.
-   - Check whether the ordinary path works from `SKILL.md` alone.
-   - Check whether the description triggers correctly.
-   - Check whether each support file is optional and blocker-oriented.
-   - Check whether the file still fits one coherent unit and a manageable context budget.
-6. Revise and repeat.
-   - Trim repeated prose.
-   - Move additive depth out of `SKILL.md`.
-   - Fold any always-needed reference content back into `SKILL.md`.
+   Put always-needed guidance in `SKILL.md`, copyable artifacts in `assets/`, blocker-specific depth in `references/`, and deterministic helper code in `scripts/`.
+4. Draft `SKILL.md` first.
+   Start with outcome, operating rules, first safe checks, numbered procedure, edge cases, output contract, and a short support-file index.
+5. Validate the ordinary path.
+   Confirm an agent can perform the common task from `SKILL.md` alone and that every support file is optional.
+6. Revise for trigger and scope.
+   Check the description trigger, fold always-needed reference content back into `SKILL.md`, and move additive catalogs out of the main file.
 7. Finish with the checklist.
-   - Run `assets/validation-checklist.md` as a final verification pass.
-   - Fix every failing item, but do not treat the checklist as a gate that blocks completion when all ordinary-path guidance is correct.
-
-## Coherent unit and content placement
-
-Keep a skill small enough that activation loads the common path without dragging in unrelated decisions.
-
-### Scope rules
-
-- One skill SHOULD cover one job that can be named in one sentence.
-- `SKILL.md` SHOULD contain only material needed on most activations.
-- Examples SHOULD be short and representative; move catalogs and long variants out of the main file.
-- References SHOULD answer named blockers, not act as overflow storage for ordinary guidance.
-- If the main file starts reading like a handbook for several adjacent jobs, narrow the scope instead of adding more structure.
-
-Open `references/context-budget-and-scope.md` only when you need help deciding whether the skill is too broad, too crowded, or split at the wrong boundary.
-
-### Placement rules
-
-Keep content in `SKILL.md` when the agent needs it immediately after activation:
-
-- the skill's main workflow
-- required validation steps
-- the default file layout
-- the output shape
-- always-on guardrails
-
-Move content to `references/` only when it is additive rather than mandatory:
-
-- host-specific deviations
-- extended examples for a special branch
-- troubleshooting after the main workflow fails
-- compatibility details that do not apply to every run
-
-Move content to `assets/` when the best form is a copyable artifact:
-
-- starter frontmatter blocks
-- Markdown skeletons
-- sample JSON or YAML files
-- reusable checklists
-
-Move content to `scripts/` when a repeated step is safer as code than prose:
-
-- validation helpers
-- packaging helpers
-- static checks
-- report generation
-
-Open `references/progressive-disclosure.md` only when the placement decision is unclear or `SKILL.md` is getting crowded.
+   Use `assets/validation-checklist.md` as the final pass and fix each finding or report the blocker.
 
 ## `SKILL.md` body contract
 
-The ordinary-path `SKILL.md` should usually contain, in this order:
+An ordinary-path `SKILL.md` should contain:
 
-1. Goal or outcome
-2. Operating rules or invariants
-3. Numbered procedure
-4. Edge cases and ambiguity handling
-5. Output contract
-6. Optional support-file pointers for named blockers only
+1. A first H1 display title.
+2. The outcome the skill produces.
+3. Operating rules or invariants.
+4. First safe checks.
+5. A numbered procedure.
+6. Edge cases and ambiguity handling.
+7. Format-critical output shapes.
+8. Brief support-file pointers indexed by concrete blocker or job.
 
-Prefer imperative wording. Show defaults instead of large option menus. Keep deeper material one level down from `SKILL.md`.
+Prefer imperative wording, concrete paths, copy-adaptable examples, and explicit commands. Keep tutorials, large examples, compatibility matrices, and troubleshooting branches in support files when they are not required on most activations.
 
-## Reusable inline patterns
+## Placement rules
 
-Use these patterns directly in `SKILL.md` when they help the ordinary path.
+Keep content in `SKILL.md` when the agent needs it immediately after activation:
 
-### Output contract template
+- Main workflow
+- Required decisions
+- Default file layout
+- Output shape
+- Always-on guardrails
+- Short representative examples
 
-Keep the expected response shape inline so the skill can be used immediately after activation.
+Move content to `references/` only when it is additive rather than mandatory:
 
-```markdown
-## Output contract
+- Host-specific deviations
+- Extended examples
+- Troubleshooting after the main workflow fails
+- Compatibility details that do not apply to every run
 
-Return:
+Move content to `assets/` when the best form is a copyable artifact:
 
-1. The main artifact
-2. Any changed files or paths
-3. Validation results
-4. Explicit remaining risks or blockers
-```
+- Markdown skeletons
+- Starter configuration
+- Sample JSON or YAML files
+- Reusable checklists
 
-### Progress checklist pattern
+Move content to `scripts/` when a repeated deterministic step is safer as code than prose:
 
-Use a short progress checklist when the workflow has several phases that are easy to miss. Keep it brief and action-focused.
+- Validation helpers
+- Packaging helpers
+- Static checks
+- Report generation
 
-```markdown
-## Progress checklist
+Open `references/progressive-disclosure.md` only when placement is unclear or `SKILL.md` is getting crowded.
 
-- [ ] Scope is one coherent job
-- [ ] `SKILL.md` covers the ordinary path on its own
-- [ ] Support files are additive only
-- [ ] Description states both what and when
-- [ ] Final checklist passed
-```
-
-Do not turn the checklist into a second full procedure. It is a tracking aid, not the main workflow.
-
-### Gotchas pattern
-
-Use a short `## Gotchas` section when the domain has recurring traps that are cheaper to prevent than to debug later.
-
-```markdown
-## Gotchas
-
-- Do not move always-needed guidance into `references/`.
-- Do not make a helper script mandatory for the ordinary path.
-- Do not widen the description until unrelated prompts start matching.
-```
-
-If the list grows long, split the deeper troubleshooting into a reference and keep only the recurring traps inline.
-
-## Scripts guidance
+## Scripts
 
 Scripts are optional. Add `scripts/` only when code is safer than prose for a repeated deterministic step.
 
-- Good candidates: validation helpers, static checks, file generation, report formatting, deterministic transforms
-- Bad candidates: interactive workflows, host-specific wrappers, web-required setup, one-off convenience commands
-- A script MUST stay non-interactive and SHOULD use tooling that is already common for the target environment
-- The ordinary path MUST still be understandable without reading the script source first
-- Python scripts in `scripts/` that run directly SHOULD start with `#!/usr/bin/env -S uv run`, then `# -*- coding: utf-8 -*-`, then PEP 723 inline metadata before imports. Use PEP 508 major-compatible dependency ranges for external packages, such as `package>=1.2.3,<2`, and use `dependencies = []` for stdlib-only direct scripts when an explicit declaration is needed.
-- JavaScript and TypeScript scripts in `scripts/` that run directly SHOULD start with `#!/usr/bin/env bun`, then `// -*- coding: utf-8 -*-`. Declare external dependencies with major-compatible import specifiers, such as `import * as cheerio from "cheerio@^1.0.0";`. Scripts that use only the JavaScript standard library or Bun built-ins need no dependency metadata block.
-- Shell scripts have no equivalent dependency metadata block. Document required commands beside the shell invocation or in `SKILL.md`.
+- Good candidates: validation helpers, static checks, file generation, report formatting, deterministic transforms.
+- Bad candidates: interactive workflows, host-specific wrappers, web-required setup, or one-off commands.
+- A script must stay non-interactive and must not become a hidden prerequisite for ordinary use.
+- Document required commands in `SKILL.md` when a script depends on runtime tooling.
 
-Open `references/scripts-guidance.md` only when you are unsure whether a script belongs in the skill or how to document it without making it mandatory.
-
-## Minimal example
-
-Use this as a smallest useful starting point:
-
-```markdown
----
-name: markdown-review
-description: >-
-  Review a Markdown document for structure, headings, and missing sections. Use when a document needs a fast quality pass before review or release.
----
-
-# Markdown Review
-
-Review one Markdown file and return concrete improvements.
-
-## Operating rules
-
-- Keep the review focused on the target file and its immediate structure.
-- Prefer concrete fixes over general commentary.
-- Use support files only if a named blocker or deeper example is required.
-
-## Procedure
-
-1. Read the target document.
-2. Check heading order and section coverage.
-3. Identify missing or inconsistent structure.
-4. Report concrete fixes.
-
-## Output contract
-
-Return:
-
-1. The main issues
-2. Recommended fixes
-3. Any remaining ambiguity
-```
+Open `references/scripts-guidance.md` only when deciding whether a helper script belongs in the skill or how to document it safely.
 
 ## Edge cases
 
-- If the scope is actually multiple adjacent jobs, narrow the skill to one coherent unit and move variants to references only when they are genuinely additive.
-- If `SKILL.md` is growing because of long templates, move the templates into `assets/` and keep only the usage rule in `SKILL.md`.
-- If the workflow depends on product-specific behavior, rewrite it so the common path still makes sense as a portable skill.
-- If a reference is required on every run, fold its durable guidance back into `SKILL.md`.
-- If the description matches both the intended job and unrelated nearby jobs, tighten the trigger wording before shipping.
-
-## Pitfalls
-
-- Do not move common-path guidance into `references/` just to shrink `SKILL.md`.
-- Do not turn `SKILL.md` into a background essay.
-- Do not make external web content a required part of the main workflow.
-- Do not use references as hidden prerequisites for ordinary authoring.
-- Do not split one coherent job across sibling skills only because hosts or vendors differ.
-- Do not add scoring rubrics or output-quality evaluation loops to this skill.
+- If scope expands into multiple adjacent jobs, narrow the skill before adding more instructions.
+- If a reference is required on most activations, fold its durable guidance back into `SKILL.md`.
+- If host or vendor differences share the same job, keep one skill and move deltas to focused references.
+- If the workflow depends on web access, rewrite the ordinary path so it remains useful offline and record official-doc verification separately.
+- If a version or source baseline matters for normal use, place it in the body near the rules or workflow it constrains.
 
 ## Output contract
 
 Return:
 
-1. The skill file tree
-2. The full `SKILL.md`
-3. Every referenced support file needed for the requested deliverable
-4. Validation results and any explicit remaining risks
+1. The skill changes made or proposed.
+2. Any changed files or paths.
+3. Validation results.
+4. Remaining risks, official-documentation blockers, or unresolved scope questions.
 
 ## Optional support files
 
-- `references/context-budget-and-scope.md` - open when the skill feels too broad, too long, or split at the wrong boundary
-- `references/description-design.md` - open when the scope is correct but the `description` is still weak or hard to trigger
-- `references/progressive-disclosure.md` - open when `SKILL.md` is crowded and you need to move additive material without breaking the ordinary path
-- `references/scripts-guidance.md` - open when you are deciding whether a helper script belongs in the skill or how to document it safely
-- `assets/skill-template.md` - copy when creating a new skill from scratch
-- `assets/description-patterns.md` - copy when rewriting or comparing `description` text patterns
-- `assets/validation-checklist.md` - use when performing the final pass before returning the skill
+- `assets/skill-template.md` - copy when creating a new skill from scratch.
+- `assets/description-patterns.md` - use when rewriting or comparing trigger descriptions.
+- `assets/validation-checklist.md` - use for the final validation pass.
+- `references/context-budget-and-scope.md` - open when the skill feels too broad, too long, or split at the wrong boundary.
+- `references/description-design.md` - open when trigger wording is weak or overly broad.
+- `references/progressive-disclosure.md` - open when moving additive material without breaking the ordinary path.
+- `references/scripts-guidance.md` - open when adding or reviewing helper scripts.

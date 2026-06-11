@@ -8,6 +8,8 @@ description: >-
 
 # Java Performance Concurrency
 
+Treat Java 17 as the ordinary floor, Java 21+ as the virtual-thread line, and Java 25+ as the finalized `ScopedValue` line. Confirm the target runtime before recommending version-sensitive concurrency changes.
+
 Review Java performance and concurrency decisions with emphasis on evidence, workload shape, and modern JVM capabilities. The common case is not heroic optimization; it is identifying whether the bottleneck is CPU, blocking I/O, contention, or allocation churn, then making the smallest measured change that fits that shape.
 
 ## Operating rules

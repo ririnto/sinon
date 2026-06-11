@@ -16,7 +16,7 @@ Netty is a shared, skill-first plugin for Netty core API and Reactor Netty react
 ## Included Skills
 
 - `netty`: Core Netty API guidance for bootstrap, channels, pipelines, ByteBuf, codecs, and low-level network programming.
-- `reactor-netty`: Reactor Netty guidance for reactive HTTP/TCP/UDP servers and clients with Mono/Flux integration.
+- `reactor-netty`: Reactor Netty guidance for reactive HTTP/TCP/UDP/QUIC servers and clients with Mono/Flux integration.
 
 ## When to Use Which Skill
 

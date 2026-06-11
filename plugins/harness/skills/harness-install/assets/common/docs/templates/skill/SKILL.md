@@ -1,7 +1,6 @@
 ---
 name: {{skill_name}}
 description: {{skill_capability}} Use this skill when {{skill_use_when}}.
-argument-hint: '{{argument_hint}}'
 ---
 
 # {{skill_name}}

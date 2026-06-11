@@ -8,6 +8,8 @@ description: >-
 
 # Java Language Design
 
+Java 17+ is the ordinary baseline for records and sealed classes in this skill. When the target project is below Java 17, keep the older-class fallback explicit at the design point.
+
 Produce idiomatic, maintainable Java code and API designs. The common case is choosing a clearer type shape, a narrower contract, and an unsurprising exception and mutability model before touching framework details.
 
 ## Operating rules
