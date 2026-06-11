@@ -2,7 +2,6 @@
 name: spec-driven-development
 description: >-
   Drive implementation through a SPEC.md-first workflow covering research, review gates, approved-spec execution, and completeness verification. Use when starting a new feature with a spec-first approach, writing SPEC.md before code, running review gates, or verifying implementation completeness against an approved specification. Activated only on explicit user request, not automatically.
-license: Apache-2.0
 ---
 
 # spec-driven-development

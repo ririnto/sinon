@@ -1,54 +1,37 @@
 # Description Patterns
 
+Use these patterns when drafting or repairing a skill `description`.
+
 ## Recommended formula
 
 ```text
-[Primary capability]. [Optional: Use when task, inputs, systems, file types, or user intent keywords distinct from the capability.]
+[Imperative capability]. Use when [distinct task, inputs, systems, file types, or user intent keywords not already covered].
 ```
 
-Include the trigger clause only when it adds vocabulary not already present in the capability statement.
-
-## Specificity calibration
-
-Aim for the narrowest wording that still catches the intended prompts.
-
-- Too broad: matches several adjacent jobs and gives weak routing signals
-- Too narrow: depends on one host, vendor, team name, or niche phrasing that users may never write
-- Good calibration: names the job, the trigger conditions, and a few likely nouns without locking to one product
+Drop the trigger clause when the capability statement already contains enough routing vocabulary.
 
 ## Strong examples
 
-- Review SQL queries for performance, correctness, and unsafe mutations. Use when editing migrations, dashboards, or production reporting queries.
-- Draft reproducible incident summaries from logs, alerts, and timelines. Use when writing postmortems, status updates, or executive summaries after an outage.
-- Build strict JSON schemas and example payloads for tool-calling workflows. Use when implementing agent-facing APIs, config-driven tooling, or contract-heavy automation.
+| Pattern | Example |
+| --- | --- |
+| Artifact driven | Draft release automation runbooks and rollback notes. Use when preparing deployment procedures, CI release steps, or operational handoff docs. |
+| File-type driven | Review Markdown documents for structure, headings, and missing sections. |
+| Tooling driven | Build strict JSON schemas and validation notes for tool-calling workflows. Use when creating agent-facing APIs or config-driven automation. |
+| Workflow driven | Prepare release candidates by updating versions, drafting notes, and validating deploy prerequisites. Use when cutting release branches or preparing tags. |
 
 ## Weak examples
 
-- Helps with SQL.
-- API helper.
-- General review skill.
-
-## Rewriting examples
-
-| Weak | Better |
+| Weak text | Problem |
 | --- | --- |
-| Helps with docs. | Draft API and product documentation from source files, examples, and changelogs. Use when updating developer docs or release notes. |
-| Works on tests. | Add or repair focused automated tests for changed code paths. Use when a patch needs regression coverage or CI failures show missing assertions. |
-| Security skill. | Review code and configurations for secrets exposure, unsafe network calls, and privilege risks. Use when changing auth, infrastructure, CI, or external integrations. |
+| Helps with SQL. | No concrete capability or trigger conditions. |
+| API helper. | Too broad and not imperative. |
+| Review skill. | Missing artifact type, quality dimension, and target workflow. |
+| Draft API and product documentation. | Several adjacent jobs unless the skill truly covers both ordinary paths. |
 
-## Offline trigger test
+## Repair checklist
 
-Run this quick test before you keep a description:
-
-1. Read only the `description`, not the title.
-2. Write two prompts that should activate the skill.
-3. Write two nearby prompts that should not activate it.
-4. Revise until the intended prompts fit and the nearby prompts do not.
-
-## Repair moves
-
-- Add concrete nouns when the description feels generic.
-- Add the user intent or file type when the trigger feels fuzzy.
-- Remove product names when the description feels locked to one host.
-- Remove extra capabilities when the description advertises several adjacent jobs.
-- Drop the trigger clause when the capability statement already covers the keywords needed for routing.
+1. Start with the actual job in imperative form.
+2. Add concrete nouns users are likely to mention.
+3. Add `Use when ...` only if it introduces new trigger vocabulary.
+4. Remove host names, team jargon, and adjacent jobs unless they define the skill.
+5. Test the description against three intended prompts and three nearby prompts that should not match.

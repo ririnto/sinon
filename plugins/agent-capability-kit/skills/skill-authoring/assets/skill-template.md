@@ -1,42 +1,34 @@
 ---
 name: your-skill-name
 description: >-
-  [Imperative capability statement: e.g., Write, Author, Review, Build, Triage].
-# Optional: add a trigger clause with distinct vocabulary only if needed:
-# Use when the task, inputs, systems, file types, or user intent add keywords not in the capability.
-# Optional:
-# license: Proprietary. LICENSE has complete terms
-# compatibility: Requires uv and jq
-# metadata:
-#   owner: your-team
-#   maturity: draft
+  Write the imperative capability statement here. Use when the trigger clause
+  adds distinct task, artifact, system, or user-intent vocabulary.
 ---
 
 # Your Skill Name
 
-State the outcome in one or two lines.
+State the outcome in one or two lines. Keep the ordinary path usable from this file alone.
 
 ## Operating rules
 
-- Keep the common path self-sufficient in this file.
-- Keep the workflow focused on one coherent job.
+- Keep skill frontmatter limited to `name` and `description`.
+- Put the display title in this H1, not in frontmatter.
+- Put version, source, baseline, owner, or license notes in the body only when ordinary use needs them.
 - Use support files only for named blockers, copyable artifacts, or deterministic checks.
-- Do not require web access, host-specific behavior, or external validation services for the ordinary path.
+- Do not require web access, host-specific wrappers, or external validators for the ordinary path.
 
 ## First safe checks
 
-Before you write the rest of the skill:
-
-1. Confirm the skill stays in one flat directory with `SKILL.md` as the primary entry point.
-2. Read the template, the validation checklist, and the intended `SKILL.md` together.
+1. Confirm this directory is the skill directory and `SKILL.md` is the primary entrypoint.
+2. Read relevant local rules and existing support files.
 3. Verify that no reference file is needed to follow the ordinary path.
-4. Keep support files optional and additive rather than chained prerequisites.
+4. Keep support files optional and additive.
 
 ## Procedure
 
-1. Read the relevant inputs and confirm the scope.
-2. Plan the ordinary-path steps and decide what stays in `SKILL.md`.
-3. Draft the main instructions and defaults.
+1. Read the relevant inputs.
+2. Plan the ordinary-path steps that belong in `SKILL.md`.
+3. Draft the main instructions, defaults, and decisions.
 4. Validate the draft against the intended trigger and file split.
 5. Revise weak spots before finalizing the output.
 
@@ -45,24 +37,24 @@ Before you write the rest of the skill:
 - If inputs are missing, state what is missing and stop.
 - If the scope expands into adjacent jobs, narrow it before adding more instructions.
 - If validation fails, report the failure and the blocking condition.
-- If the result is ambiguous, call out the ambiguity and the safest interpretation.
+- If the result is ambiguous, name the ambiguity and choose the safest bounded path only when the user allowed that choice.
 
 ## Output contract
 
 Return:
 
-1. The main artifact
-2. Any changed files
-3. Validation results
-4. Explicit remaining risks or blockers
+1. The main artifact.
+2. Any changed files or paths.
+3. Validation results.
+4. Explicit remaining risks or blockers.
 
 ## Optional progress checklist
 
-- [ ] Scope is one coherent job
-- [ ] `SKILL.md` covers the ordinary path on its own
-- [ ] Support files are additive only
-- [ ] Description states both what and when
-- [ ] Final validation passed
+- Scope is one coherent job.
+- `SKILL.md` covers the ordinary path on its own.
+- Support files are additive only.
+- Description states what the skill does and when to use it.
+- Final validation passed.
 
 ## Optional gotchas
 

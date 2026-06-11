@@ -1,34 +1,32 @@
 ---
 name: context-budget-and-scope
-description: |-
-  Signals for scope that is too broad or too narrow; repair moves to split, narrow, or merge skills; context-budget heuristics.
+description: Decide whether an Agent Skill is too broad, too narrow, or carrying the wrong depth in SKILL.md.
 ---
 
-# Context Budget and Coherent Scope
+# Context Budget And Scope
 
-Open this file when the skill feels too broad, `SKILL.md` keeps growing, or you are unsure whether one skill should be split into several coherent units.
+Open this file when a skill feels too broad, `SKILL.md` keeps growing, or you are unsure whether one skill should be split into several coherent units.
 
 ## Core rule
 
-One skill should cover one job that can be described clearly in one sentence and executed from one ordinary-path `SKILL.md`.
+One skill should cover one job that can be described in one sentence and executed from one ordinary-path `SKILL.md`.
 
-## Signals that the scope is too broad
+## Signals that scope is too broad
 
-- the skill description needs several verbs joined with 'and'
-- the main procedure branches early into unrelated workflows
-- the examples serve different audiences or file types
-- `SKILL.md` keeps gaining exception lists to handle nearby tasks
-- the output contract changes depending on which branch the reader picked
+- The description needs several verbs joined with `and` or `or`.
+- The main procedure branches early into unrelated workflows.
+- Examples serve different audiences, file types, or output contracts.
+- `SKILL.md` keeps gaining exception lists to handle nearby tasks.
+- The output contract changes depending on which branch the user chooses.
 
-## Signals that the scope is too narrow
+## Signals that scope is too narrow
 
-- the split creates several tiny skills that share nearly the same common path
-- most of the real differences are only host names or vendor wrappers
-- references would be empty because every file repeats the same workflow
+- Split skills would share nearly the same common path.
+- Differences are mostly host names, vendor wrappers, or small command variants.
+- References would be empty because every file repeats the same workflow.
+- Users would usually need several sibling skills for one coherent job.
 
-## Repair moves
-
-### Narrow the job statement
+## Scope repair
 
 Turn this:
 
@@ -42,36 +40,34 @@ Into this:
 Write or refactor one deployment-oriented skill for offline use.
 ```
 
-### Move additive depth out of `SKILL.md`
+Move additive depth out of `SKILL.md`, but keep the common path in the entrypoint.
 
-Keep the common path in the main file, then move only these items out:
+## What to move out
 
-- extended examples
-- compatibility branches
-- large templates
-- troubleshooting after the ordinary path fails
+- Extended examples.
+- Compatibility branches.
+- Large templates.
+- Troubleshooting after the ordinary path fails.
+- Optional host-specific variants.
 
-### Merge siblings when the job is still one unit
+## What must stay in
 
-If two candidate skills differ only by host, vendor, or small command variants, keep one skill and move the deltas into references.
+- Scope and intended outcome.
+- Main procedure.
+- Required decisions.
+- Always-on guardrails.
+- Output contract.
+- Any source or version baseline required for ordinary use.
 
-## Context-budget heuristics
+## Merge siblings when the job is still one unit
 
-Use these heuristics before adding more text:
-
-1. If a rule applies on nearly every activation, keep it in `SKILL.md`.
-2. If a block exists only for a named blocker, move it to `references/`.
-3. If the block is mostly copy-paste material, move it to `assets/`.
-4. If prose is less reliable than deterministic code, consider `scripts/`.
-5. If the main file starts carrying several audiences or several deliverables, narrow the scope before writing more.
+If two candidate skills differ only by host, vendor, or small command variants, keep one skill and move the deltas into focused references.
 
 ## Scope check prompts
 
-Ask these before finalizing:
-
-1. Can I explain the skill's job in one sentence without 'and/or' sprawl?
+1. Can the job be explained in one sentence without `and/or` sprawl?
 2. Would most activations follow the same first five steps?
 3. Does the output contract stay stable across the normal workflow?
 4. Could a user succeed from `SKILL.md` alone?
 
-If any answer is no, fix the boundary first.
+If any answer is no, fix the boundary before adding more content.
