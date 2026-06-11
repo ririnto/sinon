@@ -68,5 +68,5 @@ Use this path only when the default request-bound OAuth2 client flow cannot supp
 ## Related blockers
 
 - Return to [SKILL.md](../SKILL.md) when the blocker is the ordinary service-boundary read or write path.
-- Open [reactive-access.md](reactive-access.md) when the actual blocker is a fully reactive client boundary.
-- Open [advanced-credential-patterns.md](advanced-credential-patterns.md) when the actual blocker is interpolation, certificate generation, or non-default credential families.
+- Open [credhub-reactive-access.md](credhub-reactive-access.md) when the actual blocker is a fully reactive client boundary.
+- Open [credhub-advanced-credential-patterns.md](credhub-advanced-credential-patterns.md) when the actual blocker is interpolation, certificate generation, or non-default credential families.

@@ -1,12 +1,13 @@
 ---
 name: spring-vault
 description: >-
-  Integrate Spring applications with HashiCorp Vault for KV secret reads and writes, AppRole or token authentication, property-source loading, transit encryption, declarative secret rotation, and certificate management. Use when configuring `VaultTemplate` operations, setting up AppRole or token authentication, loading Vault-backed property sources, applying transit encryption and decryption, using `VaultClient` for low-level Vault HTTP access, configuring `ManagedSecret` rotation, or issuing certificates through `CertificateContainer`.
+  Integrate Spring applications with HashiCorp Vault or Cloud Foundry CredHub for secret and credential reads, writes, authentication, property-source loading, transit encryption, declarative secret rotation, and certificate management. Use when configuring `VaultTemplate` operations, setting up AppRole or token authentication, loading Vault-backed property sources, applying transit encryption and decryption, using `VaultClient` for low-level Vault HTTP access, configuring `ManagedSecret` rotation, issuing certificates through `CertificateContainer`, reading or writing CredHub credentials, configuring mutual-TLS or OAuth2 CredHub authentication, or generating CredHub passwords or certificates.
 metadata:
-  title: "Spring Vault"
+  title: "Spring Vault and CredHub"
   official-project-url: "https://spring.io/projects/spring-vault"
   reference-doc-urls:
     - "https://docs.spring.io/spring-vault/reference/index.html"
+    - "https://docs.spring.io/spring-credhub/docs/current/reference/htmlsingle/"
   version: "4.1.0"
 ---
 
@@ -14,13 +15,22 @@ The latest released Spring Vault line is 4.1.0. Keep the frontmatter docs URL un
 
 ## Boundaries
 
-Use `spring-vault` for application-side Vault access, authentication setup, KV engine access, transit operations, and Spring configuration import from Vault.
+Use `spring-vault` for application-side Vault or CredHub access, authentication setup, KV engine access, transit operations, credential management, and Spring configuration import from Vault or CredHub.
 
-- Keep CredHub-specific secret access and credential generation outside this skill's scope.
 - Keep this skill focused on application integration. Vault cluster operations, seal management, and policy administration are platform concerns.
 - Keep one auth mode per runtime profile so startup and token-renewal behavior stay predictable.
 - Keep Kubernetes auth, reactive access, and versioned KV behavior out of the ordinary path unless the task explicitly needs them.
 - Keep Vault repositories, PKI certificate issuance, and Spring Security crypto integration outside the ordinary path unless those surfaces are the actual blocker.
+- Keep CredHub advanced credential families, interpolation, and reactive CredHub access in references unless the task explicitly needs them.
+
+## Vendor decision
+
+| Condition | Use |
+| --- | --- |
+| HashiCorp Vault is the secret store | Vault paths in this skill |
+| Cloud Foundry CredHub is the secret store | CredHub paths in this skill |
+
+Vault and CredHub follow the same integration pattern: configure a client, authenticate, read and write secrets. The code shapes differ but the workflow is equivalent.
 
 ## Surface map
 
@@ -35,6 +45,10 @@ Use `spring-vault` for application-side Vault access, authentication setup, KV e
 | Credential rotation | secrets must renew or rotate during application lifetime | open [references/credential-rotation.md](references/credential-rotation.md) |
 | Certificate issuance and rotation | PKI certificates must rotate on a schedule | open [references/credential-rotation.md](references/credential-rotation.md) |
 | Vault repositories and query keywords | domain objects must persist in Vault with query derivation | open [references/vault-repositories.md](references/vault-repositories.md) |
+| CredHub credential read/write | Cloud Foundry CredHub is the secret store and the app reads or writes typed credentials | stay in `SKILL.md` |
+| CredHub auth (mutual TLS / OAuth2) | the app must authenticate with CredHub using client certificates or OAuth2 tokens | open [references/credhub-auth-and-credential-variants.md](references/credhub-auth-and-credential-variants.md) |
+| CredHub reactive access | CredHub reads are already on a reactive request path | open [references/credhub-reactive-access.md](references/credhub-reactive-access.md) |
+| CredHub advanced credential families | interpolation, certificate generation, permissions, or non-default credential types are the blocker | open [references/credhub-advanced-credential-patterns.md](references/credhub-advanced-credential-patterns.md) |
 
 ## Common path
 
@@ -289,6 +303,175 @@ class MyConfiguration {
 }
 ```
 
+## CredHub integration (Cloud Foundry)
+
+Use this section when the secret store is Cloud Foundry CredHub instead of HashiCorp Vault. Spring CredHub 4.0.1 provides the client library.
+
+### CredHub dependency baseline
+
+```xml
+<dependency>
+    <groupId>org.springframework.credhub</groupId>
+    <artifactId>spring-credhub-starter</artifactId>
+    <version>4.0.1</version>
+</dependency>
+```
+
+### CredHub first safe configuration
+
+Mutual TLS (preferred):
+
+```yaml
+spring:
+  credhub:
+    url: https://credhub.example.com:8844
+    tls:
+      enabled: true
+      key-store: classpath:credhub-client.p12
+      key-store-password: ${CREDHUB_KEYSTORE_PASSWORD}
+      trust-store: classpath:credhub-truststore.p12
+      trust-store-password: ${CREDHUB_TRUSTSTORE_PASSWORD}
+```
+
+OAuth2 (when client certificates are not available):
+
+```yaml
+spring:
+  credhub:
+    url: https://credhub.example.com:8844
+    oauth2:
+      registration-id: credhub-client
+```
+
+Keep OAuth2 client registration outside the skill-specific scope; service token acquisition stays a platform concern. Prefer mutual TLS first, OAuth2 only when certificates are not available. Keep one auth mode active per application profile.
+
+### CredHub coding procedure
+
+1. Fix the credential path contract as `/app/{env}/db/password` before writing any client code.
+2. Inject `CredHubOperations` into a narrow service layer. Use `ReactiveCredHubOperations` only when the application flow is already reactive.
+3. Read typed credentials (`PasswordCredential`, `JsonCredential`, `ValueCredential`) where possible instead of treating every secret as a string.
+4. Use generated credentials for passwords or certificates only when the platform expects CredHub to own rotation.
+5. Fail closed: when a credential is missing or unreadable, return a controlled application error. Do not fall back to defaults silently.
+6. Test both happy path and missing-credential behavior at the service boundary.
+
+### CredHub typed credential read
+
+```java
+@Service
+class DatabaseCredentialService {
+    private final CredHubOperations credHub;
+
+    DatabaseCredentialService(CredHubOperations credHub) {
+        this.credHub = credHub;
+    }
+
+    String password() {
+        return credHub.credentials()
+            .getByName(new SimpleCredentialName("/app/prod/db-password"), PasswordCredential.class)
+            .getValue().getPassword();
+    }
+}
+```
+
+### CredHub JSON credential read
+
+```java
+@Service
+class MessagingCredentialService {
+    private final CredHubOperations credHub;
+
+    MessagingCredentialService(CredHubOperations credHub) {
+        this.credHub = credHub;
+    }
+
+    JsonCredential credentials() {
+        return credHub.credentials()
+            .getByName(new SimpleCredentialName("/app/prod/messaging"), JsonCredential.class)
+            .getValue();
+    }
+}
+```
+
+### CredHub credential write
+
+```java
+@Service
+class FeatureFlagWriter {
+    private final CredHubOperations credHub;
+
+    FeatureFlagWriter(CredHubOperations credHub) {
+        this.credHub = credHub;
+    }
+
+    void writeFlag(String environment, String value) {
+        credHub.credentials().write(new SimpleCredentialName("/app/%s/feature-flag".formatted(environment)), new ValueCredential(value));
+    }
+}
+```
+
+### CredHub generated password
+
+```java
+@Service
+class PasswordGenerationService {
+    private final CredHubOperations credHub;
+
+    PasswordGenerationService(CredHubOperations credHub) {
+        this.credHub = credHub;
+    }
+
+    void generateDatabasePassword() {
+        credHub.credentials().generatePassword(new SimpleCredentialName("/app/prod/db-password"));
+    }
+}
+```
+
+### CredHub failure classification
+
+Treat missing credentials as controlled application errors, not configuration bugs.
+
+```java
+try {
+    return credHub.credentials()
+        .getByName(new SimpleCredentialName("/app/prod/db-password"), PasswordCredential.class)
+        .getValue().getPassword();
+} catch (CredHubException e) {
+    throw new IllegalStateException("CredHub credential unreadable: /app/prod/db-password", e);
+}
+```
+
+### CredHub first safe testing shape
+
+```java
+@Test
+void passwordReturnsValueFromCredHub() {
+    PasswordCredential credential = new PasswordCredential("s3cret");
+    when(credHub.credentials().getByName(any(SimpleCredentialName.class), eq(PasswordCredential.class)))
+        .thenReturn(new CredHubCredential<>(credential));
+    String password = service.password();
+    assertAll(
+        () -> assertNotNull(password),
+        () -> assertFalse(password.isEmpty())
+    );
+}
+```
+
+### CredHub testing checklist
+
+- Verify expected credential path matches the target environment.
+- Verify typed credential classes used for each path.
+- Verify missing credentials produce a controlled failure path without silent fallback.
+- Verify generated password and certificate requests use the correct CredHub name.
+- Verify mutual TLS or OAuth2 configuration fails when credentials are absent.
+
+### CredHub production checklist
+
+- Never log credential values, generated passwords, private keys, or certificate payloads.
+- Keep CredHub path conventions stable across environments.
+- Validate client certificate renewal or OAuth2 token renewal before production rollout.
+- Keep CredHub HTTP wire logging disabled; tokens and credential payloads can leak.
+- Bound network timeouts and surface CredHub availability failures through application health signals.
+
 ## Output contract
 
 Return:
@@ -323,20 +506,44 @@ vault:v1:8sd7f6...
 Vault secret missing at secret/app/prod/database
 ```
 
+### CredHub credential read shape
+
+```java
+credHub.credentials().getByName(new SimpleCredentialName("/app/prod/db-password"), PasswordCredential.class)
+```
+
+### CredHub credential write shape
+
+```java
+credHub.credentials().write(new SimpleCredentialName("/app/%s/feature-flag".formatted(env)), new ValueCredential(value));
+```
+
+### CredHub missing credential failure shape
+
+```text
+CredHub credential unreadable: /app/prod/db-password
+```
+
 ## Testing checklist
 
 - Verify the service reads or writes the expected Vault path for the active environment.
 - Verify KV v2 reads unwrap the expected payload and fail fast when required data is absent.
 - Verify missing secrets and permission denials fail without leaking secret values.
 - Verify one focused integration test proves the chosen auth mode or property-import boundary.
+- For CredHub: verify typed credential classes used for each path, and mutual TLS or OAuth2 configuration fails when credentials are absent.
 
 ## Production checklist
 
 - Never log Vault tokens, AppRole secret ids, decrypted secret values, or transit plaintext.
+- Never log CredHub credential values, generated passwords, private keys, or certificate payloads.
 - Align token renewal or AppRole credential rotation with the application's lifecycle expectations.
+- Validate CredHub client certificate renewal or OAuth2 token renewal before production rollout.
 - Keep secret path conventions stable so deployments, policies, and applications agree on location.
+- Keep CredHub path conventions stable across environments.
 - Bound Vault client timeouts and surface Vault availability through health or startup failure signals.
+- Bound CredHub client timeouts and surface CredHub availability through application health signals.
 - Use the narrowest policy needed for the application's read, write, or transit operations.
+- Keep CredHub HTTP wire logging disabled outside of tokens and credential payloads can leak.
 
 ## References
 
@@ -345,3 +552,6 @@ Vault secret missing at secret/app/prod/database
 - Open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) when the ordinary KV read-or-write path is not enough and the task needs KV v2 version control or CAS behavior.
 - Open [references/credential-rotation.md](references/credential-rotation.md) when the task needs secret lease renewal, rotation, or managed certificate lifecycle.
 - Open [references/vault-repositories.md](references/vault-repositories.md) when the task needs Vault repositories with query derivation, regex predicates, or set-based lookups.
+- Open [references/credhub-auth-and-credential-variants.md](references/credhub-auth-and-credential-variants.md) when the task needs CredHub mutual TLS versus OAuth2 authentication setup.
+- Open [references/credhub-reactive-access.md](references/credhub-reactive-access.md) when the task needs `ReactiveCredHubOperations` on a reactive request path.
+- Open [references/credhub-advanced-credential-patterns.md](references/credhub-advanced-credential-patterns.md) when the task needs CredHub interpolation, certificate generation, permissions, or non-default credential families.
