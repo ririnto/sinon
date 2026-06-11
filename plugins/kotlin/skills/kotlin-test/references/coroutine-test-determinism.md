@@ -1,8 +1,9 @@
 ---
-title: Coroutine Test Determinism
 description: >-
   Open this when virtual time, dispatcher injection, or deterministic coroutine scheduling is the blocker.
 ---
+
+# Coroutine Test Determinism
 
 Use this reference when the job is to make one coroutine test deterministic. This reference should be sufficient on its own for that task.
 

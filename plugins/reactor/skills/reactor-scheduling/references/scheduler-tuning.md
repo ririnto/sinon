@@ -1,8 +1,9 @@
 ---
-title: "Scheduler Tuning and Custom Schedulers"
 description: >-
   Open this when shared scheduler defaults are insufficient and you must create, tune, observe, or dispose schedulers deliberately.
 ---
+
+# Scheduler Tuning and Custom Schedulers
 
 Open this when the blocker is no longer scheduler choice but scheduler construction, capacity, lifecycle, or observability.
 

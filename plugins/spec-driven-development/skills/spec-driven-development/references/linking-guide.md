@@ -1,9 +1,10 @@
 ---
-title: Linking Guide
 description: >-
   SPEC frontmatter call linking rules: adding, removing, and querying
   outbound and inbound dependencies between SPEC.md files.
 ---
+
+# Linking Guide
 
 ## Principles
 

@@ -1,8 +1,9 @@
 ---
-title: Grafana Mixin Reference
 description: >-
   Open this when generated dashboards, Jsonnet source review, or source-vs-rendered handoff is the blocker.
 ---
+
+# Grafana Mixin Reference
 
 Use this reference when the team already uses Grafana mixin or Jsonnet and the blocker is understanding how source files and rendered dashboard assets should relate to each other.
 

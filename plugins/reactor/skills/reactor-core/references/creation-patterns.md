@@ -1,8 +1,9 @@
 ---
-title: "Programmatic Sequence Creation"
 description: >-
   Open this when ordinary factory methods are insufficient and you need generate, create, push, or using to model the real source boundary.
 ---
+
+# Programmatic Sequence Creation
 
 Open this when ordinary factory methods are no longer enough and the source must be modeled with programmatic emission, per-signal state, or explicit resource lifetime.
 

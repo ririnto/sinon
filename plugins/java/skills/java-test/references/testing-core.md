@@ -1,10 +1,11 @@
 ---
-title: Java Testing Core Reference
 description: >-
   Reference for JUnit 5 building blocks, assertion patterns,
   Mockito usage, Awaitility async verification,
   and representative test shapes for Java TDD workflows.
 ---
+
+# Java Testing Core Reference
 
 Open this reference when the common Java test shape is already clear and the remaining blocker is assertion detail, mocking, or asynchronous verification.
 

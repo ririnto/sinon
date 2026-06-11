@@ -1,5 +1,4 @@
 ---
-title: "Demo Library Research"
 description: >-
   Captures version-sensitive behavior for the demo library
   used by the fixture spec tree.
@@ -11,6 +10,8 @@ subject:
 tag:
   - research
 ---
+
+# Demo Library Research
 
 ## Overview
 

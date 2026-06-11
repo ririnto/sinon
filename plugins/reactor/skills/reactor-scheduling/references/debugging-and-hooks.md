@@ -1,8 +1,9 @@
 ---
-title: "Debugging and Hooks"
 description: >-
   Open when local log and checkpoint diagnostics are not enough and you need assembly tracing, global hooks, or scheduler-level debugging aids.
 ---
+
+# Debugging and Hooks
 
 Open this reference when local log and checkpoint diagnostics are not enough and you need assembly tracing, global hooks, or scheduler-level debugging aids to explain where execution moved, where assembly happened, or why scheduling behavior differs across chains.
 

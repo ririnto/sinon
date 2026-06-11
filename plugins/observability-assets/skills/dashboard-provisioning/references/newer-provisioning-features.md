@@ -1,8 +1,9 @@
 ---
-title: "Newer Grafana Provisioning Features"
 description: >-
   Open this when Git Sync, newer on-prem file provisioning, Grafana provisioning toggles, K8s resource shapes, or datasource provisioning reference is the blocker.
 ---
+
+# Newer Grafana Provisioning Features
 
 Use this reference when legacy provider YAML is not the whole story and the deployment is explicitly using newer Grafana observability-as-code features.
 

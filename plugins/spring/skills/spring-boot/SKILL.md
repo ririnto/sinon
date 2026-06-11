@@ -1,16 +1,10 @@
 ---
 name: spring-boot
 description: >-
-  Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging. Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, packaging executable archives, configuring Jackson multi-format features, setting up gRPC server or client, using @RedisListener, or managing 4.1.0 removals and deprecations.
-metadata:
-  title: "Spring Boot"
-  official-project-url: "https://spring.io/projects/spring-boot"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-boot/index.html"
-    - "https://docs.spring.io/spring-boot/system-requirements.html"
-    - "https://docs.spring.io/spring-boot/reference/index.html"
-  version: "4.1.0"
+  Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging. Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, packaging executable archives, configuring Jackson multi-format features, setting up gRPC server or client, using @RedisListener, or managing 4.1.0 changes.
 ---
+
+# Spring Boot
 
 ## Boundaries
 
@@ -360,16 +354,16 @@ Spock 2.4 with Groovy 5 support is restored. Add the `spring-boot-starter-test` 
 
 Auto-configuration for Spring Batch with MongoDB is now available via the existing `spring-boot-starter-batch` when `spring-data-mongodb` is on the classpath.
 
-## 4.1.0 removals and deprecations
+## 4.1.0 changes
 
 - **Layertools jar mode removed.** Use `tools` jar mode instead (`java -Djarmode=tools -jar app.jar`).
 - **`-DskipTests` no longer skips AOT.** Use `-Dmaven.test.skip` for both test and AOT skip.
-- **Deprecated Logback properties removed.** `logging.file.*` is gone; use `logging.logback.rollingpolicy.*`.
-- **Derby support deprecated.** Migrate to H2 or HSQLDB.
-- **LiveReload in DevTools deprecated.** No replacement planned.
-- **Dynatrace V1 API deprecated.** Migrate to V2 API.
+- **Changed Logback properties removed.** `logging.file.*` is gone; use `logging.logback.rollingpolicy.*`.
+- **Derby support changed.** Migrate to H2 or HSQLDB.
+- **LiveReload in DevTools changed.** No replacement planned.
+- **Dynatrace V1 API changed.** Migrate to V2 API.
 
-Open [references/deprecations-4.1.md](references/deprecations-4.1.md) for the full migration guide.
+Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) for the full migration guide.
 
 ## Test strategy baseline
 
@@ -449,4 +443,4 @@ Return:
 - Open [references/native-image.md](references/native-image.md) when the blocker is native-image build or runtime behavior.
 - Open [references/jackson-configuration.md](references/jackson-configuration.md) when the blocker is Jackson multi-format features, factory constraints, or HandlerInstantiator wiring.
 - Open [references/grpc.md](references/grpc.md) when the task is about gRPC server, client, or testing setup.
-- Open [references/deprecations-4.1.md](references/deprecations-4.1.md) when migrating from 4.0 to 4.1 or replacing removed/deprecated features.
+- Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) when migrating from 4.0 to 4.1 or applying Spring Boot 4.1 behavior changes.

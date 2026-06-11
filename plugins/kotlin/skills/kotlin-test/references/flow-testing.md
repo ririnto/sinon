@@ -1,8 +1,9 @@
 ---
-title: Flow Replay and Bounded Assertions
 description: >-
   Open this when Flow replay semantics or bounded collection shape is the blocker.
 ---
+
+# Flow Replay and Bounded Assertions
 
 Use this reference when the job is to prove one Flow contract with bounded, deterministic assertions. This reference should be sufficient on its own for that task.
 

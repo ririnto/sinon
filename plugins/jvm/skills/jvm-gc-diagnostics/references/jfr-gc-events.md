@@ -1,9 +1,10 @@
 ---
-title: JFR GC Events Reference
 description: >-
   Reference for JFR GC-related events, recording configurations, analysis commands,
   and output interpretation for garbage-collection diagnostics.
 ---
+
+# JFR GC Events Reference
 
 Use this reference when the blocker is analyzing GC behavior through JFR recordings, choosing which GC events to capture, or interpreting JFR GC event output from `jfr print`.
 

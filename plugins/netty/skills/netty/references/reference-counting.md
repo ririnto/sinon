@@ -1,8 +1,9 @@
 ---
-title: Reference Counting and Memory Ownership
 description: >-
   Open this when a Netty handler must retain, release, pass downstream, or debug leaked ByteBuf instances.
 ---
+
+# Reference Counting and Memory Ownership
 
 ## Open this when
 

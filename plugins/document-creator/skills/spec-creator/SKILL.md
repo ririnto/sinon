@@ -117,7 +117,6 @@ Use this template when the feature is focused, the actor is single or limited, s
 
 ```markdown
 ---
-title: "[Feature or System Name] Specification"
 status: draft
 created: [YYYY-MM-DD]
 updated: [YYYY-MM-DD]

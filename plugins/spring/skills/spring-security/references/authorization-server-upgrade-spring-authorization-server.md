@@ -1,6 +1,6 @@
 # Upgrading Spring Authorization Server
 
-Open this reference when the task involves upgrading Spring Authorization Server itself or moving from a legacy Spring Security OAuth server to Spring Authorization Server.
+Open this reference when the task involves upgrading Spring Authorization Server itself or moving from Spring Security OAuth server behavior to Spring Authorization Server.
 
 ## Authorization-server upgrade blocker
 
@@ -22,7 +22,7 @@ Spring Authorization Server `1.5.8` is the final standalone generation. The curr
 - Regenerate or rotate JWK material only when the upgraded version changes key handling or `kid` expectations.
 - Re-check redirect URIs and issuer URLs together when domains or endpoint paths change.
 - Revisit custom claims and token settings when clients depend on claim presence or lifetime semantics.
-- Move legacy Spring Security OAuth server behavior behind explicit Spring Authorization Server components instead of carrying old abstractions forward implicitly.
+- Move Spring Security OAuth server behavior behind explicit Spring Authorization Server components instead of carrying old abstractions forward implicitly.
 
 ## Decision points
 
@@ -36,4 +36,4 @@ Spring Authorization Server `1.5.8` is the final standalone generation. The curr
 
 - Do not upgrade the dependency and skip endpoint or token-compatibility tests.
 - Do not remove old signing keys before tokens signed with them have expired.
-- Do not mix legacy Spring Security OAuth assumptions into the new component model without an explicit mapping plan.
+- Do not mix Spring Security OAuth assumptions into the Spring Authorization Server component model without an explicit mapping plan.

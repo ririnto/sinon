@@ -47,6 +47,8 @@ out/
 
 # Node / package managers
 node_modules/
+bun.lock
+bun.lockb
 jspm_packages/
 web_modules/
 .npm/
@@ -60,7 +62,6 @@ web_modules/
 !.yarn/sdks/
 !.yarn/versions/
 .yarn-integrity
-bun.lockb
 
 # Logs
 logs/

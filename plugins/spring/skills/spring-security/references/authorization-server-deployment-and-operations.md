@@ -13,7 +13,7 @@ Open this reference when the task involves:
 - Token expiration tuning and refresh strategy
 - Health endpoints and operational monitoring
 - TLS termination and secure cookie settings
-- Restart continuity or clustered deployment is blocked by persistence choices already modeled in [jpa-persistence.md](jpa-persistence.md) or [redis-persistence.md](redis-persistence.md)
+- Restart continuity or clustered deployment is blocked by persistence choices already modeled in [authorization-server-jpa-persistence.md](authorization-server-jpa-persistence.md) or [authorization-server-redis-persistence.md](authorization-server-redis-persistence.md)
 
 ## Issuer URL stability
 
@@ -195,4 +195,4 @@ The introspection endpoint and OIDC UserInfo endpoint are part of the provider c
 | Tokens signed with different key than JWKS shows | confirm key rotation did not remove the active signing key |
 | Redirect URLs use wrong host | check `X-Forwarded-Host` is sent by the proxy and forwarded-header handling is enabled, using `native` first and `framework` only when native support is insufficient |
 | Multiple instances produce different JWK sets | use a shared key store or custom shared `JWKSource` instead of per-node in-memory keys |
-| Authorization state lost after restart | see [jpa-persistence.md](jpa-persistence.md) or [redis-persistence.md](redis-persistence.md) |
+| Authorization state lost after restart | see [authorization-server-jpa-persistence.md](authorization-server-jpa-persistence.md) or [authorization-server-redis-persistence.md](authorization-server-redis-persistence.md) |

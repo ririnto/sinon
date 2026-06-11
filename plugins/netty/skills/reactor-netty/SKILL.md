@@ -2,16 +2,9 @@
 name: reactor-netty
 description: >-
   Build Reactor Netty HTTP, TCP, or UDP clients and servers with reactive request handling, lifecycle hooks, and resource-aware startup or shutdown. Use when the work is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, or `UdpClient` rather than low-level Netty pipeline APIs.
-metadata:
-  title: Reactor Netty
-  official_project_url: "https://projectreactor.io/docs/netty/release/reference/"
-  reference_doc_urls:
-    - "https://projectreactor.io/docs/netty/release/reference/"
-    - "https://projectreactor.io/docs/netty/release/api/"
-  version: "1.x"
 ---
 
-## Reactor Netty
+# Reactor Netty
 
 Build one Reactor Netty application path end to end: pick the transport, configure the builder, compose inbound and outbound flow, and shut resources down cleanly without dropping into low-level Netty internals.
 

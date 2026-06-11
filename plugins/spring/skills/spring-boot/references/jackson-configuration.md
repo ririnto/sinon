@@ -67,6 +67,7 @@ class MyJacksonCustomizerConfiguration {
 ```
 
 Available customizer types:
+
 - `JsonMapperBuilderCustomizer` for `JsonMapper.Builder`
 - `JsonFactoryBuilderCustomizer` for `JsonFactoryBuilder`
 - `CborFactoryBuilderCustomizer` for `CBORFactoryBuilder`
@@ -79,4 +80,4 @@ When migrating from Jackson 2, set `spring.jackson.use-jackson2-defaults=true` t
 ## Gotchas
 
 - Do not mix Jackson 2 `ObjectMapper` customization with Jackson 3 `JsonMapper` customization.
-- Jackson 2 support is deprecated and will be removed in a future 4.x release.
+- Use the Jackson 3 path for Spring Boot 4.x applications.

@@ -2,13 +2,9 @@
 name: spring-pulsar
 description: >-
   Build Apache Pulsar producers, consumers, and readers in Spring with `PulsarTemplate`, `@PulsarListener`, schema mapping, and DLQ patterns. Use when choosing subscription types, configuring customizers or transactions, writing Pulsar-focused tests, or performing Pulsar administration tasks within a Spring application.
-metadata:
-  title: "Spring for Apache Pulsar"
-  official-project-url: "https://spring.io/projects/spring-pulsar"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-pulsar/reference/"
-  version: "2.0.6"
 ---
+
+# Spring for Apache Pulsar
 
 ## System requirements
 

@@ -1,6 +1,8 @@
 ---
-title: Changelog
+
 ---
+
+# Changelog
 
 ## 2026-03-06 - Defined domain ingest contract and behavior
 

@@ -1,8 +1,9 @@
 ---
-title: Observability Assets
 description: >-
   Overview of the Observability Assets plugin, its included skills, and practical observability configuration workflow coverage.
 ---
+
+# Observability Assets
 
 Observability Assets is a shared, skill-first plugin for Prometheus and Grafana asset authoring, routing, testing, and provisioning work in the Sinon Claude marketplace.
 

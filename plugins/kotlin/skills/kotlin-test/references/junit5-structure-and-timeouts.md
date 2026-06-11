@@ -1,8 +1,9 @@
 ---
-title: JUnit 5 Structure and Timeouts
 description: >-
   Open this when JUnit 5 nested structure, grouped assertions, or timeout variants are the blocker.
 ---
+
+# JUnit 5 Structure and Timeouts
 
 Open this when plain `kotlin.test` structure is no longer enough and the suite already uses Jupiter features.
 

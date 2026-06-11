@@ -1,8 +1,9 @@
 ---
-title: Prometheus Rule Testing Reference
 description: >-
   Open this when the blocker is deciding whether an alert needs regression coverage or which lifecycle behaviors the adjacent testing path should protect.
 ---
+
+# Prometheus Rule Testing Reference
 
 Use this reference when the alert expression is already shaped correctly, but you need to decide whether the rule deserves dedicated regression coverage and which alert-side behaviors are risky enough to protect in the adjacent testing path.
 

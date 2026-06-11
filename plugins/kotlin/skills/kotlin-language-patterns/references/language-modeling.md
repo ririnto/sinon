@@ -1,8 +1,9 @@
 ---
-title: Type Shape Decisions
 description: >-
   Open this when choosing among Kotlin type shapes is still ambiguous after the common path.
 ---
+
+# Type Shape Decisions
 
 Use this reference when the job is to choose the right Kotlin type shape for a model that is still unclear after reading `SKILL.md`. This reference should be sufficient on its own to finish that modeling decision.
 

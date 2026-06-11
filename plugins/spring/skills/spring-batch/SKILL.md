@@ -2,13 +2,9 @@
 name: spring-batch
 description: >-
   Build and operate Spring Batch jobs with job/step configuration, chunk or tasklet processing, restartability, reader or writer choices, and scaling patterns. Use when defining job flows, choosing between chunk and tasklet steps, configuring skip or retry logic, or setting up partitioning and multi-threaded step execution.
-metadata:
-  title: "Spring Batch"
-  official-project-url: "https://spring.io/projects/spring-batch"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-batch/reference/index.html"
-  version: "6.0.x"
 ---
+
+# Spring Batch
 
 ## Boundaries
 
@@ -33,7 +29,7 @@ The ordinary Spring Batch job is:
 
 Use the Boot starter for application code and the Batch test module for job and step tests.
 
-Spring Boot 4.1.x manages Spring Batch 6.0.x. Spring Boot 3.4.x and 3.5.x remain on the Spring Batch 5.2.x compatibility branch; Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
+Spring Boot 4.1.x manages Spring Batch 6.0.x. The current released Spring Batch artifact line is 6.0.4. Spring Boot 3.4.x and 3.5.x use the Spring Batch 5.2.x compatibility branch; Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
 
 JDBC store (default when a `DataSource` is present):
 

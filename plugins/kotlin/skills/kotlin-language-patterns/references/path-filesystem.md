@@ -1,8 +1,9 @@
 ---
-title: JVM Path and Filesystem Boundaries
 description: >-
   Open this when a JVM filesystem boundary or kotlin.io.path usage is the blocker.
 ---
+
+# JVM Path and Filesystem Boundaries
 
 Use this reference when the job is to implement or review one JVM filesystem boundary in Kotlin. This reference should be sufficient on its own for that task.
 

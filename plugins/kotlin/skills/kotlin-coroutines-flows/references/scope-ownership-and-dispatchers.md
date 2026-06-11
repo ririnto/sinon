@@ -1,8 +1,9 @@
 ---
-title: Scope Ownership and Dispatchers
 description: >-
   Open this when coroutine ownership, supervision, launch boundaries, or dispatcher placement is the actual blocker.
 ---
+
+# Scope Ownership and Dispatchers
 
 Open this when you need to decide who owns coroutine work, where to launch it, or where dispatcher changes belong.
 

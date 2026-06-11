@@ -1,0 +1,16 @@
+{
+  "name": "sinon",
+  "private": true,
+  "scripts": {
+    "check": "run-p check:*",
+    "check:markdownlint-cli2": "markdownlint-cli2 **/*.md",
+    "fix": "run-p fix:*",
+    "fix:markdownlint-cli2": "markdownlint-cli2 **/*.md --fix",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "markdownlint-cli2": "^0.22.1",
+    "npm-run-all2": "^9.0.1"
+  }
+}

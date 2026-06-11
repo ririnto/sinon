@@ -1,9 +1,10 @@
 ---
-title: {{title_yaml}}
 description: >-
   {{description_yaml}}
 last_updated: "{{last_updated_date}}"
 ---
+
+# {{title_yaml}}
 
 ## Contract Scope
 

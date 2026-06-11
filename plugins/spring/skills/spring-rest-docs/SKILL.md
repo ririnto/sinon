@@ -2,14 +2,9 @@
 name: spring-rest-docs
 description: >-
   Generate Spring REST API documentation from MockMvc or WebTestClient tests and publish snippets via Asciidoctor. Use when writing `MockMvc` or `WebTestClient` test cases that produce documentation snippets, configuring snippet template customization, or assembling published API references with Asciidoctor.
-metadata:
-  title: "Spring REST Docs"
-  official-project-url: "https://spring.io/projects/spring-restdocs"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-restdocs/"
-    - "https://docs.spring.io/spring-restdocs/tutorial/getting-started/index.html"
-  version: "4.0.1"
 ---
+
+# Spring REST Docs
 
 Spring REST Docs 4.0.1 requires Spring Framework 7.0 (Spring Boot 4.x), JUnit 6.0, AsciidoctorJ 3.0, Jackson 3, and Bean Validation 3.1 (Hibernate Validator 9.0). REST Assured support was removed in 4.0. The only supported documentation surfaces are MockMvc and WebTestClient.
 

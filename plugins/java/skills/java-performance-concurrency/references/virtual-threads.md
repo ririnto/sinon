@@ -1,10 +1,11 @@
 ---
-title: Virtual Threads Reference
 description: >-
   Reference for virtual thread fit assessment, version-sensitive limits,
   ScopedValue usage, pinning diagnosis, and ThreadLocal guidance
   in Java concurrency work.
 ---
+
+# Virtual Threads Reference
 
 Open this reference when the workload shape is already classified as blocking-I/O and you still need one of these deeper jobs:
 

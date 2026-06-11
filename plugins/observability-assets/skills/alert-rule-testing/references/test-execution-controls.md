@@ -1,8 +1,9 @@
 ---
-title: Alert Rule Test Execution Controls
 description: >-
   Open this when custom test timestamps, fuzzy comparison, filtered test execution, group evaluation order, or time precision edge cases are the blocker.
 ---
+
+# Alert Rule Test Execution Controls
 
 Use this reference when the main test shape is already correct, but execution controls or time context still need work.
 

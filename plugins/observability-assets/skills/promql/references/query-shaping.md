@@ -1,8 +1,9 @@
 ---
-title: "PromQL Query Shaping Reference"
 description: >-
   Open this when vector matching, label-set alignment, complex query refactoring, or understanding exact matching output is the blocker.
 ---
+
+# PromQL Query Shaping Reference
 
 Use this reference when the query already has the right general goal, but the blocker is how to preserve meaning while changing shape.
 

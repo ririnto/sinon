@@ -1,9 +1,10 @@
 ---
-title: Java Language Features Reference
 description: >-
   Reference for Java language feature tradeoffs, record vs class vs sealed modeling,
   enum vs sealed variants, and preview-feature cost assessment.
 ---
+
+# Java Language Features Reference
 
 Open this reference when the Java baseline is already known and the remaining blocker is language-feature tradeoff rather than syntax availability lookup. This file should be sufficient on its own to finish one semantic-modeling decision.
 
