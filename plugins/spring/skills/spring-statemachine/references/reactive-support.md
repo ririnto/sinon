@@ -4,7 +4,7 @@ Open this reference when the application uses reactive guards, reactive actions,
 
 Keep the ordinary path imperative unless the surrounding application is already reactive.
 
-Reactive support is available in the current 4.0.1 line, but it remains an additive path rather than the baseline modeling shape for this skill.
+Reactive support is available in the current 4.0.2 line, but it remains an additive path rather than the baseline modeling shape for this skill.
 
 ## Reactive boundary
 

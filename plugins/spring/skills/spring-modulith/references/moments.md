@@ -62,9 +62,16 @@ class BillingCycleTest {
     void dayPassesTriggersBilling(PublishedEvents events) {
         timeMachine.shiftBy(Duration.ofDays(1));
         assertThat(events.ofType(DayHasPassed.class)).hasSize(1);
+        timeMachine.reset();
     }
 }
 ```
+
+Use `timeMachine.reset()` to clear accumulated time shifts between tests when the `TimeMachine` bean is shared.
+
+## Jackson serialization
+
+Moments events support Jackson serialization for JSON-based event stores. Include the `spring-modulith-moments` dependency and configure Jackson to handle `Duration`-based time event payloads as needed for externalized or persisted moments.
 
 ## Decision points
 

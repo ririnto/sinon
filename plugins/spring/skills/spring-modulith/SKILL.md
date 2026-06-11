@@ -7,7 +7,7 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-modulith"
   reference-doc-urls:
     - "https://docs.spring.io/spring-modulith/reference/index.html"
-  version: "2.0.6"
+  version: "2.1.0"
 ---
 
 ## Boundaries
@@ -37,7 +37,9 @@ The ordinary Spring Modulith job is:
 | One module interaction needs isolated integration coverage | `@ApplicationModuleTest` |
 | Module arrangement needs runtime metadata or startup verification | `@Modulithic` |
 | Events must survive listener failures | event publication registry |
+| Events must be reliably forwarded to external systems | event outbox |
 | Domain reacts to calendar boundaries | Moments |
+| Application needs modular Spring Boot auto-configuration slicing | Module Slicing |
 
 Keep named interfaces small and intention-revealing. Prefer events over direct internal bean calls when the interaction does not need immediate synchronous coupling.
 
@@ -47,7 +49,7 @@ When one module may depend on only specific neighbors, make that dependency rule
 
 Import the BOM and use the core and test starters for the common path.
 
-The current GA Spring Modulith BOM is `2.0.6`. It is compiled against Spring Boot 4.0.x and tested against Boot 4.0.x. Keep the ordinary dependency path on the 2.0.x released line; separately published RC artifacts for newer pre-release lines do not change the baseline for this skill.
+The current GA Spring Modulith BOM is `2.1.0`. It is compiled against Spring Boot 4.1.x and tested against Boot 4.1.x.
 
 ```xml
 <dependencyManagement>
@@ -55,7 +57,7 @@ The current GA Spring Modulith BOM is `2.0.6`. It is compiled against Spring Boo
         <dependency>
             <groupId>org.springframework.modulith</groupId>
             <artifactId>spring-modulith-bom</artifactId>
-            <version>2.0.6</version>
+            <version>2.1.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -78,7 +80,7 @@ The current GA Spring Modulith BOM is `2.0.6`. It is compiled against Spring Boo
 ```groovy
 dependencyManagement {
     imports {
-        mavenBom 'org.springframework.modulith:spring-modulith-bom:2.0.6'
+        mavenBom 'org.springframework.modulith:spring-modulith-bom:2.1.0'
     }
 }
 
@@ -326,6 +328,6 @@ Generate C4 component diagrams, per-module diagrams, module canvases, and an agg
 - Open [references/scenario-tests.md](references/scenario-tests.md) when event-driven module tests need richer `Scenario` verification than the ordinary module test path.
 - Open [references/event-publication-registry.md](references/event-publication-registry.md) when module events must be tracked, replayed, or completed reliably after failures.
 - Open [references/moments.md](references/moments.md) when the application reacts to business-relevant time events such as day, week, or month boundaries.
-- Open [references/event-externalization.md](references/event-externalization.md) when module events must be published to external brokers such as Kafka, AMQP, or JMS.
+- Open [references/event-externalization.md](references/event-externalization.md) when module events must be published to external brokers (Kafka, AMQP, JMS) or forwarded via the outbox pattern (Namastack, JobRunr).
 - Open [references/documentation-generation.md](references/documentation-generation.md) when module arrangement diagrams and canvases must be generated for developer documentation.
-- Open [references/runtime-support.md](references/runtime-support.md) when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, or change-aware test execution.
+- Open [references/runtime-support.md](references/runtime-support.md) when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, observability, change-aware test execution, or Module Slicing.
