@@ -1,24 +1,12 @@
 ---
 name: spring-cloud
 description: >-
-  Implement Spring Cloud distributed-system building blocks for ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, and circuit-breaker boundaries. Use when configuring Spring Cloud Config client or server, registering services with Eureka or Consul, wiring load-balanced `RestClient` or `WebClient`, applying circuit-breaker patterns with Resilience4J, or maintaining Spring Cloud Data Flow streams and tasks with app registration, stream DSL, task launch, schedules, platform accounts, and pipeline operations.
-metadata:
-  title: "Spring Cloud"
-  official-project-url: "https://spring.io/projects/spring-cloud"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-cloud-config/reference/"
-    - "https://docs.spring.io/spring-cloud-gateway/reference/"
-    - "https://docs.spring.io/spring-cloud-openfeign/reference/"
-    - "https://docs.spring.io/spring-cloud-stream/reference/"
-    - "https://docs.spring.io/spring-cloud-contract/reference/"
-    - "https://docs.spring.io/spring-cloud-circuitbreaker/reference/"
-    - "https://docs.spring.io/spring-cloud-commons/reference/"
-    - "https://docs.spring.io/spring-cloud-vault/reference/"
-    - "https://docs.spring.io/spring-cloud-bus/reference/"
-  version: "2025.1.1"
+  Implement Spring Cloud distributed-system building blocks for ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, and circuit-breaker boundaries. Use when configuring Spring Cloud Config client or server, registering services with Eureka or Consul, wiring load-balanced `RestClient` or `WebClient`, applying circuit-breaker patterns with Resilience4J.
 ---
 
-The current Boot 4.x Spring Cloud release-train line is 2025.1.x (Oakwood). The latest service release is 2025.1.1; 2025.1.2 is in milestone. Spring Cloud 2025.0.2 (Northfields) is a parallel Boot 3.5.x line, not a newer replacement. Boot 4.1.x is compatible with the 2025.1.x train (2025.1.2 milestone explicitly targets Boot 4.0.x and 4.1.x). The common path in this skill stays anchored to 2025.1.x unless the project is intentionally on the 3.5.x generation.
+# Spring Cloud
+
+The current Boot 4.x Spring Cloud release-train line is 2025.1.x (Oakwood). The latest service release is 2025.1.1. Spring Cloud 2025.0.2 (Northfields) is a parallel Boot 3.5.x line, not a newer replacement. The common path in this skill stays anchored to 2025.1.x unless the project is intentionally on the 3.5.x generation.
 
 | Release Train | Boot Generation | Notes |
 | --- | --- | --- |
@@ -31,12 +19,10 @@ Release trains 2022.0.x and earlier are end-of-life and MUST NOT appear in new w
 
 ## Boundaries
 
-Use `spring-cloud` for release-train-aligned distributed application wiring, external configuration through ConfigData, refresh-aware configuration, service discovery, load-balanced downstream calls, resilience patterns, and Spring Cloud Data Flow orchestration.
+Use `spring-cloud` for release-train-aligned distributed application wiring, external configuration through ConfigData, refresh-aware configuration, service discovery, load-balanced downstream calls, resilience patterns,.
 
 - Use narrower Spring Cloud branches when the task is specifically about Gateway, OpenFeign, Stream binders, Contract, Bus, Kubernetes, or Vault behavior.
-- Data Flow content in this skill is limited to existing stream and task estates, runtime operations, and migration support. Spring Cloud Data Flow reached end of open-source in April 2025 (archived repository, last OSS release 2.11.5); future releases are commercial-only. Do not recommend SCDF for greenfield orchestration.
 - In-process integration flows inside one application are outside this skill's scope.
-- Batch-job or launchable-task internals are outside this skill's scope. SCDF is the orchestration and platform layer around those apps.
 
 ## Surface map
 
@@ -49,7 +35,6 @@ Use `spring-cloud` for release-train-aligned distributed application wiring, ext
 | Contract verification | provider-consumer compatibility is the real job | open [references/contract-testing.md](references/contract-testing.md) |
 | Stream binders | the service actually publishes to or consumes from a broker | open [references/stream-binders.md](references/stream-binders.md) |
 | Function catalog | the task is specifically about function beans or composition | open [references/function-catalog.md](references/function-catalog.md) |
-| Data Flow orchestration | the job is registering stream or task apps, composing stream DSL pipelines, launching tasks, or managing schedules on an existing SCDF estate | the blocker is in [references/data-flow-platform-setup.md](references/data-flow-platform-setup.md), [references/data-flow-app-registration-metadata.md](references/data-flow-app-registration-metadata.md), [references/data-flow-platform-accounts.md](references/data-flow-platform-accounts.md), or another Data Flow reference below |
 
 ## Common path
 
@@ -92,12 +77,7 @@ Import the Spring Cloud BOM once and keep Spring Cloud modules versionless under
 </dependencyManagement>
 ```
 
-SCDF is primarily an external orchestration platform, not a business-app dependency. Custom apps normally depend on Spring Cloud Stream or Spring Cloud Task rather than an SCDF library.
-
-The last open-source SCDF server line is `2.11.5`. No further OSS releases will be made. Future releases are commercial-only (VMware Tanzu). Keep examples on the 2.11.x line for existing estates; do not use SCDF for new work.
-
 ```text
-SCDF server and shell are operated outside the business application.
 Custom stream or task apps use their own Spring Boot + Spring Cloud dependencies.
 ```
 
@@ -109,7 +89,7 @@ Custom stream or task apps use their own Spring Boot + Spring Cloud dependencies
 | Service discovery client | the discovery implementation starter used by the platform |
 | Load-balanced `RestClient` or Spring Interface Client (`lb://`) | `spring-cloud-starter-loadbalancer` |
 | Circuit-breaker boundary with Resilience4j | `spring-cloud-starter-circuitbreaker-resilience4j` |
-| Circuit-breaker boundary (Boot 4.x / Spring Framework 7 native) | `spring-cloud-circuitbreaker-spring` (auto-configured on classpath in 2025.1.x) |
+| Circuit-breaker boundary (Boot 4.x / Spring Framework 7 native) | `spring-cloud-starter-circuitbreaker-framework-retry` |
 | Edge routing | add the Gateway starter from [references/gateway-routing.md](references/gateway-routing.md) |
 | Declarative HTTP clients | add the OpenFeign starter from [references/openfeign-clients.md](references/openfeign-clients.md) |
 | Broker-backed event transport | add the binder starter from [references/stream-binders.md](references/stream-binders.md) |
@@ -521,7 +501,6 @@ task execution list
 - Keep stream DSL and task definitions small enough to operate safely.
 - Separate platform deployment properties from business-app defaults.
 - Verify schedules, platform accounts, and task arguments before promoting to production.
-- Treat SCDF shell commands and topology definitions as part of the operational compatibility surface.
 
 ## References
 
@@ -540,11 +519,3 @@ Use these only when the task moves beyond the ordinary config, refresh, discover
 - Open [references/cloud-vault-config.md](references/cloud-vault-config.md) when config import is backed by Vault and the blocker is authentication mode or fail-fast behavior.
 
 ### Data Flow references
-
-- Open [references/data-flow-platform-setup.md](references/data-flow-platform-setup.md) when the blocker is installing SCDF or choosing the local, Kubernetes, or Cloud Foundry runtime target before any app registration.
-- Open [references/data-flow-app-registration-metadata.md](references/data-flow-app-registration-metadata.md) when the blocker is versioned coordinates, bulk import, metadata, or curating registered app catalogs.
-- Open [references/data-flow-platform-accounts.md](references/data-flow-platform-accounts.md) when the blocker is choosing or configuring the target platform account for a deploy or launch.
-- Open [references/data-flow-schedules.md](references/data-flow-schedules.md) when the blocker is recurring SCDF-managed task execution.
-- Open [references/data-flow-composed-tasks.md](references/data-flow-composed-tasks.md) when one task is not enough and SCDF must orchestrate multiple task apps.
-- Open [references/data-flow-runtime-operations.md](references/data-flow-runtime-operations.md) when the blocker is deeper runtime inspection, stream update or rollback, undeploy, destroy, or post-change operational verification.
-- Open [references/data-flow-troubleshooting.md](references/data-flow-troubleshooting.md) when registration, deployment, launch, logging, or platform behavior is failing and the diagnosis order is unclear.

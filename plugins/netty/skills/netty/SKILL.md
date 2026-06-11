@@ -2,19 +2,9 @@
 name: netty
 description: >-
   Build Netty TCP or UDP clients and servers with Bootstrap, ServerBootstrap, ChannelPipeline, handlers, ByteBuf, and codec basics. Use when configuring server or client bootstraps, assembling channel pipelines, managing ByteBuf ownership and reference counting, or writing custom codecs and frame decoders.
-metadata:
-  title: Netty
-  official_project_url: "https://netty.io/"
-  reference_doc_urls:
-    - "https://netty.io/wiki/user-guide-for-4.x.html"
-    - "https://netty.io/wiki/netty-4.2-migration-guide.html"
-    - "https://netty.io/4.2/api/"
-    - "https://netty.io/4.1/api/"
-  version: "4.x"
-  recommended_version: "4.2.x.Final (current stable); 4.1.x.Final remains supported for existing deployments"
 ---
 
-## Netty
+# Netty
 
 Netty 5 is in development with breaking changes (notably ByteBuf API and lifecycle); this skill documents the stable 4.x line. Plan migration when Netty 5 stabilizes.
 

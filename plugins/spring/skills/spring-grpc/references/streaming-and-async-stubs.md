@@ -4,18 +4,16 @@ Open this reference when the ordinary blocking unary path in `SKILL.md` is not e
 
 ## Future-style client
 
-Use future stubs when the caller must overlap multiple remote calls without blocking the current thread. On the stable spring-grpc 1.1.0 line, async stubs return `CompletableFuture`.
+Use future stubs when the caller must overlap multiple unary remote calls without blocking the current thread. Generated gRPC Java future stubs return `ListenableFuture`.
 
 ```java
 @Service
 class AsyncGreetingClient {
     private final GreeterGrpc.GreeterFutureStub greeter;
-
     AsyncGreetingClient(GreeterGrpc.GreeterFutureStub greeter) {
         this.greeter = greeter;
     }
-
-    CompletableFuture<HelloReply> greet(String name) {
+    ListenableFuture<HelloReply> greet(String name) {
         return greeter.sayHello(HelloRequest.newBuilder().setName(name).build());
     }
 }
@@ -30,11 +28,11 @@ Use one stub style per call boundary unless there is a strong reason to mix bloc
 - Client streaming: use when the client uploads many items before one final response.
 - Bidirectional streaming: use only when both sides genuinely need a long-lived conversation.
 
-## Server-streaming shape
+Server-streaming shape:
 
 ```proto
 service Greeter {
-  rpc StreamHellos (HelloRequest) returns (stream HelloReply);
+    rpc StreamHellos (HelloRequest) returns (stream HelloReply);
 }
 ```
 
@@ -51,6 +49,6 @@ public void streamHellos(HelloRequest request, StreamObserver<HelloReply> respon
 | Situation | Use |
 | --- | --- |
 | Simple request-response boundary | blocking unary stub |
-| Overlap many remote calls | future stub |
+| Overlap many unary remote calls | future stub |
 | One request returns many messages | server streaming |
 | Both sides exchange a long-lived stream | bidirectional streaming |

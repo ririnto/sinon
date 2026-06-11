@@ -2,17 +2,9 @@
 name: jvm-runtime-diagnostics
 description: >-
   Triage JVM runtime incidents with stack traces, thread dumps, jcmd, JFR, and memory-pressure evidence. Use when diagnosing deadlocks, analyzing thread dumps, capturing JFR recordings, interpreting `jcmd` output, or classifying runtime symptoms as blocking, contention, memory pressure, or startup failure.
-metadata:
-  title: JVM Runtime Diagnostics
-  official_project_url: "https://docs.oracle.com/en/java/"
-  reference_doc_urls:
-    - "https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/"
-    - "https://docs.oracle.com/en/java/javase/11/troubleshoot/diagnostic-tools.html"
-    - "https://docs.oracle.com/en/java/javase/17/troubleshoot/diagnostic-tools.html"
-    - "https://docs.oracle.com/en/java/javase/21/troubleshoot/diagnostic-tools.html"
-    - "https://docs.oracle.com/en/java/javase/25/troubleshoot/diagnostic-tools.html"
-  version: "LTS"
 ---
+
+# JVM Runtime Diagnostics
 
 ## Goal
 

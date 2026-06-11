@@ -149,7 +149,7 @@ Use one exception-path test when a global transition, exception handler, or reco
 
 ## JUnit 5 compatibility note
 
-`AbstractXmlFlowExecutionTests` inherits from a legacy `TestCase` base class, but a project can still keep the public test surface in JUnit 5 style by delegating the harness operations through a helper subclass as shown above. Keep one assertion per `assertAll` line when multiple flow-outcome checks belong to the same scenario.
+`AbstractXmlFlowExecutionTests` inherits from a JUnit `TestCase` base class, but a project can still keep the public test surface in JUnit 5 style by delegating the harness operations through a helper subclass as shown above. Keep one assertion per `assertAll` line when multiple flow-outcome checks belong to the same scenario.
 
 ## Gotchas
 

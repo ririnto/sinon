@@ -10,7 +10,8 @@ Use this checklist as a final verification pass, not as a gate that blocks compl
 - [ ] `description` opens with an imperative capability statement
 - [ ] `description` trigger clause (if present) adds vocabulary distinct from the capability, with no verb-synonym duplication
 - [ ] `description` is specific enough to trigger the right job and exclude nearby jobs
-- [ ] `compatibility` is absent or <= 500 characters
+- [ ] No frontmatter `title`, `metadata`, owner, version, or documentation URL fields are present
+First body heading is the display title
 
 ## Scope and onboarding
 

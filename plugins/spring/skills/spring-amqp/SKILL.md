@@ -2,20 +2,11 @@
 name: spring-amqp
 description: >-
   Build RabbitMQ or AMQP producers and consumers in Spring with RabbitTemplate, @RabbitListener, queue and exchange topology, message conversion, retry, and dead-letter handling. Use when declaring queues and exchanges, configuring message converters, setting up retry or DLQ policies, or writing listener container configuration.
-metadata:
-  title: "Spring AMQP"
-  official-project-url: "https://spring.io/projects/spring-amqp"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-amqp/reference/index.html"
-    - "https://docs.spring.io/spring-amqp/reference/amqp/template.html"
-    - "https://docs.spring.io/spring-amqp/reference/amqp/receiving-messages/async-annotation-driven.html"
-    - "https://docs.spring.io/spring-amqp/reference/amqp/receiving-messages/async-annotation-driven/container-management.html"
-    - "https://docs.spring.io/spring-amqp/reference/amqp/resilience-recovering-from-errors-and-broker-failures.html"
-    - "https://docs.spring.io/spring-amqp/reference/amqp/request-reply.html"
-  version: "4.1.0"
 ---
 
-The latest released Spring AMQP line is 4.1.0. Keep this skill on the 4.1.x stable line unless the project is intentionally evaluating the 4.2 preview line.
+# Spring AMQP
+
+The latest released Spring AMQP line is 4.1.0. Keep this skill on the 4.1.x stable line.
 
 ## Boundaries
 
@@ -143,7 +134,7 @@ JacksonJsonMessageConverter jsonConverter() {
 }
 ```
 
-Since 4.1.0 the no-arg constructor trusts no packages. Omitting the trusted-package argument causes deserialization to fail for all payload types. Provide the package of your payload types as the trusted package argument.
+The no-arg constructor trusts only `java.util` and `java.lang` by default. Provide the package of your application payload types as the trusted package argument.
 
 The ordinary path is one JSON payload type per message contract, with the listener receiving the already-converted domain payload. Open [references/conversion-and-listener-method-signatures.md](references/conversion-and-listener-method-signatures.md) when the blocker is listener argument design, header access, validation, or custom conversion behavior.
 

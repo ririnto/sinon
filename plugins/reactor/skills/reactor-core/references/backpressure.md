@@ -1,8 +1,9 @@
 ---
-title: "Backpressure and Demand"
 description: >-
   Open this when demand, prefetch, BaseSubscriber, or overflow policy is the blocker rather than the business transform itself.
 ---
+
+# Backpressure and Demand
 
 Open this when the pipeline is functionally correct but producer speed, request shape, or queue growth is the real failure mode.
 

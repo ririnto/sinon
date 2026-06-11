@@ -6,7 +6,6 @@ Copy the skeleton below, replace bracketed placeholders, and delete sections tha
 
 ````markdown
 ---
-title: "[System or Service Name] Specification"
 status: draft
 created: [YYYY-MM-DD]
 updated: [YYYY-MM-DD]

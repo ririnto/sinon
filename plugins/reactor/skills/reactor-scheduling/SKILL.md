@@ -2,16 +2,9 @@
 name: reactor-scheduling
 description: >-
   Design Reactor execution context with explicit scheduler choice, publishOn/subscribeOn placement, and blocking-boundary decisions. Use when choosing between `Schedulers.parallel()`, `boundedElastic()`, `single()`, or `immediate()`, diagnosing thread hops, or isolating blocking boundaries in a reactive pipeline.
-metadata:
-  title: "Reactor Scheduling"
-  official_project_url: "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures/schedulers.html"
-  reference_doc_urls:
-    - "https://projectreactor.io/docs/core/3.7.18/reference/coreFeatures/schedulers.html"
-    - "https://projectreactor.io/docs/core/3.7.18/api/"
-  version: "3.7.18"
-  dependencies:
-    - "io.projectreactor:reactor-core:3.7.18"
 ---
+
+# Reactor Scheduling
 
 Choose execution context deliberately in Reactor.
 

@@ -1,8 +1,9 @@
 ---
-title: "Dashboard Provisioning Drift and UI Updates"
 description: >-
   Open this when file-wins behavior, UI edits, delete-on-source-removal, version property behavior, export workflows, or drift debugging is the blocker.
 ---
+
+# Dashboard Provisioning Drift and UI Updates
 
 Use this reference when the delivery path is mostly correct, but source-of-truth behavior is still ambiguous.
 

@@ -1,9 +1,10 @@
 ---
-title: RESEARCH Authoring Guide
 description: >-
   Detailed instructions for writing RESEARCH.md, including section intent,
   timing in the workflow, and evidence-oriented writing practices.
 ---
+
+# RESEARCH Authoring Guide
 
 ## Purpose
 

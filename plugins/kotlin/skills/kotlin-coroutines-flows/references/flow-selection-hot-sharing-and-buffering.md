@@ -1,8 +1,9 @@
 ---
-title: Flow Selection, Hot Sharing, and Buffering
 description: >-
   Open this when Flow justification, hot stream choices, sharing, replay, or buffering semantics are the actual blocker.
 ---
+
+# Flow Selection, Hot Sharing, and Buffering
 
 Open this when you need to justify `Flow`, choose between cold and hot streams, or explain sharing and buffering behavior.
 

@@ -1,8 +1,9 @@
 ---
-title: Platform and Experimental Stdlib Boundaries
 description: >-
   Open this when platform-specific or experimental stdlib APIs need explicit caveats.
 ---
+
+# Platform and Experimental Stdlib Boundaries
 
 Use this reference when the job is to recommend a Kotlin stdlib API responsibly, with the right platform and stability caveats. This reference should be sufficient on its own for that decision.
 

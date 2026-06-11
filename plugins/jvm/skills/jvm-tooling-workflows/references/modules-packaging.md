@@ -1,8 +1,9 @@
 ---
-title: Modules and Packaging Reference
 description: >-
   Reference for JDK modules, packaging workflows, and related build tool decisions.
 ---
+
+# Modules and Packaging Reference
 
 Use this reference when the main blocker is how to turn a known module graph into a runtime image or packaged deliverable without skipping the intermediate validation steps.
 

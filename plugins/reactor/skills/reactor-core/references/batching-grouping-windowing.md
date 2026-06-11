@@ -1,8 +1,9 @@
 ---
-title: "Batching, Grouping, and Windowing"
 description: >-
   Open this when groupBy, window, or buffer changes the pipeline shape and the flow stalls, grows unexpectedly, or becomes hard to reason about.
 ---
+
+# Batching, Grouping, and Windowing
 
 Open this when the blocker is no longer ordinary composition but how elements are partitioned by key, size, or time.
 

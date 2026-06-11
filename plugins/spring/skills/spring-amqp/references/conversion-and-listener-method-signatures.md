@@ -15,7 +15,7 @@ JacksonJsonMessageConverter jsonConverter() {
 }
 ```
 
-Since 4.1.0 the no-arg constructor trusts no packages. Provide the package of your payload types as the trusted package argument.
+The no-arg constructor trusts only `java.util` and `java.lang` by default. Provide the package of your application payload types as the trusted package argument.
 
 ## Listener signature blocker
 

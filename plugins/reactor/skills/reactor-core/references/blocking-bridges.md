@@ -1,8 +1,9 @@
 ---
-title: "Advanced Blocking Bridges"
 description: >-
   Open this when one blocking boundary is not enough and you need multiple blocking boundaries, fromRunnable/fromFuture bridging nuances, block() terminal edges, or virtual-thread considerations.
 ---
+
+# Advanced Blocking Bridges
 
 Open this when a single `Mono.fromCallable(...)` + `subscribeOn(boundedElastic())` bridge is no longer sufficient and the pipeline requires multi-boundary blocking integration, future-based handoff patterns, or terminal bridge semantics.
 

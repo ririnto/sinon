@@ -1,5 +1,4 @@
 ---
-title: "{{title}}"
 description: >-
   {{description}}
 last_updated: "{{last_updated_date}}"
@@ -9,6 +8,8 @@ subject:
   url: "{{subject_url_or_empty_string}}"
 tag: []
 ---
+
+# {{title}}
 
 ## Overview
 

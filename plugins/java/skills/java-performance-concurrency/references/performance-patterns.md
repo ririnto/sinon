@@ -1,10 +1,11 @@
 ---
-title: Performance Review Patterns
 description: >-
   Reference for concrete JFR profiling commands, allocation diagnosis,
   lock contention investigation, and evidence interpretation heuristics
   in Java performance review work.
 ---
+
+# Performance Review Patterns
 
 Open this reference when the bottleneck type is already classified and you still need one of these deeper jobs:
 

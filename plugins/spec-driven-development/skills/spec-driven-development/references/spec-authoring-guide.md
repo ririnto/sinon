@@ -1,9 +1,10 @@
 ---
-title: SPEC Authoring Guide
 description: >-
   Detailed instructions for writing SPEC.md, including what to write in each
   section, when to write it in the workflow, and how to keep it reviewable.
 ---
+
+# SPEC Authoring Guide
 
 ## Purpose
 

@@ -1,8 +1,9 @@
 ---
-title: Turbine Flow Testing
 description: >-
   Open this when step-by-step Flow inspection, cancellation verification, or error-terminal assertions are the blocker.
 ---
+
+# Turbine Flow Testing
 
 Open this when `take(n).toList()` is too coarse and you need item-by-item Flow inspection, explicit completion/cancellation verification, or error-state assertions.
 

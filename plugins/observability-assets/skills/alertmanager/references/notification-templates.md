@@ -1,10 +1,9 @@
 ---
-title: "Alertmanager Notification Templates"
 description: >-
   Open this when notification message shape, template data structures, template functions, or template rendering behavior is the blocker.
 ---
 
-## Alertmanager Notification Templates
+# Alertmanager Notification Templates
 
 Use this reference when the route is already correct, but the notification text itself still needs work.
 

@@ -1,8 +1,9 @@
 ---
-title: SSL and TLS
 description: >-
   Open this when Reactor Netty must serve HTTPS, trust custom certificates, or use mutual TLS.
 ---
+
+# SSL and TLS
 
 ## Open this when
 

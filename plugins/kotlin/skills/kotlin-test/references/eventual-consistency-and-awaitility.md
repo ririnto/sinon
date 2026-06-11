@@ -1,8 +1,9 @@
 ---
-title: Eventual Consistency and Awaitility
 description: >-
   Open this when eventual consistency requires Awaitility rather than scheduler control or bounded collection.
 ---
+
+# Eventual Consistency and Awaitility
 
 Open this when deterministic scheduler control cannot prove the contract and the system is genuinely eventual.
 

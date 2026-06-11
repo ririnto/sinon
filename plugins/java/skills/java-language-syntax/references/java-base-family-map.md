@@ -1,9 +1,10 @@
 ---
-title: Java Base Family Map
 description: >-
   Purpose-oriented lookup guide for choosing foundational java.base package families
   by domain, with representative examples and boundary reminders.
 ---
+
+# Java Base Family Map
 
 Open this reference when the question is no longer just "is this syntax valid?" and has become "which foundational `java.base` family should I reach for first?"
 

@@ -2,14 +2,9 @@
 name: spring-ldap
 description: >-
   Build LDAP directory reads and writes in Spring with LdapTemplate, ODM entry mapping, LDAP repository queries, authentication checks, and embedded LDAP tests. Use when querying directory entries with filters, mapping LDAP attributes to Java objects with `@Entry`, or setting up embedded UnboundID test servers.
-metadata:
-  title: "Spring LDAP"
-  official-project-url: "https://spring.io/projects/spring-ldap"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-ldap/reference/"
-    - "https://docs.spring.io/spring-data/ldap/reference/"
-  version: "4.1.0"
 ---
+
+# Spring LDAP
 
 The latest released Spring LDAP line is 4.1.0. That 4.x line targets Spring Framework 7+, while Spring Boot 3.x still manages the parallel 3.x line, so keep the direct 4.1.0 path in this skill only when the project baseline already matches the 4.x generation. If the job needs `LdapRepository`, the current stable repository module is Spring Data LDAP 4.1.0, which depends on Spring LDAP 4.1.0.
 

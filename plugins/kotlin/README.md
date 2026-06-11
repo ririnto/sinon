@@ -1,8 +1,9 @@
 ---
-title: Kotlin
 description: >-
   Overview of the Kotlin plugin, its included skills, and practical Kotlin workflow coverage.
 ---
+
+# Kotlin
 
 Kotlin is a shared, skill-first plugin for Kotlin application and library work in the Sinon Claude marketplace.
 

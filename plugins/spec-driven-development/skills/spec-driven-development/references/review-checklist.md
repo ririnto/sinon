@@ -1,6 +1,8 @@
 ---
-title: Review Checklist
+
 ---
+
+# Review Checklist
 
 Open this guide when you need the full Spec Review or Implementation Review worksheet beyond the inline checklist in `../SKILL.md`.
 Use it to record each applicable item as `pass`, `fail`, or `n/a` with rationale in reviewer or agent output.

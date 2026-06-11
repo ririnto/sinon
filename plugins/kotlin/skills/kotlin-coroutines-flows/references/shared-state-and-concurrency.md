@@ -1,8 +1,9 @@
 ---
-title: Shared State and Concurrency
 description: >-
   Open this when multiple coroutines touch the same mutable state and you need an explicit concurrency rule.
 ---
+
+# Shared State and Concurrency
 
 Open this when concurrent mutation is the design problem rather than API shape alone.
 

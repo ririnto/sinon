@@ -1,9 +1,10 @@
 ---
-title: Testing Coroutines and Flows
 description: >-
   Open this when writing tests for coroutine or Flow code, controlling virtual time,
   verifying emissions, or testing cancellation behavior.
 ---
+
+# Testing Coroutines and Flows
 
 Open this when the task is testing coroutine or Flow code.
 

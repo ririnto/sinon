@@ -1,9 +1,10 @@
 ---
-title: jcmd Command Reference
 description: >-
   Reference for extended jcmd command families, version-sensitive options, and operational
   constraints for live JVM runtime diagnostics.
 ---
+
+# jcmd Command Reference
 
 Use this reference when the remaining blocker is which extended `jcmd` variant or option to apply after you have identified the target JVM.
 

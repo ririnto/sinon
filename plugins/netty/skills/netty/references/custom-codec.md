@@ -1,8 +1,9 @@
 ---
-title: Custom Codec Development
 description: >-
   Open this when a Netty protocol needs custom decoding, encoding, stateful parsing, or handler sharability decisions.
 ---
+
+# Custom Codec Development
 
 ## Open this when
 

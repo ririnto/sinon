@@ -2,13 +2,9 @@
 name: spring-modulith
 description: >-
   Structure Spring Boot applications as explicit application modules with boundary verification, published module events, and module-interaction tests via Spring Modulith. Use when defining module boundaries, verifying encapsulation with the Modulith test runner, publishing events across modules, or configuring event publication mode.
-metadata:
-  title: "Spring Modulith"
-  official-project-url: "https://spring.io/projects/spring-modulith"
-  reference-doc-urls:
-    - "https://docs.spring.io/spring-modulith/reference/index.html"
-  version: "2.1.0"
 ---
+
+# Spring Modulith
 
 ## Boundaries
 
