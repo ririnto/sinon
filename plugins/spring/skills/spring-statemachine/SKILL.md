@@ -7,12 +7,12 @@ metadata:
   official-project-url: "https://spring.io/projects/spring-statemachine"
   reference-doc-urls:
     - "https://docs.spring.io/spring-statemachine/docs/current/reference/"
-  version: "4.0.1"
+  version: "4.0.2"
 ---
 
-The current stable Spring Statemachine line is 4.0.1. The official project README marks the project as maintenance mode, so prefer the ordinary, well-supported configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
+The current stable Spring Statemachine line is 4.0.2. The official project README marks the project as maintenance mode, so prefer the ordinary, well-supported configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
 
-Spring Statemachine 4.0.1 requires Spring Boot 3.5.x and Spring Framework 6.2.x.
+Spring Statemachine 4.0.2 requires Spring Boot 3.5.x and Spring Framework 6.2.x.
 
 ## Boundaries
 
@@ -66,7 +66,7 @@ Use the BOM once and keep the Statemachine modules versionless underneath it. Wh
         <dependency>
             <groupId>org.springframework.statemachine</groupId>
             <artifactId>spring-statemachine-bom</artifactId>
-            <version>4.0.1</version>
+            <version>4.0.2</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -393,6 +393,7 @@ Return:
 - Make transition side effects idempotent or compensate for duplicate delivery.
 - Persist state only when restart or multi-node continuity is actually required.
 - Keep extended state small and serializable when the machine is persisted.
+- When using Kryo-based persistence (e.g. `RedisStateMachineContextRepository`), configure a class allowlist to prevent arbitrary class deserialization (CVE-2026-41862).
 - Treat state-machine tests as part of the lifecycle compatibility surface.
 
 ## References

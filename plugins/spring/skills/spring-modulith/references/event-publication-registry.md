@@ -19,10 +19,10 @@ The JDBC starter works in JPA-based applications but bypasses the JPA provider f
 
 ## Schema initialization
 
-Enable automatic schema creation for the event publication table:
+Automatic schema creation for the JDBC event publication table is enabled by default. Disable when managing the schema externally:
 
 ```properties
-spring.modulith.events.jdbc.schema-initialization.enabled=true
+spring.modulith.events.jdbc.schema-initialization.enabled=false
 ```
 
 ## Publication lifecycle (2.0)
@@ -124,6 +124,30 @@ spring.modulith.events.republish-outstanding-events-on-restart=true
 ```
 
 Not recommended in multi-instance deployments because other instances may still be processing events.
+
+## EPR opt-out for @TransactionalEventListener
+
+By default, the event publication registry tracks events published via `@TransactionalEventListener`. Opt out when a listener should bypass the registry:
+
+```java
+@Component
+class NonTrackedListener {
+    @TransactionalEventListener
+    @ApplicationModuleListener(publishEvent = false)
+    void on(OrderCompleted event) {
+    }
+}
+```
+
+Use `publishEvent = false` on `@ApplicationModuleListener` to prevent the registry from recording the event publication.
+
+## Neo4j identifier hashing
+
+The Neo4j event publication registry uses SHA-256 for event identifier hashing in 2.1.0. Existing Neo4j EPR deployments on earlier versions store identifiers with a different hash and must reprocess or migrate outstanding publications after upgrading.
+
+## JdbcEventPublicationRepository deletion fix
+
+A bug in versions before 2.1.0 caused `JdbcEventPublicationRepository.delete(…)` to fail under certain conditions. This is fixed in 2.1.0.
 
 ## Decision points
 

@@ -114,6 +114,14 @@ class OrdersScenarioTest {
 4. Optionally add `.matching(Predicate)` to constrain the expected event.
 5. Complete with `.toArrive()`, `.toArriveAndVerify(Consumer)`, or `.andVerify(Consumer)`.
 
+## Cross-thread event visibility
+
+`PublishedEvents` and `Scenario` capture events across threads by default in 2.1.0. Events published in `@Async` listeners or child threads are visible to the test's `PublishedEvents` and `Scenario` assertions without additional configuration.
+
+## Skip-if-unchanged test capability
+
+Tests annotated with `@ApplicationModuleTest` support skipping execution when no changes are detected in the module under test or its transitive dependencies. This integrates with the change-aware test execution from `spring-modulith-junit`.
+
 ## Decision points
 
 | Situation | Use |

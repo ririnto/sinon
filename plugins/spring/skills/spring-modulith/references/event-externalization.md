@@ -85,6 +85,32 @@ When using the MongoDB event publication registry starter, transactions are auto
 spring.modulith.events.mongodb.transaction-management.enabled=false
 ```
 
+## Event outbox
+
+The outbox pattern reliably forwards application events to external systems. Spring Modulith integrates with Namastack Outbox and JobRunr for outbox-based event publication.
+
+### Namastack Outbox
+
+```xml
+<dependency>
+    <groupId>io.namastack</groupId>
+    <artifactId>namastack-outbox</artifactId>
+    <version>1.7</version>
+</dependency>
+```
+
+### JobRunr
+
+```xml
+<dependency>
+    <groupId>org.jobrunr</groupId>
+    <artifactId>jobrunr</artifactId>
+    <version>8.6.1</version>
+</dependency>
+```
+
+When an outbox integration is on the classpath, events tracked by the event publication registry are forwarded through the outbox instead of direct broker publication. The outbox consumer handles the actual delivery to the external system, providing at-least-once delivery guarantees.
+
 ## Decision points
 
 | Situation | Use |
@@ -93,6 +119,7 @@ spring.modulith.events.mongodb.transaction-management.enabled=false
 | AMQP routing key must derive from event payload | SpEL expression in annotation |
 | Event payload needs transformation before externalization | Programmatic `.mapping(...)` |
 | Broker interactions must be sequential | `serialize-externalization=true` |
+| Reliable at-least-once delivery to external systems | Event outbox (Namastack or JobRunr) |
 
 ## Verification rule
 
