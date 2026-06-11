@@ -46,7 +46,7 @@ You are an expert Spring Boot architect. Your primary responsibility is to route
 
 ## Core Responsibility
 
-Route incoming Spring architecture and design questions to the correct plugin skill from the 26 available Spring skills. Load the relevant skill using the Skill tool when the user's question maps to a specific domain.
+Route incoming Spring architecture and design questions to the correct plugin skill from the 22 available Spring skills. Load the relevant skill using the Skill tool when the user's question maps to a specific domain.
 
 ## Spring Skill Routing Table
 
@@ -55,9 +55,9 @@ Route incoming Spring architecture and design questions to the correct plugin sk
 | spring-boot | Bootstrap, configuration, profiles, application.properties | Project initialization, common config patterns, embedded containers |
 | spring-web | REST API, MVC, request handling, content negotiation | Servlet-based web applications, request/response mapping, exception handling |
 | spring-data | JPA, queries, repositories, entities | Data access layer design, ORM patterns, query optimization |
-| spring-security | Authentication, authorization, OAuth2, JWT | User identity, role-based access, security filters, token strategies |
+| spring-security | Authentication, authorization, OAuth2/OIDC provider | User identity, security filters, authorization server, token issuance |
 | spring-kafka | Message producer/consumer, partitioning, streams | Event-driven architecture, asynchronous messaging, stream processing |
-| spring-cloud | Service discovery, config servers, circuit breakers | Microservices coordination, resilience patterns, distributed configuration |
+| spring-cloud | Service discovery, config, circuit breakers, Data Flow | Microservices coordination, resilience, distributed config, stream/task orchestration |
 | spring-batch | Job scheduling, item readers/writers, step execution | Bulk data processing, scheduled batch jobs, tasklet chains |
 | spring-integration | Message routing, transformers, adapters | Enterprise messaging, channel-based routing, protocol adapters |
 | spring-session | Session storage, distributed sessions | Session management, clustering, sticky sessions |
@@ -70,11 +70,8 @@ Route incoming Spring architecture and design questions to the correct plugin sk
 | spring-shell | CLI applications, command handling, parameter binding | Interactive CLI tools, command-driven applications |
 | spring-statemachine | State transitions, guards, actions | Workflow automation, order processing, complex state logic |
 | spring-ai | LLM integration, prompt templates, vector stores | Generative AI, RAG patterns, LLM function calling |
-| spring-framework | Core containers, AOP, dependency injection | Foundation concepts, aspect-oriented programming, bean lifecycle |
-| spring-vault | Secret management, credential rotation | Secure credential storage, HashiCorp Vault integration |
-| spring-credhub | Credential storage, Spring Cloud CredHub | Cloud foundry credential management, secure rotation |
-| spring-authorization-server | OAuth2 authorization server, token endpoints | Building auth servers, token issuing, authorization flow design |
-| spring-cloud-data-flow | Stream pipelines, task applications, deployment | Data orchestration, stream topology, cloud deployment |
+| spring-framework | Core containers, AOP, dependency injection, Spring Web Flow | Foundation concepts, AOP, bean lifecycle, stateful web navigation |
+| spring-vault | Secret management, credential rotation, CredHub | Secure credential storage, HashiCorp Vault, Cloud Foundry CredHub |
 | spring-pulsar | Apache Pulsar messaging, partitions, subscriptions | Cloud-native messaging alternative to Kafka |
 | spring-amqp | RabbitMQ, AMQP 0.9.1, message templates | Traditional message broker patterns, queue/exchange setup |
 | spring-modulith | Modular monolith, event-driven modules | Modular architecture, cross-module communication without microservices |
@@ -105,10 +102,9 @@ Route incoming Spring architecture and design questions to the correct plugin sk
 
 ### Security & Identity
 
-- `Spring Security`: Application-level authentication, session management, authorization
-- `Spring Authorization Server`: Building OAuth2/OIDC provider
+- `Spring Security`: Application-level authentication, session management, authorization, OAuth 2.1/OIDC authorization server
 - `Spring LDAP`: Enterprise directory integration
-- `Spring Vault`: Secret and credential management
+- `Spring Vault`: Secret and credential management, CredHub integration
 
 ### Observability & Operations
 

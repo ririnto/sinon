@@ -1,7 +1,7 @@
 ---
 name: spring-framework
 description: >-
-  Apply core Spring Framework APIs for the container, Java configuration, bean lifecycle, transactions, events, validation, servlet MVC, WebFlux, WebClient, and TestContext support. Use when configuring `@Configuration` classes, managing bean scopes and lifecycle callbacks, setting up declarative transaction boundaries, or wiring `WebFlux` or `WebClient` without Boot autoconfiguration.
+  Apply core Spring Framework APIs for the container, Java configuration, bean lifecycle, transactions, events, validation, servlet MVC, WebFlux, WebClient, and TestContext support. Use when configuring `@Configuration` classes, managing bean scopes and lifecycle callbacks, setting up declarative transaction boundaries, or wiring `WebFlux` or `WebClient` without Boot autoconfiguration. Use when building multi-step stateful web conversations with Spring Web Flow definitions, conversation-scoped state, flow transitions, or flow execution tests.
 metadata:
   title: "Spring Framework"
   official-project-url: "https://spring.io/projects/spring-framework"
@@ -9,6 +9,7 @@ metadata:
     - "https://docs.spring.io/spring-framework/reference/index.html"
     - "https://docs.spring.io/spring-framework/reference/core.html"
     - "https://docs.spring.io/spring-framework/reference/testing.html"
+    - "https://docs.spring.io/spring-webflow/docs/current/reference/"
   version: "7.0.8"
 ---
 
@@ -326,6 +327,106 @@ class ApiExceptionHandler {
 ```
 
 Keep controllers thin: delegate all logic to services. Use `@RestControllerAdvice` as a single exception boundary rather than scattering `try/catch` blocks across controllers.
+
+## Spring Web Flow
+
+Use Web Flow for guided browser conversations such as checkouts, onboarding wizards, and review-confirm-submit journeys that need explicit state transitions. Use standard MVC controller patterns when conversation state is not needed.
+
+Dependency baseline: Spring Web Flow 4.0.0 requires Java 17+, Spring Framework 7.0, and Servlet 6.1.
+
+### Flow registry and executor
+
+Register flows from an XML base path and wire the MVC integration layer:
+
+```java
+@Configuration
+class WebFlowConfig extends AbstractFlowConfiguration {
+    @Bean
+    FlowDefinitionRegistry flowRegistry() {
+        return getFlowDefinitionRegistryBuilder()
+            .setBasePath("/WEB-INF/flows")
+            .addFlowLocationPattern("/**/*-flow.xml")
+            .build();
+    }
+
+    @Bean
+    FlowExecutor flowExecutor() {
+        return getFlowExecutorBuilder(flowRegistry()).build();
+    }
+
+    @Bean
+    FlowHandlerMapping flowHandlerMapping() {
+        FlowHandlerMapping mapping = new FlowHandlerMapping();
+        mapping.setFlowRegistry(flowRegistry());
+        return mapping;
+    }
+
+    @Bean
+    FlowHandlerAdapter flowHandlerAdapter() {
+        FlowHandlerAdapter adapter = new FlowHandlerAdapter();
+        adapter.setFlowExecutor(flowExecutor());
+        return adapter;
+    }
+}
+```
+
+### Flow definition (XML)
+
+Define states as user-visible steps. Use view states for input, decision states for branching, action states for side effects, and end states for completion.
+
+```xml
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow
+                          https://www.springframework.org/schema/webflow/spring-webflow.xsd">
+
+    <view-state id="enterDetails" model="booking">
+        <transition on="next" to="confirm" validate="true"/>
+    </view-state>
+
+    <view-state id="confirm" model="booking">
+        <transition on="confirm" to="bookingConfirmed"/>
+        <transition on="revise" to="enterDetails"/>
+    </view-state>
+
+    <end-state id="bookingConfirmed"/>
+
+</flow>
+```
+
+### Flow definition (Java config)
+
+```java
+class BookingFlow extends AbstractFlowBuilder {
+    @Override
+    public void build(Flow flow) {
+        flow
+            .startState(new ViewState(flow, "enterDetails", true))
+                .on("next").to("confirm")
+            .end()
+            .state(new ViewState(flow, "confirm", true))
+                .on("confirm").to("bookingConfirmed")
+                .on("revise").to("enterDetails")
+            .end()
+            .endState(new EndState(flow, "bookingConfirmed"));
+    }
+}
+```
+
+### Coding procedure
+
+1. Draw the user journey as named states and transitions before writing XML or code.
+2. Name states after user-visible steps or domain actions, not technical implementation details.
+3. Keep mutable user input in flow-scoped variables and reserve conversation scope for truly cross-flow state.
+4. Use `model` binding and validation in view states instead of duplicating form parsing in actions.
+5. Invoke a service only at explicit transition points such as validate, price, reserve, or submit.
+6. Use subflows only when a nested journey is reusable or independently testable.
+7. Store only the state needed to continue the conversation; large aggregates belong in services or persistence.
+8. Test both the happy path and at least one backward or invalid-input path.
+
+### Decision point
+
+Use Web Flow only for multi-step stateful navigation requiring explicit flow definition. For ordinary single-form submissions or stateless request-response cycles, use standard MVC controller patterns instead.
 
 ## Reactive HTTP
 
@@ -745,3 +846,6 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent>
 - Open [references/plain-jdbc-wiring.md](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
 - Open [references/property-binding-conversion-validation.md](references/property-binding-conversion-validation.md) when the task needs advanced data-binding rules, formatter/converter registration, or validation groups beyond the common path.
 - Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when the task needs WebClient filters, transport-specific timeouts, retry selection, or deeper reactive pipeline behavior.
+- Open [references/web-flow-scopes.md](references/web-flow-scopes.md) when Web Flow scope tradeoffs or scope lifetime behavior become the blocker.
+- Open [references/web-flow-validation-and-exception-handling.md](references/web-flow-validation-and-exception-handling.md) when custom Web Flow validation timing or shared recovery paths need deeper guidance.
+- Open [references/web-flow-execution-testing.md](references/web-flow-execution-testing.md) when the ordinary wizard flow test in SKILL.md is not enough and the task needs deeper flow execution testing patterns.

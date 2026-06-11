@@ -59,5 +59,5 @@ class ReactiveSecretReaderTests {
 ## Related blockers
 
 - Return to [SKILL.md](../SKILL.md) when the blocker is the ordinary blocking service boundary.
-- Open [auth-and-credential-variants.md](auth-and-credential-variants.md) when the reactive path is blocked by client authentication setup.
-- Open [advanced-credential-patterns.md](advanced-credential-patterns.md) when the reactive path is blocked by interpolation, certificate generation, or non-default credential families.
+- Open [credhub-auth-and-credential-variants.md](credhub-auth-and-credential-variants.md) when the reactive path is blocked by client authentication setup.
+- Open [credhub-advanced-credential-patterns.md](credhub-advanced-credential-patterns.md) when the reactive path is blocked by interpolation, certificate generation, or non-default credential families.
