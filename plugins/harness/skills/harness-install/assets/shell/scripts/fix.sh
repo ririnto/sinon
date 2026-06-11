@@ -19,6 +19,11 @@ write_tracked_shell_files() {
 # @return Exits with 0 on success, 1 on format or validation failure.
 main() {
     script_dir=$(CDPATH='' cd "$(dirname "$0")" && pwd)
+    if markdownlint_bin=$(command -v markdownlint-cli2 2>&1); then
+        "$markdownlint_bin" --fix
+    else
+        echo 'warning: markdownlint-cli2 not in PATH; skipping Markdown fixes' >&2
+    fi
     if ! shfmt_bin=$(command -v shfmt); then
         echo 'error: shfmt is required for shell formatting. Install shfmt and rerun this fixer.' >&2
         exit 1

@@ -8,13 +8,13 @@ Each stack delegates code-style and structure detection to its native ecosystem 
 
 ### Gradle
 
-- Validator: `./gradlew ktlintCheck` (custom ruleset family `code`, rule ids `code:<kebab>`)
+- Validator: `./gradlew ktlintCheck` (custom ruleset family `code`, rule ids `code:<kebab>`, using the Gradle ktlint plugin's normal project discovery)
 - Custom rules (buildSrc): 13 rules in the `code` ruleset family: `if-statement-braces`, `import-over-fqn`, `kotlin-top-level-declaration-count`, `implicit-lambda-it`, `leading-underscore`, `unchecked-cast-suppression`, `non-null-assertion`, `multiline-doc-style`, `unstructured-logging`, `companion-object-position`, `explicit-property-type`, `terminal-branch-when`, `public-declaration-doc-comment`.
 - EditorConfig knobs: `ktlint_multiline_doc_style_mode`, `ktlint_companion_object_position_position`.
 - Standard ktlint ruleset: also runs alongside custom rules.
 - Script exclusion: Custom rules skip `.gradle.kts` script files.
 - Check command: `./gradlew ktlintCheck`
-- Fix command: `./gradlew ktlintFormat`
+- Fix command: `./gradlew ktlintFormat` runs `markdownlint-cli2 --fix` when it is available on PATH, then uses the Gradle ktlint plugin's normal project discovery.
 
 ### Maven
 
@@ -25,26 +25,26 @@ Each stack delegates code-style and structure detection to its native ecosystem 
 
 ### uv
 
-- Validator: `uv run scripts/check.py` (thin wrapper invoking `uvx --with "ruff>=0.15.16,<0.16.0" ruff check` and `ruff format --check` on Git-tracked Python files)
+- Validator: `uv run scripts/check.py` (thin wrapper invoking `uvx --with "ruff>=0.15.16,<0.16.0" ruff check .` and `ruff format --check .` with Ruff's normal project discovery)
 - Ruff configuration: `ruff.toml` at repository root; keeps Ruff lint defaults and sets ruff format quote style.
 - Custom Python AST conventions: 7 prose-only rules (leading-underscore, multiline-doc-style, unstructured-logging, public-declaration-doc-comment, unchecked-cast-suppression, triple-quote-inline-comment, mutable-collection) — no automated enforcement; documented as code conventions only.
-- Fix command: `uv run scripts/fix.py` (thin wrapper invoking `uvx --with "ruff>=0.15.16,<0.16.0" ruff check --fix` and `ruff format` on Git-tracked Python files)
+- Fix command: `uv run scripts/fix.py` (thin wrapper invoking `markdownlint-cli2 --fix` when it is available on PATH, then `uvx --with "ruff>=0.15.16,<0.16.0" ruff check --fix .` and `ruff format .` with Ruff's normal project discovery)
 - Quote style: ruff format uses double quotes.
 
 ### Bun
 
-- Validator: `bun run check` (package.json script -> `sh scripts/check.sh`: syncs Git hooks, prepares dev dependencies with `bun install --no-save`, then runs `bunx ultracite check --` on Git-tracked JavaScript and TypeScript files; ultracite preset over oxlint).
-- Fix command: `bun run fix` (-> `sh scripts/fix.sh` -> `bun install --no-save` -> `bunx ultracite fix --` on Git-tracked JavaScript and TypeScript files).
+- Validator: `bun run check` (package.json script running packaged `markdownlint-cli2` and `ultracite check`; ultracite preset over oxlint).
+- Fix command: `bun run fix` (package.json script running packaged `markdownlint-cli2 --fix` and `ultracite fix`).
 - Configuration files: `oxlint.config.ts` and `oxfmt.config.ts` (extend `ultracite/oxlint/core` with `core.ignorePatterns` and `ultracite/oxfmt`).
 - JSDoc enforcement (oxlint): `oxlint.config.ts` follows the Ultracite provider shape and relies on `extends: [core]` for the preset plugin set, including the built-in `jsdoc` plugin. It adds a JavaScript-only override for `**/*.{js,jsx,mjs,cjs}` with `jsdoc/require-param`, `jsdoc/require-param-type`, `jsdoc/require-param-name`, `jsdoc/require-returns`, and `jsdoc/require-returns-type` set to `deny`. TypeScript does not need an override for those tag rules because Ultracite core already sets them to `off`.
 - TypeScript public API docs (local oxlint JS plugin): `scripts/tsdoc-plugin.ts` provides `tsdoc/require-export-tsdoc`, which requires TSDoc on directly exported TypeScript top-level functions, directly exported top-level variables/constants, directly exported classes, and public methods/accessors on directly exported classes. The plugin name `tsdoc` is local and does not collide with oxlint's documented built-in plugin names.
 - Plugin style hardening: `sh plugins/harness/scripts/plugin-self-check.sh` enforces style contracts for the Python installer and Bun oxlint JS plugin: no leading-underscore function/class/variable declarations, no one-line Python docstrings on public declarations, and no static `SKIP_TREE_PARTS` directory-name filtering (asset discovery uses `git ls-files` exclusively).
-- Tool self-provisioning: `bun install --no-save` prepares ultracite, oxlint, and oxfmt on first use before `bunx` runs the local executable.
+- Tool provisioning: run `bun install` before `bun run check`; package scripts use installed dependencies and fail if those dependencies are absent or broken.
 
 ### Shell
 
 - Validator: `sh scripts/check.sh` (wrapper invoking native `shellcheck` and `shfmt -d`)
-- Fix command: `sh scripts/fix.sh` (wrapper invoking `shfmt`, then rerunning `shellcheck` and `shfmt -d` through `scripts/check.sh`)
+- Fix command: `sh scripts/fix.sh` (wrapper invoking `markdownlint-cli2 --fix` when it is available on PATH, then `shfmt`, then rerunning `shellcheck` and `shfmt -d` through `scripts/check.sh`)
 - Structural checks (prose-only): file presence, directory presence, empty-directory placeholders, hook shebangs, hook executable bits, hook command parity, CI command parity, symlink safety, scaffold-leak scanning.
 
 ## Structural Conventions (Prose-Only)

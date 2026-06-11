@@ -18,7 +18,11 @@ write_tracked_shell_files() {
 #
 # @return Exits with 0 when all scripts pass lint and format checks, 1 on violations.
 main() {
-    bunx markdownlint-cli2
+    if markdownlint_bin=$(command -v markdownlint-cli2 2>&1); then
+        "$markdownlint_bin"
+    else
+        echo 'warning: markdownlint-cli2 not in PATH; skipping Markdown linting' >&2
+    fi
     failures_file=$(mktemp)
     shell_file_list=$(mktemp)
     trap 'rm -f "$failures_file" "$shell_file_list"' EXIT

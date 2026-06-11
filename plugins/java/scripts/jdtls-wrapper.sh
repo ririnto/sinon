@@ -66,7 +66,10 @@ find_project_root() {
 # @param project_root Project root directory to scan.
 # @return Prints the resolved jar path, or nothing if not found.
 resolve_project_lombok_jar() {
-    "${script_dir}/has-lombok.sh" --resolve-project-jar "$1" || true
+    if project_lombok_jar=$("${script_dir}/has-lombok.sh" --resolve-project-jar "$1"); then
+        printf '%s\n' "${project_lombok_jar}"
+    fi
+    return 0
 }
 
 # Remove any existing -javaagent:*lombok*.jar from JDK_JAVA_OPTIONS.
@@ -131,7 +134,11 @@ maybe_enable_lombok_agent() {
     if detected_project_root=$(find_project_root); then
         project_root="${detected_project_root}"
     fi
-    selected_lombok=$(select_lombok_jar "${project_root}" || true)
+    if selected_lombok=$(select_lombok_jar "${project_root}"); then
+        :
+    else
+        selected_lombok=""
+    fi
     if [ -z "${selected_lombok}" ]; then
         return 0
     fi

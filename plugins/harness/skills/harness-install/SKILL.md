@@ -71,12 +71,12 @@ Install or refresh target-owned repository harness files from this plugin. This 
 
 - The installed harness is target-owned after copying.
 - Git hooks use ecosystem-standard tools: Husky for Bun (`.husky/`), pre-commit framework for uv (`.pre-commit-config.yaml`), and `core.hooksPath` pointing to `.githooks/` for Gradle, Maven, and Shell. The installer activates hooks as a post-install step for Gradle, Maven, Shell, and uv; Bun hooks activate via `bun install` through the Husky `prepare` script.
-- `pre-commit` hooks run the stack lint check (including markdownlint). `pre-push` hooks run the full validation including tests and broader checks where applicable (`./gradlew check`, `./mvnw verify`, `bun test`).
+- `pre-commit` hooks run the stack lint check. Bun always runs packaged markdownlint; non-Bun stacks run markdownlint when `markdownlint-cli2` is installed. `pre-push` hooks run the full validation including tests and broader checks where applicable (`./gradlew check`, `./mvnw verify`, `bun test`).
 - Fresh installs use `CLAUDE.md` as the primary target repository harness contract and `AGENTS.md` as its symlink alias.
 - Refreshes of existing AGENTS-only repositories may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias; either orientation MUST resolve both filenames to the same document.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
 - Plugin skills install, validate, and evolve the harness package; installed target skills and agents guide day-to-day work inside the target repository.
-- Stack-specific check and fix commands run native ecosystem tools against Git-tracked files: Gradle `./gradlew ktlintCheck` and `./gradlew ktlintFormat`; Maven Checkstyle plus Spotless with `git ls-files` and `spotlessFiles`; uv `uv run scripts/check.py` and `uv run scripts/fix.py`; Bun `bun run check` and `bun run fix`; shell `sh scripts/check.sh` and `sh scripts/fix.sh`.
+- Stack-specific check and fix commands run native ecosystem tools: Gradle `./gradlew ktlintCheck` and `./gradlew ktlintFormat` through ktlint project discovery; Maven Checkstyle plus Spotless with `git ls-files` and `spotlessFiles`; uv `uv run scripts/check.py` and `uv run scripts/fix.py` through Ruff project discovery; Bun `bun run check` and `bun run fix`; shell `sh scripts/check.sh` and `sh scripts/fix.sh`.
 
 ## Pitfalls
 

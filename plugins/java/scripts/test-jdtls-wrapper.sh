@@ -78,6 +78,32 @@ run_case() {
     printf '%s\n' "${capture_dir}|${stderr_file}"
 }
 
+# Run jdtls-wrapper.sh with legacy Lombok environment variables.
+#
+# @param case_name Label for this test case (used in capture directory naming).
+# @param workspace_dir Fake project directory to run from.
+# @param jdk_jar_path Lombok jar path for JDK_ASSISTANT_LOMBOK_JAR.
+# @param fallback_jar_path Lombok jar path for LOMBOK_JAR.
+# @return Prints "capture_dir|stderr_file" path pair.
+run_legacy_env_case() {
+    case_name="$1"
+    workspace_dir="$2"
+    jdk_jar_path="$3"
+    fallback_jar_path="$4"
+    capture_dir="${temp_dir}/${case_name}-capture"
+    stderr_file="${temp_dir}/${case_name}.stderr"
+    mkdir -p "${capture_dir}"
+    (
+        cd "${workspace_dir}"
+        PATH="${fake_bin}:$PATH" \
+            JDTLS_CAPTURE_DIR="${capture_dir}" \
+            JDK_ASSISTANT_LOMBOK_JAR="${jdk_jar_path}" \
+            LOMBOK_JAR="${fallback_jar_path}" \
+            "${wrapper_path}" --stdio >"${capture_dir}/stdout.txt" 2>"${stderr_file}"
+    )
+    printf '%s\n' "${capture_dir}|${stderr_file}"
+}
+
 # Run has-lombok.sh --resolve-project-jar in a workspace.
 #
 # @param workspace_dir Project directory to scan.
@@ -139,6 +165,16 @@ cat >"${classpath_workspace}/.classpath" <<EOF
 </classpath>
 EOF
 
+factorypath_workspace="${temp_dir}/factorypath-project"
+mkdir -p "${factorypath_workspace}/lib"
+factorypath_lombok_jar="${factorypath_workspace}/lib/lombok-1.18.40.jar"
+: >"${factorypath_lombok_jar}"
+cat >"${factorypath_workspace}/.factorypath" <<EOF
+<factorypath>
+  <factorypathentry kind="EXTJAR" id="lib/lombok-1.18.40.jar" enabled="true" runInBatchMode="false"/>
+</factorypath>
+EOF
+
 incompatible_workspace="${temp_dir}/incompatible-project"
 mkdir -p "${incompatible_workspace}/lib"
 incompatible_lombok_jar="${incompatible_workspace}/lib/lombok-1.18.2.jar"
@@ -176,6 +212,17 @@ maven_stderr_file=${maven_result#*|}
 assert_contains "-javaagent:${lombok_jar}" "${maven_capture_dir}/jdk_java_options.txt"
 assert_contains "Enabled Lombok support from override source" "${maven_stderr_file}"
 
+legacy_fallback_jar="${temp_dir}/fallback-lombok.jar"
+: >"${legacy_fallback_jar}"
+legacy_result=$(run_legacy_env_case "legacy" "${maven_workspace}" "${lombok_jar}" "${legacy_fallback_jar}")
+legacy_capture_dir=${legacy_result%|*}
+assert_contains "-javaagent:${lombok_jar}" "${legacy_capture_dir}/jdk_java_options.txt"
+assert_contains "--stdio" "${legacy_capture_dir}/args.txt"
+
+fallback_result=$(run_legacy_env_case "fallback" "${maven_workspace}" "" "${legacy_fallback_jar}")
+fallback_capture_dir=${fallback_result%|*}
+assert_contains "-javaagent:${legacy_fallback_jar}" "${fallback_capture_dir}/jdk_java_options.txt"
+
 gradle_result=$(run_case "gradle" "${gradle_workspace}" "${lombok_jar}")
 gradle_capture_dir=${gradle_result%|*}
 gradle_stderr_file=${gradle_result#*|}
@@ -207,6 +254,12 @@ assert_contains "Enabled Lombok support from project source" "${classpath_opt_in
 resolver_output=$(run_resolver_case "${classpath_workspace}")
 if [ "${resolver_output}" != "${project_lombok_jar}" ]; then
     printf '%s\n' "ASSERTION FAILED: expected resolver to return ${project_lombok_jar}, got ${resolver_output}" >&2
+    exit 1
+fi
+
+factorypath_resolver_output=$(run_resolver_case "${factorypath_workspace}")
+if [ "${factorypath_resolver_output}" != "${factorypath_lombok_jar}" ]; then
+    printf '%s\n' "ASSERTION FAILED: expected resolver to return ${factorypath_lombok_jar}, got ${factorypath_resolver_output}" >&2
     exit 1
 fi
 
