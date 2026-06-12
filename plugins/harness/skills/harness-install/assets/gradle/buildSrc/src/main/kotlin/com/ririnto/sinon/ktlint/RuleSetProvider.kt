@@ -22,6 +22,7 @@ class RuleSetProvider : RuleSetProviderV3(RuleSetId("code")) {
             RuleProvider { CompanionObjectPositionKtlintRule() },
             RuleProvider { TerminalBranchWhenKtlintRule() },
             RuleProvider { PublicDeclarationDocCommentKtlintRule() },
-            RuleProvider { ExplicitPropertyTypeKtlintRule() }
+            RuleProvider { ExplicitPropertyTypeKtlintRule() },
+            RuleProvider { SlfDirectLoggingKtlintRule() }
         )
 }
