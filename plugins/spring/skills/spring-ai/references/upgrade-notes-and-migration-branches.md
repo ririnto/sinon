@@ -23,13 +23,13 @@ Open this reference when the task involves:
 <dependency>
     <groupId>org.springframework.ai</groupId>
     <artifactId>spring-ai-bom</artifactId>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
     <type>pom</type>
     <scope>import</scope>
 </dependency>
 ```
 
-Replace `1.1.7` with the target Spring AI version during the upgrade and review starter availability before merging.
+Replace `1.1.8` with the target Spring AI version during the upgrade and review starter availability before merging.
 
 ### 2. Provider starter compatibility check
 
