@@ -94,8 +94,8 @@ With the MCP server starter and annotation scanning enabled, Spring AI discovers
 | Transport | Use when | Pitfall |
 | --- | --- | --- |
 | stdio | Local process, fast startup, containerized tools | Best for local or tightly coupled process boundaries |
-| HTTP/SSE | Remote servers, firewalls, standard HTTP infrastructure | Requires HTTP endpoint availability; SSE is unidirectional |
-| Streamable HTTP | Newer MCP HTTP deployments with request/response semantics | Requires explicit protocol configuration |
+| Streamable HTTP | Remote servers, firewalls, request/response semantics | Default server protocol in MCP SDK 2.0+ |
+| HTTP/SSE | Legacy remote servers | Deprecated in MCP SDK 2.0+; prefer Streamable HTTP for new deployments |
 
 Choose the transport based on deployment topology, not library preference.
 
@@ -151,3 +151,4 @@ Use ordinary `@Tool` for in-process operations. Use MCP tools when the tool impl
 - stdio transports block on read/write. Avoid stdio for tools that may be called concurrently.
 - MCP servers that expose many tools can cause a large prompt payload. Consider filtering the tool list.
 - Authorization between MCP client and server is not handled by the Spring AI library. Configure transport-level security explicitly.
+- MCP SDK 2.0+ validates incoming tool arguments against the tool JSON schema by default. Use `@McpTool` annotations for automatic schema generation, or call `.validateToolInputs(false)` to disable validation.
