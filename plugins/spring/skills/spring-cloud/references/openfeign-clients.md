@@ -40,7 +40,7 @@ InventoryClient inventoryClient(FeignClientBuilder builder) {
 
 ## Gotchas
 
-- Do not use `@Scope("prototype")` on `@FeignClient` beans — the HTTP connection pool will leak.
+- Do not use `@Scope("prototype")` on `@FeignClient` beans; the HTTP connection pool will leak.
 - Encoder and Decoder beans are auto-configured in Boot 4.x (5.0.2+); missing bean errors in earlier versions are resolved.
 
 ## Validation rule

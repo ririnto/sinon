@@ -24,7 +24,7 @@ Spring Cloud Stream 5.0 adds per-binding KTable materialization controls for cac
 
 ## Kafka binder multiple bindings fix (5.0.2)
 
-Kafka Binder did not work correctly with multiple bindings pointing to different topics in the same application. This is fixed in 5.0.2 — verify multi-binding topologies against the updated binder.
+Kafka Binder did not work correctly with multiple bindings pointing to different topics in the same application. This is fixed in 5.0.2; verify multi-binding topologies against the updated binder.
 
 ## MessageRoutingCallback
 
