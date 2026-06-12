@@ -510,7 +510,7 @@ task execution list
 
 ### Security advisories (2025.1.2)
 
-| CVE | Severity | Project | Summary |
+| CVE | Severity | Fixed in | Summary |
 | --- | --- | --- | --- |
 | CVE-2026-40982 | Critical (9.1) | Config 5.0.3 | Directory traversal: crafted URL reads arbitrary server files |
 | CVE-2026-40981 | High (7.5) | Config 5.0.3 | GCP Secrets Manager cross-project access without auth |
