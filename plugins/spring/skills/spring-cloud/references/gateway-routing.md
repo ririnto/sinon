@@ -36,6 +36,39 @@ spring:
           trusted-proxies: "10\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|192\\.168\\.\\d{1,3}\\.\\d{1,3}"
 ```
 
+> [!CAUTION]
+>
+> CVE-2026-47825 (Gateway 5.0.2): WebMVC and WebFlux Gateway Server could forward `X-Forwarded-For` and `Forwarded` headers from untrusted proxies under certain configurations. `NettyServerCustomizer` is now disabled by default. Re-enable only when the downstream proxy chain is explicitly trusted:
+>
+> ```yaml
+> spring:
+>   cloud:
+>     gateway:
+>       server:
+>         webflux:
+>           httpserver:
+>             customizer-enabled: true
+> ```
+
+## StripContextPath filter (5.0.2+)
+
+Remove the context path portion from requests before forwarding to downstream services:
+
+```java
+@Bean
+RouteLocator routes(RouteLocatorBuilder builder) {
+    return builder.routes()
+        .route("api", route -> route.path("/api/catalog/**")
+            .filters(filters -> filters.filter(new StripContextPathGatewayFilterFactory().apply("/api/catalog")))
+            .uri("lb://catalog-service"))
+        .build();
+}
+```
+
+## CodecCustomizer for body filters (5.0.2+)
+
+Body filter codec encoding is customizable through `CodecCustomizer` beans instead of requiring direct `HttpClient` customization.
+
 ## Gateway route blocker
 
 Use Gateway when the service itself must own a routing boundary, edge policy, or route-level filter chain.
