@@ -1,68 +1,54 @@
 package com.ririnto.sinon.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
+import com.pinterest.ktlint.rule.engine.core.api.Rule
+import com.pinterest.ktlint.rule.engine.core.api.Rule.About
+import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtIfExpression
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
 /**
- * Flags terminal if-else expressions that should use when instead.
+ * Flags complete if-else chains that should use when instead.
  */
-class TerminalBranchWhenKtlintRule : KtlintRule(
-    ruleId = RuleId("code:terminal-branch-when"),
-) {
-    override fun visitNode(
+class TerminalBranchWhenKtlintRule :
+    Rule(
+        ruleId = RuleId("code:terminal-branch-when"),
+        about = About()
+    ),
+    RuleAutocorrectApproveHandler {
+    override fun beforeVisitChildNodes(
         node: ASTNode,
-        emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision,
+        emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)?.let { ktFile ->
-            ktFile.accept(
+        (node.psi as? KtFile)
+            ?.takeUnless { ktFile -> ktFile.isScript() }
+            ?.accept(
                 object : KtTreeVisitorVoid() {
-                    override fun visitBlockExpression(expression: KtBlockExpression) {
-                        super.visitBlockExpression(expression)
-                        terminalIfElseExpressions(expression.statements.lastOrNull()).forEach { terminalIf ->
-                            emit(terminalIf.textOffset, "terminal if/else expression in block; use when instead", false)
-                        }
-                    }
-
-                    override fun visitNamedFunction(function: KtNamedFunction) {
-                        super.visitNamedFunction(function)
-                        terminalIfElseExpressions(function.bodyExpression).forEach { terminalIf ->
-                            emit(terminalIf.textOffset, "terminal if/else expression in function `${function.name ?: "unknown"}`; use when instead", false)
-                        }
-                    }
-
-                    override fun visitProperty(property: KtProperty) {
-                        super.visitProperty(property)
-                        if (property.isLocal) {
+                    override fun visitIfExpression(expression: KtIfExpression) {
+                        super.visitIfExpression(expression)
+                        if (expression.isElseIfBranch()) {
                             return
                         }
-                        terminalIfElseExpressions(property.initializer).forEach { terminalIf ->
-                            emit(terminalIf.textOffset, "terminal if/else expression in property `${property.name ?: "property"}`; use when instead", false)
+                        if (expression.hasFinalElseBranch()) {
+                            emit(expression.textOffset, "if/else chain; use when instead", false)
                         }
                     }
-                },
+                }
             )
-        }
     }
 
-    private fun terminalIfElseExpressions(expression: PsiElement?): List<KtIfExpression> =
-        buildList {
-            when (expression) {
-                is KtIfExpression -> {
-                    if (expression.hasFinalElseBranch()) {
-                        add(expression)
-                    }
-                }
-                is KtReturnExpression -> addAll(terminalIfElseExpressions(expression.returnedExpression))
-            }
+    private fun KtIfExpression.isElseIfBranch(): Boolean =
+        nearestParentIfOrFile()?.let { parentIf -> parentIf.`else` == this } == true
+
+    private tailrec fun KtIfExpression.nearestParentIfOrFile(current: PsiElement? = parent): KtIfExpression? =
+        when (current) {
+            null, is KtFile -> null
+            is KtIfExpression -> current
+            else -> nearestParentIfOrFile(current.parent)
         }
 
     private tailrec fun KtIfExpression.hasFinalElseBranch(): Boolean {
