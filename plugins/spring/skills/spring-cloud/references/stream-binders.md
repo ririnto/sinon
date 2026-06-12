@@ -22,6 +22,14 @@ Choose the binder that matches the real broker.
 
 Spring Cloud Stream 5.0 adds per-binding KTable materialization controls for cache and logging in the Kafka Streams binder. Consumer priority ordering is also supported to control which consumers receive messages first.
 
+## Kafka binder multiple bindings fix (5.0.2)
+
+Kafka Binder did not work correctly with multiple bindings pointing to different topics in the same application. This is fixed in 5.0.2 — verify multi-binding topologies against the updated binder.
+
+## MessageRoutingCallback
+
+Route messages to specific handler methods based on message content by implementing `MessageRoutingCallback` and registering it under the `Event Routing` configuration section.
+
 ## Function handler integration in Gateway (2025.0.x)
 
 Spring Cloud Gateway 4.3.x supports `spring-cloud-function` and `spring-cloud-stream` handlers as route targets. This lets gateway routes invoke functions directly instead of proxying to a downstream service.

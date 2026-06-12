@@ -33,6 +33,7 @@ Use composition when the flow is still one logical function chain.
 
 - Do not treat a reusable in-process function catalog as a broker-driven Stream topology.
 - Do not compose functions when separate deployment boundaries are the real need.
+- Function registry `size()` and `names()` are now consistent after concurrent lookups (5.0.3). If upgrading from an earlier version, verify that any custom registry listeners still behave correctly.
 
 ## Validation rule
 

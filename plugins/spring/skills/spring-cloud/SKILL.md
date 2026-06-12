@@ -169,6 +169,19 @@ spring:
 
 Use `optional:` only when startup may continue without the config server. If startup must stop when remote config is unavailable, keep the import explicit and use fail-fast semantics in the backend-specific branch.
 
+Config profile validation can be disabled when the server must serve non-standard profile names:
+
+```yaml
+spring:
+  cloud:
+    config:
+      server:
+        profile-validation:
+          enabled: false
+```
+
+Disable only when the Config Server intentionally serves profiles that are not standard Spring profiles.
+
 ### Refresh scope shape
 
 ```java
@@ -189,6 +202,10 @@ class CatalogProperties {
 ```
 
 Use `@RefreshScope` only for beans that must rebind after a config refresh rather than for ordinary immutable wiring.
+
+> [!NOTE]
+>
+> Commons 5.0.2 fixes `DELETE /actuator/env` to correctly restore `ConfigurationProperties` beans to their initial values before rebinding. In earlier versions, a delete-and-refresh cycle could leave properties in an inconsistent state.
 
 ### Discovery client shape
 
@@ -243,6 +260,10 @@ Customizer<ReactiveResilience4JCircuitBreakerFactory> defaultCustomizer() {
 ```
 
 Put retries or circuit breakers only around genuine remote call boundaries. Do not treat resilience as a global default for local method calls.
+
+> [!NOTE]
+>
+> CircuitBreaker 5.0.2 logs a warning when the default `TimeLimiter` configuration is used without explicit customization. Review and set `TimeLimiterConfig` deliberately instead of relying on defaults.
 
 ### Data Flow task app shape
 
@@ -486,6 +507,19 @@ task execution list
 - Verify task arguments and deployment properties stay aligned with the custom app contract.
 
 ## Production checklist
+
+### Security advisories (2025.1.2)
+
+| CVE | Severity | Project | Summary |
+| --- | --- | --- | --- |
+| CVE-2026-40982 | Critical (9.1) | Config 5.0.3 | Directory traversal: crafted URL reads arbitrary server files |
+| CVE-2026-40981 | High (7.5) | Config 5.0.3 | GCP Secrets Manager cross-project access without auth |
+| CVE-2026-41002 | High (7.2) | Config 5.0.3 | Git base directory TOCTOU race condition |
+| CVE-2026-41004 | Medium | Config 5.0.3 | TRACE logging exposes secrets in plaintext |
+| CVE-2026-22739 | Medium | Config 5.0.2 | Earlier Config security fix |
+| CVE-2026-47825 | High | Gateway 5.0.2 | Untrusted proxy `X-Forwarded-For`/`Forwarded` forwarded |
+
+All CVEs are resolved in 2025.1.2. Upgrade from any earlier 2025.1.x release is strongly recommended.
 
 ### Distributed-system wiring
 

@@ -28,6 +28,10 @@ spring:
           - name: orders-config
 ```
 
+> [!IMPORTANT]
+>
+> `spring.cloud.kubernetes.config.*` and `spring.cloud.kubernetes.secret.*` property trees are deprecated in Spring Cloud Kubernetes 5.0.2. Use the `spring.config.import: kubernetes:` mechanism and the properties under `spring.cloud.kubernetes.config.import.*` instead.
+
 ## Reload shape
 
 ```yaml
@@ -40,7 +44,7 @@ spring:
           mode: EVENT
 ```
 
-Use `EVENT` mode when the cluster can publish change notifications reliably. Keep reload disabled until the source ConfigMaps, refresh-scoped beans, and rebinding expectations are all stable.
+Use `EVENT` mode when the cluster can publish change notifications reliably. Keep reload disabled until the source ConfigMaps, refresh-scoped beans, and rebinding expectations are all stable. Reload polling cycles start lazily in 5.0.2+ — the first poll fires only when the application signals readiness rather than at startup.
 
 ## Gotchas
 
