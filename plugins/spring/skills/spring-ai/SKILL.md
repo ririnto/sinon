@@ -50,6 +50,8 @@ The ordinary Spring AI job is:
 
 ## Dependency baseline
 
+Spring AI 2.0.0 requires Spring Boot 4.0+, Spring Framework 7, Jackson 3, and JSpecify null safety. It is not compatible with Boot 3.x.
+
 Import the Spring AI BOM and add only the starters needed for the current model and optional retrieval path.
 
 ```xml
@@ -58,7 +60,7 @@ Import the Spring AI BOM and add only the starters needed for the current model 
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-bom</artifactId>
-            <version>1.1.8</version>
+            <version>2.0.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -77,7 +79,7 @@ Import the Spring AI BOM and add only the starters needed for the current model 
 </dependencies>
 ```
 
-Add retrieval, image, audio, moderation, or MCP starters only when that surface is part of the current job. Use `spring-ai-starter-model-openai-sdk` instead of `spring-ai-starter-model-openai` when the official OpenAI Java SDK is preferred. Open [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) when the target Spring AI version differs from the version pinned here.
+Add retrieval, image, audio, moderation, or MCP starters only when that surface is part of the current job. Open [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) when the target Spring AI version differs from the version pinned here.
 
 ## First safe setup
 
@@ -181,6 +183,7 @@ record InventorySnapshot(String sku, int availableQuantity) {}
 
 - Start with read-only or otherwise side-effect-safe tools.
 - Treat tool selection as an application contract.
+- `ToolCallingAdvisor` is auto-registered when tools are configured (2.0.0+). Disable globally with `spring.ai.chat.client.tool-calling.enabled=false` or per-call with `AdvisorParams.toolCallingAdvisorAutoRegister(false)`.
 - Open [references/advanced-tool-orchestration.md](references/advanced-tool-orchestration.md) when one tool call must explicitly feed the next.
 - Open [references/tool-set-curation.md](references/tool-set-curation.md) when the blocker is exposing only a curated tool set.
 - Open [references/tool-failure-and-fallback.md](references/tool-failure-and-fallback.md) when the blocker is explicit fallback behavior after tool failure.
