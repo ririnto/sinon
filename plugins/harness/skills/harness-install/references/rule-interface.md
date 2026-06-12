@@ -9,7 +9,7 @@ Each stack delegates code-style and structure detection to its native ecosystem 
 ### Gradle
 
 - Validator: `./gradlew ktlintCheck` (custom ruleset family `code`, rule ids `code:<kebab>`, using the Gradle ktlint plugin's normal project discovery)
-- Custom rules (buildSrc): 13 rules in the `code` ruleset family: `if-statement-braces`, `import-over-fqn`, `kotlin-top-level-declaration-count`, `implicit-lambda-it`, `leading-underscore`, `unchecked-cast-suppression`, `non-null-assertion`, `multiline-doc-style`, `unstructured-logging`, `companion-object-position`, `explicit-property-type`, `terminal-branch-when`, `public-declaration-doc-comment`.
+- Custom rules (buildSrc): 14 rules in the `code` ruleset family: `if-statement-braces`, `import-over-fqn`, `kotlin-top-level-declaration-count`, `implicit-lambda-it`, `leading-underscore`, `unchecked-cast-suppression`, `non-null-assertion`, `multiline-doc-style`, `unstructured-logging`, `companion-object-position`, `explicit-property-type`, `terminal-branch-when`, `public-declaration-doc-comment`, `slf-direct-logging`.
 - EditorConfig knobs: `ktlint_multiline_doc_style_mode`, `ktlint_companion_object_position`, `ktlint_standard_trailing-comma-on-call-site`, `ktlint_standard_trailing-comma-on-declaration-site`.
 - Standard ktlint ruleset: also runs alongside custom rules.
 - Script handling: Expression, statement, naming, and member-style custom rules run on `.kt` and `.kts`; file/API structure rules (`kotlin-top-level-declaration-count`, `public-declaration-doc-comment`) skip `.kts` script files.
