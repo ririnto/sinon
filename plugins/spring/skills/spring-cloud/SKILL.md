@@ -6,7 +6,7 @@ description: >-
 
 # Spring Cloud
 
-The current Boot 4.x Spring Cloud release-train line is 2025.1.x (Oakwood). The latest service release is 2025.1.1. Spring Cloud 2025.0.2 (Northfields) is a parallel Boot 3.5.x line, not a newer replacement. The common path in this skill stays anchored to 2025.1.x unless the project is intentionally on the 3.5.x generation.
+The current Boot 4.x Spring Cloud release-train line is 2025.1.x (Oakwood). The latest service release is 2025.1.2. Spring Cloud 2025.0.2 (Northfields) is a parallel Boot 3.5.x line, not a newer replacement. The common path in this skill stays anchored to 2025.1.x unless the project is intentionally on the 3.5.x generation.
 
 | Release Train | Boot Generation | Notes |
 | --- | --- | --- |
@@ -69,7 +69,7 @@ Import the Spring Cloud BOM once and keep Spring Cloud modules versionless under
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-dependencies</artifactId>
-            <version>2025.1.1</version>
+            <version>2025.1.2</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -294,7 +294,7 @@ This task-app shape assumes a Spring Cloud Task application and therefore keeps 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-dependencies</artifactId>
-            <version>2025.1.1</version>
+            <version>2025.1.2</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
