@@ -52,17 +52,12 @@ spring:
 
 ## StripContextPath filter (5.0.2+)
 
-Remove the context path portion from requests before forwarding to downstream services:
+In the WebMVC variant, add `StripContextPath` before path-manipulating filters when `server.servlet.context-path` is configured:
 
-```java
-@Bean
-RouteLocator routes(RouteLocatorBuilder builder) {
-    return builder.routes()
-        .route("api", route -> route.path("/api/catalog/**")
-            .filters(filters -> filters.filter(new StripContextPathGatewayFilterFactory().apply("/api/catalog")))
-            .uri("lb://catalog-service"))
-        .build();
-}
+```properties
+spring.cloud.gateway.server.webmvc.routes[0].predicates[0]=Path=/microservice-one/**
+spring.cloud.gateway.server.webmvc.routes[0].filters[0]=StripContextPath
+spring.cloud.gateway.server.webmvc.routes[0].filters[1]=StripPrefix=1
 ```
 
 ## CodecCustomizer for body filters (5.0.2+)

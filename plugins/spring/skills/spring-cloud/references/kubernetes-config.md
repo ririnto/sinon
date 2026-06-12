@@ -44,7 +44,7 @@ spring:
           mode: EVENT
 ```
 
-Use `EVENT` mode when the cluster can publish change notifications reliably. Keep reload disabled until the source ConfigMaps, refresh-scoped beans, and rebinding expectations are all stable. Reload polling cycles start lazily in 5.0.2+ — the first poll fires only when the application signals readiness rather than at startup.
+Use `EVENT` mode when the cluster can publish change notifications reliably. Keep reload disabled until the source ConfigMaps, refresh-scoped beans, and rebinding expectations are all stable. Reload polling cycles start lazily in 5.0.2+; the first poll fires only when the application signals readiness rather than at startup.
 
 ## Gotchas
 
