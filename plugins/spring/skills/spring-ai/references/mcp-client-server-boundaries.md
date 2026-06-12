@@ -8,7 +8,7 @@ Keep MCP transport and authorization boundaries explicit. Do not collapse MCP to
 
 - Configuring Spring AI as an MCP client connecting to an external MCP server
 - Exposing Spring AI functions through an MCP server endpoint
-- Choosing the MCP transport protocol (stdio, SSE, or Streamable HTTP)
+- Choosing the MCP transport protocol (stdio, SSE, Streamable HTTP, or Stateless)
 - Handling MCP-specific authorization or authentication
 - Debugging MCP tool resolution or capability negotiation
 
@@ -69,7 +69,7 @@ spring:
   ai:
     mcp:
       server:
-        protocol: SSE
+        protocol: STREAMABLE
         type: SYNC
         annotation-scanner:
           enabled: true
@@ -94,8 +94,8 @@ With the MCP server starter and annotation scanning enabled, Spring AI discovers
 | Transport | Use when | Pitfall |
 | --- | --- | --- |
 | stdio | Local process, fast startup, containerized tools | Best for local or tightly coupled process boundaries |
-| Streamable HTTP | Remote servers, firewalls, request/response semantics | Default server protocol in MCP SDK 2.0+ |
-| HTTP/SSE | Legacy remote servers | Deprecated in MCP SDK 2.0+; prefer Streamable HTTP for new deployments |
+| Streamable HTTP | Remote servers, firewalls, request/response semantics | Preferred HTTP server protocol for Spring AI 2.0+ |
+| HTTP/SSE | Legacy remote servers | Deprecated for Spring AI 2.0+ MCP servers; prefer Streamable HTTP for new deployments |
 
 Choose the transport based on deployment topology, not library preference.
 
@@ -139,7 +139,7 @@ Use ordinary `@Tool` for in-process operations. Use MCP tools when the tool impl
 | --- | --- |
 | Tool lives in the same application | Ordinary `@Tool` annotation |
 | Tool lives in an external process | MCP stdio client |
-| Tool lives on a remote HTTP service | MCP HTTP/SSE client |
+| Tool lives on a remote HTTP service | MCP Streamable HTTP client |
 | Application exposes tools to external MCP clients | MCP server starter plus `@McpTool`/related annotations |
 | Need to compose multiple MCP servers | Register multiple `McpClient` beans and compose in `ChatClient.Builder` |
 | Debugging MCP capability mismatch | Enable debug logging for `McpClient` and inspect the capability list |
@@ -148,7 +148,7 @@ Use ordinary `@Tool` for in-process operations. Use MCP tools when the tool impl
 
 - Do not register an MCP client as an ordinary tool. Use the MCP client integration path instead of pretending the remote tool is an in-process bean.
 - MCP tool resolution happens at registration time. If the MCP server is unavailable when the `McpClient` bean is created, tool registration fails.
-- stdio transports block on read/write. Avoid stdio for tools that may be called concurrently.
+- stdio transports block on read/write. Prefer HTTP transports for long-running or independently scaled concurrent tool workloads.
 - MCP servers that expose many tools can cause a large prompt payload. Consider filtering the tool list.
 - Authorization between MCP client and server is not handled by the Spring AI library. Configure transport-level security explicitly.
-- MCP SDK 2.0+ validates incoming tool arguments against the tool JSON schema by default. Use `@McpTool` annotations for automatic schema generation, or call `.validateToolInputs(false)` to disable validation.
+- Spring AI 2.0 MCP servers validate incoming tool arguments against the tool JSON schema by default. Use `@McpTool` annotations for automatic schema generation, or call `.validateToolInputs(false)` to disable validation.

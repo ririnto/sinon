@@ -17,7 +17,7 @@ Open this reference when the task involves:
 
 ## Version upgrade procedure
 
-### 1. BOM version change
+### BOM version change
 
 ```xml
 <dependency>
@@ -33,14 +33,12 @@ Replace `2.0.0` with the target Spring AI version during the upgrade and review 
 
 ## Upgrading to 2.0.0
 
-Spring AI 2.0.0 is a major release requiring Spring Boot 4.0+, Spring Framework 7, Jackson 3, and JSpecify null safety. It is not compatible with Boot 3.x.
-
-### Breaking changes
+Spring AI 2.0.x supports Spring Boot 4.0.x and 4.1.x.
 
 ### Removed modules and starters
 
 | Removed | Replacement |
-| --- |
+| --- | --- |
 | `spring-ai-starter-model-openai-sdk` | `spring-ai-starter-model-openai` (merged; official openai-java SDK is now the default) |
 | `spring-ai-starter-model-azure-openai` | `spring-ai-starter-model-openai` (Azure OpenAI support folded into standard OpenAI module) |
 | `spring-ai-advisors-vector-store` | `spring-ai-vector-store-advisor` |
@@ -105,9 +103,9 @@ spring.ai.chat.client.tool-calling.enabled=false
 
 `JdbcChatMemoryRepository` adds a `sequence_id BIGINT` column for deterministic message ordering. Existing tables require a schema migration to add this column.
 
-### MCP SDK upgraded to 2.0.0
+### MCP support updated for Spring AI 2.0
 
-SSE MCP transports are deprecated; Streamable HTTP is the default server protocol. Server-side tool input validation is enabled by default. `Tool.inputSchema` changed from `JsonSchema` to `Map`.
+Spring AI 2.0 requires MCP Java SDK 1.0.0 or later in the 1.0.x line. SSE MCP server transports are deprecated in favor of Streamable HTTP. Server-side tool input validation is enabled by default. `Tool.inputSchema` changed from `JsonSchema` to `Map`.
 
 ### Anthropic migrated to official SDK
 
@@ -117,11 +115,11 @@ SSE MCP transports are deprecated; Streamable HTTP is the default server protoco
 
 Tool calling span renamed from `tool_call` to `execute_tool`. New attributes: `spring.ai.tool.type` and `spring.ai.tool.call.id`.
 
-### Removed: ZhipuAI, OCI GenAI, Minimax
+### Community or bridge-maintained providers
 
-These provider integrations have been moved to community repositories.
+MiniMax dedicated support has been removed; use Anthropic support with the MiniMax base URL. OCI GenAI is maintained outside the Spring AI project in community documentation. ZhipuAI is not documented in the Spring AI 2.0 reference; verify community coordinates before recommending it.
 
-### 2. Provider starter compatibility check
+### Provider starter compatibility check
 
 Not every provider starter is available in every Spring AI release. Check the reference documentation for the target version before changing the BOM.
 
@@ -129,7 +127,7 @@ Not every provider starter is available in every Spring AI release. Check the re
 mvn dependency:list | grep spring-ai-starter-model
 ```
 
-### 3. Tool API migration check
+### Tool API migration check
 
 Tool registration APIs can change across release lines. If the target version changes tool registration semantics, update the application seam and tests in the same branch.
 
@@ -139,7 +137,7 @@ ChatClient chatClient = ChatClient.create(chatModel);
 
 Keep the tool registration style aligned with the target Spring AI version instead of mixing examples from different releases.
 
-### 4. Structured output type migration
+### Structured output type migration
 
 When upgrading, verify that the POJO record or class used for structured output still maps correctly.
 
@@ -149,7 +147,7 @@ record ReleaseSummary(String version, List<String> breakingChanges, List<String>
 
 Check that field names, types, and nested records still produce the expected schema used by the model.
 
-### 5. Retrieval configuration migration
+### Retrieval configuration migration
 
 When defaults change, set retrieval controls explicitly so behavior does not drift across versions.
 
@@ -159,15 +157,9 @@ SearchRequest.builder().query(q).topK(5).similarityThreshold(0.72).build();
 
 ## Provider migration rules
 
-### 6. Chat memory advisor migration (2.0.0)
+### Chat memory advisor migration
 
-`PromptChatMemoryAdvisor` has been removed. Use `MessageChatMemoryAdvisor` with an explicit `CONVERSATION_ID` parameter supplied at the call site.
-
-```java
-MessageChatMemoryAdvisor.builder(chatMemory).build()
-// Supply conversation ID at call site:
-// .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, "customer-42"))
-```
+For Spring AI 2.0.0, follow the `PromptChatMemoryAdvisor` removal and explicit `CONVERSATION_ID` guidance in the breaking-change section above.
 
 When moving from one provider family to another:
 
