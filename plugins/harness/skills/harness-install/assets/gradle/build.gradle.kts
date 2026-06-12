@@ -21,7 +21,7 @@ allprojects {
         plugin =
             rootProject.libs.plugins.ktlint
                 .get()
-                .pluginId,
+                .pluginId
     )
     configure<KtlintExtension> {
         version.set(rootProject.libs.versions.ktlint.cli)
@@ -65,4 +65,8 @@ tasks.named("ktlintCheck") {
 
 tasks.named("ktlintFormat") {
     dependsOn("fixMarkdown")
+}
+
+tasks.register("kotlinFormat") {
+    dependsOn(tasks.matching { it.name.startsWith("runKtlintFormatOver") })
 }

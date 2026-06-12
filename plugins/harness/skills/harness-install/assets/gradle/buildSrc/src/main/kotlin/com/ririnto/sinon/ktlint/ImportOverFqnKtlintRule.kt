@@ -1,6 +1,9 @@
 package com.ririnto.sinon.ktlint
 
 import com.pinterest.ktlint.rule.engine.core.api.AutocorrectDecision
+import com.pinterest.ktlint.rule.engine.core.api.Rule
+import com.pinterest.ktlint.rule.engine.core.api.Rule.About
+import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
@@ -16,26 +19,43 @@ import org.jetbrains.kotlin.psi.KtUserType
 /**
  * Flags inline fully qualified Kotlin names that could be imported instead.
  */
-class ImportOverFqnKtlintRule : KtlintRule(
-    ruleId = RuleId("code:import-over-fqn"),
-) {
-    override fun visitNode(
+class ImportOverFqnKtlintRule :
+    Rule(
+        ruleId = RuleId("code:import-over-fqn"),
+        about = About()
+    ),
+    RuleAutocorrectApproveHandler {
+    override fun beforeVisitChildNodes(
         node: ASTNode,
-        emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision,
+        emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)?.let { ktFile ->
-            val importedNames = ktFile.importDirectives
-                .mapNotNull { directive -> directive.importedName?.asString() }
-                .toSet()
+        (node.psi as? KtFile)
+            ?.takeUnless { ktFile -> ktFile.isScript() }
+            ?.let { ktFile ->
+                val importedNames =
+                    ktFile.importDirectives
+                        .mapNotNull { directive -> directive.importedName?.asString() }
+                        .toSet()
 
-            fun addFqnFinding(nameParts: List<String>, element: PsiElement) {
-                if (isPackageQualifiedName(nameParts) && nameParts.lastOrNull() !in importedNames) {
-                    emit(element.textOffset, "fully qualified name `${nameParts.joinToString(".")}` used inline; add an import and use the simple name", false)
+                fun addFqnFinding(
+                    nameParts: List<String>,
+                    element: PsiElement
+                ) {
+                    if (isPackageQualifiedName(nameParts) && nameParts.lastOrNull() !in importedNames) {
+                        emit(
+                            element.textOffset,
+                            "fully qualified name `${
+                                nameParts.joinToString(
+                                    "."
+                                )
+                            }` used inline; add an import and use the simple name",
+                            false
+                        )
+                    }
                 }
-            }
 
-            ktFile.accept(Visitor(importedNames, ::addFqnFinding))
-        }
+                ktFile.accept(Visitor(importedNames, ::addFqnFinding))
+            }
     }
 
     private fun isPackageQualifiedName(parts: List<String>): Boolean =
@@ -46,7 +66,7 @@ class ImportOverFqnKtlintRule : KtlintRule(
 
     private class Visitor(
         private val importedNames: Set<String>,
-        private val addFqnFinding: (List<String>, PsiElement) -> Unit,
+        private val addFqnFinding: (List<String>, PsiElement) -> Unit
     ) : KtTreeVisitorVoid() {
         override fun visitUserType(userType: KtUserType) {
             super.visitUserType(userType)
@@ -59,10 +79,11 @@ class ImportOverFqnKtlintRule : KtlintRule(
             if (userType.parent is KtUserType) {
                 return
             }
-            val fqnParts = generateSequence(userType) { parent -> parent.qualifier }
-                .mapNotNull { ut -> ut.referencedName }
-                .toList()
-                .asReversed()
+            val fqnParts =
+                generateSequence(userType) { parent -> parent.qualifier }
+                    .mapNotNull { ut -> ut.referencedName }
+                    .toList()
+                    .asReversed()
             if (2 <= fqnParts.size && fqnParts.first() !in importedNames) {
                 addFqnFinding(fqnParts, userType)
             }
@@ -94,11 +115,22 @@ class ImportOverFqnKtlintRule : KtlintRule(
 
         private fun expressionParts(expression: KtExpression): List<String> =
             when (expression) {
-                is KtNameReferenceExpression -> listOf(expression.getReferencedName())
-                is KtDotQualifiedExpression -> expressionParts(expression.receiverExpression) +
-                    expression.selectorExpression?.let(::expressionParts).orEmpty()
-                is KtCallExpression -> expression.calleeExpression?.let(::expressionParts).orEmpty()
-                else -> emptyList()
+                is KtNameReferenceExpression -> {
+                    listOf(expression.getReferencedName())
+                }
+
+                is KtDotQualifiedExpression -> {
+                    expressionParts(expression.receiverExpression) +
+                        expression.selectorExpression?.let(::expressionParts).orEmpty()
+                }
+
+                is KtCallExpression -> {
+                    expression.calleeExpression?.let(::expressionParts).orEmpty()
+                }
+
+                else -> {
+                    emptyList()
+                }
             }
     }
 }

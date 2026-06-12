@@ -27,6 +27,8 @@ assert_gradle_assets() {
     require_text "$assets_root/buildSrc/settings.gradle.kts" '../gradle/libs.versions.toml'
     require_text "$assets_root/build.gradle.kts" 'checkMarkdown'
     require_text "$assets_root/build.gradle.kts" 'fixMarkdown'
+    require_text "$assets_root/build.gradle.kts" 'kotlinFormat'
+    require_text "$assets_root/build.gradle.kts" 'runKtlintFormatOver'
     require_text "$assets_root/build.gradle.kts" 'command -v markdownlint-cli2'
     require_text "$assets_root/build.gradle.kts" 'skipping Markdown linting'
     require_text "$assets_root/build.gradle.kts" '"--fix"'
@@ -36,12 +38,20 @@ assert_gradle_assets() {
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ExplicitPropertyTypeKtlintRule.kt" 'code:explicit-property-type'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'code:terminal-branch-when'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'hasFinalElseBranch'
+    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'RuleAutocorrectApproveHandler'
+    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'takeUnless { ktFile -> ktFile.isScript() }'
+    reject_file_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint" 'abstract class KtlintRule'
+    reject_file_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint" ': KtlintRule('
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" 'ExplicitPropertyTypeKtlintRule()'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" 'TerminalBranchWhenKtlintRule()'
     reject_file_contains "$assets_root/.editorconfig" "ktlint_unchecked_cast_suppression_forbidden"
     reject_file_contains "$assets_root/.editorconfig" "ktlint_unchecked_cast_suppression_allowed"
     require_text "$assets_root/.editorconfig" "ij_kotlin_allow_trailing_comma = false"
+    require_text "$assets_root/.editorconfig" "ktlint_companion_object_position = top"
+    reject_file_contains "$assets_root/.editorconfig" "ktlint_companion_object_position_position"
     require_text "$assets_root/.editorconfig" "ktlint_standard_no-wildcard-imports = disabled"
+    require_text "$assets_root/.editorconfig" "ktlint_standard_trailing-comma-on-call-site = disabled"
+    require_text "$assets_root/.editorconfig" "ktlint_standard_trailing-comma-on-declaration-site = disabled"
     require_text "$assets_root/settings.gradle.kts" 'danilopianini.gradle-pre-commit-git-hooks'
     require_text "$assets_root/settings.gradle.kts" 'preCommit'
     require_text "$assets_root/settings.gradle.kts" 'tasks("ktlintCheck")'
