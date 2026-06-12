@@ -23,13 +23,103 @@ Open this reference when the task involves:
 <dependency>
     <groupId>org.springframework.ai</groupId>
     <artifactId>spring-ai-bom</artifactId>
-    <version>1.1.8</version>
+    <version>2.0.0</version>
     <type>pom</type>
     <scope>import</scope>
 </dependency>
 ```
 
-Replace `1.1.8` with the target Spring AI version during the upgrade and review starter availability before merging.
+Replace `2.0.0` with the target Spring AI version during the upgrade and review starter availability before merging.
+
+## Upgrading to 2.0.0
+
+Spring AI 2.0.0 is a major release requiring Spring Boot 4.0+, Spring Framework 7, Jackson 3, and JSpecify null safety. It is not compatible with Boot 3.x.
+
+### Breaking changes
+
+### Removed modules and starters
+
+| Removed | Replacement |
+| --- |
+| `spring-ai-starter-model-openai-sdk` | `spring-ai-starter-model-openai` (merged; official openai-java SDK is now the default) |
+| `spring-ai-starter-model-azure-openai` | `spring-ai-starter-model-openai` (Azure OpenAI support folded into standard OpenAI module) |
+| `spring-ai-advisors-vector-store` | `spring-ai-vector-store-advisor` |
+| `spring-ai-hanadb-store` | Removed; no replacement |
+
+### PromptChatMemoryAdvisor removed
+
+`PromptChatMemoryAdvisor` has been removed entirely. Use `MessageChatMemoryAdvisor`:
+
+```java
+ChatClient chatClient = ChatClient.builder(chatModel)
+    .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
+    .build();
+
+chatClient.prompt()
+    .user("Hello!")
+    .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, "my-session"))
+    .call()
+    .content();
+```
+
+### Conversation ID now required
+
+`ChatMemory.DEFAULT_CONVERSATION_ID` has been removed. Every call through a memory advisor must supply `ChatMemory.CONVERSATION_ID` via the advisor context. The `.conversationId()` builder method on memory advisors has been removed.
+
+### Options immutability
+
+All mutable setter methods have been removed from `ChatOptions` classes. Use the builder pattern exclusively:
+
+```java
+OpenAiChatOptions options = OpenAiChatOptions.builder()
+    .model("gpt-4.1")
+    .temperature(0.7)
+    .build();
+```
+
+### Configuration properties flattened
+
+Properties no longer use `.options` in the path:
+
+```properties
+# Before
+spring.ai.openai.chat.options.model=gpt-4.1
+
+# After
+spring.ai.openai.chat.model=gpt-4.1
+```
+
+### ToolCallingAdvisor auto-registration
+
+`ChatClient` now automatically registers a `ToolCallingAdvisor` when tools are configured. The `internalToolExecutionEnabled` option has been removed. Control tool calling globally:
+
+```properties
+spring.ai.chat.client.tool-calling.enabled=false
+```
+
+### ToolCallingAdvisor manages conversation history
+
+`ToolCallingAdvisor` manages conversation history internally across tool-call iterations by default. Memory advisors only store the final user/assistant exchange. Set `Advisor.DEFAULT_CHAT_MEMORY_PRECEDENCE_ORDER` explicitly if memory is needed inside the tool-call loop.
+
+### JDBC Chat Memory schema change
+
+`JdbcChatMemoryRepository` adds a `sequence_id BIGINT` column for deterministic message ordering. Existing tables require a schema migration to add this column.
+
+### MCP SDK upgraded to 2.0.0
+
+SSE MCP transports are deprecated; Streamable HTTP is the default server protocol. Server-side tool input validation is enabled by default. `Tool.inputSchema` changed from `JsonSchema` to `Map`.
+
+### Anthropic migrated to official SDK
+
+`spring-ai-anthropic` now uses `com.anthropic:anthropic-java`. `AnthropicApi` and its nested types are removed; use `AnthropicChatModel.builder()`. `AnthropicChatOptions.maxTokens` default changed from 500 to 4096.
+
+### Observability changes
+
+Tool calling span renamed from `tool_call` to `execute_tool`. New attributes: `spring.ai.tool.type` and `spring.ai.tool.call.id`.
+
+### Removed: ZhipuAI, OCI GenAI, Minimax
+
+These provider integrations have been moved to community repositories.
 
 ### 2. Provider starter compatibility check
 
@@ -69,15 +159,11 @@ SearchRequest.builder().query(q).topK(5).similarityThreshold(0.72).build();
 
 ## Provider migration rules
 
-### 6. Chat memory advisor migration (1.1.6+)
+### 6. Chat memory advisor migration (2.0.0)
 
-Use `MessageChatMemoryAdvisor` instead of `PromptChatMemoryAdvisor`. with `MessageChatMemoryAdvisor`. Chat memory advisors now require an explicit `CONVERSATION_ID` parameter supplied at the call site.
+`PromptChatMemoryAdvisor` has been removed. Use `MessageChatMemoryAdvisor` with an explicit `CONVERSATION_ID` parameter supplied at the call site.
 
 ```java
-// Previous
-PromptChatMemoryAdvisor.builder(chatMemory).conversationId("default").build()
-
-// After
 MessageChatMemoryAdvisor.builder(chatMemory).build()
 // Supply conversation ID at call site:
 // .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, "customer-42"))
