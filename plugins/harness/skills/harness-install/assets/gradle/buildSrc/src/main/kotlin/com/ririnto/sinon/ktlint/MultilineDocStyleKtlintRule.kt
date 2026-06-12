@@ -50,7 +50,6 @@ class MultilineDocStyleKtlintRule :
             return
         }
         (node.psi as? KtFile)
-            ?.takeUnless { ktFile -> ktFile.isScript() }
             ?.let { ktFile ->
                 ktFile.accept(
                     object : KtTreeVisitorVoid() {

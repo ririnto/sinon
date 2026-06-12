@@ -68,5 +68,5 @@ tasks.named("ktlintFormat") {
 }
 
 tasks.register("kotlinFormat") {
-    dependsOn(tasks.matching { it.name.startsWith("runKtlintFormatOver") })
+    dependsOn(tasks.matching { task -> task.name.startsWith("runKtlintFormatOver") })
 }

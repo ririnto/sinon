@@ -30,7 +30,6 @@ class LeadingUnderscoreKtlintRule :
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
         (node.psi as? KtFile)
-            ?.takeUnless { ktFile -> ktFile.isScript() }
             ?.let { ktFile ->
                 val basename = ktFile.virtualFile?.nameWithoutExtension ?: return@let
                 if (isForbidden(basename)) {

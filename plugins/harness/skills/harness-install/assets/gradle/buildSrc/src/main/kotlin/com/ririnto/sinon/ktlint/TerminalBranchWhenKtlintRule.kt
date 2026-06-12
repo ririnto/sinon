@@ -25,7 +25,6 @@ class TerminalBranchWhenKtlintRule :
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
         (node.psi as? KtFile)
-            ?.takeUnless { ktFile -> ktFile.isScript() }
             ?.accept(
                 object : KtTreeVisitorVoid() {
                     override fun visitIfExpression(expression: KtIfExpression) {

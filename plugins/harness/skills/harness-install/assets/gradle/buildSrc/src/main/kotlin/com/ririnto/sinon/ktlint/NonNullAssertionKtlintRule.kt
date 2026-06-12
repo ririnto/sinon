@@ -7,7 +7,6 @@ import com.pinterest.ktlint.rule.engine.core.api.Rule.About
 import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
-import org.jetbrains.kotlin.psi.KtFile
 
 /**
  * Flags Kotlin non-null assertion operators (`!!`); use safe call, Elvis, or an explicit guard instead.
@@ -22,9 +21,6 @@ class NonNullAssertionKtlintRule :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        if ((node.psi.containingFile as? KtFile)?.isScript() == true) {
-            return
-        }
         if (node.elementType == OPERATION_REFERENCE && node.text == "!!") {
             emit(
                 node.startOffset,
