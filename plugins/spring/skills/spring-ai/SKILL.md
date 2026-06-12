@@ -58,7 +58,7 @@ Import the Spring AI BOM and add only the starters needed for the current model 
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-bom</artifactId>
-            <version>1.1.7</version>
+            <version>1.1.8</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
