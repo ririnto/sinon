@@ -1,8 +1,6 @@
 # Local model runtime
 
-Open this reference when the common-path Spring AI seam in [SKILL.md](../SKILL.md) is already clear and the blocker is a local model runtime for development or offline testing.
-
-## Use this file for one blocker family
+Open this reference when the common-path Spring AI seam in [SKILL.md](../SKILL.md) is already clear and the blocker is Docker Model Runner, development-time services, or a local model runtime for development or offline testing.
 
 Use this file only when the remaining work is a local model runtime, not vector-store provisioning or full environment bootstrap.
 
@@ -18,8 +16,7 @@ spring:
     ollama:
       base-url: http://localhost:11434
       chat:
-        options:
-          model: mistral
+        model: mistral
 ```
 
 If the same local runtime should expose both chat and embeddings, keep those model choices explicit instead of assuming one default fits both.

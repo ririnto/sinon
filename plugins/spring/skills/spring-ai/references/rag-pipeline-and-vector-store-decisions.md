@@ -1,10 +1,10 @@
 # RAG pipeline and vector store decisions
 
-Open this reference when ingestion pipeline design, chunking strategy, embedding model choice, vector store behavior, retrieval tuning, or RAG assembly must be decided.
+Open this reference when ETL pipeline design, ingestion pipeline design, chunking strategy, embedding model choice, vector store behavior, retrieval tuning, or RAG assembly must be decided.
 
 Keep the ordinary path in [SKILL.md](../SKILL.md). Use this file only when retrieval design itself becomes the blocker.
 
-## ETL and document ingestion blocker
+## ETL Pipeline and document ingestion blocker
 
 Problem: Spring AI `Document` ingestion fails silently or produces poor retrieval results downstream.
 

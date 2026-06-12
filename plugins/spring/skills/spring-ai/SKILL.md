@@ -23,8 +23,8 @@ Use this map to keep the official Spring AI surface visible without pushing the 
 | Chat + prompt templates | The feature reads text and returns text or structured data | Provider fit or model capability is the blocker in [references/provider-selection-and-model-capability-fit.md](references/provider-selection-and-model-capability-fit.md) |
 | Structured output | Downstream code needs fields, records, or typed objects | Upgrade or provider behavior changes the output contract in [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) |
 | Tool calling | The model may request a narrow, side-effect-safe application capability | Sequential tool choreography is the blocker in [references/advanced-tool-orchestration.md](references/advanced-tool-orchestration.md), tool-set curation is the blocker in [references/tool-set-curation.md](references/tool-set-curation.md), or fallback policy is the blocker in [references/tool-failure-and-fallback.md](references/tool-failure-and-fallback.md) |
-| Advisors + chat memory | Requests need prompt decoration, history, token-window control, reasoning augmentation, or content safety | Advisor ordering or persistent memory is the blocker in [references/advisors-memory-and-conversation-state.md](references/advisors-memory-and-conversation-state.md) |
-| RAG + vector stores | The answer must use retrieved enterprise context | Ingestion, chunking, embeddings, store choice, or advanced RAG flow design is the blocker in [references/rag-pipeline-and-vector-store-decisions.md](references/rag-pipeline-and-vector-store-decisions.md) |
+| Advisors + chat memory | Requests need prompt decoration, recursive advisor behavior, history, token-window control, reasoning augmentation, or content safety | Advisor ordering or persistent memory is the blocker in [references/advisors-memory-and-conversation-state.md](references/advisors-memory-and-conversation-state.md) |
+| RAG + vector stores | The answer must use retrieved enterprise context | ETL pipeline, ingestion, chunking, embeddings, store choice, or advanced RAG flow design is the blocker in [references/rag-pipeline-and-vector-store-decisions.md](references/rag-pipeline-and-vector-store-decisions.md) |
 | MCP | Tools or prompts cross a process or service boundary | Client/server choice or transport setup is the blocker in [references/mcp-client-server-boundaries.md](references/mcp-client-server-boundaries.md) |
 | Vision + image generation | The feature must inspect images or generate images from prompts | Vision payload shape is the blocker in [references/image-generation-and-vision-inputs.md](references/image-generation-and-vision-inputs.md), multiple-image comparison is the blocker in [references/multiple-image-comparison.md](references/multiple-image-comparison.md), or image-model output is the blocker in [references/image-generation.md](references/image-generation.md) |
 | Audio transcription + speech | The feature transcribes audio or returns synthesized speech | Transcription or TTS configuration is the blocker in [references/audio-transcription-and-speech-output.md](references/audio-transcription-and-speech-output.md) |
@@ -32,7 +32,7 @@ Use this map to keep the official Spring AI surface visible without pushing the 
 | Effective agents | One bounded workflow must route, chain, plan, or iteratively refine work | Routing is the blocker in [references/routing-workflow.md](references/routing-workflow.md), chaining is the blocker in [references/chain-workflow.md](references/chain-workflow.md), stepwise planning is the blocker in [references/planning-and-stepwise-execution.md](references/planning-and-stepwise-execution.md), or loop bounds are the blocker in [references/loop-bounds-and-iteration-control.md](references/loop-bounds-and-iteration-control.md) |
 | Evaluation + testing | Prompt, retrieval, or tool behavior needs repeatable checks | Evaluation harness design is the blocker in [references/testing-and-evaluation-harnesses.md](references/testing-and-evaluation-harnesses.md) |
 | Usage + observability | You need token accounting, latency, tracing, or production debugging | Telemetry or incident diagnosis is the blocker in [references/observability-and-production-debugging.md](references/observability-and-production-debugging.md) |
-| Local development infra | You need local models, vector stores, or containerized dev services | Local model runtime is the blocker in [development services and infra](references/development-services-and-local-infra.md), local vector store provisioning is the blocker in [local vector store setup](references/local-vector-store-dev.md), or full containerized bootstrap is the blocker in [containerized development environment](references/containerized-dev-environment.md) |
+| Local development infra | You need Docker Model Runner, development-time services, Testcontainers, local models, vector stores, or containerized dev services | Local model runtime is the blocker in [development services and infra](references/development-services-and-local-infra.md), local vector store provisioning is the blocker in [local vector store setup](references/local-vector-store-dev.md), or full containerized bootstrap is the blocker in [containerized development environment](references/containerized-dev-environment.md) |
 | Upgrade and migration | Version changes alter starters, APIs, defaults, or provider behavior | Upgrade mechanics are the blocker in [references/upgrade-notes-and-migration-branches.md](references/upgrade-notes-and-migration-branches.md) |
 
 ## Common path
@@ -50,7 +50,7 @@ The ordinary Spring AI job is:
 
 ## Dependency baseline
 
-Spring AI 2.0.0 requires Spring Boot 4.0+, Spring Framework 7, Jackson 3, and JSpecify null safety. It is not compatible with Boot 3.x.
+Spring AI 2.0.x supports Spring Boot 4.0.x and 4.1.x.
 
 Import the Spring AI BOM and add only the starters needed for the current model and optional retrieval path.
 
@@ -91,8 +91,7 @@ spring:
     openai:
       api-key: ${OPENAI_API_KEY}
       chat:
-        options:
-          model: gpt-4o-mini
+        model: gpt-4o-mini
 ```
 
 Start with one provider, one model, and one environment-backed secret. Open [references/provider-selection-and-model-capability-fit.md](references/provider-selection-and-model-capability-fit.md) when model family, context window, latency, cost, or provider fit is still unclear.
