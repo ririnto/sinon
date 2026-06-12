@@ -74,7 +74,6 @@ class UncheckedCastSuppressionKtlintRule :
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
         (node.psi as? KtFile)
-            ?.takeUnless { ktFile -> ktFile.isScript() }
             ?.let { ktFile ->
                 ktFile.accept(
                     object : KtTreeVisitorVoid() {
