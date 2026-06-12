@@ -8,19 +8,20 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleSetId
  * Provider for the custom ktlint rule set.
  */
 class RuleSetProvider : RuleSetProviderV3(RuleSetId("code")) {
-    override fun getRuleProviders(): Set<RuleProvider> = setOf(
-        RuleProvider { IfStatementBracesKtlintRule() },
-        RuleProvider { ImportOverFqnKtlintRule() },
-        RuleProvider { KotlinTopLevelDeclarationCountKtlintRule() },
-        RuleProvider { ImplicitLambdaItKtlintRule() },
-        RuleProvider { LeadingUnderscoreKtlintRule() },
-        RuleProvider { UncheckedCastSuppressionKtlintRule() },
-        RuleProvider { NonNullAssertionKtlintRule() },
-        RuleProvider { MultilineDocStyleKtlintRule() },
-        RuleProvider { UnstructuredLoggingKtlintRule() },
-        RuleProvider { CompanionObjectPositionKtlintRule() },
-        RuleProvider { TerminalBranchWhenKtlintRule() },
-        RuleProvider { PublicDeclarationDocCommentKtlintRule() },
-        RuleProvider { ExplicitPropertyTypeKtlintRule() },
-    )
+    override fun getRuleProviders(): Set<RuleProvider> =
+        setOf(
+            RuleProvider { IfStatementBracesKtlintRule() },
+            RuleProvider { ImportOverFqnKtlintRule() },
+            RuleProvider { KotlinTopLevelDeclarationCountKtlintRule() },
+            RuleProvider { ImplicitLambdaItKtlintRule() },
+            RuleProvider { LeadingUnderscoreKtlintRule() },
+            RuleProvider { UncheckedCastSuppressionKtlintRule() },
+            RuleProvider { NonNullAssertionKtlintRule() },
+            RuleProvider { MultilineDocStyleKtlintRule() },
+            RuleProvider { UnstructuredLoggingKtlintRule() },
+            RuleProvider { CompanionObjectPositionKtlintRule() },
+            RuleProvider { TerminalBranchWhenKtlintRule() },
+            RuleProvider { PublicDeclarationDocCommentKtlintRule() },
+            RuleProvider { ExplicitPropertyTypeKtlintRule() }
+        )
 }
