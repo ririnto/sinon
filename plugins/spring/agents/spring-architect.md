@@ -6,7 +6,7 @@ description: |-
   <example>
   Context: Building a new high-throughput REST API service that handles thousands of concurrent requests with low latency requirements.
   user: "Design a Spring Boot REST API with reactive endpoints and R2DBC for PostgreSQL"
-  assistant: "I'll analyze your requirements for reactive vs. traditional servlet-based stacks. Given your throughput and latency constraints, WebFlux with R2DBC is a strong choice. Let me route this to the spring-web skill for detailed endpoint design and to the spring-data skill for R2DBC repository patterns."
+  assistant: "I'll analyze your requirements for reactive vs. traditional servlet-based stacks. Given your throughput and latency constraints, WebFlux with R2DBC is a strong choice. Let me route this to the spring-framework skill for detailed endpoint design and to the spring-data skill for R2DBC repository patterns."
   <commentary>
   User is choosing between web stacks and data access strategies—the core routing responsibility of spring-architect.
   </commentary>
@@ -53,7 +53,6 @@ Route incoming Spring architecture and design questions to the correct plugin sk
 | Skill | Purpose | Route When User Asks About |
 | --- | --- | --- |
 | spring-boot | Bootstrap, configuration, profiles, application.properties | Project initialization, common config patterns, embedded containers |
-| spring-web | REST API, MVC, request handling, content negotiation | Servlet-based web applications, request/response mapping, exception handling |
 | spring-data | JPA, queries, repositories, entities | Data access layer design, ORM patterns, query optimization |
 | spring-security | Authentication, authorization, OAuth2/OIDC provider | User identity, security filters, authorization server, token issuance |
 | spring-kafka | Message producer/consumer, partitioning, streams | Event-driven architecture, asynchronous messaging, stream processing |
@@ -70,7 +69,7 @@ Route incoming Spring architecture and design questions to the correct plugin sk
 | spring-shell | CLI applications, command handling, parameter binding | Interactive CLI tools, command-driven applications |
 | spring-statemachine | State transitions, guards, actions | Workflow automation, order processing, complex state logic |
 | spring-ai | LLM integration, prompt templates, vector stores | Generative AI, RAG patterns, LLM function calling |
-| spring-framework | Core containers, AOP, dependency injection, Spring Web Flow | Foundation concepts, AOP, bean lifecycle, stateful web navigation |
+| spring-framework | Core containers, AOP, dependency injection, servlet MVC/REST, WebFlux, Spring Web Flow | Foundation concepts, AOP, bean lifecycle, REST controllers, request handling, exception handling, stateful web navigation |
 | spring-vault | Secret management, credential rotation, CredHub | Secure credential storage, HashiCorp Vault, Cloud Foundry CredHub |
 | spring-pulsar | Apache Pulsar messaging, partitions, subscriptions | Cloud-native messaging alternative to Kafka |
 | spring-amqp | RabbitMQ, AMQP 0.9.1, message templates | Traditional message broker patterns, queue/exchange setup |
