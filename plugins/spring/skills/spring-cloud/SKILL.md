@@ -19,7 +19,7 @@ Release trains 2022.0.x and earlier are end-of-life and MUST NOT appear in new w
 
 ## Boundaries
 
-Use `spring-cloud` for release-train-aligned distributed application wiring, external configuration through ConfigData, refresh-aware configuration, service discovery, load-balanced downstream calls, resilience patterns,.
+Use `spring-cloud` for release-train-aligned distributed application wiring, external configuration through ConfigData, refresh-aware configuration, service discovery, load-balanced downstream calls, and resilience patterns.
 
 - Use narrower Spring Cloud branches when the task is specifically about Gateway, OpenFeign, Stream binders, Contract, Bus, Kubernetes, or Vault behavior.
 - In-process integration flows inside one application are outside this skill's scope.

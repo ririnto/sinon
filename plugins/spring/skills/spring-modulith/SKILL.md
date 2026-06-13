@@ -35,7 +35,6 @@ The ordinary Spring Modulith job is:
 | Events must survive listener failures | event publication registry |
 | Events must be reliably forwarded to external systems | event outbox |
 | Domain reacts to calendar boundaries | Moments |
-| Application needs modular Spring Boot auto-configuration slicing | Module Slicing |
 
 Keep named interfaces small and intention-revealing. Prefer events over direct internal bean calls when the interaction does not need immediate synchronous coupling.
 
@@ -326,4 +325,4 @@ Generate C4 component diagrams, per-module diagrams, module canvases, and an agg
 - Open [references/moments.md](references/moments.md) when the application reacts to business-relevant time events such as day, week, or month boundaries.
 - Open [references/event-externalization.md](references/event-externalization.md) when module events must be published to external brokers (Kafka, AMQP, JMS) or forwarded via the outbox pattern (Namastack, JobRunr).
 - Open [references/documentation-generation.md](references/documentation-generation.md) when module arrangement diagrams and canvases must be generated for developer documentation.
-- Open [references/runtime-support.md](references/runtime-support.md) when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, observability, change-aware test execution, or Module Slicing.
+- Open [references/runtime-support.md](references/runtime-support.md) when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, observability, or change-aware test execution.

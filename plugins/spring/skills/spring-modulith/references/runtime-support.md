@@ -1,6 +1,6 @@
 # Runtime Support
 
-Open this reference when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, observability, change-aware test execution, or Module Slicing.
+Open this reference when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, observability, or change-aware test execution.
 
 ## Runtime boundary
 
@@ -94,19 +94,6 @@ The observability support is split into an API artifact and a core artifact:
 
 The API artifact provides observability interfaces used in application code. The core artifact provides the runtime implementation for application module interaction observability.
 
-## Module Slicing
-
-`@ModuleSlicing` enables modular Spring Boot auto-configuration within a single application. When present on the `@SpringBootApplication` class, only auto-configurations matching the declared modules are registered.
-
-```java
-@ModuleSlicing
-@SpringBootApplication
-class Application {
-}
-```
-
-Module slicing filters auto-configurations by their declared module membership. This allows large applications to run only the auto-configurations relevant to their active modules, reducing startup time and avoiding unwanted bean creation.
-
 ## Insight starter
 
 ```xml
@@ -188,7 +175,6 @@ org.springframework.modulith.core.ApplicationModuleSourceFactory=example.CustomA
 | Observability interfaces in application code | `spring-modulith-observability-api` |
 | Runtime observability for module interactions | `spring-modulith-observability` |
 | Skip unaffected module tests during development | `spring-modulith-junit` |
-| Modular auto-configuration filtering | `@ModuleSlicing` |
 
 ## Verification rule
 
