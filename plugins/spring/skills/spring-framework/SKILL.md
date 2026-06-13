@@ -430,12 +430,12 @@ static class HttpServicesConfiguration extends AbstractHttpServiceRegistrar {
 
 ### Message converter configuration
 
-Use `HttpMessageConverters` (new in 7.0) for centralized message converter setup in `WebMvcConfigurer`:
+Override `WebMvcConfigurer.configureMessageConverters(List<HttpMessageConverter<?>>)` to register converters explicitly. Spring Framework 7 ships a Jackson 3 `JacksonJsonHttpMessageConverter`:
 
 ```java
 @Override
-public void configureMessageConverters(HttpMessageConverters.ServerBuilder builder) {
-    builder.jsonMessageConverter(new JacksonJsonHttpMessageConverter(customMapper));
+public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+    converters.add(new JacksonJsonHttpMessageConverter(customMapper));
 }
 ```
 
