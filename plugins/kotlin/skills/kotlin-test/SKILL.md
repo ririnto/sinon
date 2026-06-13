@@ -10,7 +10,7 @@ description: >-
 
 Write clear, deterministic Kotlin tests by proving one observable behavior with the smallest scope that works.
 
-Minimum Kotlin version: 1.9 -- examples use `kotlin.test` baseline assertions, `kotlinx.coroutines.test` (1.7+), JUnit 5 Jupiter APIs, MockK 1.14+, Kotest 6.x, and Turbine 1.2+. All library versions are managed through the project's dependency catalog; pin versions when adopting features from specific releases. This skill covers JVM testing only -- for multiplatform targets, adapt assertions to `kotlin-test-js` or `kotlin-test-native`. Keep the common path centered on `kotlin.test`, `runTest` for suspend code, bounded Flow collection, and direct exception assertions; use blocker references only when virtual time, replay semantics, mocking-library details, or JUnit 5 structure features become the real problem.
+Minimum Kotlin version: 2.1 -- examples use `kotlin.test` baseline assertions, `kotlinx.coroutines.test` (1.7+), JUnit 5 Jupiter APIs, MockK 1.14+, Kotest 6.x, and Turbine 1.2+. All library versions are managed through the project's dependency catalog; pin versions when adopting features from specific releases. This skill covers JVM testing only -- for multiplatform targets, adapt assertions to `kotlin-test-js` or `kotlin-test-native`. Keep the common path centered on `kotlin.test`, `runTest` for suspend code, bounded Flow collection, and direct exception assertions; use blocker references only when virtual time, replay semantics, mocking-library details, or JUnit 5 structure features become the real problem.
 
 ## Operating Rules
 

@@ -10,7 +10,7 @@ description: >-
 
 Design Kotlin coroutine and Flow code with honest async semantics, explicit ownership, and cancellation-safe behavior.
 
-Minimum Kotlin version: 1.9 -- examples use `kotlinx.coroutines` APIs stable since 1.6 (`limitedParallelism`, `callbackFlow`), `kotlinx.coroutines.test` APIs from 1.7+ (`runTest`, `TestDispatcher`), and Flow operators available since 1.5. The `kotlinx-coroutines` library version is managed through the project's dependency catalog; use 1.10.2 or later for full API coverage shown here. Start with the smallest shape that matches the contract, then open a blocker reference only when scope, failure behavior, hot sharing, or concurrent mutation becomes the real problem.
+Minimum Kotlin version: 2.1 -- examples use `kotlinx.coroutines` APIs stable since 1.6 (`limitedParallelism`, `callbackFlow`), `kotlinx.coroutines.test` APIs from 1.7+ (`runTest`, `TestDispatcher`), and Flow operators available since 1.5. The `kotlinx-coroutines` library version is managed through the project's dependency catalog; use 1.11.0 or later for full API coverage shown here. Start with the smallest shape that matches the contract, then open a blocker reference only when scope, failure behavior, hot sharing, or concurrent mutation becomes the real problem.
 
 ## Operating Rules
 

@@ -58,11 +58,11 @@ Important rules:
 - default values are not encoded by default
 - `@Transient` properties need a default value
 - only properties with backing fields are serialized
-- use `kotlinx.datetime.Instant` for precise timestamps on the Kotlin 1.9 baseline; stdlib Instant requires a newer Kotlin baseline
+- use `kotlinx.datetime.Instant` for precise timestamps on the Kotlin 2.1 baseline; stdlib `kotlin.time.Instant` is stable since Kotlin 2.3
 
 Instant note:
 
-- prefer `kotlinx.datetime.Instant` in Kotlin 1.9 models that need portable date-time serialization
+- prefer `kotlinx.datetime.Instant` on the Kotlin 2.1 baseline for models that need portable date-time serialization
 - use one timestamp representation per boundary instead of mixing `kotlinx.datetime.Instant`, newer stdlib Instant, and `java.time.Instant` casually
 
 Contextual serializer shape:
