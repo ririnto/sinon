@@ -162,9 +162,9 @@ Read: file:line:column → error type → caret points to exact token. The `symb
 ### `java --version` Output
 
 ```text
-openjdk 25.0Internal 2026-04-20
-OpenJDK Runtime Environment (build 25.0Internal+12-adhoc.ririnto)
-OpenJDK 64-Bit Server VM (build 25.0Internal+12-adhoc.ririnto, mixed mode, sharing)
+openjdk 25.0.3 2026-04-21
+OpenJDK Runtime Environment (build 25.0.3+9)
+OpenJDK 64-Bit Server VM (build 25.0.3+9, mixed mode, sharing)
 ```
 
 Read: feature version (25 = JDK 25), `Server VM` = server-class JVM, `mixed mode` = JIT + interpreter.
