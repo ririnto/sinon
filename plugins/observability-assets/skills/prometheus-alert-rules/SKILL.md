@@ -26,7 +26,6 @@ groups:
   - name: <group-name>
     interval: <duration>
     limit: <int>
-    concurrency: <int>
     rules:
       - alert: <name> | record: <name>
         expr: <promql>
@@ -37,7 +36,7 @@ groups:
 
 ```
 
-The top-level key is always `groups`. It holds an ordered list of groups. Each group requires `name` and `rules`; `interval`, `limit`, and `concurrency` remain optional. Each rule is either an `alert:` rule or a `record:` rule, and every rule requires `expr` while `for`, `keep_firing_for`, `labels`, and `annotations` stay optional as described in the schema tables below.
+The top-level key is always `groups`. It holds an ordered list of groups. Each group requires `name` and `rules`; `interval` and `limit` remain optional. Each rule is either an `alert:` rule or a `record:` rule, and every rule requires `expr` while `for`, `keep_firing_for`, `labels`, and `annotations` stay optional as described in the schema tables below.
 
 ## Rule Group Schema
 
@@ -46,7 +45,6 @@ The top-level key is always `groups`. It holds an ordered list of groups. Each g
 | `name` | string | yes | -- | Unique identifier for this group. Used in logs and UI. |
 | `interval` | duration | no | global `evaluation_interval` | How often this group's rules are evaluated. |
 | `limit` | integer | no | -- | Maximum number of rules allowed in this group. Exceeding it produces a load error. |
-| `concurrency` | integer | no | 1 | Experimental. Number of goroutines evaluating this group in parallel. |
 | `rules` | list | yes | -- | List of alert or recording rules in this group. |
 
 Group naming convention:
@@ -199,7 +197,7 @@ annotations:
   description: 'Error rate is {{ $value }} over the last 5 minutes.'
 
   description: >-
-    {{ if gt (parseFloat $value) 50 }}Critical{{ else }}Warning{{ end }}:
+    {{ if eq $labels.severity "critical" }}Critical{{ else }}Warning{{ end }}:
     value is {{ $value }}
 
   dashboard: '{{ $externalURL }}/d/my-dashboard?var-job={{ $labels.job }}'
