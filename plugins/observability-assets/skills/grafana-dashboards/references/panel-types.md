@@ -159,7 +159,7 @@ Key `options.justifyMode`: `"auto"`, `"center"`.
       "values": false
     },
     "showThresholdMarkers": true,
-    "showThresholdLabels": true",
+    "showThresholdLabels": true,
     "minVizHeight": 0,
     "minVizWidth": 0
   }
@@ -203,7 +203,7 @@ Key `options.calculation`: same reducer names as reduce transformation.
     "showValue": "auto",
     "stacking": "none",
     "groupWidth": 0.7,
-    "fullHighlight": false",
+    "fullHighlight": false,
     "xTickLabelRotation": 0,
     "xTickLabelSpacing": 0,
     "legend": {
