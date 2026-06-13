@@ -516,7 +516,7 @@ glab mr merge 42 --squash
 glab mr merge 42 --rebase
 
 # Merge when pipeline succeeds (do not merge immediately)
-glab mr merge 42 --when-pipeline-succeeds
+glab mr merge 42 --auto-merge
 
 # Merge and delete source branch
 glab mr merge 42 --remove-source-branch
@@ -532,7 +532,7 @@ glab mr merge 42 --message "Merge feature X"
 | Start new feature with discipline | `glab mr create --draft --title "feat(x): ..." --description "$(cat body.md)" --label "type::feature"` |
 | Add review requirements | `glab mr update <n> --reviewer @maintainer --label "needs-review"` |
 | Ready after tests pass | `glab mr update <n> --ready` |
-| Merge when approved | `glab mr merge <n> --squash --when-pipeline-succeeds` |
+| Merge when approved | `glab mr merge <n> --squash --auto-merge` |
 
 ## Using External Body Files
 
