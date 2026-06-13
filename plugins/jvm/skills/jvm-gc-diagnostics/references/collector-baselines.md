@@ -131,7 +131,7 @@ ZGC tuning entry points:
 
 - ZGC performs well with larger heaps; set `-Xms` equal to `-Xmx` for stability.
 - `-XX:+ZGenerational` is the JDK 21 opt-in flag for generational ZGC. On JDK 22 the option is still accepted with its original opt-in semantics, so a JDK 22 launch that does not pass `-XX:+ZGenerational` runs the non-generational mode. JEP 474 (JDK 23) made generational mode the default and deprecated the option. JEP 490 (JDK 24) obsoleted the option and removed the non-generational code, so on JDK 24 and JDK 25 passing the flag logs a warning and is ignored. JDK 26 is scheduled to expire the option, at which point the JVM will refuse to start if it is specified. Selecting ZGC with `-XX:+UseZGC` alone is the forward-compatible form on all versions from JDK 21 onward; on JDK 21 and JDK 22 add `-XX:+ZGenerational` only when generational mode is explicitly required.
-- `SoftMaxHeapSize` sets a soft heap limit (JDK 21+).
+- `SoftMaxHeapSize` sets a soft heap limit (JDK 13+ for ZGC).
 
 Parallel GC tuning entry points:
 
