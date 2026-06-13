@@ -64,6 +64,7 @@ Route incoming Java architecture and design questions to the correct plugin skil
 
 #### JDK Version Baseline: determine the repository baseline first
 
+- `Java 25 (LTS)`: Latest LTS (GA September 2025); scoped values finalized (JEP 506), structured concurrency still preview (JEP 505)
 - `Java 21 baseline`: Records, sealed types, pattern matching, virtual threads available
 - `Java 17 (LTS)`: Records, sealed types, pattern matching; standard virtual threads from 21+
 - `Java 11+`: Traditional OOP only; consider migrating to 17+ for modern features
