@@ -263,7 +263,7 @@ public interface RetryStrategy {
 - If the question is about syntax availability across Java versions rather than design semantics, that is outside this skill's scope.
 - If the question is about JUnit structure or test-first workflow, that is outside this skill's scope.
 - If the question is about performance tuning or concurrency model selection, that is outside this skill's scope.
-- If the Java baseline does not support records (pre-17), fall back to `final` classes with manual equality and constructor validation.
+- If the Java baseline does not support records (pre-16), fall back to `final` classes with manual equality and constructor validation.
 - If a type owns evolving state or identity-bearing behavior, a record may not fit even when the baseline supports it.
 - If the domain must remain extensible across package or module boundaries, prefer an open interface over a sealed hierarchy.
 
