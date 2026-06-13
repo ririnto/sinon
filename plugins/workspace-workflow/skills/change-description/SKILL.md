@@ -484,7 +484,7 @@ host-cli mr merge 42 --squash
 host-cli mr merge 42 --rebase
 
 # Merge when pipeline succeeds (do not merge immediately)
-host-cli mr merge 42 --when-pipeline-succeeds
+host-cli mr merge 42 --auto-merge
 
 # Merge and delete source branch
 host-cli mr merge 42 --remove-source-branch
@@ -498,7 +498,7 @@ host-cli mr merge 42 --message "Merge feature X"
 | Scenario | Command |
 | --- | --- |
 | Ready after tests pass | `host-cli mr update <n> --ready` |
-| Merge when approved | `host-cli mr merge <n> --squash --when-pipeline-succeeds` |
+| Merge when approved | `host-cli mr merge <n> --squash --auto-merge` |
 
 ## Using External Body Files
 
