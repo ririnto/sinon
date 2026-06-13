@@ -8,7 +8,11 @@ description: >-
 
 Use `spring-cloud-data-flow` for SCDF server and shell operations around existing stream or task estates. Use `spring-cloud` for application-side Spring Cloud dependencies, Spring Cloud Stream, Spring Cloud Task, service discovery, load-balanced clients, and circuit-breaker wiring.
 
-The current public SCDF server artifact line is 2.11.5. Keep examples on the 2.11.x server line for existing estates, and prefer current Spring Cloud Stream or Spring Cloud Task guidance for new application code.
+The current public SCDF server artifact line is 2.11.5. The 2.11.x server line is the last open-source release; later patches (for example 2.11.7) ship only in the Spring Enterprise repository to Tanzu Spring customers. Prefer current Spring Cloud Stream or Spring Cloud Task guidance for new application code.
+
+> [!WARNING]
+>
+> Spring Cloud Data Flow ended open-source development after the 2.11.x line. Spring Cloud Deployer (2.9.x) and Spring Statemachine (4.0.x) ended open-source development in the same announcement. Future releases are commercial-only and available only to Tanzu Spring customers. Keep guidance on the final open-source lines.
 
 ## Common path
 
