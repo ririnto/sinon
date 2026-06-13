@@ -138,7 +138,7 @@ class InventoryProjection {
 }
 ```
 
-Use `@ApplicationModuleListener` when the listener should clearly belong to the cross-module event boundary. The annotation is syntactic sugar for `@Async @Transactional(propagation = REQUIRES_NEW) @TransactionalEventListener`.
+Use `@ApplicationModuleListener` when the listener should clearly belong to the cross-module event boundary. The annotation is syntactic sugar for `@Transactional(propagation = REQUIRES_NEW) @TransactionalEventListener`.
 
 ### Package declaration shape
 
