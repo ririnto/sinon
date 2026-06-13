@@ -8,6 +8,10 @@ description: >-
 
 The current stable Spring Statemachine line is 4.0.2. Prefer the ordinary configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
 
+> [!WARNING]
+>
+> Spring Statemachine ended open-source development after the 4.0.x line, alongside Spring Cloud Data Flow and Spring Cloud Deployer. Future releases are commercial-only and available only to Tanzu Spring customers. 4.0.2 is the last open-source release.
+
 Spring Statemachine 4.0.2 requires Spring Boot 3.5.x and Spring Framework 6.2.x.
 
 ## Boundaries
