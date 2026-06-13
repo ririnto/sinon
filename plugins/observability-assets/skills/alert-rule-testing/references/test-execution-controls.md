@@ -74,29 +74,15 @@ Use when: the rule file contains multiple groups and alerts in one group depend 
 
 `start_timestamp`, `fuzzy_compare`, `group_eval_order`, and per-test `interval` are version-sensitive features. Verify the deployed Prometheus/promtool version supports them before relying on these controls.
 
-## Filtered Execution
+## Focused Execution
 
-Run one named test selection during focused iteration:
-
-```sh
-promtool test rules --run '^api-error-rate$' alerts/api-errors.test.yaml
-
-```
-
-The `--run` argument is a regex matched against test case `name` fields. Examples:
+`promtool test rules` runs every test group in the files you pass; it has no name-filter flag. To focus on a single group during iteration, split that group into its own file, or temporarily move the other groups out of the file.
 
 ```sh
-promtool test rules --run '^api-error' tests/
-
-promtool test rules --run 'firing' tests/
-
-promtool test rules --run '(?!.*slow)' tests/
-
+promtool test rules alerts/api-errors.test.yaml
 ```
 
-These commands run all tests whose names start with `api-error`, all tests whose names contain `firing`, and all tests except names containing `slow`.
-
-Use when: you need to run one named test selection during focused iteration.
+Use when: you need to iterate on one test group without running the whole suite.
 
 ## Time Precision and eval_time Alignment
 
