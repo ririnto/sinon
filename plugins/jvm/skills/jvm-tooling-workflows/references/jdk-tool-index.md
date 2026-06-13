@@ -35,9 +35,9 @@ Use these minimal output shapes to identify the common tool results before narro
 `java --version`:
 
 ```text
-openjdk 25.0Internal 2026-04-20
-OpenJDK Runtime Environment (build 25.0Internal+12-adhoc.ririnto)
-OpenJDK 64-Bit Server VM (build 25.0Internal+12-adhoc.ririnto, mixed mode, sharing)
+openjdk 25.0.3 2026-04-21
+OpenJDK Runtime Environment (build 25.0.3+9)
+OpenJDK 64-Bit Server VM (build 25.0.3+9, mixed mode, sharing)
 ```
 
 `jdeps --print-module-deps app.jar`:
