@@ -199,9 +199,14 @@ Negative histograms are intermediate-only; they cannot be ingested or exchanged 
 | `/` | Division |
 | `%` | Modulo |
 | `^` | Power/exponentiation (right-associative) |
-| `atan2` | Arctangent of y/x (binary, radians, float samples only) |
 
 Defined between: scalar/scalar, vector/scalar, vector/vector (with vector matching).
+
+### Trigonometric binary operators
+
+| Operator | Meaning |
+| --- | --- |
+| `atan2` | Arctangent of y/x (binary, radians, float samples only) |
 
 ## Histogram behavior in arithmetic
 
