@@ -80,7 +80,6 @@ Solution: Match store characteristics to the deployment constraint.
 | Pinecone | Managed vector DB with minimal ops overhead | Cloud-only, per-index pricing |
 | Qdrant | High-dimensional similarity at scale | Separate service required |
 | Redis | Sub-millisecond retrieval is critical | Memory-constrained at scale |
-| SAP Hana | SAP Hana is the enterprise data layer | SAP-specific licensing |
 | Weaviate | Managed vector DB with hybrid search | Cloud or self-hosted |
 | Typesense | Typesense is already the search layer | Vector search is secondary to keyword search |
 | Azure Vector Search | Azure AI Search is the existing search layer | Azure-specific pricing |
