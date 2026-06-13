@@ -18,9 +18,9 @@ Best-practice rules:
 
 - treat the Kotlin stdlib docs as versioned and platform-filtered; examples should read as `Common` first unless the code is intentionally runtime-specific
 - `kotlin.io.path.*` is JVM-only and some APIs are marked `ExperimentalPathApi`; use it only when the module is explicitly on JVM and real filesystem `Path` behavior matters
-- `kotlin.io.encoding` is experimental; use it only when encoding support is actually required, and remember that stream helpers there are JVM-only
-- stdlib Instant is not available on the Kotlin 1.9 baseline; use `kotlinx.datetime.Instant` unless the module intentionally raises its Kotlin baseline
-- `kotlin.uuid` is experimental since Kotlin 2.0; use it only when UUID generation or parsing is genuinely needed
+- `kotlin.io.encoding` is stable since Kotlin 2.2; use it when encoding support is required, and remember that the stream helpers there are JVM-only
+- stdlib `kotlin.time.Instant` is stable since Kotlin 2.3; on the Kotlin 2.1 baseline use `kotlinx.datetime.Instant`, or raise the baseline to 2.3+ for the stdlib type
+- `kotlin.uuid` is stable since Kotlin 2.4 (experimental since 2.0); use it when UUID generation or parsing is genuinely needed
 - `kotlin.contracts` is experimental and is not a common-path recommendation for ordinary application code
 - `Regex` exists across platforms, but options and behavior can differ because JS uses the host `RegExp` behavior with stricter Unicode parsing
 - examples that use `java.io.File`, `BufferedReader`, or other JDK resource types are JVM-specific illustrations even when the surrounding stdlib concept is broader
@@ -49,18 +49,18 @@ private val orderPattern = Regex("""\w+-\d+""")
 
 Use when: the example is multiplatform in principle, but callers should not assume every engine behaves identically.
 
-Experimental API with explicit boundary:
+Recently stabilized API with explicit status:
 
-The experimental status belongs in prose before imports or on a declaration KDoc, not as a detached KDoc before an import.
+State an API's current stability in prose before imports or on a declaration KDoc, not as a detached KDoc before an import. `kotlin.uuid` graduated to Stable in Kotlin 2.4, so it no longer requires an opt-in.
 
 ```kotlin
 import kotlin.uuid.Uuid
 
-/** Creates an experimental UUID value; reevaluate API stability before using as a default. */
-fun createExperimentalId(): Uuid = Uuid.random()
+/** Generates a UUID; stable since Kotlin 2.4, no opt-in required. */
+fun createId(): Uuid = Uuid.random()
 ```
 
-Use when: the API surface is still experimental and callers need to know the example is not a default recommendation.
+Use when: an API recently graduated from experimental and callers should know it is now a stable, default recommendation rather than an opt-in surface.
 
 Experimental contracts with explicit non-default framing:
 
@@ -80,18 +80,18 @@ fun requireNotNullName(name: String?) {
 
 Use when: the team is intentionally opting into contracts and the example must make that non-default status obvious.
 
-Experimental encoding helper with explicit status:
+Encoding helper with explicit platform status:
 
-Encoding remains an experimental API; stream helpers are JVM-only.
+`kotlin.io.encoding.Base64` is stable since Kotlin 2.2; the stream helpers are JVM-only.
 
 ```kotlin
 import kotlin.io.encoding.Base64
 
-/** Encodes bytes with the experimental stdlib encoding API. */
-fun encodeExperimental(raw: ByteArray): String = Base64.encode(raw)
+/** Encodes bytes with the stdlib Base64 API (stable since 2.2); stream helpers are JVM-only. */
+fun encode(raw: ByteArray): String = Base64.encode(raw)
 ```
 
-Use when: the example needs encoding support, but the API should not be mistaken for the unconditional common-path recommendation.
+Use when: the example needs encoding support and callers must know the stream helpers are JVM-only even though the core API is common.
 
 ## Reflection
 

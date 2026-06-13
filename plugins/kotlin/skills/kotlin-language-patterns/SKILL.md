@@ -10,7 +10,7 @@ description: >-
 
 Write idiomatic Kotlin by choosing the smallest language construct or stdlib path that keeps meaning obvious.
 
-Minimum Kotlin version: 1.9 -- examples use `kotlinx.datetime.Instant`, `value class` with `@JvmInline`, `kotlin.io.path.*`, and `fun interface`. Some APIs referenced (e.g., `kotlin.uuid`, `kotlin.io.encoding`) require Kotlin 2.0+ and are marked as experimental where applicable; the stdlib Instant API requires a newer Kotlin baseline and is not used in Kotlin 1.9 examples. Library versions (`kotlinx.serialization`, `kotlinx-datetime`) are managed through the project's dependency catalog; pin versions when adopting features from specific releases. Keep the common path focused on null safety, type modeling, extensions, collection shaping, string handling, boundary error flow, Java interop, and Kotlin-native boundary choices such as serialization, date-time, and JVM filesystem paths, then open a blocker reference only when deeper modeling or adjacent platform topics actually matter.
+Minimum Kotlin version: 2.1 -- examples use `value class` with `@JvmInline`, `kotlin.io.path.*`, and `fun interface`. Newer stdlib surfaces are version-gated and noted where they appear: `kotlin.io.encoding` is stable since Kotlin 2.2, `kotlin.time.Instant` is stable since Kotlin 2.3, and `kotlin.uuid` is stable since Kotlin 2.4; on the 2.1 baseline `kotlinx.datetime.Instant` remains the portable choice for a real moment in time. Library versions (`kotlinx.serialization`, `kotlinx-datetime`) are managed through the project's dependency catalog; pin versions when adopting features from specific releases. Keep the common path focused on null safety, type modeling, extensions, collection shaping, string handling, boundary error flow, Java interop, and Kotlin-native boundary choices such as serialization, date-time, and JVM filesystem paths, then open a blocker reference only when deeper modeling or adjacent platform topics actually matter.
 
 ## Operating Rules
 
@@ -441,7 +441,7 @@ Without `@Throws`, Java sees the method as `throws nothing` and cannot catch the
 Keep adjacent Kotlin-native boundaries in this skill even when their detailed implementation moves to references.
 
 - use `kotlinx.serialization` when the boundary is Kotlin-first model encoding or decoding
-- use `kotlinx.datetime.Instant` for real moments in time on the Kotlin 1.9 baseline, and keep `LocalDate`, `LocalDateTime`, and `TimeZone` in `kotlinx-datetime`
+- use `kotlinx.datetime.Instant` for real moments in time on the Kotlin 2.1 baseline (stdlib `kotlin.time.Instant` is stable since Kotlin 2.3), and keep `LocalDate`, `LocalDateTime`, and `TimeZone` in `kotlinx-datetime`
 - use `java.nio.file.Path` plus `kotlin.io.path.*` on JVM when filesystem semantics matter more than raw strings
 
 ### Keep member ordering predictable
