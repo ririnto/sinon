@@ -289,10 +289,10 @@ promtool test rules alerts/api-errors.test.yaml
 Use when: the test file already exists or has just been edited and you need the first safe validation run.
 If `promtool` is unavailable, stop at a blocked validation state instead of claiming the rule test is ready.
 
-Run a single named test case:
+Run a single test file (promtool has no name-filter flag; split a group into its own file to focus on it):
 
 ```sh
-promtool test rules --run '^api-error-firing$' alerts/api-errors.test.yaml
+promtool test rules alerts/api-errors.test.yaml
 
 ```
 
