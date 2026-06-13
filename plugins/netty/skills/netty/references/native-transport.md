@@ -69,6 +69,18 @@ Choose the classifier that matches the target OS and architecture. The classifie
 ## Conditional fallback
 
 ```java
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.ServerChannel;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.kqueue.KQueueServerSocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 EventLoopGroup bossGroup;
 EventLoopGroup workerGroup;
 Class<? extends ServerChannel> serverChannelClass;
@@ -82,8 +94,8 @@ if (Epoll.isAvailable()) {
     workerGroup = new KQueueEventLoopGroup();
     serverChannelClass = KQueueServerSocketChannel.class;
 } else {
-    bossGroup = new NioEventLoopGroup(1);
-    workerGroup = new NioEventLoopGroup();
+    bossGroup = new MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory());
+    workerGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
     serverChannelClass = NioServerSocketChannel.class;
 }
 ```
