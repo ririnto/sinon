@@ -130,8 +130,17 @@ Use `netty-all` for development convenience or individual modules for production
 TCP server skeleton:
 
 ```java
-EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-EventLoopGroup workerGroup = new NioEventLoopGroup();
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
+import io.netty.channel.EventLoopGroup;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+
+EventLoopGroup bossGroup = new MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory());
+EventLoopGroup workerGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
 try {
     ServerBootstrap bootstrap = new ServerBootstrap();
     bootstrap.group(bossGroup, workerGroup)
@@ -153,7 +162,16 @@ try {
 TCP client skeleton:
 
 ```java
-EventLoopGroup group = new NioEventLoopGroup();
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
+import io.netty.channel.EventLoopGroup;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+
+EventLoopGroup group = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
 try {
     Bootstrap bootstrap = new Bootstrap();
     bootstrap.group(group)
@@ -176,7 +194,17 @@ UDP server skeleton:
 `writeAndFlush` takes ownership of the new reference from `retainedDuplicate`; `SimpleChannelInboundHandler` auto-releases the original `DatagramPacket`.
 
 ```java
-EventLoopGroup group = new NioEventLoopGroup();
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
+import io.netty.channel.EventLoopGroup;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.socket.DatagramPacket;
+import io.netty.channel.socket.nio.NioDatagramChannel;
+
+EventLoopGroup group = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
 try {
     Bootstrap bootstrap = new Bootstrap();
     bootstrap.group(group)
