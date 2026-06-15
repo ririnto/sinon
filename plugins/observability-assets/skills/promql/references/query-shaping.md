@@ -55,7 +55,12 @@ method:http_requests:rate5m
 
 ```
 
-## Matching process: `ignoring(code)` drops `code` from LHS labels before comparison. LHS becomes `{method="get"}` (value 24) and `{method="post"}` (value 6). These match RHS `{method="get"}` (600) and `{method="post"}` (120). The `{method="put"}` entry on LHS has no match (code=501 was filtered out) and `{method="del"}` on RHS has no match
+## One-to-One Matching Process
+
+`ignoring(code)` drops `code` from LHS labels before comparison.
+LHS becomes `{method="get"}` (value 24) and `{method="post"}` (value 6).
+These match RHS `{method="get"}` (600) and `{method="post"}` (120).
+The `{method="put"}` entry on LHS has no match (code=501 was filtered out) and `{method="del"}` on RHS has no match
 
 ## Output: the `get` series is `24 / 600 = 0.04`, and the `post` series is `6 / 120 = 0.05`
 
@@ -69,7 +74,8 @@ Entries with no match on either side are dropped (default behavior).
 
 ## Worked Example: Many-to-One Matching with `group_left`
 
-Same input data as above. This time we want error rate per status code, not aggregated.
+Same input data as above.
+This time we want error rate per status code, not aggregated.
 
 ### Query: error count divided by total requests, keeping all codes
 
@@ -82,7 +88,12 @@ method:http_requests:rate5m
 
 ```
 
-## Matching process: LHS has multiple entries per `method` value (one per `code`). RHS has one entry per `method`. `group_left` declares that LHS is the "many" side. Each RHS entry matches against all LHS entries sharing the same `method`
+## Many-to-One Matching Process
+
+LHS has multiple entries per `method` value (one per `code`).
+RHS has one entry per `method`.
+`group_left` declares that LHS is the "many" side.
+Each RHS entry matches against all LHS entries sharing the same `method`
 
 ## Output: the results keep each left-hand-side `code` label, producing `24 / 600 = 0.04`, `30 / 600 = 0.05`, `6 / 120 = 0.05`, and `21 / 120 = 0.175`
 
@@ -108,7 +119,9 @@ kube_pod_info
 
 ```
 
-Here `kube_pod_info` (the "one" side) carries the `node` label that does not exist on the CPU metric. `group_left(node)` pulls `node` into each output series. Without it, the `node` label would be dropped during matching.
+Here `kube_pod_info` (the "one" side) carries the `node` label that does not exist on the CPU metric.
+`group_left(node)` pulls `node` into each output series.
+Without it, the `node` label would be dropped during matching.
 
 Before using this pattern, verify:
 
@@ -185,6 +198,8 @@ sum(rate(http_requests_total{job="api"}[5m]))
 
 Use `group_left` or `group_right` only when one side carries the join key and the other side carries extra labels that must survive.
 
-Before you copy this pattern, verify that the right-hand metric is a trusted info-style series with exactly one matching series for each join key in the query scope. In federated, multi-cluster, or duplicated-scrape setups, add the extra provenance labels needed to make that uniqueness true before you join.
+Before you copy this pattern, verify that the right-hand metric is a trusted info-style series with exactly one matching series for each join key in the query scope.
+In federated, multi-cluster, or duplicated-scrape setups, add the extra provenance labels needed to make that uniqueness true before you join.
 
-Function-family tradeoffs are covered in the common path of [`../SKILL.md`](../SKILL.md). Use this reference for matching escalation, label-set review, `group_left`/`group_right` justification, and worked input/output examples only.
+Function-family tradeoffs are covered in the common path of [`../SKILL.md`](../SKILL.md).
+Use this reference for matching escalation, label-set review, `group_left`/`group_right` justification, and worked input/output examples only.

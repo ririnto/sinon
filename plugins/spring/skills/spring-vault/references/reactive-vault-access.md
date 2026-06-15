@@ -22,7 +22,8 @@ class ReactiveSecretService {
 }
 ```
 
-Use the versioned reactive key-value operations when the application already knows it is talking to a KV v2 mount. Keep raw `secret/data/...` path handling out of the ordinary reactive path unless the task is explicitly about low-level Vault HTTP semantics.
+Use the versioned reactive key-value operations when the application already knows it is talking to a KV v2 mount.
+Keep raw `secret/data/...` path handling out of the ordinary reactive path unless the task is explicitly about low-level Vault HTTP semantics.
 
 ## Decision points
 

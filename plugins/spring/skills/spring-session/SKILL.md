@@ -1,7 +1,8 @@
 ---
 name: spring-session
 description: >-
-  Replace container bound sessions with Spring Session across Spring Security, WebFlux, and WebSocket endpoints using a chosen backing store and customized cookies or headers. Use when selecting a session repository (Redis, JDBC, Hazelcast), configuring session id transport, wiring shared sessions into Spring Security, or tuning session timeout and concurrency policy.
+  Replace container bound sessions with Spring Session across Spring Security, WebFlux, and WebSocket endpoints using a chosen backing store and customized cookies or headers.
+  Use when selecting a session repository (Redis, JDBC, Hazelcast), configuring session id transport, wiring shared sessions into Spring Security, or tuning session timeout and concurrency policy.
 ---
 
 # Spring Session
@@ -10,13 +11,16 @@ description: >-
 
 Use `spring-session` for session persistence, clustered session sharing, cookie or header-based session id transport, repository choice, principal-indexed session lookup, and framework integration around `HttpSession` or `WebSession`.
 
-- Keep authentication, authorization, CSRF policy, and login flow design outside this skill's scope. Keep `spring-session` focused on where session state lives and how it is resolved.
-- Keep controller, handler, and endpoint design outside this skill's scope. Keep this skill focused on session infrastructure and transport.
+- Keep authentication, authorization, CSRF policy, and login flow design outside this skill's scope.
+  - Keep `spring-session` focused on where session state lives and how it is resolved.
+- Keep controller, handler, and endpoint design outside this skill's scope.
+  - Keep this skill focused on session infrastructure and transport.
 - Keep general Redis data modeling and broad `RedisTemplate` usage outside this skill's scope when the task is not primarily about session storage.
 
 ## Version alignment
 
-Spring Session 4.1.x targets Spring Boot 4.0.x and 4.1.x. Spring Boot manages the Spring Session version; add the session starter and Boot resolves the correct artifact.
+Spring Session 4.1.x targets Spring Boot 4.0.x and 4.1.x.
+Spring Boot manages the Spring Session version; add the session starter and Boot resolves the correct artifact.
 
 Minimum requirements:
 
@@ -39,15 +43,16 @@ The ordinary Spring Session job is:
 ### Branch selector
 
 - Stay in `SKILL.md` for the ordinary servlet path: Redis-backed servlet sessions, explicit timeout and namespace, cookie or header transport choice, indexed-versus-default Redis repository choice, cookie customization, JSON serializer awareness, principal lookup, and store-backed tests.
-- Open [references/jdbc-store.md](references/jdbc-store.md) when the session store is relational and table naming, cleanup, transactions, or JSON attribute storage matter.
-- Open [references/webflux-websession.md](references/webflux-websession.md) when the application is reactive and uses `WebSession` instead of servlet `HttpSession`.
-- Open [references/websocket-integration.md](references/websocket-integration.md) when WebSocket or STOMP traffic must share the same backing session lifecycle as HTTP traffic.
-- Open [references/redis-advanced.md](references/redis-advanced.md) when Redis repository type, session events, JSON serialization, expiration-store behavior, session mapper, or Spring Security listener integration must be customized.
-- Open [references/alternative-repositories.md](references/alternative-repositories.md) only when Redis and JDBC are both poor fits and the deployment already mandates another repository.
+- Open [references/jdbc`-store.md`](references/jdbc-store.md) when the session store is relational and table naming, cleanup, transactions, or JSON attribute storage matter.
+- Open [references/webflux`-websession.md`](references/webflux-websession.md) when the application is reactive and uses `WebSession` instead of servlet `HttpSession`.
+- Open [references/websocket`-integration.md`](references/websocket-integration.md) when WebSocket or STOMP traffic must share the same backing session lifecycle as HTTP traffic.
+- Open [references/redis`-advanced.md`](references/redis-advanced.md) when Redis repository type, session events, JSON serialization, expiration-store behavior, session mapper, or Spring Security listener integration must be customized.
+- Open [references/alternative`-repositories.md`](references/alternative-repositories.md) only when Redis and JDBC are both poor fits and the deployment already mandates another repository.
 
 ## Dependency baseline
 
-Prefer the Spring Session module that matches the store, plus the matching data-access starter or driver support. Start with Redis for the common clustered browser-session path unless the deployment already standardizes on a different store.
+Prefer the Spring Session module that matches the store, plus the matching data-access starter or driver support.
+Start with Redis for the common clustered browser-session path unless the deployment already standardizes on a different store.
 
 ### Redis-backed servlet sessions
 
@@ -79,7 +84,8 @@ implementation 'org.springframework.session:spring-session-jdbc'
 
 - Choose Redis when multiple application nodes need low-latency shared sessions and principal-indexed lookup is useful.
 - Choose JDBC when the deployment already standardizes on a relational database and the session table lifecycle is acceptable.
-- Choose header-based session ids only for API or non-browser clients. Use cookies for browser applications unless an existing API contract forbids them.
+- Choose header-based session ids only for API or non-browser clients.
+  - Use cookies for browser applications unless an existing API contract forbids them.
 
 ### Redis repository choice
 
@@ -148,12 +154,15 @@ HttpSessionIdResolver httpSessionIdResolver() {
 
 ### Serialization rule
 
-The default Redis serializer is acceptable for one application controlling both reads and writes. Switch to JSON serialization when multiple applications, rolling upgrades, or payload inspection requirements make default serialization too brittle.
+The default Redis serializer is acceptable for one application controlling both reads and writes.
+Switch to JSON serialization when multiple applications, rolling upgrades, or payload inspection requirements make default serialization too brittle.
 
 ## Coding procedure
 
-1. Identify whether the application is servlet-based (`HttpSession`) or reactive (`WebSession`). Do not mix the two models in examples or configuration.
-2. Choose the backing store before touching security or controller code. Session infrastructure should be stable first.
+1. Identify whether the application is servlet-based (`HttpSession`) or reactive (`WebSession`).
+   - Do not mix the two models in examples or configuration.
+2. Choose the backing store before touching security or controller code.
+   - Session infrastructure should be stable first.
 3. Set `spring.session.timeout` and the session namespace or table name explicitly so runtime behavior is obvious in operations.
 4. For Redis, choose the repository type explicitly: default for ordinary storage, indexed when principal lookup or session events are required.
 5. Decide how clients carry the session id: cookie for browsers, header for API clients, or a custom resolver only when an existing contract requires it.
@@ -168,11 +177,11 @@ The default Redis serializer is acceptable for one application controlling both 
 
 ## Edge cases
 
-- Open [references/jdbc-store.md](references/jdbc-store.md) when the database schema, cleanup cadence, transaction strategy, or JSON attribute storage needs explicit control.
-- Open [references/webflux-websession.md](references/webflux-websession.md) when the app is reactive and `WebSession` semantics replace servlet `HttpSession` semantics.
-- Open [references/websocket-integration.md](references/websocket-integration.md) when WebSocket or STOMP traffic must close or invalidate alongside the backing HTTP session.
-- Open [references/redis-advanced.md](references/redis-advanced.md) when repository type, session events, listener bridging, expiration-store behavior, session mapper, or JSON serialization must be customized.
-- Open [references/alternative-repositories.md](references/alternative-repositories.md) only when an existing platform standard already mandates Hazelcast, MongoDB, or a custom repository.
+- Open [references/jdbc`-store.md`](references/jdbc-store.md) when the database schema, cleanup cadence, transaction strategy, or JSON attribute storage needs explicit control.
+- Open [references/webflux`-websession.md`](references/webflux-websession.md) when the app is reactive and `WebSession` semantics replace servlet `HttpSession` semantics.
+- Open [references/websocket`-integration.md`](references/websocket-integration.md) when WebSocket or STOMP traffic must close or invalidate alongside the backing HTTP session.
+- Open [references/redis`-advanced.md`](references/redis-advanced.md) when repository type, session events, listener bridging, expiration-store behavior, session mapper, or JSON serialization must be customized.
+- Open [references/alternative`-repositories.md`](references/alternative-repositories.md) only when an existing platform standard already mandates Hazelcast, MongoDB, or a custom repository.
 
 ## Implementation examples
 
@@ -244,7 +253,8 @@ Return:
 
 ## Production checklist
 
-- Keep session payloads small and serialization-safe. Store identifiers and lightweight state, not large object graphs.
+- Keep session payloads small and serialization-safe.
+  - Store identifiers and lightweight state, not large object graphs.
 - Align cookie domain, `SameSite`, and secure flags with the actual deployment topology before release.
 - For Redis, confirm TTL behavior, namespace isolation, repository type, serializer compatibility, and failover latency under node loss.
 - For Redis Cluster with the indexed repository, note that events are subscribed from a single random node; some session indexes may not be cleaned up if the event occurs on a different node.
@@ -253,8 +263,8 @@ Return:
 
 ## References
 
-- Open [references/jdbc-store.md](references/jdbc-store.md) when the store is relational.
-- Open [references/webflux-websession.md](references/webflux-websession.md) when the runtime is reactive.
-- Open [references/websocket-integration.md](references/websocket-integration.md) when messaging and session lifecycle must stay aligned.
-- Open [references/redis-advanced.md](references/redis-advanced.md) when Redis session behavior needs customization beyond the ordinary path.
-- Open [references/alternative-repositories.md](references/alternative-repositories.md) when the platform mandates a non-Redis, non-JDBC repository.
+- Open [references/jdbc`-store.md`](references/jdbc-store.md) when the store is relational.
+- Open [references/webflux`-websession.md`](references/webflux-websession.md) when the runtime is reactive.
+- Open [references/websocket`-integration.md`](references/websocket-integration.md) when messaging and session lifecycle must stay aligned.
+- Open [references/redis`-advanced.md`](references/redis-advanced.md) when Redis session behavior needs customization beyond the ordinary path.
+- Open [references/alternative`-repositories.md`](references/alternative-repositories.md) when the platform mandates a non-Redis, non-JDBC repository.

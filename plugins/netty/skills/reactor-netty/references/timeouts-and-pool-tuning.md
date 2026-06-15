@@ -55,4 +55,4 @@ Mono<String> body = HttpClient.create()
 - tune the pool only when reuse and concurrency are actual bottlenecks
 - keep retry policy at the reactive boundary, not inside low-level handlers
 - use timeouts to fail fast, not to hide slow downstream systems
-- when tuning a connection pool, see [event-loop-and-resources.md](./event-loop-and-resources.md) for ordered disposal of custom resources (server → provider → loop resources)
+- when tuning a connection pool, see [`event-loop-and-resources.md`](./event-loop-and-resources.md) for ordered disposal of custom resources (server → provider → loop resources)

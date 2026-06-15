@@ -7,8 +7,7 @@ subject:
   name: "Demo Library"
   version: "1.0.0"
   url: "https://example.com/demo-lib"
-tag:
-  - research
+tag: research
 ---
 
 # Demo Library Research

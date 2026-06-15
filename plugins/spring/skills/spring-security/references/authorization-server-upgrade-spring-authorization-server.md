@@ -8,7 +8,8 @@ Problem: a version upgrade changes endpoint behavior, JWK handling, claims, or r
 
 Solution: treat the dependency upgrade as a compatibility review across issuer, keys, claims, and registered-client data.
 
-Spring Authorization Server `1.5.8` is the final standalone generation. The current active line is `7.1.0`, where authorization-server work continues under Spring Security 7.
+Spring Authorization Server `1.5.8` is the final standalone generation.
+The current active line is `7.1.0`, where authorization-server work continues under Spring Security 7.
 
 ```xml
 <dependency>

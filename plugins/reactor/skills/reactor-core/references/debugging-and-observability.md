@@ -48,7 +48,8 @@ final class LoggedPipeline {
 }
 ```
 
-The category string appears in every logged line. Filter logs by category to isolate one pipeline from others running in the same process.
+The category string appears in every logged line.
+Filter logs by category to isolate one pipeline from others running in the same process.
 
 ## `doOnEach(...)` with per-signal `ContextView`
 
@@ -69,7 +70,8 @@ final class ContextLogging {
 }
 ```
 
-`doOnEach` fires for every signal type: onNext, onError, onComplete. Always check the signal type before accessing value or context.
+`doOnEach` fires for every signal type: onNext, onError, onComplete.
+Always check the signal type before accessing value or context.
 
 ## Conditional inspection without side effects
 

@@ -1,7 +1,8 @@
 ---
 name: spring-boot
 description: >-
-  Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging. Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, packaging executable archives, configuring Jackson multi-format features, setting up gRPC server or client, using @RedisListener, or managing 4.1.0 changes.
+  Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging.
+  Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, packaging executable archives, configuring Jackson multi-format features, setting up gRPC server or client, using @RedisListener, or managing 4.1.0 changes.
 ---
 
 # Spring Boot
@@ -23,7 +24,8 @@ The ordinary Spring Boot job is:
 4. Follow simple Boot wiring conventions: one entrypoint, constructor injection, explicit runners for startup work, and no scattered `@Value` usage for durable settings.
 5. Choose the narrowest test slice that proves the feature before escalating to `@SpringBootTest`.
 6. Enable only the Actuator endpoints and operational signals the deployment actually needs.
-7. Default to an executable jar first. Treat OCI images, war packaging, and native-image constraints as conditional branches.
+7. Default to an executable jar first.
+   - Treat OCI images, war packaging, and native-image constraints as conditional branches.
 
 ## Dependency baseline
 
@@ -134,7 +136,9 @@ If the deployment baseline is container-native, keep the image build path explic
 
 ### Jackson multi-format configuration
 
-Common read/write features across Jackson formats (JSON, CBOR, XML) are now configurable via `spring.jackson.read.*` and `spring.jackson.write.*` properties. Factory-level read/write constraints use `spring.jackson.factory.*`. Auto-configured mappers use a `HandlerInstantiator` that resolves handler instances from application context beans.
+Common read/write features across Jackson formats (JSON, CBOR, XML) are now configurable via `spring.jackson.read.*` and `spring.jackson.write.*` properties.
+Factory-level read/write constraints use `spring.jackson.factory.*`.
+Auto-configured mappers use a `HandlerInstantiator` that resolves handler instances from application context beans.
 
 ```yaml
 spring:
@@ -152,11 +156,12 @@ spring:
 
 For advanced customization, register `JsonMapperBuilderCustomizer`, `JsonFactoryBuilderCustomizer`, `CborFactoryBuilderCustomizer`, or `XmlFactoryBuilderCustomizer` beans.
 
-Open [references/jackson-configuration.md](references/jackson-configuration.md) when the blocker is Jackson multi-format setup, factory constraints, or HandlerInstantiator wiring.
+Open [references/jackson`-configuration.md`](references/jackson-configuration.md) when the blocker is Jackson multi-format setup, factory constraints, or HandlerInstantiator wiring.
 
 ### Config import encoding
 
-Config imports now support explicit encoding. Files default to ISO-8859-1 encoding unless overridden.
+Config imports now support explicit encoding.
+Files default to ISO-8859-1 encoding unless overridden.
 
 ```properties
 spring.config.import=classpath:file.properties[encoding=utf-8]
@@ -184,7 +189,8 @@ spring:
     bootstrap: deferred
 ```
 
-Requires an `AsyncTaskExecutor` bean. If none is available when `deferred` is set, Boot will fail with a clear message.
+Requires an `AsyncTaskExecutor` bean.
+If none is available when `deferred` is set, Boot will fail with a clear message.
 
 ### WebFlux HTML escaping
 
@@ -198,7 +204,8 @@ spring:
 
 ### HTTP client cookie handling
 
-`TestRestTemplate` cookie handling now aligns with `RestTemplate`. Configure via `withCookieHandling`, `RestTemplateBuilder`, or a property.
+`TestRestTemplate` cookie handling now aligns with `RestTemplate`.
+Configure via `withCookieHandling`, `RestTemplateBuilder`, or a property.
 
 ```yaml
 spring:
@@ -243,7 +250,8 @@ server:
 
 ### gRPC support
 
-Spring Boot 4.1 adds first-class gRPC auto-configuration. Three new starters are available.
+Spring Boot 4.1 adds first-class gRPC auto-configuration.
+Three new starters are available.
 
 ```xml
 <dependency>
@@ -273,7 +281,8 @@ Open [references/grpc.md](references/grpc.md) when the task is about gRPC server
 
 ### @RedisListener auto-configuration
 
-Annotate beans with `@RedisListener` to create listener endpoints. Boot auto-configures a `RedisMessageListenerContainer` when none is defined.
+Annotate beans with `@RedisListener` to create listener endpoints.
+Boot auto-configures a `RedisMessageListenerContainer` when none is defined.
 
 ```java
 @RedisListener("someChannel")
@@ -342,13 +351,16 @@ Docker Compose now supports `docker.elastic.co/elasticsearch/elasticsearch` serv
 ### Build updates
 
 - `bootBuildImage --environment KEY=VALUE` for Gradle CLI environment overrides.
-- `BuildInfo` task output changed to `META-INF/build-info.properties`. Use the `filename` property to customize.
+- `BuildInfo` task output changed to `META-INF/build-info.properties`.
+  - Use the `filename` property to customize.
 - Maven plugin loads `layers.xml` from classpath at `META-INF/spring/layers/.xml`.
-- `-DskipTests` no longer skips AOT. Use `maven.test.skip` instead.
+- `-DskipTests` no longer skips AOT.
+  - Use `maven.test.skip` instead.
 
 ### Spock support restored
 
-Spock 2.4 with Groovy 5 support is restored. Add the `spring-boot-starter-test` dependency as usual; Spock tests work out of the box when `spock-spring` is on the classpath.
+Spock 2.4 with Groovy 5 support is restored.
+Add the `spring-boot-starter-test` dependency as usual; Spock tests work out of the box when `spock-spring` is on the classpath.
 
 ### Spring Batch with MongoDB
 
@@ -363,7 +375,7 @@ Auto-configuration for Spring Batch with MongoDB is now available via the existi
 - **LiveReload in DevTools changed.** No replacement planned.
 - **Dynatrace V1 API changed.** Migrate to V2 API.
 
-Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) for the full migration guide.
+Open [references/spring-boot-4.`1-changes.md`](references/spring-boot-4.1-changes.md) for the full migration guide.
 
 ## Test strategy baseline
 
@@ -399,7 +411,7 @@ class GreetingControllerTests {
 }
 ```
 
-Open [references/application-context-runner.md](references/application-context-runner.md) when the blocker is Boot wiring without starting the whole application, and open [references/testcontainers.md](references/testcontainers.md) or [references/service-connections.md](references/service-connections.md) when tests need real local services.
+Open [references/application`-context-runner.md`](references/application-context-runner.md) when the blocker is Boot wiring without starting the whole application, and open [references/testcontainers.md](references/testcontainers.md) or [references/service`-connections.md`](references/service-connections.md) when tests need real local services.
 
 ## Production guardrails
 
@@ -420,27 +432,27 @@ Return:
 
 ## References
 
-- Open [references/autoconfiguration-diagnostics.md](references/autoconfiguration-diagnostics.md) when the task is about why Boot did or did not wire a bean.
-- Open [references/config-data-order.md](references/config-data-order.md) when the blocker is config import order or imported config behavior.
-- Open [references/property-precedence.md](references/property-precedence.md) when the blocker is conflicting values across property sources.
-- Open [references/profile-activation.md](references/profile-activation.md) when the blocker is active-profile selection or profile-specific config loading.
-- Open [references/configuration-properties-binding.md](references/configuration-properties-binding.md) when the blocker is `@ConfigurationProperties` binding behavior.
-- Open [references/application-context-runner.md](references/application-context-runner.md) when the blocker is Boot-specific wiring diagnosis without starting the whole app.
+- Open [references/autoconfiguration`-diagnostics.md`](references/autoconfiguration-diagnostics.md) when the task is about why Boot did or did not wire a bean.
+- Open [references/config`-data-order.md`](references/config-data-order.md) when the blocker is config import order or imported config behavior.
+- Open [references/property`-precedence.md`](references/property-precedence.md) when the blocker is conflicting values across property sources.
+- Open [references/profile`-activation.md`](references/profile-activation.md) when the blocker is active-profile selection or profile-specific config loading.
+- Open [references/configuration`-properties-binding.md`](references/configuration-properties-binding.md) when the blocker is `@ConfigurationProperties` binding behavior.
+- Open [references/application`-context-runner.md`](references/application-context-runner.md) when the blocker is Boot-specific wiring diagnosis without starting the whole app.
 - Open [references/testcontainers.md](references/testcontainers.md) when tests need a real backing service through Testcontainers.
-- Open [references/service-connections.md](references/service-connections.md) when Boot should derive test service connection properties automatically.
+- Open [references/service`-connections.md`](references/service-connections.md) when Boot should derive test service connection properties automatically.
 - Open [Docker Compose wiring](references/docker-compose-local-wiring.md) when local development depends on Boot-managed Docker Compose lifecycle or explicit `spring.docker.compose.*` wiring.
-- Open [references/health-groups.md](references/health-groups.md) when the task is about health groups.
+- Open [references/health`-groups.md`](references/health-groups.md) when the task is about health groups.
 - Open [references/probes.md](references/probes.md) when the task is about liveness or readiness probe behavior.
 - Open [references/metrics.md](references/metrics.md) when the task is about metrics exports.
 - Open [references/tracing.md](references/tracing.md) when the task is about tracing exports, OTel SDK configuration, OTLP SSL bundles, or exemplar filtering.
-- Open [references/endpoint-exposure.md](references/endpoint-exposure.md) when the blocker is Actuator endpoint exposure policy.
+- Open [references/endpoint`-exposure.md`](references/endpoint-exposure.md) when the blocker is Actuator endpoint exposure policy.
 - Open [references/sanitization.md](references/sanitization.md) when the blocker is sanitizing sensitive Actuator values.
-- Open [references/layered-jars.md](references/layered-jars.md) when container rebuild speed depends on jar layers.
+- Open [references/layered`-jars.md`](references/layered-jars.md) when container rebuild speed depends on jar layers.
 - Open [references/buildpacks.md](references/buildpacks.md) when the application should produce an OCI image without a Dockerfile.
 - Open [references/dockerfiles.md](references/dockerfiles.md) when the platform requires explicit Dockerfile control.
-- Open [references/war-packaging.md](references/war-packaging.md) when a traditional servlet container is a hard requirement.
-- Open [references/aot-processing.md](references/aot-processing.md) when the blocker is AOT generation or runtime hints.
-- Open [references/native-image.md](references/native-image.md) when the blocker is native-image build or runtime behavior.
-- Open [references/jackson-configuration.md](references/jackson-configuration.md) when the blocker is Jackson multi-format features, factory constraints, or HandlerInstantiator wiring.
+- Open [references/war`-packaging.md`](references/war-packaging.md) when a traditional servlet container is a hard requirement.
+- Open [references/aot`-processing.md`](references/aot-processing.md) when the blocker is AOT generation or runtime hints.
+- Open [references/native`-image.md`](references/native-image.md) when the blocker is native-image build or runtime behavior.
+- Open [references/jackson`-configuration.md`](references/jackson-configuration.md) when the blocker is Jackson multi-format features, factory constraints, or HandlerInstantiator wiring.
 - Open [references/grpc.md](references/grpc.md) when the task is about gRPC server, client, or testing setup.
-- Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) when migrating from 4.0 to 4.1 or applying Spring Boot 4.1 behavior changes.
+- Open [references/spring-boot-4.`1-changes.md`](references/spring-boot-4.1-changes.md) when migrating from 4.0 to 4.1 or applying Spring Boot 4.1 behavior changes.

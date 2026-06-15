@@ -5,7 +5,8 @@ description: >-
 
 # Alertmanager Receiver Types
 
-Use this reference when you need the complete field schema, required fields, defaults, and validation rules for any of the 18 supported receiver types. Every field is documented with its type, default value (if applicable), and whether it is required.
+Use this reference when you need the complete field schema, required fields, defaults, and validation rules for any of the 18 supported receiver types.
+Every field is documented with its type, default value (if applicable), and whether it is required.
 
 Every receiver type embeds `NotifierConfig` which provides one shared field:
 
@@ -59,7 +60,8 @@ receivers:
 ### Validation Rules
 
 - `to` is always required.
-- Header names are normalized to canonical MIME form; duplicate headers (case-insensitive) are rejected.
+- Header names are normalized to canonical MIME form.
+  - Duplicate headers (case-insensitive) are rejected.
 - When `threading.enabled` is true, custom `References` or `In-Reply-To` headers conflict and are rejected.
 - At most one of `auth_password` / `auth_password_file`.
 - At most one of `auth_secret` / `auth_secret_file`.
@@ -246,7 +248,8 @@ When not overridden, `details` includes these defaults:
 | `num_firing` | `'{{ .Alerts.Firing \| len }}'` |
 | `num_resolved` | `'{{ .Alerts.Resolved \| len }}'` |
 
-Custom details are merged with these defaults; custom keys take precedence over defaults.
+Custom details are merged with these defaults.
+Custom keys take precedence over defaults.
 
 ### PagerdutyImage Sub-fields
 
@@ -318,7 +321,8 @@ receivers:
 
 - Exactly one of `url` / `url_file` must be provided.
 - The `url` field supports Go template syntax for dynamic URLs.
-- Alertmanager sends the fixed webhook JSON body described by the notification template `Data` object; `webhook_configs` does not support a custom body field.
+- Alertmanager sends the fixed webhook JSON body described by the notification template `Data` object.
+  - `webhook_configs` does not support a custom body field.
 - Default `send_resolved`: `true`.
 
 ### Complete Example
@@ -334,7 +338,8 @@ receivers:
 
 ```
 
-The receiver must adapt Alertmanager's fixed JSON body. A minimal receiver-side adapter can transform the incoming group into the downstream shape while requiring a shared bearer token:
+The receiver must adapt Alertmanager's fixed JSON body.
+A minimal receiver-side adapter can transform the incoming group into the downstream shape while requiring a shared bearer token:
 
 ```python
 import os
@@ -366,7 +371,8 @@ def alertmanager_webhook():
 
 ```
 
-Use an adapter like this when the downstream service requires a custom payload, different field names, or per-receiver business logic that Alertmanager's generic webhook body cannot express. Keep the endpoint behind a trusted/private path (for example, internal network access, ingress auth, or mTLS) and provision `ALERTMANAGER_WEBHOOK_TOKEN` out of band.
+Use an adapter like this when the downstream service requires a custom payload, different field names, or per-receiver business logic that Alertmanager's generic webhook body cannot express.
+Keep the endpoint behind a trusted/private path (for example, internal network access, ingress auth, or mTLS) and provision `ALERTMANAGER_WEBHOOK_TOKEN` out of band.
 
 ---
 
@@ -714,7 +720,8 @@ receivers:
 | `disable_notifications` | bool | no | false | Send silently (no sound/notification) |
 | `parse_mode` | string | no | `"HTML"` | Parse mode: `"HTML"`, `"Markdown"`, `"MarkdownV2"`, or empty |
 
-\* `bot_token`/`bot_token_file` required globally or locally. `chat_id`/`chat_id_file` always required.
+\* `bot_token`/`bot_token_file` required globally or locally.
+`chat_id`/`chat_id_file` always required.
 
 ### Validation Rules
 
@@ -917,7 +924,8 @@ receivers:
 | `template` | string | -- | Go template string for rendering the field value |
 | `enable_update` | bool* | true | Whether to include this field when updating existing issues |
 
-\* Omitting `enable_update` defaults to `true`. Set to `false` to skip updates.
+\* Omitting `enable_update` defaults to `true`.
+Set to `false` to skip updates.
 
 The `summary` and `description` fields also accept a plain string (backward compatible), which is treated as a template with `enable_update` defaulting to `false`.
 
@@ -1223,7 +1231,8 @@ receivers:
 | `max_alerts` | uint64 | no | 0 (unlimited) | Maximum alerts per incident (0 = unlimited) |
 | `timeout` | duration | no | -- | Max time for API call (0 = no limit) |
 
-\* Exactly one of `url` / `url_file` is required. Auth via `alert_source_token`/*_file` or `http_config.authorization` is required.
+\* Exactly one of `url` / `url_file` is required.
+Auth via `alert_source_token`/*_file` or `http_config.authorization` is required.
 
 ### Validation Rules
 

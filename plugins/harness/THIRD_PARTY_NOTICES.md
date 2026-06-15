@@ -1,6 +1,8 @@
 # Third Party Notices
 
-Harness includes local documentation concepts and taxonomy adapted from public sources. The plugin remains a repository harness installer and validator; external sources are used only as attributed design posture and optional workflow guidance.
+Harness includes local documentation concepts and taxonomy adapted from public sources.
+The plugin remains a repository harness installer and validator.
+External sources are used only as attributed design inputs.
 
 ## OpenAI Harness Engineering
 
@@ -21,4 +23,5 @@ Harness includes local documentation concepts and taxonomy adapted from public s
 | Retrieved | 2026-05-09 |
 | Local use | Team-pattern taxonomy names in installed harness metadata |
 
-The upstream project is a Claude Code team-architecture factory. This plugin does not redistribute upstream runtime assets, marketplace metadata, images, generated examples, or public website files.
+The upstream project is a Claude Code team-architecture factory.
+This plugin does not redistribute upstream runtime assets, marketplace metadata, images, generated examples, or public website files.

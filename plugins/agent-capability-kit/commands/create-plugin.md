@@ -1,6 +1,7 @@
 ---
 description: >-
-  Create a complete Claude Code plugin from design to implementation. Use when building a new plugin root with components, manifest, and verification.
+  Create a complete Claude Code plugin from design to implementation.
+  Use when building a new plugin root with components, manifest, and verification.
 argument-hint: Optional plugin description
 allowed-tools:
   - Read
@@ -16,7 +17,9 @@ allowed-tools:
 
 # Plugin Creation Workflow
 
-Guide the user through creating a complete, high-quality Claude Code plugin from initial concept to tested implementation. Follow a systematic approach: understand requirements, design components, clarify details, implement following best practices, validate, and test. All work follows sinon marketplace conventions, including manifest rules, skill authoring standards, and repository layout requirements.
+Guide the user through creating a complete, high-quality Claude Code plugin from initial concept to tested implementation.
+Follow a systematic approach: understand requirements, design components, clarify details, implement following best practices, validate, and test.
+All work follows sinon marketplace conventions, including manifest rules, skill authoring standards, and repository layout requirements.
 
 Initial request: $ARGUMENTS
 
@@ -58,9 +61,12 @@ Determine needed components and their purposes.
 1. Load plugin-authoring skill using Skill tool to understand sinon component types and manifest rules
 2. Analyze plugin requirements and determine needed components:
    - `Skills` — Specialized knowledge OR user-initiated actions (deploy, configure, analyze)
-   - `Agents` — Autonomous tasks? (validation, generation, analysis)
-   - `Hooks` — Event-driven automation? (validation, notifications)
-   - `MCP` — External service integration? (databases, APIs)
+   - `Agents` — Autonomous tasks?
+     - (validation, generation, analysis)
+   - `Hooks` — Event-driven automation?
+     - (validation, notifications)
+   - `MCP` — External service integration?
+     - (databases, APIs)
    - `Settings` — User configuration needs?
    - `Commands` — Slash-command surface for user-invoked workflows
 
@@ -93,11 +99,22 @@ Specify each component in detail and resolve all ambiguities (CRITICAL: do not s
 ### Actions
 
 1. For each component in the plan, identify underspecified aspects:
-   - `Skills` — What triggers them? What knowledge do they provide? How detailed? For user-invoked skills: what arguments, what tools, interactive or automated?
-   - `Agents` — When to trigger (proactive/reactive)? What tools? Output format?
-   - `Hooks` — Which events? Prompt or command based? Validation criteria?
-   - `MCP` — What server type? Authentication? Which tools?
-   - `Settings` — What fields? Required vs optional? Defaults?
+   - `Skills` — What triggers them?
+     - What knowledge do they provide?
+     - How detailed?
+     - For user-invoked skills: what arguments, what tools, interactive or automated?
+   - `Agents` — When to trigger (proactive/reactive)?
+     - What tools?
+     - Output format?
+   - `Hooks` — Which events?
+     - Prompt or command based?
+     - Validation criteria?
+   - `MCP` — What server type?
+     - Authentication?
+     - Which tools?
+   - `Settings` — What fields?
+     - Required vs optional?
+     - Defaults?
 
 2. Present all questions to user in organized sections (one section per component type)
 
@@ -144,8 +161,10 @@ Create plugin directory structure and manifest following sinon rules.
 
 - `$schema` MUST be `"https://anthropic.com/claude-code/plugin.schema.json"`
 - `author` MUST use object form: `{ "name": "handle" }`
-- `skills` MUST use directory form: `"./skills/"` (with trailing slash); array-of-paths form is prohibited
-- `commands` MUST use directory form `"./commands/"` (with trailing slash) when the plugin ships slash commands; array-of-paths form is prohibited
+- `skills` MUST use directory form: `"./skills/"` (with trailing slash).
+  - Array-of-paths form is prohibited
+- `commands` MUST use directory form `"./commands/"` (with trailing slash) when the plugin ships slash commands.
+  - Array-of-paths form is prohibited
 - File-typed manifest keys MUST point to exact filenames: `"hooks": "./hooks/hooks.json"`, `"mcpServers": "./.mcp.json"`, `"lspServers": "./.lsp.json"`, `"settings": "./settings.json"`
 - `version` MUST NOT appear in plugin.json
 - `agents` key MUST NOT appear (ship `agents/` directory at plugin root, documented in README)
@@ -165,7 +184,8 @@ Create each component following sinon best practices.
 
 ### Before Implementation
 
-Load the relevant authoring skill (skill-authoring, command-authoring, agent-authoring, hook-authoring, mcp-integration, or plugin-settings) using Skill tool. Do not preload all six.
+Load the relevant authoring skill (skill-authoring, command-authoring, agent-authoring, hook-authoring, mcp-integration, or plugin-settings) using Skill tool.
+Do not preload all six.
 
 ### Actions for Each Component
 
@@ -343,7 +363,8 @@ Documented plugin ready for use
 
 ## Key Decision Points (Wait for User)
 
-After each phase: Discovery → Component Planning → Design → Structure → Implementation → Validation → Testing → Documentation. Confirm user input before proceeding.
+After each phase: Discovery → Component Planning → Design → Structure → Implementation → Validation → Testing → Documentation.
+Confirm user input before proceeding.
 
 ---
 

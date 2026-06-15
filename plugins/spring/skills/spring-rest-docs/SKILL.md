@@ -1,12 +1,14 @@
 ---
 name: spring-rest-docs
 description: >-
-  Generate Spring REST API documentation from MockMvc or WebTestClient tests and publish snippets via Asciidoctor. Use when writing `MockMvc` or `WebTestClient` test cases that produce documentation snippets, configuring snippet template customization, or assembling published API references with Asciidoctor.
+  Generate Spring REST API documentation from MockMvc or WebTestClient tests and publish snippets via Asciidoctor.
+  Use when writing `MockMvc` or `WebTestClient` test cases that produce documentation snippets, configuring snippet template customization, or assembling published API references with Asciidoctor.
 ---
 
 # Spring REST Docs
 
-Spring REST Docs 4.0.1 requires Spring Framework 7.0 (Spring Boot 4.x), JUnit 6.0, AsciidoctorJ 3.0, Jackson 3, and Bean Validation 3.1 (Hibernate Validator 9.0). REST Assured support was removed in 4.0. The only supported documentation surfaces are MockMvc and WebTestClient.
+Spring REST Docs 4.0.1 requires Spring Framework 7.0 (Spring Boot 4.x), JUnit 6.0, AsciidoctorJ 3.0, Jackson 3, and Bean Validation 3.1 (Hibernate Validator 9.0).
+REST Assured support was removed in 4.0. The only supported documentation surfaces are MockMvc and WebTestClient.
 
 ## Boundaries
 
@@ -73,7 +75,8 @@ class OrderDocumentationTests {
 }
 ```
 
-`@AutoConfigureRestDocs` wires the REST Docs infrastructure into the Boot test slice. When the output directory or URI rewriting must be customized, keep that customization explicit in the test or in `spring.restdocs.*` configuration.
+`@AutoConfigureRestDocs` wires the REST Docs infrastructure into the Boot test slice.
+When the output directory or URI rewriting must be customized, keep that customization explicit in the test or in `spring.restdocs.*` configuration.
 
 ### Non-Boot test configuration shape
 
@@ -91,7 +94,8 @@ class OrderDocumentationTests {
 }
 ```
 
-Use `@ExtendWith(RestDocumentationExtension.class)` when the project does not use Boot test slices. `RestDocumentationExtension` provides the output directory automatically based on the build tool.
+Use `@ExtendWith(RestDocumentationExtension.class)` when the project does not use Boot test slices.
+`RestDocumentationExtension` provides the output directory automatically based on the build tool.
 
 ### REST Docs property shape
 
@@ -297,15 +301,15 @@ Return:
 
 ## References
 
-- Open [references/webtestclient-surface.md](references/webtestclient-surface.md) when the ordinary MockMvc path is not enough and the task needs WebTestClient.
-- Open [references/relaxed-payloads.md](references/relaxed-payloads.md) when relaxed payload documentation is required.
-- Open [references/subsection-payloads.md](references/subsection-payloads.md) when one payload subtree should be documented without every leaf field.
-- Open [references/ignored-fields.md](references/ignored-fields.md) when a field must exist in the payload but should stay out of published docs.
-- Open [references/query-parameters.md](references/query-parameters.md) when the contract depends on query parameters.
-- Open [references/path-parameters.md](references/path-parameters.md) when the contract depends on URI template variables.
+- Open [references/webtestclient`-surface.md`](references/webtestclient-surface.md) when the ordinary MockMvc path is not enough and the task needs WebTestClient.
+- Open [references/relaxed`-payloads.md`](references/relaxed-payloads.md) when relaxed payload documentation is required.
+- Open [references/subsection`-payloads.md`](references/subsection-payloads.md) when one payload subtree should be documented without every leaf field.
+- Open [references/ignored`-fields.md`](references/ignored-fields.md) when a field must exist in the payload but should stay out of published docs.
+- Open [references/query`-parameters.md`](references/query-parameters.md) when the contract depends on query parameters.
+- Open [references/path`-parameters.md`](references/path-parameters.md) when the contract depends on URI template variables.
 - Open [references/cookies.md](references/cookies.md) when the contract depends on cookies.
-- Open [references/http-headers.md](references/http-headers.md) when the contract depends on request or response headers.
+- Open [references/http`-headers.md`](references/http-headers.md) when the contract depends on request or response headers.
 - Open [references/preprocessors.md](references/preprocessors.md) when preprocessors must do more than the ordinary pretty-print and URI rewriting path.
-- Open [references/custom-snippets.md](references/custom-snippets.md) when built-in snippets are not enough.
+- Open [references/custom`-snippets.md`](references/custom-snippets.md) when built-in snippets are not enough.
 - Open [references/links.md](references/links.md) when the contract includes hypermedia links.
 - Open [references/multipart.md](references/multipart.md) when the contract includes multipart request parts.

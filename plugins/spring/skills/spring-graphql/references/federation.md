@@ -6,7 +6,8 @@ Open this reference when the schema is intentionally part of a federated graph a
 
 Use federation only when the GraphQL API is intentionally part of a federated graph.
 
-Federation adds schema ownership and entity-resolution complexity. Do not introduce it for a single-service schema.
+Federation adds schema ownership and entity-resolution complexity.
+Do not introduce it for a single-service schema.
 
 ## Entity loading
 

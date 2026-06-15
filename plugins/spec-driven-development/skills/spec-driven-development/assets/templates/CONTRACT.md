@@ -10,7 +10,7 @@ last_updated: "{{last_updated_date}}"
 
 This document defines contract units for the capability described in `SPEC.md`.
 Contract units represent functions, files, interfaces, classes, or modules.
-One CONTRACT.md can contain multiple units.
+One `CONTRACT.md` can contain multiple units.
 
 TODO: Replace all scaffold values in this document.
 

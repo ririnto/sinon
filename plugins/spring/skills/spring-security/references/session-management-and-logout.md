@@ -4,7 +4,8 @@ Open this reference when the application depends on concurrent-session control, 
 
 Use stateless session policy for bearer-token APIs and stateful session policy only for browser-login flows that actually need a server-side session.
 
-The ordinary path in [SKILL.md](../SKILL.md) already covers the session-creation policy matrix and the Spring Security 6/7 session behavior changes. Open this reference only when the job goes beyond that baseline into concurrency control or custom logout handling.
+The ordinary path in [`SKILL.md`](../SKILL.md) already covers the session-creation policy matrix and the Spring Security 6/7 session behavior changes.
+Open this reference only when the job goes beyond that baseline into concurrency control or custom logout handling.
 
 ## Concurrent-session control
 

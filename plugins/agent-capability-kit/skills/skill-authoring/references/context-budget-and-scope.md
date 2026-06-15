@@ -1,6 +1,6 @@
 ---
 name: context-budget-and-scope
-description: Decide whether an Agent Skill is too broad, too narrow, or carrying the wrong depth in SKILL.md.
+description: Decide whether an Agent Skill is too broad, too narrow, or carrying the wrong depth in `SKILL.md`.
 ---
 
 # Context Budget And Scope

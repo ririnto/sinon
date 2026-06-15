@@ -4,7 +4,8 @@ Open this reference when event-driven module tests need richer `Scenario` verifi
 
 ## Scenario boundary
 
-Use the `Scenario` API when a test must verify that an event published by one module is asynchronously consumed by another module and the outcome is observable. Use `PublishedEvents` or `AssertablePublishedEvents` for simple event-publication-only assertions.
+Use the `Scenario` API when a test must verify that an event published by one module is asynchronously consumed by another module and the outcome is observable.
+Use `PublishedEvents` or `AssertablePublishedEvents` for simple event-publication-only assertions.
 
 ## First safe commands
 
@@ -67,7 +68,8 @@ void orderCompletionUpdatesReadModel(Scenario scenario) {
 
 ## Cleanup shape
 
-Stimulus runs in a transaction that is not rolled back. Clean up state explicitly:
+Stimulus runs in a transaction that is not rolled back.
+Clean up state explicitly:
 
 ```java
 scenario.publish(new OrderCompleted("o-1"))
@@ -116,11 +118,13 @@ class OrdersScenarioTest {
 
 ## Cross-thread event visibility
 
-`PublishedEvents` and `Scenario` capture events across threads by default in 2.1.0. Events published in `@Async` listeners or child threads are visible to the test's `PublishedEvents` and `Scenario` assertions without additional configuration.
+`PublishedEvents` and `Scenario` capture events across threads by default in 2.1.0.
+Events published in `@Async` listeners or child threads are visible to the test's `PublishedEvents` and `Scenario` assertions without additional configuration.
 
 ## Skip-if-unchanged test capability
 
-Tests annotated with `@ApplicationModuleTest` support skipping execution when no changes are detected in the module under test or its transitive dependencies. This integrates with the change-aware test execution from `spring-modulith-junit`.
+Tests annotated with `@ApplicationModuleTest` support skipping execution when no changes are detected in the module under test or its transitive dependencies.
+This integrates with the change-aware test execution from `spring-modulith-junit`.
 
 ## Decision points
 

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-PRODUCT_SENSE.md gives agents and humans the product mental model needed to make acceptable trade-offs without escalating: who the user is, what the product values, what tone of voice to use, and what kinds of requests to push back on.
+`PRODUCT_SENSE.md` gives agents and humans the product mental model needed to make acceptable trade-offs without escalating: who the user is, what the product values, what tone of voice to use, and what kinds of requests to push back on.
 
 ## Product Principles
 
@@ -14,7 +14,8 @@ PRODUCT_SENSE.md gives agents and humans the product mental model needed to make
 
 ## User Model
 
-The primary user is a primary operator who works inside the product five days a week and depends on it for daily workflow completion. They need stable patterns, bounded delegation, and deterministic validation without constant context-switching.
+The primary user is a primary operator who works inside the product five days a week and depends on it for daily workflow completion.
+They need stable patterns, bounded delegation, and deterministic validation without constant context-switching.
 
 - Occasional users run specific tasks infrequently and need clear starting points and self-contained instructions.
 - Admin operators manage configuration, secrets, and infrastructure surface and require auditable trails and rollback safety.
@@ -30,9 +31,9 @@ The primary user is a primary operator who works inside the product five days a 
 
 ## Refusal Signals
 
-- Refuse requests that bypass review (e.g. force-merge, --no-verify).
+- Refuse requests that bypass review, such as force-merge or `--no-verify`.
 - Refuse silent destructive operations (drop, truncate, rm -rf) without explicit confirmation.
-- Refuse scope expansions beyond the active milestone in PLANS.md; redirect to the next milestone.
+- Refuse scope expansions beyond the active milestone in `PLANS.md`; redirect to the next milestone.
 - Refuse to invent values for required identifiers (IDs, URLs, secrets); ask or fail.
 - Refuse to implement features that lack a matching product spec in docs/product-specs/.
 

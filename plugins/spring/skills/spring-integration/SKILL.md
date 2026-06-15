@@ -1,7 +1,8 @@
 ---
 name: spring-integration
 description: >-
-  Build message-driven application flows with Spring Integration channels, routers, filters, splitters, aggregators, gateways, pollers, and protocol adapters. Use when designing integration flows with the Java DSL or XML namespace, configuring channel types, wiring file, HTTP, or JMS adapters, or applying content-based routing and aggregation patterns.
+  Build message-driven application flows with Spring Integration channels, routers, filters, splitters, aggregators, gateways, pollers, and protocol adapters.
+  Use when designing integration flows with the Java DSL or XML namespace, configuring channel types, wiring file, HTTP, or JMS adapters, or applying content-based routing and aggregation patterns.
 ---
 
 # Spring Integration
@@ -12,7 +13,8 @@ Use `spring-integration` for Enterprise Integration Patterns inside or at the ed
 
 - Direct broker APIs without an Integration flow are outside this skill's scope.
 - Distributed-system infrastructure such as Config, Gateway, or general service-to-service wiring is outside this skill's scope.
-- Keep domain logic out of the flow graph. Flows should orchestrate message movement, routing, and adaptation.
+- Keep domain logic out of the flow graph.
+  - Flows should orchestrate message movement, routing, and adaptation.
 
 ## Common path
 
@@ -36,7 +38,8 @@ The ordinary Spring Integration job is:
 | External system sends one-way events | inbound adapter |
 | External system expects request-reply behavior | inbound gateway |
 
-Choose the simplest channel and endpoint pair that matches the delivery semantics. Add pollers only for sources that do not naturally push messages.
+Choose the simplest channel and endpoint pair that matches the delivery semantics.
+Add pollers only for sources that do not naturally push messages.
 
 ## Dependency baseline
 
@@ -92,13 +95,15 @@ For the current stable line, Spring Integration is 7.1.0. The latest released Sp
 
 Remove any adapter or test module the flow does not actually use.
 
-When Spring Boot already manages the module line, keep Spring Integration artifacts versionless. Add an exact version only on a standalone path that intentionally pins Spring Integration outside Boot-managed dependency control.
+When Spring Boot already manages the module line, keep Spring Integration artifacts versionless.
+Add an exact version only on a standalone path that intentionally pins Spring Integration outside Boot-managed dependency control.
 
 ## 7.1.0 changes that affect flow design
 
 ### HTTP outbound: RestClient
 
-`HttpRequestExecutingMessageHandler` now accepts a `RestClient`. Prefer `RestClient` for new flows instead of `RestTemplate` configuration.
+`HttpRequestExecutingMessageHandler` now accepts a `RestClient`.
+Prefer `RestClient` for new flows instead of `RestTemplate` configuration.
 
 ```java
 @Bean
@@ -113,7 +118,9 @@ IntegrationFlow httpOutboundFlow(RestClient restClient) {
 
 ### Redis: DSL, GETDEL, native CAS/CAD
 
-The Redis module provides a Java DSL via `org.springframework.integration.redis.dsl.Redis`. `RedisMessageStore.doRemove` uses `GETDEL` (Redis 6.2+) instead of `GET`+`UNLINK` by default. `RedisLockRegistry` uses native Redis CAS/CAD commands for lock renewal and release (Redis 8.4+) with automatic Lua fallback.
+The Redis module provides a Java DSL via `org.springframework.integration.redis.dsl.Redis`.
+`RedisMessageStore.doRemove` uses `GETDEL` (Redis 6.2+) instead of `GET`+`UNLINK` by default.
+`RedisLockRegistry` uses native Redis CAS/CAD commands for lock renewal and release (Redis 8.4+) with automatic Lua fallback.
 
 ```java
 @Bean
@@ -127,11 +134,13 @@ IntegrationFlow redisFlow() {
 
 ### JMS: header-to-property mapping and DSL JmsTemplate
 
-JMS-backed message channels now map Spring Integration headers to JMS message properties and back. The JMS DSL allows setting a custom `JmsTemplate` on outbound adapters.
+JMS-backed message channels now map Spring Integration headers to JMS message properties and back.
+The JMS DSL allows setting a custom `JmsTemplate` on outbound adapters.
 
 ### DSL-only mode
 
-Set `spring.integration.annotations.enable=false` to skip messaging annotation post-processor registration (`MessagingAnnotationPostProcessor`, `MessagingAnnotationBeanPostProcessor`) in pure DSL scenarios. This avoids unnecessary component scanning overhead when the flow uses only Java DSL without annotation-driven endpoints.
+Set `spring.integration.annotations.enable=false` to skip messaging annotation post-processor registration (`MessagingAnnotationPostProcessor`, `MessagingAnnotationBeanPostProcessor`) in pure DSL scenarios.
+This avoids unnecessary component scanning overhead when the flow uses only Java DSL without annotation-driven endpoints.
 
 ```properties
 spring.integration.annotations.enable=false
@@ -139,23 +148,28 @@ spring.integration.annotations.enable=false
 
 ### Transformer requiresReply
 
-`MessageTransformingHandler.requiresReply` can no longer be modified. An `UnsupportedOperationException` is thrown from `setRequiresReply()` to enforce that the transformer pattern cannot produce null replies.
+`MessageTransformingHandler.requiresReply` can no longer be modified.
+An `UnsupportedOperationException` is thrown from `setRequiresReply()` to enforce that the transformer pattern cannot produce null replies.
 
 ### IntegrationPatternType: message_store
 
-`MessageStore` now extends `IntegrationPattern` with a default `message_store` type. This change makes message stores visible in the integration graph and monitoring systems.
+`MessageStore` now extends `IntegrationPattern` with a default `message_store` type.
+This change makes message stores visible in the integration graph and monitoring systems.
 
 ### HTTP CORS alignment with Spring MVC
 
-The HTTP and WebFlux inbound gateways now align `CrossOrigin` defaults with Spring MVC: `allowedOrigins` defaults to empty and `allowCredentials` defaults to `false`. Use `originPatterns` for flexible origin matching instead of `allowCredentials`.
+The HTTP and WebFlux inbound gateways now align `CrossOrigin` defaults with Spring MVC: `allowedOrigins` defaults to empty and `allowCredentials` defaults to `false`.
+Use `originPatterns` for flexible origin matching instead of `allowCredentials`.
 
 ### CloudEvents support
 
-The `spring-integration-cloudevents` module provides `ToCloudEventTransformer` and `FromCloudEventTransformer` for CloudEvents specification v1.0 interoperability. Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
+The `spring-integration-cloudevents` module provides `ToCloudEventTransformer` and `FromCloudEventTransformer` for CloudEvents specification v1.0 interoperability.
+Open [references/cloudevents`-and-grpc.md`](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
 
 ### gRPC support
 
-The `spring-integration-grpc` module provides `GrpcInboundGateway` and `GrpcOutboundGateway` for unary, server streaming, client streaming, and bidirectional streaming gRPC patterns. Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
+The `spring-integration-grpc` module provides `GrpcInboundGateway` and `GrpcOutboundGateway` for unary, server streaming, client streaming, and bidirectional streaming gRPC patterns.
+Open [references/cloudevents`-and-grpc.md`](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
 
 ## First safe configuration
 
@@ -194,7 +208,8 @@ IntegrationFlow integrationErrors() {
 }
 ```
 
-Use the default `errorChannel` for the ordinary baseline. Open [references/error-handling-and-retry-patterns.md](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit custom error-channel routing.
+Use the default `errorChannel` for the ordinary baseline.
+Open [references/error`-handling-and-retry-patterns.md`](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit custom error-channel routing.
 
 ## Coding procedure
 
@@ -256,7 +271,8 @@ void process(OrderCommand command) {
 }
 ```
 
-Use this annotation shape only when the surrounding application already standardized on annotation-driven endpoint wiring. For new flows, keep the DSL-first `handle(...)` style as the default.
+Use this annotation shape only when the surrounding application already standardized on annotation-driven endpoint wiring.
+For new flows, keep the DSL-first `handle(...)` style as the default.
 
 ### Splitter and aggregator shape
 
@@ -326,11 +342,11 @@ Pollers.fixedDelay(Duration.ofSeconds(5))
 
 ## References
 
-- Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) when the flow uses CloudEvents transformation or gRPC gateways.
-- Open [references/error-handling-and-retry-patterns.md](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit error-channel routing.
-- Open [references/testing-integration-flows.md](references/testing-integration-flows.md) when the task needs `@SpringIntegrationTest`, `MockIntegrationContext`, `noAutoStartup`, or graph-level assertions.
-- Open [references/pollers-transactions-and-stores.md](references/pollers-transactions-and-stores.md) when the flow depends on pollers, transactional sources, aggregators, or persistent message stores.
-- Open [references/dsl-runtime-flows-and-reactive.md](references/dsl-runtime-flows-and-reactive.md) when the task needs runtime flow registration, subflows, reactive channels, or composed Java DSL flows.
-- Open [references/control-bus-and-system-management.md](references/control-bus-and-system-management.md) when the application must inspect, start, stop, or observe Integration endpoints in production.
-- Open [references/adapter-family-selection.md](references/adapter-family-selection.md) when choosing protocol adapters or module boundaries for a concrete external system.
-- Open [references/native-aot-support.md](references/native-aot-support.md) when the flow must run in a native image and adapter or reflection constraints become part of the design.
+- Open [references/cloudevents`-and-grpc.md`](references/cloudevents-and-grpc.md) when the flow uses CloudEvents transformation or gRPC gateways.
+- Open [references/error`-handling-and-retry-patterns.md`](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit error-channel routing.
+- Open [references/testing`-integration-flows.md`](references/testing-integration-flows.md) when the task needs `@SpringIntegrationTest`, `MockIntegrationContext`, `noAutoStartup`, or graph-level assertions.
+- Open [references/pollers`-transactions-and-stores.md`](references/pollers-transactions-and-stores.md) when the flow depends on pollers, transactional sources, aggregators, or persistent message stores.
+- Open [references/dsl`-runtime-flows-and-reactive.md`](references/dsl-runtime-flows-and-reactive.md) when the task needs runtime flow registration, subflows, reactive channels, or composed Java DSL flows.
+- Open [references/control`-bus-and-system-management.md`](references/control-bus-and-system-management.md) when the application must inspect, start, stop, or observe Integration endpoints in production.
+- Open [references/adapter`-family-selection.md`](references/adapter-family-selection.md) when choosing protocol adapters or module boundaries for a concrete external system.
+- Open [references/native`-aot-support.md`](references/native-aot-support.md) when the flow must run in a native image and adapter or reflection constraints become part of the design.

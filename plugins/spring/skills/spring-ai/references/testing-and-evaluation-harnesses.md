@@ -122,7 +122,8 @@ class InventoryToolTests {
 
 ## Evaluation harness basics
 
-Spring AI ships model-evaluation support such as `RelevancyEvaluator` and `FactCheckingEvaluator`. Use those when the task needs repeatable answer-quality checks beyond plain assertions.
+Spring AI ships model-evaluation support such as `RelevancyEvaluator` and `FactCheckingEvaluator`.
+Use those when the task needs repeatable answer-quality checks beyond plain assertions.
 
 ### Relevancy evaluation
 

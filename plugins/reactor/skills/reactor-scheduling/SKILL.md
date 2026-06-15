@@ -1,21 +1,24 @@
 ---
 name: reactor-scheduling
 description: >-
-  Design Reactor execution context with explicit scheduler choice, publishOn/subscribeOn placement, and blocking-boundary decisions. Use when choosing between `Schedulers.parallel()`, `boundedElastic()`, `single()`, or `immediate()`, diagnosing thread hops, or isolating blocking boundaries in a reactive pipeline.
+  Design Reactor execution context with explicit scheduler choice, publishOn/subscribeOn placement, and blocking-boundary decisions.
+  Use when choosing between `Schedulers.parallel()`, `boundedElastic()`, `single()`, or `immediate()`, diagnosing thread hops, or isolating blocking boundaries in a reactive pipeline.
 ---
 
 # Reactor Scheduling
 
 ## Official Baseline
 
-- Use the official Project Reactor 3.8.x scheduler reference for this skill; this review checked `reactor-core` 3.8.6.
+- Use the official Project Reactor 3.8.x scheduler reference for this skill.
+  - This review checked `reactor-core` 3.8.6.
 - Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
 
 Choose execution context deliberately in Reactor.
 
 ## Goal
 
-This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `subscribeOn(...)`, blocking offload, thread-affinity boundaries, and local scheduling diagnostics. Keep custom scheduler factories, automatic context propagation, global hooks, and test-only virtual-time work in blocker references or dedicated Reactor test guidance.
+This skill covers the ordinary path for scheduler choice, `publishOn(...)` vs `subscribeOn(...)`, blocking offload, thread-affinity boundaries, and local scheduling diagnostics.
+Keep custom scheduler factories, automatic context propagation, global hooks, and test-only virtual-time work in blocker references or dedicated Reactor test guidance.
 
 ## Scope
 

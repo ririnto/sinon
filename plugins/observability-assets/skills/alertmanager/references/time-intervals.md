@@ -9,12 +9,14 @@ Use this reference when the blocker is time-based suppression, schedule-aware ro
 
 ## Overview
 
-Time intervals define named schedule windows. Routes reference them by name in two ways:
+Time intervals define named schedule windows.
+Routes reference them by name in two ways:
 
 - `mute_time_intervals:` -- the route sends NO notifications during matching intervals
 - `active_time_intervals:` -- the route ONLY matches alerts during matching intervals (outside these windows, the route behaves as if it does not exist)
 
-Both fields accept a list of named interval references. Multiple intervals are ORed together: if ANY listed interval matches the current time, the condition activates.
+Both fields accept a list of named interval references.
+Multiple intervals are ORed together: if ANY listed interval matches the current time, the condition activates.
 
 ## TimeIntervalSpec Schema
 
@@ -29,7 +31,10 @@ Each entry within a named `time_intervals:` block defines one schedule window wi
 | `years` | list of YearRange | Year constraints; all must be satisfied (OR within the list) |
 | `location` | string | IANA timezone name (e.g., `"America/New_York"`) |
 
-## All specified fields are ANDed together: an alert falls inside the interval only when it satisfies EVERY constraint type that is present. Omitted constraint types are unconstrained and always pass
+## Constraint Combination
+
+All specified fields are ANDed together: an alert falls inside the interval only when it satisfies EVERY constraint type that is present.
+Omitted constraint types are unconstrained and always pass.
 
 Within each field's list, multiple entries are ORed together: the alert passes if it matches ANY entry in the list.
 
@@ -37,7 +42,8 @@ Within each field's list, multiple entries are ORed together: the alert passes i
 
 ### TimeRange
 
-Defines a time-of-day window. End time is exclusive.
+Defines a time-of-day window.
+End time is exclusive.
 
 ```yaml
 times:
@@ -51,11 +57,13 @@ times:
 | `start_time` | `"HH:MM"` | `"00:00"` to `"24:00"` | Inclusive start |
 | `end_time` | `"HH:MM"` | `"00:00"` to `"24:00"` | Exclusive end; `"24:00"` means end-of-day |
 
-Validation: both required; `start_time` must be strictly less than `end_time`.
+Validation: both required.
+`start_time` must be strictly less than `end_time`.
 
 ### WeekdayRange
 
-Defines a day-of-week range using full lowercase names. Sunday = 0, Saturday = 6.
+Defines a day-of-week range using full lowercase names.
+Sunday = 0, Saturday = 6.
 
 ```yaml
 weekdays:
@@ -68,11 +76,13 @@ This matches Monday through Friday plus Saturday.
 
 Valid names: `sunday`, `monday`, `tuesday`, `wednesday`, `thursday`, `friday`, `saturday`.
 
-Format: single day (`"monday"`) or colon-separated range (`"monday:friday"`). Start day must not be after end day.
+Format: single day (`"monday"`) or colon-separated range (`"monday:friday"`).
+Start day must not be after end day.
 
 ### DaysOfMonthRange
 
-Defines a day-of-month range. Supports positive (1-based from month start) and negative (from month end) indices.
+Defines a day-of-month range.
+Supports positive (1-based from month start) and negative (from month end) indices.
 
 ```yaml
 days_of_month:
@@ -89,13 +99,15 @@ This matches the 1st through 15th of the month and the last 3 days of the month.
 | Negative values | -1 to -31 | Count from the last day of the month (-1 = last day) |
 | Zero | forbidden | Causes validation error |
 
-Format: single integer (`"15"`) or colon-separated range (`"1:15"`). Negative ranges require both ends negative if the start is negative.
+Format: single integer (`"15"`) or colon-separated range (`"1:15"`).
+Negative ranges require both ends negative if the start is negative.
 
 Note: Values beyond the actual days in a short month (e.g., day 30 in February) are clamped to the valid range at evaluation time.
 
 ### Months
 
-Defines a month range using full lowercase names or integers. January = 1, December = 12.
+Defines a month range using full lowercase names or integers.
+January = 1, December = 12.
 
 ```yaml
 months:
@@ -108,7 +120,8 @@ This matches Q1 and Q4.
 
 Valid names: `january`, `february`, `march`, `april`, `may`, `june`, `july`, `august`, `september`, `october`, `november`, `december`.
 
-Format: single name/integer (`"march"` / `"3"`) or colon-separated range (`"march:may"` / `"3:5"`). Start must not exceed end.
+Format: single name/integer (`"march"` / `"3"`) or colon-separated range (`"march:may"` / `"3:5"`).
+Start must not exceed end.
 
 ### Years
 
@@ -123,11 +136,13 @@ years:
 
 This matches 2024 through 2026 inclusive and the single year 2024.
 
-Format: single integer (`"2024"`) or colon-separated range (`"2024:2026"`). Start must not exceed end.
+Format: single integer (`"2024"`) or colon-separated range (`"2024:2026"`).
+Start must not exceed end.
 
 ### Location
 
-IANA timezone identifier string. Controls which timezone is used for evaluating ALL other fields in this interval spec.
+IANA timezone identifier string.
+Controls which timezone is used for evaluating ALL other fields in this interval spec.
 
 ```yaml
 location: America/New_York
@@ -145,7 +160,8 @@ Check timezone assumptions before reviewing the interval body:
 - if the schedule is business-hour sensitive, set `location` explicitly instead of assuming UTC
 - if multiple teams use different local schedules, prefer separate named intervals rather than one ambiguous shared interval
 - review `24:00` boundaries carefully so overnight windows do not leave a one-minute hole or overlap unexpectedly
-- DST transitions can cause unexpected window shifts; test intervals around transition dates
+- DST transitions can cause unexpected window shifts.
+  - Test intervals around transition dates
 
 ## Complete Examples
 
@@ -272,7 +288,8 @@ route:
 
 ```
 
-During `offhours` or `holidays`, alerts matching this route still group and wait normally, but no notification is sent. When the interval ends, pending notifications fire immediately if their grouping timers have elapsed.
+During `offhours` or `holidays`, alerts matching this route still group and wait normally, but no notification is sent.
+When the interval ends, pending notifications fire immediately if their grouping timers have elapsed.
 
 ### Active Time Intervals
 
@@ -288,7 +305,8 @@ route:
 
 ```
 
-Outside `business-hours`, this route does not match at all. Alerts that would have matched fall through to the next matching route or the root route default receiver.
+Outside `business-hours`, this route does not match at all.
+Alerts that would have matched fall through to the next matching route or the root route default receiver.
 
 ## Review Focus
 

@@ -4,6 +4,18 @@ set -e
 
 root=${root:?}
 
+# Require a file to contain every given text fragment.
+#
+# @param path File path to inspect.
+# @param text Text fragment to require.
+require_texts() {
+    path=$1
+    shift
+    for text; do
+        require_text "$path" "$text"
+    done
+}
+
 # Require gradle buildSrc assets exist.
 assert_gradle_assets() {
     assets_root=$root/skills/harness-install/assets/gradle
@@ -18,29 +30,18 @@ assert_gradle_assets() {
     require_file "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/SlfDirectLoggingKtlintRule.kt"
     require_file "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt"
     require_file "$assets_root/buildSrc/src/main/resources/META-INF/services/com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3"
-    require_text "$assets_root/build.gradle.kts" 'alias(libs.plugins.ktlint) apply false'
-    require_text "$assets_root/build.gradle.kts" 'alias(libs.plugins.kotlin.jvm) apply false'
-    require_text "$assets_root/build.gradle.kts" 'rootProject.libs.plugins.ktlint'
-    require_text "$assets_root/build.gradle.kts" 'libs.versions.ktlint.cli'
+    require_texts "$assets_root/build.gradle.kts" 'alias(libs.plugins.ktlint) apply false' 'alias(libs.plugins.kotlin.jvm) apply false' 'rootProject.libs.plugins.ktlint' 'libs.versions.ktlint.cli'
     reject_file_contains "$assets_root/build.gradle.kts" 'gitTrackedFiles'
     reject_file_contains "$assets_root/build.gradle.kts" 'git", "ls-files"'
     require_text "$assets_root/buildSrc/build.gradle.kts" 'alias(libs.plugins.kotlin.jvm)'
     require_text "$assets_root/buildSrc/build.gradle.kts" 'libs.versions.ktlint.cli.get()'
     require_text "$assets_root/buildSrc/settings.gradle.kts" '../gradle/libs.versions.toml'
-    require_text "$assets_root/build.gradle.kts" 'checkMarkdown'; require_text "$assets_root/build.gradle.kts" 'tasks.named("check")'
-    require_text "$assets_root/build.gradle.kts" 'fixMarkdown'
-    require_text "$assets_root/build.gradle.kts" 'kotlinFormat'
-    require_text "$assets_root/build.gradle.kts" 'runKtlintFormatOver'
-    require_text "$assets_root/build.gradle.kts" 'command -v markdownlint-cli2'
-    require_text "$assets_root/build.gradle.kts" 'skipping Markdown linting'; require_text "$assets_root/build.gradle.kts" 'skipping Markdown fixes'; require_text "$assets_root/build.gradle.kts" 'bun add -g markdownlint-cli2'; require_text "$assets_root/build.gradle.kts" 'outputs.upToDateWhen { false }'
-    require_text "$assets_root/build.gradle.kts" '"--fix"'
+    require_texts "$assets_root/build.gradle.kts" 'checkMarkdown' 'tasks.named("check")' 'fixMarkdown' 'kotlinFormat' 'runKtlintFormatOver' 'command -v markdownlint-cli2' 'skipping Markdown linting' 'skipping Markdown fixes' 'bun add -g markdownlint-cli2' 'outputs.upToDateWhen { false }' '"--fix"'
     reject_file_contains "$assets_root/build.gradle.kts" '"**/*.md"'
     reject_file_contains "$assets_root/build.gradle.kts" '"bunx"'
     reject_file_contains "$assets_root/build.gradle.kts" 'docs/scripts/check-markdown-links.sh'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ExplicitPropertyTypeKtlintRule.kt" 'code:explicit-property-type'
-    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ComparisonDirectionKtlintRule.kt" 'code:comparison-direction'
-    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ComparisonDirectionKtlintRule.kt" 'KtSingleValueToken'
-    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ComparisonDirectionKtlintRule.kt" 'ALLOW_AUTOCORRECT'
+    require_texts "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ComparisonDirectionKtlintRule.kt" 'code:comparison-direction' 'KtSingleValueToken' 'ALLOW_AUTOCORRECT'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/SlfDirectLoggingKtlintRule.kt" 'code:slf-direct-logging'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'code:terminal-branch-when'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'RuleAutocorrectApproveHandler'
@@ -77,20 +78,8 @@ assert_bun_assets() {
     require_file "$assets_root/oxlint.config.ts"
     require_file "$assets_root/oxfmt.config.ts"
     require_file "$assets_root/scripts/tsdoc-plugin.ts"
-    require_text "$assets_root/package.json" '"prepare": "husky"'
-    require_text "$assets_root/package.json" '"check": "run-p check:*"'
-    require_text "$assets_root/package.json" '"check:markdownlint-cli2": "markdownlint-cli2"'
-    require_text "$assets_root/package.json" '"check:ultracite": "ultracite check"'
-    require_text "$assets_root/package.json" '"fix": "run-p fix:*"'
-    require_text "$assets_root/package.json" '"fix:markdownlint-cli2": "markdownlint-cli2 --fix"'
-    require_text "$assets_root/package.json" '"fix:ultracite": "ultracite fix"'
-    require_text "$assets_root/oxlint.config.ts" 'ultracite/oxlint/core'
-    require_text "$assets_root/oxlint.config.ts" 'jsPlugins: ["./scripts/tsdoc-plugin.ts"]'
-    require_text "$assets_root/oxlint.config.ts" 'tsdoc/require-export-tsdoc'
-    require_text "$assets_root/oxlint.config.ts" '"**/*.{js,jsx,mjs,cjs}"'
-    require_text "$assets_root/oxlint.config.ts" 'jsdoc/require-param'
-    require_text "$assets_root/oxlint.config.ts" 'jsdoc/require-returns'
-    require_text "$assets_root/oxlint.config.ts" "ignorePatterns: core.ignorePatterns"
+    require_texts "$assets_root/package.json" '"prepare": "husky"' '"check": "run-p check:*"' '"check:markdownlint-cli2": "markdownlint-cli2"' '"check:ultracite": "ultracite check"' '"fix": "run-p fix:*"' '"fix:markdownlint-cli2": "markdownlint-cli2 --fix"' '"fix:ultracite": "ultracite fix"'
+    require_texts "$assets_root/oxlint.config.ts" 'ultracite/oxlint/core' 'jsPlugins: ["./scripts/tsdoc-plugin.ts"]' 'tsdoc/require-export-tsdoc' '"**/*.{js,jsx,mjs,cjs}"' 'jsdoc/require-param' 'jsdoc/require-returns' "ignorePatterns: core.ignorePatterns"
     reject_file_contains "$assets_root/oxlint.config.ts" "disabledRules"
     require_text "$assets_root/oxfmt.config.ts" 'ultracite/oxfmt'
     require_text "$assets_root/oxfmt.config.ts" '...ultracite'
@@ -102,11 +91,8 @@ assert_bun_assets() {
     require_dir "$assets_root/.husky"
     require_file "$assets_root/.husky/pre-commit"
     require_file "$assets_root/.husky/pre-push"
-    require_text "$assets_root/.husky/pre-commit" 'bun typecheck'
-    require_text "$assets_root/.husky/pre-commit" 'bun run check'
-    require_text "$assets_root/.husky/pre-push" 'bun typecheck'
-    require_text "$assets_root/.husky/pre-push" 'bun run check'
-    require_text "$assets_root/.husky/pre-push" 'bun test'
+    require_texts "$assets_root/.husky/pre-commit" 'bun typecheck' 'bun run check'
+    require_texts "$assets_root/.husky/pre-push" 'bun typecheck' 'bun run check' 'bun test'
     printf '[bun assets] OK\n' >&2
 }
 
@@ -116,30 +102,21 @@ assert_uv_assets() {
     require_file "$assets_root/ruff.toml"
     reject_file_contains "$assets_root/ruff.toml" 'extend-select'
     require_file "$assets_root/scripts/check.py"
-    require_text "$assets_root/scripts/check.py" 'shutil.which("markdownlint-cli2")'
-    require_text "$assets_root/scripts/check.py" 'skipping Markdown linting'
+    require_texts "$assets_root/scripts/check.py" 'shutil.which("markdownlint-cli2")' 'skipping Markdown linting'
     reject_file_contains "$assets_root/scripts/check.py" 'docs/scripts/check-markdown-links.sh'
     require_file "$assets_root/scripts/fix.py"
-    require_text "$assets_root/scripts/fix.py" 'shutil.which("markdownlint-cli2")'
-    require_text "$assets_root/scripts/fix.py" 'skipping Markdown fixes'
-    require_text "$assets_root/scripts/fix.py" '"--fix"'
-    require_text "$assets_root/scripts/check.py" '"check",'
-    require_text "$assets_root/scripts/check.py" '"--check",'
-    require_text "$assets_root/scripts/check.py" '"."'
+    require_texts "$assets_root/scripts/fix.py" 'shutil.which("markdownlint-cli2")' 'skipping Markdown fixes' '"--fix"'
+    require_texts "$assets_root/scripts/check.py" '"check",' '"--check",' '"."'
     reject_file_contains "$assets_root/scripts/check.py" 'git", "ls-files"'
     reject_file_contains "$assets_root/scripts/check.py" 'tracked_python_files'
-    require_text "$assets_root/scripts/fix.py" '"--fix",'
-    require_text "$assets_root/scripts/fix.py" '"format",'
-    require_text "$assets_root/scripts/fix.py" '"."'
+    require_texts "$assets_root/scripts/fix.py" '"--fix",' '"format",' '"."'
     reject_file_contains "$assets_root/scripts/fix.py" 'git", "ls-files"'
     reject_file_contains "$assets_root/scripts/fix.py" 'tracked_python_files'
     reject_file_contains "$assets_root/ruff.toml" 'extend-ignore'
     reject_file_contains "$assets_root/ruff.toml" 'ignore ='
     reject_file_contains "$assets_root/ruff.toml" 'per-file-ignores'
     require_file "$assets_root/.pre-commit-config.yaml"
-    require_text "$assets_root/.pre-commit-config.yaml" 'repo: local'
-    require_text "$assets_root/.pre-commit-config.yaml" '- id: lint'
-    require_text "$assets_root/.pre-commit-config.yaml" '- id: full-lint'
+    require_texts "$assets_root/.pre-commit-config.yaml" 'repo: local' '- id: lint' '- id: full-lint'
     reject_file_contains "$assets_root/.pre-commit-config.yaml" 'QUICK'
     reject_file_contains "$assets_root/scripts/check.py" 'sync_git_hooks'
     printf '[uv assets] OK\n' >&2
@@ -168,20 +145,16 @@ assert_maven_assets() {
     require_text "$assets_root/pom.xml" 'command -v markdownlint-cli2'
     require_text "$assets_root/pom.xml" 'skipping Markdown linting'
     require_text "$assets_root/pom.xml" 'bun add -g markdownlint-cli2'
-    require_text "$assets_root/pom.xml" 'format-markdown'; require_text "$assets_root/pom.xml" '--fix'
+    require_text "$assets_root/pom.xml" 'format-markdown'
+    require_text "$assets_root/pom.xml" '--fix'
     reject_file_contains "$assets_root/pom.xml" 'docs/scripts/check-markdown-links.sh'
     reject_file_contains "$assets_root/pom.xml" 'failonerror="false"'
-    require_text "$installer_commands" 'spotlessFiles'
-    require_text "$installer_commands" './mvnw validate'
-    require_text "$installer_commands" './mvnw validate -DspotlessFiles'
-    require_text "$installer_commands" "root=\$(pwd -P)"
-    require_text "$installer_commands" 'git ls-files -- "*.java"'
+    require_texts "$installer_commands" 'spotlessFiles' './mvnw validate' './mvnw validate -DspotlessFiles' "root=\$(pwd -P)" 'git ls-files -- "*.java"'
     require_text "$installer_hooks" "list_tracked_tree_files"
     reject_file_text "$installer_package" "find \"\$src_dir\" -type f"
-    require_text "$installer_commands" 'Java path contains comma'
-    require_text "$installer_commands" "case \"\$file\" in *,*)"
-    require_text "$installer_commands" 'paste -sd, -'
-    require_text "$installer_commands" 's/[][\\.^$*+?{}()|]/\\&/g'
+    require_texts "$installer_commands" 'comma Java path' 'escaped Java path' 'grep -q' 'comma_file=' 'unsafe_file=' 'paste -sd, -'
+    reject_file_contains "$installer_commands" "case \"\$file\" in *,*)"
+    require_text "$installer_commands" "s/[][\\\\\\\\.^\$*+?{}()|]/\\\\\\\\&/g"
     reject_file_contains "$root/skills/harness-install/assets/common/.claude/skills/validate/SKILL.md" './mvnw verify'
     reject_file_contains "$assets_root/pom.xml" '<phase>verify</phase>'
     reject_file_contains "$installer_commands" 's#^#.*#'
@@ -189,6 +162,8 @@ assert_maven_assets() {
     require_dir "$assets_root/.githooks"
     require_file "$assets_root/.githooks/pre-commit"
     require_file "$assets_root/.githooks/pre-push"
+    sh -n "$assets_root/.githooks/pre-commit"
+    require_texts "$assets_root/.githooks/pre-commit" 'git ls-files -- "*.java"' 'grep -q' 'comma_file=' 'unsafe_file=' 'comma Java path' 'escaped Java path' 'paste -sd, -' "s/[][\\\\.^\$*+?{}()|]/\\\\&/g" "./mvnw validate -DspotlessFiles=\"\$files\""
     require_text "$assets_root/.githooks/pre-push" './mvnw verify'
     printf '[maven assets] OK\n' >&2
 }
@@ -200,18 +175,9 @@ assert_shell_assets() {
     require_file "$assets_root/scripts/fix.sh"
     reject_file "$assets_root/.editorconfig"
     reject_file "$assets_root/.shellcheckrc"
-    require_text "$assets_root/scripts/check.sh" 'git ls-files -z'
-    require_text "$assets_root/scripts/check.sh" 'xargs -0 shellcheck -S warning --'
-    require_text "$assets_root/scripts/check.sh" 'xargs -0 shfmt -d -i 4 -ci --'
-    require_text "$assets_root/scripts/check.sh" 'command -v markdownlint-cli2'
-    require_text "$assets_root/scripts/check.sh" 'skipping Markdown linting'
+    require_texts "$assets_root/scripts/check.sh" 'git ls-files -z' 'xargs -0 shellcheck -S warning --' 'xargs -0 shfmt -d -i 4 -ci --' 'command -v markdownlint-cli2' 'skipping Markdown linting'
     reject_file_contains "$assets_root/scripts/check.sh" 'docs/scripts/check-markdown-links.sh'
-    require_text "$assets_root/scripts/fix.sh" 'git ls-files -z'
-    require_text "$assets_root/scripts/fix.sh" 'command -v markdownlint-cli2'
-    require_text "$assets_root/scripts/fix.sh" 'skipping Markdown fixes'
-    require_text "$assets_root/scripts/fix.sh" '--fix'
-    require_text "$assets_root/scripts/fix.sh" "xargs -0 \"\$shfmt_bin\" -i 4 -ci -w --"
-    require_text "$assets_root/scripts/fix.sh" 'error: shfmt is required for shell formatting.'
+    require_texts "$assets_root/scripts/fix.sh" 'git ls-files -z' 'command -v markdownlint-cli2' 'skipping Markdown fixes' '--fix' "xargs -0 \"\$shfmt_bin\" -i 4 -ci -w --" 'error: shfmt is required for shell formatting.'
     reject_file_contains "$assets_root/scripts/fix.sh" "skipping shell fixes"
     reject_file_contains "$assets_root/scripts/check.sh" 'sync_git_hooks'
     require_dir "$assets_root/.githooks"

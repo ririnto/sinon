@@ -96,7 +96,8 @@ class RemotePricingTest {
 
 ## Lifecycle hooks
 
-Use `@BeforeEach` / `@AfterEach` for per-test fixture setup. Use `@BeforeAll` / `@AfterAll` (on `companion object`) for expensive one-time setup.
+Use `@BeforeEach` / `@AfterEach` for per-test fixture setup.
+Use `@BeforeAll` / `@AfterAll` (on `companion object`) for expensive one-time setup.
 
 ```kotlin
 import org.junit.jupiter.api.AfterEach
@@ -127,7 +128,8 @@ class FileProcessorTest {
 
 ## Parameterized tests
 
-Use `@ParameterizedTest` with `@MethodSource` for data-driven cases. Use `@CsvSource` for small inline datasets.
+Use `@ParameterizedTest` with `@MethodSource` for data-driven cases.
+Use `@CsvSource` for small inline datasets.
 
 ```kotlin
 import org.junit.jupiter.params.ParameterizedTest
@@ -166,7 +168,8 @@ class DiscountCalculatorTest {
 
 ## Test instance lifecycle
 
-By default JUnit 5 creates a new instance per method (`PER_METHOD`). Use `@TestInstance(Lifecycle.PER_CLASS)` when tests share expensive state.
+By default JUnit 5 creates a new instance per method (`PER_METHOD`).
+Use `@TestInstance(Lifecycle.PER_CLASS)` when tests share expensive state.
 
 ```kotlin
 import org.junit.jupiter.api.AfterAll

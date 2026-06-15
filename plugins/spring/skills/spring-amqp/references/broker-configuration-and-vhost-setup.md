@@ -1,6 +1,6 @@
 # Broker configuration and vhost setup
 
-Open this reference when the common-path topology declarations in [SKILL.md](../SKILL.md) are not enough and the blocker is broker credentials, virtual-host selection, or explicit connection settings.
+Open this reference when the common-path topology declarations in [`SKILL.md`](../SKILL.md) are not enough and the blocker is broker credentials, virtual-host selection, or explicit connection settings.
 
 ## Broker configuration blocker
 

@@ -1,12 +1,15 @@
 ---
 name: spring-cloud
 description: >-
-  Implement Spring Cloud distributed-system building blocks for ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, and circuit-breaker boundaries. Use when configuring Spring Cloud Config client or server, registering services with Eureka or Consul, wiring load-balanced `RestClient` or `WebClient`, applying circuit-breaker patterns with Resilience4J.
+  Implement Spring Cloud distributed-system building blocks for ConfigData integration, refresh-aware configuration, service discovery, load-balanced downstream calls, and circuit-breaker boundaries.
+  Use when configuring Spring Cloud Config client or server, registering services with Eureka or Consul, wiring load-balanced `RestClient` or `WebClient`, applying circuit-breaker patterns with Resilience4J.
 ---
 
 # Spring Cloud
 
-The current Boot 4.x Spring Cloud release-train line is 2025.1.x (Oakwood). The latest service release is 2025.1.2. Spring Cloud 2025.0.2 (Northfields) is a parallel Boot 3.5.x line, not a newer replacement. The common path in this skill stays anchored to 2025.1.x unless the project is intentionally on the 3.5.x generation.
+The current Boot 4.x Spring Cloud release-train line is 2025.1.x (Oakwood).
+The latest service release is 2025.1.2. Spring Cloud 2025.0.2 (Northfields) is a parallel Boot 3.5.x line, not a newer replacement.
+The common path in this skill stays anchored to 2025.1.x unless the project is intentionally on the 3.5.x generation.
 
 | Release Train | Boot Generation | Notes |
 | --- | --- | --- |
@@ -167,7 +170,8 @@ spring:
     import: optional:configserver:http://localhost:8888
 ```
 
-Use `optional:` only when startup may continue without the config server. If startup must stop when remote config is unavailable, keep the import explicit and use fail-fast semantics in the backend-specific branch.
+Use `optional:` only when startup may continue without the config server.
+If startup must stop when remote config is unavailable, keep the import explicit and use fail-fast semantics in the backend-specific branch.
 
 Config profile validation can be disabled when the server must serve non-standard profile names:
 
@@ -205,7 +209,8 @@ Use `@RefreshScope` only for beans that must rebind after a config refresh rathe
 
 > [!NOTE]
 >
-> Commons 5.0.2 fixes `DELETE /actuator/env` to correctly restore `ConfigurationProperties` beans to their initial values before rebinding. In earlier versions, a delete-and-refresh cycle could leave properties in an inconsistent state.
+> Commons 5.0.2 fixes `DELETE /actuator/env` to correctly restore `ConfigurationProperties` beans to their initial values before rebinding.
+> In earlier versions, a delete-and-refresh cycle could leave properties in an inconsistent state.
 
 ### Discovery client shape
 
@@ -259,11 +264,13 @@ Customizer<ReactiveResilience4JCircuitBreakerFactory> defaultCustomizer() {
 }
 ```
 
-Put retries or circuit breakers only around genuine remote call boundaries. Do not treat resilience as a global default for local method calls.
+Put retries or circuit breakers only around genuine remote call boundaries.
+Do not treat resilience as a global default for local method calls.
 
 > [!NOTE]
 >
-> CircuitBreaker 5.0.2 logs a warning when the default `TimeLimiter` configuration is used without explicit customization. Review and set `TimeLimiterConfig` deliberately instead of relying on defaults.
+> CircuitBreaker 5.0.2 logs a warning when the default `TimeLimiter` configuration is used without explicit customization.
+> Review and set `TimeLimiterConfig` deliberately instead of relying on defaults.
 
 ### Data Flow task app shape
 
@@ -441,7 +448,8 @@ http://inventory-service
 
 ### Spring Interface Client with load balancing (Boot 4.x / 2025.1.x)
 
-Spring Boot 4.0 introduced annotated HTTP interface clients backed by `RestClient` or `WebClient`. Spring Cloud Commons 5.0 adds `lb://` scheme support on these clients and built-in circuit-breaker integration.
+Spring Boot 4.0 introduced annotated HTTP interface clients backed by `RestClient` or `WebClient`.
+Spring Cloud Commons 5.0 adds `lb://` scheme support on these clients and built-in circuit-breaker integration.
 
 ```java
 interface InventoryClient {
@@ -460,7 +468,8 @@ InventoryClient inventoryClient(RestClient.Builder builder) {
 }
 ```
 
-Prefer Interface Clients over OpenFeign for new Boot 4.x work. OpenFeign remains available for existing estates.
+Prefer Interface Clients over OpenFeign for new Boot 4.x work.
+OpenFeign remains available for existing estates.
 
 ### Data Flow output shapes
 
@@ -542,14 +551,14 @@ Use these only when the task moves beyond the ordinary config, refresh, discover
 
 ### Distributed-system wiring references
 
-- Open [references/gateway-routing.md](references/gateway-routing.md) when the service must own an edge routing boundary instead of calling downstream services directly.
-- Open [references/openfeign-clients.md](references/openfeign-clients.md) when declarative HTTP clients are clearer than direct `RestClient` code.
-- Open [references/stream-binders.md](references/stream-binders.md) when the task is specifically about Stream binder wiring.
-- Open [references/function-catalog.md](references/function-catalog.md) when the task is specifically about Spring Cloud Function beans or composition.
-- Open [references/contract-testing.md](references/contract-testing.md) when the task is specifically about Spring Cloud Contract.
-- Open [references/kubernetes-config.md](references/kubernetes-config.md) when config import or reload is backed by Kubernetes sources.
-- Open [references/kubernetes-discovery.md](references/kubernetes-discovery.md) when service discovery is backed by Kubernetes namespaces and services.
-- Open [references/bus-refresh.md](references/bus-refresh.md) when the platform actually needs distributed refresh or event propagation.
-- Open [references/cloud-vault-config.md](references/cloud-vault-config.md) when config import is backed by Vault and the blocker is authentication mode or fail-fast behavior.
+- Open [references/gateway`-routing.md`](references/gateway-routing.md) when the service must own an edge routing boundary instead of calling downstream services directly.
+- Open [references/openfeign`-clients.md`](references/openfeign-clients.md) when declarative HTTP clients are clearer than direct `RestClient` code.
+- Open [references/stream`-binders.md`](references/stream-binders.md) when the task is specifically about Stream binder wiring.
+- Open [references/function`-catalog.md`](references/function-catalog.md) when the task is specifically about Spring Cloud Function beans or composition.
+- Open [references/contract`-testing.md`](references/contract-testing.md) when the task is specifically about Spring Cloud Contract.
+- Open [references/kubernetes`-config.md`](references/kubernetes-config.md) when config import or reload is backed by Kubernetes sources.
+- Open [references/kubernetes`-discovery.md`](references/kubernetes-discovery.md) when service discovery is backed by Kubernetes namespaces and services.
+- Open [references/bus`-refresh.md`](references/bus-refresh.md) when the platform actually needs distributed refresh or event propagation.
+- Open [references/cloud`-vault-config.md`](references/cloud-vault-config.md) when config import is backed by Vault and the blocker is authentication mode or fail-fast behavior.
 
 ### Data Flow references

@@ -65,12 +65,15 @@ Use `SslProvider.OPENSSL` with `netty-tcnative` for higher throughput on Linux.
 
 > [!NOTE]
 >
-> `netty-tcnative-boringssl-static` bundles BoringSSL statically — no external OpenSSL installation is required. Use the non-`static` variant (`netty-tcnative-boringssl`) when the system OpenSSL library must be used instead.
+> `netty-tcnative-boringssl-static` bundles BoringSSL statically — no external OpenSSL installation is required.
+> Use the non-`static` variant (`netty-tcnative-boringssl`) when the system OpenSSL library must be used instead.
 
 ## Guidance
 
 - keep self-signed or insecure trust managers out of normal production examples
 - treat handshake failures as connection failures and surface them in `exceptionCaught`
 - add protocol-specific framing and codecs after the TLS handler
-- use `SslProvider.OPENSSL` (via netty-tcnative) on Linux for production throughput; `SslProvider.JDK` is portable but slower under load
-- prefer `TLSv1.3` as the first protocol in the protocols list; fall back to `TLSv1.2` for older clients
+- use `SslProvider.OPENSSL` (via netty-tcnative) on Linux for production throughput.
+  - `SslProvider.JDK` is portable but slower under load
+- prefer `TLSv1.3` as the first protocol in the protocols list.
+  - Fall back to `TLSv1.2` for older clients

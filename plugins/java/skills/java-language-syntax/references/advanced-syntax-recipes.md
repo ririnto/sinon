@@ -152,11 +152,13 @@ Use when: record components are needed immediately and deconstruction is clearer
 import module java.sql;
 ```
 
-Use when: the project explicitly chooses this newer module-oriented style. Do not treat it as the default shape for ordinary application code.
+Use when: the project explicitly chooses this newer module-oriented style.
+Do not treat it as the default shape for ordinary application code.
 
 ### Flexible constructor body `(JDK 25+)`
 
-JEP 513 finalizes flexible constructor bodies in JDK 25. Statements may appear before an explicit `super(...)` or `this(...)` call, but the early construction context cannot use the instance under construction except for simple assignments to uninitialized fields declared in the same class.
+JEP 513 finalizes flexible constructor bodies in JDK 25.
+Statements may appear before an explicit `super(...)` or `this(...)` call, but the early construction context cannot use the instance under construction except for simple assignments to uninitialized fields declared in the same class.
 
 ```java
 class Person {
@@ -180,7 +182,8 @@ class Employee extends Person {
 }
 ```
 
-Use when: validation, argument preparation, or field initialization is safer before calling an explicit constructor invocation. Do not call instance methods, read instance fields, or assign fields that already have initializers from the prologue.
+Use when: validation, argument preparation, or field initialization is safer before calling an explicit constructor invocation.
+Do not call instance methods, read instance fields, or assign fields that already have initializers from the prologue.
 
 ## Preview and withdrawn notes
 

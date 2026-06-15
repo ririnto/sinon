@@ -38,7 +38,8 @@ Start here when Kotlin work could fit more than one skill:
 - Use `kotlin-language-patterns` for idiomatic API shape, null-safety, and value modeling decisions.
 - Use `kotlin-coroutines-flows` when the question concerns async contract, `suspend`, `Flow`, cancellation, or scope ownership.
 - Use `kotlin-test` for Kotlin unit-test structure, coroutine-aware testing, or test-scope decisions.
-- When the question is "how should the async contract be shaped?", stay in coroutine guidance. When it is "how do I verify that async behavior deterministically?", stay in testing guidance.
+- When the question is "how should the async contract be shaped?", stay in coroutine guidance.
+  - When it is "how do I verify that async behavior deterministically?", stay in testing guidance.
 
 ### Typical workflow
 
@@ -50,7 +51,8 @@ Start here when Kotlin work could fit more than one skill:
 
 ### Scope boundaries
 
-Pure Kotlin unit tests, coroutine tests, and test-structure decisions that do not require Spring context stay in Kotlin-focused guidance. Tests that depend on Spring Boot test slices, Spring-managed wiring, or Spring infrastructure behavior belong in Spring-focused guidance.
+Pure Kotlin unit tests, coroutine tests, and test-structure decisions that do not require Spring context stay in Kotlin-focused guidance.
+Tests that depend on Spring Boot test slices, Spring-managed wiring, or Spring infrastructure behavior belong in Spring-focused guidance.
 
 Kotlin stays responsible for Kotlin-native language patterns, coroutine and Flow modeling, Kotlin-focused test structure, and kotlin-lsp-assisted source analysis.
 
@@ -60,14 +62,16 @@ These topics fall outside Kotlin's scope:
 - JVM tools, JVM diagnostics, and GC analysis.
 - Spring annotations, WebFlux framework wiring, Spring Boot testing, and framework-managed reactive behavior.
 
-Spring-specific coroutine endpoints, reactive controllers, and `WebClient` usage belong to Spring-focused guidance. Kotlin remains the home for general coroutine and Flow design outside Spring framework behavior.
+Spring-specific coroutine endpoints, reactive controllers, and `WebClient` usage belong to Spring-focused guidance.
+Kotlin remains the home for general coroutine and Flow design outside Spring framework behavior.
 
 ## Design Principles
 
 - Prefer working code shapes over generic language summaries.
 - Keep examples minimal but directly adaptable to production code.
 - Choose the smallest Kotlin skill that matches the task.
-- Keep `SKILL.md` self-contained and usable on its own; use `references/` only for supplemental decision aids and longer notes.
+- Keep `SKILL.md` self-contained and usable on its own.
+  - Use `references/` only for supplemental decision aids and longer notes.
 - Unnecessary blank lines inside function bodies SHOULD be removed.
 - Variables used only once SHOULD be inlined when their names and extraction order do not add meaning.
 - Explicit lambda parameter names SHOULD be preferred over `it` when the named form improves scanning or domain clarity.
@@ -82,7 +86,8 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/` and `./.lsp.json`. Local language-server support files live beside the manifest at the plugin root.
+The manifest declares `./skills/` and `./.lsp.json`.
+Local language-server support files live beside the manifest at the plugin root.
 
 ## Plugin Layout
 
@@ -111,7 +116,8 @@ This plugin uses `kotlin-lsp` as the Kotlin language-server surface.
 
 - `kotlin-lsp` executable available on `PATH`
 
-Use kotlin-lsp when the task needs symbol navigation, diagnostics, or safe refactors in `.kt` files. Do not treat it as a substitute for the skills above: the skills explain how to reason about Kotlin work, while kotlin-lsp provides editor intelligence.
+Use kotlin-lsp when the task needs symbol navigation, diagnostics, or safe refactors in `.kt` files.
+Do not treat it as a substitute for the skills above: the skills explain how to reason about Kotlin work, while kotlin-lsp provides editor intelligence.
 
 ## Installation
 
@@ -129,4 +135,6 @@ claude --plugin-dir /path/to/sinon/plugins/kotlin
 
 ## Scope Notes
 
-This plugin intentionally focuses on Kotlin-native language patterns, coroutine and Flow design, and Kotlin testing guidance. It does not yet ship custom MCP servers or hooks. Dependency lookup, Java syntax rules, Spring framework behavior, and JVM diagnostics are outside its scope.
+This plugin intentionally focuses on Kotlin-native language patterns, coroutine and Flow design, and Kotlin testing guidance.
+It does not yet ship custom MCP servers or hooks.
+Dependency lookup, Java syntax rules, Spring framework behavior, and JVM diagnostics are outside its scope.

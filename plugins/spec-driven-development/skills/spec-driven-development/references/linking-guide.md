@@ -1,7 +1,7 @@
 ---
 description: >-
   SPEC frontmatter call linking rules: adding, removing, and querying
-  outbound and inbound dependencies between SPEC.md files.
+  outbound and inbound dependencies between `SPEC.md` files.
 ---
 
 # Linking Guide
@@ -10,10 +10,12 @@ description: >-
 
 - Frontmatter `call` MUST be the authoritative source of SPEC dependencies.
 - Outbound links MUST be maintained as one-way references from the caller only.
-- Frontmatter `call` is SPEC-to-SPEC only. Each item MUST point to an existing `SPEC.md` file. Links to other files (for example, `CONTRACT.md`, `openapi.yaml`) MUST NOT be used.
+- Frontmatter `call` is SPEC-to-SPEC only.
+  - Each item MUST point to an existing `SPEC.md` file.
+  - Links to other files (for example, `CONTRACT.md`, `openapi.yaml`) MUST NOT be used.
 - Frontmatter `call` entries MUST use relative paths.
 - Spec body markdown links MAY explain context, but MUST NOT be used as dependency ownership data.
-- Each SPEC.md MUST include a `call: []` frontmatter field, even when there are no outbound references.
+- Each `SPEC.md` MUST include a `call: []` frontmatter field, even when there are no outbound references.
 - Reverse-direction points (backlinks / "called by" lists) MUST NOT be used.
 - Inbound relationships MUST be derived from frontmatter `call` via scripts and diagram generation.
 
@@ -83,7 +85,8 @@ These examples use canonical `spec/domain/...` paths for illustration.
 
 > [!NOTE]
 >
-> The examples below use canonical paths for clarity. They do not redefine canonical top-level SPEC structure policy.
+> The examples below use canonical paths for clarity.
+> They do not redefine canonical top-level SPEC structure policy.
 
 | Source | Target | Relative path in link |
 | --- | --- | --- |
@@ -94,7 +97,8 @@ These examples use canonical `spec/domain/...` paths for illustration.
 
 ## Forbidden Link Targets
 
-Frontmatter `call` MUST reference `SPEC.md` only. Non-SPEC documents MUST NOT be linked, even when adjacent.
+Frontmatter `call` MUST reference `SPEC.md` only.
+Non-SPEC documents MUST NOT be linked, even when adjacent.
 
 Forbidden examples:
 
@@ -114,7 +118,8 @@ Forbidden examples:
 
 ## Reverse Reference Query
 
-Reverse references are derived from frontmatter `call`. `"${SKILL_ROOT}/scripts/sdd.py" list-frontmatter` with `--inbound-of` SHOULD be used to query callers of a target spec.
+Reverse references are derived from frontmatter `call`.
+`"${SKILL_ROOT}/scripts/sdd.py" list-frontmatter` with `--inbound-of` SHOULD be used to query callers of a target spec.
 
 Examples:
 
@@ -123,7 +128,8 @@ Examples:
 
 ## Cross-Hierarchy Links
 
-Specs in different branches of the hierarchy MAY link to each other. These links SHOULD be displayed as normal call edges in the mermaid diagram.
+Specs in different branches of the hierarchy MAY link to each other.
+These links SHOULD be displayed as normal call edges in the mermaid diagram.
 
 ```mermaid
 flowchart TD

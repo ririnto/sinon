@@ -26,7 +26,8 @@ JdbcMessageStore messageStore(DataSource dataSource) {
 }
 ```
 
-Use `JdbcMessageStore` for aggregators, resequencers, and other correlation-state components. Reserve `JdbcChannelMessageStore` for channel-backed queue semantics.
+Use `JdbcMessageStore` for aggregators, resequencers, and other correlation-state components.
+Reserve `JdbcChannelMessageStore` for channel-backed queue semantics.
 
 ## Aggregator store shape
 

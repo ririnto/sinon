@@ -4,7 +4,8 @@ Open this reference when the common path in `SKILL.md` is not enough and the blo
 
 ## Async exception handling
 
-Exceptions from `@Async` methods that return `void` do not propagate to the caller. Handle those failures with an `AsyncUncaughtExceptionHandler`:
+Exceptions from `@Async` methods that return `void` do not propagate to the caller.
+Handle those failures with an `AsyncUncaughtExceptionHandler`:
 
 ```java
 @Configuration
@@ -23,7 +24,8 @@ Use this when a `void`-returning async method can fail and the caller has no `Fu
 
 ## Completion coordination with `Future` and `CompletableFuture`
 
-`@Async` methods return `void`, `Future<V>`, or `CompletableFuture<V>`. Use `Future` or `CompletableFuture` when the caller must wait or recover from failure:
+`@Async` methods return `void`, `Future<V>`, or `CompletableFuture<V>`.
+Use `Future` or `CompletableFuture` when the caller must wait or recover from failure:
 
 ```java
 @Async
@@ -68,4 +70,4 @@ ThreadPoolTaskExecutor taskExecutor() {
 }
 ```
 
-Open [aspectj-ltw.md](aspectj-ltw.md) when the task requires load-time weaving, field or constructor join points, or `@Configurable` domain object injection.
+Open [`aspectj-ltw.md`](aspectj-ltw.md) when the task requires load-time weaving, field or constructor join points, or `@Configurable` domain object injection.

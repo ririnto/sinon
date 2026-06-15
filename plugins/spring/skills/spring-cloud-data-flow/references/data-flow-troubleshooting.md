@@ -7,10 +7,10 @@ Open this reference when registration, deployment, launch, logging, or platform 
 Check failures in this order:
 
 1. SCDF server connectivity
-2. registered app coordinates and versions
-3. definition correctness
-4. platform account and deployment properties
-5. runtime status, logs, and metrics
+2. Registered app coordinates and versions
+3. Definition correctness
+4. Platform account and deployment properties
+5. Runtime status, logs, and metrics
 
 ## Registration blocker
 
@@ -42,7 +42,8 @@ http-log.http-v1  deployed
 http-log.log-v1   deployed
 ```
 
-Treat this as a registration problem, not a DSL problem. Fix the missing app catalog first, then redeploy and verify `runtime apps` before changing the stream definition.
+Treat this as a registration problem, not a DSL problem.
+Fix the missing app catalog first, then redeploy and verify `runtime apps` before changing the stream definition.
 
 ## Runtime blocker
 

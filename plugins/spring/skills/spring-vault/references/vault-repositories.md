@@ -4,7 +4,9 @@ Open this reference when domain entities must persist in Vault using Spring Data
 
 ## Repository setup
 
-Vault repositories apply Spring Data's repository concept on top of Vault. They use the key/value secrets engine to persist and query domain objects. The actual secrets engine version (KV v1 or v2) is discovered at runtime.
+Vault repositories apply Spring Data's repository concept on top of Vault.
+They use the key/value secrets engine to persist and query domain objects.
+The actual secrets engine version (KV v1 or v2) is discovered at runtime.
 
 ```java
 @Secret
@@ -44,9 +46,11 @@ Dependencies:
 
 ## Query method keywords (4.1 additions)
 
-Query methods derive simple queries from the method name. Vault has no query engine, so query execution lists children under a context path and applies filtering to the `@Id` property. All query predicates constrain the identifier only.
+Query methods derive simple queries from the method name.
+Vault has no query engine, so query execution lists children under a context path and applies filtering to the `@Id` property.
+All query predicates constrain the identifier only.
 
-### Regex patterns (4.1)
+### Regex patterns (4.1, #1000)
 
 ```java
 interface CredentialsRepository extends CrudRepository<Credentials, String> {
@@ -58,7 +62,7 @@ interface CredentialsRepository extends CrudRepository<Credentials, String> {
 List<Credentials> results = repo.findByIdRegex("prod-.*-db");
 ```
 
-### Set-based IN and NOT_IN (4.1)
+### Set-based IN and NOT_IN (4.1, #999)
 
 ```java
 interface CredentialsRepository extends CrudRepository<Credentials, String> {
@@ -112,9 +116,11 @@ repo.save(credentials);
 
 Concurrent updates to the same secret throw `OptimisticLockingFailureException`.
 
-## Vault 2.0.0 compatibility (4.1)
+## Vault 2.0.0 compatibility (4.1, #994)
 
-Spring Vault 4.1 is compatible with HashiCorp Vault 2.0.0. The KV version auto-detection in `opsForKeyValue(String path)` queries `sys/internal/ui/mounts/...` using the Vault 2.0 API surface. Ensure policies grant access to the mount detection endpoint.
+Spring Vault 4.1 is compatible with HashiCorp Vault 2.0.0.
+The KV version auto-detection in `opsForKeyValue(String path)` queries `sys/internal/ui/mounts/...` using the Vault 2.0 API surface.
+Ensure policies grant access to the mount detection endpoint.
 
 ## Decision points
 
@@ -128,6 +134,8 @@ Spring Vault 4.1 is compatible with HashiCorp Vault 2.0.0. The KV version auto-d
 
 ## Gotchas
 
-- Do not use query predicates on non-`@Id` properties. Vault query methods filter only by identifier.
-- Do not assume `In`/`NotIn` perform server-side filtering. Vault lists all IDs and filters in memory.
+- Do not use query predicates on non-`@Id` properties.
+  - Vault query methods filter only by identifier.
+- Do not assume `In`/`NotIn` perform server-side filtering.
+  - Vault lists all IDs and filters in memory.
 - Do not use Vault repositories with KV v1 when optimistic locking requires version metadata.

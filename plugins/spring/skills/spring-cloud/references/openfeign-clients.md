@@ -1,6 +1,6 @@
 # Spring Cloud OpenFeign clients
 
-Open this reference when the ordinary ConfigData-discovery-loadbalancer path in [SKILL.md](../SKILL.md) is not enough and the task is specifically about declarative OpenFeign clients.
+Open this reference when the ordinary ConfigData-discovery-loadbalancer path in [`SKILL.md`](../SKILL.md) is not enough and the task is specifically about declarative OpenFeign clients.
 
 ## OpenFeign blocker
 
@@ -36,7 +36,9 @@ InventoryClient inventoryClient(FeignClientBuilder builder) {
 
 ## Singleton Client requirement
 
-`FeignClient` instances must be singleton beans. When a non-singleton scope is used, underlying HTTP connections are not shared, leading to resource exhaustion. Keep the default singleton scope unless the use case explicitly demands per-instance isolation.
+`FeignClient` instances must be singleton beans.
+When a non-singleton scope is used, underlying HTTP connections are not shared, leading to resource exhaustion.
+Keep the default singleton scope unless the use case explicitly demands per-instance isolation.
 
 ## Gotchas
 

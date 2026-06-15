@@ -18,7 +18,8 @@ RequestHandlerRetryAdvice requestHandlerRetryAdvice() {
 }
 ```
 
-Spring Integration 7.0 moved retry support to Spring Framework Core retry APIs. Use `org.springframework.core.retry.RetryTemplate`, not the removed `org.springframework.retry` package.
+Spring Integration 7.0 moved retry support to Spring Framework Core retry APIs.
+Use `org.springframework.core.retry.RetryTemplate`, not the removed `org.springframework.retry` package.
 
 ## Advice attachment shape
 

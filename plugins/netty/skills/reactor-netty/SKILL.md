@@ -1,14 +1,16 @@
 ---
 name: reactor-netty
 description: >-
-  Build Reactor Netty HTTP, TCP, UDP, or QUIC clients and servers with reactive request handling, lifecycle hooks, and resource-aware startup or shutdown. Use when the work is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, `UdpClient`, `QuicServer`, or `QuicClient` rather than low-level Netty pipeline APIs.
+  Build Reactor Netty HTTP, TCP, UDP, or QUIC clients and servers with reactive request handling, lifecycle hooks, and resource-aware startup or shutdown.
+  Use when the work is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, `UdpClient`, `QuicServer`, or `QuicClient` rather than low-level Netty pipeline APIs.
 ---
 
 # Reactor Netty
 
 ## Official Baseline
 
-- Use the official Reactor Netty 1.3.x reference guide for this skill; this review checked `reactor-netty-core` 1.3.6 and `reactor-netty-http` 1.3.6.
+- Use the official Reactor Netty 1.3.x reference guide for this skill.
+  - This review checked `reactor-netty-core` 1.3.6 and `reactor-netty-http` 1.3.6.
 - Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
 - Keep HTTP, TCP, UDP, and QUIC aligned with the Reactor Netty reference guide chapters for the same release line.
 
@@ -19,8 +21,10 @@ Build one Reactor Netty application path end to end: pick the transport, configu
 Keep the common path on Reactor Netty builders and reactive flow: `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, `UdpClient`, `QuicServer`, and `QuicClient`.
 
 - Treat `.handle((inbound, outbound) -> ...)` and HTTP route handlers as the main composition points.
-- Do not block inside reactive handlers. Use blocking only at process boundaries such as `bindNow()`, `connectNow()`, terminal response retrieval in top-level sample code, or `onDispose().block()`.
-- Keep low-level Netty details out of the common path. If the task needs `ChannelPipeline`, `ByteBuf.release()`, `ChannelFuture`, or custom codecs, use the lower-level Netty API model rather than forcing the builder surface.
+- Do not block inside reactive handlers.
+  - Use blocking only at process boundaries such as `bindNow()`, `connectNow()`, terminal response retrieval in top-level sample code, or `onDispose().block()`.
+- Keep low-level Netty details out of the common path.
+  - If the task needs `ChannelPipeline`, `ByteBuf.release()`, `ChannelFuture`, or custom codecs, use the lower-level Netty API model rather than forcing the builder surface.
 - Dispose custom resources explicitly when you create them.
 
 ## When this skill fits
@@ -48,13 +52,17 @@ Keep low-level Netty concerns out of this common path:
    - `TcpServer` / `TcpClient`
    - `UdpServer` / `UdpClient`
 3. Configure host, port, warmup needs, and the common handler entrypoint.
+
     - HTTP server: `.route(...)` or `.handle(...)`
     - HTTP client: request + body send/receive + status inspection
     - TCP or UDP: `.handle((inbound, outbound) -> ...)`
     - QUIC: `handleStream(...)` for stream handling.
+
 4. Bind or connect.
+
     - server: `bindNow()` returns `DisposableServer`
     - client: `connectNow()` returns `Connection`
+
 5. Keep lifecycle hooks explicit when needed.
    - server: `doOnBind`, `doOnBound`, `doOnConnection`, `doOnUnbound`
    - client: `doOnConnect`, `doOnConnected`, `doOnDisconnected`
@@ -153,7 +161,8 @@ HttpClient.create()
     .block();
 ```
 
-Do not use blocking `try/catch` inside reactive lambdas. Reactive errors travel through the error channel, not Java exceptions.
+Do not use blocking `try/catch` inside reactive lambdas.
+Reactive errors travel through the error channel, not Java exceptions.
 
 ### Resource model
 
@@ -187,7 +196,8 @@ server.onDispose().block();
 
 HTTP client:
 
-`ByteBufFlux.fromString` converts a `String` publisher into a `Flux<ByteBuf>` for request body sends. `ByteBufFlux` is defined in Reactor Netty core and is available transitively when using `reactor-netty-http`.
+`ByteBufFlux.fromString` converts a `String` publisher into a `Flux<ByteBuf>` for request body sends.
+`ByteBufFlux` is defined in Reactor Netty core and is available transitively when using `reactor-netty-http`.
 
 ```java
 import reactor.netty.ByteBufFlux;
@@ -207,7 +217,8 @@ String body = HttpClient.create()
 
 Warmup before first bind or connect:
 
-`warmup()` pre-initializes event loops without binding a port. The `HttpServer` builder remains reusable — `bindNow()` can be called afterward.
+`warmup()` pre-initializes event loops without binding a port.
+The `HttpServer` builder remains reusable — `bindNow()` can be called afterward.
 
 ```java
 HttpServer server = HttpServer.create().port(8080);
@@ -280,7 +291,8 @@ DisposableServer server = HttpServer.create()
 server.onDispose().block();
 ```
 
-Channel init (access the low-level Netty `ChannelPipeline` before handlers run). Use this when a channel-level option or handler must be set per-connection:
+Channel init (access the low-level Netty `ChannelPipeline` before handlers run).
+Use this when a channel-level option or handler must be set per-connection:
 
 ```java
 HttpServer.create()
@@ -341,7 +353,7 @@ Open these only when the common path is no longer enough:
 
 Return:
 
-1. the requested Reactor Netty server, client, or handler code
-2. the chosen builder and lifecycle hooks
-3. the resource and shutdown reasoning
-4. any blocker references still required
+1. The requested Reactor Netty server, client, or handler code
+2. The chosen builder and lifecycle hooks
+3. The resource and shutdown reasoning
+4. Any blocker references still required

@@ -3,14 +3,18 @@ name: java-performance-concurrency
 description: >-
   Review Java performance and concurrency decisions with evidence-driven profiling,
   classify bottlenecks as CPU, I/O, contention, or allocation,
-  evaluate virtual-thread fit, and recommend the smallest measured change. Use when interpreting profiling results, choosing between platform and virtual threads, evaluating lock contention or allocation churn, or deciding whether a concurrency change is justified by measured evidence.
+  evaluate virtual-thread fit, and recommend the smallest measured change.
+  Use when interpreting profiling results, choosing between platform and virtual threads, evaluating lock contention or allocation churn, or deciding whether a concurrency change is justified by measured evidence.
 ---
 
 # Java Performance Concurrency
 
-Treat Java 17 as the ordinary floor, Java 21+ as the virtual-thread line, and Java 25+ as the finalized `ScopedValue` line. Confirm the target runtime before recommending version-sensitive concurrency changes.
+Treat Java 17 as the ordinary floor, Java 21+ as the virtual-thread line, and Java 25+ as the finalized `ScopedValue` line.
+Confirm the target runtime before recommending version-sensitive concurrency changes.
 
-Review Java performance and concurrency decisions with emphasis on evidence, workload shape, and modern JVM capabilities. The common case is not heroic optimization; it is identifying whether the bottleneck is CPU, blocking I/O, contention, or allocation churn, then making the smallest measured change that fits that shape.
+Review Java performance and concurrency decisions with emphasis on evidence, workload shape, and modern JVM capabilities.
+The common case is not heroic optimization.
+It is identifying whether the bottleneck is CPU, blocking I/O, contention, or allocation churn, then making the smallest measured change that fits that shape.
 
 ## Operating rules
 
@@ -21,7 +25,8 @@ Review Java performance and concurrency decisions with emphasis on evidence, wor
 - MUST keep virtual-thread caveats aligned with the actual Java baseline.
 - SHOULD explain the likely cost of synchronization, allocation churn, and context switching.
 - SHOULD prefer simple concurrency models that fit the workload.
-- SHOULD treat `ScopedValue` as a version-sensitive alternative to broad `ThreadLocal` usage when immutable request context is the real problem; it is preview on Java 21-24 and finalized in Java 25.
+- SHOULD treat `ScopedValue` as a version-sensitive alternative to broad `ThreadLocal` usage when immutable request context is the real problem.
+  - It is preview on Java 21-24 and finalized in Java 25.
 
 ## Procedure
 

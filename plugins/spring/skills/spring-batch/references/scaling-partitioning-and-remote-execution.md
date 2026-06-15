@@ -1,6 +1,6 @@
 # Spring Batch scaling, partitioning, and remote execution
 
-Open this reference when the common-path scaling ladder in [SKILL.md](../SKILL.md) is not enough and the task requires a concrete scaling model such as multithreaded steps, parallel flows, partitioning, local chunking, remote chunking, or remote step execution.
+Open this reference when the common-path scaling ladder in [`SKILL.md`](../SKILL.md) is not enough and the task requires a concrete scaling model such as multithreaded steps, parallel flows, partitioning, local chunking, remote chunking, or remote step execution.
 
 ## Multithreaded step blocker
 
@@ -46,7 +46,8 @@ Use distributed execution only when one process is not enough.
 - remote chunking: manager sends item chunks to workers
 - remote step: manager delegates whole step execution to workers
 
-These patterns add operational cost. Prove that simpler scaling fails before choosing them.
+These patterns add operational cost.
+Prove that simpler scaling fails before choosing them.
 
 ## Decision points
 

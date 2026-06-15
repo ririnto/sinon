@@ -2,7 +2,8 @@
 
 ## Purpose
 
-Tech-debt-tracker.md records the deferred-work backlog with retirement criteria: work the team consciously chose not to do right now, and the specific condition under which each item should be reopened. This is distinct from `docs/exec-plans/active/` (work currently in progress) and `docs/PLANS.md` (project-wide roadmap of intended work).
+`Tech-debt-tracker.md` records the deferred-work backlog with retirement criteria: work the team consciously chose not to do right now, and the specific condition under which each item should be reopened.
+This is distinct from `docs/exec-plans/active/` (work currently in progress) and `docs/PLANS.md` (project-wide roadmap of intended work).
 
 ## Entries
 

@@ -6,7 +6,8 @@ description: >-
 
 # Java Language Features Reference
 
-Open this reference when the Java baseline is already known and the remaining blocker is language-feature tradeoff rather than syntax availability lookup. This file should be sufficient on its own to finish one semantic-modeling decision.
+Open this reference when the Java baseline is already known and the remaining blocker is language-feature tradeoff rather than syntax availability lookup.
+This file should be sufficient on its own to finish one semantic-modeling decision.
 
 Use this file to finish one of these jobs:
 
@@ -82,7 +83,8 @@ final class RetryBudget {
 }
 ```
 
-Use when: a record still fits if the invariant is construction-time only; stay with a regular class once the type owns evolving state or identity-bearing behavior.
+Use when: a record still fits if the invariant is construction-time only.
+Stay with a regular class once the type owns evolving state or identity-bearing behavior.
 
 Sealed hierarchy: the compiler can enforce the closed set of permitted implementations.
 
@@ -160,7 +162,8 @@ switch (value) {
 }
 ```
 
-Use when: the team is considering a preview-only construct. Treat it as a product and support decision, not as default design modernization.
+Use when: the team is considering a preview-only construct.
+Treat it as a product and support decision, not as default design modernization.
 
 ## Review questions
 

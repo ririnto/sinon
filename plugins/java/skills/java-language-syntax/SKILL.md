@@ -9,7 +9,8 @@ description: >-
 
 # Java Language Syntax
 
-Explain Java syntax, LTS-boundary language differences, and foundational `java.base` coverage when it materially affects how code is written, read, or refactored. The common case is checking the target Java LTS baseline first, then choosing the clearest stable syntax and the smallest baseline-safe standard-library surface available on that baseline.
+Explain Java syntax, LTS-boundary language differences, and foundational `java.base` coverage when it materially affects how code is written, read, or refactored.
+The common case is checking the target Java LTS baseline first, then choosing the clearest stable syntax and the smallest baseline-safe standard-library surface available on that baseline.
 
 ## Operating rules
 
@@ -170,7 +171,10 @@ List<String> activeNames = users.stream()
     .toList();
 ```
 
-Older-LTS fallback using `Collectors.toList()` `(JDK 8+)` — the official javadoc makes no guarantee about the returned `List` implementation, its mutability, its serializability, or its thread-safety; current HotSpot builds happen to return a mutable `ArrayList`, but code MUST NOT rely on that. When mutability matters, use `Collectors.toCollection(ArrayList::new)`; when an unmodifiable result is part of the contract, use `Collectors.toUnmodifiableList()` (JDK 10+) or `Stream.toList()` (JDK 16+).
+Older-LTS fallback using `Collectors.toList()` `(JDK 8+)` — the official javadoc makes no guarantee about the returned `List` implementation, its mutability, its serializability, or its thread-safety.
+Current HotSpot builds happen to return a mutable `ArrayList`, but code MUST NOT rely on that.
+When mutability matters, use `Collectors.toCollection(ArrayList::new)`.
+When an unmodifiable result is part of the contract, use `Collectors.toUnmodifiableList()` (JDK 10+) or `Stream.toList()` (JDK 16+).
 
 ```java
 import java.util.List;
@@ -409,7 +413,8 @@ Predicate<String> lengthOver3 = (var name) -> name.length() > 3;
 
 Notes:
 
-- `var` is for local variables; it does not change runtime types.
+- `var` is for local variables.
+  - It does not change runtime types.
 - Use of `var` inside lambda parameter lists (`(var name) -> ...`) requires JDK 11 or later.
 
 ### Classic switch fallback `(JDK 8+)`

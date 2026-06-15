@@ -4,7 +4,8 @@ Open this reference when module events must be tracked, replayed, or completed r
 
 ## Registry boundary
 
-Use the event publication registry when application events must survive listener failures, system crashes, or broker unavailability. Do not use it when synchronous in-process event delivery without failure tracking is sufficient.
+Use the event publication registry when application events must survive listener failures, system crashes, or broker unavailability.
+Do not use it when synchronous in-process event delivery without failure tracking is sufficient.
 
 ## Starter choices
 
@@ -19,7 +20,8 @@ The JDBC starter works in JPA-based applications but bypasses the JPA provider f
 
 ## Schema initialization
 
-Automatic schema creation for the JDBC event publication table is enabled by default. Disable when managing the schema externally:
+Automatic schema creation for the JDBC event publication table is enabled by default.
+Disable when managing the schema externally:
 
 ```properties
 spring.modulith.events.jdbc.schema-initialization.enabled=false
@@ -80,7 +82,8 @@ failed.resubmit(ResubmissionOptions.defaults()
     .withMaxInFlight(10));
 ```
 
-`ResubmissionOptions` controls batch size, maximum in-flight publications, minimum age before resubmission, and an optional filter by event type or completion attempts. Use `ResubmissionOptions.defaults()` to start and chain builder methods.
+`ResubmissionOptions` controls batch size, maximum in-flight publications, minimum age before resubmission, and an optional filter by event type or completion attempts.
+Use `ResubmissionOptions.defaults()` to start and chain builder methods.
 
 ## Staleness monitor (2.0)
 
@@ -93,7 +96,8 @@ spring.modulith.events.staleness.processing=PT10M
 spring.modulith.events.staleness.resubmitted=PT5M
 ```
 
-When any staleness duration is non-zero, the monitor runs at the configured interval and marks publications in the corresponding states as `FAILED`. When all are zero (default), no automatic marking occurs.
+When any staleness duration is non-zero, the monitor runs at the configured interval and marks publications in the corresponding states as `FAILED`.
+When all are zero (default), no automatic marking occurs.
 
 ## Custom event serializer
 
@@ -127,7 +131,8 @@ Not recommended in multi-instance deployments because other instances may still 
 
 ## EPR opt-out for @TransactionalEventListener
 
-By default, the event publication registry tracks events published via `@TransactionalEventListener`. Opt out when a listener should bypass the registry:
+By default, the event publication registry tracks events published via `@TransactionalEventListener`.
+Opt out when a listener should bypass the registry:
 
 ```java
 @Component
@@ -143,11 +148,13 @@ Use `publishEvent = false` on `@ApplicationModuleListener` to prevent the regist
 
 ## Neo4j identifier hashing
 
-The Neo4j event publication registry uses SHA-256 for event identifier hashing in 2.1.0. Existing Neo4j EPR deployments on earlier versions store identifiers with a different hash and must reprocess or migrate outstanding publications after upgrading.
+The Neo4j event publication registry uses SHA-256 for event identifier hashing in 2.1.0.
+Existing Neo4j EPR deployments on earlier versions store identifiers with a different hash and must reprocess or migrate outstanding publications after upgrading.
 
 ## JdbcEventPublicationRepository deletion fix
 
-A bug in versions before 2.1.0 caused `JdbcEventPublicationRepository.delete(…)` to fail under certain conditions. This is fixed in 2.1.0.
+A bug in versions before 2.1.0 caused `JdbcEventPublicationRepository.delete(…)` to fail under certain conditions.
+This is fixed in 2.1.0.
 
 ## Decision points
 

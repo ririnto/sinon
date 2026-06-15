@@ -35,7 +35,8 @@ GrpcChannelBuilderCustomizer<?> secureChannel() {
 }
 ```
 
-Use this shape for client-side TLS transport. When the deployment requires mutual TLS, pair the secure channel with the client-certificate and trust material already chosen by the application runtime instead of treating `useTransportSecurity()` alone as a complete mTLS setup.
+Use this shape for client-side TLS transport.
+When the deployment requires mutual TLS, pair the secure channel with the client-certificate and trust material already chosen by the application runtime instead of treating `useTransportSecurity()` alone as a complete mTLS setup.
 
 ## Client Basic-auth shape
 
@@ -59,11 +60,12 @@ ClientInterceptor bearerTokenInterceptor(OAuth2AuthorizedClientManager clients) 
 
 ## Server authentication direction
 
-Use Spring Security resource-server or authentication configuration when the gRPC server must authenticate incoming callers. Keep authentication policy on the server boundary and pair it with explicit gRPC status mapping for denied or unauthenticated calls.
+Use Spring Security resource-server or authentication configuration when the gRPC server must authenticate incoming callers.
+Keep authentication policy on the server boundary and pair it with explicit gRPC status mapping for denied or unauthenticated calls.
 
 ## Guardrails
 
 - Keep certificates, tokens, and authentication interceptors at the transport boundary rather than inside business services.
 - Treat server TLS and client credentials as separate decisions; many deployments need one without the other.
 - Pair security wiring with explicit deadlines and health behavior so failed authentication does not look like a generic transport outage.
-- Open [channel-customization.md](channel-customization.md) only when the blocker is channel construction or interceptor scoping rather than security policy itself.
+- Open [`channel-customization.md`](channel-customization.md) only when the blocker is channel construction or interceptor scoping rather than security policy itself.

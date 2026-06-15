@@ -1,7 +1,8 @@
 ---
 name: plugin-layout
 description: |-
-  Expanded plugin-root tree examples for composite surfaces, helper directories, and layout exceptions. Open this file when `SKILL.md` already covers the baseline shape and a richer tree is needed.
+  Expanded plugin-root tree examples for composite surfaces, helper directories, and layout exceptions.
+  Open this file when `SKILL.md` already covers the baseline shape and a richer tree is needed.
 ---
 
 # Plugin Layout
@@ -65,7 +66,10 @@ Use these helper directories only when the associated surface needs local code b
 
 Open this subsection whenever a composite-root tree contains one or more file-typed surfaces and the manifest entries for those surfaces need verification against their canonical exact paths.
 
-Each file-typed surface shown in the trees above (`hooks/hooks.json`, `.mcp.json`, `.lsp.json`, `settings.json`, `monitors/monitors.json`) MUST also be declared in `.claude-plugin/plugin.json` with its exact canonical path (`"./hooks/hooks.json"`, `"./.mcp.json"`, `"./.lsp.json"`, `"./settings.json"`, `"./monitors/monitors.json"` under `experimental.monitors`). When the manifest declares one of these keys, the matching plugin-root file MUST exist; when one of these files exists at the plugin root, the manifest SHOULD declare the matching key so the runtime publishes the surface. See `SKILL.md` Operating rule 5 for the canonical bidirectional rule.
+Each file-typed surface shown in the trees above (`hooks/hooks.json`, `.mcp.json`, `.lsp.json`, `settings.json`, `monitors/monitors.json`) MUST also be declared in `.claude-plugin/plugin.json` with its exact canonical path (`"./hooks/hooks.json"`, `"./.mcp.json"`, `"./.lsp.json"`, `"./settings.json"`, `"./monitors/monitors.json"` under `experimental.monitors`).
+When the manifest declares one of these keys, the matching plugin-root file MUST exist.
+When one of these files exists at the plugin root, the manifest SHOULD declare the matching key so the runtime publishes the surface.
+See `SKILL.md` Operating rule 5 for the canonical bidirectional rule.
 
 ## When this file matters
 

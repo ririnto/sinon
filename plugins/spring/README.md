@@ -62,7 +62,8 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 - GraphQL endpoint setup, schema execution, and GraphQL-specific testing belong in `spring-graphql` guidance.
 - gRPC service definition, channel customization, and in-process testing belong in `spring-grpc` guidance.
 - SOAP endpoints, WS-Security, and client-variant patterns belong in `spring-web-services` guidance.
-- SCDF stream/task estate operations belong in `spring-cloud-data-flow` guidance. Batch job structure, chunk processing, retry/skip, and scaling-oriented batch design belong in `spring-batch` guidance.
+- SCDF stream/task estate operations belong in `spring-cloud-data-flow` guidance.
+  - Batch job structure, chunk processing, retry/skip, and scaling-oriented batch design belong in `spring-batch` guidance.
 - Flow-scoped web sessions, conversation management, and stateful navigation belong in `spring-web-flow` guidance.
 
 Typical workflow:
@@ -82,7 +83,8 @@ Testing boundary:
 
 ## Scope Boundaries
 
-Spring Cloud Data Flow coverage is for maintaining, operating, and migrating existing SCDF stream/task estates. Treat new greenfield orchestration decisions as platform architecture work and verify the current SCDF maintenance status before recommending new adoption.
+Spring Cloud Data Flow coverage is for maintaining, operating, and migrating existing SCDF stream/task estates.
+Treat new greenfield orchestration decisions as platform architecture work and verify the current SCDF maintenance status before recommending new adoption.
 
 Spring stays responsible for Spring-specific annotations, configuration, repository abstractions, messaging integration, cloud integration, and Spring testing patterns.
 
@@ -92,7 +94,8 @@ These topics fall outside Spring's scope:
 - JDK tools, JVM diagnostics, and GC analysis.
 - Kotlin language, coroutines, and Kotlin-native testing style.
 
-Spring-specific coroutine controllers, `WebClient` usage, and reactive request handling belong in Spring guidance. General coroutine and Flow design outside Spring framework behavior belongs in reactive or Kotlin-focused guidance.
+Spring-specific coroutine controllers, `WebClient` usage, and reactive request handling belong in Spring guidance.
+General coroutine and Flow design outside Spring framework behavior belongs in reactive or Kotlin-focused guidance.
 
 Scheduling boundary:
 
@@ -106,7 +109,8 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/`. Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+The manifest declares `./skills/`.
+Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
 
 ## Plugin Layout
 
@@ -154,8 +158,10 @@ plugins/spring/
 - Prefer working application slices over isolated annotation lists.
 - Keep examples minimal but runnable in spirit.
 - Route to the smallest Spring skill that matches the task.
-- Keep `SKILL.md` self-contained and usable on its own; use `references/` only for supplemental decision aids and longer notes.
-- Spring reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries; prose explains the example, the example proves the rule.
+- Keep `SKILL.md` self-contained and usable on its own.
+  - Use `references/` only for supplemental decision aids and longer notes.
+- Spring reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries.
+  - Prose explains the example, the example proves the rule.
 
 ## Installation
 
@@ -173,6 +179,8 @@ claude --plugin-dir /path/to/sinon/plugins/spring
 
 ## Scope Notes
 
-This plugin covers Spring-specific application guidance and ships reusable skills plus the `spring-architect` agent surface. It intentionally does not publish commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
+This plugin covers Spring-specific application guidance and ships reusable skills plus the `spring-architect` agent surface.
+It intentionally does not publish commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
-Use Java, JVM, Kotlin, Reactor, Netty, or platform-architecture guidance for concerns that are not shaped by Spring framework behavior. Spring Cloud Data Flow coverage lives in `spring-cloud-data-flow` and is limited to existing stream/task estates, runtime operations, and migration support rather than new orchestration adoption.
+Use Java, JVM, Kotlin, Reactor, Netty, or platform-architecture guidance for concerns that are not shaped by Spring framework behavior.
+Spring Cloud Data Flow coverage lives in `spring-cloud-data-flow` and is limited to existing stream/task estates, runtime operations, and migration support rather than new orchestration adoption.

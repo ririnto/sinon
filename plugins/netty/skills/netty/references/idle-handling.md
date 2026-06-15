@@ -18,7 +18,8 @@ pipeline.addLast(new HeartbeatHandler());
 
 ## React to idle events
 
-Minimum JDK for this example: Java 17. It uses `instanceof` pattern matching and `case ... ->` switch rules.
+Minimum JDK for this example: Java 17.
+It uses `instanceof` pattern matching and arrow-form switch rules.
 
 ```java
 final class HeartbeatHandler extends ChannelInboundHandlerAdapter {

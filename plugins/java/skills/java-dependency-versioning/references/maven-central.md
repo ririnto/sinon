@@ -20,7 +20,8 @@ Open this reference when the coordinate is verified but you still need one of th
 - Maven Central search: <https://search.maven.org/>
 - Maven Central search API: <https://search.maven.org/solrsearch/select>
 - Concrete verification path template:
-  `https://search.maven.org/solrsearch/select?q=g:%22<groupId>%22+AND+a:%22<artifactId>%22&rows=1&wt=json`
+
+  - `https://search.maven.org/solrsearch/select?q=g:%22<groupId>%22+AND+a:%22<artifactId>%22&rows=1&wt=json`
 
 ## Metadata caveat
 

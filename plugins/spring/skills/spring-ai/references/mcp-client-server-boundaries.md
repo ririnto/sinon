@@ -2,7 +2,8 @@
 
 Open this reference when the task involves Model Context Protocol connections, MCP-capable tool calling, or decisions about whether Spring AI acts as an MCP client or MCP server.
 
-Keep MCP transport and authorization boundaries explicit. Do not collapse MCP tool calls into ordinary tool-calling patterns.
+Keep MCP transport and authorization boundaries explicit.
+Do not collapse MCP tool calls into ordinary tool-calling patterns.
 
 ## When to open this
 
@@ -14,7 +15,8 @@ Keep MCP transport and authorization boundaries explicit. Do not collapse MCP to
 
 ## MCP client boundary
 
-Spring AI can act as an MCP client that calls tools exposed by an external MCP server. This is distinct from ordinary Spring AI tool calling where tool implementations live inside the application.
+Spring AI can act as an MCP client that calls tools exposed by an external MCP server.
+This is distinct from ordinary Spring AI tool calling where tool implementations live inside the application.
 
 ### MCP client starter choice
 
@@ -47,11 +49,13 @@ class McpToolCaller {
 }
 ```
 
-The MCP client starter exposes MCP-backed tool callbacks that can be attached to `ChatClient`. Tool availability depends on the capabilities exposed by the remote MCP server.
+The MCP client starter exposes MCP-backed tool callbacks that can be attached to `ChatClient`.
+Tool availability depends on the capabilities exposed by the remote MCP server.
 
 ## MCP server boundary
 
-Spring AI can expose tools, resources, or prompts as an MCP server so external MCP clients can call them. Use this when other MCP clients in the system need access to Spring-managed capabilities.
+Spring AI can expose tools, resources, or prompts as an MCP server so external MCP clients can call them.
+Use this when other MCP clients in the system need access to Spring-managed capabilities.
 
 ### MCP server starter choice
 
@@ -101,10 +105,12 @@ Choose the transport based on deployment topology, not library preference.
 
 ## MCP authorization and audit
 
-MCP tool calls represent external system access. Treat them like any other tool boundary:
+MCP tool calls represent external system access.
+Treat them like any other tool boundary:
 
 - Authenticate MCP server connections using the transport-specific mechanisms (API keys, mTLS, OAuth).
-- Audit MCP tool invocations separately from ordinary chat logs. MCP calls can have different cost, latency, and authorization profiles.
+- Audit MCP tool invocations separately from ordinary chat logs.
+  - MCP calls can have different cost, latency, and authorization profiles.
 - Validate that the MCP server capabilities match what the application expects before registering tools.
 
 ```java
@@ -131,7 +137,8 @@ Do not treat MCP tools and ordinary Spring AI `@Tool` methods as equivalent.
 | Error handling | Standard Java exceptions | MCP protocol error messages |
 | Audit | Standard logging | MCP-specific audit |
 
-Use ordinary `@Tool` for in-process operations. Use MCP tools when the tool implementation lives outside the Spring AI application.
+Use ordinary `@Tool` for in-process operations.
+Use MCP tools when the tool implementation lives outside the Spring AI application.
 
 ## Decision points
 
@@ -146,9 +153,15 @@ Use ordinary `@Tool` for in-process operations. Use MCP tools when the tool impl
 
 ## Pitfalls
 
-- Do not register an MCP client as an ordinary tool. Use the MCP client integration path instead of pretending the remote tool is an in-process bean.
-- MCP tool resolution happens at registration time. If the MCP server is unavailable when the `McpClient` bean is created, tool registration fails.
-- stdio transports block on read/write. Prefer HTTP transports for long-running or independently scaled concurrent tool workloads.
-- MCP servers that expose many tools can cause a large prompt payload. Consider filtering the tool list.
-- Authorization between MCP client and server is not handled by the Spring AI library. Configure transport-level security explicitly.
-- Spring AI 2.0 MCP servers validate incoming tool arguments against the tool JSON schema by default. Use `@McpTool` annotations for automatic schema generation, or call `.validateToolInputs(false)` to disable validation.
+- Do not register an MCP client as an ordinary tool.
+  - Use the MCP client integration path instead of pretending the remote tool is an in-process bean.
+- MCP tool resolution happens at registration time.
+  - If the MCP server is unavailable when the `McpClient` bean is created, tool registration fails.
+- stdio transports block on read/write.
+  - Prefer HTTP transports for long-running or independently scaled concurrent tool workloads.
+- MCP servers that expose many tools can cause a large prompt payload.
+  - Consider filtering the tool list.
+- Authorization between MCP client and server is not handled by the Spring AI library.
+  - Configure transport-level security explicitly.
+- Spring AI 2.0 MCP servers validate incoming tool arguments against the tool JSON schema by default.
+  - Use `@McpTool` annotations for automatic schema generation, or call `.validateToolInputs(false)` to disable validation.

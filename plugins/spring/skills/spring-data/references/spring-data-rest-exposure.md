@@ -1,10 +1,11 @@
 # Spring Data REST exposure
 
-Open this reference when the ordinary repository-abstraction path in [SKILL.md](../SKILL.md) is not enough and the task is specifically about exposing repositories as HTTP resources.
+Open this reference when the ordinary repository-abstraction path in [`SKILL.md`](../SKILL.md) is not enough and the task is specifically about exposing repositories as HTTP resources.
 
 Use Spring Data REST only when repository exposure is an intentional API choice.
 
-This path is for Spring MVC / servlet-based repository exposure. For reactive HTTP endpoints, keep the repository internal and build the contract explicitly in the reactive web layer.
+This path is for Spring MVC / servlet-based repository exposure.
+For reactive HTTP endpoints, keep the repository internal and build the contract explicitly in the reactive web layer.
 
 This reference assumes the current stable Spring Data REST line shipped with release train `2026.0.0`.
 
@@ -101,7 +102,8 @@ Projection interfaces must live in the entity package or a subpackage, or they m
 
 ## Default exposure rule
 
-If the application keeps the default repository detection strategy, repositories may be exported without an explicit `@RepositoryRestResource`. Switch to an annotated-only strategy when accidental exposure is unacceptable.
+If the application keeps the default repository detection strategy, repositories may be exported without an explicit `@RepositoryRestResource`.
+Switch to an annotated-only strategy when accidental exposure is unacceptable.
 
 ## Verification rule
 
@@ -109,10 +111,12 @@ Verify one HTTP test proves the repository resource path, HAL `_links`, and proj
 
 ## Return body on delete
 
-Spring Data REST 5.1 (with Spring Boot 4.1.0) supports `spring.data.rest.return-body-on-delete`. When set to `true`, DELETE responses include the deleted resource body in the response.
+Spring Data REST 5.1 (with Spring Boot 4.1.0) supports `spring.data.rest.return-body-on-delete`.
+When set to `true`, DELETE responses include the deleted resource body in the response.
 
 ```properties
 spring.data.rest.return-body-on-delete=true
 ```
 
-Use this property when clients need the deleted resource representation in the DELETE response (for example, to confirm which resource was removed). The default is `false`, which omits the body from DELETE responses.
+Use this property when clients need the deleted resource representation in the DELETE response (for example, to confirm which resource was removed).
+The default is `false`, which omits the body from DELETE responses.

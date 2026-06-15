@@ -1,7 +1,8 @@
 ---
 description: >-
-  Operate on git worktrees—create, list, switch, or clean up isolated worktrees for parallel branch work. Use when starting parallel branch work, isolating an experiment, or cleaning up stale worktrees.
-argument-hint: [optional-action] [optional-branch-or-path]
+  Operate on git worktrees—create, list, switch, or clean up isolated worktrees for parallel branch work.
+  Use when starting parallel branch work, isolating an experiment, or cleaning up stale worktrees.
+argument-hint: "[optional-action] [optional-branch-or-path]"
 allowed-tools:
   - Bash
   - Read
@@ -10,7 +11,8 @@ allowed-tools:
 
 # Manage Git Worktrees
 
-Manage git worktrees to enable parallel branch work in isolated directories. Create new worktrees, switch between them, list active ones, or clean up stale worktrees.
+Manage git worktrees to enable parallel branch work in isolated directories.
+Create new worktrees, switch between them, list active ones, or clean up stale worktrees.
 
 Initial context: $ARGUMENTS
 
@@ -47,7 +49,8 @@ Ask or infer the user's intent from context:
 1. **Create** — Start a new worktree for a new branch
 2. **Switch** — Move to an existing worktree
 3. **List** — Show all active worktrees (already done above)
-4. **Remove** — Delete a worktree directory; branch deletion is separate
+4. **Remove** — Delete a worktree directory.
+   - Branch deletion is separate
 5. **Prune** — Clean up stale/broken worktree references
 
 If intent is ambiguous, ask:
@@ -62,7 +65,8 @@ Option A: Create from existing branch
 
 Ask:
 
-- What branch name to check out? (e.g., `feature/auth`)
+- What branch name to check out?
+  - (e.g., `feature/auth`)
 - Should the worktree be in a default location or custom path?
 
 Verify the branch exists locally or remotely:
@@ -75,7 +79,8 @@ Option B: Create from new branch
 
 Ask:
 
-- What base branch? (default: `main` or `develop`)
+- What base branch?
+  - (default: `main` or `develop`)
 - What new branch name?
 
 Then run:
@@ -98,7 +103,8 @@ Safety Checks Before Create:
 git status
 ```
 
-If dirty, ask: "Current worktree has uncommitted changes. Commit or stash them first?"
+If dirty, ask: "Current worktree has uncommitted changes.
+Commit or stash them first?"
 
 1. Verify the branch doesn't already have a worktree:
 
@@ -173,7 +179,8 @@ cd <worktree-path>
 git status
 ```
 
-If dirty, ask: "This worktree has uncommitted changes. Do you want to discard them or commit first?"
+If dirty, ask: "This worktree has uncommitted changes.
+Do you want to discard them or commit first?"
 
 Execute Remove:
 
@@ -282,7 +289,8 @@ cd ../experiment
 
 ## Scope Boundaries
 
-This command focuses on worktree lifecycle operations. It does NOT:
+This command focuses on worktree lifecycle operations.
+It does NOT:
 
 - Commit changes (user does that per branch)
 - Push branches (refer to `git push`)

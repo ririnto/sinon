@@ -1,18 +1,23 @@
 ---
 name: jvm-tooling-workflows
 description: >-
-  Guide JDK command-line toolchain workflows for compilation, documentation, dependency analysis, packaging, and custom runtime images. Use when running `javac`, `javadoc`, `jdeps`, `jlink`, or `jpackage` directly, building custom runtime images, or choosing the smallest JDK tool sequence for a packaging or compilation task.
+  Guide JDK command-line toolchain workflows for compilation, documentation, dependency analysis, packaging, and custom runtime images.
+  Use when running `javac`, `javadoc`, `jdeps`, `jlink`, or `jpackage` directly, building custom runtime images, or choosing the smallest JDK tool sequence for a packaging or compilation task.
 ---
 
 # JVM Tooling Workflows
 
 ## Goal
 
-Guide tasks that depend on official JDK command-line tools and packaging flows. The common case is choosing the smallest standard tool sequence that produces a real deliverable without hiding behind build wrappers. Prefer direct JDK commands first, then layer repository-specific build glue on top only if needed.
+Guide tasks that depend on official JDK command-line tools and packaging flows.
+The common case is choosing the smallest standard tool sequence that produces a real deliverable without hiding behind build wrappers.
+Prefer direct JDK commands first, then layer repository-specific build glue on top only if needed.
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and call out when a tool or packaging behavior changes across those releases.
 
-Do not describe the full tooling surface as uniformly available across that whole line. In this skill's framing, `javac`, `java`, `javadoc`, and `jdeps` span the supported LTS line, `jshell` and `jlink` are JDK 9+ workflows, and `jpackage` is standard from JDK 16. JDK 14-15 shipped `jpackage` as an incubating tool (`jdk.incubator.jpackage`), so treat that era as a caveat rather than the normal production baseline.
+Do not describe the full tooling surface as uniformly available across that whole line.
+In this skill's framing, `javac`, `java`, `javadoc`, and `jdeps` span the supported LTS line, `jshell` and `jlink` are JDK 9+ workflows, and `jpackage` is standard from JDK 16.
+JDK 14-15 shipped `jpackage` as an incubating tool (`jdk.incubator.jpackage`), so treat that era as a caveat rather than the normal production baseline.
 
 ## Common-Case Workflow
 
@@ -36,7 +41,7 @@ Tool availability baseline:
 
 - `javac`, `java`, `javadoc`, `jdeps`: available across the supported LTS line used by this plugin
 - `jshell`, `jlink`: JDK 9+
-- `jpackage`: standard from JDK 16; incubating in JDK 14-15
+- `jpackage`: standard from JDK 16. Incubating in JDK 14-15
 
 Confirm the target JDK version before recommending `jshell`, `jlink`, or `jpackage`.
 
@@ -59,7 +64,8 @@ jshell --class-path out
 
 Use when: you want to probe APIs, evaluate expressions, or validate a small runtime behavior before writing a fuller harness.
 
-Version note: `jshell` is not part of JDK 8. Use this path only on JDK 9 and later.
+Version note: `jshell` is not part of JDK 8.
+Use this path only on JDK 9 and later.
 
 ## Ready-to-Adapt Templates
 
@@ -104,11 +110,15 @@ jpackage \
 
 Use when: you want to validate the packaged launch shape before choosing a platform-specific installer type.
 
-Version note: `jpackage` is a standard JDK 16+ workflow. JDK 14-15 shipped an incubating `jpackage` module (`jdk.incubator.jpackage`); do not present that incubator form as the normal production baseline, and do not present `jpackage` as an option on the JDK 8 or JDK 11 baseline.
+Version note: `jpackage` is a standard JDK 16+ workflow.
+JDK 14-15 shipped an incubating `jpackage` module (`jdk.incubator.jpackage`).
+Do not present that incubator form as the normal production baseline, and do not present `jpackage` as an option on the JDK 8 or JDK 11 baseline.
 
 > [!NOTE]
 >
-> On JDK 25 and later (JDK-8345185), `jpackage` no longer adds `--bind-services` to its default `jlink` options. The default now resolves to `--strip-native-commands --strip-debug --no-man-pages --no-header-files`, so the generated runtime image drops providers that were previously included by service-loader binding. When the application uses `java.util.ServiceLoader`, restore the old behavior by passing a quoted `--jlink-options` string that re-includes `--bind-services`:
+> On JDK 25 and later (JDK-8345185), `jpackage` no longer adds `--bind-services` to its default `jlink` options.
+> The default now resolves to `--strip-native-commands --strip-debug --no-man-pages --no-header-files`, so the generated runtime image drops providers that were previously included by service-loader binding.
+> When the application uses `java.util.ServiceLoader`, restore the old behavior by passing a quoted `--jlink-options` string that re-includes `--bind-services`:
 >
 > ```sh
 > jpackage \
@@ -157,7 +167,8 @@ src/main/java/com/example/App.java:5: error: cannot find symbol
 1 error
 ```
 
-Read: file:line:column → error type → caret points to exact token. The `symbol` line names what could not be resolved.
+Read: file:line:column → error type → caret points to exact token.
+The `symbol` line names what could not be resolved.
 
 ### `java --version` Output
 
@@ -177,7 +188,9 @@ java.net.http
 java.sql
 ```
 
-Read: each line is a required module name. Feed this list directly to `jlink --add-modules`. Empty output means non-modular or classpath-only dependencies.
+Read: each line is a required module name.
+Feed this list directly to `jlink --add-modules`.
+Empty output means non-modular or classpath-only dependencies.
 
 ### `jlink` Runtime Image Structure
 
@@ -204,7 +217,9 @@ x ==> 42
 jshell> /exit
 ```
 
-Variable declarations show `name ==> value`. Expressions auto-assign `$N`. `/exit` ends session.
+Variable declarations show `name ==> value`.
+Expressions auto-assign `$N`.
+`/exit` ends session.
 
 ### `javadoc` Output
 
@@ -227,7 +242,8 @@ build/docs/
 └── stylesheet.css
 ```
 
-Entry point is `index.html`. Verify generation succeeded when this file exists and contains the expected package/class listing.
+Entry point is `index.html`.
+Verify generation succeeded when this file exists and contains the expected package/class listing.
 
 ## References
 
@@ -258,11 +274,7 @@ Entry point is `index.html`. Verify generation succeeded when this file exists a
 
 ## Scope Boundaries
 
-- Activate this skill for:
-  - standard JDK compile, run, REPL, inspect, document, and packaging workflows
-  - choosing among `javac`, `java`, `jshell`, `jdeps`, `jlink`, and `jpackage`
-  - explaining direct JDK command sequences behind wrappers
-- Do not use this skill as the primary source for:
-  - runtime diagnostics starting from live JVM symptoms
+- Activate this skill for: standard JDK compile, run, REPL, inspect, document, and packaging workflows choosing among `javac`, `java`, `jshell`, `jdeps`, `jlink`, and `jpackage` explaining direct JDK command sequences behind wrappers
+- Do not use this skill as the primary source for: runtime diagnostics starting from live JVM symptoms
   - GC evidence and collector choice
   - Java language design or test-structure guidance

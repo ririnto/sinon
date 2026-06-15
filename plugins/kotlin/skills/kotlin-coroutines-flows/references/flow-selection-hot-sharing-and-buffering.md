@@ -17,7 +17,8 @@ Open this when you need to justify `Flow`, choose between cold and hot streams, 
 
 ## Patterns
 
-The canonical cold `Flow`, `StateFlow`, and `SharedFlow` declaration patterns are in `SKILL.md` under "Cold `Flow` vs hot state or event streams". This reference covers only additive material.
+The canonical cold `Flow`, `StateFlow`, and `SharedFlow` declaration patterns are in `SKILL.md` under "Cold `Flow` vs hot state or event streams".
+This reference covers only additive material.
 
 Buffering with a clear tradeoff:
 
@@ -55,7 +56,9 @@ val latestResults: Flow<SearchResult> = queries
     .flatMapLatest { query -> search(query) }
 ```
 
-Use `flatMapMerge` for parallel I/O from a stream of inputs. Use `flatMapConcat` when order matters or resources must be shared sequentially. Use `flatMapLatest` when only the most recent result matters (the search debounce case).
+Use `flatMapMerge` for parallel I/O from a stream of inputs.
+Use `flatMapConcat` when order matters or resources must be shared sequentially.
+Use `flatMapLatest` when only the most recent result matters (the search debounce case).
 
 ## Pitfalls
 
@@ -120,15 +123,22 @@ rawEvents
     .collect { event -> handle(event) }
 ```
 
-`retry(n) { cause -> ... }` takes a predicate that receives the failure only (single parameter); use `retryWhen { cause, attempt -> ... }` when the attempt count is part of the decision.
+`retry(n) { cause -> Boolean }` takes a predicate that receives the failure only (single parameter).
+Use `retryWhen { cause, attempt -> Boolean }` when the attempt count is part of the decision.
 
-The `attempt` argument is a zero-indexed retry counter. `kotlinx.coroutines.flow.retryWhen` calls the predicate ONLY after a failure, passing `attempt = 0` for the decision that follows the initial invocation's failure, `attempt = 1` after the first retry fails, and so on. Returning `true` schedules another retry and then increments `attempt`. The predicate is NOT called at all when an attempt succeeds, so the happy path never sees `attempt = 3`. The guard `attempt >= 3` therefore:
+The `attempt` argument is a zero-indexed retry counter.
+`kotlinx.coroutines.flow.retryWhen` calls the predicate ONLY after a failure, passing `attempt = 0` for the decision that follows the initial invocation's failure, `attempt = 1` after the first retry fails, and so on.
+Returning `true` schedules another retry and then increments `attempt`.
+The predicate is NOT called at all when an attempt succeeds, so the happy path never sees `attempt = 3`.
+The guard `attempt >= 3` therefore:
 
-- allows the predicate to return `true` for `attempt` values 0, 1, and 2,
-- permits up to three retries after the initial failure (so at most four invocations of the upstream),
-- refuses further retries only when the predicate is called at `attempt = 3`, which happens exclusively after the third retry itself fails; if any earlier attempt succeeds, the predicate is never reached at that index.
+- Allows the predicate to return `true` for `attempt` values 0, 1, and 2.
+- Permits up to three retries after the initial failure (so at most four invocations of the upstream).
+- refuses further retries only when the predicate is called at `attempt = 3`, which happens exclusively after the third retry itself fails.
+  - If any earlier attempt succeeds, the predicate is never reached at that index.
 
-Place `retryWhen` upstream of `catch` so the retry loop runs before the catch emits a terminal fallback; otherwise the fallback emission absorbs the exception and the retry predicate never sees it.
+Place `retryWhen` upstream of `catch` so the retry loop runs before the catch emits a terminal fallback.
+Otherwise the fallback emission absorbs the exception and the retry predicate never sees it.
 
 Stream composition patterns:
 

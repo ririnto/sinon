@@ -1,21 +1,24 @@
 ---
 name: reactor-testing
 description: >-
-  Test Reactor publishers with reactor-test using StepVerifier, virtual time, TestPublisher, and PublisherProbe. Triggers on `StepVerifier` assertion authoring for `Flux` or `Mono`, time-based operator verification with virtual time, upstream emission control with `TestPublisher`, or alternate branch subscription checks with `PublisherProbe`.
+  Test Reactor publishers with reactor-test using StepVerifier, virtual time, TestPublisher, and PublisherProbe.
+  Triggers on `StepVerifier` assertion authoring for `Flux` or `Mono`, time-based operator verification with virtual time, upstream emission control with `TestPublisher`, or alternate branch subscription checks with `PublisherProbe`.
 ---
 
 # Reactor Testing
 
 ## Official Baseline
 
-- Use the official Project Reactor 3.8.x testing reference for this skill; this review checked `reactor-test` 3.8.6.
+- Use the official Project Reactor 3.8.x testing reference for this skill.
+  - This review checked `reactor-test` 3.8.6.
 - Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
 
 Test Reactor publishers with the ordinary `reactor-test` path.
 
 ## Goal
 
-This skill covers everyday `StepVerifier` flow, success/empty/error assertions, virtual time, request and cancellation assertions, `TestPublisher`, `PublisherProbe`, and ordinary post-verification checks. Keep advanced `StepVerifierOptions`, context-specific expectations, timeout-heavy scenarios, and noncompliant publishers in blocker references.
+This skill covers everyday `StepVerifier` flow, success/empty/error assertions, virtual time, request and cancellation assertions, `TestPublisher`, `PublisherProbe`, and ordinary post-verification checks.
+Keep advanced `StepVerifierOptions`, context-specific expectations, timeout-heavy scenarios, and noncompliant publishers in blocker references.
 
 Use `consumeRecordedWith(...)` only after `recordWith(...)` and before terminal verification in the verifier chain.
 
@@ -240,11 +243,13 @@ class AssertNextExample {
 }
 ```
 
-`assertNext(...)` receives the value and allows arbitrary assertions inside the lambda. Use it when `expectNext(...)` equality matching is not expressive enough.
+`assertNext(...)` receives the value and allows arbitrary assertions inside the lambda.
+Use it when `expectNext(...)` equality matching is not expressive enough.
 
 ### Virtual time and `delayElement` caveat
 
-`withVirtualTime` replaces Reactor's scheduler factory before the supplier runs, so default-timed operators such as `delayElement(Duration)` are compatible when the publisher is created lazily inside the supplier. The failure mode is creating the delayed publisher before `withVirtualTime(...)`, or passing an explicit real scheduler to a timed operator.
+`withVirtualTime` replaces Reactor's scheduler factory before the supplier runs, so default-timed operators such as `delayElement(Duration)` are compatible when the publisher is created lazily inside the supplier.
+The failure mode is creating the delayed publisher before `withVirtualTime(...)`, or passing an explicit real scheduler to a timed operator.
 
 ```java
 import java.time.Duration;
@@ -276,7 +281,8 @@ class DelayElementVirtualTimeTest {
 }
 ```
 
-The first test may hang or fail because the scheduler was captured before virtual time was installed. The second test creates the `delayElement` publisher inside the supplier, allowing virtual time to replace the default timed scheduler.
+The first test may hang or fail because the scheduler was captured before virtual time was installed.
+The second test creates the `delayElement` publisher inside the supplier, allowing virtual time to replace the default timed scheduler.
 
 ## Common pitfalls
 

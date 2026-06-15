@@ -1,59 +1,65 @@
 ---
 name: spec-creator
 description: >-
-  Author a self-sufficient SPEC.md that serves as a single-file implementation contract for a project, modelled on the OpenAI Symphony specification structure. Triggers on SPEC.md creation or refactoring, system specification drafts, implementation contracts, RFC-style or SRS-style requirements, or normative behavior definitions before implementation begins.
+  Author a self-sufficient `SPEC.md` that serves as a single-file implementation contract for a project, modelled on the OpenAI Symphony specification structure.
+  Triggers on `SPEC.md` creation or refactoring, system specification drafts, implementation contracts, RFC-style or SRS-style requirements, or normative behavior definitions before implementation begins.
 ---
 
 # Spec Creator
 
-This skill produces single-file `SPEC.md` documents that are implementation contracts for a project. The produced spec is self-sufficient and MUST NOT depend on other in-repo documents. It uses RFC 2119 normative language deliberately. It scales from feature-level to full system-level specifications by including the relevant section catalog.
+This skill produces single-file `SPEC.md` documents that are implementation contracts for a project.
+The produced spec is self-sufficient and MUST NOT depend on other in-repo documents.
+It uses RFC 2119 normative language deliberately.
+It scales from feature-level to full system-level specifications by including the relevant section catalog.
 
 ## Core Principles
 
-- The produced SPEC.md MUST be readable and actionable in isolation.
-- The produced SPEC.md MUST NOT delegate content to other documents via "see X.md" or "refer to..." pointers.
-- The produced SPEC.md MUST use RFC 2119 keywords deliberately (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY).
-- The produced SPEC.md MUST define `Implementation-defined` semantics for non-prescribed contract surface.
+- The produced `SPEC.md` MUST be readable and actionable in isolation.
+- The produced `SPEC.md` MUST NOT delegate content to other documents via "see `X.md`" or "refer to..." pointers.
+- The produced `SPEC.md` MUST use RFC 2119 keywords deliberately (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY).
+- The produced `SPEC.md` MUST define `Implementation-defined` semantics for non-prescribed contract surface.
 - WHAT/WHY MUST stay separate from HOW unless design is in explicit scope.
 - Every requirement MUST have a stable ID and a verification path (scenario, success criterion, or stated reason it cannot be scenario-tested).
 
 ## Workflow
 
 1. Classify the request.
-
-   Identify whether the user needs a new `SPEC.md`, an update to an existing spec, a requirements review, or a conversion from unstructured notes. For updates, capture the intended delta as added, modified, removed, or renamed requirements.
+   - Identify whether the user needs a new `SPEC.md`, an update to an existing spec, a requirements review, or a conversion from unstructured notes.
+   - For updates, capture the intended delta as added, modified, removed, or renamed requirements.
 
 2. Gather the minimum required input.
-
-   Capture the problem, target users or systems, business goal, in-scope behavior, out-of-scope behavior, constraints, risks, and acceptance signals. Ask focused questions only when missing information materially changes the spec.
+   - Capture the problem, target users or systems, business goal, in-scope behavior, out-of-scope behavior, constraints, risks, and acceptance signals.
+   - Ask focused questions only when missing information materially changes the spec.
 
 3. Choose the spec scale.
-
-   Feature-scale specs (one feature, one actor, bounded scope) use the mini template inside SKILL.md. System-scale specs (service, protocol, multi-component system, long-running daemon, or anything requiring state machine / reference algorithms / conformance matrix) use the comprehensive template in `references/spec-template.md`.
+   - Feature-scale specs (one feature, one actor, bounded scope) use the mini template inside `SKILL.md`.
+   - System-scale specs (service, protocol, multi-component system, long-running daemon, or anything requiring state machine / reference algorithms / conformance matrix) use the comprehensive template in `references/spec-template.md`.
 
 4. Draft the structure.
-
-   Use the section catalog in the chosen template. Remove sections that do not apply instead of leaving `TBD`, `N/A`, or placeholder text.
+   - Use the section catalog in the chosen template.
+   - Remove sections that do not apply instead of leaving `TBD`, `N/A`, or placeholder text.
 
 5. Write requirements.
-
-   Use `references/requirements-style.md` for IDs, RFC 2119 language, and patterns. Every functional requirement MUST describe observable behavior and MUST map to at least one scenario or state why it cannot be scenario-tested.
+   - Use `references/requirements-style.md` for IDs, RFC 2119 language, and patterns.
+   - Every functional requirement MUST describe observable behavior and MUST map to at least one scenario or state why it cannot be scenario-tested.
 
 6. Write scenarios, acceptance criteria, and success criteria.
-
-   Use `references/scenarios-and-acceptance.md` for Given/When/Then scenarios, negative cases, boundary cases, and measurable success criteria. Acceptance criteria MUST be testable and observable.
+   - Use `references/scenarios-and-acceptance.md` for Given/When/Then scenarios, negative cases, boundary cases, and measurable success criteria.
+   - Acceptance criteria MUST be testable and observable.
 
 7. Validate the spec.
-
-   Use `references/quality-checklist.md` before presenting the result. Fix quality failures directly when possible. Leave unresolved items as explicit open questions when the user must decide.
+   - Use `references/quality-checklist.md` before presenting the result.
+   - Fix quality failures directly when possible.
+   - Leave unresolved items as explicit open questions when the user must decide.
 
 8. Deliver the result.
-
-   Return the spec content or save to the requested path. Include only material validation notes, unresolved questions, and any blocked decisions.
+   - Return the spec content or save to the requested path.
+   - Include only material validation notes, unresolved questions, and any blocked decisions.
 
 ## Section Catalog
 
-This table shows all canonical sections and their applicability. Remove sections that do not apply.
+This table shows all canonical sections and their applicability.
+Remove sections that do not apply.
 
 | Section | Applicability | Include When |
 | --- | --- | --- |
@@ -95,9 +101,9 @@ This table shows all canonical sections and their applicability. Remove sections
 
 ## Required Output Properties
 
-Every produced SPEC.md MUST satisfy these properties:
+Every produced `SPEC.md` MUST satisfy these properties:
 
-- Standalone: Contains no "see X.md" / "refer to other doc" pointers (RFC references and external API references are allowed and clearly named as such).
+- Standalone: Contains no "see `X.md`" / "refer to other doc" pointers (RFC references and external API references are allowed and clearly named as such).
 - Normative Language section: Defines RFC 2119 keywords and `Implementation-defined`.
 - Problem before solution: Problem statement precedes solution details and requirements.
 - Symmetric goals and non-goals: Goals describe outcomes; non-goals are concrete exclusions.
@@ -238,11 +244,11 @@ The choice between feature-scale and system-scale is determined by:
 - Treating every feature as P0.
 - Omitting negative, boundary, or recovery scenarios.
 - Retroactive spec written after implementation as justification.
-- Cross-doc routing ("see README", "refer to ARCHITECTURE.md") — the spec MUST stand alone.
+- Cross-doc routing ("see README", "refer to `ARCHITECTURE.md`") — the spec MUST stand alone.
 
 ## Reference Files
 
-- `[requirements-style.md](references/requirements-style.md)` — Requirement IDs, RFC 2119 keywords, patterns, and examples.
-- `[scenarios-and-acceptance.md](references/scenarios-and-acceptance.md)` — Scenario format, acceptance criteria, success criteria, and conformance matrices.
-- `[spec-template.md](references/spec-template.md)` — Comprehensive system-scale SPEC.md skeleton with all sections.
-- `[quality-checklist.md](references/quality-checklist.md)` — Pre-delivery validation checklist for self-sufficiency and completeness.
+- `[`requirements-style.md`](references/requirements-style.md)` — Requirement IDs, RFC 2119 keywords, patterns, and examples.
+- `[`scenarios-and-acceptance.md`](references/scenarios-and-acceptance.md)` — Scenario format, acceptance criteria, success criteria, and conformance matrices.
+- `[`spec-template.md`](references/spec-template.md)` — Comprehensive system-scale `SPEC.md` skeleton with all sections.
+- `[`quality-checklist.md`](references/quality-checklist.md)` — Pre-delivery validation checklist for self-sufficiency and completeness.

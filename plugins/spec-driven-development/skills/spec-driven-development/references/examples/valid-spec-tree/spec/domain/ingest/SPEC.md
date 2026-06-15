@@ -4,8 +4,7 @@ description: >-
   returns stable outcomes.
 last_updated: "2026-03-06"
 status: implemented
-tag:
-  - ingest
+tag: ingest
 call: []
 metadata: {}
 ---
@@ -67,12 +66,9 @@ The system rejects the request, persists nothing, and returns `invalid_request`.
 
 ## Key Entities
 
-- `IngestRequest`:
-  input payload with a required identifier and optional note.
-- `IngestRecord`:
-  persisted representation of accepted ingest work.
-- `IngestResult`:
-  returned outcome with `accepted` or `invalid_request`.
+- `IngestRequest`: input payload with a required identifier and optional note.
+- `IngestRecord`: persisted representation of accepted ingest work.
+- `IngestResult`: returned outcome with `accepted` or `invalid_request`.
 
 ## Constraints
 

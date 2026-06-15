@@ -1,12 +1,14 @@
 ---
 name: alert-rule-testing
 description: >-
-  Test Prometheus alert rules against time-series fixtures and compare outputs for correctness and readiness. Use when validating alert rule firing behavior against captured or synthetic metric series before deploying changes to a Prometheus instance, protecting alert regressions via promtool test cases, or needing guidance on test file schema, input_series notation, eval_time placement, and alert state assertions.
+  Test Prometheus alert rules against time-series fixtures and compare outputs for correctness and readiness.
+  Use when validating alert rule firing behavior against captured or synthetic metric series before deploying changes to a Prometheus instance, protecting alert regressions via promtool test cases, or needing guidance on test file schema, input_series notation, eval_time placement, and alert state assertions.
 ---
 
 # Alert Rule Testing
 
-Write and review `promtool test rules` files that lock alert behavior before a rule ships. The common case is one test file that points at the real rule file, defines a small set of `input_series`, and proves the alert stays non-firing, becomes pending, fires after the `for` window, and resolves when the signal recovers.
+Write and review `promtool test rules` files that lock alert behavior before a rule ships.
+The common case is one test file that points at the real rule file, defines a small set of `input_series`, and proves the alert stays non-firing, becomes pending, fires after the `for` window, and resolves when the signal recovers.
 
 ## Common-Case Workflow
 
@@ -82,7 +84,8 @@ tests:
 
 ## input_series Notation Formats
 
-Each entry in `input_series` defines one synthetic time series. The `values` field accepts multiple notation formats.
+Each entry in `input_series` defines one synthetic time series.
+The `values` field accepts multiple notation formats.
 
 ### Counter Notation (Most Common)
 
@@ -90,7 +93,7 @@ Syntax: `<start>+<increment>x<steps>`
 
 Generates `steps + 1` samples: the first sample is `start`, followed by `steps` additional samples incremented by `increment` at the configured `interval`.
 
-For example, `0+6x20` expands to 21 samples: `0, 6, 12, ... 120`.
+For example, `0+6x20` expands to 21 samples from `0` through `120` in increments of `6`.
 
 ```yaml
 - series: 'http_requests_total{job="api",status="500"}'
@@ -104,7 +107,7 @@ For example, `0+6x20` expands to 21 samples: `0, 6, 12, ... 120`.
 
 ```
 
-The examples expand to `0, 6, 12, ... 120`; `1000, 1050, 1100, ... 1500`; and six constant `1` samples.
+The examples expand to values from `0` through `120` in increments of `6`, values from `1000` through `1500` in increments of `50`, and six constant `1` samples.
 
 Use when: modeling counter-like metrics that increase monotonically over time.
 
@@ -121,7 +124,8 @@ Space-separated literal sample values:
 
 ```
 
-The first series has five explicit samples. The second mixes integer-looking and float-compatible values.
+The first series has five explicit samples.
+The second mixes integer-looking and float-compatible values.
 
 Use when: you need precise control over individual sample values, such as testing threshold boundaries exactly.
 
@@ -138,7 +142,8 @@ Use `_` for a missing sample and `stale` to mark a series as stale from that poi
 
 ```
 
-The first sequence has one missing sample at position 3, then a stale marker from position 5 onward. The second becomes stale after its first three samples.
+The first sequence has one missing sample at position 3, then a stale marker from position 5 onward.
+The second becomes stale after its first three samples.
 
 Staleness semantics in tests mirror Prometheus production behavior:
 
@@ -158,7 +163,8 @@ Minimal native histogram sample syntax (Prometheus >= 2.40):
 
 ```
 
-Each histogram sample is enclosed in `{{ }}`. The minimal fields shown above are enough for compact examples, but promtool supports additional optional fields such as `z_bucket`, `z_bucket_w`, `offset`, `n_buckets`, `n_offset`, `counter_reset_hint`, and `custom_values`.
+Each histogram sample is enclosed in `{{ }}`.
+The minimal fields shown above are enough for compact examples, but promtool supports additional optional fields such as `z_bucket`, `z_bucket_w`, `offset`, `n_buckets`, `n_offset`, `counter_reset_hint`, and `custom_values`.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -167,7 +173,8 @@ Each histogram sample is enclosed in `{{ }}`. The minimal fields shown above are
 | `sum` | float | Sum of all observations. |
 | `buckets` | list of non-negative floats | Positive bucket counts represented as absolute counts. |
 
-Use when: the rule under test depends on histogram-native structure rather than a float-only approximation. See [`./references/fixture-edge-cases.md`](./references/fixture-edge-cases.md) for more detail.
+Use when: the rule under test depends on histogram-native structure rather than a float-only approximation.
+See [`./references/fixture-edge-cases.md`](./references/fixture-edge-cases.md) for more detail.
 
 ## alert_rule_test Complete Schema
 
@@ -190,8 +197,10 @@ Each entry in `exp_alerts:` describes one expected firing alert instance:
 
 Important semantics:
 
-- `alertname` is NOT automatically added to `exp_labels`. If your rule sets `alertname` via labels (unusual), include it explicitly.
-- `exp_labels` and `exp_annotations` are exact expected maps for the alert instance. Include every label and annotation the rule emits and do not rely on extra actual keys being ignored.
+- `alertname` is NOT automatically added to `exp_labels`.
+  - If your rule sets `alertname` via labels (unusual), include it explicitly.
+- `exp_labels` and `exp_annotations` are exact expected maps for the alert instance.
+  - Include every label and annotation the rule emits and do not rely on extra actual keys being ignored.
 - An empty `exp_alerts: []` means "this alert should not be firing at this eval time." This covers both truly-inactive and pending states.
 
 Example with full assertion:
@@ -407,7 +416,8 @@ Resolved-state interpretation rule:
 
 Full lifecycle test covering all four states:
 
-The fixture uses low error rate samples for 0-8m, high error rate samples for 8-20m, and recovery samples for 20-28m. The assertions then check below-threshold, pending, firing, and resolved behavior in order.
+The fixture uses low error rate samples for 0-8m, high error rate samples for 8-20m, and recovery samples for 20-28m.
+The assertions then check below-threshold, pending, firing, and resolved behavior in order.
 
 ```yaml
 tests:

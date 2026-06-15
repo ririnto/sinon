@@ -1,15 +1,18 @@
 ---
 name: netty
 description: >-
-  Build Netty TCP or UDP clients and servers with Bootstrap, ServerBootstrap, ChannelPipeline, handlers, ByteBuf, and codec basics. Use when configuring server or client bootstraps, assembling channel pipelines, managing ByteBuf ownership and reference counting, or writing custom codecs and frame decoders.
+  Build Netty TCP or UDP clients and servers with Bootstrap, ServerBootstrap, ChannelPipeline, handlers, ByteBuf, and codec basics.
+  Use when configuring server or client bootstraps, assembling channel pipelines, managing ByteBuf ownership and reference counting, or writing custom codecs and frame decoders.
 ---
 
 # Netty
 
 ## Official Baseline
 
-- Use the official Netty 4.2.x.Final line for new work; this review checked `io.netty:netty-bom` 4.2.15.Final and GitHub release `netty-4.2.15.Final`.
-- Treat Netty 4.1.x.Final as the stable maintenance line for existing deployments; this review checked `netty-4.1.135.Final`.
+- Use the official Netty 4.2.x.Final line for new work.
+  - This review checked `io.netty:netty-bom` 4.2.15.Final and GitHub release `netty-4.2.15.Final`.
+- Treat Netty 4.1.x.Final as the stable maintenance line for existing deployments.
+  - This review checked `netty-4.1.135.Final`.
 - Treat Netty 5 as a development line until the official Netty project marks it stable.
 
 Build one Netty 4.x application path end to end: choose transport, configure bootstrap, assemble the pipeline, handle lifecycle events, and keep buffer ownership correct.
@@ -17,8 +20,10 @@ Build one Netty 4.x application path end to end: choose transport, configure boo
 ## Operating rules
 
 - Keep the common path on core Netty APIs: `Bootstrap`, `ServerBootstrap`, `Channel`, `ChannelPipeline`, handlers, `ByteBuf`, and codec basics.
-- Treat `ByteBuf` and other `ReferenceCounted` messages as owned resources. Release them exactly once unless ownership moves downstream.
-- Do not block an `EventLoop` thread with long-running work. Offload CPU-heavy or blocking work before the pipeline stalls.
+- Treat `ByteBuf` and other `ReferenceCounted` messages as owned resources.
+  - Release them exactly once unless ownership moves downstream.
+- Do not block an `EventLoop` thread with long-running work.
+  - Offload CPU-heavy or blocking work before the pipeline stalls.
 - Use one handler instance per pipeline unless the handler is truly stateless and safe to mark `@Sharable`.
 - Shut down every `EventLoopGroup` with `shutdownGracefully()`.
 
@@ -32,7 +37,8 @@ Use this skill for:
 - `ByteBuf` allocation, reading, writing, and ownership
 - codec structure, framing entrypoints, and handler ordering
 
-Do not use this skill as the common path for builder-driven reactive transport work. If the task is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, or `UdpClient`, keep the answer on that higher-level reactive transport surface instead of low-level pipeline APIs.
+Do not use this skill as the common path for builder-driven reactive transport work.
+If the task is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`, `UdpServer`, or `UdpClient`, keep the answer on that higher-level reactive transport surface instead of low-level pipeline APIs.
 
 ## Common-path workflow
 
@@ -62,7 +68,8 @@ Do not use this skill as the common path for builder-driven reactive transport w
 
 - A `Channel` is assigned to one `EventLoop` for its lifetime.
 - Inbound and outbound callbacks for that channel run on that `EventLoop` thread unless you offload work yourself.
-- Server accept happens on the boss group; accepted channel I/O happens on the worker group.
+- Server accept happens on the boss group.
+  - Accepted channel I/O happens on the worker group.
 
 ### Channel and future lifecycle
 
@@ -102,7 +109,8 @@ clientBootstrap.group(group)
 
 ### Buffer and codec basics
 
-- `ByteBuf` replaces `ByteBuffer` in the common path. It keeps separate reader and writer indexes and does not require `flip()`.
+- `ByteBuf` replaces `ByteBuffer` in the common path.
+  - It keeps separate reader and writer indexes and does not require `flip()`.
 - Use `ctx.alloc()` or `channel.alloc()` to allocate buffers that match the channel allocator.
 - A codec usually does one transformation step.
   - `ByteToMessageDecoder`: bytes to higher-level messages
@@ -110,14 +118,16 @@ clientBootstrap.group(group)
 
 ### Java syntax baseline for examples
 
-- Netty 4.x itself supports older JDKs, but reference examples in this skill explicitly call out when they rely on Java 17+ syntax such as `instanceof` pattern variables or `case ... ->` switch rules.
+- Netty 4.x itself supports older JDKs, but reference examples in this skill explicitly call out when they rely on Java 17+ syntax such as `instanceof` pattern variables or arrow-form switch rules.
 - When that note is absent, treat the example as ordinary Netty API guidance rather than a Java-version-specific syntax showcase.
 
 ## First safe commands
 
 Dependency entrypoint:
 
-Use `netty-all` for development convenience or individual modules for production. Prefer 4.2.x.Final for new work; 4.1.x.Final remains supported for existing deployments and is largely binary-compatible except for the changes listed in the Netty 4.2 migration guide.
+Use `netty-all` for development convenience or individual modules for production.
+Prefer 4.2.x.Final for new work.
+4.1.x.Final remains supported for existing deployments and is largely binary-compatible except for the changes listed in the Netty 4.2 migration guide.
 
 ```xml
 <dependency>
@@ -191,7 +201,8 @@ try {
 
 UDP server skeleton:
 
-`writeAndFlush` takes ownership of the new reference from `retainedDuplicate`; `SimpleChannelInboundHandler` auto-releases the original `DatagramPacket`.
+`writeAndFlush` takes ownership of the new reference from `retainedDuplicate`.
+`SimpleChannelInboundHandler` auto-releases the original `DatagramPacket`.
 
 ```java
 import io.netty.channel.MultiThreadIoEventLoopGroup;
@@ -405,7 +416,7 @@ Open these only when the common path is no longer enough:
 
 Return:
 
-1. the requested Netty server, client, handler, or codec code
-2. the chosen transport and pipeline shape
-3. the ownership and shutdown reasoning
-4. any blocker references still required
+1. The requested Netty server, client, handler, or codec code
+2. The chosen transport and pipeline shape
+3. The ownership and shutdown reasoning
+4. Any blocker references still required

@@ -13,7 +13,8 @@ Open this reference when:
 
 ## Official posture
 
-Spring Authorization Server provides an official how-to guide for implementing equivalent core services with Redis. Treat the Redis path here as an application-owned implementation pattern based on that guide, not as a built-in framework module.
+Spring Authorization Server provides an official how-to guide for implementing equivalent core services with Redis.
+Treat the Redis path here as an application-owned implementation pattern based on that guide, not as a built-in framework module.
 
 ### RegisteredClientRepository Redis pattern
 
@@ -104,7 +105,8 @@ class RedisTemplateConfig {
 
 ### Tuning key expiration
 
-Authorization records grow as tokens are issued. Set explicit TTL policies:
+Authorization records grow as tokens are issued.
+Set explicit TTL policies:
 
 ```java
 @Configuration
@@ -137,7 +139,8 @@ Tenant-scoped key management prevents cross-tenant authorization leakage.
 
 ### Mixing Redis and JPA
 
-Do not mix separate Redis-backed and JPA-backed authorization services in the same application. Choose one persistence mechanism for authorizations.
+Do not mix separate Redis-backed and JPA-backed authorization services in the same application.
+Choose one persistence mechanism for authorizations.
 
 ## Production considerations
 

@@ -1,6 +1,6 @@
 # Spring Boot `ApplicationContextRunner`
 
-Open this reference when the ordinary test-slice baseline in [SKILL.md](../SKILL.md) is not enough and the blocker is Boot-specific wiring diagnosis without starting the whole application.
+Open this reference when the ordinary test-slice baseline in [`SKILL.md`](../SKILL.md) is not enough and the blocker is Boot-specific wiring diagnosis without starting the whole application.
 
 ## `ApplicationContextRunner` shape
 

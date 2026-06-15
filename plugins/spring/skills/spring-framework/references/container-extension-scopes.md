@@ -1,6 +1,6 @@
 # Spring Framework container extension points and scopes
 
-Open this reference when the ordinary bean-wiring path in [SKILL.md](../SKILL.md) is not enough and the blocker is container extension points, custom scope registration, advanced listener infrastructure, or `@Configuration` lite-mode behavior.
+Open this reference when the ordinary bean-wiring path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is container extension points, custom scope registration, advanced listener infrastructure, or `@Configuration` lite-mode behavior.
 
 ## BeanFactoryPostProcessor blocker
 
@@ -45,7 +45,8 @@ Register the scope first, then use it deliberately on the beans that truly depen
 
 ## `@Configuration` lite-mode blocker
 
-Use full `@Configuration` when `@Bean` methods must call each other through the container-managed proxy. A plain `@Component` with `@Bean` methods runs in lite mode and behaves like normal factory methods.
+Use full `@Configuration` when `@Bean` methods must call each other through the container-managed proxy.
+A plain `@Component` with `@Bean` methods runs in lite mode and behaves like normal factory methods.
 
 ```java
 @Component

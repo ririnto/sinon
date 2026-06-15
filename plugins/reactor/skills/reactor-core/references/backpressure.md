@@ -86,5 +86,6 @@ final class OverflowPolicy {
 
 - Buffering hides a rate mismatch only until memory becomes the failure mode.
 - `prefetch` can change request shape even when code looks sequential.
-- `groupBy(...)` can stall when many groups are created and not consumed. Open [Batching, Grouping, and Windowing](batching-grouping-windowing.md) for that blocker.
+- `groupBy(...)` can stall when many groups are created and not consumed.
+  - Open [Batching, Grouping, and Windowing](batching-grouping-windowing.md) for that blocker.
 - If the real issue starts at a manual source, inspect its `create(...)` or `push(...)` contract and overflow policy together.

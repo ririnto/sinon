@@ -1,6 +1,7 @@
 # Spring Statemachine reactive support
 
-Open this reference when application guards, actions, or event flows must stay reactive end to end. Keep the ordinary path imperative unless the surrounding application is already reactive.
+Open this reference when application guards, actions, or event flows must stay reactive end to end.
+Keep the ordinary path imperative unless the surrounding application is already reactive.
 
 Reactive support is available in the current 4.0.2 line and remains an additive path rather than the baseline modeling shape.
 
@@ -12,7 +13,9 @@ Reactive support is available in the current 4.0.2 line and remains an additive 
 
 ## Reactive guard and action interfaces
 
-The framework wraps both `Action` and `Guard` into Reactor types. `Action` (`void execute(StateContext)`) can be represented as `ReactiveAction` (`Function<StateContext, Mono<Void>>`). `Guard` (`boolean evaluate(StateContext)`) can be represented as `ReactiveGuard` (`Function<StateContext, Mono<Boolean>>`).
+The framework wraps both `Action` and `Guard` into Reactor types.
+`Action` (`void execute(StateContext)`) can be represented as `ReactiveAction` (`Function<StateContext, Mono<Void>>`).
+`Guard` (`boolean evaluate(StateContext)`) can be represented as `ReactiveGuard` (`Function<StateContext, Mono<Boolean>>`).
 
 ```java
 @Bean
@@ -30,7 +33,9 @@ Reactive support changes how side effects and eligibility checks are composed, b
 
 ## Reactive event dispatch
 
-Use the reactive event path when event dispatch itself must stay reactive. The reactive `sendEvent(Mono<Message>)` and `sendEvents(Flux<Message>)` APIs require subscription, and `sendEvents(Flux<Message>)` returns a combined `Flux<StateMachineEventResult>`. The synchronous boolean `sendEvent(...)` methods are still present in the current 4.0.2 line.
+Use the reactive event path when event dispatch itself must stay reactive.
+The reactive `sendEvent(Mono<Message>)` and `sendEvents(Flux<Message>)` APIs require subscription, and `sendEvents(Flux<Message>)` returns a combined `Flux<StateMachineEventResult>`.
+The synchronous boolean `sendEvent(...)` methods are still present in the current 4.0.2 line.
 
 ```java
 Flux<StateMachineEventResult<States, Events>> results = stateMachine.sendEvents(Flux.just(MessageBuilder.withPayload(Events.PAY).build(), MessageBuilder.withPayload(Events.SHIP).build()));

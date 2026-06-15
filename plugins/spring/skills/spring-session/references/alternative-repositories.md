@@ -2,11 +2,13 @@
 
 Open this reference only when Redis and JDBC are both poor fits and an existing platform standard already mandates another repository.
 
-Prefer Redis or JDBC unless the deployment explicitly requires a different store. A custom repository changes durability and operational behavior at the core session layer.
+Prefer Redis or JDBC unless the deployment explicitly requires a different store.
+A custom repository changes durability and operational behavior at the core session layer.
 
 ## Repository choice
 
-Hazelcast and MongoDB Spring Session modules do not currently have stable 4.1.0 releases in Maven metadata. Keep Redis or JDBC as the preferred repository path unless another repository has independently verified stable support for the Spring Session line used by the application.
+Hazelcast and MongoDB Spring Session modules do not currently have stable 4.1.0 releases in Maven metadata.
+Keep Redis or JDBC as the preferred repository path unless another repository has independently verified stable support for the Spring Session line used by the application.
 
 ## Custom SessionRepository
 

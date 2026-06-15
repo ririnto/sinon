@@ -4,9 +4,17 @@ Open this reference when the ordinary HTTP server path in `SKILL.md` is not enou
 
 ## Transport decisions
 
-- HTTP: default for queries and mutations. Also supports SSE for subscription responses.
-- SSE (Server-Sent Events): subscription-only transport over HTTP POST with `Accept: text/event-stream`. Simpler than WebSocket; no persistent connection. Only subscriptions are supported over SSE; queries and mutations must use the plain JSON HTTP variant.
-- WebSocket: use when the application genuinely needs subscriptions or long-lived interactive GraphQL sessions. Supports queries, mutations, and subscriptions on a single persistent connection. Requires `spring-boot-starter-websocket` for Servlet apps; no extra starter for WebFlux.
+- HTTP: default for queries and mutations.
+  - Also supports SSE for subscription responses.
+- SSE (Server-Sent Events): subscription-only transport over HTTP POST with `Accept: text/event-stream`.
+  - Simpler than WebSocket.
+    - No persistent connection.
+  - Only subscriptions are supported over SSE.
+    - Queries and mutations must use the plain JSON HTTP variant.
+- WebSocket: use when the application genuinely needs subscriptions or long-lived interactive GraphQL sessions.
+  - Supports queries, mutations, and subscriptions on a single persistent connection.
+  - Requires `spring-boot-starter-websocket` for Servlet apps.
+    - No extra starter for WebFlux.
 - RSocket: use only when the surrounding system already standardizes on RSocket.
 
 Keep one dominant transport unless a concrete subscription workflow requires more.
@@ -32,7 +40,9 @@ spring:
 
 ## SSE subscription shape
 
-Clients send an HTTP POST with `Accept: text/event-stream` header. The response is one or more Server-Sent Events. Only subscription operations are supported over SSE.
+Clients send an HTTP POST with `Accept: text/event-stream` header.
+The response is one or more Server-Sent Events.
+Only subscription operations are supported over SSE.
 
 ```java
 @Controller
@@ -86,7 +96,8 @@ Use RSocket only when the surrounding platform already carries request-stream tr
 
 ## WebSocket lifecycle interception
 
-`WebSocketGraphQlInterceptor` extends `WebGraphQlInterceptor` with additional callbacks for WebSocket connection start/end and client-side subscription cancellation. At most one `WebSocketGraphQlInterceptor` can exist in the interceptor chain.
+`WebSocketGraphQlInterceptor` extends `WebGraphQlInterceptor` with additional callbacks for WebSocket connection start/end and client-side subscription cancellation.
+At most one `WebSocketGraphQlInterceptor` can exist in the interceptor chain.
 
 ## Decision points
 

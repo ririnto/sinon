@@ -2,6 +2,7 @@
 name: change-description
 description: >-
   Compose hosted service change descriptions and hosted service change descriptions with disciplined titles,
+  structured bodies, review checklists, and consistent metadata.
 ---
 
 # change description Convention
@@ -10,7 +11,8 @@ Compose change descriptions and change descriptions that guide reviewers through
 
 ## Goal
 
-Communicate change intent, impact, and validation so reviewers can assess the work quickly and accurately. A well-formed change description surfaces the "why" and "what," demonstrates testing discipline, and respects the reviewer's time.
+Communicate change intent, impact, and validation so reviewers can assess the work quickly and accurately.
+A well-formed change description surfaces the "why" and "what," demonstrates testing discipline, and respects the reviewer's time.
 
 ## Scope
 
@@ -30,10 +32,13 @@ This skill does not cover:
 
 ## Operating Rules
 
-- **Title MUST be a single, clear statement of intent**: One line, 50–72 characters, in imperative mood. Use Conventional Commits format: `type(scope): description` (e.g., `feat(api): add user authentication`).
+- **Title MUST be a single, clear statement of intent**: One line, 50–72 characters, in imperative mood.
+  - Use Conventional Commits format: `type(scope): description` (e.g., `feat(api): add user authentication`).
 - **Body MUST be structured**: Use consistent section headings (Summary, Why, Changes, Testing, Notes) to guide the reviewer through the change.
-- **Title and body MUST convey a single, cohesive change**: Multi-purpose PRs/MRs MUST be split into separate, sequential requests. Large refactors and feature additions MUST be separate.
-- **Testing MUST be explicit and honest**: List only tests, lints, type checks, and manual validations that were actually performed. MUST NOT claim "all tests pass" if CI is incomplete.
+- **Title and body MUST convey a single, cohesive change**: Multi-purpose PRs/MRs MUST be split into separate, sequential requests.
+  - Large refactors and feature additions MUST be separate.
+- **Testing MUST be explicit and honest**: List only tests, lints, type checks, and manual validations that were actually performed.
+  - MUST NOT claim "all tests pass" if CI is incomplete.
 - **Self-review checklist MUST be completed before marking as ready**: Verify lint, type safety, unit tests, documentation, and relevant migration steps.
 - **Draft status SHOULD be used when design, tests, or CI are incomplete**: Move to ready only when all checklist items pass.
 
@@ -48,8 +53,11 @@ type(scope): description
 Components:
 
 - `type`: One of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`.
-- `scope`: The module, feature, or area affected (e.g., `api`, `auth`, `ui`, `deps`). MUST be lowercase, no spaces. Omit if single-scope project.
-- `description`: Imperative mood, no period, lowercase start. Summarize the change concisely.
+- `scope`: The module, feature, or area affected (e.g., `api`, `auth`, `ui`, `deps`).
+  - MUST be lowercase, no spaces.
+  - Omit if single-scope project.
+- `description`: Imperative mood, no period, lowercase start.
+  - Summarize the change concisely.
 
 Examples:
 
@@ -63,7 +71,8 @@ Length: 50–72 characters (enforce via linter or manual review).
 
 ## Body Template
 
-Use this structure for all change description bodies. Customize section depth based on change scope, but preserve section order.
+Use this structure for all change description bodies.
+Customize section depth based on change scope, but preserve section order.
 
 ````markdown
 ## Summary
@@ -117,7 +126,8 @@ Risks, caveats, breaking changes, deployment notes, or follow-up work.
 ### hosted service
 
 - **Title**: Use Conventional Commits format as shown above.
-- **Body**: Use standard markdown. hosted service supports GFM alerts (`> [!NOTE]`, `> [!WARNING]`, etc.) in PR descriptions.
+- **Body**: Use standard markdown.
+  - hosted service supports GFM alerts (`> [!NOTE]`, `> [!WARNING]`, etc.) in PR descriptions.
 
 **Minimal example using hosted service alert:**
 
@@ -150,6 +160,7 @@ Risks, caveats, breaking changes, deployment notes, or follow-up work.
 ### hosted service
 
 - **Title**: Use Conventional Commits format as shown above.
+- **Body**: Use standard markdown.
 
 **Minimal example using quick actions:**
 
@@ -182,7 +193,7 @@ Risks, caveats, breaking changes, deployment notes, or follow-up work.
   --draft
 ```
 
-## Decision: Draft vs. Ready
+## Decision: Draft versus Ready
 
 Move a change description from draft to ready only when:
 
@@ -209,7 +220,8 @@ Move a change description from draft to ready only when:
 ## Labels and Metadata
 
 
-Use a consistent label taxonomy. Recommended categories:
+Use a consistent label taxonomy.
+Recommended categories:
 
 | Category | Examples | Purpose |
 | --- | --- | --- |
@@ -225,14 +237,17 @@ Use a consistent label taxonomy. Recommended categories:
 ```
 
 
+Use consistently:
 
 ```sh
 ```
 
+Use this to prevent conflicting labels.
 
 ## Reviewer and Assignee Strategy
 
-- **Assign MUST include at least one reviewer** before marking ready. Assign to the person directly responsible for review.
+- **Assign MUST include at least one reviewer** before marking ready.
+  - Assign to the person directly responsible for review.
 - **Reviewers SHOULD be from the same team or subsystem** when possible (domain knowledge reduces review time).
 - **Codeowners SHOULD be used** to auto-request reviewers if the repository defines a `CODEOWNERS` file.
 - **Round-robin assignment SHOULD rotate reviewers** across the team to distribute load and knowledge.
@@ -250,7 +265,8 @@ Use a consistent label taxonomy. Recommended categories:
 
 ## Self-Review Checklist
 
-Complete this checklist before marking your change description as ready for review. Do not rely on reviewers to catch these items.
+Complete this checklist before marking your change description as ready for review.
+Do not rely on reviewers to catch these items.
 
 - [ ] **Title follows Conventional Commits**: Type, scope, description in imperative mood.
 - [ ] **Body is complete**: Summary, Why, Changes, Testing, and Notes sections are filled with truthful details.
@@ -269,11 +285,18 @@ Complete this checklist before marking your change description as ready for revi
 
 ## Pitfalls
 
-- **Large change description (>400 lines)**: Split into smaller, focused requests. Reviewers will skim large diffs and miss issues. Exception: generated code or large refactors; document the rationale in Notes.
-- **Vague titles** (e.g., "Updates", "Fixes bug", "WIP"): Be specific. "fix(auth): prevent session fixation attack" is better than "Fixes auth bug".
-- **Fabricated validation**: MUST NOT claim "all tests pass" if you have not run tests. Write "tests pending CI confirmation" instead.
-- **No Why section**: Reviewers may not understand why the change is necessary. Always explain the problem, requirement, or context.
-- **Multiple concerns in one change description**: Feature + refactor + dependency bump = hard to review and harder to revert. Keep each change separate.
+- **Large change description (>400 lines)**: Split into smaller, focused requests.
+  - Reviewers will skim large diffs and miss issues.
+  - Exception: generated code or large refactors; document the rationale in Notes.
+- **Vague titles**: avoid "Updates", "Fixes bug", or "WIP".
+  - Be specific.
+  - "fix(auth): prevent session fixation attack" is better than "Fixes auth bug".
+- **Fabricated validation**: MUST NOT claim "all tests pass" if you have not run tests.
+  - Write "tests pending CI confirmation" instead.
+- **No Why section**: Reviewers may not understand why the change is necessary.
+  - Always explain the problem, requirement, or context.
+- **Multiple concerns in one change description**: Feature + refactor + dependency bump = hard to review and harder to revert.
+  - Keep each change separate.
 - **Unresolved conflicts in commit history**: MUST NOT merge with rebase conflicts, merge conflicts, or unmerged dependencies.
 - **Reviewer assignment to inactive accounts**: Verify assignee is active and available before sending for review.
 
@@ -502,7 +525,8 @@ host-cli mr merge 42 --message "Merge feature X"
 
 ## Using External Body Files
 
-Both `host-cli` and `host-cli` support reading change description body text from files. This pattern enables pre-writing a body offline and using it repeatedly.
+Both `host-cli` and `host-cli` support reading change description body text from files.
+This pattern enables pre-writing a body offline and using it repeatedly.
 
 **Prepare body file:**
 
@@ -559,4 +583,5 @@ When composed correctly, a change description output satisfies these invariants:
 
 ## References
 
-- None yet. All common-case guidance is contained in SKILL.md.
+- None yet.
+  - All common-case guidance is contained in `SKILL.md`.

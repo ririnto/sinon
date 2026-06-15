@@ -1,7 +1,8 @@
 ---
 name: promql
 description: >-
-  Write and review PromQL expressions for correctness, aggregation and matching shape, and consumer fit (dashboard, alert, recording rule). Triggers on range or instant query composition, aggregation operator selection, recording rule construction for dashboards, or alert expression logic validation.
+  Write and review PromQL expressions for correctness, aggregation and matching shape, and consumer fit (dashboard, alert, recording rule).
+  Triggers on range or instant query composition, aggregation operator selection, recording rule construction for dashboards, or alert expression logic validation.
 ---
 
 # PromQL
@@ -28,15 +29,19 @@ PromQL expressions evaluate to one of four types:
 | Scalar | A single numeric floating-point value | Literal numbers, `scalar()`, `vector()`, some function results |
 | String | A simple string value | String literals; currently unused as a standalone result type |
 
-Instant queries accept any type as root. Range queries only accept scalar or instant vector as root result type.
+Instant queries accept any type as root.
+Range queries only accept scalar or instant vector as root result type.
 
-Both vectors may contain a mix of float samples and native histogram samples. Float samples carry counter or gauge flavor by convention (counters typically end in `_total`). Native histograms store their flavor explicitly (counter histogram vs gauge histogram).
+Both vectors may contain a mix of float samples and native histogram samples.
+Float samples carry counter or gauge flavor by convention (counters typically end in `_total`).
+Native histograms store their flavor explicitly (counter histogram vs gauge histogram).
 
 ## Literals
 
 ### String literals
 
-Three forms; all follow Go escaping rules for single/double-quoted forms:
+Three forms.
+All follow Go escaping rules for single/double-quoted forms:
 
 ```promql
 "double-quoted with \n escapes"
@@ -44,7 +49,9 @@ Three forms; all follow Go escaping rules for single/double-quoted forms:
 `backtick: no escape processing`
 ```
 
-Escape sequences in single/double quotes: `\a`, `\b`, `\f`, `\n`, `\r`, `\t`, `\v`, `\\`. Octal (`\nnn`), hex (`\xnn`), Unicode (`\unnnn`, `\Unnnnnnnn`). Backtick strings preserve all characters literally including newlines.
+Escape sequences in single/double quotes: `\a`, `\b`, `\f`, `\n`, `\r`, `\t`, `\v`, `\\`.
+Octal (`\nnn`), hex (`\xnn`), Unicode (`\unnnn`, `\Unnnnnnnn`).
+Backtick strings preserve all characters literally including newlines.
 
 ### Float literals
 
@@ -53,11 +60,14 @@ Escape sequences in single/double quotes: `\a`, `\b`, `\f`, `\n`, `\r`, `\t`, `\
 1_000_000   .123_456_789   0x_53_AB_F3_82
 ```
 
-Underscores may appear between decimal or hex digits for readability. Special values: `NaN`, `Inf`, `-Inf`.
+Underscores may appear between decimal or hex digits for readability.
+Special values: `NaN`, `Inf`, `-Inf`.
 
 ### Time duration literals
 
-Suffix a decimal integer with time units. Units must be ordered longest-to-shortest; each unit appears at most once per literal.
+Suffix a decimal integer with time units.
+Units must be ordered longest-to-shortest.
+Each unit appears at most once per literal.
 
 | Unit | Meaning |
 | --- | --- |
@@ -79,7 +89,8 @@ Invalid: `0xABm` (no hex suffix), `1.5h` (no float suffix), `+Infd` (no Inf/NaN 
 
 ### Instant vector selector
 
-Returns the most recent sample at-or-before evaluation time for each matched series. Series are returned only if their most recent sample falls within the lookback delta (default 5 minutes).
+Returns the most recent sample at-or-before evaluation time for each matched series.
+Series are returned only if their most recent sample falls within the lookback delta (default 5 minutes).
 
 These examples show, in order, a metric-name-only selector, exact-match filtering, regex plus negation, regex matching on `__name__`, and the `__name__` workaround for reserved keywords.
 
@@ -100,22 +111,30 @@ Label matcher operators:
 | `=~` | Regex match (fully anchored) |
 | `!~` | Not regex match (fully anchored) |
 
-Regex matches are fully anchored: `env=~"foo"` means `env=~"^foo$"`. RE2 syntax.
+Regex matches are fully anchored: `env=~"foo"` means `env=~"^foo$"`.
+RE2 syntax.
 
-## Empty-value matching: `{environment=""}` matches series where `environment` is absent OR set to empty string. This also selects series that do not have the label at all
+## Empty-value Matching
+
+`{environment=""}` matches series where `environment` is absent OR set to empty string.
+This also selects series that do not have the label at all.
 
 ## Multiple matchers on same label: All must pass (AND semantics)
 
 ## Selector validity rules
 
 - Must specify a metric name OR at least one non-empty-matching label matcher.
-- `{job=~".*"}` is illegal (matches empty). Use `{job=~".+"}` or add a second matcher like `{method="get"}`.
+- `{job=~".*"}` is illegal (matches empty).
+  - Use `{job=~".+"}` or add a second matcher like `{method="get"}`.
 - Metric name MUST NOT be a reserved keyword: `bool`, `on`, `ignoring`, `group_left`, `group_right`.
 - Workaround for keywords: `{__name__="on"}`.
 
 ### Range vector selector
 
-Appends `[<duration>]` to an instant vector selector. Returns a range of samples for each matched series. The interval is left-open, right-closed: samples at the left boundary are excluded; samples at the right boundary are included.
+Appends `[<duration>]` to an instant vector selector.
+Returns a range of samples for each matched series.
+The interval is left-open, right-closed: samples at the left boundary are excluded.
+Samples at the right boundary are included.
 
 These examples show a five-minute range selector on a filtered metric and the common pattern of wrapping a range selector in `rate()`.
 
@@ -128,7 +147,8 @@ rate(http_requests_total[5m])
 
 ### Offset modifier
 
-Shifts the evaluation time of an instant or range vector. Must follow the selector immediately, before any aggregation or function wrapping.
+Shifts the evaluation time of an instant or range vector.
+Must follow the selector immediately, before any aggregation or function wrapping.
 
 The examples below show, in order, valid placement inside an aggregation, invalid placement outside the aggregation, range-vector use, and a negative offset that looks forward in time.
 
@@ -144,7 +164,9 @@ rate(http_requests_total[5m] offset -1w)
 
 ### @ modifier (evaluation-time override)
 
-Overrides the evaluation timestamp for individual instant or range vectors. Accepts a Unix timestamp (float literal), `start()`, or `end()`. Must follow the selector immediately, same placement rule as `offset`.
+Overrides the evaluation timestamp for individual instant or range vectors.
+Accepts a Unix timestamp (float literal), `start()`, or `end()`.
+Must follow the selector immediately, same placement rule as `offset`.
 
 The examples below show a fixed Unix timestamp, placement inside an aggregation, range-vector use, range-query start and end pinning, and the equivalent `@`/`offset` orderings.
 
@@ -159,7 +181,8 @@ http_requests_total @ 1609746000 offset 5m
 http_requests_total offset 5m @ 1609746000
 ```
 
-For range queries: `start()` resolves to the range start, `end()` to the range end (both constant across steps). For instant queries: both resolve to the evaluation time.
+For range queries: `start()` resolves to the range start, `end()` to the range end (both constant across steps).
+For instant queries: both resolve to the evaluation time.
 
 ## Subquery Syntax
 
@@ -187,7 +210,8 @@ sum by (job) (increase(http_requests_total[1m:30s] @ start()))
 | --- | --- | --- |
 | `-` | scalar or instant vector | Sign inverted. For histograms: inverts bucket populations, count, sum. Result is always gauge histogram flavor. |
 
-Negative histograms are intermediate-only; they cannot be ingested or exchanged via any format.
+Negative histograms are intermediate-only.
+They cannot be ingested or exchanged via any format.
 
 ### Arithmetic operators
 
@@ -210,10 +234,14 @@ Defined between: scalar/scalar, vector/scalar, vector/vector (with vector matchi
 
 ## Histogram behavior in arithmetic
 
-- `* scalar`: multiplies buckets, count, sum. Negative scalar produces gauge histogram.
-- `/ scalar` (histogram on LHS): divides buckets, count, sum. Division by zero yields Inf/NaN per component. Negative scalar produces gauge histogram.
+- `* scalar`: multiplies buckets, count, sum.
+  - Negative scalar produces gauge histogram.
+- `/ scalar` (histogram on LHS): divides buckets, count, sum.
+  - Division by zero yields Inf/NaN per component.
+  - Negative scalar produces gauge histogram.
 - All other scalar/histogram combinations: element removed (info annotation).
-- Vector/vector: only `+` and `-` valid between two histograms. All others remove element (info annotation).
+- Vector/vector: only `+` and `-` valid between two histograms.
+  - All others remove element (info annotation).
 - Metric name is always dropped in any arithmetic operation involving vectors, even if `__name__` is in `on(...)`.
 
 ### Histogram trim operators
@@ -223,7 +251,9 @@ Defined between: scalar/scalar, vector/scalar, vector/vector (with vector matchi
 | `</` | Trim upper: removes observations above threshold |
 | `>/` | Trim lower: removes observations below threshold |
 
-LHS must be a native histogram (exponential or NHCB). RHS is a float threshold. Interpolation applied when threshold does not align to bucket boundary.
+LHS must be a native histogram (exponential or NHCB).
+RHS is a float threshold.
+Interpolation applied when threshold does not align to bucket boundary.
 
 ### Comparison operators
 
@@ -238,7 +268,10 @@ LHS must be a native histogram (exponential or NHCB). RHS is a float threshold. 
 
 Defined between: scalar/scalar (requires `bool`), vector/scalar, vector/vector (with matching).
 
-With `bool`: unmatched elements return no result (not 0). Metric name is dropped. Without `bool`: LHS metric name retained (unless `on` used; `group_right` keeps RHS name).
+With `bool`: unmatched elements return no result (not 0).
+Metric name is dropped.
+Without `bool`: LHS metric name retained (unless `on` used.
+`group_right` keeps RHS name).
 
 ### Logical / set operators (instant vectors only)
 
@@ -248,7 +281,9 @@ With `bool`: unmatched elements return no result (not 0). Metric name is dropped
 | `or` | Union: all LHS elements plus RHS elements without matching label sets in LHS |
 | `unless` | Complement: LHS elements that have NO exact label-set match in RHS |
 
-These operate on label sets only; sample values are irrelevant. Work identically for float and histogram samples.
+These operate on label sets only.
+Sample values are irrelevant.
+Work identically for float and histogram samples.
 
 ### Operator precedence (highest to lowest)
 
@@ -261,7 +296,8 @@ These operate on label sets only; sample values are irrelevant. Work identically
 | 5 | `and`, `unless` | Left |
 | 6 | `or` | Left |
 
-Example: `2 * 3 % 2` = `(2 * 3) % 2`. Example: `2 ^ 3 ^ 2` = `2 ^ (3 ^ 2)`.
+Example: `2 * 3 % 2` = `(2 * 3) % 2`.
+Example: `2 ^ 3 ^ 2` = `2 ^ (3 ^ 2)`.
 
 ## Aggregation Operators
 
@@ -286,7 +322,8 @@ The `by`/`without` clause may appear before or after the expression.
 | `limitk(k, v)` | Sample k elements (experimental) | Deterministic pseudo-random selection. Works for floats and histograms. Requires feature flag. |
 | `limit_ratio(r, v)` | Sample ratio r (experimental) | Pseudo-random; abs(r) is ratio, negative r inverts selection. Requires feature flag. |
 
-`without` removes listed labels (keeps everything else). `by` keeps only listed labels (drops everything else).
+`without` removes listed labels (keeps everything else).
+`by` keeps only listed labels (drops everything else).
 
 ## Function Reference
 
@@ -415,11 +452,13 @@ Each aggregates all samples in the range per series, returning an instant vector
 | `ts_of_min_over_time(v)` | Timestamp of last min sample (experimental) | Float only. Feature flag required. |
 | `ts_of_max_over_time(v)` | Timestamp of last max sample (experimental) | Float only. Feature flag required. |
 
-All samples in the range have equal weight regardless of spacing. `first_over_time(m[1m])` differs from `m offset 1m`: the former selects within the range, the latter selects from the lookback interval prior to the offset.
+All samples in the range have equal weight regardless of spacing.
+`first_over_time(m[1m])` differs from `m offset 1m`: the former selects within the range, the latter selects from the lookback interval prior to the offset.
 
 ## Vector Matching
 
-Binary operations between two instant vectors find matching entries by label set. Two modes exist:
+Binary operations between two instant vectors find matching entries by label set.
+Two modes exist:
 
 ### One-to-one matching (default)
 
@@ -437,9 +476,11 @@ method_code:http_errors:rate5m on(method) method:http_requests:rate5m
 
 ### Many-to-one / one-to-many matching
 
-Required when one side has higher cardinality than the other per join key. Must use `group_left` or `group_right`.
+Required when one side has higher cardinality than the other per join key.
+Must use `group_left` or `group_right`.
 
-The first example keeps the higher-cardinality left-hand series; the second also propagates `instance` from the lower-cardinality side into the result.
+The first example keeps the higher-cardinality left-hand series.
+The second also propagates `instance` from the lower-cardinality side into the result.
 
 ```promql
 method_code:http_errors:rate5m / ignoring(code) group_left method:http_requests:rate5m
@@ -447,11 +488,13 @@ method_code:http_errors:rate5m / ignoring(code) group_left method:http_requests:
 method_code:http_errors:rate5m / ignoring(code) group_left(instance) method:http_requests:rate5m
 ```
 
-The optional label list after `group_left`/`group_right` specifies labels from the "one" side to propagate into the result. With `on`, a label cannot appear in both lists.
+The optional label list after `group_left`/`group_right` specifies labels from the "one" side to propagate into the result.
+With `on`, a label cannot appear in both lists.
 
 ### Fill modifiers (experimental)
 
-Override default behavior of dropping unmatched elements. Requires `--enable-feature=promql-binop-fill-modifiers`.
+Override default behavior of dropping unmatched elements.
+Requires `--enable-feature=promql-binop-fill-modifiers`.
 
 These examples show filling missing matches on both sides, only on the left, only on the right, and on both sides with explicit defaults.
 
@@ -465,11 +508,15 @@ expr1 / fill_right(0) expr2
 expr1 / fill_left(0) fill_right(0) expr2
 ```
 
-Fill modifiers go last, after `bool`, `on`, `ignoring`, `group_left`, `group_right`. Not supported for set operators (`and`, `or`, `unless`). Only float samples supported (no histograms).
+Fill modifiers go last, after `bool`, `on`, `ignoring`, `group_left`, `group_right`.
+Not supported for set operators (`and`, `or`, `unless`).
+Only float samples supported (no histograms).
 
 ## Staleness Model
 
-Prometheus assigns values at query-evaluation timestamps independently of actual sample timestamps. It takes the newest sample within the lookback delta (default 5 minutes; configurable via `--query.lookback-delta` flag or per-query `lookback_delta` parameter).
+Prometheus assigns values at query-evaluation timestamps independently of actual sample timestamps.
+It takes the newest sample within the lookback delta (default 5 minutes.
+Configurable via `--query.lookback-delta` flag or per-query `lookback_delta` parameter).
 
 Key behaviors:
 
@@ -477,11 +524,13 @@ Key behaviors:
 - Stale series disappear from graphs at their latest sample timestamp.
 - After staleness marking, queries return no value for that series until new samples arrive.
 - Exporters with self-assigned timestamps behave differently: stale series hold their last value for the lookback delta before disappearing (configurable via `track_timestamps_staleness`).
-- Bare metric name selectors can expand to thousands of series; always filter and aggregate before graphing unknown data.
+- Bare metric name selectors can expand to thousands of series.
+  - Always filter and aggregate before graphing unknown data.
 
 ## HTTP API Reference
 
-Base path: `/api/v1`. All responses use this JSON envelope:
+Base path: `/api/v1`.
+All responses use this JSON envelope:
 
 ```json
 {
@@ -507,7 +556,9 @@ Base path: `/api/v1`. All responses use this JSON envelope:
 
 ## Range query parameters: `query`, `start`, `end`, `step`, `timeout` (optional), `limit` (optional), `lookback_delta` (optional), `stats` (optional)
 
-Timestamps accept RFC3339 or Unix (seconds, optional decimals). Durations use PromQL time-unit syntax. POST accepts URL-encoded body for large queries.
+Timestamps accept RFC3339 or Unix (seconds, optional decimals).
+Durations use PromQL time-unit syntax.
+POST accepts URL-encoded body for large queries.
 
 ### Result formats
 
@@ -518,7 +569,8 @@ Timestamps accept RFC3339 or Unix (seconds, optional decimals). Durations use Pr
 | `scalar` | `[ts, val]` |
 | `string` | `[ts, str]` |
 
-Sample values are JSON strings (to accommodate NaN, Inf, -Inf). Native histograms include a `"histogram"` key with count, sum, and buckets array.
+Sample values are JSON strings (to accommodate NaN, Inf, -Inf).
+Native histograms include a `"histogram"` key with count, sum, and buckets array.
 
 ### Metadata and discovery endpoints
 
@@ -573,10 +625,13 @@ Function-choice baseline:
 - use `irate()` only for visually volatile dashboard panels where short-window responsiveness matters more than stability
 - use `increase()` when the question is total change over the window rather than per-second rate
 - use `histogram_quantile()` only after the bucket series are aggregated to the label set you intend to keep
-- use `label_replace()` only when you must reshape labels explicitly; avoid it when a simpler selector, aggregation, or recording rule keeps the query readable
+- use `label_replace()` only when you must reshape labels explicitly.
+  - Avoid it when a simpler selector, aggregation, or recording rule keeps the query readable
 - use `absent()` or `absent_over_time()` when the missing series itself is the signal rather than a zero-valued metric
-- use `delta()` and `idelta()` with gauges only; never with counters (no reset adjustment)
-- use `predict_linear()` with gauges only; for capacity forecasting based on trend
+- use `delta()` and `idelta()` with gauges only.
+  - Never with counters (no reset adjustment)
+- use `predict_linear()` with gauges only.
+  - For capacity forecasting based on trend
 - use `_over_time` functions when you need rollup statistics across a window rather than a rate
 
 ## Ready-to-Adapt Templates
@@ -711,10 +766,10 @@ Validate the common case with these checks:
 
 Return:
 
-1. the recommended query or review decision
-2. the intended consumer context such as alert, dashboard, or recording rule
-3. any required label-set, vector-matching, or function-choice rationale
-4. remaining blockers, assumptions, or follow-up query risks
+1. The recommended query or review decision
+2. The intended consumer context such as alert, dashboard, or recording rule
+3. Any required label-set, vector-matching, or function-choice rationale
+4. Remaining blockers, assumptions, or follow-up query risks
 
 ## References
 
@@ -758,8 +813,7 @@ Return:
   - query tuning for alert or dashboard context
   - HTTP API interaction patterns for querying Prometheus
   - understanding data types, literals, operator precedence, and staleness
-- Do not activate for:
-  - full alert-rule YAML authoring
+- Do not activate for: full alert-rule YAML authoring
   - Alertmanager routing and notification design
   - Grafana dashboard layout, provisioning, or panel configuration
   - Prometheus server configuration, scraping, or relabeling rules

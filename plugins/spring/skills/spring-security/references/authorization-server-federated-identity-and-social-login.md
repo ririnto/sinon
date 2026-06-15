@@ -1,12 +1,15 @@
 # Federated identity and social login
 
-Open this reference when the authorization server must authenticate users through an external identity provider instead of a local login form. This reference is about the provider side of federation, not about a consuming OAuth client.
+Open this reference when the authorization server must authenticate users through an external identity provider instead of a local login form.
+This reference is about the provider side of federation, not about a consuming OAuth client.
 
 ## Federated identity boundary
 
 Federated identity applies when the authorization server delegates user authentication to an external provider rather than authenticating the user from a local user store.
 
-This is distinct from a normal Spring Security OAuth2 client application. Here the authorization server still issues tokens; only the user-authentication source changes.
+This is distinct from a normal Spring Security OAuth2 client application.
+Here the authorization server still issues tokens.
+Only the user-authentication source changes.
 
 ## Official federation posture
 
@@ -46,7 +49,8 @@ Use an application-defined `OAuth2TokenCustomizer<JwtEncodingContext>` when iden
 OAuth2TokenCustomizer<JwtEncodingContext> idTokenCustomizer = new FederatedIdentityIdTokenCustomizer();
 ```
 
-`FederatedIdentityAuthenticationSuccessHandler` and `FederatedIdentityIdTokenCustomizer` here are local example helpers, not built-in Spring Authorization Server framework types. Keep deeper account-linking, identity normalization, and logout choreography as application-specific work.
+`FederatedIdentityAuthenticationSuccessHandler` and `FederatedIdentityIdTokenCustomizer` here are local example helpers, not built-in Spring Authorization Server framework types.
+Keep deeper account-linking, identity normalization, and logout choreography as application-specific work.
 
 ## Decision table
 

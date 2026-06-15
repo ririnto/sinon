@@ -1,6 +1,6 @@
 # Listener threading and back pressure
 
-Open this reference when the ordinary listener-container path in [SKILL.md](../SKILL.md) is not enough and the blocker is consumer threading or back pressure.
+Open this reference when the ordinary listener-container path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is consumer threading or back pressure.
 
 ## Consumer-threading blocker
 

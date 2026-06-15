@@ -1,6 +1,6 @@
 # Introspection and revocation
 
-Open this reference when the ordinary issuer, authorization, token, metadata, and JWK endpoint set in [SKILL.md](../SKILL.md) is not enough and the blocker is token liveness inspection or revocation.
+Open this reference when the ordinary issuer, authorization, token, metadata, and JWK endpoint set in [`SKILL.md`](../SKILL.md) is not enough and the blocker is token liveness inspection or revocation.
 
 ## Introspection blocker
 
@@ -24,7 +24,8 @@ Solution: expose and test the token revocation endpoint as a deliberate client c
 revocation: /oauth2/revoke
 ```
 
-Revocation changes token lifecycle semantics. Treat it as part of the client compatibility surface.
+Revocation changes token lifecycle semantics.
+Treat it as part of the client compatibility surface.
 
 ## Endpoint customization seam
 

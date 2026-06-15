@@ -20,7 +20,8 @@ Use this reference when the query involves histograms and the blocker is underst
 
 ## Classic Histogram: Required Structure
 
-Buckets must be monotonically non-decreasing. The `_bucket` series must have an `le="+Inf"` bucket.
+Buckets must be monotonically non-decreasing.
+The `_bucket` series must have an `le="+Inf"` bucket.
 
 ```text
 http_request_duration_seconds_bucket{le="0.1"}   => 10
@@ -54,7 +55,8 @@ histogram_quantile(
 
 ```
 
-Forgetting `le` in the classic `by` clause is the most common histogram aggregation mistake. It collapses all buckets into one, making quantiles meaningless.
+Forgetting `le` in the classic `by` clause is the most common histogram aggregation mistake.
+It collapses all buckets into one, making quantiles meaningless.
 
 ## Interpolation Behavior
 
@@ -73,11 +75,13 @@ This example shows why picking boundaries far from actual bucket edges produces 
 
 ### Standard exponential native buckets
 
-Uses exponential interpolation: assumes observations would uniformly populate a hypothetical higher-resolution histogram. This produces more accurate results for skewed distributions but is computationally more complex.
+Uses exponential interpolation: assumes observations would uniformly populate a hypothetical higher-resolution histogram.
+This produces more accurate results for skewed distributions but is computationally more complex.
 
 ### Zero bucket behavior
 
-A zero bucket with finite width containing only positive observations assumes no negative observations, and vice versa. This affects quantiles that fall into or near zero.
+A zero bucket with finite width containing only positive observations assumes no negative observations, and vice versa.
+This affects quantiles that fall into or near zero.
 
 ## Monotonicity Enforcement
 
@@ -95,14 +99,17 @@ If you see this annotation, investigate the data source for invalid counter rese
 - With classic histograms, picking boundaries far from any bucket edge can produce large error margins.
 - For fraction calculations on classic histograms, operating directly on bucket series is often more robust than using `histogram_fraction`.
 - `+Inf` and `-Inf` are valid boundary values.
-- With native histograms and standard exponential buckets, `NaN` observations are considered outside all buckets. `histogram_fraction(-Inf, +Inf, b)` returns the fraction of non-NaN observations (may be < 1).
+- With native histograms and standard exponential buckets, `NaN` observations are considered outside all buckets.
+  - `histogram_fraction(-Inf, +Inf, b)` returns the fraction of non-NaN observations (may be < 1).
 
 ## Negative Histograms (Intermediate Results Only)
 
-Applying unary minus or subtracting gauge histograms can produce negative bucket populations or negative observation counts. These intermediate results:
+Applying unary minus or subtracting gauge histograms can produce negative bucket populations or negative observation counts.
+These intermediate results:
 
 - Cannot be ingested via any exchange format (exposition, remote-write, OTLP).
 - Cannot be stored as recording rule results (evaluation will fail).
 - Should only exist transiently within a query expression.
 
-Function-family tradeoffs and general query patterns are covered in [`../SKILL.md`](../SKILL.md). Use this reference for histogram-specific interpolation, aggregation rules, and debugging guidance only.
+Function-family tradeoffs and general query patterns are covered in [`../SKILL.md`](../SKILL.md).
+Use this reference for histogram-specific interpolation, aggregation rules, and debugging guidance only.

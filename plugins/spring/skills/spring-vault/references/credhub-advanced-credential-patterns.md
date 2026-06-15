@@ -1,8 +1,8 @@
 # Spring CredHub advanced credential patterns
 
-Open this reference when the ordinary password, JSON, or value read-write path in [SKILL.md](../SKILL.md) is not enough and the blocker is advanced credential usage such as interpolation, certificate generation, permissions or info APIs, or less-common credential families.
+Open this reference when the ordinary password, JSON, or value read-write path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is advanced credential usage such as interpolation, certificate generation, permissions or info APIs, or less-common credential families.
 
-The current stable Spring CredHub line is 4.0.1, and these APIs stay additive to the ordinary starter-backed service path in [SKILL.md](../SKILL.md).
+The current stable Spring CredHub line is 4.0.1, and these APIs stay additive to the ordinary starter-backed service path in [`SKILL.md`](../SKILL.md).
 
 ## Interpolation blocker
 
@@ -30,7 +30,8 @@ UserCredential credential = credHub.credentials()
     .getValue();
 ```
 
-Use `UserCredential` only when the platform truly stores the username and password as one managed unit. Otherwise, keep the username in configuration and read only the secret value from CredHub.
+Use `UserCredential` only when the platform truly stores the username and password as one managed unit.
+Otherwise, keep the username in configuration and read only the secret value from CredHub.
 
 ## Certificate generation blocker
 
@@ -72,6 +73,6 @@ Use permissions or info/version calls only when the application actually manages
 
 ## Related blockers
 
-- Return to [SKILL.md](../SKILL.md) when the blocker is an ordinary password, JSON, or value read-write path.
-- Open [credhub-auth-and-credential-variants.md](credhub-auth-and-credential-variants.md) when the actual blocker is client authentication mode selection.
-- Open [credhub-reactive-access.md](credhub-reactive-access.md) when the actual blocker is a reactive CredHub client boundary.
+- Return to [`SKILL.md`](../SKILL.md) when the blocker is an ordinary password, JSON, or value read-write path.
+- Open [`credhub-auth-and-credential-variants.md`](credhub-auth-and-credential-variants.md) when the actual blocker is client authentication mode selection.
+- Open [`credhub-reactive-access.md`](credhub-reactive-access.md) when the actual blocker is a reactive CredHub client boundary.

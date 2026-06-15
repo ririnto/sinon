@@ -18,7 +18,9 @@ templates:
 
 ```
 
-Paths are resolved relative to the config file location directory. Globs are supported. Alertmanager ships two built-in templates that are always loaded:
+Paths are resolved relative to the config file location directory.
+Globs are supported.
+Alertmanager ships two built-in templates that are always loaded:
 
 - `default.tmpl` -- default rendering templates for all receiver types
 - `email.tmpl` -- email-specific default templates
@@ -57,7 +59,8 @@ Each element within `.Alerts.Firing` and `.Alerts.Resolved` is an `Alert` struct
 
 ### KV Methods
 
-`KV` is the type used for `.Labels`, `.Annotations`, `.CommonLabels`, `.CommonAnnotations`, and `.GroupLabels`. It provides these methods:
+`KV` is the type used for `.Labels`, `.Annotations`, `.CommonLabels`, `.CommonAnnotations`, and `.GroupLabels`.
+It provides these methods:
 
 | Method | Return Type | Description |
 | --- | --- | --- |
@@ -87,7 +90,8 @@ The `.Alerts` container provides filtering methods:
 
 ## Template Functions
 
-Alertmanager extends Go templates with these custom functions. Standard Go template functions (`if`, `with`, `range`, `and`, `or`, `not`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `printf`, `println`, `len`, `index`, etc.) remain available.
+Alertmanager extends Go templates with these custom functions.
+Standard Go template functions (`if`, `with`, `range`, `and`, `or`, `not`, `eq`, `ne`, `lt`, `le`, `gt`, `ge`, `printf`, `println`, `len`, `index`, etc.) remain available.
 
 ### String Functions
 
@@ -264,7 +268,8 @@ Receiver-side JSON shape for webhook integrations:
 
 ```
 
-Webhook receivers get Alertmanager's fixed JSON body based on the same `Data` fields; customize the outgoing format in the HTTP receiver or an intermediary service, not with a `webhook_configs` body field.
+Webhook receivers get Alertmanager's fixed JSON body based on the same `Data` fields.
+Customize the outgoing format in the HTTP receiver or an intermediary service, not with a `webhook_configs` body field.
 
 Time formatting with timezone conversion:
 

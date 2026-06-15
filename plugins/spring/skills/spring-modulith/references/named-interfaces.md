@@ -82,7 +82,8 @@ class CustomStrategy implements ApplicationModuleDetectionStrategy {
 
 ## Package-based named interfaces merge fix
 
-A bug in versions before 2.1.0 caused package-based named interfaces (detected without explicit `@NamedInterface` annotation) to merge incorrectly when multiple modules declared interfaces with the same name segment. This is fixed in 2.1.0.
+A bug in versions before 2.1.0 caused package-based named interfaces (detected without explicit `@NamedInterface` annotation) to merge incorrectly when multiple modules declared interfaces with the same name segment.
+This is fixed in 2.1.0.
 
 ## Verification rule
 

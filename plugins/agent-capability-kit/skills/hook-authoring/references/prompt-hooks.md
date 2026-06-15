@@ -21,7 +21,9 @@ Prompt hooks support these inline variable expansions before sending to LLM:
 - `${CLAUDE_PLUGIN_ROOT}` — Plugin root directory path (e.g., `/project/.claude/plugins/my-plugin`)
 - `${CLAUDE_PROJECT_DIR}` — Project root directory path
 
-Variables are substituted literally; complex escaping MUST be handled in the prompt text itself. Tool inputs are already JSON, so quoting is handled automatically.
+Variables are substituted literally.
+Complex escaping MUST be handled in the prompt text itself.
+Tool inputs are already JSON, so quoting is handled automatically.
 
 ## Decision output schemas
 
@@ -36,7 +38,8 @@ Variables are substituted literally; complex escaping MUST be handled in the pro
 ```
 
 - `permissionDecision` (string) — `allow` (proceed unchanged), `deny` (block), `ask` (prompt user)
-- `updatedInput` (object, optional) — Modified tool parameters; if present, tool uses this instead of original
+- `updatedInput` (object, optional) — Modified tool parameters.
+  - If present, tool uses this instead of original.
 - `systemMessage` (string) — Reasoning shown in Claude's transcript
 
 ### PostToolUse feedback output
@@ -49,7 +52,8 @@ Variables are substituted literally; complex escaping MUST be handled in the pro
 }
 ```
 
-- `continue` (boolean) — Always true for PostToolUse; signals to continue session
+- `continue` (boolean) — Always true for PostToolUse.
+  - Signals to continue session.
 - `suppressOutput` (boolean) — If true, omit tool result from transcript
 - `systemMessage` (string) — Feedback shown to Claude
 
@@ -103,9 +107,11 @@ Then reference in prompt:
 
 ## Timeout and failure modes
 
-Prompt hooks have LLM latency (2-10 seconds typical). Timeout is in seconds (integer, default 30, min 10, max 120).
+Prompt hooks have LLM latency (2-10 seconds typical).
+Timeout is in seconds (integer, default 30, min 10, max 120).
 
-If timeout expires or LLM response does not match the expected output schema, the hook is treated as a no-op (tool/event proceeds unchanged). Use `claude --debug` to see parse errors.
+If timeout expires or LLM response does not match the expected output schema, the hook is treated as a no-op (tool/event proceeds unchanged).
+Use `claude --debug` to see parse errors.
 
 ## Multi-step decision flow
 
@@ -133,7 +139,8 @@ For complex policies, break decisions into multiple hooks on the same event:
 }
 ```
 
-Each hook runs sequentially. If any hook denies, the tool is blocked.
+Each hook runs sequentially.
+If any hook denies, the tool is blocked.
 
 ## Concrete examples
 
@@ -161,7 +168,8 @@ Each hook runs sequentially. If any hook denies, the tool is blocked.
 }
 ```
 
-Each hook runs sequentially; if any denies, tool is blocked.
+Each hook runs sequentially.
+If any denies, tool is blocked.
 
 ### Completeness validation at Stop
 

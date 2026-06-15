@@ -112,7 +112,8 @@ suspend fun heavyComputation(data: List<Data>): Result {
 }
 ```
 
-Decision: Use `ensureActive()` when you only need to check cancellation without yielding. Use `yield()` when you want to both check cancellation AND allow other coroutines to run.
+Decision: Use `ensureActive()` when you only need to check cancellation without yielding.
+Use `yield()` when you want to both check cancellation AND allow other coroutines to run.
 
 Selective cancellation -- use `cancelChildren()` to cancel all child coroutines without cancelling the parent scope itself, and `Job.join()` to wait for a specific child coroutine to finish:
 
@@ -148,4 +149,6 @@ suspend fun fetchUserData(userId: String): UserData =
     }
 ```
 
-Use `suspendCancellableCoroutine` when the callback contract is a single async result (one-shot). Use `callbackFlow` (covered in the Flow selection reference) when the callback emits multiple values over time. The `invokeOnCancellation` block handles resource cleanup when the caller cancels before the callback completes.
+Use `suspendCancellableCoroutine` when the callback contract is a single async result (one-shot).
+Use `callbackFlow` (covered in the Flow selection reference) when the callback emits multiple values over time.
+The `invokeOnCancellation` block handles resource cleanup when the caller cancels before the callback completes.

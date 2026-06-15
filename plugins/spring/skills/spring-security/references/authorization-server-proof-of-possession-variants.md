@@ -4,7 +4,8 @@ Open this reference when bearer tokens are not enough and the blocker is DPoP or
 
 ## DPoP blocker
 
-DPoP (RFC 9449) binds an access token to a public key. Open this blocker only when access tokens must not remain usable after bearer-header extraction.
+DPoP (RFC 9449) binds an access token to a public key.
+Open this blocker only when access tokens must not remain usable after bearer-header extraction.
 
 ```java
 TokenSettings.builder()
@@ -14,13 +15,16 @@ TokenSettings.builder()
 
 This keeps JWT access tokens enabled because DPoP relies on proof-bound token validation.
 
-Private-key JWT (`PRIVATE_KEY_JWT`) authentication and DPoP are separate mechanisms. A client can use `PRIVATE_KEY_JWT` for token-endpoint authentication while also presenting a DPoP proof when using the access token.
+Private-key JWT (`PRIVATE_KEY_JWT`) authentication and DPoP are separate mechanisms.
+A client can use `PRIVATE_KEY_JWT` for token-endpoint authentication while also presenting a DPoP proof when using the access token.
 
 ## MTLS blocker
 
-MTLS (RFC 8705) uses a client certificate during client authentication and can bind an access token to that certificate. The TLS termination point still must pass the client-certificate information correctly, but Spring Authorization Server also needs MTLS-aware client registration and token settings.
+MTLS (RFC 8705) uses a client certificate during client authentication and can bind an access token to that certificate.
+The TLS termination point still must pass the client-certificate information correctly, but Spring Authorization Server also needs MTLS-aware client registration and token settings.
 
-When the authorization server sits behind a TLS-terminating proxy, treat certificate forwarding as transport prerequisite work first. Then configure the registered client for MTLS at the authorization-server layer.
+When the authorization server sits behind a TLS-terminating proxy, treat certificate forwarding as transport prerequisite work first.
+Then configure the registered client for MTLS at the authorization-server layer.
 
 Use MTLS client authentication on the registered client and enable certificate-bound access tokens explicitly:
 

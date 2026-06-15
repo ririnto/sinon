@@ -15,7 +15,9 @@ class AppConfig {
 }
 ```
 
-Spring Framework 7.0 defaults all proxy processors to CGLIB, matching Spring Boot behavior. When `@EnableAspectJAutoProxy` is used alongside other proxy-based features (`@Async`, `@Transactional`), all share the same CGLIB default. Use `@Proxyable(ProxyMode.INTERFACES)` on individual beans to opt out.
+Spring Framework 7.0 defaults all proxy processors to CGLIB, matching Spring Boot behavior.
+When `@EnableAspectJAutoProxy` is used alongside other proxy-based features (`@Async`, `@Transactional`), all share the same CGLIB default.
+Use `@Proxyable(ProxyMode.INTERFACES)` on individual beans to opt out.
 
 ## Basic aspect shape
 
@@ -69,7 +71,8 @@ void afterThrow(Exception ex) {
 }
 ```
 
-Use `@Around` only when the advice must control execution or timing. Prefer narrower advice types when that is enough.
+Use `@Around` only when the advice must control execution or timing.
+Prefer narrower advice types when that is enough.
 
 ## Decision points
 

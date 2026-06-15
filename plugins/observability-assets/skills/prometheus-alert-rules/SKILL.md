@@ -1,19 +1,24 @@
 ---
 name: prometheus-alert-rules
 description: >-
-  Design, author, and review Prometheus alert rules with PromQL expressions and escalation policy. Use when writing alert or recording rules that map operator symptoms to meaningful firing conditions, setting `for` and `keep_firing_for` timers to avoid flapping, managing alert labels for Alertmanager routing and grouping, authoring Go-templated annotations for clarity, or needing guidance on rule YAML structure, PromQL validation, state-machine behavior, and label-contract handoff to downstream systems.
+  Design, author, and review Prometheus alert rules with PromQL expressions and escalation policy.
+  Use when writing alert or recording rules that map operator symptoms to meaningful firing conditions, setting `for` and `keep_firing_for` timers to avoid flapping, managing alert labels for Alertmanager routing and grouping, authoring Go-templated annotations for clarity, or needing guidance on rule YAML structure, PromQL validation, state-machine behavior, and label-contract handoff to downstream systems.
 ---
 
 # Prometheus Alert Rules
 
-Design and review Prometheus alert and recording rules around real operator symptoms, validate them with `promtool`, and keep rule definitions stable in version-controlled files. The common case is one rule group with a deliberate evaluation interval, one alert tied to a meaningful symptom, one explicit `for` window that avoids flapping, one clear alert name, one bounded label contract for Alertmanager, and one validation path that proves the shipped rule file is sane before it lands.
+Design and review Prometheus alert and recording rules around real operator symptoms, validate them with `promtool`, and keep rule definitions stable in version-controlled files.
+The common case is one rule group with a deliberate evaluation interval, one alert tied to a meaningful symptom, one explicit `for` window that avoids flapping, one clear alert name, one bounded label contract for Alertmanager, and one validation path that proves the shipped rule file is sane before it lands.
 
 ## Common-Case Workflow
 
 1. Start from the operator symptom that should page or ticket, not from a random metric spike.
 2. Put the rule in a deliberate group, keep the evaluation interval explicit when the default is not enough, and write the smallest alert expression that captures the symptom.
 3. Add an explicit `for` window, and add `keep_firing_for` only when brief recoveries or scrape gaps would otherwise cause noisy false resolution and the deployed Prometheus version supports it.
-4. Keep labels literal, bounded, and routing-oriented; keep annotations actionable; keep link-like annotations such as `runbook_url` literal and trusted; use lightweight Go templates such as `{{ $labels.service }}` or `{{ $value }}` only in human-readable annotations where they improve operator clarity.
+4. Keep labels literal, bounded, and routing-oriented.
+   - Keep annotations actionable.
+   - Keep link-like annotations such as `runbook_url` literal and trusted.
+   - Use lightweight Go templates such as `{{ $labels.service }}` or `{{ $value }}` only in human-readable annotations where they improve operator clarity.
 5. If the same expensive expression will be reused, extract it into a recording rule before writing the final alert expression.
 6. Validate syntax with `promtool check rules`, and hand off deeper regression-fixture work to the adjacent testing path when dedicated tests are needed.
 
@@ -36,7 +41,11 @@ groups:
 
 ```
 
-The top-level key is always `groups`. It holds an ordered list of groups. Each group requires `name` and `rules`; `interval` and `limit` remain optional. Each rule is either an `alert:` rule or a `record:` rule, and every rule requires `expr` while `for`, `keep_firing_for`, `labels`, and `annotations` stay optional as described in the schema tables below.
+The top-level key is always `groups`.
+It holds an ordered list of groups.
+Each group requires `name` and `rules`.
+`interval` and `limit` remain optional.
+Each rule is either an `alert:` rule or a `record:` rule, and every rule requires `expr` while `for`, `keep_firing_for`, `labels`, and `annotations` stay optional as described in the schema tables below.
 
 ## Rule Group Schema
 
@@ -146,11 +155,16 @@ inactive --> pending --> firing
 
 ```
 
-## Inactive: The expression evaluates to false (or produces no series). No alert state exists
+## Inactive
+
+The expression evaluates to false or produces no series.
+No alert state exists.
 
 ## Pending
 
-The expression first evaluates to true. A timer starts for the `for` duration. During pending:
+The expression first evaluates to true.
+A timer starts for the `for` duration.
+During pending:
 
 - The alert is visible in the UI as "pending"
 - No notification is sent to Alertmanager
@@ -165,7 +179,10 @@ The expression first evaluates to true. A timer starts for the `for` duration. D
   - Without `keep_firing_for`: the alert immediately returns to inactive
   - With `keep_firing_for`: the alert stays in firing for the configured hold-open duration, then returns to inactive
 
-## Flapping behavior: An alert that oscillates around the threshold resets its pending timer each time it drops back to inactive. Only a continuous `for` window of true evaluations causes a transition to firing
+## Flapping Behavior
+
+An alert that oscillates around the threshold resets its pending timer each time it drops back to inactive.
+Only a continuous `for` window of true evaluations causes a transition to firing.
 
 Timing diagram for `for: 10m` with `keep_firing_for: 5m`:
 
@@ -188,7 +205,8 @@ These variables are available inside `{{ }}` template expressions in annotation 
 | `$externalLabels` | map | External labels configured on the Prometheus server (`prometheus.yml` -> `global.external_labels`). |
 | `$externalURL` | string | Configured external URL of the Prometheus server (`prometheus.yml` -> `global.external_url`). |
 
-Template syntax reference. The examples below cover plain variable interpolation in `summary`, value rendering in `description`, conditional rendering with `if`, and dashboard-link composition with `$externalURL`:
+Template syntax reference.
+The examples below cover plain variable interpolation in `summary`, value rendering in `description`, conditional rendering with `if`, and dashboard-link composition with `$externalURL`:
 
 ```yaml
 annotations:
@@ -208,8 +226,10 @@ Template rules:
 
 - Templates execute once per alert instance (per labelset)
 - Template errors cause the entire annotation to render as the raw error string
-- Use `{{ $labels.name }}` syntax -- dot notation like `{{ $labels.name }}` works; bracket notation `{{ $labels["name"] }}` handles special characters
-- `$value` is always a string; compare numerically with helper functions where available
+- Use `{{ $labels.name }}` syntax -- dot notation like `{{ $labels.name }}` works.
+  - Bracket notation `{{ $labels["name"] }}` handles special characters
+- `$value` is always a string.
+  - Compare numerically with helper functions where available
 - Do NOT put templates in `labels` values unless you have a specific reason -- labels should be stable and low-cardinality
 - Keep link-like annotations such as `runbook_url` as literal strings without template variables
 
@@ -217,7 +237,8 @@ Template rules:
 
 Prometheus rules belong in a file loaded by the server or rule-evaluation stack, and `promtool` should run against the exact file shape that will ship.
 
-`promtool` must already be installed and available in `PATH` before you treat a rule edit as ready. If it is unavailable, stop at a blocked validation state instead of claiming the rule is ready.
+`promtool` must already be installed and available in `PATH` before you treat a rule edit as ready.
+If it is unavailable, stop at a blocked validation state instead of claiming the rule is ready.
 
 Minimal alerting file:
 

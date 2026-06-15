@@ -55,7 +55,8 @@ class ContextExpectationTest {
 
 ## `consumeRecordedWith(...)` for recorded value inspection
 
-Use `recordWith(...)` to start collecting `onNext` values, then place `consumeRecordedWith(...)` before the terminal expectation. This is part of the scenario, not a post-verification assertion.
+Use `recordWith(...)` to start collecting `onNext` values, then place `consumeRecordedWith(...)` before the terminal expectation.
+This is part of the scenario, not a post-verification assertion.
 
 ```java
 import org.junit.jupiter.api.Test;

@@ -8,7 +8,8 @@ Open this reference when the task needs complex LDAP filters, escaping, or DN pa
 ldap.search(query().base("ou=people").where("objectclass").is("person"), mapper);
 ```
 
-Prefer Spring LDAP query builders first. Drop to raw filter strings only when the filter shape cannot be expressed clearly through the builder API.
+Prefer Spring LDAP query builders first.
+Drop to raw filter strings only when the filter shape cannot be expressed clearly through the builder API.
 
 ## Raw filter fallback
 

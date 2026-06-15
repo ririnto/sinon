@@ -38,7 +38,8 @@ final class RetriedLookup {
 
 ## Completion-side repeat
 
-`repeat` re-subscribes when the publisher completes successfully (not on error). Use it for polling, retryable idempotent operations, or any completion-loop pattern.
+`repeat` re-subscribes when the publisher completes successfully (not on error).
+Use it for polling, retryable idempotent operations, or any completion-loop pattern.
 
 ### Fixed-count repeat
 

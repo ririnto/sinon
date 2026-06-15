@@ -63,7 +63,8 @@ Key JFR events for runtime diagnostics:
     - waiting to lock <0x00007f...> which is held by "pool-1-thread-2"
 ```
 
-Diagnosis: Classic lock contention. Thread-2 holds a lock that threads 1 and 3 are waiting for.
+Diagnosis: Classic lock contention.
+Thread-2 holds a lock that threads 1 and 3 are waiting for.
 
 ### Many threads RUNNABLE deep in I/O
 
@@ -73,7 +74,8 @@ Diagnosis: Classic lock contention. Thread-2 holds a lock that threads 1 and 3 a
     at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)
 ```
 
-Diagnosis: Threads blocked on network I/O (not actually consuming CPU). The RUNNABLE state in native I/O is normal but may indicate slow downstream dependencies.
+Diagnosis: Threads blocked on network I/O (not actually consuming CPU).
+The RUNNABLE state in native I/O is normal but may indicate slow downstream dependencies.
 
 ### Repeated identical stacks across many threads
 
@@ -83,7 +85,8 @@ Diagnosis: Threads blocked on network I/O (not actually consuming CPU). The RUNN
 "http-nio-exec-3" ... at com.example.slow.Service.process(Service.java:42)
 ```
 
-Diagnosis: All threads converging on one slow method = bottleneck. Profile this method.
+Diagnosis: All threads converging on one slow method = bottleneck.
+Profile this method.
 
 ### Deadlock section present (jstack -l format)
 
@@ -96,7 +99,8 @@ Found one Java-level deadlock:
   waiting to lock Monitor@0x00007f..002 which is held by "Thread-A"
 ```
 
-Diagnosis: Circular wait — classic deadlock. Stack trace shows exactly which objects/locks are involved.
+Diagnosis: Circular wait — classic deadlock.
+Stack trace shows exactly which objects/locks are involved.
 
 ## Startup-Attached JFR Operational Notes
 

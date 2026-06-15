@@ -125,11 +125,13 @@ Representative API payload:
 
 ```
 
-Use when: the blocker is an HTTP API workflow that explicitly requires `dashboard`, `folderUid`, `overwrite`, or `message`. Keep this payload shape out of legacy provider-path source directories.
+Use when: the blocker is an HTTP API workflow that explicitly requires `dashboard`, `folderUid`, `overwrite`, or `message`.
+Keep this payload shape out of legacy provider-path source directories.
 
 ## Datasource Provisioning Reference
 
-Datasource provisioning is scope-adjacent to dashboard provisioning but is not covered by this skill. Use this section as a pointer to the correct adjacent domain.
+Datasource provisioning is scope-adjacent to dashboard provisioning but is not covered by this skill.
+Use this section as a pointer to the correct adjacent domain.
 
 What datasource provisioning covers:
 
@@ -169,6 +171,7 @@ When you need datasource provisioning details:
 
 - Consult the official Grafana documentation for datasource provisioning configuration reference.
 - Datasource YAML files use a different schema with different field names, defaults, and constraints than dashboard providers.
-- This skill does not validate datasource configurations; switch to datasource-specific guidance for that domain.
+- This skill does not validate datasource configurations.
+  - Switch to datasource-specific guidance for that domain.
 
 Use when: the blocker is determining whether a question belongs to dashboard provisioning or the adjacent datasource provisioning domain.

@@ -13,7 +13,8 @@ Use `_` for a missing sample and `stale` when the test must model Prometheus sta
 
 ### Missing Sample (`_`)
 
-A missing sample means the series has no value at that specific timestamp. The series still exists for evaluation purposes -- it simply has a gap.
+A missing sample means the series has no value at that specific timestamp.
+The series still exists for evaluation purposes -- it simply has a gap.
 
 ```yaml
 - series: 'up{job="api",instance="api-1"}'
@@ -32,11 +33,13 @@ input_series:
 
 ```
 
-`rate()` and `increase()` interpolate across the gap. The gap does not cause the series to disappear from results; at sample 4, `rate(http_requests_total[2m])` sees roughly `(140 - 100) / 4m = 10/s`.
+`rate()` and `increase()` interpolate across the gap.
+The gap does not cause the series to disappear from results; at sample 4, `rate(http_requests_total[2m])` sees roughly `(140 - 100) / 4m = 10/s`.
 
 ### Stale Marker (`stale`)
 
-The `stale` marker causes the series to be treated as nonexistent from that point onward. This is different from `_`:
+The `stale` marker causes the series to be treated as nonexistent from that point onward.
+This is different from `_`:
 
 ```yaml
 - series: 'up{job="api",instance="api-1"}'
@@ -78,7 +81,8 @@ Use when: the blocker is showing the difference between a temporary missing scra
 
 ## Series Not in input_series
 
-When an expression references a metric name that has no corresponding `input_series` entry, promtool treats it as an empty result set. This is useful for testing `absent()` behavior but can also cause confusing failures if accidental.
+When an expression references a metric name that has no corresponding `input_series` entry, promtool treats it as an empty result set.
+This is useful for testing `absent()` behavior but can also cause confusing failures if accidental.
 
 ### Intentional absent test
 
@@ -103,11 +107,13 @@ input_series:
 
 ```
 
-This is broken when the rule denominator needs `http_requests_total{job="api",status="200"}`. The missing series can produce division by zero or an empty result, so add the denominator series explicitly.
+This is broken when the rule denominator needs `http_requests_total{job="api",status="200"}`.
+The missing series can produce division by zero or an empty result, so add the denominator series explicitly.
 
 ## Native Histogram Fixtures
 
-Use native histogram notation only when the rule under test actually depends on histogram-native behavior. Do not complicate a basic alert test just because the source metric is histogram-shaped elsewhere.
+Use native histogram notation only when the rule under test actually depends on histogram-native behavior.
+Do not complicate a basic alert test just because the source metric is histogram-shaped elsewhere.
 
 ### Basic Native Histogram Sample
 
@@ -183,7 +189,8 @@ Use when: the rule depends on histogram-native structure rather than a float-onl
 
 ## Counter Reset Simulation
 
-Prometheus counters reset when a process restarts. Simulate this in fixtures by including a decreasing value, which promtool interprets as a counter reset:
+Prometheus counters reset when a process restarts.
+Simulate this in fixtures by including a decreasing value, which promtool interprets as a counter reset:
 
 ```yaml
 - series: 'process_cpu_seconds_total{job="api"}'
@@ -191,13 +198,15 @@ Prometheus counters reset when a process restarts. Simulate this in fixtures by 
 
 ```
 
-This sequence increases normally, drops to simulate a process restart, then increases again. `rate()` and `increase()` handle the reset between sample 5 and 6.
+This sequence increases normally, drops to simulate a process restart, then increases again.
+`rate()` and `increase()` handle the reset between sample 5 and 6.
 
 Use when: the alert depends on `rate()` or `increase()` over counters and you need to verify reset handling.
 
 ## Float Precision Edge Cases
 
-Floating-point arithmetic in PromQL can produce values like `5.000000000001` instead of exactly `5`. Two strategies:
+Floating-point arithmetic in PromQL can produce values like `5.000000000001` instead of exactly `5`.
+Two strategies:
 
 ### Strategy 1: Use `fuzzy_compare` at the top level
 

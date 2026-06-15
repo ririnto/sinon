@@ -1,6 +1,6 @@
 # Client authentication variants
 
-Open this reference when the common-path public-client PKCE baseline in [SKILL.md](../SKILL.md) is not enough and the blocker is client type or token-endpoint authentication method selection.
+Open this reference when the common-path public-client PKCE baseline in [`SKILL.md`](../SKILL.md) is not enough and the blocker is client type or token-endpoint authentication method selection.
 
 ## When to open
 
@@ -11,9 +11,11 @@ Open this reference when the common-path public-client PKCE baseline in [SKILL.m
 
 ## Client type boundary
 
-Confidential clients can hold credentials securely. They commonly use `client_secret_post`, `client_secret_basic`, `client_secret_jwt`, or `private_key_jwt` to authenticate at the token endpoint.
+Confidential clients can hold credentials securely.
+They commonly use `client_secret_post`, `client_secret_basic`, `client_secret_jwt`, or `private_key_jwt` to authenticate at the token endpoint.
 
-Public clients cannot hold credentials. They typically use `ClientAuthenticationMethod.NONE`, and PKCE is the primary protection against authorization-code interception.
+Public clients cannot hold credentials.
+They typically use `ClientAuthenticationMethod.NONE`, and PKCE is the primary protection against authorization-code interception.
 
 ```text
 requireProofKey(true)   -> PKCE is mandatory, authorization code exchange fails without it
@@ -49,7 +51,8 @@ Supported `ClientAuthenticationMethod` values:
 
 ## PKCE and client type interaction
 
-PKCE is not an authentication method. It protects the authorization-code exchange regardless of client type.
+PKCE is not an authentication method.
+It protects the authorization-code exchange regardless of client type.
 
 For public clients:
 
@@ -75,7 +78,8 @@ public class CustomClientAuthenticationConverter implements AuthenticationConver
 }
 ```
 
-Extract and validate the custom client-authentication data before constructing the authentication token. This converter is application-owned glue, not a special built-in framework SPI beyond the standard authentication-conversion seam.
+Extract and validate the custom client-authentication data before constructing the authentication token.
+This converter is application-owned glue, not a special built-in framework SPI beyond the standard authentication-conversion seam.
 
 Register via `OAuth2AuthorizationServerConfigurer`:
 

@@ -56,7 +56,8 @@ final class BufferedPipeline {
 ## Shape-specific guardrails
 
 - `groupBy(...)` creates one stream per key, so high cardinality plus low consumer concurrency can stall the pipeline.
-- `window(...)` emits publishers, not lists. If you forget to subscribe to each inner publisher, the pipeline appears idle.
+- `window(...)` emits publishers, not lists.
+  - If you forget to subscribe to each inner publisher, the pipeline appears idle.
 - `buffer(...)` delays downstream visibility until the buffer closes or upstream completes.
 - Overlapping variants such as `window(maxSize, skip)` or `buffer(maxSize, skip)` can duplicate or drop elements depending on the `skip` relationship.
 

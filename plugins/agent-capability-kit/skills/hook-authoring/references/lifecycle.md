@@ -8,7 +8,8 @@ description: |-
 
 Open this reference when configuring hook timing, session lifecycle events, environment variable scope, or understanding when hook changes require session restart.
 
-Hooks are loaded at session start only. This reference covers exact session timing, when restart is required, environment variable scope, and conditional activation patterns.
+Hooks are loaded at session start only.
+This reference covers exact session timing, when restart is required, environment variable scope, and conditional activation patterns.
 
 ## Session lifecycle overview
 
@@ -26,7 +27,8 @@ Claude Code session initialization:
 
 ## Critical rule: no hot-swap
 
-Hooks loaded at step 3 remain fixed for the entire session. Changes to `hooks/hooks.json` or hook scripts have ZERO effect until session restart.
+Hooks loaded at step 3 remain fixed for the entire session.
+Changes to `hooks/hooks.json` or hook scripts have ZERO effect until session restart.
 
 ### Broken: editing hook and expecting immediate effect
 
@@ -98,7 +100,8 @@ These variables are available to all subsequent hooks and tool execution in the 
 
 ### All other events: no CLAUDE_ENV_FILE access
 
-`PreToolUse`, `PostToolUse`, `Stop`, `UserPromptSubmit`, `PreCompact`, and `Notification` hooks CANNOT modify `$CLAUDE_ENV_FILE`. They can only read environment variables set by:
+`PreToolUse`, `PostToolUse`, `Stop`, `UserPromptSubmit`, `PreCompact`, and `Notification` hooks CANNOT modify `$CLAUDE_ENV_FILE`.
+They can only read environment variables set by:
 
 - SessionStart hooks (via `$CLAUDE_ENV_FILE`)
 - User's shell environment (passed at session start)
@@ -110,13 +113,15 @@ These variables are available to all subsequent hooks and tool execution in the 
 
 - `${CLAUDE_PLUGIN_ROOT}` — Plugin root directory
 - `${CLAUDE_PROJECT_DIR}` — Project root directory (current working directory at session start)
-- `$CLAUDE_CODE_REMOTE` — Set if running in remote context; undefined locally
+- `$CLAUDE_CODE_REMOTE` — Set if running in remote context.
+  - Undefined locally.
 
 Values are constant for entire session.
 
 ### SessionStart only
 
-- `$CLAUDE_ENV_FILE` — Path to session environment file (write-only); persist env vars here
+- `$CLAUDE_ENV_FILE` — Path to session environment file (write-only).
+  - Persist env vars here.
 
 Available in SessionStart command hooks only.
 
@@ -150,7 +155,8 @@ echo "User prompt received: $user_prompt"
 
 ### ${CLAUDE_PLUGIN_ROOT} resolution
 
-Hook commands are evaluated in the project directory (`${CLAUDE_PROJECT_DIR}`). Use full paths or relative-to-plugin:
+Hook commands are evaluated in the project directory (`${CLAUDE_PROJECT_DIR}`).
+Use full paths or relative-to-plugin:
 
 ```json
 {
@@ -162,7 +168,8 @@ Resolves to: `/path/to/plugin/hooks/validate.sh` (absolute path from environment
 
 ### ${CLAUDE_PROJECT_DIR} resolution
 
-Project directory is the working directory where Claude Code was invoked. Use for relative path references:
+Project directory is the working directory where Claude Code was invoked.
+Use for relative path references:
 
 ```json
 cd "${CLAUDE_PROJECT_DIR}" || exit
@@ -171,7 +178,8 @@ ls ./src
 
 ### Relative paths in hooks (avoid)
 
-Relative paths are relative to current working directory, which is `${CLAUDE_PROJECT_DIR}`. Avoid relying on implicit paths:
+Relative paths are relative to current working directory, which is `${CLAUDE_PROJECT_DIR}`.
+Avoid relying on implicit paths:
 
 ```sh
 # Fragile: depends on current directory
@@ -182,7 +190,8 @@ bash "${CLAUDE_PLUGIN_ROOT}/hooks/validate.sh"
 
 ## Remote context handling
 
-Claude Code can run in remote context (ssh, cloud environments). Some operations are unsafe in remote context.
+Claude Code can run in remote context (ssh, cloud environments).
+Some operations are unsafe in remote context.
 
 ### Detect remote context
 
@@ -352,7 +361,8 @@ Set reasonable timeouts:
 }
 ```
 
-For `SessionEnd` hooks, timeouts are enforced at session close. Hook MUST complete before process exits.
+For `SessionEnd` hooks, timeouts are enforced at session close.
+Hook MUST complete before process exits.
 
 ## Testing with session restart
 

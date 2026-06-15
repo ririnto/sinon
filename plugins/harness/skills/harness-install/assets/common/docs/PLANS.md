@@ -2,7 +2,10 @@
 
 ## Purpose
 
-PLANS.md is the project-wide development plan: the long-horizon roadmap, milestone-level scope, target outcomes per milestone, and sequencing rationale. It documents *what* the project intends to build and in what order, not *how* work moves through the repository (which WORKFLOW.md documents). This is not a list of currently in-flight tasks—those are maintained in `docs/exec-plans/` with execution status metadata. It is not a tech-debt tracker—that lives at `docs/exec-plans/tech-debt-tracker.md`.
+`PLANS.md` is the project-wide development plan: the long-horizon roadmap, milestone-level scope, target outcomes per milestone, and sequencing rationale.
+It documents *what* the project intends to build and in what order, not *how* work moves through the repository (which `WORKFLOW.md` documents).
+This is not a list of currently in-flight tasks—those are maintained in `docs/exec-plans/` with execution status metadata.
+It is not a tech-debt tracker—that lives at `docs/exec-plans/tech-debt-tracker.md`.
 
 ## Roadmap
 
@@ -18,9 +21,12 @@ Replace the example milestones below with your own; keep the columns and status 
 
 ## Sequencing Rationale
 
-- M1 precedes everything because the repository needs a product spec to validate against. See `docs/product-specs/`.
-- M2 precedes M3 because the validator must be green before any agent-driven implementation lands. See `docs/design-docs/`.
-- M4 precedes M5 because external alpha feedback is required to confirm the SLOs targeted at GA. See `docs/RELIABILITY.md`.
+- M1 precedes everything because the repository needs a product spec to validate against.
+  - See `docs/product-specs/`.
+- M2 precedes M3 because the validator must be green before any agent-driven implementation lands.
+  - See `docs/design-docs/`.
+- M4 precedes M5 because external alpha feedback is required to confirm the SLOs targeted at GA.
+  - See `docs/RELIABILITY.md`.
 
 ## Dependencies
 

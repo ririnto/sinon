@@ -44,7 +44,8 @@ class MoneyFormatter implements Formatter<Money> {
 }
 ```
 
-Use a formatter when both parsing and rendering matter. Use a converter when only one-way type conversion is needed.
+Use a formatter when both parsing and rendering matter.
+Use a converter when only one-way type conversion is needed.
 
 ## Custom converters
 
