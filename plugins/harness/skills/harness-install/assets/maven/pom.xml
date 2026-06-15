@@ -50,10 +50,39 @@
         <configuration>
           <checkstyleRules>
             <module name="Checker">
+              <module name="LineLength">
+                <property name="max" value="100"/>
+              </module>
               <module name="TreeWalker">
                 <module name="AvoidStarImport"/>
                 <module name="UnusedImports"/>
                 <module name="NeedBraces"/>
+                <module name="RegexpSinglelineJava">
+                  <property name="format" value="^\s*System\.(out|err)\.print"/>
+                  <property name="message" value="Use a structured logger instead of System.out/System.err printing"/>
+                  <property name="ignoreComments" value="true"/>
+                </module>
+                <module name="MissingJavadocType">
+                  <property name="scope" value="public"/>
+                </module>
+                <module name="MissingJavadocMethod">
+                  <property name="scope" value="public"/>
+                  <property name="allowMissingPropertyJavadoc" value="true"/>
+                </module>
+                <module name="JavadocVariable">
+                  <property name="accessModifiers" value="public"/>
+                </module>
+                <module name="TypeName"/>
+                <module name="MethodName"/>
+                <module name="MemberName">
+                  <property name="format" value="^(?!_)[a-z][a-zA-Z0-9]*$"/>
+                </module>
+                <module name="ParameterName">
+                  <property name="format" value="^(?!_)[a-z][a-zA-Z0-9]*$"/>
+                </module>
+                <module name="LocalVariableName">
+                  <property name="format" value="^(?!_)[a-z][a-zA-Z0-9]*$"/>
+                </module>
               </module>
             </module>
           </checkstyleRules>
@@ -68,6 +97,26 @@
             <goals>
               <goal>check</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.6.3</version>
+        <executions>
+          <execution>
+            <id>format-markdown</id>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>sh</executable>
+              <arguments>
+                <argument>-c</argument>
+                <argument>if markdownlint_bin=$(command -v markdownlint-cli2 2&gt;&amp;1); then "$markdownlint_bin" "**/*.md" --fix; else echo 'warning: markdownlint-cli2 not in PATH; skipping Markdown fixes; install with: bun add -g markdownlint-cli2' &gt;&amp;2; fi</argument>
+              </arguments>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -103,7 +152,7 @@
               <target>
                 <exec executable="sh" failonerror="true">
                   <arg value="-c"/>
-                  <arg value="if markdownlint_bin=$(command -v markdownlint-cli2 2&gt;&amp;1); then &quot;$markdownlint_bin&quot;; else echo 'warning: markdownlint-cli2 not in PATH; skipping Markdown linting' &gt;&amp;2; fi"/>
+                  <arg value="if markdownlint_bin=$(command -v markdownlint-cli2 2&gt;&amp;1); then &quot;$markdownlint_bin&quot; &quot;**/*.md&quot;; else echo 'warning: markdownlint-cli2 not in PATH; skipping Markdown linting; install with: bun add -g markdownlint-cli2' &gt;&amp;2; fi"/>
                 </exec>
               </target>
             </configuration>
