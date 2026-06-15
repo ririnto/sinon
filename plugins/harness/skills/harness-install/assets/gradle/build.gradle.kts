@@ -2,6 +2,7 @@ import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 plugins {
+    base
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.kotlin.jvm) apply false
 }
@@ -34,6 +35,7 @@ allprojects {
 }
 
 tasks.register("checkMarkdown") {
+    outputs.upToDateWhen { false }
     doLast {
         findMarkdownlintCommand()?.let { markdownlint ->
             providers
@@ -42,11 +44,14 @@ tasks.register("checkMarkdown") {
                 }.result
                 .get()
                 .assertNormalExitValue()
-        } ?: logger.warn("markdownlint-cli2 not in PATH; skipping Markdown linting")
+        } ?: logger.warn(
+            "markdownlint-cli2 not in PATH; skipping Markdown linting; install with: bun add -g markdownlint-cli2"
+        )
     }
 }
 
 tasks.register("fixMarkdown") {
+    outputs.upToDateWhen { false }
     doLast {
         findMarkdownlintCommand()?.let { markdownlint ->
             providers
@@ -55,8 +60,14 @@ tasks.register("fixMarkdown") {
                 }.result
                 .get()
                 .assertNormalExitValue()
-        } ?: logger.warn("markdownlint-cli2 not in PATH; skipping Markdown linting")
+        } ?: logger.warn(
+            "markdownlint-cli2 not in PATH; skipping Markdown fixes; install with: bun add -g markdownlint-cli2"
+        )
     }
+}
+
+tasks.named("check") {
+    dependsOn("checkMarkdown")
 }
 
 tasks.named("ktlintCheck") {
