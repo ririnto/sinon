@@ -58,7 +58,8 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/`. Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+The manifest declares `./skills/`.
+Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
 
 ## Plugin Layout
 
@@ -88,7 +89,8 @@ plugins/observability-assets/
 - Prefer version-controlled monitoring assets over UI-only drift.
 - Keep examples minimal but runnable in spirit.
 - Route to the smallest skill that matches the active observability asset.
-- Keep `SKILL.md` self-contained and usable on its own; use `references/` only for supplemental decision aids and longer notes.
+- Keep `SKILL.md` self-contained and usable on its own.
+  - Use `references/` only for supplemental decision aids and longer notes.
 - Reference files are expected to contain concrete additive examples and must not devolve into prose-only summaries.
 
 ## Installation
@@ -107,4 +109,5 @@ claude --plugin-dir /path/to/sinon/plugins/observability-assets
 
 ## Scope Notes
 
-This plugin does not bundle ready-to-install Prometheus, Alertmanager, or Grafana asset files. Skill examples are authoring patterns that must be adapted into the target repository's monitoring asset tree.
+This plugin does not bundle ready-to-install Prometheus, Alertmanager, or Grafana asset files.
+Skill examples are authoring patterns that must be adapted into the target repository's monitoring asset tree.

@@ -1,10 +1,12 @@
 # Requirements Style
 
-Use this reference when writing or reviewing individual requirements inside a `SPEC.md`. Open this reference when the spec structure is in place and you need to draft individual functional, non-functional, and acceptance requirements.
+Use this reference when writing or reviewing individual requirements inside a `SPEC.md`.
+Open this reference when the spec structure is in place and you need to draft individual functional, non-functional, and acceptance requirements.
 
 ## Requirement IDs
 
-Use stable IDs that remain valid even if requirements are reordered. Do not reuse IDs after deleting or replacing a requirement.
+Use stable IDs that remain valid even if requirements are reordered.
+Do not reuse IDs after deleting or replacing a requirement.
 
 | Prefix | Use | Example |
 | --- | --- | --- |
@@ -18,11 +20,13 @@ Use stable IDs that remain valid even if requirements are reordered. Do not reus
 | `AC-001-A` | Acceptance criterion tied to requirement 001 | AC-001-A: GIVEN valid input, WHEN submitted, THEN output is returned. |
 | `SC-001` | Success criterion (not requirement-specific) | SC-001: Users complete the flow in under 2 minutes. |
 
-Historical traceability: When a requirement is deleted, mark it in a change log or delta spec section if traceability matters. Do not reuse the ID.
+Historical traceability: When a requirement is deleted, mark it in a change log or delta spec section if traceability matters.
+Do not reuse the ID.
 
 ## Normative Language
 
-Use RFC 2119 language deliberately. Choose MUST vs. SHOULD based on actual constraint, not habit.
+Use RFC 2119 language deliberately.
+Choose MUST versus SHOULD based on actual constraint, not habit.
 
 | Keyword | Interpretation | Use When |
 | --- | --- | --- |
@@ -35,11 +39,14 @@ Use RFC 2119 language deliberately. Choose MUST vs. SHOULD based on actual const
 | `RECOMMENDED` | Advised but optional | When matching formal RFC or protocol style |
 | `OPTIONAL` | No requirement to implement | Extensions, nice-to-haves |
 
-Guidance: Prefer `MUST` for product requirements, `SHALL` for formal contracts or protocol specs. Use `SHOULD` when the policy is aspirational but implementers may diverge; always document the divergence policy.
+Guidance: Prefer `MUST` for product requirements, `SHALL` for formal contracts or protocol specs.
+Use `SHOULD` when the policy is aspirational but implementers may diverge.
+Always document the divergence policy.
 
 ## EARS Patterns
 
-Use EARS (Easy Approach to Requirements Syntax) sentence patterns to reduce ambiguity. Each pattern targets a different trigger or context.
+Use EARS (Easy Approach to Requirements Syntax) sentence patterns to reduce ambiguity.
+Each pattern targets a different trigger or context.
 
 | Pattern | Form | Use | Example |
 | --- | --- | --- | --- |
@@ -51,7 +58,8 @@ Use EARS (Easy Approach to Requirements Syntax) sentence patterns to reduce ambi
 
 ## Implementation-Defined Behavior
 
-Define what "implementation-defined" means in your spec, then use it consistently for contract surface the spec does not prescribe universally. Every implementation-defined choice MUST be documented by the implementer.
+Define what "implementation-defined" means in your spec, then use it consistently for contract surface the spec does not prescribe universally.
+Every implementation-defined choice MUST be documented by the implementer.
 
 Template sentence:
 
@@ -61,11 +69,13 @@ Example:
 
 `approval_policy (string), default implementation-defined — implementations MUST document whether they auto-approve commands, require operator confirmation, or fail approval-required turns.`
 
-Rationale: Symphony uses this pattern to allow multiple trust postures (high-trust auto-approval vs. strict sandboxing) while keeping the contract clear.
+Rationale: Symphony uses this pattern to allow multiple trust postures (high-trust auto-approval vs.
+Strict sandboxing) while keeping the contract clear.
 
 ## Good Requirement Shape
 
-Write one observable behavior per requirement. Each requirement MUST be testable or inspectable.
+Write one observable behavior per requirement.
+Each requirement MUST be testable or inspectable.
 
 ```markdown
 - FR-001: WHEN a signed-in user submits a valid export request, the system MUST create an export job and return a unique tracking identifier.
@@ -102,12 +112,15 @@ Each problem above violates one rule: observable behavior, no implementation det
 ## Requirement Rules
 
 - One observable behavior per requirement: Every requirement MUST describe a behavior a test harness, observer, or user can detect.
-- No compound requirements: Do not join multiple behaviors with "and". Split into separate requirements.
+- No compound requirements: Do not join multiple behaviors with "and".
+  - Split into separate requirements.
 - No implementation detail: Do not name libraries, tools, or algorithms unless the implementation is a mandated constraint (e.g., "MUST use TLS 1.2").
-- Name limits and units: When a requirement mentions a number, include units (seconds, percent, bytes, days, etc.). Avoid "many", "few", "large", "small".
+- Name limits and units: When a requirement mentions a number, include units (seconds, percent, bytes, days, etc.).
+  - Avoid "many", "few", "large", "small".
 - Functional requirement traceability: Every FR MUST link to at least one scenario or state explicitly why it cannot be scenario-tested.
 - Non-functional requirement metrics: Every NFR SHOULD include a metric, measurement point (where/how to measure), and verification method (load test, audit, inspection, etc.).
-- Unknowns become open questions: If a fact is missing, write an open question. Do not hide unresolved guesses inside requirement text.
+- Unknowns become open questions: If a fact is missing, write an open question.
+  - Do not hide unresolved guesses inside requirement text.
 - No silent assumptions: Every assumption MUST be captured in the Validated Assumptions section or marked as an open question.
 
 ## Requirement Patterns by Category
@@ -177,11 +190,13 @@ When modifying an existing spec, organize changes into sections:
   - Migration: [what replaces it, if anything].
 ```
 
-Use delta sections when review clarity matters. After approval, fold deltas into the canonical spec so the spec remains a clean, current source of truth.
+Use delta sections when review clarity matters.
+After approval, fold deltas into the canonical spec so the spec remains a clean, current source of truth.
 
 ## Priority and Mandatory Distinction
 
-Not every requirement is equally critical. Mark priorities when they matter:
+Not every requirement is equally critical.
+Mark priorities when they matter:
 
 ```markdown
 ## Functional Requirements
@@ -197,7 +212,9 @@ Not every requirement is equally critical. Mark priorities when they matter:
   - FR-004: The system MAY [optional enhancement].
 ```
 
-Rationale: Launch blockers (security, core workflow) are non-negotiable. High-priority items improve usability. Nice-to-haves can slip if time is constrained.
+Rationale: Launch blockers (security, core workflow) are non-negotiable.
+High-priority items improve usability.
+Nice-to-haves can slip if time is constrained.
 
 ## Validation Checklist for Requirements
 

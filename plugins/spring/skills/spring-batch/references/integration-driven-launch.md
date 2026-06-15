@@ -40,7 +40,8 @@ Keep message payload to one `JobLaunchRequest` shape that can be converted into 
 Message<JobLaunchRequest> message = MessageBuilder.withPayload(new JobLaunchRequest(importJob, new JobParametersBuilder().addString("input", "classpath:/customers.csv").toJobParameters())).setHeader("requestId", "req-42").build();
 ```
 
-On the latest released Batch 6 line, prefer the `JobOperator` constructor shape shown above. If a Boot-managed older line exposes only `JobLauncher`-based launch integration in local code, treat that as a separate compatibility branch and keep the example set internally consistent.
+On the latest released Batch 6 line, prefer the `JobOperator` constructor shape shown above.
+If a Boot-managed older line exposes only `JobLauncher`-based launch integration in local code, treat that as a separate compatibility branch and keep the example set internally consistent.
 
 ## Feedback flow shape
 

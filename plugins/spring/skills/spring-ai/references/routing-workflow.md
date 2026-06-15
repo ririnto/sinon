@@ -1,6 +1,6 @@
 # Routing workflow
 
-Open this reference when the ordinary tool path in [SKILL.md](../SKILL.md) is not enough and the blocker is routing one request across bounded specialist seams.
+Open this reference when the ordinary tool path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is routing one request across bounded specialist seams.
 
 ## Use this file for one blocker family
 
@@ -45,6 +45,6 @@ class RoutingAgent {
 
 - Do not let a router choose among unbounded downstream tool sets.
 - Keep the router output constrained to a known downstream seam list instead of free-form action generation.
-- Open [chain-workflow.md](chain-workflow.md) when the blocker is an explicit multi-step chain.
-- Open [planning-and-stepwise-execution.md](planning-and-stepwise-execution.md) when the blocker is bounded planning before execution.
-- Open [loop-bounds-and-iteration-control.md](loop-bounds-and-iteration-control.md) when the blocker is convergence control for iterative workflows.
+- Open [`chain-workflow.md`](chain-workflow.md) when the blocker is an explicit multi-step chain.
+- Open [`planning-and-stepwise-execution.md`](planning-and-stepwise-execution.md) when the blocker is bounded planning before execution.
+- Open [`loop-bounds-and-iteration-control.md`](loop-bounds-and-iteration-control.md) when the blocker is convergence control for iterative workflows.

@@ -2,13 +2,18 @@
 
 ## Purpose
 
-FRONTEND.md captures conventions for the project's *exposed surface* — every interface through which a user or another system observes or drives this project. Web UI, mobile UI, CLI, public HTTP/gRPC API, webhook out, public SDK, and integration endpoints all count. The goal is that an agent can reason about how the project is exercised from outside the repository: which surfaces exist, which design-system primitives or contract primitives are canonical, where surface boundaries fall, and the accessibility / ergonomics floor every change preserves.
+`FRONTEND.md` captures conventions for the project's *exposed surface* — every interface through which a user or another system observes or drives this project.
+Web UI, mobile UI, CLI, public HTTP/gRPC API, webhook out, public SDK, and integration endpoints all count.
+The goal is that an agent can reason about how the project is exercised from outside the repository: which surfaces exist, which design-system primitives or contract primitives are canonical, where surface boundaries fall, and the accessibility / ergonomics floor every change preserves.
 
-This is not only about a frontend-side application. A project with no web UI still has surfaces (CLI, API, SDK) and MUST document them here. A project with multiple surfaces (web + mobile + API) MUST document each one, plus the shared conventions across surfaces.
+This is not only about a frontend-side application.
+A project with no web UI still has surfaces (CLI, API, SDK) and MUST document them here.
+A project with multiple surfaces (web + mobile + API) MUST document each one, plus the shared conventions across surfaces.
 
 ## Exposed Surfaces
 
-Delete rows below that do not apply to this project. Replace placeholders with real entry points, package names, and source paths.
+Delete rows below that do not apply to this project.
+Replace placeholders with real entry points, package names, and source paths.
 
 | Surface | Entry point | Canonical client persona | Contract source of truth |
 | --- | --- | --- | --- |
@@ -34,9 +39,12 @@ Delete rows below that do not apply to this project. Replace placeholders with r
 
 ## Surface Boundaries
 
-- Separate *surface-shape* layers from *business-logic* layers: presentational components vs. containers (UI); HTTP handlers vs. service code (API); CLI command parsers vs. domain operations (CLI). File-path conventions or lints enforce the split.
-- Keep public surfaces (browser, mobile, external API) distinct from internal-only surfaces (admin tools, internal RPC). Each MUST sit in its own directory and follow the access-control rules in `docs/SECURITY.md`.
-- Public surfaces follow the project's compatibility policy: dated URL prefix (e.g. `/v1`) for the HTTP API, semver for SDKs and CLI, six-month sunset window with sunset header / SDK warning.
+- Separate *surface-shape* layers from *business-logic* layers: presentational components versus containers (UI); HTTP handlers versus service code (API); CLI command parsers versus domain operations (CLI).
+  - File-path conventions or lints enforce the split.
+- Keep public surfaces (browser, mobile, external API) distinct from internal-only surfaces (admin tools, internal RPC).
+  - Each MUST sit in its own directory and follow the access-control rules in `docs/SECURITY.md`.
+- Public surfaces follow the project's compatibility policy: dated URL prefix (e.g.
+  - `/v1`) for the HTTP API, semver for SDKs and CLI, six-month sunset window with sunset header / SDK warning.
 
 ## Accessibility and Ergonomics Floor
 

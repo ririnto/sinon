@@ -33,7 +33,8 @@ Use `ExpressionJwtGrantedAuthoritiesConverter` when authorities live in nested o
 
 ### Property-first approach (no custom bean)
 
-Spring Boot 4.1 auto-configures `ExpressionJwtGrantedAuthoritiesConverter` when `authorities-claim-expressions` is set. This property is mutually exclusive with `authorities-claim-name` and `authorities-claim-delimiter`.
+Spring Boot 4.1 auto-configures `ExpressionJwtGrantedAuthoritiesConverter` when `authorities-claim-expressions` is set.
+This property is mutually exclusive with `authorities-claim-name` and `authorities-claim-delimiter`.
 
 Extract Keycloak client roles from `resource_access.<client-id>.roles`:
 
@@ -77,7 +78,8 @@ spring:
           authority-prefix: ROLE_
 ```
 
-Supported in both servlet and reactive applications. Set `authority-prefix` to override the `SCOPE_` default.
+Supported in both servlet and reactive applications.
+Set `authority-prefix` to override the `SCOPE_` default.
 
 ### Programmatic approach
 
@@ -123,7 +125,8 @@ Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter
 }
 ```
 
-The SpEL expression result must be a `Collection`. Do not use `authorities-claim-expressions` together with `authorities-claim-name` or `authorities-claim-delimiter` -- they are mutually exclusive.
+The SpEL expression result must be a `Collection`.
+Do not use `authorities-claim-expressions` together with `authorities-claim-name` or `authorities-claim-delimiter` -- they are mutually exclusive.
 
 ## Decoder validation
 
@@ -142,7 +145,9 @@ JwtDecoder jwtDecoder() {
 
 ## Non-webapp resource server (Spring Boot 4.1+)
 
-Spring Boot 4.1 auto-configures `JwtDecoder`, `ReactiveJwtDecoder`, `OpaqueTokenIntrospector`, and the JWT authentication converter in non-web applications. No `SecurityFilterChain` bean is created. Authenticate tokens programmatically with the auto-configured decoder.
+Spring Boot 4.1 auto-configures `JwtDecoder`, `ReactiveJwtDecoder`, `OpaqueTokenIntrospector`, and the JWT authentication converter in non-web applications.
+No `SecurityFilterChain` bean is created.
+Authenticate tokens programmatically with the auto-configured decoder.
 
 ```java
 @Autowired
@@ -152,7 +157,8 @@ void validateToken(String token) {
 }
 ```
 
-Authority extraction properties (`authorities-claim-name`, `authorities-claim-expressions`, `authority-prefix`) work in non-webapp contexts. Spring Boot 4.0.x requires a servlet or reactive web server for resource server auto-configuration.
+Authority extraction properties (`authorities-claim-name`, `authorities-claim-expressions`, `authority-prefix`) work in non-webapp contexts.
+Spring Boot 4.0.x requires a servlet or reactive web server for resource server auto-configuration.
 
 ## Decision points
 
@@ -170,20 +176,26 @@ Authority extraction properties (`authorities-claim-name`, `authorities-claim-ex
 
 ## Version-grounded claims (Spring Security 7)
 
-Spring Security 7 applies timestamp validation by default. Issuer validation becomes part of the default validator set when the decoder is built from `issuer-uri` or `JwtDecoders.fromIssuerLocation(...)`.
+Spring Security 7 applies timestamp validation by default.
+Issuer validation becomes part of the default validator set when the decoder is built from `issuer-uri` or `JwtDecoders.fromIssuerLocation(...)`.
 
 - `iss` (issuer) validation is enforced when the decoder comes from issuer metadata.
-- `aud` (audience) validation is off by default; add a `JwtClaimValidator` when the API audience is fixed.
-- `exp` (expiration) validation is on by default; do not disable it for production use.
+- `aud` (audience) validation is off by default.
+  - Add a `JwtClaimValidator` when the API audience is fixed.
+- `exp` (expiration) validation is on by default.
+  - Do not disable it for production use.
 - `nbf` (not before) validation is on by default when present in the token.
 
-When customizing for a specific provider such as Auth0, Okta, or Keycloak, verify the provider's claim names match Spring Security's defaults. Providers often use `scope` (space-separated string) rather than `scp` (array).
+When customizing for a specific provider such as Auth0, Okta, or Keycloak, verify the provider's claim names match Spring Security's defaults.
+Providers often use `scope` (space-separated string) rather than `scp` (array).
 
 ## Gotchas
 
 - Do not mix `ROLE_` conventions and `SCOPE_` conventions accidentally.
-- Do not use `authorities-claim-expressions` together with `authorities-claim-name` or `authorities-claim-delimiter`; they are mutually exclusive.
+- Do not use `authorities-claim-expressions` together with `authorities-claim-name` or `authorities-claim-delimiter`.
+  - They are mutually exclusive.
 - Do not assume a third-party issuer uses `scope` or `scp`.
 - Do not leave audience validation implicit when downstream authorization depends on token audience.
 - Do not disable `exp` or `iss` validation in production unless the deployment model genuinely requires it.
-- Do not assume the principal name is `sub` for third-party issuers; many use `preferred_username` or `email`.
+- Do not assume the principal name is `sub` for third-party issuers.
+  - Many use `preferred_username` or `email`.

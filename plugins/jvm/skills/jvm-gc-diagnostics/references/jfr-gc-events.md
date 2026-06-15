@@ -18,7 +18,8 @@ Start on a running JVM:
 jcmd <pid> JFR.start name=gc-baseline settings=default disk=true maxage=2h
 ```
 
-This uses the `default` preset, which Oracle documents as recommended for continuous recordings with a good balance between data and performance, typically less than 1% overhead. Treat the percentage as a `default.jfc` baseline, not as a guarantee for custom event settings.
+This uses the `default` preset, which Oracle documents as recommended for continuous recordings with a good balance between data and performance, typically less than 1% overhead.
+Treat the percentage as a `default.jfc` baseline, not as a guarantee for custom event settings.
 
 ### GC-Diagnostic Recording (Higher Overhead)
 
@@ -91,7 +92,8 @@ These are the primary events to query when analyzing GC behavior from JFR data.
 jfr summary /path/to/recording.jfr
 ```
 
-This shows event counts and other high-level recording contents. Start here before using `jfr print` for event extraction.
+This shows event counts and other high-level recording contents.
+Start here before using `jfr print` for event extraction.
 
 ### Query Specific GC Events
 
@@ -121,7 +123,8 @@ jfr print --events "jdk.GCConfiguration" /path/to/recording.jfr
 
 ### Filter by Time Window
 
-Portable note: do not use relative `--beginTime 60s --endTime 120s` examples here. For a known incident window, first extract the target event stream and then apply a separately verified time-slicing workflow for the target JDK/tooling stack.
+Portable note: do not use relative `--beginTime 60s --endTime 120s` examples here.
+For a known incident window, first extract the target event stream and then apply a separately verified time-slicing workflow for the target JDK/tooling stack.
 
 ```sh
 jfr print --events "jdk.GarbageCollection" /path/to/recording.jfr
@@ -163,7 +166,8 @@ jdk.GCConfiguration {
 }
 ```
 
-Read: This confirms G1 is active with 6 GC threads. If `youngCollector` says "ParallelScavenge", the runtime is using Parallel GC, not G1.
+Read: This confirms G1 is active with 6 GC threads.
+If `youngCollector` says "ParallelScavenge", the runtime is using Parallel GC, not G1.
 
 ### `jdk.GarbageCollection` Output
 
@@ -177,7 +181,8 @@ jdk.GarbageCollection {
 }
 ```
 
-Read: A young GC cycle (G1 evacuation) took 23ms total with the longest single phase at 12ms. The `cause` field tells you why this GC happened.
+Read: A young GC cycle (G1 evacuation) took 23ms total with the longest single phase at 12ms.
+The `cause` field tells you why this GC happened.
 
 ### `jdk.GCHeapSummary` Output (after GC)
 
@@ -194,7 +199,8 @@ jdk.GCHeapSummary {
 }
 ```
 
-Read: After GC, 48MB of 512MB max heap is used (9% utilization). If `heapUsed` approaches `heapMax` frequently, the heap is undersized.
+Read: After GC, 48MB of 512MB max heap is used (9% utilization).
+If `heapUsed` approaches `heapMax` frequently, the heap is undersized.
 
 ### `jdk.ObjectAllocationInNewTLAB` Output (top allocations)
 
@@ -213,7 +219,8 @@ jdk.ObjectAllocationInNewTLAB {
 }
 ```
 
-Read: The `http-nio-8080-exec-3` thread is allocating byte arrays in `processRequest`. Repeated events with the same stack indicate an allocation hot spot driving GC pressure.
+Read: The `http-nio-8080-exec-3` thread is allocating byte arrays in `processRequest`.
+Repeated events with the same stack indicate an allocation hot spot driving GC pressure.
 
 ## Decision Guide: GC Evidence Type
 

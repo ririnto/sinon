@@ -78,4 +78,4 @@ Use channel customization when the deployment needs concerns such as:
 | Repeated metadata on many calls | channel or client interceptor |
 | Deployment-specific connection tuning | custom channel builder configuration |
 
-Open [security-tls-mtls.md](security-tls-mtls.md) when channel customization turns into certificate, token, or OAuth2 design work.
+Open [`security-tls-mtls.md`](security-tls-mtls.md) when channel customization turns into certificate, token, or OAuth2 design work.

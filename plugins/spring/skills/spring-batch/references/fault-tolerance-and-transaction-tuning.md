@@ -1,6 +1,6 @@
 # Spring Batch fault tolerance and transaction tuning
 
-Open this reference when the task involves transaction attributes, skip or retry rules, async item pipelines, or framework-level repeat and retry decisions beyond the common path in [SKILL.md](../SKILL.md).
+Open this reference when the task involves transaction attributes, skip or retry rules, async item pipelines, or framework-level repeat and retry decisions beyond the common path in [`SKILL.md`](../SKILL.md).
 
 ## Transaction and commit blocker
 
@@ -14,7 +14,8 @@ Commit size, isolation, timeout, and retry behavior must agree with the writer a
 
 ## Skip and retry blocker
 
-Use skip for items that may be discarded safely. Use retry for transient failures that should succeed on another attempt.
+Use skip for items that may be discarded safely.
+Use retry for transient failures that should succeed on another attempt.
 
 ```java
 new StepBuilder("importStep", repository).<CustomerInput, Customer>chunk(100, tx).faultTolerant().skipLimit(10).skip(FlatFileParseException.class).retryLimit(3).retry(DeadlockLoserDataAccessException.class).build();
@@ -31,7 +32,8 @@ AsyncItemProcessor<CustomerInput, Customer> processor = new AsyncItemProcessor<>
 AsyncItemWriter<Customer> writer = new AsyncItemWriter<>();
 ```
 
-Async item pipelines complicate error handling and restart reasoning. Prove that simpler synchronous chunks are not enough first.
+Async item pipelines complicate error handling and restart reasoning.
+Prove that simpler synchronous chunks are not enough first.
 
 ## Repeat and retry internals
 

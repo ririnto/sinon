@@ -25,7 +25,9 @@ server.onDispose().block();
 
 > [!CAUTION]
 >
-> `SelfSignedCertificate` is a Netty test utility (`io.netty.handler.ssl.util.SelfSignedCertificate`) intended for development and test code only. Never use it in production. For local development, replace the `File(...)` arguments above with `certificate.certificate()` / `certificate.privateKey()` from a `new SelfSignedCertificate()` instance.
+> `SelfSignedCertificate` is a Netty test utility (`io.netty.handler.ssl.util.SelfSignedCertificate`) intended for development and test code only.
+> Never use it in production.
+> For local development, replace the `File(...)` arguments above with `certificate.certificate()` / `certificate.privateKey()` from a `new SelfSignedCertificate()` instance.
 
 ## HTTPS client
 

@@ -87,9 +87,11 @@ These topics fall outside Reactor's scope:
 - Kotlin coroutines and Flow.
 - R2DBC or Spring Data reactive repository configuration.
 
-Reactor-specific reactive programming and operator composition belong in Reactor guidance. General concurrency patterns outside the Reactor ecosystem belong elsewhere.
+Reactor-specific reactive programming and operator composition belong in Reactor guidance.
+General concurrency patterns outside the Reactor ecosystem belong elsewhere.
 
-WebFlux event-loop safety belongs here only when the task is Reactor operator placement, blocking offload, or scheduler selection inside a pipeline. WebFlux server configuration, handler setup, and transport wiring belong outside this plugin.
+WebFlux event-loop safety belongs here only when the task is Reactor operator placement, blocking offload, or scheduler selection inside a pipeline.
+WebFlux server configuration, handler setup, and transport wiring belong outside this plugin.
 
 ## Runtime Model
 
@@ -97,7 +99,8 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/`. Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+The manifest declares `./skills/`.
+Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
 
 ## Plugin Layout
 
@@ -125,8 +128,10 @@ plugins/reactor/
 - Prefer working reactive pipeline examples over isolated API documentation.
 - Keep examples minimal but runnable in spirit.
 - Select the smallest Reactor skill that matches the primary task.
-- Keep `SKILL.md` self-contained and usable on its own; use `references/` only for supplemental decision aids and longer notes.
-- Reactor reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries; prose explains the example, the example proves the rule.
+- Keep `SKILL.md` self-contained and usable on its own.
+  - Use `references/` only for supplemental decision aids and longer notes.
+- Reactor reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries.
+  - Prose explains the example, the example proves the rule.
 
 ## Installation
 
@@ -144,4 +149,5 @@ claude --plugin-dir /path/to/sinon/plugins/reactor
 
 ## Scope Notes
 
-This plugin does not bundle ready-to-run reactive services. Skill examples are operator, scheduler, sink, and test patterns that must be adapted to the target pipeline's data source, lifecycle, and execution context.
+This plugin does not bundle ready-to-run reactive services.
+Skill examples are operator, scheduler, sink, and test patterns that must be adapted to the target pipeline's data source, lifecycle, and execution context.

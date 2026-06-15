@@ -1,12 +1,13 @@
 # Spring Data entity callbacks and conversions
 
-Open this reference when the blocker is entity callback registration, custom conversions, or per-property value conversion beyond the ordinary repository path in [SKILL.md](../SKILL.md).
+Open this reference when the blocker is entity callback registration, custom conversions, or per-property value conversion beyond the ordinary repository path in [`SKILL.md`](../SKILL.md).
 
 ## Entity callback blocker
 
 Use callbacks when persistence lifecycle hooks must stay in Spring Data infrastructure rather than inside the aggregate itself.
 
-Concrete callback interfaces and method signatures are store-defined. Use the examples below as imperative callback shapes, and move reactive callback mechanics to the matching store-specific reactive path.
+Concrete callback interfaces and method signatures are store-defined.
+Use the examples below as imperative callback shapes, and move reactive callback mechanics to the matching store-specific reactive path.
 
 ```java
 @Component
@@ -33,7 +34,8 @@ class CustomerAfterConvertCallback implements AfterConvertCallback<Customer> {
 }
 ```
 
-Lower numeric order values run first. Lambda-style callback beans are unordered and run last, so prefer named callback classes when ordering matters.
+Lower numeric order values run first.
+Lambda-style callback beans are unordered and run last, so prefer named callback classes when ordering matters.
 
 ## Custom conversion blocker
 
@@ -51,7 +53,8 @@ class EmailWriteConverter implements Converter<EmailAddress, String> {
 
 Use `@ReadingConverter` for the reverse direction when the value must round-trip through the store cleanly.
 
-`@ReadingConverter` and `@WritingConverter` only disambiguate direction. The converter instance still needs registration through the store's `CustomConversions` path before Spring Data can apply it.
+`@ReadingConverter` and `@WritingConverter` only disambiguate direction.
+The converter instance still needs registration through the store's `CustomConversions` path before Spring Data can apply it.
 
 If only one property needs conversion semantics, prefer a property-scoped converter over a type-wide converter so the same Java type does not change representation everywhere else.
 
@@ -82,7 +85,8 @@ class EncryptedStringValueConverter implements PropertyValueConverter<String, St
 }
 ```
 
-Check store support before choosing this path. Property-value conversion is more specific than a type-wide converter and is not implemented uniformly by every Spring Data module.
+Check store support before choosing this path.
+Property-value conversion is more specific than a type-wide converter and is not implemented uniformly by every Spring Data module.
 
 Register the converter through the store's `CustomConversions` / `PropertyValueConverterFactory` path before expecting `@ValueConverter` to take effect.
 

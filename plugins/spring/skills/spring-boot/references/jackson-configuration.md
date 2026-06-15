@@ -34,7 +34,8 @@ spring:
 
 ## HandlerInstantiator
 
-Auto-configured mappers use a `HandlerInstantiator` that resolves handler instances (serializers, deserializers, etc.) from application context beans. Register custom handlers as beans and they are discovered automatically.
+Auto-configured mappers use a `HandlerInstantiator` that resolves handler instances (serializers, deserializers, etc.) from application context beans.
+Register custom handlers as beans and they are discovered automatically.
 
 ```java
 @Configuration(proxyBeanMethods = false)
@@ -48,7 +49,8 @@ class MyJacksonConfiguration {
 
 ## Builder customizer beans
 
-For advanced customization, register ordered customizer beans. Boot's own customizer has order 0.
+For advanced customization, register ordered customizer beans.
+Boot's own customizer has order 0.
 
 ```java
 @Configuration(proxyBeanMethods = false)

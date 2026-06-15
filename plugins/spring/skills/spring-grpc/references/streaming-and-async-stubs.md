@@ -4,7 +4,8 @@ Open this reference when the ordinary blocking unary path in `SKILL.md` is not e
 
 ## Future-style client
 
-Use future stubs when the caller must overlap multiple unary remote calls without blocking the current thread. Generated gRPC Java future stubs return `ListenableFuture`.
+Use future stubs when the caller must overlap multiple unary remote calls without blocking the current thread.
+Generated gRPC Java future stubs return `ListenableFuture`.
 
 ```java
 @Service

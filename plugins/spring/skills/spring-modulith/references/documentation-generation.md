@@ -4,7 +4,8 @@ Open this reference when module arrangement diagrams and canvases must be genera
 
 ## Documentation boundary
 
-Use the `Documenter` API to generate architectural diagrams and module canvases from the application module model. This runs in tests and writes output to the build folder.
+Use the `Documenter` API to generate architectural diagrams and module canvases from the application module model.
+This runs in tests and writes output to the build folder.
 
 ## Required test dependency
 
@@ -36,7 +37,8 @@ class DocumentationTests {
 
 ## Diagram style
 
-Default is C4. Switch to UML component diagrams:
+Default is C4.
+Switch to UML component diagrams:
 
 ```java
 new Documenter(modules, DiagramOptions.defaults()
@@ -46,7 +48,8 @@ new Documenter(modules, DiagramOptions.defaults()
 
 ## Canvas internals
 
-By default, the canvas hides non-exported types. Reveal internal types:
+By default, the canvas hides non-exported types.
+Reveal internal types:
 
 ```java
 new Documenter(modules, CanvasOptions.defaults()
@@ -56,7 +59,8 @@ new Documenter(modules, CanvasOptions.defaults()
 
 ## Output location
 
-Default output goes to `spring-modulith-docs` in the build folder (e.g., `target/spring-modulith-docs` for Maven). The aggregating document is `all-docs.adoc`.
+Default output goes to `spring-modulith-docs` in the build folder (e.g., `target/spring-modulith-docs` for Maven).
+The aggregating document is `all-docs.adoc`.
 
 ## Generated artifacts
 

@@ -14,11 +14,11 @@ Provide reusable spec-driven development guidance that remains portable across C
 
 ## Included Skill
 
-- `spec-driven-development`: research unknowns, author SPEC.md, pass review gates, implement against approved spec, verify completeness.
+- `spec-driven-development`: research unknowns, author `SPEC.md`, pass review gates, implement against approved spec, verify completeness.
 
 ## How the Skill Branches
 
-Use `spec-driven-development` when the user explicitly asks to follow a spec-first workflow, write a SPEC.md before implementing, create a specification, or use a spec-first approach.
+Use `spec-driven-development` when the user explicitly asks to follow a spec-first workflow, write a `SPEC.md` before implementing, create a specification, or use a spec-first approach.
 
 - `references/workflow.md` — full stage model, approval gates, review loops, and lifecycle semantics.
 - `references/spec-authoring-guide.md` — writing or revising `SPEC.md` content.
@@ -32,7 +32,8 @@ This plugin uses one shared plugin root with a Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/`. Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+The manifest declares `./skills/`.
+Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
 
 ## Plugin Layout
 
@@ -65,7 +66,7 @@ plugins/spec-driven-development/
 - The plugin ships one reusable skill under `skills/`.
 - `agents/` contains the Claude-facing agent trigger surface.
 - `skills/spec-driven-development/scripts/sdd.py` is the single CLI entrypoint for all SDD subcommands (`validate`, `list-frontmatter`, `get-frontmatter`, `generate-diagram`, `list-tags`).
-- `assets/templates/` contains scaffolds for SPEC.md, RESEARCH.md, CONTRACT.md, CHANGELOG.md, and openapi.yaml.
+- `assets/templates/` contains scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `CHANGELOG.md`, and openapi.yaml.
 - `assets/schemas/` contains JSON Schema definitions for frontmatter validation.
 - The plugin does not ship plugin commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
@@ -100,7 +101,8 @@ claude --plugin-dir /path/to/sinon/plugins/spec-driven-development
 
 ## Scope Notes
 
-This plugin focuses on spec-first development workflow guidance. It does not cover:
+This plugin focuses on spec-first development workflow guidance.
+It does not cover:
 
 - Git branch management
 - CI/CD pipeline design

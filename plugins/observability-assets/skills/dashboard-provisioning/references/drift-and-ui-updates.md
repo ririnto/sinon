@@ -9,7 +9,8 @@ Use this reference when the delivery path is mostly correct, but source-of-truth
 
 ## File-Wins Rule
 
-Provisioned dashboard files remain the durable source of truth. UI edits do not replace the provisioning source unless the reviewed file changes too.
+Provisioned dashboard files remain the durable source of truth.
+UI edits do not replace the provisioning source unless the reviewed file changes too.
 
 ## `allowUiUpdates`
 
@@ -112,7 +113,8 @@ Practical consequence:
 
 - Do not attempt to manage version numbers in source files.
 - Do not use version as a conflict-detection mechanism for provisioning.
-- The version field in exported files can be left as-is; it has no effect on file-provisioning update behavior.
+- The version field in exported files can be left as-is.
+  - It has no effect on file-provisioning update behavior.
 - Version only matters for manual UI save conflicts between two browser sessions editing the same dashboard simultaneously -- a scenario that does not apply to file-based provisioning where file content always wins.
 
 Use when: the blocker is understanding why version numbers in dashboard JSON files seem to have no effect during provisioning.
@@ -129,11 +131,13 @@ Recommended cleanup before committing:
 
 1. Remove `id` or set it to `null`.
 2. Normalize noisy UI-only changes you do not want in Git.
-3. Keep the file as the raw dashboard object; do not wrap it in an API import payload.
+3. Keep the file as the raw dashboard object.
+   - Do not wrap it in an API import payload.
 
 ### Copy JSON to clipboard (Dashboard menu -> Copy JSON to clipboard)
 
-Identical output format to Save JSON to file. Apply the same raw-file cleanup steps.
+Identical output format to Save JSON to file.
+Apply the same raw-file cleanup steps.
 
 ### API export (`GET /api/dashboards/uid/<uid>`)
 
@@ -147,18 +151,22 @@ Response shape:
 
 ```
 
-The response is an API object, not a raw file-provisioning source file. For a dashboard file under `options.path`:
+The response is an API object, not a raw file-provisioning source file.
+For a dashboard file under `options.path`:
 
 1. Extract `response.dashboard`
 2. Remove API-only envelope fields such as `meta`
 3. Remove `id` or set it to `null`
 4. Save the extracted dashboard object itself as the file content
 
-If you are calling an API that explicitly requires `folderUid`, `overwrite`, or `message`, keep those fields in the API request body only; do not treat that body as the raw file you commit for legacy provisioning.
+If you are calling an API that explicitly requires `folderUid`, `overwrite`, or `message`, keep those fields in the API request body only.
+Do not treat that body as the raw file you commit for legacy provisioning.
 
 ### Common export gotcha: ID leakage
 
-Every export method includes the numeric `id` assigned by the exporting Grafana instance. This ID is instance-specific and will conflict (or silently map wrong) when provisioning to a different instance. Always strip or nullify `id`.
+Every export method includes the numeric `id` assigned by the exporting Grafana instance.
+This ID is instance-specific and will conflict (or silently map wrong) when provisioning to a different instance.
+Always strip or nullify `id`.
 
 Before (API response fragment -- not a raw provider-path file):
 

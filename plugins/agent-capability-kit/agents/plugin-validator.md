@@ -2,7 +2,8 @@
 name: plugin-validator
 description: |-
   Validate a Claude Code plugin root against Sinon package rules, including manifest structure, runtime components, and bidirectional consistency between declared paths and filesystem artifacts.
-  Use this agent when the user asks to validate a plugin, check plugin structure, verify `.claude-plugin/plugin.json`, or check consistency between `.lsp.json`/`.mcp.json`/`hooks.json`/`settings.json` files and their manifest declarations. Also trigger proactively after plugin scaffolding or when preparing a plugin for publication.
+  Use this agent when the user asks to validate a plugin, check plugin structure, verify `.claude-plugin/plugin.json`, or check consistency between `.lsp.json`/`.mcp.json`/`hooks.json`/`settings.json` files and their manifest declarations.
+  Also trigger proactively after plugin scaffolding or when preparing a plugin for publication.
 
   Examples:
 
@@ -16,7 +17,7 @@ description: |-
   <example>
     <context>User is preparing to publish a plugin and needs a full structural audit.</context>
     <user>Audit my plugin against Sinon rules before we merge.</user>
-    <assistant>Performs comprehensive check: manifest validity, all directory conventions (commands/, agents/, skills/), file-typed manifest pairs (hooks/hooks.json, .mcp.json, .lsp.json, settings.json) with bidirectional consistency, agent frontmatter consistency, skill SKILL.md presence, forbidden fields (version, agents key, interface), output categorized as Critical/Major/Minor with PASS/FAIL summary.</assistant>
+    <assistant>Performs comprehensive check: manifest validity, all directory conventions (commands/, agents/, skills/), file-typed manifest pairs (hooks/hooks.json, .mcp.json, .lsp.json, settings.json) with bidirectional consistency, agent frontmatter consistency, skill `SKILL.md` presence, forbidden fields (version, agents key, interface), output categorized as Critical/Major/Minor with PASS/FAIL summary.</assistant>
     <commentary>Full audit provides confidence the plugin is ready for marketplace publication.</commentary>
   </example>
 
@@ -29,8 +30,13 @@ description: |-
 
   <example>
     <context>User created a plugin with LSP configuration and wants to verify bidirectional consistency.</context>
-    <user>Validate my plugin. It has an .lsp.json file.</user>
-    <assistant>Reads plugin-root .lsp.json file and checks .claude-plugin/plugin.json manifest. If .lsp.json exists but lspServers key is missing, flags as Major violation. If lspServers is declared in manifest but .lsp.json does not exist, flags as Critical violation. Ensures the exact manifest path "./.lsp.json" matches the actual file. Applies the same bidirectional symmetry to hooks/hooks.json, .mcp.json, and settings.json against their hooks, mcpServers, and settings manifest keys.</assistant>
+  <user>Validate my plugin.
+    It has an .lsp.json file.</user>
+  <assistant>Reads plugin-root .lsp.json file and checks .claude-plugin/plugin.json manifest.
+    If .lsp.json exists but lspServers key is missing, flags as Major violation.
+    If lspServers is declared in manifest but .lsp.json does not exist, flags as Critical violation.
+    Ensures the exact manifest path "./.lsp.json" matches the actual file.
+    Applies the same bidirectional symmetry to hooks/hooks.json, .mcp.json, and settings.json against their hooks, mcpServers, and settings manifest keys.</assistant>
     <commentary>Bidirectional validation prevents manifest-filesystem mismatch that would cause runtime failures across all four file-typed manifest pairs.</commentary>
   </example>
 model: haiku
@@ -45,7 +51,8 @@ Validate Claude Code plugin roots against the Sinon repository rules for manifes
 
 ## Operating rules
 
-You MUST verify plugin structure against Sinon CLAUDE.md rules. All checks are normative per BCP 14 language: `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`.
+You MUST verify plugin structure against Sinon `CLAUDE.md` rules.
+All checks are normative per BCP 14 language: `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`.
 
 ### Manifest validation
 
@@ -77,7 +84,7 @@ Validate these optional directories only if present:
 - `commands/`: each `.md` file is a command definition.
 - `agents/`: each `.md` file is an agent (see agent frontmatter rules below).
 - `skills/`: each subdirectory is a skill with `SKILL.md` at root.
-- `hooks/`: hooks configuration MUST use wrapper format `{ "hooks": { ... } }`.
+- `hooks/`: hooks configuration MUST use a wrapper object with a top-level `hooks` key.
 - `.mcp.json`: all URLs MUST use HTTPS or WSS protocols (HTTP and WS forbidden).
 - `.lsp.json`: syntax validated if present.
 - `settings.json`: JSON format validated.

@@ -1,6 +1,6 @@
 # Listener container variants and concurrency
 
-Open this reference when the default listener-container setup in [SKILL.md](../SKILL.md) is not enough and the blocker is container choice, dedicated factories, prefetch, concurrency, or ordering tradeoffs.
+Open this reference when the default listener-container setup in [`SKILL.md`](../SKILL.md) is not enough and the blocker is container choice, dedicated factories, prefetch, concurrency, or ordering tradeoffs.
 
 ## Container choice blocker
 
@@ -32,7 +32,8 @@ SimpleRabbitListenerContainerFactory ordersFactory(SimpleRabbitListenerContainer
 }
 ```
 
-Use dedicated factories sparingly. Copying near-identical factories for every listener usually hides configuration drift.
+Use dedicated factories sparingly.
+Copying near-identical factories for every listener usually hides configuration drift.
 
 ## Concurrency and ordering blocker
 
@@ -63,19 +64,23 @@ Solution: tune concurrency and prefetch together, then verify ordering and back-
 
 Problem: `SimpleMessageListenerContainer` scales consumers up under load but retains idle consumers for too long, wasting broker resources.
 
-Solution: set `immediateScaleDown(true)` on the container or factory. Each consumer checks after every message whether it is in excess and stops itself when processing completes, rather than waiting for idle-trigger or stop-interval timeouts.
+Solution: set `immediateScaleDown(true)` on the container or factory.
+Each consumer checks after every message whether it is in excess and stops itself when processing completes, rather than waiting for idle-trigger or stop-interval timeouts.
 
 ```java
 factory.getContainerProperties().setImmediateScaleDown(true);
 ```
 
-This option bypasses `consecutiveIdleTrigger` and `stopConsumerMinInterval` for scale-down decisions. Scale-up behavior is unaffected. Requires `maxConcurrentConsumers` to be configured.
+This option bypasses `consecutiveIdleTrigger` and `stopConsumerMinInterval` for scale-down decisions.
+Scale-up behavior is unaffected.
+Requires `maxConcurrentConsumers` to be configured.
 
 ## Error handler fatal-stop option (4.1)
 
 Problem: fatal exceptions in a listener cause message rejection and requeue loops because the container keeps consuming from a broken state.
 
-Solution: use `ConditionalRejectingErrorHandler` with `stopListenerOnFatal(true)`. Fatal exceptions throw `FatalListenerExecutionException` instead of `AmqpRejectAndDontRequeueException`, stopping the container and requeuing the message for other consumers.
+Solution: use `ConditionalRejectingErrorHandler` with `stopListenerOnFatal(true)`.
+Fatal exceptions throw `FatalListenerExecutionException` instead of `AmqpRejectAndDontRequeueException`, stopping the container and requeuing the message for other consumers.
 
 ```java
 ConditionalRejectingErrorHandler errorHandler = new ConditionalRejectingErrorHandler();

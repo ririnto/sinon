@@ -7,7 +7,8 @@ description: >-
 
 Open this when identical subscriptions must not repeat the same work or when late subscribers must see shared or replayed signals.
 
-Keep this reference at the boundary-recognition level. If the real work is choosing concrete `publish()`, `replay()`, `autoConnect(...)`, or `refCount(...)` patterns for a shared cold source, treat that as concrete connectable-source design rather than conceptual hot/cold classification.
+Keep this reference at the boundary-recognition level.
+If the real work is choosing concrete `publish()`, `replay()`, `autoConnect(...)`, or `refCount(...)` patterns for a shared cold source, treat that as concrete connectable-source design rather than conceptual hot/cold classification.
 
 ## Core distinctions
 
@@ -39,7 +40,8 @@ final class ColdSourceExample {
 }
 ```
 
-Each subscription triggers the `Flux.create` lambda again. Output:
+Each subscription triggers the `Flux.create` lambda again.
+Output:
 
 ```text
 source created for subscriber
@@ -71,7 +73,8 @@ final class HotShareExample {
 }
 ```
 
-The `share()` operator converts the cold source into a hot one. The second subscriber joins the already-active source and may miss earlier signals if they were emitted before the second subscription arrived.
+The `share()` operator converts the cold source into a hot one.
+The second subscriber joins the already-active source and may miss earlier signals if they were emitted before the second subscription arrived.
 
 Output:
 
@@ -96,7 +99,8 @@ final class AutoConnectExample {
 }
 ```
 
-Use `autoConnect(n)` when the source is expensive and should not run until enough consumers are ready. The source starts only after N subscribers arrive.
+Use `autoConnect(n)` when the source is expensive and should not run until enough consumers are ready.
+The source starts only after N subscribers arrive.
 
 ## Design checks
 

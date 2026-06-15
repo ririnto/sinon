@@ -1,10 +1,12 @@
 # Agent Frontmatter Patterns
 
-Use these patterns when you need copyable frontmatter examples for common agent shapes. Adapt the role wording, examples, and tool boundary to the actual job.
+Use these patterns when you need copyable frontmatter examples for common agent shapes.
+Adapt the role wording, optional examples, and tool boundary to the actual job.
 
 ## Read-only analysis agent
 
-See the Minimal example in `SKILL.md` for a complete read-only analysis shape (`schema-reviewer`). The pattern below shows only the frontmatter differences for a read-only role:
+See the Minimal example in `SKILL.md` for a complete read-only analysis shape (`schema-reviewer`).
+The pattern below shows only the frontmatter differences for a read-only role:
 
 ```yaml
 model: inherit
@@ -14,7 +16,7 @@ tools:
   - Grep
 ```
 
-Key traits: narrow inspection scope, no mutation tools, `description` starts with `Use this agent when...` and includes concrete `<example>` blocks showing trigger conditions.
+Key traits: narrow inspection scope, no mutation tools, and a `description` that states the trigger condition clearly.
 
 ## Editing agent
 

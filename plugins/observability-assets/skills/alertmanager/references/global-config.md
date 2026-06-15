@@ -9,7 +9,9 @@ Use this reference when you need the full global configuration schema, field-by-
 
 ## Purpose
 
-The `global:` block defines default values that every receiver inherits. Individual receivers can override most global settings locally. This design keeps receiver configs minimal while allowing per-receiver customization where needed.
+The `global:` block defines default values that every receiver inherits.
+Individual receivers can override most global settings locally.
+This design keeps receiver configs minimal while allowing per-receiver customization where needed.
 
 ## Complete Field Reference
 
@@ -128,9 +130,11 @@ For the complete `http_config` schema, see [`./shared-types.md`](./shared-types.
 
 ## Credential Pairing Rules
 
-Many global fields come in inline/file pairs. These rules apply universally:
+Many global fields come in inline/file pairs.
+These rules apply universally:
 
-1. At most one of each pair may be configured. Configuring both causes config load failure.
+1. At most one of each pair may be configured.
+   - Configuring both causes config load failure.
 2. The `*_file` variant reads the value from a filesystem path at config load time.
 3. If neither variant is set globally, receivers must provide their own value.
 4. If only the global inline value is set, receivers inherit it unless they override locally.
@@ -177,7 +181,8 @@ Beyond pairing rules, some global fields are mutually exclusive:
 
 ## Inheritance Behavior
 
-When a receiver does not specify a field locally, the global default is used. The inheritance works as follows at config-load time:
+When a receiver does not specify a field locally, the global default is used.
+The inheritance works as follows at config-load time:
 
 - For scalar values (`string`, `bool`, `duration`): the global value is copied into the receiver's resolved config.
 - For pointer values (`*bool`, `*tls_config`): nil means "inherit from global"; non-nil means "override".

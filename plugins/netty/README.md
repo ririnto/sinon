@@ -41,7 +41,8 @@ These topics fall outside Netty's scope:
 - JDK tools, JVM diagnostics, and GC analysis.
 - General HTTP/WebSocket protocol knowledge.
 
-Netty-specific reactive programming and backpressure handling stay in this plugin. Project Reactor patterns without Netty or Reactor Netty context belong in the Reactor plugin.
+Netty-specific reactive programming and backpressure handling stay in this plugin.
+Project Reactor patterns without Netty or Reactor Netty context belong in the Reactor plugin.
 
 ## Runtime Model
 
@@ -72,8 +73,10 @@ plugins/netty/
 - Prefer working network application examples over isolated API documentation.
 - Keep examples minimal but runnable in spirit.
 - Choose the smallest Netty skill that matches the task.
-- Keep `SKILL.md` self-contained and usable on its own; use `references/` only for supplemental decision aids and longer notes.
-- Netty reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries; prose explains the example, the example proves the rule.
+- Keep `SKILL.md` self-contained and usable on its own.
+  - Use `references/` only for supplemental decision aids and longer notes.
+- Netty reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries.
+  - Prose explains the example, the example proves the rule.
 
 ## Installation
 
@@ -91,4 +94,5 @@ claude --plugin-dir /path/to/sinon/plugins/netty
 
 ## Scope Notes
 
-This plugin does not bundle ready-to-run server templates. Skill examples are authoring patterns that must be adapted to the target application's transport, protocol, and resource-management constraints.
+This plugin does not bundle ready-to-run server templates.
+Skill examples are authoring patterns that must be adapted to the target application's transport, protocol, and resource-management constraints.

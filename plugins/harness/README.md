@@ -6,14 +6,21 @@ description: >-
 
 # Harness
 
-Harness is a Claude Code plugin for installing, validating, and evolving repository-owned agent development scaffolding. It combines the v6 archive structure with this repository's plugin packaging rules: skills are the declared runtime surface, plugin-root agents are structural harness specialists for changing a target repository's harness contract, and files that should live inside a target repository are packaged only under `skills/harness-install/assets/`.
+Harness is a Claude Code plugin for installing, validating, and evolving repository-owned agent development scaffolding.
+It combines the v6 archive structure with this repository's plugin packaging rules.
+Skills are the declared runtime surface.
+Plugin-root agents are structural harness specialists for changing a target repository's harness contract.
+Files that should live inside a target repository are packaged only under `skills/harness-install/assets/`.
 
 ## Purpose
 
-- Install a repository harness with `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, a structured `docs/` tree, `.claude/` project agents, `.claude/` project skills, templates, validation adapters, CI snippets, and opt-in Git hook templates.
-- Keep implementation, repository docs, product specs, execution plans, generated references, and deterministic checks evolving together so agents work from versioned context rather than hidden convention.
-- Preserve harness-only development readiness: the scaffold gives agents a working operating surface, but target repositories still supply product requirements, architecture decisions, source code, runtime configuration, secrets, and domain references.
-- Provide workflow templates with bounded concurrency, handoff states, workspace policies, prompt contracts, and proof-of-work expectations so agents can participate in ticket-level orchestration without requiring a daemon or issue poller.
+- Install a repository harness with `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, docs, project agents and skills, templates, validators, CI snippets, and hook templates.
+- Keep implementation, repository docs, product specs, execution plans, generated references, and deterministic checks evolving together.
+  - Agents should work from versioned context rather than hidden convention.
+- Preserve harness-only development readiness.
+  - Target repositories still supply requirements, architecture decisions, source code, runtime configuration, secrets, and domain references.
+- Provide workflow templates with bounded concurrency, handoff states, workspace policies, prompt contracts, and proof-of-work expectations.
+  - Agents can participate in ticket-level orchestration without requiring a daemon or issue poller.
 
 ## Lifecycle
 
@@ -37,38 +44,52 @@ claude plugin install ./plugins/harness --scope project
 
 ## Plugin-Owned Structural Agents
 
-These agents are plugin-owned advisory surfaces for the harness lifecycle itself. They are valid when the task is to design, review, or verify the target repository's harness structure; they are not installed as day-to-day target repository agents.
+These agents are plugin-owned advisory surfaces for the harness lifecycle itself.
+They are valid when the task is to design, review, or verify the target repository's harness structure.
+They are not installed as day-to-day target repository agents.
 
 - `harness-architect`: plan target harness structure, ownership boundaries, and validation alignment.
 - `harness-reviewer`: review target harness assets and evolution proposals for contract drift.
 - `harness-validator`: diagnose target harness validation output and readiness gates.
 
-## Included Commands
-
-This plugin ships no commands.
-
 ## Packaged Scripts and Assets
 
-- `scripts/plugin-self-check.sh` validates packaged and tracked plugin files: per-stack asset presence, hook management wiring, CI command parity, split helper packaging under `scripts/plugin-self-check/`, installer module packaging under `skills/harness-install/scripts/install_harness/`, source-size policy, style hardening contracts (no leading-underscore declarations in implementation files, no one-line Python docstrings on public symbols, no static `SKIP_TREE_PARTS` path filtering), and native-tool smoke checks (`bun`, `uv`, `shellcheck`, `shfmt` version probes). It skips a stack gracefully when its toolchain is absent from PATH.
-- `skills/harness-install/scripts/install-harness.py` is the executable installer entry point; `skills/harness-install/scripts/install_harness/` contains the packaged implementation modules. The installer discovers installable target assets via `git ls-files` rather than hardcoded directory-name filtering, ensuring only version-controlled files enter the install plan.
+- `scripts/plugin-self-check.sh` validates packaged files, stack assets, hook wiring, CI parity, helper packaging, source-size policy, style hardening, and native-tool smoke checks.
+  - It skips a stack gracefully when its toolchain is absent from PATH.
+- `skills/harness-install/scripts/install-harness.py` is the executable installer entry point.
+  - `skills/harness-install/scripts/install_harness/` contains the packaged implementation modules.
+  - The installer discovers installable target assets via `git ls-files`.
 - `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs`, CI, validation adapters, and Git hook scaffolds.
-- Long Markdown files under `skills/harness-install/assets/common/docs/references/` are packaged reference material, not source modules. The plugin self-check rejects oversized first-party source files and long Markdown outside that reference location.
+- Long Markdown files under `skills/harness-install/assets/common/docs/references/` are packaged reference material, not source modules.
+  - The plugin self-check rejects oversized first-party source files and long Markdown outside that reference location.
 
 ## Runtime Model
 
-The Claude Code manifest declares only `./skills/`. Plugin-root agents remain in `agents/` as optional structural specialists for changing the target repository's harness contract, but they are not declared in `.claude-plugin/plugin.json` and are not copied into target repositories. Target repository agents, project skills, docs, CI snippets, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become target-owned only after installation. The plugin does not expose top-level hooks; packaged hook scaffolds live under `skills/harness-install/assets/common/docs/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
+The Claude Code manifest declares only `./skills/`.
+Plugin-root agents remain in `agents/` as optional structural specialists for changing the target repository's harness contract.
+They are not declared in `.claude-plugin/plugin.json` and are not copied into target repositories.
+Target repository agents, project skills, docs, CI snippets, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become target-owned only after installation.
+The plugin does not expose top-level hooks.
+Packaged hook scaffolds live under `skills/harness-install/assets/common/docs/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
 
 ## Target Ownership
 
-Target repositories own every installed harness file. Copied docs, scripts, CI files, hooks, agents, skills, templates, and validation adapters MAY be edited, renamed, or removed only through harness evolution that keeps manifest, docs, validators, CI, and hook policy aligned; optional CI renderings may be deleted under documented host policy.
+Target repositories own every installed harness file.
+Copied docs, scripts, CI files, hooks, agents, skills, templates, and validation adapters MAY be edited, renamed, or removed only through harness evolution that keeps manifest, docs, validators, CI, and hook policy aligned.
+Optional CI renderings may be deleted under documented host policy.
 
 ## Install Harness Assets
 
 From a target repository, ask Claude Code to use the `harness-install` skill with an explicit stack mode: `gradle`, `maven`, `uv`, `bun`, or `shell`.
 
-The skill invokes `skills/harness-install/scripts/install-harness.py` with the target repository as `--target`, requires the selected stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command. Supported modes are `gradle`, `maven`, `uv`, `bun`, and `shell`.
+The skill invokes `skills/harness-install/scripts/install-harness.py` with the target repository as `--target`.
+It requires the selected stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command.
+Supported modes are `gradle`, `maven`, `uv`, `bun`, and `shell`.
 
-The installer requires `--ci-host` to select which CI files to create: `--ci-host github` writes `.github/workflows/<tool>.yaml`, `--ci-host gitlab` writes `.gitlab-ci.yml`, `--ci-host both` writes both, and `--ci-host none` writes neither. Both CI snippets run the same selected-mode command as generated `pre-push`; the value is rendered from `{{validation_command}}` into target docs and hooks.
+The installer requires `--ci-host` to select which CI files to create.
+`--ci-host github` writes `.github/workflows/<tool>.yaml`, `--ci-host gitlab` writes `.gitlab-ci.yml`, `--ci-host both` writes both, and `--ci-host none` writes neither.
+CI snippets run the selected-mode validation command rendered from `{{validation_command}}`.
+Generated `pre-push` hooks may run a stronger stack final check.
 
 ## CI Host Selection
 
@@ -76,10 +97,12 @@ The installer requires an explicit CI host selection via `--ci-host`:
 
 - GitHub-only repositories: pass `--ci-host github` to write only `.github/workflows/<tool>.yaml`.
 - GitLab-only repositories: pass `--ci-host gitlab` to write only `.gitlab-ci.yml`.
-- Repositories that mirror to both hosts: pass `--ci-host both` to write both files; the generated `pre-push` final check command must match both CI scripts so `harness-validate` does not report drift.
+- Repositories that mirror to both hosts: pass `--ci-host both` to write both files.
+  - Both CI scripts must run the same selected-mode validation command so `harness-validate` does not report drift.
 - Targets that do not run CI: pass `--ci-host none` and document the policy in the project README.
 
-`harness-validate` skips absent CI files for documented inactive hosts; if a CI file is present, it is validated for command parity against the generated `pre-push` command.
+`harness-validate` skips absent CI files for documented inactive hosts.
+If a CI file is present, it is validated for command parity against the selected stack validation command.
 
 To run the installer directly, pass the target repository explicitly with both stack mode and CI host:
 
@@ -140,9 +163,20 @@ docs/
 `-- SECURITY.md
 ```
 
-Empty required directories are kept in version control with `.gitkeep`. `docs/git-hooks/pre-commit` and `docs/git-hooks/pre-push` are generated, target-owned hook templates that both run the selected-mode command rendered from `{{validation_command}}`. Stack assets activate hooks through their ecosystem tool: Husky for Bun, pre-commit for uv, and `core.hooksPath` for Gradle, Maven, and Shell. `docs/generated/` is a generated-artifact location, not a required database-documentation location. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
+The installed inventory also includes `WORKFLOW.md`, stack-specific validation adapters, rendered CI files when enabled, and rendered active hook files when the selected stack uses hooks.
 
-In fresh installed target repositories, `CLAUDE.md` is the primary harness contract and Claude Code entry point, and `AGENTS.md` is a symlink alias to `CLAUDE.md`. When refreshing an existing AGENTS-only repository, the installer may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias instead. In either orientation, runtimes that load either filename resolve to the same document.
+Empty required directories are kept in version control with `.gitkeep`.
+`docs/git-hooks/pre-commit` and `docs/git-hooks/pre-push` are packaged placeholders that fail until installation renders stack-specific active hooks.
+Active `pre-commit` includes the selected-mode command rendered from `{{validation_command}}` and may include stack preflight checks.
+Active `pre-push` is generated from the stack-specific final check, which may be stronger than `pre-commit`.
+Stack assets activate hooks through their ecosystem tool:
+Husky for Bun, pre-commit for uv, the Gradle pre-commit plugin for Gradle, and `core.hooksPath` for Maven and Shell.
+`docs/generated/` is a generated-artifact location, not a required database-documentation location.
+Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
+
+In fresh installed target repositories, `CLAUDE.md` is the primary harness contract and Claude Code entry point, and `AGENTS.md` is a symlink alias to `CLAUDE.md`.
+When refreshing an existing AGENTS-only repository, the installer may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias instead.
+In either orientation, runtimes that load either filename resolve to the same document.
 
 ## Validation Adapters
 
@@ -154,19 +188,31 @@ In fresh installed target repositories, `CLAUDE.md` is the primary harness contr
 | bun | `bun.lock`, `bun.lockb`, or `package.json` | `{{validation_command}}` |
 | shell | `Makefile` or root-level `*.sh` with no other stack | `{{validation_command}}` |
 
-Each installed mode renders `{{validation_command}}` to the concrete command (`./gradlew ktlintCheck`, the Maven `./mvnw validate`/`-DspotlessFiles` command, `uv run scripts/check.py`, `bun run check`, or `sh scripts/check.sh`) in target common assets.
+Each installed mode renders `{{validation_command}}` to the concrete command in target common assets.
+The concrete command is `./gradlew ktlintCheck`, the Maven `./mvnw validate`/`-DspotlessFiles` command, `uv run scripts/check.py`, `bun run check`, or `sh scripts/check.sh`.
 
-Run validation commands from the target repository root. Gradle, Maven, uv, and shell validators use `markdownlint-cli2` from PATH when it is installed, against installed `.markdownlint-cli2.jsonc` and the local rule at `docs/scripts/exec-plan-links.ts`; when `markdownlint-cli2` is absent, those validators print a warning with `bun add -g markdownlint-cli2` installation guidance and skip Markdown linting. Gradle, Maven, uv, and shell fix commands also run `markdownlint-cli2 --fix` when it is installed. The Bun validator uses its packaged `markdownlint-cli2` dependency and fails normally if dependency installation is missing or broken. The shell validator is a portable POSIX shell script and also requires both `shellcheck` and `shfmt` on PATH.
+Run validation commands from the target repository root.
+Gradle, Maven, uv, and shell validators use `markdownlint-cli2` from PATH when it is installed, against installed `.markdownlint-cli2.jsonc` and the local rule at `docs/scripts/exec-plan-links.ts`.
+When `markdownlint-cli2` is absent, those validators print a warning with `bun add -g markdownlint-cli2` installation guidance and skip Markdown linting.
+Gradle, Maven, uv, and shell fix commands also run `markdownlint-cli2 --fix` when it is installed.
+The Bun validator uses its packaged `markdownlint-cli2` dependency and fails normally if dependency installation is missing or broken.
 
-The bun validator runs through `bun run check` (a package.json script that runs packaged `markdownlint-cli2` and `ultracite check`); JavaScript files use oxlint JSDoc tag rules so JSDoc remains usable as type input, while the local oxlint JS plugin rule `tsdoc/require-export-tsdoc` from `scripts/tsdoc-plugin.ts` requires TSDoc only on TypeScript exported top-level functions, exported top-level constants/variables, exported classes, and public methods/accessors on exported classes.
+The Bun validator runs through `bun run check`, a package.json script that runs packaged `markdownlint-cli2` and `ultracite check`.
+JavaScript files use oxlint JSDoc tag rules so JSDoc remains usable as type input.
+The local oxlint JS plugin rule `tsdoc/require-export-tsdoc` from `scripts/tsdoc-plugin.ts` requires TSDoc only on TypeScript exported APIs.
+That means exported top-level functions, exported top-level constants/variables, exported classes, and public methods/accessors on exported classes.
 
-The Bun-side validator and the plugin installer are style-hardened by plugin checks: `sh plugins/harness/scripts/plugin-self-check.sh` enforces no leading-underscore public declarations in these implementation files and no one-line public Python docstrings.
+The Bun-side validator and the plugin installer are style-hardened by plugin checks.
+`sh plugins/harness/scripts/plugin-self-check.sh` enforces no leading-underscore public declarations in these implementation files and no one-line public Python docstrings.
 
-The uv validator self-provisions ruff on first use via `uvx --with "ruff>=0.15.16,<0.16.0" ruff check .` and `ruff format --check .`, using Ruff's normal project discovery, so network access is required on first run; the ruff binary is then cached. Markdown validation runs only when `markdownlint-cli2` is available on PATH, as described above.
+The uv validator self-provisions ruff on first use via `uvx --with "ruff>=0.15.16,<0.16.0" ruff check .` and `ruff format --check .`, using Ruff's normal project discovery, so network access is required on first run.
+The ruff binary is then cached.
+Markdown validation runs only when `markdownlint-cli2` is available on PATH, as described above.
 
 ## Native Tool Enforcement
 
-Each stack uses its native ecosystem tool for validation. Structural checks that cannot be automated are documented as prose conventions.
+Each stack uses its native ecosystem tool for validation.
+Structural checks that cannot be automated are documented as prose conventions.
 
 | Stack | Validator | Custom extensions | Structural checks |
 | --- | --- | --- | --- |
@@ -176,7 +222,9 @@ Each stack uses its native ecosystem tool for validation. Structural checks that
 | Bun/TypeScript | ultracite (oxlint linter + oxfmt formatter) | ultracite preset ruleset (ultracite/oxlint/core with `core.ignorePatterns`) + JS-only oxlint JSDoc tag rules + local oxlint JS plugin (`scripts/tsdoc-plugin.ts`: TypeScript exported public API TSDoc) | File/directory presence, symlinks, hooks, CI command parity, agent/skill frontmatter, execution-plan unchecked tasks, shebang-encoding-marker for .ts files |
 | Shell | shellcheck + shfmt | Native tools only | File/directory presence, symlinks, hooks, CI command parity, agent/skill frontmatter, execution-plan unchecked tasks |
 
-Gradle installer wiring prepends a `buildSrc/` directory. Existing `buildSrc/` directories in the target repo MUST be reviewed before install; the harness expects a fresh `buildSrc/` and will conflict otherwise.
+Gradle installer wiring prepends a `buildSrc/` directory.
+Existing `buildSrc/` directories in the target repo MUST be reviewed before install.
+The harness expects a fresh `buildSrc/` and will conflict otherwise.
 
 ## Diagnostic Format
 
@@ -190,7 +238,9 @@ When a finding maps to a specific position in a source file, the diagnostic pref
 path:line:column [SEVERITY] category: message
 ```
 
-Lines and columns are one-based. `SEVERITY` is one of `ERROR`, `WARN`, or `INFO`. `category` identifies the rule (for example, `classMemberOrdering`, `publicDeclarationDocComment`, `ifStatementBraces`).
+Lines and columns are one-based.
+`SEVERITY` is one of `ERROR`, `WARN`, or `INFO`.
+`category` identifies the rule (for example, `classMemberOrdering`, `publicDeclarationDocComment`, `ifStatementBraces`).
 
 ### Non-location fallbacks
 
@@ -204,60 +254,70 @@ When file, line, or column information is unavailable, validators use shorter fo
 path/to/file [SEVERITY] category: file-level message
 ```
 
-Repository-level findings apply to the harness as a whole (for example, missing manifest). File-level findings apply to a file without a specific position (for example, missing required file).
+Repository-level findings apply to the harness as a whole (for example, missing manifest).
+File-level findings apply to a file without a specific position (for example, missing required file).
 
 ## Format Commands
 
 Fix commands apply changes through native ecosystem tools:
 
-- Gradle: `./gradlew ktlintFormat` applies Markdown fixes through `markdownlint-cli2 --fix` when it is installed, then applies ktlint's built-in formatting through the Gradle ktlint plugin's normal project discovery.
-- Maven: run `./mvnw exec:exec@format-markdown spotless:apply -DspotlessFiles=<escaped-git-tracked-java-regexes>` with the same escaped, repo-root-anchored patterns as the generated check command to apply Markdown fixes, Palantir format, import order, unused-import removal, trailing-whitespace trimming, and final newlines to Git-tracked Java files; Checkstyle is a lint-only gate and has no corresponding fix command.
-- uv: `uv run scripts/fix.py` applies Markdown fixes through `markdownlint-cli2 --fix` when it is installed, then applies ruff lint fixes and ruff format (double-quote style, line length, trailing commas).
+- Gradle: `./gradlew ktlintFormat` applies Markdown fixes through `markdownlint-cli2 --fix` when it is installed.
+  - It then applies ktlint formatting.
+- Maven: run `./mvnw exec:exec@format-markdown spotless:apply -DspotlessFiles=<escaped-git-tracked-java-regexes>` with the same escaped, repo-root-anchored patterns as the generated check command.
+  - It applies Markdown, Palantir, import-order, unused-import, trailing-whitespace, and final-newline fixes.
+  - Checkstyle is a lint-only gate and has no corresponding fix command.
+- uv: `uv run scripts/fix.py` applies Markdown fixes through `markdownlint-cli2 --fix` when it is installed.
+  - It then applies ruff lint fixes and ruff format.
 - Bun: `bun run fix` applies packaged `markdownlint-cli2 --fix`, then runs `ultracite fix`.
-- Shell: `sh scripts/fix.sh` applies Markdown fixes through `markdownlint-cli2 --fix` when it is installed, applies shfmt fixes, then re-runs the shell check and prints any remaining findings.
+- Shell: `sh scripts/fix.sh` applies Markdown fixes through `markdownlint-cli2 --fix` when it is installed.
+  - It applies shfmt fixes, then re-runs the shell check and prints any remaining findings.
 
-Fix commands are idempotent: a second run produces no additional modifications. Each fix command applies fixes only (the shell fix command additionally re-runs its check); run the stack check command afterward to verify that no ERROR-level findings remain.
+Fix commands are idempotent and apply fixes only.
+The shell fix command additionally re-runs its check.
+Run the stack check command afterward.
 
 ## Git Hooks
 
-The installer writes two selected-mode hook templates under `docs/git-hooks/` (tracked in the repository). Both `pre-commit` and `pre-push` run the selected-mode command rendered from `{{validation_command}}`.
+The packaged `docs/git-hooks/` files are tracked placeholders that fail until installation renders active stack hooks.
+Active `pre-commit` includes the selected-mode command rendered from `{{validation_command}}` and may include stack preflight checks.
+Active `pre-push` runs the stack-specific final check and may include tests or broader verification.
 
-The installer does not write into `.git/hooks/`. Instead, stack assets use ecosystem-standard hook activation: Bun uses Husky through the `prepare` script, uv uses the pre-commit framework, and Gradle, Maven, and Shell use `core.hooksPath` pointing at copied `.githooks/` files. Hooks therefore activate through the selected stack's setup path rather than through ad hoc writes to `.git/hooks/`.
+The installer does not write into `.git/hooks/`.
+Instead, stack assets use ecosystem-standard hook activation:
+Bun uses Husky through the `prepare` script, uv uses the pre-commit framework, Gradle uses the Gradle pre-commit plugin, and Maven and Shell use `core.hooksPath` pointing at copied `.githooks/` files.
+Hooks therefore activate through the selected stack's setup path rather than through ad hoc writes to `.git/hooks/`.
 
 ## Metadata and Attribution
 
 - Manifest author: `ririnto`, matching the repository owner metadata.
 - Plugin license: Apache-2.0, recorded in `LICENSE`.
 - External inspiration and adapted taxonomy are documented in `THIRD_PARTY_NOTICES.md`.
-- Marketplace releases are versioned at `.claude-plugin/marketplace.json`; plugin manifests intentionally omit `version`.
+- Marketplace releases are versioned at `.claude-plugin/marketplace.json`.
+  - Plugin manifests intentionally omit `version`.
 
 ## Harness Evolution
 
-The installed harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed harness files as the active target contract. Use `harness-evolve` when repeated validation or review failures show that templates, docs, agents, skills, generated-artifact locations, or validation rules should change.
+The installed harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance.
+Treat the current committed harness files as the active target contract.
+Use `harness-evolve` when repeated validation or review failures show that templates, docs, agents, skills, generated-artifact locations, or validation rules should change.
 
 ## Layout
 
-```text
-plugins/harness/
-├── .claude-plugin/plugin.json
-├── LICENSE
-├── README.md
-├── THIRD_PARTY_NOTICES.md
-├── agents/
-├── scripts/
-└── skills/
-    ├── harness-evolve/
-    ├── harness-install/
-    └── harness-validate/
-```
+The plugin root contains `.claude-plugin/plugin.json`, `LICENSE`, `README.md`, `THIRD_PARTY_NOTICES.md`, `agents/`, `scripts/`, and `skills/`.
+The `skills/` directory contains `harness-evolve/`, `harness-install/`, and `harness-validate/`.
 
 ## Scope Notes
 
-- This plugin prepares repository knowledge, guardrails, templates, and validation paths. It does not run background services or manage issue queues.
+- This plugin prepares repository knowledge, guardrails, templates, and validation paths.
 - Target-owned agents are starting points, not immutable plugin internals.
-- The installed `.claude/skills/harness-validate/` directory is a project skill. Prefer that project skill when validating an installed target repository. Use the plugin-provided `harness-validate` skill when working from this plugin checkout or before the target repository has its project copy. If a host cannot distinguish the project skill from the plugin skill, rename the installed project directory to `.claude/skills/project-harness-validate/`, update its `SKILL.md` `name` field to `project-harness-validate`, and update local project docs to use that name.
-- GitHub Actions and GitLab CI templates use ordinary version tags from the archive; projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.
-- Maven, Gradle, Python, and test self-checks may create cache, IDE, or build metadata under asset directories. Repository `.gitignore` and installer filters exclude ignored byproducts such as `__pycache__/`, `.pytest_cache/`, `*.pyc`, `.classpath`, `.project`, `.factorypath`, `.settings/`, `.gradle/`, `bin/`, `build/`, and `target/`; plugin self-checks validate packaged/tracked asset files rather than failing on ignored working-tree byproducts.
-- The bun asset wrapper validates JavaScript and TypeScript files through ultracite, JavaScript-only oxlint JSDoc tag rules, and a local oxlint JS plugin that requires TSDoc on TypeScript exported public API declarations; generated dependency directories such as `node_modules/` are ignored by Git and are not package contents.
-- The uv asset wrapper validates and formats Python files through Ruff's normal project discovery; the remaining Python conventions documented as prose-only rules are not enforced by a packaged AST runtime.
-- The Maven/Java stack uses Spotless for format-only fixes (`removeUnusedImports`/`trimTrailingWhitespace`/`endWithNewline`) and Checkstyle for lint-only Java structure gates that are safe to enforce without Java-specific custom source code.
+- The installed `.claude/skills/harness-validate/` directory is a project skill.
+  - Prefer that project skill when validating an installed target repository.
+  - Use the plugin-provided skill from this checkout before the target has its project copy.
+- GitHub Actions and GitLab CI templates use ordinary version tags from the archive.
+  - Projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.
+- Maven, Gradle, Python, and test self-checks may create cache, IDE, or build metadata under asset directories.
+  - Repository `.gitignore` and installer filters exclude ignored byproducts.
+- The bun asset wrapper validates JavaScript and TypeScript files through ultracite, JavaScript-only oxlint JSDoc tag rules, and a local oxlint JS plugin that requires TSDoc on TypeScript exported public API declarations.
+- The uv asset wrapper validates and formats Python files through Ruff's normal project discovery.
+- The Maven/Java stack uses Spotless for format-only fixes (`removeUnusedImports`/`trimTrailingWhitespace`/`endWithNewline`).
+  - Checkstyle provides lint-only Java structure gates that are safe to enforce without Java-specific custom source code.

@@ -1,6 +1,6 @@
 # Vision input handling
 
-Open this reference when the common-path text workflow in [SKILL.md](../SKILL.md) is not enough and the blocker is single-image, vision-style user input.
+Open this reference when the common-path text workflow in [`SKILL.md`](../SKILL.md) is not enough and the blocker is single-image, vision-style user input.
 
 ## Use this file for one blocker family
 
@@ -36,7 +36,8 @@ String response = ChatClient.create(chatModel).prompt()
 
 ## Pitfalls
 
-- Do not assume every chat model accepts image input. Verify the specific model family.
+- Do not assume every chat model accepts image input.
+  - Verify the specific model family.
 - Do not bury large binary payloads without tracking token or size cost.
-- Open [multiple-image-comparison.md](multiple-image-comparison.md) when the blocker is cross-referencing several images.
-- Open [image-generation.md](image-generation.md) when the blocker is producing a generated image artifact.
+- Open [`multiple-image-comparison.md`](multiple-image-comparison.md) when the blocker is cross-referencing several images.
+- Open [`image-generation.md`](image-generation.md) when the blocker is producing a generated image artifact.

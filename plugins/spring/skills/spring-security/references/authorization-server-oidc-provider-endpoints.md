@@ -1,6 +1,6 @@
 # OIDC provider endpoints
 
-Open this reference when the provider must expose OIDC identity endpoints, UserInfo, logout handling, or ID-token behavior beyond the OAuth2-only baseline in [SKILL.md](../SKILL.md).
+Open this reference when the provider must expose OIDC identity endpoints, UserInfo, logout handling, or ID-token behavior beyond the OAuth2-only baseline in [`SKILL.md`](../SKILL.md).
 
 ## OIDC enablement rule
 
@@ -32,7 +32,8 @@ Verify it returns the expected shape:
 
 ## UserInfo endpoint
 
-The UserInfo endpoint returns identity claims for the authenticated user. It requires a valid access token with the `openid` scope.
+The UserInfo endpoint returns identity claims for the authenticated user.
+It requires a valid access token with the `openid` scope.
 
 ### Preferred path: customize the ID token claims
 
@@ -61,7 +62,8 @@ http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
 
 ## Logout endpoint
 
-The built-in logout endpoint is at `/connect/logout`. It initiates single logout by presenting a URL the client can redirect the user to.
+The built-in logout endpoint is at `/connect/logout`.
+It initiates single logout by presenting a URL the client can redirect the user to.
 
 ### Logout request validation
 

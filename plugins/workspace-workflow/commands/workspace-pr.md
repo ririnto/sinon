@@ -1,6 +1,7 @@
 ---
 description: >-
-  Compose a pull/merge request body from the current branch's commits with structured Summary / Changes / Testing sections. Use when opening or updating a PR or MR and the body must follow pr-mr-convention rules.
+  Compose a pull/merge request body from the current branch's commits with structured Summary / Changes / Testing sections.
+  Use when opening or updating a PR or MR and the body must follow pr-mr-convention rules.
 argument-hint: [optional-title-or-summary]
 allowed-tools:
   - Bash
@@ -10,7 +11,8 @@ allowed-tools:
 
 # Compose PR/MR Body
 
-Generate a structured pull request or merge request body following pr-mr-convention patterns. Analyze the current branch's commits, extract the change narrative, and compose a formatted body ready for submission.
+Generate a structured pull request or merge request body following pr-mr-convention patterns.
+Analyze the current branch's commits, extract the change narrative, and compose a formatted body ready for submission.
 
 Initial context: $ARGUMENTS
 
@@ -70,10 +72,13 @@ Collect:
 
 From the commits and context provided, determine:
 
-1. What is the high-level change? (e.g., "Add user authentication", "Fix button alignment bug", "Refactor API layer")
-2. Why? (e.g., "Resolves #456", "Improves performance by 20%")
+1. What is the high-level change?
+   - (e.g., "Add user authentication", "Fix button alignment bug", "Refactor API layer")
+2. Why?
+   - (e.g., "Resolves #456", "Improves performance by 20%")
 3. Scope of impact (e.g., UI components, backend API, tests, documentation)
-4. Breaking changes? (Check commit footers for `BREAKING CHANGE:`)
+4. Breaking changes?
+   - (Check commit footers for `BREAKING CHANGE:`)
 
 ### Step 4: Identify Related Issues
 
@@ -187,7 +192,8 @@ Ask the user:
 
 ### Step 9: Provide Submission Guidance
 
-Recommend next steps based on the host. Save the body to a file and provide CLI commands.
+Recommend next steps based on the host.
+Save the body to a file and provide CLI commands.
 
 #### GitHub (gh CLI)
 
@@ -317,7 +323,8 @@ glab mr list --assignee "@me" --all --per-page 5
 
 1. Monitor CI progress in the PR/MR details.
 2. Address any lint, type check, or test failures.
-3. Push fixes to the same branch; PR/MR updates automatically.
+3. Push fixes to the same branch.
+    - PR/MR updates automatically.
 4. When all checks pass, mark as ready (see Step 9 commands).
 5. Request review if not automatically triggered by CODEOWNERS.
 6. Merge after approval using the recommended merge strategy (squash or rebase).
@@ -330,7 +337,7 @@ glab mr list --assignee "@me" --all --per-page 5
 - The Changes section MUST use specific bullet points, not prose.
 - The Testing section MUST explain how to verify the change.
 - Breaking changes, if any, MUST be clearly called out.
-- Host detection MUST be automatic (GitHub vs. GitLab).
+- Host detection MUST be automatic (GitHub versus GitLab).
 - The body MUST follow `pr-mr-convention` patterns.
 - The command MUST present the draft to the user before posting.
 
@@ -338,7 +345,8 @@ glab mr list --assignee "@me" --all --per-page 5
 
 ## Scope Boundaries
 
-This command focuses on body composition and submission guidance. It does NOT:
+This command focuses on body composition and submission guidance.
+It does NOT:
 
 - Create the PR/MR title (user provides or hints at it).
 - Push the branch (the user SHOULD push first).

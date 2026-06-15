@@ -1,8 +1,9 @@
 # Spring AI advisors, memory, and conversation state
 
-Open this reference when the common-path advisor and chat-memory guidance in [SKILL.md](../SKILL.md) is not enough and the blocker is advisor ordering, persistent memory design, token buffering, or conversation isolation.
+Open this reference when the common-path advisor and chat-memory guidance in [`SKILL.md`](../SKILL.md) is not enough and the blocker is advisor ordering, persistent memory design, token buffering, or conversation isolation.
 
-Keep the ordinary path in [SKILL.md](../SKILL.md). Use this file only when one of those specific blockers appears.
+Keep the ordinary path in [`SKILL.md`](../SKILL.md).
+Use this file only when one of those specific blockers appears.
 
 ## When to open this
 
@@ -14,9 +15,11 @@ Keep the ordinary path in [SKILL.md](../SKILL.md). Use this file only when one o
 
 ## Advisor chain basics
 
-`ChatClient` processes messages through an ordered chain of advisors. Each advisor can read or modify the request and response around the `ChatModel` call.
+`ChatClient` processes messages through an ordered chain of advisors.
+Each advisor can read or modify the request and response around the `ChatModel` call.
 
-Advisors wrap the model call. The outermost advisor runs first on the request path and last on the response path.
+Advisors wrap the model call.
+The outermost advisor runs first on the request path and last on the response path.
 
 ## Advisor ordering blocker
 
@@ -96,7 +99,8 @@ String answer = chatClient.prompt()
     .content();
 ```
 
-Keep the conversation ID explicit at the call site. Do not rely on mutable per-user memory objects stored in application code.
+Keep the conversation ID explicit at the call site.
+Do not rely on mutable per-user memory objects stored in application code.
 
 ## Context budget blocker
 
@@ -131,7 +135,8 @@ Treat the message window as a tuned deployment parameter, not a magic constant.
 
 ### Chat memory repository starters
 
-Spring AI ships repository-backed chat memory implementations. Add only the starter that matches the production data layer:
+Spring AI ships repository-backed chat memory implementations.
+Add only the starter that matches the production data layer:
 
 | Starter | Repository class | Use when |
 | --- | --- | --- |
@@ -153,8 +158,12 @@ Spring AI ships repository-backed chat memory implementations. Add only the star
 
 - Do not use in-memory memory for production multi-session workloads.
 - Do not mix transient and persistent memory strategies without a clear conversation-ID policy.
-- Advisor ordering is easy to misread. Always verify the actual registration order when debugging missing context.
+- Advisor ordering is easy to misread.
+  - Always verify the actual registration order when debugging missing context.
 - Repository-backed memory needs its repository starter and schema strategy configured explicitly.
-- Very long histories can still exceed model limits even with a token buffer. Trim the memory window and validate with representative conversations.
-- `ToolCallingAdvisor` (2.0.0+) manages conversation history internally across tool-call iterations. Memory advisors only store the final user/assistant exchange by default. If memory is needed inside the tool-call loop, set the advisor order above `ToolCallingAdvisor.DEFAULT_ORDER` and call `.disableInternalConversationHistory()`.
+- Very long histories can still exceed model limits even with a token buffer.
+  - Trim the memory window and validate with representative conversations.
+- `ToolCallingAdvisor` (2.0.0+) manages conversation history internally across tool-call iterations.
+  - Memory advisors only store the final user/assistant exchange by default.
+  - If memory is needed inside the tool-call loop, set the advisor order above `ToolCallingAdvisor.DEFAULT_ORDER` and call `.disableInternalConversationHistory()`.
 - `PromptChatMemoryAdvisor` has been removed in 2.0.0. All memory advisors require an explicit `CONVERSATION_ID` at call time.

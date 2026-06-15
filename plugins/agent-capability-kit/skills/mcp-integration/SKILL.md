@@ -1,7 +1,8 @@
 ---
 name: mcp-integration
 description: >-
-  Integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key with stdio, SSE, HTTP, or WebSocket transports. Use when configuring MCP server entries, choosing between stdio and network transports, or wiring external tool servers into a plugin manifest.
+  Integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key with stdio, SSE, HTTP, or WebSocket transports.
+  Use when configuring MCP server entries, choosing between stdio and network transports, or wiring external tool servers into a plugin manifest.
 ---
 
 # MCP Integration
@@ -26,9 +27,11 @@ This skill owns:
 
 1. MUST use `${CLAUDE_PLUGIN_ROOT}` for all bundled paths—never hardcoded absolute paths.
 2. MUST use HTTPS for remote servers, WSS for WebSocket connections.
-3. MUST NOT hardcode credentials; use environment variables or OAuth flows.
+3. MUST NOT hardcode credentials.
+   - Use environment variables or OAuth flows.
 4. MUST NOT use wildcards in `allowed-tools`—pre-allow only specific tool names.
-5. When the manifest declares `"mcpServers": "./.mcp.json"`, plugin-root `.mcp.json` MUST exist; when plugin-root `.mcp.json` exists, the manifest SHOULD declare `"mcpServers": "./.mcp.json"`.
+5. When the manifest declares `"mcpServers": "./.mcp.json"`, plugin-root `.mcp.json` MUST exist.
+   - When plugin-root `.mcp.json` exists, the manifest SHOULD declare `"mcpServers": "./.mcp.json"`.
 6. MAY use `.mcp.json` (recommended for multi-server plugins) or `mcpServers` in `plugin.json` (for single-server plugins).
 7. SHOULD test MCP connectivity locally with `/mcp` before publishing.
 
@@ -72,10 +75,14 @@ This skill owns:
 
 ## Transport Types
 
-- `stdio` — Local process (custom servers). Use `command` + `args` + `env`.
-- `SSE` — Hosted OAuth (GitHub, Asana, etc.). Use `type: "sse"` + `url`.
-- `HTTP` — REST + token (custom APIs). Use `type: "http"` + HTTPS URL + bearer token in `headers`.
-- `WebSocket` — Real-time bidirectional (streaming). Use `type: "ws"` + WSS URL + auth headers.
+- `stdio` — Local process (custom servers).
+  - Use `command` + `args` + `env`.
+- `SSE` — Hosted OAuth (GitHub, Asana, etc.).
+  - Use `type: "sse"` + `url`.
+- `HTTP` — REST + token (custom APIs).
+  - Use `type: "http"` + HTTPS URL + bearer token in `headers`.
+- `WebSocket` — Real-time bidirectional (streaming).
+  - Use `type: "ws"` + WSS URL + auth headers.
 
 See `references/transport-types.md` for lifecycle details, failure modes, selection decision tree, and performance characteristics.
 
@@ -83,7 +90,8 @@ See `references/transport-types.md` for lifecycle details, failure modes, select
 
 > [!CAUTION]
 >
-> This example uses unencrypted plaintext transport. Use `wss://` instead of `ws://` to encrypt credentials and data.
+> This example uses unencrypted plaintext transport.
+> Use `wss://` instead of `ws://` to encrypt credentials and data.
 
 ```jsonc
 {
@@ -97,7 +105,8 @@ See `references/transport-types.md` for lifecycle details, failure modes, select
 
 ## Environment variable expansion
 
-All fields support `${VAR_NAME}` substitution from the user's environment. Use `${CLAUDE_PLUGIN_ROOT}` for portable bundled paths:
+All fields support `${VAR_NAME}` substitution from the user's environment.
+Use `${CLAUDE_PLUGIN_ROOT}` for portable bundled paths:
 
 ```json
 {
@@ -168,7 +177,8 @@ Plugin with multiple MCP servers in `.mcp.json`:
 
 ## Authentication patterns
 
-OAuth (SSE/HTTP): Handled automatically by Claude Code. User authenticates in browser on first use.
+OAuth (SSE/HTTP): Handled automatically by Claude Code.
+User authenticates in browser on first use.
 
 Token (HTTP/WebSocket): Pass via environment variables in headers:
 
@@ -200,7 +210,8 @@ Environment variables (stdio): Pass to server process:
 
 > [!CAUTION]
 >
-> This example exposes credentials and uses unencrypted transport. Use HTTPS and environment variables instead.
+> This example exposes credentials and uses unencrypted transport.
+> Use HTTPS and environment variables instead.
 
 ```jsonc
 {
@@ -246,7 +257,8 @@ Test a specific MCP server's connectivity and tools after plugin restart (requir
 /mcp test <server-name>
 ```
 
-Distinction: `/mcp` displays all configured servers and their tools. `/mcp test {{server}}` establishes a live connection to verify the server responds correctly and tool definitions are accessible.
+Distinction: `/mcp` displays all configured servers and their tools.
+`/mcp test {{server}}` establishes a live connection to verify the server responds correctly and tool definitions are accessible.
 
 ## Testing checklist
 

@@ -1,25 +1,8 @@
 ---
 name: your-agent-name
 description: >-
-  [Imperative capability statement: e.g., Inspect, Review, Audit, Generate]. Use this agent when [clear trigger condition with asset or system]. Examples:
-
-  <example>
-  Context: [short context]
-  user: "[user request]"
-  assistant: "[how the agent should be used]"
-  <commentary>
-  [why this agent is the right fit]
-  </commentary>
-  </example>
-
-  <example>
-  Context: [second realistic context]
-  user: "[second user request]"
-  assistant: "[how the agent should be used in the second case]"
-  <commentary>
-  [why the same role still fits this variation]
-  </commentary>
-  </example>
+  [Imperative capability statement: e.g., Inspect, Review, Audit, Generate].
+  Use this agent when [clear trigger condition with asset or system].
 model: inherit
 color: blue
 ---
@@ -51,7 +34,8 @@ Return:
 
 ## Optional tool boundary
 
-Omit this section unless the role needs tools different from the default environment. Add `tools` only when the agent needs a bounded tool surface — default to omitting `tools` and add it only when the role requires a tighter or non-default boundary.
+Omit this section unless the role needs tools different from the default environment.
+Add `tools` only when the agent needs a bounded tool surface — default to omitting `tools` and add it only when the role requires a tighter or non-default boundary.
 
 Example (include only when needed):
 

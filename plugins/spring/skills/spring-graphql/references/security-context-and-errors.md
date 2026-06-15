@@ -12,7 +12,8 @@ Do not assume ordinary web security context propagation always matches GraphQL e
 
 Use a GraphQL interceptor when request metadata must be copied into the GraphQL context before controller methods run.
 
-Spring GraphQL provides a built-in `HttpRequestHeaderInterceptor` for copying HTTP request headers into the GraphQL context. Use it when the job is purely header-to-context propagation.
+Spring GraphQL provides a built-in `HttpRequestHeaderInterceptor` for copying HTTP request headers into the GraphQL context.
+Use it when the job is purely header-to-context propagation.
 
 ```java
 @Bean

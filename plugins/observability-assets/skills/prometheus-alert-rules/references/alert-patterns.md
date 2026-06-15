@@ -80,9 +80,11 @@ Better -- symptom-oriented with explicit `for` window and actionable annotations
 
 ```
 
-The full template with labels and runbook is in [`../SKILL.md`](../SKILL.md). This reference focuses on pattern choice: the second alert maps more directly to user-visible impact than a low-level saturation signal.
+The full template with labels and runbook is in [`../SKILL.md`](../SKILL.md).
+This reference focuses on pattern choice: the second alert maps more directly to user-visible impact than a low-level saturation signal.
 
-Use this reference for pattern choice, not for ordinary rule anatomy. Baseline guidance for rule groups, `for`, `keep_firing_for`, labels, annotations, templating, and Alertmanager-facing label contracts stays in [`../SKILL.md`](../SKILL.md).
+Use this reference for pattern choice, not for ordinary rule anatomy.
+Baseline guidance for rule groups, `for`, `keep_firing_for`, labels, annotations, templating, and Alertmanager-facing label contracts stays in [`../SKILL.md`](../SKILL.md).
 
 ## Multi-Group Layout Patterns
 

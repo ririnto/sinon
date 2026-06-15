@@ -1,7 +1,8 @@
 ---
 name: kotlin-language-patterns
 description: >-
-  Write idiomatic Kotlin with null safety, value types, extensions, collections, string handling, and standard-library boundary choices. Triggers on `data class` vs `value class` tradeoffs, extension function design, collection operator selection, or standard-library alternative decisions for a Kotlin codebase.
+  Write idiomatic Kotlin with null safety, value types, extensions, collections, string handling, and standard-library boundary choices.
+  Triggers on `data class` vs `value class` tradeoffs, extension function design, collection operator selection, or standard-library alternative decisions for a Kotlin codebase.
 ---
 
 # Kotlin Language Patterns
@@ -10,14 +11,22 @@ description: >-
 
 Write idiomatic Kotlin by choosing the smallest language construct or stdlib path that keeps meaning obvious.
 
-Minimum Kotlin version: 2.1 -- examples use `value class` with `@JvmInline`, `kotlin.io.path.*`, and `fun interface`. Newer stdlib surfaces are version-gated and noted where they appear: `kotlin.io.encoding` is stable since Kotlin 2.2, `kotlin.time.Instant` is stable since Kotlin 2.3, and `kotlin.uuid` is stable since Kotlin 2.4; on the 2.1 baseline `kotlinx.datetime.Instant` remains the portable choice for a real moment in time. Library versions (`kotlinx.serialization`, `kotlinx-datetime`) are managed through the project's dependency catalog; pin versions when adopting features from specific releases. Keep the common path focused on null safety, type modeling, extensions, collection shaping, string handling, boundary error flow, Java interop, and Kotlin-native boundary choices such as serialization, date-time, and JVM filesystem paths, then open a blocker reference only when deeper modeling or adjacent platform topics actually matter.
+Minimum Kotlin version: 2.1 -- examples use `value class` with `@JvmInline`, `kotlin.io.path.*`, and `fun interface`.
+Newer stdlib surfaces are version-gated and noted where they appear: `kotlin.io.encoding` is stable since Kotlin 2.2, `kotlin.time.Instant` is stable since Kotlin 2.3, and `kotlin.uuid` is stable since Kotlin 2.4.
+On the 2.1 baseline `kotlinx.datetime.Instant` remains the portable choice for a real moment in time.
+Library versions (`kotlinx.serialization`, `kotlinx-datetime`) are managed through the project's dependency catalog.
+Pin versions when adopting features from specific releases.
+Keep the common path focused on null safety, type modeling, extensions, collection shaping, string handling, boundary error flow, Java interop, and Kotlin-native boundary choices such as serialization, date-time, and JVM filesystem paths, then open a blocker reference only when deeper modeling or adjacent platform topics actually matter.
 
 ## Operating Rules
 
 - MUST keep nullability explicit in public APIs.
-- MUST NOT use `!!` in production code paths; validate at boundaries instead.
-- MUST pin platform-type nullability at the Java interop boundary; never let `T!` propagate inward.
-- SHOULD prefer `val` by default; use `var` only for backing fields, JavaBean compatibility, or circular construction dependencies.
+- MUST NOT use `!!` in production code paths.
+  - Validate at boundaries instead.
+- MUST pin platform-type nullability at the Java interop boundary.
+  - Never let `T!` propagate inward.
+- SHOULD prefer `val` by default.
+  - Use `var` only for backing fields, JavaBean compatibility, or circular construction dependencies.
 - SHOULD choose the smallest type shape that matches the domain.
 - SHOULD expose read-only collection interfaces from public APIs rather than mutable variants.
 - SHOULD prefer direct string helpers before introducing `Regex`.
@@ -46,7 +55,8 @@ fun primaryEmail(user: User?): String? =
     user?.emails?.firstOrNull { email -> email.isPrimary }?.value
 ```
 
-Use early returns, `?.`, `?:`, and `as?` before reaching for `!!`. When calling into Java code that returns a platform type (`T!`), pin nullability immediately at the interop edge:
+Use early returns, `?.`, `?:`, and `as?` before reaching for `!!`.
+When calling into Java code that returns a platform type (`T!`), pin nullability immediately at the interop edge:
 
 ```kotlin
 val name: String = javaObject.getName()
@@ -73,7 +83,9 @@ fun process(items: List<String>) {
 }
 ```
 
-`assert` calls are stripped when running without `-ea` JVM flag. Use `require` and `check` for validations that must always run; use `assert` for internal consistency checks that are safe to skip in production.
+`assert` calls are stripped when running without `-ea` JVM flag.
+Use `require` and `check` for validations that must always run.
+Use `assert` for internal consistency checks that are safe to skip in production.
 
 ### Choose the smallest type shape
 
@@ -91,7 +103,8 @@ sealed interface PaymentResult {
 }
 ```
 
-Use `copy()` to create modified instances of a data class. Note that `copy()` performs a shallow copy -- nested mutable objects are shared between original and copy.
+Use `copy()` to create modified instances of a data class.
+Note that `copy()` performs a shallow copy -- nested mutable objects are shared between original and copy.
 
 ```kotlin
 val updated = customer.copy(name = "Acme Corp")
@@ -108,7 +121,8 @@ fun formatLocation(point: GeoPoint): String {
 }
 ```
 
-Consume sealed types with exhaustive `when` expressions. The compiler enforces coverage of all subtypes:
+Consume sealed types with exhaustive `when` expressions.
+The compiler enforces coverage of all subtypes:
 
 ```kotlin
 fun describe(result: PaymentResult): String = when (result) {
@@ -119,13 +133,16 @@ fun describe(result: PaymentResult): String = when (result) {
 
 ### Use extensions as local language tools
 
-Use extensions when they make call sites clearer without hiding ownership or dispatch. Remember that members win over extensions and that extension dispatch is static.
+Use extensions when they make call sites clearer without hiding ownership or dispatch.
+Remember that members win over extensions and that extension dispatch is static.
 
 ```kotlin
 fun String.normalizedIssueKey(): String = trim().uppercase()
 ```
 
-Member dispatch is virtual; extension dispatch is static. The resolved implementation depends on the actual runtime type for members but on the declared compile-time type for extensions:
+Member dispatch is virtual.
+Extension dispatch is static.
+The resolved implementation depends on the actual runtime type for members but on the declared compile-time type for extensions:
 
 ```kotlin
 open class Base { open fun greet() = "Base" }
@@ -139,7 +156,8 @@ b.greet()
 b.greetExt()
 ```
 
-Put polymorphic behavior in members; use extensions for utility surface that does not need runtime polymorphism.
+Put polymorphic behavior in members.
+Use extensions for utility surface that does not need runtime polymorphism.
 
 Extension properties follow the same dispatch rules as extension functions -- static resolution on the declared type:
 
@@ -150,11 +168,13 @@ val List<Int>.median: Double?
     get() = if (isEmpty()) null else sorted()[size / 2].toDouble()
 ```
 
-Use extension properties when the computed value reads as a natural attribute of the receiver type. Prefer extension functions when the operation involves parameters or performs side effects.
+Use extension properties when the computed value reads as a natural attribute of the receiver type.
+Prefer extension functions when the operation involves parameters or performs side effects.
 
 ### Collections before `Sequence`
 
-Prefer ordinary collections for finite in-memory work. Move to `Sequence` only when laziness or single-pass processing materially improves the path.
+Prefer ordinary collections for finite in-memory work.
+Move to `Sequence` only when laziness or single-pass processing materially improves the path.
 
 ```kotlin
 fun activeIds(customers: List<Customer>): List<CustomerId> =
@@ -173,7 +193,8 @@ class OrderRepository {
 
 ### Scope functions by intent
 
-Use scope functions only when they make ownership or transformation clearer. Stop when nesting makes the path harder to scan than named locals.
+Use scope functions only when they make ownership or transformation clearer.
+Stop when nesting makes the path harder to scan than named locals.
 
 | Function | Receiver available? | Return value | Typical use |
 | --- | --- | --- | --- |
@@ -207,7 +228,8 @@ val formatted = with(json) {
 
 ### Generics and inline reification
 
-Use declaration-site variance to constrain how generic parameters flow through your API. Mark producers as `out T` and consumers as `in T`:
+Use declaration-site variance to constrain how generic parameters flow through your API.
+Mark producers as `out T` and consumers as `in T`:
 
 ```kotlin
 interface Source<out T> {
@@ -224,7 +246,8 @@ val source: Source<String> = object : Source<String> {
 val ref: Source<Any> = source
 ```
 
-Use `reified` type parameters in `inline` functions to access concrete type information at call sites. This enables `T::class`, `is` checks, and `as` casts without passing `Class<T>` explicitly:
+Use `reified` type parameters in `inline` functions to access concrete type information at call sites.
+This enables `T::class`, `is` checks, and `as` casts without passing `Class<T>` explicitly:
 
 ```kotlin
 inline fun <reified T> parseList(raw: String): List<T> =
@@ -233,7 +256,9 @@ inline fun <reified T> parseList(raw: String): List<T> =
 val users: List<User> = parseList(rawJson)
 ```
 
-Use `inline fun` sparingly. Inlining trades bytecode size for call-site performance and enables reification. Prefer regular functions unless you specifically need reified type parameters or have measured a hot-path bottleneck that inlining resolves.
+Use `inline fun` sparingly.
+Inlining trades bytecode size for call-site performance and enables reification.
+Prefer regular functions unless you specifically need reified type parameters or have measured a hot-path bottleneck that inlining resolves.
 
 Use `where` clauses when a generic type parameter has multiple upper bounds:
 
@@ -259,7 +284,9 @@ class ConfigLoader {
 }
 ```
 
-`lazy {}` defaults to `LazyThreadSafetyMode.SYNCHRONIZED` (double-checked locking). Use `LazyThreadSafetyMode.PUBLICATION` when the initialized value is safe to read before initialization completes and you want concurrent readers without synchronization overhead. Use `LazyThreadSafetyMode.NONE` only when the property is accessed from a single thread:
+`lazy {}` defaults to `LazyThreadSafetyMode.SYNCHRONIZED` (double-checked locking).
+Use `LazyThreadSafetyMode.PUBLICATION` when the initialized value is safe to read before initialization completes and you want concurrent readers without synchronization overhead.
+Use `LazyThreadSafetyMode.NONE` only when the property is accessed from a single thread:
 
 ```kotlin
 val config: AppConfig by lazy(LazyThreadSafetyMode.PUBLICATION) { loadFromDisk("app.conf") }
@@ -298,7 +325,8 @@ class AuditedSet<E>(private val delegate: MutableSet<E> = mutableSetOf()) :
 
 ### String helpers before `Regex`
 
-Start with `trim`, `substringBefore`, `substringAfter`, `startsWith`, `split`, or `lineSequence`. Use `Regex` only when pattern matching is the real requirement.
+Start with `trim`, `substringBefore`, `substringAfter`, `startsWith`, `split`, or `lineSequence`.
+Use `Regex` only when pattern matching is the real requirement.
 
 Raw strings (`"""..."""`) preserve formatting and avoid escaping backslashes, which makes regex patterns and multi-line text readable:
 
@@ -346,7 +374,8 @@ class IssueKeyParser {
 
 ### `Result` and `runCatching` at boundaries
 
-Capture failures at parsing, I/O, or integration edges. Do not thread `Result` through every local branch of business logic.
+Capture failures at parsing, I/O, or integration edges.
+Do not thread `Result` through every local branch of business logic.
 
 ```kotlin
 fun parsePort(raw: String): Result<Int> =
@@ -486,20 +515,26 @@ Check these pass/fail conditions before you stop:
 
 - nullability is explicit and `!!` is not acting as a design shortcut
 - platform types (`T!`) are pinned at the Java interop boundary and never propagate inward
-- `val` is preferred; every `var` has a documented reason (backing field, JavaBean, circular dependency)
+- `val` is preferred.
+  - Every `var` has a documented reason (backing field, JavaBean, circular dependency)
 - argument validation uses `require`, state validation uses `check`, internal invariants use `assert`
 - public APIs expose read-only collection interfaces, not mutable variants
 - the chosen type shape matches the domain meaning instead of syntax fashion
 - data class `copy()` usage accounts for shallow-copy semantics
 - sealed types are consumed with exhaustive `when` expressions
-- extensions (functions and properties) improve the call site without hiding ownership rules; polymorphic behavior lives in members
+- extensions (functions and properties) improve the call site without hiding ownership rules.
+  - Polymorphic behavior lives in members
 - scope functions are readable in one pass with correct receiver/return semantics
-- generics use declaration-site variance where appropriate; `where` clauses constrain multiple bounds; star projections hide unused variance
+- generics use declaration-site variance where appropriate.
+  - `where` clauses constrain multiple bounds.
+  - Star projections hide unused variance
 - inline reification is used sparingly and only when reified access or measured performance justifies it
 - property delegation uses the right delegate for each job (`by lazy` with appropriate thread-safety mode, `Delegates.notNull`, `Delegates.observable`, `by`)
 - collection code stays eager unless laziness materially helps
-- direct string helpers were considered before `Regex`; raw strings and template expressions are used appropriately
-- `Result` stays at boundaries rather than infecting ordinary business flow; `try/catch` is used when per-exception handling or resource cleanup is needed
+- direct string helpers were considered before `Regex`.
+  - Raw strings and template expressions are used appropriately
+- `Result` stays at boundaries rather than infecting ordinary business flow.
+  - `try/catch` is used when per-exception handling or resource cleanup is needed
 - Java callers are not surprised by hidden Kotlin assumptions (`@JvmOverloads`, `@JvmStatic`, `@JvmField`, `@file:JvmName`, `@Throws`)
 - serialization, date-time, and JVM path choices stay explicit instead of being silently pushed into unrelated plugins
 - member ordering still leaves one file easy to scan from top to bottom
@@ -523,10 +558,10 @@ Check these pass/fail conditions before you stop:
 
 Return:
 
-1. the chosen Kotlin shape and why it fits the job
-2. any nullability, collection, or parsing decisions that affect behavior
-3. any Java-interop caveats that still matter
-4. any blocker references needed for deeper branches
+1. The chosen Kotlin shape and why it fits the job
+2. Any nullability, collection, or parsing decisions that affect behavior
+3. Any Java-interop caveats that still matter
+4. Any blocker references needed for deeper branches
 
 ## References
 

@@ -40,7 +40,7 @@ Stdio spawns a local process and communicates via stdin/stdout.
 ### Lifecycle
 
 1. Claude Code starts session
-2. stdio server is spawned as subprocess
+2. Stdio server is spawned as subprocess
 3. Server writes tools and resources on stdout (MCP protocol)
 4. Claude Code reads tool list
 5. Tool calls are sent to server via stdin as JSON
@@ -94,14 +94,16 @@ Fix: Provide all required env vars in MCP config:
 
 ### Best practices
 
-- Keep server processes lightweight; avoid heavy startup
+- Keep server processes lightweight.
+  - Avoid heavy startup.
 - Log server stderr for debugging
 - Use `env` to pass all required credentials
 - Test server locally: `npx @modelcontextprotocol/server-filesystem /tmp`
 
 ## SSE transport: hosted OAuth
 
-Server-Sent Events: unidirectional stream from server to client. OAuth handles auth.
+Server-Sent Events: unidirectional stream from server to client.
+OAuth handles auth.
 
 ### Configuration
 
@@ -151,7 +153,8 @@ Error: Token expired, attempting refresh
 Automatic retry with new token
 ```
 
-Claude Code handles refresh automatically. No user action needed.
+Claude Code handles refresh automatically.
+No user action needed.
 
 Network timeout: Remote server unreachable.
 
@@ -159,7 +162,8 @@ Network timeout: Remote server unreachable.
 Error: Connection timeout to https://mcp.github.com/sse
 ```
 
-Mitigation: Check network, verify server is online. Retry with `/mcp test github`.
+Mitigation: Check network, verify server is online.
+Retry with `/mcp test github`.
 
 Unimplemented tool: Server lists tool but `/call` endpoint returns error.
 
@@ -167,7 +171,8 @@ Unimplemented tool: Server lists tool but `/call` endpoint returns error.
 Error: Tool 'create_issue' not supported
 ```
 
-Fix: Verify server actually implements listed tools. Report to server maintainer.
+Fix: Verify server actually implements listed tools.
+Report to server maintainer.
 
 ### Best practices
 
@@ -215,7 +220,8 @@ Invalid token: Token in env var is wrong or expired.
 }
 ```
 
-Fix: Verify `${API_TOKEN}` env var contains valid token. Refresh if expired.
+Fix: Verify `${API_TOKEN}` env var contains valid token.
+Refresh if expired.
 
 Server error: Remote server returns 500.
 
@@ -231,7 +237,8 @@ Malformed response: Server returns invalid JSON.
 Error: Failed to parse MCP response
 ```
 
-Fix: Verify server sends valid JSON. Test with:
+Fix: Verify server sends valid JSON.
+Test with:
 
 ```json
 curl -H "Authorization: Bearer $API_TOKEN" https://api.example.com/mcp | jq .

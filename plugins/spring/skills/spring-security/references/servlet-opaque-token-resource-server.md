@@ -24,7 +24,8 @@ These dependency examples assume Spring Boot dependency management (parent/BOM) 
 </dependency>
 ```
 
-Opaque token support ships in the same starter as JWT resource server. No additional dependency is required.
+Opaque token support ships in the same starter as JWT resource server.
+No additional dependency is required.
 
 ## Minimal opaque-token servlet configuration
 
@@ -44,7 +45,8 @@ class OpaqueTokenSecurityConfig {
 }
 ```
 
-Use `securityMatcher(...)` here only when another explicit fallback chain protects the rest of the application. If this is the only chain, leave chain selection broad and scope access with `authorizeHttpRequests(...)`.
+Use `securityMatcher(...)` here only when another explicit fallback chain protects the rest of the application.
+If this is the only chain, leave chain selection broad and scope access with `authorizeHttpRequests(...)`.
 
 Spring Boot can also configure the introspection endpoint directly:
 
@@ -91,5 +93,6 @@ Wire it into the DSL:
 ## Gotchas
 
 - Do not mix opaque token and JWT configuration in the same chain without clear path separation.
-- Do not assume opaque token introspection is cheap; it is a network call on every request.
+- Do not assume opaque token introspection is cheap.
+  - It is a network call on every request.
 - Do not leave the introspection endpoint unauthenticated in production unless the issuer allows it.

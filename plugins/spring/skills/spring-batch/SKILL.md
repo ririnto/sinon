@@ -1,7 +1,8 @@
 ---
 name: spring-batch
 description: >-
-  Build and operate Spring Batch jobs with job/step configuration, chunk or tasklet processing, restartability, reader or writer choices, and scaling patterns. Use when defining job flows, choosing between chunk and tasklet steps, configuring skip or retry logic, or setting up partitioning and multi-threaded step execution.
+  Build and operate Spring Batch jobs with job/step configuration, chunk or tasklet processing, restartability, reader or writer choices, and scaling patterns.
+  Use when defining job flows, choosing between chunk and tasklet steps, configuring skip or retry logic, or setting up partitioning and multi-threaded step execution.
 ---
 
 # Spring Batch
@@ -12,7 +13,8 @@ Use `spring-batch` for scheduled or launched batch jobs, chunk and tasklet steps
 
 - General message-driven integration flows are outside this skill's scope unless they launch or coordinate batch jobs.
 - Repository design is outside this skill's scope unless the repository is part of batch reader, writer, or metadata behavior.
-- Keep domain logic in readers, processors, writers, tasklets, or delegated services. Batch configuration should orchestrate steps, not embed the business model.
+- Keep domain logic in readers, processors, writers, tasklets, or delegated services.
+  - Batch configuration should orchestrate steps, not embed the business model.
 
 ## Common path
 
@@ -29,7 +31,8 @@ The ordinary Spring Batch job is:
 
 Use the Boot starter for application code and the Batch test module for job and step tests.
 
-Spring Boot 4.1.x manages Spring Batch 6.0.x. The current released Spring Batch artifact line is 6.0.4. Spring Boot 3.4.x and 3.5.x use the Spring Batch 5.2.x compatibility branch; Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
+Spring Boot 4.1.x manages Spring Batch 6.0.x.
+The current released Spring Batch artifact line is 6.0.4. Spring Boot 3.4.x and 3.5.x use the Spring Batch 5.2.x compatibility branch; Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
 
 JDBC store (default when a `DataSource` is present):
 
@@ -63,7 +66,8 @@ MongoDB store (Boot 4.1+):
 </dependencies>
 ```
 
-Treat the Boot-managed path and the standalone current-line path as different compatibility branches. Verify the actual Batch line before copying infrastructure or migration examples that depend on Batch 6 behavior.
+Treat the Boot-managed path and the standalone current-line path as different compatibility branches.
+Verify the actual Batch line before copying infrastructure or migration examples that depend on Batch 6 behavior.
 
 ## Core batch terms
 
@@ -105,7 +109,8 @@ On Spring Boot 4.1+, the auto-configured store is selected by classpath and cond
 - `BatchDataMongoAutoConfiguration` activates when a `MongoDatabaseFactory` is present and no JDBC store is configured (the default when `spring-boot-starter-batch-data-mongodb` is on the classpath).
 - `BatchAutoConfiguration` provides the in-memory fallback when neither JDBC nor MongoDB conditions are met.
 
-No `@EnableBatchProcessing` or `@EnableJdbcJobRepository`/`@EnableMongoJobRepository` annotations are needed on the Boot 4.1+ auto-configured path. Boot backs off its auto-configuration when it detects `@EnableBatchProcessing` or a `DefaultBatchConfiguration` subclass on the classpath.
+No `@EnableBatchProcessing` or `@EnableJdbcJobRepository`/`@EnableMongoJobRepository` annotations are needed on the Boot 4.1+ auto-configured path.
+Boot backs off its auto-configuration when it detects `@EnableBatchProcessing` or a `DefaultBatchConfiguration` subclass on the classpath.
 
 On Spring Batch 6 with manual control (for example, when you need custom `tablePrefix`, `transactionManagerRef`, or other annotation attributes that go beyond Boot properties), opt into a persistent backend explicitly:
 
@@ -145,7 +150,8 @@ spring:
       initialize-schema: always
 ```
 
-Change repository strategy only when operations, scale, or platform constraints require it. Open the infrastructure reference before adopting Batch 6-specific migration behavior beyond these annotations.
+Change repository strategy only when operations, scale, or platform constraints require it.
+Open the infrastructure reference before adopting Batch 6-specific migration behavior beyond these annotations.
 
 ### Chunk job baseline
 
@@ -261,12 +267,12 @@ class ImportJobTests {
 
 ## References
 
-- Open [references/job-infrastructure-launch-and-recovery.md](references/job-infrastructure-launch-and-recovery.md) when the task is about `JobRepository`, `JobOperator`, parameter identity, restart versus rerun, metadata, recovery, graceful shutdown, or operational control.
-- Open [references/step-flow-and-listeners.md](references/step-flow-and-listeners.md) when the task involves tasklets, listeners, or flow branching.
-- Open [references/fault-tolerance-and-transaction-tuning.md](references/fault-tolerance-and-transaction-tuning.md) when the task involves transaction attributes, skip or retry rules, async item pipelines, or framework-level repeat and retry decisions.
-- Open [references/readers-writers-and-item-streams.md](references/readers-writers-and-item-streams.md) when the blocker is choosing or implementing a reader, writer, delegate, `ItemStream`, or restart-safe file, database, JSON, XML, or messaging pipeline.
-- Open [references/scaling-partitioning-and-remote-execution.md](references/scaling-partitioning-and-remote-execution.md) when one-step throughput is not enough and the task requires multithreaded steps, parallel flows, partitioning, local chunking, remote chunking, or remote step execution.
-- Open [references/testing-batch-jobs-and-step-scope.md](references/testing-batch-jobs-and-step-scope.md) when the task needs `spring-batch-test`, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
-- Open [references/integration-driven-launch.md](references/integration-driven-launch.md) when the task involves launching jobs through integration channels or feedback messaging.
-- Open [references/observability-and-monitoring.md](references/observability-and-monitoring.md) when the task involves Micrometer metrics, JFR, or operator-facing observability work.
-- Open [references/spring-batch-6-migration.md](references/spring-batch-6-migration.md) when the blocker is Spring Batch 6 migration-specific behavior or upgraded infrastructure notes.
+- Open [references/job`-infrastructure-launch-and-recovery.md`](references/job-infrastructure-launch-and-recovery.md) when the task is about `JobRepository`, `JobOperator`, parameter identity, restart versus rerun, metadata, recovery, graceful shutdown, or operational control.
+- Open [references/step`-flow-and-listeners.md`](references/step-flow-and-listeners.md) when the task involves tasklets, listeners, or flow branching.
+- Open [references/fault`-tolerance-and-transaction-tuning.md`](references/fault-tolerance-and-transaction-tuning.md) when the task involves transaction attributes, skip or retry rules, async item pipelines, or framework-level repeat and retry decisions.
+- Open [references/readers`-writers-and-item-streams.md`](references/readers-writers-and-item-streams.md) when the blocker is choosing or implementing a reader, writer, delegate, `ItemStream`, or restart-safe file, database, JSON, XML, or messaging pipeline.
+- Open [references/scaling`-partitioning-and-remote-execution.md`](references/scaling-partitioning-and-remote-execution.md) when one-step throughput is not enough and the task requires multithreaded steps, parallel flows, partitioning, local chunking, remote chunking, or remote step execution.
+- Open [references/testing`-batch-jobs-and-step-scope.md`](references/testing-batch-jobs-and-step-scope.md) when the task needs `spring-batch-test`, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
+- Open [references/integration`-driven-launch.md`](references/integration-driven-launch.md) when the task involves launching jobs through integration channels or feedback messaging.
+- Open [references/observability`-and-monitoring.md`](references/observability-and-monitoring.md) when the task involves Micrometer metrics, JFR, or operator-facing observability work.
+- Open [references/spring`-batch-6-migration.md`](references/spring-batch-6-migration.md) when the blocker is Spring Batch 6 migration-specific behavior or upgraded infrastructure notes.

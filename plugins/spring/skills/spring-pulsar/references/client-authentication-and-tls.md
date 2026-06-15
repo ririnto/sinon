@@ -24,10 +24,13 @@ spring:
 
 - Use one credential set for both client and admin access only when the runtime owner also controls topic provisioning.
 - Keep token, OAuth, or mTLS material in environment-backed secrets rather than inline YAML.
-- Enable hostname verification by default. Disable it only for controlled local development.
+- Enable hostname verification by default.
+  - Disable it only for controlled local development.
 
 ## Common pitfalls
 
-- A client `service-url` and an admin `service-url` are separate concerns. Do not assume one implicitly configures the other.
+- A client `service-url` and an admin `service-url` are separate concerns.
+  - Do not assume one implicitly configures the other.
 - TLS trust configuration must match the broker certificate chain used by both the client and admin endpoints.
-- Authentication plugin names are provider-specific. Keep the property block copy-adapted from the actual deployment rather than generalized.
+- Authentication plugin names are provider-specific.
+  - Keep the property block copy-adapted from the actual deployment rather than generalized.

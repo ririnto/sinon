@@ -1,7 +1,8 @@
 ---
 name: spring-pulsar
 description: >-
-  Build Apache Pulsar producers, consumers, and readers in Spring with `PulsarTemplate`, `@PulsarListener`, schema mapping, and DLQ patterns. Use when choosing subscription types, configuring customizers or transactions, writing Pulsar-focused tests, or performing Pulsar administration tasks within a Spring application.
+  Build Apache Pulsar producers, consumers, and readers in Spring with `PulsarTemplate`, `@PulsarListener`, schema mapping, and DLQ patterns.
+  Use when choosing subscription types, configuring customizers or transactions, writing Pulsar-focused tests, or performing Pulsar administration tasks within a Spring application.
 ---
 
 # Spring for Apache Pulsar
@@ -19,7 +20,8 @@ See the [version compatibility matrix](https://docs.spring.io/spring-pulsar/refe
 Use `spring-pulsar` for Pulsar producer and consumer code, listeners, readers, topic naming, partitions, and Pulsar-specific admin or transaction decisions.
 
 - Kafka or RabbitMQ producer and consumer semantics are outside this skill's scope.
-- Keep transport concerns in Pulsar-facing services and listeners. Domain logic should not know about subscriptions or topic partitions.
+- Keep transport concerns in Pulsar-facing services and listeners.
+  - Domain logic should not know about subscriptions or topic partitions.
 
 ## Common path
 
@@ -61,7 +63,7 @@ spring:
         name: warehouse
 ```
 
-Open [references/client-authentication-and-tls.md](references/client-authentication-and-tls.md) when the cluster requires authentication, TLS, or separate administration credentials.
+Open [references/client`-authentication-and-tls.md`](references/client-authentication-and-tls.md) when the cluster requires authentication, TLS, or separate administration credentials.
 
 ### Topic naming shape
 
@@ -69,7 +71,8 @@ Open [references/client-authentication-and-tls.md](references/client-authenticat
 persistent://public/default/shipments
 ```
 
-Start with explicit topic and subscription names in one namespace. Add tenant or namespace abstraction only when the deployment truly requires it.
+Start with explicit topic and subscription names in one namespace.
+Add tenant or namespace abstraction only when the deployment truly requires it.
 
 ## Coding procedure
 
@@ -244,7 +247,8 @@ class ShipmentFlowTest {
 }
 ```
 
-Pin a concrete broker image only when the test must prove compatibility with a chosen Pulsar line. Otherwise, keep the image aligned with one of the supported Pulsar lines for Spring Pulsar 2.0.x.
+Pin a concrete broker image only when the test must prove compatibility with a chosen Pulsar line.
+Otherwise, keep the image aligned with one of the supported Pulsar lines for Spring Pulsar 2.0.x.
 
 ## Testing checklist
 
@@ -267,20 +271,20 @@ Pin a concrete broker image only when the test must prove compatibility with a c
 
 ## References
 
-- Open [references/client-authentication-and-tls.md](references/client-authentication-and-tls.md) when the cluster requires authentication, TLS, or separate administration credentials.
-- Open [references/batch-consumption.md](references/batch-consumption.md) when the listener should consume batches instead of one message at a time.
-- Open [references/schema-mapping-and-compatibility.md](references/schema-mapping-and-compatibility.md) when schema type, schema evolution, or message conversion compatibility is unclear.
-- Open [references/producer-consumer-customizers-and-properties.md](references/producer-consumer-customizers-and-properties.md) when `spring.pulsar.*` properties are not enough or builder customizers are required.
-- Open [references/consumer-acknowledgment.md](references/consumer-acknowledgment.md) when listener acknowledgment should be controlled explicitly instead of using the ordinary listener flow.
-- Open [references/subscription-types-and-concurrency.md](references/subscription-types-and-concurrency.md) when subscription mode or listener concurrency must be chosen.
-- Open [references/dead-letter-policy.md](references/dead-letter-policy.md) when DLQ behavior must be chosen explicitly.
-- Open [references/error-handling-redelivery-and-dlt.md](references/error-handling-redelivery-and-dlt.md) when redelivery, backoff, or dead-letter publishing behavior must be tuned.
-- Open [references/readers-and-replay.md](references/readers-and-replay.md) when the task needs replay readers.
-- Open [references/partitioned-topics-and-key-routing.md](references/partitioned-topics-and-key-routing.md) when the task needs partitioned topics or key-based routing decisions.
-- Open [references/admin-and-topic-provisioning.md](references/admin-and-topic-provisioning.md) when the application must create topics, partitions, or namespace-level settings programmatically.
-- Open [references/transactions-and-coordinated-ack.md](references/transactions-and-coordinated-ack.md) when grouped writes or acknowledgment coordination are required.
+- Open [references/client`-authentication-and-tls.md`](references/client-authentication-and-tls.md) when the cluster requires authentication, TLS, or separate administration credentials.
+- Open [references/batch`-consumption.md`](references/batch-consumption.md) when the listener should consume batches instead of one message at a time.
+- Open [references/schema`-mapping-and-compatibility.md`](references/schema-mapping-and-compatibility.md) when schema type, schema evolution, or message conversion compatibility is unclear.
+- Open [references/producer`-consumer-customizers-and-properties.md`](references/producer-consumer-customizers-and-properties.md) when `spring.pulsar.*` properties are not enough or builder customizers are required.
+- Open [references/consumer`-acknowledgment.md`](references/consumer-acknowledgment.md) when listener acknowledgment should be controlled explicitly instead of using the ordinary listener flow.
+- Open [references/subscription`-types-and-concurrency.md`](references/subscription-types-and-concurrency.md) when subscription mode or listener concurrency must be chosen.
+- Open [references/dead`-letter-policy.md`](references/dead-letter-policy.md) when DLQ behavior must be chosen explicitly.
+- Open [references/error`-handling-redelivery-and-dlt.md`](references/error-handling-redelivery-and-dlt.md) when redelivery, backoff, or dead-letter publishing behavior must be tuned.
+- Open [references/readers`-and-replay.md`](references/readers-and-replay.md) when the task needs replay readers.
+- Open [references/partitioned`-topics-and-key-routing.md`](references/partitioned-topics-and-key-routing.md) when the task needs partitioned topics or key-based routing decisions.
+- Open [references/admin`-and-topic-provisioning.md`](references/admin-and-topic-provisioning.md) when the application must create topics, partitions, or namespace-level settings programmatically.
+- Open [references/transactions`-and-coordinated-ack.md`](references/transactions-and-coordinated-ack.md) when grouped writes or acknowledgment coordination are required.
 - Open [references/tombstones.md](references/tombstones.md) when tombstone records are required.
-- Open [references/testing-with-testcontainers.md](references/testing-with-testcontainers.md) when Pulsar integration tests need Testcontainers or admin-backed verification.
+- Open [references/testing`-with-testcontainers.md`](references/testing-with-testcontainers.md) when Pulsar integration tests need Testcontainers or admin-backed verification.
 - Open [references/observability.md](references/observability.md) when metrics, tracing, or production debugging must be added.
 - Open [references/headers.md](references/headers.md) when accessing Pulsar message headers or configuring header mapping.
-- Open [references/container-lifecycle.md](references/container-lifecycle.md) when listener containers must be paused, resumed, or configured for startup failure handling.
+- Open [references/container`-lifecycle.md`](references/container-lifecycle.md) when listener containers must be paused, resumed, or configured for startup failure handling.

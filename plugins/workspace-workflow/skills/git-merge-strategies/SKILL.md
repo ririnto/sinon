@@ -2,7 +2,8 @@
 name: git-merge-strategies
 description: >-
   Merge feature branches into a base branch using appropriate strategies
-  (fast-forward, no-ff merge commit, squash, octopus). Use when choosing a merge strategy, handling merge conflicts interactively, or automating recurring conflict patterns with rerere.
+  (fast-forward, no-ff merge commit, squash, octopus).
+  Use when choosing a merge strategy, handling merge conflicts interactively, or automating recurring conflict patterns with rerere.
 ---
 
 # Git Merge Strategies
@@ -26,10 +27,13 @@ This skill does not cover:
 
 ## Operating Rules
 
-- **Clean working tree MUST be verified before merge**: Run `git status` before merging. The working tree MUST show "nothing to commit, working tree clean".
+- **Clean working tree MUST be verified before merge**: Run `git status` before merging.
+  - The working tree MUST show "nothing to commit, working tree clean".
 - **Fetch latest before merge MUST occur**: Run `git fetch` before merging to ensure you have the latest upstream state.
-- **Pushed branches MUST NOT be force-pushed after merge**: Once a branch is merged and pushed, do not use `git push --force`. Use `git revert` instead.
-- **Merge commits SHOULD have clear intent**: Add `-m` message to merge commits (beyond the default); state the feature and branch name.
+- **Pushed branches MUST NOT be force-pushed after merge**: Once a branch is merged and pushed, do not use `git push --force`.
+  - Use `git revert` instead.
+- **Merge commits SHOULD have clear intent**: Add `-m` message to merge commits (beyond the default).
+  - State the feature and branch name.
 - **Conflicting files MUST be fully resolved**: MUST NOT commit a merge with `<<<<<<<` or `>>>>>>>` markers remaining.
 
 ## Decision: Which Merge Strategy?
@@ -43,9 +47,12 @@ This skill does not cover:
 
 ### Quick decision rules
 
-1. **Default**: Use `--no-ff` unless your project standard specifies otherwise. It preserves feature branch identity without cluttering history.
-2. **Small hotfix or trivial rebase**: Use fast-forward (`git merge {{branch}}`). The feature is a clean linear extension.
-3. **Experimental or temporary branch**: Use `--squash`. Collapse feature work into a single logical commit.
+1. **Default**: Use `--no-ff` unless your project standard specifies otherwise.
+   - It preserves feature branch identity without cluttering history.
+2. **Small hotfix or trivial rebase**: Use fast-forward (`git merge {{branch}}`).
+   - The feature is a clean linear extension.
+3. **Experimental or temporary branch**: Use `--squash`.
+   - Collapse feature work into a single logical commit.
 4. **Multiple features at once**: Use octopus *only* if all feature branches are complete, tested, and non-conflicting.
 
 ## Procedure: Pre-Merge Verification
@@ -281,7 +288,8 @@ After all conflicts are resolved and staged:
 git commit
 ```
 
-This opens your editor. Accept the default merge message or edit it:
+This opens your editor.
+Accept the default merge message or edit it:
 
 ```text
 Merge branch 'feature-branch' into main
@@ -319,13 +327,15 @@ const API_TIMEOUT = 3000;  // base
 const API_TIMEOUT = 5000;  // feature
 ```
 
-Resolution: Decide which value is correct or use a compromise. Remove conflict markers and keep one value.
+Resolution: Decide which value is correct or use a compromise.
+Remove conflict markers and keep one value.
 
 ### Pattern: One branch deleted, other branch modified
 
 File: `src/old_module.js`
 
-Status: Base branch deleted the file; feature branch modified it.
+Status: Base branch deleted the file.
+Feature branch modified it.
 
 Conflict marker:
 
@@ -355,7 +365,8 @@ git add src/old_module.js
 
 ### Pattern: Rename and edit same file
 
-File: Renamed in base branch; content edited in feature branch.
+File: Renamed in base branch.
+Content edited in feature branch.
 
 Status: Git detects rename + content conflict.
 
@@ -375,7 +386,8 @@ File: `image.png` or `archive.bin`
 
 Status: Both branches changed the binary file.
 
-Resolution: Git cannot auto-merge binaries. Choose one:
+Resolution: Git cannot auto-merge binaries.
+Choose one:
 
 ```sh
 git checkout --ours image.png
@@ -411,7 +423,8 @@ git config --global rerere.enabled true
 
 1. When you resolve a conflict, Git records the conflict pattern (pre-resolve) and your resolution (post-resolve).
 2. On future merges, if the same conflict pattern is detected, Git automatically applies the cached resolution.
-3. You still must review and commit; rerere just saves the manual editing step.
+3. You still must review and commit.
+   - Rerere just saves the manual editing step.
 
 ### Record and forget: Rerere cache workflow
 
@@ -505,10 +518,14 @@ Each directory represents one recorded conflict.
 
 ## Pitfalls
 
-- **Aborting mid-merge**: Use `git merge --abort` to cancel a merge cleanly. MUST NOT use `git reset --merge` unless you understand the difference (reset is destructive and can lose work).
-- **Committing with conflict markers**: Always verify conflict markers are removed before committing. Search for `<<<<<<<` and `=======` in all files.
-- **Force-pushing after merge**: Never use `git push --force` after merging into a published branch. Use `git revert` to undo bad merges instead.
-- **Stale branch after merge**: After a successful merge, the feature branch still exists locally and remotely. Delete it explicitly:
+- **Aborting mid-merge**: Use `git merge --abort` to cancel a merge cleanly.
+  - MUST NOT use `git reset --merge` unless you understand the difference (reset is destructive and can lose work).
+- **Committing with conflict markers**: Always verify conflict markers are removed before committing.
+  - Search for `<<<<<<<` and `=======` in all files.
+- **Force-pushing after merge**: Never use `git push --force` after merging into a published branch.
+  - Use `git revert` to undo bad merges instead.
+- **Stale branch after merge**: After a successful merge, the feature branch still exists locally and remotely.
+  - Delete it explicitly:
 
 ```sh
 git branch -d <feature-branch>

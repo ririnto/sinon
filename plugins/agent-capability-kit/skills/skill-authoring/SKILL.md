@@ -1,8 +1,9 @@
 ---
 name: skill-authoring
 description: >-
-  Write or refactor a cross-platform Agent Skill. Use when the skill must stay
-  self-sufficient in SKILL.md, easy to trigger from its description, and usable
+  Write or refactor a cross-platform Agent Skill.
+  Use when the skill must stay
+  self-sufficient in `SKILL.md`, easy to trigger from its description, and usable
   offline without mandatory external tooling.
 ---
 
@@ -60,7 +61,8 @@ Required fields:
 - `name`
 - `description`
 
-Do not add `title`, `metadata`, `owner`, `license`, `version`, `source`, `officialDocs`, URLs, tool allowlists, argument hints, or baseline fields to skill frontmatter. If the information matters during ordinary use, place it under an H2 section in the body.
+Do not add `title`, `metadata`, `owner`, `license`, `version`, `source`, `officialDocs`, URLs, tool allowlists, argument hints, or baseline fields to skill frontmatter.
+If the information matters during ordinary use, place it under an H2 section in the body.
 
 ### `name`
 
@@ -129,9 +131,11 @@ description: >-
 ## Writing procedure
 
 1. Onboard current state.
-   Read the skill directory, local rules, existing support files, and user request. For new skills, copy `assets/skill-template.md`.
+Read the skill directory, local rules, existing support files, and user request.
+   For new skills, copy `assets/skill-template.md`.
 2. Define the coherent unit.
-   Write one sentence for the job this skill owns. Remove adjacent jobs, optional branches, and host-specific sprawl from that sentence.
+Write one sentence for the job this skill owns.
+   Remove adjacent jobs, optional branches, and host-specific sprawl from that sentence.
 3. Plan the file split.
    Put always-needed guidance in `SKILL.md`, copyable artifacts in `assets/`, blocker-specific depth in `references/`, and deterministic helper code in `scripts/`.
 4. Draft `SKILL.md` first.
@@ -156,7 +160,8 @@ An ordinary-path `SKILL.md` should contain:
 7. Format-critical output shapes.
 8. Brief support-file pointers indexed by concrete blocker or job.
 
-Prefer imperative wording, concrete paths, copy-adaptable examples, and explicit commands. Keep tutorials, large examples, compatibility matrices, and troubleshooting branches in support files when they are not required on most activations.
+Prefer imperative wording, concrete paths, copy-adaptable examples, and explicit commands.
+Keep tutorials, large examples, compatibility matrices, and troubleshooting branches in support files when they are not required on most activations.
 
 ## Placement rules
 
@@ -194,7 +199,8 @@ Open `references/progressive-disclosure.md` only when placement is unclear or `S
 
 ## Scripts
 
-Scripts are optional. Add `scripts/` only when code is safer than prose for a repeated deterministic step.
+Scripts are optional.
+Add `scripts/` only when code is safer than prose for a repeated deterministic step.
 
 - Good candidates: validation helpers, static checks, file generation, report formatting, deterministic transforms.
 - Bad candidates: interactive workflows, host-specific wrappers, web-required setup, or one-off commands.

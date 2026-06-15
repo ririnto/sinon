@@ -17,7 +17,8 @@ Open this when concurrent mutation is the design problem rather than API shape a
 
 ## Patterns
 
-Thread confinement through one owner -- the simplest shared-state pattern. Confine all mutations to a single coroutine and expose state read-only:
+Thread confinement through one owner -- the simplest shared-state pattern.
+Confine all mutations to a single coroutine and expose state read-only:
 
 ```kotlin
 import kotlinx.coroutines.CoroutineScope
@@ -69,7 +70,8 @@ class OrderAccumulator {
 }
 ```
 
-Use the actor pattern when you need backpressure control (bounded channel capacity) or when command submission itself must be suspending (caller waits when channel is full). For simpler cases where `MutableStateFlow.update {}` suffices, prefer direct confinement without a channel.
+Use the actor pattern when you need backpressure control (bounded channel capacity) or when command submission itself must be suspending (caller waits when channel is full).
+For simpler cases where `MutableStateFlow.update {}` suffices, prefer direct confinement without a channel.
 
 Simple atomic update:
 

@@ -1,6 +1,6 @@
 # Generic AMQP 1.0 support
 
-Open this reference when the RabbitMQ-specific path in [SKILL.md](../SKILL.md) is not needed and the blocker is generic AMQP 1.0 protocol interaction.
+Open this reference when the RabbitMQ-specific path in [`SKILL.md`](../SKILL.md) is not needed and the blocker is generic AMQP 1.0 protocol interaction.
 
 ## AMQP 1.0 blocker
 
@@ -8,7 +8,8 @@ Problem: the integration peer uses AMQP 1.0 natively, or RabbitMQ-specific featu
 
 Solution: use the `spring-amqp-client` module with its own `@EnableAmqp` / `@AmqpListener` annotations, `AmqpClient` fluent API, and `AmqpConnectionFactory`.
 
-The `spring-amqp-client` module is separate from the RabbitMQ-specific `spring-rabbit` module. It uses the Qpid ProtonJ2 client library and works with any AMQP 1.0 peer.
+The `spring-amqp-client` module is separate from the RabbitMQ-specific `spring-rabbit` module.
+It uses the Qpid ProtonJ2 client library and works with any AMQP 1.0 peer.
 
 ```xml
 <dependency>
@@ -26,7 +27,8 @@ AmqpConnectionFactory connectionFactory() {
 }
 ```
 
-Defaults to `localhost:5672` with infinite reconnection. Configure via setters (`host`, `port`, `user`) or the ProtonJ `ConnectionOptions` builder.
+Defaults to `localhost:5672` with infinite reconnection.
+Configure via setters (`host`, `port`, `user`) or the ProtonJ `ConnectionOptions` builder.
 
 ## AmqpClient fluent API
 
@@ -59,7 +61,8 @@ void handle(OrderCreated event) {
 }
 ```
 
-Supports `Mono` return types, `CompletableFuture`, and Kotlin `suspend` functions. Request-reply with `@SendTo` fallback is supported.
+Supports `Mono` return types, `CompletableFuture`, and Kotlin `suspend` functions.
+Request-reply with `@SendTo` fallback is supported.
 
 ## Decision points
 

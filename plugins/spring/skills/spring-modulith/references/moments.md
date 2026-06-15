@@ -4,7 +4,8 @@ Open this reference when the application reacts to business-relevant time events
 
 ## Moments boundary
 
-Use Moments for domain-relevant time events, not for generic infrastructure cron jobs. Use scheduled tasks for infrastructure-level periodic work that has no domain meaning.
+Use Moments for domain-relevant time events, not for generic infrastructure cron jobs.
+Use scheduled tasks for infrastructure-level periodic work that has no domain meaning.
 
 ## Starter shape
 
@@ -43,7 +44,8 @@ class BillingCycleListener {
 }
 ```
 
-Both `@EventListener` and `@ApplicationModuleListener` work for Moments events. Use `@ApplicationModuleListener` when the listener belongs to the cross-module boundary.
+Both `@EventListener` and `@ApplicationModuleListener` work for Moments events.
+Use `@ApplicationModuleListener` when the listener belongs to the cross-module boundary.
 
 ## Time machine test shape
 
@@ -71,7 +73,8 @@ Use `timeMachine.reset()` to clear accumulated time shifts between tests when th
 
 ## Jackson serialization
 
-Moments events support Jackson serialization for JSON-based event stores. Include the `spring-modulith-moments` dependency and configure Jackson to handle `Duration`-based time event payloads as needed for externalized or persisted moments.
+Moments events support Jackson serialization for JSON-based event stores.
+Include the `spring-modulith-moments` dependency and configure Jackson to handle `Duration`-based time event payloads as needed for externalized or persisted moments.
 
 ## Decision points
 

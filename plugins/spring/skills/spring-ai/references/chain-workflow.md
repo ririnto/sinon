@@ -1,6 +1,6 @@
 # Chain workflow
 
-Open this reference when the ordinary path in [SKILL.md](../SKILL.md) is not enough and the blocker is that one bounded model step must explicitly feed the next.
+Open this reference when the ordinary path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is that one bounded model step must explicitly feed the next.
 
 ## Chain workflow blocker
 

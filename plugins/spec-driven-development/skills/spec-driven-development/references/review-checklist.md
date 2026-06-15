@@ -33,8 +33,8 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 ### Canonical Placement
 
-- [ ] SPEC.md is placed at `spec/domain/{{ownership-path}}/SPEC.md` where `{{ownership-path}}` reflects the owning capability boundary
-- [ ] RESEARCH.md exists only under `spec/research/{framework|library|topic}/{name}/` when external behavior affects the SPEC
+- [ ] `SPEC.md` is placed at `spec/domain/{{ownership-path}}/SPEC.md` where `{{ownership-path}}` reflects the owning capability boundary
+- [ ] `RESEARCH.md` exists only under `spec/research/{framework|library|topic}/{name}/` when external behavior affects the SPEC
 
 ### Ownership and Authoring Flow
 
@@ -45,10 +45,10 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 ### Research
 
-- [ ] RESEARCH.md exists when external behavior or version-sensitive behavior affects the SPEC
-- [ ] If RESEARCH.md exists, frontmatter captures the investigated subject and version
-- [ ] If RESEARCH.md exists, it documents framework/library/topic behavior and is not project comparison, repository audits, implementation planning, migration sequencing, or task management
-- [ ] If RESEARCH.md exists, findings are current enough for this review
+- [ ] `RESEARCH.md` exists when external behavior or version-sensitive behavior affects the SPEC
+- [ ] If `RESEARCH.md` exists, frontmatter captures the investigated subject and version
+- [ ] If `RESEARCH.md` exists, it documents framework/library/topic behavior and is not project comparison, repository audits, implementation planning, migration sequencing, or task management
+- [ ] If `RESEARCH.md` exists, findings are current enough for this review
 - [ ] In authored `RESEARCH.md`, scaffold `TODO:` markers are resolved (no unresolved `TODO:` markers remain in non-fenced content)
 
 ### Scope and Ownership
@@ -69,26 +69,26 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 ### Contract
 
-- [ ] When OpenAPI-based HTTP endpoint contracts are used: openapi.yaml exists in the same directory as SPEC.md
+- [ ] When OpenAPI-based HTTP endpoint contracts are used: openapi.yaml exists in the same directory as `SPEC.md`
 - [ ] When OpenAPI-based HTTP endpoint contracts are used: operations with `requestBody` define request schemas with required fields and types
 - [ ] When OpenAPI-based HTTP endpoint contracts are used: each status code either defines response content schema(s) or is an intentional no-body response (`1xx`, `204`, `205`, `304`, or `HEAD`)
-- [ ] When OpenAPI-based HTTP endpoint contracts are used: OpenAPI covers scenarios from SPEC.md
-- [ ] When CONTRACT.md is used: it exists in the same directory as SPEC.md
-- [ ] When CONTRACT.md is used: frontmatter parses as YAML and includes title, description, and last_updated
-- [ ] When CONTRACT.md is used: last_updated is an ISO 8601 calendar date (`YYYY-MM-DD`)
-- [ ] When CONTRACT.md is used: Contract Units are used (function/file/interface/class as applicable)
-- [ ] When CONTRACT.md is used: multiple units are used in one document when ownership and lifecycle are shared
-- [ ] When CONTRACT.md is used: scenario mapping is included for each documented unit
-- [ ] When CONTRACT.md is used: examples are mapped by unit and scenario
-- [ ] When CONTRACT.md is used: at least one success-case example input/output data is included
-- [ ] When CONTRACT.md is used: validation rules are documented for inputs, outputs, and invariants
-- [ ] When CONTRACT.md is used: error mapping is included for expected failure outcomes
-- [ ] When CONTRACT.md is used: relevant edge cases are covered
-- [ ] When CONTRACT.md is used: semantic constraints for invariants, idempotency, concurrency, and async behavior are validated when applicable
-- [ ] When CONTRACT.md is used: it is consistent with SPEC.md Functional Requirements and Scenarios
-- [ ] When CONTRACT.md is used: no unresolved `TODO:` markers are present in non-fenced content
-- [ ] When CONTRACT.md is used: no unresolved template placeholders (for example, `{{token}}`) are present in non-fenced content
-- [ ] When CONTRACT.md is used: no inline `markdownlint-*` directives are present
+- [ ] When OpenAPI-based HTTP endpoint contracts are used: OpenAPI covers scenarios from `SPEC.md`
+- [ ] When `CONTRACT.md` is used: it exists in the same directory as `SPEC.md`
+- [ ] When `CONTRACT.md` is used: frontmatter parses as YAML and includes title, description, and last_updated
+- [ ] When `CONTRACT.md` is used: last_updated is an ISO 8601 calendar date (`YYYY-MM-DD`)
+- [ ] When `CONTRACT.md` is used: Contract Units are used (function/file/interface/class as applicable)
+- [ ] When `CONTRACT.md` is used: multiple units are used in one document when ownership and lifecycle are shared
+- [ ] When `CONTRACT.md` is used: scenario mapping is included for each documented unit
+- [ ] When `CONTRACT.md` is used: examples are mapped by unit and scenario
+- [ ] When `CONTRACT.md` is used: at least one success-case example input/output data is included
+- [ ] When `CONTRACT.md` is used: validation rules are documented for inputs, outputs, and invariants
+- [ ] When `CONTRACT.md` is used: error mapping is included for expected failure outcomes
+- [ ] When `CONTRACT.md` is used: relevant edge cases are covered
+- [ ] When `CONTRACT.md` is used: semantic constraints for invariants, idempotency, concurrency, and async behavior are validated when applicable
+- [ ] When `CONTRACT.md` is used: it is consistent with `SPEC.md` Functional Requirements and Scenarios
+- [ ] When `CONTRACT.md` is used: no unresolved `TODO:` markers are present in non-fenced content
+- [ ] When `CONTRACT.md` is used: no unresolved template placeholders (for example, `{{token}}`) are present in non-fenced content
+- [ ] When `CONTRACT.md` is used: no inline `markdownlint-*` directives are present
 
 ### Formatting
 
@@ -107,14 +107,14 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 ### Requirements Coverage
 
 - [ ] Every Functional Requirement has corresponding implementation
-- [ ] Unrealized requirements have documented justification in SPEC.md
+- [ ] Unrealized requirements have documented justification in `SPEC.md`
 - [ ] All Scenarios are testable
 
 ### Spec Sync
 
-- [ ] SPEC.md status updated appropriately
-- [ ] SPEC.md last_updated date refreshed
-- [ ] If RESEARCH.md exists, it remains synchronized with the implemented state
+- [ ] `SPEC.md` status updated appropriately
+- [ ] `SPEC.md` last_updated date refreshed
+- [ ] If `RESEARCH.md` exists, it remains synchronized with the implemented state
 - [ ] `spec/CHANGELOG.md` entries keep latest date first
 - [ ] `spec/CHANGELOG.md` includes only behavior changes, configuration additions or changes, and contract changes
 - [ ] `spec/CHANGELOG.md` excludes research, initialization, planning, and future-reservation content

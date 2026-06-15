@@ -5,7 +5,8 @@ description: >-
 
 # Workspace Workflow
 
-Workspace Workflow is a shared, skill-first plugin for end-to-end Git workspace and change-publication workflow in the Sinon Claude marketplace. It covers isolated worktree work, working-tree discipline, history integration (merge or rebase), commit message conventions, and pull or merge request composition under one coherent plugin.
+Workspace Workflow is a shared, skill-first plugin for end-to-end Git workspace and change-publication workflow in the Sinon Claude marketplace.
+It covers isolated worktree work, working-tree discipline, history integration (merge or rebase), commit message conventions, and pull or merge request composition under one coherent plugin.
 
 ## Purpose
 
@@ -48,7 +49,8 @@ This plugin uses one shared plugin root with a Claude manifest that publishes th
 
 - `.claude-plugin/plugin.json` declares `./skills/` and `./commands/`.
 
-The `agents/` directory ships at the plugin root and is described in this README. It is intentionally not declared in `plugin.json` because the Claude Code plugin manifest schema does not support an `agents` key.
+The `agents/` directory ships at the plugin root and is described in this README.
+It is intentionally not declared in `plugin.json` because the Claude Code plugin manifest schema does not support an `agents` key.
 
 ## Plugin Layout
 
@@ -89,7 +91,8 @@ plugins/workspace-workflow/
 
 ## Design Principles
 
-- Prefer one coherent user job per skill; route cross-skill decisions through `workspace-architect`.
+- Prefer one coherent user job per skill.
+  - Route cross-skill decisions through `workspace-architect`.
 - Keep the common path self-sufficient inside each `SKILL.md` with concrete commands, invariants, and decision tables.
 - Derive guidance from real Git behavior and repository state rather than generic tutorials.
 - Treat shared history as a contract: rebasing or force-pushing published branches requires explicit, team-acknowledged intent.
@@ -111,9 +114,11 @@ claude --plugin-dir /path/to/sinon/plugins/workspace-workflow
 
 ## Scope Notes
 
-This plugin focuses on the Git-driven workspace and change-publication loop. It intentionally does not cover:
+This plugin focuses on the Git-driven workspace and change-publication loop.
+It intentionally does not cover:
 
-- Code review judgement on the merits of the change (the PR/MR body sets it up; reviewers and other plugins evaluate it).
+- Code review judgement on the merits of the change (the PR/MR body sets it up.
+  - Reviewers and other plugins evaluate it).
 - Language- or framework-specific build, test, or release tooling (see language plugins such as `java`, `kotlin`, or framework plugins such as `spring`, `reactor`).
 - Custom CI/CD pipeline templates beyond minimal command snippets used in PR/MR descriptions.
 - Hooks, MCP servers, or repository-level automation outside the workspace workflow itself.

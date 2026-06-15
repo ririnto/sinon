@@ -5,7 +5,8 @@ description: >-
 
 # Flow Replay and Bounded Assertions
 
-Use this reference when the job is to prove one Flow contract with bounded, deterministic assertions. This reference should be sufficient on its own for that task.
+Use this reference when the job is to prove one Flow contract with bounded, deterministic assertions.
+This reference should be sufficient on its own for that task.
 
 Use this file to finish one of these jobs:
 
@@ -14,7 +15,8 @@ Use this file to finish one of these jobs:
 - verify that a `SharedFlow` with `replay = 0` only reaches active collectors
 - keep collection bounded so the test finishes as soon as the contract is proven
 
-The canonical bounded cold Flow collection pattern (`.take(n).toList()`) is in `SKILL.md` under "Keep Flow collection bounded". This reference covers only additive material.
+The canonical bounded cold Flow collection pattern (`.take(n).toList()`) is in `SKILL.md` under "Keep Flow collection bounded".
+This reference covers only additive material.
 
 Kotest Flow matcher shape:
 
@@ -102,4 +104,5 @@ Replay-focused checklist:
 2. Keep collection bounded to the exact items needed for the scenario.
 3. Cancel the collector or finish the scope once the contract is proven.
 
-The JUnit examples in this file use JUnit consistently; the Kotest example is the deliberate exception for Kotest-based suites.
+The JUnit examples in this file use JUnit consistently.
+The Kotest example is the deliberate exception for Kotest-based suites.

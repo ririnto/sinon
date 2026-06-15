@@ -6,9 +6,11 @@ Use flow execution tests when backtracking, invalid input, exception paths, or s
 
 ## Test harness baseline
 
-Spring Web Flow's official XML flow test support starts from `AbstractXmlFlowExecutionTests`. When the project standardizes on JUnit 5, keep the public test class in Jupiter style and delegate flow-harness operations to a helper subclass.
+Spring Web Flow's official XML flow test support starts from `AbstractXmlFlowExecutionTests`.
+When the project standardizes on JUnit 5, keep the public test class in Jupiter style and delegate flow-harness operations to a helper subclass.
 
-Define the booking service stub in the test source set. Treat it as application test code, not as a framework-provided helper.
+Define the booking service stub in the test source set.
+Treat it as application test code, not as a framework-provided helper.
 
 ```java
 final class BookingServiceStub implements BookingService {
@@ -116,7 +118,8 @@ void confirmBackReturnsToEnterDetails() {
 }
 ```
 
-Use the invalid-input path to prove validation timing and error retention. Use the backtracking path to prove that only the intended state survives backward navigation.
+Use the invalid-input path to prove validation timing and error retention.
+Use the backtracking path to prove that only the intended state survives backward navigation.
 
 ## Subflow exit shape
 
@@ -149,11 +152,13 @@ Use one exception-path test when a global transition, exception handler, or reco
 
 ## JUnit 5 compatibility note
 
-`AbstractXmlFlowExecutionTests` inherits from a JUnit `TestCase` base class, but a project can still keep the public test surface in JUnit 5 style by delegating the harness operations through a helper subclass as shown above. Keep one assertion per `assertAll` line when multiple flow-outcome checks belong to the same scenario.
+`AbstractXmlFlowExecutionTests` inherits from a JUnit `TestCase` base class, but a project can still keep the public test surface in JUnit 5 style by delegating the harness operations through a helper subclass as shown above.
+Keep one assertion per `assertAll` line when multiple flow-outcome checks belong to the same scenario.
 
 ## Gotchas
 
-- Do not call `resumeFlow(requestContext())`; the official API expects `resumeFlow(context)` with a `MockExternalContext`.
+- Do not call `resumeFlow(requestContext())`.
+  - The official API expects `resumeFlow(context)` with a `MockExternalContext`.
 - Do not skip `getResource(...)` or bean registration when the flow evaluates services, validators, or subflow dependencies.
 - Do not start with a full end-to-end journey when one state transition is the behavior under test.
 - Do not skip negative-path assertions for invalid input, backtracking, or exception handling.

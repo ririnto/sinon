@@ -34,7 +34,8 @@ class ClientRegistrationConfig {
 }
 ```
 
-Use the initial-access token only for registration. The official path is initial-access-token based.
+Use the initial-access token only for registration.
+The official path is initial-access-token based.
 
 ## Custom metadata converters
 

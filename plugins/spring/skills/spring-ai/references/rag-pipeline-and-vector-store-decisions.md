@@ -2,7 +2,8 @@
 
 Open this reference when ETL pipeline design, ingestion pipeline design, chunking strategy, embedding model choice, vector store behavior, retrieval tuning, or RAG assembly must be decided.
 
-Keep the ordinary path in [SKILL.md](../SKILL.md). Use this file only when retrieval design itself becomes the blocker.
+Keep the ordinary path in [`SKILL.md`](../SKILL.md).
+Use this file only when retrieval design itself becomes the blocker.
 
 ## ETL Pipeline and document ingestion blocker
 
@@ -37,7 +38,8 @@ Solution: Start with `TokenTextSplitter` and tune chunk size, minimum chunk size
 TokenTextSplitter splitter = TokenTextSplitter.builder().withChunkSize(800).withMinChunkSizeChars(350).withKeepSeparator(true).build();
 ```
 
-Verify retrieval quality with a representative question set before shipping. Do not treat chunk size as a one-time tuning knob.
+Verify retrieval quality with a representative question set before shipping.
+Do not treat chunk size as a one-time tuning knob.
 
 ## Embedding model blocker
 
@@ -57,7 +59,8 @@ VectorStore vectorStore(EmbeddingModel embeddingModel, PgVectorStore pgVectorSto
 }
 ```
 
-Use `EmbeddingModel` interface so the embedding source can be swapped without changing retrieval code. Batch embedding calls during ingestion to reduce per-document overhead.
+Use `EmbeddingModel` interface so the embedding source can be swapped without changing retrieval code.
+Batch embedding calls during ingestion to reduce per-document overhead.
 
 ## Vector store selection blocker
 
@@ -93,7 +96,8 @@ VectorStore vectorStore(PgVectorStore pgVectorStore) {
 }
 ```
 
-Prefer stores that align with existing infrastructure first. Treat in-memory stores as development-only artifacts.
+Prefer stores that align with existing infrastructure first.
+Treat in-memory stores as development-only artifacts.
 
 ## Metadata filtering blocker
 
@@ -109,7 +113,8 @@ SearchRequest request = SearchRequest.builder()
     .build();
 ```
 
-Attach metadata during ingestion and keep it stable across re-indexing. When filter cardinality is high, validate that the filter actually prunes results and does not accidentally exclude all matches.
+Attach metadata during ingestion and keep it stable across re-indexing.
+When filter cardinality is high, validate that the filter actually prunes results and does not accidentally exclude all matches.
 
 ## Retrieval tuning blocker
 
@@ -121,8 +126,10 @@ Solution: Tune `topK` and `similarityThreshold` together and verify with a close
 SearchRequest request = SearchRequest.builder().query(question).topK(5).similarityThreshold(0.72).build();
 ```
 
-- `topK` controls how many candidates are returned before re-ranking. Set it higher than the desired answer-set size when recall matters.
-- `similarityThreshold` is store-specific. Test against a known-relevant query to find the right cutoff before hardening it.
+- `topK` controls how many candidates are returned before re-ranking.
+  - Set it higher than the desired answer-set size when recall matters.
+- `similarityThreshold` is store-specific.
+  - Test against a known-relevant query to find the right cutoff before hardening it.
 - Keep the query-time embedding path aligned with the same embedding model family used at ingestion time.
 
 ## RAG assembly blocker
@@ -194,7 +201,8 @@ Advisor ragAdvisor = RetrievalAugmentationAdvisor.builder()
     .build();
 ```
 
-The modular RAG advisor supports a pipeline of query transformers, retrievers, document post-processors, and context augmenters. Add only the pipeline stages the application needs.
+The modular RAG advisor supports a pipeline of query transformers, retrievers, document post-processors, and context augmenters.
+Add only the pipeline stages the application needs.
 
 ## Decision checklist
 

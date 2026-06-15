@@ -302,7 +302,8 @@ OPTIONAL_FIELD=$(parse_string_unquoted "$FRONTMATTER" "optional_field" "default_
 echo "Optional field: $OPTIONAL_FIELD"
 ```
 
-Provide default as third argument. If field absent, default is returned.
+Provide default as third argument.
+If field absent, default is returned.
 
 ### Empty values
 
@@ -337,7 +338,9 @@ field2: value2
 Some content
 ```
 
-Extraction will read until EOF instead of second `---`. Validate strictly:
+Extraction will read until EOF instead of second `---`.
+
+Validate strictly:
 
 ```sh
 
@@ -367,7 +370,9 @@ field: value2
 ---
 ```
 
-`grep` returns both lines. First match wins:
+`grep` returns both lines.
+
+First match wins:
 
 ```sh
 VALUE=$(echo "$FRONTMATTER" | grep "^field:" | head -1 | sed 's/^field: *//')
@@ -407,7 +412,8 @@ command: "ls -la"
 ---
 ```
 
-Always quote values containing special characters. Parsing with `parse_string_quoted` handles escaping.
+Always quote values containing special characters.
+Parsing with `parse_string_quoted` handles escaping.
 
 ### Inconsistent indentation
 
@@ -421,7 +427,9 @@ field3: value3
 ---
 ```
 
-Indented field2 is treated as nested (incorrect for flat structure). Validate strict formatting:
+Indented field2 is treated as nested (incorrect for flat structure).
+
+Validate strict formatting:
 
 ```json
 grep "^[^ ]" "$FRONTMATTER"  # Lines starting with non-space (no indentation)

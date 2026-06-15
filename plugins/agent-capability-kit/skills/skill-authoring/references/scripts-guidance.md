@@ -1,7 +1,8 @@
 ---
 name: scripts-guidance
 description: |-
-  Decide whether a helper belongs in a skill's `scripts/` directory and avoid making scripts hidden prerequisites. Open this file when planning helper scripts or auditing a draft script for skill self-sufficiency.
+  Decide whether a helper belongs in a skill's `scripts/` directory and avoid making scripts hidden prerequisites.
+  Open this file when planning helper scripts or auditing a draft script for skill self-sufficiency.
 ---
 
 # Scripts Guidance
@@ -49,13 +50,18 @@ Do not write the main workflow so that readers must inspect the script source be
 
 ## Dependency rule
 
-Prefer runtimes and tools that are already common for the target environment. Do not invent a new required CLI or hosted validator just to support the script.
+Prefer runtimes and tools that are already common for the target environment.
+Do not invent a new required CLI or hosted validator just to support the script.
 
-Python scripts that run directly should start with `#!/usr/bin/env -S uv run`, then `# -*- coding: utf-8 -*-`, then a PEP 723 metadata block before imports. Use PEP 508 major-compatible dependency ranges for external packages, such as `package>=1.2.3,<2`, and use `dependencies = []` for stdlib-only direct scripts when an explicit declaration is needed.
+Python scripts that run directly should start with `#!/usr/bin/env -S uv run`, then `# -*- coding: utf-8 -*-`, then a PEP 723 metadata block before imports.
+Use PEP 508 major-compatible dependency ranges for external packages, such as `package>=1.2.3,<2`, and use `dependencies = []` for stdlib-only direct scripts when an explicit declaration is needed.
 
-JavaScript and TypeScript scripts that run directly should start with `#!/usr/bin/env bun`, then `// -*- coding: utf-8 -*-`. Declare external dependencies with major-compatible import specifiers, such as `import * as cheerio from "cheerio@^1.0.0";`. Scripts that use only the JavaScript standard library or Bun built-ins need no dependency metadata block.
+JavaScript and TypeScript scripts that run directly should start with `#!/usr/bin/env bun`, then `// -*- coding: utf-8 -*-`.
+Declare external dependencies with major-compatible import specifiers, such as `import * as cheerio from "cheerio@^1.0.0"`.
+Scripts that use only the JavaScript standard library or Bun built-ins need no dependency metadata block.
 
-Shell scripts have no equivalent dependency metadata block. Document required commands beside the shell invocation or in `SKILL.md`.
+Shell scripts have no equivalent dependency metadata block.
+Document required commands beside the shell invocation or in `SKILL.md`.
 
 ## Example decisions
 

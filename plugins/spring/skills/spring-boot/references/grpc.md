@@ -40,7 +40,8 @@ dependencies {
 
 ## Server
 
-Implement a generated `BindableService` from your `.proto` file and expose it as a Spring bean. Spring gRPC automatically discovers and exposes any `BindableService` bean.
+Implement a generated `BindableService` from your `.proto` file and expose it as a Spring bean.
+Spring gRPC automatically discovers and exposes any `BindableService` bean.
 
 ```java
 @GrpcService
@@ -78,7 +79,8 @@ spring:
 
 ## Server security
 
-Boot auto-configures `GrpcSecurity` and `SecurityGrpcExceptionHandler` beans. Secure gRPC services using `@PreAuthorize` annotations.
+Boot auto-configures `GrpcSecurity` and `SecurityGrpcExceptionHandler` beans.
+Secure gRPC services using `@PreAuthorize` annotations.
 
 ```java
 @GrpcService
@@ -187,4 +189,5 @@ Spring Boot gRPC server support can expose gRPC reflection when `io.grpc:grpc-se
 ## Gotchas
 
 - For Servlet-based gRPC, ensure `server.http2.enabled` is set to `true`.
-- Prefer Spring-managed generated stubs with `@ImportGrpcClients`; use `GrpcChannelFactory` only when channel construction must be customized directly.
+- Prefer Spring-managed generated stubs with `@ImportGrpcClients`.
+  - Use `GrpcChannelFactory` only when channel construction must be customized directly.

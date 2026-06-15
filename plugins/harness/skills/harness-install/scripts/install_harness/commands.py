@@ -4,7 +4,6 @@ from .errors import fail
 
 
 def workflow_name_for_mode(mode: str) -> str:
-
     return {
         "gradle": "ktlint.yaml",
         "maven": "spotless.yaml",
@@ -15,15 +14,23 @@ def workflow_name_for_mode(mode: str) -> str:
 
 
 def validation_command_for_mode(mode: str) -> str:
-
     if mode == "gradle":
         return "./gradlew ktlintCheck"
     if mode == "maven":
         return (
-            'root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do '
-            'case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; '
-            "printf '%s/%s\\n' \"$root\" \"$file\" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); "
-            'if [ -z "$files" ]; then ./mvnw validate; echo "spotless: no tracked Java files to check"; '
+            'root=$(pwd -P); if git ls-files -- "*.java" | grep -q \'^"\'; then '
+            'unsafe_file=$(git ls-files -- "*.java" | grep \'^"\'); '
+            'echo "error: escaped Java path for spotlessFiles: $unsafe_file" >&2; '
+            "exit 1; fi; "
+            "if git ls-files -- \"*.java\" | grep -q ','; then "
+            "comma_file=$(git ls-files -- \"*.java\" | grep ','); "
+            'echo "error: comma Java path for spotlessFiles: $comma_file" >&2; '
+            "exit 1; fi; "
+            'files=$(git ls-files -- "*.java" | while IFS= read -r file; do '
+            'printf \'%s/%s\\n\' "$root" "$file" | '
+            "sed 's/[][\\\\.^$*+?{}()|]/\\\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); "
+            'if [ -z "$files" ]; then ./mvnw validate; '
+            'echo "spotless: no tracked Java files to check"; '
             'else ./mvnw validate -DspotlessFiles="$files"; fi'
         )
     if mode == "uv":

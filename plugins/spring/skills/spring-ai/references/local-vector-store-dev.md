@@ -1,6 +1,6 @@
 # Local vector store for development
 
-Open this reference when the ordinary path in [SKILL.md](../SKILL.md) is not enough and the blocker is a reproducible local vector store that matches the production retrieval path.
+Open this reference when the ordinary path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is a reproducible local vector store that matches the production retrieval path.
 
 ## Local vector-store blocker
 
@@ -20,7 +20,8 @@ services:
       POSTGRES_PASSWORD: app
 ```
 
-Treat in-memory stores as development-only. When production uses PostgreSQL plus pgvector, prefer a local pgvector instance over a different store that changes retrieval behavior.
+Treat in-memory stores as development-only.
+When production uses PostgreSQL plus pgvector, prefer a local pgvector instance over a different store that changes retrieval behavior.
 
 ## Decision points
 

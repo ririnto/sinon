@@ -1,10 +1,13 @@
 # Quality Checklist
 
-Use this checklist before finalizing a generated `SPEC.md`. Treat the checklist as a requirements-quality gate, not as an implementation test plan. Fix failures directly when possible. If revision requires human judgment, record a focused open question instead of guessing.
+Use this checklist before finalizing a generated `SPEC.md`.
+Treat the checklist as a requirements-quality gate, not as an implementation test plan.
+Fix failures directly when possible.
+If revision requires human judgment, record a focused open question instead of guessing.
 
 ## Self-Sufficiency
 
-- [ ] The spec does not contain "see X.md", "see ARCHITECTURE.md", "see README.md", "refer to docs/...", or any in-repo cross-doc routing.
+- [ ] The spec does not contain "see `X.md`", "see `ARCHITECTURE.md`", "see `README.md`", "refer to docs/...", or any in-repo cross-doc routing.
 - [ ] The only external references are formal standards (RFC numbers, external API specifications) or data sources that cannot be inlined; these are clearly named as external.
 - [ ] An unfamiliar engineer or coding agent can read this file and understand what must be implemented without consulting other in-repo documents.
 - [ ] Entity field tables include type, constraints, nullability, and usage; the reader does not need to consult the codebase.
@@ -19,7 +22,7 @@ Use this checklist before finalizing a generated `SPEC.md`. Treat the checklist 
 - [ ] The Normative Language section is present and defines RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY, REQUIRED, RECOMMENDED, OPTIONAL).
 - [ ] The Normative Language section defines `Implementation-defined` and states that implementations MUST document the selected behavior.
 - [ ] RFC 2119 keywords are used deliberately, not randomly.
-- [ ] SHOULD vs. MUST distinction is intentional; no SHOULD where MUST is intended, no MUST where the project will diverge.
+- [ ] SHOULD versus MUST distinction is intentional; no SHOULD where MUST is intended, no MUST where the project will diverge.
 - [ ] `Implementation-defined` is used consistently for contract surface the spec deliberately does not prescribe.
 - [ ] Vague words ("fast", "robust", "intuitive", "secure", "scalable") either do not appear, or they appear only when quantified or measured (e.g., "fast (<2s)" or "secure (no data leakage)").
 
@@ -112,8 +115,8 @@ Use this checklist before finalizing a generated `SPEC.md`. Treat the checklist 
 - [ ] The spec is self-contained enough for a future agent to use without guessing.
 - [ ] The spec clearly separates WHAT/WHY from HOW unless design is explicitly in scope.
 - [ ] The spec includes enough boundaries (limits, states, transitions) to prevent feature inflation during implementation.
-- [ ] The spec does not instruct an agent to mine repository-local docs (ARCHITECTURE.md, README.md, WORKFLOW.md, etc.) unless the user explicitly authorized that task.
-- [ ] The spec fits in a single reading; if it is longer than ~10,000 words, large details are moved to sub-specs or appendices (with explicit cross-references allowed when sub-specs are out of the generated SPEC.md).
+- [ ] The spec does not instruct an agent to mine repository-local docs (`ARCHITECTURE.md`, `README.md`, `WORKFLOW.md`, etc.) unless the user explicitly authorized that task.
+- [ ] The spec fits in a single reading; if it is longer than ~10,000 words, large details are moved to sub-specs or appendices (with explicit cross-references allowed when sub-specs are out of the generated `SPEC.md`).
 - [ ] Ambiguities are resolved; no "implementation may choose" text left without explicit `Implementation-defined` marking.
 - [ ] Scenarios are detailed enough for an agent to write test code from them.
 - [ ] Reference algorithms are specific enough for an agent to implement from them.

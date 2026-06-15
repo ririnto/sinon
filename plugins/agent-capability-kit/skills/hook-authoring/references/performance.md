@@ -8,7 +8,8 @@ description: |-
 
 Open this reference when tuning hook timeouts, implementing caching patterns, optimizing hot-path hooks for latency, or debugging hook execution behavior.
 
-Hooks run in parallel by default with no guaranteed order. This reference covers execution semantics, timeout tuning, caching patterns, hot-path optimization, and debugging strategies.
+Hooks run in parallel by default with no guaranteed order.
+This reference covers execution semantics, timeout tuning, caching patterns, hot-path optimization, and debugging strategies.
 
 ## Parallel execution model
 
@@ -29,7 +30,8 @@ Multiple hooks on the same event fire simultaneously:
 }
 ```
 
-All three hooks run in parallel. If ANY hook denies (exit code 2 or `permissionDecision: deny`), the tool is blocked.
+All three hooks run in parallel.
+If ANY hook denies (exit code 2 or `permissionDecision: deny`), the tool is blocked.
 
 ### Independence requirement
 
@@ -73,7 +75,8 @@ Scripts read from `${CLAUDE_PROJECT_DIR}` or `${CLAUDE_PLUGIN_ROOT}`, not from e
 
 ## Timeout tuning
 
-Timeouts apply per hook. If hook exceeds timeout, it is terminated:
+Timeouts apply per hook.
+If hook exceeds timeout, it is terminated:
 
 | Hook Type | Default | Range | Guidance |
 | --- | --- | --- | --- |
@@ -135,7 +138,8 @@ claude --debug 2>&1 | grep -i timeout
 
 ### Pattern 1: File-based cache in hook directory
 
-Cache is written by one hook, read by others. Safe because hooks in same event run in parallel but file creation is atomic:
+Cache is written by one hook, read by others.
+Safe because hooks in same event run in parallel but file creation is atomic:
 
 ```sh
 #!/usr/bin/env sh
@@ -167,7 +171,8 @@ cache_based_check() {
 
 ### Pattern 2: environment variable cache within SessionStart
 
-SessionStart hooks run sequentially in a single session. Computed values can be written to `$CLAUDE_ENV_FILE` for reuse:
+SessionStart hooks run sequentially in a single session.
+Computed values can be written to `$CLAUDE_ENV_FILE` for reuse:
 
 ```sh
 #!/usr/bin/env sh
@@ -186,13 +191,15 @@ cache_project_metadata() {
 cache_project_metadata
 ```
 
-Note: This example uses bash for `printf %q` (argument escaping). If POSIX sh is required, use `sed` or `printf '%s'` escaping instead.
+Note: This example uses bash for `printf %q` (argument escaping).
+If POSIX sh is required, use `sed` or `printf '%s'` escaping instead.
 
 All subsequent hooks and tools can access via `$PROJECT_TYPE` and `$PROJECT_VERSION`.
 
 ### Cache invalidation
 
-Add timestamps to cached data. If data is stale (> 1 hour), recompute:
+Add timestamps to cached data.
+If data is stale (> 1 hour), recompute:
 
 ```sh
 timestamp=$(jq -r '.timestamp' "$cache_file" || echo "0")
@@ -258,7 +265,8 @@ Then add a second, slower prompt hook for deep validation only when needed:
 }
 ```
 
-First hook blocks obvious issues quickly. Second hook runs in parallel and can take longer because first hook already filtered obvious cases.
+First hook blocks obvious issues quickly.
+Second hook runs in parallel and can take longer because first hook already filtered obvious cases.
 
 ### Avoid Expensive Operations in Hot Paths
 
@@ -302,7 +310,8 @@ Move expensive work to SessionStart
 }
 ```
 
-Policies are downloaded once at session start. PreToolUse hook reads local policy (fast).
+Policies are downloaded once at session start.
+PreToolUse hook reads local policy (fast).
 
 ## Debugging hooks
 
@@ -405,7 +414,8 @@ tail -f "${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
 
 ## Parallel execution guarantee
 
-Hooks on the same event WILL run in parallel unless explicitly chained. There is NO way to force sequential execution within hooks.json.
+Hooks on the same event WILL run in parallel unless explicitly chained.
+There is NO way to force sequential execution within hooks.json.
 
 To enforce sequence, use SessionStart setup:
 

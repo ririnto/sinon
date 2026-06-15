@@ -50,7 +50,8 @@ Mono<Order> order = client.get()
     .bodyToMono(Order.class);
 ```
 
-Label these snippets as Reactor Netty-specific. Other WebClient transports have different timeout APIs.
+Label these snippets as Reactor Netty-specific.
+Other WebClient transports have different timeout APIs.
 
 ## Retry only transient failures
 
@@ -69,7 +70,8 @@ Do not retry 4xx responses unless the upstream contract explicitly marks them as
 
 ## Reactive pipeline depth
 
-Keep the pipeline non-blocking. Prefer composition operators over `block()` in request-handling code:
+Keep the pipeline non-blocking.
+Prefer composition operators over `block()` in request-handling code:
 
 ```java
 Mono<OrderSummary> summary = client.get()

@@ -1,12 +1,14 @@
 ---
 name: harness-install
 description: >-
-  Install target-owned repository harness assets from the plugin asset package: CLAUDE.md contract, AGENTS.md alias, ARCHITECTURE.md, docs structure, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates. Use when setting up or refreshing a repository harness, adding target-owned Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
+  Install target-owned repository harness assets from the plugin asset package: `CLAUDE.md` contract, `AGENTS.md` alias, `ARCHITECTURE.md`, docs structure, project agents, project skills, structured templates, language-matched validators, CI snippets, and Git hook templates.
+  Use when setting up or refreshing a repository harness, adding target-owned Claude agents or skills to a repo, or wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
 ---
 
 # Harness Install
 
-Install or refresh target-owned repository harness files from this plugin. This plugin skill is the visible runtime surface for installation guidance and orchestration; files that live inside a target repository are packaged under `skills/harness-install/assets/` and become target-owned after copying.
+Install or refresh target-owned repository harness files from this plugin.
+This plugin skill is the visible runtime surface for installation guidance and orchestration; files that live inside a target repository are packaged under `skills/harness-install/assets/` and become target-owned after copying.
 
 ## Ownership Boundary
 
@@ -16,11 +18,18 @@ Install or refresh target-owned repository harness files from this plugin. This 
 
 ## First Safe Checks
 
-1. Confirm the target repository working tree is clean before running the installer. Run `git status --short` in the target; if the output is non-empty, stop and ask the user to commit or stash first. The installer writes new files (and with `--force` overwrites existing ones), and any rollback or recovery action against the working tree afterwards will be indistinguishable from unrelated in-progress work. Commit-first keeps the harness change set isolated and reversible.
+1. Confirm the target repository working tree is clean before running the installer.
+   - Run `git status --short` in the target; if the output is non-empty, stop and ask the user to commit or stash first.
+   - The installer writes new files (and with `--force` overwrites existing ones), and any rollback or recovery action against the working tree afterwards will be indistinguishable from unrelated in-progress work.
+   - Commit-first keeps the harness change set isolated and reversible.
 2. Read the target repository root files if present: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, and `docs/README.md`.
-3. Determine the target stack from explicit user choice. The installer no longer auto-detects; confirm the stack with the user (inspect manifests such as `pom.xml`, `build.gradle*`, `pyproject.toml`/`uv.lock`, `package.json`/`bun.lock`, or `Makefile`/`*.sh`) before passing `--mode`.
-4. Identify the active CI host. Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither, so unused CI files can be removed as a post-install step.
-5. Git hooks are managed by ecosystem-standard tools: Husky for Bun, pre-commit framework for uv, and `core.hooksPath` for Gradle, Maven, and Shell. Each stack ships static hook files in its asset tree (`.husky/` for Bun, `.pre-commit-config.yaml` for uv, `.githooks/` for Gradle/Maven/Shell). The installer copies these as regular stack assets and activates hooks as a post-install step: `git config core.hooksPath .githooks/` for Gradle/Maven/Shell, `uv run pre-commit install` for uv, and `bun install` triggers Husky via the `prepare` script for Bun.
+3. Determine the target stack from explicit user choice.
+   - The installer no longer auto-detects; confirm the stack with the user (inspect manifests such as `pom.xml`, `build.gradle*`, `pyproject.toml`/`uv.lock`, `package.json`/`bun.lock`, or `Makefile`/`*.sh`) before passing `--mode`.
+4. Identify the active CI host.
+   - Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither, so unused CI files can be removed as a post-install step.
+5. Git hooks are managed by ecosystem-standard tools: Husky for Bun, pre-commit framework for uv, and `core.hooksPath` for Gradle, Maven, and Shell.
+   - Each stack ships static hook files in its asset tree (`.husky/` for Bun, `.pre-commit-config.yaml` for uv, `.githooks/` for Gradle/Maven/Shell).
+   - The installer copies these as regular stack assets and activates hooks as a post-install step: `git config core.hooksPath .githooks/` for Gradle/Maven/Shell, `uv run pre-commit install` for uv, and `bun install` triggers Husky via the `prepare` script for Bun.
 6. Use `--force` only when the user explicitly wants existing target harness files replaced.
 7. Keep plugin files separate from target files: edit this plugin only when improving the installer; edit target `.claude/**` files only after installation in the target repository.
 
@@ -70,8 +79,11 @@ Install or refresh target-owned repository harness files from this plugin. This 
 ## Invariants
 
 - The installed harness is target-owned after copying.
-- Git hooks use ecosystem-standard tools: Husky for Bun (`.husky/`), pre-commit framework for uv (`.pre-commit-config.yaml`), and `core.hooksPath` pointing to `.githooks/` for Gradle, Maven, and Shell. The installer activates hooks as a post-install step for Gradle, Maven, Shell, and uv; Bun hooks activate via `bun install` through the Husky `prepare` script.
-- `pre-commit` hooks run the stack lint check. Bun always runs packaged markdownlint; non-Bun stacks run markdownlint when `markdownlint-cli2` is installed. `pre-push` hooks run the full validation including tests and broader checks where applicable (`./gradlew check`, `./mvnw verify`, `bun test`).
+- Git hooks use ecosystem-standard tools: Husky for Bun (`.husky/`), pre-commit framework for uv (`.pre-commit-config.yaml`), and `core.hooksPath` pointing to `.githooks/` for Gradle, Maven, and Shell.
+  - The installer activates hooks as a post-install step for Gradle, Maven, Shell, and uv; Bun hooks activate via `bun install` through the Husky `prepare` script.
+- `pre-commit` hooks run the stack lint check.
+  - Bun always runs packaged markdownlint; non-Bun stacks run markdownlint when `markdownlint-cli2` is installed.
+  - `pre-push` hooks run the full validation including tests and broader checks where applicable (`./gradlew check`, `./mvnw verify`, `bun test`).
 - Fresh installs use `CLAUDE.md` as the primary target repository harness contract and `AGENTS.md` as its symlink alias.
 - Refreshes of existing AGENTS-only repositories may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias; either orientation MUST resolve both filenames to the same document.
 - `docs/generated/` is a generated-artifact location; it MUST NOT contain fake placeholder files.
@@ -80,7 +92,8 @@ Install or refresh target-owned repository harness files from this plugin. This 
 
 ## Pitfalls
 
-- Do not run the installer on a dirty working tree. Require the target repository to be committed or stashed first; `--force` overwrites tracked files, and any post-install rollback against an unclean tree will entangle harness changes with unrelated edits.
+- Do not run the installer on a dirty working tree.
+  - Require the target repository to be committed or stashed first; `--force` overwrites tracked files, and any post-install rollback against an unclean tree will entangle harness changes with unrelated edits.
 - Do not edit `scripts/install-harness.py` during ordinary installation.
 - Do not claim harness-only readiness when product specs, architecture decisions, acceptance criteria, or generated artifacts are still placeholders.
 - Do not force-replace target-owned hook files with `--force` without explicit approval for that repository.

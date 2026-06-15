@@ -1,6 +1,6 @@
 # Spring Batch testing, step scope, and failure paths
 
-Open this reference when the ordinary end-to-end job test in [SKILL.md](../SKILL.md) is not enough and the task needs step tests, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
+Open this reference when the ordinary end-to-end job test in [`SKILL.md`](../SKILL.md) is not enough and the task needs step tests, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
 
 ## Step test blocker
 
@@ -35,7 +35,8 @@ assertEquals(1, count);
 
 ## Restart and failure blocker
 
-Do not stop at the happy path. Add one restart, skip, retry, or failure classification test.
+Do not stop at the happy path.
+Add one restart, skip, retry, or failure classification test.
 
 ```java
 assertEquals(BatchStatus.FAILED, execution.getStatus());

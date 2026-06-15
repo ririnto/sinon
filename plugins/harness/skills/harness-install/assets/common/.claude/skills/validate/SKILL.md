@@ -1,12 +1,14 @@
 ---
 name: validate
 description: >-
-  Run the installed target repository validator and report contract readiness. Use this skill after changing CLAUDE.md, ARCHITECTURE.md, docs, .claude agents, .claude skills, docs assets, hooks, CI, or generated artifacts.
+  Run the installed target repository validator and report contract readiness.
+  Use this skill after changing `CLAUDE.md`, `ARCHITECTURE.md`, docs, .claude agents, .claude skills, docs assets, hooks, CI, or generated artifacts.
 ---
 
 # Validate
 
-Validate this target repository's installed contract. This target skill uses the local `docs/README.md` command; plugin-level validation belongs to the plugin checkout.
+Validate this target repository's installed contract.
+This target skill uses the local `docs/README.md` command; plugin-level validation belongs to the plugin checkout.
 
 ## First Safe Checks
 

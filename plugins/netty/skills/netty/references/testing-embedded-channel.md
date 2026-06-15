@@ -85,7 +85,9 @@ void decodesLengthPrefixedMessage() {
 
 ## Exception path test
 
-Only 2 bytes arrive instead of the required 4 — no frame is produced and no exception is thrown from the decoder. `writeInbound` returns `false` because the decoder cannot produce a complete frame. `finish()` releases pending internal buffers and returns `true` if any remain.
+Only 2 bytes arrive instead of the required 4 — no frame is produced and no exception is thrown from the decoder.
+`writeInbound` returns `false` because the decoder cannot produce a complete frame.
+`finish()` releases pending internal buffers and returns `true` if any remain.
 
 ```java
 import io.netty.buffer.Unpooled;

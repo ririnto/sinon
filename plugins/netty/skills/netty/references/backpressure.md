@@ -11,7 +11,9 @@ Open this when a consumer cannot keep up with the producer rate, batch processin
 
 ## `AUTO_READ` defaults and manual read
 
-By default, `ChannelOption.AUTO_READ` is `true`. Netty automatically reads all available data from the socket and delivers it to the pipeline as fast as the event loop can process it. This is correct for most servers.
+By default, `ChannelOption.AUTO_READ` is `true`.
+Netty automatically reads all available data from the socket and delivers it to the pipeline as fast as the event loop can process it.
+This is correct for most servers.
 
 When the consumer is slower than the producer, set `AUTO_READ` to `false` and call `channel.read()` explicitly after each message is processed:
 
@@ -23,7 +25,8 @@ bootstrap.group(bossGroup, workerGroup)
     .childHandler(new FlowControlledInitializer());
 ```
 
-Manual-read handler (request the next read only after processing completes; trigger the first read in `channelActive` since `AUTO_READ` is off):
+Manual-read handler (request the next read only after processing completes.
+Trigger the first read in `channelActive` since `AUTO_READ` is off):
 
 ```java
 final class FlowControlledHandler extends SimpleChannelInboundHandler<ByteBuf> {
@@ -55,7 +58,9 @@ final class FlowControlledHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 ## Interaction with framing decoders
 
-When `AUTO_READ` is `false`, framing decoders such as `LengthFieldBasedFrameDecoder` still accumulate bytes internally. They call `decode()` on each `read()` invocation and produce complete frames when enough data has arrived. The manual `channel.read()` call controls when the decoder is fed, not whether the internal buffer accumulates.
+When `AUTO_READ` is `false`, framing decoders such as `LengthFieldBasedFrameDecoder` still accumulate bytes internally.
+They call `decode()` on each `read()` invocation and produce complete frames when enough data has arrived.
+The manual `channel.read()` call controls when the decoder is fed, not whether the internal buffer accumulates.
 
 ```java
 ch.pipeline()
@@ -70,4 +75,5 @@ ch.pipeline()
 
 - setting `AUTO_READ` to `false` and forgetting to call `channel.read()` in `channelActive()` — the channel never reads anything
 - calling `channel.read()` inside `channelRead()` before processing completes — defeats the purpose of flow control by re-entering immediately
-- mixing `AUTO_READ` handlers in the same pipeline — the option is per-channel, not per-handler; all handlers share the same auto-read state
+- mixing `AUTO_READ` handlers in the same pipeline — the option is per-channel, not per-handler.
+  - All handlers share the same auto-read state

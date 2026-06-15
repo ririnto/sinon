@@ -1,7 +1,8 @@
 ---
 name: kotlin-test
 description: >-
-  Write clear, deterministic Kotlin tests that prove one observable behavior with the smallest correct scope. Use when the user asks to "test Kotlin code", "write a coroutine test", "mock a Kotlin dependency", "structure Kotlin tests", or needs guidance on practical Kotlin testing patterns.
+  Write clear, deterministic Kotlin tests that prove one observable behavior with the smallest correct scope.
+  Use when the user asks to "test Kotlin code", "write a coroutine test", "mock a Kotlin dependency", "structure Kotlin tests", or needs guidance on practical Kotlin testing patterns.
 ---
 
 # Kotlin Test
@@ -10,7 +11,12 @@ description: >-
 
 Write clear, deterministic Kotlin tests by proving one observable behavior with the smallest scope that works.
 
-Minimum Kotlin version: 2.1 -- examples use `kotlin.test` baseline assertions, `kotlinx.coroutines.test` (1.7+), JUnit 5 Jupiter APIs, MockK 1.14+, Kotest 6.x, and Turbine 1.2+. All library versions are managed through the project's dependency catalog; pin versions when adopting features from specific releases. This skill covers JVM testing only -- for multiplatform targets, adapt assertions to `kotlin-test-js` or `kotlin-test-native`. Keep the common path centered on `kotlin.test`, `runTest` for suspend code, bounded Flow collection, and direct exception assertions; use blocker references only when virtual time, replay semantics, mocking-library details, or JUnit 5 structure features become the real problem.
+Minimum Kotlin version: 2.1 -- examples use `kotlin.test` baseline assertions, `kotlinx.coroutines.test` (1.7+), JUnit 5 Jupiter APIs, MockK 1.14+, Kotest 6.x, and Turbine 1.2+.
+All library versions are managed through the project's dependency catalog.
+Pin versions when adopting features from specific releases.
+This skill covers JVM testing only -- for multiplatform targets, adapt assertions to `kotlin-test-js` or `kotlin-test-native`.
+Keep the common path centered on `kotlin.test`, `runTest` for suspend code, bounded Flow collection, and direct exception assertions.
+Use blocker references only when virtual time, replay semantics, mocking-library details, or JUnit 5 structure features become the real problem.
 
 ## Operating Rules
 
@@ -38,7 +44,8 @@ Minimum Kotlin version: 2.1 -- examples use `kotlin.test` baseline assertions, `
 
 ### Start with `kotlin.test`
 
-Use `@Test` and baseline assertions first. Prefer the multi-assertion form that checks several properties in one test body.
+Use `@Test` and baseline assertions first.
+Prefer the multi-assertion form that checks several properties in one test body.
 
 ```kotlin
 import kotlin.test.Test
@@ -82,13 +89,18 @@ These are the common `kotlin.test` assertions you will reach for most often:
 
 Layer JUnit 5 annotations such as `@DisplayName`, `@BeforeEach`, or `@ParameterizedTest` only when the suite already uses Jupiter features.
 
-Import rule: When using any JUnit 5 feature (`@Nested`, `@ParameterizedTest`, `@DisplayName`, `@TempDir`, etc.), import `@Test` from `org.junit.jupiter.api.Test`. When using only `kotlin.test` features, import `@Test` from `kotlin.test.Test`. Never mix both imports in the same file -- the compiler cannot resolve which `@Test` you mean.
+Import rule: When using any JUnit 5 feature (`@Nested`, `@ParameterizedTest`, `@DisplayName`, `@TempDir`, etc.), import `@Test` from `org.junit.jupiter.api.Test`.
+When using only `kotlin.test` features, import `@Test` from `kotlin.test.Test`.
+Never mix both imports in the same file -- the compiler cannot resolve which `@Test` you mean.
 
 ### Use `runTest` for suspend code
 
-`runTest` is the ordinary path for coroutine-aware tests. It skips delays and surfaces uncaught child-coroutine failures.
+`runTest` is the ordinary path for coroutine-aware tests.
+It skips delays and surfaces uncaught child-coroutine failures.
 
-When code under test uses `withTimeout`, a timed-out `delay` inside `runTest` throws `TimeoutCancellationException` (a subclass of `CancellationException`). Since `runTest` handles `CancellationException` at scope level, timeout assertions work naturally. Start the timed operation first, advance virtual time, then flush the scheduler before awaiting the result:
+When code under test uses `withTimeout`, a timed-out `delay` inside `runTest` throws `TimeoutCancellationException` (a subclass of `CancellationException`).
+Since `runTest` handles `CancellationException` at scope level, timeout assertions work naturally.
+Start the timed operation first, advance virtual time, then flush the scheduler before awaiting the result:
 
 ```kotlin
 import kotlinx.coroutines.async
@@ -148,7 +160,8 @@ class UiStateRepositoryTest {
 
 ### Use direct exception assertions
 
-Use `assertFailsWith<T>()` when the thrown type is part of the contract. It returns the exception, so message or property checks can stay explicit.
+Use `assertFailsWith<T>()` when the thrown type is part of the contract.
+It returns the exception, so message or property checks can stay explicit.
 
 ```kotlin
 import kotlin.test.Test
@@ -198,10 +211,10 @@ Check these pass/fail conditions before you stop:
 
 Return:
 
-1. the chosen test scope and the behavior it proves
-2. whether the test stays synchronous, uses `runTest`, or uses bounded Flow collection
-3. any exception or mocking decisions that affect the contract
-4. any blocker references needed for deeper branches
+1. The chosen test scope and the behavior it proves
+2. Whether the test stays synchronous, uses `runTest`, or uses bounded Flow collection
+3. Any exception or mocking decisions that affect the contract
+4. Any blocker references needed for deeper branches
 
 ## References
 
@@ -220,6 +233,8 @@ Open only the reference that matches the remaining blocker.
 
 ## Scope Boundaries
 
-Use this skill for Kotlin JVM unit and integration test shape, coroutine-aware test execution, bounded Flow assertions, and practical mocking-boundary choices. This skill covers JVM testing with JUnit 5, MockK (JVM), Kotest, and Turbine. For multiplatform Kotlin testing (`kotlin-test-js`, `kotlin-test-native`), adapt assertions to the target platform's available surface.
+Use this skill for Kotlin JVM unit and integration test shape, coroutine-aware test execution, bounded Flow assertions, and practical mocking-boundary choices.
+This skill covers JVM testing with JUnit 5, MockK (JVM), Kotest, and Turbine.
+For multiplatform Kotlin testing (`kotlin-test-js`, `kotlin-test-native`), adapt assertions to the target platform's available surface.
 
 Coroutine API design, general Kotlin language refactors, and framework-heavy application-context testing such as Spring `@SpringBootTest` are adjacent domains outside this JVM test-shape scope.

@@ -1,12 +1,14 @@
 ---
 name: harness-validate
 description: >-
-  Validate target-owned repository harness assets against the installed build/runtime contract. Use when verifying a fresh harness install, checking target harness changes before commit or CI, or diagnosing WARN and ERROR output from stack validators without requiring plugin-root structural agents in the target repository.
+  Validate target-owned repository harness assets against the installed build/runtime contract.
+  Use when verifying a fresh harness install, checking target harness changes before commit or CI, or diagnosing WARN and ERROR output from stack validators without requiring plugin-root structural agents in the target repository.
 ---
 
 # Harness Validate
 
-Run the native harness validation command for the target repository. This plugin skill is the visible runtime surface for validation guidance; it checks target-owned harness assets copied from `skills/harness-install/assets/` and reports whether the repository harness remains mechanically checkable.
+Run the native harness validation command for the target repository.
+This plugin skill is the visible runtime surface for validation guidance; it checks target-owned harness assets copied from `skills/harness-install/assets/` and reports whether the repository harness remains mechanically checkable.
 
 ## Ownership Boundary
 
@@ -56,7 +58,8 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun run check` |
 | `shell` | shell-script-only or Makefile-driven repository | `sh scripts/check.sh` |
 
-The installed README command is the local harness validation command. The generated `docs/git-hooks/pre-commit` and `pre-push` command markers both carry this same stack validation command listed above.
+The installed README command is the local harness validation command.
+The generated `docs/git-hooks/pre-commit` and `pre-push` command markers both carry this same stack validation command listed above.
 
 ## Command Examples
 
@@ -142,7 +145,8 @@ failures:
 
 ## CI Checks
 
-Local validation is the source of truth. CI files are examples that should run the generated pre-push final check command.
+Local validation is the source of truth.
+CI files are examples that should run the generated pre-push final check command.
 
 | CI file | Expected validation shape |
 | --- | --- |
@@ -151,7 +155,8 @@ Local validation is the source of truth. CI files are examples that should run t
 
 If CI is skipped during install, report that local validation passed and CI snippets were intentionally absent.
 
-GitHub-only and GitLab-only repositories may intentionally delete the unused CI file as a post-install step. When `git remote -v` shows only one host and the matching CI file is missing or out of sync with the generated pre-push command, report it as `not active` rather than `mismatch`; report the still-present CI file under the normal parity table.
+GitHub-only and GitLab-only repositories may intentionally delete the unused CI file as a post-install step.
+When `git remote -v` shows only one host and the matching CI file is missing or out of sync with the generated pre-push command, report it as `not active` rather than `mismatch`; report the still-present CI file under the normal parity table.
 
 Report CI drift with the expected command.
 
@@ -179,11 +184,14 @@ When position is unavailable, validators fall back to shorter forms:
 path/to/file [SEVERITY] category: file-level message
 ```
 
-`SEVERITY` is one of `ERROR`, `WARN`, or `INFO`. `category` matches the rule identifier.
+`SEVERITY` is one of `ERROR`, `WARN`, or `INFO`.
+`category` matches the rule identifier.
 
 ## Safe-Format Conventions
 
-Fix commands apply changes through their native tools. All fixes are idempotent: a second run immediately after the first produces no additional modifications. Fix commands run validation after applying changes, print remaining findings, and fail when any remaining finding has `ERROR` severity.
+Fix commands apply changes through their native tools.
+All fixes are idempotent: a second run immediately after the first produces no additional modifications.
+Fix commands run validation after applying changes, print remaining findings, and fail when any remaining finding has `ERROR` severity.
 
 ## Invariants
 

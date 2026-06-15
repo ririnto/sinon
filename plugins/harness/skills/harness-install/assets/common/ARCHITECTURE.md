@@ -2,7 +2,9 @@
 
 ## Purpose
 
-ARCHITECTURE.md is the top-level map of domains, package layering, data flow, and validation surfaces. See matklad's architecture-document convention: it is one line. An agent loading this file should know where each business domain lives, how data flows between domains, and which validation surfaces gate changes.
+`ARCHITECTURE.md` is the top-level map of domains, package layering, data flow, and validation surfaces.
+See matklad's architecture-document convention: it is one line.
+An agent loading this file should know where each business domain lives, how data flows between domains, and which validation surfaces gate changes.
 
 ## Domain Map
 
@@ -12,7 +14,9 @@ ARCHITECTURE.md is the top-level map of domains, package layering, data flow, an
 
 ## Package Layering
 
-Refer to `docs/DESIGN.md` for the canonical layering pattern within each domain. The model organizes code by horizontal layer: presentation (API surface), business logic, data access, and storage. Dependencies flow downward; cross-domain dependencies use provider injection or event dispatch.
+Refer to `docs/DESIGN.md` for the canonical layering pattern within each domain.
+The model organizes code by horizontal layer: presentation (API surface), business logic, data access, and storage.
+Dependencies flow downward; cross-domain dependencies use provider injection or event dispatch.
 
 ```mermaid
 ---

@@ -1,6 +1,6 @@
 # Local model runtime
 
-Open this reference when the common-path Spring AI seam in [SKILL.md](../SKILL.md) is already clear and the blocker is Docker Model Runner, development-time services, or a local model runtime for development or offline testing.
+Open this reference when the common-path Spring AI seam in [`SKILL.md`](../SKILL.md) is already clear and the blocker is Docker Model Runner, development-time services, or a local model runtime for development or offline testing.
 
 Use this file only when the remaining work is a local model runtime, not vector-store provisioning or full environment bootstrap.
 
@@ -30,7 +30,9 @@ If the same local runtime should expose both chat and embeddings, keep those mod
 
 ## Pitfalls
 
-- Do not assume local and production model behavior match exactly. Validate prompts and tool behavior again against the production provider.
-- Do not let local infra pick model names implicitly. Keep chat, embedding, and optional image or audio models explicit.
+- Do not assume local and production model behavior match exactly.
+  - Validate prompts and tool behavior again against the production provider.
+- Do not let local infra pick model names implicitly.
+  - Keep chat, embedding, and optional image or audio models explicit.
 - Open [local vector store setup](local-vector-store-dev.md) when the blocker is a reproducible local vector store.
-- Open [containerized-dev-environment.md](containerized-dev-environment.md) when the blocker is a full repeatable containerized development stack.
+- Open [`containerized-dev-environment.md`](containerized-dev-environment.md) when the blocker is a full repeatable containerized development stack.

@@ -20,7 +20,8 @@ responseCookies(cookieWithName("JSESSIONID").description("Updated session token"
     cookieWithName("logged_in").description("User is logged in"))
 ```
 
-Use cookie documentation only when cookies are part of the published contract. The test fails if a documented cookie is not found in the request or response, unless the cookie is marked as optional.
+Use cookie documentation only when cookies are part of the published contract.
+The test fails if a documented cookie is not found in the request or response, unless the cookie is marked as optional.
 
 ## Gotchas
 

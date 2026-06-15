@@ -89,7 +89,8 @@ String loaded = Files.readString(config);
 - `java.security*`, `javax.crypto*`, `javax.net*`, and `javax.security.auth*` for providers, certificates, crypto, SSL, and authentication.
 - `java.lang.classfile*` and `java.lang.foreign` for classfile transformation and foreign memory/function access.
 
-Use when: the code genuinely needs these specialized capabilities. These are not the default path for ordinary application code.
+Use when: the code genuinely needs these specialized capabilities.
+These are not the default path for ordinary application code.
 
 ### SPI and extension points
 
@@ -99,4 +100,5 @@ Use when: the problem is explicitly about customizing or extending standard-libr
 
 ## Boundary reminder
 
-Stay in this reference only for foundational `java.base` guidance. `jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, and live JVM diagnostics are outside this skill's scope.
+Stay in this reference only for foundational `java.base` guidance.
+`jdeps`, `jlink`, `jpackage`, runtime images, packaging chains, and live JVM diagnostics are outside this skill's scope.

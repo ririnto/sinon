@@ -1,14 +1,16 @@
 ---
 name: git-worktree-management
 description: >-
-  Create and manage isolated git worktrees to work on multiple branches in parallel without switching HEAD. Use when adding, listing, pruning, or removing worktrees, checking branch-to-worktree bindings, or reasoning about worktree isolation before parallel task setup.
+  Create and manage isolated git worktrees to work on multiple branches in parallel without switching HEAD.
+  Use when adding, listing, pruning, or removing worktrees, checking branch-to-worktree bindings, or reasoning about worktree isolation before parallel task setup.
 ---
 
 # Git Worktree Management
 
 ## Goal
 
-Create isolated working directories tied to separate branches, allowing parallel development without changing the main repository HEAD. Each worktree is a cloned directory tree with its own staging area, working directory, and index but shares the object database and refs with the base repository.
+Create isolated working directories tied to separate branches, allowing parallel development without changing the main repository HEAD.
+Each worktree is a cloned directory tree with its own staging area, working directory, and index but shares the object database and refs with the base repository.
 
 ## Common-Case Workflow
 
@@ -23,9 +25,12 @@ Create isolated working directories tied to separate branches, allowing parallel
 
 The following invariants govern safe worktree use:
 
-- **One worktree per branch**: The same branch MUST NOT be checked out in two worktrees or in the base repository simultaneously. Violation results in HEAD pointer conflicts and data loss risk.
-- **Base repo independence**: The base repository (where you ran `git worktree add`) MUST remain a valid working tree. It MUST NOT be converted or reserved for listing only.
-- **Shared object store**: All worktrees MUST share the same `.git/objects/` store; deleting a worktree MUST NOT delete commits.
+- **One worktree per branch**: The same branch MUST NOT be checked out in two worktrees or in the base repository simultaneously.
+  - Violation results in HEAD pointer conflicts and data loss risk.
+- **Base repo independence**: The base repository (where you ran `git worktree add`) MUST remain a valid working tree.
+  - It MUST NOT be converted or reserved for listing only.
+- **Shared object store**: All worktrees MUST share the same `.git/objects/` store.
+  - Deleting a worktree MUST NOT delete commits.
 - **Isolation**: Changes in one worktree MUST NOT automatically appear in others until committed and fetched.
 - **No nested worktrees**: Worktrees MUST NOT be nested inside each other or inside the base repository directory.
 
@@ -39,7 +44,8 @@ Create a `worktrees/` directory at the repository root to co-locate all worktree
 mkdir -p worktrees
 ```
 
-This is a recommended convention but not required. Worktrees can live anywhere.
+This is a recommended convention but not required.
+Worktrees can live anywhere.
 
 ### Create a new worktree from a branch
 
@@ -189,9 +195,11 @@ Before starting work in a new worktree, confirm that the target branch is not al
 git worktree list | grep <branch-name>
 ```
 
-Expected: no matching line when creating a new worktree for that branch; one line only when intentionally reusing an existing worktree.
+Expected: no matching line when creating a new worktree for that branch.
+One line only when intentionally reusing an existing worktree.
 
-If the same branch appears twice, the second `git worktree add` will fail with an error. Remove the old worktree first or use a different branch.
+If the same branch appears twice, the second `git worktree add` will fail with an error.
+Remove the old worktree first or use a different branch.
 
 ## Common Patterns
 
@@ -270,12 +278,18 @@ cd worktrees/feat-main-work
 
 ## Pitfalls
 
-- **Same branch in two worktrees**: If you accidentally create a worktree for a branch already checked out elsewhere, `git worktree add` fails with "error: {{branch}} is already checked out". Use `git worktree list` before adding.
-- **Forgetting to exit the worktree before removing**: If you try to remove a worktree while inside it, removal fails. Always `cd` out first.
-- **Stale worktree metadata**: If you delete a worktree directory manually (not via `git worktree remove`), stale metadata remains. Use `git worktree prune` to clean up.
-- **Nested worktrees**: Do not create a worktree inside another worktree's directory. Keep worktrees as siblings in a flat structure (e.g., `worktrees/branch-a`, `worktrees/branch-b`).
-- **Base repository as a second-class worktree**: The base repository is a full worktree and can be used for development. Do not treat it as "reserved for listing only".
-- **Assuming isolation without commits**: Changes in a worktree are isolated at the filesystem level but remain local. They do not appear in other worktrees until committed and (optionally) pushed and fetched by other worktrees.
+- **Same branch in two worktrees**: If you accidentally create a worktree for a branch already checked out elsewhere, `git worktree add` fails with "error: {{branch}} is already checked out".
+  - Use `git worktree list` before adding.
+- **Forgetting to exit the worktree before removing**: If you try to remove a worktree while inside it, removal fails.
+  - Always `cd` out first.
+- **Stale worktree metadata**: If you delete a worktree directory manually (not via `git worktree remove`), stale metadata remains.
+  - Use `git worktree prune` to clean up.
+- **Nested worktrees**: Do not create a worktree inside another worktree's directory.
+  - Keep worktrees as siblings in a flat structure (e.g., `worktrees/branch-a`, `worktrees/branch-b`).
+- **Base repository as a second-class worktree**: The base repository is a full worktree and can be used for development.
+  - Do not treat it as "reserved for listing only".
+- **Assuming isolation without commits**: Changes in a worktree are isolated at the filesystem level but remain local.
+  - They do not appear in other worktrees until committed and (optionally) pushed and fetched by other worktrees.
 
 ## First Safe Commands
 
@@ -335,11 +349,13 @@ If no output appears, the worktree was created successfully.
 fatal: <branch> is already checked out at '<path>'
 ```
 
-This means the branch is already active in another worktree or the base repository. Choose a different branch or remove the conflicting worktree first.
+This means the branch is already active in another worktree or the base repository.
+Choose a different branch or remove the conflicting worktree first.
 
 ### `git worktree remove` output
 
-No output on success. On failure:
+No output on success.
+On failure:
 
 ```text
 fatal: <path> is not a worktree

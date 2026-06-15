@@ -1,17 +1,19 @@
 # Spring Cloud Gateway routing
 
-Open this reference when the ordinary ConfigData-discovery-loadbalancer path in [SKILL.md](../SKILL.md) is not enough and the task is specifically about gateway routing or choosing a gateway boundary instead of direct downstream calls.
+Open this reference when the ordinary ConfigData-discovery-loadbalancer path in [`SKILL.md`](../SKILL.md) is not enough and the task is specifically about gateway routing or choosing a gateway boundary instead of direct downstream calls.
 
 ## Artifact rename (2025.0.x+)
 
-New starter names were introduced in Spring Cloud Gateway 4.3.x. Use the current names in new configuration.
+New starter names were introduced in Spring Cloud Gateway 4.3.x.
+Use the current names in new configuration.
 
 | Previous | New (2025.0.x+) |
 | --- | --- |
 | `spring-cloud-starter-gateway` | `spring-cloud-starter-gateway-server-webflux` |
 | `spring-cloud-starter-gateway-mvc` | `spring-cloud-starter-gateway-server-webmvc` |
 
-Use the new artifact names for all new work. For existing estates on the old names, add `spring-boot-properties-migrator` to identify property prefix changes during migration.
+Use the new artifact names for all new work.
+For existing estates on the old names, add `spring-boot-properties-migrator` to identify property prefix changes during migration.
 
 ## Property prefix migration (2025.0.x+)
 
@@ -25,7 +27,8 @@ Use the new prefixes for all new configuration.
 
 ## Trusted proxies (2025.0.x+)
 
-`X-Forwarded-*` and `Forwarded` header handling is disabled by default. Set trusted proxies explicitly:
+`X-Forwarded-*` and `Forwarded` header handling is disabled by default.
+Set trusted proxies explicitly:
 
 ```yaml
 spring:
@@ -38,7 +41,9 @@ spring:
 
 > [!CAUTION]
 >
-> CVE-2026-47825 (Gateway 5.0.2): WebMVC and WebFlux Gateway Server could forward `X-Forwarded-For` and `Forwarded` headers from untrusted proxies under certain configurations. `NettyServerCustomizer` is now disabled by default. Re-enable only when the downstream proxy chain is explicitly trusted:
+> CVE-2026-47825 (Gateway 5.0.2): WebMVC and WebFlux Gateway Server could forward `X-Forwarded-For` and `Forwarded` headers from untrusted proxies under certain configurations.
+> `NettyServerCustomizer` is now disabled by default.
+> Re-enable only when the downstream proxy chain is explicitly trusted:
 >
 > ```yaml
 > spring:

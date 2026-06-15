@@ -1,6 +1,6 @@
 # Spring GraphQL advanced DataLoader patterns
 
-Open this reference when the blocker is DataLoader registration, `DataLoaderOptions`, shared batching lifecycle, or batch-loader context beyond the ordinary `@BatchMapping` path in [SKILL.md](../SKILL.md).
+Open this reference when the blocker is DataLoader registration, `DataLoaderOptions`, shared batching lifecycle, or batch-loader context beyond the ordinary `@BatchMapping` path in [`SKILL.md`](../SKILL.md).
 
 ## DataLoader registration blocker
 

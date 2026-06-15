@@ -36,7 +36,8 @@ final class ReplaceSharedSchedulers {
 }
 ```
 
-Use shared-scheduler replacement only when scheduler policy must change application-wide. For one bounded use case, prefer a dedicated scheduler instance instead.
+Use shared-scheduler replacement only when scheduler policy must change application-wide.
+For one bounded use case, prefer a dedicated scheduler instance instead.
 
 ## Default vs custom scheduler decision
 
@@ -51,7 +52,8 @@ Use shared-scheduler replacement only when scheduler policy must change applicat
 
 > [!NOTE]
 >
-> `Schedulers.fromExecutor(Executor)` remains available in Reactor 3.8.6, but Reactor's scheduler guide discourages it when an `ExecutorService` is available. Prefer `Schedulers.fromExecutorService(ExecutorService)` for clearer lifecycle management and disposal semantics.
+> `Schedulers.fromExecutor(Executor)` remains available in Reactor 3.8.6, but Reactor's scheduler guide discourages it when an `ExecutorService` is available.
+> Prefer `Schedulers.fromExecutorService(ExecutorService)` for clearer lifecycle management and disposal semantics.
 
 ## Dedicated scheduler factory methods
 
@@ -91,7 +93,8 @@ On Java 21+, the shared `Schedulers.boundedElastic()` can use a thread-per-task 
 java -Dreactor.schedulers.defaultBoundedElasticOnVirtualThreads=true -jar app.jar
 ```
 
-Use this shared path when the whole application should run bounded-elastic tasks on virtual threads. Keep the normal `Mono.fromCallable(...).subscribeOn(Schedulers.boundedElastic())` bridge shape; only the scheduler backing changes.
+Use this shared path when the whole application should run bounded-elastic tasks on virtual threads.
+Keep the normal `Mono.fromCallable(...).subscribeOn(Schedulers.boundedElastic())` bridge shape; only the scheduler backing changes.
 
 ## Lifecycle and disposal
 
@@ -133,11 +136,14 @@ final class GracefulShutdown {
 }
 ```
 
-`disposeGracefully()` returns a `Mono<Void>` that completes when all scheduled tasks have finished. Use it in application lifecycle hooks where graceful degradation is required. `dispose()` is immediate and drops in-flight work.
+`disposeGracefully()` returns a `Mono<Void>` that completes when all scheduled tasks have finished.
+Use it in application lifecycle hooks where graceful degradation is required.
+`dispose()` is immediate and drops in-flight work.
 
 ## Tuning guardrails
 
-- Shared schedulers are the default. Create dedicated schedulers only when isolation is a real requirement.
+- Shared schedulers are the default.
+  - Create dedicated schedulers only when isolation is a real requirement.
 - Replace shared defaults with `Schedulers.setFactory(...)` only when the policy must change globally.
 - Tune `newBoundedElastic(...)` only when thread cap or queue cap is the actual blocker.
 - Prefer naming dedicated schedulers so thread dumps and logs are readable.

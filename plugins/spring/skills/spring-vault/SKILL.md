@@ -1,18 +1,21 @@
 ---
 name: spring-vault
 description: >-
-  Integrate Spring applications with HashiCorp Vault or Cloud Foundry CredHub for secret and credential reads, writes, authentication, property-source loading, transit encryption, declarative secret rotation, and certificate management. Use when configuring `VaultTemplate` operations, setting up AppRole or token authentication, loading Vault-backed property sources, applying transit encryption and decryption, using `VaultClient` for low-level Vault HTTP access, configuring `ManagedSecret` rotation, issuing certificates through `CertificateContainer`, reading or writing CredHub credentials, configuring mutual-TLS or OAuth2 CredHub authentication, or generating CredHub passwords or certificates.
+  Integrate Spring applications with HashiCorp Vault or Cloud Foundry CredHub for secret and credential reads, writes, authentication, property-source loading, transit encryption, declarative secret rotation, and certificate management.
+  Use when configuring `VaultTemplate` operations, setting up AppRole or token authentication, loading Vault-backed property sources, applying transit encryption and decryption, using `VaultClient` for low-level Vault HTTP access, configuring `ManagedSecret` rotation, issuing certificates through `CertificateContainer`, reading or writing CredHub credentials, configuring mutual-TLS or OAuth2 CredHub authentication, or generating CredHub passwords or certificates.
 ---
 
 # Spring Vault and CredHub
 
-The latest released Spring Vault line is 4.1.0. Keep the frontmatter docs URL unversioned, but pin the concrete artifact example in this skill to 4.1.0 because this skill documents the current released standalone client path rather than a Spring BOM-managed path.
+The latest released Spring Vault line is 4.1.0.
+Pin the concrete artifact example in this skill to 4.1.0 because this skill documents the current released standalone client path rather than a Spring BOM-managed path.
 
 ## Boundaries
 
 Use `spring-vault` for application-side Vault or CredHub access, authentication setup, KV engine access, transit operations, credential management, and Spring configuration import from Vault or CredHub.
 
-- Keep this skill focused on application integration. Vault cluster operations, seal management, and policy administration are platform concerns.
+- Keep this skill focused on application integration.
+  - Vault cluster operations, seal management, and policy administration are platform concerns.
 - Keep one auth mode per runtime profile so startup and token-renewal behavior stay predictable.
 - Keep Kubernetes auth, reactive access, and versioned KV behavior out of the ordinary path unless the task explicitly needs them.
 - Keep Vault repositories, PKI certificate issuance, and Spring Security crypto integration outside the ordinary path unless those surfaces are the actual blocker.
@@ -25,7 +28,8 @@ Use `spring-vault` for application-side Vault or CredHub access, authentication 
 | HashiCorp Vault is the secret store | Vault paths in this skill |
 | Cloud Foundry CredHub is the secret store | CredHub paths in this skill |
 
-Vault and CredHub follow the same integration pattern: configure a client, authenticate, read and write secrets. The code shapes differ but the workflow is equivalent.
+Vault and CredHub follow the same integration pattern: configure a client, authenticate, read and write secrets.
+The code shapes differ but the workflow is equivalent.
 
 ## Surface map
 
@@ -58,15 +62,16 @@ The ordinary Spring Vault job is:
 ### Branch selector
 
 - Stay in `SKILL.md` for the ordinary token-or-AppRole path: direct `VaultTemplate` access, KV read or write operations, property import, KV v1 versus KV v2 path awareness, transit encrypt or decrypt, and fail-fast handling for missing secrets.
-- Open [references/kubernetes-authentication.md](references/kubernetes-authentication.md) when the runtime is in Kubernetes and Vault login must use the mounted service-account token.
-- Open [references/reactive-vault-access.md](references/reactive-vault-access.md) when secret access is already on a reactive request path and the task needs `ReactiveVaultTemplate`.
-- Open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) when KV v2 version retrieval, CAS writes, or version-aware conflict handling matters.
-- Open [references/credential-rotation.md](references/credential-rotation.md) when secrets require lease renewal, rotation, or managed certificate lifecycle.
-- Open [references/vault-repositories.md](references/vault-repositories.md) when domain entities must persist in Vault with query derivation, regex predicates, or set-based lookups.
+- Open [references/kubernetes`-authentication.md`](references/kubernetes-authentication.md) when the runtime is in Kubernetes and Vault login must use the mounted service-account token.
+- Open [references/reactive`-vault-access.md`](references/reactive-vault-access.md) when secret access is already on a reactive request path and the task needs `ReactiveVaultTemplate`.
+- Open [references/kv`-versioning-and-cas.md`](references/kv-versioning-and-cas.md) when KV v2 version retrieval, CAS writes, or version-aware conflict handling matters.
+- Open [references/credential`-rotation.md`](references/credential-rotation.md) when secrets require lease renewal, rotation, or managed certificate lifecycle.
+- Open [references/vault`-repositories.md`](references/vault-repositories.md) when domain entities must persist in Vault with query derivation, regex predicates, or set-based lookups.
 
 ## Dependency baseline
 
-Use `spring-vault-core` for direct client access. Add Spring Boot config integration only when Vault-backed property loading is the actual requirement.
+Use `spring-vault-core` for direct client access.
+Add Spring Boot config integration only when Vault-backed property loading is the actual requirement.
 
 ```xml
 <dependencies>
@@ -171,8 +176,10 @@ class SecretServiceTests {
 
 1. Fix the secret path shape first, such as `secret/data/app/{env}/database` for KV v2.
 2. Keep auth configuration outside business services and inject `VaultTemplate` into a narrow boundary service.
-3. Distinguish KV v1 and KV v2 paths explicitly. Prefer `opsForKeyValue(...)` for ordinary KV access instead of teaching raw `data/` path handling as the main integration shape.
-4. `opsForKeyValue(String path)` auto-detects KV v1 vs v2 at runtime (4.1). Explicit `opsForKeyValue(String, KeyValueBackend)` overrides when the mount version is known and detection overhead is unacceptable.
+3. Distinguish KV v1 and KV v2 paths explicitly.
+   - Prefer `opsForKeyValue(...)` for ordinary KV access instead of teaching raw `data/` path handling as the main integration shape.
+4. `opsForKeyValue(String path)` auto-detects KV v1 vs v2 at runtime (4.1).
+   - Explicit `opsForKeyValue(String, KeyValueBackend)` overrides when the mount version is known and detection overhead is unacceptable.
 5. Use `VaultClient` for low-level Vault HTTP access instead of `RestOperations` or `RestTemplate`.
 6. Read typed secret fields into application-specific records or value objects as early as possible.
 7. Use `getRequiredData()` when the read path must fail fast instead of silently tolerating a missing payload.
@@ -181,13 +188,17 @@ class SecretServiceTests {
 
 ## Edge cases
 
-- Open [references/kubernetes-authentication.md](references/kubernetes-authentication.md) when the application already runs inside Kubernetes and Vault should trust the pod identity.
-- Open [references/reactive-vault-access.md](references/reactive-vault-access.md) when secret access must stay reactive end to end.
-- Open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) when multiple writers, CAS, or version retrieval matter.
-- Treat transit as part of this skill only for the basic encrypt or decrypt boundary. More specialized secret-engine work should stay outside the ordinary KV path.
-- `VaultClient` requires a `VaultEndpoint` or `VaultEndpointProvider` for relative path usage. Without one, callers must provide absolute URLs for every request.
-- `opsForKeyValue(String path)` queries `sys/internal/ui/mounts/...` at runtime. Ensure the token policy allows accessing that path.
-- `ManagedSecret` availability depends on `SecretLeaseContainer` lifecycle. Components that need credentials during `@PostConstruct` must declare `SecretLeaseContainer` as a dependency to ensure correct ordering.
+- Open [references/kubernetes`-authentication.md`](references/kubernetes-authentication.md) when the application already runs inside Kubernetes and Vault should trust the pod identity.
+- Open [references/reactive`-vault-access.md`](references/reactive-vault-access.md) when secret access must stay reactive end to end.
+- Open [references/kv`-versioning-and-cas.md`](references/kv-versioning-and-cas.md) when multiple writers, CAS, or version retrieval matter.
+- Treat transit as part of this skill only for the basic encrypt or decrypt boundary.
+  - More specialized secret-engine work should stay outside the ordinary KV path.
+- `VaultClient` requires a `VaultEndpoint` or `VaultEndpointProvider` for relative path usage.
+  - Without one, callers must provide absolute URLs for every request.
+- `opsForKeyValue(String path)` queries `sys/internal/ui/mounts/...` at runtime.
+  - Ensure the token policy allows accessing that path.
+- `ManagedSecret` availability depends on `SecretLeaseContainer` lifecycle.
+  - Components that need credentials during `@PostConstruct` must declare `SecretLeaseContainer` as a dependency to ensure correct ordering.
 
 ## Implementation examples
 
@@ -259,11 +270,13 @@ Use config import only when application startup should fail if Vault configurati
 VaultKeyValueOperations keyValue = vault.opsForKeyValue("secret");
 ```
 
-`opsForKeyValue(String path)` queries Vault mount metadata and returns either `VaultKeyValue1Template` or `VaultKeyValue2Template`. Use this when the KV version is not known at compile time.
+`opsForKeyValue(String path)` queries Vault mount metadata and returns either `VaultKeyValue1Template` or `VaultKeyValue2Template`.
+Use this when the KV version is not known at compile time.
 
 ### VaultClient for low-level Vault HTTP access (4.1)
 
-`VaultClient` replaces `RestOperations`/`RestTemplate` for low-level Vault interaction. It enforces path-based entry points and prevents accidental requests to non-Vault servers.
+`VaultClient` replaces `RestOperations`/`RestTemplate` for low-level Vault interaction.
+It enforces path-based entry points and prevents accidental requests to non-Vault servers.
 
 ```java
 VaultResponse read = vaultClient.get()
@@ -278,11 +291,13 @@ vaultClient.post()
         .toBodilessEntity();
 ```
 
-`AbstractVaultConfiguration` creates `VaultClient` automatically. Register a `VaultClientCustomizer` bean to customize the instance.
+`AbstractVaultConfiguration` creates `VaultClient` automatically.
+Register a `VaultClientCustomizer` bean to customize the instance.
 
 ### ManagedSecret for declarative rotation (4.1)
 
-`ManagedSecret` registers with `SecretLeaseContainer` and handles lease events without manual event listeners. `ManagedSecret` beans are auto-registered when declared in `AbstractVaultConfiguration` subclasses.
+`ManagedSecret` registers with `SecretLeaseContainer` and handles lease events without manual event listeners.
+`ManagedSecret` beans are auto-registered when declared in `AbstractVaultConfiguration` subclasses.
 
 ```java
 @Configuration
@@ -300,7 +315,8 @@ class MyConfiguration {
 
 ## CredHub integration (Cloud Foundry)
 
-Use this section when the secret store is Cloud Foundry CredHub instead of HashiCorp Vault. Spring CredHub 4.0.1 provides the client library.
+Use this section when the secret store is Cloud Foundry CredHub instead of HashiCorp Vault.
+Spring CredHub 4.0.1 provides the client library.
 
 ### CredHub dependency baseline
 
@@ -338,15 +354,19 @@ spring:
       registration-id: credhub-client
 ```
 
-Keep OAuth2 client registration outside the skill-specific scope; service token acquisition stays a platform concern. Prefer mutual TLS first, OAuth2 only when certificates are not available. Keep one auth mode active per application profile.
+Keep OAuth2 client registration outside the skill-specific scope; service token acquisition stays a platform concern.
+Prefer mutual TLS first, OAuth2 only when certificates are not available.
+Keep one auth mode active per application profile.
 
 ### CredHub coding procedure
 
 1. Fix the credential path contract as `/app/{env}/db/password` before writing any client code.
-2. Inject `CredHubOperations` into a narrow service layer. Use `ReactiveCredHubOperations` only when the application flow is already reactive.
+2. Inject `CredHubOperations` into a narrow service layer.
+   - Use `ReactiveCredHubOperations` only when the application flow is already reactive.
 3. Read typed credentials (`PasswordCredential`, `JsonCredential`, `ValueCredential`) where possible instead of treating every secret as a string.
 4. Use generated credentials for passwords or certificates only when the platform expects CredHub to own rotation.
-5. Fail closed: when a credential is missing or unreadable, return a controlled application error. Do not fall back to defaults silently.
+5. Fail closed: when a credential is missing or unreadable, return a controlled application error.
+   - Do not fall back to defaults silently.
 6. Test both happy path and missing-credential behavior at the service boundary.
 
 ### CredHub typed credential read
@@ -542,11 +562,11 @@ CredHub credential unreadable: /app/prod/db-password
 
 ## References
 
-- Open [references/kubernetes-authentication.md](references/kubernetes-authentication.md) when the ordinary token-or-AppRole path is not enough and the task needs Kubernetes auth.
-- Open [references/reactive-vault-access.md](references/reactive-vault-access.md) when the ordinary imperative client path is not enough and the task needs `ReactiveVaultTemplate`.
-- Open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) when the ordinary KV read-or-write path is not enough and the task needs KV v2 version control or CAS behavior.
-- Open [references/credential-rotation.md](references/credential-rotation.md) when the task needs secret lease renewal, rotation, or managed certificate lifecycle.
-- Open [references/vault-repositories.md](references/vault-repositories.md) when the task needs Vault repositories with query derivation, regex predicates, or set-based lookups.
-- Open [references/credhub-auth-and-credential-variants.md](references/credhub-auth-and-credential-variants.md) when the task needs CredHub mutual TLS versus OAuth2 authentication setup.
-- Open [references/credhub-reactive-access.md](references/credhub-reactive-access.md) when the task needs `ReactiveCredHubOperations` on a reactive request path.
-- Open [references/credhub-advanced-credential-patterns.md](references/credhub-advanced-credential-patterns.md) when the task needs CredHub interpolation, certificate generation, permissions, or non-default credential families.
+- Open [references/kubernetes`-authentication.md`](references/kubernetes-authentication.md) when the ordinary token-or-AppRole path is not enough and the task needs Kubernetes auth.
+- Open [references/reactive`-vault-access.md`](references/reactive-vault-access.md) when the ordinary imperative client path is not enough and the task needs `ReactiveVaultTemplate`.
+- Open [references/kv`-versioning-and-cas.md`](references/kv-versioning-and-cas.md) when the ordinary KV read-or-write path is not enough and the task needs KV v2 version control or CAS behavior.
+- Open [references/credential`-rotation.md`](references/credential-rotation.md) when the task needs secret lease renewal, rotation, or managed certificate lifecycle.
+- Open [references/vault`-repositories.md`](references/vault-repositories.md) when the task needs Vault repositories with query derivation, regex predicates, or set-based lookups.
+- Open [references/credhub`-auth-and-credential-variants.md`](references/credhub-auth-and-credential-variants.md) when the task needs CredHub mutual TLS versus OAuth2 authentication setup.
+- Open [references/credhub`-reactive-access.md`](references/credhub-reactive-access.md) when the task needs `ReactiveCredHubOperations` on a reactive request path.
+- Open [references/credhub`-advanced-credential-patterns.md`](references/credhub-advanced-credential-patterns.md) when the task needs CredHub interpolation, certificate generation, permissions, or non-default credential families.

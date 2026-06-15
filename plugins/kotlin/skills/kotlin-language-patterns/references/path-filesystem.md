@@ -5,7 +5,8 @@ description: >-
 
 # JVM Path and Filesystem Boundaries
 
-Use this reference when the job is to implement or review one JVM filesystem boundary in Kotlin. This reference should be sufficient on its own for that task.
+Use this reference when the job is to implement or review one JVM filesystem boundary in Kotlin.
+This reference should be sufficient on its own for that task.
 
 Use this file to finish one of these jobs:
 

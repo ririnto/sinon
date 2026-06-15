@@ -1,18 +1,21 @@
 ---
 name: commit-convention
 description: >-
-  Write Conventional Commits-style commit messages with appropriate type, optional scope, breaking-change markers, and structured body or footer. Triggers on commit message text composition or review, commit type selection, breaking-change footer formatting, or message structure validation against the Conventional Commits spec.
+  Write Conventional Commits-style commit messages with appropriate type, optional scope, breaking-change markers, and structured body or footer.
+  Triggers on commit message text composition or review, commit type selection, breaking-change footer formatting, or message structure validation against the Conventional Commits spec.
 ---
 
 # Commit Convention
 
 ## Goal
 
-Establish clear, machine-parseable commit messages following Conventional Commits specification. A well-formed commit message makes history readable, enables automated tooling (version bumping, changelog generation), and provides future developers with both what changed and why.
+Establish clear, machine-parseable commit messages following Conventional Commits specification.
+A well-formed commit message makes history readable, enables automated tooling (version bumping, changelog generation), and provides future developers with both what changed and why.
 
 ## Scope
 
-This skill covers composing and validating commit message text only. It does not cover:
+This skill covers composing and validating commit message text only.
+It does not cover:
 
 - Staging or unstaging files (use `git add`, `git reset`, or other workflow tools).
 - Interactive rebase, squashing, or rewriting history (separate workflow skill).
@@ -21,11 +24,15 @@ This skill covers composing and validating commit message text only. It does not
 
 ## Operating Rules
 
-- Every commit MUST contain exactly one logical change. A logical change is a single feature, bug fix, documentation update, or refactor—not a mix of independent concerns.
-- The first line (subject) MUST be concise, imperative mood, no trailing period. SHOULD be 50 characters or fewer; MUST NOT exceed 72 characters.
+- Every commit MUST contain exactly one logical change.
+  - A logical change is a single feature, bug fix, documentation update, or refactor—not a mix of independent concerns.
+- The first line (subject) MUST be concise, imperative mood, no trailing period.
+  - SHOULD be 50 characters or fewer.
+    - MUST NOT exceed 72 characters.
 - If a commit has a body, it MUST begin with a blank line after the subject.
 - Body lines SHOULD wrap at 72 characters to ensure readability in terminal and email contexts.
-- Commit messages SHOULD be written in English by default, or in the language of the project documentation and team communication (per `CLAUDE.md`). Consistency within a single commit MUST be maintained.
+- Commit messages SHOULD be written in English by default, or in the language of the project documentation and team communication (per `CLAUDE.md`).
+  - Consistency within a single commit MUST be maintained.
 - Code identifiers, CLI tool names, and file paths MUST retain their original form regardless of the surrounding language.
 - The commit type, scope, and breaking-change marker MUST follow the Conventional Commits format specification.
 
@@ -43,12 +50,22 @@ A Conventional Commit has the structure:
 
 ### Format Tokens
 
-- `type` (required): Semantic category. One of: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
-- `scope` (optional): Affected module, package, or component. Use kebab-case (e.g., `auth`, `api-client`). Omit if it adds noise or affects many areas.
-- `!` (optional): Marks a breaking change (incompatible API or behavior modification). Goes before the colon. Can appear with or without a scope.
-- `subject` (required): Summary in imperative mood. No trailing period. Lowercase preferred.
-- `body` (optional but recommended for non-trivial changes): Explains context, motivation, or design decisions. The diff explains what; the body explains why.
-- `footers` (optional): Issue references, co-authors, or breaking-change details. Format: `Token: value` on separate lines.
+- `type` (required): Semantic category.
+  - One of: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+- `scope` (optional): Affected module, package, or component.
+  - Use kebab-case (e.g., `auth`, `api-client`).
+  - Omit if it adds noise or affects many areas.
+- `!` (optional): Marks a breaking change (incompatible API or behavior modification).
+  - Goes before the colon.
+  - Can appear with or without a scope.
+- `subject` (required): Summary in imperative mood.
+  - No trailing period.
+  - Lowercase preferred.
+- `body` (optional but recommended for non-trivial changes): Explains context, motivation, or design decisions.
+  - The diff explains what.
+    - The body explains why.
+- `footers` (optional): Issue references, co-authors, or breaking-change details.
+  - Format: `Token: value` on separate lines.
 
 ### Type Reference
 
@@ -177,7 +194,8 @@ No behavior change; all tests pass.
 
 ## When to Split a Commit
 
-Split a change into multiple commits when the staged changes contain **more than one independent concern**. Independent concerns are changes that:
+Split a change into multiple commits when the staged changes contain **more than one independent concern**.
+Independent concerns are changes that:
 
 - Fix different bugs.
 - Implement separate features.
@@ -189,9 +207,11 @@ Split a change into multiple commits when the staged changes contain **more than
 - Commit message reads "and" (e.g., "add user login and fix sidebar layout").
 - `git diff --staged` shows changes in unrelated modules or files.
 - Changes serve different purposes (feature + cosmetic cleanup + test refactor).
-- One concern is critical; another is optional for release.
+- One concern is critical.
+  - Another is optional for release.
 
-Example: a developer stages both a bug fix to `auth.js` and a style update to `form.css`. These SHOULD be split into two commits.
+Example: a developer stages both a bug fix to `auth.js` and a style update to `form.css`.
+These SHOULD be split into two commits.
 
 ```markdown
 # Suggested split:
@@ -310,4 +330,6 @@ A commit message MUST be:
 - **Blank line** between subject and body (if body exists).
 - **Wrapped body** at 72 characters for readability.
 - **Single logical unit**: one feature, fix, refactor, or doc update per commit.
-- **Language consistent**: English by default; if translated, entire message MUST be consistent; code identifiers retain original form.
+- **Language consistent**: English by default.
+  - If translated, entire message MUST be consistent.
+  - Code identifiers retain original form.

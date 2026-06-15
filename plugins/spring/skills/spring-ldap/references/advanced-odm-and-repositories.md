@@ -21,7 +21,8 @@ class Person {
 }
 ```
 
-Multi-valued attributes such as `memberOf` map to collections. DN attributes belong on `@DnAttribute`, not on `@Attribute`.
+Multi-valued attributes such as `memberOf` map to collections.
+DN attributes belong on `@DnAttribute`, not on `@Attribute`.
 
 ## Repository `@Query` shape
 
@@ -39,7 +40,7 @@ Use `@Query` only when method-name derivation cannot express the required filter
 - Stay on the common path when one property name maps cleanly to one LDAP attribute.
 - Open this reference when repository naming becomes unclear, when substring or compound naming is no longer readable, or when raw `@Query` is the safer expression.
 
-For complex filter escaping or DN extraction around those repository queries, also open [filters-and-dn-handling.md](filters-and-dn-handling.md).
+For complex filter escaping or DN extraction around those repository queries, also open [`filters-and-dn-handling.md`](filters-and-dn-handling.md).
 
 ## Decision points
 

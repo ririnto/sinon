@@ -5,7 +5,8 @@ description: >-
 
 # Platform and Experimental Stdlib Boundaries
 
-Use this reference when the job is to recommend a Kotlin stdlib API responsibly, with the right platform and stability caveats. This reference should be sufficient on its own for that decision.
+Use this reference when the job is to recommend a Kotlin stdlib API responsibly, with the right platform and stability caveats.
+This reference should be sufficient on its own for that decision.
 
 Use this file to finish one of these jobs:
 
@@ -16,15 +17,19 @@ Use this file to finish one of these jobs:
 
 Best-practice rules:
 
-- treat the Kotlin stdlib docs as versioned and platform-filtered; examples should read as `Common` first unless the code is intentionally runtime-specific
-- `kotlin.io.path.*` is JVM-only and some APIs are marked `ExperimentalPathApi`; use it only when the module is explicitly on JVM and real filesystem `Path` behavior matters
-- `kotlin.io.encoding` is stable since Kotlin 2.2; use it when encoding support is required, and remember that the stream helpers there are JVM-only
-- stdlib `kotlin.time.Instant` is stable since Kotlin 2.3; on the Kotlin 2.1 baseline use `kotlinx.datetime.Instant`, or raise the baseline to 2.3+ for the stdlib type
-- `kotlin.uuid` is stable since Kotlin 2.4 (experimental since 2.0); use it when UUID generation or parsing is genuinely needed
+- treat the Kotlin stdlib docs as versioned and platform-filtered.
+  - Examples should read as `Common` first unless the code is intentionally runtime-specific
+- `kotlin.io.path.*` is JVM-only and some APIs are marked `ExperimentalPathApi`.
+  - Use it only when the module is explicitly on JVM and real filesystem `Path` behavior matters
+- `kotlin.io.encoding` is stable since Kotlin 2.2. Use it when encoding support is required, and remember that the stream helpers there are JVM-only
+- stdlib `kotlin.time.Instant` is stable since Kotlin 2.3. On the Kotlin 2.1 baseline use `kotlinx.datetime.Instant`, or raise the baseline to 2.3+ for the stdlib type
+- `kotlin.uuid` is stable since Kotlin 2.4 (experimental since 2.0).
+  - Use it when UUID generation or parsing is genuinely needed
 - `kotlin.contracts` is experimental and is not a common-path recommendation for ordinary application code
 - `Regex` exists across platforms, but options and behavior can differ because JS uses the host `RegExp` behavior with stricter Unicode parsing
 - examples that use `java.io.File`, `BufferedReader`, or other JDK resource types are JVM-specific illustrations even when the surrounding stdlib concept is broader
-- stdlib `kotlin.coroutines` is the low-level coroutine surface; higher-level async work still belongs in `kotlinx.coroutines` guidance rather than this language-pattern entrypoint
+- stdlib `kotlin.coroutines` is the low-level coroutine surface.
+  - Higher-level async work still belongs in `kotlinx.coroutines` guidance rather than this language-pattern entrypoint
 
 Prefer examples that make runtime-specific or experimental status explicit instead of leaving it implicit.
 
@@ -51,7 +56,8 @@ Use when: the example is multiplatform in principle, but callers should not assu
 
 Recently stabilized API with explicit status:
 
-State an API's current stability in prose before imports or on a declaration KDoc, not as a detached KDoc before an import. `kotlin.uuid` graduated to Stable in Kotlin 2.4, so it no longer requires an opt-in.
+State an API's current stability in prose before imports or on a declaration KDoc, not as a detached KDoc before an import.
+`kotlin.uuid` graduated to Stable in Kotlin 2.4, so it no longer requires an opt-in.
 
 ```kotlin
 import kotlin.uuid.Uuid
@@ -82,7 +88,7 @@ Use when: the team is intentionally opting into contracts and the example must m
 
 Encoding helper with explicit platform status:
 
-`kotlin.io.encoding.Base64` is stable since Kotlin 2.2; the stream helpers are JVM-only.
+`kotlin.io.encoding.Base64` is stable since Kotlin 2.2. The stream helpers are JVM-only.
 
 ```kotlin
 import kotlin.io.encoding.Base64
@@ -95,7 +101,8 @@ Use when: the example needs encoding support and callers must know the stream he
 
 ## Reflection
 
-Kotlin reflection (`kotlin.reflect`) is separate from Java reflection. Use it when you need type-token access or property references at runtime.
+Kotlin reflection (`kotlin.reflect`) is separate from Java reflection.
+Use it when you need type-token access or property references at runtime.
 
 ```kotlin
 inline fun <reified T> className(): String = T::class.simpleName ?: "Anonymous"
@@ -112,4 +119,6 @@ if (String::class.isInstance("hello")) {
 }
 ```
 
-Note: `kotlin-reflect` is a separate artifact. On JVM, `T::class` works with just the stdlib, but `KProperty` access requires `kotlin-reflect` on the classpath. Prefer reified inline functions when possible.
+Note: `kotlin-reflect` is a separate artifact.
+On JVM, `T::class` works with just the stdlib, but `KProperty` access requires `kotlin-reflect` on the classpath.
+Prefer reified inline functions when possible.

@@ -39,7 +39,8 @@ val applicationScope = CoroutineScope(
 )
 ```
 
-Invariant: `CoroutineExceptionHandler` observes uncaught exceptions from root coroutines, most commonly a root `launch` or an application scope context. It does not rescue child coroutines from structured-concurrency failure propagation, and it does not handle `async` failures because `async` captures them in `Deferred` until `await()`.
+Invariant: `CoroutineExceptionHandler` observes uncaught exceptions from root coroutines, most commonly a root `launch` or an application scope context.
+It does not rescue child coroutines from structured-concurrency failure propagation, and it does not handle `async` failures because `async` captures them in `Deferred` until `await()`.
 
 Root `launch` with local exception reporting:
 
@@ -114,7 +115,8 @@ class OrderPresenter(private val scope: CoroutineScope) {
 }
 ```
 
-Control parallelism for CPU-bound work without creating extra threads. `limitedParallelism(n)` creates a dispatcher view that limits concurrent execution to `n` threads from the parent pool:
+Control parallelism for CPU-bound work without creating extra threads.
+`limitedParallelism(n)` creates a dispatcher view that limits concurrent execution to `n` threads from the parent pool:
 
 ```kotlin
 import kotlinx.coroutines.Dispatchers
@@ -131,7 +133,8 @@ suspend fun processAll(items: List<Input>): List<Output> = withContext(boundedCo
 }
 ```
 
-Use when you need to limit parallelism of CPU-bound work (e.g., to avoid exhausting CPU cores or rate-limiting external calls). The canonical `withContext(Dispatchers.IO)` and `withContext(Dispatchers.Default)` patterns are in `SKILL.md` under "Ownership and dispatchers".
+Use when you need to limit parallelism of CPU-bound work (e.g., to avoid exhausting CPU cores or rate-limiting external calls).
+The canonical `withContext(Dispatchers.IO)` and `withContext(Dispatchers.Default)` patterns are in `SKILL.md` under "Ownership and dispatchers".
 
 ## Pitfalls
 

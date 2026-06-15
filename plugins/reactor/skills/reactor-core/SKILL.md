@@ -1,21 +1,24 @@
 ---
 name: reactor-core
 description: >-
-  Author Reactor pipelines with Flux and Mono. Use when designing or reviewing Flux/Mono source creation, operator composition, combination, empty/error behavior, ordinary backpressure choices, and everyday Context usage in Project Reactor.
+  Author Reactor pipelines with Flux and Mono.
+  Use when designing or reviewing Flux/Mono source creation, operator composition, combination, empty/error behavior, ordinary backpressure choices, and everyday Context usage in Project Reactor.
 ---
 
 # Reactor Core
 
 ## Official Baseline
 
-- Use the official Project Reactor 3.8.x reference guide for this skill; this review checked `reactor-core` 3.8.6.
+- Use the official Project Reactor 3.8.x reference guide for this skill.
+  - This review checked `reactor-core` 3.8.6.
 - Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
 
 Author the ordinary Reactor path with `Flux` and `Mono`.
 
 ## Goal
 
-This skill covers source selection, operator composition, combination, empty/error behavior, ordinary demand decisions, and request-scoped `Context` usage. Keep dedicated scheduler design, sink-driven hot sources, and `reactor-test` work in their own domains.
+This skill covers source selection, operator composition, combination, empty/error behavior, ordinary demand decisions, and request-scoped `Context` usage.
+Keep dedicated scheduler design, sink-driven hot sources, and `reactor-test` work in their own domains.
 
 ## Scope
 
@@ -161,7 +164,8 @@ final class UserLookupService {
 }
 ```
 
-One scheduler hop offloads the blocking call to `boundedElastic`. Multi-hop placement or custom scheduler design is scheduler-specific work outside this core pipeline path.
+One scheduler hop offloads the blocking call to `boundedElastic`.
+Multi-hop placement or custom scheduler design is scheduler-specific work outside this core pipeline path.
 
 ### `Flux` pipeline with ordered async fan-out and empty fallback
 
@@ -214,7 +218,8 @@ final class SearchAsYouType {
 }
 ```
 
-`switchMap` cancels the previous inner publisher when a new trigger arrives. Use it for latest-win scenarios like search-as-you-type or live configuration refresh.
+`switchMap` cancels the previous inner publisher when a new trigger arrives.
+Use it for latest-win scenarios like search-as-you-type or live configuration refresh.
 
 ### `timeout` with fallback
 
@@ -250,7 +255,8 @@ final class PollingService {
 }
 ```
 
-`repeat` re-subscribes on completion (not error). Combine with `take(n)` or `repeatWhen(...)` to avoid infinite loops.
+`repeat` re-subscribes on completion (not error).
+Combine with `take(n)` or `repeatWhen(...)` to avoid infinite loops.
 
 ### `handle` for conditional multi-signal emission
 
@@ -270,7 +276,8 @@ final class ConditionalEmission {
 }
 ```
 
-`handle` allows emitting 0, 1, or N values per input element without nesting publishers. Values less than or equal to zero are silently filtered (no signal emitted).
+`handle` allows emitting 0, 1, or N values per input element without nesting publishers.
+Values less than or equal to zero are silently filtered (no signal emitted).
 
 ### `flatMapMany` for Mono-to-Flux cardinality change
 

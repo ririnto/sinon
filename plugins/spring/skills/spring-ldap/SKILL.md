@@ -1,19 +1,22 @@
 ---
 name: spring-ldap
 description: >-
-  Build LDAP directory reads and writes in Spring with LdapTemplate, ODM entry mapping, LDAP repository queries, authentication checks, and embedded LDAP tests. Use when querying directory entries with filters, mapping LDAP attributes to Java objects with `@Entry`, or setting up embedded UnboundID test servers.
+  Build LDAP directory reads and writes in Spring with LdapTemplate, ODM entry mapping, LDAP repository queries, authentication checks, and embedded LDAP tests.
+  Use when querying directory entries with filters, mapping LDAP attributes to Java objects with `@Entry`, or setting up embedded UnboundID test servers.
 ---
 
 # Spring LDAP
 
-The latest released Spring LDAP line is 4.1.0. That 4.x line targets Spring Framework 7+, while Spring Boot 3.x still manages the parallel 3.x line, so keep the direct 4.1.0 path in this skill only when the project baseline already matches the 4.x generation. If the job needs `LdapRepository`, the current stable repository module is Spring Data LDAP 4.1.0, which depends on Spring LDAP 4.1.0.
+The latest released Spring LDAP line is 4.1.0. That 4.x line targets Spring Framework 7+, while Spring Boot 3.x still manages the parallel 3.x line, so keep the direct 4.1.0 path in this skill only when the project baseline already matches the 4.x generation.
+If the job needs `LdapRepository`, the current stable repository module is Spring Data LDAP 4.1.0, which depends on Spring LDAP 4.1.0.
 
 ## Boundaries
 
 Use `spring-ldap` for LDAP operations, ODM mapping, LDAP repository support, and embedded LDAP testing.
 
 - Authentication, authorization, and filter-chain design around LDAP authentication providers are Spring Security concerns outside this directory-operations scope.
-- Keep repository-backed LDAP query design in this skill. Treat authentication or authorization policy as a separate application-security concern rather than directory access itself.
+- Keep repository-backed LDAP query design in this skill.
+  - Treat authentication or authorization policy as a separate application-security concern rather than directory access itself.
 
 ## Common path
 
@@ -50,7 +53,8 @@ Prefer one mapping style per aggregate unless the schema forces a mixed approach
 
 ## Dependency baseline
 
-Use direct Spring LDAP artifacts for the ordinary 4.1.0 path. Treat Spring Boot starter wiring as a parallel Boot-managed path only when the project is already on the matching Boot generation.
+Use direct Spring LDAP artifacts for the ordinary 4.1.0 path.
+Treat Spring Boot starter wiring as a parallel Boot-managed path only when the project is already on the matching Boot generation.
 
 ### Runtime baseline
 
@@ -98,7 +102,8 @@ Use the Boot starter only when the project is already on a Boot line that manage
 
 ### Test-only additions
 
-Add the Spring LDAP test module when tests need LDAP-specific assertions or helpers. If the test path uses `spring.ldap.embedded.*`, also add an embedded LDAP server implementation for tests.
+Add the Spring LDAP test module when tests need LDAP-specific assertions or helpers.
+If the test path uses `spring.ldap.embedded.*`, also add an embedded LDAP server implementation for tests.
 
 ```xml
 <dependencies>
@@ -169,7 +174,8 @@ spring:
     password: ${LDAP_ADMIN_PASSWORD}
 ```
 
-Always externalize credentials. Use environment variables or secrets management, never hard-code passwords.
+Always externalize credentials.
+Use environment variables or secrets management, never hard-code passwords.
 
 ### Direct Spring LDAP context source shape
 
@@ -220,14 +226,17 @@ class RepositoryConfiguration {
 }
 ```
 
-Use this configuration only when the direct non-Boot path needs `LdapRepository`. If the task only needs `LdapTemplate`, keep the simpler direct bean path above.
+Use this configuration only when the direct non-Boot path needs `LdapRepository`.
+If the task only needs `LdapTemplate`, keep the simpler direct bean path above.
 
 ## Coding procedure
 
 1. Identify whether the task needs `LdapClient` (simplified API, no ODM), `LdapTemplate` (direct operations with optional ODM), or `LdapRepository` for query-method derivation.
 2. Configure the `ContextSource` with URL, base DN, user DN, and password before writing any query or mapping code.
-3. Use ODM annotations (`@Entry`, `@DnAttribute`, `@Attribute`) when the directory schema maps cleanly to Java types. Use `DirContextAdapter` when mapping is dynamic or partial.
-4. Build filters with `LdapQueryBuilder` or `query().where(...)` for readable filter chains. Treat raw string filters as a last resort and keep Spring LDAP builders or helpers in front of manual escaping.
+3. Use ODM annotations (`@Entry`, `@DnAttribute`, `@Attribute`) when the directory schema maps cleanly to Java types.
+   - Use `DirContextAdapter` when mapping is dynamic or partial.
+4. Build filters with `LdapQueryBuilder` or `query().where(...)` for readable filter chains.
+   - Treat raw string filters as a last resort and keep Spring LDAP builders or helpers in front of manual escaping.
 5. For authentication checks, search by the directory attribute your deployment uses for login such as `uid` or `cn`, and keep the attribute name explicit in code and tests.
 6. Add an embedded LDAP test that loads a small LDIF file and verifies the query returns the expected entries.
 
@@ -303,7 +312,9 @@ class PersonDirectory {
 }
 ```
 
-`LdapClient` provides `list()`, `stream()`, `single()`, `optional()`, and `map()` terminal operations on search queries. Use `LdapClient` when ODM is not needed. `LdapClient` does not support ODM; use `LdapTemplate` when ODM entry mapping is required.
+`LdapClient` provides `list()`, `stream()`, `single()`, `optional()`, and `map()` terminal operations on search queries.
+Use `LdapClient` when ODM is not needed.
+`LdapClient` does not support ODM; use `LdapTemplate` when ODM entry mapping is required.
 
 ### ODM entity with DN-relative attributes
 
@@ -327,7 +338,8 @@ class Person {
 }
 ```
 
-Use `@DnAttribute` for attributes that appear in the entry's relative distinguished name. Use `@Attribute` for other directory attributes.
+Use `@DnAttribute` for attributes that appear in the entry's relative distinguished name.
+Use `@Attribute` for other directory attributes.
 
 ### LDAP repository query method
 
@@ -338,7 +350,9 @@ interface PersonRepository extends LdapRepository<Person> {
 }
 ```
 
-Spring Data derives the filter from the method name. `findBySurname` generates `(sn=<value>)`. `findByCommonNameContaining` generates `(cn=*<value>*)`.
+Spring Data derives the filter from the method name.
+`findBySurname` generates `(sn=<value>)`.
+`findByCommonNameContaining` generates `(cn=*<value>*)`.
 
 ### Authentication check with explicit login attribute
 
@@ -362,7 +376,8 @@ class LdapAuthService {
 }
 ```
 
-Use this pattern when you need a boolean result rather than an authenticated context. Replace `uid` with the actual login attribute used by the target directory schema.
+Use this pattern when you need a boolean result rather than an authenticated context.
+Replace `uid` with the actual login attribute used by the target directory schema.
 
 ### Boot-managed repository test shape with embedded LDAP data
 
@@ -444,7 +459,8 @@ class User {
 }
 ```
 
-The `id` field holds the full DN. `@DnAttribute(index = N)` extracts the N-th component from the DN path.
+The `id` field holds the full DN.
+`@DnAttribute(index = N)` extracts the N-th component from the DN path.
 
 ### LDAP properties for external server
 
@@ -457,7 +473,8 @@ spring:
     password: ${LDAP_PASSWORD}
 ```
 
-Use `ldap://` for plain LDAP ports such as 389 and `ldaps://` for LDAPS ports such as 636. Keep the scheme and port consistent. For embedded LDAPS testing, use `spring.ldap.embedded.ssl.bundle` instead of configuring `spring.ldap.urls` manually — see [references/embedded-testing-and-ldif.md](references/embedded-testing-and-ldif.md).
+Use `ldap://` for plain LDAP ports such as 389 and `ldaps://` for LDAPS ports such as 636. Keep the scheme and port consistent.
+For embedded LDAPS testing, use `spring.ldap.embedded.ssl.bundle` instead of configuring `spring.ldap.urls` manually — see [references/embedded`-testing-and-ldif.md`](references/embedded-testing-and-ldif.md).
 
 ## Testing checklist
 
@@ -495,7 +512,7 @@ Return:
 
 ## References
 
-- Open [references/advanced-odm-and-repositories.md](references/advanced-odm-and-repositories.md) when the schema needs multi-valued ODM fields, raw `@Query`, or deeper repository derivation rules.
-- Open [references/filters-and-dn-handling.md](references/filters-and-dn-handling.md) when the task needs complex LDAP filters, escaping, or DN parsing beyond the common path.
-- Open [references/transactions-and-context-source.md](references/transactions-and-context-source.md) when the application needs transaction-aware context sources or connection-pool tuning.
-- Open [references/embedded-testing-and-ldif.md](references/embedded-testing-and-ldif.md) when embedded LDAP setup needs custom ports, LDIF handling, LDAPS/SSL, or schema-validation tuning.
+- Open [references/advanced`-odm-and-repositories.md`](references/advanced-odm-and-repositories.md) when the schema needs multi-valued ODM fields, raw `@Query`, or deeper repository derivation rules.
+- Open [references/filters`-and-dn-handling.md`](references/filters-and-dn-handling.md) when the task needs complex LDAP filters, escaping, or DN parsing beyond the common path.
+- Open [references/transactions`-and-context-source.md`](references/transactions-and-context-source.md) when the application needs transaction-aware context sources or connection-pool tuning.
+- Open [references/embedded`-testing-and-ldif.md`](references/embedded-testing-and-ldif.md) when embedded LDAP setup needs custom ports, LDIF handling, LDAPS/SSL, or schema-validation tuning.

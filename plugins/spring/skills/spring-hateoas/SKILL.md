@@ -1,7 +1,8 @@
 ---
 name: spring-hateoas
 description: >-
-  Build Spring hypermedia representations with links, assemblers, HAL output, affordances, and paged models. Use when constructing `EntityModel` or `CollectionModel` responses, writing representation model assemblers, adding affordances or templated links, or producing HAL or HAL-FORMS output.
+  Build Spring hypermedia representations with links, assemblers, HAL output, affordances, and paged models.
+  Use when constructing `EntityModel` or `CollectionModel` responses, writing representation model assemblers, adding affordances or templated links, or producing HAL or HAL-FORMS output.
 ---
 
 # Spring HATEOAS
@@ -11,7 +12,8 @@ description: >-
 Use `spring-hateoas` for link modeling, representation assembly, hypermedia media types, and affordance exposure on the server side.
 
 - Use narrower guidance when the task is about publishing API documentation from tests.
-- Keep transport controllers thin. Hypermedia shape should live in assemblers or representation processors, not spread through controller methods.
+- Keep transport controllers thin.
+  - Hypermedia shape should live in assemblers or representation processors, not spread through controller methods.
 
 ## Common path
 
@@ -59,7 +61,8 @@ Use the Boot starter for ordinary HATEOAS work.
 </dependencies>
 ```
 
-The Boot starter is the ordinary activation path. Open the entity-links reference only when the application needs explicit `@EnableHypermediaSupport`, `EntityLinks`, or aggregate-type-based link derivation.
+The Boot starter is the ordinary activation path.
+Open the entity-links reference only when the application needs explicit `@EnableHypermediaSupport`, `EntityLinks`, or aggregate-type-based link derivation.
 
 ### Feature-to-artifact map
 
@@ -163,7 +166,8 @@ Links combined = assembler.toModel(order).getLinks()
 
 Use an assembler for resource-specific links and use a `RepresentationModelProcessor` only when one cross-cutting rule must enrich many representations the same way.
 
-Keep aggregate-type-based link derivation separate from ordinary assembler work. Open the entity-links reference only when controller-method links are no longer the right source of truth.
+Keep aggregate-type-based link derivation separate from ordinary assembler work.
+Open the entity-links reference only when controller-method links are no longer the right source of truth.
 
 ## Implementation examples
 
@@ -359,9 +363,9 @@ Return:
 
 ## References
 
-- Open [references/hal-forms-and-affordances.md](references/hal-forms-and-affordances.md) when plain HAL links are not enough and the representation must advertise action metadata or HAL-FORMS templates.
-- Open [references/representation-processors.md](references/representation-processors.md) when one cross-cutting rule must enrich many models with the same extra links or metadata.
-- Open [references/entity-links-and-hypermedia-support.md](references/entity-links-and-hypermedia-support.md) when links should derive from aggregate types, the app needs `EntityLinks`, or explicit `@EnableHypermediaSupport` configuration is required.
-- Open [references/pagedmodel-navigation-and-page-metadata.md](references/pagedmodel-navigation-and-page-metadata.md) when clients depend on `prev`/`next`/`first`/`last` navigation links or precise page metadata semantics.
-- Open [references/forwarded-headers-and-proxy-configuration.md](references/forwarded-headers-and-proxy-configuration.md) when generated links are wrong behind a reverse proxy, gateway, or base-path rewrite.
-- Open [references/problem-details-error-representations.md](references/problem-details-error-representations.md) when error responses should use `application/problem+json` instead of ad hoc JSON payloads.
+- Open [references/hal`-forms-and-affordances.md`](references/hal-forms-and-affordances.md) when plain HAL links are not enough and the representation must advertise action metadata or HAL-FORMS templates.
+- Open [references/representation`-processors.md`](references/representation-processors.md) when one cross-cutting rule must enrich many models with the same extra links or metadata.
+- Open [references/entity`-links-and-hypermedia-support.md`](references/entity-links-and-hypermedia-support.md) when links should derive from aggregate types, the app needs `EntityLinks`, or explicit `@EnableHypermediaSupport` configuration is required.
+- Open [references/pagedmodel`-navigation-and-page-metadata.md`](references/pagedmodel-navigation-and-page-metadata.md) when clients depend on `prev`/`next`/`first`/`last` navigation links or precise page metadata semantics.
+- Open [references/forwarded`-headers-and-proxy-configuration.md`](references/forwarded-headers-and-proxy-configuration.md) when generated links are wrong behind a reverse proxy, gateway, or base-path rewrite.
+- Open [references/problem`-details-error-representations.md`](references/problem-details-error-representations.md) when error responses should use `application/problem+json` instead of ad hoc JSON payloads.

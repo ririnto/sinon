@@ -1,7 +1,8 @@
 ---
 name: kotlin-coroutines-flows
 description: >-
-  Design Kotlin coroutine and Flow APIs with explicit ownership, honest async semantics, and cancellation-safe behavior. Use when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
+  Design Kotlin coroutine and Flow APIs with explicit ownership, honest async semantics, and cancellation-safe behavior.
+  Use when the user asks to "use coroutines", "design a suspend API", "choose Flow vs suspend", "debug cancellation", "review Kotlin async code", or needs guidance on Kotlin coroutine and Flow patterns.
 ---
 
 # Kotlin Coroutines Flows
@@ -10,7 +11,10 @@ description: >-
 
 Design Kotlin coroutine and Flow code with honest async semantics, explicit ownership, and cancellation-safe behavior.
 
-Minimum Kotlin version: 2.1 -- examples use `kotlinx.coroutines` APIs stable since 1.6 (`limitedParallelism`, `callbackFlow`), `kotlinx.coroutines.test` APIs from 1.7+ (`runTest`, `TestDispatcher`), and Flow operators available since 1.5. The `kotlinx-coroutines` library version is managed through the project's dependency catalog; use 1.11.0 or later for full API coverage shown here. Start with the smallest shape that matches the contract, then open a blocker reference only when scope, failure behavior, hot sharing, or concurrent mutation becomes the real problem.
+Minimum Kotlin version: 2.1 -- examples use `kotlinx.coroutines` APIs stable since 1.6 (`limitedParallelism`, `callbackFlow`), `kotlinx.coroutines.test` APIs from 1.7+ (`runTest`, `TestDispatcher`), and Flow operators available since 1.5.
+The `kotlinx-coroutines` library version is managed through the project's dependency catalog.
+Use 1.11.0 or later for full API coverage shown here.
+Start with the smallest shape that matches the contract, then open a blocker reference only when scope, failure behavior, hot sharing, or concurrent mutation becomes the real problem.
 
 ## Operating Rules
 
@@ -22,7 +26,8 @@ Minimum Kotlin version: 2.1 -- examples use `kotlinx.coroutines` APIs stable sin
 - SHOULD treat ordinary `Flow` as cold and sequential unless sharing or buffering is chosen intentionally.
 - SHOULD choose `StateFlow` for current state and `SharedFlow` for events or broadcasts.
 - MUST choose `launch` for fire-and-forget work and `async` only when the caller awaits the result.
-- MUST install `CoroutineExceptionHandler` only on root coroutine contexts or root `launch` builders where uncaught exceptions are reported; do not rely on it for child coroutines or `async` results.
+- MUST install `CoroutineExceptionHandler` only on root coroutine contexts or root `launch` builders where uncaught exceptions are reported.
+  - Do not rely on it for child coroutines or `async` results.
 - MUST keep code inside `flow { }` sequential and free of external context-switching calls.
 - SHOULD use `MutableStateFlow.update { }` for atomic state transitions.
 - MUST avoid `GlobalScope`, `GlobalScope.launch`, and detached work unless explicitly about background ownership.
@@ -54,7 +59,8 @@ fun observeOrders(): Flow<List<Order>> = repository.observeOrders()
 
 ### `launch` vs `async`
 
-Use `launch` for fire-and-forget work where the caller does not need the result. The presenter pattern is the canonical example: the UI triggers an action and moves on.
+Use `launch` for fire-and-forget work where the caller does not need the result.
+The presenter pattern is the canonical example: the UI triggers an action and moves on.
 
 ```kotlin
 class OrdersPresenter(private val presenterScope: CoroutineScope) {
@@ -66,7 +72,9 @@ class OrdersPresenter(private val presenterScope: CoroutineScope) {
 }
 ```
 
-Use `async` only when the caller must await and compose results from multiple parallel operations. Always call `await`; `CoroutineExceptionHandler` does not handle `async` failures because `async` captures them in the returned `Deferred`.
+Use `async` only when the caller must await and compose results from multiple parallel operations.
+Always call `await`.
+`CoroutineExceptionHandler` does not handle `async` failures because `async` captures them in the returned `Deferred`.
 
 ```kotlin
 suspend fun loadOrderWithItems(orderId: OrderId): Pair<Order, List<Item>> =
@@ -79,9 +87,11 @@ suspend fun loadOrderWithItems(orderId: OrderId): Pair<Order, List<Item>> =
 
 ### Cold `Flow` vs hot state or event streams
 
-Use ordinary `Flow` as the default streaming type. It is usually cold, so each collection starts the upstream work again unless you share it intentionally.
+Use ordinary `Flow` as the default streaming type.
+It is usually cold, so each collection starts the upstream work again unless you share it intentionally.
 
-Use `StateFlow` when every collector should immediately see the latest state. StateFlow always conflates -- fast writers drop intermediate values so collectors see at most the most recent emission.
+Use `StateFlow` when every collector should immediately see the latest state.
+StateFlow always conflates -- fast writers drop intermediate values so collectors see at most the most recent emission.
 
 ```kotlin
 private val mutableUiState = MutableStateFlow(UiState.Loading)
@@ -92,7 +102,8 @@ fun markLoaded(orders: List<Order>) {
 }
 ```
 
-Use `SharedFlow` when the stream represents events or broadcasts and replay must be chosen explicitly. Configure buffer capacity and overflow policy to match the event volume.
+Use `SharedFlow` when the stream represents events or broadcasts and replay must be chosen explicitly.
+Configure buffer capacity and overflow policy to match the event volume.
 
 ```kotlin
 import kotlinx.coroutines.channels.BufferOverflow
@@ -109,7 +120,9 @@ val events: SharedFlow<UiEvent> = mutableEvents
 
 ### Ownership and dispatchers
 
-Keep launched work attached to a visible owner. The presenter pattern (shown above under "`launch` vs `async`") is the canonical form. For service classes that own periodic or lifecycle-independent work, inject the scope:
+Keep launched work attached to a visible owner.
+The presenter pattern (shown above under "`launch` vs `async`") is the canonical form.
+For service classes that own periodic or lifecycle-independent work, inject the scope:
 
 ```kotlin
 class OrderSyncService(private val syncScope: CoroutineScope) {
@@ -153,7 +166,8 @@ class ReportGenerator {
 
 ### Essential Flow operators
 
-Build transform chains with basic operators. Keep chains readable by grouping related transforms together.
+Build transform chains with basic operators.
+Keep chains readable by grouping related transforms together.
 
 ```kotlin
 repository.observeOrders()
@@ -192,7 +206,9 @@ viewModel.orders
     .launchIn(viewModelScope)
 ```
 
-Handle errors at the Flow level using `catch` and `retry`, not by wrapping `collect` in try/catch. The `catch` operator intercepts upstream exceptions before they reach the collector; `retry` re-subscribes the flow on failure.
+Handle errors at the Flow level using `catch` and `retry`, not by wrapping `collect` in try/catch.
+The `catch` operator intercepts upstream exceptions before they reach the collector.
+`retry` re-subscribes the flow on failure.
 
 ```kotlin
 repository.observeOrders()
@@ -223,13 +239,15 @@ Check these pass/fail conditions before you stop:
 - `GlobalScope` is not used anywhere
 - `CoroutineExceptionHandler` is installed only on a root coroutine context or root `launch` where uncaught exceptions are reported
 - code inside `flow { }` is sequential with no context-switching calls
-- `StateFlow` and `SharedFlow` are chosen for clear state or event semantics; when using `SharedFlow`, imports include `BufferOverflow`
+- `StateFlow` and `SharedFlow` are chosen for clear state or event semantics.
+  - When using `SharedFlow`, imports include `BufferOverflow`
 - scope ownership is visible and launched work is not detached by accident
 - blocking or CPU-heavy work is not hidden inside an apparently cheap async path
 - cancellation is preserved instead of swallowed in broad exception handling
 - Flow error handling uses `catch`/`retry` operators instead of wrapping `collect` in try/catch
 - Flow construction uses the right tool: `flowOf`/`asFlow`/`emptyFlow()` for constants, `flow {}` for custom logic, `callbackFlow` for callback bridging
-- side effects in Flow chains use `onEach`; collection into external scopes uses `launchIn`
+- side effects in Flow chains use `onEach`.
+  - Collection into external scopes uses `launchIn`
 
 ## Common Pitfalls
 
@@ -251,10 +269,10 @@ Check these pass/fail conditions before you stop:
 
 Return:
 
-1. the chosen async shape and why it matches the contract
-2. the ownership and cancellation model
-3. any dispatcher, sharing, or buffering decisions that affect behavior
-4. any blocker references needed for deeper branches
+1. The chosen async shape and why it matches the contract
+2. The ownership and cancellation model
+3. Any dispatcher, sharing, or buffering decisions that affect behavior
+4. Any blocker references needed for deeper branches
 
 ## References
 

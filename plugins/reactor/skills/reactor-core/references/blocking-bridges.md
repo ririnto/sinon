@@ -7,7 +7,8 @@ description: >-
 
 Open this when a single `Mono.fromCallable(...)` + `subscribeOn(boundedElastic())` bridge is no longer sufficient and the pipeline requires multi-boundary blocking integration, future-based handoff patterns, or terminal bridge semantics.
 
-For one ordinary blocking boundary, keep the default `Mono.fromCallable(...)` plus `subscribeOn(Schedulers.boundedElastic())` pattern from `SKILL.md`; this reference covers deeper bridge variants only.
+For one ordinary blocking boundary, keep the default `Mono.fromCallable(...)` plus `subscribeOn(Schedulers.boundedElastic())` pattern from `SKILL.md`.
+This reference covers deeper bridge variants only.
 
 ## Multiple blocking boundaries
 
@@ -39,7 +40,8 @@ final class MultiBoundaryPipeline {
 }
 ```
 
-Each `fromCallable` creates an isolated boundary. The outer chain remains non-blocking between boundaries.
+Each `fromCallable` creates an isolated boundary.
+The outer chain remains non-blocking between boundaries.
 
 ## `fromRunnable` for completion-only blocking tasks
 
@@ -59,7 +61,8 @@ final class BlockingSideEffect {
 }
 ```
 
-The `blockingInit` method performs a blocking initialization with no return value. The `fromCallable` wrapper is not needed here because there is no return value to capture.
+The `blockingInit` method performs a blocking initialization with no return value.
+The `fromCallable` wrapper is not needed here because there is no return value to capture.
 
 ## Future-based handoff
 
@@ -79,13 +82,16 @@ final class FutureBridge {
 }
 ```
 
-If the future-completing thread is a blocking caller, add `subscribeOn(boundedElastic())` after `fromFuture`. If the future is completed by a non-blocking async client, no additional scheduler is needed.
+If the future-completing thread is a blocking caller, add `subscribeOn(boundedElastic())` after `fromFuture`.
+If the future is completed by a non-blocking async client, no additional scheduler is needed.
 
 ## Terminal bridge cautions
 
-`block()`, `blockFirst()`, `blockLast()`, `toIterable()`, and `toStream()` are boundary tools for the outermost imperative edge only. Never use terminal bridges inside an operator chain.
+`block()`, `blockFirst()`, `blockLast()`, `toIterable()`, and `toStream()` are boundary tools for the outermost imperative edge only.
+Never use terminal bridges inside an operator chain.
 
-Placing blocking work inside `map(...)` occupies the reactive worker thread invisibly. Isolate it at the boundary with `fromCallable(...)` instead.
+Placing blocking work inside `map(...)` occupies the reactive worker thread invisibly.
+Isolate it at the boundary with `fromCallable(...)` instead.
 
 ```java
 import reactor.core.publisher.Flux;
@@ -113,11 +119,13 @@ final class GoodBoundaryIsolation {
 }
 ```
 
-`Mono.toFuture()` is the safest bridge when the caller already expects `CompletableFuture` semantics. If blocking is spread across `map(...)`, `flatMap(...)`, and callbacks, the chain no longer communicates where the cost lives.
+`Mono.toFuture()` is the safest bridge when the caller already expects `CompletableFuture` semantics.
+If blocking is spread across `map(...)`, `flatMap(...)`, and callbacks, the chain no longer communicates where the cost lives.
 
 ## Virtual-thread considerations (Java 21+)
 
-On Java 21+, Reactor does not use virtual threads by default. To back the shared `Schedulers.boundedElastic()` with virtual threads, start the JVM with the Reactor system property `reactor.schedulers.defaultBoundedElasticOnVirtualThreads=true`:
+On Java 21+, Reactor does not use virtual threads by default.
+To back the shared `Schedulers.boundedElastic()` with virtual threads, start the JVM with the Reactor system property `reactor.schedulers.defaultBoundedElasticOnVirtualThreads=true`:
 
 ```sh
 java -Dreactor.schedulers.defaultBoundedElasticOnVirtualThreads=true -jar app.jar

@@ -45,9 +45,12 @@ server:
       timeout: 1m
 ```
 
-Wait at most two minutes before verifying WebSocket closure. Spring Session expires after the configured timeout, but the Redis notification is not guaranteed within that window. A background task runs every minute that forcibly cleans up expired sessions.
+Wait at most two minutes before verifying WebSocket closure.
+Spring Session expires after the configured timeout, but the Redis notification is not guaranteed within that window.
+A background task runs every minute that forcibly cleans up expired sessions.
 
-Only messages sent from a user keep the session alive. Received messages do not renew session expiration.
+Only messages sent from a user keep the session alive.
+Received messages do not renew session expiration.
 
 ## Decision points
 
@@ -59,7 +62,9 @@ Only messages sent from a user keep the session alive. Received messages do not 
 
 ## Gotchas
 
-- Do not treat WebSocket integration as automatic just because HTTP sessions are already stored in Redis or JDBC. The dedicated bridge must be wired explicitly.
+- Do not treat WebSocket integration as automatic just because HTTP sessions are already stored in Redis or JDBC.
+  - The dedicated bridge must be wired explicitly.
 - Do not skip origin and principal checks on the handshake path.
 - Do not assume session expiration events reach messaging infrastructure without the dedicated Spring Session WebSocket bridge.
-- Do not forget `@EnableScheduling`. The background cleanup task depends on scheduling support.
+- Do not forget `@EnableScheduling`.
+  - The background cleanup task depends on scheduling support.

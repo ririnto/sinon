@@ -15,7 +15,8 @@ dependencies {
 }
 ```
 
-Pin Turbine explicitly unless your project already centralizes versions in a version catalog. The current documented Flow API uses `test { }` for one Flow and `testIn(backgroundScope)` inside `turbineScope { }` for multiple concurrent Flow probes.
+Pin Turbine explicitly unless your project already centralizes versions in a version catalog.
+The current documented Flow API uses `test { }` for one Flow and `testIn(backgroundScope)` inside `turbineScope { }` for multiple concurrent Flow probes.
 
 ## Basic item inspection
 

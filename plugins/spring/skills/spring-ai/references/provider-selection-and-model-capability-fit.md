@@ -1,6 +1,6 @@
 # Provider selection and model capability fit
 
-Open this reference when the common-path model-family choice in [SKILL.md](../SKILL.md) is not enough and the blocker is provider-specific incompatibility, configuration edge behavior, or portability risk.
+Open this reference when the common-path model-family choice in [`SKILL.md`](../SKILL.md) is not enough and the blocker is provider-specific incompatibility, configuration edge behavior, or portability risk.
 
 ## Provider-specific blockers
 
@@ -141,7 +141,8 @@ spring:
 - Do not assume tool-calling, structured-output, moderation, or multimodal behavior is identical across providers.
 - Azure OpenAI requires deployment names that differ from standard OpenAI model IDs.
 - Anthropic chat support and embedding support are separate concerns in many deployments.
-- Google GenAI provides direct API access without Vertex AI project/location scoping. Vertex AI Gemini uses project-id and location instead.
+- Google GenAI provides direct API access without Vertex AI project/location scoping.
+  - Vertex AI Gemini uses project-id and location instead.
 - Docker Model Runner, Groq, NVIDIA, and Perplexity reuse the OpenAI client path but require provider-specific base URLs, model names, and compatibility checks.
 - Perplexity does not expose OpenAI-style tool calls and currently does not support multimodal messages.
 - NVIDIA requires `max-tokens` to be set explicitly.

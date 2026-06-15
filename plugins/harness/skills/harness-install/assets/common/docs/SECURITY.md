@@ -2,7 +2,8 @@
 
 ## Purpose
 
-SECURITY.md captures the durable security contract: what the team protects, who is allowed to do what, where secrets live, and where audit trails for sensitive actions land. An agent loading this file should be able to refuse a request that would cross a documented boundary without escalating to a human.
+`SECURITY.md` captures the durable security contract: what the team protects, who is allowed to do what, where secrets live, and where audit trails for sensitive actions land.
+An agent loading this file should be able to refuse a request that would cross a documented boundary without escalating to a human.
 
 ## Threat Model
 

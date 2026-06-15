@@ -1,7 +1,8 @@
 ---
 name: spring-shell
 description: >-
-  Build Spring Shell command-line applications with validated commands, completion, availability rules, terminal prompts, and shell-focused tests. Triggers on command registration with options and validation, tab completion configuration, runtime command availability control, or interactive REPL workflow construction.
+  Build Spring Shell command-line applications with validated commands, completion, availability rules, terminal prompts, and shell-focused tests.
+  Triggers on command registration with options and validation, tab completion configuration, runtime command availability control, or interactive REPL workflow construction.
 ---
 
 # Spring Shell
@@ -20,8 +21,10 @@ Use `spring-shell` for command registration, command grouping, option syntax, va
 
 - Use Spring Boot `CommandLineRunner` or `ApplicationRunner` for one-shot startup jobs that do not expose an interactive command surface.
 - Keep durable batch execution, restartable jobs, and large-scale scheduled processing outside this skill's scope.
-- Keep business workflows outside the command class. The shell layer should parse input, enforce availability, and delegate to application services.
-- Keep guided flows, TUI views, and custom prompt styling outside the ordinary path. Open the references only when the command-and-option model is not enough.
+- Keep business workflows outside the command class.
+  - The shell layer should parse input, enforce availability, and delegate to application services.
+- Keep guided flows, TUI views, and custom prompt styling outside the ordinary path.
+  - Open the references only when the command-and-option model is not enough.
 
 ## Surface map
 
@@ -47,12 +50,13 @@ The ordinary Spring Shell job is:
 ### Branch selector
 
 - Stay in `SKILL.md` for the ordinary command path: annotation-based commands, command grouping, built-in help behavior, option defaults, validation, completion, availability, `CommandContext` reads and writes, stable output, exit-status decisions, headless execution, and shell-focused tests.
-- Open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) when the task needs guided multi-step flows, selection widgets, confirmations, or richer terminal UI behavior.
-- Open [references/prompt-and-styling.md](references/prompt-and-styling.md) when the prompt or output styling must reflect environment, login state, or operator risk.
+- Open [references/interactive`-flows-and-terminal-ui.md`](references/interactive-flows-and-terminal-ui.md) when the task needs guided multi-step flows, selection widgets, confirmations, or richer terminal UI behavior.
+- Open [references/prompt`-and-styling.md`](references/prompt-and-styling.md) when the prompt or output styling must reflect environment, login state, or operator risk.
 
 ## Dependency baseline
 
-Use the starter for normal Spring Boot integration. Add the test artifact whenever command behavior matters enough to lock with executable shell tests.
+Use the starter for normal Spring Boot integration.
+Add the test artifact whenever command behavior matters enough to lock with executable shell tests.
 
 ```xml
 <dependencies>
@@ -137,7 +141,8 @@ spring:
       enabled: true
 ```
 
-Keep interactive mode enabled for the ordinary REPL path. Disable it only for automated script execution or harnesses that intentionally bypass the REPL loop.
+Keep interactive mode enabled for the ordinary REPL path.
+Disable it only for automated script execution or harnesses that intentionally bypass the REPL loop.
 
 ### Interaction mode
 
@@ -149,13 +154,15 @@ Spring Shell 4.x provides three `ShellRunner` implementations:
 | `SystemShellRunner` | Interactive | `spring-shell-core` only (no tab completion or history) |
 | `NonInteractiveShellRunner` | Non-interactive | `spring-shell-core` only |
 
-The Spring Boot starter uses `JLineShellRunner` by default. Set `spring.shell.interactive.enabled=false` to switch to `NonInteractiveShellRunner`.
+The Spring Boot starter uses `JLineShellRunner` by default.
+Set `spring.shell.interactive.enabled=false` to switch to `NonInteractiveShellRunner`.
 
 When a command is passed on the command line, Spring Shell 4.0.3+ automatically runs in non-interactive mode even without the property.
 
 ### Debug mode
 
-Set `spring.shell.debug.enabled=true` to print stack traces on command errors. This replaces the v3 `stacktrace` built-in command.
+Set `spring.shell.debug.enabled=true` to print stack traces on command errors.
+This replaces the v3 `stacktrace` built-in command.
 
 ### Configuration properties
 
@@ -169,18 +176,22 @@ Set `spring.shell.debug.enabled=true` to print stack traces on command errors. T
 
 Spring Shell exposes built-in commands: `help`, `clear`, `exit`, `quit`, `script`, and `version`.
 
-The `stacktrace` and `completion` built-in commands were removed in 4.0. Use debug mode (`spring.shell.debug.enabled=true`) instead of `stacktrace`. Shell-specific completion setup is left to the user's preferred shell.
+The `stacktrace` and `completion` built-in commands were removed in 4.0. Use debug mode (`spring.shell.debug.enabled=true`) instead of `stacktrace`.
+Shell-specific completion setup is left to the user's preferred shell.
 
 - Keep built-ins enabled unless the product has a deliberate operator-experience reason to hide them.
 - Keep custom command names distinct from built-ins so help output and command routing stay unambiguous.
-- Treat help text as part of the command contract. Keep command names, options, defaults, and examples aligned with what `help` prints.
+- Treat help text as part of the command contract.
+  - Keep command names, options, defaults, and examples aligned with what `help` prints.
 - Use script mode when support teams need reproducible CLI runs for onboarding, automation, or incident response.
 
 ## Coding procedure
 
 1. Start from the user-facing command contract: command name, group, required options, defaults, and terminal output.
-2. Default to annotation-based command registration for ordinary shells. Use programmatic registration only when commands must be assembled dynamically at runtime.
-3. Keep command methods thin. Parse input in the shell layer and delegate real work to an injected service.
+2. Default to annotation-based command registration for ordinary shells.
+   - Use programmatic registration only when commands must be assembled dynamically at runtime.
+3. Keep command methods thin.
+   - Parse input in the shell layer and delegate real work to an injected service.
 4. Use `@Option` defaults and required flags to make invalid input fail early.
 5. Add Bean Validation, completion, and `Availability` checks as close as possible to the command boundary.
 6. Use `CommandContext` for interactive reads and terminal-aware writes instead of `System.in` or `System.out`.
@@ -240,11 +251,14 @@ class CatalogCommands {
 }
 ```
 
-Commands in a `@CommandGroup` class are invoked as `catalog item add`. A `group` attribute on `@Command` overrides the class-level group.
+Commands in a `@CommandGroup` class are invoked as `catalog item add`.
+A `group` attribute on `@Command` overrides the class-level group.
 
 ### Options and positional arguments
 
-`@Option` defines named parameters. `@Argument` defines positional parameters. `@Arguments` defines multi-valued positional parameters with optional arity.
+`@Option` defines named parameters.
+`@Argument` defines positional parameters.
+`@Arguments` defines multi-valued positional parameters with optional arity.
 
 ```java
 @Command(name = "catalog item add", description = "Add an item", group = "catalog")
@@ -267,9 +281,11 @@ double realPart(@Arguments(arity = 2) double[] realParts,
 }
 ```
 
-Options use POSIX-style syntax: `--long-name=value`, `--long-name value`, `-k=value`, `-k value`. Options and arguments can appear in any order.
+Options use POSIX-style syntax: `--long-name=value`, `--long-name value`, `-k=value`, `-k value`.
+Options and arguments can appear in any order.
 
-Boolean options require an explicit value in 4.x. Use `--flag=true` or `--flag false`.
+Boolean options require an explicit value in 4.x.
+Use `--flag=true` or `--flag false`.
 
 ### Programmatic command registration
 
@@ -355,7 +371,8 @@ The `availabilityProvider` attribute on `@Command` replaces the v3 `@CommandAvai
 
 ### Completion for bounded option values
 
-Spring Shell 4.x provides command-level `CompletionProvider` that supports cross-option completion. Register a bean and reference it by name:
+Spring Shell 4.x provides command-level `CompletionProvider` that supports cross-option completion.
+Register a bean and reference it by name:
 
 ```java
 @Command(name = "cluster connect", description = "Connect to a target environment", group = "cluster",
@@ -447,7 +464,8 @@ class CatalogEndToEndTests {
 }
 ```
 
-Use `@SpringBootTest` when full application wiring matters. Use `@ShellTest` when testing multiple commands in the same class.
+Use `@SpringBootTest` when full application wiring matters.
+Use `@ShellTest` when testing multiple commands in the same class.
 
 ## `@Command` annotation reference
 
@@ -464,7 +482,8 @@ Use `@SpringBootTest` when full application wiring matters. Use `@ShellTest` whe
 | `completionProvider` | Bean name for `CompletionProvider` | `""` |
 | `exitStatusExceptionMapper` | Bean name for `ExitStatusExceptionMapper` | `""` |
 
-All customizations (availability, completion, exception mapping) are set via `@Command` attributes. The v3 pattern of separate annotations (`@CommandAvailability`, `@OptionValues`) is removed.
+All customizations (availability, completion, exception mapping) are set via `@Command` attributes.
+The v3 pattern of separate annotations (`@CommandAvailability`, `@OptionValues`) is removed.
 
 ## `@Option` annotation reference
 
@@ -476,11 +495,14 @@ All customizations (availability, completion, exception mapping) are set via `@C
 | `defaultValue` | Default when option is omitted | `""` |
 | `required` | Fail if option is missing | `false` |
 
-Each option can have a single short name or long name, not both aliases. Option labels and multi-alias options are removed in 4.x. Arity on `@Option` is removed; use `@Arguments` for multi-valued input.
+Each option can have a single short name or long name, not both aliases.
+Option labels and multi-alias options are removed in 4.x.
+Arity on `@Option` is removed; use `@Arguments` for multi-valued input.
 
 ## `@Argument` and `@Arguments` annotation reference
 
-`@Argument` defines a single positional parameter. `@Arguments` defines multi-valued positional parameters.
+`@Argument` defines a single positional parameter.
+`@Arguments` defines multi-valued positional parameters.
 
 | Annotation | Attribute | Purpose | Default |
 | --- | --- | --- | --- |
@@ -558,9 +580,10 @@ added sku=SKU-1 quantity=1
 
 ## Known limitations
 
-- Declarative annotation-based command registration is not supported for GraalVM native compilation in 4.0.x. Use the programmatic `Command` bean approach for native images.
+- Declarative annotation-based command registration is not supported for GraalVM native compilation in 4.0.x.
+  - Use the programmatic `Command` bean approach for native images.
 
 ## References
 
-- Open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) when the task needs guided flows, confirmations, selectors, or richer terminal UI components beyond ordinary command registration.
-- Open [references/prompt-and-styling.md](references/prompt-and-styling.md) when the prompt or output styling must surface environment or risk information.
+- Open [references/interactive`-flows-and-terminal-ui.md`](references/interactive-flows-and-terminal-ui.md) when the task needs guided flows, confirmations, selectors, or richer terminal UI components beyond ordinary command registration.
+- Open [references/prompt`-and-styling.md`](references/prompt-and-styling.md) when the prompt or output styling must surface environment or risk information.

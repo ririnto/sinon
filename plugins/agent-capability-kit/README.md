@@ -54,11 +54,13 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/` and `./commands/`. Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+The manifest declares `./skills/` and `./commands/`.
+Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
 
 ## Shipped Surfaces
 
-The plugin root exposes seven skills, three agents, and one command. It does not ship hooks, MCP servers, LSP servers, monitors, or custom runtime data surfaces.
+The plugin root exposes seven skills, three agents, and one command.
+It does not ship hooks, MCP servers, LSP servers, monitors, or custom runtime data surfaces.
 
 ## Scope Notes
 

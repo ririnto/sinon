@@ -4,7 +4,8 @@ Open this reference when secrets must renew or rotate during application lifetim
 
 ## SecretLeaseContainer
 
-`SecretLeaseContainer` manages the lifecycle of leased secrets. It renews leases before expiration and rotates credentials when necessary.
+`SecretLeaseContainer` manages the lifecycle of leased secrets.
+It renews leases before expiration and rotates credentials when necessary.
 
 ```java
 SecretLeaseContainer container = new SecretLeaseContainer(vaultOperations, taskScheduler);
@@ -22,7 +23,8 @@ container.register(requestedSecret, (lease, secrets) -> {
 });
 ```
 
-Secrets can be registered at any time after the container starts. The container manages unique registrations and deduplicates identical `RequestedSecret` instances.
+Secrets can be registered at any time after the container starts.
+The container manages unique registrations and deduplicates identical `RequestedSecret` instances.
 
 ### TTL tuning
 
@@ -33,7 +35,8 @@ Both values are calculated from the lease TTL and local system clock.
 
 ## ManagedSecret API (4.1)
 
-`ManagedSecret` is a higher-level abstraction that registers with `SecretLeaseContainer` and handles lease events on your behalf. As an implementation of `SecretRegistrar`, `ManagedSecret` beans are registered with the container before startup through `AbstractVaultConfiguration`.
+`ManagedSecret` is a higher-level abstraction that registers with `SecretLeaseContainer` and handles lease events on your behalf.
+As an implementation of `SecretRegistrar`, `ManagedSecret` beans are registered with the container before startup through `AbstractVaultConfiguration`.
 
 ```java
 @Configuration
@@ -65,13 +68,18 @@ ManagedSecret awsSecret(RequestedSecret requestedSecret) {
 
 ### Lifecycle ordering
 
-`SecretLeaseContainer` lifecycle defers secret availability until the container starts. `AbstractVaultConfiguration` starts the container during bean creation to allow early credentials access. Ensure dependency ordering when components require credentials during `@PostConstruct` or `InitializingBean.afterPropertiesSet()`.
+`SecretLeaseContainer` lifecycle defers secret availability until the container starts.
+`AbstractVaultConfiguration` starts the container during bean creation to allow early credentials access.
+Ensure dependency ordering when components require credentials during `@PostConstruct` or `InitializingBean.afterPropertiesSet()`.
 
 ## Lease-less secret rotation (4.1)
 
-Secrets obtained from generic secrets engines are associated with a TTL (`refresh_interval`) but not a lease ID. Spring Vault rotates generic secrets when reaching their TTL.
+Secrets obtained from generic secrets engines are associated with a TTL (`refresh_interval`) but not a lease ID.
+Spring Vault rotates generic secrets when reaching their TTL.
 
-`SecretLeaseContainer` now supports rotation for secrets that have a non-renewable lease. Previously, only secrets with a renewable lease or no lease at all were rotated. Secrets with a non-renewable lease (such as certificates issued without lease generation) are now eligible for rotation.
+`SecretLeaseContainer` now supports rotation for secrets that have a non-renewable lease.
+Previously, only secrets with a renewable lease or no lease at all were rotated.
+Secrets with a non-renewable lease (such as certificates issued without lease generation) are now eligible for rotation.
 
 ```java
 RequestedSecret requestedSecret = RequestedSecret.renewing("secret/data/my-app")
@@ -83,7 +91,9 @@ container.register(requestedSecret, (lease, secrets) -> {
 
 ## CertificateContainer (4.1)
 
-`CertificateContainer` manages certificates issued by Vault's PKI secrets engine. Certificates are typically not associated with a lease and therefore do not require renewal, but they can be rotated when they expire. Certificate rotation is effectively re-issuance.
+`CertificateContainer` manages certificates issued by Vault's PKI secrets engine.
+Certificates are typically not associated with a lease and therefore do not require renewal, but they can be rotated when they expire.
+Certificate rotation is effectively re-issuance.
 
 ```java
 CertificateContainer container = new CertificateContainer(vaultOperations.opsForPki());

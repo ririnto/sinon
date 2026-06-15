@@ -1,6 +1,6 @@
 # Loop bounds and iteration control
 
-Open this reference when the ordinary path in [SKILL.md](../SKILL.md) is not enough and the blocker is bounding an iterative workflow that may not converge by itself.
+Open this reference when the ordinary path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is bounding an iterative workflow that may not converge by itself.
 
 ## Loop-bound blocker
 

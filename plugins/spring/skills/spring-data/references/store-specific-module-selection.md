@@ -1,6 +1,6 @@
 # Spring Data store-specific module selection
 
-Open this reference when the ordinary repository-abstraction path in [SKILL.md](../SKILL.md) is not enough and the task depends on one store's persistence semantics.
+Open this reference when the ordinary repository-abstraction path in [`SKILL.md`](../SKILL.md) is not enough and the task depends on one store's persistence semantics.
 
 ## Store-specific module rule
 
@@ -18,7 +18,8 @@ If the project already imports the Spring Data BOM for the chosen release train,
 
 ## Representative repository base types
 
-The examples below are illustrative, not exhaustive. Use the base type that matches the selected store and programming model.
+The examples below are illustrative, not exhaustive.
+Use the base type that matches the selected store and programming model.
 
 Choose the repository base interface that matches the selected store.
 
@@ -47,7 +48,7 @@ Use `JpaRepository` only when the task actually relies on JPA semantics such as 
 
 ## Multiple modules in one application
 
-Open [multimodule-repository-scanning.md](multimodule-repository-scanning.md) when the application uses more than one store module and repository scanning must be scoped explicitly.
+Open [`multimodule-repository-scanning.md`](multimodule-repository-scanning.md) when the application uses more than one store module and repository scanning must be scoped explicitly.
 
 ## Decision points
 

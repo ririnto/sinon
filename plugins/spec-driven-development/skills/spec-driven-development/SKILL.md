@@ -1,7 +1,9 @@
 ---
 name: spec-driven-development
 description: >-
-  Drive implementation through a SPEC.md-first workflow covering research, review gates, approved-spec execution, and completeness verification. Use when starting a new feature with a spec-first approach, writing SPEC.md before code, running review gates, or verifying implementation completeness against an approved specification. Activated only on explicit user request, not automatically.
+  Drive implementation through a `SPEC.md`-first workflow covering research, review gates, approved-spec execution, and completeness verification.
+  Use when starting a new feature with a spec-first approach, writing `SPEC.md` before code, running review gates, or verifying implementation completeness against an approved specification.
+  Activated only on explicit user request, not automatically.
 ---
 
 # spec-driven-development
@@ -45,11 +47,15 @@ If your host does not provide `${CLAUDE_PLUGIN_ROOT}`, replace `SKILL_ROOT` with
 
 ## Package surface
 
-Offline prerequisite: `sdd.py` runs through `uv`, which provides the `uv run` script launcher. The validator is the preferred Spec Review gate when `uv` is installed on the host and can resolve Python plus required dependencies from local cache or local files. When `uv` is missing or cannot run without fetching those inputs, fall back to the manual inline-checklist path documented in the Ordinary offline-capable workflow and Review gates sections.
+Offline prerequisite: `sdd.py` runs through `uv`, which provides the `uv run` script launcher.
+The validator is the preferred Spec Review gate when `uv` is installed on the host and can resolve Python plus required dependencies from local cache or local files.
+When `uv` is missing or cannot run without fetching those inputs, fall back to the manual inline-checklist path documented in the Ordinary offline-capable workflow and Review gates sections.
 
 Use these bundled paths from `SKILL_ROOT`:
 
-- `./scripts/sdd.py` — single CLI entrypoint and Python toolkit. It uses a `uv run` shebang and declares its dependencies through PEP 723 metadata. The shipped subcommands are:
+- `./scripts/sdd.py` — single CLI entrypoint and Python toolkit.
+  - It uses a `uv run` shebang and declares its dependencies through PEP 723 metadata.
+  - The shipped subcommands are:
   - `validate <spec-root>` — validate a `spec/` tree or subtree (default Spec Review gate)
   - `list-frontmatter [spec-path]` — frontmatter inventory and inbound-call queries
   - `get-frontmatter <kind> <path>` — read one artifact frontmatter block

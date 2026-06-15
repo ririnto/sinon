@@ -1,6 +1,6 @@
 # Sequential tool orchestration
 
-Open this reference when the ordinary tool-calling path in [SKILL.md](../SKILL.md) is not enough and the blocker is one explicit tool step that must feed the next.
+Open this reference when the ordinary tool-calling path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is one explicit tool step that must feed the next.
 
 ## Use this file for one blocker family
 
@@ -47,5 +47,5 @@ class SequentialOrchestrator {
 
 - Do not assume a single prompt should own every orchestration decision.
 - Do not rely on implicit model reasoning to infer the step order when the steps are already known in application code.
-- Open [tool-set-curation.md](tool-set-curation.md) when the blocker is limiting which tools are exposed.
-- Open [tool-failure-and-fallback.md](tool-failure-and-fallback.md) when the blocker is explicit fallback behavior after tool failure.
+- Open [`tool-set-curation.md`](tool-set-curation.md) when the blocker is limiting which tools are exposed.
+- Open [`tool-failure-and-fallback.md`](tool-failure-and-fallback.md) when the blocker is explicit fallback behavior after tool failure.

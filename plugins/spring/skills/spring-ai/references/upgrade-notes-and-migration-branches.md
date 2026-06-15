@@ -46,7 +46,8 @@ Spring AI 2.0.x supports Spring Boot 4.0.x and 4.1.x.
 
 ### PromptChatMemoryAdvisor removed
 
-`PromptChatMemoryAdvisor` has been removed entirely. Use `MessageChatMemoryAdvisor`:
+`PromptChatMemoryAdvisor` has been removed entirely.
+Use `MessageChatMemoryAdvisor`:
 
 ```java
 ChatClient chatClient = ChatClient.builder(chatModel)
@@ -62,11 +63,14 @@ chatClient.prompt()
 
 ### Conversation ID now required
 
-`ChatMemory.DEFAULT_CONVERSATION_ID` has been removed. Every call through a memory advisor must supply `ChatMemory.CONVERSATION_ID` via the advisor context. The `.conversationId()` builder method on memory advisors has been removed.
+`ChatMemory.DEFAULT_CONVERSATION_ID` has been removed.
+Every call through a memory advisor must supply `ChatMemory.CONVERSATION_ID` via the advisor context.
+The `.conversationId()` builder method on memory advisors has been removed.
 
 ### Options immutability
 
-All mutable setter methods have been removed from `ChatOptions` classes. Use the builder pattern exclusively:
+All mutable setter methods have been removed from `ChatOptions` classes.
+Use the builder pattern exclusively:
 
 ```java
 OpenAiChatOptions options = OpenAiChatOptions.builder()
@@ -89,7 +93,9 @@ spring.ai.openai.chat.model=gpt-4.1
 
 ### ToolCallingAdvisor auto-registration
 
-`ChatClient` now automatically registers a `ToolCallingAdvisor` when tools are configured. The `internalToolExecutionEnabled` option has been removed. Control tool calling globally:
+`ChatClient` now automatically registers a `ToolCallingAdvisor` when tools are configured.
+The `internalToolExecutionEnabled` option has been removed.
+Control tool calling globally:
 
 ```properties
 spring.ai.chat.client.tool-calling.enabled=false
@@ -97,31 +103,46 @@ spring.ai.chat.client.tool-calling.enabled=false
 
 ### ToolCallingAdvisor manages conversation history
 
-`ToolCallingAdvisor` manages conversation history internally across tool-call iterations by default. Memory advisors only store the final user/assistant exchange. Set `Advisor.DEFAULT_CHAT_MEMORY_PRECEDENCE_ORDER` explicitly if memory is needed inside the tool-call loop.
+`ToolCallingAdvisor` manages conversation history internally across tool-call iterations by default.
+Memory advisors only store the final user/assistant exchange.
+Set `Advisor.DEFAULT_CHAT_MEMORY_PRECEDENCE_ORDER` explicitly if memory is needed inside the tool-call loop.
 
 ### JDBC Chat Memory schema change
 
-`JdbcChatMemoryRepository` adds a `sequence_id BIGINT` column for deterministic message ordering. Existing tables require a schema migration to add this column.
+`JdbcChatMemoryRepository` adds a `sequence_id BIGINT` column for deterministic message ordering.
+Existing tables require a schema migration to add this column.
 
 ### MCP support updated for Spring AI 2.0
 
-Spring AI 2.0 requires MCP Java SDK 1.0.0 or later in the 1.0.x line. SSE MCP server transports are deprecated in favor of Streamable HTTP. Server-side tool input validation is enabled by default. `Tool.inputSchema` changed from `JsonSchema` to `Map`.
+Spring AI 2.0 requires MCP Java SDK 1.0.0 or later in the 1.0.x line.
+SSE MCP server transports are deprecated in favor of Streamable HTTP.
+Server-side tool input validation is enabled by default.
+`Tool.inputSchema` changed from `JsonSchema` to `Map`.
 
 ### Anthropic migrated to official SDK
 
-`spring-ai-anthropic` now uses `com.anthropic:anthropic-java`. `AnthropicApi` and its nested types are removed; use `AnthropicChatModel.builder()`. `AnthropicChatOptions.maxTokens` default changed from 500 to 4096.
+`spring-ai-anthropic` now uses `com.anthropic:anthropic-java`.
+`AnthropicApi` and its nested types are removed.
+Use `AnthropicChatModel.builder()`.
+`AnthropicChatOptions.maxTokens` default changed from 500 to 4096.
 
 ### Observability changes
 
-Tool calling span renamed from `tool_call` to `execute_tool`. New attributes: `spring.ai.tool.type` and `spring.ai.tool.call.id`.
+Tool calling span renamed from `tool_call` to `execute_tool`.
+New attributes: `spring.ai.tool.type` and `spring.ai.tool.call.id`.
 
 ### Community or bridge-maintained providers
 
-MiniMax dedicated support has been removed; use Anthropic support with the MiniMax base URL. OCI GenAI is maintained outside the Spring AI project in community documentation. ZhipuAI is not documented in the Spring AI 2.0 reference; verify community coordinates before recommending it.
+MiniMax dedicated support has been removed.
+Use Anthropic support with the MiniMax base URL.
+OCI GenAI is maintained outside the Spring AI project in community documentation.
+ZhipuAI is not documented in the Spring AI 2.0 reference.
+Verify community coordinates before recommending it.
 
 ### Provider starter compatibility check
 
-Not every provider starter is available in every Spring AI release. Check the reference documentation for the target version before changing the BOM.
+Not every provider starter is available in every Spring AI release.
+Check the reference documentation for the target version before changing the BOM.
 
 ```sh
 mvn dependency:list | grep spring-ai-starter-model
@@ -129,7 +150,8 @@ mvn dependency:list | grep spring-ai-starter-model
 
 ### Tool API migration check
 
-Tool registration APIs can change across release lines. If the target version changes tool registration semantics, update the application seam and tests in the same branch.
+Tool registration APIs can change across release lines.
+If the target version changes tool registration semantics, update the application seam and tests in the same branch.
 
 ```java
 ChatClient chatClient = ChatClient.create(chatModel);
@@ -171,7 +193,8 @@ When moving from one provider family to another:
 
 ## Embedding model migration
 
-When the embedding model changes, re-ingest all documents. Vector representations are not interchangeable across embedding providers.
+When the embedding model changes, re-ingest all documents.
+Vector representations are not interchangeable across embedding providers.
 
 ```java
 @Service

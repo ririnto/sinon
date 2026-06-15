@@ -7,7 +7,8 @@ description: >-
 
 Use this reference when the alert expression is already shaped correctly, but you need to decide whether the rule deserves dedicated regression coverage and which alert-side behaviors are risky enough to protect in the adjacent testing path.
 
-Actual `promtool test rules` file authoring belongs in [`../../alert-rule-testing/SKILL.md`](../../alert-rule-testing/SKILL.md). Keep baseline alert anatomy in [`../SKILL.md`](../SKILL.md).
+Actual `promtool test rules` file authoring belongs in [`../../alert-rule-testing/SKILL.md`](../../alert-rule-testing/SKILL.md).
+Keep baseline alert anatomy in [`../SKILL.md`](../SKILL.md).
 
 ## When This Alert Likely Needs Regression Coverage
 

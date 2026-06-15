@@ -56,7 +56,8 @@ Boot also supports `docker.elastic.co/elasticsearch/elasticsearch` images for Do
 
 ## Failure logging
 
-When `docker compose up` or `docker compose start` fails, Boot logs container output at the configured level. Defaults to `info`.
+When `docker compose up` or `docker compose start` fails, Boot logs container output at the configured level.
+Defaults to `info`.
 
 ```yaml
 spring:

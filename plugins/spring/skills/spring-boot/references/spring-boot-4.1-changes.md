@@ -6,7 +6,8 @@ Open this reference when migrating from 4.0 to 4.1 or replacing features that ch
 
 ### Layertools jar mode
 
-The `layertools` jar mode was removed. Use `tools` jar mode which provides the same functionality.
+The `layertools` jar mode was removed.
+Use `tools` jar mode which provides the same functionality.
 
 ```sh
 java -Djarmode=tools -jar app.jar extract --layers --destination extracted
@@ -15,7 +16,8 @@ java -Djarmode=tools -jar app.jar list-layers
 
 ### Changed Logback properties
 
-The following `logging.file.*` properties were removed. Migrate to `logging.logback.rollingpolicy.*`.
+The following `logging.file.*` properties were removed.
+Migrate to `logging.logback.rollingpolicy.*`.
 
 | Removed property | Replacement |
 | --- | --- |
@@ -27,7 +29,8 @@ The following `logging.file.*` properties were removed. Migrate to `logging.logb
 
 ### `-DskipTests` no longer skips AOT
 
-`-DskipTests` now only skips test execution, not AOT processing. To skip both tests and AOT, use `-Dmaven.test.skip`.
+`-DskipTests` now only skips test execution, not AOT processing.
+To skip both tests and AOT, use `-Dmaven.test.skip`.
 
 ```sh
 ./mvnw spring-boot:process-aot -Dmaven.test.skip
@@ -37,7 +40,8 @@ The following `logging.file.*` properties were removed. Migrate to `logging.logb
 
 ### Derby support
 
-Apache Derby has been retired. Use one of these replacements:
+Apache Derby has been retired.
+Use one of these replacements:
 
 - `org.springframework.boot.jdbc.DatabaseDriver.DERBY`
 - `org.springframework.boot.jdbc.EmbeddedDatabaseConnection.DERBY`
@@ -54,7 +58,8 @@ Migrate to H2 or HSQLDB.
 
 ### LiveReload in DevTools
 
-`spring.devtools.livereload.enabled` and `spring.devtools.livereload.port` should be removed. Remove these properties.
+`spring.devtools.livereload.enabled` and `spring.devtools.livereload.port` should be removed.
+Remove these properties.
 
 ### Dynatrace V1 API
 

@@ -1,18 +1,24 @@
 ---
 name: jvm-gc-diagnostics
 description: >-
-  Analyze JVM garbage-collection behavior, compare collector tradeoffs, and interpret pause-time and heap-pressure evidence. Use when reading GC logs, comparing Serial, Parallel, G1, or ZGC collector options, interpreting JFR GC events, or deciding whether GC is the actual bottleneck before tuning.
+  Analyze JVM garbage-collection behavior, compare collector tradeoffs, and interpret pause-time and heap-pressure evidence.
+  Use when reading GC logs, comparing Serial, Parallel, G1, or ZGC collector options, interpreting JFR GC events, or deciding whether GC is the actual bottleneck before tuning.
 ---
 
 # JVM GC Diagnostics
 
 ## Goal
 
-Analyze garbage-collection symptoms, collector choices, and runtime evidence using standard JDK and HotSpot tooling. The common case is not switching collectors immediately; it is proving whether GC is actually the bottleneck, then comparing realistic collector options against the deployed Java baseline. Focus on pauses, throughput, allocation pressure, heap behavior, and what is actually available on the running JDK before touching tuning folklore.
+Analyze garbage-collection symptoms, collector choices, and runtime evidence using standard JDK and HotSpot tooling.
+The common case is not switching collectors immediately.
+It is proving whether GC is actually the bottleneck, then comparing realistic collector options against the deployed Java baseline.
+Focus on pauses, throughput, allocation pressure, heap behavior, and what is actually available on the running JDK before touching tuning folklore.
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and anchor collector guidance to the actual deployed runtime instead of assuming the newest LTS behavior.
 
-Treat JFR-based GC evidence as the normal low-overhead path on JDK 11 and later. On JDK 8, verify the exact Oracle JDK 8 Flight Recorder availability, commercial-feature status, and licensing posture before recommending JFR commands; otherwise prefer GC logs plus `jcmd` evidence first.
+Treat JFR-based GC evidence as the normal low-overhead path on JDK 11 and later.
+On JDK 8, verify the exact Oracle JDK 8 Flight Recorder availability, commercial-feature status, and licensing posture before recommending JFR commands.
+Otherwise prefer GC logs plus `jcmd` evidence first.
 
 ## Common-Case Workflow
 
@@ -38,7 +44,8 @@ For the next deploy, enable bounded GC log output for basic pause visibility:
 java -Xlog:gc:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M ...
 ```
 
-Version-specific logging syntax — JDK 8 and earlier use legacy GC log flags (`-verbose:gc`, `-XX:+PrintGCDetails`, `-XX:+PrintGCTimeStamps`, `-Xloggc:gc.log`); JDK 9 and later use unified logging with `-Xlog:gc...`.
+Version-specific logging syntax — JDK 8 and earlier use legacy GC log flags (`-verbose:gc`, `-XX:+PrintGCDetails`, `-XX:+PrintGCTimeStamps`, `-Xloggc:gc.log`).
+JDK 9 and later use unified logging with `-Xlog:gc...`.
 
 ## First Runnable Commands or Code Shape
 
@@ -89,9 +96,11 @@ Use when: you need GC and allocation evidence from process start, not only after
 
 > [!IMPORTANT]
 >
-> GC-oriented JFR captures and GC log files can still expose sensitive runtime details. Prefer a private diagnostics directory with restrictive permissions, and keep retention only as long as the investigation needs.
+> GC-oriented JFR captures and GC log files can still expose sensitive runtime details.
+> Prefer a private diagnostics directory with restrictive permissions, and keep retention only as long as the investigation needs.
 >
-> On JDK 8, do not present JFR as the routine default. Confirm Oracle JDK 8 Flight Recorder availability and policy first, or stay with GC logs plus `jcmd` evidence when that is uncertain.
+> On JDK 8, do not present JFR as the routine default.
+> Confirm Oracle JDK 8 Flight Recorder availability and policy first, or stay with GC logs plus `jcmd` evidence when that is uncertain.
 
 Bounded GC logging for the next deploy:
 
@@ -178,7 +187,9 @@ G1 Heap:
    End CS time: 12346 ms
 ```
 
-Read: Total heap = 1048576K (~1GB), 200 free regions (39% free). Young gen = 180 regions (35%), Old gen = 132 regions (26%). If `Free regions` drops below ~50 during sustained load, the heap is under pressure.
+Read: Total heap = 1048576K (~1GB), 200 free regions (39% free).
+Young gen = 180 regions (35%), Old gen = 132 regions (26%).
+If `Free regions` drops below ~50 during sustained load, the heap is under pressure.
 
 ### `VM.flags` Output (Collector Identity)
 
@@ -212,7 +223,8 @@ Supported output cues to confirm:
 Recording 1: name=gc-baseline maxage=2 h (running)
 ```
 
-Read: Match the recording `name`, confirm `(running)` before claiming the capture is active, and verify `maxage` matches the intended retention window. If the runtime also reports a destination or path, confirm it points to the restricted diagnostics location you intended.
+Read: Match the recording `name`, confirm `(running)` before claiming the capture is active, and verify `maxage` matches the intended retention window.
+If the runtime also reports a destination or path, confirm it points to the restricted diagnostics location you intended.
 
 ### Unified GC Log Line Shape (JDK 9+)
 
@@ -221,7 +233,8 @@ Read: Match the recording `name`, confirm `(running)` before claiming the captur
 [0.956s][info][gc,cpu  ] GC(0) User=0.01s Sys=0.00s Real=0.00s
 ```
 
-Read each event: timestamp → log level → tag(s) → GC ID + phase → details. The `Real=` value in the `[gc,cpu]` line is the wall-clock pause duration.
+Read each event: timestamp → log level → tag(s) → GC ID + phase → details.
+The `Real=` value in the `[gc,cpu]` line is the wall-clock pause duration.
 
 ### Legacy GC Log Line Shape (JDK 8)
 
@@ -229,7 +242,8 @@ Read each event: timestamp → log level → tag(s) → GC ID + phase → detail
 2026-04-20T10:15:30.123+0000: 1.234: [GC (Allocation Failure) ...] 196608K->139264K(524288K), 0.0234321 secs
 ```
 
-Read: datestamp → uptime → GC type → total heap Before->After(Max) → pause seconds. The value before `secs` is the wall-clock pause duration.
+Read: datestamp → uptime → GC type → total heap Before->After(Max) → pause seconds.
+The value before `secs` is the wall-clock pause duration.
 
 ### `jfr summary` Output
 
@@ -237,10 +251,12 @@ Read: datestamp → uptime → GC type → total heap Before->After(Max) → pau
 jfr summary /path/to/recording.jfr
 ```
 
-Shows event counts grouped by type. Look for:
+Shows event counts grouped by type.
+Look for:
 
 - `jdk.GarbageCollection` count — how many GC cycles occurred
-- `jdk.GCPhasePause` — individual pause phases; check max duration
+- `jdk.GCPhasePause` — individual pause phases.
+  - Check max duration
 - `jdk.ObjectAllocationInNewTLAB` count — very high counts indicate allocation pressure
 
 ## References
@@ -280,7 +296,6 @@ Shows event counts grouped by type. Look for:
   - GC evidence gathering and interpretation
   - collector tradeoffs and LTS-boundary differences
   - pause and heap-pressure triage
-- Do not use this skill as the primary source for:
-  - general JVM incident triage without GC focus
+- Do not use this skill as the primary source for: general JVM incident triage without GC focus
   - Java language, testing, or dependency-management guidance
   - standard JDK packaging and module workflows

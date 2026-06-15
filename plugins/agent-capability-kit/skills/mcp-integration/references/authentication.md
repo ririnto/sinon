@@ -48,13 +48,15 @@ OAuth 2.0 with authorization code flow (used by all SSE servers).
 5. User sees no interruption
 ```
 
-Claude Code handles refresh automatically; user action not required.
+Claude Code handles refresh automatically.
+User action is not required.
 
 ## Environment variable injection
 
 ### Bearer token via env var
 
-Store API token in environment variable; reference in MCP config:
+Store API token in an environment variable.
+Reference it in MCP config:
 
 ```jsonc
 {
@@ -83,7 +85,12 @@ export API_TOKEN="sk_live_abc123xyz..."
 
 > [!CAUTION]
 >
-> Bearer tokens via env var are not the same as OAuth scoping. An env-var token carries whatever permissions were issued at creation; revocation requires manual rotation of the token across all consumers. OAuth (especially with refresh tokens and per-scope grants) supports per-resource, time-bound, and user-attributable scoping. Prefer OAuth where the upstream MCP server supports it; use env-var bearer tokens only when OAuth is unavailable or the token is explicitly scoped at issuance.
+> Bearer tokens via env var are not the same as OAuth scoping.
+> An env-var token carries whatever permissions were issued at creation.
+> Revocation requires manual rotation of the token across all consumers.
+> OAuth (especially with refresh tokens and per-scope grants) supports per-resource, time-bound, and user-attributable scoping.
+> Prefer OAuth where the upstream MCP server supports it.
+> Use env-var bearer tokens only when OAuth is unavailable or the token is explicitly scoped at issuance.
 
 ### Multiple servers, different credentials
 
@@ -275,7 +282,8 @@ claude
 # 5. Revoke old token at service dashboard
 ```
 
-For OAuth servers (GitHub, Asana), token refresh is automatic. Manual rotation only needed if service requires it.
+For OAuth servers (GitHub, Asana), token refresh is automatic.
+Manual rotation only needed if service requires it.
 
 ## Per-project credential management
 

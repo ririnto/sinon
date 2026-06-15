@@ -23,16 +23,20 @@ relaxedLinks(linkWithRel("self").description("Canonical self link"))
 
 Two link formats are understood by default:
 
-- Atom: links in an array named `links`. Default when content type is compatible with `application/json`.
-- HAL: links in a map named `_links`. Default when content type is compatible with `application/hal+json`.
+- Atom: links in an array named `links`.
+  - Default when content type is compatible with `application/json`.
+- HAL: links in a map named `_links`.
+  - Default when content type is compatible with `application/hal+json`.
 
-When links use a HAL or HAL-FORMS content type, link extraction works automatically. For non-standard content types, pass an explicit extractor.
+When links use a HAL or HAL-FORMS content type, link extraction works automatically.
+For non-standard content types, pass an explicit extractor.
 
 Use link snippets when the response is hypermedia-driven.
 
 ## Gotchas
 
-- Do not document `self` or `curies` links repeatedly across every endpoint; document them once in an overview and use `.ignored()` in per-endpoint descriptors.
+- Do not document `self` or `curies` links repeatedly across every endpoint.
+  - Document them once in an overview and use `.ignored()` in per-endpoint descriptors.
 - The test fails if an undocumented link is found, unless relaxed mode is used.
 
 ## Validation rule

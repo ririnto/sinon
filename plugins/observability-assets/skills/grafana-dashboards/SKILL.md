@@ -1,7 +1,8 @@
 ---
 name: grafana-dashboards
 description: >-
-  Author and review Grafana dashboards as version-controlled JSON assets with stable uid, deliberate datasource handling, and operator-centric panel layout. Triggers on Grafana dashboard creation or review, classic dashboard JSON editing, panel query and visualization config authoring, Grafana variables (7 standard classic templating types plus global variables), transformations, field config, thresholds, overrides, and value mappings configuration, dashboard uid stabilization, USE/RED/Golden Signals frameworks application, repeat behavior and links setup, Grafana mixin or Jsonnet generation workflows, or Grafana dashboard asset structure and panel JSON schema guidance.
+  Author and review Grafana dashboards as version-controlled JSON assets with stable uid, deliberate datasource handling, and operator-centric panel layout.
+  Triggers on Grafana dashboard creation or review, classic dashboard JSON editing, panel query and visualization config authoring, Grafana variables (7 standard classic templating types plus global variables), transformations, field config, thresholds, overrides, and value mappings configuration, dashboard uid stabilization, USE/RED/Golden Signals frameworks application, repeat behavior and links setup, Grafana mixin or Jsonnet generation workflows, or Grafana dashboard asset structure and panel JSON schema guidance.
 ---
 
 # Grafana Dashboards
@@ -10,7 +11,12 @@ Author and review Grafana dashboards as version-controlled assets while keeping 
 
 The common case: one dashboard with a stable `uid`, a deliberate title, explicit datasource handling, a default time range no broader than the last 30 minutes, and a panel layout that answers a real operator question instead of becoming a generic metric scrapbook.
 
-This skill owns the ordinary path for dashboard structure, queries, variables, transformations, field configuration, thresholds, legends, units, layout, repeat behavior, links, annotations, panel types, overrides, value mappings, data links, query options, and the dashboard JSON model boundary. For complete panel-type JSON schemas, see [`./references/panel-types.md`](./references/panel-types.md). For variable types, syntax, and global variables, see [`./references/variables.md`](./references/variables.md). For field config, overrides, value mappings, and data links, see [`./references/field-config.md`](./references/field-config.md). For Grafana mixin or Jsonnet-oriented generation workflows, see [`./references/grafana-mixin.md`](./references/grafana-mixin.md). For export cleanup decisions, normalization targets, and ownership boundaries after UI edits or rendering, see [`./references/dashboard-structure.md`](./references/dashboard-structure.md).
+This skill owns the ordinary path for dashboard structure, queries, variables, transformations, field configuration, thresholds, legends, units, layout, repeat behavior, links, annotations, panel types, overrides, value mappings, data links, query options, and the dashboard JSON model boundary.
+For complete panel-type JSON schemas, see [`./references/panel-types.md`](./references/panel-types.md).
+For variable types, syntax, and global variables, see [`./references/variables.md`](./references/variables.md).
+For field config, overrides, value mappings, and data links, see [`./references/field-config.md`](./references/field-config.md).
+For Grafana mixin or Jsonnet-oriented generation workflows, see [`./references/grafana-mixin.md`](./references/grafana-mixin.md).
+For export cleanup decisions, normalization targets, and ownership boundaries after UI edits or rendering, see [`./references/dashboard-structure.md`](./references/dashboard-structure.md).
 
 ## Common-Case Workflow
 
@@ -22,7 +28,8 @@ This skill owns the ordinary path for dashboard structure, queries, variables, t
 6. Keep links, annotations, and layout aligned to one narrative flow such as saturation, errors, and latency.
 7. Default the dashboard time range to the last 30 minutes or less, and widen it only when the operator question needs more history.
 
-Default to classic dashboard JSON (`schemaVersion` 39) for all examples and templates. When working with resource-style schemas or v2 layout models, document the version boundary explicitly in the dashboard asset or review notes.
+Default to classic dashboard JSON (`schemaVersion` 39) for all examples and templates.
+When working with resource-style schemas or v2 layout models, document the version boundary explicitly in the dashboard asset or review notes.
 
 ## Minimal Setup
 
@@ -130,7 +137,8 @@ Merge this fragment into the full dashboard shell to drive repeated panels from 
 }
 ```
 
-Use when: one panel shape should repeat across a bounded variable set without copying panel JSON by hand. This is a fragment to merge into the full dashboard shell, not a standalone importable dashboard.
+Use when: one panel shape should repeat across a bounded variable set without copying panel JSON by hand.
+This is a fragment to merge into the full dashboard shell, not a standalone importable dashboard.
 
 For the full variable type reference (7 standard classic variable types, plus global variables and a boolean-toggle convention), see [`./references/variables.md`](./references/variables.md).
 
@@ -166,7 +174,8 @@ Merge this fragment into the target panel when the query already returns the rig
 }
 ```
 
-Use when: the query already returns the right signal and the panel only needs clearer units, thresholds, legend behavior, or column organization. This is a fragment to merge into an existing panel object, not a standalone dashboard asset or dashboard-root object.
+Use when: the query already returns the right signal and the panel only needs clearer units, thresholds, legend behavior, or column organization.
+This is a fragment to merge into an existing panel object, not a standalone dashboard asset or dashboard-root object.
 
 ### Links and Annotations
 
@@ -194,7 +203,8 @@ Merge this fragment into the dashboard shell to attach one drilldown path and on
 }
 ```
 
-Use when: operators need one direct drilldown and one timeline context source while reading the dashboard. This is a fragment to merge into the full dashboard shell, not a complete dashboard by itself.
+Use when: operators need one direct drilldown and one timeline context source while reading the dashboard.
+This is a fragment to merge into the full dashboard shell, not a complete dashboard by itself.
 
 ### Query Options
 
@@ -231,7 +241,8 @@ Time shift example -- compare today vs yesterday: add `"timeShift": "1d"` to a s
 
 ## Panel Type Decision Guide
 
-Choose the panel type based on what the operator needs to see. The most common types are listed first.
+Choose the panel type based on what the operator needs to see.
+The most common types are listed first.
 
 ### Quick Decision Table
 
@@ -253,7 +264,8 @@ Choose the panel type based on what the operator needs to see. The most common t
 
 ### Timeseries Panel (Most Common)
 
-The default panel for any time-varying metric. Supports multiple series, legends, annotations, and threshold lines.
+The default panel for any time-varying metric.
+Supports multiple series, legends, annotations, and threshold lines.
 
 ```json
 {
@@ -281,7 +293,8 @@ The default panel for any time-varying metric. Supports multiple series, legends
 }
 ```
 
-Key `options.drawStyle`: `"line"`, `"bars"`, `"points"`. Key `options.stacking.mode`: `"none"`, `"normal"`, `"percent"`.
+Key `options.drawStyle`: `"line"`, `"bars"`, `"points"`.
+Key `options.stacking.mode`: `"none"`, `"normal"`, `"percent"`.
 
 ### Stat Panel
 
@@ -321,7 +334,9 @@ Single large number with optional sparkline, progress bar, and text mode.
 }
 ```
 
-Key `options.textMode`: `"auto"`, `"name"`, `"none"`, `"value"`. Key `options.graphMode`: `"none"`, `"area"`, `"linear"`. Key `options.colorMode`: `"none"`, `"value"`, `"background"`.
+Key `options.textMode`: `"auto"`, `"name"`, `"none"`, `"value"`.
+Key `options.graphMode`: `"none"`, `"area"`, `"linear"`.
+Key `options.colorMode`: `"none"`, `"value"`, `"background"`.
 
 ### Table Panel
 
@@ -348,7 +363,8 @@ For complete JSON schemas covering all remaining panel types (gauge, barchart, h
 
 ## Variable Types Reference (Common Path)
 
-The three most common variable types. For all 7 standard classic variable types with complete JSON schemas, global variables, format modifier catalog, cascading patterns, and a boolean-toggle convention, see [`./references/variables.md`](./references/variables.md).
+The three most common variable types.
+For all 7 standard classic variable types with complete JSON schemas, global variables, format modifier catalog, cascading patterns, and a boolean-toggle convention, see [`./references/variables.md`](./references/variables.md).
 
 ### Query Variable (Most Common)
 
@@ -374,7 +390,8 @@ Key fields: `query` (datasource-specific), `regex` (filter results), `sort` (0-6
 
 ### Custom Variable
 
-Hardcoded list of options defined inline. Use when the set of values is small, stable, and known at authoring time.
+Hardcoded list of options defined inline.
+Use when the set of values is small, stable, and known at authoring time.
 
 ```json
 {
@@ -394,7 +411,8 @@ Hardcoded list of options defined inline. Use when the set of values is small, s
 
 ### Textbox Variable
 
-Free-text input for ad-hoc values. Always sanitize textbox values in queries to prevent injection.
+Free-text input for ad-hoc values.
+Always sanitize textbox values in queries to prevent injection.
 
 ```json
 {
@@ -409,7 +427,9 @@ Free-text input for ad-hoc values. Always sanitize textbox values in queries to 
 
 ## Transformation Types (Common Path)
 
-Transformations reshape query results before rendering. Apply them in order; each transformation receives the output of the previous one. For the full catalog of 20+ transformation types, see [`./references/variables.md`](./references/variables.md).
+Transformations reshape query results before rendering.
+Apply them in order; each transformation receives the output of the previous one.
+For the full catalog of 20+ transformation types, see [`./references/variables.md`](./references/variables.md).
 
 ### Organize Fields (Default)
 
@@ -462,11 +482,13 @@ Remove rows that do not match a condition.
 }
 ```
 
-Filter types: `"include"`, `"exclude"`. Match modes: `"value"`, `"regex"`, `"is"`, `"isNot"`.
+Filter types: `"include"`, `"exclude"`.
+Match modes: `"value"`, `"regex"`, `"is"`, `"isNot"`.
 
 ## Field Config, Thresholds, Overrides, Value Mappings, and Data Links
 
-These systems control how data appears visually after queries return results. For the complete unit catalog (~60 specifiers), all 5 matcher types, all override property IDs, all 4 mapping types (range, regex, special), and full data link variable catalog, see [`./references/field-config.md`](./references/field-config.md).
+These systems control how data appears visually after queries return results.
+For the complete unit catalog (~60 specifiers), all 5 matcher types, all override property IDs, all 4 mapping types (range, regex, special), and full data link variable catalog, see [`./references/field-config.md`](./references/field-config.md).
 
 ### Standard Field Config Options
 
@@ -497,11 +519,14 @@ Applied via `fieldConfig.defaults` at the panel level.
 }
 ```
 
-Common unit specifiers: `"short"`, `"percent"`, `"percentunit"`, `"bytes"`, `"bps"`, `"s"`, `"ms"`, `"reqps"`, `"ops"`. Custom unit prefix/suffix: `"prefix:suffix"` (e.g., `"$:USD"` displays as `$123 USD`). For the complete unit catalog, see [`./references/field-config.md`](./references/field-config.md).
+Common unit specifiers: `"short"`, `"percent"`, `"percentunit"`, `"bytes"`, `"bps"`, `"s"`, `"ms"`, `"reqps"`, `"ops"`.
+Custom unit prefix/suffix: `"prefix:suffix"` (e.g., `"$:USD"` displays as `$123 USD`).
+For the complete unit catalog, see [`./references/field-config.md`](./references/field-config.md).
 
 ### Thresholds -- Absolute Mode (Most Common)
 
-Steps trigger at exact numeric values. The first step always has `value: null` (base color).
+Steps trigger at exact numeric values.
+The first step always has `value: null` (base color).
 
 ```json
 {
@@ -518,7 +543,8 @@ For percentage mode (requires explicit `min`/`max` on the field), see [`./refere
 
 ### Overrides System
 
-Overrides let you apply different visual settings to specific fields or series within the same panel. An override consists of matchers (which fields to target) and properties (what to change).
+Overrides let you apply different visual settings to specific fields or series within the same panel.
+An override consists of matchers (which fields to target) and properties (what to change).
 
 ```json
 {
@@ -559,7 +585,8 @@ Value mapping (most common): exact match on specific values.
 }
 ```
 
-For range, regex, and special mapping types (null/NaN/boolean handling), see [`./references/field-config.md`](./references/field-config.md). Multiple mapping types can coexist in the same `mappings` array; they are evaluated in order and the first match wins.
+For range, regex, and special mapping types (null/NaN/boolean handling), see [`./references/field-config.md`](./references/field-config.md).
+Multiple mapping types can coexist in the same `mappings` array; they are evaluated in order and the first match wins.
 
 ### Data Links
 
@@ -671,7 +698,8 @@ Dashboard layout following Four Golden Signals:
 
 ### Dashboard Maturity Model
 
-Progressive levels of dashboard quality. Aim for Level 3 minimum for production dashboards.
+Progressive levels of dashboard quality.
+Aim for Level 3 minimum for production dashboards.
 
 | Level | Characteristics |
 | --- | --- |
@@ -722,7 +750,10 @@ Panel-level time override -- individual panels can shift or constrain their own 
 }
 ```
 
-Add these fields directly to a panel object (not inside `options`). `timeFrom` sets the earliest data point relative to now. `timeShift` shifts the entire query window (useful for day-over-day comparisons). `hideTimeOverride` hides the panel's custom time indicator.
+Add these fields directly to a panel object (not inside `options`).
+`timeFrom` sets the earliest data point relative to now.
+`timeShift` shifts the entire query window (useful for day-over-day comparisons).
+`hideTimeOverride` hides the panel's custom time indicator.
 
 ## Repeat Behavior
 
@@ -742,7 +773,10 @@ Control how repeated panels lay out across the dashboard.
 | `repeatDirection` | `"h"`, `"v"` | Horizontal or vertical layout |
 | `maxPerRow` | integer | Max panels per row (horizontal mode only) |
 
-When `repeatDirection` is `"h"`, panels fill left-to-right, wrapping to the next row after `maxPerRow`. When `"v"`, panels stack top-to-bottom. Keep one repeat driver per repeating panel or row. If you still need a two-dimensional layout, compose it from supported building blocks such as a repeated row for the outer dimension and panels inside that row using regular variable interpolation for titles and queries.
+When `repeatDirection` is `"h"`, panels fill left-to-right, wrapping to the next row after `maxPerRow`.
+When `"v"`, panels stack top-to-bottom.
+Keep one repeat driver per repeating panel or row.
+If you still need a two-dimensional layout, compose it from supported building blocks such as a repeated row for the outer dimension and panels inside that row using regular variable interpolation for titles and queries.
 
 ## JSON Model Boundary
 

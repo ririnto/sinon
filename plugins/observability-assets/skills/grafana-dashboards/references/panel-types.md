@@ -5,7 +5,9 @@ description: >-
 
 # Complete Panel Type Reference
 
-Use this reference when you need the complete JSON structure for any Grafana panel type, including options fields unique to each type. The common panel types (timeseries, stat, gauge, barchart, table, heatmap, statetimeline, logs, piechart, histogram) are summarized in [`../SKILL.md`](../SKILL.md). This file covers ALL 23+ panel types with their complete option schemas.
+Use this reference when you need the complete JSON structure for any Grafana panel type, including options fields unique to each type.
+The common panel types (timeseries, stat, gauge, barchart, table, heatmap, statetimeline, logs, piechart, histogram) are summarized in [`../SKILL.md`](../SKILL.md).
+This file covers ALL 23+ panel types with their complete option schemas.
 
 ## Panel Type Index
 
@@ -169,7 +171,8 @@ Key `options.justifyMode`: `"auto"`, `"center"`.
 
 ## Bar Gauge (`bargauge`)
 
-Displays one bar per category, oriented horizontally. Good for comparing a small number of static categories.
+Displays one bar per category, oriented horizontally.
+Good for comparing a small number of static categories.
 
 ```json
 {
@@ -263,7 +266,9 @@ Key `options.drawStyle`: `"bars"`, `"line"`.
 
 ```
 
-When `bucketSize` is 0 (default), Grafana auto-calculates bucket boundaries. Set it explicitly (e.g., `100`) for fixed-width buckets. `histogramBase` controls logarithmic bucketing: `2` for binary histogram buckets, `10` for decimal.
+When `bucketSize` is 0 (default), Grafana auto-calculates bucket boundaries.
+Set it explicitly (e.g., `100`) for fixed-width buckets.
+`histogramBase` controls logarithmic bucketing: `2` for binary histogram buckets, `10` for decimal.
 
 ## Heatmap (`heatmap`)
 
@@ -321,7 +326,8 @@ When `bucketSize` is 0 (default), Grafana auto-calculates bucket boundaries. Set
 ```
 
 Key `options.color.mode`: `"opacity-spectrum"`, `"palette-classic"`, `"continuous-GrYlRd"`, `"continuous-RdYlGr"`, `"continuous-blues"`, `"continuous-reds"`, `"continuous-greens"`, `"continuous-purples"`, `"scheme"`.
-Key `options.dataFormat`: `"timeSeriesBuckets"`, `"timeSeries"`. Use `"timeSeriesBuckets"` for Prometheus histogram buckets.
+Key `options.dataFormat`: `"timeSeriesBuckets"`, `"timeSeries"`.
+Use `"timeSeriesBuckets"` for Prometheus histogram buckets.
 
 ## Pie Chart (`piechart`)
 
@@ -468,7 +474,8 @@ Key `options.sortOrder`: `"Descending"`, `"Ascending"`.
 
 Key `options.showValue`: `"always"`, `"never"`.
 Key `options.colorMode`: `"thresholds"`, `"palette-classic"`, `"continuous-GrYlRd"`, etc.
-Requires query results with time range columns (start/end) and a state field. For Prometheus, use `changes()` or `resets()` to detect state transitions.
+Requires query results with time range columns (start/end) and a state field.
+For Prometheus, use `changes()` or `resets()` to detect state transitions.
 
 ## Status History (`statushistory`)
 
@@ -496,11 +503,13 @@ Similar to state timeline but optimized for discrete status change events rather
 
 ```
 
-Use status history when events are point-in-time changes rather than continuous states. The difference from state timeline is primarily in how gaps between events are rendered -- status history shows no-state gaps explicitly.
+Use status history when events are point-in-time changes rather than continuous states.
+The difference from state timeline is primarily in how gaps between events are rendered -- status history shows no-state gaps explicitly.
 
 ## Candlestick (`candlestick`)
 
-For Open-High-Low-Close style data. Commonly used for financial data but applicable to any min/max/current/previous pattern.
+For Open-High-Low-Close style data.
+Commonly used for financial data but applicable to any min/max/current/previous pattern.
 
 ```json
 {
@@ -535,11 +544,13 @@ For Open-High-Low-Close style data. Commonly used for financial data but applica
 
 ```
 
-Data requirements: queries must return open, high, low, close fields per time period. This is not a standard Prometheus output shape; typically requires transformations or a datasource that natively produces OHLC data.
+Data requirements: queries must return open, high, low, close fields per time period.
+This is not a standard Prometheus output shape; typically requires transformations or a datasource that natively produces OHLC data.
 
 ## Trend (`trend`)
 
-Shows a single value with a directional trend indicator (arrow + sparkline). More compact than a stat panel when only direction matters.
+Shows a single value with a directional trend indicator (arrow + sparkline).
+More compact than a stat panel when only direction matters.
 
 ```json
 {
@@ -635,7 +646,8 @@ Key `options.scatter.symbol`: `"circle"`, `"square"`, `"diamond"`, `"triangle"`,
 
 ## Node Graph (`nodegraph`)
 
-Visualize nodes and edges as a force-directed graph. Useful for service dependency maps, call graphs, and topology views.
+Visualize nodes and edges as a force-directed graph.
+Useful for service dependency maps, call graphs, and topology views.
 
 ```json
 {
@@ -672,7 +684,9 @@ Visualize nodes and edges as a force-directed graph. Useful for service dependen
 
 ```
 
-Node graph requires structured node/edge data. Queries must return frames with `id`, `title`, and optionally `mainStat`, `subTitle`, `color` for nodes, and `source`, `target`, `mainStat` for edges. This is typically produced by specialized datasources or transformations, not raw Prometheus queries.
+Node graph requires structured node/edge data.
+Queries must return frames with `id`, `title`, and optionally `mainStat`, `subTitle`, `color` for nodes, and `source`, `target`, `mainStat` for edges.
+This is typically produced by specialized datasources or transformations, not raw Prometheus queries.
 
 ## Traces (`traces`)
 
@@ -720,11 +734,13 @@ Distributed tracing viewer showing span waterfall and duration breakdown.
 
 ```
 
-Requires a tracing datasource (Jaeger, Tempo, Zipkin, X-Ray). Query structure depends on the specific tracing backend.
+Requires a tracing datasource (Jaeger, Tempo, Zipkin, X-Ray).
+Query structure depends on the specific tracing backend.
 
 ## Flame Graph (`flamegraph`)
 
-Hierarchical flame graph for profiling data. Shows call stacks with width proportional to resource consumption.
+Hierarchical flame graph for profiling data.
+Shows call stacks with width proportional to resource consumption.
 
 ```json
 {
@@ -757,7 +773,8 @@ Requires a continuous profiling datasource (Pyroscope, Parca, Grafana Phlare).
 
 ## Canvas (`canvas`)
 
-Free-form canvas with positioned elements. Use for custom dashboards that do not fit the standard grid layout.
+Free-form canvas with positioned elements.
+Use for custom dashboards that do not fit the standard grid layout.
 
 ```json
 {
@@ -799,7 +816,8 @@ Free-form canvas with positioned elements. Use for custom dashboards that do not
 
 ```
 
-Canvas element types: `"text"`, `"row"`, `"image"`, `"ellipse"`, `"rect"`, `"arc"`, `"line"`, `"path"`, `"iframe"`, `"metricText"`, `"nodeGraph"`, `"heatmap"`, `"timeseries"`, `"stat"`, `"bargauge"`, `"table"`, `"logs"`, `"alertGraph"`, `"alertList"`, `"annolist"`, `"news"`, `"debug"`. Each element has its own `config` schema matching the standalone panel's options.
+Canvas element types: `"text"`, `"row"`, `"image"`, `"ellipse"`, `"rect"`, `"arc"`, `"line"`, `"path"`, `"iframe"`, `"metricText"`, `"nodeGraph"`, `"heatmap"`, `"timeseries"`, `"stat"`, `"bargauge"`, `"table"`, `"logs"`, `"alertGraph"`, `"alertList"`, `"annolist"`, `"news"`, `"debug"`.
+Each element has its own `config` schema matching the standalone panel's options.
 
 ## Geo Map (`geomap`)
 
@@ -951,7 +969,8 @@ Shows annotation events on a timeline with details.
 
 ## Text / News (`text`)
 
-Static text content for documentation, instructions, or context panels. Supports Markdown and HTML.
+Static text content for documentation, instructions, or context panels.
+Supports Markdown and HTML.
 
 ```json
 {

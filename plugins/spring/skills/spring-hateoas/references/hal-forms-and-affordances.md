@@ -4,7 +4,8 @@ Open this reference when plain HAL links are not enough and the representation m
 
 ## Media-type boundary
 
-Keep plain HAL and HAL-FORMS separate in both server configuration and tests. Affordances can exist as link metadata, but clients see HAL-FORMS `_templates` only when the response is actually rendered as HAL-FORMS rather than ordinary HAL.
+Keep plain HAL and HAL-FORMS separate in both server configuration and tests.
+Affordances can exist as link metadata, but clients see HAL-FORMS `_templates` only when the response is actually rendered as HAL-FORMS rather than ordinary HAL.
 
 ## HAL-FORMS boundary
 
@@ -15,7 +16,8 @@ Use HAL-FORMS only when clients will actually consume form templates and action 
 
 ## Affordance boundary
 
-Use plain affordances when the representation should advertise actionable transitions but the client still consumes ordinary HAL. Move to HAL-FORMS only when the client must also consume form templates and action metadata directly from `_templates`.
+Use plain affordances when the representation should advertise actionable transitions but the client still consumes ordinary HAL.
+Move to HAL-FORMS only when the client must also consume form templates and action metadata directly from `_templates`.
 
 ## Building affordances
 
@@ -30,7 +32,9 @@ Link update = Affordances.of(self)
 model.add(update);
 ```
 
-`Affordances.of(link)` is the entry point. Call `.afford(...)` with a controller method reference to derive HTTP method, request body type, and URI from the method signature. Call `.toLink()` to produce a `Link` carrying the affordance metadata.
+`Affordances.of(link)` is the entry point.
+Call `.afford(...)` with a controller method reference to derive HTTP method, request body type, and URI from the method signature.
+Call `.toLink()` to produce a `Link` carrying the affordance metadata.
 
 ## HAL-FORMS response expectation
 

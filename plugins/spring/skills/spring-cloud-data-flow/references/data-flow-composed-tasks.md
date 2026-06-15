@@ -31,8 +31,8 @@ Check that failure or success states propagate the way operators expect.
 
 Prefer one task app when:
 
-- the workflow shares one transactional boundary,
-- the steps are tightly coupled in one codebase,
+- The workflow shares one transactional boundary.
+- The steps are tightly coupled in one codebase.
 - or operators do not need per-subtask visibility.
 
 Use composed tasks when operational sequencing and per-task isolation are the main need.

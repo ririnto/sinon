@@ -11,7 +11,8 @@ Open when you need to inspect traffic, expose metrics, add access logging, or ga
 
 ## Wiretap
 
-Log all inbound and outbound bytes at `DEBUG` level. Use this for troubleshooting only — it generates significant volume.
+Log all inbound and outbound bytes at `DEBUG` level.
+Use this for troubleshooting only — it generates significant volume.
 
 ```java
 HttpClient client = HttpClient.create()
@@ -26,7 +27,9 @@ server.onDispose().block();
 
 ## Metrics (Micrometer)
 
-Reactor Netty integrates with Micrometer through `io.micrometer:micrometer-core`. The built-in HTTP metrics overloads register meters in Micrometer's global registry and accept URI and method tag mappers. Keep URI tags templated or bounded to avoid high-cardinality meters.
+Reactor Netty integrates with Micrometer through `io.micrometer:micrometer-core`.
+The built-in HTTP metrics overloads register meters in Micrometer's global registry and accept URI and method tag mappers.
+Keep URI tags templated or bounded to avoid high-cardinality meters.
 
 ```java
 import io.micrometer.core.instrument.Metrics;
@@ -119,7 +122,8 @@ Double activeConnections = activeGauge != null ? activeGauge.value() : null;
 
 ## Access log
 
-HTTP access logs are available on `HttpServer` from the `reactor-netty-http` module. Enable them programmatically with `.accessLog(true)` or by setting `-Dreactor.netty.http.server.accessLogEnabled=true`.
+HTTP access logs are available on `HttpServer` from the `reactor-netty-http` module.
+Enable them programmatically with `.accessLog(true)` or by setting `-Dreactor.netty.http.server.accessLogEnabled=true`.
 
 ```java
 DisposableServer server = HttpServer.create()
@@ -129,7 +133,8 @@ DisposableServer server = HttpServer.create()
 server.onDispose().block();
 ```
 
-Access logs use Common Log Format by default. Configure the `reactor.netty.http.server.AccessLog` logger in Logback or another SLF4J backend when the access log needs a separate destination.
+Access logs use Common Log Format by default.
+Configure the `reactor.netty.http.server.AccessLog` logger in Logback or another SLF4J backend when the access log needs a separate destination.
 
 Logback access logger:
 
@@ -156,6 +161,7 @@ Fields include remote host, identity placeholders, timestamp, request line, stat
 ## Guidance
 
 - start with `wiretap(true)` for debugging and turn it down once the issue is understood
-- enable `metrics(true)` where the application already has a Micrometer registry strategy; pass a shared registry rather than creating one per server
+- enable `metrics(true)` where the application already has a Micrometer registry strategy.
+  - Pass a shared registry rather than creating one per server
 - keep observability features additive so the common path stays small
 - wiretap and access log should not both be enabled in production — pick one visibility channel

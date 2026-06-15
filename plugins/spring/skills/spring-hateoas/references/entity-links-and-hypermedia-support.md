@@ -2,7 +2,8 @@
 
 > [!IMPORTANT]
 >
-> Prefer `WebMvcLinkBuilder.linkTo()` / `WebFluxLinkBuilder.linkTo()` with method references. Use this reference only when maintaining existing code that already depends on `@ExposesResourceFor` or `EntityLinks`.
+> Prefer `WebMvcLinkBuilder.linkTo()` / `WebFluxLinkBuilder.linkTo()` with method references.
+> Use this reference only when maintaining existing code that already depends on `@ExposesResourceFor` or `EntityLinks`.
 
 Open this reference when links should derive from aggregate types, the application needs `EntityLinks`, or explicit `@EnableHypermediaSupport` activation is required instead of relying on the ordinary Boot starter path.
 
@@ -17,7 +18,8 @@ class HypermediaConfiguration {
 
 Use explicit hypermedia support when the application is not already getting the required hypermedia setup from the ordinary Boot starter path.
 
-The ordinary Boot starter path already enables the common HAL setup. Open this reference only when that default is insufficient or when aggregate-type-based link derivation is clearer than assembler-owned controller links.
+The ordinary Boot starter path already enables the common HAL setup.
+Open this reference only when that default is insufficient or when aggregate-type-based link derivation is clearer than assembler-owned controller links.
 
 ## Entity links controller setup
 
@@ -35,7 +37,9 @@ class OrderController {
 }
 ```
 
-`@ExposesResourceFor(Order.class)` declares which entity type the controller manages. The type-level `@RequestMapping` is the collection resource base. The method-level mapping extending with an identifier is the item resource.
+`@ExposesResourceFor(Order.class)` declares which entity type the controller manages.
+The type-level `@RequestMapping` is the collection resource base.
+The method-level mapping extending with an identifier is the item resource.
 
 ## Entity links usage
 

@@ -2,7 +2,8 @@
 
 ## Purpose
 
-RELIABILITY.md captures the reliability contract: the SLOs the system targets, the failure modes the team accepts and how each is mitigated, the recovery procedures, and where to look in observability tooling. An agent loading this file should be able to judge whether a change preserves the reliability bar.
+`RELIABILITY.md` captures the reliability contract: the SLOs the system targets, the failure modes the team accepts and how each is mitigated, the recovery procedures, and where to look in observability tooling.
+An agent loading this file should be able to judge whether a change preserves the reliability bar.
 
 ## SLOs
 
@@ -17,18 +18,23 @@ Replace these example SLOs with targets your team commits to.
 
 ## Failure Modes
 
-- Network partition between service and datastore: Symptom: write timeouts. Mitigation: retry with jittered backoff capped at 3 attempts, then return 503 with retry-after.
-- Upstream dependency outage: Symptom: 5xx responses from third-party service. Mitigation: circuit breaker plus cached fallback when safe.
-- Deploy-time regression: Symptom: error rate spike within 5 minutes of release. Mitigation: progressive rollout with automatic rollback on burn alert.
-- Hot loop / runaway worker: Symptom: CPU saturation. Mitigation: per-worker time budget plus supervised restart.
-- Datastore disk pressure: Symptom: write latency rises. Mitigation: alert at 70%, drain at 85%, fail at 95%.
+- Network partition between service and datastore: Symptom: write timeouts.
+  - Mitigation: retry with jittered backoff capped at 3 attempts, then return 503 with retry-after.
+- Upstream dependency outage: Symptom: 5xx responses from third-party service.
+  - Mitigation: circuit breaker plus cached fallback when safe.
+- Deploy-time regression: Symptom: error rate spike within 5 minutes of release.
+  - Mitigation: progressive rollout with automatic rollback on burn alert.
+- Hot loop / runaway worker: Symptom: CPU saturation.
+  - Mitigation: per-worker time budget plus supervised restart.
+- Datastore disk pressure: Symptom: write latency rises.
+  - Mitigation: alert at 70%, drain at 85%, fail at 95%.
 
 ## Recovery Procedures
 
-- Service crash loop: see runbooks/service-restart.md
-- Datastore failover: see runbooks/datastore-failover.md
+- Service crash loop: see runbooks/service`-restart.md`
+- Datastore failover: see runbooks/datastore`-failover.md`
 - Deploy rollback: see runbooks/rollback.md
-- Stuck event queue drain: see runbooks/queue-drain.md
+- Stuck event queue drain: see runbooks/queue`-drain.md`
 
 ## Observability
 

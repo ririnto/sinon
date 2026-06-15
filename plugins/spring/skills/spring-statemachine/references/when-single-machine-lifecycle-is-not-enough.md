@@ -38,13 +38,15 @@ machine.startReactively().block();
 
 ## Machine ID
 
-Use `machineId` to identify machines within a factory. The ID maps to `StateMachine.getId()` and is used as the context key for persistence.
+Use `machineId` to identify machines within a factory.
+The ID maps to `StateMachine.getId()` and is used as the context key for persistence.
 
 ```java
 config.withConfiguration().machineId("myMachine");
 ```
 
-With `@EnableStateMachine`, set the machine ID through the annotation's `name` field. With a builder, set it through `StateMachineBuilder.configureConfiguration().withConfiguration().machineId(...)`.
+With `@EnableStateMachine`, set the machine ID through the annotation's `name` field.
+With a builder, set it through `StateMachineBuilder.configureConfiguration().withConfiguration().machineId(...)`.
 
 ## Persistence boundary
 
@@ -52,11 +54,13 @@ Persist machine state only when the lifecycle must survive restarts or be resume
 
 - Good fit: long-running orders, approvals, fulfillment, or manual review flows.
 - Poor fit: short in-memory UI flows that already live inside one request sequence.
-- Persistence keeps one machine restorable across time. It does not by itself create distributed coordination across nodes.
+- Persistence keeps one machine restorable across time.
+  - It does not by itself create distributed coordination across nodes.
 
 ### StateMachinePersister
 
-Use `StateMachinePersister` when save and restore happen around an explicit application boundary. The default implementation is `DefaultStateMachinePersister`, backed by a `StateMachinePersist` implementation.
+Use `StateMachinePersister` when save and restore happen around an explicit application boundary.
+The default implementation is `DefaultStateMachinePersister`, backed by a `StateMachinePersist` implementation.
 
 Implement `StateMachinePersist<S, E, T>` to define where state is stored:
 
@@ -85,7 +89,8 @@ StateMachinePersister<States, Events, String> stateMachinePersister(StateMachine
 
 ### StateMachineRuntimePersister
 
-Use `StateMachineRuntimePersister` when persistence must stay attached to runtime transitions rather than a separate save or restore step. It extends `StateMachinePersist` and provides a `StateMachineInterceptor` that persists state changes automatically during transitions.
+Use `StateMachineRuntimePersister` when persistence must stay attached to runtime transitions rather than a separate save or restore step.
+It extends `StateMachinePersist` and provides a `StateMachineInterceptor` that persists state changes automatically during transitions.
 
 Built-in implementations exist for JPA (`JpaPersistingStateMachineInterceptor`), MongoDB (`MongoDbPersistingStateMachineInterceptor`), and Redis (`RedisPersistingStateMachineInterceptor`).
 
@@ -100,13 +105,15 @@ public void configure(StateMachineConfigurationConfigurer<States, Events> config
 
 ### Persistence with Redis
 
-`RedisStateMachineContextRepository` provides a Redis-backed `StateMachinePersist` using Kryo serialization. It requires a `RedisConnectionFactory`.
+`RedisStateMachineContextRepository` provides a Redis-backed `StateMachinePersist` using Kryo serialization.
+It requires a `RedisConnectionFactory`.
 
 ## Region usage
 
 Use regions only when a workflow genuinely has parallel independent sub-lifecycles.
 
-Regions are created when a hierarchical state has multiple sub-state groups, each with its own initial state. The framework detects multiple initial states under the same parent and creates orthogonal regions automatically.
+Regions are created when a hierarchical state has multiple sub-state groups, each with its own initial state.
+The framework detects multiple initial states under the same parent and creates orthogonal regions automatically.
 
 Use `region(String id)` to assign stable region IDs for reliable persistence:
 
@@ -130,7 +137,8 @@ If the lifecycle is conceptually linear, regions usually add complexity without 
 
 ## StateMachineInterceptor
 
-Use `StateMachineInterceptor` when you need to intercept and potentially alter or block state changes. It is a deeper hook than `StateMachineListener` because interceptors can prevent transitions from completing.
+Use `StateMachineInterceptor` when you need to intercept and potentially alter or block state changes.
+It is a deeper hook than `StateMachineListener` because interceptors can prevent transitions from completing.
 
 Register through `StateMachineAccessor`:
 
@@ -150,7 +158,8 @@ stateMachine.getStateMachineAccessor()
 
 ## StateMachineService
 
-`StateMachineService` provides higher-level acquire and release semantics for factory-created machines. The default implementation is `DefaultStateMachineService`.
+`StateMachineService` provides higher-level acquire and release semantics for factory-created machines.
+The default implementation is `DefaultStateMachineService`.
 
 ## Testing persisted machines
 
@@ -202,5 +211,5 @@ Verify that the chosen factory or persistence path solves a real lifecycle requi
 
 ## Related blockers
 
-- Open [pseudo-states.md](pseudo-states.md) when the branching model depends on choice, junction, fork, join, or history semantics.
-- Open [reactive-support.md](reactive-support.md) when the machine's actions, guards, or event flow must stay reactive.
+- Open [`pseudo-states.md`](pseudo-states.md) when the branching model depends on choice, junction, fork, join, or history semantics.
+- Open [`reactive-support.md`](reactive-support.md) when the machine's actions, guards, or event flow must stay reactive.

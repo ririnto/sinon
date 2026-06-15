@@ -1,7 +1,8 @@
 ---
 name: command-authoring
 description: >-
-  Create or refactor Claude Code commands and prompt files with clear arguments, frontmatter, reusable prompt structure, and bounded tool expectations. Use when authoring or reviewing `commands/*.md` files offline.
+  Create or refactor Claude Code commands and prompt files with clear arguments, frontmatter, reusable prompt structure, and bounded tool expectations.
+  Use when authoring or reviewing `commands/*.md` files offline.
 ---
 
 # Command Authoring
@@ -13,7 +14,8 @@ Create or refactor one Claude Code command or prompt file under `commands/*.md` 
 - Keep the scope on command and prompt files under `commands/*.md`.
 - Write commands as instructions to Claude, not as explanatory prose for the user.
 - Keep one command focused on one coherent job.
-- Put the ordinary authoring path in the command file itself. Do not require external documentation or web links.
+- Put the ordinary authoring path in the command file itself.
+  - Do not require external documentation or web links.
 - Add frontmatter only for fields the command actually needs.
 - Keep tool assumptions narrow and explicit.
 - Make arguments, ambiguity behavior, and expected output visible in the command body whenever they affect ordinary use.
@@ -51,7 +53,9 @@ Use only the fields that the command needs.
 
 - `description`
 
-Use `description` to explain what the command does and when to use it. Prefer the pattern `Do X. Use when Y.` so the command is discoverable and understandable outside local context.
+Use `description` to explain what the command does and when to use it.
+Prefer the pattern `Do X.
+Use when Y.` so the command is discoverable and understandable outside local context.
 
 Example:
 
@@ -74,15 +78,18 @@ description: >-
 
 Use these fields as follows:
 
-- `argument-hint`: add only when the command expects runtime arguments. Show the argument shape, not a prose sentence.
-- `allowed-tools`: add when the command should restrict tool access. Keep the list as narrow as possible.
+- `argument-hint`: add only when the command expects runtime arguments.
+  - Show the argument shape, not a prose sentence.
+- `allowed-tools`: add when the command should restrict tool access.
+  - Keep the list as narrow as possible.
 - `disable-model-invocation`: add when the command should not run as a normal model-invoked command path.
 - `user-invocable`: set to `false` only for helper commands that should stay out of direct invocation flows.
 - `paths`: add when the command should activate or apply only for specific files or directories.
 - `model`: add only when the command truly depends on a specific model choice.
 - `shell`: add only when shell-specific behavior materially affects the command.
 
-Do not add frontmatter fields as decoration. If removing a field would not change discovery, invocation, or behavior, leave it out.
+Do not add frontmatter fields as decoration.
+If removing a field would not change discovery, invocation, or behavior, leave it out.
 
 Example with common optional fields:
 
@@ -189,7 +196,8 @@ Review the file the user probably means and do the usual thing.
 
 ## Ambiguity behavior
 
-Commands should resolve ordinary cases without extra discussion. When ambiguity remains, use the smallest safe behavior.
+Commands should resolve ordinary cases without extra discussion.
+When ambiguity remains, use the smallest safe behavior.
 
 - If the command can proceed safely with a clear default, state and use that default.
 - If a required argument, file, or scope is missing, stop and say exactly what is missing.

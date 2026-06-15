@@ -1,6 +1,6 @@
 ---
 description: >-
-  Detailed instructions for writing SPEC.md, including what to write in each
+  Detailed instructions for writing `SPEC.md`, including what to write in each
   section, when to write it in the workflow, and how to keep it reviewable.
 ---
 
@@ -17,7 +17,8 @@ Each section SHOULD be written at the correct workflow timing so requirements re
 
 SPECs MUST be placed at `spec/domain/{{ownership-path}}/SPEC.md` where `{{ownership-path}}` reflects the owning capability boundary.
 
-Parent capability SPECs at `spec/domain/SPEC.md` are valid when ownership of child capability differs. Nested hierarchies MUST remain valid under this rule.
+Parent capability SPECs at `spec/domain/SPEC.md` are valid when ownership of child capability differs.
+Nested hierarchies MUST remain valid under this rule.
 
 ### Ownership-Oriented Naming
 
@@ -31,8 +32,11 @@ Naming MUST be ownership-oriented and MUST NOT use the following patterns:
 - audit names: review activities rather than capability boundaries
 - repository-improvement names: meta-work that belongs outside `spec/`
 
-SPEC content MUST describe intended behavior, boundaries, and constraints. Requirements MUST NOT describe current implementation. Requirements MUST NOT be derived from inspecting existing code.
-SPEC content SHOULD remain implementation-agnostic by default. Authors SHOULD avoid prescribing language, framework, library, or code-style policy unless the user explicitly requests those constraints or verified external constraints make them necessary.
+SPEC content MUST describe intended behavior, boundaries, and constraints.
+Requirements MUST NOT describe current implementation.
+Requirements MUST NOT be derived from inspecting existing code.
+SPEC content SHOULD remain implementation-agnostic by default.
+Authors SHOULD avoid prescribing language, framework, library, or code-style policy unless the user explicitly requests those constraints or verified external constraints make them necessary.
 
 ## Table of Contents
 
@@ -58,7 +62,10 @@ Required fields:
 - `description`: Scope summary in 1-3 lines.
 - `last_updated`: ISO 8601 calendar date (`YYYY-MM-DD`).
 - `status`: One of `draft`, `review`, `approved`, `wip`, `implemented`, `deprecated`, `superseded`, `removed`.
-- `call`: Outbound SPEC calls only. `[]` MUST be used when there are no outbound calls. Each entry MUST resolve to an existing `SPEC.md`. String entries MUST be relative paths.
+- `call`: Outbound SPEC calls only.
+  - `[]` MUST be used when there are no outbound calls.
+  - Each entry MUST resolve to an existing `SPEC.md`.
+  - String entries MUST be relative paths.
 
 Optional fields:
 
@@ -106,7 +113,8 @@ When to write: Early draft, before detailed requirements.
 How to write:
 
 - The section SHOULD summarize behavior and key concepts.
-- The section SHOULD remain implementation-agnostic by default. Explicitly requested or materially required constraints MAY still be called out when they affect reviewer understanding.
+- The section SHOULD remain implementation-agnostic by default.
+  - Explicitly requested or materially required constraints MAY still be called out when they affect reviewer understanding.
 - The section SHOULD serve as a quick-read summary for reviewers.
 
 ### Functional Requirements
@@ -151,7 +159,8 @@ How to write:
 
 - Domain, security, performance, compliance, interoperability, and operational constraints SHOULD be recorded when they materially affect intended behavior.
 - Constraints SHOULD describe externally meaningful limits, guarantees, and prohibitions.
-- Constraints SHOULD avoid unnecessary language, framework, library, or code-style policy. Such constraints MAY be included when they are explicitly requested or materially required.
+- Constraints SHOULD avoid unnecessary language, framework, library, or code-style policy.
+  - Such constraints MAY be included when they are explicitly requested or materially required.
 - Hard constraints SHOULD be stated as normative statements.
 - Open-ended wording SHOULD NOT be used when behavior MUST be deterministic.
 
@@ -173,16 +182,19 @@ Before marking `review` or higher:
 - In authored `SPEC.md` content, TODO markers MUST NOT remain.
 - In authored `SPEC.md` content, unresolved placeholders MUST NOT remain.
 - In authored `SPEC.md` content, template scaffolding instruction lines from `assets/templates/SPEC.md` MUST be replaced (SPEC scaffolding fingerprint checks MUST pass).
-- Manual numbered headings (`## 1. Something` form) MUST NOT be used. The validator enforces this rule on SPEC.md, RESEARCH.md, and CONTRACT.md.
-- `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` MUST be run when `uv` can resolve its runtime and dependencies from local cache or local files, and failures MUST be resolved. When the validator cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
+- Manual numbered headings (`## 1. Something` form) MUST NOT be used.
+  - The validator enforces this rule on `SPEC.md`, `RESEARCH.md`, and `CONTRACT.md`.
+- `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` MUST be run when `uv` can resolve its runtime and dependencies from local cache or local files, and failures MUST be resolved.
+  - When the validator cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
 - If the consuming repository already uses markdownlint, maintainers MAY run `npx -y markdownlint-cli2 <touched-markdown-files>`.
 
 ## Common Mistakes
 
-- Adding code-location annotations (file paths, line numbers, function names) to spec content. Specs describe intended behavior, not current source layout.
+- Adding code-location annotations (file paths, line numbers, function names) to spec content.
+  - Specs describe intended behavior, not current source layout.
 - Writing ambiguous requirements that cannot be tested.
 - Duplicating ownership already defined by another SPEC.
 - Linking to non-SPEC files in frontmatter `call`.
 - Forgetting to update frontmatter `call` after dependency changes.
 - Advancing status without updating `last_updated`.
-- Using manual numbered headings (`## 1. Something` form); the validator rejects these in SPEC.md, RESEARCH.md, and CONTRACT.md.
+- Using manual numbered headings (`## 1. Something` form); the validator rejects these in `SPEC.md`, `RESEARCH.md`, and `CONTRACT.md`.

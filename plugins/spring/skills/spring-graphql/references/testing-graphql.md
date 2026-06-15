@@ -4,7 +4,10 @@ Open this reference when the blocker is choosing between GraphQL test slices, in
 
 ## Slice test blocker
 
-Use `@GraphQlTest` when the test only needs controller mappings, GraphQL wiring, and focused response assertions. It scans `@Controller`, `@ControllerAdvice`, `RuntimeWiringConfigurer`, `@JacksonComponent`, `Converter`, `GenericConverter`, `DataFetcherExceptionResolver`, `Instrumentation`, and `GraphQlSourceBuilderCustomizer` beans. Regular `@Component` and `@ConfigurationProperties` beans are not scanned; use `@EnableConfigurationProperties` to include them.
+Use `@GraphQlTest` when the test only needs controller mappings, GraphQL wiring, and focused response assertions.
+It scans `@Controller`, `@ControllerAdvice`, `RuntimeWiringConfigurer`, `@JacksonComponent`, `Converter`, `GenericConverter`, `DataFetcherExceptionResolver`, `Instrumentation`, and `GraphQlSourceBuilderCustomizer` beans.
+Regular `@Component` and `@ConfigurationProperties` beans are not scanned.
+Use `@EnableConfigurationProperties` to include them.
 
 ```java
 @GraphQlTest(BookGraphQlController.class)
@@ -18,7 +21,8 @@ Mock service dependencies rather than pulling in the whole application when the 
 
 Use `HttpGraphQlTester` when the interceptor chain, transport-facing setup, or server integration itself is the point of the test.
 
-With `@SpringBootTest` on a random or defined port, `HttpGraphQlTester` is auto-configured. For a MOCK environment, use `@AutoConfigureHttpGraphQlTester`.
+With `@SpringBootTest` on a random or defined port, `HttpGraphQlTester` is auto-configured.
+For a MOCK environment, use `@AutoConfigureHttpGraphQlTester`.
 
 ```java
 @AutoConfigureHttpGraphQlTester

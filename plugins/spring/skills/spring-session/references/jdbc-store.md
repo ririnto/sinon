@@ -51,7 +51,8 @@ SessionRepositoryCustomizer<JdbcIndexedSessionRepository> jdbcRepositoryCustomiz
 
 ## Cleanup behavior
 
-The JDBC repository runs a scheduled cleanup task that deletes expired session rows. Control its cadence:
+The JDBC repository runs a scheduled cleanup task that deletes expired session rows.
+Control its cadence:
 
 ```yaml
 spring:
@@ -71,7 +72,8 @@ spring:
 
 ## Transaction manager
 
-By default, Spring Session JDBC uses the primary `PlatformTransactionManager` and `DataSource`. Use `@SpringSessionTransactionManager` and `@SpringSessionDataSource` qualifiers when session transactions must use a dedicated pair separate from the application's primary database infrastructure:
+By default, Spring Session JDBC uses the primary `PlatformTransactionManager` and `DataSource`.
+Use `@SpringSessionTransactionManager` and `@SpringSessionDataSource` qualifiers when session transactions must use a dedicated pair separate from the application's primary database infrastructure:
 
 ```java
 @Bean("springSessionDataSource")
@@ -133,7 +135,8 @@ ConversionService sessionConversionService() {
 
 ## Schema initialization
 
-Set `spring.session.jdbc.initialize-schema` to `always` during development. In production, apply the schema once through a migration tool and set it to `never` or `embedded` to avoid repeated DDL execution.
+Set `spring.session.jdbc.initialize-schema` to `always` during development.
+In production, apply the schema once through a migration tool and set it to `never` or `embedded` to avoid repeated DDL execution.
 
 Schema location: `org/springframework/session/jdbc/schema-*.sql`.
 
@@ -168,6 +171,7 @@ class JdbcSessionFlowTest {
 ## Gotchas
 
 - Do not rely on default cleanup cadence without confirming that expired rows disappear at an acceptable rate for the workload.
-- Do not assume transaction behavior is correct when Spring Session shares the primary datasource with unrelated database work. Use qualified beans when isolation matters.
+- Do not assume transaction behavior is correct when Spring Session shares the primary datasource with unrelated database work.
+  - Use qualified beans when isolation matters.
 - Do not use JDBC casually for high session churn when Redis latency and TTL semantics are a better fit.
 - Do not skip `initialize-schema: never` in production deployments that manage schema through a migration tool.

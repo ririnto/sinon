@@ -8,7 +8,8 @@ description: >-
 
 Open this when the task is testing coroutine or Flow code.
 
-This reference is a minimal bridge for coroutine-design work. For full Kotlin test structure, dependency setup, Turbine usage, and JUnit/Kotest choices, use the `kotlin-test` skill's ordinary path.
+This reference is a minimal bridge for coroutine-design work.
+For full Kotlin test structure, dependency setup, Turbine usage, and JUnit/Kotest choices, use the `kotlin-test` skill's ordinary path.
 
 ## Rules
 

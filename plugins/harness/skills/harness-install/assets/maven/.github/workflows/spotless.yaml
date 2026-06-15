@@ -15,10 +15,17 @@ jobs:
           java-version: "17"
       - run: |-
           root=$(pwd -P)
+          if git ls-files -- "*.java" | grep -q '^"'; then
+              unsafe_file=$(git ls-files -- "*.java" | grep '^"')
+              echo "error: escaped Java path for spotlessFiles: $unsafe_file" >&2
+              exit 1
+          fi
+          if git ls-files -- "*.java" | grep -q ','; then
+              comma_file=$(git ls-files -- "*.java" | grep ',')
+              echo "error: comma Java path for spotlessFiles: $comma_file" >&2
+              exit 1
+          fi
           files=$(git ls-files -- "*.java" | while IFS= read -r file; do
-              case "$file" in
-                  *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1 ;;
-              esac
               printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'
           done | paste -sd, -)
           if [ -z "$files" ]; then

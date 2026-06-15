@@ -25,7 +25,8 @@ spring:
     import: vault://secret/catalog
 ```
 
-Use the broad `vault://` import when the application name and active profiles should drive the context lookup. Use an explicit context path only when the backend contract is intentionally fixed.
+Use the broad `vault://` import when the application name and active profiles should drive the context lookup.
+Use an explicit context path only when the backend contract is intentionally fixed.
 
 ## Authentication choice
 
@@ -48,7 +49,8 @@ spring:
         service-account-token-file: /var/run/secrets/kubernetes.io/serviceaccount/token
 ```
 
-Use token auth for simple local bootstrap or operator-managed startup. Use Kubernetes auth only when the workload already runs in-cluster and the platform owns the service-account identity boundary.
+Use token auth for simple local bootstrap or operator-managed startup.
+Use Kubernetes auth only when the workload already runs in-cluster and the platform owns the service-account identity boundary.
 
 ## Fail-fast shape
 
@@ -59,7 +61,8 @@ spring:
       fail-fast: true
 ```
 
-Enable fail-fast only when startup must stop if Vault-backed config is unavailable. If the service is expected to continue in degraded mode, keep fail-fast disabled and make the degraded behavior explicit in operations guidance.
+Enable fail-fast only when startup must stop if Vault-backed config is unavailable.
+If the service is expected to continue in degraded mode, keep fail-fast disabled and make the degraded behavior explicit in operations guidance.
 
 ## Gotchas
 

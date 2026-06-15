@@ -1,7 +1,8 @@
 ---
 name: git-rebase-strategies
 description: >-
-  Rebase feature branches with interactive editing, autosquash, and selective reapplication while protecting shared history. Use when linearizing history, replaying commits onto a new base with `--onto`, resolving mid-rebase conflicts, or deciding whether rebase or merge is safer for a shared branch.
+  Rebase feature branches with interactive editing, autosquash, and selective reapplication while protecting shared history.
+  Use when linearizing history, replaying commits onto a new base with `--onto`, resolving mid-rebase conflicts, or deciding whether rebase or merge is safer for a shared branch.
 ---
 
 # Git Rebase Strategies
@@ -10,7 +11,8 @@ Rebase a feature branch to linearize history, clean up commits, or replay change
 
 ## Goal
 
-Successfully rebase a branch without losing commits, corrupting history, or forcing unwanted changes on teammates. Understand when rebase is appropriate and when merge is safer.
+Successfully rebase a branch without losing commits, corrupting history, or forcing unwanted changes on teammates.
+Understand when rebase is appropriate and when merge is safer.
 
 ## Scope
 
@@ -33,12 +35,16 @@ This skill does not cover:
 
 These invariants govern safe rebase practice:
 
-- **Working tree MUST be clean** before starting a rebase. Commit or stash all changes.
-- **Shared branches SHOULD NOT be rebased** unless the entire team agrees and understands force-push implications. Rebasing shared history and then force-pushing will erase commits from teammates' local branches.
-- **Force-push MUST only be used with `--force-with-lease`** to prevent overwriting remote changes you have not seen. Bare `--force` is unsafe on branches others might push to simultaneously.
-- **Commit references (SHAs) change on rebase**. Update any references to old commits in tickets, PRs, or scripts.
+- **Working tree MUST be clean** before starting a rebase.
+  - Commit or stash all changes.
+- **Shared branches SHOULD NOT be rebased** unless the entire team agrees and understands force-push implications.
+  - Rebasing shared history and then force-pushing will erase commits from teammates' local branches.
+- **Force-push MUST only be used with `--force-with-lease`** to prevent overwriting remote changes you have not seen.
+  - Bare `--force` is unsafe on branches others might push to simultaneously.
+- **Commit references (SHAs) change on rebase**.
+  - Update any references to old commits in tickets, PRs, or scripts.
 
-## Rebase vs. Merge Decision
+## Rebase and Merge Decision
 
 Rebase is appropriate when:
 
@@ -96,7 +102,8 @@ Rebase the last 5 commits:
 git rebase -i HEAD~5
 ```
 
-An editor opens with a list of commits. Commands available:
+An editor opens with a list of commits.
+Commands available:
 
 - `pick` — keep the commit as-is (default)
 - `reword` — keep the commit but edit the message
@@ -115,7 +122,8 @@ drop 4f5g6h7 Debug: temporary logging
 pick 5g6h7i8 Add password validation
 ```
 
-After editing, save and exit the editor. Git applies each commit in order.
+After editing, save and exit the editor.
+Git applies each commit in order.
 
 #### Autosquash workflow (automatic fixup grouping)
 
@@ -159,7 +167,8 @@ If a conflict occurs, Git pauses and marks conflicted files:
 git status
 ```
 
-Edit each conflicted file to resolve the conflict. Markers appear as:
+Edit each conflicted file to resolve the conflict.
+Markers appear as:
 
 ```text
 <<<<<<< HEAD
@@ -169,7 +178,8 @@ incoming changes
 >>>>>>> commit-message
 ```
 
-Remove the markers and keep the code you want. Then stage the resolved file:
+Remove the markers and keep the code you want.
+Then stage the resolved file:
 
 ```sh
 git add <file>
@@ -217,11 +227,13 @@ squash 3e4f5g6 Fix tests
 pick 4f5g6h7 Add profile documentation
 ```
 
-Save. Reword the squashed commit message if needed.
+Save.
+Reword the squashed commit message if needed.
 
 ### Autosquash workflow: fixup then rebase
 
-Scenario: Noticed a typo in an earlier commit; fixing it with a fixup commit.
+Scenario: Noticed a typo in an earlier commit.
+Fixing it with a fixup commit.
 
 Commit the fix with `--fixup`:
 
@@ -239,7 +251,8 @@ The fixup commit is automatically placed and squashed.
 
 ### Rebase onto new base: catch up to main
 
-Scenario: Feature branch is behind main; want to replay changes on top of latest main.
+Scenario: Feature branch is behind main.
+Want to replay changes on top of latest main.
 
 ```sh
 git fetch origin
@@ -256,14 +269,17 @@ After a successful rebase of a branch only you have pushed:
 git push --force-with-lease origin <branch-name>
 ```
 
-`--force-with-lease` prevents overwriting commits if the remote has changed since your last fetch. Bare `--force` is dangerous.
+`--force-with-lease` prevents overwriting commits if the remote has changed since your last fetch.
+Bare `--force` is dangerous.
 
 ## Pitfalls
 
-### --force vs. --force-with-lease
+### --force and --force-with-lease
 
-- `git push --force` overwrites the remote unconditionally, even if someone else pushed commits. MUST NOT use.
-- `git push --force-with-lease` overwrites only if the remote ref matches your last fetched state, protecting against accidental overwrites. Always prefer this.
+- `git push --force` overwrites the remote unconditionally, even if someone else pushed commits.
+  - MUST NOT use.
+- `git push --force-with-lease` overwrites only if the remote ref matches your last fetched state, protecting against accidental overwrites.
+  - Always prefer this.
 
 ### Rebasing shared branches
 
@@ -277,13 +293,15 @@ MUST NOT rebase shared branches without explicit team agreement and communicatio
 
 ### Editing history of commits already pushed
 
-After a force-push following rebase, commit SHAs change. If the commits are referenced in:
+After a force-push following rebase, commit SHAs change.
+If the commits are referenced in:
 
 - Pull request comments or descriptions
 - Ticket systems or issue trackers
 - Commit links in documentation or chat
 
-Those references will become invalid. Communicate the change to affected parties.
+Those references will become invalid.
+Communicate the change to affected parties.
 
 ## First Safe Commands
 
@@ -295,7 +313,8 @@ git status
 git rebase -i HEAD~5
 ```
 
-Edit the rebase script in your editor. Save and exit.
+Edit the rebase script in your editor.
+Save and exit.
 
 For catching up a local branch to main:
 
@@ -330,7 +349,8 @@ If you completed a rebase but realize it was wrong, use reflog to find the previ
 git reflog
 ```
 
-Look for the entry before the rebase. Then reset:
+Look for the entry before the rebase.
+Then reset:
 
 ```sh
 git reset --hard <old-head-sha>

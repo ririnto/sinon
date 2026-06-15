@@ -1,6 +1,7 @@
 ---
 description: >-
-  Compose a Conventional Commits-style commit message from the staged or HEAD diff. Use when committing the current change with a structured, scope-aware message that matches commit-convention rules.
+  Compose a Conventional Commits-style commit message from the staged or HEAD diff.
+  Use when committing the current change with a structured, scope-aware message that matches commit-convention rules.
 argument-hint: [optional-context]
 allowed-tools:
   - Bash
@@ -10,7 +11,8 @@ allowed-tools:
 
 # Compose Commit Message
 
-Generate a well-structured commit message following Conventional Commits specification. Analyze the staged changes (or HEAD if nothing staged), determine commit type and scope, and output a draft message ready for review.
+Generate a well-structured commit message following Conventional Commits specification.
+Analyze the staged changes (or HEAD if nothing staged), determine commit type and scope, and output a draft message ready for review.
 
 Initial context: $ARGUMENTS
 
@@ -58,7 +60,8 @@ Read the full diff to grasp:
 
 ### Step 3: Determine Type and Scope
 
-Consult the commit-convention skill for authoritative type and scope guidance. Decide:
+Consult the commit-convention skill for authoritative type and scope guidance.
+Decide:
 
 Type (pick one):
 
@@ -159,7 +162,8 @@ git log --oneline -1
 - Type and scope MUST follow Conventional Commits specification.
 - Subject MUST be imperative mood and lowercase.
 - Body (if present) MUST explain *why*, not *how*.
-- Multi-commit decisions MUST be user-driven; MUST NOT split without asking.
+- Multi-commit decisions MUST be user-driven.
+  - MUST NOT split without asking.
 - Always verify `git status` before drafting.
 - Always show the draft to the user before executing.
 
@@ -167,7 +171,8 @@ git log --oneline -1
 
 ## Scope Boundaries
 
-This command focuses on message composition and user confirmation. It does NOT:
+This command focuses on message composition and user confirmation.
+It does NOT:
 
 - Modify files or staging
 - Create branches

@@ -18,7 +18,8 @@ requestFields(attributes(key("title").value("Fields for user creation")),
 
 ## Custom Mustache templates
 
-Templates are loaded from the classpath under `org.springframework.restdocs.templates.asciidoctor`. Each template is named after the snippet it produces, for example `request-fields.snippet` at `src/test/resources/org/springframework/restdocs/templates/asciidoctor/request-fields.snippet`.
+Templates are loaded from the classpath under `org.springframework.restdocs.templates.asciidoctor`.
+Each template is named after the snippet it produces, for example `request-fields.snippet` at `src/test/resources/org/springframework/restdocs/templates/asciidoctor/request-fields.snippet`.
 
 ```mustache
 .{{title}}

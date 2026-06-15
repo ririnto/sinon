@@ -38,7 +38,8 @@ Use profiles to swap implementation beans for different environments without cha
 
 ## Property source ordering
 
-Spring resolves property sources in order. Earlier sources take precedence over later ones.
+Spring resolves property sources in order.
+Earlier sources take precedence over later ones.
 
 ```java
 ctx.getEnvironment().getPropertySources()
@@ -52,7 +53,8 @@ Common plain-Spring sources include, from higher to lower precedence:
 3. OS environment variables
 4. Sources added later with `addLast(..)` or `@PropertySource`
 
-Use `@PropertySource` to add application-level property files. Use `PropertySourcesPlaceholderConfigurer` or a custom `PropertySource` when placeholder resolution or source ordering needs more control.
+Use `@PropertySource` to add application-level property files.
+Use `PropertySourcesPlaceholderConfigurer` or a custom `PropertySource` when placeholder resolution or source ordering needs more control.
 
 ## Externalized configuration with `@Value`
 

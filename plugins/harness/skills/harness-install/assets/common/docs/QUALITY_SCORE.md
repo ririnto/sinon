@@ -2,7 +2,7 @@
 
 ## Purpose
 
-QUALITY_SCORE.md grades each product domain and architectural layer on an ordinal scale so that doc-gardening, refactoring, and tech-debt prioritization can be steered by current quality gaps rather than gut feel.
+`QUALITY_SCORE.md` grades each product domain and architectural layer on an ordinal scale so that doc-gardening, refactoring, and tech-debt prioritization can be steered by current quality gaps rather than gut feel.
 
 ## Grading Scale
 
@@ -37,7 +37,7 @@ Replace the example rows below with entries for each architectural layer.
 
 Each gap MUST be either (a) linked to an entry in `docs/exec-plans/tech-debt-tracker.md` with retirement criteria, or (b) linked to an active execution plan that will close it.
 
-- Example: [docs/exec-plans/tech-debt-tracker.md#td-1](docs/exec-plans/tech-debt-tracker.md#td-1)
+- Example: [docs/exec-plans/tech`-debt-tracker.md`#td-1](docs/exec-plans/tech-debt-tracker.md#td-1)
 
 ## When To Update
 

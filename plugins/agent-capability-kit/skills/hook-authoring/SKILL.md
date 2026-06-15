@@ -1,7 +1,8 @@
 ---
 name: hook-authoring
 description: >-
-  Author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails. Triggers on PreToolUse or PostToolUse hook setup, event matcher configuration, or safety boundaries around tool execution in a plugin.
+  Author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails.
+  Triggers on PreToolUse or PostToolUse hook setup, event matcher configuration, or safety boundaries around tool execution in a plugin.
 ---
 
 # Hook Authoring
@@ -28,23 +29,37 @@ Hook configuration in `~/.claude/settings.json` uses direct JSON (not wrapped), 
 
 ## Operating Rules
 
-1. Hooks are loaded at session start only; configuration changes require session restart.
+1. Hooks are loaded at session start only.
+   - Configuration changes require session restart.
 2. Plugin `hooks.json` MUST use the wrapper format: `{"hooks": {"PreToolUse": [...], ...}}`.
 3. User settings hooks MUST use direct format: `{"PreToolUse": [...], ...}` (no wrapper).
-4. When the manifest declares `"hooks": "./hooks/hooks.json"`, plugin-root `hooks/hooks.json` MUST exist; when plugin-root `hooks/hooks.json` exists, the manifest SHOULD declare `"hooks": "./hooks/hooks.json"`.
-5. Prompt-based hooks SHOULD be the default for complex logic; command hooks SHOULD be used only for deterministic checks.
+4. When the manifest declares `"hooks": "./hooks/hooks.json"`, plugin-root `hooks/hooks.json` MUST exist.
+   - When plugin-root `hooks/hooks.json` exists, the manifest SHOULD declare `"hooks": "./hooks/hooks.json"`.
+5. Prompt-based hooks SHOULD be the default for complex logic.
+
+    - Command hooks SHOULD be used only for deterministic checks.
+
 6. Hook scripts MUST quote all bash variables to prevent injection.
 7. Hook scripts MUST validate all JSON inputs via `jq`.
 8. All hooks MUST return valid JSON on stdout or stderr (exit 0 or 2 respectively).
-9. Hook commands MUST use `${CLAUDE_PLUGIN_ROOT}` for portability; hardcoded paths are forbidden.
-10. Sessions may run in remote context; command hooks MUST test for `$CLAUDE_CODE_REMOTE` when I/O safety matters.
-11. Hooks run in parallel; design scripts as independent and non-blocking.
+9. Hook commands MUST use `${CLAUDE_PLUGIN_ROOT}` for portability.
+
+    - Hardcoded paths are forbidden.
+
+10. Sessions may run in remote context.
+
+    - Command hooks MUST test for `$CLAUDE_CODE_REMOTE` when I/O safety matters.
+
+11. Hooks run in parallel.
+
+    - Design scripts as independent and non-blocking.
 
 ## Hook Types
 
 ### Prompt-Based (Recommended)
 
-Context-aware LLM decision via natural language. Supports variable substitution (`$TOOL_INPUT`, `$TOOL_RESULT`, `$USER_PROMPT`).
+Context-aware LLM decision via natural language.
+Supports variable substitution (`$TOOL_INPUT`, `$TOOL_RESULT`, `$USER_PROMPT`).
 
 ```json
 {
@@ -58,7 +73,8 @@ Use for: policy enforcement, security reasoning, context-aware validation, compl
 
 ### Command-Based
 
-Deterministic bash checks. Read JSON from stdin, return JSON on stdout/stderr.
+Deterministic bash checks.
+Read JSON from stdin, return JSON on stdout/stderr.
 
 ```json
 {
@@ -145,11 +161,13 @@ No wrapper, no description field, events at top level.
 
 ## Hook Events (9 Types)
 
-Each event is triggered by specific Claude Code lifecycle moment. Use matchers to filter which tools or contexts trigger the hooks.
+Each event is triggered by specific Claude Code lifecycle moment.
+Use matchers to filter which tools or contexts trigger the hooks.
 
 ### PreToolUse
 
-Execute before any tool runs. Validate, block, or modify tool input.
+Execute before any tool runs.
+Validate, block, or modify tool input.
 
 ```json
 {
@@ -172,7 +190,8 @@ Output: `{"permissionDecision": "allow|deny|ask", "updatedInput": {...}, "system
 
 ### PostToolUse
 
-Execute after tool completes. React to results, provide feedback, or log outcomes.
+Execute after tool completes.
+React to results, provide feedback, or log outcomes.
 
 ```json
 {
@@ -190,11 +209,13 @@ Execute after tool completes. React to results, provide feedback, or log outcome
 }
 ```
 
-Exit 0: stdout shown in transcript. Exit 2: stderr fed back to Claude.
+Exit 0: stdout shown in transcript.
+Exit 2: stderr fed back to Claude.
 
 ### Stop
 
-Execute when main agent considers stopping. Validate completeness.
+Execute when main agent considers stopping.
+Validate completeness.
 
 ```json
 {
@@ -216,7 +237,8 @@ Output: `{"decision": "approve|block", "reason": "...", "systemMessage": "..."}`
 
 ### SubagentStop
 
-Execute when subagent considers stopping. Ensure subagent task is complete (same logic as Stop).
+Execute when subagent considers stopping.
+Ensure subagent task is complete (same logic as Stop).
 
 ```json
 {
@@ -236,7 +258,8 @@ Execute when subagent considers stopping. Ensure subagent task is complete (same
 
 ### UserPromptSubmit
 
-Execute when user submits a prompt. Add context, validate, or block user input.
+Execute when user submits a prompt.
+Add context, validate, or block user input.
 
 ```json
 {
@@ -258,7 +281,8 @@ Input fields: `user_prompt`.
 
 ### SessionStart
 
-Execute when Claude Code session begins. Load project context, set environment variables.
+Execute when Claude Code session begins.
+Load project context, set environment variables.
 
 ```json
 {
@@ -284,7 +308,8 @@ echo "export PROJECT_TYPE=nodejs" >> "$CLAUDE_ENV_FILE"
 
 ### SessionEnd
 
-Execute when session ends. Cleanup, logging, state preservation.
+Execute when session ends.
+Cleanup, logging, state preservation.
 
 ```json
 {
@@ -304,7 +329,8 @@ Execute when session ends. Cleanup, logging, state preservation.
 
 ### PreCompact
 
-Execute before context compaction. Add critical information to preserve.
+Execute before context compaction.
+Add critical information to preserve.
 
 ```json
 {
@@ -324,7 +350,8 @@ Execute before context compaction. Add critical information to preserve.
 
 ### Notification
 
-Execute when Claude sends notifications. React to user notifications.
+Execute when Claude sends notifications.
+React to user notifications.
 
 ```json
 {
@@ -365,7 +392,9 @@ Common patterns:
 
 Matchers are case-sensitive and match against the full tool name.
 
-Matcher evaluation precedence: Exact-match patterns are tried first, then pipe-separated alternations left-to-right, then regex (as a fallback). Wildcard `*` matches unconditionally if no prior pattern matched. Configure more specific matchers first to ensure they take precedence over broader patterns.
+Matcher evaluation precedence: Exact-match patterns are tried first, then pipe-separated alternations left-to-right, then regex (as a fallback).
+Wildcard `*` matches unconditionally if no prior pattern matched.
+Configure more specific matchers first to ensure they take precedence over broader patterns.
 
 ## Hook Input/Output Contract
 
@@ -458,20 +487,23 @@ Always use `${CLAUDE_PLUGIN_ROOT}` in hook commands:
 
 ## Security Rules
 
-Hook scripts run with elevated context. Apply these rules strictly:
+Hook scripts run with elevated context.
+Apply these rules strictly:
 
 1. MUST validate all JSON inputs via `jq` (use `--exit-status` to detect parse errors).
 2. MUST reject path traversal (`..`), sensitive files (`.env`, `.aws`, `.pem`, `.key`), and system paths (`/bin`, `/usr`, `/etc`, `/sys`).
 3. MUST quote all bash variables: `"$var"` not `$var`.
 4. SHOULD set explicit timeouts: prompt 30s, command 60s.
 
-See `references/security-patterns.md` for complete working examples, broken vs. correct comparisons, and testing strategies.
+See `references/security-patterns.md` for complete working examples, broken vs.
+correct comparisons, and testing strategies.
 
 ## Hook Lifecycle and Limitations
 
 ### Hooks Load at Session Start
 
-Hooks are loaded when Claude Code session starts. Changes to hook configuration or scripts are NOT applied until the session is restarted.
+Hooks are loaded when Claude Code session starts.
+Changes to hook configuration or scripts are NOT applied until the session is restarted.
 
 ### Cannot Hot-Swap Hooks
 
@@ -503,7 +535,8 @@ Validate hook configuration offline:
 python3 -m json.tool hooks/hooks.json
 ```
 
-This validates JSON syntax. If output shows no errors, the file is structurally valid.
+This validates JSON syntax.
+If output shows no errors, the file is structurally valid.
 
 Test a command hook script with sample input:
 

@@ -11,7 +11,8 @@ Open this reference when the task depends on ConfigMap-backed Spring Cloud Kuber
 </dependency>
 ```
 
-Keep this branch separate from the ordinary Config Server path in `SKILL.md`. Use it only when Kubernetes itself is the configuration source of truth.
+Keep this branch separate from the ordinary Config Server path in `SKILL.md`.
+Use it only when Kubernetes itself is the configuration source of truth.
 
 ```yaml
 spring:
@@ -30,7 +31,8 @@ spring:
 
 > [!IMPORTANT]
 >
-> `spring.cloud.kubernetes.config.*` and `spring.cloud.kubernetes.secret.*` property trees are deprecated in Spring Cloud Kubernetes 5.0.2. Use the `spring.config.import: kubernetes:` mechanism and the properties under `spring.cloud.kubernetes.config.import.*` instead.
+> `spring.cloud.kubernetes.config.*` and `spring.cloud.kubernetes.secret.*` property trees are deprecated in Spring Cloud Kubernetes 5.0.2.
+> Use the `spring.config.import: kubernetes:` mechanism and the properties under `spring.cloud.kubernetes.config.import.*` instead.
 
 ## Reload shape
 
@@ -44,7 +46,10 @@ spring:
           mode: EVENT
 ```
 
-Use `EVENT` mode when the cluster can publish change notifications reliably. Keep reload disabled until the source ConfigMaps, refresh-scoped beans, and rebinding expectations are all stable. Reload polling cycles start lazily in 5.0.2+; the first poll fires only when the application signals readiness rather than at startup.
+Use `EVENT` mode when the cluster can publish change notifications reliably.
+Keep reload disabled until the source ConfigMaps, refresh-scoped beans, and rebinding expectations are all stable.
+Reload polling cycles start lazily in 5.0.2+.
+The first poll fires only when the application signals readiness rather than at startup.
 
 ## Gotchas
 

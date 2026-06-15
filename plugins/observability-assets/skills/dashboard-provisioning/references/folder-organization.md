@@ -68,7 +68,8 @@ Enabling `foldersFromFilesStructure: true` imposes strict requirements on the pr
 
 ### Must unset both `folder` and `folderUid`
 
-When `foldersFromFilesStructure` is active, the provider-level `folder` and `folderUid` fields MUST be absent. Grafana rejects the provider at startup if both are present.
+When `foldersFromFilesStructure` is active, the provider-level `folder` and `folderUid` fields MUST be absent.
+Grafana rejects the provider at startup if both are present.
 
 Invalid -- will fail at startup:
 
@@ -101,7 +102,8 @@ providers:
 
 ## No nested folder support (one level only)
 
-Only the first level of subdirectories under `options.path` maps to Grafana folders. Deeper nesting is ignored -- files in sub-subdirectories are not provisioned and produce no error or warning.
+Only the first level of subdirectories under `options.path` maps to Grafana folders.
+Deeper nesting is ignored -- files in sub-subdirectories are not provisioned and produce no error or warning.
 
 Tree that works correctly:
 
@@ -140,7 +142,8 @@ dashboards/
 
 ## Folder UIDs are auto-generated
 
-When using `foldersFromFilesStructure`, Grafana creates folders with auto-generated UIDs. If you need stable, cross-instance folder references, use fixed-folder mode with provider-level `folderUid` instead.
+When using `foldersFromFilesStructure`, Grafana creates folders with auto-generated UIDs.
+If you need stable, cross-instance folder references, use fixed-folder mode with provider-level `folderUid` instead.
 
 Use when: the blocker is debugging why a `foldersFromFilesStructure` provider fails to start, why nested directories do not create nested Grafana folders, or where root-level dashboards end up.
 
@@ -148,7 +151,9 @@ Use when: the blocker is debugging why a `foldersFromFilesStructure` provider fa
 
 For legacy file provisioning, `folderUid` belongs on the provider when you need to target a fixed Grafana folder by UID.
 
-Set at the provider top level alongside `folder`. References an existing Grafana folder by its UID rather than by name. Mutually exclusive with `foldersFromFilesStructure`.
+Set at the provider top level alongside `folder`.
+References an existing Grafana folder by its UID rather than by name.
+Mutually exclusive with `foldersFromFilesStructure`.
 
 This example targets an existing Grafana folder by UID instead of by folder name.
 
@@ -187,7 +192,8 @@ Representative API payload:
 
 ```
 
-Use when: the blocker is translating a dashboard between provider-path files and an API or resource workflow that explicitly asks for `folderUid`. Keep this envelope out of legacy file-provisioning source directories.
+Use when: the blocker is translating a dashboard between provider-path files and an API or resource workflow that explicitly asks for `folderUid`.
+Keep this envelope out of legacy file-provisioning source directories.
 
 ## Review Questions
 

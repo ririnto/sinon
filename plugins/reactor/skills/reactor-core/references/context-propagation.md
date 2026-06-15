@@ -68,7 +68,10 @@ final class ContextCaptureExample {
 }
 ```
 
-`contextCapture()` snapshots available `ThreadLocal` values (such as MDC or security context) into the Reactor `Context` at subscription time. This requires the Micrometer `context-propagation` library on the classpath. `Hooks.enableAutomaticContextPropagation()` enables Reactor's optional automatic propagation mode, but it is not required for calling `contextCapture()` itself. For explicit manual `Context` writes, prefer `contextWrite(...)` and `deferContextual(...)`.
+`contextCapture()` snapshots available `ThreadLocal` values (such as MDC or security context) into the Reactor `Context` at subscription time.
+This requires the Micrometer `context-propagation` library on the classpath.
+`Hooks.enableAutomaticContextPropagation()` enables Reactor's optional automatic propagation mode, but it is not required for calling `contextCapture()` itself.
+For explicit manual `Context` writes, prefer `contextWrite(...)` and `deferContextual(...)`.
 
 ## Failure checks
 

@@ -4,7 +4,8 @@ Open this reference when the task is about `JobRepository`, `JobLauncher`, `JobO
 
 ## Parameter identity blocker
 
-Use identifying parameters only for values that define the logical job instance. Keep operational knobs non-identifying.
+Use identifying parameters only for values that define the logical job instance.
+Keep operational knobs non-identifying.
 
 ```java
 JobParameters parameters = new JobParametersBuilder().addString("input", "classpath:/customers.csv").addLong("requestedAt", System.currentTimeMillis(), false).toJobParameters();
@@ -37,13 +38,18 @@ JobExecution recoveredExecution = jobOperator.recover(jobExplorer.getJobExecutio
 JobExecution restartedExecution = jobOperator.restart(recoveredExecution);
 ```
 
-Use recovery only when reader, writer, and execution-context state are compatible with continued processing. Recovery does not resume work by itself; it makes the stuck execution restartable so a later `restart(...)` can continue the logical instance. On the Spring Boot 3.4.x and 3.5.x compatibility path with Spring Batch 5.2.x, prefer restart and rerun guidance unless the application has intentionally moved to a Batch 6 line that exposes recovery support.
+Use recovery only when reader, writer, and execution-context state are compatible with continued processing.
+Recovery does not resume work by itself.
+It makes the stuck execution restartable so a later `restart(...)` can continue the logical instance.
+On the Spring Boot 3.4.x and 3.5.x compatibility path with Spring Batch 5.2.x, prefer restart and rerun guidance unless the application has intentionally moved to a Batch 6 line that exposes recovery support.
 
 ## Repository choices
 
-Default to the framework-managed persistent repository. Treat repository selection as an operational decision.
+Default to the framework-managed persistent repository.
+Treat repository selection as an operational decision.
 
-Boot 4.1+ auto-configures the repository based on classpath. No `@EnableBatchProcessing` or store-specific annotations are needed for the common case:
+Boot 4.1+ auto-configures the repository based on classpath.
+No `@EnableBatchProcessing` or store-specific annotations are needed for the common case:
 
 - JDBC store: activates when a `DataSource` and `PlatformTransactionManager` are present (default with `spring-boot-starter-batch`).
 - MongoDB store: activates when a `MongoDatabaseFactory` is present and JDBC conditions are not met (default with `spring-boot-starter-batch-data-mongodb`).
@@ -96,9 +102,11 @@ spring:
         isolation-level-for-create: READ_COMMITTED
 ```
 
-When `@EnableBatchProcessing` or a `DefaultBatchConfiguration` subclass is present, Boot auto-configuration backs off entirely. Use `@EnableMongoJobRepository` and its annotation attributes instead of Boot properties on the manual path.
+When `@EnableBatchProcessing` or a `DefaultBatchConfiguration` subclass is present, Boot auto-configuration backs off entirely.
+Use `@EnableMongoJobRepository` and its annotation attributes instead of Boot properties on the manual path.
 
-Spring Boot 3.4.x and 3.5.x still use the Spring Batch 5.2.x compatibility branch. Open the Batch 6 migration reference before copying 6.x-specific repository annotations or operator behavior into a Boot-managed application.
+Spring Boot 3.4.x and 3.5.x still use the Spring Batch 5.2.x compatibility branch.
+Open the Batch 6 migration reference before copying 6.x-specific repository annotations or operator behavior into a Boot-managed application.
 
 ## Graceful shutdown blocker
 

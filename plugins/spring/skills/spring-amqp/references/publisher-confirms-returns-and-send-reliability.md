@@ -1,6 +1,6 @@
 # Publisher confirms, returns, and send reliability
 
-Open this reference when the ordinary `RabbitTemplate` publish path in [SKILL.md](../SKILL.md) is not enough and the blocker is broker acknowledgment, unroutable-message handling, or send-side delivery certainty.
+Open this reference when the ordinary `RabbitTemplate` publish path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is broker acknowledgment, unroutable-message handling, or send-side delivery certainty.
 
 ## Publisher confirm blocker
 

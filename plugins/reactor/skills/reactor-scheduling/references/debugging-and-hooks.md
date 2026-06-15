@@ -19,7 +19,8 @@ For signal-level inspection (`checkpoint`, `log`, `doOnEach`) without assembly t
 
 > [!NOTE]
 >
-> For `checkpoint("label")` and `log("category")`, stay with signal-level diagnostics. This reference covers execution-tracing tools only.
+> For `checkpoint("label")` and `log("category")`, stay with signal-level diagnostics.
+> This reference covers execution-tracing tools only.
 
 ## Global assembly tracing
 
@@ -36,7 +37,9 @@ final class OperatorDebugExample {
 }
 ```
 
-`Hooks.onOperatorDebug()` captures assembly stack traces for every operator. Enable once during initialization, not per-pipeline. The cost is high because every operator stores assembly information.
+`Hooks.onOperatorDebug()` captures assembly stack traces for every operator.
+Enable once during initialization, not per-pipeline.
+The cost is high because every operator stores assembly information.
 
 ## Visible thread logging
 
@@ -56,7 +59,8 @@ final class ThreadLoggingExample {
 }
 ```
 
-Use this pattern to verify that `publishOn(...)` actually switches threads at the expected point. The before/after pair shows whether the scheduler hop occurred.
+Use this pattern to verify that `publishOn(...)` actually switches threads at the expected point.
+The before/after pair shows whether the scheduler hop occurred.
 
 ## `ReactorDebugAgent` for lower-overhead instrumentation
 
@@ -76,7 +80,10 @@ final class DebugAgentExample {
 }
 ```
 
-`ReactorDebugAgent` provides assembly tracing with lower steady-state overhead than `Hooks.onOperatorDebug()` because it instruments operator call sites rather than capturing a stack trace for every assembly. Call `init()` as early as possible. Use `processExistingClasses()` only when eager initialization was not possible and already-loaded classes must be reprocessed. Requires `io.projectreactor:reactor-tools` as a dependency.
+`ReactorDebugAgent` provides assembly tracing with lower steady-state overhead than `Hooks.onOperatorDebug()` because it instruments operator call sites rather than capturing a stack trace for every assembly.
+Call `init()` as early as possible.
+Use `processExistingClasses()` only when eager initialization was not possible and already-loaded classes must be reprocessed.
+Requires `io.projectreactor:reactor-tools` as a dependency.
 
 ## Guardrails
 

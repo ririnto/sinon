@@ -18,7 +18,8 @@ Define which issues or tasks are eligible for autonomous implementation and whic
 
 ## Workspace Policy
 
-Each task SHOULD run in an isolated workspace. Workspace names SHOULD be derived from stable identifiers using only safe filename characters.
+Each task SHOULD run in an isolated workspace.
+Workspace names SHOULD be derived from stable identifiers using only safe filename characters.
 
 ## Prompt Contract
 

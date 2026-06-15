@@ -1,6 +1,6 @@
 # Conversion and listener method signatures
 
-Open this reference when the common-path JSON payload listener in [SKILL.md](../SKILL.md) is not enough and the blocker is payload conversion, method arguments, headers, validation, or custom listener signatures.
+Open this reference when the common-path JSON payload listener in [`SKILL.md`](../SKILL.md) is not enough and the blocker is payload conversion, method arguments, headers, validation, or custom listener signatures.
 
 ## Conversion blocker
 
@@ -15,7 +15,8 @@ JacksonJsonMessageConverter jsonConverter() {
 }
 ```
 
-The no-arg constructor trusts only `java.util` and `java.lang` by default. Provide the package of your application payload types as the trusted package argument.
+The no-arg constructor trusts only `java.util` and `java.lang` by default.
+Provide the package of your application payload types as the trusted package argument.
 
 ## Listener signature blocker
 
@@ -37,7 +38,8 @@ void handle(Message message) {
 }
 ```
 
-Use typed payload parameters for the ordinary path. Drop to raw `Message` only when headers, properties, or raw bytes are the real blocker.
+Use typed payload parameters for the ordinary path.
+Drop to raw `Message` only when headers, properties, or raw bytes are the real blocker.
 
 ## Validation blocker
 

@@ -1,7 +1,8 @@
 ---
 name: spring-grpc
 description: >-
-  Implement protobuf-first gRPC servers and clients in Spring with generated stubs, configured channels, interceptors, and explicit deadlines, metadata, and reflection. Use when generating protobuf stubs, configuring managed channels, applying server or client interceptors, or setting up gRPC health checking and reflection.
+  Implement protobuf-first gRPC servers and clients in Spring with generated stubs, configured channels, interceptors, and explicit deadlines, metadata, and reflection.
+  Use when generating protobuf stubs, configuring managed channels, applying server or client interceptors, or setting up gRPC health checking and reflection.
 ---
 
 # Spring gRPC
@@ -13,7 +14,8 @@ The latest stable Spring gRPC line is 1.1.0. Starting with this release, Spring 
 Use `spring-grpc` for gRPC transport, generated protobuf stubs, Spring-managed gRPC services, channel configuration, request metadata, and gRPC-specific error handling.
 
 - Use narrower guidance for HTTP, reactive HTTP, or GraphQL API design.
-- Keep business logic outside the gRPC transport class. Service implementations should translate between protobuf contracts and application services.
+- Keep business logic outside the gRPC transport class.
+  - Service implementations should translate between protobuf contracts and application services.
 
 ## Common path
 
@@ -67,7 +69,8 @@ Use only the starter set the application actually needs on the stable 1.1.0 line
 </dependencyManagement>
 ```
 
-Boot starters are versioned by the Spring Boot BOM. Keep starter coordinates versionless underneath it.
+Boot starters are versioned by the Spring Boot BOM.
+Keep starter coordinates versionless underneath it.
 
 ### Server-only baseline
 
@@ -155,7 +158,8 @@ Generate Java types from `.proto` files before implementing services or clients.
 </build>
 ```
 
-Check generated sources into the ordinary build output, not into hand-maintained source folders. If the project intentionally tracks generated sources in VCS, keep the `.proto` contract and generated stubs in the same reviewed change.
+Check generated sources into the ordinary build output, not into hand-maintained source folders.
+If the project intentionally tracks generated sources in VCS, keep the `.proto` contract and generated stubs in the same reviewed change.
 
 ### Milestone branch note
 
@@ -193,7 +197,8 @@ spring:
           target: static://localhost:9090
 ```
 
-Start with explicit static addresses in local development. Add service discovery or advanced channel customization only when the deployment actually needs it.
+Start with explicit static addresses in local development.
+Add service discovery or advanced channel customization only when the deployment actually needs it.
 
 ## Client wiring choices
 
@@ -204,7 +209,8 @@ Start with explicit static addresses in local development. Add service discovery
 | Need custom bean naming or multiple variants | `@ImportGrpcClients(prefix = "secure", ...)` or explicit `@Bean` creation |
 | Need custom channel construction or per-stub tuning | explicit `@Bean` with `GrpcChannelFactory` |
 
-The default client path is importing generated blocking stubs into the Spring context. Use manual stub beans only when the client setup needs more control than the import path provides.
+The default client path is importing generated blocking stubs into the Spring context.
+Use manual stub beans only when the client setup needs more control than the import path provides.
 
 ## Coding procedure
 
@@ -227,7 +233,8 @@ The default client path is importing generated blocking stubs into the Spring co
 | Both sides need a long-lived conversation | bidirectional streaming |
 | Caller must overlap many remote calls | future or async stub |
 
-Unary request-response is the ordinary path. Open the streaming reference only when the contract or caller model genuinely needs a non-unary RPC style.
+Unary request-response is the ordinary path.
+Open the streaming reference only when the contract or caller model genuinely needs a non-unary RPC style.
 
 ## Error and boundary decisions
 
@@ -249,7 +256,8 @@ Unary request-response is the ordinary path. Open the streaming reference only w
 | Client should stop calling an unhealthy upstream | per-channel client health checks |
 | Actuator is already on the classpath | use the autoconfigured observability interceptor |
 
-Server health and client health are separate concerns. Server health publishes service state, while client health decides whether a channel should keep using an upstream endpoint.
+Server health and client health are separate concerns.
+Server health publishes service state, while client health decides whether a channel should keep using an upstream endpoint.
 
 ### Observability baseline
 
@@ -263,7 +271,8 @@ management:
         include: health, metrics
 ```
 
-Keep custom interceptors for correlation ids, authorization, or request policy. Do not duplicate observability behavior in a second interceptor chain unless the deployment has a concrete requirement that the default integration cannot satisfy.
+Keep custom interceptors for correlation ids, authorization, or request policy.
+Do not duplicate observability behavior in a second interceptor chain unless the deployment has a concrete requirement that the default integration cannot satisfy.
 
 ## Implementation examples
 
@@ -425,7 +434,8 @@ spring:
             include: "*"
 ```
 
-Use `spring.grpc.server.health.service.<name>.include` to list the health indicators each gRPC service should report. Keep it intentional instead of publishing every service by default.
+Use `spring.grpc.server.health.service.<name>.include` to list the health indicators each gRPC service should report.
+Keep it intentional instead of publishing every service by default.
 
 ### Client health-check shape
 
@@ -478,8 +488,8 @@ GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalG
 
 ## References
 
-- Open [references/streaming-and-async-stubs.md](references/streaming-and-async-stubs.md) when the ordinary blocking unary path is not enough and the task needs future-style stubs or streaming RPC patterns.
-- Open [references/channel-customization.md](references/channel-customization.md) when the deployment needs richer client-channel construction, global client interceptors, compression, keepalive, retries, or per-channel tuning.
-- Open [references/exception-handling.md](references/exception-handling.md) when exception-to-status mapping needs reusable handler beans, `@GrpcExceptionHandler`, or different behavior per service.
-- Open [references/in-process-testing.md](references/in-process-testing.md) when integration tests should use in-process transport, `@LocalGrpcServerPort`, or explicit test-only channel wiring.
-- Open [references/security-tls-mtls.md](references/security-tls-mtls.md) when the deployment needs TLS or mTLS, Basic authentication, bearer tokens, or OAuth2 and server-authentication integration.
+- Open [references/streaming`-and-async-stubs.md`](references/streaming-and-async-stubs.md) when the ordinary blocking unary path is not enough and the task needs future-style stubs or streaming RPC patterns.
+- Open [references/channel`-customization.md`](references/channel-customization.md) when the deployment needs richer client-channel construction, global client interceptors, compression, keepalive, retries, or per-channel tuning.
+- Open [references/exception`-handling.md`](references/exception-handling.md) when exception-to-status mapping needs reusable handler beans, `@GrpcExceptionHandler`, or different behavior per service.
+- Open [references/in`-process-testing.md`](references/in-process-testing.md) when integration tests should use in-process transport, `@LocalGrpcServerPort`, or explicit test-only channel wiring.
+- Open [references/security`-tls-mtls.md`](references/security-tls-mtls.md) when the deployment needs TLS or mTLS, Basic authentication, bearer tokens, or OAuth2 and server-authentication integration.

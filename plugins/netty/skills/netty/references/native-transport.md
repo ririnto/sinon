@@ -64,7 +64,8 @@ Linux io_uring on JDK 21+ and kernel 5.11+:
 </dependency>
 ```
 
-Choose the classifier that matches the target OS and architecture. The classifier determines which native library (`.so`, `.dylib`, `.dll`) is bundled in the artifact.
+Choose the classifier that matches the target OS and architecture.
+The classifier determines which native library (`.so`, `.dylib`, `.dll`) is bundled in the artifact.
 
 ## Conditional fallback
 

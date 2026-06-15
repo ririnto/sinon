@@ -19,7 +19,8 @@ Disable embedded schema validation only when the embedded server does not publis
 
 ## Embedded server compatibility note
 
-Use the embedded LDAP server implementation that is already proven in the build. Prefer UnboundID when the project does not already have a known-good ApacheDS testing path, because the common Spring LDAP test examples in this repository assume UnboundID-backed embedded tests.
+Use the embedded LDAP server implementation that is already proven in the build.
+Prefer UnboundID when the project does not already have a known-good ApacheDS testing path, because the common Spring LDAP test examples in this repository assume UnboundID-backed embedded tests.
 
 ## LDIF loading choices
 
@@ -41,7 +42,8 @@ void verifyEmbeddedDataLoads() {
 
 ## Embedded LDAP SSL (LDAPS)
 
-Spring Boot 4.1.0 adds SSL support for the embedded UnboundID server. The server starts an LDAPS listener instead of the plain LDAP listener when an SSL bundle is configured.
+Spring Boot 4.1.0 adds SSL support for the embedded UnboundID server.
+The server starts an LDAPS listener instead of the plain LDAP listener when an SSL bundle is configured.
 
 Properties:
 
@@ -62,14 +64,19 @@ spring:
         bundle: embedded-ldap
 ```
 
-The `spring.ldap.embedded.ssl.bundle` property references an SSL bundle defined under `spring.ssl.bundle`. The `spring.ldap.embedded.ssl.enabled` property is optional; SSL is enabled automatically when `ssl.bundle` is set. Set `ssl.enabled: false` to disable SSL even when a bundle name is configured.
+The `spring.ldap.embedded.ssl.bundle` property references an SSL bundle defined under `spring.ssl.bundle`.
+The `spring.ldap.embedded.ssl.enabled` property is optional.
+SSL is enabled automatically when `ssl.bundle` is set.
+Set `ssl.enabled: false` to disable SSL even when a bundle name is configured.
 
 SSL bundle format choices:
 
 - `spring.ssl.bundle.jks.<name>` for Java KeyStore (JKS or PKCS12) bundles.
 - `spring.ssl.bundle.pem.<name>` for PEM-encoded certificate and key bundles.
 
-The embedded server uses the SSL bundle's `SSLContext` to create both the `SSLServerSocketFactory` (server side) and the `SSLSocketFactory` (client side for test connections). Use `spring.ssl.bundle.jks.<name>.protocol` to control the TLS protocol version; `TLSv1.2` is a safe default.
+The embedded server uses the SSL bundle's `SSLContext` to create both the `SSLServerSocketFactory` (server side) and the `SSLSocketFactory` (client side for test connections).
+Use `spring.ssl.bundle.jks.<name>.protocol` to control the TLS protocol version.
+`TLSv1.2` is a safe default.
 
 Test configuration with `application-test.yml`:
 

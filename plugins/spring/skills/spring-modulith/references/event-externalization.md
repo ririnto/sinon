@@ -4,7 +4,8 @@ Open this reference when module events must be published to external brokers suc
 
 ## Externalization boundary
 
-Use event externalization when domain events must be forwarded to external systems through message brokers. Do not use it for internal cross-module events that stay within the application.
+Use event externalization when domain events must be forwarded to external systems through message brokers.
+Do not use it for internal cross-module events that stay within the application.
 
 ## Broker starters
 
@@ -63,7 +64,8 @@ EventExternalizationConfiguration eventExternalizationConfiguration() {
 
 ## Routing target defaults
 
-When no target is specified in the annotation, Spring Modulith uses the application-local type name. For a base package `com.acme.app` and event type `com.acme.app.sample.SampleEvent`, the target is `sample.SampleEvent`.
+When no target is specified in the annotation, Spring Modulith uses the application-local type name.
+For a base package `com.acme.app` and event type `com.acme.app.sample.SampleEvent`, the target is `sample.SampleEvent`.
 
 ## Kafka-specific configuration
 
@@ -79,7 +81,8 @@ spring.modulith.events.rabbitmq.enable-json=true
 
 ## MongoDB transaction note
 
-When using the MongoDB event publication registry starter, transactions are automatically enabled and require a replica set. Disable with:
+When using the MongoDB event publication registry starter, transactions are automatically enabled and require a replica set.
+Disable with:
 
 ```properties
 spring.modulith.events.mongodb.transaction-management.enabled=false
@@ -87,7 +90,8 @@ spring.modulith.events.mongodb.transaction-management.enabled=false
 
 ## Event outbox
 
-The outbox pattern reliably forwards application events to external systems. Spring Modulith integrates with Namastack Outbox and JobRunr for outbox-based event publication.
+The outbox pattern reliably forwards application events to external systems.
+Spring Modulith integrates with Namastack Outbox and JobRunr for outbox-based event publication.
 
 ### Namastack Outbox
 
@@ -109,7 +113,8 @@ The outbox pattern reliably forwards application events to external systems. Spr
 </dependency>
 ```
 
-When an outbox integration is on the classpath, events tracked by the event publication registry are forwarded through the outbox instead of direct broker publication. The outbox consumer handles the actual delivery to the external system, providing at-least-once delivery guarantees.
+When an outbox integration is on the classpath, events tracked by the event publication registry are forwarded through the outbox instead of direct broker publication.
+The outbox consumer handles the actual delivery to the external system, providing at-least-once delivery guarantees.
 
 ## Decision points
 

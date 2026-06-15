@@ -1,7 +1,8 @@
 ---
 name: spring-kafka
 description: >-
-  Build Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, share consumers, and embedded Kafka tests. Use when configuring producer or consumer factories, setting up concurrent listener containers, implementing retry and DLQ routing, building share consumer listeners, or writing embedded Kafka integration tests.
+  Build Kafka producers and consumers in Spring with `KafkaTemplate`, `@KafkaListener`, topic declarations, retries, dead-letter topics, acknowledgment strategies, share consumers, and embedded Kafka tests.
+  Use when configuring producer or consumer factories, setting up concurrent listener containers, implementing retry and DLQ routing, building share consumer listeners, or writing embedded Kafka integration tests.
 ---
 
 # Spring for Apache Kafka
@@ -11,7 +12,8 @@ description: >-
 Use `spring-kafka` for Kafka producers, consumers, listener containers, offsets, retry topics, dead-letter topics, and Kafka-specific testing.
 
 - RabbitMQ or Pulsar semantics and client APIs are outside this skill's scope.
-- Keep transport concerns in producer and listener boundaries. Domain logic should not know about offsets or Kafka headers.
+- Keep transport concerns in producer and listener boundaries.
+  - Domain logic should not know about offsets or Kafka headers.
 
 ## Common path
 
@@ -42,7 +44,9 @@ Keep the default path small: one producer, one listener, one serialization strat
 
 Use Spring Kafka for application code and the Kafka test module for integration tests.
 
-The current stable Spring Kafka line is `4.1.0`, requiring Spring Framework 7.0.x and Apache Kafka `kafka-clients` 4.2.x. Spring Boot `4.0.x` manages Spring Kafka `4.0.x`; Spring Boot `3.5.x` and `3.4.x` manage Spring Kafka `3.3.x`. Applications on Boot 3.4.x or earlier must stay on the `3.3.x` line and should be treated as a separate compatibility branch.
+The current stable Spring Kafka line is `4.1.0`, requiring Spring Framework 7.0.x and Apache Kafka `kafka-clients` 4.2.x.
+Spring Boot `4.0.x` manages Spring Kafka `4.0.x`; Spring Boot `3.5.x` and `3.4.x` manage Spring Kafka `3.3.x`.
+Applications on Boot 3.4.x or earlier must stay on the `3.3.x` line and should be treated as a separate compatibility branch.
 
 ```xml
 <dependencies>
@@ -145,7 +149,9 @@ class PaymentListener {
 
 ### Retry topic shape
 
-Since 4.1, `RetryTopicConfigurationBuilder` defaults `sameIntervalTopicReuseStrategy` to `SINGLE_TOPIC` (previously `MULTIPLE_TOPICS`). This aligns the builder default with the `@RetryableTopic` annotation default. No migration is needed for users of `@RetryableTopic`, but programmatic builder users should verify their topic naming behavior matches intent.
+Since 4.1, `RetryTopicConfigurationBuilder` defaults `sameIntervalTopicReuseStrategy` to `SINGLE_TOPIC` (previously `MULTIPLE_TOPICS`).
+This aligns the builder default with the `@RetryableTopic` annotation default.
+No migration is needed for users of `@RetryableTopic`, but programmatic builder users should verify their topic naming behavior matches intent.
 
 ```java
 @Configuration
@@ -187,7 +193,8 @@ Use manual acknowledgment only when listener code must control the commit point 
 
 ### Per-listener ack mode override
 
-Since 4.1, `@KafkaListener` supports an `ackMode` attribute that overrides the container factory default without a separate factory bean. Use this when most listeners share one factory but one listener needs a different acknowledgment strategy.
+Since 4.1, `@KafkaListener` supports an `ackMode` attribute that overrides the container factory default without a separate factory bean.
+Use this when most listeners share one factory but one listener needs a different acknowledgment strategy.
 
 ```java
 @KafkaListener(topics = "payments", groupId = "billing", ackMode = "MANUAL")
@@ -199,11 +206,13 @@ void handle(PaymentEvent event, Acknowledgment ack) {
 
 The attribute accepts `AckMode` enum names and supports SpEL expressions and property placeholders.
 
-Keep the ordinary path on single-record listeners unless throughput or downstream batching requirements justify batch consumption. Open [references/batch-listeners.md](references/batch-listeners.md) when the listener should actually switch to batch mode.
+Keep the ordinary path on single-record listeners unless throughput or downstream batching requirements justify batch consumption.
+Open [references/batch`-listeners.md`](references/batch-listeners.md) when the listener should actually switch to batch mode.
 
 ### Share consumer shape (KIP-932)
 
-Share consumers allow multiple consumers in the same share group to cooperatively consume from the same partitions, with the Kafka broker distributing records at the record level. This differs from consumer groups where each partition is exclusively assigned to one consumer.
+Share consumers allow multiple consumers in the same share group to cooperatively consume from the same partitions, with the Kafka broker distributing records at the record level.
+This differs from consumer groups where each partition is exclusively assigned to one consumer.
 
 ```java
 @Bean
@@ -228,9 +237,13 @@ void handle(ConsumerRecord<String, String> record) {
 }
 ```
 
-Three acknowledgment modes control record delivery: `EXPLICIT` (default, container-managed), `MANUAL` (listener-driven), and `IMPLICIT` (broker auto-accept). In `MANUAL` mode the listener accepts a `ShareAcknowledgment` parameter and must call one terminal method per record: `acknowledge()` (ACCEPT), `release()` (redelivery), or `reject()` (permanent failure). Call `renew()` to extend the acquisition lock for long-running processing.
+Three acknowledgment modes control record delivery: `EXPLICIT` (default, container-managed), `MANUAL` (listener-driven), and `IMPLICIT` (broker auto-accept).
+In `MANUAL` mode the listener accepts a `ShareAcknowledgment` parameter and must call one terminal method per record: `acknowledge()` (ACCEPT), `release()` (redelivery), or `reject()` (permanent failure).
+Call `renew()` to extend the acquisition lock for long-running processing.
 
-Share consumers do not support batch processing, topic patterns, explicit partition assignment, or the `CommonErrorHandler` interface. Error recovery uses the `ShareConsumerRecordRecoverer` interface instead. Open [references/share-consumers.md](references/share-consumers.md) when building share consumer listeners that need manual acknowledgment, error recovery, concurrency, or lifecycle integration.
+Share consumers do not support batch processing, topic patterns, explicit partition assignment, or the `CommonErrorHandler` interface.
+Error recovery uses the `ShareConsumerRecordRecoverer` interface instead.
+Open [references/share`-consumers.md`](references/share-consumers.md) when building share consumer listeners that need manual acknowledgment, error recovery, concurrency, or lifecycle integration.
 
 ### Embedded Kafka test shape
 
@@ -300,10 +313,10 @@ billing
 ## References
 
 - Open [references/transactions.md](references/transactions.md) when the application needs atomic consume-produce workflows.
-- Open [references/exactly-once-semantics.md](references/exactly-once-semantics.md) when the workflow must combine Kafka transactions with exactly-once delivery expectations.
-- Open [references/batch-listeners.md](references/batch-listeners.md) when the consumer should process `List<T>` batches instead of one record at a time.
-- Open [references/share-consumers.md](references/share-consumers.md) when building share consumer listeners (KIP-932) that need manual acknowledgment, error recovery, concurrency configuration, or lifecycle event integration.
-- Open [references/deserialization-failures.md](references/deserialization-failures.md) when bad payloads fail before listener code runs and retry or DLT policy must still be intentional.
-- Open [references/listener-replay.md](references/listener-replay.md) when the consumer must seek or replay records deliberately.
+- Open [references/exactly`-once-semantics.md`](references/exactly-once-semantics.md) when the workflow must combine Kafka transactions with exactly-once delivery expectations.
+- Open [references/batch`-listeners.md`](references/batch-listeners.md) when the consumer should process `List<T>` batches instead of one record at a time.
+- Open [references/share`-consumers.md`](references/share-consumers.md) when building share consumer listeners (KIP-932) that need manual acknowledgment, error recovery, concurrency configuration, or lifecycle event integration.
+- Open [references/deserialization`-failures.md`](references/deserialization-failures.md) when bad payloads fail before listener code runs and retry or DLT policy must still be intentional.
+- Open [references/listener`-replay.md`](references/listener-replay.md) when the consumer must seek or replay records deliberately.
 - Open [references/tombstones.md](references/tombstones.md) when the topic uses compacted-record delete semantics.
-- Open [references/advanced-retry-and-error-handling.md](references/advanced-retry-and-error-handling.md) when `@RetryableTopic` is not enough and the listener needs explicit `DefaultErrorHandler`, recoverers, or deeper retry classification.
+- Open [references/advanced`-retry-and-error-handling.md`](references/advanced-retry-and-error-handling.md) when `@RetryableTopic` is not enough and the listener needs explicit `DefaultErrorHandler`, recoverers, or deeper retry classification.

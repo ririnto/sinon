@@ -1,6 +1,6 @@
 ---
 name: progressive-disclosure
-description: Decide whether skill material belongs in SKILL.md, references/, assets/, or scripts/.
+description: Decide whether skill material belongs in `SKILL.md`, references/, assets/, or scripts/.
 ---
 
 # Progressive Disclosure
@@ -9,7 +9,9 @@ Open this file when `SKILL.md` is getting crowded or when you are unsure whether
 
 ## Core rule
 
-`SKILL.md` is the activation entrypoint. Keep every ordinary-path instruction there. Move only optional depth into support files.
+`SKILL.md` is the activation entrypoint.
+Keep every ordinary-path instruction there.
+Move only optional depth into support files.
 
 ## Keep in `SKILL.md`
 
@@ -81,4 +83,5 @@ references/output.md -> required output shape
 
 ## Authoring rule
 
-If a section is mostly reference material and not immediate action logic, move it out of `SKILL.md`. If the section is needed for the ordinary path every time the skill activates, keep it in `SKILL.md`.
+If a section is mostly reference material and not immediate action logic, move it out of `SKILL.md`.
+If the section is needed for the ordinary path every time the skill activates, keep it in `SKILL.md`.

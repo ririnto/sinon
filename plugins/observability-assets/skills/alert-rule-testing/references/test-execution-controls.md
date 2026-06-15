@@ -47,7 +47,8 @@ Use these controls when:
 
 ### Group Evaluation Order
 
-When alert rules consume recording rules, the recording rule's group must evaluate first. Use `group_eval_order` to enforce this:
+When alert rules consume recording rules, the recording rule's group must evaluate first.
+Use `group_eval_order` to enforce this:
 
 ```yaml
 rule_files:
@@ -68,15 +69,19 @@ tests:
 
 ```
 
-Without explicit order, promtool may evaluate groups in file declaration order, but explicit ordering is safer when cross-group dependencies exist. In this example, `api-recording` must evaluate first because it produces `job:http_requests:rate5m`, and `api-alerts` consumes that recording rule.
+Without explicit order, promtool may evaluate groups in file declaration order, but explicit ordering is safer when cross-group dependencies exist.
+In this example, `api-recording` must evaluate first because it produces `job:http_requests:rate5m`, and `api-alerts` consumes that recording rule.
 
 Use when: the rule file contains multiple groups and alerts in one group depend on recording rules in another.
 
-`start_timestamp`, `fuzzy_compare`, `group_eval_order`, and per-test `interval` are version-sensitive features. Verify the deployed Prometheus/promtool version supports them before relying on these controls.
+`start_timestamp`, `fuzzy_compare`, `group_eval_order`, and per-test `interval` are version-sensitive features.
+Verify the deployed Prometheus/promtool version supports them before relying on these controls.
 
 ## Focused Execution
 
-`promtool test rules` runs every test group in the files you pass; it has no name-filter flag. To focus on a single group during iteration, split that group into its own file, or temporarily move the other groups out of the file.
+`promtool test rules` runs every test group in the files you pass.
+It has no name-filter flag.
+To focus on a single group during iteration, split that group into its own file, or temporarily move the other groups out of the file.
 
 ```sh
 promtool test rules alerts/api-errors.test.yaml
@@ -86,7 +91,8 @@ Use when: you need to iterate on one test group without running the whole suite.
 
 ## Time Precision and eval_time Alignment
 
-`eval_time` MUST be a multiple of the effective evaluation interval. Misaligned times produce confusing results because Prometheus evaluates at interval boundaries, not at arbitrary timestamps.
+`eval_time` MUST be a multiple of the effective evaluation interval.
+Misaligned times produce confusing results because Prometheus evaluates at interval boundaries, not at arbitrary timestamps.
 
 ### Correct alignment (interval: 1m)
 
@@ -114,15 +120,19 @@ tests:
 
 ```
 
-These values are not clean multiples of `1m`; both fall between evaluation points.
+These values are not clean multiples of `1m`.
+Both fall between evaluation points.
 
-When `eval_time` does not land on an evaluation boundary, promtool evaluates at the last boundary before the requested time. An `eval_time: 7m30s` with `interval: 1m` actually evaluates at `7m`. This can make tests appear to fail or pass for unclear reasons.
+When `eval_time` does not land on an evaluation boundary, promtool evaluates at the last boundary before the requested time.
+An `eval_time: 7m30s` with `interval: 1m` actually evaluates at `7m`.
+This can make tests appear to fail or pass for unclear reasons.
 
 Rule of thumb: always use integer multiples of the interval as `eval_time`.
 
 ## Fuzzy Compare Behavior
 
-When `fuzzy_compare: true` is set, promtool uses approximate comparison for numeric assertions instead of exact equality. The tolerance is typically around 1e-6 relative to the expected value.
+When `fuzzy_compare: true` is set, promtool uses approximate comparison for numeric assertions instead of exact equality.
+The tolerance is typically around 1e-6 relative to the expected value.
 
 ### When to use it
 
@@ -148,11 +158,13 @@ promql_expr_test:
 
 ```
 
-Without `fuzzy_compare`, this fails if the actual value is `0.0500000000001`. With `fuzzy_compare: true` at the top level, that small difference is close enough to `0.05`.
+Without `fuzzy_compare`, this fails if the actual value is `0.0500000000001`.
+With `fuzzy_compare: true` at the top level, that small difference is close enough to `0.05`.
 
 ## start_timestamp Use Cases
 
-Most tests work fine with the default epoch-zero start time. Set `start_timestamp` explicitly when:
+Most tests work fine with the default epoch-zero start time.
+Set `start_timestamp` explicitly when:
 
 ### Testing time-dependent template rendering
 

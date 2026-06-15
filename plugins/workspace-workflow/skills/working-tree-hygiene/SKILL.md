@@ -1,14 +1,17 @@
 ---
 name: working-tree-hygiene
 description: >-
-  Inspect, maintain, and verify clean working trees before starting work or publishing changes. Triggers on staged or unstaged status checks, stash operations, untracked file classification, upstream sync verification, or baseline hygiene state establishment before or after a task.
+  Inspect, maintain, and verify clean working trees before starting work or publishing changes.
+  Triggers on staged or unstaged status checks, stash operations, untracked file classification, upstream sync verification, or baseline hygiene state establishment before or after a task.
 ---
 
 # Working Tree Hygiene
 
 ## Goal
 
-Establish and maintain the discipline of clean, predictable working trees. A clean working tree is one with all changes committed or stashed, all branches in a known sync state with their upstreams, and no untracked files blocking work. This skill covers the inspection, classification, and remediation steps that occur before starting a task and after completing one.
+Establish and maintain the discipline of clean, predictable working trees.
+A clean working tree is one with all changes committed or stashed, all branches in a known sync state with their upstreams, and no untracked files blocking work.
+This skill covers the inspection, classification, and remediation steps that occur before starting a task and after completing one.
 
 ## Common-Case Workflow
 
@@ -24,9 +27,12 @@ Establish and maintain the discipline of clean, predictable working trees. A cle
 The following invariants ensure safe, reproducible working trees:
 
 - **Clean start**: Before starting a task in a working tree, you MUST verify `git status` shows "nothing to commit, working tree clean" or an acceptable baseline state (e.g., intentional untracked build artifacts in `.gitignore`).
-- **Staged/unstaged separation**: You MUST know the difference between staged changes (ready to commit) and unstaged changes (not yet decided). You MUST NOT mix unrelated changes in a single commit.
-- **Branch sync**: Before pushing, you MUST verify the branch is even with or ahead of its upstream. A branch that is behind its upstream before you push will fail or cause unexpected merge commits.
-- **Untracked discipline**: Untracked files are ignored by Git but can clutter the tree. You SHOULD consciously decide whether to commit, add to `.gitignore`, or delete each untracked file.
+- **Staged/unstaged separation**: You MUST know the difference between staged changes (ready to commit) and unstaged changes (not yet decided).
+  - You MUST NOT mix unrelated changes in a single commit.
+- **Branch sync**: Before pushing, you MUST verify the branch is even with or ahead of its upstream.
+  - A branch that is behind its upstream before you push will fail or cause unexpected merge commits.
+- **Untracked discipline**: Untracked files are ignored by Git but can clutter the tree.
+  - You SHOULD consciously decide whether to commit, add to `.gitignore`, or delete each untracked file.
 - **Stash as isolation tool**: You SHOULD use stashing to temporarily set aside work without committing it, allowing you to switch contexts or verify a clean state.
 - **No partial publication**: You MUST NOT push a branch that is not clean at the tip (all work committed, nothing staged, no blocking untracked files).
 
@@ -435,12 +441,20 @@ git push
 
 ## Pitfalls
 
-- **Mixed-purpose commits**: Staging both feature work and unrelated cleanup in one commit makes the history harder to bisect. Keep commits focused on one logical unit.
-- **Forgetting to pull before pushing**: If your branch is behind the upstream, your push may fail or require a force-push. Always check `git status -s -b` before pushing.
-- **Stashing and forgetting**: Stashed changes are not automatically restored. If you stash and switch contexts, remember to apply the stash when you return. List stashes occasionally to avoid orphans.
-- **Untracked files cluttering the tree**: If you leave untracked build artifacts or temporary files, they can interfere with branch switching and make the tree look dirtier than it is. Decide consciously: commit, ignore, or delete.
-- **Partial commits**: Never commit half a feature. If you stage only part of a file's changes, the commit may be logically incomplete. Review staged changes with `git diff --cached` before committing.
-- **Not verifying the branch name before work**: If you accidentally work on the wrong branch, you may publish to the wrong place. Always confirm `git status` shows the intended branch name at the start.
+- **Mixed-purpose commits**: Staging both feature work and unrelated cleanup in one commit makes the history harder to bisect.
+  - Keep commits focused on one logical unit.
+- **Forgetting to pull before pushing**: If your branch is behind the upstream, your push may fail or require a force-push.
+  - Always check `git status -s -b` before pushing.
+- **Stashing and forgetting**: Stashed changes are not automatically restored.
+  - If you stash and switch contexts, remember to apply the stash when you return.
+  - List stashes occasionally to avoid orphans.
+- **Untracked files cluttering the tree**: If you leave untracked build artifacts or temporary files, they can interfere with branch switching and make the tree look dirtier than it is.
+  - Decide consciously: commit, ignore, or delete.
+- **Partial commits**: Never commit half a feature.
+  - If you stage only part of a file's changes, the commit may be logically incomplete.
+  - Review staged changes with `git diff --cached` before committing.
+- **Not verifying the branch name before work**: If you accidentally work on the wrong branch, you may publish to the wrong place.
+  - Always confirm `git status` shows the intended branch name at the start.
 
 ## First Safe Commands
 
@@ -503,7 +517,8 @@ index <sha1>..<sha2> <mode>
 <context-and-changes>
 ```
 
-One hunk per file region changed. Use this to verify staged intent before committing.
+One hunk per file region changed.
+Use this to verify staged intent before committing.
 
 ### `git diff` output
 

@@ -1,21 +1,24 @@
 ---
 name: reactor-sinks
 description: >-
-  Author Reactor hot sources with Sinks for manual emission, replay/multicast selection, and emit-result handling. Use when choosing between `Sinks.one()`, `Sinks.empty()`, or `Sinks.many()`, handling `EmitResult` or `EmitFailureHandler` outcomes, or deciding between unicast, multicast, and replay behavior for multiple subscribers.
+  Author Reactor hot sources with Sinks for manual emission, replay/multicast selection, and emit-result handling.
+  Use when choosing between `Sinks.one()`, `Sinks.empty()`, or `Sinks.many()`, handling `EmitResult` or `EmitFailureHandler` outcomes, or deciding between unicast, multicast, and replay behavior for multiple subscribers.
 ---
 
 # Reactor Sinks
 
 ## Official Baseline
 
-- Use the official Project Reactor 3.8.x sinks reference for this skill; this review checked `reactor-core` 3.8.6.
+- Use the official Project Reactor 3.8.x sinks reference for this skill.
+  - This review checked `reactor-core` 3.8.6.
 - Use Reactor BOM 2025.0.6 when importing Reactor-managed versions.
 
 Author Reactor hot sources deliberately.
 
 ## Goal
 
-This skill covers the ordinary path for choosing `Sinks.one()`, `Sinks.empty()`, or `Sinks.many()`, selecting unicast vs multicast vs replay behavior, handling `tryEmit*` / `emit*` outcomes, and deciding when a sink is the right tool instead of ConnectableFlux-style hot conversion. Keep advanced connection lifecycle, contention tuning, and internal unsafe sinks in blocker references.
+This skill covers the ordinary path for choosing `Sinks.one()`, `Sinks.empty()`, or `Sinks.many()`, selecting unicast vs multicast vs replay behavior, handling `tryEmit*` / `emit*` outcomes, and deciding when a sink is the right tool instead of ConnectableFlux-style hot conversion.
+Keep advanced connection lifecycle, contention tuning, and internal unsafe sinks in blocker references.
 
 ## Scope
 
@@ -89,7 +92,8 @@ Do not activate for:
 4. Expose the sink as `Mono` or `Flux` through `asMono()` or `asFlux()`.
    - Use `asMono()` for `Sinks.one()` and `Sinks.empty()` -- matches the 0..1 cardinality contract.
    - Use `asFlux()` for `Sinks.many()` -- exposes the multi-value surface.
-   - Calling `asMono()` on a `Sinks.many()` works but signals a cardinality mismatch; prefer `asFlux()`.
+   - Calling `asMono()` on a `Sinks.many()` works but signals a cardinality mismatch.
+     - Prefer `asFlux()`.
 5. Pick `tryEmit*` or `emit*` deliberately and make failure behavior explicit.
 6. Verify backpressure and late-subscriber behavior before finalizing the API.
 
@@ -202,7 +206,9 @@ final class CompletionSignal {
 }
 ```
 
-Use `Sinks.empty()` when the only signals are completion or error -- no payload value is carried. Call `tryEmitEmpty()` for normal termination or `tryEmitError(...)` for abnormal termination. Use `emitEmpty(Sinks.EmitFailureHandler.FAIL_FAST)` only when a convenience emit API is deliberate.
+Use `Sinks.empty()` when the only signals are completion or error -- no payload value is carried.
+Call `tryEmitEmpty()` for normal termination or `tryEmitError(...)` for abnormal termination.
+Use `emitEmpty(Sinks.EmitFailureHandler.FAIL_FAST)` only when a convenience emit API is deliberate.
 
 ### `Sinks.many().unicast()` for single-subscriber streams
 
@@ -220,7 +226,9 @@ final class UnicastStream {
 }
 ```
 
-Unicast allows exactly one subscriber. A second subscription attempt receives an `IllegalStateException`. Use it when the downstream consumer is known to be singular (e.g., a dedicated processing pipeline).
+Unicast allows exactly one subscriber.
+A second subscription attempt receives an `IllegalStateException`.
+Use it when the downstream consumer is known to be singular (e.g., a dedicated processing pipeline).
 
 ## Common pitfalls
 

@@ -5,7 +5,8 @@ description: >-
 
 # Type Shape Decisions
 
-Use this reference when the job is to choose the right Kotlin type shape for a model that is still unclear after reading `SKILL.md`. This reference should be sufficient on its own to finish that modeling decision.
+Use this reference when the job is to choose the right Kotlin type shape for a model that is still unclear after reading `SKILL.md`.
+This reference should be sufficient on its own to finish that modeling decision.
 
 Choose the narrowest construct that matches the domain meaning:
 
@@ -18,11 +19,16 @@ Choose the narrowest construct that matches the domain meaning:
 
 Decision checklist:
 
-1. Does the type wrap exactly one meaningful value such as `UserId`, `OrderId`, or `EmailAddress`? Prefer `value class`.
-2. Is the type primarily a value with several immutable fields? Prefer `data class`.
-3. Is the variant set intentionally closed inside the module? Prefer sealed modeling.
-4. Will Java callers consume this type directly? Keep interoperability obvious and avoid surprising Kotlin-only tricks in the public API.
-5. Does mutation carry domain meaning? Use a regular class and keep state transitions explicit.
+1. Does the type wrap exactly one meaningful value such as `UserId`, `OrderId`, or `EmailAddress`?
+   - Prefer `value class`.
+2. Is the type primarily a value with several immutable fields?
+   - Prefer `data class`.
+3. Is the variant set intentionally closed inside the module?
+   - Prefer sealed modeling.
+4. Will Java callers consume this type directly?
+   - Keep interoperability obvious and avoid surprising Kotlin-only tricks in the public API.
+5. Does mutation carry domain meaning?
+   - Use a regular class and keep state transitions explicit.
 
 Prefer public API shapes that read clearly from both Kotlin and Java when interop matters.
 
@@ -33,11 +39,13 @@ Use this file to finish one of these jobs:
 - decide whether a variant set is truly closed enough for sealed modeling
 - make a Java-facing public model read clearly without Kotlin-only surprises
 
-The canonical type-shape examples (`value class`, `data class`, `object`, `enum class`, sealed types, regular class) and their decision criteria are in `SKILL.md` under "Choose the smallest type shape". This reference covers only additive material not present there.
+The canonical type-shape examples (`value class`, `data class`, `object`, `enum class`, sealed types, regular class) and their decision criteria are in `SKILL.md` under "Choose the smallest type shape".
+This reference covers only additive material not present there.
 
 ## Operator Conventions
 
-Define operator functions to enable symbolic syntax for domain-appropriate operations. Only overload when the meaning is obvious within the domain.
+Define operator functions to enable symbolic syntax for domain-appropriate operations.
+Only overload when the meaning is obvious within the domain.
 
 ```kotlin
 data class Vector(val x: Double, val y: Double) {
@@ -62,11 +70,13 @@ class RouteHandler(private val routes: Map<String, () -> Unit>) {
 }
 ```
 
-Common conventions: `+`/`-` for algebraic composition, `get`/`set` for indexed access, `invoke` for callable abstractions, `compareTo` for ordering. Never overload for side-effect-heavy or non-obvious meanings.
+Common conventions: `+`/`-` for algebraic composition, `get`/`set` for indexed access, `invoke` for callable abstractions, `compareTo` for ordering.
+Never overload for side-effect-heavy or non-obvious meanings.
 
 ## Functional Interfaces (SAM)
 
-Use `fun interface` when you need a Kotlin-native single-abstract-method interface that allows lambda syntax at call sites. Unlike Java SAM conversion (covered in `SKILL.md`), `fun interface` is a Kotlin-first construct that works without a JVM runtime target.
+Use `fun interface` when you need a Kotlin-native single-abstract-method interface that allows lambda syntax at call sites.
+Unlike Java SAM conversion (covered in `SKILL.md`), `fun interface` is a Kotlin-first construct that works without a JVM runtime target.
 
 ```kotlin
 fun interface ClickHandler {
@@ -78,4 +88,5 @@ fun setupButton(handler: ClickHandler) { }
 setupButton { event -> println("Clicked at ${event.x},${event.y}") }
 ```
 
-Use `fun interface` when the callback contract is Kotlin-defined and you want lambda syntax without pulling in a Java interface. For Java interfaces consumed from Kotlin, SAM conversion applies automatically -- no `fun interface` needed.
+Use `fun interface` when the callback contract is Kotlin-defined and you want lambda syntax without pulling in a Java interface.
+For Java interfaces consumed from Kotlin, SAM conversion applies automatically -- no `fun interface` needed.

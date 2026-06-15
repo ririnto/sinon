@@ -2,7 +2,8 @@
 
 Open this reference when container rebuild speed depends on jar layers.
 
-The `layertools` jar mode was removed in 4.1.0. Use `tools` jar mode (`java -Djarmode=tools -jar app.jar`) which provides the same features.
+The `layertools` jar mode was removed in 4.1.0.
+Use `tools` jar mode (`java -Djarmode=tools -jar app.jar`) which provides the same features.
 
 ## Inspect layers
 

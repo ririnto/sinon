@@ -22,7 +22,9 @@ dependencies {
 
 Optional libraries that may be added based on project needs: `kotest-runner-junit5`, `turbine`, `awaitility-kotlin`, `junit-jupiter` (Testcontainers).
 
-Pin versions through a `libs.versions.toml` catalog or the project's dependency management strategy. The raw coordinates above are directly usable; update versions deliberately when the module's Kotlin baseline changes.
+Pin versions through a `libs.versions.toml` catalog or the project's dependency management strategy.
+The raw coordinates above are directly usable.
+Update versions deliberately when the module's Kotlin baseline changes.
 
 ## Test task configuration
 

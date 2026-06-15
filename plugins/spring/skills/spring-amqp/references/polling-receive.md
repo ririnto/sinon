@@ -1,6 +1,6 @@
 # Polling receive
 
-Open this reference when the ordinary event-driven listener path in [SKILL.md](../SKILL.md) is not enough and the blocker is pull-style receive.
+Open this reference when the ordinary event-driven listener path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is pull-style receive.
 
 ## Polling consumer blocker
 

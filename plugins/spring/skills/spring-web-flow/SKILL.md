@@ -1,12 +1,14 @@
 ---
 name: spring-web-flow
 description: >-
-  Build Spring Web Flow browser conversations with flow definitions, conversation state, scoped variables, validation, exception handling, MVC integration, and flow execution tests. Use when implementing guided checkouts, onboarding wizards, review-confirm-submit flows, or other stateful web conversations.
+  Build Spring Web Flow browser conversations with flow definitions, conversation state, scoped variables, validation, exception handling, MVC integration, and flow execution tests.
+  Use when implementing guided checkouts, onboarding wizards, review-confirm-submit flows, or other stateful web conversations.
 ---
 
 # Spring Web Flow
 
-Use `spring-web-flow` for guided browser conversations that need explicit states, transitions, scoped data, validation timing, and flow execution tests. Use `spring-framework` for ordinary Spring MVC, WebFlux, WebClient, container, transaction, event, and TestContext work.
+Use `spring-web-flow` for guided browser conversations that need explicit states, transitions, scoped data, validation timing, and flow execution tests.
+Use `spring-framework` for ordinary Spring MVC, WebFlux, WebClient, container, transaction, event, and TestContext work.
 
 The current public Spring Web Flow artifact line is 4.0.1.
 

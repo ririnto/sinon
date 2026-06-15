@@ -1,6 +1,6 @@
 # Batch listeners
 
-Open this reference when the ordinary one-message-per-listener path in [SKILL.md](../SKILL.md) is not enough and the blocker is whole-batch consumption.
+Open this reference when the ordinary one-message-per-listener path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is whole-batch consumption.
 
 ## Batch listener blocker
 

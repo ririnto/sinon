@@ -14,7 +14,8 @@ Field config is applied at two levels:
 1. Defaults (`fieldConfig.defaults`): applied to every field in the panel
 2. Overrides (`fieldConfig.overrides`): applied to matched fields after defaults
 
-Processing order: defaults first, then each override in array order. Later overrides win on conflicts.
+Processing order: defaults first, then each override in array order.
+Later overrides win on conflicts.
 
 ```json
 {
@@ -40,7 +41,9 @@ Processing order: defaults first, then each override in array order. Later overr
 
 ## Complete Default Field Config Options
 
-These options apply to `fieldConfig.defaults`. Not all options are meaningful for every panel type; irrelevant options are silently ignored.
+These options apply to `fieldConfig.defaults`.
+Not all options are meaningful for every panel type.
+Irrelevant options are silently ignored.
 
 ### Core Options
 
@@ -162,7 +165,8 @@ Date/time units:
 | `"d:seconds"` | Seconds | `93784 s` |
 | `"d:milliseconds"` | Milliseconds | `93784000 ms` |
 
-Custom units use `"prefix:suffix"` syntax. For example:
+Custom units use `"prefix:suffix"` syntax.
+For example:
 
 - `"$:USD"` displays as `$123 USD`
 - `"%:used"` displays as `75% used`
@@ -174,7 +178,8 @@ Thresholds define color boundaries that drive visual indicators across many pane
 
 ### Absolute Mode
 
-The default and most common mode. Steps trigger at exact numeric values.
+The default and most common mode.
+Steps trigger at exact numeric values.
 
 ```json
 {
@@ -192,7 +197,8 @@ The default and most common mode. Steps trigger at exact numeric values.
 
 Rules:
 
-- The first step MUST have `"value": null`. This is the base/default color.
+- The first step MUST have `"value": null`.
+  - This is the base/default color.
 - Subsequent steps define boundaries where the color changes.
 - A value of `50` means: values from 50 up to the next step boundary get yellow.
 - The last step's color applies to everything at or above its value.
@@ -202,7 +208,8 @@ Supported step colors: any CSS named color, hex code (`"#FF5733"`), or Grafana s
 
 ### Percentage Mode
 
-Steps trigger at percentages of the `(min, max)` range. Requires both `min` and `max` to be set on the same field config.
+Steps trigger at percentages of the `(min, max)` range.
+Requires both `min` and `max` to be set on the same field config.
 
 ```json
 {
@@ -256,7 +263,8 @@ Matches fields whose name exactly equals the given string.
 
 ```
 
-Best for: well-known field names that are stable across query edits. Avoid using with auto-generated names like `"Value #A"` since these change when query order changes.
+Best for: well-known field names that are stable across query edits.
+Avoid using with auto-generated names like `"Value #A"` since these change when query order changes.
 
 #### byRegexp -- Regex Pattern Match
 
@@ -269,7 +277,8 @@ Matches fields whose name matches the regex pattern.
 
 ```
 
-Best for: matching groups of related fields (e.g., all counter suffixes, all percentile fields). More robust than `byName` when query structure evolves.
+Best for: matching groups of related fields (e.g., all counter suffixes, all percentile fields).
+More robust than `byName` when query structure evolves.
 
 Common useful patterns:
 
@@ -292,7 +301,8 @@ Matches fields by their data type.
 
 ```
 
-Types: `"number"`, `"string"`, `"time"`, `"boolean"`. Best for applying consistent formatting to all numeric or all string fields regardless of their names.
+Types: `"number"`, `"string"`, `"time"`, `"boolean"`.
+Best for applying consistent formatting to all numeric or all string fields regardless of their names.
 
 #### byFrameRefID -- Query Source Match
 
@@ -323,7 +333,8 @@ Best for: table panels where specific cell values need distinct formatting (e.g.
 
 ### Override Property IDs by Category
 
-Each property that can be overridden has a unique ID string. Below is the organized catalog.
+Each property that can be overridden has a unique ID string.
+Below is the organized catalog.
 
 #### Visual Properties
 
@@ -436,9 +447,13 @@ Each property that can be overridden has a unique ID string. Below is the organi
 
 ## Value Mappings -- Complete Reference
 
-Value mappings translate raw data values into displayed text and/or colors without changing the underlying data. They apply at render time only and do not affect query results or alert evaluations.
+Value mappings translate raw data values into displayed text and/or colors without changing the underlying data.
+They apply at render time only and do not affect query results or alert evaluations.
 
-Four mapping types exist. Multiple types can coexist in the same `mappings` array. Evaluation order is array order; the first match wins.
+Four mapping types exist.
+Multiple types can coexist in the same `mappings` array.
+Evaluation order is array order.
+The first match wins.
 
 ### Type 1: Value Mapping
 
@@ -457,11 +472,13 @@ Exact match on specific scalar values.
 
 ```
 
-Key-value pairs where keys are the raw values (as strings) and values contain optional `text` (display label) and `color` (display color). Both `text` and `color` are optional within each result.
+Key-value pairs where keys are the raw values (as strings) and values contain optional `text` (display label) and `color` (display color).
+Both `text` and `color` are optional within each result.
 
 ### Type 2: Range Mapping
 
-Map numeric ranges to labels. Ranges are inclusive on both ends.
+Map numeric ranges to labels.
+Ranges are inclusive on both ends.
 
 ```json
 {
@@ -475,7 +492,8 @@ Map numeric ranges to labels. Ranges are inclusive on both ends.
 
 ```
 
-Ranges must not overlap. Order does not matter for range evaluation -- Grafana finds the matching range by checking which range contains the value.
+Ranges must not overlap.
+Order does not matter for range evaluation -- Grafana finds the matching range by checking which range contains the value.
 
 ### Type 3: Regex Mapping
 
@@ -495,7 +513,8 @@ Pattern-based matching against string values.
 
 ```
 
-Patterns are evaluated in array order. Use `.*` as a catch-all fallback at the end of the list.
+Patterns are evaluated in array order.
+Use `.*` as a catch-all fallback at the end of the list.
 
 ### Type 4: Special Mapping
 
@@ -515,7 +534,8 @@ Handle sentinel values that have no regular representation: null, NaN, boolean s
 
 ```
 
-Always include special mappings when your data source can produce null or NaN values. Without them, stat panels show ugly raw values like `"null"` or `"NaN"`.
+Always include special mappings when your data source can produce null or NaN values.
+Without them, stat panels show ugly raw values like `"null"` or `"NaN"`.
 
 ### Combined Mapping Example
 
@@ -553,7 +573,8 @@ Evaluation order: special checks first (null/NaN), then exact value match, then 
 
 ## Data Links -- Complete Reference
 
-Data links attach clickable URLs to data points. When an operator clicks a data point (or table cell, or bar segment), the URL opens with interpolated context variables.
+Data links attach clickable URLs to data points.
+When an operator clicks a data point (or table cell, or bar segment), the URL opens with interpolated context variables.
 
 ### Basic Structure
 
@@ -734,4 +755,5 @@ Links can be set at the default level (apply to all fields) or via overrides (ap
 
 ```
 
-Override links replace (do not merge with) default links for matched fields. Include all needed links in the override if you want to preserve default links alongside additional ones.
+Override links replace (do not merge with) default links for matched fields.
+Include all needed links in the override if you want to preserve default links alongside additional ones.

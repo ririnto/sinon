@@ -19,11 +19,13 @@ Open this when built-in framing is not enough, a protocol is stateful, or a pipe
 
 ## Framing prerequisite
 
-Length-prefixed and other framing choices belong in [framing.md](./framing.md). This file covers what comes after framing: stateful decode logic, encode patterns, and handler sharability.
+Length-prefixed and other framing choices belong in [`framing.md`](./framing.md).
+This file covers what comes after framing: stateful decode logic, encode patterns, and handler sharability.
 
 ## Stateful decoder pattern
 
-Minimum JDK for this example: Java 17. It uses `case ... ->` switch rules.
+Minimum JDK for this example: Java 17.
+It uses arrow-form switch rules.
 
 ```java
 final class CommandDecoder extends ByteToMessageDecoder {
@@ -63,7 +65,8 @@ final class CommandDecoder extends ByteToMessageDecoder {
 
 ## `ReplayingDecoder` for simple protocols
 
-When the protocol has a fixed structure and you want to avoid manual readable-bytes checks, use `ReplayingDecoder`. It throws a buffered `Error` (caught internally by Netty) when not enough bytes are available, then retries when more data arrives.
+When the protocol has a fixed structure and you want to avoid manual readable-bytes checks, use `ReplayingDecoder`.
+It throws a buffered `Error` (caught internally by Netty) when not enough bytes are available, then retries when more data arrives.
 
 ```java
 final class TimeDecoder extends ReplayingDecoder<Void> {
@@ -76,7 +79,8 @@ final class TimeDecoder extends ReplayingDecoder<Void> {
 
 > [!WARNING]
 >
-> `ReplayingDecoder` is slightly slower than `ByteToMessageDecoder` due to try/catch overhead. Use it for readability on simple protocols; switch to `ByteToMessageDecoder` for hot paths where decode throughput matters.
+> `ReplayingDecoder` is slightly slower than `ByteToMessageDecoder` due to try/catch overhead.
+> Use it for readability on simple protocols; switch to `ByteToMessageDecoder` for hot paths where decode throughput matters.
 
 ## Stateful decoder with `handlerAdded` / `handlerRemoved`
 
@@ -136,4 +140,4 @@ final class MetricsHandler extends ChannelInboundHandlerAdapter {
 
 ## When to step back to framing first
 
-If the real problem is message boundaries rather than object mapping, open [framing.md](./framing.md) first and keep the codec itself smaller.
+If the real problem is message boundaries rather than object mapping, open [`framing.md`](./framing.md) first and keep the codec itself smaller.

@@ -1,6 +1,6 @@
 # Spring CredHub auth variants
 
-Open this reference when the ordinary mutual-TLS password-read path in [SKILL.md](../SKILL.md) is not enough and the blocker is choosing between mutual TLS and OAuth2 client authentication.
+Open this reference when the ordinary mutual-TLS password-read path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is choosing between mutual TLS and OAuth2 client authentication.
 
 The current stable Spring CredHub line is 4.0.1, and the official reference documents both mutual TLS and OAuth2 client-auth paths.
 
@@ -67,6 +67,6 @@ Use this path only when the default request-bound OAuth2 client flow cannot supp
 
 ## Related blockers
 
-- Return to [SKILL.md](../SKILL.md) when the blocker is the ordinary service-boundary read or write path.
-- Open [credhub-reactive-access.md](credhub-reactive-access.md) when the actual blocker is a fully reactive client boundary.
-- Open [credhub-advanced-credential-patterns.md](credhub-advanced-credential-patterns.md) when the actual blocker is interpolation, certificate generation, or non-default credential families.
+- Return to [`SKILL.md`](../SKILL.md) when the blocker is the ordinary service-boundary read or write path.
+- Open [`credhub-reactive-access.md`](credhub-reactive-access.md) when the actual blocker is a fully reactive client boundary.
+- Open [`credhub-advanced-credential-patterns.md`](credhub-advanced-credential-patterns.md) when the actual blocker is interpolation, certificate generation, or non-default credential families.
