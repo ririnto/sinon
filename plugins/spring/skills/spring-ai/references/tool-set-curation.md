@@ -1,6 +1,6 @@
 # Tool-set curation
 
-Open this reference when the ordinary tool path in [SKILL.md](../SKILL.md) is not enough and the blocker is exposing only a curated tool set to the model.
+Open this reference when the ordinary tool path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is exposing only a curated tool set to the model.
 
 ## Multi-tool blocker
 
@@ -29,7 +29,8 @@ class MultiToolAssistant {
 }
 ```
 
-Treat tool selection as an application contract. Do not expose unrelated tools to the model just because they are available in the same JVM.
+Treat tool selection as an application contract.
+Do not expose unrelated tools to the model just because they are available in the same JVM.
 
 ## Decision points
 

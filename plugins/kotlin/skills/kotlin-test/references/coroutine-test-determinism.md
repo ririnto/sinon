@@ -5,7 +5,8 @@ description: >-
 
 # Coroutine Test Determinism
 
-Use this reference when the job is to make one coroutine test deterministic. This reference should be sufficient on its own for that task.
+Use this reference when the job is to make one coroutine test deterministic.
+This reference should be sufficient on its own for that task.
 
 Use this file to finish one of these jobs:
 
@@ -175,6 +176,10 @@ class EagerExecutionTest {
 }
 ```
 
-Use when: the code under test launches coroutines that must complete before the next line executes. Note: `UnconfinedTestDispatcher` can hide ordering bugs; prefer `StandardTestDispatcher(testScheduler)` when timing matters.
+Use when: the code under test launches coroutines that must complete before the next line executes.
+Note: `UnconfinedTestDispatcher` can hide ordering bugs.
+Prefer `StandardTestDispatcher(testScheduler)` when timing matters.
 
-Avoid real sleeps, broad timeout assertions, and production dispatchers when deterministic scheduler control can prove the same behavior. The JUnit examples in this file use JUnit consistently; the Kotest example is the deliberate exception for Kotest-based suites.
+Avoid real sleeps, broad timeout assertions, and production dispatchers when deterministic scheduler control can prove the same behavior.
+The JUnit examples in this file use JUnit consistently.
+The Kotest example is the deliberate exception for Kotest-based suites.

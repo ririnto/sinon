@@ -39,7 +39,8 @@ final class AutomaticPropagation {
 }
 ```
 
-Enable the hook during application startup. It affects only subscriptions created after the hook is enabled.
+Enable the hook during application startup.
+It affects only subscriptions created after the hook is enabled.
 
 ## Blocker checks
 

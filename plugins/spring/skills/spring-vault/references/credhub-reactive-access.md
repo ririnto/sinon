@@ -4,7 +4,7 @@ Open this reference when the blocker is reactive-only CredHub access through `Re
 
 Use `ReactiveCredHubOperations` only when the surrounding application flow is already reactive and blocking a request thread would be the real problem.
 
-Reactive access is available in the current stable 4.0.1 line, but it remains additive to the ordinary blocking client path in [SKILL.md](../SKILL.md).
+Reactive access is available in the current stable 4.0.1 line, but it remains additive to the ordinary blocking client path in [`SKILL.md`](../SKILL.md).
 
 ```java
 @Service
@@ -23,7 +23,8 @@ class ReactiveSecretReader {
 }
 ```
 
-Keep the boundary either fully reactive or fully blocking. Do not wrap a blocking CredHub client in `Mono.fromCallable()` when the reactive client already exists.
+Keep the boundary either fully reactive or fully blocking.
+Do not wrap a blocking CredHub client in `Mono.fromCallable()` when the reactive client already exists.
 
 ## Reactive test shape
 
@@ -58,6 +59,6 @@ class ReactiveSecretReaderTests {
 
 ## Related blockers
 
-- Return to [SKILL.md](../SKILL.md) when the blocker is the ordinary blocking service boundary.
-- Open [credhub-auth-and-credential-variants.md](credhub-auth-and-credential-variants.md) when the reactive path is blocked by client authentication setup.
-- Open [credhub-advanced-credential-patterns.md](credhub-advanced-credential-patterns.md) when the reactive path is blocked by interpolation, certificate generation, or non-default credential families.
+- Return to [`SKILL.md`](../SKILL.md) when the blocker is the ordinary blocking service boundary.
+- Open [`credhub-auth-and-credential-variants.md`](credhub-auth-and-credential-variants.md) when the reactive path is blocked by client authentication setup.
+- Open [`credhub-advanced-credential-patterns.md`](credhub-advanced-credential-patterns.md) when the reactive path is blocked by interpolation, certificate generation, or non-default credential families.

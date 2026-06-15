@@ -1,7 +1,8 @@
 ---
 name: agent-authoring
 description: >-
-  Create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work. Triggers on agent frontmatter fields, tool allowlist boundaries, or system-prompt structure that keeps agents scoped to a single responsibility.
+  Create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work.
+  Triggers on agent frontmatter fields, tool allowlist boundaries, or system-prompt structure that keeps agents scoped to a single responsibility.
 ---
 
 # Agent Authoring
@@ -12,19 +13,25 @@ Create or refactor one reusable Claude Code agent so it is easy to trigger, safe
 
 This skill owns agent files in `agents/*.md`.
 
-Keep the scope on one agent role per file. Preserve the existing job the agent covers unless the task explicitly changes that scope.
+Keep the scope on one agent role per file.
+Preserve the existing job the agent covers unless the task explicitly changes that scope.
 
 ## Operating rules
 
 1. Write one agent file for one clear role.
 2. Keep repository-facing and agent-facing instructions in English.
-3. Make the `description` field the discovery surface. It must say when to use the agent and include concrete trigger examples.
+3. Make the `description` field the discovery surface.
+   - It must say when to use the agent.
+   - Add examples only when they clarify routing.
 4. Give the agent the smallest safe tool boundary for the job.
 5. Make the body read like a system prompt for autonomous execution, not like release notes or background prose.
-6. Put the normal authoring path in the agent file itself. Do not rely on external web pages or hidden conventions.
+6. Put the normal authoring path in the agent file itself.
+   - Do not rely on external web pages or hidden conventions.
 7. State the output shape explicitly so the caller can use the result without guessing.
-8. Keep the ordinary path self-sufficient inside the agent file; do not require the caller to load another skill, hidden prompt, or external document just to execute the agent's main workflow.
-9. Make process verbs and declared tools agree. A report-only agent MUST NOT claim file edits, and an editing agent MUST have the mutation tools its process requires.
+8. Keep the ordinary path self-sufficient inside the agent file.
+   - Do not require the caller to load another skill, hidden prompt, or external document just to execute the agent's main workflow.
+9. Make process verbs and declared tools agree.
+   - A report-only agent MUST NOT claim file edits, and an editing agent MUST have the mutation tools its process requires.
 10. Ordinary authoring remains offline, but maintainers changing host-specific agent behavior should verify against official host documentation when available and record any verification blocker.
 
 ## Required frontmatter
@@ -36,7 +43,8 @@ Every agent file should include these fields in frontmatter:
 - `model`
 - `color`
 
-Omit `tools` by default. Use it only when the agent needs a bounded tool surface or a tool boundary different from the default environment.
+Omit `tools` by default.
+Use it only when the agent needs a bounded tool surface or a tool boundary different from the default environment.
 
 Other optional frontmatter fields may be kept only when the host actually supports them and the field changes runtime behavior in a meaningful way.
 
@@ -44,24 +52,25 @@ Other optional frontmatter fields may be kept only when the host actually suppor
 
 ### `name`
 
-- Use kebab-case exclusively, and the `name` field MUST match the file basename exactly; `agents/schema-reviewer.md` must use `name: schema-reviewer`.
+- Use kebab-case exclusively, and the `name` field MUST match the file basename exactly.
+  - `agents/schema-reviewer.md` must use `name: schema-reviewer`.
 - Make it role-oriented, not task-ticket-oriented.
 - Prefer stable names such as `schema-reviewer`, `docs-refiner`, or `release-checker`.
 - Do not encode one temporary request into the name.
 
 ### `description`
 
-The description is the main trigger surface. It should do all of the following:
+The description is the main trigger surface.
+It should do all of the following:
 
-- open with an imperative capability clause that names what the agent does (for example "Enforce…", "Review…", "Detect…", "Author…", "Reproduce…")
-- follow with a trigger clause such as `Use this agent when...`
-- name the job, inputs, or system clearly
-- include 2 to 4 concrete `<example>` blocks
-- make it obvious why this agent is the right fit
+- Open with an imperative capability clause that names what the agent does (for example "Enforce…", "Review…", "Detect…", "Author…", "Reproduce…").
+- Follow with a trigger clause such as `Use this agent when...`.
+- Name the job, inputs, or system clearly.
+- Include 1 or 2 short `<example>` blocks only when the trigger would otherwise remain ambiguous.
+- Make it obvious why this agent is the right fit.
 
-Agent descriptions MUST include 2 to 4 concrete `<example>` blocks with `<context>`, `<user>`, `<assistant>`, and `<commentary>` sub-elements. Each example MUST demonstrate a realistic triggering scenario and explain why the agent is the right fit for that task.
-
-Use examples that look like realistic user intent, not abstract labels.
+Agent descriptions SHOULD omit `<example>` blocks when the capability and trigger clauses are already clear.
+When examples are useful, keep them short, realistic, and limited to the minimum needed to disambiguate routing.
 
 Weak:
 
@@ -110,7 +119,9 @@ Examples:
 
 ## Minimal body structure
 
-The body should stay short, direct, and executable. Use this shape unless the role has a strong reason to vary:
+The body should stay short, direct, and executable.
+
+Use this shape unless the role has a strong reason to vary:
 
 1. One role statement
 2. `## Responsibilities`
@@ -176,27 +187,34 @@ Return:
 
 ## Ordinary authoring procedure
 
-1. Read the existing agent file if you are refactoring; otherwise start from `assets/agent-template.md` or use the Minimal example below as an inline fallback.
+1. Read the existing agent file if you are refactoring.
+   - Otherwise start from `assets/agent-template.md` or use the Minimal example below as an inline fallback.
 2. Define the agent role in one sentence.
 3. Check that the role is narrow enough to be discoverable and autonomous.
 4. Draft or revise frontmatter:
    - `name` matches the file basename and is stable and role-based
-   - `description` opens with an imperative capability clause, then says when to use the agent, and includes concrete `<example>` blocks
+   - `description` opens with an imperative capability clause, then says when to use the agent, with examples only when needed
    - `model` defaults to `inherit`
    - `color` is stable and distinguishable
    - `tools` appears only when a bounded tool surface is needed
 5. Write the body with a role statement plus `Responsibilities`, `Process`, and `Output` sections.
 6. Make the autonomy level explicit:
-   - the agent should complete its narrow role without asking for routine confirmation
-   - the agent should stay inside the requested scope
-   - the agent should report blockers or uncertainty instead of inventing missing facts
+
+    - The agent should complete its narrow role without asking for routine confirmation.
+    - The agent should stay inside the requested scope.
+    - The agent should report blockers or uncertainty instead of inventing missing facts.
+
 7. Check the tool boundary against the ordinary path:
-   - read-only roles stay read-only
-   - editing roles get mutation tools only when direct edits are part of the role
-   - broad tool access must be justified by the role, not by convenience
+
+    - Read-only roles stay read-only.
+    - Editing roles get mutation tools only when direct edits are part of the role.
+    - Broad tool access must be justified by the role, not by convenience.
+
 8. Verify that the output section is directly usable by the caller.
-9. Check that the ordinary path is self-sufficient inside the agent body. If the draft says to 'load skill X first' or depends on hidden runtime guidance, fold the required instructions back into the agent file.
-10. Check that the tool boundary matches the process and output claims. Remove file-updating claims from read-only agents, or add the minimal mutation tools only when direct edits are genuinely part of the role.
+9. Check that the ordinary path is self-sufficient inside the agent body.
+   - If the draft says to 'load skill X first' or depends on hidden runtime guidance, fold the required instructions back into the agent file.
+10. Check that the tool boundary matches the process and output claims.
+    - Remove file-updating claims from read-only agents, or add the minimal mutation tools only when direct edits are genuinely part of the role.
 
 ## Autonomy defaults
 
@@ -210,7 +228,8 @@ Use these defaults unless the role needs a stricter rule:
 
 For most agents, that means: do the requested role fully, stay narrow, and return a structured result.
 
-If the role depends on repository-specific invariants such as worktree isolation, observability-backed validation, or execution-plan lifecycle rules, state those invariants directly in the body instead of assuming they are known elsewhere.
+If the role depends on repository-specific invariants such as worktree isolation, observability-backed validation, or execution-plan lifecycle rules, state those invariants directly in the body.
+Do not assume they are known elsewhere.
 
 ## Tool-boundary rule
 
@@ -261,7 +280,7 @@ Use simple local checks first:
 1. Open the target agent Markdown file.
 2. Confirm that the frontmatter includes the required fields.
 3. Confirm that the body contains a role statement plus `Responsibilities`, `Process`, and `Output` sections.
-4. Confirm that the `description` examples and `tools` choice match the role.
+4. Confirm that the `description` trigger and `tools` choice match the role.
 5. Confirm that the process does not require hidden skill loading or contradict the tool boundary.
 6. Confirm that the `name` value matches the file basename without `.md`.
 
@@ -327,13 +346,13 @@ Return:
 
 - If the requested role mixes unrelated jobs, split it into one clearer role and move the other job to a separate agent.
 - If the description is too vague to trigger reliably, rewrite it before changing the body.
-- If the body is long because of many examples, keep one short example in the agent and move extra patterns to assets.
+- If the frontmatter is long because of examples, remove them or move optional patterns to assets.
 - If the tool boundary is hard to choose, default to the read-only or narrower set first.
 - If the agent needs exceptional autonomy or unusually broad tools, document the reason directly in the body or open the deeper reference for that blocker.
 
 ## Pitfalls
 
-- Do not write a generic description without concrete trigger examples.
+- Do not write a generic description without clear trigger conditions.
 - Do not make the agent responsible for multiple unrelated roles.
 - Do not grant broad tools when read-only or narrower mutation access is enough.
 - Do not leave the output contract implicit.

@@ -1,6 +1,7 @@
 ---
 description: >-
-  Plugin hosting skills for authoring AI-consumable engineering documents with structured requirements, scenarios, and acceptance criteria. Currently provides SPEC.md authoring.
+  Plugin hosting skills for authoring AI-consumable engineering documents with structured requirements, scenarios, and acceptance criteria.
+  Currently provides `SPEC.md` authoring.
 ---
 
 # Document Creator
@@ -9,7 +10,8 @@ Document Creator is a skill-first plugin for authoring AI-consumable engineering
 
 ## Purpose
 
-Provide reusable skills for authoring engineering documents that are structured, bounded, and testable. Focus on documents that capture requirements, design intent, and acceptance criteria in formats that agents and engineers can use without ambiguity or guessing.
+Provide reusable skills for authoring engineering documents that are structured, bounded, and testable.
+Focus on documents that capture requirements, design intent, and acceptance criteria in formats that agents and engineers can use without ambiguity or guessing.
 
 ## Included Skills
 
@@ -17,7 +19,7 @@ Provide reusable skills for authoring engineering documents that are structured,
 
 ## How the Skill Branches
 
-Use `spec-creator` when the user asks to "create SPEC.md", "write a spec", "draft a product spec", "create structured requirements", "write acceptance criteria", "make an RFC-style spec", "make an SRS-style spec", or define testable feature behavior before implementation.
+Use `spec-creator` when the user asks to "create `SPEC.md`", "write a spec", "draft a product spec", "create structured requirements", "write acceptance criteria", "make an RFC-style spec", "make an SRS-style spec", or define testable feature behavior before implementation.
 
 - `references/spec-template.md` — canonical `SPEC.md` skeleton and section rules.
 - `references/requirements-style.md` — requirement IDs, RFC 2119 language, and EARS patterns.
@@ -30,7 +32,8 @@ This plugin uses one shared plugin root with a Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/`. No agents, hooks, MCP servers, LSP servers, settings, or commands are shipped.
+The manifest declares `./skills/`.
+No agents, hooks, MCP servers, LSP servers, settings, or commands are shipped.
 
 ## Plugin Layout
 
@@ -78,7 +81,8 @@ claude --plugin-dir /path/to/sinon/plugins/document-creator
 
 ## Scope Notes
 
-This plugin focuses on authoring individual AI-consumable documents well. It does not cover:
+This plugin focuses on authoring individual AI-consumable documents well.
+It does not cover:
 
 - Full spec-driven development workflow (research → spec → review → implement → verify) — see `spec-driven-development` plugin for that end-to-end workflow.
 - Git branch management, CI/CD pipeline design, or project management.

@@ -175,7 +175,8 @@ mvc.perform(get("/").with(oidcLogin()))
     .andExpect(status().isOk());
 ```
 
-Use these helpers only when the test is exercising delegated login behavior. Keep ordinary servlet authorization tests on `@WithMockUser` or `jwt()` in the common path.
+Use these helpers only when the test is exercising delegated login behavior.
+Keep ordinary servlet authorization tests on `@WithMockUser` or `jwt()` in the common path.
 
 ## Decision points
 

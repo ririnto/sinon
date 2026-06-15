@@ -1,6 +1,7 @@
 # Validation Checklist
 
-Use this checklist as a final verification pass. Items marked with `[repo]` are specific to the Sinon publishing standard and may not apply to skills published elsewhere.
+Use this checklist as a final verification pass.
+Items marked with `[repo]` are specific to the Sinon publishing standard and may not apply to skills published elsewhere.
 
 ## Frontmatter
 

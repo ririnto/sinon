@@ -1,15 +1,15 @@
 ---
 description: >-
   [what the command does and when to use it]
-# Optional:
-# argument-hint: [arg1] [arg2]
-# allowed-tools: Read, Grep
-# disable-model-invocation: true
-# user-invocable: false
-# paths:
-#   - "path/**/*.ext"
-# model: [only if required]
-# shell: [only if required]
+  # Optional:
+  # argument-hint: [arg1] [arg2]
+  # allowed-tools: Read, Grep
+  # disable-model-invocation: true
+  # user-invocable: false
+  # paths:
+  #   - "path/**/*.ext"
+  # model: [only if required]
+  # shell: [only if required]
 ---
 
 # [Command Title]

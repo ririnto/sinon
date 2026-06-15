@@ -1,7 +1,9 @@
 ---
 name: spring-security
 description: >-
-  Secure Spring applications with `SecurityFilterChain`, authentication and authorization rules, bearer-token resource servers, method security, session and CSRF policy, and Spring Security tests. Use when configuring password storage, JWT verification, opaque-token introspection, CORS policy, security headers, or logout behavior in a servlet or reactive Spring application. Also covers OAuth 2.1 and OpenID Connect authorization server setup with Spring Authorization Server including registered clients, PKCE authorization code, token issuance, JWK exposure, consent, PAR, device authorization, introspection, and revocation.
+  Secure Spring applications with `SecurityFilterChain`, authentication and authorization rules, bearer-token resource servers, method security, session and CSRF policy, and Spring Security tests.
+  Use when configuring password storage, JWT verification, opaque-token introspection, CORS policy, security headers, or logout behavior in a servlet or reactive Spring application.
+  Also covers OAuth 2.1 and OpenID Connect authorization server setup with Spring Authorization Server including registered clients, PKCE authorization code, token issuance, JWK exposure, consent, PAR, device authorization, introspection, and revocation.
 ---
 
 # Spring Security
@@ -12,8 +14,10 @@ Use `spring-security` for application-side authentication, authorization, filter
 
 Use the Authorization Server section when the application acts as an OAuth 2.1 or OIDC provider that issues tokens for other applications.
 
-- Keep business rules outside security configuration. Security should express access policy and integration boundaries, not business workflows.
-- Keep reactive security outside the ordinary servlet path. Open the reactive reference only when the application is reactive end to end.
+- Keep business rules outside security configuration.
+  - Security should express access policy and integration boundaries, not business workflows.
+- Keep reactive security outside the ordinary servlet path.
+  - Open the reactive reference only when the application is reactive end to end.
 
 ### Resource server versus authorization server
 
@@ -36,16 +40,16 @@ The ordinary Spring Security job is:
 
 - Stay in `SKILL.md` for the ordinary servlet path: one main `SecurityFilterChain`, explicit authorization rules, password encoding, basic CORS and CSRF policy, session policy, logout behavior, JWT resource-server validation, method security, and allow or deny tests.
 - Stay in the **OAuth 2.1 / OpenID Connect Authorization Server** section below when the application issues tokens as an OAuth2 or OIDC provider.
-- Open [references/reactive-webflux-security.md](references/reactive-webflux-security.md) only when the application is reactive end to end and uses `SecurityWebFilterChain`.
-- Open [references/delegated-login-and-oauth2-client.md](references/delegated-login-and-oauth2-client.md) when the application delegates login to an external identity provider or needs outbound OAuth2 client token management.
-- Open [references/ldap-authentication.md](references/ldap-authentication.md) when directory-backed authentication is part of the job.
-- Open [references/saml2-login.md](references/saml2-login.md) only when enterprise identity-provider requirements specifically depend on SAML2.
-- Open [references/multiple-security-filter-chains.md](references/multiple-security-filter-chains.md) when different URL spaces need separate servlet chains or a custom filter must be placed relative to Spring Security's built-in filters.
-- Open [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) when default `scope` to authority conversion is not enough, nested or multi-location claim extraction is needed, or issuer, audience, algorithm, or principal-claim rules must be customized.
-- Open [references/security-exception-handling.md](references/security-exception-handling.md) when 401 and 403 responses need custom JSON bodies, custom entry points, or custom access-denied handling.
-- Open [references/session-management-and-logout.md](references/session-management-and-logout.md) when the job depends on concurrent-session control, custom logout success handling, or stateful session persistence rules beyond the ordinary path.
-- Open [references/security-headers.md](references/security-headers.md) when defaults are not enough and the application needs custom CSP, HSTS, frame, or permissions-policy behavior.
-- Open [references/servlet-opaque-token-resource-server.md](references/servlet-opaque-token-resource-server.md) only when the servlet resource server must validate bearer tokens via introspection instead of local JWT verification.
+- Open [references/reactive`-webflux-security.md`](references/reactive-webflux-security.md) only when the application is reactive end to end and uses `SecurityWebFilterChain`.
+- Open [references/delegated`-login-and-oauth2-client.md`](references/delegated-login-and-oauth2-client.md) when the application delegates login to an external identity provider or needs outbound OAuth2 client token management.
+- Open [references/ldap`-authentication.md`](references/ldap-authentication.md) when directory-backed authentication is part of the job.
+- Open [references/saml2`-login.md`](references/saml2-login.md) only when enterprise identity-provider requirements specifically depend on SAML2.
+- Open [references/multiple`-security-filter-chains.md`](references/multiple-security-filter-chains.md) when different URL spaces need separate servlet chains or a custom filter must be placed relative to Spring Security's built-in filters.
+- Open [references/jwt`-claim-mapping.md`](references/jwt-claim-mapping.md) when default `scope` to authority conversion is not enough, nested or multi-location claim extraction is needed, or issuer, audience, algorithm, or principal-claim rules must be customized.
+- Open [references/security`-exception-handling.md`](references/security-exception-handling.md) when 401 and 403 responses need custom JSON bodies, custom entry points, or custom access-denied handling.
+- Open [references/session`-management-and-logout.md`](references/session-management-and-logout.md) when the job depends on concurrent-session control, custom logout success handling, or stateful session persistence rules beyond the ordinary path.
+- Open [references/security`-headers.md`](references/security-headers.md) when defaults are not enough and the application needs custom CSP, HSTS, frame, or permissions-policy behavior.
+- Open [references/servlet`-opaque-token-resource-server.md`](references/servlet-opaque-token-resource-server.md) only when the servlet resource server must validate bearer tokens via introspection instead of local JWT verification.
 
 ## Dependency baseline
 
@@ -85,7 +89,8 @@ Use this path when the build must target the standalone Spring Security BOM inst
 </dependencyManagement>
 ```
 
-Keep Spring Security modules versionless because the imported BOM manages their versions. This is standard Maven dependency management, not a Spring Security feature gate.
+Keep Spring Security modules versionless because the imported BOM manages their versions.
+This is standard Maven dependency management, not a Spring Security feature gate.
 
 For the ordinary servlet path shown in this skill, add the core modules explicitly under that BOM:
 
@@ -151,7 +156,8 @@ Use the Boot authorization-server starter when the application acts as an OAuth2
 
 ### PathPatternRequestMatcher
 
-Spring Security 7 provides `PathPatternRequestMatcher` for direct matcher construction. Use it when a matcher instance must be explicit, for example in custom `securityMatcher(...)` logic or filter-chain composition.
+Spring Security 7 provides `PathPatternRequestMatcher` for direct matcher construction.
+Use it when a matcher instance must be explicit, for example in custom `securityMatcher(...)` logic or filter-chain composition.
 
 ```java
 PathPatternRequestMatcher apiMatcher = PathPatternRequestMatcher.pathPattern("/api/**");
@@ -163,7 +169,8 @@ For an HTTP-method-specific matcher:
 PathPatternRequestMatcher itemMatcher = PathPatternRequestMatcher.pathPattern(HttpMethod.GET, "/api/items/{id}");
 ```
 
-Use the `requestMatchers("/path/**")` DSL for ordinary rules. Reach for `PathPatternRequestMatcher` only when you need an explicit matcher object.
+Use the `requestMatchers("/path/**")` DSL for ordinary rules.
+Reach for `PathPatternRequestMatcher` only when you need an explicit matcher object.
 
 ### Stateless API baseline
 
@@ -201,7 +208,9 @@ Keep `securityMatcher(...)` out of a single-chain baseline unless the applicatio
 
 ### Non-webapp resource server (Spring Boot 4.1+)
 
-Spring Boot 4.1 auto-configures `JwtDecoder`, `OpaqueTokenIntrospector`, and the authentication converter in non-web applications (no servlet or reactive web server). The `SecurityFilterChain` bean is not created -- the application must authenticate tokens programmatically. Use [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) for authority extraction configuration in non-webapp contexts.
+Spring Boot 4.1 auto-configures `JwtDecoder`, `OpaqueTokenIntrospector`, and the authentication converter in non-web applications (no servlet or reactive web server).
+The `SecurityFilterChain` bean is not created -- the application must authenticate tokens programmatically.
+Use [references/jwt`-claim-mapping.md`](references/jwt-claim-mapping.md) for authority extraction configuration in non-webapp contexts.
 
 ### SPA CSRF handling
 
@@ -219,13 +228,15 @@ SecurityFilterChain spa(HttpSecurity http) throws Exception {
 }
 ```
 
-Spring Security's SPA support uses `CookieCsrfTokenRepository` under the hood. In the Spring Security 7 line, the default cookie name is `XSRF-TOKEN` and the default request header is `X-XSRF-TOKEN`.
+Spring Security's SPA support uses `CookieCsrfTokenRepository` under the hood.
+In the Spring Security 7 line, the default cookie name is `XSRF-TOKEN` and the default request header is `X-XSRF-TOKEN`.
 
 Keep pure bearer-token API endpoints in a separate stateless chain if they must ignore CSRF entirely.
 
 ### Session-management changes (Spring Security 6/7)
 
-Spring Security 6 and 7 tighten session behavior. Key changes to keep explicit:
+Spring Security 6 and 7 tighten session behavior.
+Key changes to keep explicit:
 
 - `SessionCreationPolicy.STATELESS` tells Spring Security not to create an `HttpSession` and not to use one to obtain the `SecurityContext`.
 - `SessionCreationPolicy.IF_REQUIRED` creates a session only when authentication is needed.
@@ -300,19 +311,24 @@ PasswordEncoder passwordEncoder() {
 }
 ```
 
-Use the documented defaults when selecting a concrete encoder directly. `BCryptPasswordEncoder` and `Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8()` are also valid concrete encoder choices when the storage and migration policy intentionally selects those algorithms. When migrating from weaker hashes, store the old encoder prefix alongside hashes and delegate to the new encoder.
+Use the documented defaults when selecting a concrete encoder directly.
+`BCryptPasswordEncoder` and `Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8()` are also valid concrete encoder choices when the storage and migration policy intentionally selects those algorithms.
+When migrating from weaker hashes, store the old encoder prefix alongside hashes and delegate to the new encoder.
 
-Keep the OAuth2 and OIDC branch explicit. Open [references/delegated-login-and-oauth2-client.md](references/delegated-login-and-oauth2-client.md) when the application delegates browser login to an external IdP or manages outbound OAuth2 client tokens for downstream calls.
+Keep the OAuth2 and OIDC branch explicit.
+Open [references/delegated`-login-and-oauth2-client.md`](references/delegated-login-and-oauth2-client.md) when the application delegates browser login to an external IdP or manages outbound OAuth2 client tokens for downstream calls.
 
 ## Coding procedure
 
 1. Keep authorization rules explicit and ordered so public and protected paths are obvious.
 2. Match session policy to the client model: use stateless sessions for bearer-token APIs and a stateful session policy only when browser login is part of the design.
 3. Configure CORS only for real browser-cross-origin clients, and keep allowed origins, methods, and headers explicit.
-4. Keep CSRF policy explicit instead of disabling it reflexively. For stateless APIs, ignore only the paths that do not rely on browser-session cookies.
+4. Keep CSRF policy explicit instead of disabling it reflexively.
+   - For stateless APIs, ignore only the paths that do not rely on browser-session cookies.
 5. Use a strong `PasswordEncoder` and never store raw passwords.
 6. Keep JWT authority mapping, claim interpretation, and principal extraction explicit.
-7. Use method security only where request-level rules are not enough. Add `@PostAuthorize`, `@PreFilter`, or `@PostFilter` only when access depends on returned objects or filtered collections.
+7. Use method security only where request-level rules are not enough.
+   - Add `@PostAuthorize`, `@PreFilter`, or `@PostFilter` only when access depends on returned objects or filtered collections.
 8. Keep logout behavior explicit for browser flows, and keep 401 versus 403 handling explicit for API flows.
 9. Rely on Spring Security's default security headers unless the application has a concrete need for custom CSP, frame, or HSTS behavior.
 10. Test both successful access and denial paths for representative endpoints.
@@ -482,13 +498,16 @@ Return:
 - Keep default security headers unless there is a concrete compatibility reason to customize them.
 - Make 401 versus 403 behavior explicit when API clients depend on a stable error contract.
 - Treat security tests as part of the application's compatibility and safety surface.
-- Do not expose broad `/actuator` paths unless explicitly intended. Permitting `/actuator/health` alone does not imply actuator endpoints are publicly accessible; secure any additional actuator endpoints explicitly.
+- Do not expose broad `/actuator` paths unless explicitly intended.
+  - Permitting `/actuator/health` alone does not imply actuator endpoints are publicly accessible; secure any additional actuator endpoints explicitly.
 
 ## OAuth 2.1 / OpenID Connect Authorization Server
 
-This section covers building an OAuth 2.1 or OIDC provider with Spring Authorization Server. Authorization Server is the "issuing" side of the same security token model that the resource-server path covers for "enforcement".
+This section covers building an OAuth 2.1 or OIDC provider with Spring Authorization Server.
+Authorization Server is the "issuing" side of the same security token model that the resource-server path covers for "enforcement".
 
-Use this section when the application must issue bearer tokens for other applications to consume. When the application instead validates tokens issued by someone else, use the resource-server path above.
+Use this section when the application must issue bearer tokens for other applications to consume.
+When the application instead validates tokens issued by someone else, use the resource-server path above.
 
 ### Authorization server surface map
 
@@ -562,7 +581,9 @@ AuthorizationServerSettings authorizationServerSettings() {
 }
 ```
 
-Keep the issuer explicit and stable. Add `.oidc(Customizer.withDefaults())` only when the provider must expose OIDC endpoints. Keep the login-side chain separate from issuer-side endpoint configuration.
+Keep the issuer explicit and stable.
+Add `.oidc(Customizer.withDefaults())` only when the provider must expose OIDC endpoints.
+Keep the login-side chain separate from issuer-side endpoint configuration.
 
 ### User authentication and JWT baseline
 
@@ -600,7 +621,8 @@ RegisteredClientRepository registeredClientRepository() {
 }
 ```
 
-Start with one registered client and one interactive flow. Default to a public client with PKCE unless the client can truly protect a secret on the server side.
+Start with one registered client and one interactive flow.
+Default to a public client with PKCE unless the client can truly protect a secret on the server side.
 
 ### JWK source baseline
 
@@ -613,7 +635,8 @@ JWKSource<SecurityContext> jwkSource() {
 }
 ```
 
-Keep signing keys centralized and intentional. Move key loading, rotation, and external key-management decisions into deployment-specific work only after the baseline server is correct.
+Keep signing keys centralized and intentional.
+Move key loading, rotation, and external key-management decisions into deployment-specific work only after the baseline server is correct.
 
 ### Minimal token customizer hook
 
@@ -628,7 +651,8 @@ OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
 }
 ```
 
-Keep the customizer small and deterministic. Add claims only when a downstream resource server or client actually depends on them.
+Keep the customizer small and deterministic.
+Add claims only when a downstream resource server or client actually depends on them.
 
 ### Protocol endpoint surface
 
@@ -653,7 +677,8 @@ jwk set: /oauth2/jwks
 
 1. Keep the issuer URL, endpoint exposure, redirect URIs, scopes, and grant types explicit and stable.
 2. Start with in-memory repositories for one-node local development, then move to persistent stores only when restart continuity, clustering, or audit requirements exist.
-3. Use authorization code with PKCE as the default interactive flow. Treat public-client PKCE as the baseline, not an optional hardening step.
+3. Use authorization code with PKCE as the default interactive flow.
+   - Treat public-client PKCE as the baseline, not an optional hardening step.
 4. Add confidential clients only when the client can actually protect a secret.
 5. Keep JWK sourcing, token customization, and endpoint customization centralized instead of scattering logic across unrelated configuration classes.
 6. Enable OIDC only when the provider must act as an identity provider, not merely an OAuth2 authorization server.
@@ -680,38 +705,38 @@ jwk set: /oauth2/jwks
 
 ### Resource server and application security
 
-- Open [references/reactive-webflux-security.md](references/reactive-webflux-security.md) when the task is specifically about `SecurityWebFilterChain` and reactive security behavior.
-- Open [references/delegated-login-and-oauth2-client.md](references/delegated-login-and-oauth2-client.md) when the task needs delegated OAuth2 login or outbound OAuth2 client support.
-- Open [references/ldap-authentication.md](references/ldap-authentication.md) when the task specifically depends on LDAP-backed authentication.
-- Open [references/saml2-login.md](references/saml2-login.md) when the task specifically depends on SAML2.
-- Open [references/multiple-security-filter-chains.md](references/multiple-security-filter-chains.md) when path-specific chains or custom filters are required.
-- Open [references/jwt-claim-mapping.md](references/jwt-claim-mapping.md) when default JWT conversion is not sufficient or nested/multi-location authority extraction is needed.
-- Open [references/security-exception-handling.md](references/security-exception-handling.md) when custom 401 or 403 responses are required.
-- Open [references/session-management-and-logout.md](references/session-management-and-logout.md) when concurrent-session control or advanced logout behavior is required.
-- Open [references/security-headers.md](references/security-headers.md) when the application needs custom security-header behavior.
-- Open [references/servlet-opaque-token-resource-server.md](references/servlet-opaque-token-resource-server.md) only when opaque-token introspection is the required validation path and JWT resource server does not apply.
+- Open [references/reactive`-webflux-security.md`](references/reactive-webflux-security.md) when the task is specifically about `SecurityWebFilterChain` and reactive security behavior.
+- Open [references/delegated`-login-and-oauth2-client.md`](references/delegated-login-and-oauth2-client.md) when the task needs delegated OAuth2 login or outbound OAuth2 client support.
+- Open [references/ldap`-authentication.md`](references/ldap-authentication.md) when the task specifically depends on LDAP-backed authentication.
+- Open [references/saml2`-login.md`](references/saml2-login.md) when the task specifically depends on SAML2.
+- Open [references/multiple`-security-filter-chains.md`](references/multiple-security-filter-chains.md) when path-specific chains or custom filters are required.
+- Open [references/jwt`-claim-mapping.md`](references/jwt-claim-mapping.md) when default JWT conversion is not sufficient or nested/multi-location authority extraction is needed.
+- Open [references/security`-exception-handling.md`](references/security-exception-handling.md) when custom 401 or 403 responses are required.
+- Open [references/session`-management-and-logout.md`](references/session-management-and-logout.md) when concurrent-session control or advanced logout behavior is required.
+- Open [references/security`-headers.md`](references/security-headers.md) when the application needs custom security-header behavior.
+- Open [references/servlet`-opaque-token-resource-server.md`](references/servlet-opaque-token-resource-server.md) only when opaque-token introspection is the required validation path and JWT resource server does not apply.
 
 ### Authorization server
 
-- Open [references/authorization-server-client-authentication-variants.md](references/authorization-server-client-authentication-variants.md) when the client is confidential or cannot follow the public-client PKCE baseline.
-- Open [references/authorization-server-proof-of-possession-variants.md](references/authorization-server-proof-of-possession-variants.md) when DPoP or MTLS-bound tokens are required.
-- Open [references/authorization-server-token-generation-and-customization.md](references/authorization-server-token-generation-and-customization.md) when token formats, claim mapping, token generators, or customizers must change beyond the minimal hook.
-- Open [references/authorization-server-oidc-provider-endpoints.md](references/authorization-server-oidc-provider-endpoints.md) when the provider must expose OIDC discovery, UserInfo, logout, or ID tokens.
-- Open [references/authorization-server-pushed-authorization-requests.md](references/authorization-server-pushed-authorization-requests.md) when clients require PAR before redirecting the user to authorization.
-- Open [references/authorization-server-device-authorization-grant.md](references/authorization-server-device-authorization-grant.md) when the client requires the device authorization and verification flow.
-- Open [references/authorization-server-introspection-and-revocation.md](references/authorization-server-introspection-and-revocation.md) when the blocker is token liveness inspection or token revocation.
-- Open [references/authorization-server-dynamic-client-registration.md](references/authorization-server-dynamic-client-registration.md) when external clients need self-service registration.
-- Open [references/authorization-server-federated-identity-and-social-login.md](references/authorization-server-federated-identity-and-social-login.md) when the authorization server must authenticate users through an external identity provider.
-- Open [references/authorization-server-extension-grants.md](references/authorization-server-extension-grants.md) when the ordinary authorization-code flow is not enough and a custom grant type or token exchange path is required.
-- Open [references/authorization-server-jpa-persistence.md](references/authorization-server-jpa-persistence.md) when registered clients, authorizations, or consent must live in a relational database.
-- Open [references/authorization-server-redis-persistence.md](references/authorization-server-redis-persistence.md) when authorization state, consent, or operational token data must live in Redis.
-- Open [references/authorization-server-multitenancy.md](references/authorization-server-multitenancy.md) when issuer resolution, issuer-scoped clients, or issuer-scoped signing keys differ by tenant.
-- Open [references/authorization-server-endpoint-customization.md](references/authorization-server-endpoint-customization.md) when authorization, token, metadata, or consent endpoints need custom request or response handling.
-- Open [references/authorization-server-deployment-and-operations.md](references/authorization-server-deployment-and-operations.md) when the server is moving behind proxies, into production, or into operational hardening work.
-- Open [references/authorization-server-upgrade-spring-authorization-server.md](references/authorization-server-upgrade-spring-authorization-server.md) when moving between Spring Authorization Server versions or replacing Spring Security OAuth server behavior.
-- Open [references/authorization-server-migrate-spring-security-6-to-7.md](references/authorization-server-migrate-spring-security-6-to-7.md) when the blocker is Spring Security 6 to 7 migration work around the authorization server.
-- Open [references/authorization-server-testing-authorization-endpoint.md](references/authorization-server-testing-authorization-endpoint.md) when the task needs deeper authorization-endpoint tests.
-- Open [references/authorization-server-testing-token-metadata-and-jwk-endpoints.md](references/authorization-server-testing-token-metadata-and-jwk-endpoints.md) when the task needs token, metadata, or JWK endpoint tests.
-- Open [references/authorization-server-testing-oidc-endpoints.md](references/authorization-server-testing-oidc-endpoints.md) when the task needs OIDC endpoint verification.
-- Open [references/authorization-server-testing-refresh-path.md](references/authorization-server-testing-refresh-path.md) when the task needs refresh-token path verification.
-- Open [references/authorization-server-testing-introspection-revocation-and-consent.md](references/authorization-server-testing-introspection-revocation-and-consent.md) when the task needs introspection, revocation, or consent verification.
+- Open [references/authorization`-server-client-authentication-variants.md`](references/authorization-server-client-authentication-variants.md) when the client is confidential or cannot follow the public-client PKCE baseline.
+- Open [references/authorization`-server-proof-of-possession-variants.md`](references/authorization-server-proof-of-possession-variants.md) when DPoP or MTLS-bound tokens are required.
+- Open [references/authorization`-server-token-generation-and-customization.md`](references/authorization-server-token-generation-and-customization.md) when token formats, claim mapping, token generators, or customizers must change beyond the minimal hook.
+- Open [references/authorization`-server-oidc-provider-endpoints.md`](references/authorization-server-oidc-provider-endpoints.md) when the provider must expose OIDC discovery, UserInfo, logout, or ID tokens.
+- Open [references/authorization`-server-pushed-authorization-requests.md`](references/authorization-server-pushed-authorization-requests.md) when clients require PAR before redirecting the user to authorization.
+- Open [references/authorization`-server-device-authorization-grant.md`](references/authorization-server-device-authorization-grant.md) when the client requires the device authorization and verification flow.
+- Open [references/authorization`-server-introspection-and-revocation.md`](references/authorization-server-introspection-and-revocation.md) when the blocker is token liveness inspection or token revocation.
+- Open [references/authorization`-server-dynamic-client-registration.md`](references/authorization-server-dynamic-client-registration.md) when external clients need self-service registration.
+- Open [references/authorization`-server-federated-identity-and-social-login.md`](references/authorization-server-federated-identity-and-social-login.md) when the authorization server must authenticate users through an external identity provider.
+- Open [references/authorization`-server-extension-grants.md`](references/authorization-server-extension-grants.md) when the ordinary authorization-code flow is not enough and a custom grant type or token exchange path is required.
+- Open [references/authorization`-server-jpa-persistence.md`](references/authorization-server-jpa-persistence.md) when registered clients, authorizations, or consent must live in a relational database.
+- Open [references/authorization`-server-redis-persistence.md`](references/authorization-server-redis-persistence.md) when authorization state, consent, or operational token data must live in Redis.
+- Open [references/authorization`-server-multitenancy.md`](references/authorization-server-multitenancy.md) when issuer resolution, issuer-scoped clients, or issuer-scoped signing keys differ by tenant.
+- Open [references/authorization`-server-endpoint-customization.md`](references/authorization-server-endpoint-customization.md) when authorization, token, metadata, or consent endpoints need custom request or response handling.
+- Open [references/authorization`-server-deployment-and-operations.md`](references/authorization-server-deployment-and-operations.md) when the server is moving behind proxies, into production, or into operational hardening work.
+- Open [references/authorization`-server-upgrade-spring-authorization-server.md`](references/authorization-server-upgrade-spring-authorization-server.md) when moving between Spring Authorization Server versions or replacing Spring Security OAuth server behavior.
+- Open [references/authorization`-server-migrate-spring-security-6-to-7.md`](references/authorization-server-migrate-spring-security-6-to-7.md) when the blocker is Spring Security 6 to 7 migration work around the authorization server.
+- Open [references/authorization`-server-testing-authorization-endpoint.md`](references/authorization-server-testing-authorization-endpoint.md) when the task needs deeper authorization-endpoint tests.
+- Open [references/authorization`-server-testing-token-metadata-and-jwk-endpoints.md`](references/authorization-server-testing-token-metadata-and-jwk-endpoints.md) when the task needs token, metadata, or JWK endpoint tests.
+- Open [references/authorization`-server-testing-oidc-endpoints.md`](references/authorization-server-testing-oidc-endpoints.md) when the task needs OIDC endpoint verification.
+- Open [references/authorization`-server-testing-refresh-path.md`](references/authorization-server-testing-refresh-path.md) when the task needs refresh-token path verification.
+- Open [references/authorization`-server-testing-introspection-revocation-and-consent.md`](references/authorization-server-testing-introspection-revocation-and-consent.md) when the task needs introspection, revocation, or consent verification.

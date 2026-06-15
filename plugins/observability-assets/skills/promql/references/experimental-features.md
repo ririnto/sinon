@@ -78,19 +78,24 @@ expr1 fill_left(0) fill_right(1) + expr2
 
 Constraints:
 
-- Value must be a numeric literal (float sample). Histogram samples not supported.
+- Value must be a numeric literal (float sample).
+  - Histogram samples not supported.
 - Cannot create series missing on both sides.
 - Must appear after all other modifiers (`bool`, `on`, `ignoring`, `group_left`, `group_right`).
 - Not supported for set operators (`and`, `or`, `unless`).
-- With `group_left`/`group_right`: filling the "many" side produces one filled series per match group. Filling the "one" side does not fill extra labels specified in the group modifier.
+- With `group_left`/`group_right`: filling the "many" side produces one filled series per match group.
+  - Filling the "one" side does not fill extra labels specified in the group modifier.
 
 ## Stability Caveats
 
-- `info()`: Explicitly documented as an experiment whose behavior may change, including removal. The current limitation (only `target_info`, fixed identifying labels `instance`+`job`) is acknowledged as partially defeating the purpose.
-- `parse_query` endpoint: Documented as experimental, intended for Prometheus web UI use only. Endpoint name and format may change between versions.
+- `info()`: Explicitly documented as an experiment whose behavior may change, including removal.
+  - The current limitation (only `target_info`, fixed identifying labels `instance`+`job`) is acknowledged as partially defeating the purpose.
+- `parse_query` endpoint: Documented as experimental, intended for Prometheus web UI use only.
+  - Endpoint name and format may change between versions.
 - `query_exemplars` endpoint: Experimental; format may change.
 - `targets/relabel_steps` endpoint: Experimental; intended for UI use only.
 - `targets/metadata` endpoint: Experimental; may change.
 - All experimental functions require their respective feature flags and may change behavior or be removed in future releases.
 
-Function-family tradeoffs and general query patterns are covered in [`../SKILL.md`](../SKILL.md). Use this reference only when you need to determine whether a function is stable, which flag enables it, or what caveats apply to experimental features.
+Function-family tradeoffs and general query patterns are covered in [`../SKILL.md`](../SKILL.md).
+Use this reference only when you need to determine whether a function is stable, which flag enables it, or what caveats apply to experimental features.

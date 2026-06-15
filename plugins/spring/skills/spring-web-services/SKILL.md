@@ -1,7 +1,8 @@
 ---
 name: spring-web-services
 description: >-
-  Build contract-first SOAP services and clients in Spring with XSD or WSDL contracts, `@Endpoint` handlers, XML marshalling, `WebServiceTemplate`, and WS-Security integration. Use when generating JAXB types from schema, configuring `MessageDispatcherServlet`, handling SOAP faults, or applying WS-Security policy to SOAP client or server endpoints.
+  Build contract-first SOAP services and clients in Spring with XSD or WSDL contracts, `@Endpoint` handlers, XML marshalling, `WebServiceTemplate`, and WS-Security integration.
+  Use when generating JAXB types from schema, configuring `MessageDispatcherServlet`, handling SOAP faults, or applying WS-Security policy to SOAP client or server endpoints.
 ---
 
 # Spring Web Services
@@ -11,15 +12,18 @@ description: >-
 Use `spring-web-services` for SOAP transport, XML contract publication, endpoint mapping, SOAP client calls, and SOAP-specific testing.
 
 - Ordinary HTTP JSON APIs and GraphQL APIs are outside this skill's scope unless the task is SOAP or XML-contract driven.
-- Keep business logic outside endpoint handlers. SOAP endpoints should translate XML payloads to application services and back.
+- Keep business logic outside endpoint handlers.
+  - SOAP endpoints should translate XML payloads to application services and back.
 - Keep WS-Security, XPath-centric payload parsing, and specialized client transports out of the ordinary path unless those are the actual blocker.
 
 ## Baseline
 
 Spring Web Services 5.0 requires JDK 17+ (compatible through JDK 27), Jakarta EE 11 (Servlet 6.1, Jakarta XML Bind 4.0, Jakarta Activation 2.1), Spring Framework 7.0, Spring Security 7.0, Apache WSS4J 4.0, and JUnit 6.0.
 
-- Spring WS 5.0.x aligns with Spring Boot 4.0.x and 4.1.x. The Boot starter manages the Spring WS version.
-- `XwsSecurityInterceptor` was removed in Spring WS 4.0 and is not available. Use `Wss4jSecurityInterceptor` for all WS-Security configuration.
+- Spring WS 5.0.x aligns with Spring Boot 4.0.x and 4.1.x.
+  - The Boot starter manages the Spring WS version.
+- `XwsSecurityInterceptor` was removed in Spring WS 4.0 and is not available.
+  - Use `Wss4jSecurityInterceptor` for all WS-Security configuration.
 - `WsConfigurerAdapter` was removed in Spring WS 5.0. Implement `WsConfigurer` directly (it provides default methods).
 
 ## Common path
@@ -38,15 +42,16 @@ In Spring Boot, prefer the starter-managed ordinary path first: keep the starter
 ### Branch selector
 
 - Stay in `SKILL.md` for the ordinary endpoint-plus-template path: contract-first XSD and WSDL publication, servlet registration, `@Endpoint` handlers, JAXB marshalling, `WebServiceTemplate`, basic SOAP fault mapping, and contract tests.
-- Open [references/ws-security.md](references/ws-security.md) when the integration contract requires signing, encryption, username tokens, or message-level trust.
-- Open [references/xpath-endpoints.md](references/xpath-endpoints.md) when payload parsing is too dynamic for ordinary marshalling.
-- Open [references/client-variants.md](references/client-variants.md) when the client must use specialized transports or alternate message factories.
+- Open [references/ws`-security.md`](references/ws-security.md) when the integration contract requires signing, encryption, username tokens, or message-level trust.
+- Open [references/xpath`-endpoints.md`](references/xpath-endpoints.md) when payload parsing is too dynamic for ordinary marshalling.
+- Open [references/client`-variants.md`](references/client-variants.md) when the client must use specialized transports or alternate message factories.
 
 ## Dependency baseline
 
 Use the Boot starter for ordinary SOAP server or client work and add test support for SOAP contract verification.
 
-For Boot 4.0.x and 4.1.x, use `spring-boot-starter-webservices`. The starter manages the Spring WS version automatically.
+For Boot 4.0.x and 4.1.x, use `spring-boot-starter-webservices`.
+The starter manages the Spring WS version automatically.
 
 ```xml
 <dependencies>
@@ -87,7 +92,8 @@ spring.webservices.path=/ws
 spring.webservices.wsdl-locations=classpath:/wsdl
 ```
 
-When the Boot starter is present, `spring.webservices.path` defaults to `/services`. Set it explicitly when the integration contract expects a different path.
+When the Boot starter is present, `spring.webservices.path` defaults to `/services`.
+Set it explicitly when the integration contract expects a different path.
 
 ### SOAP servlet registration shape
 
@@ -101,7 +107,8 @@ ServletRegistrationBean<MessageDispatcherServlet> messageDispatcherServlet(Appli
 }
 ```
 
-Use the Boot property path above as the ordinary path first. Add explicit servlet registration only when the application is not relying on Spring Boot's auto-configured SOAP servlet path or when the mapping must differ from the default deployment shape.
+Use the Boot property path above as the ordinary path first.
+Add explicit servlet registration only when the application is not relying on Spring Boot's auto-configured SOAP servlet path or when the mapping must differ from the default deployment shape.
 
 ### WSDL publication shape
 
@@ -127,7 +134,8 @@ WebServiceTemplate webServiceTemplate(WebServiceTemplateBuilder builder, Jaxb2Ma
 }
 ```
 
-`setDefaultUri` is required so that `marshalSendAndReceive` has a destination. Override per-call with a URI argument or `WebServiceMessageCallback` when needed.
+`setDefaultUri` is required so that `marshalSendAndReceive` has a destination.
+Override per-call with a URI argument or `WebServiceMessageCallback` when needed.
 
 ### Basic SOAP fault mapping shape
 
@@ -159,11 +167,13 @@ SoapFaultMappingExceptionResolver soapFaultMappingExceptionResolver() {
 
 ## Edge cases
 
-- Open [references/ws-security.md](references/ws-security.md) when the contract requires SOAP-level authentication, signing, or encryption.
-- Open [references/xpath-endpoints.md](references/xpath-endpoints.md) when payload parsing is too dynamic for JAXB.
-- Open [references/client-variants.md](references/client-variants.md) when the client must use a non-ordinary transport or alternate message factory.
-- Use `@Action` annotation on endpoint methods and `ActionEndpointMapping` or `AnnotationActionEndpointMapping` when the integration contract routes by WS-Addressing Action header. Spring WS supports WS-Addressing 1.0 and the August 2004 draft.
-- Use `AddressingEndpointInterceptor` for WS-Addressing validation, duplicate message detection, and out-of-band response delivery. Configure `preInterceptors` and `postInterceptors` on `AbstractAddressingEndpointMapping` subclasses.
+- Open [references/ws`-security.md`](references/ws-security.md) when the contract requires SOAP-level authentication, signing, or encryption.
+- Open [references/xpath`-endpoints.md`](references/xpath-endpoints.md) when payload parsing is too dynamic for JAXB.
+- Open [references/client`-variants.md`](references/client-variants.md) when the client must use a non-ordinary transport or alternate message factory.
+- Use `@Action` annotation on endpoint methods and `ActionEndpointMapping` or `AnnotationActionEndpointMapping` when the integration contract routes by WS-Addressing Action header.
+  - Spring WS supports WS-Addressing 1.0 and the August 2004 draft.
+- Use `AddressingEndpointInterceptor` for WS-Addressing validation, duplicate message detection, and out-of-band response delivery.
+  - Configure `preInterceptors` and `postInterceptors` on `AbstractAddressingEndpointMapping` subclasses.
 
 ## Implementation examples
 
@@ -187,9 +197,11 @@ class HolidayEndpoint {
 }
 ```
 
-`@PayloadRoot` is the primary routing annotation. Use `@SoapAction` on the same method when the integration contract routes by SOAP Action header instead of payload root.
+`@PayloadRoot` is the primary routing annotation.
+Use `@SoapAction` on the same method when the integration contract routes by SOAP Action header instead of payload root.
 
-Spring WS supports both SOAP 1.1 and SOAP 1.2. The default `AxiomSoapMessageFactory` produces SOAP 1.1 messages and can be configured for SOAP 1.2. Use SAAJ when SAAJ-specific behavior is required. See [references/client-variants.md](references/client-variants.md) for message factory details.
+Spring WS supports both SOAP 1.1 and SOAP 1.2. The default `AxiomSoapMessageFactory` produces SOAP 1.1 messages and can be configured for SOAP 1.2. Use SAAJ when SAAJ-specific behavior is required.
+See [references/client`-variants.md`](references/client-variants.md) for message factory details.
 
 ### SOAP server configuration
 
@@ -230,7 +242,8 @@ class WsConfig implements WsConfigurer {
 }
 ```
 
-Use `implements WsConfigurer` and override `addInterceptors` for interceptor registration. Do not extend `WsConfigurerAdapter` -- it was removed in Spring WS 5.0.
+Use `implements WsConfigurer` and override `addInterceptors` for interceptor registration.
+Do not extend `WsConfigurerAdapter` -- it was removed in Spring WS 5.0.
 
 ### `WebServiceTemplate` client call
 
@@ -314,7 +327,9 @@ class HolidayClientTests {
 
 ### Default message factory
 
-Spring WS defaults to `AxiomSoapMessageFactory` producing SOAP 1.1 messages. Configure the selected message factory for SOAP 1.2; use SAAJ when SAAJ features are required. See [references/client-variants.md](references/client-variants.md) for the message factory decision path.
+Spring WS defaults to `AxiomSoapMessageFactory` producing SOAP 1.1 messages.
+Configure the selected message factory for SOAP 1.2; use SAAJ when SAAJ features are required.
+See [references/client`-variants.md`](references/client-variants.md) for the message factory decision path.
 
 ### Endpoint URI shape
 
@@ -355,6 +370,6 @@ Spring WS defaults to `AxiomSoapMessageFactory` producing SOAP 1.1 messages. Con
 
 ## References
 
-- Open [references/ws-security.md](references/ws-security.md) when the ordinary endpoint-plus-template path is not enough and the task needs SOAP-level signing, encryption, or username tokens.
-- Open [references/xpath-endpoints.md](references/xpath-endpoints.md) when the ordinary marshalling path is not enough and the task needs XPath parsing.
-- Open [references/client-variants.md](references/client-variants.md) when the ordinary client path is not enough and the task needs special client transports or alternate message factories.
+- Open [references/ws`-security.md`](references/ws-security.md) when the ordinary endpoint-plus-template path is not enough and the task needs SOAP-level signing, encryption, or username tokens.
+- Open [references/xpath`-endpoints.md`](references/xpath-endpoints.md) when the ordinary marshalling path is not enough and the task needs XPath parsing.
+- Open [references/client`-variants.md`](references/client-variants.md) when the ordinary client path is not enough and the task needs special client transports or alternate message factories.

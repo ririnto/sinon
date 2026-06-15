@@ -25,11 +25,14 @@ The `id` attribute on `@PulsarListener` sets the listener container id for looku
 
 ## Handling startup failures
 
-By default, any failure during container startup is re-thrown and the application fails to start. Adjust with `StartupFailurePolicy`:
+By default, any failure during container startup is re-thrown and the application fails to start.
+Adjust with `StartupFailurePolicy`:
 
 - `Stop` (default) -- log and re-throw, stopping the application.
 - `Continue` -- log and leave the container in a non-running state without stopping the application.
-- `Retry` -- log and retry asynchronously. The default retry behavior retries 3 times with a 10-second delay between attempts. A custom retry template can be specified.
+- `Retry` -- log and retry asynchronously.
+  - The default retry behavior retries 3 times with a 10-second delay between attempts.
+  - A custom retry template can be specified.
 
 ### Configuration with Spring Boot
 

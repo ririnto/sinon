@@ -9,11 +9,14 @@ Use this reference when you need to understand every variable type in detail, ho
 
 ## Standard Classic Dashboard Variable Types
 
-This reference covers the standard variable types used in classic dashboard JSON (`templating.list`) for the dashboard model this skill defaults to. The standard catalog here is Query, Custom, Text box, Constant, Data source, Interval, and Ad hoc filters. Global variables are built in and chained variables are a usage pattern, not separate selectable types in dashboard JSON.
+This reference covers the standard variable types used in classic dashboard JSON (`templating.list`) for the dashboard model this skill defaults to.
+The standard catalog here is Query, Custom, Text box, Constant, Data source, Interval, and Ad hoc filters.
+Global variables are built in and chained variables are a usage pattern, not separate selectable types in dashboard JSON.
 
 ### 1. Query Variable (`type: "query"`)
 
-Queries a datasource at runtime to populate options. The most commonly used variable type.
+Queries a datasource at runtime to populate options.
+The most commonly used variable type.
 
 ```json
 {
@@ -67,7 +70,8 @@ These examples list all label values, list values matching a filter, list metric
 
 Regex extraction from query results:
 
-When `regex` is set, Grafana applies it to each result row and uses capture groups to produce the option value. The first capture group becomes the value; if there are two groups, group 1 is value and group 2 is display text.
+When `regex` is set, Grafana applies it to each result row and uses capture groups to produce the option value.
+The first capture group becomes the value; if there are two groups, group 1 is value and group 2 is display text.
 
 ```json
 {
@@ -102,12 +106,15 @@ Static list of options defined at authoring time.
 
 ```
 
-The `query` field serves as the source text. When it contains commas, Grafana splits on comma to create options. Each option gets:
+The `query` field serves as the source text.
+When it contains commas, Grafana splits on comma to create options.
+Each option gets:
 
 - `text`: display label shown in the dropdown
 - `value`: actual value used in `${var}` substitution
 
-If no `options` array is provided, Grafana auto-generates one from the `query` string where both text and value are identical to the split segments. Provide explicit `options` when display labels differ from substitution values.
+If no `options` array is provided, Grafana auto-generates one from the `query` string where both text and value are identical to the split segments.
+Provide explicit `options` when display labels differ from substitution values.
 
 Use custom variables when:
 
@@ -133,7 +140,9 @@ Free-text input field for arbitrary user-entered values.
 
 ```
 
-Security consideration: textbox values are interpolated directly into queries. Always use parameterized patterns where the datasource supports them, or apply regex escaping. For PromQL, wrap textbox values appropriately:
+Security consideration: textbox values are interpolated directly into queries.
+Always use parameterized patterns where the datasource supports them, or apply regex escaping.
+For PromQL, wrap textbox values appropriately:
 
 ```promql
 {job=~".*${search}.*"}
@@ -142,7 +151,8 @@ ${search}
 
 ```
 
-The first form keeps the textbox value inside a matcher context. The second form is dangerous because direct interpolation can break query syntax.
+The first form keeps the textbox value inside a matcher context.
+The second form is dangerous because direct interpolation can break query syntax.
 
 ### 4. Constant Variable (`type: "constant"`)
 
@@ -224,7 +234,9 @@ Using datasource variables in panels:
 
 ```
 
-The `type` must still match the expected plugin type. The `uid` field receives the variable substitution. This allows operators to switch between Prometheus instances without editing panel JSON.
+The `type` must still match the expected plugin type.
+The `uid` field receives the variable substitution.
+This allows operators to switch between Prometheus instances without editing panel JSON.
 
 ### 6. Interval Variable (`type: "interval"`)
 
@@ -260,7 +272,8 @@ interval = (time_range_width) / auto_count
 
 ```
 
-For example, with `time_range` of 1 hour and `auto_count` of 30, the auto interval is 120 seconds (rounded to the nearest supported step). The computed value replaces `$__interval` and `$__interval_ms` in all queries.
+For example, with `time_range` of 1 hour and `auto_count` of 30, the auto interval is 120 seconds (rounded to the nearest supported step).
+The computed value replaces `$__interval` and `$__interval_ms` in all queries.
 
 Usage in PromQL:
 
@@ -271,11 +284,13 @@ rate(http_requests_total[${resolution}])
 
 ```
 
-Use `$__interval` for automatic rate/scrape alignment. Use a named interval variable when operators need a manual override.
+Use `$__interval` for automatic rate/scrape alignment.
+Use a named interval variable when operators need a manual override.
 
 ### 7. Ad Hoc Filters Variable (`type: "adhoc"`)
 
-Dynamic tag-key/tag-value filter builder. Creates a UI element where operators add/remove filter pairs.
+Dynamic tag-key/tag-value filter builder.
+Creates a UI element where operators add/remove filter pairs.
 
 ```json
 {
@@ -328,7 +343,8 @@ Common use cases:
 
 ## Global Variables
 
-Grafana provides these built-in variables without any declaration in `templating.list`. They are always available in every dashboard.
+Grafana provides these built-in variables without any declaration in `templating.list`.
+They are always available in every dashboard.
 
 | Variable | Type | Expands To | Example |
 | --- | --- | --- | --- |
@@ -418,7 +434,9 @@ http_requests_total{instance=~"$instances"}
 
 ```
 
-Use `=~` or `!~` for Prometheus multi-value variables because Grafana formats multiple selected values as a regular-expression alternation. Avoid `instance="$instances"`, which asks Prometheus to match one literal label value and fails for multiple selections. Prefer `${instances:regex}` when you want the query to show the intended escaping explicitly.
+Use `=~` or `!~` for Prometheus multi-value variables because Grafana formats multiple selected values as a regular-expression alternation.
+Avoid `instance="$instances"`, which asks Prometheus to match one literal label value and fails for multiple selections.
+Prefer `${instances:regex}` when you want the query to show the intended escaping explicitly.
 
 ```promql
 http_requests_total{instance=~"${instances:raw}"}
@@ -454,13 +472,15 @@ The `:regex` format matches InfluxQL regex filter expectations.
 
 ```
 
-Keep panel titles to plain `${var}` interpolation. Use documented format modifiers only in contexts that need them, such as `${instances:regex}` for regex matchers, `${instances:raw}` for prebuilt fragments, or `${search:percentencode}` for URLs.
+Keep panel titles to plain `${var}` interpolation.
+Use documented format modifiers only in contexts that need them, such as `${instances:regex}` for regex matchers, `${instances:raw}` for prebuilt fragments, or `${search:percentencode}` for URLs.
 
 ## Advanced Variable Patterns
 
 ### Cascading Variables
 
-Chain variables so that selecting one filters the options of another. Each downstream variable references upstream variables in its query.
+Chain variables so that selecting one filters the options of another.
+Each downstream variable references upstream variables in its query.
 
 ```json
 {
@@ -492,7 +512,9 @@ Chain variables so that selecting one filters the options of another. Each downs
 
 ```
 
-Set `refresh` to `1` on dependent variables as the normal chained-variable default when the query depends on upstream selections. Move to `2` only when the variable query also depends on the active time range. Refresh modes: `0`=never, `1`=on dashboard load, `2`=on time range change.
+Set `refresh` to `1` on dependent variables as the normal chained-variable default when the query depends on upstream selections.
+Move to `2` only when the variable query also depends on the active time range.
+Refresh modes: `0`=never, `1`=on dashboard load, `2`=on time range change.
 
 ### Interpolation in Panel Titles
 
@@ -530,7 +552,8 @@ Each repeating panel or row should use a single variable name in `repeat`:
 
 ```
 
-If you need a second dimension, compose the layout from supported pieces instead of comma-separating variable names in one `repeat` field. Common patterns are a repeated row for the outer variable with regular `${job}` interpolation inside panel titles and queries, or separate dashboards when the cartesian product would be too large.
+If you need a second dimension, compose the layout from supported pieces instead of comma-separating variable names in one `repeat` field.
+Common patterns are a repeated row for the outer variable with regular `${job}` interpolation inside panel titles and queries, or separate dashboards when the cartesian product would be too large.
 
 ### Variable Hiding Levels
 
@@ -553,7 +576,10 @@ Pattern: hide intermediate cascade variables that operators should not change in
 
 ## Complete Transformation Catalog
 
-Transformations reshape query results before rendering. They execute in array order; each transformation receives the output of the previous one. The common transformations are covered in [`../SKILL.md`](../SKILL.md). This section covers the full catalog.
+Transformations reshape query results before rendering.
+They execute in array order; each transformation receives the output of the previous one.
+The common transformations are covered in [`../SKILL.md`](../SKILL.md).
+This section covers the full catalog.
 
 ### Transformation Index
 
@@ -598,7 +624,8 @@ Left-join two data frames on a shared field value.
 
 ```
 
-All fields from both frames are included in the output. Rows from the left frame without a matching right-frame row keep null values for right-side fields.
+All fields from both frames are included in the output.
+Rows from the left frame without a matching right-frame row keep null values for right-side fields.
 
 #### Outer Join
 
@@ -616,7 +643,8 @@ Full outer join -- keeps all rows from both frames regardless of match.
 
 #### Labels to Fields
 
-Convert Prometheus label pairs into separate columns. Essential when working with instant queries that return label-based dimensions.
+Convert Prometheus label pairs into separate columns.
+Essential when working with instant queries that return label-based dimensions.
 
 ```json
 {
@@ -631,7 +659,8 @@ Output: columns `method`, `status`, `Value #A` with values `"GET"`, `"200"`, `42
 
 #### Extract Fields
 
-Parse structured string fields into sub-fields. Supports JSON and logfmt formats.
+Parse structured string fields into sub-fields.
+Supports JSON and logfmt formats.
 
 ```json
 {
@@ -644,7 +673,8 @@ Parse structured string fields into sub-fields. Supports JSON and logfmt formats
 
 ```
 
-Supported formats: `"json"`, `"logfmt"`. When format is `"json"`, nested objects create dot-delimited field names (e.g., `request.headers.user-agent`).
+Supported formats: `"json"`, `"logfmt"`.
+When format is `"json"`, nested objects create dot-delimited field names (e.g., `request.headers.user-agent`).
 
 #### Concatenate Fields
 
@@ -703,7 +733,8 @@ Apply printf-style formatting to a field's values.
 
 #### Config From Query Results
 
-Use one query's results to dynamically configure field properties (thresholds, units, etc.) for another query's output. Advanced pattern for self-configuring dashboards.
+Use one query's results to dynamically configure field properties (thresholds, units, etc.) for another query's output.
+Advanced pattern for self-configuring dashboards.
 
 ```json
 {

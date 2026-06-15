@@ -16,23 +16,32 @@ This directory contains versioned repository assets used by local agents and CI 
 
 ## Generated artifacts
 
-`docs/generated/` is a generated-artifact location. Valid contents include API snapshots, dependency inventories, build metadata, generated architecture maps, schema dumps, report outputs, or other reviewable outputs only when the project actually generates them.
+`docs/generated/` is a generated-artifact location.
+Valid contents include API snapshots, dependency inventories, build metadata, generated architecture maps, schema dumps, report outputs, or other reviewable outputs.
+Add them only when the project actually generates them.
 
-Keep `docs/generated/.gitkeep` only while the path has no real generated artifacts. Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
+Keep `docs/generated/.gitkeep` only while the path has no real generated artifacts.
+Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
 ## Optional seed files
 
-Seed files are replaceable project-starting context. Keep them only when they match the target repository, or replace them with project-specific context and evidence.
+Seed files are replaceable project-starting context.
+Keep them only when they match the target repository, or replace them with project-specific context and evidence.
 
 ## Development readiness
 
-The installed contract is sufficient to start and continue agent-guided development loops when each task has a concrete goal, relevant context, and an acceptance gate. It provides the agent contract, context directories, project agents, project skills, templates, two-stage Git hook validation, native validation adapters, and CI command patterns.
+The installed contract is sufficient to start and continue agent-guided development loops when each task has a concrete goal, relevant context, and an acceptance gate.
+It provides the agent contract, context directories, project agents, project skills, templates, two-stage Git hook validation, native validation adapters, and CI command patterns.
 
-The contract alone does not define product requirements, domain rules, architecture decisions, implementation source code, runtime configuration, secrets, or generated artifacts. For underspecified repositories, the first development task MUST populate the affected product spec, design doc, architecture note, and active execution plan before implementation proceeds.
+The contract alone does not define product requirements, domain rules, architecture decisions, implementation source code, runtime configuration, secrets, or generated artifacts.
+For underspecified repositories, the first development task MUST populate the affected product spec, design doc, architecture note, and active execution plan before implementation proceeds.
 
 ## Contract evolution
 
-The repository contract MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance. Treat the current committed contract files as the active contract. When the contract changes, update this directory, `CLAUDE.md`, validators, and templates that the change affects; record the evolution in the relevant `docs/exec-plans/` entry rather than in a separate log file.
+The repository contract MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance.
+Treat the current committed contract files as the active contract.
+When the contract changes, update this directory, `CLAUDE.md`, validators, and templates that the change affects.
+Record the evolution in the relevant `docs/exec-plans/` entry rather than in a separate log file.
 
 ## Template catalog
 
@@ -52,10 +61,19 @@ Run the selected stack validation command from the repository root:
 
 `{{validation_command}}`
 
-The generated `pre-commit` hook runs `{{validation_command}}`. The generated `pre-push` hook also runs the same command and should match CI when CI workflows are present.
-The selected stack validation command also runs Markdown validation. Bun uses its packaged `markdownlint-cli2` dependency; the other stack validators use `markdownlint-cli2` from PATH when it is installed. Markdown validation uses `.markdownlint-cli2.jsonc` plus the local custom rule at `docs/scripts/exec-plan-links.ts`, which rejects durable Markdown references to removable dated execution-plan state files. Durable references should point to `docs/exec-plans/tech-debt-tracker.md`, design docs, or product specs instead.
+The packaged `docs/git-hooks/` files are placeholders until installation renders active stack hooks.
+Active `pre-commit` runs `{{validation_command}}`.
+Active `pre-push` runs the stack-specific final check.
+CI workflows MUST run `{{validation_command}}` when they are present.
+The selected stack validation command also runs Markdown validation.
+Bun uses its packaged `markdownlint-cli2` dependency.
+The other stack validators use `markdownlint-cli2` from PATH when it is installed.
+Markdown validation uses `.markdownlint-cli2.jsonc` plus the local custom rule at `docs/scripts/exec-plan-links.ts`.
+That rule rejects durable Markdown references to removable dated execution-plan state files.
+Durable references should point to `docs/exec-plans/tech-debt-tracker.md`, design docs, or product specs instead.
 
-When `markdownlint-cli2` is not installed for non-Bun stacks, stack validation prints a warning and skips Markdown linting. Gradle, uv, and shell fix commands also run `markdownlint-cli2 --fix` when the tool is installed.
+When `markdownlint-cli2` is not installed for non-Bun stacks, stack validation prints a warning and skips Markdown linting.
+Gradle, uv, and shell fix commands also run `markdownlint-cli2 --fix` when the tool is installed.
 
 Native validation configuration is owned by the selected stack's tooling and shared repository conventions, such as `.editorconfig` and stack-specific build/tooling config.
 

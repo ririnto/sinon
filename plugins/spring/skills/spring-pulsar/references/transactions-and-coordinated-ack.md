@@ -4,7 +4,8 @@ Open this reference when grouped writes or acknowledgment coordination are requi
 
 ## Enabling transactions
 
-Transaction support is disabled by default. Enable with the Boot property.
+Transaction support is disabled by default.
+Enable with the Boot property.
 
 ```yaml
 spring:
@@ -23,7 +24,10 @@ pulsarTemplate.executeInTransaction(operations -> {
 });
 ```
 
-The callback receives the template instance. All operations are enlisted in the transaction. Normal exit commits; exception thrown rolls back.
+The callback receives the template instance.
+All operations are enlisted in the transaction.
+Normal exit commits.
+Exception thrown rolls back.
 
 ## Consume-process-produce shape
 
@@ -68,6 +72,9 @@ PulsarContainerFactoryCustomizer<ConcurrentPulsarListenerContainerFactory<?>> co
 ## Decision points
 
 - Use transactions only when grouped Pulsar writes or coordinated acknowledgment semantics are truly required.
-- Record listeners create a transaction per message; batch listeners create a transaction per batch. Batch ack mode cannot be used with transactional record listeners.
+- Record listeners create a transaction per message.
+  - Batch listeners create a transaction per batch.
+  - Batch ack mode cannot be used with transactional record listeners.
 - Transactional batch listeners do not support custom error handlers.
-- Use local transactions (`executeInTransaction`) for Pulsar-only operations. Use `PulsarTransactionManager` with `@Transactional` when combining Pulsar writes with other transactional resources.
+- Use local transactions (`executeInTransaction`) for Pulsar-only operations.
+  - Use `PulsarTransactionManager` with `@Transactional` when combining Pulsar writes with other transactional resources.

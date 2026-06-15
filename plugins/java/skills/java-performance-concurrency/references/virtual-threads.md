@@ -36,7 +36,8 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 }
 ```
 
-Scope-bounding virtual threads without a pool (Structured Concurrency API, preview through JDK 25 inclusive; JEP 505 is the fifth preview):
+Scope-bounding virtual threads without a pool (Structured Concurrency API, preview through JDK 25 inclusive.
+JEP 505 is the fifth preview):
 
 ```java
 import java.util.concurrent.StructuredTaskScope;
@@ -54,7 +55,12 @@ try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 
 > [!IMPORTANT]
 >
-> `StructuredTaskScope` is a preview API through JDK 25 (`JEP 505: Structured Concurrency (Fifth Preview)`). As of Java 25, Structured Concurrency is in JEP 505 (Fifth Preview); production use requires `--enable-preview`. Compile with `--enable-preview --release <n>` and accept that the API surface MAY still move before finalization. Call `scope.fork()` which returns `StructuredTaskScope.Subtask<T>`; read values only after `join()` (and `throwIfFailed()` when using `ShutdownOnFailure`) has returned.
+> `StructuredTaskScope` is a preview API through JDK 25 (`JEP 505: Structured Concurrency (Fifth Preview)`).
+> As of Java 25, Structured Concurrency is in JEP 505 (Fifth Preview).
+> Production use requires `--enable-preview`.
+> Compile with `--enable-preview --release <n>` and accept that the API surface MAY still move before finalization.
+> Call `scope.fork()` which returns `StructuredTaskScope.Subtask<T>`.
+> Read values only after `join()` (and `throwIfFailed()` when using `ShutdownOnFailure`) has returned.
 
 ScopedValue for immutable request context (preview on JDK 21-24, finalized in JDK 25):
 
@@ -83,7 +89,8 @@ synchronized (lock) {
 }
 ```
 
-Avoid broad `ThreadLocal` in virtual-thread workloads; use `ThreadLocal` only for thread-specific caches that tolerate per-task storage:
+Avoid broad `ThreadLocal` in virtual-thread workloads.
+Use `ThreadLocal` only for thread-specific caches that tolerate per-task storage:
 
 ```java
 static final ThreadLocal<int[]> buffer = ThreadLocal.withInitial(() -> new int[256]);
@@ -100,8 +107,10 @@ Caution: each virtual thread carries its own `ThreadLocal` copy, so broad reques
 
 ## Guidance
 
-Virtual threads are strongest when they reduce the cost of many blocking tasks. They are not a substitute for understanding contention, CPU saturation, or poor task boundaries.
+Virtual threads are strongest when they reduce the cost of many blocking tasks.
+They are not a substitute for understanding contention, CPU saturation, or poor task boundaries.
 
 - Prefer them for blocking-request or I/O-heavy workloads, not CPU-bound hot loops.
-- Audit `ThreadLocal` usage before migrating broad request flows; immutable request context may fit `ScopedValue` better when the baseline supports it cleanly.
+- Audit `ThreadLocal` usage before migrating broad request flows.
+  - Immutable request context may fit `ScopedValue` better when the baseline supports it cleanly.
 - Keep JFR and thread-dump evidence close to the decision so virtual threads are justified by measured blocking rather than novelty.

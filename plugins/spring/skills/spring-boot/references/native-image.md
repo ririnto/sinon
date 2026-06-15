@@ -20,7 +20,8 @@ When static GraalVM metadata is unavoidable, place it under `src/main/resources/
 
 ## Test strategy
 
-Keep ordinary tests JVM-first. Add native-specific verification only when the deployment target actually uses native images.
+Keep ordinary tests JVM-first.
+Add native-specific verification only when the deployment target actually uses native images.
 
 ## Gotchas
 

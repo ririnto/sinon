@@ -10,7 +10,9 @@ description: >-
 
 # Java Dependency Versioning
 
-Resolve Java dependency coordinates without hardcoding stale version numbers into durable guidance. The common case is confirming `groupId` and `artifactId` from the user's project, then emitting the smallest Maven or Gradle snippet with a repository-managed version reference or placeholder. When the user explicitly needs the current public release and network access is available, verify it from Maven Central as a separate online branch.
+Resolve Java dependency coordinates without hardcoding stale version numbers into durable guidance.
+The common case is confirming `groupId` and `artifactId` from the user's project, then emitting the smallest Maven or Gradle snippet with a repository-managed version reference or placeholder.
+When the user explicitly needs the current public release and network access is available, verify it from Maven Central as a separate online branch.
 
 ## Operating rules
 
@@ -131,7 +133,8 @@ implementation(platform("io.quarkus:quarkus-bom:${verifiedVersion}"))
 
 ## Online verification branch
 
-Open this branch only when the user explicitly needs a current public release and network access is available. Keep the ordinary path version-neutral when those conditions are not met.
+Open this branch only when the user explicitly needs a current public release and network access is available.
+Keep the ordinary path version-neutral when those conditions are not met.
 
 ### Coordinate verification request
 

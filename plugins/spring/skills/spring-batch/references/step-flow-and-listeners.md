@@ -1,10 +1,11 @@
 # Spring Batch step flow and listeners
 
-Open this reference when the task involves tasklets, listeners, or flow branching beyond the linear baseline in [SKILL.md](../SKILL.md).
+Open this reference when the task involves tasklets, listeners, or flow branching beyond the linear baseline in [`SKILL.md`](../SKILL.md).
 
 ## Tasklet versus chunk blocker
 
-Use chunk processing for item-oriented work. Use tasklets for one-shot actions such as archive, command, cleanup, or trigger steps.
+Use chunk processing for item-oriented work.
+Use tasklets for one-shot actions such as archive, command, cleanup, or trigger steps.
 
 ```java
 @Bean

@@ -63,7 +63,8 @@ Choose cursor versus paging based on transaction scope, memory profile, and rest
 
 ## JSON and Jackson 3 blocker
 
-Batch 6 aligns JSON support with newer Jackson baselines. Keep JSON reader and writer configuration on the same serialization stack as the rest of the application.
+Batch 6 aligns JSON support with newer Jackson baselines.
+Keep JSON reader and writer configuration on the same serialization stack as the rest of the application.
 
 ## Decision points
 

@@ -9,14 +9,16 @@ Use this reference when normal live-process `jcmd` diagnostics are not enough an
 
 ## What jhsdb Is For
 
-`jhsdb` is the HotSpot Serviceability Agent front end. Prefer it for:
+`jhsdb` is the HotSpot Serviceability Agent front end.
+Prefer it for:
 
 - crashed JVM core files
 - `--exe` + `--core` analysis
 - SA debugger workflows
 - remote SA debug-server flows
 
-Do not make it the default for normal live-process triage. Official docs warn that attaching `jhsdb` to a live process can hang the process and may crash it when the debugger detaches.
+Do not make it the default for normal live-process triage.
+Official docs warn that attaching `jhsdb` to a live process can hang the process and may crash it when the debugger detaches.
 
 ## Common Invocation Forms
 
@@ -41,7 +43,8 @@ jhsdb <subcommand> --connect host
 
 > [!WARNING]
 >
-> Remote SA debug-server flows are admin-only diagnostics. Keep them on trusted networks or behind SSH tunneling, never expose them to the public internet, and shut them down immediately after the investigation.
+> Remote SA debug-server flows are admin-only diagnostics.
+> Keep them on trusted networks or behind SSH tunneling, never expose them to the public internet, and shut them down immediately after the investigation.
 
 ## jhsdb jstack
 

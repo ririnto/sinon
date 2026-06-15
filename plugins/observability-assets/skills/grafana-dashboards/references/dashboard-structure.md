@@ -90,4 +90,5 @@ Source Jsonnet only changed:
 
 ```
 
-Use this reference for ownership boundaries, not for ordinary dashboard review. Normal decisions about variables, legends, thresholds, links, annotations, or panel readability stay in [`../SKILL.md`](../SKILL.md).
+Use this reference for ownership boundaries, not for ordinary dashboard review.
+Normal decisions about variables, legends, thresholds, links, annotations, or panel readability stay in [`../SKILL.md`](../SKILL.md).

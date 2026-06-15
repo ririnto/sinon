@@ -1,13 +1,14 @@
 ---
 name: your-skill-name
 description: >-
-  Write the imperative capability statement here. Use when the trigger clause
-  adds distinct task, artifact, system, or user-intent vocabulary.
+  Write the imperative capability statement here.
+  Use when the trigger clause adds distinct task, artifact, system, or user-intent vocabulary.
 ---
 
 # Your Skill Name
 
-State the outcome in one or two lines. Keep the ordinary path usable from this file alone.
+State the outcome in one or two lines.
+Keep the ordinary path usable from this file alone.
 
 ## Operating rules
 

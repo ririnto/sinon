@@ -42,7 +42,8 @@ jcmd <pid> GC.heap_dump heap.hprof
 
 > [!WARNING]
 >
-> Heap dumps are highly sensitive artifacts. Use a restricted destination path, handle transfer and retention as sensitive-data operations, and prefer histograms or JFR first when they can answer the question with lower disclosure risk.
+> Heap dumps are highly sensitive artifacts.
+> Use a restricted destination path, handle transfer and retention as sensitive-data operations, and prefer histograms or JFR first when they can answer the question with lower disclosure risk.
 
 Version-sensitive note:
 
@@ -51,7 +52,8 @@ Version-sensitive note:
 
 > [!WARNING]
 >
-> `GC.class_stats` was removed in JDK 15. Do not treat it as a modern default command.
+> `GC.class_stats` was removed in JDK 15.
+> Do not treat it as a modern default command.
 
 ## Native Memory Inspection
 
@@ -76,4 +78,5 @@ jcmd <pid> VM.native_memory summary.diff
 - effective user/group must match the target process
 - attach-based operation can be blocked by `-XX:+DisableAttachMechanism`
 - `jcmd <pid> help <command>` is the authoritative syntax source for that exact runtime
-- container and PID-namespace boundaries still matter; `jcmd -l` only shows JVMs visible from the current namespace and user context
+- container and PID-namespace boundaries still matter.
+  - `jcmd -l` only shows JVMs visible from the current namespace and user context

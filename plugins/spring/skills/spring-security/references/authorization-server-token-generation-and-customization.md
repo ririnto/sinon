@@ -1,6 +1,6 @@
 # Token generation and customization
 
-Open this reference when the minimal JWT customizer in [SKILL.md](../SKILL.md) is not enough and the blocker is token format, token-generator composition, or JWT or opaque-token claim customization.
+Open this reference when the minimal JWT customizer in [`SKILL.md`](../SKILL.md) is not enough and the blocker is token format, token-generator composition, or JWT or opaque-token claim customization.
 
 ## When to open
 
@@ -12,13 +12,15 @@ Open this reference when the minimal JWT customizer in [SKILL.md](../SKILL.md) i
 
 ## JWT vs opaque decision
 
-JWT format embeds claims in the token itself. Use JWT when:
+JWT format embeds claims in the token itself.
+Use JWT when:
 
 - The resource server can validate the signature directly.
 - Claims must be inspected without a database round-trip.
 - Token integrity must be verifiable offline.
 
-Opaque format requires a token introspection call. Use opaque when:
+Opaque format requires a token introspection call.
+Use opaque when:
 
 - Tokens must be revocable without signature change.
 - Token size must be minimal.
@@ -67,7 +69,8 @@ OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
 }
 ```
 
-Define this bean once. Spring Authorization Server wires it into the JWT generation path automatically.
+Define this bean once.
+Spring Authorization Server wires it into the JWT generation path automatically.
 
 ## Opaque-token claim customizer
 
@@ -82,7 +85,8 @@ OAuth2TokenCustomizer<OAuth2TokenClaimsContext> accessTokenCustomizer() {
 
 ## ID token customization
 
-ID tokens are generated only when OIDC is enabled. Customize them through the same `OAuth2TokenCustomizer<JwtEncodingContext>` by checking `OidcParameterNames.ID_TOKEN`.
+ID tokens are generated only when OIDC is enabled.
+Customize them through the same `OAuth2TokenCustomizer<JwtEncodingContext>` by checking `OidcParameterNames.ID_TOKEN`.
 
 ## Token lifetime settings
 

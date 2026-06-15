@@ -42,7 +42,8 @@ maven_assets=$root/skills/harness-install/assets/maven
 if [ -f "$maven_assets/.github/workflows/spotless.yaml" ]; then
     require_text "$maven_assets/.github/workflows/spotless.yaml" "root=\$(pwd -P)"
     require_text "$maven_assets/.github/workflows/spotless.yaml" 'git ls-files -- "*.java"'
-    require_text "$maven_assets/.github/workflows/spotless.yaml" 'Java path contains comma'
+    require_text "$maven_assets/.github/workflows/spotless.yaml" 'comma Java path'
+    require_text "$maven_assets/.github/workflows/spotless.yaml" 'escaped Java path'
     require_text "$maven_assets/.github/workflows/spotless.yaml" './mvnw validate -DspotlessFiles'
     require_text "$maven_assets/.github/workflows/spotless.yaml" 'spotlessFiles'
     reject_file_contains "$maven_assets/.github/workflows/spotless.yaml" './mvnw verify'
@@ -55,7 +56,8 @@ if [ -f "$maven_assets/.gitlab-ci.yml" ]; then
     require_text "$maven_assets/.gitlab-ci.yml" 'spotless:'
     require_text "$maven_assets/.gitlab-ci.yml" "root=\$(pwd -P)"
     require_text "$maven_assets/.gitlab-ci.yml" 'git ls-files -- "*.java"'
-    require_text "$maven_assets/.gitlab-ci.yml" 'Java path contains comma'
+    require_text "$maven_assets/.gitlab-ci.yml" 'comma Java path'
+    require_text "$maven_assets/.gitlab-ci.yml" 'escaped Java path'
     require_text "$maven_assets/.gitlab-ci.yml" './mvnw validate -DspotlessFiles'
     require_text "$maven_assets/.gitlab-ci.yml" 'spotlessFiles'
     reject_file_contains "$maven_assets/.gitlab-ci.yml" './mvnw verify'

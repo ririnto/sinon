@@ -1,6 +1,7 @@
 # Optional Product Spec Example
 
-This seed file is an optional example of where a target repository may document an onboarding flow. Replace it with a real product spec, rename it to a project-specific feature, or remove it when it does not apply.
+This seed file is an optional example of where a target repository may document an onboarding flow.
+Replace it with a real product spec, rename it to a project-specific feature, or remove it when it does not apply.
 
 ## Purpose
 
@@ -8,7 +9,8 @@ Show the shape a product spec takes under `docs/product-specs/`: target user, ac
 
 ## When To Update
 
-Update when the spec describes a feature whose scope, success criteria, or acceptance gate changes. Delete the file when the feature ships and is folded into general product documentation.
+Update when the spec describes a feature whose scope, success criteria, or acceptance gate changes.
+Delete the file when the feature ships and is folded into general product documentation.
 
 ## Required Evidence
 

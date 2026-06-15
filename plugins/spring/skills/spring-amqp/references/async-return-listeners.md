@@ -1,6 +1,6 @@
 # Async return listeners
 
-Open this reference when the ordinary listener path in [SKILL.md](../SKILL.md) is not enough and the blocker is asynchronous listener return handling.
+Open this reference when the ordinary listener path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is asynchronous listener return handling.
 
 ## Async return blocker
 

@@ -9,7 +9,8 @@ Open this file when the skill already has the right scope but `description` text
 
 ## Core rule
 
-The description is activation metadata. It should tell the loader when to use the skill, not summarize the whole workflow.
+The description is activation metadata.
+It should tell the loader when to use the skill, not summarize the whole workflow.
 
 ## Default pattern
 
@@ -17,7 +18,8 @@ The description is activation metadata. It should tell the loader when to use th
 [Imperative capability]. Use when [trigger conditions, user intents, file types, systems, or goals not already named in the capability].
 ```
 
-The trigger clause is optional. Include it only when it adds vocabulary distinct from the capability statement, such as artifact names, domain terms, timing cues, or alternate phrasing users commonly use.
+The trigger clause is optional.
+Include it only when it adds vocabulary distinct from the capability statement, such as artifact names, domain terms, timing cues, or alternate phrasing users commonly use.
 
 ## Examples
 

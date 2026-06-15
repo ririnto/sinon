@@ -1,18 +1,22 @@
 ---
 name: jvm-runtime-diagnostics
 description: >-
-  Triage JVM runtime incidents with stack traces, thread dumps, jcmd, JFR, and memory-pressure evidence. Use when diagnosing deadlocks, analyzing thread dumps, capturing JFR recordings, interpreting `jcmd` output, or classifying runtime symptoms as blocking, contention, memory pressure, or startup failure.
+  Triage JVM runtime incidents with stack traces, thread dumps, jcmd, JFR, and memory-pressure evidence.
+  Use when diagnosing deadlocks, analyzing thread dumps, capturing JFR recordings, interpreting `jcmd` output, or classifying runtime symptoms as blocking, contention, memory pressure, or startup failure.
 ---
 
 # JVM Runtime Diagnostics
 
 ## Goal
 
-Triage JVM runtime problems with standard JDK diagnostic tools and an evidence-first workflow. The common case is not "guess the root cause" but "collect the smallest next capture that reduces uncertainty". Prefer `jcmd` first for live JVMs, keep `jstack` and `jmap` as legacy or narrower-purpose tools, and reserve `jhsdb` for Serviceability Agent cases such as core dumps or deeper postmortem inspection.
+Triage JVM runtime problems with standard JDK diagnostic tools and an evidence-first workflow.
+The common case is not "guess the root cause" but "collect the smallest next capture that reduces uncertainty".
+Prefer `jcmd` first for live JVMs, keep `jstack` and `jmap` as legacy or narrower-purpose tools, and reserve `jhsdb` for Serviceability Agent cases such as core dumps or deeper postmortem inspection.
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and confirm runtime-specific command availability on the target JVM before assuming a newer flag or event exists.
 
-Treat JFR as the standard low-overhead path on JDK 11 and later. On JDK 8, do not assume JFR is ordinarily available: verify the exact Oracle JDK 8 commercial-feature and licensing posture before recommending `JFR.start` or `-XX:StartFlightRecording`, and prefer thread dumps plus other low-risk captures when that requirement is not clearly satisfied.
+Treat JFR as the standard low-overhead path on JDK 11 and later.
+On JDK 8, do not assume JFR is ordinarily available: verify the exact Oracle JDK 8 commercial-feature and licensing posture before recommending `JFR.start` or `-XX:StartFlightRecording`, and prefer thread dumps plus other low-risk captures when that requirement is not clearly satisfied.
 
 ## Common-Case Workflow
 
@@ -39,7 +43,9 @@ jcmd -l
 
 > [!NOTE]
 >
-> `jcmd -l` lists processes visible to the current user context. In container environments, process visibility may be restricted by namespace boundaries; ensure you are querying from the correct user or namespace context.
+> `jcmd -l` lists processes visible to the current user context.
+> In container environments, process visibility may be restricted by namespace boundaries.
+> Ensure you are querying from the correct user or namespace context.
 
 ## First Runnable Commands or Code Shape
 
@@ -80,7 +86,8 @@ Use when: the issue looks like blocking, deadlock, starvation, or lock contentio
 
 > [!WARNING]
 >
-> Thread dumps can contain thread names, stack traces, class names, and other runtime details that may expose request paths or internal system structure. Write thread dumps to a restricted diagnostics path rather than a shared working directory, and clean them up after analysis like other sensitive captures.
+> Thread dumps can contain thread names, stack traces, class names, and other runtime details that may expose request paths or internal system structure.
+> Write thread dumps to a restricted diagnostics path rather than a shared working directory, and clean them up after analysis like other sensitive captures.
 
 Low-overhead JFR start for a running JVM:
 
@@ -101,9 +108,11 @@ Use when: the problem happens during startup, very early request handling, or an
 
 > [!IMPORTANT]
 >
-> JFR recordings can contain stack traces, class names, request metadata, and other sensitive runtime details. Prefer a private diagnostics directory with restrictive permissions instead of a shared location such as `/tmp`, and clean up captures promptly after analysis.
+> JFR recordings can contain stack traces, class names, request metadata, and other sensitive runtime details.
+> Prefer a private diagnostics directory with restrictive permissions instead of a shared location such as `/tmp`, and clean up captures promptly after analysis.
 >
-> For JDK 8, treat JFR as a special-case workflow, not the default path. Verify that the target runtime and operational policy actually permit Flight Recorder before recommending these commands.
+> For JDK 8, treat JFR as a special-case workflow, not the default path.
+> Verify that the target runtime and operational policy actually permit Flight Recorder before recommending these commands.
 
 Heap-oriented escalation:
 
@@ -114,7 +123,8 @@ jcmd <pid> GC.class_histogram
 
 > [!NOTE]
 >
-> `GC.class_stats` was removed in JDK 15 and should not be treated as a current default diagnostic command. Use `GC.class_histogram` for heap class analysis on modern JVMs.
+> `GC.class_stats` was removed in JDK 15 and should not be treated as a current default diagnostic command.
+> Use `GC.class_histogram` for heap class analysis on modern JVMs.
 
 Use when: the symptom is memory growth, allocation pressure, or suspected heap retention.
 
@@ -149,7 +159,8 @@ Use when: you specifically need the standalone `jmap` form instead of the newer 
 
 > [!WARNING]
 >
-> Heap dumps are highly sensitive artifacts and can contain credentials, tokens, session state, and PII. Write them only to restricted paths, transfer them over approved secure channels, and delete them as soon as the investigation allows.
+> Heap dumps are highly sensitive artifacts and can contain credentials, tokens, session state, and PII.
+> Write them only to restricted paths, transfer them over approved secure channels, and delete them as soon as the investigation allows.
 
 Postmortem `jhsdb` core analysis:
 
@@ -172,7 +183,8 @@ jcmd <pid> JFR.check
 - `Thread.print -l` completes and produces thread state plus lock detail.
 - `JFR.check` confirms the recording name and `(running)` status before claiming JFR is active.
 - `GC.class_histogram` reflects the expected process, not the wrong PID.
-- `VM.native_memory` confirmed Native Memory Tracking was enabled at startup; comparing like-for-like captures.
+- `VM.native_memory` confirmed Native Memory Tracking was enabled at startup.
+  - Comparing like-for-like captures.
 
 Tool-choice checks (not validation commands, but decision rationale to confirm before deeper escalation):
 
@@ -187,7 +199,8 @@ Tool-choice checks (not validation commands, but decision rationale to confirm b
 12345 com.example.App /opt/app/app.jar
 ```
 
-Read: PID = 12345, main class = `com.example.App`, launch path = `/opt/app/app.jar`. Use this PID for all subsequent `jcmd <pid>` commands.
+Read: PID = 12345, main class = `com.example.App`, launch path = `/opt/app/app.jar`.
+Use this PID for all subsequent `jcmd <pid>` commands.
 
 If no JVMs appear, either no JVM is running, or the current user/namespace cannot see the target process.
 
@@ -247,7 +260,8 @@ G1 Heap:
    Old regions: 132
 ```
 
-Read: Total heap size vs free/young/old region distribution. If `Free regions` drops low during load, heap pressure exists.
+Read: Total heap size vs free/young/old region distribution.
+If `Free regions` drops low during load, heap pressure exists.
 
 ### `GC.class_histogram` Output (Top Lines)
 
@@ -260,7 +274,10 @@ num     #instances         #bytes  class name
     4:           5000      2400000  java.util.concurrent.ConcurrentHashMap$Node
 ```
 
-Read: rank → instance count → total bytes → class name. `[B` = byte arrays, `[L...;` = object arrays. Focus on top 5–10 classes by bytes; if a single application class dominates, investigate retention in that class.
+Read: rank → instance count → total bytes → class name.
+`[B` = byte arrays, `[L...;` = object arrays.
+Focus on top 5–10 classes by bytes.
+If a single application class dominates, investigate retention in that class.
 
 ### `VM.native_memory summary` Output
 
@@ -281,7 +298,8 @@ Total: reserved=1024MB, committed=512MB
 - Internationalization (committed=4MB)
 ```
 
-Read: If total committed approaches container limit but Java Heap is small, non-heap categories (Code, GC, Thread, Compiler) may be the real pressure source. `# of N threads` shows live thread count.
+Read: If total committed approaches container limit but Java Heap is small, non-heap categories (Code, GC, Thread, Compiler) may be the real pressure source.
+`# of N threads` shows live thread count.
 
 ### `JFR.check` Output
 
@@ -289,7 +307,8 @@ Read: If total committed approaches container limit but Java Heap is small, non-
 Recording 1: name=baseline maxage=6 h (running)
 ```
 
-Read: Match the recording `name`, confirm `(running)` before claiming the capture is active, and verify `maxage` matches the intended retention window. If the runtime also reports a destination or path, confirm it points to the restricted diagnostics location you intended.
+Read: Match the recording `name`, confirm `(running)` before claiming the capture is active, and verify `maxage` matches the intended retention window.
+If the runtime also reports a destination or path, confirm it points to the restricted diagnostics location you intended.
 
 ## References
 
@@ -325,10 +344,7 @@ Read: Match the recording `name`, confirm `(running)` before claiming the captur
 
 ## Scope Boundaries
 
-- Activate this skill for:
-  - stack trace and thread-dump interpretation
-  - choosing the next JVM runtime diagnostic command
-  - low-risk runtime evidence collection with `jcmd` and JFR
+- Activate this skill for: stack trace and thread-dump interpretation choosing the next JVM runtime diagnostic command low-risk runtime evidence collection with `jcmd` and JFR
 - Do not use this skill as the primary source for:
   - GC collector selection or GC logging strategy
   - Java language design or test-structure decisions

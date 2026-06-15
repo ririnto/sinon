@@ -2,7 +2,8 @@
 
 Open reference when the application is reactive and uses `WebSession` instead of servlet `HttpSession`.
 
-Keep the reactive runtime separate from the servlet runtime. Do not mix `HttpSession` terminology or servlet-only configuration into a `WebSession` path.
+Keep the reactive runtime separate from the servlet runtime.
+Do not mix `HttpSession` terminology or servlet-only configuration into a `WebSession` path.
 
 ## Reactive baseline
 
@@ -121,4 +122,5 @@ class WebFluxSessionFlowTest {
 - Do not reuse servlet `HttpSessionIdResolver` or servlet cookie APIs in a reactive path.
 - Do not assume a servlet-only logout or listener pattern applies to `WebSession`.
 - Do not block inside session serialization or persistence hooks.
-- Do not use `@EnableRedisHttpSession` or `@EnableRedisIndexedHttpSession` in a reactive application. Use `@EnableRedisWebSession` exclusively.
+- Do not use `@EnableRedisHttpSession` or `@EnableRedisIndexedHttpSession` in a reactive application.
+  - Use `@EnableRedisWebSession` exclusively.

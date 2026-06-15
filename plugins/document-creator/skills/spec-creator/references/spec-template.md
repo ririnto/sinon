@@ -1,8 +1,11 @@
-# System-Scale SPEC.md Template
+# System-Scale `SPEC.md` Template
 
-Open this reference when authoring a system-scale SPEC.md. System-scale applies to services, daemons, protocol implementations, agent runtimes, multi-component pipelines, or anything requiring a state machine, reference algorithms, or a conformance matrix. For feature-scale specifications, use the mini template inside `SKILL.md`.
+Open this reference when authoring a system-scale `SPEC.md`.
+System-scale applies to services, daemons, protocol implementations, agent runtimes, multi-component pipelines, or anything requiring a state machine, reference algorithms, or a conformance matrix.
+For feature-scale specifications, use the mini template inside `SKILL.md`.
 
-Copy the skeleton below, replace bracketed placeholders, and delete sections that do not apply. Keep sections in the numbered order shown; this order matches the Symphony specification structure and is optimized for reader understanding.
+Copy the skeleton below, replace bracketed placeholders, and delete sections that do not apply.
+Keep sections in the numbered order shown; this order matches the Symphony specification structure and is optimized for reader understanding.
 
 ````markdown
 ---
@@ -792,7 +795,7 @@ Conformance requirement:
 - Bracketed placeholders `[text]` indicate where content is inserted; remove brackets when filled.
 - Nested state transitions and retry formulas are shown as pseudocode in ` ```text ` fences.
 - Entity field tables show type, constraints, nullability, and usage.
-- Conformance tests are itemized by area and clearly mark which tests are REQUIRED vs. OPTIONAL/Extension.
+- Conformance tests are itemized by area and clearly mark which tests are REQUIRED versus OPTIONAL/Extension.
 
 ## Tailoring the Template
 
@@ -811,7 +814,7 @@ If the project is smaller than full system scale:
 
 If the project requires OPTIONAL extensions:
 
-- Add Appendix B, C, ... for each extension profile using the Appendix A pattern.
+- Add Appendix B, C, and later appendices for each extension profile using the Appendix A pattern.
 - Create sub-tables in Section 24 showing which tests apply to each extension.
 - Cross-link extension requirements from the main requirement sections using "IF [Extension] is implemented" notes.
 
@@ -820,5 +823,5 @@ If the project requires OPTIONAL extensions:
 If the spec grows beyond ~10,000 words:
 
 - Keep this document as the authoritative primary contract.
-- Create sub-specs for each integration surface (e.g., "Agent Runner Protocol SPEC.md") and link them by explicit reference (only permitted outside the generated spec).
+- Create sub-specs for each integration surface (e.g., "Agent Runner Protocol `SPEC.md`") and link them by explicit reference (only permitted outside the generated spec).
 - Ensure the primary spec is still readable without opening sub-specs.

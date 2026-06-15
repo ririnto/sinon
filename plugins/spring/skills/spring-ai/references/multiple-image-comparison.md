@@ -1,6 +1,6 @@
 # Multiple image comparison
 
-Open this reference when the ordinary vision path in [SKILL.md](../SKILL.md) is not enough and the blocker is comparing or cross-referencing several images in one request.
+Open this reference when the ordinary vision path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is comparing or cross-referencing several images in one request.
 
 ## Multiple image blocker
 

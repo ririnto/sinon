@@ -30,7 +30,8 @@ Use this reference to compare frontmatter patterns after the ordinary rules in `
 | `model` | behavior materially depends on a model choice | omit it |
 | `shell` | shell semantics change how the command should be interpreted | omit it |
 
-Copyable frontmatter examples for all four common patterns (minimal review, manual with arguments, hidden helper, path-scoped) are in `assets/command-frontmatter-patterns.md`. Use that file when you need a ready-to-copy starter block.
+Copyable frontmatter examples for all four common patterns (minimal review, manual with arguments, hidden helper, path-scoped) are in `assets/command-frontmatter-patterns.md`.
+Use that file when you need a ready-to-copy starter block.
 
 This reference covers decision guidance and one pattern not included in the asset file:
 
@@ -44,4 +45,5 @@ shell: zsh
 ---
 ```
 
-The `shell` field is needed only when the command semantics depend on a specific shell implementation. Omit it for commands that work correctly under the default host shell.
+The `shell` field is needed only when the command semantics depend on a specific shell implementation.
+Omit it for commands that work correctly under the default host shell.

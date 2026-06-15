@@ -1,6 +1,6 @@
 # Device authorization grant
 
-Open this reference when the ordinary browser-based authorization-code flow in [SKILL.md](../SKILL.md) is not enough and the blocker is the OAuth 2.0 Device Authorization Grant.
+Open this reference when the ordinary browser-based authorization-code flow in [`SKILL.md`](../SKILL.md) is not enough and the blocker is the OAuth 2.0 Device Authorization Grant.
 
 ## Device-flow blocker
 
@@ -13,7 +13,8 @@ device authorization: /oauth2/device_authorization
 device verification: /oauth2/device_verification
 ```
 
-Treat both endpoints as one feature. The client obtains a device code first, then the user completes approval on the verification endpoint.
+Treat both endpoints as one feature.
+The client obtains a device code first, then the user completes approval on the verification endpoint.
 
 ## Endpoint customization seam
 

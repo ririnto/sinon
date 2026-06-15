@@ -1,12 +1,15 @@
 ---
 name: review
 description: >-
-  Review target repository changes against installed repository contracts, docs, validation commands, and placeholder policy. Use this skill before merging changes that alter implementation, docs, generated artifacts, agents, skills, hooks, CI, or contract metadata.
+  Review target repository changes against installed repository contracts, docs, validation commands, and placeholder policy.
+  Use this skill before merging changes that alter implementation, docs, generated artifacts, agents, skills, hooks, CI, or contract metadata.
 ---
 
 # Review
 
-Review changes in this target repository against the installed contract. Findings come first; summaries are secondary.
+Review changes in this target repository against the installed contract.
+Findings come first.
+Summaries are secondary.
 
 ## First Safe Checks
 
@@ -29,7 +32,7 @@ Review changes in this target repository against the installed contract. Finding
 - Contract drift between `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, docs, and `docs/git-hooks/**`.
 - Missing acceptance criteria, execution plans, or architecture updates.
 - Required fake product content or obsolete seed references.
-- Inconsistent final check commands across docs, pre-push, and CI, or pre-commit violating its stack-specific hook contract.
+- Inconsistent validation commands across docs, CI, active pre-commit, and active pre-push final checks.
 - Target agents or skills with unclear trigger descriptions or unsupported scope.
 
 ## Output Contract

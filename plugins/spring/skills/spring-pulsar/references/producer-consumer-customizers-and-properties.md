@@ -37,7 +37,9 @@ ConsumerBuilderCustomizer<ShipmentEvent> shipmentConsumerCustomizer() {
 
 ## Producer caching
 
-The producer factory caches producers in an LRU fashion. Customizers are included in the cache key. Lambda customizers require careful handling because `equals`/`hashCode` for Lambdas depends on whether they share the same instance and whether they capture variables from outside their closure.
+The producer factory caches producers in an LRU fashion.
+Customizers are included in the cache key.
+Lambda customizers require careful handling because `equals`/`hashCode` for Lambdas depends on whether they share the same instance and whether they capture variables from outside their closure.
 
 ```java
 // Safe: inline Lambda with no external closure variables -- matches on cache key

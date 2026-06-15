@@ -4,7 +4,8 @@ Open this reference when the flow must run in a native image and adapter or refl
 
 ## AOT boundary
 
-Treat native support as an explicit branch. Verify each adapter, gateway proxy, and reflection-heavy component before assuming the flow is safe for a native image.
+Treat native support as an explicit branch.
+Verify each adapter, gateway proxy, and reflection-heavy component before assuming the flow is safe for a native image.
 
 ## Decision rules
 

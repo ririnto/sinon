@@ -32,7 +32,8 @@ pulsarTemplate.newMessage(schema)
 
 ## Custom schema mapping
 
-Three mechanisms are available for configuring default schema information per message type. Use the one that fits your configuration model.
+Three mechanisms are available for configuring default schema information per message type.
+Use the one that fits your configuration model.
 
 ### Configuration properties
 
@@ -49,7 +50,8 @@ spring:
             schema-type: AVRO
 ```
 
-The `message-type` is the fully-qualified class name. When configured, producers and consumers consult this mapping before falling back to the default schema inference.
+The `message-type` is the fully-qualified class name.
+When configured, producers and consumers consult this mapping before falling back to the default schema inference.
 
 ### Schema resolver customizer
 
@@ -96,7 +98,8 @@ void sendRaw(PulsarTemplate<byte[]> template, byte[] payload) {
 
 - Use JSON for the ordinary Spring-to-Spring path unless cross-language contracts require Avro, Protobuf, or native bytes.
 - Keep schema changes backward compatible while mixed producer and consumer versions coexist.
-- Use one object mapper policy per topic. Avoid silently mixing custom serializers.
+- Use one object mapper policy per topic.
+  - Avoid silently mixing custom serializers.
 
 ## When to customize
 

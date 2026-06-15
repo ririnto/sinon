@@ -1,7 +1,8 @@
 ---
 name: spring-modulith
 description: >-
-  Structure Spring Boot applications as explicit application modules with boundary verification, published module events, and module-interaction tests via Spring Modulith. Use when defining module boundaries, verifying encapsulation with the Modulith test runner, publishing events across modules, or configuring event publication mode.
+  Structure Spring Boot applications as explicit application modules with boundary verification, published module events, and module-interaction tests via Spring Modulith.
+  Use when defining module boundaries, verifying encapsulation with the Modulith test runner, publishing events across modules, or configuring event publication mode.
 ---
 
 # Spring Modulith
@@ -36,7 +37,8 @@ The ordinary Spring Modulith job is:
 | Events must be reliably forwarded to external systems | event outbox |
 | Domain reacts to calendar boundaries | Moments |
 
-Keep named interfaces small and intention-revealing. Prefer events over direct internal bean calls when the interaction does not need immediate synchronous coupling.
+Keep named interfaces small and intention-revealing.
+Prefer events over direct internal bean calls when the interaction does not need immediate synchronous coupling.
 
 When one module may depend on only specific neighbors, make that dependency rule explicit rather than relying on package conventions alone.
 
@@ -44,7 +46,8 @@ When one module may depend on only specific neighbors, make that dependency rule
 
 Import the BOM and use the core and test starters for the common path.
 
-The current GA Spring Modulith BOM is `2.1.0`. It is compiled against Spring Boot 4.1.x and tested against Boot 4.1.x.
+The current GA Spring Modulith BOM is `2.1.0`.
+It is compiled against Spring Boot 4.1.x and tested against Boot 4.1.x.
 
 ```xml
 <dependencyManagement>
@@ -106,7 +109,8 @@ class Application {
 }
 ```
 
-Use `@Modulithic` to enable runtime metadata, startup verification, and `ApplicationModuleInitializer` ordering. Set `systemName` for human-readable documentation names.
+Use `@Modulithic` to enable runtime metadata, startup verification, and `ApplicationModuleInitializer` ordering.
+Set `systemName` for human-readable documentation names.
 
 ### Boundary verification shape
 
@@ -138,7 +142,8 @@ class InventoryProjection {
 }
 ```
 
-Use `@ApplicationModuleListener` when the listener should clearly belong to the cross-module event boundary. The annotation is syntactic sugar for `@Transactional(propagation = REQUIRES_NEW) @TransactionalEventListener`.
+Use `@ApplicationModuleListener` when the listener should clearly belong to the cross-module event boundary.
+The annotation is syntactic sugar for `@Transactional(propagation = REQUIRES_NEW) @TransactionalEventListener`.
 
 ### Package declaration shape
 
@@ -156,7 +161,8 @@ Use these `package-info.java` declarations when the module boundary and the expo
 
 ### Module detection strategy
 
-By default, direct sub-packages of the main application class package are modules. Switch to explicit annotation only:
+By default, direct sub-packages of the main application class package are modules.
+Switch to explicit annotation only:
 
 ```properties
 spring.modulith.detection-strategy=explicitly-annotated
@@ -299,7 +305,8 @@ class DocumentationTests {
 }
 ```
 
-Generate C4 component diagrams, per-module diagrams, module canvases, and an aggregating Asciidoctor file. Output goes to `spring-modulith-docs` in the build folder by default.
+Generate C4 component diagrams, per-module diagrams, module canvases, and an aggregating Asciidoctor file.
+Output goes to `spring-modulith-docs` in the build folder by default.
 
 ## Testing checklist
 
@@ -319,10 +326,10 @@ Generate C4 component diagrams, per-module diagrams, module canvases, and an agg
 
 ## References
 
-- Open [references/named-interfaces.md](references/named-interfaces.md) when module exposure rules need explicit `allowedDependencies` or several named interface packages.
-- Open [references/scenario-tests.md](references/scenario-tests.md) when event-driven module tests need richer `Scenario` verification than the ordinary module test path.
-- Open [references/event-publication-registry.md](references/event-publication-registry.md) when module events must be tracked, replayed, or completed reliably after failures.
+- Open [references/named`-interfaces.md`](references/named-interfaces.md) when module exposure rules need explicit `allowedDependencies` or several named interface packages.
+- Open [references/scenario`-tests.md`](references/scenario-tests.md) when event-driven module tests need richer `Scenario` verification than the ordinary module test path.
+- Open [references/event`-publication-registry.md`](references/event-publication-registry.md) when module events must be tracked, replayed, or completed reliably after failures.
 - Open [references/moments.md](references/moments.md) when the application reacts to business-relevant time events such as day, week, or month boundaries.
-- Open [references/event-externalization.md](references/event-externalization.md) when module events must be published to external brokers (Kafka, AMQP, JMS) or forwarded via the outbox pattern (Namastack, JobRunr).
-- Open [references/documentation-generation.md](references/documentation-generation.md) when module arrangement diagrams and canvases must be generated for developer documentation.
-- Open [references/runtime-support.md](references/runtime-support.md) when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, observability, or change-aware test execution.
+- Open [references/event`-externalization.md`](references/event-externalization.md) when module events must be published to external brokers (Kafka, AMQP, JMS) or forwarded via the outbox pattern (Namastack, JobRunr).
+- Open [references/documentation`-generation.md`](references/documentation-generation.md) when module arrangement diagrams and canvases must be generated for developer documentation.
+- Open [references/runtime`-support.md`](references/runtime-support.md) when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, observability, or change-aware test execution.

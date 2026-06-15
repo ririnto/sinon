@@ -47,7 +47,9 @@ The repaired version adds these structural elements that were missing from the l
 - `## Ambiguity behavior` — Handles the missing-argument and out-of-scope cases explicitly.
 - `## Output contract` — States exactly what the response must contain.
 
-The full repaired body follows the canonical order documented in `../SKILL.md` under Command body order. Use that section as the template; this reference shows only the structural delta between broken and repaired shapes.
+The full repaired body follows the canonical order documented in `../SKILL.md` under Command body order.
+Use that section as the template.
+This reference shows only the structural delta between broken and repaired shapes.
 
 ### Multi-step command variant
 

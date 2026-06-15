@@ -22,7 +22,8 @@ final class SafeSinkContention {
 
 ## When contention indicates a design problem
 
-Contention on a safe sink usually means the producer side needs coordination, not a weaker sink. Prefer explicit synchronization or a single-emitter design before reaching for `Sinks.unsafe()`.
+Contention on a safe sink usually means the producer side needs coordination, not a weaker sink.
+Prefer explicit synchronization or a single-emitter design before reaching for `Sinks.unsafe()`.
 
 ```java
 import reactor.core.publisher.Sinks;
@@ -57,11 +58,13 @@ final class BusyLoopRetry {
 }
 ```
 
-The handler retries on `FAIL_NON_SERIALIZED` up to the specified duration before giving up. Use it only when contention windows are short and bounded.
+The handler retries on `FAIL_NON_SERIALIZED` up to the specified duration before giving up.
+Use it only when contention windows are short and bounded.
 
 ## `Sinks.unsafe()` boundary
 
-`Sinks.unsafe()` skips the internal serialized-access check. This is an optimization boundary, not a convenience API.
+`Sinks.unsafe()` skips the internal serialized-access check.
+This is an optimization boundary, not a convenience API.
 
 ```java
 import reactor.core.publisher.Sinks;

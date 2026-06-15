@@ -86,7 +86,8 @@ Authority extraction properties (`authorities-claim-name`, `authorities-claim-ex
 .oauth2ResourceServer(oauth2 -> oauth2.opaqueToken(Customizer.withDefaults()))
 ```
 
-Choose JWT when the issuer provides self-contained tokens. Use opaque token support when introspection is the real contract.
+Choose JWT when the issuer provides self-contained tokens.
+Use opaque token support when introspection is the real contract.
 
 ## Reactive testing with `WebTestClient`
 

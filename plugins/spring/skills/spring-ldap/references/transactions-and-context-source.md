@@ -25,9 +25,11 @@ class GroupMembershipService {
 }
 ```
 
-Compensating transactions are an advanced branch. Use them only when several LDAP modifications must succeed or roll back together.
+Compensating transactions are an advanced branch.
+Use them only when several LDAP modifications must succeed or roll back together.
 
-These are client-side compensating transactions, not true server-side LDAP transactions. The directory server itself is not aware of the rollback plan.
+These are client-side compensating transactions, not true server-side LDAP transactions.
+The directory server itself is not aware of the rollback plan.
 
 ## Context source tuning shape
 

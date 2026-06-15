@@ -4,7 +4,8 @@ Open this reference when the task requires a single authorization server to serv
 
 ## Official multitenancy posture
 
-The official Spring Authorization Server model is multiple issuers per host. The issuer path component acts as the tenant discriminator.
+The official Spring Authorization Server model is multiple issuers per host.
+The issuer path component acts as the tenant discriminator.
 
 Enable it like this:
 
@@ -14,7 +15,8 @@ AuthorizationServerSettings settings = AuthorizationServerSettings.builder()
     .build();
 ```
 
-Do not call `.issuer(...)` in this mode. An explicit issuer forces single-tenant behavior.
+Do not call `.issuer(...)` in this mode.
+An explicit issuer forces single-tenant behavior.
 
 ## Issuer-based component delegation
 
@@ -81,7 +83,8 @@ class TenantJWKSource implements JWKSource<SecurityContext> {
 }
 ```
 
-Keep database and Redis storage strategies in their own persistence references. This file is about issuer-scoped component delegation, not storage modeling.
+Keep database and Redis storage strategies in their own persistence references.
+This file is about issuer-scoped component delegation, not storage modeling.
 
 ## Decision points
 

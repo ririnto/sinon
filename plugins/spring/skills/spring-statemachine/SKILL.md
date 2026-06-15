@@ -1,7 +1,8 @@
 ---
 name: spring-statemachine
 description: >-
-  Model explicit application lifecycles with Spring Statemachine states, events, guards, actions, extended state, persistence, and state-machine tests. Use when defining state machine factories, configuring guards and actions on transitions, persisting machine state to a repository, or writing state-machine integration tests.
+  Model explicit application lifecycles with Spring Statemachine states, events, guards, actions, extended state, persistence, and state-machine tests.
+  Use when defining state machine factories, configuring guards and actions on transitions, persisting machine state to a repository, or writing state-machine integration tests.
 ---
 
 # Spring Statemachine
@@ -10,7 +11,9 @@ The current stable Spring Statemachine line is 4.0.2. Prefer the ordinary config
 
 > [!WARNING]
 >
-> Spring Statemachine ended open-source development after the 4.0.x line, alongside Spring Cloud Data Flow and Spring Cloud Deployer. Future releases are commercial-only and available only to Tanzu Spring customers. 4.0.2 is the last open-source release.
+> Spring Statemachine ended open-source development after the 4.0.x line, alongside Spring Cloud Data Flow and Spring Cloud Deployer.
+> Future releases are commercial-only and available only to Tanzu Spring customers.
+> 4.0.2 is the last open-source release.
 
 Spring Statemachine 4.0.2 requires Spring Boot 3.5.x and Spring Framework 6.2.x.
 
@@ -19,10 +22,13 @@ Spring Statemachine 4.0.2 requires Spring Boot 3.5.x and Spring Framework 6.2.x.
 Use `spring-statemachine` for finite-state lifecycle modeling where legal transitions matter and invalid event handling must be explicit.
 
 - Keep event transport and messaging infrastructure outside this skill's scope.
-- Keep business rules in guards and actions only when they are part of transition semantics. Broader domain logic should stay in application services.
+- Keep business rules in guards and actions only when they are part of transition semantics.
+  - Broader domain logic should stay in application services.
 - Keep pseudo states, regions, persistence, and factories out of the ordinary path unless the workflow truly needs them.
-- Keep reactive state-machine support out of the ordinary path. Open the reactive reference only when the application actually uses reactive guards, actions, or event handling.
-- Keep distributed coordination out of the ordinary path. Persistence does not imply a distributed machine, and a distributed machine is not the default solution for restart survival.
+- Keep reactive state-machine support out of the ordinary path.
+  - Open the reactive reference only when the application actually uses reactive guards, actions, or event handling.
+- Keep distributed coordination out of the ordinary path.
+  - Persistence does not imply a distributed machine, and a distributed machine is not the default solution for restart survival.
 - Keep `@WithStateMachine` context integration, `StateMachineInterceptor`, monitoring, and security out of the ordinary path unless those features are explicitly needed.
 
 ## Common path
@@ -58,7 +64,8 @@ The ordinary Spring Statemachine job is:
 
 ## Dependency baseline
 
-Use the BOM once and keep the Statemachine modules versionless underneath it. When Spring Boot already manages the same Statemachine line, keep the child artifacts versionless there too and only pin the BOM or module version when the example is intentionally overriding the managed line.
+Use the BOM once and keep the Statemachine modules versionless underneath it.
+When Spring Boot already manages the same Statemachine line, keep the child artifacts versionless there too and only pin the BOM or module version when the example is intentionally overriding the managed line.
 
 ```xml
 <dependencyManagement>
@@ -118,7 +125,8 @@ class OrderStateMachineConfig {
 }
 ```
 
-Start with one machine and one clear lifecycle. Add factories, persistence, pseudo states, or regions only when the workflow truly requires them.
+Start with one machine and one clear lifecycle.
+Add factories, persistence, pseudo states, or regions only when the workflow truly requires them.
 
 ## Coding procedure
 
@@ -134,7 +142,9 @@ Start with one machine and one clear lifecycle. Add factories, persistence, pseu
 
 ### Event dispatch
 
-In 4.0.x, `sendEvent` accepts `Mono<Message<E>>` and returns `Flux<StateMachineEventResult<S, E>>`. Nothing happens until the returned Flux is subscribed. Build events with `MessageBuilder`.
+In 4.0.x, `sendEvent` accepts `Mono<Message<E>>` and returns `Flux<StateMachineEventResult<S, E>>`.
+Nothing happens until the returned Flux is subscribed.
+Build events with `MessageBuilder`.
 
 ```java
 Message<Events> message = MessageBuilder
@@ -193,7 +203,8 @@ transitions.withInternal()
 
 ### Deferred events
 
-States can defer events for later processing. When the machine enters a state that does not defer the event, previously deferred events are replayed.
+States can defer events for later processing.
+When the machine enters a state that does not defer the event, previously deferred events are replayed.
 
 ```java
 states.withStates()
@@ -245,9 +256,9 @@ transitions.withExternal()
 
 ## Edge cases
 
-- Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) when one singleton machine must become many machine instances, persistence is enabled, or region modeling enters the design.
-- Open [references/pseudo-states.md](references/pseudo-states.md) when branching semantics go beyond guarded external transitions.
-- Open [references/reactive-support.md](references/reactive-support.md) when actions, guards, or event dispatch must stay reactive end to end.
+- Open [references/when`-single-machine-lifecycle-is-not-enough.md`](references/when-single-machine-lifecycle-is-not-enough.md) when one singleton machine must become many machine instances, persistence is enabled, or region modeling enters the design.
+- Open [references/pseudo`-states.md`](references/pseudo-states.md) when branching semantics go beyond guarded external transitions.
+- Open [references/reactive`-support.md`](references/reactive-support.md) when actions, guards, or event dispatch must stay reactive end to end.
 
 ## Implementation examples
 
@@ -393,11 +404,12 @@ Return:
 - Make transition side effects idempotent or compensate for duplicate delivery.
 - Persist state only when restart or multi-node continuity is actually required.
 - Keep extended state small and serializable when the machine is persisted.
-- When using Kryo-based persistence (e.g. `RedisStateMachineContextRepository`), configure a class allowlist to prevent arbitrary class deserialization.
+- When using Kryo-based persistence (e.g.
+  - `RedisStateMachineContextRepository`), configure a class allowlist to prevent arbitrary class deserialization.
 - Treat state-machine tests as part of the lifecycle compatibility surface.
 
 ## References
 
-- Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) when the ordinary single-machine lifecycle is not enough and the task needs factories, persistence, regions, or deeper testing patterns.
-- Open [references/pseudo-states.md](references/pseudo-states.md) when branching needs explicit choice, junction, fork, join, or history modeling.
-- Open [references/reactive-support.md](references/reactive-support.md) when the machine must stay reactive.
+- Open [references/when`-single-machine-lifecycle-is-not-enough.md`](references/when-single-machine-lifecycle-is-not-enough.md) when the ordinary single-machine lifecycle is not enough and the task needs factories, persistence, regions, or deeper testing patterns.
+- Open [references/pseudo`-states.md`](references/pseudo-states.md) when branching needs explicit choice, junction, fork, join, or history modeling.
+- Open [references/reactive`-support.md`](references/reactive-support.md) when the machine must stay reactive.

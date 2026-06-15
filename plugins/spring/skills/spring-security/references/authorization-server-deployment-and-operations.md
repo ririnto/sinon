@@ -13,11 +13,12 @@ Open this reference when the task involves:
 - Token expiration tuning and refresh strategy
 - Health endpoints and operational monitoring
 - TLS termination and secure cookie settings
-- Restart continuity or clustered deployment is blocked by persistence choices already modeled in [authorization-server-jpa-persistence.md](authorization-server-jpa-persistence.md) or [authorization-server-redis-persistence.md](authorization-server-redis-persistence.md)
+- Restart continuity or clustered deployment is blocked by persistence choices already modeled in [`authorization-server-jpa-persistence.md`](authorization-server-jpa-persistence.md) or [`authorization-server-redis-persistence.md`](authorization-server-redis-persistence.md)
 
 ## Issuer URL stability
 
-The issuer URL must be stable and externally consistent. Clients resolve the authorization server by its issuer identifier.
+The issuer URL must be stable and externally consistent.
+Clients resolve the authorization server by its issuer identifier.
 
 ### Issuer URL configuration
 
@@ -33,7 +34,8 @@ The issuer URL must match exactly what clients use to discover the provider, inc
 
 ### Trailing slash rule
 
-If clients use `https://auth.example.com` without a trailing slash, the server must present the same URL. Adding or removing a trailing slash breaks client discovery.
+If clients use `https://auth.example.com` without a trailing slash, the server must present the same URL.
+Adding or removing a trailing slash breaks client discovery.
 
 ## Key protection
 
@@ -50,7 +52,8 @@ JWKSource<SecurityContext> jwkSource() {
 }
 ```
 
-This works for single-instance deployments only. Multiple instances must share key material through an external store.
+This works for single-instance deployments only.
+Multiple instances must share key material through an external store.
 
 ### Shared key source for multi-instance deployments
 
@@ -87,7 +90,8 @@ JWKSource<SecurityContext> jwkSource() {
 }
 ```
 
-Keep the old key active until the rotation window closes. The `kid` in the token header tells clients which key to use.
+Keep the old key active until the rotation window closes.
+The `kid` in the token header tells clients which key to use.
 
 ## Reverse proxy concerns
 
@@ -100,7 +104,8 @@ server:
   forward-headers-strategy: native
 ```
 
-Use `forward-headers-strategy: native` when the runtime or proxy already provides standard forwarded-header support. Switch to `forward-headers-strategy: framework` only when native support is not enough for the deployment.
+Use `forward-headers-strategy: native` when the runtime or proxy already provides standard forwarded-header support.
+Switch to `forward-headers-strategy: framework` only when native support is not enough for the deployment.
 
 ### Required forwarded headers
 
@@ -134,7 +139,8 @@ server:
     enabled: true
 ```
 
-Require HTTPS in production. The authorization endpoint redirects clients; an unencrypted channel exposes the authorization code to interception.
+Require HTTPS in production.
+The authorization endpoint redirects clients; an unencrypted channel exposes the authorization code to interception.
 
 ### Secure cookie settings
 
@@ -152,7 +158,8 @@ server:
 
 ### Token endpoint security
 
-The token endpoint should accept only POST with form-encoded bodies. Ensure the security filter chain does not permit GET requests to `/oauth2/token`.
+The token endpoint should accept only POST with form-encoded bodies.
+Ensure the security filter chain does not permit GET requests to `/oauth2/token`.
 
 ## Operational endpoints
 
@@ -170,7 +177,8 @@ class HealthController {
 
 ### Token introspection and UserInfo operational check
 
-The introspection endpoint and OIDC UserInfo endpoint are part of the provider contract. Verify that they are enabled only when needed and exercised in deployment tests.
+The introspection endpoint and OIDC UserInfo endpoint are part of the provider contract.
+Verify that they are enabled only when needed and exercised in deployment tests.
 
 - Introspection matters when relying parties or resource servers need remote token liveness checks.
 - OIDC UserInfo becomes active when OIDC support is enabled.

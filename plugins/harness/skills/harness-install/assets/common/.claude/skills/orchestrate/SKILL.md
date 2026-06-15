@@ -1,12 +1,14 @@
 ---
 name: orchestrate
 description: >-
-  Coordinate target repository work through the installed repository lifecycle. Use this skill when planning or sequencing work that must read CLAUDE.md, update project context, delegate implementation/review, and finish with the stack-specific validator.
+  Coordinate target repository work through the installed repository lifecycle.
+  Use this skill when planning or sequencing work that must read `CLAUDE.md`, update project context, delegate implementation/review, and finish with the stack-specific validator.
 ---
 
 # Orchestrate
 
-Plan and coordinate work inside this target repository using the installed contract. This target skill is local to the repository after installation; plugin skills remain responsible for installing, validating, or evolving the package itself.
+Plan and coordinate work inside this target repository using the installed contract.
+This target skill is local to the repository after installation; plugin skills remain responsible for installing, validating, or evolving the package itself.
 
 ## First Safe Checks
 

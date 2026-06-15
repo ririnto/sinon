@@ -20,7 +20,8 @@ PagedModel<OrderModel> all(Pageable pageable) {
 }
 ```
 
-Inject `PagedResourcesAssembler<Order>` into the controller path that already returns a `Page<Order>`. Keep item link generation inside the ordinary assembler so paged navigation and item links stay aligned.
+Inject `PagedResourcesAssembler<Order>` into the controller path that already returns a `Page<Order>`.
+Keep item link generation inside the ordinary assembler so paged navigation and item links stay aligned.
 
 ## Paged response shape
 

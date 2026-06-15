@@ -1,7 +1,8 @@
 ---
 name: spring-framework
 description: >-
-  Apply core Spring Framework 7.x APIs for the container, Java configuration, bean lifecycle, transactions, events, validation, scheduling, async, resilience, servlet MVC, WebFlux, WebClient, and TestContext support. Use when configuring `@Configuration` classes, managing bean scopes and lifecycle callbacks, setting up declarative transaction boundaries, enabling `@Retryable` resilience, API versioning, programmatic bean registration, or wiring `WebFlux` and `WebClient` without Boot autoconfiguration.
+  Apply core Spring Framework 7.x APIs for the container, Java configuration, bean lifecycle, transactions, events, validation, scheduling, async, resilience, servlet MVC, WebFlux, WebClient, and TestContext support.
+  Use when configuring `@Configuration` classes, managing bean scopes and lifecycle callbacks, setting up declarative transaction boundaries, enabling `@Retryable` resilience, API versioning, programmatic bean registration, or wiring `WebFlux` and `WebClient` without Boot autoconfiguration.
 ---
 
 # Spring Framework
@@ -23,7 +24,8 @@ Spring Framework 7.0.8 requires:
 - Netty 4.2 for reactive stacks
 - GraalVM 25 for native-image support
 
-Only `jakarta.annotation` and `jakarta.inject` annotations are supported. `javax.annotation` and `javax.inject` are no longer recognized.
+Only `jakarta.annotation` and `jakarta.inject` annotations are supported.
+`javax.annotation` and `javax.inject` are no longer recognized.
 
 ## Spring Framework 7.0 API changes
 
@@ -126,7 +128,8 @@ class AppConfig {
 }
 ```
 
-Prefer constructor injection and explicit bean graphs. Start with explicit `@Bean` wiring before reaching for broader framework indirection.
+Prefer constructor injection and explicit bean graphs.
+Start with explicit `@Bean` wiring before reaching for broader framework indirection.
 
 ### Programmatic bean registration
 
@@ -142,11 +145,13 @@ class ServiceBeanRegistrar implements BeanRegistrar {
 }
 ```
 
-Declare via `@Configuration` import or `ImportRegistrar`. Use this only when standard `@Bean` methods cannot express the needed registration logic.
+Declare via `@Configuration` import or `ImportRegistrar`.
+Use this only when standard `@Bean` methods cannot express the needed registration logic.
 
 ### Proxy configuration
 
-Spring Framework 7.0 defaults all proxy processors (including `@Async`) to CGLIB proxies, matching Spring Boot behavior. Opt out for individual beans with `@Proxyable`:
+Spring Framework 7.0 defaults all proxy processors (including `@Async`) to CGLIB proxies, matching Spring Boot behavior.
+Opt out for individual beans with `@Proxyable`:
 
 ```java
 @Bean
@@ -156,7 +161,7 @@ PaymentService paymentService() {
 }
 ```
 
-Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the task needs a custom scope, container extension point, or clarification of `@Configuration` lite mode.
+Open [references/container`-extension-scopes.md`](references/container-extension-scopes.md) when the task needs a custom scope, container extension point, or clarification of `@Configuration` lite mode.
 
 ## Environment, profiles, and resources
 
@@ -191,7 +196,8 @@ String value = ctx.getEnvironment().getProperty("db.url");
 Resource resource = ctx.getResource("classpath:data.json");
 ```
 
-Use the environment to externalize configuration and profiles to control which beans or configurations are active. Keep resource loading explicit when the application needs files from the classpath or filesystem.
+Use the environment to externalize configuration and profiles to control which beans or configurations are active.
+Keep resource loading explicit when the application needs files from the classpath or filesystem.
 
 ## Bean scopes
 
@@ -209,7 +215,9 @@ MyPrototypeBean prototypeBean() {
 }
 ```
 
-Use singleton by default. Reach for prototype only when the lifecycle difference genuinely matters. Web-specific scopes belong to web-focused configurations rather than the ordinary framework-core path.
+Use singleton by default.
+Reach for prototype only when the lifecycle difference genuinely matters.
+Web-specific scopes belong to web-focused configurations rather than the ordinary framework-core path.
 
 ## Bean lifecycle
 
@@ -248,7 +256,8 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent> {
 }
 ```
 
-Use lifecycle hooks only when initialization or shutdown semantics genuinely matter. Prefer one lifecycle style consistently instead of mixing `@PostConstruct` / `@PreDestroy` with `initMethod` / `destroyMethod` in the same component graph.
+Use lifecycle hooks only when initialization or shutdown semantics genuinely matter.
+Prefer one lifecycle style consistently instead of mixing `@PostConstruct` / `@PreDestroy` with `initMethod` / `destroyMethod` in the same component graph.
 
 ## Application events
 
@@ -280,9 +289,10 @@ class OrderNotificationListener implements ApplicationListener<OrderPlacedEvent>
 }
 ```
 
-Use application events for genuinely decoupled follow-up work, not as a substitute for basic method calls. Keep event classes immutable and scoped to the application package.
+Use application events for genuinely decoupled follow-up work, not as a substitute for basic method calls.
+Keep event classes immutable and scoped to the application package.
 
-Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the task depends on ordered listeners, `@EventListener` conditions, or lower-level listener infrastructure.
+Open [references/container`-extension-scopes.md`](references/container-extension-scopes.md) when the task depends on ordered listeners, `@EventListener` conditions, or lower-level listener infrastructure.
 
 ## Data binding and conversion
 
@@ -307,7 +317,8 @@ class AppConfig {
 }
 ```
 
-Use `DataBinder` when the framework must bind incoming values onto an object. Add custom converters only when the framework does not provide the needed conversion.
+Use `DataBinder` when the framework must bind incoming values onto an object.
+Add custom converters only when the framework does not provide the needed conversion.
 
 ### SpEL expressions
 
@@ -318,7 +329,8 @@ SpEL supports null-safe operations and Elvis-operator unwrapping on `Optional` t
 String customerName;
 ```
 
-SpEL expression evaluation is capped at 10,000 operations by default (Spring Framework 7.0.8). Override via `SpelParserConfiguration(maxOperations, ...)` or the property `spring.expression.maxOperations`.
+SpEL expression evaluation is capped at 10,000 operations by default (Spring Framework 7.0.8).
+Override via `SpelParserConfiguration(maxOperations, ...)` or the property `spring.expression.maxOperations`.
 
 ## Validation
 
@@ -337,11 +349,13 @@ class TransferService {
 }
 ```
 
-Validate at the boundary where input enters the application. Use standard Bean Validation annotations (`@NotNull`, `@NotBlank`, `@Size`, `@Min`, `@Max`) on input objects, and register method-validation infrastructure explicitly when service-layer method validation is part of the ordinary path.
+Validate at the boundary where input enters the application.
+Use standard Bean Validation annotations (`@NotNull`, `@NotBlank`, `@Size`, `@Min`, `@Max`) on input objects, and register method-validation infrastructure explicitly when service-layer method validation is part of the ordinary path.
 
 ## Servlet MVC
 
-Enable the MVC infrastructure with a configuration class and a `DispatcherServlet` registration, or let a servlet container initializer wire both together. The controller examples below assume the infrastructure is already in place and focus on controller shape.
+Enable the MVC infrastructure with a configuration class and a `DispatcherServlet` registration, or let a servlet container initializer wire both together.
+The controller examples below assume the infrastructure is already in place and focus on controller shape.
 
 ```java
 @Configuration
@@ -394,11 +408,13 @@ class ApiExceptionHandler {
 }
 ```
 
-Keep controllers thin: delegate all logic to services. Use `@RestControllerAdvice` as a single exception boundary rather than scattering `try/catch` blocks across controllers.
+Keep controllers thin: delegate all logic to services.
+Use `@RestControllerAdvice` as a single exception boundary rather than scattering `try/catch` blocks across controllers.
 
 ### API versioning
 
-Spring MVC and WebFlux provide first-class API versioning. Resolve versions from URI path, header, or parameter, and mark changed versions:
+Spring MVC and WebFlux provide first-class API versioning.
+Resolve versions from URI path, header, or parameter, and mark changed versions:
 
 ```java
 @RestController
@@ -411,7 +427,8 @@ class OrderController {
 }
 ```
 
-On the client side, set the API version on `RestClient` and `WebClient` requests. `MockMvc` and `WebTestClient` also support versioning assertions.
+On the client side, set the API version on `RestClient` and `WebClient` requests.
+`MockMvc` and `WebTestClient` also support versioning assertions.
 
 ### HTTP interface clients
 
@@ -430,7 +447,8 @@ static class HttpServicesConfiguration extends AbstractHttpServiceRegistrar {
 
 ### Message converter configuration
 
-Override `WebMvcConfigurer.configureMessageConverters(List<HttpMessageConverter<?>>)` to register converters explicitly. Spring Framework 7 ships a Jackson 3 `JacksonJsonHttpMessageConverter`:
+Override `WebMvcConfigurer.configureMessageConverters(List<HttpMessageConverter<?>>)` to register converters explicitly.
+Spring Framework 7 ships a Jackson 3 `JacksonJsonHttpMessageConverter`:
 
 ```java
 @Override
@@ -441,7 +459,8 @@ public void configureMessageConverters(List<HttpMessageConverter<?>> converters)
 
 ## Reactive HTTP
 
-Add `spring-webflux` and use annotated controllers returning `Mono` and `Flux`. The examples below assume WebFlux infrastructure is already configured and focus on controller shape.
+Add `spring-webflux` and use annotated controllers returning `Mono` and `Flux`.
+The examples below assume WebFlux infrastructure is already configured and focus on controller shape.
 
 ```java
 @RestController
@@ -481,7 +500,8 @@ Mono<ResponseEntity<ErrorResponse>> handleNotFound(ItemNotFoundException ex) {
 }
 ```
 
-Keep operator chains short. Return early by flatMapping into the service rather than blocking.
+Keep operator chains short.
+Return early by flatMapping into the service rather than blocking.
 
 ## WebClient
 
@@ -526,9 +546,10 @@ Mono<Order> order = client.get()
 
 Use `bodyToFlux` for streaming responses and `ExchangeStrategies` when the default codec buffer limit needs adjustment.
 
-Keep client configuration explicit. Centralize base URL and default headers in the bean definition rather than scattering them across call sites.
+Keep client configuration explicit.
+Centralize base URL and default headers in the bean definition rather than scattering them across call sites.
 
-Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when the task needs client filters, Reactor Netty-specific timeouts, retry behavior, or deeper reactive-chain patterns.
+Open [references/webclient`-reactive-depth.md`](references/webclient-reactive-depth.md) when the task needs client filters, Reactor Netty-specific timeouts, retry behavior, or deeper reactive-chain patterns.
 
 ## Transaction boundary
 
@@ -560,11 +581,13 @@ class TransferService {
 }
 ```
 
-Keep transaction boundaries on service methods that own one business unit of work. Avoid transactions that span multiple unrelated operations.
+Keep transaction boundaries on service methods that own one business unit of work.
+Avoid transactions that span multiple unrelated operations.
 
 ## Resilience
 
-Spring Framework 7.0 includes built-in retry support in `spring-core`, replacing standalone Spring Retry for most use cases. Enable with `@EnableResilientMethods`:
+Spring Framework 7.0 includes built-in retry support in `spring-core`, replacing standalone Spring Retry for most use cases.
+Enable with `@EnableResilientMethods`:
 
 ```java
 @Configuration
@@ -585,7 +608,8 @@ class OrderClient {
 }
 ```
 
-`@Retryable` automatically adapts to reactive return types (`Mono`, `Flux`), decorating the pipeline with Reactor's retry capabilities. Imperative methods use `RetryTemplate` under the hood.
+`@Retryable` automatically adapts to reactive return types (`Mono`, `Flux`), decorating the pipeline with Reactor's retry capabilities.
+Imperative methods use `RetryTemplate` under the hood.
 
 ### `RetryTemplate`
 
@@ -613,7 +637,9 @@ class ResourceConsumer {
 }
 ```
 
-Use `@Retryable` on methods that call external services prone to transient failure. Use `@ConcurrencyLimit` when a shared resource has a hard concurrency ceiling. Combine both annotations on the same method when the application needs both retry and throttling.
+Use `@Retryable` on methods that call external services prone to transient failure.
+Use `@ConcurrencyLimit` when a shared resource has a hard concurrency ceiling.
+Combine both annotations on the same method when the application needs both retry and throttling.
 
 ## Plain JDBC and DataSource
 
@@ -634,7 +660,8 @@ class DataConfig {
 }
 ```
 
-Use `DriverManagerDataSource` or `SimpleDriverDataSource` only for testing and stand-alone environments. Pair plain Spring JDBC with a real pool such as HikariCP or Apache DBCP2 when the application manages its own production data source.
+Use `DriverManagerDataSource` or `SimpleDriverDataSource` only for testing and stand-alone environments.
+Pair plain Spring JDBC with a real pool such as HikariCP or Apache DBCP2 when the application manages its own production data source.
 
 ### JdbcTemplate wiring
 
@@ -681,7 +708,9 @@ void insertBatch(List<Item> items) {
 }
 ```
 
-Keep JDBC templates as the data-access primitive when the application needs plain SQL without an ORM layer. Use `NamedParameterJdbcTemplate` when named parameters improve readability over positional `?` placeholders. Use `JdbcClient` (from Spring Framework 6.1+) for a fluent alternative that supports statement-level settings such as fetch size, max rows, and query timeout:
+Keep JDBC templates as the data-access primitive when the application needs plain SQL without an ORM layer.
+Use `NamedParameterJdbcTemplate` when named parameters improve readability over positional `?` placeholders.
+Use `JdbcClient` (from Spring Framework 6.1+) for a fluent alternative that supports statement-level settings such as fetch size, max rows, and query timeout:
 
 ```java
 List<Item> items = jdbcClient.sql("SELECT id, name, quantity FROM items")
@@ -690,7 +719,7 @@ List<Item> items = jdbcClient.sql("SELECT id, name, quantity FROM items")
     .list((rs, rowNum) -> new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity")));
 ```
 
-Open [references/plain-jdbc-wiring.md](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
+Open [references/plain`-jdbc-wiring.md`](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
 
 ## Async and scheduling
 
@@ -718,7 +747,9 @@ class InventoryNotifier {
 }
 ```
 
-Use `@EnableAsync` to activate framework-managed async execution. The default `SimpleAsyncTaskExecutor` creates a new thread per call. Register a custom `TaskExecutor` bean when pooled thread behavior, queue depth, or naming strategy matters.
+Use `@EnableAsync` to activate framework-managed async execution.
+The default `SimpleAsyncTaskExecutor` creates a new thread per call.
+Register a custom `TaskExecutor` bean when pooled thread behavior, queue depth, or naming strategy matters.
 
 ### Enable scheduling
 
@@ -740,7 +771,8 @@ class InventoryCleanup {
 }
 ```
 
-Use `@EnableScheduling` to activate framework-scheduled tasks. Keep scheduled jobs idempotent and document the cron expression.
+Use `@EnableScheduling` to activate framework-scheduled tasks.
+Keep scheduled jobs idempotent and document the cron expression.
 
 ### Executor registration pointers
 
@@ -764,25 +796,31 @@ TaskExecutor threadPoolTaskExecutor() {
 }
 ```
 
-Open [references/async-executor-registration.md](references/async-executor-registration.md) when the task needs async exception handling, completion coordination with `Future` / `CompletableFuture`, or custom `TaskDecorator` for ThreadLocal propagation.
+Open [references/async`-executor-registration.md`](references/async-executor-registration.md) when the task needs async exception handling, completion coordination with `Future` / `CompletableFuture`, or custom `TaskDecorator` for ThreadLocal propagation.
 
-Do not stack `@Async` and `@Scheduled` on the same method casually. Treat that combination as a proxy and executor design decision rather than ordinary scheduling. Separate concerns into distinct methods when both behaviors are needed.
+Do not stack `@Async` and `@Scheduled` on the same method casually.
+Treat that combination as a proxy and executor design decision rather than ordinary scheduling.
+Separate concerns into distinct methods when both behaviors are needed.
 
 ## Cache and AOT escalation
 
 Use `@EnableCaching` only when the task explicitly needs framework-managed cache annotations and the cache boundary is clear.
 
-Treat AOT and native-image hints as an escalation point rather than part of the ordinary path. Keep the default implementation reflective and explicit until the task specifically requires AOT-friendly wiring.
+Treat AOT and native-image hints as an escalation point rather than part of the ordinary path.
+Keep the default implementation reflective and explicit until the task specifically requires AOT-friendly wiring.
 
-GraalVM 25 introduces the unified reachability metadata format. Resource hints now use glob patterns instead of regex: `"/files/*.ext"` matches only direct children, not subdirectories. Use `"/files/**/*.ext"` for recursive matching. Registering a reflection hint for a type now implies methods, constructors, and fields introspection; `MemberCategory.DECLARED_FIELDS` is changed in favor of a simple `hints.reflection().registerType(MyType.class)`.
+GraalVM 25 introduces the unified reachability metadata format.
+Resource hints now use glob patterns instead of regex: `"/files/*.ext"` matches only direct children, not subdirectories.
+Use `"/files/**/*.ext"` for recursive matching.
+Registering a reflection hint for a type now implies methods, constructors, and fields introspection; `MemberCategory.DECLARED_FIELDS` is changed in favor of a simple `hints.reflection().registerType(MyType.class)`.
 
 ## AOP escalation
 
-Open [references/aop-cross-cutting.md](references/aop-cross-cutting.md) when cross-cutting behavior must wrap many beans consistently and the ordinary bean wiring path is not enough.
+Open [references/aop`-cross-cutting.md`](references/aop-cross-cutting.md) when cross-cutting behavior must wrap many beans consistently and the ordinary bean wiring path is not enough.
 
 ## Container extension escalation
 
-Open [references/container-extension-scopes.md](references/container-extension-scopes.md) for `BeanFactoryPostProcessor`, `BeanPostProcessor`, custom scope registration, or advanced listener infrastructure that goes beyond what `SKILL.md` covers.
+Open [references/container`-extension-scopes.md`](references/container-extension-scopes.md) for `BeanFactoryPostProcessor`, `BeanPostProcessor`, custom scope registration, or advanced listener infrastructure that goes beyond what `SKILL.md` covers.
 
 ## TestContext integration
 
@@ -802,11 +840,13 @@ class AppConfigTests {
 }
 ```
 
-Test the smallest framework integration that proves the behavior. Use `@ExtendWith(SpringExtension.class)` to integrate the Spring `ApplicationContext` with JUnit Jupiter.
+Test the smallest framework integration that proves the behavior.
+Use `@ExtendWith(SpringExtension.class)` to integrate the Spring `ApplicationContext` with JUnit Jupiter.
 
 ### Test context pausing
 
-Spring Framework 7.0 pauses unused application contexts in the test context cache to stop background processes. Configure via `spring.test.context.cache.pause` (`smart` default, `always`, or `never`):
+Spring Framework 7.0 pauses unused application contexts in the test context cache to stop background processes.
+Configure via `spring.test.context.cache.pause` (`smart` default, `always`, or `never`):
 
 ```java
 @SpringBootTest(properties = "spring.test.context.cache.pause=never")
@@ -816,7 +856,8 @@ class OrderServiceTests {
 
 ### `@Nested` test hierarchies
 
-`SpringExtension` supports dependency injection into `@Nested` test class constructors and fields. If custom `TestExecutionListener` implementations break after upgrading, use `testContext.getTestInstance().getClass()` instead of `testContext.getTestClass()` for lookups.
+`SpringExtension` supports dependency injection into `@Nested` test class constructors and fields.
+If custom `TestExecutionListener` implementations break after upgrading, use `testContext.getTestInstance().getClass()` instead of `testContext.getTestClass()` for lookups.
 
 ### `RestTestClient`
 
@@ -896,7 +937,8 @@ class ItemControllerTests {
 }
 ```
 
-Keep controller tests focused on HTTP semantics: status codes, headers, and response shape. Delegate business-logic assertions to plain unit tests against the service layer.
+Keep controller tests focused on HTTP semantics: status codes, headers, and response shape.
+Delegate business-logic assertions to plain unit tests against the service layer.
 
 ## Output shapes
 
@@ -940,15 +982,16 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent>
 - Use `RestClient` for new HTTP client code; avoid starting new usage of `RestTemplate`.
 - `HttpHeaders` no longer extends `MultiValueMap` in 7.0. Use `HttpHeaders` methods directly instead of map operations.
 - CORS pre-flight requests are no longer rejected when the CORS configuration is empty.
-- `PathPattern` is the only supported pattern matcher for HTTP request mappings. `AntPathMatcher` should not be used for HTTP request mappings.
+- `PathPattern` is the only supported pattern matcher for HTTP request mappings.
+  - `AntPathMatcher` should not be used for HTTP request mappings.
 
 ## References
 
-- Open [references/aop-cross-cutting.md](references/aop-cross-cutting.md) when the task needs framework-level AOP beyond ordinary bean wiring.
-- Open [references/async-executor-registration.md](references/async-executor-registration.md) when the task needs async exception handling, completion coordination with `Future` / `CompletableFuture`, or `TaskDecorator` for ThreadLocal propagation.
-- Open [references/aspectj-ltw.md](references/aspectj-ltw.md) when the task needs load-time weaving, `@Configurable`, or AspectJ join points beyond Spring AOP proxies.
-- Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the blocker is container extension points, custom scopes, advanced listener infrastructure, or `@Configuration` lite-mode behavior.
-- Open [references/environment-and-resources.md](references/environment-and-resources.md) when the task needs deeper control over profiles, property sources, or resource resolution beyond the common path.
-- Open [references/plain-jdbc-wiring.md](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
-- Open [references/property-binding-conversion-validation.md](references/property-binding-conversion-validation.md) when the task needs advanced data-binding rules, formatter/converter registration, or validation groups beyond the common path.
-- Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when the task needs WebClient filters, transport-specific timeouts, retry selection, or deeper reactive pipeline behavior.
+- Open [references/aop`-cross-cutting.md`](references/aop-cross-cutting.md) when the task needs framework-level AOP beyond ordinary bean wiring.
+- Open [references/async`-executor-registration.md`](references/async-executor-registration.md) when the task needs async exception handling, completion coordination with `Future` / `CompletableFuture`, or `TaskDecorator` for ThreadLocal propagation.
+- Open [references/aspectj`-ltw.md`](references/aspectj-ltw.md) when the task needs load-time weaving, `@Configurable`, or AspectJ join points beyond Spring AOP proxies.
+- Open [references/container`-extension-scopes.md`](references/container-extension-scopes.md) when the blocker is container extension points, custom scopes, advanced listener infrastructure, or `@Configuration` lite-mode behavior.
+- Open [references/environment`-and-resources.md`](references/environment-and-resources.md) when the task needs deeper control over profiles, property sources, or resource resolution beyond the common path.
+- Open [references/plain`-jdbc-wiring.md`](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
+- Open [references/property`-binding-conversion-validation.md`](references/property-binding-conversion-validation.md) when the task needs advanced data-binding rules, formatter/converter registration, or validation groups beyond the common path.
+- Open [references/webclient`-reactive-depth.md`](references/webclient-reactive-depth.md) when the task needs WebClient filters, transport-specific timeouts, retry selection, or deeper reactive pipeline behavior.

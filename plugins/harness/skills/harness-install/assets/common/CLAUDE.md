@@ -1,20 +1,27 @@
 # Repository Contract
 
-This repository uses versioned contracts so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution. Fresh installs use `CLAUDE.md` as the primary contract with `AGENTS.md` as a symlink alias. Existing AGENTS-only repositories may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias. In either orientation, both filenames MUST resolve to this single document, regardless of which agent runtime is running.
+This repository uses versioned contracts so coding agents can work from stable project context, bounded delegation, deterministic checks, and reviewable evolution.
+Fresh installs use `CLAUDE.md` as the primary contract with `AGENTS.md` as a symlink alias.
+Existing AGENTS-only repositories may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias.
+In either orientation, both filenames MUST resolve to this single document, regardless of which agent runtime is running.
 
 ## Entry Point
 
-Any coding agent runtime that loads `AGENTS.md` or `CLAUDE.md` MUST treat this document as its primary contract. Before making changes, an agent MUST read:
+Any coding agent runtime that loads `AGENTS.md` or `CLAUDE.md` MUST treat this document as its primary contract.
+Before making changes, an agent MUST read:
 
-1. `CLAUDE.md` (this document; also resolvable as `AGENTS.md`)
+1. `CLAUDE.md` (this document, also resolvable as `AGENTS.md`)
 2. `ARCHITECTURE.md`
 3. The relevant file under `docs/**` for the task domain
 
 Validation MUST use the stack-specific command documented in `docs/README.md`.
 
-`docs/generated/` is for generated repository artifacts. It MAY be empty and retained by `.gitkeep` until generated outputs exist; fake placeholder files MUST NOT be added.
+`docs/generated/` is for generated repository artifacts.
+It MAY be empty and retained by `.gitkeep` until generated outputs exist.
+Fake placeholder files MUST NOT be added.
 
-Contract changes MAY be made during development when the current contract no longer matches project reality. Such changes MUST be committed as versioned files and validated before merge.
+Contract changes MAY be made during development when the current contract no longer matches project reality.
+Such changes MUST be committed as versioned files and validated before merge.
 
 ## Invariants
 
@@ -28,12 +35,17 @@ Contract changes MAY be made during development when the current contract no lon
 - `docs/templates/` MUST contain structured templates for agents, skills, workflows, CI integration, and repository documentation.
 - `docs/git-hooks/pre-commit` and `docs/git-hooks/pre-push` MUST remain executable and use `/usr/bin/env sh`.
 - Empty required directories MUST be kept in version control with `.gitkeep` until they contain project files.
-- `docs/generated/` MUST contain actual generated repository artifacts when they exist; fake placeholder files MUST NOT be added.
+- `docs/generated/` MUST contain actual generated repository artifacts when they exist.
+  - Fake placeholder files MUST NOT be added.
 - Validation SHOULD run through the repository's native build/runtime ecosystem.
-- `docs/git-hooks/pre-commit` MUST run the selected stack validation command: `{{validation_command}}`.
-- `docs/git-hooks/pre-push` MUST run the same selected stack validation command as pre-commit and CI: `{{validation_command}}`.
-- CI SHOULD run the same stack validation command used by the generated hooks.
-- Execution plans belong in `docs/exec-plans/` with filenames of the form `yyyy-MM-dd-<slug>.md`; completed plans preserve their name while moving to the completed-state location in `docs/exec-plans/`. Plan files in completed state MUST NOT contain any unchecked `- [ ]` task lines.
+- `docs/git-hooks/pre-commit` and `docs/git-hooks/pre-push` are packaged placeholders until installation renders active stack hooks.
+- Active `pre-commit` MUST include the selected stack validation command: `{{validation_command}}`.
+- Active `pre-commit` MAY include stack preflight checks before the selected validation command.
+- Active `pre-push` MUST run the generated stack-specific final check.
+- CI files, when present, MUST run the selected stack validation command.
+- Execution plans belong in `docs/exec-plans/` with filenames of the form `yyyy-MM-dd-<slug>.md`.
+- Completed plans preserve their name while moving to the completed-state location in `docs/exec-plans/`.
+- Plan files in completed state MUST NOT contain any unchecked `- [ ]` task lines.
 
 ## Required Repository Structure
 
@@ -72,19 +84,25 @@ docs/
 └── SECURITY.md
 ```
 
-`docs/generated/` is reserved for artifacts produced by commands, schemas, build tools, migrations, reports, or other deterministic generation. Keep `.gitkeep` only while the directory has no real generated artifacts; do not add fake placeholder files. Actual generated items SHOULD document their source command, input files, freshness, and regeneration trigger.
+`docs/generated/` is reserved for artifacts produced by commands, schemas, build tools, migrations, reports, or other deterministic generation.
+Keep `.gitkeep` only while the directory has no real generated artifacts.
+Do not add fake placeholder files.
+Actual generated items SHOULD document their source command, input files, freshness, and regeneration trigger.
 
 ## Optional Seed Files
 
-The installer may place replaceable seed files under `docs/product-specs/` and `docs/references/`. These files are examples of where project-owned context can live; replace, rename, or remove them when they do not match the target repository.
+The installer may place replaceable seed files under `docs/product-specs/` and `docs/references/`.
+These files are examples of where project-owned context can live.
+Replace, rename, or remove them when they do not match the target repository.
 
 ## Operating Model
 
-Humans define intent, constraints, review criteria, and acceptance gates. Agents perform bounded implementation work and use validators as feedback loops.
+Humans define intent, constraints, review criteria, and acceptance gates.
+Agents perform bounded implementation work and use validators as feedback loops.
 
 Agent work MUST start by reading `CLAUDE.md`, `ARCHITECTURE.md`, and the relevant `docs/**` file for the task domain.
 
-The contract is sufficient as the development operating surface when the project-specific context is present or explicitly created during the task. The scaffold MUST NOT be treated as a substitute for missing product requirements, source-of-truth schemas, tests, implementation code, runtime configuration, secrets, or domain references.
+The contract is sufficient as the development operating surface when the project-specific context is present or explicitly created during the task.
 
 For an underspecified repository, agents MUST first create or update the relevant product spec, design document, architecture note, and active execution plan before implementation work.
 
@@ -92,9 +110,11 @@ For an underspecified repository, agents MUST first create or update the relevan
 
 The repository contract MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance phases.
 
-Contract changes MUST be versioned, reviewable, and validated. When repeated failures reveal a better policy, template, agent role, skill procedure, validation rule, generated-artifact inventory, or documentation structure, update the contract rather than relying on chat-only instructions.
+Contract changes MUST be versioned, reviewable, and validated.
+When repeated failures reveal a better policy, template, agent role, skill procedure, validation rule, generated-artifact inventory, or documentation structure, update the contract rather than relying on chat-only instructions.
 
-The current committed contract is the active contract. Do not treat the original plugin defaults as permanent.
+The current committed contract is the active contract.
+Do not treat the original plugin defaults as permanent.
 
 ## Required Validation
 

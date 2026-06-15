@@ -52,9 +52,12 @@ val request = HttpRequest().apply {
 
 ## Platform Types
 
-Types coming from Java without explicit nullability (`String!`) are platform types. The pinning pattern and code examples are in `SKILL.md` under "Null safety first". This section covers only additive material.
+Types coming from Java without explicit nullability (`String!`) are platform types.
+The pinning pattern and code examples are in `SKILL.md` under "Null safety first".
+This section covers only additive material.
 
-Rule: never let platform types propagate inward. Pin the nullability at the interop boundary and never let a raw `T!` escape into application logic.
+Rule: never let platform types propagate inward.
+Pin the nullability at the interop boundary and never let a raw `T!` escape into application logic.
 
 ## Late Initialization
 
@@ -72,7 +75,8 @@ class Service {
 }
 ```
 
-Restrictions: `lateinit` only works with non-primitive types that do not have a custom getter. Access before initialization throws `UninitializedPropertyAccessException`.
+Restrictions: `lateinit` only works with non-primitive types that do not have a custom getter.
+Access before initialization throws `UninitializedPropertyAccessException`.
 
 ## Smart Cast Limits
 

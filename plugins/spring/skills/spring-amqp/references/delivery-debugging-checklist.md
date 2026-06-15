@@ -1,6 +1,6 @@
 # Delivery debugging
 
-Open this reference when the ordinary producer and consumer path in [SKILL.md](../SKILL.md) is not enough and the blocker is delivery diagnosis.
+Open this reference when the ordinary producer and consumer path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is delivery diagnosis.
 
 ## Debugging blocker
 

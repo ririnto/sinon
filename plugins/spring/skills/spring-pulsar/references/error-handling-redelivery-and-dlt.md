@@ -23,7 +23,8 @@ MultiplierRedeliveryBackoff backoff = MultiplierRedeliveryBackoff.builder()
 
 ## PulsarConsumerErrorHandler
 
-Pulsar's native `DeadLetterPolicy` works only with `Shared` subscriptions. For `Exclusive`, `Failover`, or `Key_Shared` subscriptions, use `PulsarConsumerErrorHandler` instead.
+Pulsar's native `DeadLetterPolicy` works only with `Shared` subscriptions.
+For `Exclusive`, `Failover`, or `Key_Shared` subscriptions, use `PulsarConsumerErrorHandler` instead.
 
 ```java
 @PulsarListener(
@@ -45,7 +46,8 @@ PulsarConsumerErrorHandler<ShipmentEvent> shipmentErrorHandler(PulsarTemplate<Sh
 }
 ```
 
-The error handler retries the failed message, then sends it to the DLT when retries are exhausted. For batch listeners, the container retries the entire batch starting from the failed message.
+The error handler retries the failed message, then sends it to the DLT when retries are exhausted.
+For batch listeners, the container retries the entire batch starting from the failed message.
 
 ## Acknowledgment timeout redelivery
 
@@ -91,4 +93,5 @@ void handle(ShipmentEvent event) {
 
 ## Operational warning
 
-Redelivery, backoff, and dead-letter publishing change latency and retry pressure together. Tune them as one policy rather than as isolated flags.
+Redelivery, backoff, and dead-letter publishing change latency and retry pressure together.
+Tune them as one policy rather than as isolated flags.

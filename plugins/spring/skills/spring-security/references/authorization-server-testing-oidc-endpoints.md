@@ -1,6 +1,6 @@
 # Testing OIDC endpoints
 
-Open this reference when the minimal validation in [SKILL.md](../SKILL.md) is not enough and the blocker is OIDC endpoint verification.
+Open this reference when the minimal validation in [`SKILL.md`](../SKILL.md) is not enough and the blocker is OIDC endpoint verification.
 
 ```java
 @Test

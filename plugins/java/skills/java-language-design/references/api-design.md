@@ -7,7 +7,8 @@ description: >-
 
 # Java API Design Reference
 
-Open this reference when reviewing or proposing a Java public contract and the blocker is no longer syntax, but the exact API shape, mutability boundary, visibility choice, or exception contract. This file should be sufficient on its own to finish that review.
+Open this reference when reviewing or proposing a Java public contract and the blocker is no longer syntax, but the exact API shape, mutability boundary, visibility choice, or exception contract.
+This file should be sufficient on its own to finish that review.
 
 Use this file to finish one of these jobs:
 

@@ -125,7 +125,8 @@ Minimal mixin source — keep the generated dashboard traceable back to one smal
 ```
 
 Use when: the team already keeps dashboard source in Jsonnet or Grafana mixin form and needs one minimal source example instead of raw rendered JSON only.
-Keep Jsonnet or mixin sources trusted and reviewed; repository presence alone is not a trust boundary, and untrusted templates can import local files and surface their contents in rendered output.
+Keep Jsonnet or mixin sources trusted and reviewed.
+Repository presence alone is not a trust boundary, and untrusted templates can import local files and surface their contents in rendered output.
 
 Minimal render step — render mixin or Jsonnet source into a reviewed dashboard asset:
 
@@ -135,7 +136,8 @@ jsonnet -m grafana/rendered/dashboards grafana/mixin/dashboards.libsonnet
 ```
 
 Use when: reviewers need one concrete command that turns source mixin files into reviewed dashboard artifacts.
-This example assumes the `jsonnet` CLI is installed. Add `-J vendor` only when the source actually imports vendored libraries from that path, and keep the import search path aligned with the Jsonnet tree you are rendering.
+This example assumes the `jsonnet` CLI is installed.
+Add `-J vendor` only when the source actually imports vendored libraries from that path, and keep the import search path aligned with the Jsonnet tree you are rendering.
 Run it only on trusted Jsonnet or mixin sources, or inside an isolated workspace, because imported local file contents can be rendered into output artifacts.
 
 ## Diff Review Heuristics

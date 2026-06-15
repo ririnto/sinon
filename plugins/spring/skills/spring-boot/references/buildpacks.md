@@ -16,7 +16,9 @@ Open this reference when the application should produce an OCI image without a D
 
 ## Gradle CLI environment variables
 
-Pass environment variables to the build image task from the command line. Multiple `--environment` flags are supported. CLI values take precedence over build script values.
+Pass environment variables to the build image task from the command line.
+Multiple `--environment` flags are supported.
+CLI values take precedence over build script values.
 
 ```sh
 ./gradlew bootBuildImage --environment BP_JVM_VERSION=21 --environment BPE_APP_PORT=8080
@@ -24,7 +26,8 @@ Pass environment variables to the build image task from the command line. Multip
 
 ## Image naming
 
-Default image name follows `docker.io/library/{artifact-name}:{version}`. Override with:
+Default image name follows `docker.io/library/{artifact-name}:{version}`.
+Override with:
 
 ```sh
 ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=myregistry/myapp:latest
@@ -32,7 +35,8 @@ Default image name follows `docker.io/library/{artifact-name}:{version}`. Overri
 
 ## BuildInfo Gradle task
 
-The `BuildInfo` task now outputs to `META-INF/build-info.properties` by default. Customize with the `filename` property.
+The `BuildInfo` task now outputs to `META-INF/build-info.properties` by default.
+Customize with the `filename` property.
 
 ```kotlin
 tasks.named<org.springframework.boot.gradle.tasks.buildinfo.BuildInfo>("buildInfo") {
@@ -47,4 +51,5 @@ The Maven plugin can load custom layers configuration from `META-INF/spring/laye
 ## Gotchas
 
 - Do not switch to buildpacks if the platform requires a heavily customized image layout.
-- Set the image registry before the first production push; default Docker Hub may not match your infrastructure.
+- Set the image registry before the first production push.
+  - Default Docker Hub may not match your infrastructure.

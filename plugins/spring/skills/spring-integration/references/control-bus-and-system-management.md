@@ -12,7 +12,8 @@ IntegrationFlow.from("controlBus.input")
 
 ## IntegrationPatternType: message_store
 
-`MessageStore` now implements `IntegrationPattern` with a default `message_store` type, making message stores visible in the integration graph and monitoring systems (Prometheus, Datadog). Existing systems using message stores will now show the `message_store` label in monitoring dashboards.
+`MessageStore` now implements `IntegrationPattern` with a default `message_store` type, making message stores visible in the integration graph and monitoring systems (Prometheus, Datadog).
+Existing systems using message stores will now show the `message_store` label in monitoring dashboards.
 
 ## Observability shape
 

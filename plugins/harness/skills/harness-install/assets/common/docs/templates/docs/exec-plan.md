@@ -9,7 +9,10 @@ assignee: "{{assignee}}"
 
 # {{yyyy-MM-dd}}-{{plan-slug}} Implementation Plan
 
-> For agentic workers: REQUIRED SUB-SKILL: use the installed `.claude/skills/orchestrate` skill to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking; flip a checkbox only after the step's work and its named validation command pass.
+> For agentic workers:
+> REQUIRED SUB-SKILL: use the installed `.claude/skills/orchestrate` skill to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
+> Flip a checkbox only after the step's work and its named validation command pass.
 
 Goal: {{single-sentence-outcome}}
 
@@ -21,13 +24,19 @@ Tech Stack: {{key-technologies-and-the-stack-validation-command}}
 
 <!--
 Template notes:
-- Save execution plans as files under `docs/exec-plans/` named `yyyy-MM-dd-<slug>.md`; keep the slug kebab-case and work-focused.
+- Save execution plans as files under `docs/exec-plans/` named `yyyy-MM-dd-<slug>.md`.
+  - Keep the slug kebab-case and work-focused.
 
-- Update `updated` whenever the plan body changes; set `completed` only when moving the plan to the completed-state location in `docs/exec-plans/`.
-- `author` records who drafted the plan; `assignee` records who executes it and MAY list multiple owners.
+- Update `updated` whenever the plan body changes.
+  - Set `completed` only when moving the plan to the completed-state location in `docs/exec-plans/`.
+- `author` records who drafted the plan.
+  - `assignee` records who executes it and MAY list multiple owners.
 - Decompose work into bite-sized tasks: each step is one 2-5 minute action with exact file paths, the exact code or command, and the expected result.
-- No placeholders in a real plan: replace every `{{...}}` slot with concrete content before execution. `TBD`, `add error handling`, or `write tests for the above` without the actual test code are plan failures.
-- Tasks are ordered. Express cross-task dependencies inline (for example, `depends on: Task 1`). Independent tasks MAY run in parallel.
+- No placeholders in a real plan: replace every `{{...}}` slot with concrete content before execution.
+  - `TBD`, `add error handling`, or `write tests for the above` without the actual test code are plan failures.
+- Tasks are ordered.
+  - Express cross-task dependencies inline (for example, `depends on: Task 1`).
+  - Independent tasks MAY run in parallel.
 -->
 
 ## Task 1: {{component-name}}
@@ -124,5 +133,7 @@ Run the stack-specific validation command after each task that touches required 
 ## Completion
 
 <!--
-When every task checkbox is checked, move this file between execution-plan locations in `docs/exec-plans/` without renaming, then change `status: active` to `status: completed` and set `completed: yyyy-MM-dd` in frontmatter. The filename date stays the original creation date. Plans in completed-state entries under `docs/exec-plans/` MUST NOT contain any unchecked `- [ ]` task lines.
+When every task checkbox is checked, move this file between execution-plan locations in `docs/exec-plans/` without renaming, then change `status: active` to `status: completed` and set `completed: yyyy-MM-dd` in frontmatter.
+The filename date stays the original creation date.
+Plans in completed-state entries under `docs/exec-plans/` MUST NOT contain any unchecked `- [ ]` task lines.
 -->

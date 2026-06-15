@@ -1,6 +1,6 @@
 # Delayed exchange and broker events
 
-Open this reference when the common-path topology in [SKILL.md](../SKILL.md) is not enough and the blocker is delayed delivery semantics or broker-side operational events.
+Open this reference when the common-path topology in [`SKILL.md`](../SKILL.md) is not enough and the blocker is delayed delivery semantics or broker-side operational events.
 
 ## Delayed exchange blocker
 

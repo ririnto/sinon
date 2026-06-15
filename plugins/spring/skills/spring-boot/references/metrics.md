@@ -50,7 +50,8 @@ management:
 
 ## Truststore certificate expiry metrics
 
-Expiry times from certificates in the truststore are automatically exposed as metrics when an SSL bundle with a truststore is configured. No additional setup is required.
+Expiry times from certificates in the truststore are automatically exposed as metrics when an SSL bundle with a truststore is configured.
+No additional setup is required.
 
 ## Record a metric
 
@@ -69,7 +70,9 @@ try {
 }
 ```
 
-Prefer stable tags and avoid cardinality explosions. Use `uri` sparingly on high-cardinality paths; prefer fixed path templates like `/api/greetings/{id}` rather than concrete values like `/api/greetings/42`.
+Prefer stable tags and avoid cardinality explosions.
+Use `uri` sparingly on high-cardinality paths.
+Prefer fixed path templates like `/api/greetings/{id}` rather than concrete values like `/api/greetings/42`.
 
 ## Validation rule
 

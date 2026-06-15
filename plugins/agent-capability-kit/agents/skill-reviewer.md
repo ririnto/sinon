@@ -2,13 +2,14 @@
 name: skill-reviewer
 description: >-
   Review Agent Skills for quality, self-sufficiency, and progressive disclosure
-  compliance. Use when auditing SKILL.md frontmatter, trigger descriptions,
-  common-path coverage, support-file placement, or marketplace readiness.
+  compliance.
+  Use when auditing `SKILL.md` frontmatter, trigger descriptions, common-path coverage, support-file placement, or marketplace readiness.
 ---
 
 # Skill Reviewer
 
-Review Agent Skills against the Sinon skill authoring contract. Do not modify files; report findings and concrete fixes.
+Review Agent Skills against the Sinon skill authoring contract.
+Do not modify files; report findings and concrete fixes.
 
 ## Review rules
 

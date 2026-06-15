@@ -2,7 +2,7 @@
 
 ## Purpose
 
-DESIGN.md captures durable design decisions that span multiple domains: layering constraints, dependency-direction rules, naming conventions, and review criteria that reviewers and agents apply to every change.
+`DESIGN.md` captures durable design decisions that span multiple domains: layering constraints, dependency-direction rules, naming conventions, and review criteria that reviewers and agents apply to every change.
 
 ## Domain Layering
 
@@ -31,11 +31,13 @@ flowchart TB
     style Domain fill:#0d0d0d,stroke:#FFFFFF,color:#FFFFFF
 ```
 
-The canonical pattern is Types → Config → Repo → Service → Runtime → UI plus Providers as the only cross-cutting entry point. Per-domain deviations MUST be documented under `docs/design-docs/`.
+The canonical pattern is Types → Config → Repo → Service → Runtime → UI plus Providers as the only cross-cutting entry point.
+Per-domain deviations MUST be documented under `docs/design-docs/`.
 
 ## Cross-cutting Concerns
 
-Anything that enters the domain from outside MUST come through Providers. Allowed categories:
+Anything that enters the domain from outside MUST come through Providers.
+Allowed categories:
 
 - Authentication / Authorization — RBAC, session management, token verification; enters only through Providers.
 - Telemetry — Structured logging, OpenTelemetry traces, metrics; enters only through Providers.
@@ -45,7 +47,8 @@ Anything that enters the domain from outside MUST come through Providers. Allowe
 
 ## Taste Invariants
 
-- Parse don't validate at boundaries — Enforce at the entry point where external data enters. Use `parse-don't-validate` (<https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/>) as the canonical reference.
+- Parse don't validate at boundaries — Enforce at the entry point where external data enters.
+  - Use `parse-don't-validate` (<https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/>) as the canonical reference.
 - Structured logging only — No `print` / `console.log` in production paths; enforce via lint.
 - Boundary schemas use `<Domain>(Request|Response|Event)` naming — Apply this convention to all boundary types; enforce via structural test.
 - File size cap — Default 400 lines per file; enforce via custom lint.

@@ -37,7 +37,8 @@ management:
 
 ## Disable OTel SDK
 
-Disable the OTel SDK while keeping propagators configured. No-op implementations replace `SdkTracerProvider`, `SdkLoggerProvider`, and `SdkMeterProvider`.
+Disable the OTel SDK while keeping propagators configured.
+No-op implementations replace `SdkTracerProvider`, `SdkLoggerProvider`, and `SdkMeterProvider`.
 
 ```yaml
 management:
@@ -54,7 +55,8 @@ management:
       sampler: always_on
 ```
 
-Supported sampler values: `always_on`, `always_off`, `parent_based`, `ratio_based`. Use `ratio_based` for probabilistic sampling.
+Supported sampler values: `always_on`, `always_off`, `parent_based`, `ratio_based`.
+Use `ratio_based` for probabilistic sampling.
 
 ## OTLP SSL bundle support
 
@@ -94,11 +96,13 @@ management:
 
 ## Truststore certificate expiry metrics
 
-Expiry times from certificates in the truststore are exposed as metrics automatically. No additional configuration is required when an SSL bundle with a truststore is configured.
+Expiry times from certificates in the truststore are exposed as metrics automatically.
+No additional configuration is required when an SSL bundle with a truststore is configured.
 
 ## OTel SDK environment variables
 
-Boot reads most OpenTelemetry SDK environment variables (e.g. `OTEL_SERVICE_NAME`, `OTEL_RESOURCE_ATTRIBUTES`, `OTEL_EXPORTER_OTLP_ENDPOINT`) and applies them to the auto-configured SDK.
+Boot reads most OpenTelemetry SDK environment variables (e.g.
+`OTEL_SERVICE_NAME`, `OTEL_RESOURCE_ATTRIBUTES`, `OTEL_EXPORTER_OTLP_ENDPOINT`) and applies them to the auto-configured SDK.
 
 ## Exemplar filtering
 
@@ -114,5 +118,6 @@ management:
 ## Gotchas
 
 - Do not enable tracing broadly without checking sampling and propagation expectations.
-- Set the export endpoint before enabling tracing on production networks; local collector defaults rarely match deployment.
+- Set the export endpoint before enabling tracing on production networks.
+  - Local collector defaults rarely match deployment.
 - When disabling the OTel SDK, propagators remain active so context can still flow through the system.

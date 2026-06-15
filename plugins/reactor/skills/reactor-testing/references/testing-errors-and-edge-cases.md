@@ -95,7 +95,8 @@ class RetryAndTimeoutTest {
 }
 ```
 
-`expectTimeout(duration)` asserts that the publisher does not terminate within the specified window and that the verifier times out by cancelling the subscription. Per the StepVerifier Javadoc, this is equivalent to appending `timeout(duration)`, expecting a `TimeoutException`, and waiting long enough to detect unexpected signals.
+`expectTimeout(duration)` asserts that the publisher does not terminate within the specified window and that the verifier times out by cancelling the subscription.
+Per the StepVerifier Javadoc, this is equivalent to appending `timeout(duration)`, expecting a `TimeoutException`, and waiting long enough to detect unexpected signals.
 
 ## Virtual-time failure modes
 
@@ -135,11 +136,14 @@ class VirtualTimeSchedulerBypassTest {
 }
 ```
 
-The first test creates the delayed publisher before virtual time can replace Reactor's default schedulers. The test may hang or fail. The second test creates the timed publisher inside the `withVirtualTime` supplier.
+The first test creates the delayed publisher before virtual time can replace Reactor's default schedulers.
+The test may hang or fail.
+The second test creates the timed publisher inside the `withVirtualTime` supplier.
 
 ### `expectNoEvent` includes subscription
 
-`expectNoEvent(duration)` treats the subscription event itself as an event. If the source defers subscription, the timer starts at subscription.
+`expectNoEvent(duration)` treats the subscription event itself as an event.
+If the source defers subscription, the timer starts at subscription.
 
 ```java
 import java.time.Duration;
@@ -164,5 +168,6 @@ class ExpectNoEventEdgeCase {
 
 - Keep timeout scenarios deterministic with virtual time where possible.
 - Do not pull framework-specific clients or web-stack tests into this skill.
-- Use `consumeErrorWith` when you need complex multi-assertion error checking; use `expectErrorMatches` for single-predicate cases.
+- Use `consumeErrorWith` when you need complex multi-assertion error checking.
+  - Use `expectErrorMatches` for single-predicate cases.
 - If the test needs to verify dropped elements or discarded signals alongside error behavior, combine error expectations with `verifyThenAssertThat()`.

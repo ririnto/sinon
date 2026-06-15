@@ -1,6 +1,6 @@
 # Moderation and safety gates
 
-Open this reference when the common-path prompt and tool guidance in [SKILL.md](../SKILL.md) is not enough and the blocker is input screening, output screening, or provider-backed moderation policy checks.
+Open this reference when the common-path prompt and tool guidance in [`SKILL.md`](../SKILL.md) is not enough and the blocker is input screening, output screening, or provider-backed moderation policy checks.
 
 ## Use this file for one blocker family
 
@@ -65,5 +65,6 @@ boolean sexualBlocked = first.getCategories().isSexual();
 
 - Do not assume provider moderation policies are interchangeable.
 - Do not hide moderation policy inside prompt text when the real requirement is an application-level gate.
-- Do not treat moderation as a one-time global toggle. Input and output risks are often different.
+- Do not treat moderation as a one-time global toggle.
+  - Input and output risks are often different.
 - Do not log raw flagged content if the application policy treats that content as sensitive.

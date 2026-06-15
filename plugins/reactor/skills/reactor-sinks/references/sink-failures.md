@@ -31,7 +31,8 @@ final class EmitResultBranching {
 }
 ```
 
-Each `EmitResult` variant requires a different recovery strategy. Branching on the specific failure type avoids both silent data loss and inappropriate retries.
+Each `EmitResult` variant requires a different recovery strategy.
+Branching on the specific failure type avoids both silent data loss and inappropriate retries.
 
 ## `EmitResult` quick guide
 
@@ -69,7 +70,8 @@ final class FailFastEmission {
 ## Overflow and termination checks
 
 - `FAIL_OVERFLOW` means the current sink flavor or queue policy is insufficient for downstream demand.
-- `FAIL_TERMINATED` means the sink lifecycle is over. Emitting again is a new-stream problem, not a retry problem.
+- `FAIL_TERMINATED` means the sink lifecycle is over.
+  - Emitting again is a new-stream problem, not a retry problem.
 - `FAIL_CANCELLED` means consumers are gone or the emission path was interrupted.
 
 ## Guardrails

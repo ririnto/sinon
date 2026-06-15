@@ -1,6 +1,6 @@
 # Spring Batch 6 migration notes
 
-Open this reference when the blocker is Spring Batch 6-specific migration behavior rather than the ordinary batch job path in [SKILL.md](../SKILL.md).
+Open this reference when the blocker is Spring Batch 6-specific migration behavior rather than the ordinary batch job path in [`SKILL.md`](../SKILL.md).
 
 ## Batch 6 migration blocker
 
@@ -38,9 +38,12 @@ class JdbcBatchInfrastructureConfiguration {
 }
 ```
 
-On Boot 4.1+, the auto-configured path handles JDBC and MongoDB stores without explicit annotations. Boot backs off when it detects `@EnableBatchProcessing` or a `DefaultBatchConfiguration` subclass. Use the manual path only when you need annotation-level control over `dataSourceRef`, `transactionManagerRef`, `tablePrefix`, or similar attributes that exceed Boot property configuration.
+On Boot 4.1+, the auto-configured path handles JDBC and MongoDB stores without explicit annotations.
+Boot backs off when it detects `@EnableBatchProcessing` or a `DefaultBatchConfiguration` subclass.
+Use the manual path only when you need annotation-level control over `dataSourceRef`, `transactionManagerRef`, `tablePrefix`, or similar attributes that exceed Boot property configuration.
 
-Keep this migration branch separate from the ordinary Boot-managed path. Spring Boot 3.4.x and 3.5.x still use the Spring Batch 5.2.x compatibility branch, so Batch 6-specific repository annotations belong only on an intentionally upgraded line.
+Keep this migration branch separate from the ordinary Boot-managed path.
+Spring Boot 3.4.x and 3.5.x still use the Spring Batch 5.2.x compatibility branch, so Batch 6-specific repository annotations belong only on an intentionally upgraded line.
 
 ## Migration verification shape
 

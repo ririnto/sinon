@@ -5,7 +5,8 @@ description: >-
 
 # Serialization Boundaries
 
-Use this reference when the job is to implement Kotlin serialization for one boundary or fix serializer behavior that is already blocking the task. This reference should be sufficient on its own for that work.
+Use this reference when the job is to implement Kotlin serialization for one boundary or fix serializer behavior that is already blocking the task.
+This reference should be sufficient on its own for that work.
 
 Use this file to finish one of these jobs:
 
@@ -58,7 +59,8 @@ Important rules:
 - default values are not encoded by default
 - `@Transient` properties need a default value
 - only properties with backing fields are serialized
-- use `kotlinx.datetime.Instant` for precise timestamps on the Kotlin 2.1 baseline; stdlib `kotlin.time.Instant` is stable since Kotlin 2.3
+- use `kotlinx.datetime.Instant` for precise timestamps on the Kotlin 2.1 baseline.
+  - Stdlib `kotlin.time.Instant` is stable since Kotlin 2.3
 
 Instant note:
 

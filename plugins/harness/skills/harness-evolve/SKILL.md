@@ -1,14 +1,17 @@
 ---
 name: harness-evolve
 description: >-
-  Reconcile an installed target-owned repository harness after real project use changes docs, templates, agents, skills, validators, generated-artifact policy, CI, hooks, or readiness gates. Use when repeated validation or review failures or committed harness drift show the target harness contract should evolve while keeping installable assets under the plugin asset package.
+  Reconcile an installed target-owned repository harness after real project use changes docs, templates, agents, skills, validators, generated-artifact policy, CI, hooks, or readiness gates.
+  Use when repeated validation or review failures or committed harness drift show the target harness contract should evolve while keeping installable assets under the plugin asset package.
 ---
 
 # Harness Evolve
 
-Review how the installed target harness changed and produce a versioned evolution plan. This plugin skill is the visible runtime surface for harness evolution guidance; target repository files remain packaged under `skills/harness-install/assets/` before install and target-owned after copying.
+Review how the installed target harness changed and produce a versioned evolution plan.
+This plugin skill is the visible runtime surface for harness evolution guidance; target repository files remain packaged under `skills/harness-install/assets/` before install and target-owned after copying.
 
-This skill is report-only unless the user separately asks for implementation. Produce the evolution plan first, then use `harness-validate` after changes are implemented.
+This skill is report-only unless the user separately asks for implementation.
+Produce the evolution plan first, then use `harness-validate` after changes are implemented.
 
 ## Ownership Boundary
 
@@ -69,7 +72,8 @@ Use the stack validation command from `docs/README.md`; do not guess a command w
 
 ## Cleanup Evolution
 
-Treat cleanup as harness evolution when a repository stops using a previously installed surface. Examples include a GitLab-only target removing GitHub Actions examples, an API-free target removing generated API docs, or a project-specific workflow retiring a seed template.
+Treat cleanup as harness evolution when a repository stops using a previously installed surface.
+Examples include a GitLab-only target removing GitHub Actions examples, an API-free target removing generated API docs, or a project-specific workflow retiring a seed template.
 
 Use this sequence before recommending deletion:
 
@@ -79,7 +83,8 @@ Use this sequence before recommending deletion:
 4. If every contract marks the surface optional or replaced, propose removal plus the matching docs/validator/CI updates.
 5. If any contract still requires it, reject the deletion as drift or first evolve the contract that makes it required.
 
-Cleanup MUST NOT delete active target truth just because it is unused by the default template. It MUST leave one validation source of truth: GitHub Actions and GitLab CI are alternative renderings of the selected final check command, not independent policy definitions.
+Cleanup MUST NOT delete active target truth just because it is unused by the default template.
+It MUST leave one validation source of truth: GitHub Actions and GitLab CI are alternative renderings of the selected final check command, not independent policy definitions.
 
 ### Cleanup examples
 
@@ -134,7 +139,8 @@ Use this checklist before proposing or applying harness evolution.
 
 ## Evolution Plan Entry
 
-Record the evolution in a new or existing execution plan under `docs/exec-plans/` using the project's standard execution-plan template format (typically `yyyy-MM-dd-<slug>.md`). The plan SHOULD include:
+Record the evolution in a new or existing execution plan under `docs/exec-plans/` using the project's standard execution-plan template format (typically `yyyy-MM-dd-<slug>.md`).
+The plan SHOULD include:
 
 ```markdown
 ## Trigger
@@ -220,7 +226,8 @@ risks: adding the dispatcher early creates a second validation source of truth.
 
 ## Validation Commands
 
-Use `harness-validate` after implementing an evolution. The expected stack commands are:
+Use `harness-validate` after implementing an evolution.
+The expected stack commands are:
 
 ```text
 Gradle: ./gradlew ktlintCheck
@@ -257,7 +264,8 @@ shell: sh scripts/check.sh
 - Do not keep obsolete placeholder files as required readiness evidence.
 - Do not treat chat-only instructions as harness evolution.
 - Do not update templates without checking the installed docs they support.
-- Do not version the harness; treat the current committed validators as the only authoritative shape. Do not add shims, deprecation paths, or "previous schema" handling — replace, don't layer.
+- Do not version the harness; treat the current committed validators as the only authoritative shape.
+  - Do not add shims, deprecation paths, or "previous schema" handling — replace, don't layer.
 - Do not treat GitHub Actions and GitLab CI as separate validation definitions; they are renderings of the same command.
 - Do not edit product implementation code while performing harness evolution unless the user separately asked for that implementation.
 - Do not introduce top-level plugin manifest `hooks` or `agents` keys.

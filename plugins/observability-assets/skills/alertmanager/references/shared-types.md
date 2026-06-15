@@ -11,7 +11,8 @@ These types come from the `github.com/prometheus/common/config` Go package (for 
 
 ## http_config
 
-Configures the HTTP client used by all receiver types that make outbound HTTP calls. Appears in `global.http_config` and in each receiver type's local `http_config` field.
+Configures the HTTP client used by all receiver types that make outbound HTTP calls.
+Appears in `global.http_config` and in each receiver type's local `http_config` field.
 
 ### Fields
 
@@ -33,7 +34,8 @@ Configures the HTTP client used by all receiver types that make outbound HTTP ca
 
 ### Validation Rules
 
-- At most one of `authorization`, `basic_auth`, `bearer_token`, and `bearer_token_file`. These are mutually exclusive auth mechanisms.
+- At most one of `authorization`, `basic_auth`, `bearer_token`, and `bearer_token_file`.
+  - These are mutually exclusive auth mechanisms.
 - If both `bearer_token` and `bearer_token_file` are set, validation fails.
 - When set at receiver level, completely replaces global `http_config` (not a merge).
 
@@ -133,7 +135,8 @@ oauth2:
 
 ## tls_config
 
-Configures TLS for outgoing HTTPS connections. Used by `http_config.tls_config`, email `tls_config`, and `smtp_tls_config`.
+Configures TLS for outgoing HTTPS connections.
+Used by `http_config.tls_config`, email `tls_config`, and `smtp_tls_config`.
 
 ### Fields
 
@@ -151,7 +154,8 @@ Configures TLS for outgoing HTTPS connections. Used by `http_config.tls_config`,
 ### Validation Rules
 
 - If `cert_file` is provided, `key_file` must also be provided (and vice versa).
-- `insecure_skip_verify: true` bypasses certificate validation entirely; use only in development or with explicit justification.
+- `insecure_skip_verify: true` bypasses certificate validation entirely.
+  - Use only in development or with explicit justification.
 
 ### Example
 
@@ -167,7 +171,8 @@ tls_config:
 
 ## tracing_config
 
-Configures distributed tracing for Alertmanager's outbound HTTP calls. Set at the top level as `tracing:`.
+Configures distributed tracing for Alertmanager's outbound HTTP calls.
+Set at the top level as `tracing:`.
 
 ### Fields
 

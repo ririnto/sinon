@@ -25,7 +25,8 @@ Java is a shared, skill-first plugin for Java language work in the Sinon Claude 
 | `java-performance-concurrency` | Profiling strategy, virtual-thread fit, contention analysis, bottleneck classification | "optimize Java performance", "use virtual threads", "profile Java code" |
 | `java-dependency-versioning` | Maven Central coordinate lookup, release-verification path, install snippets; live registry access is required for current-release confirmation | "find latest version", "look up artifact coordinate", "check Maven Central" |
 
-These skills are meant to help complete Java work directly inside the current repository. They should not stop at pointing toward other repositories or documentation when the local task can already be unblocked with stable Java guidance.
+These skills are meant to help complete Java work directly inside the current repository.
+They should not stop at pointing toward other repositories or documentation when the local task can already be unblocked with stable Java guidance.
 
 ## Included Agents
 
@@ -56,11 +57,13 @@ Start here when the Java work could fit more than one skill:
 2. Shape the API or type model before broad refactors with `java-language-design`.
 3. Lock behavior with tests before or while changing implementation with `java-test`.
 4. Review concurrency and performance only after there is real evidence of a bottleneck with `java-performance-concurrency`.
-5. Check dependency coordinates and current releases before hardcoding version text with `java-dependency-versioning`; current-release confirmation requires live registry access.
+5. Check dependency coordinates and current releases before hardcoding version text with `java-dependency-versioning`.
+   - Current-release confirmation requires live registry access.
 
 ### Scope boundaries
 
-Each skill states its own scope and exclusions. When work lands on a boundary, keep the active task inside the skill that owns the current implementation blocker instead of turning the answer into transfer instructions.
+Each skill states its own scope and exclusions.
+When work lands on a boundary, keep the active task inside the skill that owns the current implementation blocker instead of turning the answer into transfer instructions.
 
 ## Runtime Model
 
@@ -68,7 +71,9 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/` and `./.lsp.json`. Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key. Local JDTLS support files live beside the manifest at the plugin root.
+The manifest declares `./skills/` and `./.lsp.json`.
+Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+Local JDTLS support files live beside the manifest at the plugin root.
 
 ## Plugin Layout
 
@@ -122,7 +127,8 @@ claude --plugin-dir /path/to/sinon/plugins/java
 
 ## Scope Notes
 
-This plugin intentionally focuses on shared, implementation-oriented skill coverage. It does not yet ship:
+This plugin intentionally focuses on shared, implementation-oriented skill coverage.
+It does not yet ship:
 
 - custom MCP servers
 - hooks
@@ -132,7 +138,8 @@ Dependency lookup guidance can identify the artifact and verification path offli
 
 ## Java LSP Setup
 
-Use JDTLS when the task needs Java symbol navigation, diagnostics, or refactors. Do not treat it as a substitute for the skills above: the skills explain how to reason about Java work, while JDTLS provides editor intelligence for `.java` files.
+Use JDTLS when the task needs Java symbol navigation, diagnostics, or refactors.
+Do not treat it as a substitute for the skills above: the skills explain how to reason about Java work, while JDTLS provides editor intelligence for `.java` files.
 
 ### Requirements
 
@@ -153,11 +160,16 @@ The wrapper selects a Lombok source at startup in this order:
 1. Explicit override jar from `JAVA_ASSISTANT_LOMBOK_JAR`, `JDK_ASSISTANT_LOMBOK_JAR` (legacy alias), or `LOMBOK_JAR`
 2. Compatible project jar discovered from `.classpath` or `.factorypath` only when `JAVA_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED=true`
 
-The wrapper chooses the effective Lombok jar at startup. Explicit override jars are trusted user configuration and work by default. Project-local jar discovery is disabled by default because a discovered jar is executable `-javaagent` code. This plugin does not ship its own fallback Lombok jar.
+The wrapper chooses the effective Lombok jar at startup.
+Explicit override jars are trusted user configuration and work by default.
+Project-local jar discovery is disabled by default because a discovered jar is executable `-javaagent` code.
+This plugin does not ship its own fallback Lombok jar.
 
 > [!WARNING]
 >
-> Project-discovered Lombok jars are trusted executable code loaded as a `-javaagent`. Only enable project jar discovery in trusted repositories and workspaces. When Lombok support is needed in an untrusted context, prefer an explicit trusted override jar via one of the environment variables below.
+> Project-discovered Lombok jars are trusted executable code loaded as a `-javaagent`.
+> Only enable project jar discovery in trusted repositories and workspaces.
+> When Lombok support is needed in an untrusted context, prefer an explicit trusted override jar via one of the environment variables below.
 
 To provide an explicit override jar, point one of these environment variables at a local `lombok.jar`:
 
@@ -178,6 +190,8 @@ Project detection signals used to prefer a project jar when it can be resolved:
 
 The wrapper first checks the discovered project root and then scans nested Maven, Gradle, and Eclipse metadata files under that root while skipping common build output directories.
 
-If no override is supplied and no compatible project jar can be resolved, the wrapper starts plain `jdtls` without Lombok support. Set `JAVA_ASSISTANT_LOMBOK_ENABLED=false` to disable Lombok selection entirely. `JDK_ASSISTANT_LOMBOK_ENABLED` is a legacy compatibility alias for the same setting.
+If no override is supplied and no compatible project jar can be resolved, the wrapper starts plain `jdtls` without Lombok support.
+Set `JAVA_ASSISTANT_LOMBOK_ENABLED=false` to disable Lombok selection entirely.
+`JDK_ASSISTANT_LOMBOK_ENABLED` is a legacy compatibility alias for the same setting.
 
 For safety, override jar paths must be single filesystem tokens without whitespace.

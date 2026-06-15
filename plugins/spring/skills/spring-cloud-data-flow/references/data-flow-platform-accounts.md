@@ -1,6 +1,6 @@
 # Spring Cloud Data Flow platform accounts
 
-Open this reference when the ordinary register-create-deploy path in [SKILL.md](../SKILL.md) is not enough and the blocker is choosing or configuring the target platform account for a deploy or launch.
+Open this reference when the ordinary register-create-deploy path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is choosing or configuring the target platform account for a deploy or launch.
 
 Keep account selection explicit so operators know where a stream or task will run.
 

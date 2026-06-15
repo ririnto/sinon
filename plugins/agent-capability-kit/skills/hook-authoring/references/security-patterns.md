@@ -8,9 +8,10 @@ description: |-
 
 Open this reference when implementing input validation, path safety checks, sensitive file detection, or shell injection prevention in hook scripts.
 
-Hook scripts run with elevated context and must strictly validate all inputs. This reference extends SKILL.md with working patterns for input validation, path safety, sensitive file detection, and shell injection prevention.
+Hook scripts run with elevated context and must strictly validate all inputs.
+This reference extends `SKILL.md` with working patterns for input validation, path safety, sensitive file detection, and shell injection prevention.
 
-See SKILL.md for foundational rules: JSON validation via jq, path traversal/sensitive file rejection, variable quoting, timeouts.
+See `SKILL.md` for foundational rules: JSON validation via jq, path traversal/sensitive file rejection, variable quoting, timeouts.
 
 ## Input validation patterns
 

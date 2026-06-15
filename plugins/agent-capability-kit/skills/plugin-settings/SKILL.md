@@ -1,7 +1,8 @@
 ---
 name: plugin-settings
 description: >-
-  Author plugin-level configuration via `settings.json` and per-project state via `.claude/{{plugin-name}}.local.md` with YAML frontmatter parsing patterns. Triggers on plugin settings creation or reads, per-project state file design, YAML frontmatter extraction from markdown, or wiring settings into hooks, commands, and agents.
+  Author plugin-level configuration via `settings.json` and per-project state via `.claude/{{plugin-name}}.local.md` with YAML frontmatter parsing patterns.
+  Triggers on plugin settings creation or reads, per-project state file design, YAML frontmatter extraction from markdown, or wiring settings into hooks, commands, and agents.
 ---
 
 # Plugin Settings
@@ -18,11 +19,15 @@ This skill covers two independent surfaces:
 
 ### Plugin-Level Settings
 
-`settings.json` at the plugin root, declared in `plugin.json` via `"settings": "./settings.json"`. Static configuration, shared across all projects. One file per plugin.
+`settings.json` at the plugin root, declared in `plugin.json` via `"settings": "./settings.json"`.
+Static configuration, shared across all projects.
+One file per plugin.
 
 ### Per-Project State
 
-`.claude/{{plugin-name}}.local.md` in user projects, gitignored, user-managed. YAML frontmatter (structured key-value config) + markdown body (freeform content). One file per plugin per project.
+`.claude/{{plugin-name}}.local.md` in user projects, gitignored, user-managed.
+YAML frontmatter (structured key-value config) + markdown body (freeform content).
+One file per plugin per project.
 
 ## Operating Rules
 
@@ -64,7 +69,7 @@ Declare in `plugin.json`:
 }
 ```
 
-### Per-project .claude/`{{plugin-name}}`.local.md
+### Per-project .claude/`{{plugin-name}}`.`local.md`
 
 Template with frontmatter (YAML key-value pairs) and optional markdown body:
 
@@ -171,7 +176,7 @@ Restart Claude Code after changing `enabled: true/false`.
 
 Store agent identity and coordinator session for multi-agent swarms:
 
-`.claude/multi-agent-swarm.local.md:`
+`.claude/multi-agent-swarm.`local.md`:`
 
 ```markdown
 ---
@@ -214,7 +219,7 @@ fi
 
 Store validation policy and apply in hooks or commands:
 
-`.claude/security-plugin.local.md:`
+`.claude/security-plugin.`local.md`:`
 
 ```markdown
 ---

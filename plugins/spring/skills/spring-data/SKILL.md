@@ -1,7 +1,8 @@
 ---
 name: spring-data
 description: >-
-  Design Spring Data repositories, derived queries, projections, auditing, paging, and scrolling across multiple Spring Data modules. Use when writing derived or `@Query` repository methods, choosing between JPA, MongoDB, Redis, JDBC, or R2DBC modules, configuring auditing, or implementing projections and DTO mappings.
+  Design Spring Data repositories, derived queries, projections, auditing, paging, and scrolling across multiple Spring Data modules.
+  Use when writing derived or `@Query` repository methods, choosing between JPA, MongoDB, Redis, JDBC, or R2DBC modules, configuring auditing, or implementing projections and DTO mappings.
 ---
 
 # Spring Data
@@ -56,7 +57,8 @@ interface CustomerRepository extends ListCrudRepository<Customer, Long> {
 
 ### Type-safe property paths
 
-Spring Data Commons 4.1 introduces type-safe property path references. Prefer method references over string-based property names when the property is known at compile time.
+Spring Data Commons 4.1 introduces type-safe property path references.
+Prefer method references over string-based property names when the property is known at compile time.
 
 ```java
 Sort.by(Person::getFirstName, Person::getLastName)
@@ -78,7 +80,8 @@ Optional<Customer> findByEmailIgnoreCase(String email);
 
 ### Projection shape
 
-Use `@ProjectedPayload` only when a projection is bound from an external web payload, such as controller method parameters. Repository return projections do not require this annotation.
+Use `@ProjectedPayload` only when a projection is bound from an external web payload, such as controller method parameters.
+Repository return projections do not require this annotation.
 
 ```java
 @ProjectedPayload
@@ -112,7 +115,9 @@ List<CustomerView> views = repository.findByEmail("a@example.com", CustomerView.
 List<CustomerSummary> summaries = repository.findByEmail("a@example.com", CustomerSummary.class);
 ```
 
-The projection type must be a valid Spring Data projection interface or a DTO class such as a record. For class-based DTO projections, keep a single constructor or mark the constructor Spring Data should use with `@PersistenceCreator`. Dynamic projection works naturally with derived queries; declared queries must still return a shape that matches the selected projection.
+The projection type must be a valid Spring Data projection interface or a DTO class such as a record.
+For class-based DTO projections, keep a single constructor or mark the constructor Spring Data should use with `@PersistenceCreator`.
+Dynamic projection works naturally with derived queries; declared queries must still return a shape that matches the selected projection.
 
 ### Null-safe repository contract shape
 
@@ -122,7 +127,8 @@ Optional<Customer> findByEmailIgnoreCase(String email);
 
 ### JSpecify nullability in repository contracts
 
-Spring Data Commons 4.0 and later align with JSpecify-style nullability. Use package-level `@NullMarked` as the default, then mark only the nullable exceptions explicitly:
+Spring Data Commons 4.0 and later align with JSpecify-style nullability.
+Use package-level `@NullMarked` as the default, then mark only the nullable exceptions explicitly:
 
 | Annotation | Meaning | Typical use |
 | --- | --- | --- |
@@ -146,7 +152,8 @@ interface CustomerRepository extends ListCrudRepository<Customer, Long> {
 }
 ```
 
-Use `Optional<T>` for absent aggregate results and `@Nullable` for truly nullable scalar or entity return types. Do not wrap `Optional<T>` itself in `@Nullable`; absence belongs inside the `Optional`.
+Use `Optional<T>` for absent aggregate results and `@Nullable` for truly nullable scalar or entity return types.
+Do not wrap `Optional<T>` itself in `@Nullable`; absence belongs inside the `Optional`.
 
 ### Scroll or window shape
 
@@ -247,18 +254,21 @@ findByAddressCity
 
 ### @Query custom query shape
 
-Use declared queries when derived query method names become unwieldy. The annotation name is shared across Spring Data modules, but the actual query language and advanced attributes stay store-specific.
+Use declared queries when derived query method names become unwieldy.
+The annotation name is shared across Spring Data modules, but the actual query language and advanced attributes stay store-specific.
 
 ```java
 @Query("select c from Customer c where c.active = true")
 List<Customer> findActiveCustomers();
 ```
 
-Keep common guidance at the level of 'declared query versus derived query'. Move JPQL, native SQL, SpEL, and store-specific `@Query` attributes to the store-specific path.
+Keep common guidance at the level of 'declared query versus derived query'.
+Move JPQL, native SQL, SpEL, and store-specific `@Query` attributes to the store-specific path.
 
 ### Derived query method-name pitfalls
 
-Spring Data reserves identifier-targeting base method names. When domain properties happen to collide with them, the behavior can surprise:
+Spring Data reserves identifier-targeting base method names.
+When domain properties happen to collide with them, the behavior can surprise:
 
 | Pattern | Behavior | Pitfall |
 | --- | --- | --- |
@@ -276,7 +286,8 @@ Optional<Customer> findById(Long id);
 Optional<Customer> findCustomerById(Long id);
 ```
 
-`findById` targets the declared identifier property, while `findCustomerById` targets the property named `id`. Prefer explicit derived query names when a domain property could be confused with the identifier.
+`findById` targets the declared identifier property, while `findCustomerById` targets the property named `id`.
+Prefer explicit derived query names when a domain property could be confused with the identifier.
 
 ### Sort null handling
 
@@ -302,7 +313,10 @@ Slice<CustomerView> findByAddressCity(String city, Pageable pageable);
 Window<CustomerView> findFirst20ByAddressCityOrderByIdAsc(String city, ScrollPosition position);
 ```
 
-Use `Page` when the caller needs total count, `Slice` when the caller scrolls through an unknown-length feed, and `Window` when the caller scrolls with deterministic ordering and extracts the next position from the current window. `Page` is the heaviest because it runs a separate count query. `Slice` avoids the count but still uses pageable offset traversal. `Window` represents scroll-based iteration, and callers extract the next `ScrollPosition` from the current window with `window.positionAt(...)`; the underlying scroll can be offset- or keyset-based depending on the repository method and store support.
+Use `Page` when the caller needs total count, `Slice` when the caller scrolls through an unknown-length feed, and `Window` when the caller scrolls with deterministic ordering and extracts the next position from the current window.
+`Page` is the heaviest because it runs a separate count query.
+`Slice` avoids the count but still uses pageable offset traversal.
+`Window` represents scroll-based iteration, and callers extract the next `ScrollPosition` from the current window with `window.positionAt(...)`; the underlying scroll can be offset- or keyset-based depending on the repository method and store support.
 
 Keyset scrolling constraints:
 
@@ -311,11 +325,12 @@ Keyset scrolling constraints:
 - The `ScrollPosition` must be carried forward from the previous Window result.
 - Keep a deterministic sort such as `OrderByIdAsc` so every window position stays stable.
 
-Open [references/scrolling-patterns.md](references/scrolling-patterns.md) when the blocker is `WindowIterator`, offset-versus-keyset `ScrollPosition`, or why a projection breaks keyset scrolling.
+Open [references/scrolling`-patterns.md`](references/scrolling-patterns.md) when the blocker is `WindowIterator`, offset-versus-keyset `ScrollPosition`, or why a projection breaks keyset scrolling.
 
 ### Auditing activation
 
-Enable auditing per store module. The entity annotations are shared, but the activation mechanism is store-specific and belongs in the store-specific path.
+Enable auditing per store module.
+The entity annotations are shared, but the activation mechanism is store-specific and belongs in the store-specific path.
 
 Auditing fields:
 
@@ -337,7 +352,7 @@ class PurchaseOrder {
 
 If using `@CreatedBy` or `@LastModifiedBy`, provide the auditor SPI that matches the store style: `AuditorAware<T>` for imperative repositories and `ReactiveAuditorAware<T>` for reactive infrastructure.
 
-Open [references/jpa-transactions.md](references/jpa-transactions.md) when the blocker is declared-query transaction behavior, `@Modifying`, or a facade-level transaction boundary in a JPA store.
+Open [references/jpa`-transactions.md`](references/jpa-transactions.md) when the blocker is declared-query transaction behavior, `@Modifying`, or a facade-level transaction boundary in a JPA store.
 
 ### Auditing field shape
 
@@ -367,12 +382,12 @@ Instant createdAt;
 
 ## References
 
-- Open [references/store-specific-module-selection.md](references/store-specific-module-selection.md) when the ordinary repository-abstraction path is not enough and the task depends on one store's persistence semantics.
-- Open [references/query-by-example.md](references/query-by-example.md) when the blocker is Query by Example matcher behavior, probe design, or choosing QBE instead of a derived query.
-- Open [references/entity-callbacks-and-conversions.md](references/entity-callbacks-and-conversions.md) when the blocker is entity callback registration, custom conversions, or per-property value conversion.
-- Open [references/multimodule-repository-scanning.md](references/multimodule-repository-scanning.md) when the blocker is strict repository scanning across more than one Spring Data store module.
-- Open [references/spring-data-domain-events.md](references/spring-data-domain-events.md) when the blocker is aggregate-root domain event publication through Spring Data repositories.
-- Open [references/spring-data-rest-exposure.md](references/spring-data-rest-exposure.md) when the task is specifically about exposing repositories as HTTP resources.
-- Open [references/spring-data-aot.md](references/spring-data-aot.md) when the task depends on AOT or native-image repository details.
-- Open [references/scrolling-patterns.md](references/scrolling-patterns.md) when the blocker is scroll position semantics, `WindowIterator`, or projection constraints in keyset scrolling.
-- Open [references/jpa-transactions.md](references/jpa-transactions.md) when the blocker is JPA repository transaction inheritance, declared `@Query` methods, or `@Modifying` behavior.
+- Open [references/store`-specific-module-selection.md`](references/store-specific-module-selection.md) when the ordinary repository-abstraction path is not enough and the task depends on one store's persistence semantics.
+- Open [references/query`-by-example.md`](references/query-by-example.md) when the blocker is Query by Example matcher behavior, probe design, or choosing QBE instead of a derived query.
+- Open [references/entity`-callbacks-and-conversions.md`](references/entity-callbacks-and-conversions.md) when the blocker is entity callback registration, custom conversions, or per-property value conversion.
+- Open [references/multimodule`-repository-scanning.md`](references/multimodule-repository-scanning.md) when the blocker is strict repository scanning across more than one Spring Data store module.
+- Open [references/spring`-data-domain-events.md`](references/spring-data-domain-events.md) when the blocker is aggregate-root domain event publication through Spring Data repositories.
+- Open [references/spring`-data-rest-exposure.md`](references/spring-data-rest-exposure.md) when the task is specifically about exposing repositories as HTTP resources.
+- Open [references/spring`-data-aot.md`](references/spring-data-aot.md) when the task depends on AOT or native-image repository details.
+- Open [references/scrolling`-patterns.md`](references/scrolling-patterns.md) when the blocker is scroll position semantics, `WindowIterator`, or projection constraints in keyset scrolling.
+- Open [references/jpa`-transactions.md`](references/jpa-transactions.md) when the blocker is JPA repository transaction inheritance, declared `@Query` methods, or `@Modifying` behavior.

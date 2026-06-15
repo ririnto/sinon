@@ -12,7 +12,8 @@ This reference covers performance optimization patterns for MCP servers: lazy lo
 
 ## Lazy loading: defer server startup
 
-MCP servers are resource-heavy. Load them only when needed.
+MCP servers are resource-heavy.
+Load them only when needed.
 
 ### Problem: all servers start at session startup
 
@@ -82,7 +83,8 @@ Total: 200ms
 
 ### Solution: persistent connection pool
 
-MCP runtime maintains connection pool automatically for HTTP/WebSocket. No config needed.
+MCP runtime maintains connection pool automatically for HTTP/WebSocket.
+No config needed.
 
 Verify pooling is active:
 
@@ -102,7 +104,7 @@ Expected output:
 
 For high-volume tool use, tune pool size in hook:
 
-`.claude/{{plugin-name}}.local.md:`
+`.claude/{{plugin-name}}.`local.md`:`
 
 ```markdown
 ---

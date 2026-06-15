@@ -2,7 +2,8 @@
 
 Open this reference when guarded external transitions are no longer enough and the workflow needs explicit choice, junction, fork, join, or history semantics.
 
-Keep pseudo states rare and intentional. Most workflows do not need more than external transitions and one or two guarded branches.
+Keep pseudo states rare and intentional.
+Most workflows do not need more than external transitions and one or two guarded branches.
 
 If one external transition plus a guard keeps the topology readable, stay in `SKILL.md` and do not add pseudo states.
 
@@ -33,7 +34,10 @@ public void configure(StateMachineTransitionConfigurer<States, Events> transitio
 }
 ```
 
-For choice, `.first()` evaluates guards in order. The first transition whose guard returns true is taken. `.then()` adds additional guarded branches. `.last()` is the fallback when no guard matches.
+For choice, `.first()` evaluates guards in order.
+The first transition whose guard returns true is taken.
+`.then()` adds additional guarded branches.
+`.last()` is the fallback when no guard matches.
 
 For junction, use the same `.first()`/`.then()`/`.last()` pattern but define multiple incoming transitions to the junction state.
 
@@ -44,7 +48,8 @@ For junction, use the same `.first()`/`.then()`/`.last()` pattern but define mul
 
 Use fork and join only when concurrency is truly part of the workflow model rather than an implementation detail.
 
-Fork transitions originate from a single source and target multiple region initial states. Join transitions originate from multiple region end states and target a single state outside the region parent.
+Fork transitions originate from a single source and target multiple region initial states.
+Join transitions originate from multiple region end states and target a single state outside the region parent.
 
 ## History
 
@@ -52,7 +57,8 @@ Use history when a nested state machine must resume the last active child state 
 
 History is a lifecycle modeling decision, not a shortcut for persistence.
 
-Two history variants exist: shallow history (remembers only the immediate child state) and deep history (remembers the full nested state path). Configure with `.history(...)` specifying `SHALLOW` or `DEEP`.
+Two history variants exist: shallow history (remembers only the immediate child state) and deep history (remembers the full nested state path).
+Configure with `.history(...)` specifying `SHALLOW` or `DEEP`.
 
 ```java
 states.withStates()
@@ -63,7 +69,8 @@ states.withStates()
 
 ## Terminate state
 
-Use terminate to stop a state machine in a non-terminal fashion. Unlike `end()`, a terminated machine cannot be restarted without building a new instance.
+Use terminate to stop a state machine in a non-terminal fashion.
+Unlike `end()`, a terminated machine cannot be restarted without building a new instance.
 
 ```java
 states.withStates()
@@ -92,8 +99,10 @@ Use entry and exit points with hierarchical (nested) states to control which sub
 
 - Do not reach for pseudo states when a simple external transition with a guard is enough.
 - Do not model implementation concurrency with fork and join unless the business lifecycle itself is parallel.
-- Do not confuse history with restart persistence; they solve different problems.
-- Do not confuse terminate with end; terminated machines cannot restart, while end states are final but the machine lifecycle can be restarted.
+- Do not confuse history with restart persistence.
+  - They solve different problems.
+- Do not confuse terminate with end.
+  - Terminated machines cannot restart, while end states are final but the machine lifecycle can be restarted.
 
 ## Verification rule
 

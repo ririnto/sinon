@@ -27,7 +27,8 @@ void handle(List<String> data, @Header(PulsarHeaders.MESSAGE_ID) List<MessageId>
 
 ## Message header mapping
 
-`PulsarHeaderMapper` maps between Pulsar user properties and Spring `MessageHeaders`. Two implementations are available:
+`PulsarHeaderMapper` maps between Pulsar user properties and Spring `MessageHeaders`.
+Two implementations are available:
 
 - `JsonPulsarHeaderMapper` -- serializes and deserializes complex header values as JSON.
 - `ToStringPulsarHeaderMapper` -- converts header values to and from strings using `toString`.
@@ -46,4 +47,5 @@ JsonPulsarHeaderMapper pulsarHeaderMapper() {
 - Use `@Header` for simple header access in listeners.
 - Use `JsonPulsarHeaderMapper` when complex objects must travel as headers between producers and consumers.
 - Set trusted packages on JSON header mappers to control which types can be deserialized.
-- Keep header mapping simple; avoid sending large payloads as headers.
+- Keep header mapping simple.
+  - Avoid sending large payloads as headers.

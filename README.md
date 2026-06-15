@@ -5,9 +5,12 @@ description: >-
 
 # Sinon
 
-Sinon is a Claude Code plugin marketplace repository. It publishes curated plugins from a single source tree.
+Sinon is a Claude Code plugin marketplace repository.
+It publishes curated plugins from a single source tree.
 
-Plugins live under `plugins/`. The Claude marketplace catalog lives at the repository root. Stable repository rules, layout policies, and skill-authoring contracts are in `CLAUDE.md`.
+Plugins live under `plugins/`.
+The Claude marketplace catalog lives at the repository root.
+Stable repository rules, layout policies, and skill-authoring contracts are in `CLAUDE.md`.
 
 ## Purpose
 
@@ -18,7 +21,8 @@ Plugins live under `plugins/`. The Claude marketplace catalog lives at the repos
 
 ## Repository Structure
 
-- `CLAUDE.md`: stable repository rules, skill-authoring contracts, and layout policies. `AGENTS.md` is a symlink to the same file.
+- `CLAUDE.md`: stable repository rules, skill-authoring contracts, and layout policies.
+  - `AGENTS.md` is a symlink to the same file.
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.
@@ -32,14 +36,16 @@ Each plugin directory may expose a Claude Code manifest from the same plugin roo
 
 - `.claude-plugin/plugin.json`: Claude plugin manifest.
 
-Optional assets such as `README.md`, `commands/`, `agents/`, `skills/`, `hooks/`, `.mcp.json`, and `settings.json` live beside the manifest at the plugin root. Plugin-specific details belong in each plugin's own `README.md`, not in this root document.
+Optional assets such as `README.md`, `commands/`, `agents/`, `skills/`, `hooks/`, `.mcp.json`, and `settings.json` live beside the manifest at the plugin root.
+Plugin-specific details belong in each plugin's own `README.md`, not in this root document.
 
 ## Current Plugins
 
-The following plugins are maintained in this repository and may be published to the Claude marketplace catalog. For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
+The following plugins are maintained in this repository and may be published to the Claude marketplace catalog.
+For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
 - `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.
-- `plugins/document-creator`: Authoring skills for AI-consumable engineering documents, including SPEC.md creation.
+- `plugins/document-creator`: Authoring skills for AI-consumable engineering documents, including `SPEC.md` creation.
 - `plugins/harness`: Repository harness plugin for installing, validating, and evolving agent instructions, docs structure, project agents, project skills, templates, stack validators, CI snippets, and opt-in Git hook templates.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
 - `plugins/jvm`: JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.
@@ -47,7 +53,7 @@ The following plugins are maintained in this repository and may be published to 
 - `plugins/netty`: Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.
 - `plugins/observability-assets`: Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.
 - `plugins/reactor`: Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.
-- `plugins/spec-driven-development`: Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.
+- `plugins/spec-driven-development`: Spec-first workflow: research unknowns, write abstract requirements in `SPEC.md`, get approval, implement, verify completeness.
 - `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.
 - `plugins/workspace-workflow`: Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.
 
@@ -57,13 +63,15 @@ The repository maintains one marketplace catalog:
 
 - `.claude-plugin/marketplace.json` for Claude Code.
 
-Individual plugin directories remain the source of truth for plugin-specific runtime manifests and bundled assets. The marketplace catalog lists plugin roots that ship the Claude manifest.
+Individual plugin directories remain the source of truth for plugin-specific runtime manifests and bundled assets.
+The marketplace catalog lists plugin roots that ship the Claude manifest.
 
 ## Registering This Marketplace in Claude Code
 
 Claude Code supports registering marketplaces from GitHub repositories, generic git URLs, direct URLs to `marketplace.json`, and local paths.
 
-For this repository, use a GitHub repository, git URL, or local path. Sinon currently uses relative plugin sources such as `./plugins/java` inside `.claude-plugin/marketplace.json`, so a direct HTTP URL to the catalog file is not a safe distribution path for this marketplace.
+For this repository, use a GitHub repository, git URL, or local path.
+Sinon currently uses relative plugin sources such as `./plugins/java` inside `.claude-plugin/marketplace.json`, so a direct HTTP URL to the catalog file is not a safe distribution path for this marketplace.
 
 The Claude marketplace catalog for this repository is:
 
@@ -173,4 +181,6 @@ claude --plugin-dir /path/to/sinon/plugins/java
 
 ## License
 
-This repository is distributed under the MIT License. See [LICENSE](./LICENSE). The harness plugin is distributed under Apache-2.0 and includes attribution notes under [plugins/harness/THIRD_PARTY_NOTICES.md](./plugins/harness/THIRD_PARTY_NOTICES.md).
+This repository is distributed under the MIT License.
+See [LICENSE](./LICENSE).
+The harness plugin is distributed under Apache-2.0 and includes attribution notes under [plugins/harness/THIRD_PARTY_NOTICES.md](./plugins/harness/THIRD_PARTY_NOTICES.md).

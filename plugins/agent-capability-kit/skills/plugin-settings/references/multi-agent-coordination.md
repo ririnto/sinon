@@ -167,7 +167,8 @@ Fields:
 
 ### Hook reads settings and reports progress
 
-Bash is required for this example to use `printf %q` for safe quoting. For POSIX sh, use single-quote escaping or double-quote variables.
+Bash is required for this example to use `printf %q` for safe quoting.
+For POSIX sh, use single-quote escaping or double-quote variables.
 
 ```sh
 #!/usr/bin/env bash
@@ -253,7 +254,7 @@ Three agents working on interconnected tasks:
 
 ### Agent 1: Database schema agent (task 1)
 
-`.claude/db-agent.local.md:`
+`.claude/db-agent.`local.md`:`
 
 ```markdown
 ---
@@ -271,7 +272,7 @@ Create schema for user, token, and session tables.
 
 ### Agent 2: Auth service agent (task 2, depends on task 1)
 
-`.claude/auth-agent.local.md:`
+`.claude/auth-agent.`local.md`:`
 
 ```markdown
 ---
@@ -289,7 +290,7 @@ Requires task 1 schema to be complete.
 
 ### Agent 3: API gateway agent (task 3, depends on task 2)
 
-`.claude/gateway-agent.local.md:`
+`.claude/gateway-agent.`local.md`:`
 
 ```markdown
 ---
@@ -307,7 +308,8 @@ Integrate auth service from task 2.
 
 ### Hook: conditional execution on dependencies
 
-This example uses bash for robustness. For strict POSIX sh, replace `find` with globbing and avoid while-pipe subshells.
+This example uses bash for robustness.
+For strict POSIX sh, replace `find` with globbing and avoid while-pipe subshells.
 
 ```sh
 #!/usr/bin/env bash

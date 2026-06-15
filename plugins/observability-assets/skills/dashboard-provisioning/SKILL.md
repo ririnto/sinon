@@ -1,12 +1,14 @@
 ---
 name: dashboard-provisioning
 description: >-
-  Author Grafana dashboard provisioning with version-controlled provider YAML files and dashboard JSON source organization. Use when provisioning Grafana dashboards from reviewed YAML files, organizing folder strategies and drift-controlled delivery, managing UI-edit versus file-source-of-truth workflows, or needing guidance on provider YAML schema, dashboard JSON normalization, environment variable substitution, and provisioning lifecycle behavior.
+  Author Grafana dashboard provisioning with version-controlled provider YAML files and dashboard JSON source organization.
+  Use when provisioning Grafana dashboards from reviewed YAML files, organizing folder strategies and drift-controlled delivery, managing UI-edit versus file-source-of-truth workflows, or needing guidance on provider YAML schema, dashboard JSON normalization, environment variable substitution, and provisioning lifecycle behavior.
 ---
 
 # Dashboard Provisioning
 
-Provision Grafana dashboards as reviewed files instead of relying on long-lived manual UI state. The common case is one provider YAML file, one deliberate dashboard source directory, one folder strategy, and one review path that keeps file content as the source of truth when Grafana and Git disagree.
+Provision Grafana dashboards as reviewed files instead of relying on long-lived manual UI state.
+The common case is one provider YAML file, one deliberate dashboard source directory, one folder strategy, and one review path that keeps file content as the source of truth when Grafana and Git disagree.
 
 ## Common-Case Workflow
 
@@ -77,7 +79,15 @@ providers:
 
 ```
 
-Field meanings: `name` is the provider identifier; `orgId` defaults to `1`; `folder` fixes the target folder and is mutually exclusive with `options.foldersFromFilesStructure`; `type` must be `file`; `disableDeletion` defaults to `false`; `updateIntervalSeconds` defaults to `30`; `allowUiUpdates` defaults to `false`; `options.path` must point at the dashboard JSON directory; `options.foldersFromFilesStructure` mirrors one directory level into Grafana folders when no provider-level folder is set.
+Field meanings: `name` is the provider identifier.
+`orgId` defaults to `1`.
+`folder` fixes the target folder and is mutually exclusive with `options.foldersFromFilesStructure`.
+`type` must be `file`.
+`disableDeletion` defaults to `false`.
+`updateIntervalSeconds` defaults to `30`.
+`allowUiUpdates` defaults to `false`.
+`options.path` must point at the dashboard JSON directory.
+`options.foldersFromFilesStructure` mirrors one directory level into Grafana folders when no provider-level folder is set.
 
 Use when: you need one stable provider file for dashboard JSON already tracked in Git, with all fields explicitly documented.
 
@@ -90,11 +100,13 @@ uv run --with 'pyyaml>=6,<7' python -c "import yaml; yaml.safe_load(open('grafan
 
 ```
 
-Use when: the provider config was just edited and you need a fast syntax check before treating it as ready for deployment. Replace the path with your actual provider file location.
+Use when: the provider config was just edited and you need a fast syntax check before treating it as ready for deployment.
+Replace the path with your actual provider file location.
 
 ## Dashboard Source File Shape
 
-Legacy file provisioning reads raw dashboard JSON files from the provider `options.path`. Keep the source files as plain dashboard definitions rather than API import payloads.
+Legacy file provisioning reads raw dashboard JSON files from the provider `options.path`.
+Keep the source files as plain dashboard definitions rather than API import payloads.
 
 Representative source file:
 
@@ -124,7 +136,8 @@ Field semantics in the source file:
 | `version` | integer | no | Dashboard revision metadata. Grafana ignores it as a conflict gate during file provisioning. |
 | `panels` | array | yes | Panel definitions that make up the dashboard. |
 
-The provider YAML controls placement and sync behavior. Keep `folder`, provider-level `folderUid`, `disableDeletion`, `allowUiUpdates`, and `updateIntervalSeconds` in the provider config instead of mixing API-only wrapper fields into the dashboard source file.
+The provider YAML controls placement and sync behavior.
+Keep `folder`, provider-level `folderUid`, `disableDeletion`, `allowUiUpdates`, and `updateIntervalSeconds` in the provider config instead of mixing API-only wrapper fields into the dashboard source file.
 
 Use when: you need the correct on-disk shape for dashboard files that Grafana loads from a provider path.
 
@@ -151,7 +164,8 @@ Dashboard import-style payloads use a separate outer object:
 
 ```
 
-Use this envelope only for API-driven or resource-specific workflows that explicitly ask for it. Do not commit this wrapper as the raw dashboard file under a legacy provider `options.path`.
+Use this envelope only for API-driven or resource-specific workflows that explicitly ask for it.
+Do not commit this wrapper as the raw dashboard file under a legacy provider `options.path`.
 
 Use when: the blocker is translating between provider-path source files and API or resource payloads that add `dashboard`, `folderUid`, `overwrite`, or `message` fields.
 
@@ -267,7 +281,8 @@ Two-pass replacement order:
 1. First pass: replace `${ENV_VAR}` patterns with environment variable values.
 2. Second pass: replace `$ENV_VAR` patterns.
 
-This means `${ENV_VAR}` can be reinterpreted if the substituted value itself contains `$`. Use `$ENV_VAR` for those cases because Grafana resolves it in the second pass and does not run a third substitution pass over the inserted value.
+This means `${ENV_VAR}` can be reinterpreted if the substituted value itself contains `$`.
+Use `$ENV_VAR` for those cases because Grafana resolves it in the second pass and does not run a third substitution pass over the inserted value.
 
 Example provider using environment variables:
 
@@ -362,7 +377,10 @@ UI export workflows for moving a dashboard into provisioning:
 | Dashboard menu -> Copy JSON to clipboard | Paste the raw dashboard JSON into the source file and normalize `id` if present |
 | API `GET /api/dashboards/uid/<uid>` | Extract the `dashboard` object from the response and save that raw object as the source file |
 
-UI export methods already produce raw dashboard JSON. API responses and import payloads add extra envelope fields such as `dashboard`, `meta`, `folderUid`, or `overwrite`; strip those envelopes before storing a file under the legacy provider path. The `id` field from one Grafana instance SHOULD be removed or set to `null` before the file becomes shared source.
+UI export methods already produce raw dashboard JSON.
+API responses and import payloads add extra envelope fields such as `dashboard`, `meta`, `folderUid`, or `overwrite`.
+Strip those envelopes before storing a file under the legacy provider path.
+The `id` field from one Grafana instance SHOULD be removed or set to `null` before the file becomes shared source.
 
 Use when: the blocker is understanding what happens when dashboard files are added, modified, or removed from the source directory.
 
@@ -387,10 +405,10 @@ Validate the common case with these checks:
 
 Return:
 
-1. the recommended provider YAML or review decision
-2. the dashboard source path, folder strategy, and environment application shape
-3. validation or deployment checks, including how Grafana will discover the provider file and dashboard path
-4. remaining risks, assumptions, or drift-related caveats
+1. The recommended provider YAML or review decision
+2. The dashboard source path, folder strategy, and environment application shape
+3. Validation or deployment checks, including how Grafana will discover the provider file and dashboard path
+4. Remaining risks, assumptions, or drift-related caveats
 
 ## References
 
@@ -439,8 +457,7 @@ Return:
   - Grafana config file locations and load order
   - environment variable syntax in provider configs
   - delete behavior and UI export workflows
-- Do not activate for:
-  - dashboard panel authoring and visualization design
+- Do not activate for: dashboard panel authoring and visualization design
   - Prometheus alert-rule authoring or testing
   - Alertmanager routing and notification design
   - datasource provisioning configuration

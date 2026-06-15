@@ -1,6 +1,7 @@
 # Scenarios and Acceptance
 
-Use this reference when converting requirements into testable scenarios, acceptance criteria, success criteria, and conformance tests. Open this reference after functional and non-functional requirements are drafted.
+Use this reference when converting requirements into testable scenarios, acceptance criteria, success criteria, and conformance tests.
+Open this reference after functional and non-functional requirements are drafted.
 
 ## Scenario Format
 
@@ -21,7 +22,8 @@ Rules:
 - `WHEN` and `THEN` are REQUIRED.
 - `AND` extends the preceding clause to add more outcomes from the same action.
 - Use plain language, not pseudo-code.
-- Each scenario describes one happy or failure path; use separate scenarios for diverging paths.
+- Each scenario describes one happy or failure path.
+  - Use separate scenarios for diverging paths.
 
 Good example:
 
@@ -49,7 +51,8 @@ Poor example (too many branches in one scenario):
 
 Every functional requirement MUST have at least one scenario or state explicitly why it cannot be scenario-tested.
 
-Example reason: "FR-004: This requirement is platform-specific performance tuning with no observable behavior change; it is verified by profiling, not scenario testing."
+Example reason: "FR-004: This requirement is platform-specific performance tuning with no observable behavior change.
+It is verified by profiling, not scenario testing."
 
 Cover these case types when relevant:
 
@@ -62,7 +65,8 @@ Cover these case types when relevant:
 | Recovery path | Retry, rollback, fallback, compensation, partial failure behavior | Export job fails midway; system retries and completes |
 | State path | Transitions between draft, pending, active, paused, failed, completed, archived, deleted states | Job transitions from running to completed; dependent job auto-starts |
 
-Include cases that matter for the requirement. Omit cases that are out of scope.
+Include cases that matter for the requirement.
+Omit cases that are out of scope.
 
 ## State-Machine Transition Scenarios
 
@@ -124,7 +128,8 @@ Example:
 
 ## Acceptance Criteria
 
-Write acceptance criteria as one testable assertion each. Tie criteria to requirement IDs when the spec needs traceability.
+Write acceptance criteria as one testable assertion each.
+Tie criteria to requirement IDs when the spec needs traceability.
 
 ```markdown
 - AC-001-A: GIVEN a valid export request, WHEN the request is submitted, THEN the system returns HTTP 201 and a job ID.
@@ -154,7 +159,9 @@ Anti-patterns:
 
 ## Success Criteria
 
-Success criteria measure whether the feature achieved its intended outcome. They are not the same as implementation tests; they are user, business, operational, or compliance outcomes.
+Success criteria measure whether the feature achieved its intended outcome.
+They are not the same as implementation tests.
+They are user, business, operational, or compliance outcomes.
 
 Template:
 
@@ -192,7 +199,7 @@ Anti-patterns:
   - Problem: No metric; "fast" is subjective.
 ```
 
-## Policy Constraints vs. Quality Thresholds
+## Policy Constraints and Quality Thresholds
 
 Distinguish hard constraints from measured targets.
 
@@ -201,7 +208,8 @@ Distinguish hard constraints from measured targets.
 | Policy constraint | Non-negotiable launch blocker | MUST, MUST NOT | Cannot slip without approval | MUST NOT expose another tenant's data. |
 | Quality threshold | Measured target that guides release readiness | SHOULD, target, goal | MAY slip with documented tradeoff | p95 job creation latency SHOULD stay under 2 seconds. |
 
-Never downgrade a policy constraint into a measured target. Never turn every quality threshold into a hard launch blocker without explicit rationale.
+Never downgrade a policy constraint into a measured target.
+Never turn every quality threshold into a hard launch blocker without explicit rationale.
 
 Good distinction:
 
@@ -221,11 +229,13 @@ Good distinction:
 
 ## Conformance Test Matrix
 
-Conformance profiles organize tests for implementations. Three standard profiles:
+Conformance profiles organize tests for implementations.
+Three standard profiles:
 
 ### Core Conformance Profile
 
-Tests that EVERY conforming implementation MUST pass. Cover:
+Tests that EVERY conforming implementation MUST pass.
+Cover:
 
 - Mandatory requirements (FR and NFR marked MUST).
 - Essential workflows (happy path for each major feature).
@@ -234,7 +244,8 @@ Tests that EVERY conforming implementation MUST pass. Cover:
 
 ### Extension Conformance Profile
 
-Tests for OPTIONAL features. Mark clearly:
+Tests for OPTIONAL features.
+Mark clearly:
 
 ```markdown
 - [Test name] (IF [Extension Name] is implemented)
@@ -248,7 +259,8 @@ Tests for OPTIONAL features. Mark clearly:
 
 ### Real Integration Profile
 
-Integration tests against live external systems (not mocks). Example:
+Integration tests against live external systems (not mocks).
+Example:
 
 ```markdown
 - Real Tracker Integration (Linear API)
@@ -323,7 +335,8 @@ Guidance:
 
 - Limit active clarification markers to the highest-impact unknowns.
 - Priority order: scope, security/privacy, user experience, then technical details.
-- If a question is not resolved by the time writing is complete, keep it in the Open Questions section; never hide an unresolved guess in a requirement.
+- If a question is not resolved by the time writing is complete, keep it in the Open Questions section.
+  - Never hide an unresolved guess in a requirement.
 
 ## Scenario-to-Test Traceability
 
