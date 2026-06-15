@@ -24,24 +24,23 @@ class IfStatementBracesKtlintRule :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)
-            ?.let { ktFile ->
-                ktFile.accept(
-                    object : KtTreeVisitorVoid() {
-                        override fun visitIfExpression(expression: KtIfExpression) {
-                            super.visitIfExpression(expression)
-                            if (expression.then != null && expression.then !is KtBlockExpression) {
-                                emit(expression.textOffset, "if/else without braces; wrap the body in `{ ... }`", false)
-                            }
-                            if (expression.`else` != null &&
-                                expression.`else` !is KtBlockExpression &&
-                                expression.`else` !is KtIfExpression
-                            ) {
-                                emit(expression.textOffset, "if/else without braces; wrap the body in `{ ... }`", false)
-                            }
-                        }
-                    }
-                )
+        (node.psi as? KtFile)?.accept(IfBracesVisitor(emit))
+    }
+
+    private class IfBracesVisitor(
+        private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
+    ) : KtTreeVisitorVoid() {
+        override fun visitIfExpression(expression: KtIfExpression) {
+            super.visitIfExpression(expression)
+            if (expression.then != null && expression.then !is KtBlockExpression) {
+                emit(expression.textOffset, "if/else without braces; wrap the body in `{ ... }`", false)
             }
+            if (expression.`else` != null &&
+                expression.`else` !is KtBlockExpression &&
+                expression.`else` !is KtIfExpression
+            ) {
+                emit(expression.textOffset, "if/else without braces; wrap the body in `{ ... }`", false)
+            }
+        }
     }
 }

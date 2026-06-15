@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
 /**
- * Flags companion objects positioned outside the configured location; reposition to top or bottom of class body.
+ * Flags companion objects positioned outside the configured location; `any` disables the rule.
  */
 class CompanionObjectPositionKtlintRule :
     Rule(
@@ -31,19 +31,20 @@ class CompanionObjectPositionKtlintRule :
                 type =
                     PropertyType(
                         "ktlint_companion_object_position",
-                        "Companion object position (top or bottom)",
+                        "Companion object position (top, bottom, or any)",
                         PropertyType.PropertyValueParser.IDENTITY_VALUE_PARSER
                     ),
                 defaultValue = "top"
             )
     }
 
-    private var position: String = "top"
+    private lateinit var position: String
 
     override fun beforeFirstNode(editorConfig: EditorConfig) {
         position =
             when (editorConfig[COMPANION_POSITION]) {
                 "bottom" -> "bottom"
+                "any" -> "any"
                 else -> "top"
             }
     }
@@ -52,35 +53,37 @@ class CompanionObjectPositionKtlintRule :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)
-            ?.let { ktFile ->
-                ktFile.accept(
-                    object : KtTreeVisitorVoid() {
-                        override fun visitClass(klass: KtClass) {
-                            super.visitClass(klass)
-                            klass.getBody()?.let { body ->
-                                val declarations =
-                                    body.declarations.filter { declaration -> declaration !is KtEnumEntry }
-                                declarations.forEachIndexed { index, declaration ->
-                                    if (declaration is KtObjectDeclaration && declaration.isCompanion()) {
-                                        if (
-                                            when (position) {
-                                                "bottom" -> index != declarations.lastIndex
-                                                else -> index != 0
-                                            }
-                                        ) {
-                                            emit(
-                                                declaration.textOffset,
-                                                "companion object position violates parameters.position=$position",
-                                                false
-                                            )
-                                        }
-                                    }
-                                }
+        if (position != "any") {
+            (node.psi as? KtFile)?.accept(CompanionPositionVisitor(position, emit))
+        }
+    }
+
+    private class CompanionPositionVisitor(
+        private val position: String,
+        private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
+    ) : KtTreeVisitorVoid() {
+        override fun visitClass(klass: KtClass) {
+            super.visitClass(klass)
+            klass.getBody()?.let { body ->
+                val declarations =
+                    body.declarations.filter { declaration -> declaration !is KtEnumEntry }
+                declarations.forEachIndexed { index, declaration ->
+                    if (declaration is KtObjectDeclaration && declaration.isCompanion()) {
+                        if (
+                            when (position) {
+                                "bottom" -> index != declarations.lastIndex
+                                else -> index != 0
                             }
+                        ) {
+                            emit(
+                                declaration.textOffset,
+                                "companion object position violates parameters.position=$position",
+                                false
+                            )
                         }
                     }
-                )
+                }
             }
+        }
     }
 }

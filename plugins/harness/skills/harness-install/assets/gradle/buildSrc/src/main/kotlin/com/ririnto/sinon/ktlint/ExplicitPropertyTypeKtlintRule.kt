@@ -25,28 +25,26 @@ class ExplicitPropertyTypeKtlintRule :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)
-            ?.let { ktFile ->
-                ktFile.accept(
-                    object : KtTreeVisitorVoid() {
-                        override fun visitProperty(property: KtProperty) {
-                            super.visitProperty(property)
-                            if (property.isLocal || property.parent !is KtClassBody || property.typeReference != null) {
-                                return
-                            }
-                            emit(
-                                property.textOffset,
-                                "${
-                                    when ((property.parent?.parent as? KtObjectDeclaration)?.isCompanion()) {
-                                        true -> "companion object property"
-                                        else -> "member property"
-                                    }
-                                } `${property.name ?: "property"}` must declare an explicit type",
-                                false
-                            )
+        (node.psi as? KtFile)?.accept(PropertyTypeVisitor(emit))
+    }
+
+    private class PropertyTypeVisitor(
+        private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
+    ) : KtTreeVisitorVoid() {
+        override fun visitProperty(property: KtProperty) {
+            super.visitProperty(property)
+            if (!property.isLocal && property.parent is KtClassBody && property.typeReference == null) {
+                emit(
+                    property.textOffset,
+                    "${
+                        when ((property.parent?.parent as? KtObjectDeclaration)?.isCompanion()) {
+                            true -> "companion object property"
+                            else -> "member property"
                         }
-                    }
+                    } `${property.name ?: "property"}` must declare an explicit type",
+                    false
                 )
             }
+        }
     }
 }

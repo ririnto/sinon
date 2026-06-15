@@ -14,6 +14,7 @@ assert_gradle_assets() {
     require_file "$assets_root/buildSrc/build.gradle.kts"
     require_dir "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint"
     require_file "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ExplicitPropertyTypeKtlintRule.kt"
+    require_file "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ComparisonDirectionKtlintRule.kt"
     require_file "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/SlfDirectLoggingKtlintRule.kt"
     require_file "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt"
     require_file "$assets_root/buildSrc/src/main/resources/META-INF/services/com.pinterest.ktlint.cli.ruleset.core.api.RuleSetProviderV3"
@@ -37,15 +38,20 @@ assert_gradle_assets() {
     reject_file_contains "$assets_root/build.gradle.kts" '"bunx"'
     reject_file_contains "$assets_root/build.gradle.kts" 'docs/scripts/check-markdown-links.sh'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ExplicitPropertyTypeKtlintRule.kt" 'code:explicit-property-type'
+    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ComparisonDirectionKtlintRule.kt" 'code:comparison-direction'
+    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ComparisonDirectionKtlintRule.kt" 'KtSingleValueToken'
+    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/ComparisonDirectionKtlintRule.kt" 'ALLOW_AUTOCORRECT'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/SlfDirectLoggingKtlintRule.kt" 'code:slf-direct-logging'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'code:terminal-branch-when'
-    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'hasFinalElseBranch'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/TerminalBranchWhenKtlintRule.kt" 'RuleAutocorrectApproveHandler'
+    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/CompanionObjectPositionKtlintRule.kt" 'position != "any"'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/KotlinTopLevelDeclarationCountKtlintRule.kt" 'takeUnless { ktFile -> ktFile.isScript() }'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/PublicDeclarationDocCommentKtlintRule.kt" 'takeUnless { ktFile -> ktFile.isScript() }'
     reject_file_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint" 'abstract class KtlintRule'
     reject_file_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint" ': KtlintRule('
+    reject_file_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint" 'object : KtTreeVisitorVoid'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" 'ExplicitPropertyTypeKtlintRule()'
+    require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" 'ComparisonDirectionKtlintRule()'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" 'SlfDirectLoggingKtlintRule()'
     require_text "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" 'TerminalBranchWhenKtlintRule()'
     reject_file_contains "$assets_root/.editorconfig" "ktlint_unchecked_cast_suppression_forbidden"

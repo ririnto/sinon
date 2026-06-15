@@ -10,6 +10,7 @@ import com.pinterest.ktlint.rule.engine.core.api.editorconfig.EditorConfigProper
 import org.ec4j.core.model.PropertyType
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtCollectionLiteralExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -51,92 +52,64 @@ class UncheckedCastSuppressionKtlintRule :
             )
     }
 
-    private var forbiddenTokens: Set<String> = emptySet()
-    private var allowedTokens: Set<String> = emptySet()
+    private lateinit var forbiddenTokens: Set<String>
+    private lateinit var allowedTokens: Set<String>
 
     override fun beforeFirstNode(editorConfig: EditorConfig) {
-        forbiddenTokens =
-            editorConfig[FORBIDDEN_SUPPRESSIONS]
-                .split(",")
-                .map { token -> token.trim() }
-                .filter { token -> token.isNotEmpty() }
-                .toSet()
-        allowedTokens =
-            editorConfig[ALLOWED_SUPPRESSIONS]
-                .split(",")
-                .map { token -> token.trim() }
-                .filter { token -> token.isNotEmpty() }
-                .toSet()
+        forbiddenTokens = parseTokens(editorConfig[FORBIDDEN_SUPPRESSIONS])
+        allowedTokens = parseTokens(editorConfig[ALLOWED_SUPPRESSIONS])
     }
 
     override fun beforeVisitChildNodes(
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)
-            ?.let { ktFile ->
-                ktFile.accept(
-                    object : KtTreeVisitorVoid() {
-                        override fun visitAnnotationEntry(annotation: KtAnnotationEntry) {
-                            super.visitAnnotationEntry(annotation)
-                            if (annotation.shortName?.asString() == "Suppress") {
-                                if (extractSuppressTokens(annotation)
-                                        .intersect(forbiddenTokens - allowedTokens)
-                                        .isNotEmpty()
-                                ) {
-                                    emit(
-                                        annotation.textOffset,
-                                        "avoid suppression of forbidden tokens (`${annotation.text}`); refactor to type-safe cast or explicit handling",
-                                        false
-                                    )
-                                }
+        (node.psi as? KtFile)?.accept(SuppressAnnotationVisitor(forbiddenTokens - allowedTokens, emit))
+    }
+
+    private fun parseTokens(value: String): Set<String> =
+        value.split(",").map { token -> token.trim() }.filter { token -> token.isNotEmpty() }.toSet()
+
+    private class SuppressAnnotationVisitor(
+        private val forbiddenTokens: Set<String>,
+        private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
+    ) : KtTreeVisitorVoid() {
+        override fun visitAnnotationEntry(annotation: KtAnnotationEntry) {
+            super.visitAnnotationEntry(annotation)
+            if (annotation.calleeExpression?.node?.findChildByType(KtTokens.IDENTIFIER)?.text == Suppress::class.java.simpleName &&
+                buildSet {
+                    for (arg in annotation.valueArguments) {
+                        val argExpr = arg.getArgumentExpression()
+                        when (argExpr) {
+                            is KtStringTemplateExpression -> {
+                                extractStringValue(argExpr)?.let { stringValue -> add(stringValue) }
+                            }
+
+                            is KtCollectionLiteralExpression -> {
+                                addAll(
+                                    generateSequence(listOf<PsiElement>(argExpr)) { layer ->
+                                        layer
+                                            .flatMap { element -> element.children.toList() }
+                                            .takeIf { children -> children.isNotEmpty() }
+                                    }.flatten()
+                                        .filterIsInstance<KtStringTemplateExpression>()
+                                        .mapNotNull(::extractStringValue)
+                                )
                             }
                         }
-
-                        private fun extractSuppressTokens(annotation: KtAnnotationEntry): Set<String> =
-                            buildSet {
-                                for (arg in annotation.valueArguments) {
-                                    val argExpr = arg.getArgumentExpression()
-                                    when {
-                                        argExpr is KtStringTemplateExpression -> {
-                                            val stringValue = extractStringValue(argExpr)
-                                            if (stringValue.isNotEmpty()) {
-                                                add(stringValue)
-                                            }
-                                        }
-
-                                        argExpr is KtCollectionLiteralExpression -> {
-                                            for (token in arrayLiteralTokens(argExpr)) {
-                                                add(token)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                        private fun arrayLiteralTokens(arrayExpr: PsiElement): List<String> =
-                            generateSequence(listOf(arrayExpr)) { layer ->
-                                layer
-                                    .flatMap { element -> element.children.toList() }
-                                    .takeIf { children -> children.isNotEmpty() }
-                            }.flatten()
-                                .filterIsInstance<KtStringTemplateExpression>()
-                                .map(::extractStringValue)
-                                .filter { value -> value.isNotEmpty() }
-                                .toList()
-
-                        private fun extractStringValue(expr: KtStringTemplateExpression): String =
-                            when {
-                                expr.entries.all { entry -> entry is KtLiteralStringTemplateEntry } -> {
-                                    expr.entries.joinToString("") { entry -> entry.text }
-                                }
-
-                                else -> {
-                                    ""
-                                }
-                            }
                     }
+                }.intersect(forbiddenTokens).isNotEmpty()
+            ) {
+                emit(
+                    annotation.textOffset,
+                    "avoid suppression of forbidden tokens (`${annotation.text}`); refactor to type-safe cast or explicit handling",
+                    false
                 )
             }
+        }
+
+        private fun extractStringValue(expr: KtStringTemplateExpression): String? =
+            expr.entries.joinToString("") { entry -> entry.text }
+                .takeIf { expr.entries.all { entry -> entry is KtLiteralStringTemplateEntry } }
     }
 }

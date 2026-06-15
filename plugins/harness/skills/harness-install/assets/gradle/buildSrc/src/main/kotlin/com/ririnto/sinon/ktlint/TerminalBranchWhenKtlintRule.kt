@@ -7,6 +7,7 @@ import com.pinterest.ktlint.rule.engine.core.api.RuleAutocorrectApproveHandler
 import com.pinterest.ktlint.rule.engine.core.api.RuleId
 import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtIfExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
@@ -24,34 +25,34 @@ class TerminalBranchWhenKtlintRule :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)
-            ?.accept(
-                object : KtTreeVisitorVoid() {
-                    override fun visitIfExpression(expression: KtIfExpression) {
-                        super.visitIfExpression(expression)
-                        if (expression.isElseIfBranch()) {
-                            return
-                        }
-                        if (expression.hasFinalElseBranch()) {
-                            emit(expression.textOffset, "if/else chain; use when instead", false)
-                        }
-                    }
-                }
-            )
+        (node.psi as? KtFile)?.accept(TerminalWhenVisitor(emit))
     }
 
-    private fun KtIfExpression.isElseIfBranch(): Boolean =
-        nearestParentIfOrFile()?.let { parentIf -> parentIf.`else` == this } == true
-
-    private tailrec fun KtIfExpression.nearestParentIfOrFile(current: PsiElement? = parent): KtIfExpression? =
-        when (current) {
-            null, is KtFile -> null
-            is KtIfExpression -> current
-            else -> nearestParentIfOrFile(current.parent)
+    private class TerminalWhenVisitor(
+        private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
+    ) : KtTreeVisitorVoid() {
+        override fun visitIfExpression(expression: KtIfExpression) {
+            super.visitIfExpression(expression)
+            if (nearestParentIf(expression.parent)?.`else` == expression) {
+                return
+            }
+            if (hasFinalElseBranch(expression.`else`)) {
+                emit(expression.textOffset, "if/else chain; use when instead", false)
+            }
         }
 
-    private tailrec fun KtIfExpression.hasFinalElseBranch(): Boolean {
-        val elseExpression = `else` ?: return false
-        return elseExpression !is KtIfExpression || elseExpression.hasFinalElseBranch()
+        private tailrec fun nearestParentIf(ancestor: PsiElement?): KtIfExpression? =
+            when (ancestor) {
+                null, is KtFile -> null
+                is KtIfExpression -> ancestor
+                else -> nearestParentIf(ancestor.parent)
+            }
+
+        private tailrec fun hasFinalElseBranch(expression: KtExpression?): Boolean =
+            when (expression) {
+                null -> false
+                is KtIfExpression -> hasFinalElseBranch(expression.`else`)
+                else -> true
+            }
     }
 }

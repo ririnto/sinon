@@ -36,7 +36,7 @@ class MultilineDocStyleKtlintRule :
             )
     }
 
-    private var docStyleMode: String = "multiline"
+    private lateinit var docStyleMode: String
 
     override fun beforeFirstNode(editorConfig: EditorConfig) {
         docStyleMode = editorConfig[DOC_STYLE_MODE]
@@ -46,26 +46,24 @@ class MultilineDocStyleKtlintRule :
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        if (docStyleMode != "multiline") {
-            return
+        if (docStyleMode == "multiline") {
+            (node.psi as? KtFile)?.accept(DocStyleVisitor(emit))
         }
-        (node.psi as? KtFile)
-            ?.let { ktFile ->
-                ktFile.accept(
-                    object : KtTreeVisitorVoid() {
-                        override fun visitDeclaration(declaration: KtDeclaration) {
-                            super.visitDeclaration(declaration)
-                            val docComment = declaration.docComment ?: return
-                            if (!docComment.text.contains('\n')) {
-                                emit(
-                                    docComment.textOffset,
-                                    "documentation comment must use multiline KDoc style",
-                                    false
-                                )
-                            }
-                        }
-                    }
+    }
+
+    private class DocStyleVisitor(
+        private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
+    ) : KtTreeVisitorVoid() {
+        override fun visitDeclaration(declaration: KtDeclaration) {
+            super.visitDeclaration(declaration)
+            val docComment = declaration.docComment ?: return
+            if (!docComment.text.contains('\n')) {
+                emit(
+                    docComment.textOffset,
+                    "documentation comment must use multiline KDoc style",
+                    false
                 )
             }
+        }
     }
 }

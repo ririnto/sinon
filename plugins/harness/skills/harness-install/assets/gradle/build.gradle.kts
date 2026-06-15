@@ -38,7 +38,7 @@ tasks.register("checkMarkdown") {
         findMarkdownlintCommand()?.let { markdownlint ->
             providers
                 .exec {
-                    commandLine(markdownlint)
+                    commandLine(markdownlint, ".")
                 }.result
                 .get()
                 .assertNormalExitValue()
@@ -51,7 +51,7 @@ tasks.register("fixMarkdown") {
         findMarkdownlintCommand()?.let { markdownlint ->
             providers
                 .exec {
-                    commandLine(markdownlint, "--fix")
+                    commandLine(markdownlint, "--fix", ".")
                 }.result
                 .get()
                 .assertNormalExitValue()

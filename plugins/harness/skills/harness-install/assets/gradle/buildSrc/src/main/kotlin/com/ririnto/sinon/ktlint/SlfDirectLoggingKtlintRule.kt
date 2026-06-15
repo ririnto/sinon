@@ -24,10 +24,6 @@ class SlfDirectLoggingKtlintRule :
         about = About()
     ),
     RuleAutocorrectApproveHandler {
-    companion object {
-        private val logLevels: Set<String> = setOf("trace", "debug", "info", "warn", "error")
-    }
-
     override fun beforeVisitChildNodes(
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
@@ -116,7 +112,7 @@ class SlfDirectLoggingKtlintRule :
             val logLevel =
                 (expression.calleeExpression as? KtNameReferenceExpression)
                     ?.getReferencedName()
-                    ?.takeIf { name -> name in logLevels } ?: return
+                    ?.takeIf { name -> name in setOf("trace", "debug", "info", "warn", "error") } ?: return
             val receiverExpression = (expression.parent as? KtDotQualifiedExpression)?.receiverExpression ?: return
             if (
                 (receiverExpression as? KtNameReferenceExpression)?.getReferencedName() in loggerNames ||
