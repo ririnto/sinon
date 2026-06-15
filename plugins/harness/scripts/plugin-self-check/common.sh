@@ -22,6 +22,9 @@ relative_to_root() {
 # @exit Exits with status 1 when file is missing.
 require_file() {
     path=$1
+    if [ -f "$path" ]; then
+        return 0
+    fi
     relative_path=$(relative_to_root "$path")
     if ! tracked_file=$(git -C "$root" ls-files --error-unmatch -- "$relative_path" 2>&1); then
         printf '%s\n' "[require_file] missing required file: $path" >&2

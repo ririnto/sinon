@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.com.intellij.lang.ASTNode
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
-import kotlin.io.path.nameWithoutExtension
 
 /**
  * Flags leading underscores in Kotlin file basenames and declarations, including parameters.
@@ -20,37 +19,32 @@ class LeadingUnderscoreKtlintRule :
         about = About()
     ),
     RuleAutocorrectApproveHandler {
-    companion object {
-        private val allowedNames: Set<String> = setOf("_")
-        private val allowedPatterns: List<Regex> = emptyList()
+    private companion object {
+        fun isForbidden(name: String): Boolean =
+            name.startsWith("_") && name != "_"
     }
 
     override fun beforeVisitChildNodes(
         node: ASTNode,
         emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
     ) {
-        (node.psi as? KtFile)
-            ?.let { ktFile ->
-                val basename = ktFile.virtualFile?.nameWithoutExtension ?: return@let
-                if (isForbidden(basename)) {
-                    emit(ktFile.textOffset, "declaration `$basename` uses a leading underscore", false)
-                }
-                ktFile.accept(
-                    object : KtTreeVisitorVoid() {
-                        override fun visitNamedDeclaration(declaration: KtNamedDeclaration) {
-                            super.visitNamedDeclaration(declaration)
-                            val name = declaration.name ?: return
-                            if (isForbidden(name)) {
-                                emit(declaration.textOffset, "declaration `$name` uses a leading underscore", false)
-                            }
-                        }
-                    }
-                )
-            }
+        val ktFile = node.psi as? KtFile ?: return
+        val basename = ktFile.virtualFile?.nameWithoutExtension
+        if (basename != null && isForbidden(basename)) {
+            emit(ktFile.textOffset, "declaration `$basename` uses a leading underscore", false)
+        }
+        ktFile.accept(LeadingUnderscoreVisitor(emit))
     }
 
-    private fun isForbidden(name: String): Boolean =
-        name.startsWith("_") &&
-            name !in allowedNames &&
-            allowedPatterns.none { pattern -> pattern.matches(name) }
+    private class LeadingUnderscoreVisitor(
+        private val emit: (offset: Int, errorMessage: String, canBeAutoCorrected: Boolean) -> AutocorrectDecision
+    ) : KtTreeVisitorVoid() {
+        override fun visitNamedDeclaration(declaration: KtNamedDeclaration) {
+            super.visitNamedDeclaration(declaration)
+            val name = declaration.name ?: return
+            if (isForbidden(name)) {
+                emit(declaration.textOffset, "declaration `$name` uses a leading underscore", false)
+            }
+        }
+    }
 }
