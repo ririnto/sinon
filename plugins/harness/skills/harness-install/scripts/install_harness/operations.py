@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import stat
 
-from .commands import workflow_name_for_mode
+from .commands import workflow_asset_name_for_ci_host, workflow_name_for_mode
 from .errors import fail
 from .models import TEMPLATE_DIR, InstallerSupport
 from .paths import (
@@ -20,8 +20,10 @@ class OperationsMixin(InstallerSupport):
 
         candidate = self.build_plan().match(requested_path)
         if candidate.kind in {"file", "stack-file", "seed"}:
-            self.copy_template_file(
-                required_src(candidate), candidate.dst, seed=candidate.seed
+            self.copy_asset_file(
+                required_src(candidate),
+                candidate.dst,
+                seed=candidate.seed,
             )
             return
         if candidate.kind == "gitkeep":
@@ -52,9 +54,13 @@ class OperationsMixin(InstallerSupport):
             rel = src.relative_to(src_dir).as_posix()
             if common and is_common_skip_path(rel):
                 continue
+            if common and rel == "WORKFLOW.md":
+                src = src_dir / workflow_asset_name_for_ci_host(self.config.ci_host)
             dst = rel if dst_dir in {"", "."} else f"{dst_dir}/{rel}"
-            self.copy_template_file(
-                src, dst, seed=common and is_direct_template_entry(rel)
+            self.copy_asset_file(
+                src,
+                dst,
+                seed=common and is_direct_template_entry(rel),
             )
 
     def copy_stack_tree(self, src_dir: Path, dst_dir: str) -> None:
@@ -68,7 +74,7 @@ class OperationsMixin(InstallerSupport):
                 if self.config.ci_host not in {"gitlab", "both"}:
                     continue
                 dst = rel if dst_dir in {"", "."} else f"{dst_dir}/{rel}"
-                self.copy_template_file(src, dst)
+                self.copy_asset_file(src, dst)
                 continue
             if rel.startswith(".github/workflows/"):
                 if self.config.ci_host not in {"github", "both"}:
@@ -78,14 +84,12 @@ class OperationsMixin(InstallerSupport):
                     if dst_dir in {"", "."}
                     else f"{dst_dir}/.github/workflows/{workflow_name}"
                 )
-                self.copy_template_file(src, dst)
+                self.copy_asset_file(src, dst)
                 continue
             dst = rel if dst_dir in {"", "."} else f"{dst_dir}/{rel}"
-            self.copy_template_file(src, dst)
+            self.copy_asset_file(src, dst)
 
-    def copy_template_file(
-        self, src_file: Path, dst: str, *, seed: bool = False
-    ) -> None:
+    def copy_asset_file(self, src_file: Path, dst: str, *, seed: bool = False) -> None:
 
         ensure_safe_file_destination(dst)
         if Path(dst).exists() and not self.config.force:
@@ -95,7 +99,7 @@ class OperationsMixin(InstallerSupport):
                 print(f"keep existing: {dst}")
             return
         tmp = self.temporary_destination(dst, "copy_file")
-        tmp.write_text(self.render_template(src_file), encoding="utf-8")
+        tmp.write_text(self.read_install_asset(src_file), encoding="utf-8")
         if os.access(src_file, os.X_OK):
             file_mode = tmp.stat().st_mode
             tmp.chmod(file_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)

@@ -18,7 +18,7 @@ printf 'Validating harness plugin native-lint end-state...\n' >&2
 
 printf '\n--- common assets ---\n' >&2
 common_assets=$root/skills/harness-install/assets/common
-assert_common_assets_rendered_validation_command "$common_assets"
+assert_common_assets_structure "$common_assets"
 require_file "$common_assets/.editorconfig"
 require_text "$common_assets/.editorconfig" '[{*.json,*.jsonc,*.yaml,*.yml,*.js,*.jsx,*.mjs,*.cjs,*.ts,*.tsx,*.md,*.markdown}]'
 require_text "$common_assets/.editorconfig" 'indent_size = 2'
@@ -168,7 +168,8 @@ require_text "$root/skills/harness-install/scripts/install_harness/contracts.py"
 require_text "$root/skills/harness-install/scripts/install_harness/preview.py" 'def preview_install_set'
 require_text "$root/skills/harness-install/scripts/install_harness/preview.py" 'def show_one_target_path'
 require_text "$root/skills/harness-install/scripts/install_harness/operations.py" 'def install_one_target_path'
-require_text "$root/skills/harness-install/scripts/install_harness/models.py" '{{validation_command}}'
+require_text "$root/skills/harness-install/scripts/install_harness/models.py" 'CI_HOSTS = ("github", "gitlab", "both", "none")'
+require_text "$root/skills/harness-install/scripts/install_harness/hooks.py" 'def read_install_asset'
 reject_file_contains "$root/skills/harness-install/scripts/install-harness.py" 'install-harness.sh'
 assert_code_style_contracts \
     "$root/skills/harness-install/scripts/install-harness.py" \

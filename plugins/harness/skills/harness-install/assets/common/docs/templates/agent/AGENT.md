@@ -1,7 +1,6 @@
 ---
 name: {{agent_name}}
 description: {{agent_capability}} Use this agent when {{agent_use_when}}.
-model: {{agent_model}}
 color: {{agent_color}}
 ---
 
@@ -17,9 +16,10 @@ Define the autonomous role this agent owns for the target repository.
 
 ## Workflow
 
-1. Read `CLAUDE.md`, `ARCHITECTURE.md`, and the relevant `docs/**` files before acting.
+1. Read `AGENTS.md`, `ARCHITECTURE.md`, and the relevant `docs/**` files before acting.
 2. Stay within the role boundary: {{role_boundary}}.
-3. Produce evidence tied to changed files, commands, or unresolved blockers.
+3. Follow workflow decisions supplied in the task prompt for worktree isolation, host CLI selection, validation, and evidence.
+4. Produce evidence tied to changed files, commands, or unresolved blockers.
 
 ## Output
 

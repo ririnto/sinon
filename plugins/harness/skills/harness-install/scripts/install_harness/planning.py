@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
-from .commands import workflow_name_for_mode
+from .commands import workflow_asset_name_for_ci_host, workflow_name_for_mode
 from .models import (
     AGENTS_MARKER,
     CLAUDE_MARKER,
@@ -36,6 +35,8 @@ class PlanningMixin(InstallerSupport):
             rel = src.relative_to(src_dir).as_posix()
             if is_common_skip_path(rel):
                 continue
+            if rel == "WORKFLOW.md":
+                src = src_dir / workflow_asset_name_for_ci_host(self.config.ci_host)
             candidates.append(
                 InstallCandidate(
                     "seed" if is_direct_template_entry(rel) else "file",
@@ -76,7 +77,7 @@ class PlanningMixin(InstallerSupport):
         self,
     ) -> list[InstallCandidate]:
 
-        candidates = [
+        return [
             self.root_contract_candidate_for_request(
                 "AGENTS.md",
                 AGENTS_MARKER,
@@ -88,27 +89,6 @@ class PlanningMixin(InstallerSupport):
                 TEMPLATE_DIR / "common" / "CLAUDE.md",
             ),
         ]
-        agents_exists = os.path.lexists("AGENTS.md")
-        claude_exists = os.path.lexists("CLAUDE.md")
-        agents_is_symlink = Path("AGENTS.md").is_symlink() if agents_exists else False
-        claude_is_symlink = Path("CLAUDE.md").is_symlink() if claude_exists else False
-        if not agents_exists and not claude_exists:
-            candidates.append(
-                InstallCandidate("symlink", "AGENTS.md", symlink_target="CLAUDE.md")
-            )
-        elif not agents_exists and claude_exists and not claude_is_symlink:
-            candidates.append(
-                InstallCandidate("symlink", "AGENTS.md", symlink_target="CLAUDE.md")
-            )
-        elif not claude_exists and agents_exists and not agents_is_symlink:
-            candidates.append(
-                InstallCandidate("symlink", "CLAUDE.md", symlink_target="AGENTS.md")
-            )
-        if Path(".claude").is_dir():
-            candidates.append(
-                InstallCandidate("symlink", ".agents", symlink_target=".claude")
-            )
-        return candidates
 
     def root_contract_candidate_for_request(
         self,
@@ -118,12 +98,11 @@ class PlanningMixin(InstallerSupport):
     ) -> InstallCandidate:
 
         if Path(request_file).is_symlink():
-            real_target = self.root_contract_symlink_target(request_file)
             return InstallCandidate(
                 "root-contract",
                 request_file,
                 src=template_path,
-                real_target=real_target,
+                real_target=request_file,
                 marker=marker,
             )
         if Path(request_file).exists():
@@ -134,29 +113,11 @@ class PlanningMixin(InstallerSupport):
                 real_target=request_file,
                 marker=marker,
             )
-        other_file = "CLAUDE.md" if request_file == "AGENTS.md" else "AGENTS.md"
-        if Path(other_file).is_symlink():
-            real_target = self.root_contract_symlink_target(other_file)
-            return InstallCandidate(
-                "root-contract",
-                request_file,
-                src=template_path,
-                real_target=real_target,
-                marker=marker,
-            )
-        if Path(other_file).exists():
-            return InstallCandidate(
-                "root-contract",
-                request_file,
-                src=template_path,
-                real_target=other_file,
-                marker=marker,
-            )
         return InstallCandidate(
             "root-contract",
             request_file,
             src=template_path,
-            real_target="CLAUDE.md",
+            real_target=request_file,
             marker=marker,
         )
 

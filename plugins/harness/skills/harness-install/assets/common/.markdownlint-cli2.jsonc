@@ -21,10 +21,12 @@
       "style": "fenced"
     },
     "no-emphasis-as-heading": true,
-    "docs/exec-plans/links": true
+    "docs/exec-plans/links": true,
+    "docs/root-files": true
   },
   "customRules": [
-    "./docs/scripts/exec-plan-links.ts"
+    "./scripts/exec-plan-links.ts",
+    "./scripts/docs-root-files.ts"
   ],
   "gitignore": ".gitignore",
   "globs": [

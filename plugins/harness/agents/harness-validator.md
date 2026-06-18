@@ -3,7 +3,6 @@ name: harness-validator
 description: |-
   Verify installed harness assets, executable scripts, hooks, CI commands, and stack validation paths.
   Use this agent after harness install, refresh, evolution, or packaging changes require mechanical verification.
-model: haiku
 color: green
 tools:
   - Read
@@ -25,7 +24,7 @@ Prefer deterministic checks over inspection-only conclusions.
 
 1. Determine whether you are validating the plugin package or an installed target harness.
 2. For plugin package validation, run the plugin self-check when available.
-3. For target harness validation, read `docs/README.md` and run the matching stack command.
+3. For target harness validation, read `WORKFLOW.md` and run the matching stack command.
 4. Verify executable bits for scripts and hook templates when the filesystem exposes them.
 5. Search for stale required examples such as generated database artifacts that are not universally valid.
 6. Report exact commands and results.

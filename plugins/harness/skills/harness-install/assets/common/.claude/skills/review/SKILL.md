@@ -13,9 +13,9 @@ Summaries are secondary.
 
 ## First Safe Checks
 
-1. Read `CLAUDE.md`, `ARCHITECTURE.md`, and `docs/README.md`.
+1. Read `AGENTS.md`, `ARCHITECTURE.md`, and the relevant `docs/**` files.
 2. Inspect the changed files and the relevant domain docs under `docs/**`.
-3. Identify the stack-specific validation command from `docs/README.md`.
+3. Use the stack-specific validation command supplied in the task prompt.
 4. Separate product-code findings from contract findings.
 
 ## Workflow
@@ -30,6 +30,7 @@ Summaries are secondary.
 ## Review Focus
 
 - Contract drift between `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, docs, and `docs/git-hooks/**`.
+- Workflow drift between supplied workflow policy, host CLI usage, `.tmp/` body drafts, and review evidence.
 - Missing acceptance criteria, execution plans, or architecture updates.
 - Required fake product content or obsolete seed references.
 - Inconsistent validation commands across docs, CI, active pre-commit, and active pre-push final checks.

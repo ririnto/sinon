@@ -63,7 +63,7 @@ def parse_args(argv: list[str]) -> InstallerConfig:
     action_group.add_argument(
         "--show",
         metavar="PATH",
-        help="Print rendered content for one final target-relative file without writing.",
+        help="Print install content for one final target-relative file without writing.",
     )
     action_group.add_argument(
         "--only", metavar="PATH", help="Install exactly one final target-relative file."

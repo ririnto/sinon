@@ -1,24 +1,24 @@
 # Workflow
 
-Use this file for Git flow, review records, validation gates, and host publication.
+Use this file for Git flow, review records, validation gates, and GitHub publication.
 Repository contract stays in `AGENTS.md`, architecture in `ARCHITECTURE.md`, and durable evidence in `docs/**`.
 Use task prompts for implementation-only decisions.
 
 ## Work Loop
 
-1. Explore the contract, relevant docs, code surface, validation command, and host record.
+1. Explore the contract, relevant docs, code surface, validation command, and issue record.
 2. Plan the files, acceptance gate, manual QA, validation, and publication target.
 3. Implement the smallest target-owned change.
 4. Review correctness, security, contract drift, and missing evidence.
 5. Validate with the selected stack command and active Git hooks.
-6. Publish with the selected host CLI when a review request is needed.
+6. Publish with `gh` when a pull request is needed.
 
 ## Records
 
 A milestone groups planned work.
-Keep the issue and completing review request on the same milestone when the host supports it.
-Use supporting review requests for preparatory or follow-up work.
-Put the closing keyword in the completing review request body.
+Keep the issue and completing pull request on the same milestone.
+Use supporting pull requests for preparatory or follow-up work.
+Put the closing keyword in the completing pull request body.
 
 ```text
 Closes #00
@@ -45,21 +45,10 @@ Use one logical intent per commit.
 Commit bodies may use a list.
 Respect included work from other contributors with a cherry-pick or `Co-authored-by:` trailer.
 
-## Host CLI
+## GitHub CLI
 
-Use the CLI that matches the Git host selected during harness installation.
-
-| Installed CI host | CLI |
-| --- | --- |
-| GitHub | `gh` |
-| GitLab | `glab` |
-| Both | Use the CLI for the host that owns the issue or review. |
-| None | Use the repository-approved local review or merge policy until project policy adds a Git host. |
-
-Draft issue, pull request, and merge request bodies in `.tmp/`.
-Pass the draft to the host CLI.
-
-GitHub:
+Draft issue and pull request bodies in `.tmp/`.
+Pass the draft file with `--body-file`.
 
 ```sh
 mkdir -p .tmp
@@ -69,26 +58,15 @@ $EDITOR .tmp/review.md
 gh pr create --draft --title "<title>" --milestone "<milestone>" --body-file .tmp/review.md --base main --head "$(git branch --show-current)"
 ```
 
-GitLab:
-
-```sh
-mkdir -p .tmp
-$EDITOR .tmp/issue.md
-glab api --method POST projects/:fullpath/issues --field title="<title>" --field milestone_id="<milestone-id>" --field description=@.tmp/issue.md
-$EDITOR .tmp/review.md
-glab api --method POST projects/:fullpath/merge_requests --field title="Draft: <title>" --field source_branch="$(git branch --show-current)" --field target_branch=main --field milestone_id="<milestone-id>" --field description=@.tmp/review.md
-```
-
 Merge after approval and final validation.
 
 ```sh
 gh pr merge --squash <pr-number>
-glab mr merge <mr-iid> --squash --yes
 ```
 
 ## Evidence
 
-Record evidence in the issue, review request body, execution plan, or review note:
+Record evidence in the issue, pull request body, execution plan, or review note:
 
 - validation command and result
 - test names or CI job names

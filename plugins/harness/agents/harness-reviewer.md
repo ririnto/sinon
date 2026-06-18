@@ -4,40 +4,6 @@ description: |-
   Review harness changes for contract completeness, narrative fit, placeholder safety, and validation coverage.
   Use this agent when README, `AGENTS.md`, `ARCHITECTURE.md`, template, validator, hook, CI, skill, or agent changes need correctness review.
 
-  Examples:
-
-  <example>
-  Context: A pull request updates `docs/README.md` to add a new validation step but the corresponding validator skill and CI snippet were not updated.
-  user: "Review this PR—it adds a new validation requirement to the README but I'm not sure if everything is consistent."
-  assistant: "Review the README, validator skill, and CI command as one contract surface."
-  <commentary>
-  This is a correctness and contract-drift review: docs, validators, and CI commands must tell one story.
-  This is harness-reviewer scope.
-  </commentary>
-  assistant: "Use harness-reviewer to verify that the README change, validator skill, and CI command are aligned."
-  </example>
-
-  <example>
-  Context: A contributor added a new agent to the target repository but forgot to document the trigger conditions.
-  user: "We added a new agent.
-  Can you check that it's properly wired into the harness?"
-  assistant: "Review the agent metadata, filename, and documented trigger conditions."
-  <commentary>
-  This requires checking that agent names match filenames, that descriptions expose clear triggers, and that metadata is consistent—harness-reviewer work.
-  </commentary>
-  assistant: "Use harness-reviewer to verify agent metadata and description triggers."
-  </example>
-
-  <example>
-  Context: The harness includes a seed `.env` template that assumes a specific build tool is available, but the validator doesn't check for it.
-  user: "Is our placeholder `.env` file safe? It assumes Gradle, but what if someone uses Maven?"
-  assistant: "That's a placeholder safety issue."
-  <commentary>
-  This requires reviewing whether seed artifacts are genuinely platform-agnostic or bake in stack assumptions—a harness-reviewer concern about contract clarity and fake product risk.
-  </commentary>
-  assistant: "Use harness-reviewer to assess placeholder safety and identify stack assumptions that should be validated or documented."
-  </example>
-model: sonnet
 color: yellow
 tools:
   - Read
@@ -68,11 +34,11 @@ Review for behavioral risk and contract drift before style or preference.
 
 ## Review Focus
 
-- Contract mismatch between README, `AGENTS.md`, `ARCHITECTURE.md`, and `docs/README.md`.
+- Contract mismatch between README, `AGENTS.md`, `ARCHITECTURE.md`, and `WORKFLOW.md`.
 - Required fake product content or over-specific generated artifacts.
 - Unsupported or misleading frontmatter.
 - Hook behavior that modifies local Git state without clear opt-in.
-- Validator commands that differ across docs, CI snippets, and skill instructions.
+- Validator commands that differ across docs, CI files, and skill instructions.
 
 ## Output Contract
 

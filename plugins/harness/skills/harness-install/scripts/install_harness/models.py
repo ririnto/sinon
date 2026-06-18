@@ -5,9 +5,9 @@ from pathlib import Path
 
 MODES = ("gradle", "maven", "uv", "bun", "shell")
 CI_HOSTS = ("github", "gitlab", "both", "none")
-VALIDATION_PLACEHOLDER = "{{validation_command}}"
 AGENTS_MARKER = "# Repository Contract"
-CLAUDE_MARKER = "# Entry Point"
+CLAUDE_MARKER = "@AGENTS.md"
+CLAUDE_POINTER_CONTENT = "# CLAUDE.md\n\n@AGENTS.md"
 
 SCRIPT_PATH = Path(__file__).resolve().parent.parent / "install-harness.py"
 SCRIPT_DIR = SCRIPT_PATH.parent
@@ -39,7 +39,7 @@ class InstallerConfig:
 
 @dataclass(frozen=True)
 class InstallCandidate:
-    """One target path selected for preview, rendering, or installation.
+    """One target path selected for preview, display, or installation.
 
     Optional fields are populated only for candidate kinds that need them.
     """
@@ -70,6 +70,12 @@ class InstallPlan:
             if candidate.dst == target_path:
                 return candidate
         fail(f"requested path is not in the selected install set: {target_path}")
+
+
+def root_contract_contains_marker(dst: str, marker: str, content: str) -> bool:
+    if dst == "CLAUDE.md":
+        return content.strip() == CLAUDE_POINTER_CONTENT
+    return marker in content
 
 
 class InstallerSupport:
@@ -111,10 +117,6 @@ class InstallerSupport:
         del dst, label
         raise NotImplementedError
 
-    def render_template(self, template_file: Path) -> str:
-        del template_file
-        raise NotImplementedError
-
-    def root_contract_symlink_target(self, file_path: str) -> str:
-        del file_path
+    def read_install_asset(self, asset_file: Path) -> str:
+        del asset_file
         raise NotImplementedError

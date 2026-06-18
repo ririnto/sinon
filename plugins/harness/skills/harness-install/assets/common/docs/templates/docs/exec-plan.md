@@ -10,7 +10,7 @@ assignee: "{{assignee}}"
 # {{yyyy-MM-dd}}-{{plan-slug}} Implementation Plan
 
 > For agentic workers:
-> REQUIRED SUB-SKILL: use the installed `.claude/skills/orchestrate` skill to implement this plan task-by-task.
+> Use the task prompt as the source of workflow decisions.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
 > Flip a checkbox only after the step's work and its named validation command pass.
 
@@ -71,13 +71,19 @@ Files:
 
     Expected: PASS
 
-- [ ] Step 5: Run the stack validator
+- [ ] Step 5: Review the change
+
+    Run: `{{review-command-or-process}}`
+
+    Expected: review findings resolved or explicitly recorded
+
+- [ ] Step 6: Run the stack validator
 
     Run: `{{stack-validation-command}}`
 
     Expected: validator green
 
-- [ ] Step 6: Commit
+- [ ] Step 7: Commit
 
     ```sh
     git add {{changed-paths}}
@@ -115,7 +121,19 @@ Files:
 
     Expected: PASS
 
-- [ ] Step 5: Commit
+- [ ] Step 5: Review the change
+
+    Run: `{{review-command-or-process}}`
+
+    Expected: review findings resolved or explicitly recorded
+
+- [ ] Step 6: Run the stack validator
+
+    Run: `{{stack-validation-command}}`
+
+    Expected: validator green
+
+- [ ] Step 7: Commit
 
     ```sh
     git add {{changed-paths}}
@@ -135,5 +153,5 @@ Run the stack-specific validation command after each task that touches required 
 <!--
 When every task checkbox is checked, move this file between execution-plan locations in `docs/exec-plans/` without renaming, then change `status: active` to `status: completed` and set `completed: yyyy-MM-dd` in frontmatter.
 The filename date stays the original creation date.
-Plans in completed-state entries under `docs/exec-plans/` MUST NOT contain any unchecked `- [ ]` task lines.
+Plans in completed-state entries under `docs/exec-plans/` MUST contain checked task lines or no task list.
 -->

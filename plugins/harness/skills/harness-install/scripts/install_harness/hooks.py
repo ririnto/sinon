@@ -5,7 +5,7 @@ from pathlib import Path
 import subprocess
 
 from .errors import fail
-from .models import SKILL_DIR, VALIDATION_PLACEHOLDER
+from .models import SKILL_DIR
 from .paths import ensure_safe_file_destination
 from .models import InstallerSupport
 
@@ -38,12 +38,11 @@ class HooksMixin(InstallerSupport):
         target.write_text("", encoding="utf-8")
         print(f"write: {keep}")
 
-    def render_template(self, template_file: Path) -> str:
+    def read_install_asset(self, asset_file: Path) -> str:
 
-        if not template_file.is_file():
-            fail(f"[render_validation_stream] missing template: {template_file}")
-        text = template_file.read_text(encoding="utf-8")
-        return text.replace(VALIDATION_PLACEHOLDER, self.config.validation_command)
+        if not asset_file.is_file():
+            fail(f"[read_install_asset] missing asset: {asset_file}")
+        return asset_file.read_text(encoding="utf-8")
 
     def list_tracked_tree_files(self, src_dir: Path) -> list[Path]:
 

@@ -1,6 +1,6 @@
 ---
 description: >-
-  Overview of the Harness plugin, its install, validation, evolution, templates, agents, skills, CI, and Git hook scaffolding workflow.
+  Overview of the Harness plugin, its install, validation, evolution, repository templates, agents, skills, CI, and Git hook scaffolding workflow.
 
 ---
 
@@ -14,19 +14,18 @@ Files that should live inside a target repository are packaged only under `skill
 
 ## Purpose
 
-- Install a repository harness with `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, docs, project agents and skills, templates, validators, CI snippets, and hook templates.
+- Install a repository harness with `AGENTS.md`, `CLAUDE.md` pointer, `ARCHITECTURE.md`, docs, project agents and skills, repository templates, validators, CI files, and hook templates.
 - Keep implementation, repository docs, product specs, execution plans, generated references, and deterministic checks evolving together.
   - Agents should work from versioned context rather than hidden convention.
 - Preserve harness-only development readiness.
   - Target repositories still supply requirements, architecture decisions, source code, runtime configuration, secrets, and domain references.
-- Provide workflow templates with bounded concurrency, handoff states, workspace policies, prompt contracts, and proof-of-work expectations.
-  - Agents can participate in ticket-level orchestration without requiring a daemon or issue poller.
+- Provide a target-owned `WORKFLOW.md` for branch policy, host CLI use, validation, review, and publication.
 
 ## Lifecycle
 
 1. Install repository-owned harness files into a target repository.
 2. Validate the installed context with the target repository's matching stack command.
-3. Evolve templates, docs, agents, skills, generated-artifact policy, and validation rules as project reality changes.
+3. Evolve docs, repository templates, agents, skills, generated-artifact policy, and validation rules as project reality changes.
 
 ## Install in Claude Code
 
@@ -59,7 +58,7 @@ They are not installed as day-to-day target repository agents.
 - `skills/harness-install/scripts/install-harness.py` is the executable installer entry point.
   - `skills/harness-install/scripts/install_harness/` contains the packaged implementation modules.
   - The installer discovers installable target assets via `git ls-files`.
-- `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs`, CI, validation adapters, and Git hook scaffolds.
+- `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs`, CI files, validation adapters, and Git hook scaffolds.
 - Long Markdown files under `skills/harness-install/assets/common/docs/references/` are packaged reference material, not source modules.
   - The plugin self-check rejects oversized first-party source files and long Markdown outside that reference location.
 
@@ -68,15 +67,15 @@ They are not installed as day-to-day target repository agents.
 The Claude Code manifest declares only `./skills/`.
 Plugin-root agents remain in `agents/` as optional structural specialists for changing the target repository's harness contract.
 They are not declared in `.claude-plugin/plugin.json` and are not copied into target repositories.
-Target repository agents, project skills, docs, CI snippets, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become target-owned only after installation.
+Target repository agents, project skills, docs, CI files, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become target-owned only after installation.
 The plugin does not expose top-level hooks.
-Packaged hook scaffolds live under `skills/harness-install/assets/common/docs/git-hooks/`, and the installer copies the scaffold sources before rendering selected-mode pre-commit and pre-push hook templates.
+Packaged hook placeholders live under `skills/harness-install/assets/common/docs/git-hooks/`, and stack assets provide the active pre-commit and pre-push hooks installed for the selected mode.
 
 ## Target Ownership
 
 Target repositories own every installed harness file.
-Copied docs, scripts, CI files, hooks, agents, skills, templates, and validation adapters MAY be edited, renamed, or removed only through harness evolution that keeps manifest, docs, validators, CI, and hook policy aligned.
-Optional CI renderings may be deleted under documented host policy.
+Harness evolution keeps copied docs, scripts, CI files, hooks, agents, skills, repository templates, and validation adapters aligned with manifests, docs, validators, CI, and hook policy.
+Documented host policy controls optional CI file removal.
 
 ## Install Harness Assets
 
@@ -88,8 +87,8 @@ Supported modes are `gradle`, `maven`, `uv`, `bun`, and `shell`.
 
 The installer requires `--ci-host` to select which CI files to create.
 `--ci-host github` writes `.github/workflows/<tool>.yaml`, `--ci-host gitlab` writes `.gitlab-ci.yml`, `--ci-host both` writes both, and `--ci-host none` writes neither.
-CI snippets run the selected-mode validation command rendered from `{{validation_command}}`.
-Generated `pre-push` hooks may run a stronger stack final check.
+CI files are stack-specific initial install assets selected by `--ci-host`.
+Installed `pre-push` hooks may run a stronger stack final check.
 
 ## CI Host Selection
 
@@ -99,7 +98,7 @@ The installer requires an explicit CI host selection via `--ci-host`:
 - GitLab-only repositories: pass `--ci-host gitlab` to write only `.gitlab-ci.yml`.
 - Repositories that mirror to both hosts: pass `--ci-host both` to write both files.
   - Both CI scripts must run the same selected-mode validation command so `harness-validate` does not report drift.
-- Targets that do not run CI: pass `--ci-host none` and document the policy in the project README.
+- No-CI targets: pass `--ci-host none` and document the policy in the project README.
 
 `harness-validate` skips absent CI files for documented inactive hosts.
 If a CI file is present, it is validated for command parity against the selected stack validation command.
@@ -117,15 +116,16 @@ The installer creates this repository context structure, and validators require 
 ```text
 AGENTS.md
 ARCHITECTURE.md
-CLAUDE.md
+CLAUDE.md            (imports AGENTS.md)
+.agents              (symlink to .claude)
 .claude/
 |-- agents/
 |   |-- implementation-agent.md
-|   |-- orchestrator.md
 |   `-- review-agent.md
+|-- scripts/
+|   `-- worktree-create.py
+|-- settings.json
 `-- skills/
-    |-- orchestrate/
-    |   `-- SKILL.md
     |-- review/
     |   `-- SKILL.md
     `-- validate/
@@ -150,9 +150,6 @@ docs/
 |   |-- openai-harness-engineering.md
 |   |-- README.md
 |   `-- symphony-spec.md
-|-- README.md
-|-- scripts/
-|   `-- exec-plan-links.ts
 |-- templates/
 |-- DESIGN.md
 |-- FRONTEND.md
@@ -161,38 +158,41 @@ docs/
 |-- QUALITY_SCORE.md
 |-- RELIABILITY.md
 `-- SECURITY.md
+scripts/
+|-- docs-root-files.ts
+`-- exec-plan-links.ts
 ```
 
-The installed inventory also includes `WORKFLOW.md`, stack-specific validation adapters, rendered CI files when enabled, and rendered active hook files when the selected stack uses hooks.
+The installed inventory also includes `WORKFLOW.md`, stack-specific validation adapters, CI files when enabled, and active hook files when the selected stack uses hooks.
+`WORKFLOW.md` defines branch, review, validation, and publication decisions.
+Installed target agents receive workflow decisions through their task prompt.
 
 Empty required directories are kept in version control with `.gitkeep`.
-`docs/git-hooks/pre-commit` and `docs/git-hooks/pre-push` are packaged placeholders that fail until installation renders stack-specific active hooks.
-Active `pre-commit` includes the selected-mode command rendered from `{{validation_command}}` and may include stack preflight checks.
-Active `pre-push` is generated from the stack-specific final check, which may be stronger than `pre-commit`.
+`docs/git-hooks/pre-commit` and `docs/git-hooks/pre-push` are packaged placeholders retained as documentation records.
+Active `pre-commit` includes the selected-mode command and may include stack preflight checks.
+Active `pre-push` comes from the stack-specific final check, which may be stronger than `pre-commit`.
 Stack assets activate hooks through their ecosystem tool:
 Husky for Bun, pre-commit for uv, the Gradle pre-commit plugin for Gradle, and `core.hooksPath` for Maven and Shell.
 `docs/generated/` is a generated-artifact location, not a required database-documentation location.
 Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
-In fresh installed target repositories, `CLAUDE.md` is the primary harness contract and Claude Code entry point, and `AGENTS.md` is a symlink alias to `CLAUDE.md`.
-When refreshing an existing AGENTS-only repository, the installer may preserve `AGENTS.md` as the real file and add `CLAUDE.md` as the symlink alias instead.
-In either orientation, runtimes that load either filename resolve to the same document.
+Fresh installed target repositories use `AGENTS.md` as the primary harness contract.
+Claude Code reads the same contract through `CLAUDE.md`, which imports `AGENTS.md`.
 
 ## Validation Adapters
 
 | Stack | Detection | Validation command |
 | --- | --- | --- |
-| Gradle | `settings.gradle(.kts)` or `build.gradle(.kts)` | `{{validation_command}}` |
-| Maven | `pom.xml` | `{{validation_command}}` |
-| uv | `uv.lock` or Python `pyproject.toml` | `{{validation_command}}` |
-| bun | `bun.lock`, `bun.lockb`, or `package.json` | `{{validation_command}}` |
-| shell | `Makefile` or root-level `*.sh` with no other stack | `{{validation_command}}` |
+| Gradle | `settings.gradle(.kts)` or `build.gradle(.kts)` | `./gradlew ktlintCheck` |
+| Maven | `pom.xml` | Maven Spotless validation command from the installer summary |
+| uv | `uv.lock` or Python `pyproject.toml` | `uv run scripts/check.py` |
+| bun | `bun.lock`, `bun.lockb`, or `package.json` | `bun run check` |
+| shell | `Makefile` or root-level `*.sh` with no other stack | `sh scripts/check.sh` |
 
-Each installed mode renders `{{validation_command}}` to the concrete command in target common assets.
 The concrete command is `./gradlew ktlintCheck`, the Maven `./mvnw validate`/`-DspotlessFiles` command, `uv run scripts/check.py`, `bun run check`, or `sh scripts/check.sh`.
 
 Run validation commands from the target repository root.
-Gradle, Maven, uv, and shell validators use `markdownlint-cli2` from PATH when it is installed, against installed `.markdownlint-cli2.jsonc` and the local rule at `docs/scripts/exec-plan-links.ts`.
+Gradle, Maven, uv, and shell validators use `markdownlint-cli2` from PATH when it is installed, against installed `.markdownlint-cli2.jsonc` and local rules under `scripts/`.
 When `markdownlint-cli2` is absent, those validators print a warning with `bun add -g markdownlint-cli2` installation guidance and skip Markdown linting.
 Gradle, Maven, uv, and shell fix commands also run `markdownlint-cli2 --fix` when it is installed.
 The Bun validator uses its packaged `markdownlint-cli2` dependency and fails normally if dependency installation is missing or broken.
@@ -278,8 +278,8 @@ Run the stack check command afterward.
 
 ## Git Hooks
 
-The packaged `docs/git-hooks/` files are tracked placeholders that fail until installation renders active stack hooks.
-Active `pre-commit` includes the selected-mode command rendered from `{{validation_command}}` and may include stack preflight checks.
+The packaged `docs/git-hooks/` files are tracked placeholders retained as documentation records.
+Active `pre-commit` includes the selected-mode command and may include stack preflight checks.
 Active `pre-push` runs the stack-specific final check and may include tests or broader verification.
 
 The installer does not write into `.git/hooks/`.
@@ -299,7 +299,7 @@ Hooks therefore activate through the selected stack's setup path rather than thr
 
 The installed harness MAY evolve as the project moves through discovery, implementation, hardening, release, and maintenance.
 Treat the current committed harness files as the active target contract.
-Use `harness-evolve` when repeated validation or review failures show that templates, docs, agents, skills, generated-artifact locations, or validation rules should change.
+Use `harness-evolve` when repeated validation or review failures show that repository templates, docs, agents, skills, generated-artifact locations, or validation rules should change.
 
 ## Layout
 
@@ -313,7 +313,7 @@ The `skills/` directory contains `harness-evolve/`, `harness-install/`, and `har
 - The installed `.claude/skills/harness-validate/` directory is a project skill.
   - Prefer that project skill when validating an installed target repository.
   - Use the plugin-provided skill from this checkout before the target has its project copy.
-- GitHub Actions and GitLab CI templates use ordinary version tags from the archive.
+- GitHub Actions and GitLab CI files use ordinary version tags from the archive.
   - Projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.
 - Maven, Gradle, Python, and test self-checks may create cache, IDE, or build metadata under asset directories.
   - Repository `.gitignore` and installer filters exclude ignored byproducts.
