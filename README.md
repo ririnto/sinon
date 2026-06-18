@@ -10,7 +10,7 @@ It publishes curated plugins from a single source tree.
 
 Plugins live under `plugins/`.
 The Claude marketplace catalog lives at the repository root.
-Stable repository rules, layout policies, and skill-authoring contracts are in `CLAUDE.md`.
+Stable repository rules, layout policies, and skill-authoring contracts are in `AGENTS.md`.
 
 ## Purpose
 
@@ -21,8 +21,8 @@ Stable repository rules, layout policies, and skill-authoring contracts are in `
 
 ## Repository Structure
 
-- `CLAUDE.md`: stable repository rules, skill-authoring contracts, and layout policies.
-  - `AGENTS.md` is a symlink to the same file.
+- `AGENTS.md`: stable repository rules, skill-authoring contracts, and layout policies.
+- `CLAUDE.md`: Claude Code pointer that imports `AGENTS.md`.
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.

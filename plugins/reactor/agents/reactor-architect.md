@@ -3,46 +3,6 @@ name: reactor-architect
 description: |-
   Architect Project Reactor Flux/Mono composition, scheduler strategies, and testing workflows.
   Use this agent when designing hot and cold source semantics, choosing schedulers (parallel, single, boundedElastic, immediate), implementing Sinks and ConnectableFlux for multicast patterns, or building repeatable async tests with virtual time and StepVerifier.
-  Examples:
-
-  <example>
-  Context: Building real-time event distribution system where multiple subscribers need to receive same events from single source.
-  Evaluating whether to use multicast or caching strategies.
-  user: "I need to design a multicast reactive stream where multiple subscribers receive the same events from a single source.
-  Should I use Sinks, ConnectableFlux, or caching operators?"
-  assistant: "Sinks provide explicit multicast control; ConnectableFlux offers automatic connection management; caching (replay) stores historical events.
-  Let me load reactor-sinks to design the hot source, then reactor-core for composition patterns and backpressure handling."
-  <commentary>
-  User is designing hot source pattern and choosing between multicast implementations—reactor-architect routes to reactor-sinks and reactor-core.
-  </commentary>
-  assistant: "I'll use the reactor-architect agent to route you to reactor-sinks for multicast design and reactor-core for operator composition."
-  </example>
-
-  <example>
-  Context: Performance investigation reveals application is spawning hundreds of threads, consuming excessive heap memory.
-  Root cause is default scheduler usage instead of bounded pools.
-  user: "Our application is spawning unbounded threads due to improper scheduler selection.
-  Help me audit scheduler usage and select the right scheduler for CPU-bound, I/O, and elastic workloads."
-  assistant: "Unbounded threads typically result from wrong scheduler choice or default Schedulers.parallel().
-  Let me load reactor-scheduling to audit your scheduler usage, map workloads to correct schedulers (parallel for CPU, boundedElastic for I/O), and establish thread pool sizing."
-  <commentary>
-  User has scheduler misuse symptom and needs audit + optimization—reactor-architect routes to reactor-scheduling.
-  </commentary>
-  assistant: "I'll use the reactor-architect agent to route you to reactor-scheduling for scheduler audit and optimization."
-  </example>
-
-  <example>
-  Context: Building complex data processing pipeline with error recovery, timeout handling, and backpressure.
-  Need comprehensive test coverage without real-time wait overhead.
-  user: "Write a comprehensive test suite for a complex Flux composed of multiple operators, including timeout, error recovery, and backpressure scenarios using StepVerifier and virtual time."
-  assistant: "StepVerifier with virtual time eliminates real-time waits while testing timeout behavior.
-  Let me load reactor-testing to design test cases for happy path, error recovery, backpressure drop/buffer/overflow strategies, and timeout validation."
-  <commentary>
-  User is designing async test suite with deterministic virtual time validation—reactor-architect routes to reactor-testing.
-  </commentary>
-  assistant: "I'll use the reactor-architect agent to route you to reactor-testing for StepVerifier and virtual time test design."
-  </example>
-model: sonnet
 color: green
 tools:
   - Read
