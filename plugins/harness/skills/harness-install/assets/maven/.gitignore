@@ -1,12 +1,8 @@
-# Gradle build outputs
-.gradle/
-build/
-**/build/
-**/.gradle/
+# Maven build output
+target/
 
-# Kotlin compiler caches
-.kotlin/
-**/.kotlin/
+# Maven local state
+.mvn/timing.properties
 
 # IDE
 .idea/

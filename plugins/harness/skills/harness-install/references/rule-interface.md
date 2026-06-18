@@ -57,21 +57,21 @@ Structural checks that cannot be automated remain prose conventions in the insta
 These checks are now DOCUMENT-LEVEL PROSE CONVENTIONS enforced by code review and project discipline, not automated validators.
 Target repositories MUST uphold these in documentation, agent instructions, and hook templates:
 
-- filePresence: Required files (`CLAUDE.md`, `AGENTS.md`, `ARCHITECTURE.md`, docs/harness/README.md, etc.) MUST exist and be tracked in version control.
+- filePresence: Required files (`AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, workflow files, etc.) MUST exist and be tracked in version control.
 - directoryPresence: Required directories (.claude/agents/, .claude/skills/, docs/harness/, docs/generated/, etc.) MUST exist, optionally with .gitkeep.
 - emptyDirectoryPlaceholders: Empty required directories MUST use .gitkeep to stay in version control until content exists.
-- symlinkSafety: Symlinks under protected harness paths MUST be limited to documented safe links (e.g., `AGENTS.md` ↔ `CLAUDE.md`, .agents → .claude).
+- symlinkSafety: Symlinks under protected harness paths MUST be limited to documented safe links such as `.agents` to `.claude`.
 - agentFrontmatter: Agent .md files MUST include required `name` and `description` frontmatter fields.
 - skillFrontmatter: Skill `SKILL.md` files MUST include required `name` frontmatter field and `description`.
 - docHeadings: Documentation MUST use properly nested Markdown headings, starting at level 1, with blank lines before headings.
 - docContent: Documentation MUST use appropriate fenced code blocks with language tags, blank lines before lists, and correct emphasis styles.
 - scaffoldLeaks: Placeholder tokens (e.g., `{{project-name}}`, `<command>`) MUST NOT appear in committed source code; only in source templates under docs/harness/templates/.
 - hookShebang: Hook files MUST use the `/usr/bin/env sh` shebang when executable.
-- hookExecutable: Generated hook files MUST have executable bits set (mode 755 or `a+x`).
-- hookGeneratedMarker: Generated hook files MUST include a comment indicating they are auto-generated and should not be edited directly.
+- hookExecutable: Installed hook files MUST have executable bits set (mode 755 or `a+x`).
+- hookSourceMarker: Installed hook files SHOULD identify the stack asset that owns their command contract.
 - hookStage: Hook files MUST declare which stage they run (pre-commit or pre-push).
-- hookCommand: Generated hooks MUST invoke the selected stack validation command for both `pre-commit` and `pre-push`.
-- ciHookCommandParity: The `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml` files MUST run the same final-check command as the generated pre-push hook.
+- hookCommand: Installed hooks MUST invoke the selected stack validation command for both `pre-commit` and `pre-push`.
+- ciHookCommandParity: The `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml` files MUST run the same final-check command as the installed pre-push hook.
 - envShebangUsage: Shell scripts MUST use the `/usr/bin/env` shebang pattern rather than direct interpreters.
 - uncheckedTasks: Completed execution plans in `docs/exec-plans/` MUST NOT contain any unchecked `- [ ]` task items.
 - templateGroups: Templates under docs/harness/templates/ MUST match the installed template structure and renderable variable names used by the installer.

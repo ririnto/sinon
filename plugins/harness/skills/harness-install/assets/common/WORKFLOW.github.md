@@ -6,8 +6,8 @@ Use task prompts for implementation-only decisions.
 
 ## Work Loop
 
-1. Explore the contract, relevant docs, code surface, validation command, and local Git context.
-2. Plan the files, acceptance gate, manual QA, validation, and integration target.
+1. Explore the contract, relevant docs, code surface, validation command, and task context.
+2. Plan the files, acceptance gate, manual QA, validation, and publication target.
 3. Implement the smallest target-owned change.
 4. Review correctness, security, contract drift, and missing evidence.
 5. Validate with the selected stack command and active Git hooks.
