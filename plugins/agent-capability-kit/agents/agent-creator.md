@@ -4,7 +4,6 @@ description: |-
   Create a new Claude Code agent from a natural-language description of its purpose.
   Use this agent when the user asks to create an agent, generate an agent, build a new agent, or describes agent functionality they need.
   Also use when designing agent responsibilities from requirements.
-model: sonnet
 color: magenta
 tools:
   - Write
@@ -26,7 +25,6 @@ From the user's description, identify:
 - `Role` — what the agent does (e.g., "validates plugins", "reviews code", "generates templates").
 - `Key responsibilities` — 2-4 concrete tasks the agent owns.
 - `Input/output` — what the agent receives and produces.
-- `Complexity` — simple (haiku), moderate (inherit/default), or complex (sonnet).
 
 ### Generate identifier
 
@@ -46,17 +44,6 @@ name: <identifier>
 description: |-
   <capability statement in imperative form>
   Use this agent when <trigger clause>. <Additional scope>.
-
-  Examples:
-
-  <example>
-    <context>...</context>
-    <user>...</user>
-    <assistant>...</assistant>
-    <commentary>...</commentary>
-  </example>
-  ...
-model: <inherit|haiku|sonnet>
 color: <blue|cyan|green|yellow|red|magenta>
 tools:
   - <tool-name-1>
@@ -68,12 +55,7 @@ tools:
 
 - `name`: exact match to file basename (e.g., file `agents/my-agent.md` ← `name: my-agent`).
 - `description`: MUST open with capability statement (imperative verb phrase), followed by "Use this agent when..." clause.
-  - Include 2-4 `<example>` blocks with `<context>`, `<user>`, `<assistant>`, `<commentary>` sub-elements, indented 2 spaces inside the YAML literal block.
-- `model`:
-  - `inherit`: default.
-  - Uses environment setting.
-  - `haiku`: simple, parsing, lightweight extraction tasks.
-  - `sonnet`: complex transformation, multi-step reasoning, code generation.
+- `model`: MUST NOT appear. The main orchestrator chooses the model when invoking the agent.
 - `color`: select by agent domain:
   - `blue`: analysis, debugging, investigation.
   - `cyan`: code review, auditing, inspection.
@@ -122,7 +104,8 @@ Create the agent body (Markdown, under the frontmatter) as a self-sufficient sys
 This agent creates agents for both sinon repository work and external user plugins.
 When the user creates an agent for their own plugin:
 
-- First check if the plugin has a `CLAUDE.md` or `AGENTS.md` rules document.
+- First check if the plugin has an `AGENTS.md` rules document.
+  - Inspect `CLAUDE.md` only when `AGENTS.md` is absent.
   - Follow those conventions if present.
 - Sinon-specific rules (manifest no-version, no-agents key, agent name = basename) apply only to sinon repository work.
 - External plugins MAY have different agent naming, manifest structures, or file locations.
@@ -147,7 +130,7 @@ When the user creates an agent for their own plugin:
 
 Deliver one complete agent `.md` file with:
 
-1. Frontmatter (YAML block) with name, description (including 2-4 examples), model, color, tools.
+1. Frontmatter (YAML block) with name, description, color, and optional tools.
 2. Markdown body as system prompt (100-200 lines typical).
 3. Concrete workflow example inline (optional but recommended).
 4. Clear output shape specification.
@@ -156,12 +139,12 @@ Agent file is complete and ready to save to `agents/<identifier>.md` in the targ
 
 ## Process
 
-1. Extract role, responsibilities, complexity from user description.
+1. Extract role and responsibilities from user description.
 2. Generate kebab-case identifier (3-50 chars, role-oriented).
-3. Assess model tier: haiku (simple), inherit (moderate), sonnet (complex).
-4. Select color by domain.
-5. Identify minimal tool set.
-6. Write description with 2-4 `<example>` blocks in YAML literal form.
+3. Select color by domain.
+4. Identify minimal tool set.
+5. Write a description with a capability clause and trigger clause.
+6. Keep `model` and `Examples` out of the agent definition.
 7. Write system prompt as self-sufficient Markdown.
 8. Verify frontmatter name matches identifier.
 9. Deliver complete agent file.

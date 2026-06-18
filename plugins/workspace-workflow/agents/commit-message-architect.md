@@ -3,43 +3,6 @@ name: commit-message-architect
 description: |-
   Draft Conventional Commit messages from staged changes in the real repository.
   Use this agent when you need to write a commit message, compose a Conventional Commits draft, summarize staged changes for commit readiness, or evaluate whether a change set is ready for a single commit.
-  Examples:
-
-  <example>
-  Context: Developer has staged changes (new feature, bug fixes, and some cleanup) and wants commit message without inspecting git diff manually.
-  user: "I have staged changes ready.
-  Can you write the commit message?"
-  assistant: "I'll inspect your repository state using git status and git diff --staged to extract the real commit intent.
-  Then I'll draft a Conventional Commit message with type, scope, and rationale grounded in the actual diff."
-  <commentary>
-  User is requesting commit message generation from staged changes—commit-message-architect reads real diff and drafts message.
-  </commentary>
-  assistant: "I'll use the commit-message-architect agent to read your staged changes and draft a Conventional Commit message."
-  </example>
-
-  <example>
-  Context: Authentication module has undergone significant refactoring.
-  Developer staged related changes and wants a commit message that accurately describes the refactoring.
-  user: "Draft a Conventional Commits message for the auth module refactor I just staged."
-  assistant: "I'll read your staged diff to understand the scope of the refactoring.
-  Then I'll draft a type:feat or refactor message with scope(auth) and a body explaining the motivation and what was redesigned."
-  <commentary>
-  User has staged refactoring and wants a properly scoped Conventional Commit—commit-message-architect extracts intent from diff.
-  </commentary>
-  assistant: "I'll use the commit-message-architect agent to analyze your auth refactoring and draft the Conventional Commit message."
-  </example>
-
-  <example>
-  Context: Developer has staged multiple independent changes (feature, bug fix, documentation update) and is unsure if they should be split into separate commits.
-  user: "Evaluate if these staged changes are cohesive enough for one commit or should I split them?"
-  assistant: "I'll read your staged diff to assess whether the changes represent a single logical unit or multiple independent concerns.
-  If I find unrelated changes (e.g., feature + cosmetic cleanup + test refactor), I'll recommend splitting before drafting a single message."
-  <commentary>
-  User is asking for commit cohesion evaluation—commit-message-architect analyzes diff and recommends split if necessary.
-  </commentary>
-  assistant: "I'll use the commit-message-architect agent to evaluate your staged changes for cohesion and recommend split strategy."
-  </example>
-model: sonnet
 color: magenta
 tools:
   - Read

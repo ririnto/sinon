@@ -22,16 +22,15 @@ Preserve the existing job the agent covers unless the task explicitly changes th
 2. Keep repository-facing and agent-facing instructions in English.
 3. Make the `description` field the discovery surface.
    - It must say when to use the agent.
-   - Add examples only when they clarify routing.
 4. Give the agent the smallest safe tool boundary for the job.
 5. Make the body read like a system prompt for autonomous execution, not like release notes or background prose.
 6. Put the normal authoring path in the agent file itself.
-   - Do not rely on external web pages or hidden conventions.
+   - Use in-file guidance for the ordinary path.
 7. State the output shape explicitly so the caller can use the result without guessing.
 8. Keep the ordinary path self-sufficient inside the agent file.
-   - Do not require the caller to load another skill, hidden prompt, or external document just to execute the agent's main workflow.
+   - Put required workflow context in the prompt or agent body.
 9. Make process verbs and declared tools agree.
-   - A report-only agent MUST NOT claim file edits, and an editing agent MUST have the mutation tools its process requires.
+   - A report-only agent returns findings; an editing agent has the mutation tools its process requires.
 10. Ordinary authoring remains offline, but maintainers changing host-specific agent behavior should verify against official host documentation when available and record any verification blocker.
 
 ## Required frontmatter
@@ -40,7 +39,6 @@ Every agent file should include these fields in frontmatter:
 
 - `name`
 - `description`
-- `model`
 - `color`
 
 Omit `tools` by default.
@@ -56,7 +54,7 @@ Other optional frontmatter fields may be kept only when the host actually suppor
   - `agents/schema-reviewer.md` must use `name: schema-reviewer`.
 - Make it role-oriented, not task-ticket-oriented.
 - Prefer stable names such as `schema-reviewer`, `docs-refiner`, or `release-checker`.
-- Do not encode one temporary request into the name.
+- Keep temporary request details in the caller prompt.
 
 ### `description`
 
@@ -66,11 +64,9 @@ It should do all of the following:
 - Open with an imperative capability clause that names what the agent does (for example "Enforce…", "Review…", "Detect…", "Author…", "Reproduce…").
 - Follow with a trigger clause such as `Use this agent when...`.
 - Name the job, inputs, or system clearly.
-- Include 1 or 2 short `<example>` blocks only when the trigger would otherwise remain ambiguous.
 - Make it obvious why this agent is the right fit.
 
-Agent descriptions SHOULD omit `<example>` blocks when the capability and trigger clauses are already clear.
-When examples are useful, keep them short, realistic, and limited to the minimum needed to disambiguate routing.
+Agent descriptions use direct trigger language with concrete nouns and task terms.
 
 Weak:
 
@@ -83,22 +79,9 @@ Stronger:
 
 ```markdown
 description: >-
-  Inspect schemas, contracts, and config files for defects, risks, and missing structure. Use this agent when a schema, contract, or config file needs focused review. Examples:
-
-  <example>
-  Context: API contract review before release
-  user: "Review this OpenAPI file for consistency and missing fields"
-  assistant: "I'll use the schema-reviewer agent to inspect the file closely."
-  <commentary>
-  The task is narrow, analytical, and does not require direct edits.
-  </commentary>
-  </example>
+  Inspect schemas, contracts, and config files for defects, risks, and missing structure.
+  Use this agent when a schema, contract, or config file needs focused read-only review before implementation, release, or migration.
 ```
-
-### `model`
-
-- Default to `inherit`.
-- Choose a specific model only when the agent has a durable, role-specific need that should not depend on the caller.
 
 ### `color`
 
@@ -111,11 +94,8 @@ description: >-
 - Add `tools` when the role needs a tighter boundary.
 - Grant only the tools the agent genuinely needs for its ordinary path.
 
-Examples:
-
-- review-only agent: `tools: ["Read", "Grep"]`
-- direct editing agent: `tools: ["Read", "Write"]`
-- multi-file refactor agent: add mutation tools only if the role must change files as part of its normal job
+Review-only agents usually need read/search tools only.
+Direct editing agents need mutation tools only when editing is their normal job.
 
 ## Minimal body structure
 
@@ -193,8 +173,8 @@ Return:
 3. Check that the role is narrow enough to be discoverable and autonomous.
 4. Draft or revise frontmatter:
    - `name` matches the file basename and is stable and role-based
-   - `description` opens with an imperative capability clause, then says when to use the agent, with examples only when needed
-   - `model` defaults to `inherit`
+   - `description` opens with an imperative capability clause, then says when to use the agent
+   - model selection belongs to the caller
    - `color` is stable and distinguishable
    - `tools` appears only when a bounded tool surface is needed
 5. Write the body with a role statement plus `Responsibilities`, `Process`, and `Output` sections.
@@ -221,15 +201,15 @@ Return:
 Use these defaults unless the role needs a stricter rule:
 
 - The agent should act independently inside its bounded role.
-- The agent should not broaden scope on its own.
-- The agent should not claim work it did not perform.
+- The agent should stay inside its declared role.
+- The agent should claim only work it performed.
 - The agent should surface uncertainty, blockers, and risks explicitly.
 - The agent should prefer deterministic checks and direct evidence over speculation.
 
 For most agents, that means: do the requested role fully, stay narrow, and return a structured result.
 
 If the role depends on repository-specific invariants such as worktree isolation, observability-backed validation, or execution-plan lifecycle rules, state those invariants directly in the body.
-Do not assume they are known elsewhere.
+State them where the agent reads them.
 
 ## Tool-boundary rule
 
@@ -237,7 +217,7 @@ Choose the narrowest tool set that still lets the agent complete its ordinary jo
 
 - Review, triage, and analysis agents should usually stay read-only.
 - Writing or editing agents may receive mutation tools when editing is part of the core role.
-- Avoid giving a role both broad read access and broad mutation access unless the role genuinely needs both every time.
+- Give a role both broad read access and broad mutation access only when it needs both for its ordinary path.
 - If a role can succeed with fewer tools, remove the extras.
 
 Broken:
@@ -292,26 +272,8 @@ Use this as a smallest useful agent starting point:
 ---
 name: schema-reviewer
 description: >-
-  Inspect schemas, contracts, and config files for defects, risks, and missing structure. Use this agent when a schema, contract, or config file needs focused review. Examples:
-
-  <example>
-  Context: API contract review before release
-  user: "Review this OpenAPI file for consistency and missing fields"
-  assistant: "I'll use the schema-reviewer agent to inspect the file closely."
-  <commentary>
-  The task is narrow, analytical, and does not require direct edits.
-  </commentary>
-  </example>
-
-  <example>
-  Context: configuration audit before deployment
-  user: "Check this config for invalid defaults and risky settings"
-  assistant: "I'll use the schema-reviewer agent to review the configuration file."
-  <commentary>
-  The request is a focused file review with a clear analytical outcome.
-  </commentary>
-  </example>
-model: inherit
+  Inspect schemas, contracts, and config files for defects, risks, and missing structure.
+  Use this agent when a schema, contract, or config file needs focused read-only review before implementation, release, or migration.
 color: cyan
 tools: ["Read", "Grep"]
 ---
@@ -346,19 +308,19 @@ Return:
 
 - If the requested role mixes unrelated jobs, split it into one clearer role and move the other job to a separate agent.
 - If the description is too vague to trigger reliably, rewrite it before changing the body.
-- If the frontmatter is long because of examples, remove them or move optional patterns to assets.
+- If the frontmatter is long, tighten the capability and trigger clauses.
 - If the tool boundary is hard to choose, default to the read-only or narrower set first.
 - If the agent needs exceptional autonomy or unusually broad tools, document the reason directly in the body or open the deeper reference for that blocker.
 
-## Pitfalls
+## Checklist
 
-- Do not write a generic description without clear trigger conditions.
-- Do not make the agent responsible for multiple unrelated roles.
-- Do not grant broad tools when read-only or narrower mutation access is enough.
-- Do not leave the output contract implicit.
-- Do not depend on external documentation for the ordinary authoring path.
-- Do not tell the caller to load another skill or prompt in the agent's main workflow.
-- Do not mix report-only wording with claims about updated files, grades, or pull requests unless the tools and process actually support those actions.
+- Write a specific description with clear trigger conditions.
+- Keep one coherent responsibility per agent.
+- Grant the narrowest tool set that supports the ordinary path.
+- State the output contract explicitly.
+- Put ordinary-path guidance in the agent body.
+- Include required workflow context in the prompt or agent body.
+- Align report-only wording with findings, and editing wording with supported mutation tools.
 
 ## Output contract
 
@@ -375,4 +337,4 @@ Return:
 - `references/agent-frontmatter.md` - open when a frontmatter field choice is still ambiguous after applying the rules above
 - `references/agent-execution.md` - open when the agent needs exceptional autonomy, a non-obvious tool boundary, or a more specialized execution pattern
 - `assets/agent-template.md` - copy when creating a new agent from scratch
-- `assets/agent-frontmatter-patterns.md` - copy when you need more frontmatter examples for different role shapes
+- `assets/agent-frontmatter-patterns.md` - copy when you need more frontmatter patterns for different role shapes

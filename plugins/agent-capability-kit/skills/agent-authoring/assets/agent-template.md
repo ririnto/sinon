@@ -3,7 +3,6 @@ name: your-agent-name
 description: >-
   [Imperative capability statement: e.g., Inspect, Review, Audit, Generate].
   Use this agent when [clear trigger condition with asset or system].
-model: inherit
 color: blue
 ---
 
@@ -34,10 +33,10 @@ Return:
 
 ## Optional tool boundary
 
-Omit this section unless the role needs tools different from the default environment.
-Add `tools` only when the agent needs a bounded tool surface — default to omitting `tools` and add it only when the role requires a tighter or non-default boundary.
+Include this section when the role needs tools different from the default environment.
+Add `tools` for a bounded or non-default tool surface.
 
-Example (include only when needed):
+Tool boundary form:
 
 ```markdown
 tools:

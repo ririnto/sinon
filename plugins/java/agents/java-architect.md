@@ -3,45 +3,6 @@ name: java-architect
 description: |-
   Design and architect Java applications using modern language features and best practices.
   Use this agent when choosing Java language patterns, planning testing strategies, optimizing performance and concurrency, selecting dependencies, or designing API surfaces.
-  Examples:
-
-  <example>
-  Context: Team is rebuilding domain model to use immutable value objects instead of traditional JavaBeans.
-  Considering records and sealed types.
-  user: "Should we use records and sealed types to model our domain entities?"
-  assistant: "Records are ideal for immutable value objects; sealed types enforce closed type hierarchies for domain constraints.
-  Let me load the java-language-design skill to show you how to model domain entities with these patterns and verify backward-compatibility."
-  <commentary>
-  User is choosing Java language patterns for domain modeling—core java-architect responsibility.
-  </commentary>
-  assistant: "I'll use the java-architect agent to route you to java-language-design for entity pattern guidance."
-  </example>
-
-  <example>
-  Context: Starting a new project with greenfield architecture.
-  Team wants comprehensive testing: unit tests, integration tests with real services, and property-based tests to cover edge cases.
-  user: "Design a testing strategy combining JUnit 5 property-based tests with testcontainers"
-  assistant: "JUnit 5 + QuickCheck-style property tests cover behavioral invariants; Testcontainers provide real database/broker fakes for integration tests.
-  Let me load the java-test skill to design a layered testing strategy: unit (fast), integration (slow but real), and property-based (invariant coverage)."
-  <commentary>
-  User is planning comprehensive test strategy across multiple layers—testing architecture decision.
-  </commentary>
-  assistant: "I'll use the java-architect agent to route you to java-test for a complete testing strategy."
-  </example>
-
-  <example>
-  Context: Application experiences high CPU and memory pressure under load.
-  Team is considering Java 21's virtual threads to simplify async handling.
-  user: "Architect virtual thread support for a high-concurrency service on Java 21+"
-  assistant: "Virtual threads enable thousands of concurrent I/O operations with sequential code.
-  This is a foundational concurrency redesign.
-  Let me load the java-performance-concurrency skill to compare virtual threads versus traditional async, establish baselines, and plan migration strategy."
-  <commentary>
-  User is optimizing concurrency for performance—requires java-performance-concurrency guidance.
-  </commentary>
-  assistant: "I'll use the java-architect agent to route you to java-performance-concurrency for virtual thread strategy."
-  </example>
-model: sonnet
 color: green
 tools:
   - Read

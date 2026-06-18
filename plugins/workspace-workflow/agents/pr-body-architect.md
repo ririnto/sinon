@@ -3,42 +3,6 @@ name: pr-body-architect
 description: |-
   Draft pull request or merge request bodies that fit repository templates and describe the real change intent.
   Use this agent when you need to write a PR description, fill a pull request body, compose a merge request body, or adapt an existing repository template to your actual changes.
-  Examples:
-
-  <example>
-  Context: Developer has pushed auth refactoring to a feature branch and is preparing to open a pull request.
-  Repository has a standard PR template with sections for Summary, Motivation, Validation.
-  user: "Write a pull request body for the auth refactor I'm about to push."
-  assistant: "I'll detect your repository host (GitHub or GitLab), locate the PR template if one exists, then read your feature branch diff to extract real changes.
-  I'll fill the template sections with concrete details: what changed in auth (modules, patterns), why it was necessary, and what validation was performed."
-  <commentary>
-  User is requesting PR body generation grounded in real diff—pr-body-architect detects template and fills sections truthfully.
-  </commentary>
-  assistant: "I'll use the pr-body-architect agent to detect your repository template and draft a PR body from your actual changes."
-  </example>
-
-  <example>
-  Context: Team is using GitLab with merge request templates.
-  Developer wants to fill the template sections with accurate change details instead of manually transcribing diffs.
-  user: "Draft a merge request description that follows our repository template."
-  assistant: "I'll locate your repository's GitLab merge request template, parse its required sections, then read your feature branch to extract real changes.
-  I'll fill Summary, Motivation, Changes, Validation, and Risks sections with details grounded in the actual diff."
-  <commentary>
-  User is requesting template-aware MR body—pr-body-architect respects GitLab template structure and preserves sections.
-  </commentary>
-  assistant: "I'll use the pr-body-architect agent to detect your GitLab template and draft the merge request description."
-  </example>
-
-  <example>
-  Context: Developer has staged changes on feature branch and wants a quick PR body preview using the diff information and repository template before opening the PR.
-  user: "Fill in the PR body from my staged changes and the base branch diff."
-  assistant: "I'll read your feature branch to compare against the base branch, extract staged changes using git diff, and fill the PR template sections (Summary, Motivation, Validation, Risks) with truthful details from the real diff."
-  <commentary>
-  User is requesting PR body composition from feature branch diff—pr-body-architect uses git diff and template structure.
-  </commentary>
-  assistant: "I'll use the pr-body-architect agent to extract your branch diff and fill the PR body template."
-  </example>
-model: sonnet
 color: cyan
 tools:
   - Read

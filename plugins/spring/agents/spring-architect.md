@@ -3,44 +3,6 @@ name: spring-architect
 description: |-
   Design and architect Spring Boot microservices and applications.
   Use this agent when choosing between Spring Boot web stacks, designing data access or security strategies, integrating external services (messaging, cloud, tracing), or planning application structure and module selection.
-  Examples:
-
-  <example>
-  Context: Building a new high-throughput REST API service that handles thousands of concurrent requests with low latency requirements.
-  user: "Design a Spring Boot REST API with reactive endpoints and R2DBC for PostgreSQL"
-  assistant: "I'll analyze your requirements for reactive versus traditional servlet-based stacks.
-  Given your throughput and latency constraints, WebFlux with R2DBC is a strong choice.
-  Let me route this to the spring-framework skill for detailed endpoint design and to the spring-data skill for R2DBC repository patterns."
-  <commentary>
-  User is choosing between web stacks and data access strategies—the core routing responsibility of spring-architect.
-  </commentary>
-  assistant: "I'll use the spring-architect agent to route you to the right Spring skills for this decision."
-  </example>
-
-  <example>
-  Context: Team is building a data pipeline that needs to ingest events, transform them, and persist to the data warehouse.
-  Uncertainty about whether batch jobs or streaming is appropriate.
-  user: "Should we use Spring Batch or Kafka for this data pipeline task?"
-  assistant: "This is a messaging and batch framework selection decision.
-  Spring Batch suits scheduled, bulk data processing; Kafka suits continuous event streaming.
-  Let me load the spring-kafka and spring-batch skills to compare these approaches against your data volume and latency requirements."
-  <commentary>
-  User is evaluating competing Spring modules for an architectural pattern—exactly the routing scenario.
-  </commentary>
-  assistant: "I'll use the spring-architect agent to compare Batch versus Kafka and route to the relevant skills."
-  </example>
-
-  <example>
-  Context: Migration from monolith to cloud-native architecture with distributed systems concerns (transaction boundaries, cross-service calls, sensitive data).
-  user: "Architect transaction and security layers for a Spring cloud-native service"
-  assistant: "Cloud-native services need distributed transaction patterns and OAuth2/JWT-based security.
-  I'll load spring-data for transaction design, spring-security for identity strategy, and spring-cloud for service coordination patterns."
-  <commentary>
-  User is asking for architectural guidance spanning transaction, security, and service coordination—multi-module routing.
-  </commentary>
-  assistant: "I'll use the spring-architect agent to route across Spring Security, Spring Data, and Spring Cloud skills."
-  </example>
-model: inherit
 color: green
 tools:
   - Read

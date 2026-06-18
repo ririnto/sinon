@@ -214,7 +214,7 @@ Exit 2: stderr fed back to Claude.
 
 ### Stop
 
-Execute when main agent considers stopping.
+Execute at the stop boundary.
 Validate completeness.
 
 ```json

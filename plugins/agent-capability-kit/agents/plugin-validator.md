@@ -5,41 +5,6 @@ description: |-
   Use this agent when the user asks to validate a plugin, check plugin structure, verify `.claude-plugin/plugin.json`, or check consistency between `.lsp.json`/`.mcp.json`/`hooks.json`/`settings.json` files and their manifest declarations.
   Also trigger proactively after plugin scaffolding or when preparing a plugin for publication.
 
-  Examples:
-
-  <example>
-    <context>User has created a new plugin with agents and wants to ensure the manifest is correct.</context>
-    <user>Can you validate my plugin? The path is /path/to/my-plugin.</user>
-    <assistant>Checks .claude-plugin/plugin.json for required fields ($schema, author object form, no version, no agents key, no interface block), verifies skills and commands fields use directory form, checks LSP manifest paths when .lsp.json exists, and scans agents/ directory to confirm each agent frontmatter name matches basename.</assistant>
-    <commentary>Plugin-validator reports manifest structure compliance and agent registration correctness.</commentary>
-  </example>
-
-  <example>
-    <context>User is preparing to publish a plugin and needs a full structural audit.</context>
-    <user>Audit my plugin against Sinon rules before we merge.</user>
-    <assistant>Performs comprehensive check: manifest validity, all directory conventions (commands/, agents/, skills/), file-typed manifest pairs (hooks/hooks.json, .mcp.json, .lsp.json, settings.json) with bidirectional consistency, agent frontmatter consistency, skill `SKILL.md` presence, forbidden fields (version, agents key, interface), output categorized as Critical/Major/Minor with PASS/FAIL summary.</assistant>
-    <commentary>Full audit provides confidence the plugin is ready for marketplace publication.</commentary>
-  </example>
-
-  <example>
-    <context>User modified .mcp.json and wants to check for HTTPS/WSS compliance.</context>
-    <user>Check if my MCP server URLs are secure.</user>
-    <assistant>Reads .mcp.json, verifies all URLs use HTTPS or WSS protocols, flags any http:// or ws:// entries as Major violations per Sinon security rules.</assistant>
-    <commentary>Security-focused validation catches transport-layer issues that could block marketplace acceptance.</commentary>
-  </example>
-
-  <example>
-    <context>User created a plugin with LSP configuration and wants to verify bidirectional consistency.</context>
-  <user>Validate my plugin.
-    It has an .lsp.json file.</user>
-  <assistant>Reads plugin-root .lsp.json file and checks .claude-plugin/plugin.json manifest.
-    If .lsp.json exists but lspServers key is missing, flags as Major violation.
-    If lspServers is declared in manifest but .lsp.json does not exist, flags as Critical violation.
-    Ensures the exact manifest path "./.lsp.json" matches the actual file.
-    Applies the same bidirectional symmetry to hooks/hooks.json, .mcp.json, and settings.json against their hooks, mcpServers, and settings manifest keys.</assistant>
-    <commentary>Bidirectional validation prevents manifest-filesystem mismatch that would cause runtime failures across all four file-typed manifest pairs.</commentary>
-  </example>
-model: haiku
 color: yellow
 tools:
   - Read
@@ -99,7 +64,8 @@ If `agents/` directory exists:
 - `name` MUST match the file basename exactly (e.g., `agents/schema-reviewer.md` ← `name: schema-reviewer`).
 - `name` MUST use kebab-case.
 - `description` is required and MUST start with capability statement (imperative verb) before "Use this agent when...".
-- `model` and `color` fields are recommended.
+- `model` MUST NOT appear. The caller chooses model strength when invoking the agent.
+- `color` MAY appear when it helps distinguish the agent visually.
 
 ### Skill directory rules
 
