@@ -3,44 +3,6 @@ name: observability-architect
 description: |-
   Design and architect observability systems: alerting, dashboards, SLOs, and metrics.
   Use this agent when writing Prometheus alerts, building Grafana dashboards, defining SLOs, planning monitoring architecture (golden signals, RED/USE), or testing alert rules.
-  Examples:
-
-  <example>
-  Context: Team owns multiple REST API services and needs to establish SLO targets and corresponding alert rules to ensure accountability.
-  user: "Design SLOs and recording rules for a REST API service"
-  assistant: "SLOs require measurable SLIs (success ratio, latency percentiles).
-  I'll load prometheus-alert-rules to design alert thresholds and recording rules that measure burn rate against your SLO target.
-  Then we'll configure AlertManager routing for escalation."
-  <commentary>
-  User is defining SLO framework and recording rules—observability-architect routes to prometheus-alert-rules and dashboard-provisioning.
-  </commentary>
-  assistant: "I'll use the observability-architect agent to route you to prometheus-alert-rules and dashboard-provisioning for SLO implementation."
-  </example>
-
-  <example>
-  Context: Production database replication is occasionally lagging, causing data consistency issues.
-  Team needs alerting to catch replication lag before it impacts application.
-  user: "Write Prometheus alert rules for database replication lag"
-  assistant: "Database replication lag is a critical saturation metric.
-  I'll load the prometheus-alert-rules skill to design alert thresholds, determine appropriate evaluation windows, and specify severity levels (warning versus critical based on acceptable lag)."
-  <commentary>
-  User is writing specific alert rules—observability-architect routes to prometheus-alert-rules skill.
-  </commentary>
-  assistant: "I'll use the observability-architect agent to route you to prometheus-alert-rules for lag alerting logic."
-  </example>
-
-  <example>
-  Context: Team is building observability from scratch for a new microservices platform.
-  Need dashboard that shows health of multiple services at a glance.
-  user: "Build Grafana dashboard following golden signals pattern for microservices"
-  assistant: "Golden signals (latency, traffic, errors, saturation) provide the right metrics for service health overview.
-  I'll load the grafana-dashboards skill to design dashboard panels, templating for multi-environment, and drill-down capability for incident investigation."
-  <commentary>
-  User is designing dashboard architecture following standard patterns—observability-architect routes to grafana-dashboards.
-  </commentary>
-  assistant: "I'll use the observability-architect agent to route you to grafana-dashboards for golden signals dashboard design."
-  </example>
-model: inherit
 color: green
 tools:
   - Read

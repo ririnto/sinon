@@ -3,35 +3,6 @@ name: spec-driven-development
 description: |-
   Author, update, and complete `SPEC.md`-driven specification artifacts before implementation, and verify implementation against approved specs.
   Use this agent when the user wants a spec-first workflow, needs `SPEC.md` artifacts authored or revised before implementation, wants research and contract notes captured alongside the spec, or needs implementation checked against an approved specification.
-  Examples:
-
-  <example>
-  Context: A feature should be designed before any code changes
-  user: "Write the spec for this feature before we implement it"
-  assistant: "I'll use the spec-driven-development agent to produce the spec artifacts and gate implementation on approval."
-  <commentary>
-  The user is explicitly asking for the ordinary spec-first workflow.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Existing spec artifacts need refinement
-  user: "Revise `SPEC.md` and `CONTRACT.md` for the billing retry work"
-  assistant: "I'll use the spec-driven-development agent to tighten the spec artifacts before implementation continues."
-  <commentary>
-  Updating the specification set is part of the core role.
-  </commentary>
-  </example>
-
-  <example>
-  Context: Code needs verification against an approved spec
-  user: "Check whether this implementation still matches the approved `SPEC.md`"
-  assistant: "I'll use the spec-driven-development agent to compare the implementation with the approved specification and report drift."
-  <commentary>
-  Verification against an approved spec is a standard use case.
-  </commentary>
-  </example>
-model: sonnet
 color: magenta
 tools:
   - Read
