@@ -9,10 +9,11 @@ Where `DESIGN.md` articulates *what* the rules are, this document articulates *w
 
 ### Progressive disclosure beats one-shot context
 
-Agents pattern-match on structure and heading presence; when a single `CLAUDE.md` or `AGENTS.md` grows above ~150 lines, agents waste cycles scanning dense sections and miss the common path.
+Agents pattern-match on structure and heading presence.
+When `AGENTS.md` grows above ~150 lines, agents waste cycles scanning dense sections and miss the common path.
 Progressive layering (`SKILL.md` for workflow, references/ for exceptions) keeps the activation surface lean and direct.
 
-- `CLAUDE.md`, `AGENTS.md`, and `SKILL.md` files stay under ~150 lines; deeper context lives in docs/design-docs/ and docs/references/.
+- `AGENTS.md` and `SKILL.md` files stay under ~150 lines; deeper context lives in docs/design-docs/ and docs/references/.
 - Each reference/ file states its activation condition in the first paragraph (e.g., "Use this when X fails" or "When Y is unclear").
 - Skill structure separates common-case examples from edge-case templates; validators reject references that duplicate common-path content.
 - Agents can reach the routine task without reading more than 3 sections.
@@ -32,7 +33,8 @@ When a tool output format is undocumented, when a config field's purpose lives o
 Heavy-handed style reviews and approval gates on minor details create friction in agent workflows and slow down routine changes.
 When every commit needs sign-off on formatting or tooling choices, agents cannot iterate; when rules are not clear about what is actually non-negotiable, agents apply caution where they should act freely.
 
-- Contract rules state *what must not vary* (e.g., `CLAUDE.md` and `AGENTS.md` resolve to the same root contract, validators must not fail silently); implementation order, refactoring patterns, and local style are left to the implementer's judgment.
+- Contract rules state *what must not vary* (e.g., `CLAUDE.md` imports `AGENTS.md`, validators must not fail silently).
+Implementation order, refactoring patterns, and local style are left to the implementer's judgment.
 - Validators check invariants only (boundary enforcement, required files and directories, hook executability), not code style, comment density, or variable names.
 - Design docs distinguish hard constraints (cannot be changed without breaking the contract) from guidelines (recommendations, patterns, examples); agents and reviewers treat them accordingly.
 - Review feedback focuses on invariant violations and new patterns that reveal missing beliefs, not on local implementation choices that do not affect the contract.
@@ -54,7 +56,8 @@ Execution plans live under `docs/exec-plans/` with dates in filenames (`yyyy-MM-
 Deferred documentation and technical debt compound silently; by the time a refactor sprint happens, agents have already wasted cycles on stale guidance, and the project is harder to navigate.
 Small, incremental care keeps the contracts and docs aligned with reality and reduces surprise failures during onboarding.
 
-- Contract changes (updates to `CLAUDE.md`, `ARCHITECTURE.md`, validation rules) are committed as versioned updates during feature work when reality drifts from docs; they do not wait for a separate refactor window.
+- Contract changes (updates to `AGENTS.md`, `ARCHITECTURE.md`, validation rules) are committed as versioned updates during feature work when reality drifts from docs.
+They do not wait for a separate refactor window.
 - Review feedback that reveals a recurring pattern (a design rule that is applied but not written, a failure mode that shows up twice) triggers an immediate update to `core-beliefs.md`, `DESIGN.md`, or a new reference/ file.
 - Validators run locally before commit (pre-commit hook) so agents catch staleness and broken contracts early; CI does not become the discovery mechanism for document rot.
 - A weekly or biweekly doc-gardening agent opens PRs to update stale examples, refresh `QUALITY_SCORE.md`, and surface `tech-debt-tracker.md` items that are ready for resolution.

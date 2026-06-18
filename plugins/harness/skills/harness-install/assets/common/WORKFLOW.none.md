@@ -1,17 +1,17 @@
 # Workflow
 
-Use this file for Git flow, review records, validation gates, and Git-contained integration.
+Use this file for Git flow, review records, validation gates, and local publication policy.
 Repository contract stays in `AGENTS.md`, architecture in `ARCHITECTURE.md`, and durable evidence in `docs/**`.
 Use task prompts for implementation-only decisions.
 
 ## Work Loop
 
-1. Explore the contract, relevant docs, code surface, validation command, and local Git context.
-2. Plan the files, acceptance gate, manual QA, validation, and integration target.
+1. Explore the contract, relevant docs, code surface, validation command, and local review record.
+2. Plan the files, acceptance gate, manual QA, validation, and publication target.
 3. Implement the smallest target-owned change.
 4. Review correctness, security, contract drift, and missing evidence.
 5. Validate with the selected stack command and active Git hooks.
-6. Integrate with the repository-approved Git method after complete gates.
+6. Publish with the repository-approved local review or merge policy.
 
 ## Records
 
@@ -39,15 +39,14 @@ Use one logical intent per commit.
 Commit bodies may use a list.
 Respect included work from other contributors with a cherry-pick or `Co-authored-by:` trailer.
 
-## Git-Contained Review
+## Local Review
 
-Keep the task context and change description in versioned project files.
-Record the branch or commit range, review findings, validation, manual QA, and integration decision.
-Integrate only after approval and final validation.
+Draft issue, review, and release notes in `.tmp/`.
+Move durable decisions to `docs/exec-plans/` or the project tracker.
 
 ## Evidence
 
-Record evidence in the execution plan, change description, or review note:
+Record evidence in the execution plan or review note:
 
 - validation command and result
 - test names or CI job names

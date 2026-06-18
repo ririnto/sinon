@@ -68,6 +68,9 @@ def is_common_skip_path(rel: str) -> bool:
     return rel in {
         "AGENTS.md",
         "CLAUDE.md",
+        "WORKFLOW.github.md",
+        "WORKFLOW.gitlab.md",
+        "WORKFLOW.none.md",
     }
 
 

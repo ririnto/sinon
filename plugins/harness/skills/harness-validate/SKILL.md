@@ -18,12 +18,12 @@ This plugin skill is the visible runtime surface for validation guidance; it che
 
 ## First Safe Checks
 
-1. Read `docs/README.md` to confirm the selected stack and validation command.
+1. Confirm the selected stack and validation command from the caller, installer output, or target files.
 2. Confirm the target stack from the argument or repository files.
 3. Check that validation is being run from the target repository root; uv, bun, and Maven validators bind the current working directory as the target root.
-4. Prefer the stack command documented in `docs/README.md` over ad hoc checks.
+4. Use the selected stack command for local validation.
 5. Inspect `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml` when validation is being checked through CI, but run local validation from the target root first.
-6. Open `docs/README.md` when command selection is unclear.
+6. Report ambiguity when command selection remains unclear.
 
 ## Preflight
 
@@ -31,9 +31,9 @@ Check these support surfaces before running the stack command.
 
 | Path | Use it for | Failure example |
 | --- | --- | --- |
-| `docs/README.md` | Selected validation command and stack notes | `docs/README.md: missing harness file - run harness-install or restore target-owned README` |
-| `.github/workflows/<tool>.yaml` | GitHub Actions command parity (when present) | `.github/workflows/<tool>.yaml: CI command mismatch - expected generated pre-push final check command` |
-| `.gitlab-ci.yml` | GitLab CI command parity | `.gitlab-ci.yml: CI command mismatch - expected generated pre-push final check command` |
+| `WORKFLOW.md` | Selected validation command and Git host notes | `WORKFLOW.md: missing harness file - run harness-install or restore target-owned workflow` |
+| `.github/workflows/<tool>.yaml` | GitHub Actions command parity (when present) | `.github/workflows/<tool>.yaml: CI command mismatch - expected installed pre-push final check command` |
+| `.gitlab-ci.yml` | GitLab CI command parity | `.gitlab-ci.yml: CI command mismatch - expected installed pre-push final check command` |
 
 ## Mode Detection
 
@@ -46,7 +46,7 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | `uv.lock` or Python `pyproject.toml` | `uv` | Run through `uv` so dependencies and Python version resolution stay target-owned. |
 | `bun.lock`, `bun.lockb`, or JavaScript `package.json` without a stronger stack signal | `bun` | Use only when Bun is the intended project runtime. |
 | Shell scripts, `Makefile`, or no stronger stack signal | `shell` | Shell-script-only or Makefile-driven project. |
-| Multiple stack signals | explicit user mode | Report ambiguous stack when non-interactive, or use the installed README command if present. |
+| Multiple stack signals | explicit user mode | Report ambiguous stack when non-interactive, or use the installed workflow command if present. |
 
 ## Stack Commands
 
@@ -58,8 +58,8 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun run check` |
 | `shell` | shell-script-only or Makefile-driven repository | `sh scripts/check.sh` |
 
-The installed README command is the local harness validation command.
-The generated `docs/git-hooks/pre-commit` and `pre-push` command markers both carry this same stack validation command listed above.
+The installed workflow command is the local harness validation command.
+The installed `pre-commit` and `pre-push` command markers both carry this same stack validation command listed above.
 
 ## Command Examples
 
@@ -89,7 +89,7 @@ bun run check
 sh scripts/check.sh
 ```
 
-Do not suppress validator output.
+Keep validator output visible.
 
 ```sh
 uv run scripts/check.py
@@ -105,7 +105,7 @@ Reject any pattern that discards validator output or forces a successful exit af
 4. Fix only issues in the user's requested scope; otherwise report the failing contract and the owning file.
 5. Re-run the same validation command after any fix.
 
-If `auto` finds multiple stack signals and no installed README command resolves the selection, report ambiguity instead of guessing.
+If `auto` finds multiple stack signals and the installed workflow lacks a resolved selection, report ambiguity before choosing a command.
 
 ```text
 mode: auto
@@ -119,11 +119,11 @@ failures:
 | Situation | Action |
 | --- | --- |
 | Missing target-owned harness file | Report the path, or rerun `harness-install` only if the user asked for repair. |
-| Placeholder docs remain generic | Report exact files; do not invent product facts. |
+| Placeholder docs remain generic | Report exact files and request target facts. |
 | Hook command mismatch | Report unless the user explicitly approved hook changes. |
 | CI command mismatch | Align CI only when CI files are in scope; otherwise report expected and actual commands. |
 | Stack-tool failure before harness checks run | Report native tool failure separately from harness contract health. |
-| Multiple stack signals in `auto` | Use installed README command when present; otherwise fail with explicit mode choices. |
+| Multiple stack signals in `auto` | Use installed workflow command when present, or fail with explicit mode choices. |
 
 ## Failure Classification
 
@@ -131,32 +131,32 @@ failures:
 | --- | --- | --- |
 | Missing harness file | Validator names an absent `AGENTS.md`, `docs/**`, agent, or skill | Re-run installation or restore the missing target-owned file. |
 | Missing harness directory | Validator names an absent docs, `.claude/agents`, `.claude/skills`, or template directory | Restore the directory and required `.gitkeep` files when empty. |
-| Stale placeholder | File exists but still contains generic scaffold content | Replace placeholder with target truth; do not invent product facts. |
+| Stale placeholder | File exists but still contains generic scaffold content | Replace placeholder with target truth or request target facts. |
 | Agent or skill metadata | Agent or skill frontmatter lacks required `name` or `description` | Fix the specific agent or skill metadata. |
 | Documentation contract | Required doc headings, generated-artifact semantics, or harness evolution wording is missing | Restore the documented contract in the named file. |
 | Generated artifact metadata | A file under `docs/generated/` lacks source command, source inputs, freshness, or regeneration trigger metadata | Add metadata or remove the invalid generated artifact from scope. |
 | Symlink safety | Validator reports symlink scan entries under protected harness paths | Replace symlinks with regular files or directories owned by the target. |
-| Script permission | Generated hook or validator exists but is not executable where execution is required | Restore executable bit on the target-owned script. |
+| Script permission | Installed hook or validator exists but is not executable where execution is required | Restore executable bit on the target-owned script. |
 | Script shebang | Executable script does not use `/usr/bin/env` shebang | Update the executable script shebang. |
-| Unsupported validation command | Generated `pre-push` declares a command outside the installer allow-list | Regenerate selected-mode hook content from the installer. |
-| Hook wiring | Generated `pre-commit` does not match the stack-specific hook contract, generated `pre-push` lacks the selected final check command, or CI drifts from generated `pre-push` | Regenerate selected-mode hook content only with explicit hook approval. |
-| CI command mismatch | `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml` uses a different validation command | Align CI with the generated pre-push final check command. |
+| Unsupported validation command | Installed `pre-push` declares a command outside the installer allow-list | Reinstall selected-mode hook content from the installer. |
+| Hook wiring | Installed `pre-commit` does not match the stack-specific hook contract, installed `pre-push` lacks the selected final check command, or CI drifts from installed `pre-push` | Reinstall selected-mode hook content only with explicit hook approval. |
+| CI command mismatch | `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml` uses a different validation command | Align CI with the installed pre-push final check command. |
 | Stack-tool failure | The native tool exits before harness checks run | Report the tool failure separately from harness contract health. |
 
 ## CI Checks
 
 Local validation is the source of truth.
-CI files are examples that should run the generated pre-push final check command.
+CI files are install-time assets that should run the installed pre-push final check command.
 
 | CI file | Expected validation shape |
 | --- | --- |
-| `.github/workflows/<tool>.yaml` | One job whose run step matches the generated pre-push final check command. |
-| `.gitlab-ci.yml` | One `harness` job whose script entry matches the generated pre-push final check command. |
+| `.github/workflows/<tool>.yaml` | One job whose run step matches the installed pre-push final check command. |
+| `.gitlab-ci.yml` | One `harness` job whose script entry matches the installed pre-push final check command. |
 
-If CI is skipped during install, report that local validation passed and CI snippets were intentionally absent.
+When install uses `--ci-host none`, report local validation status and the chosen no-CI policy.
 
 GitHub-only and GitLab-only repositories may intentionally delete the unused CI file as a post-install step.
-When `git remote -v` shows only one host and the matching CI file is missing or out of sync with the generated pre-push command, report it as `not active` rather than `mismatch`; report the still-present CI file under the normal parity table.
+When `git remote -v` shows only one host and the matching CI file is missing or out of sync with the installed pre-push command, report it as `not active` rather than `mismatch`; report the still-present CI file under the normal parity table.
 
 Report CI drift with the expected command.
 
@@ -200,17 +200,17 @@ Fix commands run validation after applying changes, print remaining findings, an
 - Stack validators invoke native ecosystem tools (ktlint, Spotless, ruff, ultracite, shellcheck).
 - File presence alone does not prove project readiness when placeholders still lack project-specific content.
 - Generated artifacts are valid only when they document source command, source inputs, freshness, and regeneration trigger.
-- GitHub Actions, GitLab CI, and the generated `pre-commit` and `pre-push` hooks MUST remain examples of the same selected stack validation command.
+- GitHub Actions, GitLab CI, and the installed `pre-commit` and `pre-push` hooks MUST remain examples of the same selected stack validation command.
 - Check and validation findings MUST use the canonical diagnostic prefix with one-based line and column numbers when position is available.
 
-## Pitfalls
+## Operating Checks
 
-- Do not skip validation because installation printed a command successfully.
-- Do not run every stack command; use the matching ecosystem.
-- Do not make unrelated product-code changes to satisfy harness validation.
-- Do not remove required harness files to get a green result.
-- Do not redirect validator output away; WARN and ERROR output is part of the proof.
-- Do not force a successful exit after validation failure.
+- Run validation after installation prints the command.
+- Run the matching ecosystem command.
+- Keep product-code fixes separate from harness validation fixes.
+- Restore required harness files when validation names them.
+- Keep WARN and ERROR output as proof.
+- Preserve validation failure exits.
 
 ## Report Template
 
@@ -232,5 +232,5 @@ Report these fields:
 - `command`: exact validation command.
 - `result`: pass or fail with exit status when available.
 - `failures`: file paths and contract categories for any failures.
-- `ci`: whether GitHub Actions or GitLab CI snippets match the selected command when present.
+- `ci`: whether GitHub Actions or GitLab CI files match the selected command when present.
 - `next action`: smallest valid fix or explicit reason no fix was made.

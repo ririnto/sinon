@@ -13,6 +13,21 @@ def workflow_name_for_mode(mode: str) -> str:
     }[mode]
 
 
+def workflow_asset_name_for_ci_host(ci_host: str) -> str:
+    match ci_host:
+        case "github":
+            return "WORKFLOW.github.md"
+        case "gitlab":
+            return "WORKFLOW.gitlab.md"
+        case "both":
+            return "WORKFLOW.md"
+        case "none":
+            return "WORKFLOW.none.md"
+    fail(
+        f"[workflow_asset_name] unsupported ci host (must be github|gitlab|both|none): {ci_host}"
+    )
+
+
 def validation_command_for_mode(mode: str) -> str:
     if mode == "gradle":
         return "./gradlew ktlintCheck"

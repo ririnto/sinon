@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 
 from .errors import fail, read_text
-from .models import InstallCandidate, InstallerSupport
+from .models import InstallCandidate, InstallerSupport, root_contract_contains_marker
 from .paths import required_real_target, required_src
 
 
@@ -48,12 +48,16 @@ class PreviewMixin(InstallerSupport):
     def preview_root_contract_candidate(self, candidate: InstallCandidate) -> None:
 
         real_target = required_real_target(candidate)
-        if Path(real_target).exists() and candidate.marker in read_text(real_target):
+        if Path(real_target).exists() and root_contract_contains_marker(
+            candidate.dst,
+            candidate.marker,
+            read_text(real_target),
+        ):
             print(f"skip root contract: {candidate.dst}")
             return
         if Path(real_target).exists() and not self.config.force:
             print(
-                f"conflict root contract: {real_target} lacks marker {candidate.marker}; rerun with --force to append",
+                f"conflict root contract: {real_target} lacks marker {candidate.marker}; rerun with --force to update",
                 file=sys.stderr,
             )
             return
@@ -95,12 +99,14 @@ class PreviewMixin(InstallerSupport):
 
         candidate = self.build_plan().match(requested_path)
         if candidate.kind in {"file", "seed", "stack-file"}:
-            print(self.render_template(required_src(candidate)), end="")
+            print(self.read_install_asset(required_src(candidate)), end="")
             return
         if candidate.kind == "root-contract":
             real_target = required_real_target(candidate)
-            if Path(real_target).exists() and candidate.marker in read_text(
-                real_target
+            if Path(real_target).exists() and root_contract_contains_marker(
+                candidate.dst,
+                candidate.marker,
+                read_text(real_target),
             ):
                 return
             if Path(real_target).exists():
@@ -108,7 +114,7 @@ class PreviewMixin(InstallerSupport):
                     f"note: requested root contract content would be appended to existing file: {real_target}",
                     file=sys.stderr,
                 )
-            print(self.render_template(required_src(candidate)), end="")
+            print(self.read_install_asset(required_src(candidate)), end="")
             return
         if candidate.kind == "gitkeep":
             return

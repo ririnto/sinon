@@ -1,0 +1,32 @@
+# Logs
+*.log
+logs/
+
+# Local caches
+.cache/
+
+# Temporary files
+.tmp/
+tmp/
+temp/
+*.tmp
+
+# Local environment
+.env
+.env.*
+!.env.example
+*.local
+
+# Editor and OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Desktop.ini
+Thumbs.db
+ehthumbs.db

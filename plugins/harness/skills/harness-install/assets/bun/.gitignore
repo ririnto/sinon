@@ -1,1 +1,44 @@
+# Dependencies
 node_modules/
+
+# Bun
+.bun/
+
+# Build outputs
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local environment
+.env
+.env.*
+!.env.example
+*.local
+.tmp/
+tmp/
+temp/
+*.tmp
+
+# Editor and OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Desktop.ini
+Thumbs.db
+ehthumbs.db
