@@ -1,120 +1,120 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "sinon",
-  "version": "2026.06.10",
   "description": "Claude catalog view for the Sinon marketplace.",
+  "name": "sinon",
   "owner": {
-    "name": "ririnto",
-    "email": "ririnto@kakao.com"
+    "email": "ririnto@kakao.com",
+    "name": "ririnto"
   },
   "plugins": [
     {
-      "name": "agent-capability-kit",
+      "author": {
+        "name": "ririnto"
+      },
+      "category": "development",
       "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, hooks, MCP servers, plugin settings, and cross-platform Agent Skills; includes agents for plugin validation and skill review, plus a command for guided plugin creation.",
-      "source": "./plugins/agent-capability-kit",
+      "name": "agent-capability-kit",
+      "source": "./plugins/agent-capability-kit"
+    },
+    {
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
-    },
-    {
-      "name": "document-creator",
+      "category": "development",
       "description": "Authoring skills for AI-consumable engineering documents; currently provides SPEC.md creation with structured requirements, scenarios, and acceptance criteria.",
-      "source": "./plugins/document-creator",
+      "name": "document-creator",
+      "source": "./plugins/document-creator"
+    },
+    {
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
-    },
-    {
-      "name": "harness",
+      "category": "development",
       "description": "Install, validate, and evolve repository-owned harness assets for agent instructions, docs, templates, project agents, project skills, stack validators, CI snippets, and opt-in Git hook templates.",
-      "source": "./plugins/harness",
+      "name": "harness",
+      "source": "./plugins/harness"
+    },
+    {
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
-    },
-    {
-      "name": "java",
+      "category": "development",
       "description": "Java development plugin with practical skills for syntax, language design, testing, dependency decisions, and performance analysis, plus an agent for architecture guidance and JDTLS-assisted editing.",
-      "source": "./plugins/java",
+      "name": "java",
+      "source": "./plugins/java"
+    },
+    {
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
-    },
-    {
-      "name": "jvm",
+      "category": "development",
       "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
-      "source": "./plugins/jvm",
+      "name": "jvm",
+      "source": "./plugins/jvm"
+    },
+    {
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
-    },
-    {
-      "name": "kotlin",
+      "category": "development",
       "description": "Kotlin development plugin with practical skills for language design, coroutines and Flow, testing workflows, and kotlin-lsp-assisted editing.",
-      "source": "./plugins/kotlin",
+      "name": "kotlin",
+      "source": "./plugins/kotlin"
+    },
+    {
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
-    },
-    {
-      "name": "netty",
+      "category": "development",
       "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, core API bootstrap and pipelines, and reactive HTTP/TCP/UDP workflows.",
-      "source": "./plugins/netty",
+      "name": "netty",
+      "source": "./plugins/netty"
+    },
+    {
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
-    },
-    {
-      "name": "observability-assets",
+      "category": "development",
       "description": "Prometheus and Grafana plugin with practical skills for alert-rule design, PromQL composition, dashboard JSON authoring, Grafana provisioning, plus an agent for observability architecture decisions.",
-      "source": "./plugins/observability-assets",
+      "name": "observability-assets",
+      "source": "./plugins/observability-assets"
+    },
+    {
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
-    },
-    {
-      "name": "reactor",
+      "category": "development",
       "description": "Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, hot-source design with Sinks, testing with StepVerifier, plus an agent for reactive architecture decisions.",
-      "source": "./plugins/reactor",
+      "name": "reactor",
+      "source": "./plugins/reactor"
+    },
+    {
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
-    },
-    {
-      "name": "spec-driven-development",
+      "category": "development",
       "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.",
-      "source": "./plugins/spec-driven-development",
+      "name": "spec-driven-development",
+      "source": "./plugins/spec-driven-development"
+    },
+    {
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
-    },
-    {
-      "name": "spring",
+      "category": "development",
       "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, messaging, Cloud, and Batch workflows, plus an agent for architecture and component design.",
-      "source": "./plugins/spring",
-      "author": {
-        "name": "ririnto"
-      },
-      "category": "development"
+      "name": "spring",
+      "source": "./plugins/spring"
     },
     {
-      "name": "workspace-workflow",
-      "description": "Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.",
-      "source": "./plugins/workspace-workflow",
       "author": {
         "name": "ririnto"
       },
-      "category": "development"
+      "category": "development",
+      "description": "Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.",
+      "name": "workspace-workflow",
+      "source": "./plugins/workspace-workflow"
     }
-  ]
+  ],
+  "version": "2026.06.10"
 }

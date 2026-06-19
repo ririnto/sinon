@@ -27,12 +27,12 @@ lombok_jar="${temp_dir}/lombok.jar"
 # @param haystack_file Path to the file to search.
 # @exit Exits with status 1 when assertion fails.
 assert_contains() {
-    needle="$1"
-    haystack_file="$2"
-    if ! grep -Fq -- "${needle}" "${haystack_file}"; then
-        printf '%s\n' "ASSERTION FAILED: expected ${haystack_file} to contain ${needle}" >&2
-        exit 1
-    fi
+  needle="$1"
+  haystack_file="$2"
+  if ! grep -Fq -- "${needle}" "${haystack_file}"; then
+    printf '%s\n' "ASSERTION FAILED: expected ${haystack_file} to contain ${needle}" >&2
+    exit 1
+  fi
 }
 
 # Assert that a file does not contain a literal string.
@@ -41,12 +41,12 @@ assert_contains() {
 # @param haystack_file Path to the file to search.
 # @exit Exits with status 1 when assertion fails.
 assert_not_contains() {
-    needle="$1"
-    haystack_file="$2"
-    if grep -Fq -- "${needle}" "${haystack_file}"; then
-        printf '%s\n' "ASSERTION FAILED: expected ${haystack_file} to not contain ${needle}" >&2
-        exit 1
-    fi
+  needle="$1"
+  haystack_file="$2"
+  if grep -Fq -- "${needle}" "${haystack_file}"; then
+    printf '%s\n' "ASSERTION FAILED: expected ${haystack_file} to not contain ${needle}" >&2
+    exit 1
+  fi
 }
 
 # Run jdtls-wrapper.sh in a fake workspace with captured output.
@@ -58,24 +58,24 @@ assert_not_contains() {
 # @param project_jar_enabled Whether project jar discovery is enabled ("true" or "false").
 # @return Prints "capture_dir|stderr_file" path pair.
 run_case() {
-    case_name="$1"
-    workspace_dir="$2"
-    jar_path="$3"
-    support_enabled="${4:-true}"
-    project_jar_enabled="${5:-false}"
-    capture_dir="${temp_dir}/${case_name}-capture"
-    stderr_file="${temp_dir}/${case_name}.stderr"
-    mkdir -p "${capture_dir}"
-    (
-        cd "${workspace_dir}"
-        PATH="${fake_bin}:$PATH" \
-            JDTLS_CAPTURE_DIR="${capture_dir}" \
-            JAVA_ASSISTANT_LOMBOK_JAR="${jar_path}" \
-            JAVA_ASSISTANT_LOMBOK_ENABLED="${support_enabled}" \
-            JAVA_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED="${project_jar_enabled}" \
-            "${wrapper_path}" >"${capture_dir}/stdout.txt" 2>"${stderr_file}"
-    )
-    printf '%s\n' "${capture_dir}|${stderr_file}"
+  case_name="$1"
+  workspace_dir="$2"
+  jar_path="$3"
+  support_enabled="${4:-true}"
+  project_jar_enabled="${5:-false}"
+  capture_dir="${temp_dir}/${case_name}-capture"
+  stderr_file="${temp_dir}/${case_name}.stderr"
+  mkdir -p "${capture_dir}"
+  (
+    cd "${workspace_dir}"
+    PATH="${fake_bin}:$PATH" \
+      JDTLS_CAPTURE_DIR="${capture_dir}" \
+      JAVA_ASSISTANT_LOMBOK_JAR="${jar_path}" \
+      JAVA_ASSISTANT_LOMBOK_ENABLED="${support_enabled}" \
+      JAVA_ASSISTANT_LOMBOK_PROJECT_JAR_ENABLED="${project_jar_enabled}" \
+      "${wrapper_path}" >"${capture_dir}/stdout.txt" 2>"${stderr_file}"
+  )
+  printf '%s\n' "${capture_dir}|${stderr_file}"
 }
 
 # Run jdtls-wrapper.sh with legacy Lombok environment variables.
@@ -86,22 +86,22 @@ run_case() {
 # @param fallback_jar_path Lombok jar path for LOMBOK_JAR.
 # @return Prints "capture_dir|stderr_file" path pair.
 run_legacy_env_case() {
-    case_name="$1"
-    workspace_dir="$2"
-    jdk_jar_path="$3"
-    fallback_jar_path="$4"
-    capture_dir="${temp_dir}/${case_name}-capture"
-    stderr_file="${temp_dir}/${case_name}.stderr"
-    mkdir -p "${capture_dir}"
-    (
-        cd "${workspace_dir}"
-        PATH="${fake_bin}:$PATH" \
-            JDTLS_CAPTURE_DIR="${capture_dir}" \
-            JDK_ASSISTANT_LOMBOK_JAR="${jdk_jar_path}" \
-            LOMBOK_JAR="${fallback_jar_path}" \
-            "${wrapper_path}" --stdio >"${capture_dir}/stdout.txt" 2>"${stderr_file}"
-    )
-    printf '%s\n' "${capture_dir}|${stderr_file}"
+  case_name="$1"
+  workspace_dir="$2"
+  jdk_jar_path="$3"
+  fallback_jar_path="$4"
+  capture_dir="${temp_dir}/${case_name}-capture"
+  stderr_file="${temp_dir}/${case_name}.stderr"
+  mkdir -p "${capture_dir}"
+  (
+    cd "${workspace_dir}"
+    PATH="${fake_bin}:$PATH" \
+      JDTLS_CAPTURE_DIR="${capture_dir}" \
+      JDK_ASSISTANT_LOMBOK_JAR="${jdk_jar_path}" \
+      LOMBOK_JAR="${fallback_jar_path}" \
+      "${wrapper_path}" --stdio >"${capture_dir}/stdout.txt" 2>"${stderr_file}"
+  )
+  printf '%s\n' "${capture_dir}|${stderr_file}"
 }
 
 # Run has-lombok.sh --resolve-project-jar in a workspace.
@@ -109,11 +109,11 @@ run_legacy_env_case() {
 # @param workspace_dir Project directory to scan.
 # @return Prints the resolved jar path or nothing.
 run_resolver_case() {
-    workspace_dir="$1"
-    (
-        cd "${workspace_dir}"
-        "${resolver_path}" --resolve-project-jar "${workspace_dir}"
-    )
+  workspace_dir="$1"
+  (
+    cd "${workspace_dir}"
+    "${resolver_path}" --resolve-project-jar "${workspace_dir}"
+  )
 }
 
 maven_workspace="${temp_dir}/maven-project"
@@ -253,14 +253,14 @@ assert_contains "Enabled Lombok support from project source" "${classpath_opt_in
 
 resolver_output=$(run_resolver_case "${classpath_workspace}")
 if [ "${resolver_output}" != "${project_lombok_jar}" ]; then
-    printf '%s\n' "ASSERTION FAILED: expected resolver to return ${project_lombok_jar}, got ${resolver_output}" >&2
-    exit 1
+  printf '%s\n' "ASSERTION FAILED: expected resolver to return ${project_lombok_jar}, got ${resolver_output}" >&2
+  exit 1
 fi
 
 factorypath_resolver_output=$(run_resolver_case "${factorypath_workspace}")
 if [ "${factorypath_resolver_output}" != "${factorypath_lombok_jar}" ]; then
-    printf '%s\n' "ASSERTION FAILED: expected resolver to return ${factorypath_lombok_jar}, got ${factorypath_resolver_output}" >&2
-    exit 1
+  printf '%s\n' "ASSERTION FAILED: expected resolver to return ${factorypath_lombok_jar}, got ${factorypath_resolver_output}" >&2
+  exit 1
 fi
 
 incompatible_result=$(run_case "incompatible" "${incompatible_workspace}" "")

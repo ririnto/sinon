@@ -122,8 +122,6 @@ CLAUDE.md            (imports AGENTS.md)
 |-- agents/
 |   |-- implementation-agent.md
 |   `-- review-agent.md
-|-- scripts/
-|   `-- worktree-create.py
 |-- settings.json
 `-- skills/
     |-- review/
@@ -202,8 +200,7 @@ JavaScript files use oxlint JSDoc tag rules so JSDoc remains usable as type inpu
 The local oxlint JS plugin rule `tsdoc/require-export-tsdoc` from `scripts/tsdoc-plugin.ts` requires TSDoc only on TypeScript exported APIs.
 That means exported top-level functions, exported top-level constants/variables, exported classes, and public methods/accessors on exported classes.
 
-The Bun-side validator and the plugin installer are style-hardened by plugin checks.
-`sh plugins/harness/scripts/plugin-self-check.sh` enforces no leading-underscore public declarations in these implementation files and no one-line public Python docstrings.
+The Bun-side validator and the plugin installer are covered by plugin checks for packaged files, manifest alignment, and syntax-level validation.
 
 The uv validator self-provisions ruff on first use via `uvx --with "ruff>=0.15.16,<0.16.0" ruff check .` and `ruff format --check .`, using Ruff's normal project discovery, so network access is required on first run.
 The ruff binary is then cached.

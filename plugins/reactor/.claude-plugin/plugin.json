@@ -1,14 +1,10 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
-  "name": "reactor",
-  "description": "Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.",
   "author": {
     "name": "ririnto"
   },
+  "description": "Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/reactor",
-  "repository": "https://github.com/ririnto/sinon",
-  "license": "MIT",
-  "skills": "./skills/",
   "keywords": [
     "reactor",
     "reactive",
@@ -19,5 +15,9 @@
     "sinks",
     "testing",
     "java"
-  ]
+  ],
+  "license": "MIT",
+  "name": "reactor",
+  "repository": "https://github.com/ririnto/sinon",
+  "skills": "./skills/"
 }

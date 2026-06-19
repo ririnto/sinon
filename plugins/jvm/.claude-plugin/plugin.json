@@ -1,19 +1,19 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
-  "name": "jvm",
-  "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
   "author": {
     "name": "ririnto"
   },
+  "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/jvm",
-  "repository": "https://github.com/ririnto/sinon",
-  "license": "MIT",
-  "skills": "./skills/",
   "keywords": [
     "jvm",
     "javac",
     "jfr",
     "gc",
     "diagnostics"
-  ]
+  ],
+  "license": "MIT",
+  "name": "jvm",
+  "repository": "https://github.com/ririnto/sinon",
+  "skills": "./skills/"
 }

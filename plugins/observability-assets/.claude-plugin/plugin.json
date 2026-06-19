@@ -1,14 +1,10 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
-  "name": "observability-assets",
-  "description": "Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.",
   "author": {
     "name": "ririnto"
   },
+  "description": "Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/observability-assets",
-  "repository": "https://github.com/ririnto/sinon",
-  "license": "MIT",
-  "skills": "./skills/",
   "keywords": [
     "prometheus",
     "grafana",
@@ -17,5 +13,9 @@
     "dashboard",
     "observability",
     "monitoring"
-  ]
+  ],
+  "license": "MIT",
+  "name": "observability-assets",
+  "repository": "https://github.com/ririnto/sinon",
+  "skills": "./skills/"
 }

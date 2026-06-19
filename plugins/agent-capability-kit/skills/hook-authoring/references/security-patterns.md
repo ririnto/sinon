@@ -122,11 +122,11 @@ Patterns to reject:
 ```sh
 #!/bin/sh
 
-# Reject writes to system directories.
+# Ensure writes do not target system directories.
 #
 # @param file_path Path to validate.
 # @return Exits 2 if system path; exits 0 otherwise.
-reject_system_paths() {
+ensure_non_system_path() {
     file_path="$1"
     for prefix in "/bin" "/usr" "/etc" "/sys" "/var" "/opt" "/boot" "/proc" "/dev"; do
         case "$file_path" in

@@ -7,10 +7,10 @@ set -e
 # @param workflow_file Path to GitHub workflow file.
 # @param expected_command Expected validation command.
 assert_github_workflow_command() {
-    workflow_file=$1
-    expected_command=$2
-    require_text "$workflow_file" "run: $expected_command"
-    printf '[GitHub workflow %s] command OK\n' "$(basename "$workflow_file")" >&2
+  workflow_file=$1
+  expected_command=$2
+  require_text "$workflow_file" "run: $expected_command"
+  printf '[GitHub workflow %s] command OK\n' "$(basename "$workflow_file")" >&2
 }
 
 # Require GitLab CI file contains correct check command and job name.
@@ -19,10 +19,10 @@ assert_github_workflow_command() {
 # @param expected_job_name Expected job name.
 # @param expected_command Expected validation command.
 assert_gitlab_ci_command() {
-    ci_file=$1
-    expected_job_name=$2
-    expected_command=$3
-    require_text "$ci_file" "$expected_job_name:"
-    require_text "$ci_file" "- $expected_command"
-    printf '[GitLab CI] %s job command OK\n' "$expected_job_name" >&2
+  ci_file=$1
+  expected_job_name=$2
+  expected_command=$3
+  require_text "$ci_file" "$expected_job_name:"
+  require_text "$ci_file" "- $expected_command"
+  printf '[GitLab CI] %s job command OK\n' "$expected_job_name" >&2
 }
