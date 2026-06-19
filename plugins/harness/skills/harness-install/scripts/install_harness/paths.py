@@ -11,13 +11,18 @@ def normalize_requested_target_path(requested_path: str) -> str:
     normalized = (
         requested_path[2:] if requested_path.startswith("./") else requested_path
     )
-    reject_unsafe_relative_path(normalized)
+    ensure_safe_relative_path(normalized)
     if normalized.endswith("/"):
         fail(f"unsafe target path: {normalized} (must be a file path, not a directory)")
     return normalized
 
 
-def reject_unsafe_relative_path(path: str) -> None:
+def ensure_safe_relative_path(path: str) -> None:
+    """Ensure a target path is safe to create under the repository root.
+
+    :param path: Target path to check.
+    :return: None.
+    """
 
     unsafe_path = path[2:] if path.startswith("./") else path
     if unsafe_path in {"", "."} or unsafe_path.startswith("/"):
@@ -36,7 +41,7 @@ def ensure_safe_parent_dir(path: str) -> None:
     parent = Path(path).parent
     if str(parent) in {"", "."}:
         return
-    reject_unsafe_relative_path(parent.as_posix())
+    ensure_safe_relative_path(parent.as_posix())
     current = Path()
     for part in parent.parts:
         current = current / part
@@ -54,7 +59,7 @@ def ensure_safe_parent_dir(path: str) -> None:
 def ensure_safe_file_destination(path: str) -> None:
 
     clean_path = path[2:] if path.startswith("./") else path
-    reject_unsafe_relative_path(clean_path)
+    ensure_safe_relative_path(clean_path)
     ensure_safe_parent_dir(clean_path)
     target = Path(clean_path)
     if target.is_symlink():

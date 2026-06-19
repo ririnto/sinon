@@ -1,15 +1,10 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
-  "name": "java",
-  "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
   "author": {
     "name": "ririnto"
   },
+  "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/java",
-  "repository": "https://github.com/ririnto/sinon",
-  "license": "MIT",
-  "skills": "./skills/",
-  "lspServers": "./.lsp.json",
   "keywords": [
     "java",
     "gradle",
@@ -19,5 +14,10 @@
     "java.base",
     "lts",
     "jdtls"
-  ]
+  ],
+  "license": "MIT",
+  "lspServers": "./.lsp.json",
+  "name": "java",
+  "repository": "https://github.com/ririnto/sinon",
+  "skills": "./skills/"
 }

@@ -21,3 +21,8 @@ max_line_length = 120
 indent_style = space
 indent_size = 2
 tab_width = 2
+
+[{*.bash,*.sh,*.zsh}]
+indent_style = space
+indent_size = 2
+tab_width = 2
