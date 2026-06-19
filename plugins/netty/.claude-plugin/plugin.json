@@ -1,14 +1,10 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
-  "name": "netty",
-  "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.",
   "author": {
     "name": "ririnto"
   },
+  "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/netty",
-  "repository": "https://github.com/ririnto/sinon",
-  "license": "MIT",
-  "skills": "./skills/",
   "keywords": [
     "netty",
     "reactor-netty",
@@ -21,5 +17,9 @@
     "websocket",
     "codec",
     "java"
-  ]
+  ],
+  "license": "MIT",
+  "name": "netty",
+  "repository": "https://github.com/ririnto/sinon",
+  "skills": "./skills/"
 }
