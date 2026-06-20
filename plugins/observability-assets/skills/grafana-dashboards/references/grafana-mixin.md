@@ -1,26 +1,31 @@
 ---
 description: >-
-  Open this when generated dashboards, Jsonnet source review, or source-vs-rendered handoff is the blocker.
+  Open this for generated dashboards, Jsonnet source review, and source-vs-rendered handoff blockers.
 ---
 
 # Grafana Mixin Reference
 
-Use this reference when the team already uses Grafana mixin or Jsonnet and the blocker is understanding how source files and rendered dashboard assets should relate to each other.
+Open this reference for Grafana mixin or Jsonnet source.
+Open it to trace source files to rendered dashboard assets.
 
 ## Source vs Rendered Assets
 
 - keep Jsonnet or mixin source files in one obvious directory such as `grafana/mixin/`
 - keep rendered dashboards in predictable output directories
-- review source and rendered assets together when a change affects operator-visible behavior
+- review source and rendered assets together for operator-visible changes
 
 ## Source Review Focus
 
 Review the mixin source itself when the normal dashboard JSON review is no longer enough.
 
-- check that stable identifiers such as `uid`, folder assumptions, and tags are set in the Jsonnet source rather than patched only in rendered output
-- check that the default time range policy still starts at `now-30m` or less unless the source explicitly justifies something wider
-- check that datasource configuration is set explicitly in source rather than inherited implicitly from an environment default
-- check that rounded display-oriented PromQL stays in the source templates instead of being hand-edited only in rendered JSON
+- check Jsonnet source for stable identifiers
+- include `uid`, folder assumptions, and tags in that source review
+- check that the default time range policy starts at `now-30m` or less
+- allow wider ranges only when the source explains why
+- set datasource configuration explicitly in source
+- do not inherit datasource defaults from an environment default
+- keep rounded display-oriented PromQL in source templates
+- do not hand-edit rounding only in rendered JSON
 
 Example source snippet to inspect:
 
@@ -48,16 +53,18 @@ Example source snippet to inspect:
     ],
   },
 }
-
 ```
 
-Use this when the blocker is deciding whether an operator-facing rule such as time range or rounding lives in source Jsonnet or was applied later only in rendered JSON.
-Treat source templates as trusted, reviewed inputs only, and review rendered output before sharing it because imported local file contents can be inlined into generated artifacts.
+Decide whether an operator-facing rule belongs in source Jsonnet.
+Examples include time ranges and rounding.
+Treat source templates as trusted, reviewed inputs only.
+Review rendered output before sharing it.
+Jsonnet can inline imported local file contents into generated artifacts.
 
 ## Render Boundary Checks
 
-- render commands should target the same tree that the documented rendered-asset layout expects
-- generated dashboards should land under `grafana/rendered/dashboards/`
+- point render commands at the documented rendered-asset tree
+- write generated dashboards under `grafana/rendered/dashboards/`
 
 Example source-to-rendered contract:
 
@@ -66,39 +73,73 @@ grafana/mixin/dashboards.libsonnet
   -> jsonnet render
   -> grafana/rendered/dashboards/api-overview.json
   -> reviewed rendered dashboard asset
-
 ```
 
 Example review question:
 
-> Does the documented render command write to `grafana/rendered/...`, and do all rendered-asset examples point at that same tree?
+> Does the documented render command write to `grafana/rendered/...`?
+> Do all rendered-asset examples point at that same tree?
 
 ## Layout Patterns
 
-Grafana mixin layout - keep source Jsonnet and rendered output relationship obvious:
+Grafana mixin layout: keep source Jsonnet and rendered output relationship obvious:
 
 ```text
 grafana/
   mixin/
     dashboards.libsonnet
     config.libsonnet
+    mixin.libsonnet
+    render-alerts.jsonnet
+    render-dashboards.jsonnet
   rendered/
     dashboards/
       api-overview.json
-
+    prometheus/
+      alerts.yaml
 ```
 
-Use when: dashboards are generated from Grafana mixin or adjacent Jsonnet tooling and reviewers need to understand both source and rendered dashboard assets.
+Use when: a team generates dashboards from Grafana mixin or adjacent Jsonnet tooling.
+Give reviewers one path from source to rendered asset.
 
-Minimal mixin source - keep the generated dashboard traceable back to one small Jsonnet entrypoint:
+## Minimal Mixin Configuration
+
+Start with this local mixin shape before adding a larger upstream mixin dependency.
+Provide the usual mixin fields: `_config`, `grafanaDashboards`, `prometheusAlerts`, and `prometheusRules`.
+Keep `_config` hidden with `+::`.
+The renderer can use local defaults without writing `_config` to output.
+
+`grafana/mixin/config.libsonnet`:
 
 ```jsonnet
+{
+  _config+:: {
+    component: 'api',
+    dashboardTags: ['api', 'mixin'],
+    defaultTimeRange: 'now-30m',
+    prometheusDatasource: {
+      type: 'prometheus',
+      uid: 'prometheus',
+    },
+    selector: 'job="api"',
+  },
+}
+```
+
+`grafana/mixin/dashboards.libsonnet`:
+
+```jsonnet
+local config = import 'config.libsonnet';
+local cfg = config._config;
+local requestRateExpr = 'round(sum(rate(http_requests_total{' + cfg.selector + '}[5m])), 0.001)';
+
 {
   'api-overview.json': {
     uid: 'api-overview',
     title: 'API Overview',
+    tags: cfg.dashboardTags,
     time: {
-      from: 'now-30m',
+      from: cfg.defaultTimeRange,
       to: 'now',
     },
     panels: [
@@ -106,13 +147,10 @@ Minimal mixin source - keep the generated dashboard traceable back to one small 
         id: 1,
         title: 'Request Rate',
         type: 'timeseries',
-        datasource: {
-          type: 'prometheus',
-          uid: 'prometheus',
-        },
+        datasource: cfg.prometheusDatasource,
         targets: [
           {
-            expr: 'round(sum(rate(http_requests_total{job="api"}[5m])), 0.001)',
+            expr: requestRateExpr,
             legendFormat: 'req/s',
             refId: 'A',
           },
@@ -121,24 +159,65 @@ Minimal mixin source - keep the generated dashboard traceable back to one small 
     ],
   },
 }
-
 ```
 
-Use when: the team already keeps dashboard source in Jsonnet or Grafana mixin form and needs one minimal source example instead of raw rendered JSON only.
-Keep Jsonnet or mixin sources trusted and reviewed.
-Repository presence alone is not a trust boundary, and untrusted templates can import local files and surface their contents in rendered output.
+`grafana/mixin/mixin.libsonnet`:
 
-Minimal render step - render mixin or Jsonnet source into a reviewed dashboard asset:
+```jsonnet
+local config = import 'config.libsonnet';
+local dashboards = import 'dashboards.libsonnet';
+
+config + {
+  grafanaDashboards+:: dashboards,
+  prometheusAlerts+:: [],
+  prometheusRules+:: [],
+}
+```
+
+`grafana/mixin/render-dashboards.jsonnet`:
+
+```jsonnet
+(import 'mixin.libsonnet').grafanaDashboards
+```
+
+Use `jb init` once for a Jsonnet tree.
+Run `jb install` so jsonnet-bundler updates `jsonnetfile.json` when adding external mixins or Grafonnet.
+Install Grafonnet only when the source imports Grafonnet:
 
 ```sh
-jsonnet -m grafana/rendered/dashboards grafana/mixin/dashboards.libsonnet
-
+jb install github.com/grafana/grafonnet/gen/grafonnet-latest@main
 ```
 
-Use when: reviewers need one concrete command that turns source mixin files into reviewed dashboard artifacts.
-This example assumes the `jsonnet` CLI is installed.
-Add `-J vendor` only when the source actually imports vendored libraries from that path, and keep the import search path aligned with the Jsonnet tree you are rendering.
-Run it only on trusted Jsonnet or mixin sources, or inside an isolated workspace, because imported local file contents can be rendered into output artifacts.
+Do not hand-maintain dependency lock data when jsonnet-bundler already owns it.
+
+Minimal render step: render mixin or Jsonnet source into a reviewed dashboard asset:
+
+```sh
+mkdir -p grafana/rendered/dashboards
+jsonnet -J vendor -m grafana/rendered/dashboards grafana/mixin/render-dashboards.jsonnet
+```
+
+Render Prometheus fields only when the mixin owns those generated assets.
+
+`grafana/mixin/render-alerts.jsonnet`:
+
+```jsonnet
+std.manifestYamlDoc((import 'mixin.libsonnet').prometheusAlerts)
+```
+
+Render the entrypoint to the documented output path:
+
+```sh
+mkdir -p grafana/rendered/prometheus
+jsonnet -J vendor -S grafana/mixin/render-alerts.jsonnet > grafana/rendered/prometheus/alerts.yaml
+```
+
+Use when: reviewers need one command that turns source mixin files into reviewed dashboard artifacts.
+Requires the `jsonnet` CLI.
+Keep `-J vendor` only when the source imports vendored libraries from that path.
+Keep the import search path aligned with the Jsonnet tree you are rendering.
+Run it only on trusted Jsonnet or mixin sources, or inside an isolated workspace.
+Jsonnet can render imported local file contents into output artifacts.
 
 ## Diff Review Heuristics
 
@@ -146,7 +225,7 @@ When a mixin change is reviewed, compare source and rendered diffs together.
 
 - if only rendered JSON changed, verify whether the source Jsonnet change was accidentally omitted
 - if only source changed, verify whether the rendered artifacts are intentionally deferred or were forgotten
-- if both changed, verify that the rendered diff actually reflects the source-level intent rather than unrelated churn
+- if both changed, verify that the rendered diff reflects the source-level intent rather than unrelated churn
 
 ## Review Questions
 

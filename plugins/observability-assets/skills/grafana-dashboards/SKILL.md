@@ -15,7 +15,8 @@ This skill owns the ordinary path for dashboard structure, queries, variables, t
 For complete panel-type JSON schemas, see [`./references/panel-types.md`](./references/panel-types.md).
 For variable types, syntax, and global variables, see [`./references/variables.md`](./references/variables.md).
 For field config, overrides, value mappings, and data links, see [`./references/field-config.md`](./references/field-config.md).
-For Grafana mixin or Jsonnet-oriented generation workflows, see [`./references/grafana-mixin.md`](./references/grafana-mixin.md).
+See [`./references/grafana-mixin.md`](./references/grafana-mixin.md) for Grafana mixin configuration.
+Read the same reference for Jsonnet generation workflows.
 For export cleanup decisions, normalization targets, and ownership boundaries after UI edits or rendering, see [`./references/dashboard-structure.md`](./references/dashboard-structure.md).
 
 ## Common-Case Workflow
@@ -800,7 +801,8 @@ grafana/
 
 Use when: the team keeps reviewed dashboard JSON directly in the repository rather than generating it from Jsonnet.
 
-For Grafana mixin or Jsonnet-oriented dashboard generation -- including mixin layouts, Jsonnet source patterns, render commands, and source-vs-rendered handoff -- see [`./references/grafana-mixin.md`](./references/grafana-mixin.md).
+See [`./references/grafana-mixin.md`](./references/grafana-mixin.md) for Grafana mixin configuration.
+Read the same reference for Jsonnet source patterns, render commands, and source-vs-rendered handoff.
 
 For export cleanup decisions, normalization targets, and ownership boundaries after UI edits or rendering, see [`./references/dashboard-structure.md`](./references/dashboard-structure.md).
 
@@ -838,7 +840,7 @@ Return:
 | Complete JSON schema for ALL panel types (bar gauge, candlestick, trend, XY chart, node graph, traces, flame graph, canvas, geomap, dashboard list, alert list, annotations list, text/news) | [`./references/panel-types.md`](./references/panel-types.md) |
 | Complete variable reference: 7 standard classic variable types, global vars, format options, advanced patterns, boolean-toggle convention | [`./references/variables.md`](./references/variables.md) |
 | Complete field config, all override property IDs, value mappings, data link variables, data link builder patterns | [`./references/field-config.md`](./references/field-config.md) |
-| Grafana mixin or Jsonnet-oriented dashboard generation, source-vs-rendered handoff, render commands | [`./references/grafana-mixin.md`](./references/grafana-mixin.md) |
+| Mixin configuration and Jsonnet generation | [`./references/grafana-mixin.md`](./references/grafana-mixin.md) |
 | Export cleanup decisions, normalization targets, ownership boundaries after UI edits or rendering | [`./references/dashboard-structure.md`](./references/dashboard-structure.md) |
 
 ## Invariants
