@@ -1,7 +1,6 @@
 ---
 description: >-
-  Reference for JDK LTS collector availability, default assignments, version-specific notes,
-  and collector-selection decision guidance.
+  Reference for JDK LTS collector availability, default assignments, version-specific notes, and collector-selection decision guidance.
 ---
 
 # Collector Baselines
@@ -99,8 +98,8 @@ If the flag is not present, Shenandoah is not available in that build.
 - JEP 490 (JDK 24) obsoleted `-XX:+ZGenerational` and removed the non-generational mode.
   - On JDK 24 and JDK 25 the flag is still accepted at startup but produces a warning similar to `Java HotSpot(TM) 64-Bit Server VM warning: Ignoring option ZGenerational; support was removed in 24.0`, and the option is then ignored.
   - Do not rely on it for any collector selection.
-- Per the OpenJDK tracker, `ZGenerational` is scheduled to expire in JDK 26 (refuse-to-start).
-  - Treat any JDK 25 script or runbook that still passes `-XX:+ZGenerational` as a future break waiting to happen, even though startup succeeds today.
+- Per the OpenJDK tracker, `ZGenerational` expired in JDK 26 and now refuses startup when specified.
+  - Treat JDK 25 as the last warning-only baseline for scripts or runbooks that still pass `-XX:+ZGenerational`.
 - There is no way to select non-generational ZGC on this baseline.
 - Shenandoah availability remains vendor-dependent as in earlier releases.
 
@@ -149,7 +148,7 @@ ZGC tuning entry points:
   - On JDK 22 the option is still accepted with its original opt-in semantics, so a JDK 22 launch that does not pass `-XX:+ZGenerational` runs the non-generational mode.
   - JEP 474 (JDK 23) made generational mode the default and deprecated the option.
   - JEP 490 (JDK 24) obsoleted the option and removed the non-generational code, so on JDK 24 and JDK 25 passing the flag logs a warning and is ignored.
-  - JDK 26 is scheduled to expire the option, at which point the JVM will refuse to start if it is specified.
+  - JDK 26 expired the option, so the JVM refuses to start if it is specified.
   - Selecting ZGC with `-XX:+UseZGC` alone is the forward-compatible form on all versions from JDK 21 onward.
     - On JDK 21 and JDK 22 add `-XX:+ZGenerational` only when generational mode is explicitly required.
 - `SoftMaxHeapSize` sets a soft heap limit (JDK 13+ for ZGC).

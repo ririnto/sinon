@@ -35,7 +35,7 @@ Use blocker references only when virtual time, replay semantics, mocking-library
 1. Read the production behavior and the nearest related tests first.
 2. Choose the smallest test scope that proves one observable contract.
 3. Start with `kotlin.test` assertions and plain synchronous structure.
-4. Add `runTest` only when the code under test uses `suspend`, delay, cancellation, or Flow collection, and make sure `kotlinx-coroutines-test` is available in test scope.
+4. Add `runTest` only when the code under test uses `suspend`, delay, cancellation, or Flow collection, and confirm `kotlinx-coroutines-test` is available in test scope.
 5. Bound Flow collection to the exact items needed for the assertion.
 6. Layer JUnit 5 structure or other test libraries only when the suite already uses them.
 7. Open one blocker reference only when scheduler control, replay semantics, JUnit 5 structure, MockK, Kotest, or eventual-consistency helpers are the actual blocker.

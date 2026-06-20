@@ -63,11 +63,11 @@ Every implementation-defined choice MUST be documented by the implementer.
 
 Template sentence:
 
-`[Field Name] (type), default implementation-defined — the implementation MUST document the selected behavior.`
+`[Field Name] (type), default implementation-defined - the implementation MUST document the selected behavior.`
 
 Example:
 
-`approval_policy (string), default implementation-defined — implementations MUST document whether they auto-approve commands, require operator confirmation, or fail approval-required turns.`
+`approval_policy (string), default implementation-defined - implementations MUST document whether they auto-approve commands, require operator confirmation, or fail approval-required turns.`
 
 Rationale: Symphony uses this pattern to allow multiple trust postures (high-trust auto-approval vs.
 Strict sandboxing) while keeping the contract clear.

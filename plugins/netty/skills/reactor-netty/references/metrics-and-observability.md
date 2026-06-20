@@ -12,7 +12,7 @@ Open when you need to inspect traffic, expose metrics, add access logging, or ga
 ## Wiretap
 
 Log all inbound and outbound bytes at `DEBUG` level.
-Use this for troubleshooting only — it generates significant volume.
+Use this for troubleshooting only - it generates significant volume.
 
 ```java
 HttpClient client = HttpClient.create()
@@ -164,4 +164,4 @@ Fields include remote host, identity placeholders, timestamp, request line, stat
 - enable `metrics(true)` where the application already has a Micrometer registry strategy.
   - Pass a shared registry rather than creating one per server
 - keep observability features additive so the common path stays small
-- wiretap and access log should not both be enabled in production — pick one visibility channel
+- wiretap and access log should not both be enabled in production - pick one visibility channel

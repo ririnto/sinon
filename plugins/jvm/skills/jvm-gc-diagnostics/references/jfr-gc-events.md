@@ -1,7 +1,6 @@
 ---
 description: >-
-  Reference for JFR GC-related events, recording configurations, analysis commands,
-  and output interpretation for garbage-collection diagnostics.
+  Reference for JFR GC-related events, recording configurations, analysis commands, and output interpretation for garbage-collection diagnostics.
 ---
 
 # JFR GC Events Reference
@@ -37,8 +36,7 @@ Use this command when you need simultaneous GC + JFR evidence from process start
 
 ```sh
 java \
-  -XX:StartFlightRecording=name=gc-startup,settings=profile,\
-filename=/path/to/private-diagnostics/gc-startup.jfr,dumponexit=true \
+  -XX:StartFlightRecording=name=gc-startup,settings=profile,filename=/path/to/private-diagnostics/gc-startup.jfr,dumponexit=true \
   -Xlog:gc=debug:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M \
   -jar app.jar
 ```

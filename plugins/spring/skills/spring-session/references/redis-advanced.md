@@ -12,10 +12,10 @@ Open reference when Redis repository type, JSON serialization, session events, l
 Annotation selection:
 
 ```java
-// Default repository — no indexing, no events
+// Default repository - no indexing, no events
 @EnableRedisHttpSession
 
-// Indexed repository — supports findByPrincipalName and session events
+// Indexed repository - supports findByPrincipalName and session events
 @EnableRedisIndexedHttpSession
 ```
 

@@ -1,8 +1,7 @@
 ---
 name: pr-mr-convention
 description: >-
-  Compose GitHub pull requests and GitLab merge requests with disciplined titles,
-  structured bodies, review checklists, and consistent metadata.
+  Compose GitHub pull requests and GitLab merge requests with disciplined titles, structured bodies, review checklists, and consistent metadata.
   Triggers on PR/MR description drafting, label or reviewer selection, self-review checklist authoring, or GitHub vs GitLab metadata convention decisions.
 ---
 
@@ -131,7 +130,7 @@ Risks, caveats, breaking changes, deployment notes, or follow-up work.
 - **Body**: Use standard markdown.
   - GitHub supports GFM alerts (`> [!NOTE]`, `> [!WARNING]`, etc.) in PR descriptions.
 
-**Minimal example using GitHub alert:**
+#### Minimal GitHub Alert Example
 
 ```markdown
 ## Summary
@@ -152,7 +151,7 @@ Risks, caveats, breaking changes, deployment notes, or follow-up work.
 > Rate limit defaults have changed. Clients MUST update their backoff logic.
 ```
 
-**Create command:**
+#### Create Command
 
 ```sh
 gh pr create --title "feat(api): add rate limit headers" \
@@ -166,7 +165,7 @@ gh pr create --title "feat(api): add rate limit headers" \
 - **Body**: Use standard markdown.
   - GitLab supports quick actions (e.g., `/assign`, `/label`) in MR descriptions.
 
-**Minimal example using quick actions:**
+#### Minimal Quick Actions Example
 
 ```markdown
 ## Summary
@@ -190,7 +189,7 @@ gh pr create --title "feat(api): add rate limit headers" \
 /label ~type:feature ~priority:high
 ```
 
-**Create command:**
+#### Create Command
 
 ```sh
 glab mr create --title "feat(api): add rate limit headers" \
@@ -208,14 +207,14 @@ Move a PR/MR from draft to ready only when:
 - **Self-review checklist is complete** (see below).
 - **Design is finalized** (no open questions or unresolved decisions in the PR/MR comments).
 
-**Keep as draft when:**
+### Keep As Draft
 
 - CI is not yet passing.
 - Tests are pending or incomplete.
 - Design or implementation is still being debated.
 - Waiting for dependent PR/MR to merge.
 
-**Example workflow:**
+### Example Workflow
 
 1. Create PR/MR in draft status.
 2. Push commits, run CI, fix failures.
@@ -237,7 +236,7 @@ Recommended categories:
 | **status** | `status:ready-to-merge`, `status:needs-revision`, `status:blocked` | Communicate blockers. |
 | **effort** | `effort:small`, `effort:medium`, `effort:large` | Estimate reviewer time. |
 
-**Apply labels when opening the PR:**
+### Apply Labels When Opening the PR
 
 ```sh
 gh pr create --title "..." --label "type:feature,scope:api,priority:high"
@@ -263,13 +262,13 @@ Use this to prevent conflicting labels.
 - **Codeowners SHOULD be used** to auto-request reviewers if the repository defines a `CODEOWNERS` file.
 - **Round-robin assignment SHOULD rotate reviewers** across the team to distribute load and knowledge.
 
-**GitHub example:**
+### GitHub Example
 
 ```sh
 gh pr create --title "..." --assignee @reviewer-github-handle --reviewer @code-owner
 ```
 
-**GitLab example (using quick actions in body):**
+### GitLab Example
 
 ```markdown
 /assign @reviewer-name
@@ -315,7 +314,7 @@ Do not rely on reviewers to catch these items.
 
 ## First Safe Commands
 
-**GitHub workflow:**
+### GitHub Workflow
 
 ```sh
 # Create PR in draft status with title and body file
@@ -333,7 +332,7 @@ gh pr edit <number> --add-reviewer @reviewer-name
 gh pr ready <number>
 ```
 
-**GitLab workflow:**
+### GitLab Workflow
 
 ```sh
 # Create MR in draft status with title and body (including quick actions)
@@ -562,7 +561,7 @@ glab mr merge 42 --message "Merge feature X"
 Both `gh` and `glab` support reading PR/MR body text from files.
 This pattern enables pre-writing a body offline and using it repeatedly.
 
-**Prepare body file:**
+### Prepare Body File
 
 ```markdown
 ## Summary
@@ -582,7 +581,7 @@ This pattern enables pre-writing a body offline and using it repeatedly.
 - [x] Manual test: 5-minute refresh lifecycle validation.
 ```
 
-**GitHub (gh):**
+### GitHub CLI
 
 ```sh
 # Use --body-file to read from file
@@ -592,7 +591,7 @@ gh pr create --title "feat(auth): JWT refresh" --body-file body.md --draft
 gh pr edit 42 --body-file body.md
 ```
 
-**GitLab (glab):**
+### GitLab CLI
 
 ```sh
 # Pass file content to --description using command substitution

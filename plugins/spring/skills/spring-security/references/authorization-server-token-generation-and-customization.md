@@ -26,15 +26,15 @@ Use opaque when:
 - Token size must be minimal.
 - The authorization server must retain full control after issuance.
 
-```java
-TokenSettings.builder()
-    .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
-    .build();
+    ```java
+    TokenSettings.builder()
+        .accessTokenFormat(OAuth2TokenFormat.SELF_CONTAINED)
+        .build();
 
-TokenSettings.builder()
-    .accessTokenFormat(OAuth2TokenFormat.REFERENCE)
-    .build();
-```
+    TokenSettings.builder()
+        .accessTokenFormat(OAuth2TokenFormat.REFERENCE)
+        .build();
+    ```
 
 ## Token generator customization
 

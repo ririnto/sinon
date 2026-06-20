@@ -12,6 +12,6 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "markdownlint-cli2": "^0.22.1",
-    "npm-run-all2": "^9.0.1"
+    "npm-run-all2": "^9.0.2"
   }
 }

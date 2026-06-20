@@ -21,8 +21,13 @@ You MUST inspect the actual changes, detect existing templates, and preserve the
 - Inspect the actual diff between the base branch and the feature branch using `git log` and `git diff` commands.
 - Preserve the structure and required sections of an existing repository template; use a standard fallback structure when no template exists.
 - Translate the real diff into each section: Summary (what changed), Motivation (why it changed), Changes (how it changed, factually), Validation (what was actually tested), Risks (what might break or require attention).
-- Follow Sinon `CLAUDE.md` markdown conventions: fenced code blocks MUST specify a language, tables MUST use `| --- | --- | --- |` style, and examples MUST use documentation-only comments.
-- Write in the user's language per Sinon `CLAUDE.md`: "Pull request titles and descriptions SHOULD be written in the user's language."
+- Follow Sinon `AGENTS.md` markdown conventions:
+  - Fenced code blocks MUST specify a language.
+  - Tables MUST use valid GitHub Markdown separator rows.
+  - Separator cells MAY use alignment colons, such as `:---`, `:---:`, or `---:`.
+  - Examples MUST use documentation-only comments.
+- Write in the user's language per Sinon `AGENTS.md`.
+  - Pull request titles and descriptions SHOULD be written in the user's language.
 - Validate that template slots are filled with information that exists in the diff, not aspirations or future work.
 - Flag template ambiguity and missing template detection so the user can decide the next step.
 
@@ -36,10 +41,10 @@ You MUST inspect the actual changes, detect existing templates, and preserve the
    - `Summary`: 1-3 bullets, each starting with a verb (adds, fixes, removes, updates, refactors), naming the affected module.
    - `Why/Motivation`: 1-2 bullets explaining the problem or requirement; write "Reason not evident from diff; confirm with author" if unclear.
    - `Changes`: factual description of what changed; group related file changes.
-   - `Validation`: list only tests, checks, or verification that actually ran—never fabricate validation entries.
+   - `Validation`: list only tests, checks, or verification that actually ran - never fabricate validation entries.
    - `Risks`: identify backward-incompatibility, deployment ordering, dependency conflicts, or performance concerns; write "None" if no identifiable risk exists.
 6. Fill template slots with real diff content or use the standard fallback sections.
-7. Validate: ensure that all claims match the actual diff, no planned-but-not-run checks are listed, and sections are coherent and complete.
+7. Validate: verify all claims match the actual diff, no planned-but-not-run checks are listed, and sections are coherent and complete.
 8. Present: show the filled PR/MR body with a clear note of the template source (template name, fallback structure, or missing template) and any concerns (e.g., template unconfirmed, large diff, suspicious files).
 
 ## Quality Standards
@@ -49,8 +54,10 @@ You MUST inspect the actual changes, detect existing templates, and preserve the
 - Concreteness: use file names, module names, and specific behavior changes, not vague generalizations.
 - Validation honesty: list only checks that were actually performed.
   - Do not write "Unit tests pass" if you did not run them; write "Unit tests pending confirmation" instead.
-- Language adherence: per Sinon `CLAUDE.md`, pull request descriptions MUST be written in the user's language.
-- Markdown format: fenced code blocks MUST specify a language; tables MUST use `| --- | --- | --- |` separators; lists MUST have blank lines before them.
+- Language adherence: per Sinon `AGENTS.md`, pull request descriptions MUST be written in the user's language.
+- Markdown format: fenced code blocks MUST specify a language.
+  Tables MUST use valid GitHub Markdown separator rows.
+  Lists MUST have blank lines before them.
 - No template ambiguity surprises: if multiple named templates exist or the exact template cannot be confirmed, report this explicitly instead of silently choosing one.
 
 ## Output Format
@@ -96,11 +103,12 @@ Use these to detect the host and locate templates before drafting the body.
 
 ## Normative Rules
 
-Per Sinon `CLAUDE.md`:
+Per Sinon `AGENTS.md`:
 
 - Pull request descriptions SHOULD be written in the user's language.
 - Fenced code blocks MUST specify a language.
-- Tables MUST use the `| --- | --- | --- |` style.
+- Tables MUST use valid GitHub Markdown separator rows.
+- Separator cells MAY use alignment colons, such as `:---`, `:---:`, or `---:`.
 - Example code MUST NOT contain non-documentation comments.
 - Blank lines MUST appear before every fenced code block and before every list.
 

@@ -1,7 +1,6 @@
 ---
 description: >-
-  Full specification-driven development workflow with conditional research,
-  approval gates, review evidence requirements, and implementation sync rules.
+  Full specification-driven development workflow with conditional research, approval gates, review evidence requirements, and implementation sync rules.
 ---
 
 # Workflow
@@ -18,8 +17,8 @@ Any review MAY return the work to an earlier stage.
 - [Fast Path](#fast-path)
 - [Status Lifecycle](#status-lifecycle)
 - [Gates](#gates)
-  - [Gate 1 — SPEC Setup Complete](#gate-1--spec-setup-complete)
-  - [Gate 2 — Spec Review Passed](#gate-2--spec-review-passed)
+  - [Gate 1 - SPEC Setup Complete](#gate-1---spec-setup-complete)
+  - [Gate 2 - Spec Review Passed](#gate-2---spec-review-passed)
 - [Research](#research)
 - [SPEC Setup](#spec-setup)
 - [Document Linking](#document-linking)
@@ -56,13 +55,13 @@ This section keeps only a compact lifecycle summary.
 
 Gates are explicit checkpoints that block forward progress until their conditions are met.
 
-### Gate 1 — SPEC Setup Complete
+### Gate 1 - SPEC Setup Complete
 
 Passes when the user has explicitly approved the scope, primary requirements, and scenario direction of the current `SPEC.md` draft.
 
 The agent MUST present a scope summary and request explicit approval before advancing to Document Linking.
 
-### Gate 2 — Spec Review Passed
+### Gate 2 - Spec Review Passed
 
 Passes when both of the following conditions are met:
 
@@ -119,7 +118,6 @@ Activities:
 9. Key Entities and Constraints SHOULD be completed before approval.
 10. The SPEC SHOULD reference current research findings when external behavior constrains the design.
 11. The SPEC SHOULD remain implementation-agnostic by default.
-
     - It SHOULD avoid introducing language, framework, library, or code-style constraints unless the user explicitly requests them or verified external constraints make them necessary.
 
 Exit:
@@ -242,7 +240,6 @@ Activities:
 8. When review passes, `SPEC.md` status MUST be updated to the correct post-implementation state and `last_updated` MUST be refreshed.
 9. `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` MUST be re-run on the touched spec root or subtree after the final spec sync when `uv` can resolve its runtime and dependencies from local cache or local files.
    - When it cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
-10. If the consuming repository already uses markdownlint, maintainers MAY re-run `npx -y markdownlint-cli2 <touched-markdown-files>` after the final Markdown sync.
 
 Exit:
 

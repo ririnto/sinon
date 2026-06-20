@@ -1,7 +1,6 @@
 ---
 description: >-
-  Open this when writing tests for coroutine or Flow code, controlling virtual time,
-  verifying emissions, or testing cancellation behavior.
+  Open this when writing tests for coroutine or Flow code, controlling virtual time, verifying emissions, or testing cancellation behavior.
 ---
 
 # Testing Coroutines and Flows

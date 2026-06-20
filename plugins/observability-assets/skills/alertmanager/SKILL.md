@@ -10,7 +10,7 @@ description: >-
 ## Official Baseline
 
 - Use modern Alertmanager matcher syntax as the common path: prefer the `matchers:` array form for routes and inhibition rules.
-- Alertmanager 0.27 and later use the UTF-8 matcher parser transition path; keep older matcher fields only when the target deployment requires them.
+- Current Alertmanager docs describe fallback, UTF-8 strict, and classic matcher-parser modes; write UTF-8-compatible matchers by default and keep older matcher fields only when the target deployment requires them.
 
 Author and review Alertmanager configuration that routes alerts clearly, groups them deliberately, and avoids noisy or misleading notifications.
 The common case is one root route, one small set of child routes, one deliberate receiver mapping, and one timing policy that batches related alerts without hiding urgent signal.
@@ -21,7 +21,7 @@ The common case is one root route, one small set of child routes, one deliberate
 2. Define one root route with a safe default receiver.
 3. Add child routes only where labels, severity, team ownership, or environment justify a branch.
 4. Tune `group_wait`, `group_interval`, and `repeat_interval` deliberately so related alerts batch together without hiding urgent changes.
-5. Keep receiver definitions explicit, and make sure routing labels from Prometheus alerts actually match the route tree you wrote.
+5. Keep receiver definitions explicit, and verify routing labels from Prometheus alerts match the route tree you wrote.
 6. Add inhibition or mute windows only when they remove known noise without suppressing the primary symptom; keep inhibition in top-level `inhibit_rules` and attach mute windows only to the routes they should affect.
 
 ## Minimal Setup
@@ -102,15 +102,10 @@ Alertmanager evaluates the route tree as follows:
 1. An alert arrives at the root route.
 2. The root route always matches (it has no matchers).
 3. For each child route in order:
-a.
-   If the child has `active_time_intervals` and the current time falls outside ALL of them, skip this child.
-b.
-   Evaluate the child's matchers against the alert's labels.
-c.
-   If the child matches AND does not have `continue: true`, stop traversing deeper children.
-   The alert is routed to this child's receiver.
-d.
-   If the child matches AND has `continue: true`, record this child as a match but continue evaluating subsequent siblings.
+   - If the child has `active_time_intervals` and the current time falls outside every referenced interval, skip this child.
+   - Evaluate the child's matchers against the alert's labels.
+   - If the child matches and has `continue: true`, record this child as a match and continue evaluating subsequent siblings.
+   - If the child matches and does not have `continue: true`, route the alert to this child's receiver and stop evaluating siblings.
 4. After all children are checked, if no child matched, use the root route's own receiver.
 5. If multiple children matched via `continue`, each matching child receives the alert independently.
 
@@ -119,9 +114,10 @@ Without it, the first matching child wins and traversal stops.
 
 ### The `group_by` Special Value
 
-Setting `group_by: ["..."]` groups alerts on ALL their labels.
+Setting `group_by: ["..."]` groups alerts on every label.
 This means two alerts with any differing label value form separate groups.
-Use sparingly -- it creates many small groups and can flood receivers.
+Use sparingly.
+It creates many small groups and can flood receivers.
 
 An empty `group_by: []` puts every alert into a single group per route.
 Useful when you want exactly one notification per route regardless of labels.
@@ -285,10 +281,11 @@ Write label names as they appear in your Prometheus metrics.
 
 ### Deprecated Forms
 
-- `match: { label: "value" }` -- exact equality only, replaced by `matchers: [label="value"]`
-- `match_re: { label: ".*pattern.*" }` -- regex only, replaced by `matchers: [label=~".*pattern.*"]`
+- `match: { label: "value" }`: exact equality only, replaced by `matchers: [label="value"]`
+- `match_re: { label: ".*pattern.*" }`: regex only, replaced by `matchers: [label=~".*pattern.*"]`
 
-These deprecated forms still parse but will be removed before v1.0. Always write new configs with `matchers`.
+These deprecated forms still parse, but current docs mark `matchers` as the replacement.
+Always write new configs with `matchers`.
 
 ## Time Intervals
 
@@ -346,7 +343,9 @@ Range `-31` to `31`, excluding 0.
 String like `"january"`, `"march:may"`, or `"9:12"`.
 Use full names or integer ranges 1-12.
 
-## YearRange: Integer range like `"2024"`, `"2024:2026"`
+#### YearRange
+
+Integer range like `"2024"` or `"2024:2026"`.
 
 ### Time Interval Examples
 
@@ -442,7 +441,7 @@ For complete field schemas for every receiver type, see [`./references/receiver-
 
 ## Ready-to-Adapt Templates
 
-Team route branch -- route critical API alerts to a dedicated receiver:
+Team route branch: route critical API alerts to a dedicated receiver.
 
 ```yaml
 route:
@@ -460,7 +459,7 @@ receivers:
 
 Use when: one team owns a clearly labeled alert stream.
 
-Grouping defaults -- batch related alerts before the first notification:
+Grouping defaults: batch related alerts before the first notification.
 
 ```yaml
 route:
@@ -475,7 +474,7 @@ route:
 
 Use when: you need a sane default notification cadence before adding more routes.
 
-Basic inhibition -- suppress a lower-severity symptom when a stronger alert already explains it:
+Basic inhibition: suppress a lower-severity symptom when a stronger alert already explains it.
 
 ```yaml
 inhibit_rules:
@@ -490,7 +489,7 @@ inhibit_rules:
 
 Use when: multiple alerts describe the same outage and the lower-severity signal would only add noise.
 
-Minimal notification template -- load one template file and render one stable summary from common labels:
+Minimal notification template: load one template file and render one stable summary from common labels.
 
 ```yaml
 global:
@@ -516,7 +515,7 @@ receivers:
 Use when: the route is already correct and the common path only needs one small template surface for clearer notifications.
 Keep the template file on disk at the path matched by `templates:` so Alertmanager can actually load it, and wire it through a receiver field that actually supports templated strings.
 
-Mute interval on a route -- suppress notifications during a scheduled window:
+Mute interval on a route: suppress notifications during a scheduled window.
 
 ```yaml
 route:
@@ -585,7 +584,8 @@ receivers:
 Generic webhook receivers always receive Alertmanager's fixed JSON body built from the notification `Data` object.
 If the downstream service needs a different payload shape, put that transformation in the HTTP receiver or an intermediary adapter.
 
-For complete receiver configurations covering all 18 types (Telegram, Discord, Mattermost, Jira, OpsGenie, VictorOps, SNS, WeChat, Pushover, Rocket.Chat, Webex, MS Teams, incident.io, and email with full SMTP auth), see [`./references/receiver-types.md`](./references/receiver-types.md).
+For complete receiver configurations covering all 18 types, see [`./references/receiver-types.md`](./references/receiver-types.md).
+That reference covers email, webhook, Slack, PagerDuty, OpsGenie, Telegram, Discord, Mattermost, Jira, VictorOps, SNS, WeChat, Pushover, Rocket.Chat, Webex, incident.io, and both Microsoft Teams receiver variants.
 
 ## Notification Templates
 
@@ -610,11 +610,11 @@ Alertmanager ships built-in templates (`default.tmpl`, `email.tmpl`) that provid
 
 The root template data object (`.`) provides these top-level fields:
 
-- `.Receiver` -- receiver name
-- `.Status` -- `"firing"` or `"resolved"`
-- `.Alerts` -- container with `.Firing` and `.Resolved` alert lists
-- `.GroupLabels` / `.CommonLabels` / `.CommonAnnotations` -- shared label/annotation KV sets
-- `.ExternalURL` -- Alertmanager instance URL
+- `.Receiver`: receiver name
+- `.Status`: `"firing"` or `"resolved"`
+- `.Alerts`: container with `.Firing` and `.Resolved` alert lists
+- `.GroupLabels` / `.CommonLabels` / `.CommonAnnotations`: shared label/annotation KV sets
+- `.ExternalURL`: Alertmanager instance URL
 
 Each alert within `.Alerts.Firing` / `.Alerts.Resolved` exposes `.Labels`, `.Annotations`, `.StartsAt`, `.EndsAt`, `.GeneratorURL`, and `.Fingerprint`.
 KV objects support `.SortedPairs()`, `.Names()`, `.Values()`, `.Remove(keys)`, and `.String()`.

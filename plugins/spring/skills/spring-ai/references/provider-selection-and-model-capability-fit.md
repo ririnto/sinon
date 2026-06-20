@@ -148,6 +148,6 @@ spring:
 - NVIDIA requires `max-tokens` to be set explicitly.
 - MiniMax uses Anthropic support with a MiniMax base URL in Spring AI 2.0.
 - OCI GenAI integration is maintained outside the Spring AI project in community documentation.
-- Ollama capability depends on the loaded model, not just the runtime.
+- Ollama capability depends on the loaded model as well as the runtime.
 - Bedrock capability depends on the underlying provider model (Anthropic, Cohere, Meta, etc.) selected in the converse API.
 - If portability matters more than provider-specific features, stay with Spring AI's ordinary abstractions instead of provider-native extensions.

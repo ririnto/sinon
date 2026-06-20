@@ -4,7 +4,9 @@ set -e
 
 root=${CLAUDE_PLUGIN_ROOT:-$(CDPATH='' cd "$(dirname "$0")/../../.." && pwd)}
 changed_file=$(mktemp)
-trap 'rm -f "$changed_file"' EXIT
+fix_job_file=$(mktemp)
+current_changed_file=
+trap 'rm -f "$changed_file" "$fix_job_file"' EXIT
 
 # List tracked shell scripts covered by repository fixes.
 #
@@ -13,28 +15,6 @@ list_shell_files() {
   git -C "$root" ls-files --full-name -- '*.sh' | while IFS= read -r path; do
     printf '%s/%s\n' "$root" "$path"
   done
-}
-
-# List production Python scripts covered by repository fixes.
-#
-# @return Writes one path per line.
-list_python_files() {
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install-harness.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/__init__.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/advisory.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/cli.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/commands.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/contracts.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/errors.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/hooks.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/installer.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/models.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/operations.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/paths.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/planning.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/preview.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/check.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/fix.py"
 }
 
 # List git-tracked Markdown files covered by repository fixes.
@@ -58,14 +38,34 @@ count_changed_checksums() {
   printf '%s\n' "$changed_count"
 }
 
+# Record changed paths from checksum comparison output.
+#
+# @param before_file Sorted checksum file captured before formatting.
+# @param after_file Sorted checksum file captured after formatting.
+# @return Writes changed paths into the current changed-file cache.
+record_changed_checksum_paths() {
+  before_file=$1
+  after_file=$2
+  changed_checksum_file=$(mktemp)
+  comm -13 "$before_file" "$after_file" >"$changed_checksum_file"
+  while IFS= read -r entry; do
+    changed_path=${entry#* }
+    changed_path=${changed_path#* }
+    record_changed_file "$changed_path"
+  done <"$changed_checksum_file"
+  rm -f "$changed_checksum_file"
+}
+
 # Record one changed path if not already recorded.
 #
 # @param path Path of changed file.
 # @return Writes path into the changed-file cache.
 record_changed_file() {
   path=$1
-  if ! grep -Fxq "$path" "$changed_file"; then
-    printf '%s\n' "$path" >>"$changed_file"
+  if [ -n "$current_changed_file" ]; then
+    if ! grep -Fxq "$path" "$current_changed_file"; then
+      printf '%s\n' "$path" >>"$current_changed_file"
+    fi
   fi
 }
 
@@ -81,31 +81,28 @@ fix_shell_files() {
     echo '0'
     return 0
   fi
-  fixed_count=0
-  shell_fix_failed=0
   shell_file_list=$(mktemp)
+  before_file=$(mktemp)
+  after_file=$(mktemp)
   list_shell_files >"$shell_file_list"
-  while IFS= read -r path; do
-    if [ -f "$path" ]; then
-      before_checksum=$(cksum "$path")
-      if "$shfmt_bin" -w "$path" 2>&1; then
-        after_checksum=$(cksum "$path")
-        if [ "$before_checksum" != "$after_checksum" ]; then
-          fixed_count=$((fixed_count + 1))
-          record_changed_file "$path"
-        fi
-      else
-        shell_fix_failed=1
-        printf 'error: shfmt failed on %s\n' "$path" >&2
-        break
-      fi
-    fi
-  done <"$shell_file_list"
-  rm -f "$shell_file_list"
-  if [ "$shell_fix_failed" -ne 0 ]; then
+  if [ ! -s "$shell_file_list" ]; then
+    rm -f "$shell_file_list" "$before_file" "$after_file"
+    echo '0'
+    return 0
+  fi
+  xargs cksum <"$shell_file_list" | sort >"$before_file"
+  if ! xargs "$shfmt_bin" -w <"$shell_file_list" >&2; then
+    rm -f "$shell_file_list" "$before_file" "$after_file"
+    echo 'error: shfmt failed' >&2
     return 1
   fi
-  printf '%d\n' "$fixed_count"
+  xargs cksum <"$shell_file_list" | sort >"$after_file"
+  changed_count=$(count_changed_checksums "$before_file" "$after_file")
+  if [ "$changed_count" -gt 0 ]; then
+    record_changed_checksum_paths "$before_file" "$after_file"
+  fi
+  rm -f "$shell_file_list" "$before_file" "$after_file"
+  printf '%s\n' "$changed_count"
 }
 
 # Fix Markdown files with markdownlint-cli2 --fix.
@@ -138,14 +135,7 @@ fix_markdown_files() {
     list_markdown_files | xargs cksum | sort >"$after_file"
     changed_count=$(count_changed_checksums "$before_file" "$after_file")
     if [ "$changed_count" -gt 0 ]; then
-      changed_markdown_file=$(mktemp)
-      comm -13 "$before_file" "$after_file" >"$changed_markdown_file"
-      while IFS= read -r entry; do
-        changed_path=${entry#* }
-        changed_path=${changed_path#* }
-        record_changed_file "$changed_path"
-      done <"$changed_markdown_file"
-      rm -f "$changed_markdown_file"
+      record_changed_checksum_paths "$before_file" "$after_file"
     fi
     rm -f "$before_file" "$after_file" "$markdown_file_list"
     printf '%s\n' "$changed_count"
@@ -157,59 +147,115 @@ fix_markdown_files() {
   fi
 }
 
-# Fix Python files with ruff format.
+# Fix Python files with ruff check --fix and ruff format.
 #
-# Writes fixed output in-place for all production Python scripts.
+# Writes fixed output in-place with Ruff's project discovery.
 # Missing uv tool emits warning and skips.
 #
-# @return Writes changed file count and exits 0 or 1.
+# @return Writes aggregate count placeholder and exits 0 or 1.
 fix_python_files() {
   if ! uv_bin=$(command -v uv 2>&1); then
     echo 'warning: uv not in PATH; skipping ruff fixes' >&2
     echo '0'
     return 0
   fi
-  fixed_count=0
-  python_fix_failed=0
-  python_file_list=$(mktemp)
-  list_python_files >"$python_file_list"
-  while IFS= read -r path; do
-    if [ -f "$path" ]; then
-      before_checksum=$(cksum "$path")
-      if "$uv_bin" run --with ruff==0.15.16 ruff format "$path" >&2; then
-        after_checksum=$(cksum "$path")
-        if [ "$before_checksum" != "$after_checksum" ]; then
-          fixed_count=$((fixed_count + 1))
-          record_changed_file "$path"
-        fi
-      else
-        python_fix_failed=1
-        printf 'error: ruff format failed on %s\n' "$path" >&2
-        break
-      fi
-    fi
-  done <"$python_file_list"
-  rm -f "$python_file_list"
-  if [ "$python_fix_failed" -ne 0 ]; then
+  if ! (cd "$root" && "$uv_bin" run --with 'ruff>=0.15.18,<0.16.0' ruff check --fix . >&2); then
+    echo 'error: ruff check --fix failed' >&2
     return 1
   fi
-  printf '%d\n' "$fixed_count"
+  if ! (cd "$root" && "$uv_bin" run --with 'ruff>=0.15.18,<0.16.0' ruff format . >&2); then
+    echo 'error: ruff format failed' >&2
+    return 1
+  fi
+  echo '0'
 }
 
-if ! shell_fixed=$(fix_shell_files); then
-  exit 1
-fi
-if ! python_fixed=$(fix_python_files); then
-  exit 1
-fi
-if ! markdown_fixed=$(fix_markdown_files); then
+# Run one repository fix in a background job.
+#
+# @param fix_name Function name to run.
+# @return Appends job metadata to the fix job file.
+run_fix_by_name() {
+  fix_name=$1
+  case "$fix_name" in
+  fix_shell_files) fix_shell_files ;;
+  fix_python_files) fix_python_files ;;
+  fix_markdown_files) fix_markdown_files ;;
+  *)
+    printf 'error: unknown fix: %s\n' "$fix_name" >&2
+    return 1
+    ;;
+  esac
+}
+
+# Run one repository fix in a background job.
+#
+# @param fix_name Function name to run.
+# @return Appends job metadata to the fix job file.
+run_fix_job() {
+  fix_name=$1
+  output_file=$(mktemp)
+  result_file=$(mktemp)
+  job_changed_file=$(mktemp)
+  : >"$job_changed_file"
+  (
+    current_changed_file=$job_changed_file
+    if fixed_count=$(run_fix_by_name "$fix_name" 2>"$output_file"); then
+      printf '%s\n' "$fixed_count" >"$result_file"
+    else
+      printf '0\n' >"$result_file"
+      exit 1
+    fi
+  ) &
+  printf '%s %s %s %s\n' "$!" "$output_file" "$result_file" "$job_changed_file" >>"$fix_job_file"
+}
+
+# Wait for background repository fixes and collect changed files.
+#
+# @return Sets total_fixed_count and total_error_count.
+wait_fix_jobs() {
+  fixed_count=0
+  error_count=0
+  while IFS=' ' read -r pid output_file result_file job_changed_file; do
+    if wait "$pid"; then
+      job_rc=0
+    else
+      job_rc=$?
+    fi
+    if [ -s "$output_file" ]; then
+      cat "$output_file" >&2
+    fi
+    if [ -s "$result_file" ]; then
+      job_fixed=$(cat "$result_file")
+    else
+      job_fixed=0
+    fi
+    fixed_count=$((fixed_count + job_fixed))
+    if [ "$job_rc" -ne 0 ]; then
+      error_count=$((error_count + 1))
+    fi
+    if [ -s "$job_changed_file" ]; then
+      cat "$job_changed_file" >>"$changed_file"
+    fi
+    rm -f "$output_file" "$result_file" "$job_changed_file"
+  done <"$fix_job_file"
+  total_fixed_count=$fixed_count
+  total_error_count=$error_count
+}
+
+run_fix_job fix_shell_files
+run_fix_job fix_python_files
+run_fix_job fix_markdown_files
+wait_fix_jobs
+fixed_count=$total_fixed_count
+error_count=$total_error_count
+if [ "$error_count" -gt 0 ]; then
   exit 1
 fi
 
-if [ "$shell_fixed" -gt 0 ] || [ "$python_fixed" -gt 0 ] || [ "$markdown_fixed" -gt 0 ]; then
+if [ "$fixed_count" -gt 0 ]; then
   echo 'fixed files:'
   if [ -s "$changed_file" ]; then
-    sort "$changed_file" | while IFS= read -r changed_path; do
+    sort -u "$changed_file" | while IFS= read -r changed_path; do
       printf '  %s\n' "$changed_path"
     done
   fi

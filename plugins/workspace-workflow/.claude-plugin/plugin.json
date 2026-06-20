@@ -1,13 +1,11 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "author": {
     "name": "ririnto"
   },
-  "commands": "./commands/",
   "description": "Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/workspace-workflow",
   "license": "Apache-2.0",
   "name": "workspace-workflow",
-  "repository": "https://github.com/ririnto/sinon",
-  "skills": "./skills/"
+  "repository": "https://github.com/ririnto/sinon"
 }

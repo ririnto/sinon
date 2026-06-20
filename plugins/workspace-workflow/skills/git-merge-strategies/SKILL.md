@@ -59,51 +59,51 @@ This skill does not cover:
 
 1. Verify working tree is clean:
 
-```sh
-git status
-```
+    ```sh
+    git status
+    ```
 
-Expected: "nothing to commit, working tree clean"
+   Expected: "nothing to commit, working tree clean"
 
 1. Fetch latest remote state:
 
-```sh
-git fetch origin
-```
+    ```sh
+    git fetch origin
+    ```
 
 1. List branches to merge:
 
-```sh
-git branch -a
-```
+    ```sh
+    git branch -a
+    ```
 
 1. Verify you are on the target (base) branch:
 
-```sh
-git status -s -b
-```
+    ```sh
+    git status -s -b
+    ```
 
-Expected: Current branch line shows the base branch (e.g., `main`, `develop`).
+   Expected: Current branch line shows the base branch (e.g., `main`, `develop`).
 
 1. If on the wrong branch, switch:
 
-```sh
-git checkout <base-branch>
-```
+    ```sh
+    git checkout <base-branch>
+    ```
 
 1. Verify the base branch is up to date:
 
-```sh
-git status -s -b
-```
+    ```sh
+    git status -s -b
+    ```
 
-Expected: "even" or "[ahead N]" (never "[behind]").
+   Expected: "even" or "[ahead N]" (never "[behind]").
 
-If behind, pull first:
+   If behind, pull first:
 
-```sh
-git pull origin <base-branch>
-```
+    ```sh
+    git pull origin <base-branch>
+    ```
 
 ## Procedure: Execute Merge (Fast-Forward)
 
@@ -351,17 +351,17 @@ Resolution: Decide:
 
 - To delete (resolve by doing nothing, then `git rm src/old_module.js`):
 
-```sh
-git rm src/old_module.js
-git add -u
-```
+    ```sh
+    git rm src/old_module.js
+    git add -u
+    ```
 
 - To keep (resolve by keeping the modifications):
 
-```sh
-git checkout --theirs src/old_module.js
-git add src/old_module.js
-```
+    ```sh
+    git checkout --theirs src/old_module.js
+    git add src/old_module.js
+    ```
 
 ### Pattern: Rename and edit same file
 
@@ -374,9 +374,9 @@ Resolution:
 
 - Accept the rename from base and manually apply feature edits:
 
-```sh
-git add <renamed-file>
-```
+    ```sh
+    git add <renamed-file>
+    ```
 
 - Then edit to re-apply feature changes.
 
@@ -387,14 +387,14 @@ File: `image.png` or `archive.bin`
 Status: Both branches changed the binary file.
 
 Resolution: Git cannot auto-merge binaries.
-Choose one:
+Choose the current branch version:
 
 ```sh
 git checkout --ours image.png
 git add image.png
 ```
 
-or
+Choose the incoming branch version:
 
 ```sh
 git checkout --theirs image.png
@@ -432,52 +432,52 @@ git config --global rerere.enabled true
 
 1. Encounter conflict:
 
-```sh
-git merge feature-branch
-```
+    ```sh
+    git merge feature-branch
+    ```
 
 1. Resolve manually:
 
-```sh
-git add <file>
-```
+    ```sh
+    git add <file>
+    ```
 
 1. Complete merge:
 
-```sh
-git commit
-```
+    ```sh
+    git commit
+    ```
 
-With `rerere.enabled = true`, Git automatically records the resolution.
+   With `rerere.enabled = true`, Git automatically records the resolution.
 
 #### Second merge (same conflict pattern)
 
 1. Merge again:
 
-```sh
-git merge another-branch
-```
+    ```sh
+    git merge another-branch
+    ```
 
 1. If the same conflict pattern is detected, Git auto-applies the cached resolution:
 
-```text
-CONFLICT (content): Merge conflict in src/config.js
-Recorded preimage for 'src/config.js'
-Automatic merge failed; fix conflicts and then commit the result.
-```
+    ```text
+    CONFLICT (content): Merge conflict in src/config.js
+    Recorded preimage for 'src/config.js'
+    Automatic merge failed; fix conflicts and then commit the result.
+    ```
 
 1. Review the auto-resolved file:
 
-```sh
-cat src/config.js
-```
+    ```sh
+    cat src/config.js
+    ```
 
-If the cached resolution is correct, stage and commit:
+   If the cached resolution is correct, stage and commit:
 
-```sh
-git add src/config.js
-git commit
-```
+    ```sh
+    git add src/config.js
+    git commit
+    ```
 
 ### List recorded resolutions
 
@@ -527,10 +527,10 @@ Each directory represents one recorded conflict.
 - **Stale branch after merge**: After a successful merge, the feature branch still exists locally and remotely.
   - Delete it explicitly:
 
-```sh
-git branch -d <feature-branch>
-git push origin --delete <feature-branch>
-```
+    ```sh
+    git branch -d <feature-branch>
+    git push origin --delete <feature-branch>
+    ```
 
 - **Missing rerere auto-apply**: If rerere is enabled but a cached resolution was not applied, manually check the conflict and apply it, or disable rerere temporarily and resolve again.
 
@@ -590,9 +590,9 @@ Report:
 1. Merge commit hash.
 2. Branch deletion (local and remote):
 
-```sh
-git branch -d <feature-branch>
-git push origin --delete <feature-branch>
-```
+    ```sh
+    git branch -d <feature-branch>
+    git push origin --delete <feature-branch>
+    ```
 
-1. Final state: `git log --graph --oneline -n 10` showing merged history.
+3. Final state: `git log --graph --oneline -n 10` showing merged history.

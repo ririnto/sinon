@@ -21,6 +21,6 @@ Use forwarded-header handling when the externally visible scheme, host, port, or
 
 ## Guardrails
 
-- Verify `_links.self.href` from a deployed environment, not only from local tests.
+- Verify `_links.self.href` from a deployed environment as well as local tests.
 - Keep proxy and application forwarding rules aligned so generated links stay canonical.
 - Re-check affordance and paged links after any gateway or ingress rewrite change.

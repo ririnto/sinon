@@ -105,12 +105,12 @@ git rebase -i HEAD~5
 An editor opens with a list of commits.
 Commands available:
 
-- `pick` — keep the commit as-is (default)
-- `reword` — keep the commit but edit the message
-- `squash` — combine this commit with the previous one
-- `fixup` — like squash but discard this commit's message
-- `drop` — remove the commit entirely
-- `edit` — pause at this commit to amend or modify
+- `pick` - keep the commit as-is (default)
+- `reword` - keep the commit but edit the message
+- `squash` - combine this commit with the previous one
+- `fixup` - like squash but discard this commit's message
+- `drop` - remove the commit entirely
+- `edit` - pause at this commit to amend or modify
 
 Example workflow:
 

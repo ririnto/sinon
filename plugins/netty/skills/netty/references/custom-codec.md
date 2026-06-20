@@ -128,15 +128,15 @@ final class CommandEncoder extends MessageToByteEncoder<Command> {
 - A stateful decoder is not `@Sharable`.
 - A stateless metrics or logging handler may be `@Sharable`.
 
-```java
-@Sharable
-final class MetricsHandler extends ChannelInboundHandlerAdapter {
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        ctx.fireChannelRead(msg);
+    ```java
+    @Sharable
+    final class MetricsHandler extends ChannelInboundHandlerAdapter {
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) {
+            ctx.fireChannelRead(msg);
+        }
     }
-}
-```
+    ```
 
 ## When to step back to framing first
 

@@ -22,16 +22,7 @@ relative_to_root() {
 # @exit Exits with status 1 when file is missing.
 require_file() {
   path=$1
-  if [ -f "$path" ]; then
-    return 0
-  fi
-  relative_path=$(relative_to_root "$path")
-  if ! tracked_file=$(git -C "$root" ls-files --error-unmatch -- "$relative_path" 2>&1); then
-    printf '%s\n' "[require_file] missing required file: $path" >&2
-    printf '%s\n' "  hint: ensure the file is committed and at the expected path" >&2
-    exit 1
-  fi
-  if [ -z "$tracked_file" ]; then
+  if [ ! -f "$path" ]; then
     printf '%s\n' "[require_file] missing required file: $path" >&2
     printf '%s\n' "  hint: ensure the file is committed and at the expected path" >&2
     exit 1
@@ -58,6 +49,11 @@ require_executable() {
 # @exit Exits with status 1 when directory is missing.
 require_dir() {
   path=$1
+  if [ ! -d "$path" ]; then
+    printf '%s\n' "[require_dir] missing required directory: $path" >&2
+    printf '%s\n' "  hint: ensure the directory is created and committed" >&2
+    exit 1
+  fi
   relative_path=$(relative_to_root "$path")
   tracked_entries=$(git -C "$root" ls-files -- "$relative_path")
   if [ -z "$tracked_entries" ]; then
@@ -94,10 +90,5 @@ assert_code_style_contracts() {
     python3 -m py_compile "$installer_script"
     return 0
   fi
-  relative_path=$(relative_to_root "$installer_script")
-  git -C "$root" ls-files -- "$relative_path" | while IFS= read -r file; do
-    case "$file" in
-    *.py) python3 -m py_compile "$root/$file" ;;
-    esac
-  done
+  python3 -m compileall -q "$installer_script"
 }

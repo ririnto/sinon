@@ -61,7 +61,7 @@ Pin the nullability at the interop boundary and never let a raw `T!` escape into
 
 ## Late Initialization
 
-Use `lateinit var` for non-primitive properties that cannot be set in the constructor but are guaranteed to be initialized before first access (typically dependency injection):
+Use `lateinit var` for non-primitive properties that the constructor cannot set and dependency injection initializes before first access:
 
 ```kotlin
 class Service {

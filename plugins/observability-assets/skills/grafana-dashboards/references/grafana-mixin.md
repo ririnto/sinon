@@ -75,7 +75,7 @@ Example review question:
 
 ## Layout Patterns
 
-Grafana mixin layout — keep source Jsonnet and rendered output relationship obvious:
+Grafana mixin layout - keep source Jsonnet and rendered output relationship obvious:
 
 ```text
 grafana/
@@ -90,7 +90,7 @@ grafana/
 
 Use when: dashboards are generated from Grafana mixin or adjacent Jsonnet tooling and reviewers need to understand both source and rendered dashboard assets.
 
-Minimal mixin source — keep the generated dashboard traceable back to one small Jsonnet entrypoint:
+Minimal mixin source - keep the generated dashboard traceable back to one small Jsonnet entrypoint:
 
 ```jsonnet
 {
@@ -128,7 +128,7 @@ Use when: the team already keeps dashboard source in Jsonnet or Grafana mixin fo
 Keep Jsonnet or mixin sources trusted and reviewed.
 Repository presence alone is not a trust boundary, and untrusted templates can import local files and surface their contents in rendered output.
 
-Minimal render step — render mixin or Jsonnet source into a reviewed dashboard asset:
+Minimal render step - render mixin or Jsonnet source into a reviewed dashboard asset:
 
 ```sh
 jsonnet -m grafana/rendered/dashboards grafana/mixin/dashboards.libsonnet

@@ -1,15 +1,23 @@
 # Logs
 *.log
 logs/
+log/
+nohup.out
 
 # Local caches
 .cache/
+
+# Local build outputs
+bin/
 
 # Temporary files
 .tmp/
 tmp/
 temp/
 *.tmp
+*.bak
+*.swp
+*.swo
 
 # Local environment
 .env
@@ -17,16 +25,64 @@ temp/
 !.env.example
 *.local
 
-# Editor and OS
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
+# OS: macOS
 .DS_Store
+.localized
+__MACOSX/
 .AppleDouble
 .LSOverride
+Icon?
 ._*
-Desktop.ini
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.com.apple.timemachine.supported
+.PKInstallSandboxManager
+.PKInstallSandboxManager-SystemSoftware
+.hotfiles.btree
+.vol
+.file
+.disk_label*
+lost+found
+.HFS+ Private Directory Data
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# OS: Windows
 Thumbs.db
+Thumbs.db:encryptable
 ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.stackdump
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# OS: Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Editors: JetBrains and VS Code
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+cmake-build-*/
+.vscode/
+*.vsix

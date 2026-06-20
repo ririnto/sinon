@@ -149,9 +149,9 @@ Columns:
 2. Ensure all changes in the worktree are committed or stashed.
 3. Remove the worktree:
 
-```sh
-git worktree remove worktrees/<branch-name>
-```
+    ```sh
+    git worktree remove worktrees/<branch-name>
+    ```
 
 ### What `remove` does
 
@@ -207,34 +207,34 @@ Remove the old worktree first or use a different branch.
 
 1. Create a worktree for each feature branch:
 
-```sh
-git worktree add worktrees/feat-a feat-a
-git worktree add worktrees/feat-b feat-b
-```
+    ```sh
+    git worktree add worktrees/feat-a feat-a
+    git worktree add worktrees/feat-b feat-b
+    ```
 
 1. Work independently in each worktree:
 
-```sh
-cd worktrees/feat-a
-# Make changes, commit, test
-cd ../feat-b
-# Make different changes, commit, test
-```
+    ```sh
+    cd worktrees/feat-a
+    # Make changes, commit, test
+    cd ../feat-b
+    # Make different changes, commit, test
+    ```
 
 1. Push each branch independently:
 
-```sh
-cd worktrees/feat-a && git push
-cd ../feat-b && git push
-```
+    ```sh
+    cd worktrees/feat-a && git push
+    cd ../feat-b && git push
+    ```
 
 1. Clean up when done:
 
-```sh
-cd ../../
-git worktree remove worktrees/feat-a
-git worktree remove worktrees/feat-b
-```
+    ```sh
+    cd ../../
+    git worktree remove worktrees/feat-a
+    git worktree remove worktrees/feat-b
+    ```
 
 ### Pattern: Spike + main branch isolation
 
@@ -252,29 +252,29 @@ git worktree remove worktrees/spike-new-api
 
 1. Feature work ongoing:
 
-```sh
-cd worktrees/feat-main-work
-# Long-running feature development
-```
+    ```sh
+    cd worktrees/feat-main-work
+    # Long-running feature development
+    ```
 
 1. Hotfix urgent production issue in a separate worktree:
 
-```sh
-# From another terminal or after exiting the feature worktree
-git worktree add worktrees/hotfix-prod-bug -b hotfix-prod-bug main
-cd worktrees/hotfix-prod-bug
-# Fix, test, commit
-git push
-# Then create PR/MR
-cd ../../
-```
+    ```sh
+    # From another terminal or after exiting the feature worktree
+    git worktree add worktrees/hotfix-prod-bug -b hotfix-prod-bug main
+    cd worktrees/hotfix-prod-bug
+    # Fix, test, commit
+    git push
+    # Then create PR/MR
+    cd ../../
+    ```
 
 1. Resume feature work:
 
-```sh
-cd worktrees/feat-main-work
-# Continue where you left off
-```
+    ```sh
+    cd worktrees/feat-main-work
+    # Continue where you left off
+    ```
 
 ## Pitfalls
 
@@ -329,12 +329,12 @@ git worktree remove worktrees/<branch-name>
 
 ### `git worktree add` success output
 
+Git prints one of these shapes:
+
 ```text
 Preparing worktree (new branch)
 Checking out branch '<branch>'
 ```
-
-or
 
 ```text
 Preparing worktree (checking out '<branch>')

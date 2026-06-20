@@ -99,7 +99,7 @@ Found one Java-level deadlock:
   waiting to lock Monitor@0x00007f..002 which is held by "Thread-A"
 ```
 
-Diagnosis: Circular wait — classic deadlock.
+Diagnosis: Circular wait - classic deadlock.
 Stack trace shows exactly which objects/locks are involved.
 
 ## Startup-Attached JFR Operational Notes

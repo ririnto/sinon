@@ -128,8 +128,8 @@ Binding ordersBinding() {
 
 Use Spring declarations as the shared application contract.
 Treat queue names, exchange type, and routing keys as stable integration identifiers.
-Open [references/broker`-configuration-and-vhost-setup.md`](references/broker-configuration-and-vhost-setup.md) when broker credentials or vhost setup are the blocker.
-Open [references/delayed`-exchange-and-broker-events.md`](references/delayed-exchange-and-broker-events.md) when delayed delivery semantics or broker-side events are the blocker.
+Open [references/broker-configuration-and-vhost-setup.md](references/broker-configuration-and-vhost-setup.md) when broker credentials or vhost setup are the blocker.
+Open [references/delayed-exchange-and-broker-events.md](references/delayed-exchange-and-broker-events.md) when delayed delivery semantics or broker-side events are the blocker.
 
 ## Message conversion basics
 
@@ -146,7 +146,7 @@ The no-arg constructor trusts only `java.util` and `java.lang` by default.
 Provide the package of your application payload types as the trusted package argument.
 
 The ordinary path is one JSON payload type per message contract, with the listener receiving the already-converted domain payload.
-Open [references/conversion`-and-listener-method-signatures.md`](references/conversion-and-listener-method-signatures.md) when the blocker is listener argument design, header access, validation, or custom conversion behavior.
+Open [references/conversion-and-listener-method-signatures.md](references/conversion-and-listener-method-signatures.md) when the blocker is listener argument design, header access, validation, or custom conversion behavior.
 
 ## Publish and consume
 
@@ -185,11 +185,11 @@ class OrderListener {
 - Keep listeners narrow and idempotent because redelivery can happen.
 - Use pull-style `RabbitTemplate` receive operations only when the consumer contract is actually synchronous.
 
-Open [references/polling`-receive.md`](references/polling-receive.md) when the caller needs scheduled or command-driven pull semantics.
+Open [references/polling-receive.md](references/polling-receive.md) when the caller needs scheduled or command-driven pull semantics.
 
-Open [references/request`-reply.md`](references/request-reply.md) when the caller truly needs synchronous broker-mediated reply semantics.
+Open [references/request-reply.md](references/request-reply.md) when the caller truly needs synchronous broker-mediated reply semantics.
 
-Open [references/publisher`-confirms-returns-and-send-reliability.md`](references/publisher-confirms-returns-and-send-reliability.md) when the producer must detect unroutable messages, broker acceptance, or other send-side delivery uncertainty.
+Open [references/publisher-confirms-returns-and-send-reliability.md](references/publisher-confirms-returns-and-send-reliability.md) when the producer must detect unroutable messages, broker acceptance, or other send-side delivery uncertainty.
 
 ### Confirms and returns baseline
 
@@ -228,7 +228,7 @@ Keep request-reply timeout explicit whenever the caller truly needs synchronous 
 rabbitTemplate.setReplyTimeout(5000);
 ```
 
-Open [references/request`-reply.md`](references/request-reply.md) when the producer-consumer contract is genuinely request-reply rather than an event flow.
+Open [references/request-reply.md](references/request-reply.md) when the producer-consumer contract is genuinely request-reply rather than an event flow.
 
 ## Listener container baseline
 
@@ -244,7 +244,7 @@ SimpleRabbitListenerContainerFactory ordersListenerContainerFactory(SimpleRabbit
 ```
 
 Use a dedicated factory only when a listener truly needs different acknowledgment, retry, or concurrency rules.
-Open [references/container`-variants-and-concurrency.md`](references/container-variants-and-concurrency.md) when default listener-container behavior is not enough and the blocker is container choice, prefetch, concurrency, or ordering tradeoffs.
+Open [references/container-variants-and-concurrency.md](references/container-variants-and-concurrency.md) when default listener-container behavior is not enough and the blocker is container choice, prefetch, concurrency, or ordering tradeoffs.
 
 ### Observability baseline
 
@@ -254,9 +254,9 @@ Wire the first production signals before tuning concurrency or retry behavior.
 - Record failure counts by listener or queue.
 - Record the dead-letter path or exhausted-message count.
 
-Open [references/listener`-metrics-and-micrometer.md`](references/listener-metrics-and-micrometer.md) when the blocker is Micrometer metrics.
-Open [references/distributed`-tracing-for-amqp.md`](references/distributed-tracing-for-amqp.md) when publish and consume traces must correlate.
-Open [references/delivery`-debugging-checklist.md`](references/delivery-debugging-checklist.md) when delivery diagnosis is the blocker.
+Open [references/listener-metrics-and-micrometer.md](references/listener-metrics-and-micrometer.md) when the blocker is Micrometer metrics.
+Open [references/distributed-tracing-for-amqp.md](references/distributed-tracing-for-amqp.md) when publish and consume traces must correlate.
+Open [references/delivery-debugging-checklist.md](references/delivery-debugging-checklist.md) when delivery diagnosis is the blocker.
 
 ## Retry and dead-letter baseline
 
@@ -275,7 +275,7 @@ For the common path:
 2. Send exhausted messages to an explicit DLQ or DLX path.
 3. Distinguish broker failures from business-handling failures in logs and metrics.
 
-Open [references/retry`-recovery-and-transactions.md`](references/retry-recovery-and-transactions.md) when the blocker is transactional retry, recoverer choice, or deeper failure classification.
+Open [references/retry-recovery-and-transactions.md](references/retry-recovery-and-transactions.md) when the blocker is transactional retry, recoverer choice, or deeper failure classification.
 
 ## Minimal testing shape
 
@@ -292,7 +292,7 @@ class OrderMessagingTests {
 - Verify retry and dead-letter behavior on one representative failure path.
 - Verify converter configuration matches the payload format used in production.
 
-Open [references/testing`-support-and-listener-harnesses.md`](references/testing-support-and-listener-harnesses.md) when the task needs listener-test harnesses, broker-backed integration depth, or repeatable contract checks.
+Open [references/testing-support-and-listener-harnesses.md](references/testing-support-and-listener-harnesses.md) when the task needs listener-test harnesses, broker-backed integration depth, or repeatable contract checks.
 
 ## Failure classification
 
@@ -368,21 +368,21 @@ Return:
 
 ## References
 
-- Open [references/broker`-configuration-and-vhost-setup.md`](references/broker-configuration-and-vhost-setup.md) when the blocker is broker credentials, virtual-host setup, or explicit connection settings.
-- Open [references/delayed`-exchange-and-broker-events.md`](references/delayed-exchange-and-broker-events.md) when the blocker is delayed delivery semantics or broker-side operational events.
-- Open [references/publisher`-confirms-returns-and-send-reliability.md`](references/publisher-confirms-returns-and-send-reliability.md) when the blocker is publisher confirms, returns, mandatory publishing, or send-side delivery guarantees.
-- Open [references/container`-variants-and-concurrency.md`](references/container-variants-and-concurrency.md) when the blocker is container choice, dedicated factories, prefetch, concurrency, or ordering tradeoffs.
-- Open [references/conversion`-and-listener-method-signatures.md`](references/conversion-and-listener-method-signatures.md) when the blocker is payload conversion, listener arguments, headers, validation, or custom method signatures.
-- Open [references/retry`-recovery-and-transactions.md`](references/retry-recovery-and-transactions.md) when the blocker is retry internals, recoverers, transactions, or deeper failure classification.
-- Open [references/request`-reply.md`](references/request-reply.md) when the blocker is synchronous request-reply over RabbitMQ.
-- Open [references/batch`-listeners.md`](references/batch-listeners.md) when the blocker is whole-batch consumption.
-- Open [references/async`-return-listeners.md`](references/async-return-listeners.md) when the blocker is asynchronous listener return handling.
-- Open [references/polling`-receive.md`](references/polling-receive.md) when the blocker is pull-style receive.
-- Open [references/listener`-threading-and-back-pressure.md`](references/listener-threading-and-back-pressure.md) when the blocker is consumer threading or back pressure.
-- Open [references/stream`-variants.md`](references/stream-variants.md) when the ordinary queue consumer path is not enough and the task needs RabbitMQ stream semantics.
-- Open [references/multi`-broker-variants.md`](references/multi-broker-variants.md) when the blocker is isolating multiple broker connections, templates, or listener factories.
-- Open [references/testing`-support-and-listener-harnesses.md`](references/testing-support-and-listener-harnesses.md) when the task needs listener harnesses, broker-backed integration tests, or contract verification.
-- Open [references/listener`-metrics-and-micrometer.md`](references/listener-metrics-and-micrometer.md) when the blocker is listener metrics or Micrometer wiring.
-- Open [references/distributed`-tracing-for-amqp.md`](references/distributed-tracing-for-amqp.md) when the blocker is end-to-end tracing for publish and consume paths.
-- Open [references/delivery`-debugging-checklist.md`](references/delivery-debugging-checklist.md) when the blocker is connection debugging or delivery diagnosis.
-- Open [references/generic`-amqp10-support.md`](references/generic-amqp10-support.md) when the blocker is generic AMQP 1.0 protocol interaction using `spring-amqp-client`.
+- Open [references/broker-configuration-and-vhost-setup.md](references/broker-configuration-and-vhost-setup.md) when the blocker is broker credentials, virtual-host setup, or explicit connection settings.
+- Open [references/delayed-exchange-and-broker-events.md](references/delayed-exchange-and-broker-events.md) when the blocker is delayed delivery semantics or broker-side operational events.
+- Open [references/publisher-confirms-returns-and-send-reliability.md](references/publisher-confirms-returns-and-send-reliability.md) when the blocker is publisher confirms, returns, mandatory publishing, or send-side delivery guarantees.
+- Open [references/container-variants-and-concurrency.md](references/container-variants-and-concurrency.md) when the blocker is container choice, dedicated factories, prefetch, concurrency, or ordering tradeoffs.
+- Open [references/conversion-and-listener-method-signatures.md](references/conversion-and-listener-method-signatures.md) when the blocker is payload conversion, listener arguments, headers, validation, or custom method signatures.
+- Open [references/retry-recovery-and-transactions.md](references/retry-recovery-and-transactions.md) when the blocker is retry internals, recoverers, transactions, or deeper failure classification.
+- Open [references/request-reply.md](references/request-reply.md) when the blocker is synchronous request-reply over RabbitMQ.
+- Open [references/batch-listeners.md](references/batch-listeners.md) when the blocker is whole-batch consumption.
+- Open [references/async-return-listeners.md](references/async-return-listeners.md) when the blocker is asynchronous listener return handling.
+- Open [references/polling-receive.md](references/polling-receive.md) when the blocker is pull-style receive.
+- Open [references/listener-threading-and-back-pressure.md](references/listener-threading-and-back-pressure.md) when the blocker is consumer threading or back pressure.
+- Open [references/stream-variants.md](references/stream-variants.md) when the ordinary queue consumer path is not enough and the task needs RabbitMQ stream semantics.
+- Open [references/multi-broker-variants.md](references/multi-broker-variants.md) when the blocker is isolating multiple broker connections, templates, or listener factories.
+- Open [references/testing-support-and-listener-harnesses.md](references/testing-support-and-listener-harnesses.md) when the task needs listener harnesses, broker-backed integration tests, or contract verification.
+- Open [references/listener-metrics-and-micrometer.md](references/listener-metrics-and-micrometer.md) when the blocker is listener metrics or Micrometer wiring.
+- Open [references/distributed-tracing-for-amqp.md](references/distributed-tracing-for-amqp.md) when the blocker is end-to-end tracing for publish and consume paths.
+- Open [references/delivery-debugging-checklist.md](references/delivery-debugging-checklist.md) when the blocker is connection debugging or delivery diagnosis.
+- Open [references/generic-amqp10-support.md](references/generic-amqp10-support.md) when the blocker is generic AMQP 1.0 protocol interaction using `spring-amqp-client`.

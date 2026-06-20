@@ -12,19 +12,19 @@ Solution: isolate connection factories, templates, and listener factories by bro
 - Avoid sharing routing-key or queue-name assumptions across brokers unless the contract is truly identical.
 - Keep each listener factory bound to the broker connection it actually serves.
 
-```java
-@Bean
-RabbitTemplate billingRabbitTemplate(@Qualifier("billingConnectionFactory") ConnectionFactory connectionFactory) {
-    return new RabbitTemplate(connectionFactory);
-}
+    ```java
+    @Bean
+    RabbitTemplate billingRabbitTemplate(@Qualifier("billingConnectionFactory") ConnectionFactory connectionFactory) {
+        return new RabbitTemplate(connectionFactory);
+    }
 
-@Bean
-SimpleRabbitListenerContainerFactory billingListenerFactory(@Qualifier("billingConnectionFactory") ConnectionFactory connectionFactory) {
-    SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-    factory.setConnectionFactory(connectionFactory);
-    return factory;
-}
-```
+    @Bean
+    SimpleRabbitListenerContainerFactory billingListenerFactory(@Qualifier("billingConnectionFactory") ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        return factory;
+    }
+    ```
 
 ## Decision points
 

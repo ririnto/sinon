@@ -207,7 +207,7 @@ void handle(PaymentEvent event, Acknowledgment ack) {
 The attribute accepts `AckMode` enum names and supports SpEL expressions and property placeholders.
 
 Keep the ordinary path on single-record listeners unless throughput or downstream batching requirements justify batch consumption.
-Open [references/batch`-listeners.md`](references/batch-listeners.md) when the listener should actually switch to batch mode.
+Open [references/batch-listeners.md](references/batch-listeners.md) when the listener should actually switch to batch mode.
 
 ### Share consumer shape (KIP-932)
 
@@ -243,7 +243,7 @@ Call `renew()` to extend the acquisition lock for long-running processing.
 
 Share consumers do not support batch processing, topic patterns, explicit partition assignment, or the `CommonErrorHandler` interface.
 Error recovery uses the `ShareConsumerRecordRecoverer` interface instead.
-Open [references/share`-consumers.md`](references/share-consumers.md) when building share consumer listeners that need manual acknowledgment, error recovery, concurrency, or lifecycle integration.
+Open [references/share-consumers.md](references/share-consumers.md) when building share consumer listeners that need manual acknowledgment, error recovery, concurrency, or lifecycle integration.
 
 ### Embedded Kafka test shape
 
@@ -313,10 +313,10 @@ billing
 ## References
 
 - Open [references/transactions.md](references/transactions.md) when the application needs atomic consume-produce workflows.
-- Open [references/exactly`-once-semantics.md`](references/exactly-once-semantics.md) when the workflow must combine Kafka transactions with exactly-once delivery expectations.
-- Open [references/batch`-listeners.md`](references/batch-listeners.md) when the consumer should process `List<T>` batches instead of one record at a time.
-- Open [references/share`-consumers.md`](references/share-consumers.md) when building share consumer listeners (KIP-932) that need manual acknowledgment, error recovery, concurrency configuration, or lifecycle event integration.
-- Open [references/deserialization`-failures.md`](references/deserialization-failures.md) when bad payloads fail before listener code runs and retry or DLT policy must still be intentional.
-- Open [references/listener`-replay.md`](references/listener-replay.md) when the consumer must seek or replay records deliberately.
+- Open [references/exactly-once-semantics.md](references/exactly-once-semantics.md) when the workflow must combine Kafka transactions with exactly-once delivery expectations.
+- Open [references/batch-listeners.md](references/batch-listeners.md) when the consumer should process `List<T>` batches instead of one record at a time.
+- Open [references/share-consumers.md](references/share-consumers.md) when building share consumer listeners (KIP-932) that need manual acknowledgment, error recovery, concurrency configuration, or lifecycle event integration.
+- Open [references/deserialization-failures.md](references/deserialization-failures.md) when bad payloads fail before listener code runs and retry or DLT policy must still be intentional.
+- Open [references/listener-replay.md](references/listener-replay.md) when the consumer must seek or replay records deliberately.
 - Open [references/tombstones.md](references/tombstones.md) when the topic uses compacted-record delete semantics.
-- Open [references/advanced`-retry-and-error-handling.md`](references/advanced-retry-and-error-handling.md) when `@RetryableTopic` is not enough and the listener needs explicit `DefaultErrorHandler`, recoverers, or deeper retry classification.
+- Open [references/advanced-retry-and-error-handling.md](references/advanced-retry-and-error-handling.md) when `@RetryableTopic` is not enough and the listener needs explicit `DefaultErrorHandler`, recoverers, or deeper retry classification.

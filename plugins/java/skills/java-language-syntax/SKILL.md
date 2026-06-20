@@ -1,10 +1,10 @@
 ---
 name: java-language-syntax
 description: >-
-  Explain Java syntax availability across LTS baselines, compare expression forms between Java versions,
-  rewrite code for older or newer targets, and choose foundational java.base package families.
-  Use when the user asks about Java grammar, var, switch expressions, records, pattern matching,
-  sealed classes, text blocks, unnamed patterns, or whether a syntax form compiles on a given Java baseline.
+  Explain Java syntax availability across LTS baselines.
+  Compare expression forms between Java versions, rewrite code for older or newer targets, and choose foundational java.base package families.
+  Use when the user asks about Java grammar, var, switch expressions, records, pattern matching, sealed classes, text blocks, or unnamed patterns.
+  Use when checking whether a syntax form compiles on a given Java baseline.
 ---
 
 # Java Language Syntax
@@ -171,7 +171,7 @@ List<String> activeNames = users.stream()
     .toList();
 ```
 
-Older-LTS fallback using `Collectors.toList()` `(JDK 8+)` — the official javadoc makes no guarantee about the returned `List` implementation, its mutability, its serializability, or its thread-safety.
+Older-LTS fallback using `Collectors.toList()` `(JDK 8+)` - the official javadoc makes no guarantee about the returned `List` implementation, its mutability, its serializability, or its thread-safety.
 Current HotSpot builds happen to return a mutable `ArrayList`, but code MUST NOT rely on that.
 When mutability matters, use `Collectors.toCollection(ArrayList::new)`.
 When an unmodifiable result is part of the contract, use `Collectors.toUnmodifiableList()` (JDK 10+) or `Stream.toList()` (JDK 16+).
@@ -248,11 +248,8 @@ Combine multiple futures:
 ```java
 import java.util.concurrent.CompletableFuture;
 
-CompletableFuture<String> userFuture = CompletableFuture.supplyAsync(() -> fetchUser(id));
-CompletableFuture<String> permFuture = CompletableFuture.supplyAsync(() -> fetchPerms(id));
-
-CompletableFuture<String> combined = userFuture.thenCombine(permFuture,
-    (user, perms) -> user + ":" + perms);
+CompletableFuture<String> combined = CompletableFuture.supplyAsync(() -> fetchUser(id))
+    .thenCombine(CompletableFuture.supplyAsync(() -> fetchPerms(id)), (user, perms) -> user + ":" + perms);
 ```
 
 ### `HttpClient` API `(JDK 11+)`
@@ -265,13 +262,15 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-HttpClient client = HttpClient.newHttpClient();
-HttpRequest request = HttpRequest.newBuilder()
-    .uri(URI.create("https://api.example.com/data"))
-    .header("Accept", "application/json")
-    .GET()
-    .build();
-HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+HttpResponse<String> response = HttpClient.newHttpClient()
+    .send(
+        HttpRequest.newBuilder()
+            .uri(URI.create("https://api.example.com/data"))
+            .header("Accept", "application/json")
+            .GET()
+            .build(),
+        HttpResponse.BodyHandlers.ofString()
+    );
 ```
 
 Asynchronous request:
@@ -283,8 +282,15 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 
-CompletableFuture<HttpResponse<String>> future = client.sendAsync(
-    request, HttpResponse.BodyHandlers.ofString());
+CompletableFuture<HttpResponse<String>> future = HttpClient.newHttpClient()
+    .sendAsync(
+        HttpRequest.newBuilder()
+            .uri(URI.create("https://api.example.com/data"))
+            .header("Accept", "application/json")
+            .GET()
+            .build(),
+        HttpResponse.BodyHandlers.ofString()
+    );
 ```
 
 ### String convenience methods `(JDK 11+)`
@@ -347,8 +353,8 @@ if (obj instanceof String s) {
 
 ### Pattern-matching switch `(JDK 21+)`
 
-Exhaustive over a sealed hierarchy (no `default` needed because the permitted
-subtypes are enumerated):
+Exhaustive over a sealed hierarchy.
+The permitted subtypes are enumerated, so no `default` is needed:
 
 ```java
 sealed interface Shape permits Circle, Rectangle {
@@ -406,8 +412,7 @@ if (obj instanceof Order(String id, _, double total)) {
 import java.util.List;
 import java.util.function.Predicate;
 
-var users = List.of("alice", "bob", "carol");
-var count = users.size();
+var count = List.of("alice", "bob", "carol").size();
 Predicate<String> lengthOver3 = (var name) -> name.length() > 3;
 ```
 

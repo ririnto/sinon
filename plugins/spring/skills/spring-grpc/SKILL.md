@@ -125,39 +125,21 @@ Add `grpc-services` only when reflection, health, or other optional gRPC support
 ### Proto generation baseline
 
 Generate Java types from `.proto` files before implementing services or clients.
+With `spring-boot-starter-parent` 4.1, use Boot's managed `io.github.ascopes:protobuf-maven-plugin` entry and let Boot configure `protoc`, the binary plugin, and the `generate` goal.
 
 ```xml
 <build>
-    <extensions>
-        <extension>
-            <groupId>kr.motd.maven</groupId>
-            <artifactId>os-maven-plugin</artifactId>
-            <version>1.7.1</version>
-        </extension>
-    </extensions>
     <plugins>
         <plugin>
-            <groupId>org.xolstice.maven.plugins</groupId>
+            <groupId>io.github.ascopes</groupId>
             <artifactId>protobuf-maven-plugin</artifactId>
-            <version>0.6.1</version>
-            <configuration>
-                <protocArtifact>com.google.protobuf:protoc:4.30.2:exe:${os.detected.classifier}</protocArtifact>
-                <pluginId>grpc-java</pluginId>
-                <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.72.0:exe:${os.detected.classifier}</pluginArtifact>
-            </configuration>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>compile</goal>
-                        <goal>compile-custom</goal>
-                    </goals>
-                </execution>
-            </executions>
         </plugin>
     </plugins>
 </build>
 ```
 
+Place application `.proto` files under `src/main/proto`.
+If the project does not use `spring-boot-starter-parent`, configure the plugin directly from the `io.github.ascopes:protobuf-maven-plugin` documentation and prefer Spring Boot's managed `${protobuf-java.version}` and `${grpc-java.version}` properties.
 Check generated sources into the ordinary build output, not into hand-maintained source folders.
 If the project intentionally tracks generated sources in VCS, keep the `.proto` contract and generated stubs in the same reviewed change.
 
@@ -488,8 +470,8 @@ GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalG
 
 ## References
 
-- Open [references/streaming`-and-async-stubs.md`](references/streaming-and-async-stubs.md) when the ordinary blocking unary path is not enough and the task needs future-style stubs or streaming RPC patterns.
-- Open [references/channel`-customization.md`](references/channel-customization.md) when the deployment needs richer client-channel construction, global client interceptors, compression, keepalive, retries, or per-channel tuning.
-- Open [references/exception`-handling.md`](references/exception-handling.md) when exception-to-status mapping needs reusable handler beans, `@GrpcExceptionHandler`, or different behavior per service.
-- Open [references/in`-process-testing.md`](references/in-process-testing.md) when integration tests should use in-process transport, `@LocalGrpcServerPort`, or explicit test-only channel wiring.
-- Open [references/security`-tls-mtls.md`](references/security-tls-mtls.md) when the deployment needs TLS or mTLS, Basic authentication, bearer tokens, or OAuth2 and server-authentication integration.
+- Open [references/streaming-and-async-stubs.md](references/streaming-and-async-stubs.md) when the ordinary blocking unary path is not enough and the task needs future-style stubs or streaming RPC patterns.
+- Open [references/channel-customization.md](references/channel-customization.md) when the deployment needs richer client-channel construction, global client interceptors, compression, keepalive, retries, or per-channel tuning.
+- Open [references/exception-handling.md](references/exception-handling.md) when exception-to-status mapping needs reusable handler beans, `@GrpcExceptionHandler`, or different behavior per service.
+- Open [references/in-process-testing.md](references/in-process-testing.md) when integration tests should use in-process transport, `@LocalGrpcServerPort`, or explicit test-only channel wiring.
+- Open [references/security-tls-mtls.md](references/security-tls-mtls.md) when the deployment needs TLS or mTLS, Basic authentication, bearer tokens, or OAuth2 and server-authentication integration.

@@ -28,8 +28,9 @@ For export cleanup decisions, normalization targets, and ownership boundaries af
 6. Keep links, annotations, and layout aligned to one narrative flow such as saturation, errors, and latency.
 7. Default the dashboard time range to the last 30 minutes or less, and widen it only when the operator question needs more history.
 
-Default to classic dashboard JSON (`schemaVersion` 39) for all examples and templates.
-When working with resource-style schemas or v2 layout models, document the version boundary explicitly in the dashboard asset or review notes.
+Default to Grafana's V2 Resource model when the task is about Grafana 13 Observability as Code or the newer `/apis` dashboard flow.
+Keep classic dashboard JSON for file provisioning, UI export cleanup, grafana.com dashboard sharing, or repositories that already store classic dashboard files.
+When a classic example includes `schemaVersion`, treat it as an example/export value and preserve or regenerate it from the target Grafana version instead of asserting that one number is universally current.
 
 ## Minimal Setup
 
@@ -39,7 +40,7 @@ Minimal dashboard JSON -- smallest valid shape for syntax testing:
 {
   "uid": "api-overview",
   "title": "API Overview",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "version": 1,
   "refresh": "30s",
   "panels": []
@@ -69,7 +70,7 @@ Stable `uid`, clear title, one time-picker baseline, and one working panel:
 {
   "uid": "api-overview",
   "title": "API Overview",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "version": 1,
   "refresh": "30s",
   "time": { "from": "now-30m", "to": "now" },
@@ -815,7 +816,7 @@ Validate the common case with these checks:
 - transformations, field config, units, thresholds, and legends improve readability instead of hiding query problems
 - links and annotations add operator context without turning the dashboard into a navigation maze
 - the default time range stays within the last 30 minutes unless a wider window is explicitly justified
-- panel types match the operator question (not just defaulting to timeseries for everything)
+- panel types match the operator question instead of defaulting to timeseries for everything
 - variable types match the data source (query for dynamic lists, custom for static enums)
 - overrides target the correct fields with appropriate matchers
 - value mappings handle edge cases (null, NaN, empty) explicitly

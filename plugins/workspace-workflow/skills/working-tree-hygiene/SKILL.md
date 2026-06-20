@@ -247,32 +247,32 @@ For each untracked file:
 
 1. **Commit** if it is part of the source tree and should be tracked by everyone:
 
-```sh
-git add <file>
-```
+    ```sh
+    git add <file>
+    ```
 
 1. **Ignore** if it is a build artifact or local file that should never be tracked:
 
-```sh
-echo "<pattern>" >> .gitignore
-git add .gitignore
-```
+    ```sh
+    echo "<pattern>" >> .gitignore
+    git add .gitignore
+    ```
 
-Examples of patterns:
+   Examples of patterns:
 
-```text
-build/
-*.pyc
-.DS_Store
-target/
-node_modules/
-```
+    ```text
+    build/
+    *.pyc
+    .DS_Store
+    target/
+    node_modules/
+    ```
 
 1. **Delete** if it is temporary and not needed:
 
-```sh
-rm <file>
-```
+    ```sh
+    rm <file>
+    ```
 
 ## Procedure: Establish a Clean Baseline
 
@@ -280,57 +280,57 @@ Before starting a task, ensure a known-clean state:
 
 1. Check status:
 
-```sh
-git status
-```
+    ```sh
+    git status
+    ```
 
 1. If staged changes exist that you do not intend to commit, unstage them:
 
-```sh
-git restore --staged <file>
-```
+    ```sh
+    git restore --staged <file>
+    ```
 
 1. If unstaged changes exist, decide:
    - Commit them:
 
-```sh
-git add <file>
-git commit -m "type(scope): describe change"
-```
+     ```sh
+     git add <file>
+     git commit -m "type(scope): describe change"
+     ```
 
-- Stash them:
+   - Stash them:
 
-```sh
-git stash
-```
+     ```sh
+     git stash
+     ```
 
-- Or discard them:
+   - Or discard them:
 
-```sh
-git restore <file>
-```
+     ```sh
+     git restore <file>
+     ```
 
 1. If untracked files block work (e.g., build artifacts), delete or ignore them:
 
-```sh
-rm <file>
-echo "<pattern>" >> .gitignore
-```
+    ```sh
+    rm <file>
+    echo "<pattern>" >> .gitignore
+    ```
 
 1. Verify the final state:
 
-```sh
-git status
-```
+    ```sh
+    git status
+    ```
 
-Expected:
+   Expected:
 
-```text
-On branch main
-Your branch is up to date with 'origin/main'.
+    ```text
+    On branch main
+    Your branch is up to date with 'origin/main'.
 
-nothing to commit, working tree clean
-```
+    nothing to commit, working tree clean
+    ```
 
 ## Procedure: Verify Push-Readiness
 
@@ -338,39 +338,39 @@ Before publishing a branch, confirm it is ready to push:
 
 1. Check the branch is clean:
 
-```sh
-git status
-```
+    ```sh
+    git status
+    ```
 
-Expected: "nothing to commit, working tree clean"
+   Expected: "nothing to commit, working tree clean"
 
 1. Check the branch is not behind its upstream:
 
-```sh
-git status -s -b
-```
+    ```sh
+    git status -s -b
+    ```
 
-Expected: "even" or "[ahead N]" (never "[behind ...]")
+   Expected: "even" or "[ahead N]" (never "[behind ...]")
 
 1. If behind, pull first:
 
-```sh
-git pull
-```
+    ```sh
+    git pull
+    ```
 
-Then verify no merge conflicts:
+   Then verify no merge conflicts:
 
-```sh
-git status
-```
+    ```sh
+    git status
+    ```
 
-Expected: "nothing to commit" again.
+   Expected: "nothing to commit" again.
 
 1. If no conflicts and all work is committed, push:
 
-```sh
-git push
-```
+    ```sh
+    git push
+    ```
 
 ## Common Patterns
 
@@ -380,16 +380,16 @@ You are working on feature A but need to switch to feature B urgently:
 
 1. Stash uncommitted work:
 
-```sh
-git stash
-```
+    ```sh
+    git stash
+    ```
 
 1. Switch branches or create a new worktree for feature B.
-2. When done with B and ready to resume A, restore:
+1. When done with B and ready to resume A, restore:
 
-```sh
-git stash pop
-```
+    ```sh
+    git stash pop
+    ```
 
 ### Pattern: Deferred cleanup
 
@@ -397,16 +397,16 @@ You have untracked build artifacts and `.gitignore` updates:
 
 1. Add to `.gitignore`:
 
-```sh
-echo "build/" >> .gitignore
-```
+    ```sh
+    echo "build/" >> .gitignore
+    ```
 
 1. Commit the `.gitignore` change separately:
 
-```sh
-git add .gitignore
-git commit -m "chore: ignore build artifacts"
-```
+    ```sh
+    git add .gitignore
+    git commit -m "chore: ignore build artifacts"
+    ```
 
 1. Delete the artifact or run a clean build.
 
@@ -416,28 +416,28 @@ Before creating a pull request or merge request:
 
 1. Verify status is clean:
 
-```sh
-git status
-```
+    ```sh
+    git status
+    ```
 
 1. Verify sync state:
 
-```sh
-git status -s -b
-```
+    ```sh
+    git status -s -b
+    ```
 
 1. If behind, pull and re-test:
 
-```sh
-git pull
-# Run tests to confirm no regressions from upstream changes
-```
+    ```sh
+    git pull
+    # Run tests to confirm no regressions from upstream changes
+    ```
 
 1. If all checks pass, push:
 
-```sh
-git push
-```
+    ```sh
+    git push
+    ```
 
 ## Pitfalls
 

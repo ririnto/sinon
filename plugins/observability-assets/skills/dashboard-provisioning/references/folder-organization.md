@@ -172,7 +172,8 @@ Use when: the folder name might change but the UID must remain stable across dep
 
 ## API and Resource Folder Fields
 
-`folderUid` can also appear in API request bodies or newer resource-style workflows, but those are separate from the raw dashboard JSON files stored under a legacy provider path.
+`folderUid` can also appear in Grafana classic wrapper files, API request bodies, or newer resource-style workflows.
+Those are separate from raw dashboard JSON files stored under a provider path.
 
 Representative API payload:
 
@@ -182,7 +183,7 @@ Representative API payload:
     "id": null,
     "uid": "my-dashboard",
     "title": "My Dashboard",
-    "schemaVersion": 39,
+    "schemaVersion": 41,
     "version": 1,
     "panels": []
   },
@@ -192,8 +193,8 @@ Representative API payload:
 
 ```
 
-Use when: the blocker is translating a dashboard between provider-path files and an API or resource workflow that explicitly asks for `folderUid`.
-Keep this envelope out of legacy file-provisioning source directories.
+Use when: the blocker is translating a dashboard between raw provider-path files and a wrapped file, API, or resource workflow that explicitly asks for `folderUid`.
+Keep the chosen file shape documented so reviewers know whether folder placement comes from the provider YAML or from the wrapper/resource.
 
 ## Review Questions
 

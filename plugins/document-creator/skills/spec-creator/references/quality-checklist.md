@@ -108,7 +108,7 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] Source or evidence is captured for requirements when stakeholder input, external constraints, or existing behavior matters.
 - [ ] Verification method is explicit for each requirement or acceptance criterion when testability is not obvious.
 - [ ] Open questions are answerable and have an owner or decision point when needed.
-- [ ] Open questions are specific (not "[NEEDS CLARIFICATION: something about feature]" but "[NEEDS CLARIFICATION: Should retry attempts cap at 3 or be unlimited?]").
+- [ ] Open questions are specific, for example `[NEEDS CLARIFICATION: Should retry attempts cap at 3 or be unlimited?]`.
 
 ## AI-Agent Readiness
 

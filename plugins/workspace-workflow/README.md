@@ -1,6 +1,6 @@
 ---
 description: >-
-  Overview of the Workspace Workflow plugin: skills for worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition, plus a workspace architect agent and slash commands for everyday workflow.
+  Overview of the Workspace Workflow plugin: skills for worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition, plus workspace agents for everyday workflow.
 ---
 
 # Workspace Workflow
@@ -14,7 +14,7 @@ It covers isolated worktree work, working-tree discipline, history integration (
 - Establish hygiene discipline for clean working-tree state before any merge, rebase, commit, or publish step.
 - Document merge and rebase strategies with concrete commands, decision tables, and conflict-handling procedures.
 - Standardize commit messages with Conventional Commits and align PR/MR bodies across GitHub and GitLab.
-- Coordinate decisions across these skills through a single architect agent and convenience slash commands.
+- Coordinate decisions across these skills through focused workspace agents.
 
 ## Included Skills
 
@@ -35,22 +35,14 @@ These skills compose into the everyday loop: prepare a clean working tree (optio
 - commit-message-architect: drafts Conventional Commit messages from staged changes and evaluates commit cohesion and readiness.
 - pr-body-architect: drafts pull request or merge request bodies that preserve repository templates and describe real change intent.
 
-## Included Commands
-
-Slash commands are prefixed with `workspace-` to avoid collision with shorter, plugin-agnostic names that may exist in other plugins (for example, `commit`, `pr`, or `mr`).
-
-- workspace-commit: compose a Conventional Commits-style commit message from staged or HEAD diff, following `commit-convention` rules.
-- workspace-pr: compose a pull or merge request body from the current branch commits, following `pr-mr-convention` rules.
-- workspace-worktree: create, list, switch, or clean up git worktrees through `git-worktree-management` patterns.
-
 ## Runtime Model
 
-This plugin uses one shared plugin root with a Claude manifest that publishes the skill and command surfaces:
+This plugin uses one shared plugin root with a Claude manifest:
 
-- `.claude-plugin/plugin.json` declares `./skills/` and `./commands/`.
+- `.claude-plugin/plugin.json`
 
-The `agents/` directory ships at the plugin root and is described in this README.
-It is intentionally not declared in `plugin.json` because the Claude Code plugin manifest schema does not support an `agents` key.
+Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
+This includes `skills/`, `agents/`, and executable `bin/` when present.
 
 ## Plugin Layout
 
@@ -63,10 +55,6 @@ plugins/workspace-workflow/
 │   ├── workspace-architect.md
 │   ├── commit-message-architect.md
 │   └── pr-body-architect.md
-├── commands/
-│   ├── workspace-commit.md
-│   ├── workspace-pr.md
-│   └── workspace-worktree.md
 └── skills/
     ├── commit-convention/
     │   └── SKILL.md
@@ -86,7 +74,6 @@ plugins/workspace-workflow/
 
 - Six reusable skills under `skills/` cover the full workspace-to-publication workflow.
 - Three agents under `agents/` cover workflow coordination, commit-message drafting, and PR/MR body drafting.
-- Three slash commands under `commands/` (workspace-commit, workspace-pr, workspace-worktree) wrap the most frequent workflow entry points.
 - The plugin does not ship hooks, MCP servers, LSP servers, output styles, monitors, or custom runtime data surfaces.
 
 ## Design Principles
@@ -96,14 +83,14 @@ plugins/workspace-workflow/
 - Keep the common path self-sufficient inside each `SKILL.md` with concrete commands, invariants, and decision tables.
 - Derive guidance from real Git behavior and repository state rather than generic tutorials.
 - Treat shared history as a contract: rebasing or force-pushing published branches requires explicit, team-acknowledged intent.
-- Keep `plugin.json` thin and let the skills, the agent, and the commands carry the reusable substance.
+- Keep `plugin.json` thin and let the skills and agents carry the reusable substance.
 
 ## Installation
 
 Install from Sinon:
 
 ```sh
-/plugin install workspace-workflow@sinon
+claude plugin install workspace-workflow@sinon
 ```
 
 For Claude Code local development:
@@ -117,8 +104,9 @@ claude --plugin-dir /path/to/sinon/plugins/workspace-workflow
 This plugin focuses on the Git-driven workspace and change-publication loop.
 It intentionally does not cover:
 
-- Code review judgement on the merits of the change (the PR/MR body sets it up.
-  - Reviewers and other plugins evaluate it).
+- Code review judgement on the merits of the change.
+  - The PR/MR body sets up the review context.
+  - Reviewers and other plugins evaluate it.
 - Language- or framework-specific build, test, or release tooling (see language plugins such as `java`, `kotlin`, or framework plugins such as `spring`, `reactor`).
 - Custom CI/CD pipeline templates beyond minimal command snippets used in PR/MR descriptions.
 - Hooks, MCP servers, or repository-level automation outside the workspace workflow itself.

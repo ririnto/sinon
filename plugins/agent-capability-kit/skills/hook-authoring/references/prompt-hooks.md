@@ -14,12 +14,12 @@ See `SKILL.md` for basic hook structure and the 9 event types.
 
 Prompt hooks support these inline variable expansions before sending to LLM:
 
-- `$TOOL_NAME` — Tool being invoked (e.g., `Write`, `Edit`, `Bash`)
-- `$TOOL_INPUT` — JSON stringified tool input parameters
-- `$TOOL_RESULT` — JSON stringified tool output (PostToolUse only)
-- `$USER_PROMPT` — User's submitted prompt text (UserPromptSubmit only)
-- `${CLAUDE_PLUGIN_ROOT}` — Plugin root directory path (e.g., `/project/.claude/plugins/my-plugin`)
-- `${CLAUDE_PROJECT_DIR}` — Project root directory path
+- `$TOOL_NAME` - Tool being invoked (e.g., `Write`, `Edit`, `Bash`)
+- `$TOOL_INPUT` - JSON stringified tool input parameters
+- `$TOOL_RESULT` - JSON stringified tool output (PostToolUse only)
+- `$USER_PROMPT` - User's submitted prompt text (UserPromptSubmit only)
+- `${CLAUDE_PLUGIN_ROOT}` - Plugin root directory path (e.g., `/project/.claude/plugins/my-plugin`)
+- `${CLAUDE_PROJECT_DIR}` - Project root directory path
 
 Variables are substituted literally.
 Complex escaping MUST be handled in the prompt text itself.
@@ -37,10 +37,10 @@ Tool inputs are already JSON, so quoting is handled automatically.
 }
 ```
 
-- `permissionDecision` (string) — `allow` (proceed unchanged), `deny` (block), `ask` (prompt user)
-- `updatedInput` (object, optional) — Modified tool parameters.
+- `permissionDecision` (string) - `allow` (proceed unchanged), `deny` (block), `ask` (prompt user)
+- `updatedInput` (object, optional) - Modified tool parameters.
   - If present, tool uses this instead of original.
-- `systemMessage` (string) — Reasoning shown in Claude's transcript
+- `systemMessage` (string) - Reasoning shown in Claude's transcript
 
 ### PostToolUse feedback output
 
@@ -52,10 +52,10 @@ Tool inputs are already JSON, so quoting is handled automatically.
 }
 ```
 
-- `continue` (boolean) — Always true for PostToolUse.
+- `continue` (boolean) - Always true for PostToolUse.
   - Signals to continue session.
-- `suppressOutput` (boolean) — If true, omit tool result from transcript
-- `systemMessage` (string) — Feedback shown to Claude
+- `suppressOutput` (boolean) - If true, omit tool result from transcript
+- `systemMessage` (string) - Feedback shown to Claude
 
 ### Stop decision output
 
@@ -67,9 +67,9 @@ Tool inputs are already JSON, so quoting is handled automatically.
 }
 ```
 
-- `decision` (string) — `approve` (allow stop), `block` (continue working)
-- `reason` (string) — If blocked, describe unfinished work
-- `systemMessage` (string) — Context for Claude
+- `decision` (string) - `approve` (allow stop), `block` (continue working)
+- `reason` (string) - If blocked, describe unfinished work
+- `systemMessage` (string) - Context for Claude
 
 ## Policy Injection Pattern
 

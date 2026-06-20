@@ -84,15 +84,15 @@ When `@ConfigurationProperties` does not bind as expected:
 2. Check the property source actually loads in the active profile.
 3. Enable debug logging for configuration binding.
 
-```properties
-logging.level.org.springframework.boot.context.properties=DEBUG
-```
+    ```properties
+    logging.level.org.springframework.boot.context.properties=DEBUG
+    ```
 
-1. Inspect the config properties actuator endpoint if available.
+4. Inspect the config properties actuator endpoint if available.
 
-```properties
-management.endpoints.web.exposure.include=configprops
-```
+    ```properties
+    management.endpoints.web.exposure.include=configprops
+    ```
 
 ## `ApplicationContextRunner` pattern
 

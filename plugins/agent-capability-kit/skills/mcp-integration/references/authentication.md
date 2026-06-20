@@ -332,10 +332,10 @@ OAuth scopes limit what service token can access.
 
 Scopes available for GitHub MCP:
 
-- `repo` — Read/write access to repos
-- `gist` — Create and modify gists
-- `user` — Read user profile
-- `workflow` — Manage workflows
+- `repo` - Read/write access to repos
+- `gist` - Create and modify gists
+- `user` - Read user profile
+- `workflow` - Manage workflows
 
 Authorization prompt shows:
 
@@ -368,9 +368,9 @@ Unnecessary scopes increase attack surface if token leaked.
 
 Asana MCP might request:
 
-- `tasks:read` — Read task data
-- `tasks:write` — Create/modify tasks
-- `projects:read` — Read project info
+- `tasks:read` - Read task data
+- `tasks:write` - Create/modify tasks
+- `projects:read` - Read project info
 
 Request only what tool needs.
 

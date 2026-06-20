@@ -1,8 +1,6 @@
 ---
 description: >-
-  Reference for Java API design heuristics, public contracts,
-  mutability boundaries, visibility choices, collection exposure,
-  and exception-contract review rules.
+  Reference for Java API design heuristics, public contracts, mutability boundaries, visibility choices, collection exposure, and exception-contract review rules.
 ---
 
 # Java API Design Reference

@@ -1,2 +1,2 @@
 [dependency-groups]
-dev = ["pre-commit>=4.0.0"]
+dev = ["pre-commit>=4.6.0,<5"]

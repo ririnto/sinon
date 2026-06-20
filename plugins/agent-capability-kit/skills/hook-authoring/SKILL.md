@@ -2,7 +2,8 @@
 name: hook-authoring
 description: >-
   Author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails.
-  Triggers on PreToolUse or PostToolUse hook setup, event matcher configuration, or safety boundaries around tool execution in a plugin.
+  Triggers on PreToolUse or PostToolUse hook setup.
+  Also triggers on event matcher configuration or safety boundaries around tool execution in a plugin.
 ---
 
 # Hook Authoring
@@ -11,7 +12,8 @@ Author hooks that intercept Claude Code events and enforce deterministic checks 
 
 ## Goal
 
-Create hooks that validate, block, modify, or react to tool use, agent stops, session events, and user input without live host dependencies.
+Create hooks that validate, block, modify, or react to tool use.
+Hooks may also handle agent stops, session events, and user input without live host dependencies.
 
 ## Scope
 
@@ -25,7 +27,8 @@ This skill owns hook authoring within `${CLAUDE_PLUGIN_ROOT}`:
 - Security guardrails: input validation, path safety, variable quoting
 - Hook lifecycle: session-start loading, no hot-swap, restart requirement
 
-Hook configuration in `~/.claude/settings.json` uses direct JSON (not wrapped), while plugin hooks.json wraps events in `"hooks"` field.
+Hook configuration in `~/.claude/settings.json` uses direct JSON.
+Plugin `hooks.json` wraps events in the `"hooks"` field.
 
 ## Operating Rules
 
@@ -33,25 +36,19 @@ Hook configuration in `~/.claude/settings.json` uses direct JSON (not wrapped), 
    - Configuration changes require session restart.
 2. Plugin `hooks.json` MUST use the wrapper format: `{"hooks": {"PreToolUse": [...], ...}}`.
 3. User settings hooks MUST use direct format: `{"PreToolUse": [...], ...}` (no wrapper).
-4. When the manifest declares `"hooks": "./hooks/hooks.json"`, plugin-root `hooks/hooks.json` MUST exist.
-   - When plugin-root `hooks/hooks.json` exists, the manifest SHOULD declare `"hooks": "./hooks/hooks.json"`.
+4. Plugin-root `hooks/hooks.json` is auto-discovered and SHOULD stay out of `plugin.json` when it is the only hook configuration.
+   - Use `hooks` in `plugin.json` only for custom paths or inline hook configuration.
+   - When `hooks` declares a string path, that file MUST exist.
 5. Prompt-based hooks SHOULD be the default for complex logic.
-
-    - Command hooks SHOULD be used only for deterministic checks.
-
+   - Command hooks SHOULD be used only for deterministic checks.
 6. Hook scripts MUST quote all bash variables to prevent injection.
 7. Hook scripts MUST validate all JSON inputs via `jq`.
 8. All hooks MUST return valid JSON on stdout or stderr (exit 0 or 2 respectively).
 9. Hook commands MUST use `${CLAUDE_PLUGIN_ROOT}` for portability.
-
-    - Hardcoded paths are forbidden.
-
+   - Hardcoded paths are forbidden.
 10. Sessions may run in remote context.
-
     - Command hooks MUST test for `$CLAUDE_CODE_REMOTE` when I/O safety matters.
-
 11. Hooks run in parallel.
-
     - Design scripts as independent and non-blocking.
 
 ## Hook Types
@@ -392,7 +389,8 @@ Common patterns:
 
 Matchers are case-sensitive and match against the full tool name.
 
-Matcher evaluation precedence: Exact-match patterns are tried first, then pipe-separated alternations left-to-right, then regex (as a fallback).
+Matcher evaluation precedence is ordered.
+Exact-match patterns are tried first, then pipe-separated alternations left-to-right, then regex as a fallback.
 Wildcard `*` matches unconditionally if no prior pattern matched.
 Configure more specific matchers first to ensure they take precedence over broader patterns.
 
@@ -414,9 +412,9 @@ All hooks receive JSON with common fields:
 
 Event-specific fields:
 
-- `PreToolUse`/`PostToolUse` — `tool_name`, `tool_input`, `tool_result`
-- `UserPromptSubmit` — `user_prompt`
-- `Stop`/`SubagentStop` — `reason`
+- `PreToolUse`/`PostToolUse` - `tool_name`, `tool_input`, `tool_result`
+- `UserPromptSubmit` - `user_prompt`
+- `Stop`/`SubagentStop` - `reason`
 
 ### Prompt Hook Variable Substitution
 
@@ -491,12 +489,15 @@ Hook scripts run with elevated context.
 Apply these rules strictly:
 
 1. MUST validate all JSON inputs via `jq` (use `--exit-status` to detect parse errors).
-2. MUST reject path traversal (`..`), sensitive files (`.env`, `.aws`, `.pem`, `.key`), and system paths (`/bin`, `/usr`, `/etc`, `/sys`).
+2. MUST reject unsafe paths:
+   - Path traversal (`..`).
+   - Sensitive files (`.env`, `.aws`, `.pem`, `.key`).
+   - System paths (`/bin`, `/usr`, `/etc`, `/sys`).
 3. MUST quote all bash variables: `"$var"` not `$var`.
 4. SHOULD set explicit timeouts: prompt 30s, command 60s.
 
-See `references/security-patterns.md` for complete working examples, broken vs.
-correct comparisons, and testing strategies.
+See `references/security-patterns.md` for complete working examples.
+Also see it for broken-vs-correct comparisons and testing strategies.
 
 ## Hook Lifecycle and Limitations
 
@@ -594,7 +595,7 @@ Return:
 
 For advanced patterns and edge cases, see:
 
-- `references/prompt-hooks.md` — LLM-driven validation and context injection patterns
-- `references/security-patterns.md` — Path validation, injection prevention, sensitive file detection
-- `references/lifecycle.md` — Session lifecycle events, timing constraints, remote context handling
-- `references/performance.md` — Parallel execution design, caching, timeout tuning
+- `references/prompt-hooks.md` - LLM-driven validation and context injection patterns
+- `references/security-patterns.md` - Path validation, injection prevention, sensitive file detection
+- `references/lifecycle.md` - Session lifecycle events, timing constraints, remote context handling
+- `references/performance.md` - Parallel execution design, caching, timeout tuning

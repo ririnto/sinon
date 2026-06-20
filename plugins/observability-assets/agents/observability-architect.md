@@ -106,13 +106,13 @@ Example: `rate(errors[5m]) > 0.05` FOR 5m means alert fires after 5 consecutive 
 
 ### SLO/SLI Definition
 
-SLI (Service Level Indicator) — Measurable metric
+SLI (Service Level Indicator) - Measurable metric
 
 - `(successful requests) / (total requests)` = availability SLI
 - `requests completing in <100ms / total requests` = latency SLI
 - `(data replicated within 5s) / (total writes)` = freshness SLI
 
-SLO (Service Level Objective) — Target value
+SLO (Service Level Objective) - Target value
 
 - "99.9% of requests succeed" (availability SLO = 99.9%)
 - "99% of requests complete within 100ms" (latency SLO = 99% @ 100ms)
@@ -141,11 +141,8 @@ Recording Rules for SLI metrics
    - Dashboard deployment → `dashboard-provisioning`
 
 2. Load the matching skill using the Skill tool from the routing table
-
 3. Apply domain expertise from the loaded skill to the user's question
-
 4. For SLO-heavy questions: Load `prometheus-alert-rules` for burn-rate alerting logic, and `dashboard-provisioning` for SLO dashboard templates
-
 5. Integrate with other agents: If observability is being added to a Spring Boot service, suggest consulting `spring-architect` for instrumentation hooks
 
 ## Scope Notes

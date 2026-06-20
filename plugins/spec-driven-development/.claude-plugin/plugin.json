@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "author": {
     "name": "ririnto"
   },
@@ -14,6 +14,5 @@
   ],
   "license": "Apache-2.0",
   "name": "spec-driven-development",
-  "repository": "https://github.com/ririnto/sinon",
-  "skills": "./skills/"
+  "repository": "https://github.com/ririnto/sinon"
 }

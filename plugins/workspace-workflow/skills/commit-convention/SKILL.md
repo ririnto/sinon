@@ -25,13 +25,13 @@ It does not cover:
 ## Operating Rules
 
 - Every commit MUST contain exactly one logical change.
-  - A logical change is a single feature, bug fix, documentation update, or refactor—not a mix of independent concerns.
+  - A logical change is a single feature, bug fix, documentation update, or refactor - not a mix of independent concerns.
 - The first line (subject) MUST be concise, imperative mood, no trailing period.
   - SHOULD be 50 characters or fewer.
     - MUST NOT exceed 72 characters.
 - If a commit has a body, it MUST begin with a blank line after the subject.
 - Body lines SHOULD wrap at 72 characters to ensure readability in terminal and email contexts.
-- Commit messages SHOULD be written in English by default, or in the language of the project documentation and team communication (per `CLAUDE.md`).
+- Commit messages SHOULD be written in English by default, or in the language of the project documentation and team communication (per `AGENTS.md`).
   - Consistency within a single commit MUST be maintained.
 - Code identifiers, CLI tool names, and file paths MUST retain their original form regardless of the surrounding language.
 - The commit type, scope, and breaking-change marker MUST follow the Conventional Commits format specification.
@@ -273,8 +273,8 @@ Breaking change missing the `!` marker:
 # Wrong
 feat(api): remove deprecated endpoint
 
-User will miss the breaking-change signal if checking git log or
-running tooling.
+Git log hides the breaking-change signal.
+Release tooling may miss it.
 ```
 
 ```markdown

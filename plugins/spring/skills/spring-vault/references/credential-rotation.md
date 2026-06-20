@@ -28,8 +28,8 @@ The container manages unique registrations and deduplicates identical `Requested
 
 ### TTL tuning
 
-- `setExpiryThresholdSeconds` — how long before lease expiry the container considers a lease expired (default 60 seconds).
-- `setMinRenewalSeconds` — minimum time between renewal requests to avoid excessive calls (default 10 seconds).
+- `setExpiryThresholdSeconds` - how long before lease expiry the container considers a lease expired (default 60 seconds).
+- `setMinRenewalSeconds` - minimum time between renewal requests to avoid excessive calls (default 10 seconds).
 
 Both values are calculated from the lease TTL and local system clock.
 
@@ -92,8 +92,8 @@ container.register(requestedSecret, (lease, secrets) -> {
 ## CertificateContainer (4.1)
 
 `CertificateContainer` manages certificates issued by Vault's PKI secrets engine.
-Certificates are typically not associated with a lease and therefore do not require renewal, but they can be rotated when they expire.
-Certificate rotation is effectively re-issuance.
+Certificates typically have no lease and therefore do not require renewal.
+Rotate them when they expire.
 
 ```java
 CertificateContainer container = new CertificateContainer(vaultOperations.opsForPki());

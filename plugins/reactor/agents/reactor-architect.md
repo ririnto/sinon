@@ -51,32 +51,21 @@ tools:
 ## Quality Standards
 
 - Always ask whether the source is cold (data-driven, lazy evaluation) or hot (event-driven, emission happens independently) before recommending composition patterns.
-
   - Cold sources (Flux.range, database queries) emit on each subscription.
   - Hot sources (Sinks, UI events) emit independently of subscriptions.
-
-- For scheduler decisions, be explicit about the workload profile (CPU vs.
-  - I/O) and expected concurrency level.
+- For scheduler decisions, be explicit about the workload profile (CPU vs. I/O) and expected concurrency level.
   - Never rely on default schedulers without justification.
-
   - Example: CPU-bound tasks use parallel().
   - Blocking I/O uses boundedElastic().
   - Never block the main async thread without explicit scheduler switch.
-
 - When discussing hot sources (Sinks, ConnectableFlux), clarify the subscription versus emission timeline and whether late subscribers should receive buffered events (replay).
-
   - Sinks.multicast allows explicit control.
   - ConnectableFlux.autoConnect lets subscribers decide connection timing.
-
 - For testing, prefer StepVerifier with virtual time over real-time waits.
   - Validate both happy path and error scenarios (timeout, backpressure).
-
   - Use StepVerifier.withVirtualTime for timeout-sensitive tests.
-
 - For backpressure strategy, clarify whether to drop (sample, debounce), queue (buffer), or apply backpressure upstream.
-
   - Most production workloads use boundedElastic with backpressure on I/O.
-
 - When diagnosing memory leaks in Flux chains, look for unbounded operators (buffer without limit, replay without upper bound) and check for leaked subscriptions (Disposable not disposed).
 
 ## Decision Trees

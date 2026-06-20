@@ -105,8 +105,9 @@ Replace the path with your actual provider file location.
 
 ## Dashboard Source File Shape
 
-Legacy file provisioning reads raw dashboard JSON files from the provider `options.path`.
-Keep the source files as plain dashboard definitions rather than API import payloads.
+File provisioning reads dashboard files from the provider `options.path`.
+Current Grafana accepts classic dashboard wrapper files and Kubernetes resource-style files.
+The ordinary source-control path in this skill uses plain dashboard definitions so the provider YAML owns placement and sync behavior.
 
 Representative source file:
 
@@ -117,7 +118,7 @@ Representative source file:
   "title": "API Overview",
   "tags": ["operations", "api"],
   "timezone": "browser",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "version": 1,
   "refresh": "30s",
   "panels": []
@@ -136,16 +137,19 @@ Field semantics in the source file:
 | `version` | integer | no | Dashboard revision metadata. Grafana ignores it as a conflict gate during file provisioning. |
 | `panels` | array | yes | Panel definitions that make up the dashboard. |
 
-The provider YAML controls placement and sync behavior.
-Keep `folder`, provider-level `folderUid`, `disableDeletion`, `allowUiUpdates`, and `updateIntervalSeconds` in the provider config instead of mixing API-only wrapper fields into the dashboard source file.
+The provider YAML controls placement and sync behavior for this ordinary raw shape.
+Keep placement and sync fields in the provider config when the source file is a plain dashboard definition.
+Those fields include `folder`, provider-level `folderUid`, `disableDeletion`, `allowUiUpdates`, and `updateIntervalSeconds`.
+If the repository intentionally stores Grafana's classic wrapper shape, document that choice.
+Keep provider-level placement consistent with the wrapper's `folderUid`.
 
 Use when: you need the correct on-disk shape for dashboard files that Grafana loads from a provider path.
 
-## API and Resource Payload Boundary
+## File Shapes and API Boundary
 
-Do not confuse raw file-provisioning source files with API or resource envelopes.
+Do not confuse the chosen provider-path file shape with HTTP API response envelopes.
 
-Dashboard import-style payloads use a separate outer object:
+Grafana's classic file-provisioning wrapper uses a separate outer object:
 
 ```json
 {
@@ -153,7 +157,7 @@ Dashboard import-style payloads use a separate outer object:
     "id": null,
     "uid": "team-api-overview",
     "title": "API Overview",
-    "schemaVersion": 39,
+    "schemaVersion": 41,
     "version": 1,
     "panels": []
   },
@@ -164,8 +168,10 @@ Dashboard import-style payloads use a separate outer object:
 
 ```
 
-Use this envelope only for API-driven or resource-specific workflows that explicitly ask for it.
-Do not commit this wrapper as the raw dashboard file under a legacy provider `options.path`.
+This wrapper can live under a provider `options.path` when the team chooses the classic wrapped file shape.
+Do not label it as a raw dashboard source file.
+HTTP API request bodies can add API-only fields such as `message`.
+Keep those API-only fields out of provider-path files unless the current Grafana file provisioning documentation explicitly supports them.
 
 Use when: the blocker is translating between provider-path source files and API or resource payloads that add `dashboard`, `folderUid`, `overwrite`, or `message` fields.
 
@@ -212,7 +218,7 @@ Dashboard JSON source file with explicit uid -- correct legacy file-provisioning
   "title": "API Overview",
   "tags": ["generated"],
   "timezone": "browser",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "version": 1,
   "refresh": "30s",
   "panels": [
@@ -323,9 +329,10 @@ Treat `updateIntervalSeconds` as the configured rescan interval for provisioned 
 
 Choose the value based on how quickly file changes need to appear and how predictable the deployment filesystem is:
 
-- lower values shorten the time between Grafana rescan attempts
-- higher values reduce scan frequency and can be easier to reason about on slower or indirect filesystem paths
-- Docker bind mounts, network filesystems, and other paths outside the local filesystem should be validated in the real runtime path instead of relying on an assumed watch-versus-poll threshold
+- values greater than 10 seconds make Grafana poll the provider path at that interval
+- values of 10 seconds or less make Grafana rely on filesystem watch events
+- Docker bind mounts, network filesystems, and other indirect filesystem paths should be validated in the real runtime path.
+  - Watch events may not reach Grafana on those filesystems.
 
 Example Docker provider with a 30-second rescan interval:
 
@@ -337,7 +344,6 @@ providers:
     updateIntervalSeconds: 30
     options:
       path: /var/lib/grafana/dashboards
-
 ```
 
 Use when: the blocker is choosing an update interval or debugging why dashboard file changes are not picked up by a running Grafana instance.
@@ -378,8 +384,8 @@ UI export workflows for moving a dashboard into provisioning:
 | API `GET /api/dashboards/uid/<uid>` | Extract the `dashboard` object from the response and save that raw object as the source file |
 
 UI export methods already produce raw dashboard JSON.
-API responses and import payloads add extra envelope fields such as `dashboard`, `meta`, `folderUid`, or `overwrite`.
-Strip those envelopes before storing a file under the legacy provider path.
+API responses add extra envelope fields such as `dashboard` and `meta`; import requests may add `folderUid`, `overwrite`, or `message`.
+Extract the dashboard object for the ordinary raw-file path, or deliberately store Grafana's classic wrapper shape and document that choice.
 The `id` field from one Grafana instance SHOULD be removed or set to `null` before the file becomes shared source.
 
 Use when: the blocker is understanding what happens when dashboard files are added, modified, or removed from the source directory.
@@ -393,11 +399,11 @@ Validate the common case with these checks:
 - environment-specific application is explicit and does not hide which file each environment loads
 - `allowUiUpdates` matches the intended workflow for UI edits versus Git-owned changes
 - reviewers can tell whether file content or Grafana UI state wins after drift
-- dashboard source files are raw dashboard JSON objects rather than API import payloads
+- dashboard source files use one documented shape: raw dashboard JSON, Grafana classic wrapper, or Kubernetes resource
 - fixed-folder providers use `folder` or provider-level `folderUid` deliberately when stable folder targeting is needed
 - `updateIntervalSeconds` matches the intended rescan cadence for the actual runtime filesystem
 - `foldersFromFilesStructure` providers do not also set `folder` or `folderUid` at the provider level
-- dashboard JSON files are reviewable and not just opaque exports dropped into the tree
+- dashboard JSON files stay reviewable instead of opaque exports dropped into the tree
 - the provider YAML is internally consistent about path, folder mapping, and update behavior
 - environment variables in provider YAML use only supported Grafana substitution syntax: `$ENV_VAR`, `${ENV_VAR}`, and `$$`
 
@@ -422,7 +428,7 @@ Return:
 
 - A provider MUST specify exactly one of `folder` or `options.foldersFromFilesStructure`, not both.
 - A provider using `foldersFromFilesStructure: true` MUST NOT set `folder` or `folderUid` at the provider level.
-- Legacy file-provisioning source files MUST be raw dashboard JSON objects, not API import payloads.
+- Provider-path source files MUST use one documented shape: raw dashboard JSON, Grafana classic wrapper, or Kubernetes resource.
 - Dashboard `id` SHOULD be removed or set to `null` before a source file is reused across Grafana instances.
 - `options.path` MUST resolve to a readable directory at Grafana runtime.
 - `allowUiUpdates: true` MUST be accompanied by a documented merge-back workflow.
@@ -431,16 +437,19 @@ Return:
 - File content SHOULD remain the reviewable source of truth over UI state.
 - Drift behavior SHOULD be obvious before enabling UI edits.
 - Environment variable substitution MUST NOT be relied upon inside dashboard JSON files.
-- API or resource payloads that use `dashboard`, `folderUid`, `overwrite`, or `message` MUST stay in API-specific sections and MUST NOT be documented as raw provider-path file content.
+- API-only payload fields such as `meta` and `message` MUST stay in API-specific sections.
+  - They MUST NOT be documented as raw provider-path file content.
 
 ## Common Pitfalls
 
 | Anti-pattern | Why it fails | Correct move |
 | --- | --- | --- |
-| storing API import payloads under the provider path | legacy file provisioning expects raw dashboard JSON files, not API envelopes with `dashboard` / `overwrite` / `folderUid` | commit the raw dashboard object itself as the source file |
+| mixing raw dashboard files and wrapped dashboard files without a documented choice | reviewers cannot tell whether placement comes from provider YAML or the wrapper payload | choose one provider-path shape |
+| | | document whether it is raw dashboard JSON, Grafana classic wrapper, or Kubernetes resource |
 | leaving `id` set to a numeric value from a UI export | numeric IDs are instance scoped and create portability problems across Grafana instances | remove `id` or set it to `null` before committing the shared source file |
 | managing `version` numbers in dashboard JSON files | Grafana ignores the `version` property during provisioning entirely | leave version as-is from export; do not attempt to bump it |
-| choosing `updateIntervalSeconds` by assumed watch-versus-poll cutoffs | hard-coded thresholds are deployment-specific and may not match the actual runtime filesystem behavior | set the interval as the desired rescan cadence and verify change pickup on the real path Grafana reads |
+| setting `updateIntervalSeconds` to 10 or less on a filesystem that drops watch events | Grafana relies on filesystem watch events at 10 seconds or less | set it above 10 seconds to force polling |
+| | | or fix the mount/sync path so watch events propagate |
 | mixing dashboard authoring guidance into provisioning docs | users lose the distinction between dashboard content and dashboard delivery | keep panel design and visualization authoring out of this skill, and keep file delivery here |
 | enabling `allowUiUpdates` without a clear merge-back workflow | UI edits appear to work and are later overwritten by files | document file-wins behavior and keep Git as the source of truth |
 | using `foldersFromFilesStructure` without unsetting `folder` | Grafana rejects the provider config at startup | ensure `folder` and `folderUid` are absent when `foldersFromFilesStructure: true` |

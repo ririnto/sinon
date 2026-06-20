@@ -1,9 +1,7 @@
 ---
 name: java-performance-concurrency
 description: >-
-  Review Java performance and concurrency decisions with evidence-driven profiling,
-  classify bottlenecks as CPU, I/O, contention, or allocation,
-  evaluate virtual-thread fit, and recommend the smallest measured change.
+  Review Java performance and concurrency decisions with evidence-driven profiling, classify bottlenecks as CPU, I/O, contention, or allocation, evaluate virtual-thread fit, and recommend the smallest measured change.
   Use when interpreting profiling results, choosing between platform and virtual threads, evaluating lock contention or allocation churn, or deciding whether a concurrency change is justified by measured evidence.
 ---
 
@@ -68,7 +66,6 @@ import org.openjdk.jmh.annotations.Measurement;
 @Warmup(iterations = 3, time = 1)
 @Measurement(iterations = 5, time = 1)
 public class ParserBenchmark {
-
     private final byte[] payload = "key=value,name=test".getBytes();
 
     @Benchmark

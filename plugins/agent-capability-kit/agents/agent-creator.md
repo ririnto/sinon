@@ -22,9 +22,9 @@ All outputs comply with Sinon agent and manifest rules.
 
 From the user's description, identify:
 
-- `Role` — what the agent does (e.g., "validates plugins", "reviews code", "generates templates").
-- `Key responsibilities` — 2-4 concrete tasks the agent owns.
-- `Input/output` — what the agent receives and produces.
+- `Role` - what the agent does (e.g., "validates plugins", "reviews code", "generates templates").
+- `Key responsibilities` - 2-4 concrete tasks the agent owns.
+- `Input/output` - what the agent receives and produces.
 
 ### Generate identifier
 
@@ -105,9 +105,9 @@ This agent creates agents for both sinon repository work and external user plugi
 When the user creates an agent for their own plugin:
 
 - First check if the plugin has an `AGENTS.md` rules document.
-  - Inspect `CLAUDE.md` only when `AGENTS.md` is absent.
+  - Treat `CLAUDE.md` as a pointer/import file, not as a separate rules source.
   - Follow those conventions if present.
-- Sinon-specific rules (manifest no-version, no-agents key, agent name = basename) apply only to sinon repository work.
+- Sinon-specific rules for optional manifest `version`, default `agents/` discovery, and agent name-to-basename matching apply only to Sinon repository work.
 - External plugins MAY have different agent naming, manifest structures, or file locations.
   - Respect their rules.
 - If the user's plugin has no documented rules, apply the sinon conventions as a best-practice baseline.
@@ -134,8 +134,7 @@ Deliver one complete agent `.md` file with:
 2. Markdown body as system prompt (100-200 lines typical).
 3. Concrete workflow example inline (optional but recommended).
 4. Clear output shape specification.
-
-Agent file is complete and ready to save to `agents/<identifier>.md` in the target plugin root.
+5. Complete content ready to save to `agents/<identifier>.md` in the target plugin root.
 
 ## Process
 
@@ -148,5 +147,4 @@ Agent file is complete and ready to save to `agents/<identifier>.md` in the targ
 7. Write system prompt as self-sufficient Markdown.
 8. Verify frontmatter name matches identifier.
 9. Deliver complete agent file.
-
-Output the final agent file content, ready to write to `agents/<identifier>.md`.
+   - Output the final agent file content, ready to write to `agents/<identifier>.md`.

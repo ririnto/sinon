@@ -34,6 +34,8 @@ Deployment failed: Application(s) [http, log] are not registered for the current
 dataflow:>app list
 No registered apps.
 
+The following coordinates match the official `rabbitmq-maven-latest` SCDF catalog.
+
 dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
 dataflow:>app register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:3.2.1
 dataflow:>stream deploy --name http-log

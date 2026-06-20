@@ -1,7 +1,6 @@
 ---
 description: >-
-  Overview of the Java plugin, its included skills, runtime model,
-  skill selection guidance, and Java LSP setup guidance.
+  Overview of the Java plugin, its included skills, runtime model, skill selection guidance, and Java LSP setup guidance.
 ---
 
 # Java
@@ -31,10 +30,6 @@ They should not stop at pointing toward other repositories or documentation when
 ## Included Agents
 
 - `java-architect`: coordinates Java language, testing, dependency, performance, and API design decisions when a task crosses multiple Java skills or needs architecture-level tradeoff review.
-
-## Included Commands
-
-This plugin ships no commands.
 
 ## Skill Selection
 
@@ -71,8 +66,8 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/` and `./.lsp.json`.
-Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
+This includes `skills/`, `agents/`, `.lsp.json`, and executable `bin/` when present.
 Local JDTLS support files live beside the manifest at the plugin root.
 
 ## Plugin Layout
@@ -102,7 +97,7 @@ plugins/java/
 - `.lsp.json` and `scripts/jdtls-wrapper.sh` expose the Java language-server surface for Claude-compatible local development.
 - `scripts/has-lombok.sh` supports Lombok source selection for the wrapper, and `scripts/test-jdtls-wrapper.sh` verifies wrapper behavior.
 - The plugin ships one plugin-root agent: `java-architect` for Java language, testing, dependency, performance, and API design decisions.
-- The plugin does not ship commands, hooks, MCP servers, or custom runtime data surfaces.
+- The plugin does not ship hooks, MCP servers, or custom runtime data surfaces.
 
 ## Design Principles
 
@@ -116,7 +111,7 @@ plugins/java/
 Install from Sinon:
 
 ```sh
-/plugin install java@sinon
+claude plugin install java@sinon
 ```
 
 For local development:

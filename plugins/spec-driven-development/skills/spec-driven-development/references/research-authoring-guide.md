@@ -137,7 +137,6 @@ Before using research in SPEC decisions:
 - Unresolved placeholders MUST NOT remain.
 - `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` MUST be run when `uv` can resolve its runtime and dependencies from local cache or local files, and failures MUST be resolved.
   - When the validator cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
-- If the consuming repository already uses markdownlint, maintainers MAY run `npx -y markdownlint-cli2 <touched-markdown-files>`.
 
 ## Refresh Rules
 

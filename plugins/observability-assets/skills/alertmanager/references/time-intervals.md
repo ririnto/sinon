@@ -317,7 +317,8 @@ Alerts that would have matched fall through to the next matching route or the ro
 - ensure `days_of_month` negative indices behave as expected for short months
 - confirm that `years` constraints do not silently expire your routing rules
 
-## Version Note
+## Compatibility Note
 
-- Treat `time_intervals` as a version-sensitive Alertmanager feature rather than a universal baseline.
-- The deprecated `mute_time_intervals` top-level key (separate from per-route `mute_time_intervals`) still parses but will be removed before v1.0.
+- Use `time_intervals` for current Alertmanager configs.
+- Keep the deprecated top-level `mute_time_intervals` key only when maintaining an existing config that still depends on it.
+  - Current docs mark it as deprecated and point to `time_intervals`.

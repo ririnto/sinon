@@ -2,31 +2,55 @@
 
 ## Purpose
 
-`SECURITY.md` captures the durable security contract: what the team protects, who is allowed to do what, where secrets live, and where audit trails for sensitive actions land.
+`SECURITY.md` captures the durable security contract.
+It states what the team protects, who is allowed to do what, where secrets live, and where audit trails for sensitive actions land.
 An agent loading this file should be able to refuse a request that would cross a documented boundary without escalating to a human.
 
 ## Threat Model
 
-- Spoofing: stolen session cookie replays end-user identity → short session TTL (15 min), refresh-token rotation (7-day lifetime), optional IP + user-agent fingerprint binding.
-- Tampering: request body altered in transit → enforce TLS only (no HTTP), sign request bodies for webhooks, schema-validate every boundary payload.
-- Repudiation: user denies an action → immutable audit log with monotonic event IDs, write to append-only sink with no delete permission.
-- Information disclosure: PII leaked in logs → structured logger drops fields not in `PII_ALLOWLIST` before write; assert coverage in unit tests.
-- Denial of service: traffic spike or expensive query exhausts the service → per-route rate limit (token bucket), query timeout (30s default), circuit breaker on downstream calls.
-- Elevation of privilege: low-privilege user reaches admin path → RBAC checked at handler entry; tests cover deny-case per route.
+- Spoofing: stolen session cookie replays end-user identity.
+  - Use short session TTL: 15 minutes.
+  - Rotate refresh tokens with a 7-day lifetime.
+  - Optionally bind sessions to IP and user-agent fingerprint.
+- Tampering: request body altered in transit.
+  - Enforce TLS only.
+  - Sign request bodies for webhooks.
+  - Schema-validate every boundary payload.
+- Repudiation: user denies an action.
+  - Use immutable audit log with monotonic event IDs.
+  - Write to append-only sink with no delete permission.
+- Information disclosure: PII leaked in logs.
+  - Drop fields not in `PII_ALLOWLIST` before write.
+  - Assert coverage in unit tests.
+- Denial of service: traffic spike or expensive query exhausts the service.
+  - Use per-route token-bucket rate limits.
+  - Apply a 30-second default query timeout.
+  - Add circuit breakers on downstream calls.
+- Elevation of privilege: low-privilege user reaches admin path.
+  - Check RBAC at handler entry.
+  - Cover deny-case behavior per route in tests.
 
 ## Secret Management
 
-- Database credentials live in the configured secret manager and are injected via environment variables at boot; rotate every 90 days.
-- Third-party API keys live in the configured secret manager under per-service paths; rotate every 90 days or immediately on compromise.
-- Signing keys for outbound webhooks live in the configured secret manager/signing/; rotate every 180 days with overlapping validity window.
-- Never write secrets into the repository; add a target-owned secret scanner or CI policy when the project needs mechanical secret-pattern enforcement.
+- Database credentials live in the configured secret manager and are injected via environment variables at boot.
+  - Rotate every 90 days.
+- Third-party API keys live in the configured secret manager under per-service paths.
+  - Rotate every 90 days or immediately on compromise.
+- Signing keys for outbound webhooks live in the configured secret manager/signing/.
+  - Rotate every 180 days with overlapping validity window.
+- Never write secrets into the repository.
+  - Add a target-owned secret scanner or CI policy when the project needs mechanical secret-pattern enforcement.
 
 ## Permission Boundaries
 
-- End user: may read and modify their own resources; MUST NOT read other users' data.
-- Support agent: may read across users via impersonation API with audit log entry; MUST NOT modify billing data.
-- Admin: may modify configuration, feature flags, and per-tenant settings; MUST NOT execute arbitrary SQL.
-- Automation / agent: may run pre-approved workflow steps with a scoped service-account token; MUST NOT escalate to admin scope without human approval.
+- End user: may read and modify their own resources.
+  - MUST NOT read other users' data.
+- Support agent: may read across users via impersonation API with audit log entry.
+  - MUST NOT modify billing data.
+- Admin: may modify configuration, feature flags, and per-tenant settings.
+  - MUST NOT execute arbitrary SQL.
+- Automation / agent: may run pre-approved workflow steps with a scoped service-account token.
+  - MUST NOT escalate to admin scope without human approval.
 
 ## Audit Logging
 

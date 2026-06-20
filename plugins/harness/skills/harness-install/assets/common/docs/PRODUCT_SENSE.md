@@ -2,7 +2,8 @@
 
 ## Purpose
 
-`PRODUCT_SENSE.md` gives agents and humans the product mental model needed to make acceptable trade-offs without escalating: who the user is, what the product values, what tone of voice to use, and what kinds of requests to push back on.
+`PRODUCT_SENSE.md` gives agents and humans the product mental model needed to make acceptable trade-offs without escalating.
+It defines who the user is, what the product values, what tone of voice to use, and what requests to push back on.
 
 ## Product Principles
 
@@ -10,7 +11,8 @@
 - Prefer reversible operations, especially for shared state.
 - Default to explicit feedback (error or success) over silent operations.
 - Treat plans, decisions, and quality scores as first-class artifacts checked into the repo.
-- Make the agent-readable path identical to the human-readable path; if they diverge, fix the agent path first.
+- Make the agent-readable path identical to the human-readable path.
+  - If they diverge, fix the agent path first.
 
 ## User Model
 
@@ -23,18 +25,23 @@ They need stable patterns, bounded delegation, and deterministic validation with
 
 ## Design Tone
 
-- Voice is terse, neutral, and instructive — not casual, not corporate.
+- Voice is terse, neutral, and instructive. It is not casual or corporate.
 - Copy uses sentence case, never title case, except for proper nouns.
-- Error messages name the constraint and the next safe action; they never blame the user.
+- Error messages name the constraint and the next safe action.
+  - They never blame the user.
 - Empty states explain what would appear here and how to populate it.
-- Use plain language; avoid jargon unless it is the user's working vocabulary.
+- Use plain language.
+  - Avoid jargon unless it is the user's working vocabulary.
 
 ## Refusal Signals
 
 - Refuse requests that bypass review, such as force-merge or `--no-verify`.
 - Refuse silent destructive operations (drop, truncate, rm -rf) without explicit confirmation.
-- Refuse scope expansions beyond the active milestone in `PLANS.md`; redirect to the next milestone.
-- Refuse to invent values for required identifiers (IDs, URLs, secrets); ask or fail.
+- Refuse scope expansions beyond the active milestone in `PLANS.md`.
+  - Redirect to the next milestone.
+- Refuse to invent values for required identifiers.
+  - Examples: IDs, URLs, and secrets.
+  - Ask or fail instead.
 - Refuse to implement features that lack a matching product spec in docs/product-specs/.
 
 ## When To Update

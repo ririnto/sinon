@@ -3,15 +3,17 @@
 set -e
 
 root=${CLAUDE_PLUGIN_ROOT:-$(CDPATH='' cd "$(dirname "$0")/../../.." && pwd)}
-warn_counter_file=$(mktemp)
-echo '0' >"$warn_counter_file"
-# Increment the shared warning counter by one.
+check_job_file=$(mktemp)
+current_warn_file=
+trap 'rm -f "$check_job_file"' EXIT
+
+# Increment the current job warning counter by one.
 #
 # @return Updates the warn counter file.
 warn_count_increment() {
-  current=$(cat "$warn_counter_file")
-  current=$((current + 1))
-  printf '%d\n' "$current" >"$warn_counter_file"
+  if [ -n "$current_warn_file" ]; then
+    printf '1\n' >>"$current_warn_file"
+  fi
 }
 
 # List tracked shell scripts covered by repository checks.
@@ -23,77 +25,98 @@ list_shell_files() {
   done
 }
 
-# List production Python scripts covered by repository checks.
+# Check marketplace and plugin package metadata.
 #
-# @return Writes one path per line.
-list_python_files() {
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install-harness.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/__init__.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/advisory.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/cli.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/commands.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/contracts.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/errors.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/hooks.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/installer.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/models.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/operations.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/paths.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/planning.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/scripts/install_harness/preview.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/check.py"
-  printf '%s\n' "$root/plugins/harness/skills/harness-install/assets/uv/scripts/fix.py"
+# Runs the package validator over JSON manifests, README inventories, skill frontmatter,
+# and agent routing tables.
+#
+# @return Writes 0 when validation passes, 1 when diagnostics are found.
+check_plugin_packages() {
+  validator=$root/plugins/harness/scripts/plugin-self-check/package-checks.py
+  if ! python_bin=$(command -v python3 2>&1); then
+    echo 'warning: python3 not in PATH; skipping plugin package validation' >&2
+    warn_count_increment
+    echo '0'
+    return
+  fi
+  package_output=$("$python_bin" "$validator" "$root" 2>&1) && package_rc=0 || package_rc=$?
+  if [ "$package_rc" -ne 0 ]; then
+    printf '%s\n' "$package_output" >&2
+    echo '1'
+    return
+  fi
+  printf '%s\n' "$package_output" >&2
+  echo '0'
 }
 
-# Check shell files with shellcheck and shfmt.
+# Check shell files with shellcheck.
 #
-# Runs shellcheck and shfmt on tracked shell scripts, collecting findings
-# in structured diagnostic format and continuing on tool failure. Missing tools emit warnings.
+# Runs shellcheck on tracked shell scripts. Missing tools emit warnings.
 #
 # @return Accumulates error count.
-check_shell_files() {
-  error_count=0
-  shellcheck_tool_checked=0
-  shfmt_tool_checked=0
-  for path in $(list_shell_files); do
-    if [ ! -f "$path" ]; then
-      continue
+check_shellcheck_files() {
+  shell_file_list=$(mktemp)
+  list_shell_files >"$shell_file_list"
+  if [ ! -s "$shell_file_list" ]; then
+    rm -f "$shell_file_list"
+    echo '0'
+    return
+  fi
+  if ! shellcheck_bin=$(command -v shellcheck 2>&1); then
+    echo 'warning: shellcheck not in PATH; skipping shellcheck' >&2
+    warn_count_increment
+    shellcheck_bin=
+  fi
+  if [ -n "$shellcheck_bin" ]; then
+    shellcheck_output=$(xargs "$shellcheck_bin" -x -P "$root/plugins/harness/scripts/plugin-self-check" <"$shell_file_list" 2>&1) && shellcheck_rc=0 || shellcheck_rc=$?
+    rm -f "$shell_file_list"
+    if [ "$shellcheck_rc" -ne 0 ]; then
+      printf '%s\n' "$shellcheck_output" >&2
+      echo '1'
+      return
     fi
-    if [ "$shellcheck_tool_checked" -eq 0 ]; then
-      if ! shellcheck_bin=$(command -v shellcheck 2>&1); then
-        printf 'warning: shellcheck not in PATH; skipping shellcheck for %s\n' "$path" >&2
-        warn_count_increment
-        shellcheck_bin=
-      fi
-      shellcheck_tool_checked=1
+    echo '0'
+    return
+  fi
+  rm -f "$shell_file_list"
+  echo '0'
+}
+
+# Check shell files with shfmt.
+#
+# Runs shfmt on tracked shell scripts. Missing tools emit warnings.
+#
+# @return Accumulates error count.
+check_shfmt_files() {
+  shell_file_list=$(mktemp)
+  list_shell_files >"$shell_file_list"
+  if [ ! -s "$shell_file_list" ]; then
+    rm -f "$shell_file_list"
+    echo '0'
+    return
+  fi
+  if ! shfmt_bin=$(command -v shfmt 2>&1); then
+    echo 'warning: shfmt not in PATH; skipping shfmt' >&2
+    warn_count_increment
+    shfmt_bin=
+  fi
+  if [ -n "$shfmt_bin" ]; then
+    shfmt_diff=$(xargs "$shfmt_bin" -d <"$shell_file_list" 2>&1) && shfmt_rc=0 || shfmt_rc=$?
+    rm -f "$shell_file_list"
+    if [ "$shfmt_rc" -ne 0 ]; then
+      printf '%s\n' "$shfmt_diff" >&2
+      echo '1'
+      return
+    elif [ -n "$shfmt_diff" ]; then
+      printf '%s\n' "$shfmt_diff" >&2
+      echo '1'
+      return
     fi
-    if [ -n "$shellcheck_bin" ]; then
-      shellcheck_output=$("$shellcheck_bin" -x -P "$root/plugins/harness/scripts/plugin-self-check" "$path" 2>&1) && shellcheck_rc=0 || shellcheck_rc=$?
-      if [ "$shellcheck_rc" -ne 0 ]; then
-        printf '%s\n' "$shellcheck_output" >&2
-        error_count=$((error_count + 1))
-      fi
-    fi
-    if [ "$shfmt_tool_checked" -eq 0 ]; then
-      if ! shfmt_bin=$(command -v shfmt 2>&1); then
-        printf 'warning: shfmt not in PATH; skipping shfmt for %s\n' "$path" >&2
-        warn_count_increment
-        shfmt_bin=
-      fi
-      shfmt_tool_checked=1
-    fi
-    if [ -n "$shfmt_bin" ]; then
-      shfmt_diff=$("$shfmt_bin" -d "$path" 2>&1) && shfmt_rc=0 || shfmt_rc=$?
-      if [ "$shfmt_rc" -ne 0 ]; then
-        printf '%s\n' "$shfmt_diff" >&2
-        error_count=$((error_count + 1))
-      elif [ -n "$shfmt_diff" ]; then
-        printf '%s\n' "$shfmt_diff" >&2
-        error_count=$((error_count + 1))
-      fi
-    fi
-  done
-  printf '%d\n' "$error_count"
+    echo '0'
+    return
+  fi
+  rm -f "$shell_file_list"
+  echo '0'
 }
 
 # Check Markdown files with markdownlint-cli2.
@@ -131,49 +154,132 @@ check_markdown_files() {
   printf '%d\n' "$error_count"
 }
 
-# Check Python files with ruff check and ruff format.
+# Check Python files with ruff check.
 #
-# Runs ruff check and ruff format on production Python scripts, collecting
+# Runs ruff check with Ruff's project discovery, collecting
 # findings in structured diagnostic format and continuing on tool failure. Missing tools emit warnings.
 #
 # @return Accumulates error count.
-check_python_files() {
-  error_count=0
-  uv_tool_checked=0
-  for path in $(list_python_files); do
-    if [ ! -f "$path" ]; then
-      continue
-    fi
-    if [ "$uv_tool_checked" -eq 0 ]; then
-      if ! uv_bin=$(command -v uv 2>&1); then
-        printf 'warning: uv not in PATH; skipping ruff checks for %s\n' "$path" >&2
-        warn_count_increment
-        uv_bin=
-      fi
-      uv_tool_checked=1
-    fi
-    if [ -n "$uv_bin" ]; then
-      check_output=$("$uv_bin" run --with ruff==0.15.16 ruff check "$path" 2>&1) && check_rc=0 || check_rc=$?
-      if [ "$check_rc" -ne 0 ]; then
-        printf '%s\n' "$check_output" >&2
-        error_count=$((error_count + 1))
-      fi
-      format_check_output=$("$uv_bin" run --with ruff==0.15.16 ruff format --check "$path" 2>&1) && format_rc=0 || format_rc=$?
-      if [ "$format_rc" -ne 0 ]; then
-        printf '%s\n' "$format_check_output" >&2
-        error_count=$((error_count + 1))
-      fi
-    fi
-  done
-  printf '%d\n' "$error_count"
+check_python_lint() {
+  if ! uv_bin=$(command -v uv 2>&1); then
+    echo 'warning: uv not in PATH; skipping ruff check' >&2
+    warn_count_increment
+    echo '0'
+    return
+  fi
+  check_output=$(cd "$root" && "$uv_bin" run --with 'ruff>=0.15.18,<0.16.0' ruff check . 2>&1) && check_rc=0 || check_rc=$?
+  if [ "$check_rc" -ne 0 ]; then
+    printf '%s\n' "$check_output" >&2
+    echo '1'
+    return
+  fi
+  echo '0'
 }
 
-shell_errors=$(check_shell_files)
-python_errors=$(check_python_files)
-markdown_errors=$(check_markdown_files)
-warn_count=$(cat "$warn_counter_file")
-rm -f "$warn_counter_file"
-error_count=$((shell_errors + python_errors + markdown_errors))
+# Check Python files with ruff format.
+#
+# Runs ruff format with Ruff's project discovery. Missing tools emit warnings.
+#
+# @return Accumulates error count.
+check_python_format() {
+  if ! uv_bin=$(command -v uv 2>&1); then
+    echo 'warning: uv not in PATH; skipping ruff format' >&2
+    warn_count_increment
+    echo '0'
+    return
+  fi
+  format_check_output=$(cd "$root" && "$uv_bin" run --with 'ruff>=0.15.18,<0.16.0' ruff format --check . 2>&1) && format_rc=0 || format_rc=$?
+  if [ "$format_rc" -ne 0 ]; then
+    printf '%s\n' "$format_check_output" >&2
+    echo '1'
+    return
+  fi
+  echo '0'
+}
+
+# Run one repository check in a background job.
+#
+# @param check_name Function name to run.
+# @return Appends job metadata to the check job file.
+run_check_by_name() {
+  check_name=$1
+  case "$check_name" in
+  check_shellcheck_files) check_shellcheck_files ;;
+  check_shfmt_files) check_shfmt_files ;;
+  check_python_lint) check_python_lint ;;
+  check_python_format) check_python_format ;;
+  check_markdown_files) check_markdown_files ;;
+  check_plugin_packages) check_plugin_packages ;;
+  *)
+    printf 'error: unknown check: %s\n' "$check_name" >&2
+    return 1
+    ;;
+  esac
+}
+
+# Run one repository check in a background job.
+#
+# @param check_name Function name to run.
+# @return Appends job metadata to the check job file.
+run_check_job() {
+  check_name=$1
+  output_file=$(mktemp)
+  result_file=$(mktemp)
+  warn_file=$(mktemp)
+  : >"$warn_file"
+  (
+    current_warn_file=$warn_file
+    if check_errors=$(run_check_by_name "$check_name" 2>"$output_file"); then
+      printf '%s\n' "$check_errors" >"$result_file"
+    else
+      printf '1\n' >"$result_file"
+      exit 1
+    fi
+  ) &
+  printf '%s %s %s %s\n' "$!" "$output_file" "$result_file" "$warn_file" >>"$check_job_file"
+}
+
+# Wait for background repository checks and collect diagnostics.
+#
+# @return Sets total_error_count and total_warn_count.
+wait_check_jobs() {
+  error_count=0
+  warn_count=0
+  while IFS=' ' read -r pid output_file result_file warn_file; do
+    if wait "$pid"; then
+      job_rc=0
+    else
+      job_rc=$?
+    fi
+    if [ -s "$output_file" ]; then
+      cat "$output_file" >&2
+    fi
+    if [ -s "$result_file" ]; then
+      job_errors=$(cat "$result_file")
+    else
+      job_errors=1
+    fi
+    if [ "$job_rc" -ne 0 ]; then
+      job_errors=$((job_errors + 1))
+    fi
+    job_warnings=$(wc -l <"$warn_file" | tr -d ' ')
+    error_count=$((error_count + job_errors))
+    warn_count=$((warn_count + job_warnings))
+    rm -f "$output_file" "$result_file" "$warn_file"
+  done <"$check_job_file"
+  total_error_count=$error_count
+  total_warn_count=$warn_count
+}
+
+run_check_job check_shellcheck_files
+run_check_job check_shfmt_files
+run_check_job check_python_lint
+run_check_job check_python_format
+run_check_job check_markdown_files
+run_check_job check_plugin_packages
+wait_check_jobs
+error_count=$total_error_count
+warn_count=$total_warn_count
 if [ "$error_count" -eq 0 ] && [ "$warn_count" -eq 0 ]; then
   echo 'Repository validation passed.'
 else

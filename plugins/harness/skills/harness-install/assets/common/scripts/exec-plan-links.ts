@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
 
-import type { Rule } from "markdownlint@0.40.0";
+import type { Rule } from "markdownlint@0.41.0";
 
 const datedExecPlanPattern = /(^|[[(<`"\s/])([0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9][a-z0-9-]*\.md)([^a-zA-Z0-9_.-]|$)/;
 

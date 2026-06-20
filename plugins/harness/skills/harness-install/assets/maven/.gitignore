@@ -3,23 +3,98 @@ target/
 
 # Maven local state
 .mvn/timing.properties
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/wrapper/maven-wrapper.jar
 
-# IDE
+# Java and Eclipse
+bin/
+tmp/
+*.class
+*.jar
+*.war
+*.ear
+.project
+.classpath
+.settings/
+.factorypath
+.metadata
+.externalToolBuilders/
+*.launch
+.apt_generated/
+.apt_generated_tests/
+hs_err_pid*
+replay_pid*
+
+# Editors: JetBrains and VS Code
 .idea/
 *.iml
+*.ipr
+*.iws
+out/
+cmake-build-*/
 .vscode/
+*.vsix
 *.swp
 *.swo
-*~
 
-# OS
+# OS: macOS
 .DS_Store
+.localized
+__MACOSX/
 .AppleDouble
 .LSOverride
+Icon?
 ._*
-Desktop.ini
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.com.apple.timemachine.supported
+.PKInstallSandboxManager
+.PKInstallSandboxManager-SystemSoftware
+.hotfiles.btree
+.vol
+.file
+.disk_label*
+lost+found
+.HFS+ Private Directory Data
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# OS: Windows
 Thumbs.db
+Thumbs.db:encryptable
 ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.stackdump
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# OS: Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+nohup.out
 
 # Local environment
 .env
@@ -27,12 +102,14 @@ ehthumbs.db
 !.env.example
 *.local
 .tmp/
-tmp/
 temp/
 *.tmp
+*.bak
+*.swp
+*.swo
 
 # Local files
-*.bak
 **/*.bak
 *.log
 logs/
+log/

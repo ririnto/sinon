@@ -363,9 +363,9 @@ Return:
 
 ## References
 
-- Open [references/hal`-forms-and-affordances.md`](references/hal-forms-and-affordances.md) when plain HAL links are not enough and the representation must advertise action metadata or HAL-FORMS templates.
-- Open [references/representation`-processors.md`](references/representation-processors.md) when one cross-cutting rule must enrich many models with the same extra links or metadata.
-- Open [references/entity`-links-and-hypermedia-support.md`](references/entity-links-and-hypermedia-support.md) when links should derive from aggregate types, the app needs `EntityLinks`, or explicit `@EnableHypermediaSupport` configuration is required.
-- Open [references/pagedmodel`-navigation-and-page-metadata.md`](references/pagedmodel-navigation-and-page-metadata.md) when clients depend on `prev`/`next`/`first`/`last` navigation links or precise page metadata semantics.
-- Open [references/forwarded`-headers-and-proxy-configuration.md`](references/forwarded-headers-and-proxy-configuration.md) when generated links are wrong behind a reverse proxy, gateway, or base-path rewrite.
-- Open [references/problem`-details-error-representations.md`](references/problem-details-error-representations.md) when error responses should use `application/problem+json` instead of ad hoc JSON payloads.
+- Open [references/hal-forms-and-affordances.md](references/hal-forms-and-affordances.md) when plain HAL links are not enough and the representation must advertise action metadata or HAL-FORMS templates.
+- Open [references/representation-processors.md](references/representation-processors.md) when one cross-cutting rule must enrich many models with the same extra links or metadata.
+- Open [references/entity-links-and-hypermedia-support.md](references/entity-links-and-hypermedia-support.md) when links should derive from aggregate types, the app needs `EntityLinks`, or explicit `@EnableHypermediaSupport` configuration is required.
+- Open [references/pagedmodel-navigation-and-page-metadata.md](references/pagedmodel-navigation-and-page-metadata.md) when clients depend on `prev`/`next`/`first`/`last` navigation links or precise page metadata semantics.
+- Open [references/forwarded-headers-and-proxy-configuration.md](references/forwarded-headers-and-proxy-configuration.md) when generated links are wrong behind a reverse proxy, gateway, or base-path rewrite.
+- Open [references/problem-details-error-representations.md](references/problem-details-error-representations.md) when error responses should use `application/problem+json` instead of ad hoc JSON payloads.

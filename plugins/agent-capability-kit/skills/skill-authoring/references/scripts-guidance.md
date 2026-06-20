@@ -57,7 +57,7 @@ Python scripts that run directly should start with `#!/usr/bin/env -S uv run`, t
 Use PEP 508 major-compatible dependency ranges for external packages, such as `package>=1.2.3,<2`, and use `dependencies = []` for stdlib-only direct scripts when an explicit declaration is needed.
 
 JavaScript and TypeScript scripts that run directly should start with `#!/usr/bin/env bun`, then `// -*- coding: utf-8 -*-`.
-Declare external dependencies with major-compatible import specifiers, such as `import * as cheerio from "cheerio@^1.0.0"`.
+Declare external dependencies with major-compatible import specifiers, such as `import * as cheerio from "cheerio@^1.2.0"`.
 Scripts that use only the JavaScript standard library or Bun built-ins need no dependency metadata block.
 
 Shell scripts have no equivalent dependency metadata block.

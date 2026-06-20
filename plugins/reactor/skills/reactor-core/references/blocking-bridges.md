@@ -131,25 +131,25 @@ To back the shared `Schedulers.boundedElastic()` with virtual threads, start the
 java -Dreactor.schedulers.defaultBoundedElasticOnVirtualThreads=true -jar app.jar
 ```
 
-This does not change the bridge pattern but affects concurrency behavior:
+This preserves the bridge pattern and changes concurrency behavior:
 
 - Virtual threads still block their carrier when calling pinning-sensitive APIs (`synchronized`, native methods).
 - A high volume of `fromCallable` bridges on a virtual-thread-backed pool can create many virtual threads.
 - For pinning-sensitive blocking calls, prefer a dedicated `newBoundedElastic(...)` with explicit capacity tuning rather than enabling virtual threads globally.
 
-```java
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-final class PinnedBlockingBridge {
-    Mono<byte[]> readResource(String path) {
-        return Mono.fromCallable(() -> pinnedRead(path))
-            .subscribeOn(Schedulers.newBoundedElastic(4, 100, "pinned-io"));
+    ```java
+    import reactor.core.publisher.Mono;
+    import reactor.core.scheduler.Schedulers;
+    final class PinnedBlockingBridge {
+        Mono<byte[]> readResource(String path) {
+            return Mono.fromCallable(() -> pinnedRead(path))
+                .subscribeOn(Schedulers.newBoundedElastic(4, 100, "pinned-io"));
+        }
+        private byte[] pinnedRead(String path) {
+            return new byte[0];
+        }
     }
-    private byte[] pinnedRead(String path) {
-        return new byte[0];
-    }
-}
-```
+    ```
 
 ## Failure checks
 

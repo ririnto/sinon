@@ -27,6 +27,43 @@ assert_stack_gitignore_scope() {
   require_text "$path" ".tmp/"
 }
 
+# Require cross-platform OS, editor, log, and temporary-file ignores.
+#
+# @param path Gitignore path.
+# @return Exits non-zero when common ignore rules are missing.
+assert_common_gitignore_entries() {
+  path=$1
+  require_texts "$path" ".DS_Store" ".com.apple.timemachine.supported" ".PKInstallSandboxManager" "[Dd]esktop.ini" "*.msix" "*.lnk" ".fuse_hidden*" ".idea/" ".vscode/"
+  require_texts "$path" "logs/" "log/" "*.log" "*.tmp" ".tmp/" "tmp/" "temp/"
+}
+
+# Require JVM and Eclipse-generated ignores.
+#
+# @param path Gitignore path.
+# @return Exits non-zero when JVM or Eclipse ignore rules are missing.
+assert_jvm_gitignore_entries() {
+  path=$1
+  require_texts "$path" "bin/" "*.class" ".metadata" ".project" ".classpath" ".settings/" ".factorypath" ".externalToolBuilders/" "*.launch"
+}
+
+# Require Node and Bun generated ignores.
+#
+# @param path Gitignore path.
+# @return Exits non-zero when Node or Bun ignore rules are missing.
+assert_node_gitignore_entries() {
+  path=$1
+  require_texts "$path" "node_modules/" "coverage/" "*.tsbuildinfo" "report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json"
+}
+
+# Require Python generated ignores.
+#
+# @param path Gitignore path.
+# @return Exits non-zero when Python ignore rules are missing.
+assert_python_gitignore_entries() {
+  path=$1
+  require_texts "$path" "__pycache__/" "*.py[codz]" "bin/" ".ruff_cache/" ".pytest_cache/" ".venv/"
+}
+
 # Require Gradle harness assets.
 #
 # @return Exits non-zero when required Gradle assets are missing.
@@ -47,9 +84,13 @@ assert_gradle_assets() {
   require_texts "$assets_root/settings.gradle.kts" "tasks(\"ktlintCheck\")" "createHooks()"
   sh -n "$assets_root/scripts/worktree-post-create.sh"
   require_text "$assets_root/scripts/worktree-post-create.sh" "./gradlew"
+  require_text "$assets_root/.editorconfig" "charset = utf-8"
+  require_text "$assets_root/.editorconfig" "ij_continuation_indent_size = 4"
   require_text "$assets_root/.editorconfig" "[{*.bash,*.sh,*.zsh}]"
   require_texts "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt" "SlfDirectLoggingKtlintRule()" "TerminalBranchWhenKtlintRule()" "PublicDeclarationDocCommentKtlintRule()"
   assert_stack_gitignore_scope "$assets_root/.gitignore"
+  assert_common_gitignore_entries "$assets_root/.gitignore"
+  assert_jvm_gitignore_entries "$assets_root/.gitignore"
   printf '[gradle assets] OK\n' >&2
 }
 
@@ -75,6 +116,8 @@ assert_bun_assets() {
   require_texts "$assets_root/.husky/pre-commit" "bun typecheck" "bun run check"
   require_texts "$assets_root/.husky/pre-push" "bun typecheck" "bun run check" "bun test"
   assert_stack_gitignore_scope "$assets_root/.gitignore"
+  assert_common_gitignore_entries "$assets_root/.gitignore"
+  assert_node_gitignore_entries "$assets_root/.gitignore"
   printf '[bun assets] OK\n' >&2
 }
 
@@ -88,10 +131,12 @@ assert_uv_assets() {
   require_file "$assets_root/scripts/check.py"
   require_file "$assets_root/scripts/fix.py"
   require_file "$assets_root/.pre-commit-config.yaml"
-  require_texts "$assets_root/scripts/check.py" 'shutil.which("markdownlint-cli2")' "skipping Markdown linting" '"ruff>=0.15.16,<0.16.0"'
+  require_texts "$assets_root/scripts/check.py" 'shutil.which("markdownlint-cli2")' "skipping Markdown linting" '"ruff>=0.15.18,<0.16.0"'
   require_texts "$assets_root/scripts/fix.py" 'shutil.which("markdownlint-cli2")' "skipping Markdown fixes" '"--fix"'
   require_texts "$assets_root/.pre-commit-config.yaml" "repo: local" "- id: lint" "- id: full-lint"
   assert_stack_gitignore_scope "$assets_root/.gitignore"
+  assert_common_gitignore_entries "$assets_root/.gitignore"
+  assert_python_gitignore_entries "$assets_root/.gitignore"
   printf '[uv assets] OK\n' >&2
 }
 
@@ -114,7 +159,11 @@ assert_maven_assets() {
   require_texts "$assets_root/.githooks/pre-commit" 'git ls-files -- "*.java"' 'spotlessFiles' "./mvnw validate -DspotlessFiles=\"\$files\""
   require_text "$assets_root/.githooks/pre-push" "./mvnw verify"
   require_text "$assets_root/.editorconfig" "[{*.bash,*.sh,*.zsh}]"
+  require_text "$assets_root/.editorconfig" "charset = utf-8"
+  require_text "$assets_root/.editorconfig" "ij_continuation_indent_size = 4"
   assert_stack_gitignore_scope "$assets_root/.gitignore"
+  assert_common_gitignore_entries "$assets_root/.gitignore"
+  assert_jvm_gitignore_entries "$assets_root/.gitignore"
   printf '[maven assets] OK\n' >&2
 }
 
@@ -136,7 +185,17 @@ assert_shell_assets() {
   require_texts "$assets_root/scripts/check.sh" "shellcheck -S warning" "shfmt -d" "markdownlint-cli2"
   require_texts "$assets_root/scripts/fix.sh" "shfmt" "markdownlint-cli2" "--fix"
   assert_stack_gitignore_scope "$assets_root/.gitignore"
+  assert_common_gitignore_entries "$assets_root/.gitignore"
   printf '[shell assets] OK\n' >&2
+}
+
+# Require common Claude settings keys.
+#
+# @param settings_file Path to Claude settings JSON.
+# @return Exits non-zero when durable settings keys are missing.
+assert_common_settings() {
+  settings_file=$1
+  python3 "$root/scripts/plugin-self-check/asset_checks_settings.py" "$settings_file"
 }
 
 # Require common target harness assets.
@@ -161,26 +220,19 @@ assert_common_assets_structure() {
   require_file "$common_assets_root/.claude/skills/validate/SKILL.md"
   require_file "$common_assets_root/scripts/exec-plan-links.ts"
   require_file "$common_assets_root/scripts/docs-root-files.ts"
+  if [ -e "$common_assets_root/docs/git-hooks" ]; then
+    printf '%s\n' "[common assets] docs/git-hooks must not exist; hooks are stack assets" >&2
+    exit 1
+  fi
   require_text "$common_assets_root/CLAUDE.md" "# CLAUDE.md"
   require_text "$common_assets_root/CLAUDE.md" "@AGENTS.md"
-  require_text "$common_assets_root/.claude/settings.json" "\"\$schema\": \"https://json.schemastore.org/claude-code-settings.json\""
-  require_text "$common_assets_root/.claude/settings.json" '"CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"'
-  require_text "$common_assets_root/.claude/settings.json" '"includeCoAuthoredBy": false'
-  require_text "$common_assets_root/.claude/settings.json" '"includeGitInstructions": false'
-  require_text "$common_assets_root/.claude/settings.json" '"showClearContextOnPlanAccept": true'
-  require_text "$common_assets_root/.claude/settings.json" "\"command\": \"sh -lc"
-  require_text "$common_assets_root/.claude/settings.json" "jq -r"
-  require_text "$common_assets_root/.claude/settings.json" "\$HOME/.claude/worktrees"
-  require_text "$common_assets_root/.claude/settings.json" "git -C"
-  require_text "$common_assets_root/.claude/settings.json" "worktree add"
-  require_text "$common_assets_root/.claude/settings.json" "scripts/worktree-post-create.sh"
+  require_text "$common_assets_root/AGENTS.md" "\`.agents/skills/\` MUST be \`-> .claude/skills/\`"
+  require_text "$common_assets_root/AGENTS.md" "\`.agents/agents/\` MUST NOT exist"
+  require_text "$common_assets_root/AGENTS.md" "\`.codex/agents/\` MUST be \`-> .claude/agents/\`"
+  assert_common_settings "$common_assets_root/.claude/settings.json"
   require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"docs/root-files": true'
   require_text "$common_assets_root/.markdownlint-cli2.jsonc" './scripts/docs-root-files.ts'
   require_text "$common_assets_root/scripts/docs-root-files.ts" 'docs/root-files'
-  require_text "$common_assets_root/WORKFLOW.github.md" "gh issue create"
-  require_text "$common_assets_root/WORKFLOW.github.md" "--body-file"
-  require_text "$common_assets_root/WORKFLOW.gitlab.md" "glab api --method POST projects/:fullpath/issues"
-  require_text "$common_assets_root/WORKFLOW.gitlab.md" "--field description=@.tmp/issue.md"
-  require_text "$common_assets_root/WORKFLOW.gitlab.md" "--field description=@.tmp/review.md"
+  require_text "$common_assets_root/scripts/docs-root-files.ts" 'allowedDocsDirectories'
   printf '[common assets] OK\n' >&2
 }

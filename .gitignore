@@ -10,40 +10,95 @@
 **/.gjc/
 **/docs/superpowers/
 
-# macOS
+# OS: macOS
 .DS_Store
+.localized
+__MACOSX/
 .AppleDouble
 .LSOverride
-Icon
+Icon?
 ._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.com.apple.timemachine.supported
+.PKInstallSandboxManager
+.PKInstallSandboxManager-SystemSoftware
+.hotfiles.btree
+.vol
+.file
+.disk_label*
+lost+found
+.HFS+ Private Directory Data
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 
-# Windows
+# OS: Windows
 Thumbs.db
 Thumbs.db:encryptable
 ehthumbs.db
-Desktop.ini
+ehthumbs_vista.db
+[Dd]esktop.ini
 $RECYCLE.BIN/
 *.stackdump
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
 *.bak
 
-# Linux / generic temporary files
+# OS: Linux
 *~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+nohup.out
+
+# Generic temporary files
 *.swp
 *.swo
+*.tmp
+tmp/
+temp/
 
-# IntelliJ IDEA
+# Eclipse
+.metadata
+.project
+.classpath
+.settings/
+.factorypath
+.externalToolBuilders/
+*.launch
+
+# Editors: JetBrains
 .idea/
 *.iml
 *.ipr
 *.iws
 out/
+cmake-build-*/
+.idea_modules/
+atlassian-ide-plugin.xml
 
-# VS Code
+# Editors: VS Code
 .vscode/
 !.vscode/extensions.json
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
+!.vscode/*.code-snippets
+!*.code-workspace
+*.vsix
 
 # Node / package managers
 node_modules/
@@ -65,6 +120,7 @@ web_modules/
 
 # Logs
 logs/
+log/
 *.log
 *-log.jsonl
 npm-debug.log*
@@ -72,6 +128,7 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 pnpm-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Environment files
 .env
@@ -89,8 +146,6 @@ target/
 .vite/
 coverage/
 .nyc_output/
-tmp/
-temp/
 
 # TypeScript / JavaScript tooling
 *.tsbuildinfo
@@ -121,11 +176,17 @@ pip-wheel-metadata/
 .kotlin/
 gradle-app.setting
 !gradle-wrapper.jar
+!gradle-wrapper.properties
+bin/
 *.class
 .classpath
 .project
 .factorypath
 .settings/
+.apt_generated/
+.apt_generated_tests/
+hs_err_pid*
+replay_pid*
 
 # Harness local generated scratch paths
 **/docs/generated/.tmp/

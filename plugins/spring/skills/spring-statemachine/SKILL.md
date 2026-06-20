@@ -177,9 +177,9 @@ stateMachine.startReactively().block();
 
 Three transition types are supported:
 
-- `withExternal()` — source and target differ; entry and exit actions run.
-- `withInternal()` — source and target are the same; no entry or exit actions run.
-- `withLocal()` — source and target are the same state hierarchy level; no exit or entry actions run for sub-states.
+- `withExternal()` - source and target differ; entry and exit actions run.
+- `withInternal()` - source and target are the same; no entry or exit actions run.
+- `withLocal()` - source and target are the same state hierarchy level; no exit or entry actions run for sub-states.
 
 ### State entry, exit, and do actions
 
@@ -256,9 +256,9 @@ transitions.withExternal()
 
 ## Edge cases
 
-- Open [references/when`-single-machine-lifecycle-is-not-enough.md`](references/when-single-machine-lifecycle-is-not-enough.md) when one singleton machine must become many machine instances, persistence is enabled, or region modeling enters the design.
-- Open [references/pseudo`-states.md`](references/pseudo-states.md) when branching semantics go beyond guarded external transitions.
-- Open [references/reactive`-support.md`](references/reactive-support.md) when actions, guards, or event dispatch must stay reactive end to end.
+- Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) when one singleton machine must become many machine instances, persistence is enabled, or region modeling enters the design.
+- Open [references/pseudo-states.md](references/pseudo-states.md) when branching semantics go beyond guarded external transitions.
+- Open [references/reactive-support.md](references/reactive-support.md) when actions, guards, or event dispatch must stay reactive end to end.
 
 ## Implementation examples
 
@@ -410,6 +410,6 @@ Return:
 
 ## References
 
-- Open [references/when`-single-machine-lifecycle-is-not-enough.md`](references/when-single-machine-lifecycle-is-not-enough.md) when the ordinary single-machine lifecycle is not enough and the task needs factories, persistence, regions, or deeper testing patterns.
-- Open [references/pseudo`-states.md`](references/pseudo-states.md) when branching needs explicit choice, junction, fork, join, or history modeling.
-- Open [references/reactive`-support.md`](references/reactive-support.md) when the machine must stay reactive.
+- Open [references/when-single-machine-lifecycle-is-not-enough.md](references/when-single-machine-lifecycle-is-not-enough.md) when the ordinary single-machine lifecycle is not enough and the task needs factories, persistence, regions, or deeper testing patterns.
+- Open [references/pseudo-states.md](references/pseudo-states.md) when branching needs explicit choice, junction, fork, join, or history modeling.
+- Open [references/reactive-support.md](references/reactive-support.md) when the machine must stay reactive.

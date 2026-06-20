@@ -39,7 +39,7 @@ final class ForwardingHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
 Keep a buffer for real off-thread async work:
 
-`ChannelInboundHandlerAdapter` does not auto-release — you own `msg` at `ref=1`.
+`ChannelInboundHandlerAdapter` does not auto-release - you own `msg` at `ref=1`.
 Retain so the executor has its own reference at `ref=2`.
 In the executor: release the executor's reference (`ref=2 → 1`), then release the original since `ChannelInboundHandlerAdapter` does not auto-release (`ref=1 → 0`).
 

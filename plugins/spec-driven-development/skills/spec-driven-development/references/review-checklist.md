@@ -92,11 +92,10 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 
 ### Formatting
 
-- [ ] If the consuming repository already uses markdownlint, maintainers MAY run `npx -y markdownlint-cli2 <touched-markdown-files>`
 - [ ] No unnecessary bold emphasis
 - [ ] Headings used for emphasis instead
 - [ ] Quote rules followed; use `'` for single and `"` for double quotes
-- [ ] Table separators use the `| --- | --- | --- |` style with exactly 3 hyphens per cell
+- [ ] Table separator cells use at least 3 hyphens and MAY include leading or trailing alignment colons
 - [ ] A single space appears on both sides of cell content between pipe delimiters (for example, `| value |`)
 - [ ] When adjacent rows share the same first-column value, subsequent rows leave the first column empty (multi-row format)
 - [ ] When multiple items exist in one logical cell, each item is listed on a separate row with a `-` prefix
@@ -120,4 +119,3 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 - [ ] `spec/CHANGELOG.md` excludes research, initialization, planning, and future-reservation content
 - [ ] Frontmatter `call` updated if dependencies changed
 - [ ] `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` re-run after the final spec sync when `uv` can resolve its runtime and dependencies from local cache or local files; otherwise the runtime blocker is documented and applicable checks are completed manually
-- [ ] If the consuming repository already uses markdownlint, maintainers MAY re-run `npx -y markdownlint-cli2 <touched-markdown-files>` after the final Markdown sync

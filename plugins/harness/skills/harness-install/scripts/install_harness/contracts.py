@@ -13,7 +13,13 @@ from .models import (
     root_contract_contains_marker,
 )
 from . import models
-from .paths import ensure_safe_file_destination, required_real_target, required_src
+from .paths import (
+    ensure_safe_file_destination,
+    ensure_safe_parent_dir,
+    ensure_safe_relative_path,
+    required_real_target,
+    required_src,
+)
 
 
 class ContractsMixin(models.InstallerSupport):
@@ -55,7 +61,8 @@ class ContractsMixin(models.InstallerSupport):
             return
         if not self.config.force:
             print(
-                f"conflict root contract: {dst} lacks marker {marker}; rerun with --force to update",
+                f"conflict root contract: {dst} lacks marker {marker}; "
+                "rerun with --force to update",
                 file=sys.stderr,
             )
             return
@@ -86,7 +93,8 @@ class ContractsMixin(models.InstallerSupport):
             return
         if target.exists() and not self.config.force:
             fail(
-                f"conflict root contract: {real_target} lacks marker {candidate.marker}; rerun with --force to update"
+                f"conflict root contract: {real_target} lacks marker "
+                f"{candidate.marker}; rerun with --force to update"
             )
         tmp = Path(f"{real_target}.harness.tmp.{os.getpid()}")
         ensure_safe_file_destination(str(tmp))
@@ -120,20 +128,76 @@ class ContractsMixin(models.InstallerSupport):
             read_text(dst),
         ):
             print(
-                f"conflict root contract: {dst} lacks marker {marker}; rerun with --force to update",
+                f"conflict root contract: {dst} lacks marker {marker}; "
+                "rerun with --force to update",
                 file=sys.stderr,
             )
             return True
         return False
 
-    def ensure_target_symlink(self, link_path: str, target: str) -> None:
+    def ensure_target_symlink(
+        self,
+        link_path: str,
+        target: str,
+        *,
+        target_is_directory: bool,
+    ) -> None:
 
-        if os.path.lexists(link_path):
-            return
-        Path(link_path).symlink_to(target)
+        link = Path(link_path)
+        if link.is_symlink():
+            if os.readlink(link_path) == target:
+                return
+            if not self.config.force:
+                current_target = os.readlink(link_path)
+                fail(
+                    f"conflict symlink: {link_path} points to {current_target}; "
+                    "rerun with --force to replace it"
+                )
+            link.unlink()
+        elif link.exists():
+            fail(f"conflict symlink: {link_path} already exists and is not a symlink")
+        ensure_safe_file_destination(link_path)
+        link.symlink_to(target, target_is_directory=target_is_directory)
         print(f"create symlink: {link_path} -> {target}")
 
-    def ensure_agents_symlink(self) -> None:
+    def ensure_target_directory(self, directory_path: str) -> None:
 
-        if not os.path.lexists(".agents") and Path(".claude").is_dir():
-            self.ensure_target_symlink(".agents", ".claude")
+        directory = Path(directory_path)
+        if directory.is_symlink():
+            if not self.config.force:
+                fail(
+                    f"conflict directory: {directory_path} is a symlink; "
+                    "rerun with --force to replace it"
+                )
+            directory.unlink()
+        if directory.exists():
+            if not directory.is_dir():
+                fail(
+                    f"conflict directory: {directory_path} exists and is not a directory"
+                )
+            return
+        ensure_safe_relative_path(directory_path)
+        parent = directory.parent
+        if parent.as_posix() not in {"", "."}:
+            ensure_safe_parent_dir(f"{parent.as_posix()}/.keep")
+        directory.mkdir()
+        print(f"create directory: {directory_path}")
+
+    def ensure_runtime_symlinks(self) -> None:
+
+        if not Path(".claude").is_dir():
+            return
+        self.ensure_target_directory(".agents")
+        self.ensure_target_directory(".codex")
+        if Path(".claude/skills").is_dir():
+            self.ensure_target_symlink(
+                ".agents/skills",
+                "../.claude/skills",
+                target_is_directory=True,
+            )
+        if Path(".claude/agents").is_dir():
+            self.ensure_target_symlink(
+                ".codex/agents",
+                "../.claude/agents",
+                target_is_directory=True,
+            )

@@ -130,7 +130,7 @@ Do not present that incubator form as the normal production baseline, and do not
 >     --jlink-options "--strip-native-commands --strip-debug --no-man-pages --no-header-files --bind-services"
 > ```
 >
-> If `--jlink-options` is provided, it replaces the default list entirely — include the four strip flags explicitly when the operational goal is still a lean image.
+> If `--jlink-options` is provided, it replaces the default list entirely - include the four strip flags explicitly when the operational goal is still a lean image.
 
 Javadoc generation:
 

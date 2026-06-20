@@ -646,7 +646,7 @@ Access other fields in the same row or data frame.
 
 #### Value Variables
 
-Available when clicking a specific data point (not just hovering over a series).
+Available when clicking a specific data point beyond hovering over a series.
 
 | Variable | Expands To | Example |
 | --- | --- | --- |

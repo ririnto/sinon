@@ -10,7 +10,7 @@ description: >-
 ## Goal
 
 Triage JVM runtime problems with standard JDK diagnostic tools and an evidence-first workflow.
-The common case is not "guess the root cause" but "collect the smallest next capture that reduces uncertainty".
+Collect the smallest next capture that reduces uncertainty before naming a root cause.
 Prefer `jcmd` first for live JVMs, keep `jstack` and `jmap` as legacy or narrower-purpose tools, and reserve `jhsdb` for Serviceability Agent cases such as core dumps or deeper postmortem inspection.
 
 Treat JDK 8, 11, 17, 21, and 25 as the supported LTS reference line for this skill, and confirm runtime-specific command availability on the target JVM before assuming a newer flag or event exists.
@@ -186,7 +186,7 @@ jcmd <pid> JFR.check
 - `VM.native_memory` confirmed Native Memory Tracking was enabled at startup.
   - Comparing like-for-like captures.
 
-Tool-choice checks (not validation commands, but decision rationale to confirm before deeper escalation):
+Tool-choice checks (decision rationale before deeper escalation):
 
 - `jstack` or `jmap` chosen with a specific reason not to use the `jcmd` equivalent.
 - `jhsdb` chosen for postmortem, core-based, or explicitly SA-oriented case, not normal live-process triage.

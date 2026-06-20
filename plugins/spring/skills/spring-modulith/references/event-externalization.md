@@ -97,9 +97,8 @@ Spring Modulith integrates with Namastack Outbox and JobRunr for outbox-based ev
 
 ```xml
 <dependency>
-    <groupId>io.namastack</groupId>
-    <artifactId>namastack-outbox</artifactId>
-    <version>1.7</version>
+    <groupId>org.springframework.modulith</groupId>
+    <artifactId>spring-modulith-starter-namastack</artifactId>
 </dependency>
 ```
 
@@ -107,12 +106,12 @@ Spring Modulith integrates with Namastack Outbox and JobRunr for outbox-based ev
 
 ```xml
 <dependency>
-    <groupId>org.jobrunr</groupId>
-    <artifactId>jobrunr</artifactId>
-    <version>8.6.1</version>
+    <groupId>org.springframework.modulith</groupId>
+    <artifactId>spring-modulith-starter-jobrunr</artifactId>
 </dependency>
 ```
 
+Set `spring.modulith.events.externalization.mode=outbox` to delegate event externalization to the selected outbox implementation.
 When an outbox integration is on the classpath, events tracked by the event publication registry are forwarded through the outbox instead of direct broker publication.
 The outbox consumer handles the actual delivery to the external system, providing at-least-once delivery guarantees.
 

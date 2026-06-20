@@ -326,10 +326,10 @@ Output goes to `spring-modulith-docs` in the build folder by default.
 
 ## References
 
-- Open [references/named`-interfaces.md`](references/named-interfaces.md) when module exposure rules need explicit `allowedDependencies` or several named interface packages.
-- Open [references/scenario`-tests.md`](references/scenario-tests.md) when event-driven module tests need richer `Scenario` verification than the ordinary module test path.
-- Open [references/event`-publication-registry.md`](references/event-publication-registry.md) when module events must be tracked, replayed, or completed reliably after failures.
+- Open [references/named-interfaces.md](references/named-interfaces.md) when module exposure rules need explicit `allowedDependencies` or several named interface packages.
+- Open [references/scenario-tests.md](references/scenario-tests.md) when event-driven module tests need richer `Scenario` verification than the ordinary module test path.
+- Open [references/event-publication-registry.md](references/event-publication-registry.md) when module events must be tracked, replayed, or completed reliably after failures.
 - Open [references/moments.md](references/moments.md) when the application reacts to business-relevant time events such as day, week, or month boundaries.
-- Open [references/event`-externalization.md`](references/event-externalization.md) when module events must be published to external brokers (Kafka, AMQP, JMS) or forwarded via the outbox pattern (Namastack, JobRunr).
-- Open [references/documentation`-generation.md`](references/documentation-generation.md) when module arrangement diagrams and canvases must be generated for developer documentation.
-- Open [references/runtime`-support.md`](references/runtime-support.md) when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, observability, or change-aware test execution.
+- Open [references/event-externalization.md](references/event-externalization.md) when module events must be published to external brokers (Kafka, AMQP, JMS) or forwarded via the outbox pattern (Namastack, JobRunr).
+- Open [references/documentation-generation.md](references/documentation-generation.md) when module arrangement diagrams and canvases must be generated for developer documentation.
+- Open [references/runtime-support.md](references/runtime-support.md) when the application needs startup verification, module initializer ordering, module-specific Flyway migrations, actuator endpoints, observability, or change-aware test execution.

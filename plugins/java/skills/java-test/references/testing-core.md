@@ -1,8 +1,6 @@
 ---
 description: >-
-  Reference for JUnit 5 building blocks, assertion patterns,
-  Mockito usage, Awaitility async verification,
-  and representative test shapes for Java TDD workflows.
+  Reference for JUnit 5 building blocks, assertion patterns, Mockito usage, Awaitility async verification, and representative test shapes for Java TDD workflows.
 ---
 
 # Java Testing Core Reference
@@ -240,9 +238,9 @@ class JobMonitorTest {
     void marksJobCompletedEventually() {
         service.start(jobId);
         await()
-                .atMost(Duration.ofSeconds(5))
-                .pollInterval(Duration.ofMillis(200))
-                .untilAsserted(() -> assertEquals(Status.COMPLETED, repository.status(jobId)));
+            .atMost(Duration.ofSeconds(5))
+            .pollInterval(Duration.ofMillis(200))
+            .untilAsserted(() -> assertEquals(Status.COMPLETED, repository.status(jobId)));
     }
 }
 ```
