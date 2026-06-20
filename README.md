@@ -18,6 +18,7 @@ Stable repository rules, layout policies, and skill-authoring contracts are in `
 - Store installable plugin packages in a consistent directory layout.
 - Keep marketplace metadata and plugin manifests aligned.
 - Keep generic Agent Skills mirrored through `.claude/skills/` and `.agents/skills/` without treating those paths as plugin marketplace catalogs.
+- Keep Codex-facing agents available through `.codex/agents/`.
 
 ## Repository Structure
 
@@ -27,7 +28,9 @@ Stable repository rules, layout policies, and skill-authoring contracts are in `
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.
 - `.claude-plugin/marketplace.json`: Claude marketplace catalog.
-- `.claude/skills/`, `.claude/agents/`, `.claude/commands/`, and `.agents`: mirrored symlink entries that resolve to the same `.claude` tree, which maps to `plugins/agent-capability-kit/{skills,agents,commands}/`.
+- `.claude/skills/` and `.claude/agents/`: `-> plugins/agent-capability-kit/{skills,agents}/`.
+- `.agents/skills/`: `-> .claude/skills/`; `.agents/agents/` is intentionally absent.
+- `.codex/agents/`: `-> .claude/agents/`.
 - `plugins/`: plugins maintained in this repository.
 
 ## Plugin Layout
@@ -36,7 +39,8 @@ Each plugin directory may expose a Claude Code manifest from the same plugin roo
 
 - `.claude-plugin/plugin.json`: Claude plugin manifest.
 
-Optional assets such as `README.md`, `commands/`, `agents/`, `skills/`, `hooks/`, `.mcp.json`, and `settings.json` live beside the manifest at the plugin root.
+Optional assets live beside the manifest at the plugin root.
+Common examples include `README.md`, `agents/`, `skills/`, `hooks/`, `.mcp.json`, `settings.json`, and executable `bin/`.
 Plugin-specific details belong in each plugin's own `README.md`, not in this root document.
 
 ## Current Plugins
@@ -44,7 +48,7 @@ Plugin-specific details belong in each plugin's own `README.md`, not in this roo
 The following plugins are maintained in this repository and may be published to the Claude marketplace catalog.
 For full descriptions, runtime surfaces, and scope notes, see each plugin's own `README.md`.
 
-- `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, commands/prompts, and cross-platform Agent Skills.
+- `plugins/agent-capability-kit`: Authoring kit for Claude Code plugins, agents, and cross-platform Agent Skills.
 - `plugins/document-creator`: Authoring skills for AI-consumable engineering documents, including `SPEC.md` creation.
 - `plugins/harness`: Repository harness plugin for installing, validating, and evolving agent instructions, docs structure, project agents, project skills, templates, stack validators, CI snippets, and opt-in Git hook templates.
 - `plugins/java`: Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.
@@ -82,42 +86,42 @@ The Claude marketplace catalog for this repository is:
 Register this marketplace from a local checkout:
 
 ```sh
-/plugin marketplace add /path/to/sinon
+claude plugin marketplace add /path/to/sinon
 ```
 
 Register this marketplace from GitHub:
 
 ```sh
-/plugin marketplace add ririnto/sinon
+claude plugin marketplace add ririnto/sinon
 ```
 
 Register this marketplace from a generic git URL:
 
 ```sh
-/plugin marketplace add https://github.com/ririnto/sinon.git
+claude plugin marketplace add https://github.com/ririnto/sinon.git
 ```
 
 After Claude Code registers the `sinon` marketplace, install a plugin from it with:
 
 ```sh
-/plugin install <plugin>@sinon
+claude plugin install <plugin>@sinon
 ```
 
 Examples:
 
 ```sh
-/plugin install agent-capability-kit@sinon
-/plugin install document-creator@sinon
-/plugin install harness@sinon
-/plugin install java@sinon
-/plugin install jvm@sinon
-/plugin install kotlin@sinon
-/plugin install netty@sinon
-/plugin install observability-assets@sinon
-/plugin install reactor@sinon
-/plugin install spec-driven-development@sinon
-/plugin install spring@sinon
-/plugin install workspace-workflow@sinon
+claude plugin install agent-capability-kit@sinon
+claude plugin install document-creator@sinon
+claude plugin install harness@sinon
+claude plugin install java@sinon
+claude plugin install jvm@sinon
+claude plugin install kotlin@sinon
+claude plugin install netty@sinon
+claude plugin install observability-assets@sinon
+claude plugin install reactor@sinon
+claude plugin install spec-driven-development@sinon
+claude plugin install spring@sinon
+claude plugin install workspace-workflow@sinon
 ```
 
 ### `~/.claude/settings.json`

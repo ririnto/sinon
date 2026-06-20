@@ -7,7 +7,7 @@ description: >-
 # Harness
 
 Harness is a Claude Code plugin for installing, validating, and evolving repository-owned agent development scaffolding.
-It combines the v6 archive structure with this repository's plugin packaging rules.
+It packages the current harness assets inside the plugin layout required by this repository.
 Skills are the declared runtime surface.
 Plugin-root agents are structural harness specialists for changing a target repository's harness contract.
 Files that should live inside a target repository are packaged only under `skills/harness-install/assets/`.
@@ -64,12 +64,13 @@ They are not installed as day-to-day target repository agents.
 
 ## Runtime Model
 
-The Claude Code manifest declares only `./skills/`.
+The Claude Code manifest declares no component path fields.
+Claude Code discovers plugin-root `skills/` and `agents/` by default.
 Plugin-root agents remain in `agents/` as optional structural specialists for changing the target repository's harness contract.
-They are not declared in `.claude-plugin/plugin.json` and are not copied into target repositories.
+They are not copied into target repositories.
 Target repository agents, project skills, docs, CI files, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become target-owned only after installation.
 The plugin does not expose top-level hooks.
-Packaged hook placeholders live under `skills/harness-install/assets/common/docs/git-hooks/`, and stack assets provide the active pre-commit and pre-push hooks installed for the selected mode.
+Stack assets provide the active pre-commit and pre-push hooks installed for the selected mode.
 
 ## Target Ownership
 
@@ -117,7 +118,6 @@ The installer creates this repository context structure, and validators require 
 AGENTS.md
 ARCHITECTURE.md
 CLAUDE.md            (imports AGENTS.md)
-.agents              (symlink to .claude)
 .claude/
 |-- agents/
 |   |-- implementation-agent.md
@@ -128,6 +128,10 @@ CLAUDE.md            (imports AGENTS.md)
     |   `-- SKILL.md
     `-- validate/
         `-- SKILL.md
+.agents/
+`-- skills/         -> .claude/skills/
+.codex/
+`-- agents/         -> .claude/agents/
 docs/
 |-- design-docs/
 |   `-- core-beliefs.md
@@ -139,9 +143,6 @@ docs/
 |   `-- tech-debt-tracker.md
 |-- generated/
 |   `-- .gitkeep
-|-- git-hooks/
-|   |-- pre-commit
-|   `-- pre-push
 |-- product-specs/
 |   `-- new-user-onboarding.md
 |-- references/
@@ -166,7 +167,6 @@ The installed inventory also includes `WORKFLOW.md`, stack-specific validation a
 Installed target agents receive workflow decisions through their task prompt.
 
 Empty required directories are kept in version control with `.gitkeep`.
-`docs/git-hooks/pre-commit` and `docs/git-hooks/pre-push` are packaged placeholders retained as documentation records.
 Active `pre-commit` includes the selected-mode command and may include stack preflight checks.
 Active `pre-push` comes from the stack-specific final check, which may be stronger than `pre-commit`.
 Stack assets activate hooks through their ecosystem tool:
@@ -202,7 +202,13 @@ That means exported top-level functions, exported top-level constants/variables,
 
 The Bun-side validator and the plugin installer are covered by plugin checks for packaged files, manifest alignment, and syntax-level validation.
 
-The uv validator self-provisions ruff on first use via `uvx --with "ruff>=0.15.16,<0.16.0" ruff check .` and `ruff format --check .`, using Ruff's normal project discovery, so network access is required on first run.
+The uv validator self-provisions ruff on first use with two commands:
+
+- `uv run --with "ruff>=0.15.18,<0.16.0" ruff check .`
+- `uv run --with "ruff>=0.15.18,<0.16.0" ruff format --check .`
+
+It uses Ruff's normal project discovery.
+Network access is required on first run.
 The ruff binary is then cached.
 Markdown validation runs only when `markdownlint-cli2` is available on PATH, as described above.
 
@@ -275,7 +281,6 @@ Run the stack check command afterward.
 
 ## Git Hooks
 
-The packaged `docs/git-hooks/` files are tracked placeholders retained as documentation records.
 Active `pre-commit` includes the selected-mode command and may include stack preflight checks.
 Active `pre-push` runs the stack-specific final check and may include tests or broader verification.
 
@@ -289,8 +294,8 @@ Hooks therefore activate through the selected stack's setup path rather than thr
 - Manifest author: `ririnto`, matching the repository owner metadata.
 - Plugin license: Apache-2.0, recorded in `LICENSE`.
 - External inspiration and adapted taxonomy are documented in `THIRD_PARTY_NOTICES.md`.
-- Marketplace releases are versioned at `.claude-plugin/marketplace.json`.
-  - Plugin manifests intentionally omit `version`.
+- The marketplace catalog has top-level version metadata in `.claude-plugin/marketplace.json`.
+  - Plugin manifests and plugin entries intentionally omit `version`, so git SHA is the plugin update key.
 
 ## Harness Evolution
 

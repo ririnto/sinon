@@ -42,7 +42,7 @@ class OperationsMixin(InstallerSupport):
 
         self.ensure_root_contracts()
         self.copy_tree(TEMPLATE_DIR / "common", ".", common=True)
-        self.ensure_agents_symlink()
+        self.ensure_runtime_symlinks()
         self.ensure_gitkeep_paths()
         self.copy_stack_tree(TEMPLATE_DIR / self.config.mode, ".")
 

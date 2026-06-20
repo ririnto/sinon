@@ -13,6 +13,17 @@ Observability Assets is a shared, skill-first plugin for Prometheus and Grafana 
 - Keep skills practical, example-driven, and focused on version-controlled monitoring assets rather than UI-only click paths.
 - Separate Prometheus and Grafana operator workflows from application-framework-specific observability guidance.
 
+## Verified Upstream Baseline
+
+This review checked these upstream versions on 2026-06-21:
+
+- Prometheus 3.12.0, released on 2026-05-28.
+- Alertmanager 0.33.0, released on 2026-06-12.
+- Grafana 13.0.2, released on 2026-06-02.
+
+Treat these as documentation review baselines, not dependency pins.
+Target deployments may stay on an older supported line, but version-sensitive features need a local version check before use.
+
 ## Included Skills
 
 - `prometheus-alert-rules`: alert rule authoring, recording-rule support, burn-rate and SLO page alerts, `promtool` validation, alert annotations, and low-noise operational alert design.
@@ -58,8 +69,8 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/`.
-Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
+This includes `skills/`, `agents/`, and executable `bin/` when present.
 
 ## Plugin Layout
 
@@ -82,7 +93,7 @@ plugins/observability-assets/
 
 - The plugin ships six reusable observability-asset skills under `skills/`.
 - The plugin ships one plugin-root agent: `observability-architect` for alerting, dashboard, SLO, and metrics architecture decisions.
-- The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
+- The plugin does not ship hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 
@@ -98,7 +109,7 @@ plugins/observability-assets/
 Install from Sinon:
 
 ```sh
-/plugin install observability-assets@sinon
+claude plugin install observability-assets@sinon
 ```
 
 For local development:

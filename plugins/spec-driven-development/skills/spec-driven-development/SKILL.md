@@ -26,44 +26,45 @@ If your host does not provide `${CLAUDE_PLUGIN_ROOT}`, replace `SKILL_ROOT` with
 ## Operating rules
 
 - MUST use `spec/domain/{{ownership-path}}/SPEC.md` for capability specs, where `{{ownership-path}}` reflects the owning capability boundary.
-  MUST NOT use `topic`, `policy`, `audit`, or `repository-improvement` unless they map to a real owning capability.
+  - MUST NOT use `topic`, `policy`, `audit`, or `repository-improvement` unless they map to a real owning capability.
 - MUST use `spec/research/{framework|library|topic}/{name}/RESEARCH.md` for research artifacts.
 - MUST use `RESEARCH.md` only for framework, library, or topic investigation that informs later spec decisions.
-  MUST NOT use `RESEARCH.md` for project comparison, repository audits, implementation planning, migration sequencing, or task management.
+  - MUST NOT use `RESEARCH.md` for project comparison, repository audits, implementation planning, migration sequencing, or task management.
 - MUST keep `call` entries SPEC-to-SPEC only, using relative paths to existing `SPEC.md` files.
-  MUST keep `call: []` when a SPEC has no outbound dependencies.
+  - MUST keep `call: []` when a SPEC has no outbound dependencies.
 - MUST treat `SPEC.md` as the source of truth for implementation scope.
 - MUST keep `SPEC.md` focused on abstract requirements, intended behavior, boundaries, and externally meaningful constraints.
-  SHOULD avoid introducing language, framework, library, or code-style constraints unless the user explicitly requests them or verified external constraints make them necessary.
+  - SHOULD avoid introducing language, framework, library, or code-style constraints unless the user explicitly requests them or verified external constraints make them necessary.
 - MUST author SPEC artifacts by flow `spec -> code`.
-  MUST NOT reverse-derive spec content from current implementation.
+  - MUST NOT reverse-derive spec content from current implementation.
 - MUST NOT create or modify Git branches.
 - MUST NOT reset or overwrite in-progress plan documents without user confirmation.
 - MUST NOT create backup files.
-- MUST run `"${SKILL_ROOT}/scripts/sdd.py" validate <spec-root-or-subtree>` before Spec Review closes and again after the final spec sync when `uv` is available on the host and can resolve its Python runtime plus required dependencies from local cache or local files.
-  When `uv` is unavailable or cannot run from locally available inputs, MUST document the runtime blocker in the review record and MUST complete every applicable inline-checklist item manually in place of the validator result.
-- MAY run `npx -y markdownlint-cli2 <touched-markdown-files>` only when the maintainer or consuming repository already uses markdownlint.
-  Markdown linting is OPTIONAL maintenance guidance, not a prerequisite for ordinary offline use of this skill.
+- MUST run `"${SKILL_ROOT}/scripts/sdd.py" validate <spec-root-or-subtree>` before Spec Review closes and again after the final spec sync.
+  - Run it only when `uv` is available on the host and can resolve its Python runtime plus required dependencies from local cache or local files.
+  - When `uv` is unavailable or cannot run from locally available inputs, document the runtime blocker in the review record.
+  - Complete every applicable inline-checklist item manually in place of the validator result.
 
 ## Package surface
 
 Offline prerequisite: `sdd.py` runs through `uv`, which provides the `uv run` script launcher.
 The validator is the preferred Spec Review gate when `uv` is installed on the host and can resolve Python plus required dependencies from local cache or local files.
-When `uv` is missing or cannot run without fetching those inputs, fall back to the manual inline-checklist path documented in the Ordinary offline-capable workflow and Review gates sections.
+When `uv` is missing or cannot run without fetching those inputs, use the manual inline-checklist path.
+The Ordinary offline-capable workflow and Review gates sections document that fallback.
 
 Use these bundled paths from `SKILL_ROOT`:
 
-- `./scripts/sdd.py` — single CLI entrypoint and Python toolkit.
+- `./scripts/sdd.py` - single CLI entrypoint and Python toolkit.
   - It uses a `uv run` shebang and declares its dependencies through PEP 723 metadata.
   - The shipped subcommands are:
-  - `validate <spec-root>` — validate a `spec/` tree or subtree (default Spec Review gate)
-  - `list-frontmatter [spec-path]` — frontmatter inventory and inbound-call queries
-  - `get-frontmatter <kind> <path>` — read one artifact frontmatter block
-  - `generate-diagram [spec-root]` — generate Mermaid relationship diagrams from SPEC links
-  - `list-tags [spec-path]` — aggregate tag inventory across the tree
-- `./assets/templates/` — scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `openapi.yaml`, and `spec/CHANGELOG.md`
-- `./assets/schemas/` — schema files used by the validator
-- `./references/examples/` — validator-clean examples for comparison
+    - `validate <spec-root>` - validate a `spec/` tree or subtree (default Spec Review gate)
+    - `list-frontmatter [spec-path]` - frontmatter inventory and inbound-call queries
+    - `get-frontmatter <kind> <path>` - read one artifact frontmatter block
+    - `generate-diagram [spec-root]` - generate Mermaid relationship diagrams from SPEC links
+    - `list-tags [spec-path]` - aggregate tag inventory across the tree
+- `./assets/templates/` - scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `openapi.yaml`, and `spec/CHANGELOG.md`
+- `./assets/schemas/` - schema files used by the validator
+- `./references/examples/` - validator-clean examples for comparison
 
 ## Ordinary offline-capable workflow
 
@@ -157,20 +158,23 @@ Follow this path unless a named blocker sends you to an optional reference.
 
 ## Review gates
 
-### Gate 1 — SPEC Setup Complete
+### Gate 1 - SPEC Setup Complete
 
 Passes only when the user explicitly approves the scope, primary requirements, and scenario direction of the current `SPEC.md` draft.
 
-### Gate 2 — Spec Review Passed
+### Gate 2 - Spec Review Passed
 
 Passes only when both conditions are true:
 
 - Every applicable item in the inline review checklist below is recorded as `pass` or `n/a`, with zero remaining `fail` items.
-- `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` exits with status `0` when `uv` is available on the host and can resolve its runtime and dependencies from local cache or local files; otherwise the review record documents the runtime blocker and every applicable inline-checklist item is recorded as `pass` or `n/a` manually.
+- `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` exits with status `0` when local `uv` inputs are available.
+  - If `uv` cannot run locally, the review record documents the runtime blocker.
+  - Every applicable inline-checklist item is recorded as `pass` or `n/a` manually.
 
 ## Inline review checklist
 
-Record each applicable item as `pass`, `fail`, or `n/a` with rationale.
+Record each applicable item as `pass`, `fail`, or `n/a`.
+Add rationale for `fail`, `n/a`, and any `pass` whose evidence would be unclear later.
 
 ### Spec Review minimum checklist
 
@@ -220,28 +224,23 @@ SKILL_ROOT="${PLUGIN_ROOT}/skills/spec-driven-development"
 "${SKILL_ROOT}/scripts/sdd.py" generate-diagram ./spec
 ```
 
-If you need per-file Markdown linting for maintainer hygiene, run it separately and treat it as optional:
-
-```sh
-npx -y markdownlint-cli2 <touched-markdown-files>
-```
-
 ## References
 
 Open a reference only for the named blocker:
 
-- `./references/workflow.md` — open when you need the full stage-by-stage lifecycle, entry and exit conditions, or review-loop semantics
-- `./references/spec-authoring-guide.md` — open when drafting or revising detailed `SPEC.md` sections
-- `./references/research-authoring-guide.md` — open when drafting or revising `RESEARCH.md`
-- `./references/linking-guide.md` — open when editing `call` links or querying inbound dependencies
-- `./references/review-checklist.md` — open when you need the full Spec Review or Implementation Review worksheet to record item-by-item `pass`, `fail`, or `n/a` results with rationale
+- `./references/workflow.md` - open when you need the full stage-by-stage lifecycle, entry and exit conditions, or review-loop semantics
+- `./references/spec-authoring-guide.md` - open when drafting or revising detailed `SPEC.md` sections
+- `./references/research-authoring-guide.md` - open when drafting or revising `RESEARCH.md`
+- `./references/linking-guide.md` - open when editing `call` links or querying inbound dependencies
+- `./references/review-checklist.md` - open when you need the full Spec Review or Implementation Review worksheet.
+  - Record item-by-item `pass`, `fail`, or `n/a` results with rationale.
 
 ## Packaged runtime maintenance
 
 Use this plugin guidance when maintaining the packaged runtime and documentation boundaries:
 
 - Keep `./scripts/sdd.py` as the only documented CLI entrypoint.
-- Keep subcommands documented as `"${SKILL_ROOT}/scripts/sdd.py" <subcommand> ...`; do not reference retired helper scripts.
+- Keep subcommands documented as `"${SKILL_ROOT}/scripts/sdd.py" <subcommand> ...`.
 - Keep offline wording conditional on `uv` and locally available Python and dependency inputs.
 - Keep runtime source and dependency metadata changes inside `./scripts/sdd.py`.
 - Keep user-facing validation guidance paired with the manual inline-checklist fallback.
@@ -251,7 +250,13 @@ Use this plugin guidance when maintaining the packaged runtime and documentation
 Return:
 
 1. The spec artifacts created, revised, or reviewed, with relative paths under `spec/`
-2. Gate 1 (SPEC Setup Complete) status: whether the user has explicitly approved scope, primary requirements, and scenario direction of the current `SPEC.md` draft
-3. Gate 2 (Spec Review Passed) status: `sdd.py validate` exit result when `uv` can run from locally available runtime and dependency/build inputs (or a documented runtime blocker), together with the inline-checklist results recorded as `pass`, `fail`, or `n/a` with rationale per applicable item
-4. When verifying implementation, the drift summary between the approved specification and the shipped code, including missing requirements, undocumented behavior, and scope drift
-5. Any remaining blockers, failed checklist items, or approval needs that prevent the next gate from closing or that block implementation or release
+2. Gate 1 (SPEC Setup Complete) status.
+   - Include whether the user explicitly approved scope, primary requirements, and scenario direction of the current `SPEC.md` draft.
+3. Gate 2 (Spec Review Passed) status.
+   - Include the `sdd.py validate` exit result when `uv` can run from locally available runtime and dependency/build inputs.
+   - If validation cannot run, include the documented runtime blocker.
+   - Include inline-checklist results recorded as `pass`, `fail`, or `n/a` with rationale per applicable item.
+4. When verifying implementation, include the drift summary between the approved specification and the shipped code.
+   - Cover missing requirements, undocumented behavior, and scope drift.
+5. Any remaining blockers, failed checklist items, or approval needs.
+   - Name what prevents the next gate from closing or blocks implementation or release.

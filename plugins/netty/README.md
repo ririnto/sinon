@@ -66,7 +66,7 @@ plugins/netty/
 ## Shipped Surfaces
 
 - The plugin ships two reusable networking skills under `skills/`.
-- The plugin does not ship commands, hooks, agents, MCP servers, LSP servers, or custom runtime data surfaces.
+- The plugin does not ship hooks, agents, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 
@@ -83,7 +83,7 @@ plugins/netty/
 Install from Sinon:
 
 ```sh
-/plugin install netty@sinon
+claude plugin install netty@sinon
 ```
 
 For local development:

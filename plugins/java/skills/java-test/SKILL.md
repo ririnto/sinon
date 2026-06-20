@@ -1,8 +1,7 @@
 ---
 name: java-test
 description: >-
-  Write JUnit 5 tests, follow TDD red-green-refactor in Java, fix failing tests,
-  configure Maven Surefire or Gradle test execution, and choose the smallest correct test scope.
+  Write JUnit 5 tests, follow TDD red-green-refactor in Java, fix failing tests, configure Maven Surefire or Gradle test execution, and choose the smallest correct test scope.
   Triggers on JUnit 5 test case authoring, unit vs integration scope decisions, Surefire or Failsafe plugin configuration, or Mockito and Awaitility introduction at collaboration boundaries.
 ---
 
@@ -156,8 +155,8 @@ class ClientServiceTest {
     @Test
     void retriesAfterTransientFailure() throws IOException {
         when(client.call())
-                .thenThrow(new IOException("temporary"))
-                .thenReturn("ok");
+            .thenThrow(new IOException("temporary"))
+            .thenReturn("ok");
         assertEquals("ok", service.run());
         verify(client, times(2)).call();
     }
@@ -211,8 +210,8 @@ class EventPublisherTest {
     @Test
     void publishesEventually() {
         service.triggerAsyncWork();
-        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
-                assertTrue(repository.contains("done")));
+        await().atMost(Duration.ofSeconds(5))
+            .untilAsserted(() -> assertTrue(repository.contains("done")));
     }
 }
 ```

@@ -19,7 +19,6 @@ The series still exists for evaluation purposes -- it simply has a gap.
 ```yaml
 - series: 'up{job="api",instance="api-1"}'
   values: '1 1 1 _ 1 1'
-
 ```
 
 This sequence has one gap at position 3, then the series continues afterward.
@@ -30,7 +29,6 @@ Effect on PromQL functions:
 input_series:
   - series: 'http_requests_total{job="api"}'
     values: '100 _ 120 140'
-
 ```
 
 `rate()` and `increase()` interpolate across the gap.
@@ -44,7 +42,6 @@ This is different from `_`:
 ```yaml
 - series: 'up{job="api",instance="api-1"}'
   values: '1 1 1 1 stale'
-
 ```
 
 This sequence marks the series stale at position 5.
@@ -74,7 +71,6 @@ tests:
           - exp_labels:
               severity: critical
               instance: api-1
-
 ```
 
 Use when: the blocker is showing the difference between a temporary missing scrape and a series that has become stale for evaluation purposes.
@@ -95,7 +91,6 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: warning
-
 ```
 
 ## Accidental missing series -- common failure mode
@@ -104,7 +99,6 @@ tests:
 input_series:
   - series: 'http_requests_total{job="api",status="500"}'
     values: '0+10x20'
-
 ```
 
 This is broken when the rule denominator needs `http_requests_total{job="api",status="200"}`.
@@ -121,7 +115,6 @@ Do not complicate a basic alert test just because the source metric is histogram
 input_series:
   - series: 'http_request_duration_seconds{job="api"}'
     values: '{{schema:0 count:10 sum:25.0 buckets:[3 5 2]}} {{schema:0 count:15 sum:40.0 buckets:[5 7 3]}}'
-
 ```
 
 Schema defines the bucket resolution:
@@ -182,7 +175,6 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: warning
-
 ```
 
 Use when: the rule depends on histogram-native structure rather than a float-only approximation.
@@ -195,7 +187,6 @@ Simulate this in fixtures by including a decreasing value, which promtool interp
 ```yaml
 - series: 'process_cpu_seconds_total{job="api"}'
   values: '100+10x5 50+10x5'
-
 ```
 
 This sequence increases normally, drops to simulate a process restart, then increases again.
@@ -220,14 +211,12 @@ tests:
         exp_alerts:
           - exp_labels:
               severity: page
-
 ```
 
 ### Strategy 2: Round in the rule expression
 
 ```yaml
 expr: 5 < round(100 * errors / total, 0.001)
-
 ```
 
 Apply rounding in the rule file rather than the test file when the production expression should also avoid boundary precision noise.

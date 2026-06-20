@@ -1,23 +1,32 @@
 # Dependencies
 node_modules/
+jspm_packages/
+web_modules/
 
 # Bun
 .bun/
+bun.lockb
 
 # Build outputs
 dist/
 build/
+out/
+bin/
 coverage/
+.nyc_output/
 *.tsbuildinfo
+*.lcov
 
 # Logs
 logs/
+log/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Local environment
 .env
@@ -27,18 +36,69 @@ lerna-debug.log*
 .tmp/
 tmp/
 temp/
-*.tmp
-
-# Editor and OS
-.idea/
-.vscode/
+*.bak
 *.swp
 *.swo
-*~
+*.tmp
+
+# OS: macOS
 .DS_Store
+.localized
+__MACOSX/
 .AppleDouble
 .LSOverride
+Icon?
 ._*
-Desktop.ini
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.com.apple.timemachine.supported
+.PKInstallSandboxManager
+.PKInstallSandboxManager-SystemSoftware
+.hotfiles.btree
+.vol
+.file
+.disk_label*
+lost+found
+.HFS+ Private Directory Data
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# OS: Windows
 Thumbs.db
+Thumbs.db:encryptable
 ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.stackdump
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# OS: Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+nohup.out
+
+# Editors: JetBrains and VS Code
+.idea/
+*.iml
+*.ipr
+*.iws
+cmake-build-*/
+.vscode/
+*.vsix

@@ -11,13 +11,13 @@
     "fix:ultracite": "ultracite fix"
   },
   "devDependencies": {
-    "@oxc-project/types": "^0.135.0",
+    "@oxc-project/types": "^0.137.0",
     "husky": "^9.1.7",
-    "markdownlint": "^0.40.0",
+    "markdownlint": "^0.41.0",
     "markdownlint-cli2": "^0.22.1",
-    "npm-run-all2": "^9.0.1",
-    "oxfmt": "^0.54.0",
-    "oxlint": "^1.69.0",
+    "npm-run-all2": "^9.0.2",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
     "ultracite": "^7.8.3"
   }
 }

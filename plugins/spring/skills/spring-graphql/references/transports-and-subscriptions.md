@@ -23,7 +23,7 @@ Keep one dominant transport unless a concrete subscription workflow requires mor
 
 | Transport | Additional starter | Notes |
 | --- | --- | --- |
-| HTTP | `spring-boot-starter-web` or `spring-boot-starter-webflux` | Always required |
+| HTTP | `spring-boot-starter-webmvc` or `spring-boot-starter-webflux` | Always required |
 | SSE | none (uses HTTP handler) | Built into `GraphQlHttpHandler` |
 | WebSocket (Servlet) | `spring-boot-starter-websocket` | Required for Servlet-based apps |
 | WebSocket (WebFlux) | none | Built into WebFlux |

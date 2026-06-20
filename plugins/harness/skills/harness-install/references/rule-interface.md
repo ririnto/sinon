@@ -27,10 +27,19 @@ Structural checks that cannot be automated remain prose conventions in the insta
 
 ### uv
 
-- Validator: `uv run scripts/check.py` (thin wrapper invoking `uvx --with "ruff>=0.15.16,<0.16.0" ruff check .` and `ruff format --check .` with Ruff's normal project discovery)
+- Validator: `uv run scripts/check.py`
+  - Runs `uv run --with "ruff>=0.15.18,<0.16.0" ruff check .`.
+  - Runs `uv run --with "ruff>=0.15.18,<0.16.0" ruff format --check .`.
+  - Uses Ruff's normal project discovery.
 - Ruff configuration: `ruff.toml` at repository root; keeps Ruff lint defaults and sets ruff format quote style.
-- Custom Python AST conventions: 7 prose-only rules (leading-underscore, multiline-doc-style, unstructured-logging, public-declaration-doc-comment, unchecked-cast-suppression, triple-quote-inline-comment, mutable-collection) — no automated enforcement; documented as code conventions only.
-- Fix command: `uv run scripts/fix.py` (thin wrapper invoking `markdownlint-cli2 --fix` when it is available on PATH, then `uvx --with "ruff>=0.15.16,<0.16.0" ruff check --fix .` and `ruff format .` with Ruff's normal project discovery)
+- Custom Python AST conventions: 7 prose-only rules.
+  - Rules: leading-underscore, multiline-doc-style, unstructured-logging, public-declaration-doc-comment, unchecked-cast-suppression, triple-quote-inline-comment, mutable-collection.
+  - These are documented code conventions, not automated enforcement.
+- Fix command: `uv run scripts/fix.py`
+  - Runs `markdownlint-cli2 --fix` when it is available on PATH.
+  - Runs `uv run --with "ruff>=0.15.18,<0.16.0" ruff check --fix .`.
+  - Runs `uv run --with "ruff>=0.15.18,<0.16.0" ruff format .`.
+  - Uses Ruff's normal project discovery.
 - Quote style: ruff format uses double quotes.
 
 ### Bun
@@ -58,14 +67,14 @@ These checks are now DOCUMENT-LEVEL PROSE CONVENTIONS enforced by code review an
 Target repositories MUST uphold these in documentation, agent instructions, and hook templates:
 
 - filePresence: Required files (`AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, workflow files, etc.) MUST exist and be tracked in version control.
-- directoryPresence: Required directories (.claude/agents/, .claude/skills/, docs/harness/, docs/generated/, etc.) MUST exist, optionally with .gitkeep.
+- directoryPresence: Required directories (.claude/agents/, .claude/skills/, docs/templates/, docs/generated/, etc.) MUST exist, optionally with .gitkeep.
 - emptyDirectoryPlaceholders: Empty required directories MUST use .gitkeep to stay in version control until content exists.
-- symlinkSafety: Symlinks under protected harness paths MUST be limited to documented safe links such as `.agents` to `.claude`.
+- symlinkSafety: Symlinks under protected harness paths MUST be limited to documented safe links such as `.agents/skills/ -> .claude/skills/` and `.codex/agents/ -> .claude/agents/`.
 - agentFrontmatter: Agent .md files MUST include required `name` and `description` frontmatter fields.
 - skillFrontmatter: Skill `SKILL.md` files MUST include required `name` frontmatter field and `description`.
 - docHeadings: Documentation MUST use properly nested Markdown headings, starting at level 1, with blank lines before headings.
 - docContent: Documentation MUST use appropriate fenced code blocks with language tags, blank lines before lists, and correct emphasis styles.
-- scaffoldLeaks: Placeholder tokens (e.g., `{{project-name}}`, `<command>`) MUST NOT appear in committed source code; only in source templates under docs/harness/templates/.
+- scaffoldLeaks: Placeholder tokens (e.g., `{{project-name}}`, `<command>`) MUST NOT appear in committed source code; only in source templates under docs/templates/.
 - hookShebang: Hook files MUST use the `/usr/bin/env sh` shebang when executable.
 - hookExecutable: Installed hook files MUST have executable bits set (mode 755 or `a+x`).
 - hookSourceMarker: Installed hook files SHOULD identify the stack asset that owns their command contract.
@@ -74,4 +83,4 @@ Target repositories MUST uphold these in documentation, agent instructions, and 
 - ciHookCommandParity: The `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml` files MUST run the same final-check command as the installed pre-push hook.
 - envShebangUsage: Shell scripts MUST use the `/usr/bin/env` shebang pattern rather than direct interpreters.
 - uncheckedTasks: Completed execution plans in `docs/exec-plans/` MUST NOT contain any unchecked `- [ ]` task items.
-- templateGroups: Templates under docs/harness/templates/ MUST match the installed template structure and renderable variable names used by the installer.
+- templateGroups: Templates under docs/templates/ MUST match the installed template structure and renderable variable names used by the installer.

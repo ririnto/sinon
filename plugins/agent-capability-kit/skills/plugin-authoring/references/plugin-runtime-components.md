@@ -1,7 +1,7 @@
 ---
 name: plugin-runtime-components
 description: |-
-  Per-surface extension points, tradeoffs, and wiring details for hooks, MCP, LSP, settings, output styles, and monitors.
+  Per-surface extension points, tradeoffs, and wiring details for hooks, MCP, LSP, settings, output styles, themes, and monitors.
   Open this file only when `SKILL.md` leaves a blocker, tradeoff, or edge case unresolved for an already-chosen runtime surface.
 ---
 
@@ -33,13 +33,18 @@ Python runtime scripts that run directly should start with `#!/usr/bin/env -S uv
 Use PEP 508 major-compatible dependency ranges for external packages, such as `package>=1.2.3,<2`, and use `dependencies = []` for stdlib-only direct scripts when an explicit declaration is needed.
 
 JavaScript and TypeScript runtime scripts that run directly should start with `#!/usr/bin/env bun`, then `// -*- coding: utf-8 -*-`.
-Declare external dependencies with major-compatible import specifiers, such as `import * as cheerio from "cheerio@^1.0.0"`.
+Declare external dependencies with major-compatible import specifiers, such as `import * as cheerio from "cheerio@^1.2.0"`.
 Scripts that use only the JavaScript standard library or Bun built-ins need no dependency metadata block.
 
-Shell runtime scripts have no equivalent metadata block, so document required commands beside the command or in the plugin README.
+Shell runtime scripts have no equivalent metadata block, so document required tools beside the shell invocation or in the plugin README.
 
 Only widen the server surface when the client actually needs it.
 Advertising extra tools or environment inputs without a real consumer makes the plugin harder to reason about.
+
+## Executables
+
+Use `bin/` only for bundled executables that should be invokable as bare commands from Bash while the plugin is enabled.
+Keep scripts that are only called by hooks, MCP servers, monitors, or documentation under the surface that owns them.
 
 ## LSP
 
@@ -55,12 +60,14 @@ The server entrypoint should point at something the plugin ships.
 
 ## Settings
 
-The blocker is usually ambiguity: if a value is only descriptive, documentation-like, or redundant with defaults, it does not belong here.
-Keep settings limited to knobs that the plugin actually reads.
+Plugin-root `settings.json` is for Claude Code-supported default settings, not arbitrary plugin-owned runtime configuration.
+Current supported keys are `agent` and `subagentStatusLine`.
 
 The asset (`assets/settings.json`) provides a minimal starting point.
-Replace the placeholder values with only the keys the plugin genuinely needs at runtime.
-If the plugin no longer depends on a setting, remove the file rather than leaving a dead configuration surface behind.
+Use `userConfig` for prompted plugin options.
+Use bundled files for static plugin data.
+Use `${CLAUDE_PLUGIN_DATA}` for generated or persistent plugin runtime data.
+If the plugin does not need host default settings, remove `settings.json` rather than leaving a dead configuration surface behind.
 
 ## Output styles
 
@@ -74,12 +81,19 @@ Omit it or set it to `false` when the style applies to non-coding output.
 Split styles when the response contract diverges.
 Do not overload one style with incompatible audiences or responsibilities.
 
+## Themes
+
+Keep theme files limited to color theme data.
+Each JSON file in `themes/` defines one read-only plugin theme that appears alongside built-in and user themes.
+Use `experimental.themes` only for custom theme paths.
+
 ## Monitors
 
 The tradeoff is operational overhead: monitors need a clear observed subsystem, persistent state only when necessary, and a reason to run in the background instead of reacting once.
 
 The starter monitor (`assets/monitors/monitors.json` + `assets/monitors/watch.sh`) runs a local shell script from `${CLAUDE_PLUGIN_ROOT}` and writes timestamped state under `${CLAUDE_PLUGIN_DATA}/monitor-state/`.
-The monitor file is a top-level JSON array and is published from `plugin.json` as `"experimental": { "monitors": "./monitors/monitors.json" }`.
+The monitor file is a top-level JSON array at the default `monitors/monitors.json` path.
+Declare `experimental.monitors` only for a custom monitor path or inline monitor configuration.
 Extend it by changing the command, adding more monitor entries, or replacing the shell script with another local executable.
 
 If the condition is transient, event-driven, or cheap to check on demand, prefer the simpler surface and leave monitors out.

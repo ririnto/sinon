@@ -133,8 +133,8 @@ gradle_workspace="${temp_dir}/gradle-project"
 mkdir -p "${gradle_workspace}"
 cat >"${gradle_workspace}/build.gradle.kts" <<'EOF'
 dependencies {
-  compileOnly("org.projectlombok:lombok:1.18.38")
-  annotationProcessor("org.projectlombok:lombok:1.18.38")
+  compileOnly("org.projectlombok:lombok:1.18.46")
+  annotationProcessor("org.projectlombok:lombok:1.18.46")
 }
 EOF
 
@@ -156,22 +156,22 @@ mkdir -p "${no_project_workspace}"
 
 classpath_workspace="${temp_dir}/classpath-project"
 mkdir -p "${classpath_workspace}/lib"
-project_lombok_jar="${classpath_workspace}/lib/lombok-1.18.38.jar"
+project_lombok_jar="${classpath_workspace}/lib/lombok-1.18.46.jar"
 : >"${project_lombok_jar}"
 cat >"${classpath_workspace}/.classpath" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-  <classpathentry kind="lib" path="lib/lombok-1.18.38.jar"/>
+  <classpathentry kind="lib" path="lib/lombok-1.18.46.jar"/>
 </classpath>
 EOF
 
 factorypath_workspace="${temp_dir}/factorypath-project"
 mkdir -p "${factorypath_workspace}/lib"
-factorypath_lombok_jar="${factorypath_workspace}/lib/lombok-1.18.40.jar"
+factorypath_lombok_jar="${factorypath_workspace}/lib/lombok-1.18.46.jar"
 : >"${factorypath_lombok_jar}"
 cat >"${factorypath_workspace}/.factorypath" <<EOF
 <factorypath>
-  <factorypathentry kind="EXTJAR" id="lib/lombok-1.18.40.jar" enabled="true" runInBatchMode="false"/>
+  <factorypathentry kind="EXTJAR" id="lib/lombok-1.18.46.jar" enabled="true" runInBatchMode="false"/>
 </factorypath>
 EOF
 

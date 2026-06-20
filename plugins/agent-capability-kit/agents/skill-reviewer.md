@@ -1,8 +1,7 @@
 ---
 name: skill-reviewer
 description: >-
-  Review Agent Skills for quality, self-sufficiency, and progressive disclosure
-  compliance.
+  Review Agent Skills for quality, self-sufficiency, and progressive disclosure compliance.
   Use when auditing `SKILL.md` frontmatter, trigger descriptions, common-path coverage, support-file placement, or marketplace readiness.
 ---
 

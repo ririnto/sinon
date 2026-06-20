@@ -50,5 +50,5 @@ PulsarContainerFactoryCustomizer<ConcurrentPulsarListenerContainerFactory<?>> st
 ## Decision points
 
 - Use pause and resume when the application must temporarily stop consuming from a topic without shutting down.
-- Use `StartupFailurePolicy.CONTINUE` or `RETRY` when a listener connects to a topic that may not exist at startup but will be created later.
+- Use `StartupFailurePolicy.CONTINUE` or `RETRY` when a listener connects to a topic created after startup.
 - Verify the listener `id` attribute is set when pause/resume or startup failure policies are used.

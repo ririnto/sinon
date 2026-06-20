@@ -73,7 +73,7 @@ ch.pipeline()
 
 ## Common mistakes
 
-- setting `AUTO_READ` to `false` and forgetting to call `channel.read()` in `channelActive()` — the channel never reads anything
-- calling `channel.read()` inside `channelRead()` before processing completes — defeats the purpose of flow control by re-entering immediately
-- mixing `AUTO_READ` handlers in the same pipeline — the option is per-channel, not per-handler.
+- setting `AUTO_READ` to `false` and forgetting to call `channel.read()` in `channelActive()` - the channel never reads anything
+- calling `channel.read()` inside `channelRead()` before processing completes - defeats the purpose of flow control by re-entering immediately
+- mixing `AUTO_READ` handlers in the same pipeline - the option is per-channel, not per-handler.
   - All handlers share the same auto-read state

@@ -121,7 +121,7 @@ Use when: the blocker is understanding why version numbers in dashboard JSON fil
 
 ## UI Export Workflows
 
-Dashboard menu exports already produce raw dashboard JSON, which is the file shape legacy provider-path provisioning expects.
+Dashboard menu exports already produce raw dashboard JSON, which is the ordinary file shape for this skill's provider-path workflow.
 
 ### Save JSON to file (Dashboard menu -> Save JSON to file)
 
@@ -132,7 +132,7 @@ Recommended cleanup before committing:
 1. Remove `id` or set it to `null`.
 2. Normalize noisy UI-only changes you do not want in Git.
 3. Keep the file as the raw dashboard object.
-   - Do not wrap it in an API import payload.
+    - Do not wrap it unless the repository deliberately uses Grafana's classic wrapped file shape.
 
 ### Copy JSON to clipboard (Dashboard menu -> Copy JSON to clipboard)
 
@@ -159,8 +159,8 @@ For a dashboard file under `options.path`:
 3. Remove `id` or set it to `null`
 4. Save the extracted dashboard object itself as the file content
 
-If you are calling an API that explicitly requires `folderUid`, `overwrite`, or `message`, keep those fields in the API request body only.
-Do not treat that body as the raw file you commit for legacy provisioning.
+If you are calling an API that explicitly requires `folderUid`, `overwrite`, or `message`, keep `message` and response-only `meta` fields in the API boundary.
+Grafana classic wrapped files may use `dashboard`, `folderUid`, and `overwrite`; document that shape if you commit it under `options.path`.
 
 ### Common export gotcha: ID leakage
 
@@ -200,5 +200,5 @@ Use when: the blocker is converting a UI-exported dashboard into a valid provisi
 - is `allowUiUpdates` aligned with the actual team workflow
 - would a failed provisioning reload be easier to debug with a smaller, cleaner source tree
 - is `disableDeletion` set correctly for the team's file-removal workflow
-- are exported dashboards being committed as raw dashboard JSON rather than API payload envelopes
+- are exported dashboards being committed in one documented shape rather than mixed API payloads
 - is `id` being stripped or nulled in shared dashboard source files

@@ -8,12 +8,12 @@ Open this reference when the task needs replay readers.
 - Use a normal subscription for ordinary service consumption, retries, and DLQ handling.
 - Keep replay readers operationally separate from production listeners so replay does not look like ordinary processing.
 
-```java
-@PulsarReader(topics = "shipments", startMessageId = "earliest")
-void replay(ShipmentEvent event) {
-    audit.record(event);
-}
-```
+    ```java
+    @PulsarReader(topics = "shipments", startMessageId = "earliest")
+    void replay(ShipmentEvent event) {
+        audit.record(event);
+    }
+    ```
 
 ## Replay verification shape
 

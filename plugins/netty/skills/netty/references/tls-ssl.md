@@ -65,7 +65,7 @@ Use `SslProvider.OPENSSL` with `netty-tcnative` for higher throughput on Linux.
 
 > [!NOTE]
 >
-> `netty-tcnative-boringssl-static` bundles BoringSSL statically — no external OpenSSL installation is required.
+> `netty-tcnative-boringssl-static` bundles BoringSSL statically - no external OpenSSL installation is required.
 > Use the non-`static` variant (`netty-tcnative-boringssl`) when the system OpenSSL library must be used instead.
 
 ## Guidance

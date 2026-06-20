@@ -161,7 +161,7 @@ PaymentService paymentService() {
 }
 ```
 
-Open [references/container`-extension-scopes.md`](references/container-extension-scopes.md) when the task needs a custom scope, container extension point, or clarification of `@Configuration` lite mode.
+Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the task needs a custom scope, container extension point, or clarification of `@Configuration` lite mode.
 
 ## Environment, profiles, and resources
 
@@ -292,7 +292,7 @@ class OrderNotificationListener implements ApplicationListener<OrderPlacedEvent>
 Use application events for genuinely decoupled follow-up work, not as a substitute for basic method calls.
 Keep event classes immutable and scoped to the application package.
 
-Open [references/container`-extension-scopes.md`](references/container-extension-scopes.md) when the task depends on ordered listeners, `@EventListener` conditions, or lower-level listener infrastructure.
+Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the task depends on ordered listeners, `@EventListener` conditions, or lower-level listener infrastructure.
 
 ## Data binding and conversion
 
@@ -549,7 +549,7 @@ Use `bodyToFlux` for streaming responses and `ExchangeStrategies` when the defau
 Keep client configuration explicit.
 Centralize base URL and default headers in the bean definition rather than scattering them across call sites.
 
-Open [references/webclient`-reactive-depth.md`](references/webclient-reactive-depth.md) when the task needs client filters, Reactor Netty-specific timeouts, retry behavior, or deeper reactive-chain patterns.
+Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when the task needs client filters, Reactor Netty-specific timeouts, retry behavior, or deeper reactive-chain patterns.
 
 ## Transaction boundary
 
@@ -719,7 +719,7 @@ List<Item> items = jdbcClient.sql("SELECT id, name, quantity FROM items")
     .list((rs, rowNum) -> new Item(rs.getLong("id"), rs.getString("name"), rs.getInt("quantity")));
 ```
 
-Open [references/plain`-jdbc-wiring.md`](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
+Open [references/plain-jdbc-wiring.md](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
 
 ## Async and scheduling
 
@@ -796,7 +796,7 @@ TaskExecutor threadPoolTaskExecutor() {
 }
 ```
 
-Open [references/async`-executor-registration.md`](references/async-executor-registration.md) when the task needs async exception handling, completion coordination with `Future` / `CompletableFuture`, or custom `TaskDecorator` for ThreadLocal propagation.
+Open [references/async-executor-registration.md](references/async-executor-registration.md) when the task needs async exception handling, completion coordination with `Future` / `CompletableFuture`, or custom `TaskDecorator` for ThreadLocal propagation.
 
 Do not stack `@Async` and `@Scheduled` on the same method casually.
 Treat that combination as a proxy and executor design decision rather than ordinary scheduling.
@@ -816,11 +816,11 @@ Registering a reflection hint for a type now implies methods, constructors, and 
 
 ## AOP escalation
 
-Open [references/aop`-cross-cutting.md`](references/aop-cross-cutting.md) when cross-cutting behavior must wrap many beans consistently and the ordinary bean wiring path is not enough.
+Open [references/aop-cross-cutting.md](references/aop-cross-cutting.md) when cross-cutting behavior must wrap many beans consistently and the ordinary bean wiring path is not enough.
 
 ## Container extension escalation
 
-Open [references/container`-extension-scopes.md`](references/container-extension-scopes.md) for `BeanFactoryPostProcessor`, `BeanPostProcessor`, custom scope registration, or advanced listener infrastructure that goes beyond what `SKILL.md` covers.
+Open [references/container-extension-scopes.md](references/container-extension-scopes.md) for `BeanFactoryPostProcessor`, `BeanPostProcessor`, custom scope registration, or advanced listener infrastructure that goes beyond what `SKILL.md` covers.
 
 ## TestContext integration
 
@@ -987,11 +987,11 @@ class InventoryWarmup implements ApplicationListener<ContextRefreshedEvent>
 
 ## References
 
-- Open [references/aop`-cross-cutting.md`](references/aop-cross-cutting.md) when the task needs framework-level AOP beyond ordinary bean wiring.
-- Open [references/async`-executor-registration.md`](references/async-executor-registration.md) when the task needs async exception handling, completion coordination with `Future` / `CompletableFuture`, or `TaskDecorator` for ThreadLocal propagation.
-- Open [references/aspectj`-ltw.md`](references/aspectj-ltw.md) when the task needs load-time weaving, `@Configurable`, or AspectJ join points beyond Spring AOP proxies.
-- Open [references/container`-extension-scopes.md`](references/container-extension-scopes.md) when the blocker is container extension points, custom scopes, advanced listener infrastructure, or `@Configuration` lite-mode behavior.
-- Open [references/environment`-and-resources.md`](references/environment-and-resources.md) when the task needs deeper control over profiles, property sources, or resource resolution beyond the common path.
-- Open [references/plain`-jdbc-wiring.md`](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
-- Open [references/property`-binding-conversion-validation.md`](references/property-binding-conversion-validation.md) when the task needs advanced data-binding rules, formatter/converter registration, or validation groups beyond the common path.
-- Open [references/webclient`-reactive-depth.md`](references/webclient-reactive-depth.md) when the task needs WebClient filters, transport-specific timeouts, retry selection, or deeper reactive pipeline behavior.
+- Open [references/aop-cross-cutting.md](references/aop-cross-cutting.md) when the task needs framework-level AOP beyond ordinary bean wiring.
+- Open [references/async-executor-registration.md](references/async-executor-registration.md) when the task needs async exception handling, completion coordination with `Future` / `CompletableFuture`, or `TaskDecorator` for ThreadLocal propagation.
+- Open [references/aspectj-ltw.md](references/aspectj-ltw.md) when the task needs load-time weaving, `@Configurable`, or AspectJ join points beyond Spring AOP proxies.
+- Open [references/container-extension-scopes.md](references/container-extension-scopes.md) when the blocker is container extension points, custom scopes, advanced listener infrastructure, or `@Configuration` lite-mode behavior.
+- Open [references/environment-and-resources.md](references/environment-and-resources.md) when the task needs deeper control over profiles, property sources, or resource resolution beyond the common path.
+- Open [references/plain-jdbc-wiring.md](references/plain-jdbc-wiring.md) when the task needs transaction-scoped connections, `SqlRowSet`, `RowMapper` reuse, or `DataSourceTransactionManager` with plain JDBC.
+- Open [references/property-binding-conversion-validation.md](references/property-binding-conversion-validation.md) when the task needs advanced data-binding rules, formatter/converter registration, or validation groups beyond the common path.
+- Open [references/webclient-reactive-depth.md](references/webclient-reactive-depth.md) when the task needs WebClient filters, transport-specific timeouts, retry selection, or deeper reactive pipeline behavior.

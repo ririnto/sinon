@@ -18,7 +18,6 @@ fuzzy_compare: true
 tests:
   - name: api-error-rate
     start_timestamp: 2026-01-01T00:00:00Z
-
 ```
 
 | Control | Type | Default | Effect |
@@ -34,7 +33,6 @@ tests:
   - name: my-test
     interval: 30s
     start_timestamp: 2026-06-15T12:00:00Z
-
 ```
 
 The per-test `interval` overrides the top-level `evaluation_interval` for that test only.
@@ -66,7 +64,6 @@ tests:
       - eval_time: 10m
         alertname: Api5xxRatioAbove5Percent
         exp_alerts: []
-
 ```
 
 Without explicit order, promtool may evaluate groups in file declaration order, but explicit ordering is safer when cross-group dependencies exist.
@@ -74,8 +71,8 @@ In this example, `api-recording` must evaluate first because it produces `job:ht
 
 Use when: the rule file contains multiple groups and alerts in one group depend on recording rules in another.
 
-`start_timestamp`, `fuzzy_compare`, `group_eval_order`, and per-test `interval` are version-sensitive features.
-Verify the deployed Prometheus/promtool version supports them before relying on these controls.
+Current Prometheus 3.12 documentation includes `start_timestamp`, `fuzzy_compare`, `group_eval_order`, and per-test `interval` in the `promtool test rules` schema.
+If the target repository runs an older `promtool`, verify support before relying on these controls.
 
 ## Focused Execution
 
@@ -104,7 +101,6 @@ tests:
       - eval_time: 5m
       - eval_time: 10m
       - eval_time: 16m
-
 ```
 
 The values are all valid multiples of `1m`: initial evaluation, after 5 evaluations, exactly at a `for: 10m` boundary, and well past that boundary.
@@ -117,7 +113,6 @@ tests:
     alert_rule_test:
       - eval_time: 30s
       - eval_time: 7m30s
-
 ```
 
 These values are not clean multiples of `1m`.
@@ -155,7 +150,6 @@ promql_expr_test:
     exp_samples:
       - labels: '{}'
         value: 0.05
-
 ```
 
 Without `fuzzy_compare`, this fails if the actual value is `0.0500000000001`.
@@ -182,7 +176,6 @@ tests:
           - exp_annotations:
               summary: >-
                 Batch job failed during off-hours run at 03:02 UTC
-
 ```
 
 The timestamp starts the fixture at 03:00 UTC.
@@ -194,7 +187,6 @@ tests:
   - name: dst-transition
     start_timestamp: 2026-03-08T01:59:00Z
     ...
-
 ```
 
 The timestamp lands just before a spring-forward transition.

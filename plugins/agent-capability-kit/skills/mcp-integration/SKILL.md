@@ -11,7 +11,7 @@ Configure Model Context Protocol servers to expose external service tools within
 
 ## Goal
 
-Add MCP server definitions to a plugin so external services become available as tool calls within commands and agents.
+Add MCP server definitions to a plugin so external services become available as tool calls within agents and plugin runtime code.
 
 ## Scope
 
@@ -25,14 +25,14 @@ This skill owns:
 
 ## Operating rules
 
-1. MUST use `${CLAUDE_PLUGIN_ROOT}` for all bundled paths—never hardcoded absolute paths.
+1. MUST use `${CLAUDE_PLUGIN_ROOT}` for all bundled paths - never hardcoded absolute paths.
 2. MUST use HTTPS for remote servers, WSS for WebSocket connections.
 3. MUST NOT hardcode credentials.
    - Use environment variables or OAuth flows.
-4. MUST NOT use wildcards in `allowed-tools`—pre-allow only specific tool names.
-5. When the manifest declares `"mcpServers": "./.mcp.json"`, plugin-root `.mcp.json` MUST exist.
-   - When plugin-root `.mcp.json` exists, the manifest SHOULD declare `"mcpServers": "./.mcp.json"`.
-6. MAY use `.mcp.json` (recommended for multi-server plugins) or `mcpServers` in `plugin.json` (for single-server plugins).
+4. MUST NOT use wildcards in `allowed-tools` - pre-allow only specific tool names.
+5. Plugin-root `.mcp.json` is auto-discovered and SHOULD stay out of `plugin.json` when it is the only MCP surface.
+6. MAY use `.mcp.json` (recommended for multi-server plugins) or `mcpServers` in `plugin.json` for custom paths or inline single-server configuration.
+   - When `mcpServers` declares a string path, that file MUST exist.
 7. SHOULD test MCP connectivity locally with `/mcp` before publishing.
 
 ## Configuration Methods
@@ -58,7 +58,7 @@ This skill owns:
 
 ```jsonc
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "my-plugin",
   "author": { "name": "you" },
   "mcpServers": {
@@ -75,13 +75,13 @@ This skill owns:
 
 ## Transport Types
 
-- `stdio` — Local process (custom servers).
+- `stdio` - Local process (custom servers).
   - Use `command` + `args` + `env`.
-- `SSE` — Hosted OAuth (GitHub, Asana, etc.).
+- `SSE` - Hosted OAuth (GitHub, Asana, etc.).
   - Use `type: "sse"` + `url`.
-- `HTTP` — REST + token (custom APIs).
+- `HTTP` - REST + token (custom APIs).
   - Use `type: "http"` + HTTPS URL + bearer token in `headers`.
-- `WebSocket` — Real-time bidirectional (streaming).
+- `WebSocket` - Real-time bidirectional (streaming).
   - Use `type: "ws"` + WSS URL + auth headers.
 
 See `references/transport-types.md` for lifecycle details, failure modes, selection decision tree, and performance characteristics.
@@ -118,37 +118,28 @@ Use `${CLAUDE_PLUGIN_ROOT}` for portable bundled paths:
 }
 ```
 
-## MCP tool naming and allowed-tools
+## MCP Tool Naming and Allowlists
 
 MCP tools are prefixed: `mcp__plugin_{{plugin-name}}_{{server-name}}__{{tool-name}}`
 
-Pre-allow specific tools in command frontmatter:
+When an allowlist accepts MCP tools, list exact tool names:
 
-```markdown
----
-allowed-tools:
-  - mcp__plugin_github_github__search_repositories
-  - mcp__plugin_github_github__create_issue
----
+```text
+mcp__plugin_github_github__search_repositories
+mcp__plugin_github_github__create_issue
 ```
 
 ### Broken (Wildcard Too Permissive)
 
-```markdown
----
-allowed-tools:
-  - mcp__plugin_github_github__*
----
+```text
+mcp__plugin_github_github__*
 ```
 
 ### Correct (Specific Tools Only)
 
-```markdown
----
-allowed-tools:
-  - mcp__plugin_github_github__search_repositories
-  - mcp__plugin_github_github__create_issue
----
+```text
+mcp__plugin_github_github__search_repositories
+mcp__plugin_github_github__create_issue
 ```
 
 ## Multi-server example
@@ -268,7 +259,7 @@ Distinction: `/mcp` displays all configured servers and their tools.
 - [ ] No hardcoded credentials
 - [ ] Required environment variables documented in README
 - [ ] `/mcp` command shows servers and tools
-- [ ] Tool calls succeed from commands
+- [ ] Tool calls succeed from the intended plugin surface
 - [ ] Error handling for connection failures
 
 ## Pitfalls
@@ -281,6 +272,6 @@ DON'T: Hardcode absolute paths, commit credentials, use HTTP instead of HTTPS, p
 
 For detailed patterns and advanced topics, see:
 
-- `references/transport-types.md` — Transport-specific lifecycle, failure modes, and OAuth internals.
-- `references/authentication.md` — OAuth, token rotation, and secret hygiene patterns.
-- `references/performance.md` — Lazy loading, connection pooling, and MCP latency debugging.
+- `references/transport-types.md` - Transport-specific lifecycle, failure modes, and OAuth internals.
+- `references/authentication.md` - OAuth, token rotation, and secret hygiene patterns.
+- `references/performance.md` - Lazy loading, connection pooling, and MCP latency debugging.

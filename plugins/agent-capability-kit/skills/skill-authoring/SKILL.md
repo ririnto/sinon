@@ -2,9 +2,7 @@
 name: skill-authoring
 description: >-
   Write or refactor a cross-platform Agent Skill.
-  Use when the skill must stay
-  self-sufficient in `SKILL.md`, easy to trigger from its description, and usable
-  offline without mandatory external tooling.
+  Use when the skill must stay self-sufficient in `SKILL.md`, easy to trigger from its description, and usable offline without mandatory external tooling.
 ---
 
 # Skill Authoring
@@ -131,21 +129,21 @@ description: >-
 ## Writing procedure
 
 1. Onboard current state.
-Read the skill directory, local rules, existing support files, and user request.
-   For new skills, copy `assets/skill-template.md`.
+   - Read the skill directory, local rules, existing support files, and user request.
+   - For new skills, copy `assets/skill-template.md`.
 2. Define the coherent unit.
-Write one sentence for the job this skill owns.
-   Remove adjacent jobs, optional branches, and host-specific sprawl from that sentence.
+   - Write one sentence for the job this skill owns.
+   - Remove adjacent jobs, optional branches, and host-specific sprawl from that sentence.
 3. Plan the file split.
-   Put always-needed guidance in `SKILL.md`, copyable artifacts in `assets/`, blocker-specific depth in `references/`, and deterministic helper code in `scripts/`.
+   - Put always-needed guidance in `SKILL.md`, copyable artifacts in `assets/`, blocker-specific depth in `references/`, and deterministic helper code in `scripts/`.
 4. Draft `SKILL.md` first.
-   Start with outcome, operating rules, first safe checks, numbered procedure, edge cases, output contract, and a short support-file index.
+   - Start with outcome, operating rules, first safe checks, numbered procedure, edge cases, output contract, and a short support-file index.
 5. Validate the ordinary path.
-   Confirm an agent can perform the common task from `SKILL.md` alone and that every support file is optional.
+   - Confirm an agent can perform the common task from `SKILL.md` alone and that every support file is optional.
 6. Revise for trigger and scope.
-   Check the description trigger, fold always-needed reference content back into `SKILL.md`, and move additive catalogs out of the main file.
+   - Check the description trigger, fold always-needed reference content back into `SKILL.md`, and move additive catalogs out of the main file.
 7. Finish with the checklist.
-   Use `assets/validation-checklist.md` as the final pass and fix each finding or report the blocker.
+   - Use `assets/validation-checklist.md` as the final pass and fix each finding or report the blocker.
 
 ## `SKILL.md` body contract
 

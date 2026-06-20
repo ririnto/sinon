@@ -60,7 +60,7 @@ IntegrationFlow.from(Files.inboundAdapter(new File("/inbox")), endpoint -> endpo
 
 - Choose HTTP or WebFlux when the remote boundary is request-response and the flow must stay inside application HTTP infrastructure.
 - Choose file, FTP, or SFTP when delivery is file-oriented and polling or remote file session semantics drive the flow.
-- Choose JDBC or JPA when the database is the integration boundary, not just an internal repository.
+- Choose JDBC or JPA when the database is the integration boundary rather than an internal repository.
 - Choose AMQP or Kafka when the flow must bridge broker topics, consumer groups, or message-driven channels.
 - Choose CloudEvents when the flow must interoperate with event-driven systems that produce or consume CloudEvents specification v1.0 messages.
 - Choose gRPC when the flow communicates via gRPC with Protobuf service contracts, especially for streaming patterns.

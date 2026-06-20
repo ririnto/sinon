@@ -17,7 +17,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, TypeGuard
+from typing import Any, Protocol, TypeGuard, runtime_checkable
 from urllib.parse import urlparse
 
 import jsonschema
@@ -29,6 +29,22 @@ FRONTMATTER_DELIMITER_RE = re.compile(r"^---[ \t]*$")
 FENCED_CODE_BLOCK_RE = re.compile(r"^[ \t]*(`{3,}|~{3,})")
 
 MAX_YAML_ALIAS_COUNT = 100
+
+
+@runtime_checkable
+class ReconfigurableTextStream(Protocol):
+    """Text stream that can reset its runtime encoding."""
+
+    def reconfigure(self, *, encoding: str) -> None:
+        """Reset the stream encoding."""
+
+
+def configure_utf8_streams() -> None:
+    """Use UTF-8 for console output on runtimes that support reconfiguration."""
+    for stream in (sys.stdout, sys.stderr):
+        if isinstance(stream, ReconfigurableTextStream):
+            stream.reconfigure(encoding="utf-8")
+
 
 # Linking constants
 REVERSE_LINKS_HEADING_RE = re.compile(
@@ -170,7 +186,6 @@ SPEC_SCAFFOLDING_LINES: frozenset[str] = frozenset(
 
 # Research validation constants
 ALLOWED_RESEARCH_CATEGORIES = frozenset(["framework", "library", "topic"])
-SENTENCE_SEGMENT_SPLIT_RE = re.compile(r"[;,.!?]")
 URI_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*$")
 RESEARCH_TRAILING_COLON_RE = re.compile(r":$")
 RESEARCH_SUBJECT_NAME_COMPOUND_EXEMPTION_RE = re.compile(
@@ -217,58 +232,6 @@ RESEARCH_FORBIDDEN_LABEL_PATTERNS = [
         r"^[ \t]*(?!#)(?:[-*][ \t]+)?Task(?:[ \t]+Management|[ \t]+Breakdown)?"
         r"(?:[ \t]*:|[ \t]+[-/])[ \t]+\S.*$",
         re.IGNORECASE,
-    ),
-]
-
-RESEARCH_BOUNDARY_NEGATION_RE = re.compile(
-    r"\b(?:must not|should not|do not|does not|did not|not a|"
-    r"non-goals?|out of scope|avoid|avoids|without)\b",
-    re.IGNORECASE,
-)
-
-RESEARCH_FORBIDDEN_PROSE_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
-    (
-        "project/repository comparison",
-        re.compile(
-            r"\b(?:project|repository|repo)\b[^\n]{0,80}"
-            r"\b(?:comparison|compare|compared|comparing|versus|vs\.?)\b"
-            r"|\b(?:comparison|compare|compared|comparing|versus|vs\.?)\b"
-            r"[^\n]{0,80}\b(?:project|repository|repo)\b",
-            re.IGNORECASE,
-        ),
-    ),
-    (
-        "implementation or migration planning",
-        re.compile(
-            r"\b(?:implementation|rollout|delivery)\b[^\n]{0,80}"
-            r"\b(?:plan(?:ning)?|phase(?:s)?|sequence|sequencing|timeline|milestone|"
-            r"task(?:s)?|ship|deliver|roll(?:[ \t-]+out)?|migrate)\b"
-            r"|\b(?:ship|deliver|implement|roll(?:[ \t-]+out)?|migrate)\b"
-            r"[^\n]{0,80}\b(?:(?:one|two|three|four|[1-4])[ \t-]+phase(?:s)?"
-            r"|phase[ \t]+[1-4]|timeline|milestone|task(?:s)?)\b",
-            re.IGNORECASE,
-        ),
-    ),
-    (
-        "task-management planning",
-        re.compile(
-            r"\b(?:task(?:s)?|todo|checklist|work item(?:s)?|owner(?:s)?)\b"
-            r"[^\n]{0,40}"
-            r"\b(?:assign|assigned|assignment|track|tracking|manage|managed|"
-            r"next step(?:s)?|due date(?:s)?)\b"
-            r"|\b(?:assign|track|manage)\b[^\n]{0,40}"
-            r"\b(?:task(?:s)?|todo|checklist|work item(?:s)?)\b",
-            re.IGNORECASE,
-        ),
-    ),
-    (
-        "project/repository audit",
-        re.compile(
-            r"\b(?:project|repository|repo)\b[^\n]{0,80}\baudit(?:s|ed|ing)?\b"
-            r"|\baudit(?:s|ed|ing)?\b[^\n]{0,80}"
-            r"\b(?:project|repository|repo)\b",
-            re.IGNORECASE,
-        ),
     ),
 ]
 
@@ -1082,59 +1045,14 @@ def collect_pattern_boundary_errors(
     # :param createMessage: Callable that produces an error message from the matched text.
     # :param errors: Mutable list accumulating error messages.
     # :return: True if the error cap was reached and scanning should stop.
-    for pattern in patterns:
-        match = pattern.search(source_text)
-        if not match:
-            continue
-        if push_bounded_error(errors, create_message(match.group(0).strip())):
-            return True
+    for line in LINE_SPLIT_RE.split(source_text):
+        for pattern in patterns:
+            match = pattern.search(line)
+            if not match:
+                continue
+            if push_bounded_error(errors, create_message(match.group(0).strip())):
+                return True
     return False
-
-
-def validate_research_prose_segment(
-    file_path: str,
-    segment: str,
-    errors: list[str],
-) -> bool:
-    # :description: Validates a single prose segment against forbidden research patterns with negation awareness.
-    # :param file_path: Path to the RESEARCH file for error messages.
-    # :param segment: A single sentence-level text segment to validate.
-    # :param errors: Mutable list accumulating error messages.
-    # :return: True if the error cap was reached and outer loop should stop.
-    for label, pattern in RESEARCH_FORBIDDEN_PROSE_PATTERNS:
-        match = pattern.search(segment)
-        if not match:
-            continue
-        prefix = segment[: match.start()]
-        if RESEARCH_BOUNDARY_NEGATION_RE.search(prefix):
-            continue
-        return push_bounded_error(
-            errors,
-            f"FAIL [{file_path}]: RESEARCH.md must remain framework/library/topic "
-            f"investigation, not {label} content such as {segment}",
-        )
-    return False
-
-
-def validate_research_prose_boundaries(
-    file_path: str,
-    source_text: str,
-    errors: list[str],
-) -> None:
-    # :description: Validates all non-heading, non-empty lines in RESEARCH body text against forbidden prose patterns.
-    # :param file_path: Path to the RESEARCH file for error messages.
-    # :param sourceText: Full body text (with frontmatter stripped and code blocks removed).
-    # :param errors: Mutable list accumulating error messages.
-    for raw_line in LINE_SPLIT_RE.split(source_text):
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
-            continue
-        segments = [
-            seg.strip() for seg in SENTENCE_SEGMENT_SPLIT_RE.split(line) if seg.strip()
-        ]
-        for segment in segments:
-            if validate_research_prose_segment(file_path, segment, errors):
-                return
 
 
 def get_forbidden_frontmatter_label(text: str) -> str | None:
@@ -1199,12 +1117,11 @@ def validate_research_subject_name_boundary(
 
 
 def validate_research_scope_boundaries(file_path: str, text: str) -> list[str]:
-    """Validates RESEARCH body content against forbidden heading, label, and prose boundary patterns.
+    """Validates RESEARCH body content against forbidden heading and label boundary patterns.
     This checks that the Markdown body (with fenced code blocks removed)
     does not contain headings or labels indicating project comparison,
     implementation/migration planning, task management, or repository audit
-    scope. Prose segments are also scanned for these patterns with negation
-    awareness so that sentences explicitly ruling out such scope are allowed.
+    scope.
     Validation stops after collecting up to 3 errors.
     :param file_path: Path to the RESEARCH file for error messages.
     :param text: Markdown body text with frontmatter already stripped.
@@ -1232,7 +1149,6 @@ def validate_research_scope_boundaries(file_path: str, text: str) -> list[str]:
         errors,
     ):
         return errors
-    validate_research_prose_boundaries(file_path, non_fenced_text, errors)
     return errors
 
 
@@ -3972,4 +3888,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    configure_utf8_streams()
     sys.exit(main())

@@ -19,7 +19,7 @@ Spring Shell 4.0 is based on Spring Framework 7 and requires Spring Boot 4+.
 
 Use `spring-shell` for command registration, command grouping, option syntax, validation, completion, availability checks, shell-specific prompting, terminal-facing output, and shell-focused testing.
 
-- Use Spring Boot `CommandLineRunner` or `ApplicationRunner` for one-shot startup jobs that do not expose an interactive command surface.
+- Use Spring Boot `CommandLineRunner` or `ApplicationRunner` for one-shot startup jobs that do not expose an interactive shell API.
 - Keep durable batch execution, restartable jobs, and large-scale scheduled processing outside this skill's scope.
 - Keep business workflows outside the command class.
   - The shell layer should parse input, enforce availability, and delegate to application services.
@@ -50,8 +50,8 @@ The ordinary Spring Shell job is:
 ### Branch selector
 
 - Stay in `SKILL.md` for the ordinary command path: annotation-based commands, command grouping, built-in help behavior, option defaults, validation, completion, availability, `CommandContext` reads and writes, stable output, exit-status decisions, headless execution, and shell-focused tests.
-- Open [references/interactive`-flows-and-terminal-ui.md`](references/interactive-flows-and-terminal-ui.md) when the task needs guided multi-step flows, selection widgets, confirmations, or richer terminal UI behavior.
-- Open [references/prompt`-and-styling.md`](references/prompt-and-styling.md) when the prompt or output styling must reflect environment, login state, or operator risk.
+- Open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) when the task needs guided multi-step flows, selection widgets, confirmations, or richer terminal UI behavior.
+- Open [references/prompt-and-styling.md](references/prompt-and-styling.md) when the prompt or output styling must reflect environment, login state, or operator risk.
 
 ## Dependency baseline
 
@@ -585,5 +585,5 @@ added sku=SKU-1 quantity=1
 
 ## References
 
-- Open [references/interactive`-flows-and-terminal-ui.md`](references/interactive-flows-and-terminal-ui.md) when the task needs guided flows, confirmations, selectors, or richer terminal UI components beyond ordinary command registration.
-- Open [references/prompt`-and-styling.md`](references/prompt-and-styling.md) when the prompt or output styling must surface environment or risk information.
+- Open [references/interactive-flows-and-terminal-ui.md](references/interactive-flows-and-terminal-ui.md) when the task needs guided flows, confirmations, selectors, or richer terminal UI components beyond ordinary command registration.
+- Open [references/prompt-and-styling.md](references/prompt-and-styling.md) when the prompt or output styling must surface environment or risk information.

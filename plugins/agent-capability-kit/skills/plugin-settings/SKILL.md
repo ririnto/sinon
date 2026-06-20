@@ -1,13 +1,13 @@
 ---
 name: plugin-settings
 description: >-
-  Author plugin-level configuration via `settings.json` and per-project state via `.claude/{{plugin-name}}.local.md` with YAML frontmatter parsing patterns.
-  Triggers on plugin settings creation or reads, per-project state file design, YAML frontmatter extraction from markdown, or wiring settings into hooks, commands, and agents.
+  Author plugin-level configuration via `settings.json`, prompted values via `userConfig`, and per-project state via `.claude/{{plugin-name}}.local.md` with YAML frontmatter parsing patterns.
+  Triggers on plugin settings creation or reads, per-project state file design, YAML frontmatter extraction from markdown, or wiring settings into hooks and agents.
 ---
 
 # Plugin Settings
 
-Author plugin-level static configuration and per-project plugin state with YAML frontmatter patterns, readable offline from hooks, commands, and agents.
+Author plugin-level static configuration and per-project plugin state with YAML frontmatter patterns, readable offline from hooks, agents, and bundled runtime code.
 
 ## Goal
 
@@ -19,7 +19,9 @@ This skill covers two independent surfaces:
 
 ### Plugin-Level Settings
 
-`settings.json` at the plugin root, declared in `plugin.json` via `"settings": "./settings.json"`.
+`settings.json` at the plugin root.
+Claude Code auto-discovers this file.
+Do not declare a `settings` key in `plugin.json`; use `userConfig` when the plugin needs prompted install-time values.
 Static configuration, shared across all projects.
 One file per plugin.
 
@@ -31,7 +33,7 @@ One file per plugin per project.
 
 ## Operating Rules
 
-1. Plugin-level settings are read-only artifacts bundled with the plugin; project state files are writable by end users.
+1. Plugin-level `settings.json` contains Claude Code-supported default settings; project state files are writable by end users.
 2. State files use YAML frontmatter as the authoritative config layer; markdown body is secondary context.
 3. Hooks and agents MUST check file existence before parsing to avoid errors on first run.
 4. Changes to `.local.md` files require Claude Code restart before hooks recognize them.
@@ -44,30 +46,19 @@ One file per plugin per project.
 
 ### Plugin-level settings.json
 
-Minimal schema with only fields the plugin actually uses:
+Use plugin-root `settings.json` only for Claude Code-supported default settings.
+Current supported keys are `agent` and `subagentStatusLine`:
 
 ```json
 {
-  "fieldName": "default-value",
-  "numericField": 10,
-  "listField": ["option1", "option2"],
-  "booleanField": false
+  "agent": "inherit",
+  "subagentStatusLine": true
 }
 ```
 
-Declare in `plugin.json`:
-
-```jsonc
-{
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
-  "name": "your-plugin",
-  "description": "Plugin description",
-  "author": { "name": "your-handle" },
-  "commands": "./commands/",
-  "skills": "./skills/",
-  "settings": "./settings.json"
-}
-```
+Use `plugin.json` `userConfig` for prompted plugin options.
+Read prompted values through `${user_config.KEY}` substitution or `CLAUDE_PLUGIN_OPTION_<KEY>` in plugin subprocesses.
+Use project `.local.md` state files for project-owned configuration that users edit directly.
 
 ### Per-project .claude/`{{plugin-name}}`.`local.md`
 
@@ -92,7 +83,7 @@ Edit settings above and restart Claude Code for changes to take effect.
 
 Common frontmatter keys:
 
-- `enabled` (boolean): Master on/off switch for hook and command behavior.
+- `enabled` (boolean): Master on/off switch for hook behavior.
 - Plugin-specific keys: custom fields matching the plugin's config schema.
 - `coordinator_session` (string): tmux session name for multi-agent coordination.
 - `task_number` (string): Agent task identifier for swarm workflows.
@@ -114,18 +105,7 @@ ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
 
 See `references/frontmatter-parsing.md` for per-field type patterns (boolean, string, numeric, array, multi-line), edge cases, validation, and complete working examples.
 
-## Reading Settings from Commands and Agents
-
-Commands use the `Read` tool to fetch `.local.md` files, then parse YAML frontmatter in the result.
-
-### In Command Markdown
-
-```markdown
-# Your Command
-
-Check for settings at `.claude/your-plugin.local.md`.
-If present, read the file, parse YAML frontmatter for `enabled`, `mode`, and other fields, then adapt behavior.
-```
+## Reading Settings from Agents
 
 Agents reference settings in their instructions:
 
@@ -136,12 +116,12 @@ description: >-
   Adapts behavior to project settings
 ---
 
-Check for plugin settings at `.claude/your-plugin.local.md`.
-If the file exists:
-- Parse YAML frontmatter (the content between `---` markers at the top)
-- Read the `enabled`, `mode`, and other fields
-- Apply settings to your behavior
-If the file is absent, use documented defaults.
+- Check for plugin settings at `.claude/your-plugin.local.md`.
+- If the file exists:
+  - Parse YAML frontmatter (the content between `---` markers at the top).
+  - Read the `enabled`, `mode`, and other fields.
+  - Apply settings to your behavior.
+- If the file is absent, use documented defaults.
 ```
 
 ## Common Patterns
@@ -217,7 +197,7 @@ fi
 
 ### Pattern 3: Configuration-Driven Validation Mode
 
-Store validation policy and apply in hooks or commands:
+Store validation policy and apply in hooks or bundled runtime code:
 
 `.claude/security-plugin.`local.md`:`
 
@@ -250,7 +230,7 @@ esac
 
 ## Creating Settings Files
 
-Commands can scaffold settings files when first run or requested by the user.
+Agents can scaffold settings files when requested by the user.
 
 ### Steps
 
@@ -455,9 +435,8 @@ When implementing settings support in a plugin, return:
 - DO: document restart requirement clearly in plugin README.
 - DO: sanitize user input before writing to files (escape quotes, validate types).
 - DO: set file permissions to `chmod 600` for user scope state files.
-
 - DON'T: assume the settings file exists or is valid YAML; always check and provide defaults.
-- DON'T: put plugin-level settings in `.local.md` files; use `settings.json` in the plugin root instead.
+- DON'T: put plugin-level settings in `.local.md` files; use plugin-root `settings.json`, or `userConfig` for prompted values, instead.
 - DON'T: commit user scope files to git; rely on `.gitignore`.
 - DON'T: try to hot-reload hooks within the same Claude Code session; document the restart requirement.
 - DON'T: store secrets (API keys, tokens) in `.local.md` files without encryption; use Claude Code secrets or environment variables instead.
@@ -465,5 +444,5 @@ When implementing settings support in a plugin, return:
 
 ## References
 
-- `references/frontmatter-parsing.md` — Complete parsing patterns, per-field type handling, and edge cases.
-- `references/multi-agent-coordination.md` — Task numbering, coordinator sessions, and real-world swarm examples.
+- `references/frontmatter-parsing.md` - Complete parsing patterns, per-field type handling, and edge cases.
+- `references/multi-agent-coordination.md` - Task numbering, coordinator sessions, and real-world swarm examples.

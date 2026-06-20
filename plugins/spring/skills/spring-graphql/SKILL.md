@@ -376,8 +376,8 @@ Return:
 
 ## References
 
-- Open [references/transports`-and-subscriptions.md`](references/transports-and-subscriptions.md) when the ordinary HTTP server path is not enough and the task needs subscriptions, WebSocket, SSE, or RSocket transport wiring.
-- Open [references/advanced`-dataloader.md`](references/advanced-dataloader.md) when the blocker is DataLoader registration, options, shared batching lifecycle, or batch-loader context.
-- Open [references/testing`-graphql.md`](references/testing-graphql.md) when the blocker is choosing between GraphQL test slices, integration testers, or subscription test setup.
-- Open [references/security`-context-and-errors.md`](references/security-context-and-errors.md) when the task needs interceptor-based context propagation, authorization handling, or more explicit GraphQL error shaping.
+- Open [references/transports-and-subscriptions.md](references/transports-and-subscriptions.md) when the ordinary HTTP server path is not enough and the task needs subscriptions, WebSocket, SSE, or RSocket transport wiring.
+- Open [references/advanced-dataloader.md](references/advanced-dataloader.md) when the blocker is DataLoader registration, options, shared batching lifecycle, or batch-loader context.
+- Open [references/testing-graphql.md](references/testing-graphql.md) when the blocker is choosing between GraphQL test slices, integration testers, or subscription test setup.
+- Open [references/security-context-and-errors.md](references/security-context-and-errors.md) when the task needs interceptor-based context propagation, authorization handling, or more explicit GraphQL error shaping.
 - Open [references/federation.md](references/federation.md) when the schema is intentionally part of a federated graph.

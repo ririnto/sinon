@@ -21,13 +21,19 @@ Date-time rules:
 - use `LocalDate` for a date-only concept such as a birthday or due date
 - use `LocalDateTime` for civil or scheduled wall-clock concepts and keep the `TimeZone` separately
 - do not convert far-future scheduled civil times into `Instant` too early because time-zone rules can change
-- keep `Instant`, `Clock`, `LocalDate`, `LocalDateTime`, and `TimeZone` in `kotlinx-datetime` unless the module raises its Kotlin baseline to 2.3+ to use stdlib `kotlin.time.Instant`
+- keep `Instant`, `Clock`, `LocalDate`, `LocalDateTime`, and `TimeZone` in `kotlinx-datetime`
+  unless the module raises its Kotlin baseline to 2.3+ to use stdlib `kotlin.time.Instant`
 
 Version note:
 
 - the Kotlin 2.1 baseline does not include stdlib Instant.
-  - Stdlib `kotlin.time.Instant` is stable since Kotlin 2.3, so on the 2.1 baseline use `kotlinx.datetime.Instant` with `org.jetbrains.kotlinx:kotlinx-datetime`
-- when a project deliberately raises its Kotlin baseline to 2.3+ for stdlib Instant, keep one timestamp representation per boundary and migrate deliberately
+  - Stdlib `kotlin.time.Instant` is stable since Kotlin 2.3.
+  - On the 2.1 baseline, use `kotlinx.datetime.Instant` with `org.jetbrains.kotlinx:kotlinx-datetime`.
+- when a project deliberately raises its Kotlin baseline to 2.3+ for stdlib Instant, keep one timestamp representation per boundary.
+  - Migrate deliberately.
+- use `0.8.0` for the ordinary dependency path.
+  - Maven metadata also publishes `0.8.0-0.6.x-compat`.
+  - Choose that only when the project needs the 0.6.x compatibility variant.
 
 Gradle dependency:
 

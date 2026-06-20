@@ -43,11 +43,11 @@ The ordinary Spring Session job is:
 ### Branch selector
 
 - Stay in `SKILL.md` for the ordinary servlet path: Redis-backed servlet sessions, explicit timeout and namespace, cookie or header transport choice, indexed-versus-default Redis repository choice, cookie customization, JSON serializer awareness, principal lookup, and store-backed tests.
-- Open [references/jdbc`-store.md`](references/jdbc-store.md) when the session store is relational and table naming, cleanup, transactions, or JSON attribute storage matter.
-- Open [references/webflux`-websession.md`](references/webflux-websession.md) when the application is reactive and uses `WebSession` instead of servlet `HttpSession`.
-- Open [references/websocket`-integration.md`](references/websocket-integration.md) when WebSocket or STOMP traffic must share the same backing session lifecycle as HTTP traffic.
-- Open [references/redis`-advanced.md`](references/redis-advanced.md) when Redis repository type, session events, JSON serialization, expiration-store behavior, session mapper, or Spring Security listener integration must be customized.
-- Open [references/alternative`-repositories.md`](references/alternative-repositories.md) only when Redis and JDBC are both poor fits and the deployment already mandates another repository.
+- Open [references/jdbc-store.md](references/jdbc-store.md) when the session store is relational and table naming, cleanup, transactions, or JSON attribute storage matter.
+- Open [references/webflux-websession.md](references/webflux-websession.md) when the application is reactive and uses `WebSession` instead of servlet `HttpSession`.
+- Open [references/websocket-integration.md](references/websocket-integration.md) when WebSocket or STOMP traffic must share the same backing session lifecycle as HTTP traffic.
+- Open [references/redis-advanced.md](references/redis-advanced.md) when Redis repository type, session events, JSON serialization, expiration-store behavior, session mapper, or Spring Security listener integration must be customized.
+- Open [references/alternative-repositories.md](references/alternative-repositories.md) only when Redis and JDBC are both poor fits and the deployment already mandates another repository.
 
 ## Dependency baseline
 
@@ -177,11 +177,11 @@ Switch to JSON serialization when multiple applications, rolling upgrades, or pa
 
 ## Edge cases
 
-- Open [references/jdbc`-store.md`](references/jdbc-store.md) when the database schema, cleanup cadence, transaction strategy, or JSON attribute storage needs explicit control.
-- Open [references/webflux`-websession.md`](references/webflux-websession.md) when the app is reactive and `WebSession` semantics replace servlet `HttpSession` semantics.
-- Open [references/websocket`-integration.md`](references/websocket-integration.md) when WebSocket or STOMP traffic must close or invalidate alongside the backing HTTP session.
-- Open [references/redis`-advanced.md`](references/redis-advanced.md) when repository type, session events, listener bridging, expiration-store behavior, session mapper, or JSON serialization must be customized.
-- Open [references/alternative`-repositories.md`](references/alternative-repositories.md) only when an existing platform standard already mandates Hazelcast, MongoDB, or a custom repository.
+- Open [references/jdbc-store.md](references/jdbc-store.md) when the database schema, cleanup cadence, transaction strategy, or JSON attribute storage needs explicit control.
+- Open [references/webflux-websession.md](references/webflux-websession.md) when the app is reactive and `WebSession` semantics replace servlet `HttpSession` semantics.
+- Open [references/websocket-integration.md](references/websocket-integration.md) when WebSocket or STOMP traffic must close or invalidate alongside the backing HTTP session.
+- Open [references/redis-advanced.md](references/redis-advanced.md) when repository type, session events, listener bridging, expiration-store behavior, session mapper, or JSON serialization must be customized.
+- Open [references/alternative-repositories.md](references/alternative-repositories.md) only when an existing platform standard already mandates Hazelcast, MongoDB, or a custom repository.
 
 ## Implementation examples
 
@@ -263,8 +263,8 @@ Return:
 
 ## References
 
-- Open [references/jdbc`-store.md`](references/jdbc-store.md) when the store is relational.
-- Open [references/webflux`-websession.md`](references/webflux-websession.md) when the runtime is reactive.
-- Open [references/websocket`-integration.md`](references/websocket-integration.md) when messaging and session lifecycle must stay aligned.
-- Open [references/redis`-advanced.md`](references/redis-advanced.md) when Redis session behavior needs customization beyond the ordinary path.
-- Open [references/alternative`-repositories.md`](references/alternative-repositories.md) when the platform mandates a non-Redis, non-JDBC repository.
+- Open [references/jdbc-store.md](references/jdbc-store.md) when the store is relational.
+- Open [references/webflux-websession.md](references/webflux-websession.md) when the runtime is reactive.
+- Open [references/websocket-integration.md](references/websocket-integration.md) when messaging and session lifecycle must stay aligned.
+- Open [references/redis-advanced.md](references/redis-advanced.md) when Redis session behavior needs customization beyond the ordinary path.
+- Open [references/alternative-repositories.md](references/alternative-repositories.md) when the platform mandates a non-Redis, non-JDBC repository.

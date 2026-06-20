@@ -284,7 +284,7 @@ class PersonWriter {
 }
 ```
 
-Use `DirContextAdapter` when the task needs direct write operations such as attribute updates and the schema does not justify a full ODM aggregate workflow.
+Use `DirContextAdapter` when the task needs direct write operations such as attribute updates and the schema is too small for a full ODM aggregate workflow.
 
 ### LdapClient search (Spring LDAP 4.1.0)
 
@@ -474,7 +474,7 @@ spring:
 ```
 
 Use `ldap://` for plain LDAP ports such as 389 and `ldaps://` for LDAPS ports such as 636. Keep the scheme and port consistent.
-For embedded LDAPS testing, use `spring.ldap.embedded.ssl.bundle` instead of configuring `spring.ldap.urls` manually — see [references/embedded`-testing-and-ldif.md`](references/embedded-testing-and-ldif.md).
+For embedded LDAPS testing, use `spring.ldap.embedded.ssl.bundle` instead of configuring `spring.ldap.urls` manually - see [references/embedded-testing-and-ldif.md](references/embedded-testing-and-ldif.md).
 
 ## Testing checklist
 
@@ -512,7 +512,7 @@ Return:
 
 ## References
 
-- Open [references/advanced`-odm-and-repositories.md`](references/advanced-odm-and-repositories.md) when the schema needs multi-valued ODM fields, raw `@Query`, or deeper repository derivation rules.
-- Open [references/filters`-and-dn-handling.md`](references/filters-and-dn-handling.md) when the task needs complex LDAP filters, escaping, or DN parsing beyond the common path.
-- Open [references/transactions`-and-context-source.md`](references/transactions-and-context-source.md) when the application needs transaction-aware context sources or connection-pool tuning.
-- Open [references/embedded`-testing-and-ldif.md`](references/embedded-testing-and-ldif.md) when embedded LDAP setup needs custom ports, LDIF handling, LDAPS/SSL, or schema-validation tuning.
+- Open [references/advanced-odm-and-repositories.md](references/advanced-odm-and-repositories.md) when the schema needs multi-valued ODM fields, raw `@Query`, or deeper repository derivation rules.
+- Open [references/filters-and-dn-handling.md](references/filters-and-dn-handling.md) when the task needs complex LDAP filters, escaping, or DN parsing beyond the common path.
+- Open [references/transactions-and-context-source.md](references/transactions-and-context-source.md) when the application needs transaction-aware context sources or connection-pool tuning.
+- Open [references/embedded-testing-and-ldif.md](references/embedded-testing-and-ldif.md) when embedded LDAP setup needs custom ports, LDIF handling, LDAPS/SSL, or schema-validation tuning.

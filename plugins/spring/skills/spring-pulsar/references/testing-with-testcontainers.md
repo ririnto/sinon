@@ -23,7 +23,7 @@ class ShipmentFlowTest {
     static AtomicReference<ShipmentEvent> received = new AtomicReference<>();
 
     @Container
-    static PulsarContainer pulsar = new PulsarContainer("apachepulsar/pulsar:3.3.2");
+    static PulsarContainer pulsar = new PulsarContainer("apachepulsar/pulsar:4.2.2");
 
     @DynamicPropertySource
     static void pulsarProperties(DynamicPropertyRegistry registry) {
@@ -65,7 +65,7 @@ class ShipmentFlowTest {
 - Use admin-backed verification when the assertion depends on topic provisioning or partition count.
 - Keep one failure-path test that proves the listener reaches the intended redelivery or dead-letter behavior.
 - Keep the broker image aligned with one of the supported Pulsar client lines.
-  - Spring Pulsar 2.0.x uses Pulsar client 4.1.x / 4.0.x / 3.3.x.
+  - Spring Boot 4.1.0 manages Spring Pulsar 2.0.6 with Pulsar client 4.2.2.
   - Pin a specific image version only when the test must prove compatibility with a chosen Pulsar line.
 
 ## Admin verification shape

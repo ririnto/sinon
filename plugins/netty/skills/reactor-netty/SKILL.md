@@ -52,17 +52,13 @@ Keep low-level Netty concerns out of this common path:
    - `TcpServer` / `TcpClient`
    - `UdpServer` / `UdpClient`
 3. Configure host, port, warmup needs, and the common handler entrypoint.
-
-    - HTTP server: `.route(...)` or `.handle(...)`
-    - HTTP client: request + body send/receive + status inspection
-    - TCP or UDP: `.handle((inbound, outbound) -> ...)`
-    - QUIC: `handleStream(...)` for stream handling.
-
+   - HTTP server: `.route(...)` or `.handle(...)`
+   - HTTP client: request + body send/receive + status inspection
+   - TCP or UDP: `.handle((inbound, outbound) -> ...)`
+   - QUIC: `handleStream(...)` for stream handling.
 4. Bind or connect.
-
-    - server: `bindNow()` returns `DisposableServer`
-    - client: `connectNow()` returns `Connection`
-
+   - server: `bindNow()` returns `DisposableServer`
+   - client: `connectNow()` returns `Connection`
 5. Keep lifecycle hooks explicit when needed.
    - server: `doOnBind`, `doOnBound`, `doOnConnection`, `doOnUnbound`
    - client: `doOnConnect`, `doOnConnected`, `doOnDisconnected`
@@ -107,8 +103,8 @@ Use `reactor-netty-core` instead when the work is only TCP or UDP.
 
 | Method | Use when | Return shape |
 | --- | --- | --- |
-| `.responseSingle((resp, content) -> ...)` | you need the status code + full body aggregated at once | `Mono<T>` — body is fully buffered |
-| `.responseContent()` | you want streaming/chunked processing of the response body | `Flux<ByteBuf>` — each chunk arrives as it is received |
+| `.responseSingle((resp, content) -> ...)` | you need the status code + full body aggregated at once | `Mono<T>` - body is fully buffered |
+| `.responseContent()` | you want streaming/chunked processing of the response body | `Flux<ByteBuf>` - each chunk arrives as it is received |
 
 Aggregated body (status check + full body in one signal):
 
@@ -218,7 +214,7 @@ String body = HttpClient.create()
 Warmup before first bind or connect:
 
 `warmup()` pre-initializes event loops without binding a port.
-The `HttpServer` builder remains reusable — `bindNow()` can be called afterward.
+The `HttpServer` builder remains reusable - `bindNow()` can be called afterward.
 
 ```java
 HttpServer server = HttpServer.create().port(8080);

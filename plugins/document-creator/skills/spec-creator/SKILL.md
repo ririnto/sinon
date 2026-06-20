@@ -244,11 +244,11 @@ The choice between feature-scale and system-scale is determined by:
 - Treating every feature as P0.
 - Omitting negative, boundary, or recovery scenarios.
 - Retroactive spec written after implementation as justification.
-- Cross-doc routing ("see README", "refer to `ARCHITECTURE.md`") — the spec MUST stand alone.
+- Cross-doc routing ("see README", "refer to `ARCHITECTURE.md`") - the spec MUST stand alone.
 
 ## Reference Files
 
-- `[`requirements-style.md`](references/requirements-style.md)` — Requirement IDs, RFC 2119 keywords, patterns, and examples.
-- `[`scenarios-and-acceptance.md`](references/scenarios-and-acceptance.md)` — Scenario format, acceptance criteria, success criteria, and conformance matrices.
-- `[`spec-template.md`](references/spec-template.md)` — Comprehensive system-scale `SPEC.md` skeleton with all sections.
-- `[`quality-checklist.md`](references/quality-checklist.md)` — Pre-delivery validation checklist for self-sufficiency and completeness.
+- `[`requirements-style.md`](references/requirements-style.md)` - Requirement IDs, RFC 2119 keywords, patterns, and examples.
+- `[`scenarios-and-acceptance.md`](references/scenarios-and-acceptance.md)` - Scenario format, acceptance criteria, success criteria, and conformance matrices.
+- `[`spec-template.md`](references/spec-template.md)` - Comprehensive system-scale `SPEC.md` skeleton with all sections.
+- `[`quality-checklist.md`](references/quality-checklist.md)` - Pre-delivery validation checklist for self-sufficiency and completeness.

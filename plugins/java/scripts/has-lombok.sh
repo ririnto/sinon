@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 set -e
 
-# Minimum Lombok version accepted for project-resolved jars.
-COMPATIBLE_VERSION="1.18.4"
+# Minimum Lombok version accepted for Java 25-compatible project-resolved jars.
+COMPATIBLE_VERSION="1.18.40"
 mode="uses-lombok"
 
 case "${1:-}" in
@@ -19,7 +19,7 @@ esac
 project_root=${1:-$PWD}
 
 # Check whether a single build file declares a Lombok dependency.
-#     Requires grep with -E (GNU grep on Linux, BSD grep on macOS — both support -E).
+#     Requires grep with -E (GNU grep on Linux and BSD grep on macOS both support -E).
 #
 # @param file_path Path to the build file to inspect.
 # @return 0 if Lombok dependency is found, 1 otherwise.

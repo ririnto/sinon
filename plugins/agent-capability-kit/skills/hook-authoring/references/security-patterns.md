@@ -112,10 +112,10 @@ validate_path() {
 
 Patterns to reject:
 
-- `..` or `../` — path traversal
-- Leading `/` — absolute paths
-- `.env`, `.aws`, `.pem`, `.key`, `.ssh` — sensitive files; `.gpg` only when matching private key patterns (e.g., `secring.gpg`, `*.gpg.key`, or paths under `~/.gnupg/`)
-- `node_modules/`, `.git/`, `.env.*` — protected directories
+- `..` or `../` - path traversal
+- Leading `/` - absolute paths
+- `.env`, `.aws`, `.pem`, `.key`, `.ssh` - sensitive files; `.gpg` only when matching private key patterns (e.g., `secring.gpg`, `*.gpg.key`, or paths under `~/.gnupg/`)
+- `node_modules/`, `.git/`, `.env.*` - protected directories
 
 ### Correct: system path detection
 

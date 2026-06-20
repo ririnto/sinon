@@ -111,16 +111,16 @@ They can only read environment variables set by:
 
 ### All events
 
-- `${CLAUDE_PLUGIN_ROOT}` — Plugin root directory
-- `${CLAUDE_PROJECT_DIR}` — Project root directory (current working directory at session start)
-- `$CLAUDE_CODE_REMOTE` — Set if running in remote context.
+- `${CLAUDE_PLUGIN_ROOT}` - Plugin root directory
+- `${CLAUDE_PROJECT_DIR}` - Project root directory (current working directory at session start)
+- `$CLAUDE_CODE_REMOTE` - Set if running in remote context.
   - Undefined locally.
 
 Values are constant for entire session.
 
 ### SessionStart only
 
-- `$CLAUDE_ENV_FILE` — Path to session environment file (write-only).
+- `$CLAUDE_ENV_FILE` - Path to session environment file (write-only).
   - Persist env vars here.
 
 Available in SessionStart command hooks only.

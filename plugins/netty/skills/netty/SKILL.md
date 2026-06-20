@@ -83,22 +83,22 @@ If the task is centered on `HttpServer`, `HttpClient`, `TcpServer`, `TcpClient`,
 - `ServerBootstrap.childOption(...)` configures each accepted child channel handled by the worker group.
 - `Bootstrap.option(...)` configures the single client or UDP channel because there is no child-channel split.
 
-```java
-ServerBootstrap bootstrap = new ServerBootstrap();
-bootstrap.group(bossGroup, workerGroup)
-    .channel(NioServerSocketChannel.class)
-    .option(ChannelOption.SO_BACKLOG, 256)
-    .childOption(ChannelOption.SO_KEEPALIVE, true)
-    .childOption(ChannelOption.TCP_NODELAY, true)
-    .childHandler(new EchoInitializer());
+    ```java
+    ServerBootstrap bootstrap = new ServerBootstrap();
+    bootstrap.group(bossGroup, workerGroup)
+        .channel(NioServerSocketChannel.class)
+        .option(ChannelOption.SO_BACKLOG, 256)
+        .childOption(ChannelOption.SO_KEEPALIVE, true)
+        .childOption(ChannelOption.TCP_NODELAY, true)
+        .childHandler(new EchoInitializer());
 
-Bootstrap clientBootstrap = new Bootstrap();
-clientBootstrap.group(group)
-    .channel(NioSocketChannel.class)
-    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-    .option(ChannelOption.TCP_NODELAY, true)
-    .handler(new ClientInitializer());
-```
+    Bootstrap clientBootstrap = new Bootstrap();
+    clientBootstrap.group(group)
+        .channel(NioSocketChannel.class)
+        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+        .option(ChannelOption.TCP_NODELAY, true)
+        .handler(new ClientInitializer());
+    ```
 
 ### Pipeline direction
 

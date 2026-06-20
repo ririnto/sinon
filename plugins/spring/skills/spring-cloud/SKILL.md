@@ -139,6 +139,8 @@ Keep the discovery implementation starter, Gateway starter, OpenFeign starter, a
 
 #### Register applications
 
+These examples follow the official `rabbitmq-maven-latest` SCDF catalog coordinates.
+
 ```text
 dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
 dataflow:>app register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:3.2.1
@@ -405,6 +407,8 @@ class InventoryGatewayIntegrationTests {
 
 #### Stream definition and inspection
 
+These examples follow the official `rabbitmq-maven-latest` SCDF catalog coordinates.
+
 ```text
 dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
 dataflow:>app register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:3.2.1
@@ -528,7 +532,7 @@ task execution list
 | CVE-2026-22739 | Medium | Config 5.0.2 | Earlier Config security fix |
 | CVE-2026-47825 | High | Gateway 5.0.2 | Untrusted proxy `X-Forwarded-For`/`Forwarded` forwarded |
 
-All CVEs are resolved in 2025.1.2. Upgrade from any earlier 2025.1.x release is strongly recommended.
+All CVEs are covered by Spring Cloud 2025.1.2, which manages Spring Cloud Config 5.0.4. Upgrade from any earlier 2025.1.x release is strongly recommended.
 
 ### Distributed-system wiring
 
@@ -551,14 +555,14 @@ Use these only when the task moves beyond the ordinary config, refresh, discover
 
 ### Distributed-system wiring references
 
-- Open [references/gateway`-routing.md`](references/gateway-routing.md) when the service must own an edge routing boundary instead of calling downstream services directly.
-- Open [references/openfeign`-clients.md`](references/openfeign-clients.md) when declarative HTTP clients are clearer than direct `RestClient` code.
-- Open [references/stream`-binders.md`](references/stream-binders.md) when the task is specifically about Stream binder wiring.
-- Open [references/function`-catalog.md`](references/function-catalog.md) when the task is specifically about Spring Cloud Function beans or composition.
-- Open [references/contract`-testing.md`](references/contract-testing.md) when the task is specifically about Spring Cloud Contract.
-- Open [references/kubernetes`-config.md`](references/kubernetes-config.md) when config import or reload is backed by Kubernetes sources.
-- Open [references/kubernetes`-discovery.md`](references/kubernetes-discovery.md) when service discovery is backed by Kubernetes namespaces and services.
-- Open [references/bus`-refresh.md`](references/bus-refresh.md) when the platform actually needs distributed refresh or event propagation.
-- Open [references/cloud`-vault-config.md`](references/cloud-vault-config.md) when config import is backed by Vault and the blocker is authentication mode or fail-fast behavior.
+- Open [references/gateway-routing.md](references/gateway-routing.md) when the service must own an edge routing boundary instead of calling downstream services directly.
+- Open [references/openfeign-clients.md](references/openfeign-clients.md) when declarative HTTP clients are clearer than direct `RestClient` code.
+- Open [references/stream-binders.md](references/stream-binders.md) when the task is specifically about Stream binder wiring.
+- Open [references/function-catalog.md](references/function-catalog.md) when the task is specifically about Spring Cloud Function beans or composition.
+- Open [references/contract-testing.md](references/contract-testing.md) when the task is specifically about Spring Cloud Contract.
+- Open [references/kubernetes-config.md](references/kubernetes-config.md) when config import or reload is backed by Kubernetes sources.
+- Open [references/kubernetes-discovery.md](references/kubernetes-discovery.md) when service discovery is backed by Kubernetes namespaces and services.
+- Open [references/bus-refresh.md](references/bus-refresh.md) when the platform actually needs distributed refresh or event propagation.
+- Open [references/cloud-vault-config.md](references/cloud-vault-config.md) when config import is backed by Vault and the blocker is authentication mode or fail-fast behavior.
 
 ### Data Flow references

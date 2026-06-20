@@ -1,7 +1,8 @@
 ---
 name: plugin-authoring
 description: >-
-  Create or refactor a Claude Code plugin root with a manifest, README, and only the runtime components the plugin actually uses.
+  Create or refactor a Claude Code plugin root with a manifest and README.
+  Keep only runtime components the plugin actually uses.
   Use when scaffolding a new plugin, validating `plugin.json` manifest fields, or trimming unused runtime surfaces from an existing plugin.
 ---
 
@@ -19,7 +20,6 @@ This skill owns the plugin root and plugin-level runtime files:
 
 - `.claude-plugin/plugin.json` (Claude Code runtime manifest)
 - `README.md`
-- `commands/`
 - `agents/`
 - `skills/`
 - `hooks/`
@@ -27,7 +27,9 @@ This skill owns the plugin root and plugin-level runtime files:
 - `.lsp.json`
 - `settings.json`
 - `output-styles/`
+- `themes/`
 - `monitors/monitors.json`
+- `bin/`
 
 ## Operating rules
 
@@ -35,39 +37,43 @@ This skill owns the plugin root and plugin-level runtime files:
 2. Runtime components live at the plugin root.
 3. Add only the directories and config files the plugin actually needs.
 4. Inside `plugin.json`, every declared path MUST begin with `./`.
-   - Directory-typed fields MUST use the trailing-slash directory form (`"skills": "./skills/"`, `"commands": "./commands/"`).
-   - Array-of-paths and bare `./skills` are prohibited.
-   - File-typed fields MUST point to the canonical filename at the plugin root: `"hooks": "./hooks/hooks.json"`, `"mcpServers": "./.mcp.json"`, `"lspServers": "./.lsp.json"`, `"settings": "./settings.json"`.
-5. The manifest and the filesystem MUST stay bidirectionally consistent.
-   - When `lspServers` is declared, plugin-root `.lsp.json` MUST exist.
-   - When plugin-root `.lsp.json` exists, the manifest SHOULD declare `"lspServers": "./.lsp.json"`.
-   - The same bidirectional rule applies to `mcpServers` and plugin-root `.mcp.json`, to `hooks` and `hooks/hooks.json`, to `settings` and `settings.json`, and to `experimental.monitors` and `monitors/monitors.json`.
-6. The manifest MUST NOT declare an `agents` key, MUST NOT declare a `version` field, and MUST NOT declare an `interface` block.
-   - These keys are rejected by current host schemas or by repository policy.
+   - Keep default component locations out of the manifest because Claude Code discovers them automatically.
+   - Default runtime locations include:
+     - `skills/`, `agents/`, `hooks/hooks.json`, `.mcp.json`
+     - `.lsp.json`, `settings.json`, `output-styles/`, `themes/`, `monitors/monitors.json`, `bin/`
+   - Use component path fields only for custom paths or schema-supported inline configuration.
+   - Custom path fields use official merge rules:
+     - `skills` adds to the default `skills/` scan.
+     - `agents` and `outputStyles` replace the matching default directory unless the default path is listed explicitly.
+     - `experimental.themes` and `experimental.monitors` follow the same replacement behavior.
+   - Custom directory paths, when present, SHOULD use the trailing-slash directory form.
+5. Manifest path declarations MUST match real files or directories.
+   - Path-valued component fields MUST resolve inside the plugin root.
+   - Inline object component fields do not require a companion path file.
+6. The manifest MUST NOT declare an `interface` block.
+   - Sinon git-sourced plugins SHOULD omit `version` unless a maintainer adopts semver releases for that plugin.
+   - Keep standard component locations out of `plugin.json`; use component keys only for custom paths or inline configuration.
 7. Keep plugin metadata concise and operational.
 8. Keep bundled source files under `${CLAUDE_PLUGIN_ROOT}` and keep generated or persistent runtime data under `${CLAUDE_PLUGIN_DATA}`.
 9. Keep the ordinary authoring path in this file.
-
-    - Open support files only for named blockers, deeper examples, or release review.
-
-10. Keep `agents/` at the plugin root whenever the plugin ships agents.
-
+   - Open support files only for named blockers, deeper examples, or release review.
+10. Keep `agents/` at the plugin root whenever the plugin ships default agents.
     - Each `.md` filename under `agents/` MUST match its frontmatter `name` field exactly, and both MUST use kebab-case.
-    - Document the shipped agents in the plugin `README.md` instead of declaring them in `plugin.json`.
-
+    - Document the shipped agents in the plugin `README.md`.
 11. For Sinon marketplace plugins, publish only plugin roots that include `.claude-plugin/plugin.json`.
-12. Ordinary authoring remains offline, but maintainers changing host-specific or schema-specific guidance should verify against official host documentation when available and record any verification blocker.
+12. Ordinary authoring remains offline.
+    - Maintainers changing host-specific or schema-specific guidance should verify against official host documentation when available.
+    - Record any verification blocker.
 
 ## Canonical minimal tree
 
-Start from this tree when the plugin ships commands and skills:
+Start from this tree when the plugin ships skills:
 
 ```text
 your-plugin/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── README.md
-├── commands/
 └── skills/
 ```
 
@@ -80,27 +86,26 @@ Remove any directory the plugin does not actually use, and add other runtime sur
 1. Define the plugin purpose in one sentence.
 2. Create `.claude-plugin/plugin.json` from the inline minimal manifest below.
    - Optionally copy `assets/plugin.json` when a starter file is useful.
-3. Create `README.md` describing the plugin purpose, included skills, agents, commands, runtime model, layout, and scope notes.
-4. Keep only the manifest keys that point to real component paths in the current tree.
+3. Create `README.md` describing the plugin purpose, included skills, agents, runtime model, layout, and scope notes.
+4. Keep only metadata, custom component paths, and inline component configuration in the manifest.
 5. Create root-level component directories only when the plugin ships that component.
 6. Add optional runtime surfaces only after deciding that the plugin needs that specific behavior:
-
-    - Add `hooks` only when the plugin reacts to Claude Code lifecycle events.
-    - Add `mcpServers` only when the plugin ships MCP server definitions.
-    - Add `lspServers` only when the plugin configures LSP servers.
-    - Add `settings` only when the plugin needs plugin-level settings.
-    - Add `outputStyles` only when the plugin ships reusable output styles.
-    - Add `experimental.monitors` only when the plugin genuinely needs monitor definitions.
-
+   - Add `hooks` only when the plugin reacts to Claude Code lifecycle events.
+   - Add `mcpServers` only when the plugin ships MCP server definitions.
+   - Add `lspServers` only when the plugin configures LSP servers.
+   - Add root `settings.json` only when the plugin needs plugin-level settings.
+   - Add manifest `userConfig` only when the plugin needs prompted install-time values.
+   - Add `outputStyles` only when the plugin ships reusable output styles.
+   - Add `themes` only when the plugin ships Claude Code color themes.
+   - Add `monitors` only when the plugin genuinely needs monitor definitions.
+   - Add `bin/` only when the plugin ships executables that should be available as bare commands from Bash.
 7. Keep plugin data boundaries explicit:
-
-    - Use `${CLAUDE_PLUGIN_ROOT}` for bundled scripts, templates, servers, and other files that ship with the plugin.
-    - Use `${CLAUDE_PLUGIN_DATA}` for generated caches, logs, indexes, or other persistent runtime data.
-
-8. Validate bidirectionally:
-   - Manifest → Filesystem: Every manifest key declaration (e.g., `lspServers: "./.lsp.json"`, `mcpServers: "./.mcp.json"`, `hooks: "./hooks/hooks.json"`, `settings: "./settings.json"`, `experimental.monitors: "./monitors/monitors.json"`) MUST have a matching plugin-root file or directory.
-   - Filesystem → Manifest: Every plugin-root configuration file (`.lsp.json`, `.mcp.json`, `hooks/hooks.json`, `settings.json`, `monitors/monitors.json`) SHOULD be declared in the manifest with the correct key and exact path so the runtime knows to publish it.
-   - Every declared path MUST begin with `./`, every declared component MUST exist, and every runtime manifest directory MUST contain only `plugin.json`.
+   - Use `${CLAUDE_PLUGIN_ROOT}` for bundled scripts, templates, servers, and other files that ship with the plugin.
+   - Use `${CLAUDE_PLUGIN_DATA}` for generated caches, logs, indexes, or other persistent runtime data.
+8. Validate the manifest and filesystem:
+   - Every declared string path MUST begin with `./` and resolve inside the plugin root.
+   - Default component locations SHOULD remain undeclared unless they are combined with custom paths as official merge rules require.
+   - Every runtime manifest directory MUST contain only `plugin.json`.
 
 ## Minimal example
 
@@ -108,66 +113,45 @@ Use this as the default `.claude-plugin/plugin.json` starting point:
 
 ```jsonc
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "your-plugin-name",
   "description": "Plugin for a clearly bounded workflow.",
   "author": {
     "name": "your-handle"
-  },
-  "commands": "./commands/",
-  "skills": "./skills/"
+  }
 }
 ```
 
-If the plugin ships agents at the plugin root, keep the directory in the plugin tree but leave it out of the manifest:
+If the plugin ships skills or agents at default plugin-root locations, keep those directories in the plugin tree.
+Leave default locations out of the manifest unless you need custom paths, explicit file subsets, or another official merge-rule case:
 
 ```jsonc
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "your-plugin-name",
   "description": "Plugin for a clearly bounded workflow.",
   "author": {
     "name": "your-handle"
-  },
-  "commands": "./commands/",
-  "skills": "./skills/"
+  }
 }
 ```
 
 Add optional keys only when the plugin needs the corresponding runtime surface.
 
-For example:
-
-```jsonc
-{
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
-  "name": "your-plugin-name",
-  "description": "Claude Code plugin for a clearly bounded workflow.",
-  "author": {
-    "name": "your-handle"
-  },
-  "commands": "./commands/",
-  "skills": "./skills/",
-  "hooks": "./hooks/hooks.json",
-  "settings": "./settings.json"
-}
-```
-
-This is valid only if `./hooks/hooks.json` and `./settings.json` exist and the plugin actually uses them.
-
 ## Ordinary component decisions
 
 Use these defaults during normal authoring:
 
-- `commands/`: add when the plugin ships slash commands
-- `agents/`: add when the plugin ships agents or subagents, but keep it out of the runtime manifest
+- `agents/`: add when the plugin ships default agents or subagents
 - `skills/`: add when the plugin ships reusable skills
 - `hooks/`: add when the plugin must intercept or react to tool or session events
 - `.mcp.json`: add when the plugin needs MCP server registrations
 - `.lsp.json`: add when the plugin needs LSP server registrations
 - `settings.json`: add when the plugin needs plugin-level settings
 - `output-styles/`: add when the plugin ships reusable response formatting
+- `themes/`: add when the plugin ships Claude Code color themes
 - `monitors/monitors.json`: add only for genuine monitor behavior, not as a default scaffold
+- `bin/`: add when the plugin ships executables that should be available on Bash `PATH`
 
 If a plugin does not need a surface yet, omit both the file or directory and the manifest key.
 
@@ -178,15 +162,29 @@ Omit both the manifest key and filesystem artifact when a surface is not in use.
 
 | Surface | Manifest key | Add when | Starter path |
 | --- | --- | --- | --- |
-| Agents | none | Plugin ships agents or subagents at the plugin root. | `agents/` |
-| Hooks | `"hooks": "./hooks/hooks.json"` | Plugin intercepts Claude Code lifecycle events. | `hooks/hooks.json` |
-| MCP | `"mcpServers": "./.mcp.json"` | Plugin registers MCP servers. | `.mcp.json` |
-| LSP | `"lspServers": "./.lsp.json"` | Plugin configures LSP servers. | `.lsp.json` |
-| Settings | `"settings": "./settings.json"` | Plugin exposes plugin-level settings. | `settings.json` |
-| Output styles | `"outputStyles": "./output-styles/"` | Plugin ships reusable output styles. | `output-styles/` |
-| Monitors | `"experimental": { "monitors": "./monitors/monitors.json" }` | Plugin ships genuine monitor behavior, not a default scaffold. | `monitors/monitors.json` |
+| Skills | none for default `skills/` | Plugin ships skills outside the default directory. | `skills/` |
+| | `"skills": ["./custom/skills/"]` for custom paths | | |
+| Agents | none for default `agents/` | Plugin ships agents or subagents. | `agents/` |
+| | `"agents": ["./custom/agents/reviewer.md"]` for custom paths | | |
+| Hooks | none for default `hooks/hooks.json` | Plugin intercepts Claude Code lifecycle events. | `hooks/hooks.json` |
+| | `hooks` for custom path or inline config | | |
+| MCP | none for default `.mcp.json`; `mcpServers` for custom path or inline config | Plugin registers MCP servers. | `.mcp.json` |
+| LSP | none for default `.lsp.json`; `lspServers` for custom path or inline config | Plugin configures LSP servers. | `.lsp.json` |
+| Settings | none for default `settings.json` | Plugin exposes plugin-level settings. | `settings.json` |
+| | use `userConfig` for prompted values | | |
+| Output styles | none for default `output-styles/` | Plugin ships reusable output styles. | `output-styles/` |
+| | `outputStyles` for custom paths | | |
+| Themes | none for default `themes/`; `experimental.themes` for custom paths | Plugin ships Claude Code color themes. | `themes/` |
+| Monitors | none for default `monitors/monitors.json` | Plugin ships genuine monitor behavior. | `monitors/monitors.json` |
+| | `experimental.monitors` for custom path or inline config | It must not be a default scaffold. | |
+| Executables | none | Plugin ships executables that should be available to Bash as bare executables. | `bin/` |
 
 Open `references/plugin-runtime-components.md` for per-surface extension points, tradeoffs, and wiring guidance.
+
+Manifest path fields do not all merge with defaults the same way.
+When you declare `skills`, Claude Code still scans the default `skills/` directory.
+When you declare `agents`, the matching default directory is replaced unless it appears in the path list.
+That replacement behavior also applies to `outputStyles`, `experimental.themes`, and `experimental.monitors`.
 
 ## Data boundary guidance
 
@@ -203,10 +201,13 @@ Open `references/plugin-release.md` for data split and release-review context.
 - Do not place component files inside `.claude-plugin/`.
 - Do not create a runtime manifest directory unless the plugin publishes to that runtime.
 - Do not declare paths that do not begin with `./`.
-- Do not use array-of-paths form for `skills` or `commands`.
-  - Use directory form with a trailing slash.
-- Do not declare `lspServers`, `mcpServers`, `hooks`, `settings`, or `experimental.monitors` keys without corresponding plugin-root files.
-- Do not declare `agents`, `version`, or `interface` keys.
+- Do not declare default component locations in the manifest when the default location is the only value.
+- Use directory form with a trailing slash for custom component directories.
+- Do not declare path-valued component keys without corresponding plugin-root files.
+- Prefer default `settings.json` for plugin-level settings, and use `userConfig` for prompted plugin configuration.
+- Do not declare custom `agents` paths unless the files exist.
+- Do not declare `version` unless the plugin has a semver release cycle.
+- Do not declare `interface`.
 - Do not let `plugin.json` promise components that the tree does not contain.
 - Do not treat `${CLAUDE_PLUGIN_ROOT}` as a writable data directory.
 - Do not require support files to complete ordinary plugin authoring.
@@ -240,7 +241,7 @@ Return:
 
 ## Optional support files
 
-- Open `references/plugin-layout.md` when expanded tree examples for minimal, command-only, or full plugin roots are needed.
+- Open `references/plugin-layout.md` when expanded tree examples for minimal or full plugin roots are needed.
 - Open `references/plugin-runtime-components.md` when a plugin needs deeper per-surface examples, extension points, or local file layout beyond the ordinary manifest path above.
 - Open `references/plugin-release.md` when reviewing install scope, packaging, or release checks.
 - Optionally copy `assets/plugin.json` when a starter manifest file is useful.

@@ -21,10 +21,10 @@ Focus on documents that capture requirements, design intent, and acceptance crit
 
 Use `spec-creator` when the user asks to "create `SPEC.md`", "write a spec", "draft a product spec", "create structured requirements", "write acceptance criteria", "make an RFC-style spec", "make an SRS-style spec", or define testable feature behavior before implementation.
 
-- `references/spec-template.md` — canonical `SPEC.md` skeleton and section rules.
-- `references/requirements-style.md` — requirement IDs, RFC 2119 language, and EARS patterns.
-- `references/scenarios-and-acceptance.md` — scenario and acceptance-criteria guidance.
-- `references/quality-checklist.md` — review checklist for spec completeness and quality.
+- `references/spec-template.md` - canonical `SPEC.md` skeleton and section rules.
+- `references/requirements-style.md` - requirement IDs, RFC 2119 language, and EARS patterns.
+- `references/scenarios-and-acceptance.md` - scenario and acceptance-criteria guidance.
+- `references/quality-checklist.md` - review checklist for spec completeness and quality.
 
 ## Runtime Model
 
@@ -32,8 +32,9 @@ This plugin uses one shared plugin root with a Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/`.
-No agents, hooks, MCP servers, LSP servers, settings, or commands are shipped.
+Claude Code discovers default plugin-root surfaces automatically.
+This includes `skills/` and executable `bin/` when present.
+No agents, hooks, MCP servers, LSP servers, or settings are shipped.
 
 ## Plugin Layout
 
@@ -55,7 +56,7 @@ plugins/document-creator/
 
 - The plugin ships reusable skills under `skills/`.
 - Each skill is self-contained with a `SKILL.md` entrypoint and `references/` for additive depth.
-- The plugin does not ship agents, plugin commands, hooks, MCP servers, LSP servers, settings, or custom runtime data surfaces.
+- The plugin does not ship agents, hooks, MCP servers, LSP servers, settings, or custom runtime data surfaces.
 
 ## Design Principles
 
@@ -70,7 +71,7 @@ plugins/document-creator/
 When this plugin is published in the Sinon marketplace, install it with:
 
 ```sh
-/plugin install document-creator@sinon
+claude plugin install document-creator@sinon
 ```
 
 For current local development:
@@ -84,7 +85,7 @@ claude --plugin-dir /path/to/sinon/plugins/document-creator
 This plugin focuses on authoring individual AI-consumable documents well.
 It does not cover:
 
-- Full spec-driven development workflow (research → spec → review → implement → verify) — see `spec-driven-development` plugin for that end-to-end workflow.
+- Full spec-driven development workflow (research → spec → review → implement → verify) - see `spec-driven-development` plugin for that end-to-end workflow.
 - Git branch management, CI/CD pipeline design, or project management.
 - Document templates for non-engineering contexts (e.g., marketing, legal, general communication).
 

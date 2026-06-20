@@ -1,8 +1,6 @@
 ---
 description: >-
-  Reference for virtual thread fit assessment, version-sensitive limits,
-  ScopedValue usage, pinning diagnosis, and ThreadLocal guidance
-  in Java concurrency work.
+  Reference for virtual thread fit assessment, version-sensitive limits, ScopedValue usage, pinning diagnosis, and ThreadLocal guidance in Java concurrency work.
 ---
 
 # Virtual Threads Reference
@@ -36,8 +34,7 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 }
 ```
 
-Scope-bounding virtual threads without a pool (Structured Concurrency API, preview through JDK 25 inclusive.
-JEP 505 is the fifth preview):
+Scope-bounding virtual threads without a pool (Structured Concurrency API, preview through JDK 25 inclusive. JEP 505 is the fifth preview):
 
 ```java
 import java.util.concurrent.StructuredTaskScope;

@@ -23,7 +23,7 @@ Use this section when the blocker is deciding what to normalize after export rat
 - keep stable identity fields even when a UI export tries to regenerate them
 - normalize titles, panel ordering, and datasource references before treating the exported file as Git-owned
 
-Broken — raw UI export with unstable fields:
+Broken - raw UI export with unstable fields:
 
 ```json
 {
@@ -42,13 +42,13 @@ Broken — raw UI export with unstable fields:
 
 ```
 
-Better — cleaned, Git-owned JSON with stable identity:
+Better - cleaned, Git-owned JSON with stable identity:
 
 ```json
 {
   "uid": "api-overview",
   "title": "API Overview",
-  "schemaVersion": 39,
+  "schemaVersion": 41,
   "version": 1,
   "time": {
     "from": "now-30m",

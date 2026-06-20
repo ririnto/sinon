@@ -1,51 +1,68 @@
 ---
 description: >-
-  Open this when Git Sync, newer on-prem file provisioning, Grafana provisioning toggles, K8s resource shapes, or datasource provisioning reference is the blocker.
+  Open this when Grafana provisioning details are the blocker.
+  Covers Git Sync, local-path provisioning, feature toggles, dashboard resource shapes, and datasource boundaries.
 ---
 
-# Newer Grafana Provisioning Features
+# Grafana Provisioning Feature Boundaries
 
-Use this reference when legacy provider YAML is not the whole story and the deployment is explicitly using newer Grafana observability-as-code features.
+Use this reference when legacy provider YAML is not the whole story.
+Use it when the deployment explicitly uses Grafana observability-as-code features.
 
 ## Version Note
 
-- Treat Git Sync, the newer on-prem file provisioning flow, and the related `provisioning` plus `kubernetesDashboards` toggles as newer Grafana features rather than a universal baseline.
-- The legacy provider YAML path (`apiVersion: 1` with `providers` list) remains the stable, widely-supported baseline for all current Grafana versions.
+- Treat Git Sync, local-path provisioning, and dashboard resource files as observability-as-code features.
+  - Do not present them as the legacy provider YAML baseline.
+- In Grafana Cloud and Grafana v13 OSS/Enterprise, the `provisioning` feature toggle is enabled by default.
+- For Grafana v12.4 OSS/Enterprise Git Sync, configure `repository_types` under `[provisioning]`.
+  - This applies to pure Git, GitLab, Bitbucket, and local providers.
+- The legacy provider YAML path remains the stable, widely-supported baseline for all current Grafana versions.
+  - That path uses `apiVersion: 1` with a `providers` list.
 
 ## Review Focus
 
-- verify the deployment actually supports the newer provisioning path being discussed
-- verify the needed feature toggles are enabled
-- verify the team really needs the newer flow rather than stable legacy file provisioning
+- verify the deployment actually supports the Git Sync or local-path provisioning flow being discussed
+- verify the needed toggles or `[provisioning]` settings for the target Grafana version
+- verify the team really needs the observability-as-code flow rather than stable legacy file provisioning
 - confirm the target Grafana version supports the chosen resource format
 
 ## Feature Toggles
 
-Enable newer provisioning paths in `grafana.ini`:
+- For Grafana Cloud and Grafana v13 OSS/Enterprise, no manual `provisioning` toggle is required.
+- For older OSS/Enterprise deployments, enable the unified provisioning flow only when the target version requires it:
 
-```ini
-[feature_toggles]
-enable = provisioning,kubernetesDashboards
+    ```ini
+    [feature_toggles]
+    enable = provisioning
+    ```
 
-```
+- For Grafana v12.4 OSS/Enterprise Git Sync, configure supported repository types:
+  - This applies to pure Git, GitLab, Bitbucket, and local providers.
 
-Toggle meanings:
+    ```ini
+    [provisioning]
+    repository_types = "git|github|bitbucket|gitlab|local"
+    ```
 
-| Toggle | Effect |
+| Setting | Effect |
 | --- | --- |
-| `provisioning` | Enables the newer unified provisioning system (beyond legacy `apiVersion: 1` providers). Required for Git Sync and some cloud-managed provisioning flows. |
-| `kubernetesDashboards` | Enables Kubernetes Custom Resource-based dashboard provisioning. Dashboards are defined as K8s resources rather than files on disk. |
+| `provisioning` | Enables the newer unified provisioning system in versions where it is not enabled by default. |
+| `repository_types` | Enables pure Git, GitLab, Bitbucket, and local provider types. |
+| | Use it for Grafana v12.4 OSS/Enterprise Git Sync deployments. |
 
-## Kubernetes Dashboard Resource Shape
+## Dashboard Resource Shape
 
-When `kubernetesDashboards` is enabled, dashboards can be defined as Kubernetes custom resources instead of filesystem-based JSON files.
+Grafana v12+ dashboard APIs and observability-as-code workflows use the `dashboard.grafana.app/v1` resource shape.
+That shape uses `metadata` and `spec`.
+This is separate from Kubernetes CRDs managed by Grafana Operator or Crossplane.
 
-Within `spec`, `folder` controls Grafana placement, and the remaining fields are the raw dashboard definition rather than an API import wrapper.
+Within `spec`, `folder` controls Grafana placement.
+The remaining fields are the raw dashboard definition rather than an API import wrapper.
 
 Complete resource example:
 
 ```yaml
-apiVersion: dashboard.grafana.app/v1beta1
+apiVersion: dashboard.grafana.app/v1
 kind: Dashboard
 metadata:
   name: api-overview
@@ -57,7 +74,7 @@ spec:
   title: API Overview
   uid: k8s-api-overview
   timezone: browser
-  schemaVersion: 38
+  schemaVersion: 41
   refresh: 30s
   tags:
     - generated
@@ -74,37 +91,37 @@ spec:
       targets:
         - expr: sum(rate(http_requests_total[5m])) by (method)
           legendFormat: "{{method}}"
-
 ```
 
-Key differences from legacy file provisioning:
+Key differences from raw or classic dashboard files:
 
-| Aspect | Legacy (file) | K8s (CRD) |
+| Aspect | Raw or classic provider file | Dashboard resource file |
 | --- | --- | --- |
-| Config location | Provider YAML + JSON files on disk | Kubernetes Custom Resources in cluster |
-| Source file shape | Raw dashboard JSON file on disk | Fields go directly into `.spec` |
-| ID management | Remove `id` or set it to `null` before committing shared source | Handled in the resource flow |
-| Folder assignment | Provider-level `folder` or provider-level `folderUid` | `.spec.folder` or `.spec.folderUid` on the resource |
-| Update detection | Filesystem poll or watch | K8s watcher / reconciliation loop |
-| API import envelope | Separate concern; do not store API payload wrappers on disk | Not applicable |
+| Config location | Provider YAML + JSON files on disk | Git Sync, local-path provisioning, or dashboard API source |
+| Source file shape | Raw dashboard JSON or Grafana classic wrapper | Fields go directly into `.spec` |
+| ID management | Remove `id` or set it to `null` before committing shared source | Keep portable identity in metadata. |
+| | | Use supported spec fields when Grafana accepts them. |
+| Folder assignment | Provider-level `folder` or `folderUid` | `.spec.folder` or `.spec.folderUid` on the resource |
+| Update detection | Filesystem poll or watch | Filesystem poll or watch |
+| HTTP API response envelope | Separate concern; do not store API response wrappers on disk | Not applicable |
 
-Minimal K8s resource shape:
+Minimal dashboard resource shape:
 
 ```yaml
-apiVersion: dashboard.grafana.app/v1beta1
+apiVersion: dashboard.grafana.app/v1
 kind: Dashboard
 metadata:
   name: my-dashboard
 spec:
   title: My Dashboard
-
 ```
 
-Use when: the blocker is understanding the minimum config shape that distinguishes the newer K8s provisioning path from legacy provider YAML.
+Use when: the blocker is understanding the minimum dashboard resource shape.
+Use this to distinguish dashboard resource files from legacy provider YAML.
 
 ## HTTP API Payload Boundary
 
-Legacy file provisioning and K8s resources both differ from HTTP API import payloads.
+File provisioning and dashboard resource files both differ from HTTP API response payloads.
 
 Representative API payload:
 
@@ -114,7 +131,7 @@ Representative API payload:
     "id": null,
     "uid": "api-overview",
     "title": "API Overview",
-    "schemaVersion": 39,
+    "schemaVersion": 41,
     "version": 1,
     "panels": []
   },
@@ -122,11 +139,12 @@ Representative API payload:
   "overwrite": true,
   "message": "sync from automation"
 }
-
 ```
 
-Use when: the blocker is an HTTP API workflow that explicitly requires `dashboard`, `folderUid`, `overwrite`, or `message`.
-Keep this payload shape out of legacy provider-path source directories.
+Use when: an HTTP API workflow explicitly requires wrapper fields.
+Those fields include `dashboard`, `folderUid`, `overwrite`, and `message`.
+Grafana's classic wrapped file shape may use `dashboard`, `folderUid`, and `overwrite` under a provider path.
+Keep API-only fields such as `message` and response-only fields such as `meta` out of provider-path source directories.
 
 ## Datasource Provisioning Reference
 
@@ -154,7 +172,6 @@ datasources:
       httpMethod: POST
       manageAlerts: true
       prometheusType: Prometheus
-
 ```
 
 Key differences from dashboard provisioning:
@@ -170,8 +187,9 @@ Key differences from dashboard provisioning:
 When you need datasource provisioning details:
 
 - Consult the official Grafana documentation for datasource provisioning configuration reference.
-- Datasource YAML files use a different schema with different field names, defaults, and constraints than dashboard providers.
+- Datasource YAML files use a different schema than dashboard providers.
+  - Field names, defaults, and constraints differ.
 - This skill does not validate datasource configurations.
   - Switch to datasource-specific guidance for that domain.
 
-Use when: the blocker is determining whether a question belongs to dashboard provisioning or the adjacent datasource provisioning domain.
+Use when: the blocker is routing a question between dashboard provisioning and datasource provisioning.

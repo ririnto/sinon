@@ -113,16 +113,16 @@ Treat them like any other tool boundary:
   - MCP calls can have different cost, latency, and authorization profiles.
 - Validate that the MCP server capabilities match what the application expects before registering tools.
 
-```java
-@Service
-class McpAuditService {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    ```java
+    @Service
+    class McpAuditService {
+        private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    void auditMcpCall(String toolName, String arguments) {
-        logger.atInfo().log(() -> "MCP tool invoked: tool=" + toolName + " args=" + arguments);
+        void auditMcpCall(String toolName, String arguments) {
+            logger.atInfo().log(() -> "MCP tool invoked: tool=" + toolName + " args=" + arguments);
+        }
     }
-}
-```
+    ```
 
 ## MCP versus ordinary tool calling
 

@@ -103,7 +103,7 @@ class InstallerSupport:
     def ensure_root_contracts(self) -> None:
         raise NotImplementedError
 
-    def ensure_agents_symlink(self) -> None:
+    def ensure_runtime_symlinks(self) -> None:
         raise NotImplementedError
 
     def ensure_gitkeep_paths(self) -> None:

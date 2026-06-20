@@ -99,8 +99,8 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/`.
-Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
+This includes `skills/`, `agents/`, and executable `bin/` when present.
 
 ## Plugin Layout
 
@@ -121,7 +121,7 @@ plugins/reactor/
 
 - The plugin ships four reusable Reactor skills under `skills/`.
 - The plugin ships one plugin-root agent: `reactor-architect` for Flux/Mono composition, scheduler, hot-source, and testing workflow decisions.
-- The plugin does not ship commands, hooks, MCP servers, LSP servers, or plugin-root custom runtime data surfaces.
+- The plugin does not ship hooks, MCP servers, LSP servers, or plugin-root custom runtime data surfaces.
 
 ## Design Principles
 
@@ -138,7 +138,7 @@ plugins/reactor/
 Install from Sinon:
 
 ```sh
-/plugin install reactor@sinon
+claude plugin install reactor@sinon
 ```
 
 For local development:

@@ -13,7 +13,7 @@ Use Given/When/Then structure for any behavior observable by a user, system, ope
 - GIVEN [precondition or context]
 - WHEN [single action, event, or trigger]
 - THEN [observable outcome]
-- AND [additional observable outcome — optional]
+- AND [additional observable outcome - optional]
 ```
 
 Rules:
