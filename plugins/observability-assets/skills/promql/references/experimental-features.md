@@ -11,9 +11,13 @@ Use this reference when the query requires a function or operator that is gated 
 
 | Flag | Purpose |
 | --- | --- |
-| `--enable-feature=promql-experimental-functions` | Enables experimental functions: `double_exponential_smoothing`, `histogram_quantiles`, `info`, `limitk`, `limit_ratio`, `mad_over_time`, `first_over_time`, `ts_of_first_over_time`, `ts_of_last_over_time`, `ts_of_min_over_time`, `ts_of_max_over_time`, `sort_by_label`, `sort_by_label_desc` |
+| `--enable-feature=promql-experimental-functions` | Enables experimental PromQL functions. |
+| | Current examples include `double_exponential_smoothing`, `end`, `first_over_time`, and `histogram_quantiles`. |
+| | They also include `info`, `limit_ratio`, `limitk`, `mad_over_time`, `range`, `start`, and `step`. |
+| | Label sort and timestamp helper functions are also gated by this flag. |
 | `--enable-feature=promql-binop-fill-modifiers` | Enables `fill()`, `fill_left()`, `fill_right()` modifiers for binary operations |
-| `--enable-feature=promql-duration-expr` | Enables `step()` as a valid duration expression in range selectors and subqueries |
+| `--enable-feature=promql-duration-expr` | Enables arithmetic duration expressions in range queries and offset durations. |
+| | Also enables `step()`, `range()`, `min()`, and `max()` in duration expressions. |
 
 ## Experimental Functions Summary
 

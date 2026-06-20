@@ -1,34 +1,32 @@
 ---
 description: >-
-  Overview of the Agent Capability Kit plugin, its authoring skills, runtime agents, command surface, and plugin packaging guidance.
+  Overview of the Agent Capability Kit plugin, its authoring skills, runtime agents, and plugin packaging guidance.
 ---
 
 # Agent Capability Kit
 
-This package is a Claude Code authoring plugin that teaches four distinct domains:
+This package is a Claude Code authoring plugin that teaches three distinct domains:
 
 - Claude Code plugin-root authoring for Sinon-style packages
 - Claude Code agent authoring
-- Claude Code command and prompt authoring
 - cross-platform Agent Skill authoring
 
-It also includes three runtime agents for validating, reviewing, and creating plugin components, plus a command for guiding plugin creation workflows.
+It also includes three runtime agents for validating, reviewing, and creating plugin components.
 
 All content in this package is written in English.
 
 ## Purpose
 
-- Provide reusable authoring guidance for plugin roots, agents, commands, prompt files, and portable Agent Skills.
+- Provide reusable authoring guidance for plugin roots, agents, and portable Agent Skills.
 - Keep authoring rules usable from local files alone, without requiring live marketplace or SDK documentation.
 - Share one capability kit for Claude Code plugin packaging while keeping runtime manifests thin.
 
 ## Included Skills
 
-Seven reusable skills for authoring Claude Code plugins and portable Agent Skills.
+Six reusable skills for authoring Claude Code plugins and portable Agent Skills.
 
 - `plugin-authoring`: build or refactor a plugin root with a Claude manifest, a plugin README, and only the runtime surfaces the plugin actually ships.
 - `agent-authoring`: build or refactor reusable Claude Code agents.
-- `command-authoring`: build or refactor reusable Claude Code commands and prompt files.
 - `skill-authoring`: build or refactor cross-platform Agent Skills.
 - `hook-authoring`: author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails.
 - `mcp-integration`: integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key.
@@ -42,24 +40,18 @@ Three runtime agents for validating, reviewing, and creating plugin components.
 - `skill-reviewer`: review Agent Skills for self-sufficiency, coherent sizing, progressive disclosure, and adherence to blocker-based reference organization.
 - `agent-creator`: create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work.
 
-## Included Commands
-
-One command for guiding plugin creation workflows.
-
-- `create-plugin`: end-to-end Claude Code plugin creation workflow with component design, implementation, and validation.
-
 ## Runtime Model
 
 This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/` and `./commands/`.
-Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
+This includes `skills/`, `agents/`, and executable `bin/`.
 
 ## Shipped Surfaces
 
-The plugin root exposes seven skills, three agents, and one command.
+The plugin root exposes six skills and three agents.
 It does not ship hooks, MCP servers, LSP servers, monitors, or custom runtime data surfaces.
 
 ## Scope Notes
@@ -69,7 +61,6 @@ Covered authoring topics:
 - plugin root structure, Claude manifests, and plugin README content
 - optional runtime-surface configuration for hooks, MCP, LSP, monitors, output styles, and settings when a target plugin actually ships those surfaces
 - authoring guidance for reusable agents under `skills/agent-authoring/`
-- authoring guidance for reusable commands and prompt files under `skills/command-authoring/`
 - cross-platform Agent Skill structure under `skills/`
 
 Explicitly excluded:
@@ -98,15 +89,15 @@ During local development, point Claude Code at the plugin root:
 claude --plugin-dir /absolute/path/to/agent-capability-kit
 ```
 
-Then use Quick navigation to choose the relevant namespaced skills, runtime agents, or command surface.
+Then use Quick navigation to choose the relevant namespaced skills or runtime agents.
 
 ## Quick navigation
 
-- Plugin and skill authoring: `/agent-capability-kit:plugin-authoring`, `/agent-capability-kit:skill-authoring`
-- Agent and command authoring: `/agent-capability-kit:agent-authoring`, `/agent-capability-kit:command-authoring`
-- Plugin infrastructure: `/agent-capability-kit:hook-authoring`, `/agent-capability-kit:mcp-integration`, `/agent-capability-kit:plugin-settings`
+- Plugin and skill authoring: `agent-capability-kit:plugin-authoring`, `agent-capability-kit:skill-authoring`
+- Agent authoring: `agent-capability-kit:agent-authoring`
+- Plugin infrastructure: `agent-capability-kit:hook-authoring`, `agent-capability-kit:mcp-integration`, `agent-capability-kit:plugin-settings`
 - Validation and review: `plugin-validator` agent, `skill-reviewer` agent
-- Plugin creation guidance: `/agent-capability-kit:create-plugin` command, `agent-creator` agent
+- Plugin creation guidance: `agent-creator` agent
 
 ## Reuse the scaffolds
 
@@ -114,7 +105,6 @@ Copy the files you need from each skill's `assets/` directory:
 
 - plugin examples from `plugin-authoring/assets/`
 - agent examples from `agent-authoring/assets/`
-- command and prompt examples from `command-authoring/assets/`
 - cross-platform skill examples from `skill-authoring/assets/`
 
 ## Plugin Layout
@@ -128,12 +118,9 @@ agent-capability-kit/
 │   ├── agent-creator.md
 │   ├── plugin-validator.md
 │   └── skill-reviewer.md
-├── commands/
-│   └── create-plugin.md
 └── skills/
     ├── plugin-authoring/
     ├── agent-authoring/
-    ├── command-authoring/
     ├── skill-authoring/
     ├── hook-authoring/
     ├── mcp-integration/

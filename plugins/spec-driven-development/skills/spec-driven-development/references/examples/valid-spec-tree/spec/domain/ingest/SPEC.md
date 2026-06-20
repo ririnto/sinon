@@ -1,7 +1,6 @@
 ---
 description: >-
-  Defines the ingest behavior that validates input, persists accepted work, and
-  returns stable outcomes.
+  Defines the ingest behavior that validates input, persists accepted work, and returns stable outcomes.
 last_updated: "2026-03-06"
 status: implemented
 tag: ingest

@@ -1,7 +1,6 @@
 ---
 description: >-
-  Reference index for common JDK tools, version availability, selection guidance,
-  and output shape reference.
+  Reference index for common JDK tools, version availability, selection guidance, and output shape reference.
 ---
 
 # JDK Tool Index

@@ -23,7 +23,7 @@ Author regression test fixtures when any of these are true:
 
 ## Behaviors Worth Protecting
 
-The main alert-authoring decision is not how to write the test file, but which alert behaviors should be preserved over time:
+The main alert-authoring decision is which alert behaviors should be preserved over time:
 
 - Threshold edge behavior when exact-boundary values matter.
 - Pending versus firing timing around the configured `for` window.

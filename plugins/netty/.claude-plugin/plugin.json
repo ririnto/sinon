@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "author": {
     "name": "ririnto"
   },
@@ -20,6 +20,5 @@
   ],
   "license": "MIT",
   "name": "netty",
-  "repository": "https://github.com/ririnto/sinon",
-  "skills": "./skills/"
+  "repository": "https://github.com/ririnto/sinon"
 }

@@ -1,7 +1,6 @@
 ---
 description: >-
-  Version-sensitive Java syntax guide for LTS lookup, migration framing,
-  per-version recipes, and preview/withdrawn feature tracking.
+  Version-sensitive Java syntax guide for LTS lookup, migration framing, per-version recipes, and preview/withdrawn feature tracking.
 ---
 
 # Advanced Java Syntax Recipes

@@ -66,7 +66,7 @@ plugins/jvm/
 
 - The plugin ships three reusable skills under `skills/`.
 - The plugin ships no plugin-root `agents/` directory.
-- The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
+- The plugin does not ship hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 
@@ -81,7 +81,7 @@ plugins/jvm/
 Install from Sinon:
 
 ```sh
-/plugin install jvm@sinon
+claude plugin install jvm@sinon
 ```
 
 For local development:

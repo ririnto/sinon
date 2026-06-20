@@ -1,8 +1,6 @@
 ---
 name: change-description
 description: >-
-  Compose hosted service change descriptions and hosted service change descriptions with disciplined titles,
-  structured bodies, review checklists, and consistent metadata.
 ---
 
 # change description Convention
@@ -129,7 +127,7 @@ Risks, caveats, breaking changes, deployment notes, or follow-up work.
 - **Body**: Use standard markdown.
   - hosted service supports GFM alerts (`> [!NOTE]`, `> [!WARNING]`, etc.) in PR descriptions.
 
-**Minimal example using hosted service alert:**
+#### Minimal hosted service Alert Example
 
 ```markdown
 ## Summary
@@ -150,7 +148,7 @@ Risks, caveats, breaking changes, deployment notes, or follow-up work.
 > Rate limit defaults have changed. Clients MUST update their backoff logic.
 ```
 
-**Create command:**
+#### Create Command
 
 ```sh
   --body-file body.md \
@@ -162,7 +160,7 @@ Risks, caveats, breaking changes, deployment notes, or follow-up work.
 - **Title**: Use Conventional Commits format as shown above.
 - **Body**: Use standard markdown.
 
-**Minimal example using quick actions:**
+#### Minimal Quick Actions Example
 
 ```markdown
 ## Summary
@@ -186,7 +184,7 @@ Risks, caveats, breaking changes, deployment notes, or follow-up work.
 /label ~type:feature ~priority:high
 ```
 
-**Create command:**
+#### Create Command
 
 ```sh
   --description "$(cat body.md)" \
@@ -203,14 +201,14 @@ Move a change description from draft to ready only when:
 - **Self-review checklist is complete** (see below).
 - **Design is finalized** (no open questions or unresolved decisions in the change description comments).
 
-**Keep as draft when:**
+### Keep As Draft
 
 - CI is not yet passing.
 - Tests are pending or incomplete.
 - Design or implementation is still being debated.
 - Waiting for dependent change description to merge.
 
-**Example workflow:**
+### Example Workflow
 
 1. Create change description in draft status.
 2. Push commits, run CI, fix failures.
@@ -231,7 +229,7 @@ Recommended categories:
 | **status** | `status:ready-to-merge`, `status:needs-revision`, `status:blocked` | Communicate blockers. |
 | **effort** | `effort:small`, `effort:medium`, `effort:large` | Estimate reviewer time. |
 
-**Apply labels when opening the PR:**
+### Apply Labels When Opening the PR
 
 ```sh
 ```
@@ -252,11 +250,12 @@ Use this to prevent conflicting labels.
 - **Codeowners SHOULD be used** to auto-request reviewers if the repository defines a `CODEOWNERS` file.
 - **Round-robin assignment SHOULD rotate reviewers** across the team to distribute load and knowledge.
 
-**hosted service example:**
+### hosted service Example
 
 ```sh
 ```
 
+### hosted service Example
 
 ```markdown
 /assign @reviewer-name
@@ -302,7 +301,7 @@ Do not rely on reviewers to catch these items.
 
 ## First Safe Commands
 
-**hosted service workflow:**
+### hosted service Workflow
 
 ```sh
 # Create PR in draft status with title and body file
@@ -318,7 +317,7 @@ host-cli pr create --draft \
 host-cli pr ready <number>
 ```
 
-**hosted service workflow:**
+### hosted service Workflow
 
 ```sh
 # Create MR in draft status with title and body (including quick actions)
@@ -528,7 +527,7 @@ host-cli mr merge 42 --message "Merge feature X"
 Both `host-cli` and `host-cli` support reading change description body text from files.
 This pattern enables pre-writing a body offline and using it repeatedly.
 
-**Prepare body file:**
+### Prepare Body File
 
 ```markdown
 ## Summary
@@ -548,7 +547,7 @@ This pattern enables pre-writing a body offline and using it repeatedly.
 - [x] Manual test: 5-minute refresh lifecycle validation.
 ```
 
-**hosted service (host-cli):**
+### hosted service CLI
 
 ```sh
 # Use --body-file to read from file
@@ -558,7 +557,7 @@ host-cli pr create --title "feat(auth): JWT refresh" --body-file body.md --draft
 host-cli pr edit 42 --body-file body.md
 ```
 
-**hosted service (host-cli):**
+### hosted service CLI
 
 ```sh
 # Pass file content to --description using command substitution

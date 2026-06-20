@@ -1,7 +1,6 @@
 ---
 description: >-
-  Reference for Java language feature tradeoffs, record vs class vs sealed modeling,
-  enum vs sealed variants, and preview-feature cost assessment.
+  Reference for Java language feature tradeoffs, record vs class vs sealed modeling, enum vs sealed variants, and preview-feature cost assessment.
 ---
 
 # Java Language Features Reference

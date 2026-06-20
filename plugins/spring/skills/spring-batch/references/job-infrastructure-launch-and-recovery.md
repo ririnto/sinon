@@ -33,10 +33,10 @@ Choose the operator action deliberately:
 - rerun: new logical instance with different identifying parameters
 - recover: mark a stuck `STARTED` execution as restartable on a Batch 6 path before a later restart attempt
 
-```java
-JobExecution recoveredExecution = jobOperator.recover(jobExplorer.getJobExecution(failedExecutionId));
-JobExecution restartedExecution = jobOperator.restart(recoveredExecution);
-```
+    ```java
+    JobExecution recoveredExecution = jobOperator.recover(jobExplorer.getJobExecution(failedExecutionId));
+    JobExecution restartedExecution = jobOperator.restart(recoveredExecution);
+    ```
 
 Use recovery only when reader, writer, and execution-context state are compatible with continued processing.
 Recovery does not resume work by itself.

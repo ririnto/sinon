@@ -14,10 +14,10 @@ This reference covers practical multi-agent workflows using plugin settings file
 
 Agent tasks use dotted notation: `{{major}}.{{minor}}[.{{sub}}]`
 
-- `1` — Top-level task (e.g., "Build authentication system")
-- `1.1` — Subtask (e.g., "Implement JWT token generation")
-- `1.1.1` — Sub-subtask (e.g., "Add token refresh endpoint")
-- `1.5` — Sibling to `1.1` in same parent task
+- `1` - Top-level task (e.g., "Build authentication system")
+- `1.1` - Subtask (e.g., "Implement JWT token generation")
+- `1.1.1` - Sub-subtask (e.g., "Add token refresh endpoint")
+- `1.5` - Sibling to `1.1` in same parent task
 
 Ordering rules:
 
@@ -158,12 +158,12 @@ Blocks downstream API gateway refactoring (task 3.3).
 
 Fields:
 
-- `agent_name` — Unique identifier for this agent (e.g., `auth-service-agent`)
-- `task_number` — Task in swarm (e.g., `3.2`)
-- `pr_number` — Related PR if applicable
-- `coordinator_session` — Tmux session name for reporting
-- `enabled` — Master on/off flag
-- `dependencies` — Prerequisite tasks that must complete first
+- `agent_name` - Unique identifier for this agent (e.g., `auth-service-agent`)
+- `task_number` - Task in swarm (e.g., `3.2`)
+- `pr_number` - Related PR if applicable
+- `coordinator_session` - Tmux session name for reporting
+- `enabled` - Master on/off flag
+- `dependencies` - Prerequisite tasks that must complete first
 
 ### Hook reads settings and reports progress
 

@@ -85,7 +85,7 @@ void decodesLengthPrefixedMessage() {
 
 ## Exception path test
 
-Only 2 bytes arrive instead of the required 4 — no frame is produced and no exception is thrown from the decoder.
+Only 2 bytes arrive instead of the required 4 - no frame is produced and no exception is thrown from the decoder.
 `writeInbound` returns `false` because the decoder cannot produce a complete frame.
 `finish()` releases pending internal buffers and returns `true` if any remain.
 
@@ -108,6 +108,6 @@ void propagatesExceptionOnShortFrame() {
 
 - call `finish()` so queued messages and buffers are released
 - assert both inbound and outbound sides explicitly when the handler transforms messages
-- use `assertThrowsExactly(...)` for exception paths — verify that malformed input either produces no output or triggers the expected error response through the pipeline
+- use `assertThrowsExactly(...)` for exception paths - verify that malformed input either produces no output or triggers the expected error response through the pipeline
 - release outbound `ByteBuf` values read from `readOutbound()` after assertion
 - if a handler manually owns `ByteBuf`, assert the reference count reaches zero when the test completes

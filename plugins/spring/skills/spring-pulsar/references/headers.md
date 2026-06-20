@@ -33,14 +33,14 @@ Two implementations are available:
 - `JsonPulsarHeaderMapper` -- serializes and deserializes complex header values as JSON.
 - `ToStringPulsarHeaderMapper` -- converts header values to and from strings using `toString`.
 
-```java
-@Bean
-JsonPulsarHeaderMapper pulsarHeaderMapper() {
-    return JsonPulsarHeaderMapper.builder()
-        .trustedPackages("com.example.events", "com.example.dto")
-        .build();
-}
-```
+    ```java
+    @Bean
+    JsonPulsarHeaderMapper pulsarHeaderMapper() {
+        return JsonPulsarHeaderMapper.builder()
+            .trustedPackages("com.example.events", "com.example.dto")
+            .build();
+    }
+    ```
 
 ## Decision points
 

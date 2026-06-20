@@ -37,31 +37,29 @@ Open this guide only when you need detailed link-editing or inbound-query proced
 When SPEC A references SPEC B:
 
 1. In SPEC A frontmatter, add outbound reference.
-   String form (preferred):
+   - String form (preferred):
 
-    ```yaml
-    call:
-      - ./ingest/SPEC.md
-    ```
+     ```yaml
+     call:
+       - ./ingest/SPEC.md
+     ```
 
-   Object form (also valid):
+   - Object form (also valid):
 
-    ```yaml
-    call:
-      - path: ./ingest/SPEC.md
-    ```
+     ```yaml
+     call:
+       - path: ./ingest/SPEC.md
+     ```
 
 1. In SPEC B, reverse-direction points MUST NOT be added.
-   The following MUST NOT be added:
+   - The following MUST NOT be added:
+     - a "Called By" / "Incoming links" list
+     - any frontmatter call entry that exists only to mirror A -> B
+   - If callers of SPEC B are needed, they SHOULD be queried instead:
 
-   - a "Called By" / "Incoming links" list
-   - any frontmatter call entry that exists only to mirror A -> B
-
-   If callers of SPEC B are needed, they SHOULD be queried instead:
-
-    ```sh
-    "${SKILL_ROOT}/scripts/sdd.py" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
-    ```
+     ```sh
+     "${SKILL_ROOT}/scripts/sdd.py" list-frontmatter ./spec --inbound-of spec/domain/ingest/SPEC.md
+     ```
 
 ## Removing a Link
 

@@ -1,11 +1,8 @@
 ---
 name: java-dependency-versioning
 description: >-
-  Resolve Java dependency coordinates, keep reusable install guidance version-neutral,
-  and verify current public releases only when online lookup is available.
-  Use when the user asks to find a Java artifact coordinate,
-  prepare a Maven or Gradle dependency snippet, check Maven Central for a current release,
-  or needs offline-safe dependency versioning guidance for Java projects.
+  Resolve Java dependency coordinates, keep reusable install guidance version-neutral, and verify current public releases only when online lookup is available.
+  Use when the user asks to find a Java artifact coordinate, prepare a Maven or Gradle dependency snippet, check Maven Central for a current release, or needs offline-safe dependency versioning guidance for Java projects.
 ---
 
 # Java Dependency Versioning

@@ -29,10 +29,11 @@ Use this split as a concrete reference when reviewing whether a starter file or 
 - confirm `plugin.json` still matches the real root layout
 - confirm optional components exist only when the plugin uses them
 - confirm relative paths still start with `./`
-- confirm directory-typed fields use the trailing-slash form (`"skills": "./skills/"`, `"commands": "./commands/"`)
-- confirm file-typed fields use the canonical exact filename (`"hooks": "./hooks/hooks.json"`, `"mcpServers": "./.mcp.json"`, `"lspServers": "./.lsp.json"`, `"settings": "./settings.json"`)
-- confirm each declared file-typed key has the matching plugin-root file (`hooks/hooks.json`, `.mcp.json`, `.lsp.json`, `settings.json`), and each existing plugin-root file is declared in the manifest
-- confirm `agents`, `version`, and `interface` keys remain absent from the manifest (forbidden manifest keys per `plugin-validator` Critical rules)
+- confirm default component locations are omitted from the manifest when they are the only value
+- confirm custom directory-typed fields use the trailing-slash form
+- confirm declared string paths resolve inside the plugin root
+- confirm inline component configuration follows the official schema shape
+- confirm `interface` is absent and `version` is absent unless the plugin has a semver release policy
 - confirm bundled files are read from `${CLAUDE_PLUGIN_ROOT}` and generated state is written under `${CLAUDE_PLUGIN_DATA}`
 - confirm no `__pycache__`, `.DS_Store`, or other build artifacts are committed
 - confirm shell scripts under `assets/` have executable permission bits

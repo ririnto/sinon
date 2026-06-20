@@ -27,7 +27,7 @@ version: "[version or omit if unversioned]"
 
 The key words `MUST`, `MUST NOT`, `REQUIRED`, `SHOULD`, `SHOULD NOT`, `RECOMMENDED`, `MAY`, and `OPTIONAL` in this document are to be interpreted as described in RFC 2119.
 
-`Implementation-defined` means the behavior is part of the implementation contract, but this specification does not prescribe one universal policy. Implementations MUST document the selected behavior. Example: "approval policy (type string), default implementation-defined — the implementation MUST document whether it auto-approves, requires operator confirmation, or fails user-input-required turns."
+`Implementation-defined` means the behavior is part of the implementation contract, but this specification does not prescribe one universal policy. Implementations MUST document the selected behavior. Example: "approval policy (type string), default implementation-defined - the implementation MUST document whether it auto-approves, requires operator confirmation, or fails user-input-required turns."
 
 ## 1. Problem Statement
 
@@ -103,8 +103,8 @@ The system is organized into these layers:
 
 ### 5.3 External Dependencies
 
-- [External service / library / protocol] — purpose and version constraints
-- [External service / library / protocol] — purpose and version constraints
+- [External service / library / protocol] - purpose and version constraints
+- [External service / library / protocol] - purpose and version constraints
 
 ## 6. Core Domain Model
 
@@ -150,10 +150,10 @@ Normalization:
 
 Configuration is resolved in this order:
 
-1. [Step 1 — select source, file path, or environment]
-2. [Step 2 — parse or deserialize]
-3. [Step 3 — apply defaults]
-4. [Step 4 — validate]
+1. [Step 1 - select source, file path, or environment]
+2. [Step 2 - parse or deserialize]
+3. [Step 3 - apply defaults]
+4. [Step 4 - validate]
 
 ### 7.2 Dynamic Reload Semantics
 
@@ -168,8 +168,8 @@ Validation runs at [startup / per-tick / before dispatch].
 
 Checks:
 
-- [Validation 1 — what is checked and when]
-- [Validation 2 — what is checked and when]
+- [Validation 1 - what is checked and when]
+- [Validation 2 - what is checked and when]
 
 Failure behavior:
 
@@ -200,9 +200,9 @@ This section is intentionally redundant for implementation speed.
 
 A typical execution transitions through these phases:
 
-1. `Phase Name` — [what happens]
-2. `Phase Name` — [what happens]
-3. `Phase Name` — [what happens]
+1. `Phase Name` - [what happens]
+2. `Phase Name` - [what happens]
+3. `Phase Name` - [what happens]
 
 ### 8.3 Transition Triggers and Rules
 
@@ -228,11 +228,11 @@ A typical execution transitions through these phases:
 
 At startup, the service [does what]. Then every [interval]:
 
-1. [Step 1 — reconcile state]
-2. [Step 2 — validate configuration]
-3. [Step 3 — fetch candidates]
-4. [Step 4 — dispatch work]
-5. [Step 5 — emit status updates]
+1. [Step 1 - reconcile state]
+2. [Step 2 - validate configuration]
+3. [Step 3 - fetch candidates]
+4. [Step 4 - dispatch work]
+5. [Step 5 - emit status updates]
 
 ### 9.2 Candidate Selection Rules
 
@@ -265,8 +265,8 @@ Failure-driven retry:
 
 Reconciliation runs [frequency] and detects:
 
-- [Condition 1 — action when detected]
-- [Condition 2 — action when detected]
+- [Condition 1 - action when detected]
+- [Condition 2 - action when detected]
 
 State refresh:
 
@@ -303,8 +303,8 @@ Algorithm:
 
 Supported hooks:
 
-- `hook_name` — [when it runs]
-- `hook_name` — [when it runs]
+- `hook_name` - [when it runs]
+- `hook_name` - [when it runs]
 
 Execution:
 
@@ -349,8 +349,8 @@ The client MUST:
 
 Message types:
 
-- `message_type` — [meaning]
-- `message_type` — [meaning]
+- `message_type` - [meaning]
+- `message_type` - [meaning]
 
 Completion conditions:
 
@@ -362,8 +362,8 @@ Completion conditions:
 
 The subprocess emits structured events including:
 
-- `event_type` — [when and what it means]
-- `event_type` — [when and what it means]
+- `event_type` - [when and what it means]
+- `event_type` - [when and what it means]
 
 ### 11.5 Approval, Tool Calls, and Input Policy
 
@@ -379,13 +379,13 @@ Requirements:
 
 Timeouts:
 
-- `timeout_name`: [duration] — [what triggers it]
-- `timeout_name`: [duration] — [what triggers it]
+- `timeout_name`: [duration] - [what triggers it]
+- `timeout_name`: [duration] - [what triggers it]
 
 Error categories:
 
-- `error_class_name` — [when it occurs and recovery behavior]
-- `error_class_name` — [when it occurs and recovery behavior]
+- `error_class_name` - [when it occurs and recovery behavior]
+- `error_class_name` - [when it occurs and recovery behavior]
 
 ### 11.7 Runner Contract
 
@@ -430,13 +430,13 @@ Responses are normalized to match Section 6 (Domain Model):
 
 Error categories:
 
-- `error_class_name` — [meaning]
-- `error_class_name` — [meaning]
+- `error_class_name` - [meaning]
+- `error_class_name` - [meaning]
 
 Behavior on error:
 
-- [Error class 1]: [action — log and skip / log and retry / fail loudly]
-- [Error class 2]: [action — log and skip / log and retry / fail loudly]
+- [Error class 1]: [action - log and skip / log and retry / fail loudly]
+- [Error class 2]: [action - log and skip / log and retry / fail loudly]
 
 ### 12.5 Write Boundaries
 
@@ -453,9 +453,9 @@ Inputs to [context rendering / prompt building]:
 
 ### 13.2 Rendering Rules
 
-- [Rule 1 — how variables/templates are processed]
-- [Rule 2 — strictness of variable/filter checking]
-- [Rule 3 — how to handle nested data]
+- [Rule 1 - how variables/templates are processed]
+- [Rule 2 - strictness of variable/filter checking]
+- [Rule 3 - how to handle nested data]
 
 ### 13.3 Retry / Continuation Semantics
 
@@ -465,7 +465,7 @@ Inputs to [context rendering / prompt building]:
 
 If [context rendering] fails:
 
-- [Action — fail the operation / retry / use fallback]
+- [Action - fail the operation / retry / use fallback]
 
 ## 14. Functional Requirements
 
@@ -541,8 +541,8 @@ If [context rendering] fails:
 
 REQUIRED context fields:
 
-- [field_name] — [description]
-- [field_name] — [description]
+- [field_name] - [description]
+- [field_name] - [description]
 
 Message formatting:
 
@@ -557,16 +557,16 @@ Message formatting:
 Requirements:
 
 - Operators MUST be able to see [startup / critical] failures without [debugging / attaching].
-- Implementations MAY write to [one or more sinks — specify which].
+- Implementations MAY write to [one or more sinks - specify which].
 
 ### 20.3 Runtime Snapshot / Monitoring Interface (OPTIONAL but RECOMMENDED)
 
 If exposed, return:
 
-- `running` — list of running session rows with `[field_name]` per row
-- `retrying` — list of retry queue rows
-- `[aggregate_name]` — aggregate counters (tokens, duration, etc.)
-- `rate_limits` — latest external rate-limit snapshot
+- `running` - list of running session rows with `[field_name]` per row
+- `retrying` - list of retry queue rows
+- `[aggregate_name]` - aggregate counters (tokens, duration, etc.)
+- `rate_limits` - latest external rate-limit snapshot
 
 ### 20.4 Status Surface (OPTIONAL)
 
@@ -596,15 +596,15 @@ Example:
 
 ### 21.2 Recovery Behavior
 
-- [Failure class 1]: [Recovery action — retry / fail loudly / fallback]
-- [Failure class 2]: [Recovery action — retry / fail loudly / fallback]
+- [Failure class 1]: [Recovery action - retry / fail loudly / fallback]
+- [Failure class 2]: [Recovery action - retry / fail loudly / fallback]
 
 ### 21.3 Partial-State Recovery on Restart
 
 After an unclean restart:
 
-1. [Step 1 — detect partial state]
-2. [Step 2 — recover or reset]
+1. [Step 1 - detect partial state]
+2. [Step 2 - recover or reset]
 
 ### 21.4 Operator Intervention Points
 
@@ -623,18 +623,18 @@ Situations requiring human action:
 
 - [Safety rule 1]
 - [Safety rule 2]
-- [Validation how — path normalization, prefix check, etc.]
+- [Validation how - path normalization, prefix check, etc.]
 
 ### 22.3 Secret Handling
 
-[How are API keys, credentials, tokens handled — environment variables, config fields, in-memory, etc.]
+[How are API keys, credentials, tokens handled - environment variables, config fields, in-memory, etc.]
 
 - [Requirement 1]
 - [Requirement 2]
 
 ### 22.4 Hook Script Safety
 
-[If hooks are supported — how are they executed and what are the safety constraints]
+[If hooks are supported - how are they executed and what are the safety constraints]
 
 - [Constraint 1]
 - [Constraint 2]
@@ -723,8 +723,8 @@ Tests that every conforming implementation MUST pass:
 
 Integration tests against live external systems:
 
-- [Test 1 — against live external system]
-- [Test 2 — against live external system]
+- [Test 1 - against live external system]
+- [Test 2 - against live external system]
 
 ## 25. Implementation Checklist (Definition of Done)
 
@@ -782,8 +782,8 @@ Extensions are additional capabilities beyond core conformance.
 
 Conformance requirement:
 
-- [Test 1 — REQUIRED when extension is implemented]
-- [Test 2 — REQUIRED when extension is implemented]
+- [Test 1 - REQUIRED when extension is implemented]
+- [Test 2 - REQUIRED when extension is implemented]
 
 [Additional details as needed.]
 ````

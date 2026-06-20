@@ -12,8 +12,8 @@ Open this reference when implementing a custom grant type beyond the standard au
 
 Spring Authorization Server exposes two primary seams for custom grants:
 
-- `AuthenticationConverter` — converts an incoming HTTP request into a grant-specific authentication token.
-- `AuthenticationProvider` — validates the custom grant and issues the token.
+- `AuthenticationConverter` - converts an incoming HTTP request into a grant-specific authentication token.
+- `AuthenticationProvider` - validates the custom grant and issues the token.
 
 Those seams are paired with token generation and authorization persistence.
 

@@ -100,19 +100,20 @@ Reject any pattern that discards validator output or forces a successful exit af
 ## Workflow
 
 1. Detect mode when the argument is empty or `auto`.
+   - If `auto` finds multiple stack signals and the installed workflow lacks a resolved selection, report ambiguity.
+   - Choose a command only after the ambiguity is resolved.
+
+     ```text
+     mode: auto
+     result: fail (ambiguous stack)
+     failures:
+     - repository root: stack detection - found Gradle and Maven signals; rerun with `gradle` or `maven`
+     ```
+
 2. Run exactly one stack command from the table.
 3. If validation fails, classify the failure using the table below, including directory, docs, agent, skill, hook, CI, generated-artifact, symlink, shebang, and stack-tool failures.
 4. Fix only issues in the user's requested scope; otherwise report the failing contract and the owning file.
 5. Re-run the same validation command after any fix.
-
-If `auto` finds multiple stack signals and the installed workflow lacks a resolved selection, report ambiguity before choosing a command.
-
-```text
-mode: auto
-result: fail (ambiguous stack)
-failures:
-- repository root: stack detection - found Gradle and Maven signals; rerun with `gradle` or `maven`
-```
 
 ## Decisions
 

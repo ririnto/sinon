@@ -111,9 +111,9 @@ Switch to `forward-headers-strategy: framework` only when native support is not 
 
 Configure the proxy to send:
 
-- `X-Forwarded-Host` — the original host clients see
-- `X-Forwarded-Proto` — `http` or `https` as seen by clients
-- `X-Forwarded-Port` — the original port clients use
+- `X-Forwarded-Host` - the original host clients see
+- `X-Forwarded-Proto` - `http` or `https` as seen by clients
+- `X-Forwarded-Port` - the original port clients use
 
 ### Authorization server behind path-based routing
 

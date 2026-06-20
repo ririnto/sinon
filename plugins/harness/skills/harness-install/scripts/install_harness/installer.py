@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import os
+import shutil
 import subprocess
 
 from .advisory import AdvisoryMixin
@@ -11,6 +13,16 @@ from .operations import OperationsMixin
 from .paths import normalize_requested_target_path, required_selected_path
 from .planning import PlanningMixin
 from .preview import PreviewMixin
+
+
+@dataclass(frozen=True, slots=True)
+class ActivationCommand:
+    """Command used to activate the selected stack hooks."""
+
+    executable: str
+    command: tuple[str, ...]
+    success_message: str
+    failure_label: str
 
 
 class HarnessInstaller(
@@ -63,38 +75,49 @@ class HarnessInstaller(
                 "activate git hooks: Gradle plugin creates hooks on first build",
             )
         elif mode in {"maven", "shell"}:
-            result = subprocess.run(
-                ["git", "config", "core.hooksPath", ".githooks/"],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0:
-                print("activate git hooks: git config core.hooksPath .githooks/")
-            else:
-                print(
-                    f"[warning] git config core.hooksPath failed: {result.stderr.strip()}",
+            self.run_activation_command(
+                ActivationCommand(
+                    executable="git",
+                    command=("git", "config", "core.hooksPath", ".githooks/"),
+                    success_message="activate git hooks: git config core.hooksPath .githooks/",
+                    failure_label="git config core.hooksPath",
                 )
+            )
         elif mode == "uv":
-            result = subprocess.run(
-                ["uv", "run", "pre-commit", "install"],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0:
-                print("activate git hooks: uv run pre-commit install")
-            else:
-                print(
-                    f"[warning] pre-commit install failed: {result.stderr.strip()}",
+            self.run_activation_command(
+                ActivationCommand(
+                    executable="uv",
+                    command=("uv", "run", "pre-commit", "install"),
+                    success_message="activate git hooks: uv run pre-commit install",
+                    failure_label="pre-commit install",
                 )
+            )
         elif mode == "bun":
-            result = subprocess.run(
-                ["bun", "install"],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0:
-                print("activate git hooks: bun install (Husky prepare)")
-            else:
-                print(
-                    f"[warning] bun install failed: {result.stderr.strip()}",
+            self.run_activation_command(
+                ActivationCommand(
+                    executable="bun",
+                    command=("bun", "install"),
+                    success_message="activate git hooks: bun install (Husky prepare)",
+                    failure_label="bun install",
                 )
+            )
+
+    def run_activation_command(self, activation: ActivationCommand) -> None:
+        """Run one hook activation command when its executable is installed."""
+
+        if shutil.which(activation.executable) is None:
+            print(
+                f"[warning] {activation.executable} not in PATH; "
+                f"skipping {activation.failure_label}"
+            )
+            return
+        result = subprocess.run(
+            activation.command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode == 0:
+            print(activation.success_message)
+            return
+        print(f"[warning] {activation.failure_label} failed: {result.stderr.strip()}")

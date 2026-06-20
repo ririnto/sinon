@@ -11,13 +11,13 @@ Solution: choose the exhausted-message destination first, then pair it with one 
 - Use `RejectAndDontRequeueRecoverer` when the broker DLX or DLQ path already owns exhausted-message handling.
 - Use `RepublishMessageRecoverer` when the application must republish failed messages to an explicit error exchange.
 
-```java
-RetryOperationsInterceptor interceptor = RetryInterceptorBuilder.stateless()
-    .maxAttempts(3)
-    .backOffOptions(1000, 2.0, 5000)
-    .recoverer(new RejectAndDontRequeueRecoverer())
-    .build();
-```
+    ```java
+    RetryOperationsInterceptor interceptor = RetryInterceptorBuilder.stateless()
+        .maxAttempts(3)
+        .backOffOptions(1000, 2.0, 5000)
+        .recoverer(new RejectAndDontRequeueRecoverer())
+        .build();
+    ```
 
 Use stateless retry for idempotent handlers.
 Use transactional retry only when message handling truly needs transactional semantics.
@@ -47,8 +47,8 @@ Do not enable them by default.
 
 Distinguish between:
 
-- conversion or validation failures,
-- transient downstream failures,
+- conversion or validation failures
+- transient downstream failures
 - permanent business failures.
 
 Those categories often need different retry and dead-letter outcomes.

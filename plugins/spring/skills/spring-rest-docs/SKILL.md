@@ -301,15 +301,15 @@ Return:
 
 ## References
 
-- Open [references/webtestclient`-surface.md`](references/webtestclient-surface.md) when the ordinary MockMvc path is not enough and the task needs WebTestClient.
-- Open [references/relaxed`-payloads.md`](references/relaxed-payloads.md) when relaxed payload documentation is required.
-- Open [references/subsection`-payloads.md`](references/subsection-payloads.md) when one payload subtree should be documented without every leaf field.
-- Open [references/ignored`-fields.md`](references/ignored-fields.md) when a field must exist in the payload but should stay out of published docs.
-- Open [references/query`-parameters.md`](references/query-parameters.md) when the contract depends on query parameters.
-- Open [references/path`-parameters.md`](references/path-parameters.md) when the contract depends on URI template variables.
+- Open [references/webtestclient-surface.md](references/webtestclient-surface.md) when the ordinary MockMvc path is not enough and the task needs WebTestClient.
+- Open [references/relaxed-payloads.md](references/relaxed-payloads.md) when relaxed payload documentation is required.
+- Open [references/subsection-payloads.md](references/subsection-payloads.md) when one payload subtree should be documented without every leaf field.
+- Open [references/ignored-fields.md](references/ignored-fields.md) when a field must exist in the payload but should stay out of published docs.
+- Open [references/query-parameters.md](references/query-parameters.md) when the contract depends on query parameters.
+- Open [references/path-parameters.md](references/path-parameters.md) when the contract depends on URI template variables.
 - Open [references/cookies.md](references/cookies.md) when the contract depends on cookies.
-- Open [references/http`-headers.md`](references/http-headers.md) when the contract depends on request or response headers.
+- Open [references/http-headers.md](references/http-headers.md) when the contract depends on request or response headers.
 - Open [references/preprocessors.md](references/preprocessors.md) when preprocessors must do more than the ordinary pretty-print and URI rewriting path.
-- Open [references/custom`-snippets.md`](references/custom-snippets.md) when built-in snippets are not enough.
+- Open [references/custom-snippets.md](references/custom-snippets.md) when built-in snippets are not enough.
 - Open [references/links.md](references/links.md) when the contract includes hypermedia links.
 - Open [references/multipart.md](references/multipart.md) when the contract includes multipart request parts.

@@ -108,33 +108,33 @@ If a delayed publisher inside `withVirtualTime` never emits, check that:
 - The delay uses `VirtualTimeScheduler` (automatic inside `withVirtualTime`) rather than a real scheduler.
 - No explicit real scheduler is passed to timed operators such as `delayElement(Duration, Scheduler)`.
 
-```java
-import java.time.Duration;
-import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-class VirtualTimeSchedulerBypassTest {
-    @Test
-    void badEagerPublisherInVirtualTime() {
-        Mono<Long> delayed = Mono.delay(Duration.ofSeconds(5));
-        StepVerifier.withVirtualTime(() ->
-            delayed
-        )
-            .expectSubscription()
-            .expectNoEvent(Duration.ofSeconds(5))
-            .expectNext(0L)
-            .verifyComplete();
+    ```java
+    import java.time.Duration;
+    import org.junit.jupiter.api.Test;
+    import reactor.core.publisher.Mono;
+    import reactor.test.StepVerifier;
+    class VirtualTimeSchedulerBypassTest {
+        @Test
+        void badEagerPublisherInVirtualTime() {
+            Mono<Long> delayed = Mono.delay(Duration.ofSeconds(5));
+            StepVerifier.withVirtualTime(() ->
+                delayed
+            )
+                .expectSubscription()
+                .expectNoEvent(Duration.ofSeconds(5))
+                .expectNext(0L)
+                .verifyComplete();
+        }
+        @Test
+        void goodPureVirtualTime() {
+            StepVerifier.withVirtualTime(() -> Mono.delay(Duration.ofSeconds(5)))
+                .expectSubscription()
+                .expectNoEvent(Duration.ofSeconds(5))
+                .expectNext(0L)
+                .verifyComplete();
+        }
     }
-    @Test
-    void goodPureVirtualTime() {
-        StepVerifier.withVirtualTime(() -> Mono.delay(Duration.ofSeconds(5)))
-            .expectSubscription()
-            .expectNoEvent(Duration.ofSeconds(5))
-            .expectNext(0L)
-            .verifyComplete();
-    }
-}
-```
+    ```
 
 The first test creates the delayed publisher before virtual time can replace Reactor's default schedulers.
 The test may hang or fail.

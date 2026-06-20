@@ -1,5 +1,5 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "description": "Claude catalog view for the Sinon marketplace.",
   "name": "sinon",
   "owner": {
@@ -12,7 +12,7 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Authoring kit for Claude Code plugins, agents, commands/prompts, hooks, MCP servers, plugin settings, and cross-platform Agent Skills; includes agents for plugin validation and skill review, plus a command for guided plugin creation.",
+      "description": "Authoring kit for Claude Code plugins, agents, hooks, MCP servers, plugin settings, and cross-platform Agent Skills; includes agents for plugin validation and skill review.",
       "name": "agent-capability-kit",
       "source": "./plugins/agent-capability-kit"
     },
@@ -115,6 +115,5 @@
       "name": "workspace-workflow",
       "source": "./plugins/workspace-workflow"
     }
-  ],
-  "version": "2026.06.10"
+  ]
 }

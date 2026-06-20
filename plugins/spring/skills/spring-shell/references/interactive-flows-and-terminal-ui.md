@@ -20,37 +20,37 @@ Use flow components when a command must lead the operator through several depend
 - Confirmation input: use before destructive actions such as delete, revoke, or reset.
 - Single-select and multi-select input: use when the choice set is bounded and operator discoverability matters.
 
-```java
-@Component
-class ClusterCommands {
-    private final ClusterService clusterService;
-    private final ComponentFlow.Builder componentFlowBuilder;
-    ClusterCommands(ClusterService clusterService, ComponentFlow.Builder componentFlowBuilder) {
-        this.clusterService = clusterService;
-        this.componentFlowBuilder = componentFlowBuilder;
-    }
-    @Command(name = "cluster reset", description = "Reset a target cluster", group = "cluster")
-    String reset(@Option(longName = "cluster", required = true) String cluster) {
-        ComponentFlow flow = componentFlowBuilder.clone()
-            .reset()
-            .withStringInput("namespace")
-            .name("Namespace")
-            .and()
-            .withConfirmationInput("confirmed")
-            .name("Reset cluster %s?".formatted(cluster))
-            .and()
-            .build();
-        ComponentFlowResult result = flow.run();
-        String namespace = (String) result.getContext().get("namespace");
-        boolean confirmed = (Boolean) result.getContext().get("confirmed");
-        if (!confirmed) {
-            return "cancelled";
+    ```java
+    @Component
+    class ClusterCommands {
+        private final ClusterService clusterService;
+        private final ComponentFlow.Builder componentFlowBuilder;
+        ClusterCommands(ClusterService clusterService, ComponentFlow.Builder componentFlowBuilder) {
+            this.clusterService = clusterService;
+            this.componentFlowBuilder = componentFlowBuilder;
         }
-        clusterService.reset(cluster, namespace);
-        return "reset cluster=%s namespace=%s".formatted(cluster, namespace);
+        @Command(name = "cluster reset", description = "Reset a target cluster", group = "cluster")
+        String reset(@Option(longName = "cluster", required = true) String cluster) {
+            ComponentFlow flow = componentFlowBuilder.clone()
+                .reset()
+                .withStringInput("namespace")
+                .name("Namespace")
+                .and()
+                .withConfirmationInput("confirmed")
+                .name("Reset cluster %s?".formatted(cluster))
+                .and()
+                .build();
+            ComponentFlowResult result = flow.run();
+            String namespace = (String) result.getContext().get("namespace");
+            boolean confirmed = (Boolean) result.getContext().get("confirmed");
+            if (!confirmed) {
+                return "cancelled";
+            }
+            clusterService.reset(cluster, namespace);
+            return "reset cluster=%s namespace=%s".formatted(cluster, namespace);
+        }
     }
-}
-```
+    ```
 
 Keep the resulting flow output small and explicit so that automation wrappers can still reason about the final result.
 

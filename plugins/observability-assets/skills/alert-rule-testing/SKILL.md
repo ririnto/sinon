@@ -155,7 +155,7 @@ Use when: testing scrape gaps, target downtime, or staleness-dependent expressio
 
 ### Native Histogram Notation
 
-Minimal native histogram sample syntax (Prometheus >= 2.40):
+Minimal native histogram sample syntax for current `promtool test rules`:
 
 ```yaml
 - series: 'http_request_duration_seconds{job="api"}'
@@ -478,7 +478,7 @@ alert_rule_test:
 
 ```
 
-Use when: the annotation template itself must stay stable, not just the firing condition.
+Use when: the annotation template itself must stay stable alongside the firing condition.
 
 ## Validate the Result
 

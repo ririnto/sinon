@@ -1,8 +1,6 @@
 ---
 description: >-
-  Reference for concrete JFR profiling commands, allocation diagnosis,
-  lock contention investigation, and evidence interpretation heuristics
-  in Java performance review work.
+  Reference for concrete JFR profiling commands, allocation diagnosis, lock contention investigation, and evidence interpretation heuristics in Java performance review work.
 ---
 
 # Performance Review Patterns

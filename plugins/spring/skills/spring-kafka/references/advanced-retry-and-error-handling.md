@@ -61,7 +61,7 @@ Use `ErrorHandlingDeserializer` or an equivalently explicit consumer-side setup 
 
 ## Verification rule
 
-Verify one representative permanent failure goes directly to the DLT and one transient failure is retried before recovery so the classification policy is visible in tests, not only configuration.
+Verify one representative permanent failure goes directly to the DLT and one transient failure is retried before recovery so the classification policy is visible in tests and configuration.
 
 ## Decision points
 

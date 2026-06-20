@@ -44,7 +44,7 @@ For the next deploy, enable bounded GC log output for basic pause visibility:
 java -Xlog:gc:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M ...
 ```
 
-Version-specific logging syntax — JDK 8 and earlier use legacy GC log flags (`-verbose:gc`, `-XX:+PrintGCDetails`, `-XX:+PrintGCTimeStamps`, `-Xloggc:gc.log`).
+Version-specific logging syntax - JDK 8 and earlier use legacy GC log flags (`-verbose:gc`, `-XX:+PrintGCDetails`, `-XX:+PrintGCTimeStamps`, `-Xloggc:gc.log`).
 JDK 9 and later use unified logging with `-Xlog:gc...`.
 
 ## First Runnable Commands or Code Shape
@@ -92,7 +92,7 @@ Startup-attached GC-oriented JFR:
 java -XX:StartFlightRecording=name=gc-startup,settings=profile,filename=/path/to/private-diagnostics/gc-startup.jfr,dumponexit=true -Xlog:gc=debug:file=gc-%p-%t.log:uptimemillis,pid:filecount=5,filesize=10M -jar app.jar
 ```
 
-Use when: you need GC and allocation evidence from process start, not only after a later live attach.
+Use when: you need GC and allocation evidence from process start instead of after a later live attach.
 
 > [!IMPORTANT]
 >
@@ -254,10 +254,10 @@ jfr summary /path/to/recording.jfr
 Shows event counts grouped by type.
 Look for:
 
-- `jdk.GarbageCollection` count — how many GC cycles occurred
-- `jdk.GCPhasePause` — individual pause phases.
+- `jdk.GarbageCollection` count - how many GC cycles occurred
+- `jdk.GCPhasePause` - individual pause phases.
   - Check max duration
-- `jdk.ObjectAllocationInNewTLAB` count — very high counts indicate allocation pressure
+- `jdk.ObjectAllocationInNewTLAB` count - very high counts indicate allocation pressure
 
 ## References
 
@@ -273,7 +273,7 @@ Look for:
 - MUST distinguish pause-time, throughput, and footprint goals before recommending a collector.
 - SHOULD prefer the default collector unless evidence shows a mismatch.
 - MUST gather or use runtime evidence before recommending non-trivial GC flag changes.
-- MUST explain collector tradeoffs in workload terms, not only by naming algorithms.
+- MUST explain collector tradeoffs in workload terms instead of naming algorithms alone.
 - MUST avoid presenting preview, experimental, or withdrawn options as default production advice.
 - MUST distinguish JDK 8-era GC logging from JDK 9+ unified logging.
 - MUST verify collector availability against the actual JDK vendor or distribution when the collector is not a default HotSpot baseline.

@@ -38,7 +38,7 @@ In this standalone Spring Framework BOM path, `aspectjweaver` keeps an explicit 
 <dependency>
     <groupId>org.aspectj</groupId>
     <artifactId>aspectjweaver</artifactId>
-    <version>1.9.25.1</version>
+    <version>1.9.25</version>
 </dependency>
 </dependencies>
 ```

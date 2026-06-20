@@ -18,6 +18,7 @@ Use `spring-web-services` for SOAP transport, XML contract publication, endpoint
 
 ## Baseline
 
+The latest released Spring Web Services line is 5.0.2.
 Spring Web Services 5.0 requires JDK 17+ (compatible through JDK 27), Jakarta EE 11 (Servlet 6.1, Jakarta XML Bind 4.0, Jakarta Activation 2.1), Spring Framework 7.0, Spring Security 7.0, Apache WSS4J 4.0, and JUnit 6.0.
 
 - Spring WS 5.0.x aligns with Spring Boot 4.0.x and 4.1.x.
@@ -42,9 +43,9 @@ In Spring Boot, prefer the starter-managed ordinary path first: keep the starter
 ### Branch selector
 
 - Stay in `SKILL.md` for the ordinary endpoint-plus-template path: contract-first XSD and WSDL publication, servlet registration, `@Endpoint` handlers, JAXB marshalling, `WebServiceTemplate`, basic SOAP fault mapping, and contract tests.
-- Open [references/ws`-security.md`](references/ws-security.md) when the integration contract requires signing, encryption, username tokens, or message-level trust.
-- Open [references/xpath`-endpoints.md`](references/xpath-endpoints.md) when payload parsing is too dynamic for ordinary marshalling.
-- Open [references/client`-variants.md`](references/client-variants.md) when the client must use specialized transports or alternate message factories.
+- Open [references/ws-security.md](references/ws-security.md) when the integration contract requires signing, encryption, username tokens, or message-level trust.
+- Open [references/xpath-endpoints.md](references/xpath-endpoints.md) when payload parsing is too dynamic for ordinary marshalling.
+- Open [references/client-variants.md](references/client-variants.md) when the client must use specialized transports or alternate message factories.
 
 ## Dependency baseline
 
@@ -163,13 +164,13 @@ SoapFaultMappingExceptionResolver soapFaultMappingExceptionResolver() {
 3. Use a marshaller consistently so request and response XML stay schema-aligned.
 4. Translate domain failures into SOAP faults deliberately instead of leaking generic exceptions.
 5. Keep client configuration, endpoint URIs, and WS-Security settings in one place.
-6. Test with real XML payloads, not only Java object assertions.
+6. Test with real XML payloads instead of Java object assertions alone.
 
 ## Edge cases
 
-- Open [references/ws`-security.md`](references/ws-security.md) when the contract requires SOAP-level authentication, signing, or encryption.
-- Open [references/xpath`-endpoints.md`](references/xpath-endpoints.md) when payload parsing is too dynamic for JAXB.
-- Open [references/client`-variants.md`](references/client-variants.md) when the client must use a non-ordinary transport or alternate message factory.
+- Open [references/ws-security.md](references/ws-security.md) when the contract requires SOAP-level authentication, signing, or encryption.
+- Open [references/xpath-endpoints.md](references/xpath-endpoints.md) when payload parsing is too dynamic for JAXB.
+- Open [references/client-variants.md](references/client-variants.md) when the client must use a non-ordinary transport or alternate message factory.
 - Use `@Action` annotation on endpoint methods and `ActionEndpointMapping` or `AnnotationActionEndpointMapping` when the integration contract routes by WS-Addressing Action header.
   - Spring WS supports WS-Addressing 1.0 and the August 2004 draft.
 - Use `AddressingEndpointInterceptor` for WS-Addressing validation, duplicate message detection, and out-of-band response delivery.
@@ -201,7 +202,7 @@ class HolidayEndpoint {
 Use `@SoapAction` on the same method when the integration contract routes by SOAP Action header instead of payload root.
 
 Spring WS supports both SOAP 1.1 and SOAP 1.2. The default `AxiomSoapMessageFactory` produces SOAP 1.1 messages and can be configured for SOAP 1.2. Use SAAJ when SAAJ-specific behavior is required.
-See [references/client`-variants.md`](references/client-variants.md) for message factory details.
+See [references/client-variants.md](references/client-variants.md) for message factory details.
 
 ### SOAP server configuration
 
@@ -329,7 +330,7 @@ class HolidayClientTests {
 
 Spring WS defaults to `AxiomSoapMessageFactory` producing SOAP 1.1 messages.
 Configure the selected message factory for SOAP 1.2; use SAAJ when SAAJ features are required.
-See [references/client`-variants.md`](references/client-variants.md) for the message factory decision path.
+See [references/client-variants.md](references/client-variants.md) for the message factory decision path.
 
 ### Endpoint URI shape
 
@@ -370,6 +371,6 @@ See [references/client`-variants.md`](references/client-variants.md) for the mes
 
 ## References
 
-- Open [references/ws`-security.md`](references/ws-security.md) when the ordinary endpoint-plus-template path is not enough and the task needs SOAP-level signing, encryption, or username tokens.
-- Open [references/xpath`-endpoints.md`](references/xpath-endpoints.md) when the ordinary marshalling path is not enough and the task needs XPath parsing.
-- Open [references/client`-variants.md`](references/client-variants.md) when the ordinary client path is not enough and the task needs special client transports or alternate message factories.
+- Open [references/ws-security.md](references/ws-security.md) when the ordinary endpoint-plus-template path is not enough and the task needs SOAP-level signing, encryption, or username tokens.
+- Open [references/xpath-endpoints.md](references/xpath-endpoints.md) when the ordinary marshalling path is not enough and the task needs XPath parsing.
+- Open [references/client-variants.md](references/client-variants.md) when the ordinary client path is not enough and the task needs special client transports or alternate message factories.

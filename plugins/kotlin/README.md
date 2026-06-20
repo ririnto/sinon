@@ -25,10 +25,6 @@ Kotlin is a shared, skill-first plugin for Kotlin application and library work i
 
 This plugin ships no agents.
 
-## Included Commands
-
-This plugin ships no commands.
-
 ## Skill Selection
 
 Start here when Kotlin work could fit more than one skill:
@@ -86,7 +82,8 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/` and `./.lsp.json`.
+Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
+This includes `skills/`, `.lsp.json`, and executable `bin/` when present.
 Local language-server support files live beside the manifest at the plugin root.
 
 ## Plugin Layout
@@ -106,7 +103,7 @@ plugins/kotlin/
 
 - The plugin ships three reusable Kotlin skills under `skills/`.
 - `.lsp.json` and the Kotlin language-server integration expose editor intelligence for `.kt` and `.kts` files.
-- The plugin does not ship commands, hooks, MCP servers, agents, or custom runtime data surfaces.
+- The plugin does not ship hooks, MCP servers, agents, or custom runtime data surfaces.
 
 ## Kotlin LSP Setup
 
@@ -124,7 +121,7 @@ Do not treat it as a substitute for the skills above: the skills explain how to 
 Install from Sinon:
 
 ```sh
-/plugin install kotlin@sinon
+claude plugin install kotlin@sinon
 ```
 
 For local development:

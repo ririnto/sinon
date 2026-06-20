@@ -20,13 +20,13 @@ Standard production GC log (recommended starting point):
 
 Output fields explained:
 
-- `gc*` — wildcard matches all GC-related tag sets (`gc`, `gc+cpu`, `gc+heap`, etc.)
-- `file=gc-%p-%t.log` — output file with PID (`%p`) and timestamp (`%t`) substitution
-- `uptime` — time since JVM start (alternatives: `uptime`, `timemillis`, `uptimemillis`)
-- `level` — include log level (info, debug, trace)
-- `tags` — include log tags for filtering
-- `filecount=5` — rotate up to 5 files
-- `filesize=10M` — each file up to 10 MB
+- `gc*` - wildcard matches all GC-related tag sets (`gc`, `gc+cpu`, `gc+heap`, etc.)
+- `file=gc-%p-%t.log` - output file with PID (`%p`) and timestamp (`%t`) substitution
+- `uptime` - time since JVM start (alternatives: `uptime`, `timemillis`, `uptimemillis`)
+- `level` - include log level (info, debug, trace)
+- `tags` - include log tags for filtering
+- `filecount=5` - rotate up to 5 files
+- `filesize=10M` - each file up to 10 MB
 
 ### Refined GC Log Configurations
 

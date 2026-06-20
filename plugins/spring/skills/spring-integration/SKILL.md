@@ -164,12 +164,12 @@ Use `originPatterns` for flexible origin matching instead of `allowCredentials`.
 ### CloudEvents support
 
 The `spring-integration-cloudevents` module provides `ToCloudEventTransformer` and `FromCloudEventTransformer` for CloudEvents specification v1.0 interoperability.
-Open [references/cloudevents`-and-grpc.md`](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
+Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
 
 ### gRPC support
 
 The `spring-integration-grpc` module provides `GrpcInboundGateway` and `GrpcOutboundGateway` for unary, server streaming, client streaming, and bidirectional streaming gRPC patterns.
-Open [references/cloudevents`-and-grpc.md`](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
+Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) for DSL shapes and configuration examples.
 
 ## First safe configuration
 
@@ -209,7 +209,7 @@ IntegrationFlow integrationErrors() {
 ```
 
 Use the default `errorChannel` for the ordinary baseline.
-Open [references/error`-handling-and-retry-patterns.md`](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit custom error-channel routing.
+Open [references/error-handling-and-retry-patterns.md](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit custom error-channel routing.
 
 ## Coding procedure
 
@@ -342,11 +342,11 @@ Pollers.fixedDelay(Duration.ofSeconds(5))
 
 ## References
 
-- Open [references/cloudevents`-and-grpc.md`](references/cloudevents-and-grpc.md) when the flow uses CloudEvents transformation or gRPC gateways.
-- Open [references/error`-handling-and-retry-patterns.md`](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit error-channel routing.
-- Open [references/testing`-integration-flows.md`](references/testing-integration-flows.md) when the task needs `@SpringIntegrationTest`, `MockIntegrationContext`, `noAutoStartup`, or graph-level assertions.
-- Open [references/pollers`-transactions-and-stores.md`](references/pollers-transactions-and-stores.md) when the flow depends on pollers, transactional sources, aggregators, or persistent message stores.
-- Open [references/dsl`-runtime-flows-and-reactive.md`](references/dsl-runtime-flows-and-reactive.md) when the task needs runtime flow registration, subflows, reactive channels, or composed Java DSL flows.
-- Open [references/control`-bus-and-system-management.md`](references/control-bus-and-system-management.md) when the application must inspect, start, stop, or observe Integration endpoints in production.
-- Open [references/adapter`-family-selection.md`](references/adapter-family-selection.md) when choosing protocol adapters or module boundaries for a concrete external system.
-- Open [references/native`-aot-support.md`](references/native-aot-support.md) when the flow must run in a native image and adapter or reflection constraints become part of the design.
+- Open [references/cloudevents-and-grpc.md](references/cloudevents-and-grpc.md) when the flow uses CloudEvents transformation or gRPC gateways.
+- Open [references/error-handling-and-retry-patterns.md](references/error-handling-and-retry-patterns.md) when the flow needs endpoint advice, retry, circuit breaking, or explicit error-channel routing.
+- Open [references/testing-integration-flows.md](references/testing-integration-flows.md) when the task needs `@SpringIntegrationTest`, `MockIntegrationContext`, `noAutoStartup`, or graph-level assertions.
+- Open [references/pollers-transactions-and-stores.md](references/pollers-transactions-and-stores.md) when the flow depends on pollers, transactional sources, aggregators, or persistent message stores.
+- Open [references/dsl-runtime-flows-and-reactive.md](references/dsl-runtime-flows-and-reactive.md) when the task needs runtime flow registration, subflows, reactive channels, or composed Java DSL flows.
+- Open [references/control-bus-and-system-management.md](references/control-bus-and-system-management.md) when the application must inspect, start, stop, or observe Integration endpoints in production.
+- Open [references/adapter-family-selection.md](references/adapter-family-selection.md) when choosing protocol adapters or module boundaries for a concrete external system.
+- Open [references/native-aot-support.md](references/native-aot-support.md) when the flow must run in a native image and adapter or reflection constraints become part of the design.

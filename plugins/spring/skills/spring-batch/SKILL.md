@@ -211,13 +211,13 @@ Make restart behavior explicit before tuning performance.
 - Use skip for bad input that should be recorded and bypassed.
 - Use retry for transient failures that may succeed on a later attempt.
 
-```java
-.faultTolerant()
-.skipLimit(10)
-.skip(FlatFileParseException.class)
-.retryLimit(3)
-.retry(DeadlockLoserDataAccessException.class)
-```
+    ```java
+    .faultTolerant()
+    .skipLimit(10)
+    .skip(FlatFileParseException.class)
+    .retryLimit(3)
+    .retry(DeadlockLoserDataAccessException.class)
+    ```
 
 ## Scaling decision ladder
 
@@ -267,12 +267,12 @@ class ImportJobTests {
 
 ## References
 
-- Open [references/job`-infrastructure-launch-and-recovery.md`](references/job-infrastructure-launch-and-recovery.md) when the task is about `JobRepository`, `JobOperator`, parameter identity, restart versus rerun, metadata, recovery, graceful shutdown, or operational control.
-- Open [references/step`-flow-and-listeners.md`](references/step-flow-and-listeners.md) when the task involves tasklets, listeners, or flow branching.
-- Open [references/fault`-tolerance-and-transaction-tuning.md`](references/fault-tolerance-and-transaction-tuning.md) when the task involves transaction attributes, skip or retry rules, async item pipelines, or framework-level repeat and retry decisions.
-- Open [references/readers`-writers-and-item-streams.md`](references/readers-writers-and-item-streams.md) when the blocker is choosing or implementing a reader, writer, delegate, `ItemStream`, or restart-safe file, database, JSON, XML, or messaging pipeline.
-- Open [references/scaling`-partitioning-and-remote-execution.md`](references/scaling-partitioning-and-remote-execution.md) when one-step throughput is not enough and the task requires multithreaded steps, parallel flows, partitioning, local chunking, remote chunking, or remote step execution.
-- Open [references/testing`-batch-jobs-and-step-scope.md`](references/testing-batch-jobs-and-step-scope.md) when the task needs `spring-batch-test`, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
-- Open [references/integration`-driven-launch.md`](references/integration-driven-launch.md) when the task involves launching jobs through integration channels or feedback messaging.
-- Open [references/observability`-and-monitoring.md`](references/observability-and-monitoring.md) when the task involves Micrometer metrics, JFR, or operator-facing observability work.
-- Open [references/spring`-batch-6-migration.md`](references/spring-batch-6-migration.md) when the blocker is Spring Batch 6 migration-specific behavior or upgraded infrastructure notes.
+- Open [references/job-infrastructure-launch-and-recovery.md](references/job-infrastructure-launch-and-recovery.md) when the task is about `JobRepository`, `JobOperator`, parameter identity, restart versus rerun, metadata, recovery, graceful shutdown, or operational control.
+- Open [references/step-flow-and-listeners.md](references/step-flow-and-listeners.md) when the task involves tasklets, listeners, or flow branching.
+- Open [references/fault-tolerance-and-transaction-tuning.md](references/fault-tolerance-and-transaction-tuning.md) when the task involves transaction attributes, skip or retry rules, async item pipelines, or framework-level repeat and retry decisions.
+- Open [references/readers-writers-and-item-streams.md](references/readers-writers-and-item-streams.md) when the blocker is choosing or implementing a reader, writer, delegate, `ItemStream`, or restart-safe file, database, JSON, XML, or messaging pipeline.
+- Open [references/scaling-partitioning-and-remote-execution.md](references/scaling-partitioning-and-remote-execution.md) when one-step throughput is not enough and the task requires multithreaded steps, parallel flows, partitioning, local chunking, remote chunking, or remote step execution.
+- Open [references/testing-batch-jobs-and-step-scope.md](references/testing-batch-jobs-and-step-scope.md) when the task needs `spring-batch-test`, scoped component tests, failure-path assertions, restart tests, or metadata-driven test setup.
+- Open [references/integration-driven-launch.md](references/integration-driven-launch.md) when the task involves launching jobs through integration channels or feedback messaging.
+- Open [references/observability-and-monitoring.md](references/observability-and-monitoring.md) when the task involves Micrometer metrics, JFR, or operator-facing observability work.
+- Open [references/spring-batch-6-migration.md](references/spring-batch-6-migration.md) when the blocker is Spring Batch 6 migration-specific behavior or upgraded infrastructure notes.

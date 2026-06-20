@@ -17,7 +17,7 @@ Your primary responsibility is to route users to the appropriate Spring plugin s
 
 ## Core Responsibility
 
-Route incoming Spring architecture and design questions to the correct plugin skill from the 22 available Spring skills.
+Route incoming Spring architecture and design questions to the correct plugin skill from the 24 available Spring skills.
 Load the relevant skill using the Skill tool when the user's question maps to a specific domain.
 
 ## Spring Skill Routing Table
@@ -28,7 +28,8 @@ Load the relevant skill using the Skill tool when the user's question maps to a 
 | spring-data | JPA, queries, repositories, entities | Data access layer design, ORM patterns, query optimization |
 | spring-security | Authentication, authorization, OAuth2/OIDC provider | User identity, security filters, authorization server, token issuance |
 | spring-kafka | Message producer/consumer, partitioning, streams | Event-driven architecture, asynchronous messaging, stream processing |
-| spring-cloud | Service discovery, config, circuit breakers, Data Flow | Microservices coordination, resilience, distributed config, stream/task orchestration |
+| spring-cloud | Service discovery, config, circuit breakers | Microservices coordination, resilience, distributed config |
+| spring-cloud-data-flow | Stream and task estate operations, app registration, schedules | SCDF maintenance, migration, platform accounts, stream/task troubleshooting |
 | spring-batch | Job scheduling, item readers/writers, step execution | Bulk data processing, scheduled batch jobs, tasklet chains |
 | spring-integration | Message routing, transformers, adapters | Enterprise messaging, channel-based routing, protocol adapters |
 | spring-session | Session storage, distributed sessions | Session management, clustering, sticky sessions |
@@ -41,7 +42,8 @@ Load the relevant skill using the Skill tool when the user's question maps to a 
 | spring-shell | CLI applications, command handling, parameter binding | Interactive CLI tools, command-driven applications |
 | spring-statemachine | State transitions, guards, actions | Workflow automation, order processing, complex state logic |
 | spring-ai | LLM integration, prompt templates, vector stores | Generative AI, RAG patterns, LLM function calling |
-| spring-framework | Core containers, AOP, dependency injection, servlet MVC/REST, WebFlux, Spring Web Flow | Foundation concepts, AOP, bean lifecycle, REST controllers, request handling, exception handling, stateful web navigation |
+| spring-framework | Core containers, AOP, dependency injection, servlet MVC/REST, WebFlux | Foundation concepts, AOP, bean lifecycle, REST controllers, request handling, exception handling |
+| spring-web-flow | Stateful browser conversations, flow scopes, validation | Multi-step web flows, conversation state, flow execution tests |
 | spring-vault | Secret management, credential rotation, CredHub | Secure credential storage, HashiCorp Vault, Cloud Foundry CredHub |
 | spring-pulsar | Apache Pulsar messaging, partitions, subscriptions | Cloud-native messaging alternative to Kafka |
 | spring-amqp | RabbitMQ, AMQP 0.9.1, message templates | Traditional message broker patterns, queue/exchange setup |

@@ -18,7 +18,6 @@ your-plugin/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── README.md
-├── commands/
 ├── agents/
 ├── skills/
 ├── hooks/
@@ -27,11 +26,13 @@ your-plugin/
 ├── .mcp.json
 ├── servers/
 │   └── example-mcp.py
+├── bin/
+│   └── my-tool
 └── output-styles/
     └── executive-summary.md
 ```
 
-This shape is useful when command, policy, server, and formatting surfaces all ship together for Claude Code.
+This shape is useful when policy, server, and formatting surfaces all ship together for Claude Code.
 
 ## Surface-specific helper directories
 
@@ -62,14 +63,30 @@ Use these helper directories only when the associated surface needs local code b
 - when a surface needs multiple files, group them under a directory named after the surface rather than scattering files at the root
 - keep runtime output and generated state outside the shipped surface files unless the specific component explicitly expects it
 
-## File-typed surfaces and the manifest
+## Default surfaces and the manifest
 
-Open this subsection whenever a composite-root tree contains one or more file-typed surfaces and the manifest entries for those surfaces need verification against their canonical exact paths.
+Open this subsection whenever a composite-root tree contains optional surfaces.
+Use it to verify manifest entries against Claude Code discovery rules.
 
-Each file-typed surface shown in the trees above (`hooks/hooks.json`, `.mcp.json`, `.lsp.json`, `settings.json`, `monitors/monitors.json`) MUST also be declared in `.claude-plugin/plugin.json` with its exact canonical path (`"./hooks/hooks.json"`, `"./.mcp.json"`, `"./.lsp.json"`, `"./settings.json"`, `"./monitors/monitors.json"` under `experimental.monitors`).
-When the manifest declares one of these keys, the matching plugin-root file MUST exist.
-When one of these files exists at the plugin root, the manifest SHOULD declare the matching key so the runtime publishes the surface.
-See `SKILL.md` Operating rule 5 for the canonical bidirectional rule.
+Claude Code auto-discovers default component locations at the plugin root.
+Do not declare default entries in `plugin.json` when the default path is the only value.
+Default entries include:
+
+- `skills/`, `agents/`, `output-styles/`, and `themes/`
+- `hooks/hooks.json`, `.mcp.json`, `.lsp.json`, `settings.json`, and `monitors/monitors.json`
+
+Executable files under `bin/` are added to Bash `PATH` while the plugin is enabled and do not use a manifest path field.
+
+Use manifest component fields only for custom paths or inline configuration.
+When a manifest component field declares a string path, the matching plugin-root file or directory MUST exist.
+Inline object component fields do not need companion files.
+
+Path fields have field-specific merge behavior:
+
+- `skills` adds to the default `skills/` scan.
+- `agents` and `outputStyles` replace the default unless the default path is listed explicitly.
+- `experimental.themes` and `experimental.monitors` follow the same replacement behavior.
+- hooks, MCP servers, and LSP servers follow their own merge rules.
 
 ## When this file matters
 

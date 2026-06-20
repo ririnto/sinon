@@ -62,11 +62,11 @@ The ordinary Spring Vault job is:
 ### Branch selector
 
 - Stay in `SKILL.md` for the ordinary token-or-AppRole path: direct `VaultTemplate` access, KV read or write operations, property import, KV v1 versus KV v2 path awareness, transit encrypt or decrypt, and fail-fast handling for missing secrets.
-- Open [references/kubernetes`-authentication.md`](references/kubernetes-authentication.md) when the runtime is in Kubernetes and Vault login must use the mounted service-account token.
-- Open [references/reactive`-vault-access.md`](references/reactive-vault-access.md) when secret access is already on a reactive request path and the task needs `ReactiveVaultTemplate`.
-- Open [references/kv`-versioning-and-cas.md`](references/kv-versioning-and-cas.md) when KV v2 version retrieval, CAS writes, or version-aware conflict handling matters.
-- Open [references/credential`-rotation.md`](references/credential-rotation.md) when secrets require lease renewal, rotation, or managed certificate lifecycle.
-- Open [references/vault`-repositories.md`](references/vault-repositories.md) when domain entities must persist in Vault with query derivation, regex predicates, or set-based lookups.
+- Open [references/kubernetes-authentication.md](references/kubernetes-authentication.md) when the runtime is in Kubernetes and Vault login must use the mounted service-account token.
+- Open [references/reactive-vault-access.md](references/reactive-vault-access.md) when secret access is already on a reactive request path and the task needs `ReactiveVaultTemplate`.
+- Open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) when KV v2 version retrieval, CAS writes, or version-aware conflict handling matters.
+- Open [references/credential-rotation.md](references/credential-rotation.md) when secrets require lease renewal, rotation, or managed certificate lifecycle.
+- Open [references/vault-repositories.md](references/vault-repositories.md) when domain entities must persist in Vault with query derivation, regex predicates, or set-based lookups.
 
 ## Dependency baseline
 
@@ -188,9 +188,9 @@ class SecretServiceTests {
 
 ## Edge cases
 
-- Open [references/kubernetes`-authentication.md`](references/kubernetes-authentication.md) when the application already runs inside Kubernetes and Vault should trust the pod identity.
-- Open [references/reactive`-vault-access.md`](references/reactive-vault-access.md) when secret access must stay reactive end to end.
-- Open [references/kv`-versioning-and-cas.md`](references/kv-versioning-and-cas.md) when multiple writers, CAS, or version retrieval matter.
+- Open [references/kubernetes-authentication.md](references/kubernetes-authentication.md) when the application already runs inside Kubernetes and Vault should trust the pod identity.
+- Open [references/reactive-vault-access.md](references/reactive-vault-access.md) when secret access must stay reactive end to end.
+- Open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) when multiple writers, CAS, or version retrieval matter.
 - Treat transit as part of this skill only for the basic encrypt or decrypt boundary.
   - More specialized secret-engine work should stay outside the ordinary KV path.
 - `VaultClient` requires a `VaultEndpoint` or `VaultEndpointProvider` for relative path usage.
@@ -562,11 +562,11 @@ CredHub credential unreadable: /app/prod/db-password
 
 ## References
 
-- Open [references/kubernetes`-authentication.md`](references/kubernetes-authentication.md) when the ordinary token-or-AppRole path is not enough and the task needs Kubernetes auth.
-- Open [references/reactive`-vault-access.md`](references/reactive-vault-access.md) when the ordinary imperative client path is not enough and the task needs `ReactiveVaultTemplate`.
-- Open [references/kv`-versioning-and-cas.md`](references/kv-versioning-and-cas.md) when the ordinary KV read-or-write path is not enough and the task needs KV v2 version control or CAS behavior.
-- Open [references/credential`-rotation.md`](references/credential-rotation.md) when the task needs secret lease renewal, rotation, or managed certificate lifecycle.
-- Open [references/vault`-repositories.md`](references/vault-repositories.md) when the task needs Vault repositories with query derivation, regex predicates, or set-based lookups.
-- Open [references/credhub`-auth-and-credential-variants.md`](references/credhub-auth-and-credential-variants.md) when the task needs CredHub mutual TLS versus OAuth2 authentication setup.
-- Open [references/credhub`-reactive-access.md`](references/credhub-reactive-access.md) when the task needs `ReactiveCredHubOperations` on a reactive request path.
-- Open [references/credhub`-advanced-credential-patterns.md`](references/credhub-advanced-credential-patterns.md) when the task needs CredHub interpolation, certificate generation, permissions, or non-default credential families.
+- Open [references/kubernetes-authentication.md](references/kubernetes-authentication.md) when the ordinary token-or-AppRole path is not enough and the task needs Kubernetes auth.
+- Open [references/reactive-vault-access.md](references/reactive-vault-access.md) when the ordinary imperative client path is not enough and the task needs `ReactiveVaultTemplate`.
+- Open [references/kv-versioning-and-cas.md](references/kv-versioning-and-cas.md) when the ordinary KV read-or-write path is not enough and the task needs KV v2 version control or CAS behavior.
+- Open [references/credential-rotation.md](references/credential-rotation.md) when the task needs secret lease renewal, rotation, or managed certificate lifecycle.
+- Open [references/vault-repositories.md](references/vault-repositories.md) when the task needs Vault repositories with query derivation, regex predicates, or set-based lookups.
+- Open [references/credhub-auth-and-credential-variants.md](references/credhub-auth-and-credential-variants.md) when the task needs CredHub mutual TLS versus OAuth2 authentication setup.
+- Open [references/credhub-reactive-access.md](references/credhub-reactive-access.md) when the task needs `ReactiveCredHubOperations` on a reactive request path.
+- Open [references/credhub-advanced-credential-patterns.md](references/credhub-advanced-credential-patterns.md) when the task needs CredHub interpolation, certificate generation, permissions, or non-default credential families.

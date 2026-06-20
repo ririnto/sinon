@@ -54,9 +54,9 @@ The system rejects the request, emits no partial side effects, and returns a doc
 ## Key Entities
 
 - `DomainRequest`:
-  the user-provided input that triggers the capability.
+  - the user-provided input that triggers the capability.
 - `DomainResult`:
-  the stable outcome returned after validation and ingest processing.
+  - the stable outcome returned after validation and ingest processing.
 
 ## Constraints
 

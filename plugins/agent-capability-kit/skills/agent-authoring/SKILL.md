@@ -179,17 +179,13 @@ Return:
    - `tools` appears only when a bounded tool surface is needed
 5. Write the body with a role statement plus `Responsibilities`, `Process`, and `Output` sections.
 6. Make the autonomy level explicit:
-
-    - The agent should complete its narrow role without asking for routine confirmation.
-    - The agent should stay inside the requested scope.
-    - The agent should report blockers or uncertainty instead of inventing missing facts.
-
+   - The agent should complete its narrow role without asking for routine confirmation.
+   - The agent should stay inside the requested scope.
+   - The agent should report blockers or uncertainty instead of inventing missing facts.
 7. Check the tool boundary against the ordinary path:
-
-    - Read-only roles stay read-only.
-    - Editing roles get mutation tools only when direct edits are part of the role.
-    - Broad tool access must be justified by the role, not by convenience.
-
+   - Read-only roles stay read-only.
+   - Editing roles get mutation tools only when direct edits are part of the role.
+   - Broad tool access must be justified by the role, not by convenience.
 8. Verify that the output section is directly usable by the caller.
 9. Check that the ordinary path is self-sufficient inside the agent body.
    - If the draft says to 'load skill X first' or depends on hidden runtime guidance, fold the required instructions back into the agent file.

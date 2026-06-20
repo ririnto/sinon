@@ -10,7 +10,7 @@ SAML2 login needs the service-provider module in addition to the ordinary starte
 
 These dependency examples assume Spring Boot dependency management (parent/BOM) is already in use, so the managed Spring versions stay versionless here.
 
-For the current Spring Security 7 line, `spring-security-saml2-service-provider` currently depends on OpenSAML 5.1.6 artifacts that may still require the Shibboleth repository (or an internal mirror that proxies it) in some environments.
+For the current Spring Security 7 line, `spring-security-saml2-service-provider` currently depends on OpenSAML 5.2.2 artifacts that may still require the Shibboleth repository (or an internal mirror that proxies it) in some environments.
 
 ```xml
 <repositories>

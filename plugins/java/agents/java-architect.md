@@ -120,11 +120,8 @@ Parent-child task relationships:
    - Performance/threading → `java-performance-concurrency`
 
 2. Load the matching skill using the Skill tool from the routing table
-
 3. Apply the domain expertise from the loaded skill to the user's question
-
 4. Identify the repository's Java baseline before recommending version-sensitive features.
-
 5. Integrate with other agents: If the question involves Spring frameworks, suggest consulting `spring-architect`.
    - If observability/metrics are included, suggest `observability-architect`
 

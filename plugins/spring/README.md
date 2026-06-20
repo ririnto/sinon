@@ -109,8 +109,8 @@ This plugin uses one shared plugin root with a thin Claude manifest:
 
 - `.claude-plugin/plugin.json`
 
-The manifest declares `./skills/`.
-Agents remain in the plugin-root `agents/` directory and are described here rather than declared in `.claude-plugin/plugin.json` because this repository's manifest rules prohibit an `agents` key.
+Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
+This includes `skills/`, `agents/`, and executable `bin/` when present.
 
 ## Plugin Layout
 
@@ -151,7 +151,7 @@ plugins/spring/
 
 - The plugin ships twenty-four reusable Spring skills under `skills/`.
 - The plugin ships one agent (`spring-architect`) for guiding Spring architecture decisions and component design.
-- The plugin does not ship commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
+- The plugin does not ship hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 
@@ -168,7 +168,7 @@ plugins/spring/
 Install from Sinon:
 
 ```sh
-/plugin install spring@sinon
+claude plugin install spring@sinon
 ```
 
 For local development:
@@ -180,7 +180,7 @@ claude --plugin-dir /path/to/sinon/plugins/spring
 ## Scope Notes
 
 This plugin covers Spring-specific application guidance and ships reusable skills plus the `spring-architect` agent surface.
-It intentionally does not publish commands, hooks, MCP servers, LSP servers, or custom runtime data surfaces.
+It intentionally does not publish hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 Use Java, JVM, Kotlin, Reactor, Netty, or platform-architecture guidance for concerns that are not shaped by Spring framework behavior.
 Spring Cloud Data Flow coverage lives in `spring-cloud-data-flow` and is limited to existing stream/task estates, runtime operations, and migration support rather than new orchestration adoption.

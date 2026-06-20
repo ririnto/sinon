@@ -44,7 +44,7 @@ Do not activate for:
 | Reactor hot-source surface | Keep in this file | Open a reference when... |
 | --- | --- | --- |
 | hot vs cold distinction | ordinary difference between per-subscription work and shared/manual hot sources | the design depends on connection lifecycle rather than sink emission |
-| when to choose Sinks | choose Sinks for programmatic emission, not just for sharing a cold source | the real problem is connect/disconnect and subscriber rendezvous |
+| when to choose Sinks | choose Sinks for programmatic emission beyond sharing a cold source | the real problem is connect/disconnect and subscriber rendezvous |
 | sink shape | `Sinks.one()`, `Sinks.empty()`, `Sinks.many()` | internal contention or unsafe sink use becomes the blocker |
 | fan-out model | unicast vs multicast vs replay | replay policy or connection lifecycle becomes the blocker |
 | emission API | `tryEmit*` vs `emit*`, `EmitResult`, `EmitFailureHandler` | failure handling rules become the main problem |
