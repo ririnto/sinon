@@ -13,7 +13,7 @@ Summaries are secondary.
 
 ## First Safe Checks
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, and the relevant `docs/**` files.
+1. Read `ARCHITECTURE.md` and the relevant `docs/**` files.
 2. Inspect the changed files and the relevant domain docs under `docs/**`.
 3. Use the stack-specific validation command supplied in the task prompt.
 4. Separate product-code findings from contract findings.

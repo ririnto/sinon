@@ -16,7 +16,7 @@ Define the autonomous role this agent owns for the target repository.
 
 ## Workflow
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, and the relevant `docs/**` files before acting.
+1. Read `ARCHITECTURE.md` and the relevant `docs/**` files before acting.
 2. Stay within the role boundary: {{role_boundary}}.
 3. Follow workflow decisions supplied in the task prompt for worktree isolation, host CLI selection, validation, and evidence.
 4. Produce evidence tied to changed files, commands, or unresolved blockers.

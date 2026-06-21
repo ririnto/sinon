@@ -13,7 +13,7 @@ Prioritize correctness, behavioral regressions, missing evidence, and contract d
 
 ## Workflow
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, and relevant `docs/**` files.
+1. Read `ARCHITECTURE.md` and relevant `docs/**` files.
 2. Inspect the changed files and validation evidence.
 3. Check whether placeholders are still generic where target-specific content is required.
 4. Check generated artifacts for source command, source inputs, freshness, and regeneration trigger.

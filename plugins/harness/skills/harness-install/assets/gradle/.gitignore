@@ -100,6 +100,8 @@ nohup.out
 .env.*
 !.env.example
 *.local
+*.local.*
+.claude/worktrees/
 .tmp/
 temp/
 *.tmp

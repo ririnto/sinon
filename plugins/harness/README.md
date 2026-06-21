@@ -118,6 +118,11 @@ The installer creates this repository context structure, and validators require 
 AGENTS.md
 ARCHITECTURE.md
 CLAUDE.md            (imports AGENTS.md)
+.gitignore
+.worktreeinclude
+.mcp.json
+.codegraph/
+`-- .gitignore
 .claude/
 |-- agents/
 |   |-- implementation-agent.md
@@ -171,11 +176,26 @@ Active `pre-commit` includes the selected-mode command and may include stack pre
 Active `pre-push` comes from the stack-specific final check, which may be stronger than `pre-commit`.
 Stack assets activate hooks through their ecosystem tool:
 Husky for Bun, pre-commit for uv, the Gradle pre-commit plugin for Gradle, and `core.hooksPath` for Maven and Shell.
+Claude worktrees use Claude Code's default Git worktree behavior.
+The selected stack supplies `.worktreeinclude` for portable gitignored local inputs.
+Examples include `.env` and `*.local.*` files.
+Target `.gitignore` files ignore `.claude/worktrees/`.
+The selected stack also supplies `.claude/settings.json`.
+The `hooks.EnterWorktree.hooks[]` entries run async setup commands from the worktree directory.
+All stacks run `codegraph init; codegraph index`.
+Bun runs `bun install`.
+uv runs `uv sync`.
+Gradle runs `./gradlew help`.
+Maven runs `./mvnw -q -DskipTests dependency:go-offline`.
+Claude Code reports async hook command failures.
+It still uses the default worktree creation path.
+The project-local `.mcp.json` configures CodeGraph MCP.
+`.codegraph/.gitignore` keeps CodeGraph local data out of Git.
 `docs/generated/` is a generated-artifact location, not a required database-documentation location.
 Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
 Fresh installed target repositories use `AGENTS.md` as the primary harness contract.
-Claude Code reads the same contract through `CLAUDE.md`, which imports `AGENTS.md`.
+Claude Code loads the same contract through `CLAUDE.md`, which imports `AGENTS.md`.
 
 ## Validation Adapters
 
