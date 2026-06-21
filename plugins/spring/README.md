@@ -105,12 +105,7 @@ Scheduling boundary:
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a thin Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
-This includes `skills/`, `agents/`, and executable `bin/` when present.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 
 ## Plugin Layout
 
@@ -151,17 +146,12 @@ plugins/spring/
 
 - The plugin ships twenty-four reusable Spring skills under `skills/`.
 - The plugin ships one agent (`spring-architect`) for guiding Spring architecture decisions and component design.
-- The plugin does not ship hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 
 - Prefer working application slices over isolated annotation lists.
-- Keep examples minimal but runnable in spirit.
 - Route to the smallest Spring skill that matches the task.
-- Keep `SKILL.md` self-contained and usable on its own.
-  - Use `references/` only for supplemental decision aids and longer notes.
-- Spring reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries.
-  - Prose explains the example, the example proves the rule.
+- Keep references in `references/` to concrete additive content only.
 
 ## Installation
 

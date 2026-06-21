@@ -27,12 +27,7 @@ Use `spec-driven-development` when the user explicitly asks to follow a spec-fir
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
-This includes `skills/`, `agents/`, and executable `bin/` when present.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 
 ## Plugin Layout
 
@@ -67,7 +62,6 @@ plugins/spec-driven-development/
 - `skills/spec-driven-development/scripts/sdd.ts` is the single CLI entrypoint for all SDD subcommands (`validate`, `list-frontmatter`, `get-frontmatter`, `generate-diagram`, `list-tags`).
 - `assets/templates/` contains scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `CHANGELOG.md`, and openapi.yaml.
 - `assets/schemas/` contains JSON Schema definitions for frontmatter validation.
-- The plugin does not ship hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 

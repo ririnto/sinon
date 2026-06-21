@@ -197,6 +197,10 @@ const hostTemplateTexts: readonly TextCheck[] = [
 const targetAssetBannedFragments = [
   "Fresh installs",
   "fresh installs",
+  "target-specific",
+  "target repository",
+  "installed target",
+  "installed contract",
   "selected install mode",
   "selected stack asset package",
   "harness installation",
@@ -488,12 +492,12 @@ const checkCommonAssets = (root: string): void => {
     ".editorconfig",
     ".markdownlint-cli2.jsonc",
     ".codegraph/.gitignore",
-    ".claude/agents/implementation-agent.md",
-    ".claude/agents/review-agent.md",
+    ".claude/agents/implementation.md",
+    ".claude/agents/review.md",
+    ".claude/skills/autonomous-execution/SKILL.md",
+    ".claude/skills/issue-mining/SKILL.md",
     ".claude/skills/review/SKILL.md",
-    ".claude/skills/start-worktree/SKILL.md",
-    ".claude/skills/validate/SKILL.md",
-    ".claude/skills/work/SKILL.md",
+    "docs/design-docs/repository-layout.md",
     "scripts/no-box-drawing.ts",
     "scripts/exec-plan-links.ts",
     "scripts/docs-root-files.ts"
@@ -516,14 +520,6 @@ const checkCommonAssets = (root: string): void => {
     {
       fragments: ["# CLAUDE.md", "@AGENTS.md"],
       path: path.join(common, "CLAUDE.md")
-    },
-    {
-      fragments: [
-        "`.agents/skills/` MUST be `-> .claude/skills/`",
-        "`.agents/agents/` MUST NOT exist",
-        "`.codex/agents/` MUST be `-> .claude/agents/`"
-      ],
-      path: path.join(common, "AGENTS.md")
     },
     {
       fragments: [
@@ -555,12 +551,26 @@ const checkCommonAssets = (root: string): void => {
   ]);
   for (const filePath of [
     "AGENTS.md",
+    "ARCHITECTURE.md",
     "WORKFLOW.md",
+    "WORKFLOW.github.md",
+    "WORKFLOW.gitlab.md",
+    "WORKFLOW.none.md",
+    ".gitlab/issue_templates/Enhancement.md",
+    ".claude/agents/implementation.md",
+    ".claude/agents/review.md",
+    ".claude/skills/autonomous-execution/SKILL.md",
+    ".claude/skills/issue-mining/SKILL.md",
     ".claude/skills/review/SKILL.md",
-    ".claude/skills/validate/SKILL.md",
+    "docs/PLANS.md",
+    "docs/SECURITY.md",
     "docs/design-docs/core-beliefs.md",
+    "docs/design-docs/repository-layout.md",
     "docs/product-specs/new-user-onboarding.md",
     "docs/references/README.md",
+    "docs/templates/agent/AGENT.md",
+    "docs/templates/docs/AGENTS.md",
+    "docs/templates/skill/SKILL.md",
     "docs/templates/docs/exec-plan.md",
     "docs/templates/docs/reference-llms.txt"
   ]) {
@@ -569,6 +579,22 @@ const checkCommonAssets = (root: string): void => {
       targetAssetBannedFragments
     );
   }
+  requireTexts(
+    [
+      "WORKFLOW.md",
+      "WORKFLOW.github.md",
+      "WORKFLOW.gitlab.md",
+      "WORKFLOW.none.md"
+    ].map((filePath) => ({
+      fragments: [
+        "`implementation`",
+        "`review`",
+        "`issue-mining`",
+        "`autonomous-execution`"
+      ],
+      path: path.join(common, filePath)
+    }))
+  );
   for (const filePath of targetAssetBannedFragmentExceptions) {
     requireText(path.join(common, filePath), "reproduced verbatim");
     requireText(path.join(common, filePath), "No other content is altered.");

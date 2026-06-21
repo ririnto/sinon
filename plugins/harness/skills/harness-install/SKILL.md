@@ -1,19 +1,27 @@
 ---
 name: harness-install
 description: >-
-  Install target-owned repository harness assets from the plugin asset package.
-  Assets include `AGENTS.md` contract, `CLAUDE.md` pointer, `ARCHITECTURE.md`, docs structure, project agents, project skills, structured repository templates, language-matched validators, CI files, and Git hook templates.
-  Use when setting up or refreshing a repository harness.
-  Also use when adding target-owned Claude agents or skills to a repo.
-  Also use when wiring validation commands for Gradle, Maven, uv, bun, or shell projects.
+  Install repository harness assets from the plugin asset package.
+  Use when setting up or refreshing `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `WORKFLOW.md`, docs, project agents, project skills, validators, CI files, and Git hook templates.
 ---
 
 # Harness Install
 
-Install or refresh target-owned repository harness files from this plugin.
-This plugin skill is the visible runtime surface for installation guidance and orchestration.
+Install or refresh repository harness files from this plugin.
+This plugin skill is the runtime surface for installation guidance and orchestration.
 Files that live inside a target repository are packaged under `skills/harness-install/assets/`.
-They become target-owned after copying.
+They become project files after copying.
+
+## Role
+
+`harness-install` is the installer boundary:
+
+- choose the installed mode (`bun`, `gradle`, `maven`, `shell`, `uv`)
+- copy role-partitioned artifacts
+- activate stack hook state
+- report installation + validation outcomes
+
+Target business logic and day-to-day feature code stay in the target repository.
 
 ## Ownership Boundary
 
@@ -26,10 +34,9 @@ They become target-owned after copying.
 1. Confirm the target repository working tree is clean before running the installer.
    - Run `git status --short` in the target; if the output is non-empty, stop and ask the user to commit or stash first.
    - The installer writes new files and overwrites existing ones when `--force` is used.
-   - Any rollback or recovery action after installation will be indistinguishable from unrelated in-progress work.
-   - Commit-first keeps the harness change set isolated and reversible.
-2. Inspect the target repository root files if present: `ARCHITECTURE.md`, `WORKFLOW.md`, and `README.md`.
-   - Inspect `CLAUDE.md` only to confirm it imports `AGENTS.md`.
+   - Commit-first keeps the installation set isolated and reversible.
+2. Inspect existing target files when present: `AGENTS.md`, `ARCHITECTURE.md`, `WORKFLOW.md`, and `README.md`.
+   - Check existing `CLAUDE.md` imports `AGENTS.md`.
 3. Determine the target stack from explicit user choice.
    - The installer no longer auto-detects.
    - Confirm the stack with the user before passing `--mode`.
@@ -81,7 +88,20 @@ They become target-owned after copying.
 
 3. Run the selected-mode validation command printed by the installer before reporting completion.
 4. Inspect changed files and distinguish kept files from written files in the final report.
-5. Report hook behavior, validation status, and any target-owned files the user must fill with project truth.
+5. Report hook behavior, validation status, and any files the user must fill with project truth.
+
+## Asset Role Map
+
+- `skills/harness-install/assets/common/AGENTS.md`: root contract.
+- `skills/harness-install/assets/common/ARCHITECTURE.md`: architecture and component roles.
+- `skills/harness-install/assets/common/WORKFLOW.md`: process rules.
+- `skills/harness-install/assets/common/docs/**`: operating and domain context.
+- `skills/harness-install/assets/<mode>/**`: stack validation and hook assets for the chosen mode.
+- `skills/harness-install/assets/common/.claude/agents/implementation.md`: implementation subagent for bounded changes.
+- `skills/harness-install/assets/common/.claude/agents/review.md`: review subagent for contract and validation review.
+- `skills/harness-install/assets/common/.claude/skills/autonomous-execution/SKILL.md`: orchestration loop for explicit autonomous follow-through.
+- `skills/harness-install/assets/common/.claude/skills/issue-mining/SKILL.md`: investigation and issue-registration skill.
+- `skills/harness-install/assets/common/.claude/skills/review/SKILL.md`: readiness review skill.
 
 ## Decisions
 
@@ -106,7 +126,7 @@ They become target-owned after copying.
 
 ## Invariants
 
-- The installed harness is target-owned after copying.
+- Copied harness files become project files.
 - Git hooks use ecosystem-standard tools:
   - Bun uses Husky with `.husky/`.
   - uv uses the pre-commit framework with `.pre-commit-config.yaml`.
@@ -132,11 +152,11 @@ They become target-owned after copying.
   - It still uses the default worktree creation path.
 - `.mcp.json` configures the project-local CodeGraph MCP server.
 - `.codegraph/.gitignore` keeps CodeGraph local data out of Git.
-- Fresh installs use `AGENTS.md` as the primary target repository harness contract.
+- Target repositories use `AGENTS.md` as the primary harness contract.
 - `CLAUDE.md` remains a pointer document that imports `AGENTS.md`.
 - `docs/generated/` is a generated-artifact location for real generated outputs.
 - Plugin skills install, validate, and evolve the harness package.
-- Installed target skills and agents guide day-to-day work inside the target repository.
+- Installed skills and agents guide day-to-day work inside the target repository.
 - Stack-specific check and fix commands run native ecosystem tools:
   - Gradle uses `./gradlew ktlintCheck` and `./gradlew ktlintFormat` through ktlint project discovery.
   - Maven uses Checkstyle plus Spotless with `git ls-files` and `spotlessFiles`.
@@ -151,9 +171,9 @@ They become target-owned after copying.
 - Keep `scripts/install-harness.ts` changes in plugin evolution work.
 - Report project readiness only after target truth exists.
   - Product specs, architecture decisions, acceptance criteria, and generated artifacts must all contain target truth.
-- Replace target-owned hook files with `--force` after explicit approval for that repository.
+- Replace hook files with `--force` after explicit approval for that repository.
 - Treat seed references as replaceable starting points.
-- Keep runtime services, issue queues, workspace management, and team generation in target-owned systems.
+- Keep runtime services, issue queues, workspace management, and team generation in project systems.
 
 ## Output Contract
 

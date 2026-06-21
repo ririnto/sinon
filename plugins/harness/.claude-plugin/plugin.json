@@ -3,7 +3,7 @@
   "author": {
     "name": "ririnto"
   },
-  "description": "Install, validate, and evolve repository-owned harness assets for agent instructions, docs, templates, project agents, project skills, stack validators, CI snippets, and opt-in Git hook templates.",
+  "description": "Install, validate, and evolve project harness assets for agent instructions, docs, templates, project agents, project skills, stack validators, CI snippets, and opt-in Git hook templates.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/harness",
   "keywords": [
     "harness",

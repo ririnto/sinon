@@ -23,7 +23,7 @@ Prefer deterministic checks over inspection-only conclusions.
 ## Workflow
 
 1. Determine whether you are validating the plugin package or an installed target harness.
-2. For plugin package validation, run the plugin self-check when available.
+2. For plugin package validation, run the plugin self-check.
 3. For target harness validation, read `WORKFLOW.md` and run the matching stack command.
 4. Verify executable bits for scripts and hook templates when the filesystem exposes them.
 5. Search for stale required examples such as generated database artifacts that are not universally valid.

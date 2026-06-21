@@ -37,12 +37,7 @@ These skills compose into the everyday loop: prepare a clean working tree (optio
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
-This includes `skills/`, `agents/`, and executable `bin/` when present.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 
 ## Plugin Layout
 
@@ -74,7 +69,6 @@ plugins/workspace-workflow/
 
 - Six reusable skills under `skills/` cover the full workspace-to-publication workflow.
 - Three agents under `agents/` cover workflow coordination, commit-message drafting, and PR/MR body drafting.
-- The plugin does not ship hooks, MCP servers, LSP servers, output styles, monitors, or custom runtime data surfaces.
 
 ## Design Principles
 

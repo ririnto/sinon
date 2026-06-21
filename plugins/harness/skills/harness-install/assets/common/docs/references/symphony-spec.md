@@ -7,10 +7,11 @@
 > Repository: <https://github.com/openai/symphony>.
 > Raw source mirrored from <https://raw.githubusercontent.com/openai/symphony/refs/heads/main/SPEC.md>.
 >
-> The body below is the upstream `SPEC.md` reproduced verbatim.
+> The body below is the upstream `SPEC.md` reproduced verbatim except for local terminology updates listed in this note.
 > Copyright remains with the upstream authors.
-> This document is included because the repository harness installed here implements Symphony-aligned conventions.
+> This document is included because this repository implements Symphony-aligned conventions.
 > These conventions include versioned `WORKFLOW.md`, isolated per-issue workspaces, observable agent runs, and stable execution-plan artifacts.
+> Two ownership-label phrases in the upstream body are normalized to `versioned` and `version-controlled`.
 >
 > Editor's note on local names:
 > where the Symphony specification refers to `AGENTS.md`, this repository uses `AGENTS.md` as the root contract.
@@ -69,7 +70,7 @@ Important boundary:
 - Create deterministic per-issue workspaces and preserve them across runs.
 - Stop active runs when issue state changes make them ineligible.
 - Recover from transient failures with exponential backoff.
-- Load runtime behavior from a repository-owned `WORKFLOW.md` contract.
+- Load runtime behavior from a versioned `WORKFLOW.md` contract.
 - Expose operator-visible observability (at minimum structured logs).
 - Support tracker/filesystem-driven restart recovery without requiring a persistent database; exact
   in-memory scheduler state is not restored.
@@ -317,7 +318,7 @@ Workflow file path precedence:
 Loader behavior:
 
 - If the file cannot be read, return `missing_workflow_file` error.
-- The workflow file is expected to be repository-owned and version-controlled.
+- The workflow file is expected to be version-controlled.
 
 ### 5.2 File Format
 

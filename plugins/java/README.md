@@ -62,12 +62,7 @@ When work lands on a boundary, keep the active task inside the skill that owns t
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a thin Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
-This includes `skills/`, `agents/`, `.lsp.json`, and executable `bin/` when present.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 Local JDTLS support files live beside the manifest at the plugin root.
 
 ## Plugin Layout
@@ -97,7 +92,6 @@ plugins/java/
 - `.lsp.json` and `scripts/jdtls-wrapper.sh` expose the Java language-server surface for Claude-compatible local development.
 - `scripts/has-lombok.sh` supports Lombok source selection for the wrapper, and `scripts/test-jdtls-wrapper.sh` verifies wrapper behavior.
 - The plugin ships one plugin-root agent: `java-architect` for Java language, testing, dependency, performance, and API design decisions.
-- The plugin does not ship hooks, MCP servers, or custom runtime data surfaces.
 
 ## Design Principles
 

@@ -42,17 +42,7 @@ Three runtime agents for validating, reviewing, and creating plugin components.
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a thin Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
-This includes `skills/`, `agents/`, and executable `bin/`.
-
-## Shipped Surfaces
-
-The plugin root exposes six skills and three agents.
-It does not ship hooks, MCP servers, LSP servers, monitors, or custom runtime data surfaces.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 
 ## Scope Notes
 

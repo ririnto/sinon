@@ -6,11 +6,21 @@ description: >-
 
 # Harness
 
-Harness is a Claude Code plugin for installing, validating, and evolving repository-owned agent development scaffolding.
+Harness is a Claude Code plugin for installing, validating, and evolving agent development scaffolding for repositories.
 It packages the current harness assets inside the plugin layout required by this repository.
 Skills are the declared runtime surface.
 Plugin-root agents are structural harness specialists for changing a target repository's harness contract.
 Files that should live inside a target repository are packaged only under `skills/harness-install/assets/`.
+
+## Role
+
+This README covers:
+
+- Harness installation outputs
+- packaged asset locations
+- install, validate, and evolve flow
+
+Installed assets under `assets/common` and `assets/<mode>` carry repository runtime details.
 
 ## Purpose
 
@@ -19,11 +29,11 @@ Files that should live inside a target repository are packaged only under `skill
   - Agents should work from versioned context rather than hidden convention.
 - Preserve harness-only development readiness.
   - Target repositories still supply requirements, architecture decisions, source code, runtime configuration, secrets, and domain references.
-- Provide a target-owned `WORKFLOW.md` for branch policy, host CLI use, validation, review, and publication.
+- Provide `WORKFLOW.md` for branch policy, host CLI use, validation, review, and publication.
 
 ## Lifecycle
 
-1. Install repository-owned harness files into a target repository.
+1. Install harness files into a target repository.
 2. Validate the installed context with the target repository's matching stack command.
 3. Evolve docs, repository templates, agents, skills, generated-artifact policy, and validation rules as project reality changes.
 
@@ -37,7 +47,7 @@ claude plugin install ./plugins/harness --scope project
 
 ## Included Skills
 
-- `harness-install`: install repository-owned harness assets into a target repository.
+- `harness-install`: install harness assets into a target repository.
 - `harness-validate`: validate installed harness assets and stack adapters against the harness contract.
 - `harness-evolve`: update the harness contract after repeated project use exposes new template, validation, or workflow needs.
 
@@ -67,7 +77,7 @@ The Claude Code manifest declares no component path fields.
 Claude Code discovers plugin-root `skills/` and `agents/` by default.
 Plugin-root agents remain in `agents/` as optional structural specialists for changing the target repository's harness contract.
 They are not copied into target repositories.
-Target repository agents, project skills, docs, CI files, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become target-owned only after installation.
+Target repository agents, project skills, docs, CI files, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become project files after installation.
 The plugin does not expose top-level hooks.
 Stack assets provide the active pre-commit and pre-push hooks installed for the selected mode.
 
@@ -111,7 +121,7 @@ To run the installer directly, pass the target repository explicitly with both s
 
 ## Required Repository Structure
 
-The installer creates this repository context structure, and validators require it:
+The installer creates this target repository structure, and validators require it:
 
 ```text
 ./
@@ -125,13 +135,15 @@ The installer creates this repository context structure, and validators require 
 |   +-- .gitignore
 +-- .claude/
 |   +-- agents/
-|   |   +-- implementation-agent.md
-|   |   +-- review-agent.md
+|   |   +-- implementation.md
+|   |   +-- review.md
 |   +-- settings.json
 |   +-- skills/
-|       +-- review/
+|       +-- autonomous-execution/
 |       |   +-- SKILL.md
-|       +-- validate/
+|       +-- issue-mining/
+|       |   +-- SKILL.md
+|       +-- review/
 |           +-- SKILL.md
 +-- .agents/
 |   +-- skills/         -> .claude/skills/
@@ -140,6 +152,7 @@ The installer creates this repository context structure, and validators require 
 +-- docs/
 |   +-- design-docs/
 |   |   +-- core-beliefs.md
+|   |   +-- repository-layout.md
 |   +-- exec-plans/
 |   |   +-- active/
 |   |   +-- completed/
@@ -152,6 +165,8 @@ The installer creates this repository context structure, and validators require 
 |   |   +-- README.md
 |   |   +-- symphony-spec.md
 |   +-- templates/
+|   |   +-- docs/
+|   |   |   +-- AGENTS.md
 |   +-- DESIGN.md
 |   +-- FRONTEND.md
 |   +-- PLANS.md
@@ -166,6 +181,8 @@ The installer creates this repository context structure, and validators require 
 ```
 
 The installed inventory also includes `WORKFLOW.md`, stack-specific validation adapters, CI files when enabled, and active hook files when the selected stack uses hooks.
+Installed day-to-day runtime surfaces are two project agents (`implementation`, `review`) and three project skills (`autonomous-execution`, `issue-mining`, `review`).
+Plugin-root Harness skills and agents remain plugin-owned and are not copied into target repositories.
 `WORKFLOW.md` defines branch, review, validation, and publication decisions.
 Installed target agents receive workflow decisions through their task prompt.
 
@@ -191,8 +208,8 @@ The project-local `.mcp.json` configures CodeGraph MCP.
 `docs/generated/` is a generated-artifact location, not a required database-documentation location.
 Generated artifacts SHOULD document their source command, source inputs, freshness, and regeneration trigger.
 
-Fresh installed target repositories use `AGENTS.md` as the primary harness contract.
-Claude Code loads the same contract through `CLAUDE.md`, which imports `AGENTS.md`.
+Target repositories use `AGENTS.md` as the primary harness contract.
+`CLAUDE.md` imports the same contract.
 
 ## Validation Adapters
 
@@ -328,10 +345,9 @@ The `skills/` directory contains `harness-evolve/`, `harness-install/`, and `har
 ## Scope Notes
 
 - This plugin prepares repository knowledge, guardrails, templates, and validation paths.
-- Target-owned agents are starting points, not immutable plugin internals.
-- The installed `.claude/skills/harness-validate/` directory is a project skill.
-  - Prefer that project skill when validating an installed target repository.
-  - Use the plugin-provided skill from this checkout before the target has its project copy.
+- Installed agents are starting points, not immutable plugin internals.
+- The plugin skill `harness-validate` validates packaged and installed harness assets before or after installation.
+- Installed repositories run validation through their stack command and update records through `WORKFLOW.md`.
 - GitHub Actions and GitLab CI files use ordinary version tags from the archive.
   - Projects with strict supply-chain policy SHOULD pin actions and images to reviewed immutable references after installation.
 - Maven, Gradle, Python, and test self-checks may create cache, IDE, or build metadata under asset directories.

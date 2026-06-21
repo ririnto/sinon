@@ -6,19 +6,21 @@ color: {{agent_color}}
 
 # {{agent_name}}
 
-Define the autonomous role this agent owns for the target repository.
+Define the autonomous role this agent owns for this repository.
 
 ## Inputs
 
 - Task or review goal: {{task_goal}}
-- Required context paths: {{required_context_paths}}
-- Validation command: {{validation_command}}
+- Context paths when known: {{context_paths_when_known}}
+- Workflow decisions when applicable: {{workflow_decisions}}
+- Validation command when applicable: {{validation_command}}
+- Publication or completion target when applicable: {{publication_target}}
 
 ## Workflow
 
-1. Read `ARCHITECTURE.md` and the relevant `docs/**` files before acting.
+1. Inspect supplied context paths first.
 2. Stay within the role boundary: {{role_boundary}}.
-3. Follow workflow decisions supplied in the task prompt for worktree isolation, host CLI selection, validation, and evidence.
+3. Follow the workflow decisions supplied by the caller.
 4. Produce evidence tied to changed files, commands, or unresolved blockers.
 
 ## Output
