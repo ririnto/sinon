@@ -12,16 +12,14 @@
 > This document is included because the repository harness installed here follows the `AGENTS.md` table-of-contents pattern.
 > It also follows docs-as-record, first-class plans, mechanical enforcement, and continuous doc-gardening.
 >
-> Editor's note on root-contract naming and symlinks:
+> Editor's note on local names:
 > the original post names `AGENTS.md` as the table-of-contents entry point.
-> This repository uses `AGENTS.md` as the root contract.
-> `CLAUDE.md` is only a Claude Code pointer that imports it.
-> Runtime links:
+> This repository uses `AGENTS.md` as the root contract and keeps runtime links here:
 >
 > - `.agents/skills/ -> .claude/skills/`.
 > - `.codex/agents/ -> .claude/agents/`.
 >
-> Any reference to `AGENTS.md` or `.agents/` in the body below should be read through that installed runtime layout.
+> Any reference to `AGENTS.md` or `.agents/` in the body below should be read through this local layout.
 > No other content is altered.
 
 By Ryan Lopopolo, Member of the Technical Staff

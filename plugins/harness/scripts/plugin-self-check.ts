@@ -184,15 +184,33 @@ const hostTemplateTexts: readonly TextCheck[] = [
   },
   {
     fragments: [
-      "## TL;DR (For humans)",
-      "## File Structure",
-      "## Final Verification Wave",
-      "## Commit Strategy",
-      "Do not add hash metadata, branch metadata, or external planning-tool paths"
+      "## Goal",
+      "## Scope",
+      "## Tasks",
+      "## Verification",
+      "Completed plans must not keep unchecked task lines"
     ],
     path: "docs/templates/docs/exec-plan.md"
   }
 ];
+
+const targetAssetBannedFragments = [
+  "Fresh installs",
+  "fresh installs",
+  "selected install mode",
+  "selected stack asset package",
+  "harness installation",
+  "plugin checkout",
+  "Optional Seed Files",
+  "seed file",
+  "replaceable seed files",
+  "scaffold-token"
+] as const;
+
+const targetAssetBannedFragmentExceptions = [
+  "docs/references/openai-harness-engineering.md",
+  "docs/references/symphony-spec.md"
+] as const;
 
 const expectedSetupCommands: Record<StackMode, readonly string[]> = {
   bun: ["codegraph init; codegraph index", "bun install"],
@@ -268,6 +286,25 @@ const requireTexts = (checks: readonly TextCheck[]): void => {
   for (const check of checks) {
     for (const fragment of check.fragments) {
       requireText(check.path, fragment);
+    }
+  }
+};
+
+/**
+ * Require one file not to contain target-asset install-time wording.
+ *
+ * @param filePath File path to inspect.
+ * @param fragments Text fragments that must not appear.
+ */
+const rejectTextFragments = (
+  filePath: string,
+  fragments: readonly string[]
+): void => {
+  requireFile(filePath);
+  const content = readFileSync(filePath, "utf-8");
+  for (const fragment of fragments) {
+    if (content.includes(fragment)) {
+      fail(`[rejectTextFragments] forbidden text in ${filePath}: ${fragment}`);
     }
   }
 };
@@ -516,6 +553,26 @@ const checkCommonAssets = (root: string): void => {
       path: path.join(common, "scripts", "docs-root-files.ts")
     }
   ]);
+  for (const filePath of [
+    "AGENTS.md",
+    "WORKFLOW.md",
+    ".claude/skills/review/SKILL.md",
+    ".claude/skills/validate/SKILL.md",
+    "docs/design-docs/core-beliefs.md",
+    "docs/product-specs/new-user-onboarding.md",
+    "docs/references/README.md",
+    "docs/templates/docs/exec-plan.md",
+    "docs/templates/docs/reference-llms.txt"
+  ]) {
+    rejectTextFragments(
+      path.join(common, filePath),
+      targetAssetBannedFragments
+    );
+  }
+  for (const filePath of targetAssetBannedFragmentExceptions) {
+    requireText(path.join(common, filePath), "reproduced verbatim");
+    requireText(path.join(common, filePath), "No other content is altered.");
+  }
   console.error("[common assets] OK");
 };
 

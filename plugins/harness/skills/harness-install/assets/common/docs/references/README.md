@@ -6,10 +6,9 @@
 References are verbatim upstream content with attribution and an editor's note documenting local runtime layout.
 The note covers these local runtime details:
 
-- `CLAUDE.md` points to `AGENTS.md`.
 - `.agents/skills/ -> .claude/skills/`.
 - `.codex/agents/ -> .claude/agents/`.
-The validator excludes this directory from leak and scaffold-token checks.
+The validator excludes this directory from placeholder-token checks.
 Upstream content may contain `TODO`, `{{...}}`, or other tokens that agents must not alter.
 
 ## Shipped References
