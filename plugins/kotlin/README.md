@@ -90,13 +90,13 @@ Local language-server support files live beside the manifest at the plugin root.
 
 ```text
 plugins/kotlin/
-├── .claude-plugin/plugin.json
-├── .lsp.json
-├── README.md
-└── skills/
-    ├── kotlin-coroutines-flows/
-    ├── kotlin-language-patterns/
-    └── kotlin-test/
++-- .claude-plugin/plugin.json
++-- .lsp.json
++-- README.md
++-- skills/
+    +-- kotlin-coroutines-flows/
+    +-- kotlin-language-patterns/
+    +-- kotlin-test/
 ```
 
 ## Shipped Surfaces

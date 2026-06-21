@@ -20,8 +20,12 @@
     "code-block-style": {
       "style": "fenced"
     },
-    "no-emphasis-as-heading": true
+    "no-emphasis-as-heading": true,
+    "docs/no-box-drawing": true
   },
+  "customRules": [
+    "./scripts/no-box-drawing.ts"
+  ],
   "gitignore": ".gitignore",
   "globs": [
     "**/*.md"

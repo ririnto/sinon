@@ -107,13 +107,13 @@ If the flag is not present, Shenandoah is not available in that build.
 
 ```text
 Symptom identified as GC-driven?
-├── No → switch to non-GC runtime triage and collect thread, CPU, I/O, or application evidence
-├── Yes → What is the primary goal?
-│   ├── Lowest pause time → consider ZGC or Shenandoah
-│   ├── Maximum throughput → Parallel or G1 (default)
-│   ├── Smallest footprint → Serial or G1 with small heap
-│   └── Balanced (default) → stay with G1 unless evidence shows mismatch
-└── Before switching:
++-- No → switch to non-GC runtime triage and collect thread, CPU, I/O, or application evidence
++-- Yes → What is the primary goal?
+|   +-- Lowest pause time → consider ZGC or Shenandoah
+|   +-- Maximum throughput → Parallel or G1 (default)
+|   +-- Smallest footprint → Serial or G1 with small heap
+|   +-- Balanced (default) → stay with G1 unless evidence shows mismatch
++-- Before switching:
     1. Confirm current LTS baseline
     2. Read GC logs / JFR evidence
     3. Verify target collector exists in the deployed JDK

@@ -196,10 +196,10 @@ Empty output means non-modular or classpath-only dependencies.
 
 ```text
 build/runtime/
-├── bin/java              ← launcher (verify with build/runtime/bin/java --version)
-├── conf/
-├── lib/
-└── release               ← version metadata
++-- bin/java              ← launcher (verify with build/runtime/bin/java --version)
++-- conf/
++-- lib/
++-- release               ← version metadata
 ```
 
 ### `jpackage` App Image Structure (platform-specific)
@@ -231,15 +231,15 @@ Produces HTML documentation tree:
 
 ```text
 build/docs/
-├── index.html              ← entry point (overview frame)
-├── allclasses-index.html   ← alphabetical class index
-├── com/
-│   └── example/
-│       ├── App.html        ← per-class docs
-│       └── package-summary.html
-├── script/
-│   └── ...
-└── stylesheet.css
++-- index.html              ← entry point (overview frame)
++-- allclasses-index.html   ← alphabetical class index
++-- com/
+|   +-- example/
+|       +-- App.html        ← per-class docs
+|       +-- package-summary.html
++-- script/
+|   +-- ...
++-- stylesheet.css
 ```
 
 Entry point is `index.html`.

@@ -41,10 +41,10 @@ Use a flat skill directory unless the existing host requires otherwise.
 
 ```text
 skill-name/
-|-- SKILL.md
-|-- references/
-|-- assets/
-`-- scripts/
++-- SKILL.md
++-- references/
++-- assets/
++-- scripts/
 ```
 
 - `SKILL.md`: activation-time instructions, ordinary workflow, key decisions, edge cases, output contract, and short support-file index.

@@ -71,10 +71,10 @@ Start from this tree when the plugin ships skills:
 
 ```text
 your-plugin/
-├── .claude-plugin/
-│   └── plugin.json
-├── README.md
-└── skills/
++-- .claude-plugin/
+|   +-- plugin.json
++-- README.md
++-- skills/
 ```
 
 Use the matching subset when the plugin ships only one component type.

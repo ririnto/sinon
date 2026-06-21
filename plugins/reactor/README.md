@@ -106,15 +106,15 @@ This includes `skills/`, `agents/`, and executable `bin/` when present.
 
 ```text
 plugins/reactor/
-├── .claude-plugin/plugin.json
-├── README.md
-├── agents/
-│   └── reactor-architect.md
-└── skills/
-    ├── reactor-core/
-    ├── reactor-scheduling/
-    ├── reactor-sinks/
-    └── reactor-testing/
++-- .claude-plugin/plugin.json
++-- README.md
++-- agents/
+|   +-- reactor-architect.md
++-- skills/
+    +-- reactor-core/
+    +-- reactor-scheduling/
+    +-- reactor-sinks/
+    +-- reactor-testing/
 ```
 
 ## Shipped Surfaces

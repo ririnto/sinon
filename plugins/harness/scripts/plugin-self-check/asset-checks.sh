@@ -283,6 +283,7 @@ assert_common_assets_structure() {
   assert_no_manual_agents_read "$common_assets_root/.claude/skills/validate/SKILL.md"
   assert_no_manual_agents_read "$common_assets_root/docs/templates/agent/AGENT.md"
   assert_no_manual_agents_read "$common_assets_root/docs/templates/skill/SKILL.md"
+  require_file "$common_assets_root/scripts/no-box-drawing.ts"
   require_file "$common_assets_root/scripts/exec-plan-links.ts"
   require_file "$common_assets_root/scripts/docs-root-files.ts"
   if [ -e "$common_assets_root/docs/git-hooks" ]; then
@@ -296,8 +297,12 @@ assert_common_assets_structure() {
   require_text "$common_assets_root/AGENTS.md" "\`.codex/agents/\` MUST be \`-> .claude/agents/\`"
   require_texts "$common_assets_root/.mcp.json" '"codegraph"' '"type": "stdio"' '"command": "codegraph"' '"serve"' '"--mcp"'
   require_texts "$common_assets_root/.codegraph/.gitignore" "CodeGraph data files" "*" "!.gitignore"
+  require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"docs/no-box-drawing": true'
   require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"docs/root-files": true'
+  require_text "$common_assets_root/.markdownlint-cli2.jsonc" './scripts/no-box-drawing.ts'
   require_text "$common_assets_root/.markdownlint-cli2.jsonc" './scripts/docs-root-files.ts'
+  require_text "$common_assets_root/scripts/no-box-drawing.ts" 'docs/no-box-drawing'
+  require_text "$common_assets_root/scripts/no-box-drawing.ts" '\u2500-\u257F'
   require_text "$common_assets_root/scripts/docs-root-files.ts" 'docs/root-files'
   require_text "$common_assets_root/scripts/docs-root-files.ts" 'allowedDocsDirectories'
   printf '[common assets] OK\n' >&2

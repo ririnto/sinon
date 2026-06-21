@@ -27,6 +27,7 @@ Stable repository rules, layout policies, and skill-authoring contracts are in `
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
 - `.markdownlint-cli2.jsonc`: Markdown lint configuration.
+- `scripts/no-box-drawing.ts`: `-> plugins/harness/skills/harness-install/assets/common/scripts/no-box-drawing.ts`.
 - `.claude-plugin/marketplace.json`: Claude marketplace catalog.
 - `.claude/skills/` and `.claude/agents/`: `-> plugins/agent-capability-kit/{skills,agents}/`.
 - `.agents/skills/`: `-> .claude/skills/`; `.agents/agents/` is intentionally absent.

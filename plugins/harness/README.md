@@ -115,56 +115,58 @@ To run the installer directly, pass the target repository explicitly with both s
 The installer creates this repository context structure, and validators require it:
 
 ```text
-AGENTS.md
-ARCHITECTURE.md
-CLAUDE.md            (imports AGENTS.md)
-.gitignore
-.worktreeinclude
-.mcp.json
-.codegraph/
-`-- .gitignore
-.claude/
-|-- agents/
-|   |-- implementation-agent.md
-|   `-- review-agent.md
-|-- settings.json
-`-- skills/
-    |-- review/
-    |   `-- SKILL.md
-    `-- validate/
-        `-- SKILL.md
-.agents/
-`-- skills/         -> .claude/skills/
-.codex/
-`-- agents/         -> .claude/agents/
-docs/
-|-- design-docs/
-|   `-- core-beliefs.md
-|-- exec-plans/
-|   |-- active/
-|   |   `-- .gitkeep
-|   |-- completed/
-|   |   `-- .gitkeep
-|   `-- tech-debt-tracker.md
-|-- generated/
-|   `-- .gitkeep
-|-- product-specs/
-|   `-- new-user-onboarding.md
-|-- references/
-|   |-- openai-harness-engineering.md
-|   |-- README.md
-|   `-- symphony-spec.md
-|-- templates/
-|-- DESIGN.md
-|-- FRONTEND.md
-|-- PLANS.md
-|-- PRODUCT_SENSE.md
-|-- QUALITY_SCORE.md
-|-- RELIABILITY.md
-`-- SECURITY.md
-scripts/
-|-- docs-root-files.ts
-`-- exec-plan-links.ts
+./
++-- AGENTS.md
++-- ARCHITECTURE.md
++-- CLAUDE.md            (imports AGENTS.md)
++-- .gitignore
++-- .worktreeinclude
++-- .mcp.json
++-- .codegraph/
+|   +-- .gitignore
++-- .claude/
+|   +-- agents/
+|   |   +-- implementation-agent.md
+|   |   +-- review-agent.md
+|   +-- settings.json
+|   +-- skills/
+|       +-- review/
+|       |   +-- SKILL.md
+|       +-- validate/
+|           +-- SKILL.md
++-- .agents/
+|   +-- skills/         -> .claude/skills/
++-- .codex/
+|   +-- agents/         -> .claude/agents/
++-- docs/
+|   +-- design-docs/
+|   |   +-- core-beliefs.md
+|   +-- exec-plans/
+|   |   +-- active/
+|   |   |   +-- .gitkeep
+|   |   +-- completed/
+|   |   |   +-- .gitkeep
+|   |   +-- tech-debt-tracker.md
+|   +-- generated/
+|   |   +-- .gitkeep
+|   +-- product-specs/
+|   |   +-- new-user-onboarding.md
+|   +-- references/
+|   |   +-- openai-harness-engineering.md
+|   |   +-- README.md
+|   |   +-- symphony-spec.md
+|   +-- templates/
+|   +-- DESIGN.md
+|   +-- FRONTEND.md
+|   +-- PLANS.md
+|   +-- PRODUCT_SENSE.md
+|   +-- QUALITY_SCORE.md
+|   +-- RELIABILITY.md
+|   +-- SECURITY.md
++-- scripts/
+    +-- no-box-drawing.ts
+    +-- docs-root-files.ts
+    +-- exec-plan-links.ts
 ```
 
 The installed inventory also includes `WORKFLOW.md`, stack-specific validation adapters, CI files when enabled, and active hook files when the selected stack uses hooks.

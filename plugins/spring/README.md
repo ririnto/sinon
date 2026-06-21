@@ -116,35 +116,35 @@ This includes `skills/`, `agents/`, and executable `bin/` when present.
 
 ```text
 plugins/spring/
-├── .claude-plugin/plugin.json
-├── README.md
-├── agents/
-│   └── spring-architect.md
-└── skills/
-    ├── spring-ai/
-    ├── spring-amqp/
-    ├── spring-batch/
-    ├── spring-boot/
-    ├── spring-cloud/
-    ├── spring-cloud-data-flow/
-    ├── spring-data/
-    ├── spring-framework/
-    ├── spring-graphql/
-    ├── spring-grpc/
-    ├── spring-hateoas/
-    ├── spring-integration/
-    ├── spring-kafka/
-    ├── spring-ldap/
-    ├── spring-modulith/
-    ├── spring-pulsar/
-    ├── spring-rest-docs/
-    ├── spring-security/
-    ├── spring-session/
-    ├── spring-shell/
-    ├── spring-statemachine/
-    ├── spring-vault/
-    ├── spring-web-flow/
-    └── spring-web-services/
++-- .claude-plugin/plugin.json
++-- README.md
++-- agents/
+|   +-- spring-architect.md
++-- skills/
+    +-- spring-ai/
+    +-- spring-amqp/
+    +-- spring-batch/
+    +-- spring-boot/
+    +-- spring-cloud/
+    +-- spring-cloud-data-flow/
+    +-- spring-data/
+    +-- spring-framework/
+    +-- spring-graphql/
+    +-- spring-grpc/
+    +-- spring-hateoas/
+    +-- spring-integration/
+    +-- spring-kafka/
+    +-- spring-ldap/
+    +-- spring-modulith/
+    +-- spring-pulsar/
+    +-- spring-rest-docs/
+    +-- spring-security/
+    +-- spring-session/
+    +-- spring-shell/
+    +-- spring-statemachine/
+    +-- spring-vault/
+    +-- spring-web-flow/
+    +-- spring-web-services/
 ```
 
 ## Shipped Surfaces

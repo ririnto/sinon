@@ -38,26 +38,26 @@ This includes `skills/`, `agents/`, and executable `bin/` when present.
 
 ```text
 plugins/spec-driven-development/
-├── .claude-plugin/plugin.json
-├── README.md
-├── agents/
-│   └── spec-driven-development.md
-└── skills/
-    └── spec-driven-development/
-        ├── SKILL.md
-        ├── references/
-        │   ├── workflow.md
-        │   ├── spec-authoring-guide.md
-        │   ├── research-authoring-guide.md
-        │   ├── linking-guide.md
-        │   ├── review-checklist.md
-        │   └── examples/
-        ├── scripts/
-        │   └── sdd.py          # Single CLI entrypoint and Python toolkit
-        ├── assets/
-        │   ├── templates/
-        │   └── schemas/
-        └── .gitignore
++-- .claude-plugin/plugin.json
++-- README.md
++-- agents/
+|   +-- spec-driven-development.md
++-- skills/
+    +-- spec-driven-development/
+        +-- SKILL.md
+        +-- references/
+        |   +-- workflow.md
+        |   +-- spec-authoring-guide.md
+        |   +-- research-authoring-guide.md
+        |   +-- linking-guide.md
+        |   +-- review-checklist.md
+        |   +-- examples/
+        +-- scripts/
+        |   +-- sdd.py          # Single CLI entrypoint and Python toolkit
+        +-- assets/
+        |   +-- templates/
+        |   +-- schemas/
+        +-- .gitignore
 ```
 
 ## Shipped Surfaces

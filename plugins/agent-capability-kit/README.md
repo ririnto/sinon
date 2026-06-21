@@ -111,18 +111,18 @@ Copy the files you need from each skill's `assets/` directory:
 
 ```text
 agent-capability-kit/
-├── .claude-plugin/
-│   └── plugin.json
-├── README.md
-├── agents/
-│   ├── agent-creator.md
-│   ├── plugin-validator.md
-│   └── skill-reviewer.md
-└── skills/
-    ├── plugin-authoring/
-    ├── agent-authoring/
-    ├── skill-authoring/
-    ├── hook-authoring/
-    ├── mcp-integration/
-    └── plugin-settings/
++-- .claude-plugin/
+|   +-- plugin.json
++-- README.md
++-- agents/
+|   +-- agent-creator.md
+|   +-- plugin-validator.md
+|   +-- skill-reviewer.md
++-- skills/
+    +-- plugin-authoring/
+    +-- agent-authoring/
+    +-- skill-authoring/
+    +-- hook-authoring/
+    +-- mcp-integration/
+    +-- plugin-settings/
 ```
