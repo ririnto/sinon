@@ -21,11 +21,11 @@ your-plugin/
 +-- agents/
 +-- skills/
 +-- hooks/
-|   +-- check.sh
+|   +-- check.ts
 |   +-- hooks.json
 +-- .mcp.json
 +-- servers/
-|   +-- example-mcp.py
+|   +-- example-mcp.ts
 +-- bin/
 |   +-- my-tool
 +-- output-styles/
@@ -44,15 +44,15 @@ your-plugin/
 |   +-- plugin.json
 +-- README.md
 +-- hooks/
-|   +-- check.sh
+|   +-- check.ts
 |   +-- hooks.json
 +-- lsp/
-|   +-- example-lsp.py
+|   +-- example-lsp.ts
 +-- monitors/
 |   +-- monitors.json
-|   +-- watch.sh
+|   +-- watch.ts
 +-- servers/
-    +-- example-mcp.py
+    +-- example-mcp.ts
 ```
 
 Use these helper directories only when the associated surface needs local code beside its manifest or content file.

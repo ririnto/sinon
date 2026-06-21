@@ -5,7 +5,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/check.sh\""
+          "command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/check.ts\""
         }
       ]
     }

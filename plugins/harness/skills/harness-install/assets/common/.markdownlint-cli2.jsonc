@@ -3,16 +3,8 @@
   "config": {
     "line-length": false,
     "no-inline-html": {
-      "allowed_elements": [
-        "details",
-        "summary",
-        "kbd",
-        "img",
-        "code"
-      ],
-      "table_allowed_elements": [
-        "br"
-      ]
+      "allowed_elements": ["details", "summary", "kbd", "img", "code"],
+      "table_allowed_elements": ["br"]
     },
     "no-duplicate-heading": {
       "siblings_only": true
@@ -31,7 +23,5 @@
     "./scripts/docs-root-files.ts"
   ],
   "gitignore": ".gitignore",
-  "globs": [
-    "**/*.md"
-  ]
+  "globs": ["**/*.md"]
 }

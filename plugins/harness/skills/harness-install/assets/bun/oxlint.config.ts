@@ -14,11 +14,11 @@ export default defineConfig({
         "jsdoc/require-param-type": "deny",
         "jsdoc/require-returns": "deny",
         "jsdoc/require-returns-description": "allow",
-        "jsdoc/require-returns-type": "deny",
-      },
-    },
+        "jsdoc/require-returns-type": "deny"
+      }
+    }
   ],
   rules: {
-    "tsdoc/require-export-tsdoc": "deny",
-  },
+    "tsdoc/require-export-tsdoc": "deny"
+  }
 });
