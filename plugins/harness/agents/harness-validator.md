@@ -16,7 +16,7 @@ Prefer deterministic checks over inspection-only conclusions.
 ## Scope
 
 - Verify plugin package completeness and installed target harness contracts.
-- Check required docs, `.gitkeep` placeholders, templates, agents, skills, executable scripts, Git hook templates, and CI-facing commands.
+- Check required docs, templates, agents, skills, executable scripts, Git hook templates, and CI-facing commands.
 - Confirm stack-specific validation commands match the native tool contract.
 - Report command evidence and remaining manual risks.
 
@@ -33,8 +33,7 @@ Prefer deterministic checks over inspection-only conclusions.
 
 - Plugin validation and target validation are separate surfaces.
 - Target validation must use the target repository's native stack command.
-- Empty required directories are preserved with `.gitkeep`.
-  - Required fake generated artifacts are invalid.
+- Required fake generated artifacts are invalid.
 - A green file-presence check does not prove product readiness if placeholders are still generic.
 
 ## Pitfalls

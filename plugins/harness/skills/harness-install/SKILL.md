@@ -129,7 +129,7 @@ They become target-owned after copying.
 - Claude worktrees use Claude Code's default Git worktree behavior.
   - The selected stack supplies `.worktreeinclude` for portable gitignored local inputs.
   - The target `.gitignore` ignores `.claude/worktrees/`.
-  - The selected stack supplies `.claude/settings.json` with async `hooks.EnterWorktree.hooks[]` entries.
+  - The selected stack supplies `.claude/settings.json` with async `hooks.PostToolUse[]` entries matching the `EnterWorktree` tool.
   - These hooks run `codegraph init; codegraph index` and the stack install command from the worktree directory.
   - Bun uses `bun install`.
   - uv uses `uv sync`.

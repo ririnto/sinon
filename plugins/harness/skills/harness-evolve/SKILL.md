@@ -66,7 +66,7 @@ Produce the evolution plan first, then use `harness-validate` after changes are 
 3. Keep valid minor improvements.
    - Reject only changes that break the harness contract or product fit.
 4. Update the evolution plan so related surfaces stay aligned.
-   - Include docs, templates, agents, skills, validators, and `.gitkeep` placeholders.
+   - Include docs, templates, agents, skills, and validators.
 5. Identify the stack-specific validation command that must pass after implementation.
 
 ## Evolution Decision Table
@@ -164,7 +164,7 @@ Use this checklist before proposing or applying harness evolution.
 - `.claude/agents/**` and `.claude/skills/**` remain self-sufficient for target repository use.
 - `docs/templates/**` still contain placeholders only where the human copy step expects them.
 - `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml`, when present, run the selected final check command.
-- `docs/generated/**` contains real generated artifacts or `.gitkeep`.
+- `docs/generated/**` follows the generated-artifact contract.
 - A `docs/exec-plans/` entry records non-trivial evolution:
   - Reason.
   - Files changed.
@@ -359,7 +359,6 @@ The expected stack commands are:
 - Keep plugin manifest surfaces within the supported schema.
 - Preserve validation output as review evidence.
 - Classify non-fatal validation findings as WARN.
-- Keep `docs/generated/` empty with `.gitkeep` until a real generation step exists.
 - Keep one canonical template root declared by README and installer.
 - Edit installer scripts when install behavior itself is the evolution target.
 
