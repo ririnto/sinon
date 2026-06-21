@@ -15,21 +15,21 @@ Use this when a Claude Code plugin ships multiple optional surfaces and the simp
 
 ```text
 your-plugin/
-├── .claude-plugin/
-│   └── plugin.json
-├── README.md
-├── agents/
-├── skills/
-├── hooks/
-│   ├── check.sh
-│   └── hooks.json
-├── .mcp.json
-├── servers/
-│   └── example-mcp.py
-├── bin/
-│   └── my-tool
-└── output-styles/
-    └── executive-summary.md
++-- .claude-plugin/
+|   +-- plugin.json
++-- README.md
++-- agents/
++-- skills/
++-- hooks/
+|   +-- check.sh
+|   +-- hooks.json
++-- .mcp.json
++-- servers/
+|   +-- example-mcp.py
++-- bin/
+|   +-- my-tool
++-- output-styles/
+    +-- executive-summary.md
 ```
 
 This shape is useful when policy, server, and formatting surfaces all ship together for Claude Code.
@@ -40,19 +40,19 @@ Some surfaces need adjacent helper files that do not fit the bare root list:
 
 ```text
 your-plugin/
-├── .claude-plugin/
-│   └── plugin.json
-├── README.md
-├── hooks/
-│   ├── check.sh
-│   └── hooks.json
-├── lsp/
-│   └── example-lsp.py
-├── monitors/
-│   ├── monitors.json
-│   └── watch.sh
-└── servers/
-    └── example-mcp.py
++-- .claude-plugin/
+|   +-- plugin.json
++-- README.md
++-- hooks/
+|   +-- check.sh
+|   +-- hooks.json
++-- lsp/
+|   +-- example-lsp.py
++-- monitors/
+|   +-- monitors.json
+|   +-- watch.sh
++-- servers/
+    +-- example-mcp.py
 ```
 
 Use these helper directories only when the associated surface needs local code beside its manifest or content file.

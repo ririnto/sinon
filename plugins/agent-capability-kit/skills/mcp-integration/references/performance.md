@@ -355,15 +355,15 @@ Output:
 ```text
 MCP Servers (3 active):
   github
-    ├─ search_repositories
-    ├─ create_issue
-    └─ list_repositories
+    +-- search_repositories
+    +-- create_issue
+    +-- list_repositories
   slack
-    ├─ send_message
-    └─ create_channel
+    +-- send_message
+    +-- create_channel
   internal-api
-    ├─ query_database
-    └─ submit_job
+    +-- query_database
+    +-- submit_job
 ```
 
 ### Command: /mcp test `{{server-name}}`

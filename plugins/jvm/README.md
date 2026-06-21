@@ -48,18 +48,18 @@ The actual reusable content lives beside the manifest at the plugin root.
 
 ```text
 plugins/jvm/
-├── .claude-plugin/plugin.json
-├── README.md
-└── skills/
-    ├── jvm-gc-diagnostics/
-    │   ├── SKILL.md
-    │   └── references/
-    ├── jvm-runtime-diagnostics/
-    │   ├── SKILL.md
-    │   └── references/
-    └── jvm-tooling-workflows/
-        ├── SKILL.md
-        └── references/
++-- .claude-plugin/plugin.json
++-- README.md
++-- skills/
+    +-- jvm-gc-diagnostics/
+    |   +-- SKILL.md
+    |   +-- references/
+    +-- jvm-runtime-diagnostics/
+    |   +-- SKILL.md
+    |   +-- references/
+    +-- jvm-tooling-workflows/
+        +-- SKILL.md
+        +-- references/
 ```
 
 ## Shipped Surfaces

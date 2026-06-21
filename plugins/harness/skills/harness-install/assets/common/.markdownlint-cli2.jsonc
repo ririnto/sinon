@@ -21,10 +21,12 @@
       "style": "fenced"
     },
     "no-emphasis-as-heading": true,
+    "docs/no-box-drawing": true,
     "docs/exec-plans/links": true,
     "docs/root-files": true
   },
   "customRules": [
+    "./scripts/no-box-drawing.ts",
     "./scripts/exec-plan-links.ts",
     "./scripts/docs-root-files.ts"
   ],

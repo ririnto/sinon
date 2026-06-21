@@ -422,13 +422,13 @@ Claude Code collects all chunks and assembles result.
 
 ```text
 Is the service hosted remotely?
-├─ NO → Use stdio (local subprocess)
-└─ YES
-    ├─ Is it an official service (GitHub, Asana, etc.)?
-    │  └─ YES → Use SSE (OAuth handled automatically)
-    └─ Is it real-time or streaming?
-       ├─ YES → Use WebSocket
-       └─ NO → Use HTTP (stateless, simple)
++-- NO → Use stdio (local subprocess)
++-- YES
+    +-- Is it an official service (GitHub, Asana, etc.)?
+    |  +-- YES → Use SSE (OAuth handled automatically)
+    +-- Is it real-time or streaming?
+       +-- YES → Use WebSocket
+       +-- NO → Use HTTP (stateless, simple)
 ```
 
 ### Decision matrix

@@ -40,16 +40,16 @@ No agents, hooks, MCP servers, LSP servers, or settings are shipped.
 
 ```text
 plugins/document-creator/
-├── .claude-plugin/plugin.json
-├── README.md
-└── skills/
-    └── spec-creator/
-        ├── SKILL.md
-        └── references/
-            ├── quality-checklist.md
-            ├── requirements-style.md
-            ├── scenarios-and-acceptance.md
-            └── spec-template.md
++-- .claude-plugin/plugin.json
++-- README.md
++-- skills/
+    +-- spec-creator/
+        +-- SKILL.md
+        +-- references/
+            +-- quality-checklist.md
+            +-- requirements-style.md
+            +-- scenarios-and-acceptance.md
+            +-- spec-template.md
 ```
 
 ## Shipped Surfaces

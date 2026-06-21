@@ -48,6 +48,8 @@ Such changes MUST be committed as versioned files and validated before merge.
 - Direct Markdown children under `docs/` MUST stay limited to the approved root document inventory in `.markdownlint-cli2.jsonc`.
   - Add new durable documentation under an approved subdirectory instead.
   - Approved examples: `docs/design-docs/`, `docs/product-specs/`, `docs/templates/`, and `docs/generated/`.
+- Markdown documents MUST NOT use Unicode box drawing characters.
+  - Use ASCII tree markers such as `+--` and `|` instead.
 - `.claude/agents/` MUST contain specialized project agents with `name` and `description` frontmatter.
 - `.claude/skills/*/SKILL.md` MUST contain focused procedures with `description` frontmatter.
 - `docs/templates/` MUST contain structured templates for agents, skills, and repository documentation.
@@ -67,53 +69,58 @@ Such changes MUST be committed as versioned files and validated before merge.
 ## Required Repository Structure
 
 ```text
-AGENTS.md
-CLAUDE.md            (imports AGENTS.md)
-ARCHITECTURE.md
-WORKFLOW.md
-.gitignore
-.worktreeinclude
-.mcp.json
-.markdownlint-cli2.jsonc
-.codegraph/
-└── .gitignore
-.claude/
-├── agents/
-│   ├── implementation-agent.md
-│   └── review-agent.md
-├── settings.json
-└── skills/
-    ├── review/
-    │   └── SKILL.md
-    └── validate/
-        └── SKILL.md
-.agents/
-└── skills/         -> .claude/skills/
-.codex/
-└── agents/         -> .claude/agents/
-docs/
-├── design-docs/
-│   └── core-beliefs.md  (or real design docs)
-├── exec-plans/
-│   ├── active/
-│   │   └── .gitkeep  (or real active plans named yyyy-MM-dd-<slug>.md)
-│   ├── completed/
-│   │   └── .gitkeep  (or completed plans moved here)
-│   └── tech-debt-tracker.md
-├── generated/
-│   └── .gitkeep  (or real generated artifacts)
-├── templates/
-├── product-specs/
-│   └── optional product specs such as new-user-onboarding.md
-├── references/
-│   └── optional replaceable reference seeds
-├── DESIGN.md
-├── FRONTEND.md
-├── PLANS.md
-├── PRODUCT_SENSE.md
-├── QUALITY_SCORE.md
-├── RELIABILITY.md
-└── SECURITY.md
+./
++-- AGENTS.md
++-- CLAUDE.md            (imports AGENTS.md)
++-- ARCHITECTURE.md
++-- WORKFLOW.md
++-- .gitignore
++-- .worktreeinclude
++-- .mcp.json
++-- .markdownlint-cli2.jsonc
++-- .codegraph/
+|   +-- .gitignore
++-- .claude/
+|   +-- agents/
+|   |   +-- implementation-agent.md
+|   |   +-- review-agent.md
+|   +-- settings.json
+|   +-- skills/
+|       +-- review/
+|       |   +-- SKILL.md
+|       +-- validate/
+|           +-- SKILL.md
++-- .agents/
+|   +-- skills/         -> .claude/skills/
++-- .codex/
+|   +-- agents/         -> .claude/agents/
++-- docs/
+|   +-- design-docs/
+|   |   +-- core-beliefs.md  (or real design docs)
+|   +-- exec-plans/
+|   |   +-- active/
+|   |   |   +-- .gitkeep  (or real active plans named yyyy-MM-dd-<slug>.md)
+|   |   +-- completed/
+|   |   |   +-- .gitkeep  (or completed plans moved here)
+|   |   +-- tech-debt-tracker.md
+|   +-- generated/
+|   |   +-- .gitkeep  (or real generated artifacts)
+|   +-- templates/
+|   +-- product-specs/
+|   |   +-- optional product specs such as new-user-onboarding.md
+|   +-- references/
+|   |   +-- optional replaceable reference seeds
+|   +-- DESIGN.md
+|   +-- FRONTEND.md
+|   +-- PLANS.md
+|   +-- PRODUCT_SENSE.md
+|   +-- QUALITY_SCORE.md
+|   +-- RELIABILITY.md
+|   +-- SECURITY.md
++-- scripts/
+    +-- no-box-drawing.ts
+    +-- docs-root-files.ts
+    +-- exec-plan-links.ts
 ```
 
 `docs/generated/` is reserved for deterministic generation outputs.
@@ -163,6 +170,7 @@ Run the stack-specific validation command before merging changes that alter:
 - `.gitignore`
 - `.worktreeinclude`
 - `.markdownlint-cli2.jsonc`
+- `scripts/no-box-drawing.ts`
 - `docs/**`
 - `.claude/agents/`
 - `.claude/skills/`
