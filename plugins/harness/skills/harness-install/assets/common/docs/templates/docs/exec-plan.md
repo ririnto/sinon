@@ -7,202 +7,207 @@ author: "{{author}}"
 assignee: "{{assignee}}"
 ---
 
-# {{yyyy-MM-dd}}-{{plan-slug}} Implementation Plan
+# {{yyyy-MM-dd}}-{{plan-slug}} Work Plan
 
-> For agentic workers:
-> Use the task prompt as the source of workflow decisions.
-> Steps use checkbox (`- [ ]`) syntax for tracking.
-> Flip a checkbox only after the step's work and its named validation command pass.
+## TL;DR (For humans)
+
+What you get: {{observable outcome in one sentence}}
+
+Why this approach: {{repo evidence and constraint summary}}
+
+What it will not do: {{explicit out-of-scope behavior, files, or contracts}}
+
+Effort: {{small|medium|large, with the reason}}
+
+Risk: {{low|medium|high, with the reason}}
+
+Decisions: {{defaults and owner decisions already resolved}}
+
+## Scope
 
 Goal: {{single-sentence-outcome}}
 
-Architecture: {{2-3-sentences-on-approach-and-why-this-plan-exists}}
+Global constraints:
 
-Tech Stack: {{key-technologies-and-the-stack-validation-command}}
+- {{version floor, dependency limit, naming rule, platform target, or policy copied from the source spec}}
 
-Success Criteria: {{observable-outcomes-that-prove-the-goal-is-done}}
+In scope:
 
-Must Not Change: {{explicit-out-of-scope-files-behaviors-or-public-contracts}}
+- {{exact path, behavior, or contract}}
 
-Decision Record: {{repo-evidence-defaults-and-owner-decisions-that-remove-open-questions}}
+Out of scope:
 
-Open Questions: {{none, or list the owner decisions that must be resolved before execution}}
+- {{exact path, behavior, or contract}}
 
----
+References:
 
-<!--
-Template notes:
-- Save execution plans as files under `docs/exec-plans/` named `yyyy-MM-dd-<slug>.md`.
-  - Keep the slug kebab-case and work-focused.
-- Update `updated` whenever the plan body changes.
-  - Set `completed` only when moving the plan to the completed-state location in `docs/exec-plans/`.
-- `author` records who drafted the plan.
-  - `assignee` records who executes it and MAY list multiple owners.
-- Make the plan decision-complete.
-  - A worker should not need another interview before implementation.
-- Decompose work into bite-sized tasks.
-  - Each step names exact file paths, the exact code or command, and the expected result.
-- No placeholders in a real plan.
-  - Replace every `{{...}}` slot with concrete content before execution.
-  - `TBD`, `add error handling`, or `write tests for the above` without the actual test code are plan failures.
-- No open questions remain at execution time.
-  - If a material fork still exists, resolve it before assigning the plan.
-- Tasks are ordered.
-  - Express cross-task dependencies inline (for example, `depends on: Task 1`).
-  - Independent tasks MAY run in parallel.
-- Every task needs agent-executed QA.
-  - Include the command, expected evidence, and failure condition.
--->
+- `{{path/to/source}}`: {{why it matters}}
 
-## Task 1: {{component-name}}
+Open questions: {{none, or owner decisions that block execution}}
 
-Files:
+## File Structure
 
-- Create: `{{exact/path/to/file}}`
-- Modify: `{{exact/path/to/existing}}:{{line-range}}`
-- Test: `{{exact/path/to/test}}`
+| Path | Action | Responsibility |
+| --- | --- | --- |
+| `{{exact/path/to/file}}` | create | {{one clear responsibility}} |
+| `{{exact/path/to/existing}}` | modify | {{what changes and why this file owns it}} |
+| `{{exact/path/to/test}}` | test | {{behavior pinned by the test}} |
 
-Acceptance:
+Boundary decisions:
 
-- {{specific-observable-assertion}}
+- {{why these files change together}}
+- {{interface or ownership rule that prevents cross-task drift}}
 
-Dependencies:
+## Verification Strategy
 
-- {{none|Task N}}
+Test strategy: {{TDD|tests-after|no new tests, with reason}}
 
-Parallelization:
+Manual QA gate: {{agent-executable action and expected observable result}}
 
-- {{serial|parallel-with-task-numbers-and-reason}}
+Validation command:
 
-Steps:
+```sh
+{{stack-validation-command}}
+```
 
-- [ ] Step 1: Write the failing test
+Failure condition: {{specific command output, assertion, or artifact state that blocks completion}}
 
-    ```text
-    {{test-code-that-asserts-the-specific-behavior}}
-    ```
+## Execution Strategy
 
-- [ ] Step 2: Run the test to verify it fails
+Worktree: use the agent runtime's built-in worktree tool when one is available.
+If no built-in tool is available, use Git directly.
 
-    Run: `{{stack-test-command}}`
+Parallelization: {{serial|parallel tasks and why they do not conflict}}
 
-    Expected: FAIL with `{{expected-failure-message}}`
+Implementation order:
 
-- [ ] Step 3: Write the minimal implementation
+1. {{first dependency or task group}}
+2. {{second dependency or task group}}
+3. {{final integration or verification}}
 
-    ```text
-    {{minimal-implementation-code}}
-    ```
+## Todos
 
-- [ ] Step 4: Run the test to verify it passes
+### Task 1: {{component-name}}
 
-    Run: `{{stack-test-command}}`
+References:
 
-    Expected: PASS
+- `{{exact/path/to/reference}}`: {{specific rule or pattern}}
 
-- [ ] Step 5: Review the change
+Interfaces:
 
-    Run: `{{review-command-or-process}}`
-
-    Expected: review findings resolved or explicitly recorded
-
-- [ ] Step 6: Run the stack validator
-
-    Run: `{{stack-validation-command}}`
-
-    Expected: validator green
-
-- [ ] Step 7: Commit
-
-    ```sh
-    git add {{changed-paths}}
-    git commit -m "{{conventional-commit-message}}"
-    ```
-
-## Task 2: {{component-name}}
+- Consumes: {{exact symbol, command, schema, or contract from earlier work}}
+- Produces: {{exact symbol, command, schema, or contract later work relies on}}
 
 Files:
 
 - Create: `{{exact/path/to/file}}`
+- Modify: `{{exact/path/to/existing}}`
 - Test: `{{exact/path/to/test}}`
 
 Acceptance:
 
-- {{specific-observable-assertion}}
+- {{agent-verifiable assertion}}
 
-Dependencies:
+QA:
 
-- {{none|Task N}}
+- Happy path: run `{{command}}`; evidence: `{{expected output or artifact}}`.
+- Failure path: run `{{command}}`; evidence: `{{expected failure or guardrail}}`.
 
-Parallelization:
+Commit:
 
-- {{serial|parallel-with-task-numbers-and-reason}}
+```text
+{{conventional-commit-message}}
+```
 
 Steps:
 
-- [ ] Step 1: Write the failing test
+- [ ] Write the failing test or record why no new test is needed.
+- [ ] Run the focused test and record the expected failure.
+- [ ] Make the smallest implementation change.
+- [ ] Run the focused test and record the pass.
+- [ ] Run the validation command.
+- [ ] Update docs or generated evidence if required.
+- [ ] Commit the task.
 
-    ```text
-    {{test-code-that-asserts-the-specific-behavior}}
-    ```
+### Task 2: {{component-name}}
 
-- [ ] Step 2: Run the test to verify it fails
+References:
 
-    Run: `{{stack-test-command}}`
+- `{{exact/path/to/reference}}`: {{specific rule or pattern}}
 
-    Expected: FAIL with `{{expected-failure-message}}`
+Interfaces:
 
-- [ ] Step 3: Write the minimal implementation
+- Consumes: {{exact symbol, command, schema, or contract from earlier work}}
+- Produces: {{exact symbol, command, schema, or contract later work relies on}}
 
-    ```text
-    {{minimal-implementation-code}}
-    ```
+Files:
 
-- [ ] Step 4: Run the test to verify it passes
+- Create: `{{exact/path/to/file}}`
+- Modify: `{{exact/path/to/existing}}`
+- Test: `{{exact/path/to/test}}`
 
-    Run: `{{stack-test-command}}`
+Acceptance:
 
-    Expected: PASS
+- {{agent-verifiable assertion}}
 
-- [ ] Step 5: Review the change
+QA:
 
-    Run: `{{review-command-or-process}}`
+- Happy path: run `{{command}}`; evidence: `{{expected output or artifact}}`.
+- Failure path: run `{{command}}`; evidence: `{{expected failure or guardrail}}`.
 
-    Expected: review findings resolved or explicitly recorded
+Commit:
 
-- [ ] Step 6: Run the stack validator
+```text
+{{conventional-commit-message}}
+```
 
-    Run: `{{stack-validation-command}}`
+Steps:
 
-    Expected: validator green
+- [ ] Write the failing test or record why no new test is needed.
+- [ ] Run the focused test and record the expected failure.
+- [ ] Make the smallest implementation change.
+- [ ] Run the focused test and record the pass.
+- [ ] Run the validation command.
+- [ ] Update docs or generated evidence if required.
+- [ ] Commit the task.
 
-- [ ] Step 7: Commit
+## Final Verification Wave
 
-    ```sh
-    git add {{changed-paths}}
-    git commit -m "{{conventional-commit-message}}"
-    ```
+- [ ] Plan compliance audit: every task has references, acceptance, QA, and commit evidence.
+- [ ] Placeholder scan: no `TBD`, `TODO`, vague error handling, or `write tests` without concrete test content remains.
+- [ ] Type and interface consistency: names, signatures, commands, and schemas match across tasks.
+- [ ] Code quality review: changed files match project conventions and avoid scope creep.
+- [ ] Manual QA: drive the changed surface and record the observed result.
+- [ ] Scope fidelity: confirm out-of-scope files and contracts did not change.
+- [ ] Repository validation: run the stack validation command and record the result.
 
-## Validation
+## Commit Strategy
 
-Run the stack-specific validation command after each task that touches required contract assets.
-Record the command and result in that task's checkbox.
+- Use one logical commit per task unless tasks are inseparable.
+- Keep implementation, tests, and directly required docs in the same commit.
+- Do not include unrelated worktree changes.
 
-| Check | Command | Evidence | Failure action |
-| --- | --- | --- | --- |
-| Unit behavior | `{{unit-test-command}}` | `{{expected-output-or-report}}` | `{{fix-or-rollback}}` |
-| Stack validation | `{{stack-validation-command}}` | `{{expected-output-or-report}}` | `{{fix-or-rollback}}` |
-| Review | `{{review-command-or-process}}` | `{{expected-output-or-report}}` | `{{fix-or-record-risk}}` |
+## Success Criteria
+
+- {{observable outcome}}
+- {{validation command exits 0}}
+- {{manual QA evidence exists}}
+- {{review findings are resolved or recorded with owner}}
 
 ## Rollback Criteria
 
-{{rollback-criteria}}
-
-## Completion
+{{specific rollback criteria}}
 
 <!--
-When every task checkbox is checked, move this file between execution-plan locations in `docs/exec-plans/` without renaming.
-Then change `status: active` to `status: completed` and set `completed: yyyy-MM-dd` in frontmatter.
-The filename date stays the original creation date.
-Plans in completed-state entries under `docs/exec-plans/` MUST contain either checked task lines or no task list.
+Template rules:
+
+- Save execution plans under `docs/exec-plans/active/` as `yyyy-MM-dd-<slug>.md`.
+- Move completed plans to `docs/exec-plans/completed/` without renaming.
+- Replace every `{{placeholder}}` before execution.
+- Make the plan decision-complete: a worker should not need another interview.
+- Keep the first `##` heading as `## TL;DR (For humans)`.
+- Every task needs references, acceptance criteria, happy-path QA, failure-path QA, and a commit line.
+- Each task should be small enough to carry its own test cycle and reviewer gate.
+- Code-changing steps should include concrete code, commands, and expected output.
+- Do not add hash metadata, branch metadata, or external planning-tool paths to this template.
 -->

@@ -5,13 +5,7 @@
   },
   "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/jvm",
-  "keywords": [
-    "jvm",
-    "javac",
-    "jfr",
-    "gc",
-    "diagnostics"
-  ],
+  "keywords": ["jvm", "javac", "jfr", "gc", "diagnostics"],
   "license": "MIT",
   "name": "jvm",
   "repository": "https://github.com/ririnto/sinon"

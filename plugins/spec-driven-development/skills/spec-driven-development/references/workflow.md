@@ -37,9 +37,9 @@ This section keeps only a compact lifecycle summary.
 1. Use Research only when external framework, library, or topic behavior is unclear.
 2. Create or revise `SPEC.md`, obtain Gate 1 approval, then link outbound `call` dependencies.
 3. Add optional contract artifacts only when they improve review clarity.
-4. Run Spec Review with the inline checklist in `../SKILL.md` and `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` when `uv` can run from locally available inputs.
+4. Run Spec Review with the inline checklist in `../SKILL.md` and `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` when `bun` is available locally.
 5. Start implementation only after the approved artifact set is explicit.
-6. Finish with Implementation Review, final spec sync, and re-run `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` when `uv` can run from locally available inputs.
+6. Finish with Implementation Review, final spec sync, and re-run `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` when `bun` is available locally.
    - Otherwise document the runtime blocker and complete the manual checklist fallback.
 
 ## Status Lifecycle
@@ -66,8 +66,8 @@ The agent MUST present a scope summary and request explicit approval before adva
 Passes when both of the following conditions are met:
 
 - Every applicable inline checklist item in `../SKILL.md` is recorded as `pass` or `n/a` (zero `fail` items remain).
-- `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` exits with status 0 when `uv` can resolve its Python runtime plus required dependencies from local cache or local files.
-  - When `uv` is unavailable or cannot run from locally available inputs, the review record documents the runtime blocker and every applicable inline-checklist item is completed manually.
+- `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` exits with status 0 when `bun` is available locally.
+  - When `bun` is unavailable, the review record documents the runtime blocker and every applicable inline-checklist item is completed manually.
 
 ## Research
 
@@ -189,7 +189,7 @@ Activities:
 5. Outbound links and inbound query integrity MUST be verified.
 6. If `RESEARCH.md` is relevant, its findings MUST be current enough for this review.
 7. If `CONTRACT.md` or `openapi.yaml` exists, those artifacts MUST be checked against SPEC requirements and scenarios.
-8. `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` MUST be run on the spec root or subtree when `uv` can resolve its runtime and dependencies from local cache or local files.
+8. `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` MUST be run on the spec root or subtree when `bun` is available locally.
    - When it cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
 9. When review passes, `SPEC.md` status MUST be updated to `approved` and `last_updated` MUST be refreshed.
 
@@ -238,7 +238,7 @@ Activities:
    - Research, initialization, planning, and future-reservation content MUST be excluded.
    - Entries MUST keep the latest date first.
 8. When review passes, `SPEC.md` status MUST be updated to the correct post-implementation state and `last_updated` MUST be refreshed.
-9. `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` MUST be re-run on the touched spec root or subtree after the final spec sync when `uv` can resolve its runtime and dependencies from local cache or local files.
+9. `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` MUST be re-run on the touched spec root or subtree after the final spec sync when `bun` is available locally.
    - When it cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
 
 Exit:

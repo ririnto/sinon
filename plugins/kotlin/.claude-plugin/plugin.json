@@ -5,13 +5,7 @@
   },
   "description": "Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/kotlin",
-  "keywords": [
-    "kotlin",
-    "kotlin-lsp",
-    "kotlin-language",
-    "coroutines",
-    "flow"
-  ],
+  "keywords": ["kotlin", "kotlin-lsp", "kotlin-language", "coroutines", "flow"],
   "license": "MIT",
   "name": "kotlin",
   "repository": "https://github.com/ririnto/sinon"

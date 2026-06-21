@@ -184,7 +184,7 @@ Before marking `review` or higher:
 - In authored `SPEC.md` content, template scaffolding instruction lines from `assets/templates/SPEC.md` MUST be replaced (SPEC scaffolding fingerprint checks MUST pass).
 - Manual numbered headings (`## 1. Something` form) MUST NOT be used.
   - The validator enforces this rule on `SPEC.md`, `RESEARCH.md`, and `CONTRACT.md`.
-- `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` MUST be run when `uv` can resolve its runtime and dependencies from local cache or local files, and failures MUST be resolved.
+- `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` MUST be run when `bun` is available locally, and failures MUST be resolved.
   - When the validator cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
 
 ## Common Mistakes

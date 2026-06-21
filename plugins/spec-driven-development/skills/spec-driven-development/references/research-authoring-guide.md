@@ -135,7 +135,7 @@ Before using research in SPEC decisions:
 - Frontmatter MUST be valid against `assets/schemas/research-frontmatter.schema.json`.
 - TODO markers MUST NOT remain.
 - Unresolved placeholders MUST NOT remain.
-- `"${SKILL_ROOT}/scripts/sdd.py" validate ./spec` MUST be run when `uv` can resolve its runtime and dependencies from local cache or local files, and failures MUST be resolved.
+- `"${SKILL_ROOT}/scripts/sdd.ts" validate ./spec` MUST be run when `bun` is available locally, and failures MUST be resolved.
   - When the validator cannot run, the review record MUST document the runtime blocker and every applicable checklist item MUST be completed manually.
 
 ## Refresh Rules
