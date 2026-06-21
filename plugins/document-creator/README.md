@@ -28,13 +28,7 @@ Use `spec-creator` when the user asks to "create `SPEC.md`", "write a spec", "dr
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-Claude Code discovers default plugin-root surfaces automatically.
-This includes `skills/` and executable `bin/` when present.
-No agents, hooks, MCP servers, LSP servers, or settings are shipped.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 
 ## Plugin Layout
 
@@ -56,15 +50,11 @@ plugins/document-creator/
 
 - The plugin ships reusable skills under `skills/`.
 - Each skill is self-contained with a `SKILL.md` entrypoint and `references/` for additive depth.
-- The plugin does not ship agents, hooks, MCP servers, LSP servers, settings, or custom runtime data surfaces.
 
 ## Design Principles
 
 - Prefer one coherent user job per skill.
 - Keep the common path self-sufficient inside `SKILL.md` and move only additive depth into `references/`.
-- Derive document content from user intent and requirements, not from implementation choices.
-- Keep manifests aligned with the actual shipped runtime surface.
-- Structure this plugin as an umbrella for future document-authoring skills (e.g., adr-creator, rfc-creator) that share common patterns.
 
 ## Installation
 

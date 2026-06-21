@@ -29,14 +29,14 @@ When a tool output format is undocumented, when a config field's purpose lives o
   - Comment styles include JSDoc, KDoc, TSDoc, and reStructuredText docstrings.
 - Execution plans and design decisions use frontmatter and clear task/decision structure.
   - Agents can parse content deterministically without re-reading.
-- Repository contracts, validators, and template examples name their purpose and constraints upfront.
+- Repository contracts, validators, and examples name their purpose and constraints upfront.
   - Naming conventions are explicit, not inferred from context.
 - Tool output shapes (e.g., validation results, plan formats) are specified with concrete examples and prose descriptions.
 
 ### Enforce invariants, do not micromanage implementations
 
 Heavy-handed style reviews and approval gates on minor details create friction in agent workflows and slow down routine changes.
-When every commit needs sign-off on formatting or tooling choices, agents cannot iterate; when rules are not clear about what is actually non-negotiable, agents apply caution where they should act freely.
+When every commit needs sign-off on formatting or tooling choices, agents cannot iterate; unclear rules make agents cautious where they should act freely.
 
 - Contract rules state *what must not vary* (e.g., validators must not fail silently).
 - Implementation order, refactoring patterns, and local style are left to the implementer's judgment.

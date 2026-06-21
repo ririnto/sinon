@@ -1,79 +1,49 @@
 # Architecture
 
-## Purpose
+`ARCHITECTURE.md` maps this repository's domains, boundaries, data flow, and validation surfaces.
 
-`ARCHITECTURE.md` is the top-level map of domains, package layering, data flow, and validation surfaces.
-See matklad's architecture-document convention: it is one line.
-An agent loading this file should know three things:
+## Role
 
-- where each business domain lives
-- how data flows between domains
-- which validation surfaces gate changes
+- Name the major system domains and their owners.
+- Record dependency direction across domains.
+- Tie architecture changes to validation evidence.
 
 ## Domain Map
 
-- Identity: User authentication, session management, role-based access control, and tenant isolation.
-- Catalog: Core business entity management for product listings, inventory, metadata, and pricing tiers.
-- Notifications: Outbound email delivery, webhook dispatches, and event subscriptions.
+Replace the example row with this repository's real domains.
 
-## Package Layering
+| Domain | Owns | Depends on |
+| --- | --- | --- |
+| `<domain>` | `<capability, data, or user workflow>` | `<internal or external dependency>` |
 
-Refer to `docs/DESIGN.md` for the canonical layering pattern within each domain.
-The model organizes code by horizontal layer: presentation (API surface), business logic, data access, and storage.
-Dependencies flow downward; cross-domain dependencies use provider injection or event dispatch.
+## Boundary Rules
 
-```mermaid
----
-title: Package layering (per-domain horizontal layers + cross-domain providers)
----
-%%{init: {'theme': 'dark', 'primaryColor': '#0d0d0d', 'primaryTextColor': '#FFFFFF', 'primaryBorderColor': '#FFFFFF', 'lineColor': '#FFFFFF', 'clusterBkg': '#1a1a1a', 'clusterBorder': '#FFFFFF'}}%%
-flowchart LR
-    Identity(([Identity]))
-    Catalog(([Catalog]))
-    Notifications(([Notifications]))
-    Shared[Shared utilities]
-
-    Identity --> Shared
-    Catalog --> Shared
-    Notifications --> Shared
-
-    Catalog -.via IdentityProvider.-> Identity
-    Notifications -.via EventBus.-> Catalog
-```
+- Code inside a domain owns its public API, data model, and validation rules.
+- Cross-domain calls go through documented APIs, providers, or events.
+- Shared utilities stay free of business policy.
 
 ## Data Flow
 
-- Request path: HTTP/HTTPS entry → handler → service → repository → datastore.
-- Event path: domain event → message bus → projection handler → read model.
+Document each primary flow as source, transformation, storage, and observable output.
+
+| Flow | Source | Processing | Storage | Output |
+| --- | --- | --- | --- | --- |
+| `<flow>` | `<entry point>` | `<service or job>` | `<store>` | `<response, event, metric, or artifact>` |
 
 ## External Integrations
 
-- Identity provider: OAuth/OIDC to `https://idp.example.com`.
-  - Covers user sign-in, token validation, and claims mapping via REST.
-- Payment gateway: ExamplePay REST API for card tokenization, charge processing, and subscription lifecycle.
-- Telemetry backend: OpenTelemetry OTLP export to `otel.example.com`.
-  - Covers distributed traces, metrics, and error reporting via gRPC.
+| Integration | Purpose | Boundary | Validation |
+| --- | --- | --- | --- |
+| `<service>` | `<capability>` | `<protocol, queue, file, or API>` | `<test, contract, or smoke check>` |
 
 ## Validation Surfaces
 
-- Native stack validation: validates code style and repository health.
-  - Uses the selected stack validation command and stack-owned tooling configuration.
-  - Examples include `.editorconfig` and stack-specific build/config files.
-- Structural conventions: enforce repository contract shape.
-  - Covers file presence, directory structure, hooks, CI command parity, agent/skill frontmatter, and execution-plan discipline.
-  - Uses the prose contract in `AGENTS.md` and code review.
-- CI workflow: enforces full build, test, and integration before merge.
-  - Runs at `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml`.
-  - Uses the stack-specific validation command.
+- Native stack validation checks code style and repository health.
+- CI repeats the stack validation command before integration or release.
+- Review checks architecture drift when boundaries, data flow, or integration contracts change.
 
-## When To Update
+## When This File Updates
 
-- When a new domain is added.
-- When a layering rule changes.
-- When an external integration is added or replaced.
-- When a new validation surface is introduced.
-
-## Required Evidence
-
-- Link to entries under `docs/design-docs/`, `docs/product-specs/`, or `docs/exec-plans/` when those documents are affected.
-- Cite the validator config or CI job for each validation surface.
+- A domain, dependency direction, or integration changes.
+- A validation surface is added, removed, or replaced.
+- A design document changes a system boundary.

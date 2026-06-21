@@ -39,7 +39,7 @@ An agent loading this file should be able to refuse a request that would cross a
 - Signing keys for outbound webhooks live in the configured secret manager/signing/.
   - Rotate every 180 days with overlapping validity window.
 - Never write secrets into the repository.
-  - Add a target-owned secret scanner or CI policy when the project needs mechanical secret-pattern enforcement.
+  - Add a secret scanner or CI policy when the project needs mechanical secret-pattern enforcement.
 
 ## Permission Boundaries
 

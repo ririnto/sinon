@@ -66,8 +66,6 @@ Kotlin remains the home for general coroutine and Flow design outside Spring fra
 - Prefer working code shapes over generic language summaries.
 - Keep examples minimal but directly adaptable to production code.
 - Choose the smallest Kotlin skill that matches the task.
-- Keep `SKILL.md` self-contained and usable on its own.
-  - Use `references/` only for supplemental decision aids and longer notes.
 - Unnecessary blank lines inside function bodies SHOULD be removed.
 - Variables used only once SHOULD be inlined when their names and extraction order do not add meaning.
 - Explicit lambda parameter names SHOULD be preferred over `it` when the named form improves scanning or domain clarity.
@@ -78,12 +76,7 @@ Kotlin remains the home for general coroutine and Flow design outside Spring fra
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a thin Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
-This includes `skills/`, `.lsp.json`, and executable `bin/` when present.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 Local language-server support files live beside the manifest at the plugin root.
 
 ## Plugin Layout
@@ -103,7 +96,6 @@ plugins/kotlin/
 
 - The plugin ships three reusable Kotlin skills under `skills/`.
 - `.lsp.json` and the Kotlin language-server integration expose editor intelligence for `.kt` and `.kts` files.
-- The plugin does not ship hooks, MCP servers, agents, or custom runtime data surfaces.
 
 ## Kotlin LSP Setup
 

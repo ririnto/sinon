@@ -9,7 +9,7 @@
 >
 > The body below is the English source text reproduced verbatim, including section headings and the in-repository knowledge store layout diagram.
 > Copyright remains with OpenAI.
-> This document is included because the repository harness installed here follows the `AGENTS.md` table-of-contents pattern.
+> This document is included because this repository follows the `AGENTS.md` table-of-contents pattern.
 > It also follows docs-as-record, first-class plans, mechanical enforcement, and continuous doc-gardening.
 >
 > Editor's note on local names:

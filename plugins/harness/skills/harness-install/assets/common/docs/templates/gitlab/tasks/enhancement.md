@@ -16,7 +16,7 @@ Describe the proposed direction without over-specifying implementation.
 
 ## Compatibility Impact
 
-State whether this is fully compatible, partially compatible, or breaking.
+State whether this is compatible, partial, or breaking.
 
 ## Acceptance Criteria
 

@@ -1,19 +1,19 @@
 ---
 name: harness-validate
 description: >-
-  Validate target-owned repository harness assets against the installed build/runtime contract.
+  Validate repository harness assets against the installed build/runtime contract.
   Use when verifying a fresh harness install, checking target harness changes before commit or CI, or diagnosing WARN and ERROR output from stack validators without requiring plugin-root structural agents in the target repository.
 ---
 
 # Harness Validate
 
 Run the native harness validation command for the target repository.
-This plugin skill is the visible runtime surface for validation guidance; it checks target-owned harness assets copied from `skills/harness-install/assets/` and reports whether the repository harness remains mechanically checkable.
+This plugin skill is the visible runtime surface for validation guidance; it checks harness assets copied from `skills/harness-install/assets/` and reports whether the repository harness remains mechanically checkable.
 
 ## Ownership Boundary
 
 - This skill owns validation guidance for installed target harness assets.
-- Installed target agents and project skills remain target-owned runtime assets.
+- Installed target agents and project skills remain project runtime assets.
 - Plugin-root structural agents are not target repository assets and are not required by target validation.
 
 ## First Safe Checks
@@ -31,7 +31,7 @@ Check these support surfaces before running the stack command.
 
 | Path | Use it for | Failure example |
 | --- | --- | --- |
-| `WORKFLOW.md` | Selected validation command and Git host notes | `WORKFLOW.md: missing harness file - run harness-install or restore target-owned workflow` |
+| `WORKFLOW.md` | Selected validation command and Git host notes | `WORKFLOW.md: missing harness file - run harness-install or restore workflow` |
 | `.github/workflows/<tool>.yaml` | GitHub Actions command parity (when present) | `.github/workflows/<tool>.yaml: CI command mismatch - expected installed pre-push final check command` |
 | `.gitlab-ci.yml` | GitLab CI command parity | `.gitlab-ci.yml: CI command mismatch - expected installed pre-push final check command` |
 
@@ -43,7 +43,7 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | --- | --- | --- |
 | `settings.gradle`, `settings.gradle.kts`, `build.gradle`, or `build.gradle.kts` | `gradle` | Prefer `./gradlew` when executable. |
 | `pom.xml` | `maven` | Maven project with Spotless validation. |
-| `uv.lock` or Python `pyproject.toml` | `uv` | Run through `uv` so dependencies and Python version resolution stay target-owned. |
+| `uv.lock` or Python `pyproject.toml` | `uv` | Run through `uv` so dependencies and Python version resolution stay local to the target project. |
 | `bun.lock`, `bun.lockb`, or JavaScript `package.json` without a stronger stack signal | `bun` | Use only when Bun is the intended project runtime. |
 | Shell scripts, `Makefile`, or no stronger stack signal | `shell` | Shell-script-only or Makefile-driven project. |
 | Multiple stack signals | explicit user mode | Report ambiguous stack when non-interactive, or use the installed workflow command if present. |
@@ -119,7 +119,7 @@ Reject any pattern that discards validator output or forces a successful exit af
 
 | Situation | Action |
 | --- | --- |
-| Missing target-owned harness file | Report the path, or rerun `harness-install` only if the user asked for repair. |
+| Missing harness file | Report the path, or rerun `harness-install` only if the user asked for repair. |
 | Placeholder docs remain generic | Report exact files and request target facts. |
 | Hook command mismatch | Report unless the user explicitly approved hook changes. |
 | CI command mismatch | Align CI only when CI files are in scope; otherwise report expected and actual commands. |
@@ -130,14 +130,14 @@ Reject any pattern that discards validator output or forces a successful exit af
 
 | Category | Evidence | Smallest valid action |
 | --- | --- | --- |
-| Missing harness file | Validator names an absent `AGENTS.md`, `docs/**`, agent, or skill | Re-run installation or restore the missing target-owned file. |
-| Missing harness directory | Validator names an absent docs, `.claude/agents`, `.claude/skills`, or template directory | Restore the missing target-owned directory. |
+| Missing harness file | Validator names an absent `AGENTS.md`, `docs/**`, agent, or skill | Re-run installation or restore the missing file. |
+| Missing harness directory | Validator names an absent docs, `.claude/agents`, `.claude/skills`, or template directory | Restore the missing directory. |
 | Stale placeholder | File exists but still contains generic scaffold content | Replace placeholder with target truth or request target facts. |
 | Agent or skill metadata | Agent or skill frontmatter lacks required `name` or `description` | Fix the specific agent or skill metadata. |
 | Documentation contract | Required doc headings, generated-artifact semantics, or harness evolution wording is missing | Restore the documented contract in the named file. |
 | Generated artifact metadata | A file under `docs/generated/` lacks source command, source inputs, freshness, or regeneration trigger metadata | Add metadata or remove the invalid generated artifact from scope. |
 | Symlink safety | Validator reports symlink scan entries under protected harness paths | Replace symlinks with regular files or directories owned by the target. |
-| Script permission | Installed hook or validator exists but is not executable where execution is required | Restore executable bit on the target-owned script. |
+| Script permission | Installed hook or validator exists but is not executable where execution is required | Restore executable bit on the script. |
 | Script shebang | Executable script does not use `/usr/bin/env` shebang | Update the executable script shebang. |
 | Unsupported validation command | Installed `pre-push` declares a command outside the installer allow-list | Reinstall selected-mode hook content from the installer. |
 | Hook wiring | Installed `pre-commit` does not match the stack-specific hook contract, installed `pre-push` lacks the selected final check command, or CI drifts from installed `pre-push` | Reinstall selected-mode hook content only with explicit hook approval. |
@@ -231,7 +231,7 @@ Report these fields:
 
 - `mode`: explicit stack mode (--mode flag).
 - `command`: exact validation command.
-- `result`: pass or fail with exit status when available.
+- `result`: pass or fail with exit status when reported.
 - `failures`: file paths and contract categories for any failures.
 - `ci`: whether GitHub Actions or GitLab CI files match the selected command when present.
 - `next action`: smallest valid fix or explicit reason no fix was made.
