@@ -95,12 +95,7 @@ WebFlux server configuration, handler setup, and transport wiring belong outside
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a thin Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
-This includes `skills/`, `agents/`, and executable `bin/` when present.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 
 ## Plugin Layout
 
@@ -121,17 +116,12 @@ plugins/reactor/
 
 - The plugin ships four reusable Reactor skills under `skills/`.
 - The plugin ships one plugin-root agent: `reactor-architect` for Flux/Mono composition, scheduler, hot-source, and testing workflow decisions.
-- The plugin does not ship hooks, MCP servers, LSP servers, or plugin-root custom runtime data surfaces.
 
 ## Design Principles
 
 - Prefer working reactive pipeline examples over isolated API documentation.
-- Keep examples minimal but runnable in spirit.
 - Select the smallest Reactor skill that matches the primary task.
-- Keep `SKILL.md` self-contained and usable on its own.
-  - Use `references/` only for supplemental decision aids and longer notes.
-- Reactor reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries.
-  - Prose explains the example, the example proves the rule.
+- References in this plugin stay focused on concrete examples and additive depth.
 
 ## Installation
 

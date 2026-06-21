@@ -1,7 +1,7 @@
 ---
 name: harness-evolve
 description: >-
-  Reconcile an installed target-owned repository harness after real project use
+  Reconcile an installed repository harness after real project use
   changes docs, templates, agents, skills, validators, generated-artifact
   policy, CI, hooks, or readiness gates. Use when repeated validation or review
   failures or committed harness drift show the target harness contract should
@@ -12,8 +12,8 @@ description: >-
 
 Review how the installed target harness changed and produce a versioned evolution plan.
 This plugin skill is the visible runtime surface for harness evolution guidance.
-Target repository files remain packaged under `skills/harness-install/assets/`
-before install and become target-owned after copying.
+Repository files remain packaged under `skills/harness-install/assets/`
+before installation and become project files after copying.
 
 This skill is report-only unless the user separately asks for implementation.
 Produce the evolution plan first, then use `harness-validate` after changes are implemented.
@@ -21,7 +21,7 @@ Produce the evolution plan first, then use `harness-validate` after changes are 
 ## Ownership Boundary
 
 - This skill owns harness evolution guidance.
-- Target repository assets evolve under `skills/harness-install/assets/`.
+- Project assets evolve under `skills/harness-install/assets/`.
   - Includes agents, project skills, docs, validators, CI files, and hook scaffolds.
 - Plugin-root structural agents evolve only when their harness-lifecycle advisory role changes.
 
@@ -102,7 +102,7 @@ Use this sequence before recommending deletion:
 
 1. Identify the owning surface.
    - The owner may be CI, hooks, docs, generated artifacts, agents, skills, seed references, or stack runtime.
-2. Classify the artifact as required, optional seed, generated output, or target-owned runtime state.
+2. Classify the artifact as required, optional seed, generated output, or project runtime state.
 3. Check the same expectation across `WORKFLOW.md`, installer assets, validators, hook/CI assets, and self-check fixtures.
 4. If every contract marks the surface optional or replaced, propose removal.
    - Include the matching docs, validator, and CI updates.
@@ -325,7 +325,7 @@ The expected stack commands are:
   - Include installed target check scripts, build-tool hook-sync wiring, CI files, hook assets, and printed installer output.
 - If generated artifact policy changes, update `docs/generated` guidance and template examples.
 - If installer behavior changes, confirm whether the evolution needs an installer change.
-  - Prefer a target-owned docs/template edit when install behavior itself does not change.
+  - Prefer a docs/template edit when install behavior itself does not change.
 
 ## Invariants
 
@@ -344,7 +344,7 @@ The expected stack commands are:
     - `output-styles/`, `themes/`, and `monitors/monitors.json`.
 - Plugin evolution SHOULD keep default plugin-root component locations out of the manifest.
   - Use component keys only for custom paths or inline configuration.
-- Hook evolution preserves target-owned `core.hooksPath` and records any required hook migration as explicit target policy.
+- Hook evolution preserves project `core.hooksPath` and records any required hook migration as explicit target policy.
 
 ## Operating Checks
 

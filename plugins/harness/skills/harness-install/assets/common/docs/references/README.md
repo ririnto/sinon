@@ -3,7 +3,7 @@
 ## Purpose
 
 `docs/references/` is the system of record for external documents that agents need to access offline.
-References are verbatim upstream content with attribution and an editor's note documenting local runtime layout.
+References preserve upstream content by default, with attribution and an editor's note documenting local runtime layout or local terminology deviations.
 The note covers these local runtime details:
 
 - `.agents/skills/ -> .claude/skills/`.
@@ -26,7 +26,7 @@ Upstream content may contain `TODO`, `{{...}}`, or other tokens that agents must
    - Start with `<!-- @formatter:off -->`.
    - Then add `> [!NOTE]`.
    - Include source, original URL, raw URL, verbatim caveat, and the editor's note.
-3. Reproduce the upstream body verbatim.
+3. Reproduce the upstream body verbatim unless the editor's note documents a local terminology deviation.
    - Add an editor's note only for documented local deviations.
 4. Keep references self-contained: leave external links in place but do not depend on them at runtime.
    - References must be readable offline.
@@ -35,7 +35,8 @@ Upstream content may contain `TODO`, `{{...}}`, or other tokens that agents must
 ## Template
 
 See `docs/templates/docs/reference-llms.txt` for the canonical attribution skeleton.
-Use the template unchanged for the attribution block; only the verbatim body changes.
+Use the template unchanged for the attribution block.
+Change the body only when upstream changes or the editor's note documents a local terminology deviation.
 
 ## Validation
 

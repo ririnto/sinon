@@ -65,12 +65,7 @@ These topics fall outside Observability Assets' scope:
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a thin Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-Claude Code discovers default plugin-root surfaces automatically, so no component path fields are needed for standard surfaces.
-This includes `skills/`, `agents/`, and executable `bin/` when present.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 
 ## Plugin Layout
 
@@ -93,16 +88,12 @@ plugins/observability-assets/
 
 - The plugin ships six reusable observability-asset skills under `skills/`.
 - The plugin ships one plugin-root agent: `observability-architect` for alerting, dashboard, SLO, and metrics architecture decisions.
-- The plugin does not ship hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 
 - Prefer version-controlled monitoring assets over UI-only drift.
-- Keep examples minimal but runnable in spirit.
 - Route to the smallest skill that matches the active observability asset.
-- Keep `SKILL.md` self-contained and usable on its own.
-  - Use `references/` only for supplemental decision aids and longer notes.
-- Reference files are expected to contain concrete additive examples and must not devolve into prose-only summaries.
+- References are expected to contain concrete additive examples.
 
 ## Installation
 

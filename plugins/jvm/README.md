@@ -38,11 +38,7 @@ Typical workflow:
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a thin Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-The actual reusable content lives beside the manifest at the plugin root.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 
 ## Plugin Layout
 
@@ -66,7 +62,6 @@ plugins/jvm/
 
 - The plugin ships three reusable skills under `skills/`.
 - The plugin ships no plugin-root `agents/` directory.
-- The plugin does not ship hooks, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 

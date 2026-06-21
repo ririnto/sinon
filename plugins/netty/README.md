@@ -46,11 +46,7 @@ Project Reactor patterns without Netty or Reactor Netty context belong in the Re
 
 ## Runtime Model
 
-This plugin uses one shared plugin root with a thin Claude manifest:
-
-- `.claude-plugin/plugin.json`
-
-The actual reusable content lives beside the manifest at the plugin root.
+This plugin uses `.claude-plugin/plugin.json` at the plugin root.
 
 ## Plugin Layout
 
@@ -66,17 +62,12 @@ plugins/netty/
 ## Shipped Surfaces
 
 - The plugin ships two reusable networking skills under `skills/`.
-- The plugin does not ship hooks, agents, MCP servers, LSP servers, or custom runtime data surfaces.
 
 ## Design Principles
 
 - Prefer working network application examples over isolated API documentation.
-- Keep examples minimal but runnable in spirit.
 - Choose the smallest Netty skill that matches the task.
-- Keep `SKILL.md` self-contained and usable on its own.
-  - Use `references/` only for supplemental decision aids and longer notes.
-- Netty reference files in `references/` are expected to contain concrete additive examples (code, config, command snippets) and must not devolve into prose-only rule summaries.
-  - Prose explains the example, the example proves the rule.
+- References focus on concrete additive examples that support a decision.
 
 ## Installation
 
