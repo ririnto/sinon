@@ -12,15 +12,14 @@
 > This document is included because the repository harness installed here implements Symphony-aligned conventions.
 > These conventions include versioned `WORKFLOW.md`, isolated per-issue workspaces, observable agent runs, and stable execution-plan artifacts.
 >
-> Editor's note on root-contract naming and symlinks:
+> Editor's note on local names:
 > where the Symphony specification refers to `AGENTS.md`, this repository uses `AGENTS.md` as the root contract.
-> `CLAUDE.md` is only a Claude Code pointer that imports it.
 > Runtime links:
 >
 > - `.agents/skills/ -> .claude/skills/`.
 > - `.codex/agents/ -> .claude/agents/`.
 >
-> Treat any reference to `AGENTS.md` or `.agents/` in the body below through that installed runtime layout.
+> Treat any reference to `AGENTS.md` or `.agents/` in the body below through this local layout.
 > No other content is altered.
 
 <!-- @formatter:on -->

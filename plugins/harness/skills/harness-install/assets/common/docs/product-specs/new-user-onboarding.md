@@ -1,7 +1,7 @@
 # Optional Product Spec Example
 
-This seed file is an optional example of where a target repository may document an onboarding flow.
-Replace it with a real product spec, rename it to a project-specific feature, or remove it when it does not apply.
+Use this file to document an onboarding flow.
+Replace it with a project-specific product spec, rename it to the feature it describes, or remove it when it does not apply.
 
 ## Purpose
 

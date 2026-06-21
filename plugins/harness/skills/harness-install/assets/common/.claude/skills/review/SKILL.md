@@ -32,7 +32,7 @@ Summaries are secondary.
 - Contract drift between `AGENTS.md`, `ARCHITECTURE.md`, docs, and stack hook assets.
 - Workflow drift between supplied workflow policy, host CLI usage, and review evidence.
 - Missing acceptance criteria, execution plans, or architecture updates.
-- Required fake product content or obsolete seed references.
+- Required fake product content or obsolete references.
 - Inconsistent validation commands across docs, CI, active pre-commit, and active pre-push final checks.
 - Target agents or skills with unclear trigger descriptions or unsupported scope.
 

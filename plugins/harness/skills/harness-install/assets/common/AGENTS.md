@@ -2,13 +2,12 @@
 
 This repository uses versioned contracts for agent work.
 Agents get stable project context, bounded delegation, deterministic checks, and reviewable evolution.
-Fresh installs use `AGENTS.md` as the primary contract.
+`AGENTS.md` is the primary contract.
 Child `AGENTS.md` files, when present, own local subtree rules.
 
 ## Entry Point
 
 Any coding agent runtime that loads `AGENTS.md` MUST treat this document as its primary contract.
-Claude Code loads the same contract through `CLAUDE.md`, which imports `AGENTS.md`.
 
 `WORKFLOW.md` holds intake, branch, validation, review, and publication decisions.
 
@@ -37,7 +36,7 @@ Such changes MUST be committed as versioned files and validated before merge.
 ## Invariants
 
 - The repository MUST keep agent instructions, skills, templates, documentation structure, and validation adapters in versioned files.
-- `AGENTS.md` SHOULD be the primary repository contract for coding agents on fresh installs.
+- `AGENTS.md` SHOULD be the primary repository contract for coding agents.
 - Child `AGENTS.md` files MAY define local subtree policy.
 - `CLAUDE.md` files MUST only import the matching `AGENTS.md`.
 - `.agents/skills/` MUST be `-> .claude/skills/`.
@@ -49,10 +48,10 @@ Such changes MUST be committed as versioned files and validated before merge.
 - Manual Git worktree commands are the fallback when no built-in tool is available.
 - Manual Git worktree paths are operator-owned and MUST be written as `<worktree-path>` in reusable instructions.
 - `.claude/settings.json` MUST remain valid Claude Code project settings.
-- `.gitignore` MUST include the selected install mode's ecosystem ignores plus common OS, editor, log, and temporary-file ignores.
+- `.gitignore` MUST include active stack ecosystem ignores plus common OS, editor, log, and temporary-file ignores.
 - `.gitignore` MUST ignore `.claude/worktrees/`.
 - `.worktreeinclude` MUST list only portable gitignored local inputs for Claude Code to copy into worktrees.
-- `.claude/settings.json` MUST come from the selected stack asset package.
+- `.claude/settings.json` MUST match the active stack configuration.
 - `.claude/settings.json` MUST define async `hooks.PostToolUse[]` setup commands matching the `EnterWorktree` tool.
 - EnterWorktree setup hooks SHOULD assume they run from the entered worktree.
 - `.mcp.json` MUST include the project-local CodeGraph MCP server configuration.
@@ -69,13 +68,13 @@ Such changes MUST be committed as versioned files and validated before merge.
 - `.claude/skills/*/SKILL.md` MUST contain focused procedures with `description` frontmatter.
 - `docs/templates/` MUST contain structured templates for agents, skills, and repository documentation.
 - `scripts/` MUST contain repository validation helpers and markdownlint custom rules.
-- Git hook templates MUST come from the selected stack asset package, not from `docs/`.
+- Git hook implementation MUST stay with the active stack tooling, not under `docs/`.
 - `docs/generated/` MUST contain generated repository artifacts when a real generation source exists.
 - Validation SHOULD run through the repository's native build/runtime ecosystem.
-- Active `pre-commit` MUST include the selected stack validation command.
-- Active `pre-commit` MAY include stack preflight checks before the selected validation command.
+- Active `pre-commit` MUST include the documented stack validation command.
+- Active `pre-commit` MAY include stack preflight checks before the documented validation command.
 - Active `pre-push` MUST run the installed stack-specific final check.
-- CI files, when present, MUST run the selected stack validation command.
+- CI files, when present, MUST run the documented stack validation command.
 - Execution plans belong in `docs/exec-plans/` with filenames of the form `yyyy-MM-dd-<slug>.md`.
 - Completed plans preserve their name while moving to the completed-state location in `docs/exec-plans/`.
 - Plan files in completed state MUST contain checked task lines or no task list.
@@ -124,7 +123,7 @@ Such changes MUST be committed as versioned files and validated before merge.
 |   +-- product-specs/
 |   |   +-- optional product specs such as new-user-onboarding.md
 |   +-- references/
-|   |   +-- optional replaceable reference seeds
+|   |   +-- optional offline references
 |   +-- DESIGN.md
 |   +-- FRONTEND.md
 |   +-- PLANS.md
@@ -142,11 +141,10 @@ Such changes MUST be committed as versioned files and validated before merge.
 Examples include command outputs, schemas, build outputs, migrations, and reports.
 Actual generated items SHOULD document their source command, input files, freshness, and regeneration trigger.
 
-## Optional Seed Files
+## Project Context Files
 
-The installer may place replaceable seed files under `docs/product-specs/` and `docs/references/`.
-These files are examples of where project-owned context can live.
-Replace, rename, or remove them when they drift from the target repository.
+Files under `docs/product-specs/` and `docs/references/` are project-owned context.
+Replace, rename, or remove them when they drift from the repository.
 
 ## Operating Model
 

@@ -38,7 +38,7 @@ When a tool output format is undocumented, when a config field's purpose lives o
 Heavy-handed style reviews and approval gates on minor details create friction in agent workflows and slow down routine changes.
 When every commit needs sign-off on formatting or tooling choices, agents cannot iterate; when rules are not clear about what is actually non-negotiable, agents apply caution where they should act freely.
 
-- Contract rules state *what must not vary* (e.g., `CLAUDE.md` imports `AGENTS.md`, validators must not fail silently).
+- Contract rules state *what must not vary* (e.g., validators must not fail silently).
 - Implementation order, refactoring patterns, and local style are left to the implementer's judgment.
 - Validators check invariants only, not code style, comment density, or variable names.
   - Examples: boundary enforcement, required files and directories, and hook executability.
