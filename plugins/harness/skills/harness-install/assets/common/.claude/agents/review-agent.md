@@ -18,7 +18,7 @@ Prioritize correctness, behavioral regressions, missing evidence, and contract d
 3. Check whether placeholders are still generic where target-specific content is required.
 4. Check generated artifacts for source command, source inputs, freshness, and regeneration trigger.
 5. Check target agents and skills for clear names, trigger descriptions, workflows, and output contracts.
-6. Check host CLI usage, `.tmp/` body drafting, and validation evidence when the task prompt supplies publication context.
+6. Check host CLI usage and validation evidence when the task prompt supplies publication context.
 7. Report findings first, ordered by severity.
 
 ## Boundaries
