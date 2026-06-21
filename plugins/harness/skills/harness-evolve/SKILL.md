@@ -28,7 +28,7 @@ Produce the evolution plan first, then use `harness-validate` after changes are 
 ## First Safe Checks
 
 1. Read the harness context.
-   - Read `AGENTS.md` and `WORKFLOW.md`.
+   - Read `WORKFLOW.md`.
    - Read any active execution-plan entry under `docs/exec-plans/` that touches the harness.
    - Inspect `CLAUDE.md` only when the pointer file itself changed.
 2. Inspect the user-provided delta summary and current `git diff` for harness-owned files.

@@ -17,6 +17,22 @@ require_texts() {
   done
 }
 
+# Require stack Claude settings and EnterWorktree setup commands.
+#
+# @param path Settings path.
+# @param command Stack setup command.
+# @return Exits non-zero when settings are missing the required hook contract.
+assert_stack_settings() {
+  path=$1
+  command=$2
+  require_file "$path"
+  assert_common_settings "$path"
+  require_text "$path" '"command": "codegraph init; codegraph index"'
+  if [ -n "$command" ]; then
+    require_text "$path" "\"command\": \"$command\""
+  fi
+}
+
 # Require stack gitignore files to keep common local scratch paths out of Git.
 #
 # @param path Gitignore path.
@@ -34,7 +50,44 @@ assert_stack_gitignore_scope() {
 assert_common_gitignore_entries() {
   path=$1
   require_texts "$path" ".DS_Store" ".com.apple.timemachine.supported" ".PKInstallSandboxManager" "[Dd]esktop.ini" "*.msix" "*.lnk" ".fuse_hidden*" ".idea/" ".vscode/"
-  require_texts "$path" "logs/" "log/" "*.log" "*.tmp" ".tmp/" "tmp/" "temp/"
+  require_texts "$path" "logs/" "log/" "*.log" "*.tmp" ".tmp/" "tmp/" "temp/" "*.local.*"
+  require_text "$path" ".claude/worktrees/"
+}
+
+# Require stack-specific worktree include rules to stay portable.
+#
+# @param path Worktree include path.
+# @return Exits non-zero when required patterns are missing or unsafe patterns are present.
+assert_stack_worktreeinclude() {
+  path=$1
+  require_file "$path"
+  require_texts "$path" ".env" ".env.*" "*.local" "*.local.*"
+  for pattern in \
+    ".codegraph/" \
+    ".gradle/" \
+    "node_modules/" \
+    ".bun/" \
+    ".venv/" \
+    ".cache/" \
+    ".mvn/"; do
+    if grep -Fq -- "$pattern" "$path"; then
+      printf '%s\n' "[worktreeinclude] unsafe broad copy pattern in $path: $pattern" >&2
+      exit 1
+    fi
+  done
+}
+
+# Require installed instructions to rely on automatic AGENTS.md loading.
+#
+# @param path Markdown path.
+# @return Exits non-zero when the document tells agents to read AGENTS.md manually.
+assert_no_manual_agents_read() {
+  path=$1
+  pattern='(Read|Inspect) .AGENTS[.]md.|.AGENTS[.]md., .ARCHITECTURE[.]md.'
+  if grep -Eq "$pattern" "$path"; then
+    printf '%s\n' "[agents] do not instruct manual AGENTS.md reading: $path" >&2
+    exit 1
+  fi
 }
 
 # Require JVM and Eclipse-generated ignores.
@@ -72,8 +125,8 @@ assert_gradle_assets() {
   require_file "$assets_root/.gitignore"
   require_file "$assets_root/build.gradle.kts"
   require_file "$assets_root/settings.gradle.kts"
-  require_file "$assets_root/scripts/worktree-post-create.sh"
-  require_executable "$assets_root/scripts/worktree-post-create.sh"
+  assert_stack_settings "$assets_root/.claude/settings.json" "./gradlew help"
+  assert_stack_worktreeinclude "$assets_root/.worktreeinclude"
   require_file "$assets_root/gradle/libs.versions.toml"
   require_file "$assets_root/buildSrc/build.gradle.kts"
   require_file "$assets_root/buildSrc/settings.gradle.kts"
@@ -82,8 +135,6 @@ assert_gradle_assets() {
   require_file "$assets_root/buildSrc/src/main/kotlin/com/ririnto/sinon/ktlint/RuleSetProvider.kt"
   require_texts "$assets_root/build.gradle.kts" "checkMarkdown" "tasks.named(\"ktlintCheck\")" "markdownlint-cli2" "bun add -g markdownlint-cli2"
   require_texts "$assets_root/settings.gradle.kts" "tasks(\"ktlintCheck\")" "createHooks()"
-  sh -n "$assets_root/scripts/worktree-post-create.sh"
-  require_text "$assets_root/scripts/worktree-post-create.sh" "./gradlew"
   require_text "$assets_root/.editorconfig" "charset = utf-8"
   require_text "$assets_root/.editorconfig" "ij_continuation_indent_size = 4"
   require_text "$assets_root/.editorconfig" "[{*.bash,*.sh,*.zsh}]"
@@ -103,16 +154,14 @@ assert_bun_assets() {
   require_file "$assets_root/package.json"
   require_file "$assets_root/oxlint.config.ts"
   require_file "$assets_root/oxfmt.config.ts"
-  require_file "$assets_root/scripts/worktree-post-create.sh"
-  require_executable "$assets_root/scripts/worktree-post-create.sh"
+  assert_stack_settings "$assets_root/.claude/settings.json" "bun install"
+  assert_stack_worktreeinclude "$assets_root/.worktreeinclude"
   require_file "$assets_root/scripts/tsdoc-plugin.ts"
   require_dir "$assets_root/.husky"
   require_file "$assets_root/.husky/pre-commit"
   require_file "$assets_root/.husky/pre-push"
   require_texts "$assets_root/package.json" '"prepare": "husky"' '"check:markdownlint-cli2": "markdownlint-cli2"' '"check:ultracite": "ultracite check"'
   require_text "$assets_root/oxlint.config.ts" 'tsdoc/require-export-tsdoc'
-  sh -n "$assets_root/scripts/worktree-post-create.sh"
-  require_text "$assets_root/scripts/worktree-post-create.sh" "bun install"
   require_texts "$assets_root/.husky/pre-commit" "bun typecheck" "bun run check"
   require_texts "$assets_root/.husky/pre-push" "bun typecheck" "bun run check" "bun test"
   assert_stack_gitignore_scope "$assets_root/.gitignore"
@@ -130,6 +179,8 @@ assert_uv_assets() {
   require_file "$assets_root/ruff.toml"
   require_file "$assets_root/scripts/check.py"
   require_file "$assets_root/scripts/fix.py"
+  assert_stack_settings "$assets_root/.claude/settings.json" "uv sync"
+  assert_stack_worktreeinclude "$assets_root/.worktreeinclude"
   require_file "$assets_root/.pre-commit-config.yaml"
   require_texts "$assets_root/scripts/check.py" 'shutil.which("markdownlint-cli2")' "skipping Markdown linting" '"ruff>=0.15.18,<0.16.0"'
   require_texts "$assets_root/scripts/fix.py" 'shutil.which("markdownlint-cli2")' "skipping Markdown fixes" '"--fix"'
@@ -147,6 +198,10 @@ assert_maven_assets() {
   assets_root=$root/skills/harness-install/assets/maven
   require_file "$assets_root/.gitignore"
   require_file "$assets_root/pom.xml"
+  assert_stack_settings \
+    "$assets_root/.claude/settings.json" \
+    "./mvnw -q -DskipTests dependency:go-offline"
+  assert_stack_worktreeinclude "$assets_root/.worktreeinclude"
   require_dir "$assets_root/.githooks"
   require_file "$assets_root/.githooks/pre-commit"
   require_file "$assets_root/.githooks/pre-push"
@@ -173,6 +228,8 @@ assert_maven_assets() {
 assert_shell_assets() {
   assets_root=$root/skills/harness-install/assets/shell
   require_file "$assets_root/.gitignore"
+  assert_stack_settings "$assets_root/.claude/settings.json" ""
+  assert_stack_worktreeinclude "$assets_root/.worktreeinclude"
   require_file "$assets_root/scripts/check.sh"
   require_file "$assets_root/scripts/fix.sh"
   require_dir "$assets_root/.githooks"
@@ -211,13 +268,21 @@ assert_common_assets_structure() {
   require_file "$common_assets_root/WORKFLOW.github.md"
   require_file "$common_assets_root/WORKFLOW.gitlab.md"
   require_file "$common_assets_root/WORKFLOW.none.md"
+  require_file "$common_assets_root/.mcp.json"
   require_file "$common_assets_root/.editorconfig"
   require_file "$common_assets_root/.markdownlint-cli2.jsonc"
-  require_file "$common_assets_root/.claude/settings.json"
+  require_file "$common_assets_root/.codegraph/.gitignore"
   require_file "$common_assets_root/.claude/agents/implementation-agent.md"
   require_file "$common_assets_root/.claude/agents/review-agent.md"
   require_file "$common_assets_root/.claude/skills/review/SKILL.md"
   require_file "$common_assets_root/.claude/skills/validate/SKILL.md"
+  assert_no_manual_agents_read "$common_assets_root/AGENTS.md"
+  assert_no_manual_agents_read "$common_assets_root/.claude/agents/implementation-agent.md"
+  assert_no_manual_agents_read "$common_assets_root/.claude/agents/review-agent.md"
+  assert_no_manual_agents_read "$common_assets_root/.claude/skills/review/SKILL.md"
+  assert_no_manual_agents_read "$common_assets_root/.claude/skills/validate/SKILL.md"
+  assert_no_manual_agents_read "$common_assets_root/docs/templates/agent/AGENT.md"
+  assert_no_manual_agents_read "$common_assets_root/docs/templates/skill/SKILL.md"
   require_file "$common_assets_root/scripts/exec-plan-links.ts"
   require_file "$common_assets_root/scripts/docs-root-files.ts"
   if [ -e "$common_assets_root/docs/git-hooks" ]; then
@@ -229,7 +294,8 @@ assert_common_assets_structure() {
   require_text "$common_assets_root/AGENTS.md" "\`.agents/skills/\` MUST be \`-> .claude/skills/\`"
   require_text "$common_assets_root/AGENTS.md" "\`.agents/agents/\` MUST NOT exist"
   require_text "$common_assets_root/AGENTS.md" "\`.codex/agents/\` MUST be \`-> .claude/agents/\`"
-  assert_common_settings "$common_assets_root/.claude/settings.json"
+  require_texts "$common_assets_root/.mcp.json" '"codegraph"' '"type": "stdio"' '"command": "codegraph"' '"serve"' '"--mcp"'
+  require_texts "$common_assets_root/.codegraph/.gitignore" "CodeGraph data files" "*" "!.gitignore"
   require_text "$common_assets_root/.markdownlint-cli2.jsonc" '"docs/root-files": true'
   require_text "$common_assets_root/.markdownlint-cli2.jsonc" './scripts/docs-root-files.ts'
   require_text "$common_assets_root/scripts/docs-root-files.ts" 'docs/root-files'

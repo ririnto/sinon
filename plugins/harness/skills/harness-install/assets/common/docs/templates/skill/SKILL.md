@@ -15,7 +15,7 @@ Execute the focused repository procedure for {{skill_scope}}.
 
 ## Workflow
 
-1. Inspect `AGENTS.md`, `ARCHITECTURE.md`, and the required context before editing.
+1. Inspect `ARCHITECTURE.md` and the required context before editing.
 2. Apply the smallest target-owned change that satisfies the goal.
 3. Follow the repository workflow for worktree isolation, host CLI selection, validation, and evidence.
 4. Run the validation command and capture evidence.
