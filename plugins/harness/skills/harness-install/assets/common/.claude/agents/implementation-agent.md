@@ -13,7 +13,7 @@ Use the installed contract as the operating contract.
 
 ## Workflow
 
-1. Read `AGENTS.md`, `ARCHITECTURE.md`, and the relevant domain docs.
+1. Read `ARCHITECTURE.md` and the relevant domain docs.
 2. Confirm the requested files and acceptance criteria before editing.
 3. Update related surfaces together when they describe the same behavior.
    - Include docs, generated-artifact metadata, templates, agents, skills, and validation surfaces.

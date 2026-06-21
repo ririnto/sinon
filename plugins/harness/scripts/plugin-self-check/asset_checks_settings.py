@@ -23,6 +23,40 @@ REQUIRED_SETTINGS: Final[dict[str, JsonValue]] = {
 }
 
 
+def validate_enter_worktree_hooks(
+    settings_path: Path, settings: dict[str, JsonValue]
+) -> list[str]:
+    """Return EnterWorktree hook contract violations."""
+    errors: list[str] = []
+    hooks = settings.get("hooks")
+    if not isinstance(hooks, dict):
+        return [f"{settings_path}: missing hooks object"]
+    enter_worktree = hooks.get("EnterWorktree")
+    if not isinstance(enter_worktree, dict):
+        return [f"{settings_path}: missing hooks.EnterWorktree object"]
+    if "matcher" in enter_worktree:
+        errors.append(f"{settings_path}: hooks.EnterWorktree must not define matcher")
+    handlers = enter_worktree.get("hooks")
+    if not isinstance(handlers, list) or not handlers:
+        return [*errors, f"{settings_path}: missing hooks.EnterWorktree.hooks[]"]
+    for index, handler in enumerate(handlers):
+        prefix = f"{settings_path}: hooks.EnterWorktree.hooks[{index}]"
+        if not isinstance(handler, dict):
+            errors.append(f"{prefix} must be an object")
+            continue
+        if handler.get("type") != "command":
+            errors.append(f"{prefix} must use type='command'")
+        if handler.get("async") is not True:
+            errors.append(f"{prefix} must set async=true")
+        if "args" in handler:
+            errors.append(f"{prefix} must not define args")
+        if "matcher" in handler:
+            errors.append(f"{prefix} must not define matcher")
+        if not isinstance(handler.get("command"), str) or handler.get("command") == "":
+            errors.append(f"{prefix} must define a non-empty command")
+    return errors
+
+
 def validate_settings(settings_path: Path) -> list[str]:
     """Return durable Claude settings contract violations."""
     reporter = Reporter(settings_path.parent)
@@ -41,9 +75,7 @@ def validate_settings(settings_path: Path) -> list[str]:
         errors.append(
             f"{settings_path}: missing CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR"
         )
-    hooks = settings.get("hooks")
-    if not isinstance(hooks, dict) or "WorktreeCreate" not in hooks:
-        errors.append(f"{settings_path}: missing WorktreeCreate hook")
+    errors.extend(validate_enter_worktree_hooks(settings_path, settings))
     return errors
 
 

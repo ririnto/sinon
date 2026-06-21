@@ -28,7 +28,7 @@ They become target-owned after copying.
    - The installer writes new files and overwrites existing ones when `--force` is used.
    - Any rollback or recovery action after installation will be indistinguishable from unrelated in-progress work.
    - Commit-first keeps the harness change set isolated and reversible.
-2. Read the target repository root files if present: `AGENTS.md`, `ARCHITECTURE.md`, `WORKFLOW.md`, and `README.md`.
+2. Inspect the target repository root files if present: `ARCHITECTURE.md`, `WORKFLOW.md`, and `README.md`.
    - Inspect `CLAUDE.md` only to confirm it imports `AGENTS.md`.
 3. Determine the target stack from explicit user choice.
    - The installer no longer auto-detects.
@@ -126,6 +126,19 @@ They become target-owned after copying.
   - Bun always runs packaged markdownlint; non-Bun stacks run markdownlint when `markdownlint-cli2` is installed.
   - `pre-push` hooks run the full validation including tests and broader checks where applicable.
     - Examples: `./gradlew check`, `./mvnw verify`, and `bun test`.
+- Claude worktrees use Claude Code's default Git worktree behavior.
+  - The selected stack supplies `.worktreeinclude` for portable gitignored local inputs.
+  - The target `.gitignore` ignores `.claude/worktrees/`.
+  - The selected stack supplies `.claude/settings.json` with async `hooks.EnterWorktree.hooks[]` entries.
+  - These hooks run `codegraph init; codegraph index` and the stack install command from the worktree directory.
+  - Bun uses `bun install`.
+  - uv uses `uv sync`.
+  - Gradle uses `./gradlew help`.
+  - Maven uses `./mvnw -q -DskipTests dependency:go-offline`.
+  - Claude Code reports hook failures.
+  - It still uses the default worktree creation path.
+- `.mcp.json` configures the project-local CodeGraph MCP server.
+- `.codegraph/.gitignore` keeps CodeGraph local data out of Git.
 - Fresh installs use `AGENTS.md` as the primary target repository harness contract.
 - `CLAUDE.md` remains a pointer document that imports `AGENTS.md`.
 - `docs/generated/` is a generated-artifact location for real generated outputs.
