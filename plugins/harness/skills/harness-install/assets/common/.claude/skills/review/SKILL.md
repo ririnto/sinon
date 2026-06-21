@@ -30,7 +30,7 @@ Summaries are secondary.
 ## Review Focus
 
 - Contract drift between `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, docs, and `docs/git-hooks/**`.
-- Workflow drift between supplied workflow policy, host CLI usage, `.tmp/` body drafts, and review evidence.
+- Workflow drift between supplied workflow policy, host CLI usage, and review evidence.
 - Missing acceptance criteria, execution plans, or architecture updates.
 - Required fake product content or obsolete seed references.
 - Inconsistent validation commands across docs, CI, active pre-commit, and active pre-push final checks.

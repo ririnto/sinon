@@ -131,7 +131,7 @@ Reject any pattern that discards validator output or forces a successful exit af
 | Category | Evidence | Smallest valid action |
 | --- | --- | --- |
 | Missing harness file | Validator names an absent `AGENTS.md`, `docs/**`, agent, or skill | Re-run installation or restore the missing target-owned file. |
-| Missing harness directory | Validator names an absent docs, `.claude/agents`, `.claude/skills`, or template directory | Restore the directory and required `.gitkeep` files when empty. |
+| Missing harness directory | Validator names an absent docs, `.claude/agents`, `.claude/skills`, or template directory | Restore the missing target-owned directory. |
 | Stale placeholder | File exists but still contains generic scaffold content | Replace placeholder with target truth or request target facts. |
 | Agent or skill metadata | Agent or skill frontmatter lacks required `name` or `description` | Fix the specific agent or skill metadata. |
 | Documentation contract | Required doc headings, generated-artifact semantics, or harness evolution wording is missing | Restore the documented contract in the named file. |

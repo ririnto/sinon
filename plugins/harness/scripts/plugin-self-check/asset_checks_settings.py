@@ -31,16 +31,23 @@ def validate_enter_worktree_hooks(
     hooks = settings.get("hooks")
     if not isinstance(hooks, dict):
         return [f"{settings_path}: missing hooks object"]
-    enter_worktree = hooks.get("EnterWorktree")
-    if not isinstance(enter_worktree, dict):
-        return [f"{settings_path}: missing hooks.EnterWorktree object"]
-    if "matcher" in enter_worktree:
-        errors.append(f"{settings_path}: hooks.EnterWorktree must not define matcher")
-    handlers = enter_worktree.get("hooks")
+    post_tool_use = hooks.get("PostToolUse")
+    if not isinstance(post_tool_use, list) or not post_tool_use:
+        return [f"{settings_path}: missing hooks.PostToolUse[]"]
+    if len(post_tool_use) != 1:
+        errors.append(f"{settings_path}: hooks.PostToolUse must define one matcher group")
+    matcher_group = post_tool_use[0]
+    if not isinstance(matcher_group, dict):
+        return [*errors, f"{settings_path}: hooks.PostToolUse[0] must be an object"]
+    if matcher_group.get("matcher") != "EnterWorktree":
+        errors.append(
+            f"{settings_path}: hooks.PostToolUse[0] must match EnterWorktree"
+        )
+    handlers = matcher_group.get("hooks")
     if not isinstance(handlers, list) or not handlers:
-        return [*errors, f"{settings_path}: missing hooks.EnterWorktree.hooks[]"]
+        return [*errors, f"{settings_path}: missing hooks.PostToolUse[0].hooks[]"]
     for index, handler in enumerate(handlers):
-        prefix = f"{settings_path}: hooks.EnterWorktree.hooks[{index}]"
+        prefix = f"{settings_path}: hooks.PostToolUse[0].hooks[{index}]"
         if not isinstance(handler, dict):
             errors.append(f"{prefix} must be an object")
             continue

@@ -59,7 +59,7 @@ Structural checks that cannot be automated remain prose conventions in the insta
 
 - Validator: `sh scripts/check.sh` (wrapper invoking native `shellcheck` and `shfmt -d`)
 - Fix command: `sh scripts/fix.sh` (wrapper invoking `markdownlint-cli2 --fix` when it is available on PATH, then `shfmt`, then rerunning `shellcheck` and `shfmt -d` through `scripts/check.sh`)
-- Structural checks (prose-only): file presence, directory presence, empty-directory placeholders, hook shebangs, hook executable bits, hook command parity, CI command parity, symlink safety, scaffold-leak scanning.
+- Structural checks (prose-only): file presence, directory presence, hook shebangs, hook executable bits, hook command parity, CI command parity, symlink safety, scaffold-leak scanning.
 
 ## Structural Conventions (Prose-Only)
 
@@ -67,8 +67,7 @@ These checks are now DOCUMENT-LEVEL PROSE CONVENTIONS enforced by code review an
 Target repositories MUST uphold these in documentation, agent instructions, and hook templates:
 
 - filePresence: Required files (`AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, workflow files, etc.) MUST exist and be tracked in version control.
-- directoryPresence: Required directories (.claude/agents/, .claude/skills/, docs/templates/, docs/generated/, etc.) MUST exist, optionally with .gitkeep.
-- emptyDirectoryPlaceholders: Empty required directories MUST use .gitkeep to stay in version control until content exists.
+- directoryPresence: Required directories (.claude/agents/, .claude/skills/, docs/templates/, docs/generated/, etc.) MUST exist.
 - symlinkSafety: Symlinks under protected harness paths MUST be limited to documented safe links such as `.agents/skills/ -> .claude/skills/` and `.codex/agents/ -> .claude/agents/`.
 - agentFrontmatter: Agent .md files MUST include required `name` and `description` frontmatter fields.
 - skillFrontmatter: Skill `SKILL.md` files MUST include required `name` frontmatter field and `description`.

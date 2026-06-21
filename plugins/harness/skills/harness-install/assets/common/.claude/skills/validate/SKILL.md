@@ -28,7 +28,7 @@ Run the supplied validation command:
 ## Workflow
 
 1. Run the supplied validation command.
-2. If it fails, classify the failure as missing contract file or directory, missing `.gitkeep`, stale placeholder, metadata/frontmatter problem, generated-artifact metadata gap, symlink safety issue, executable-bit or shebang problem, CI/pre-push command mismatch or pre-commit stage mismatch, or native stack-tool failure.
+2. If it fails, classify the failure as missing contract file or directory, stale placeholder, metadata/frontmatter problem, generated-artifact metadata gap, symlink safety issue, executable-bit or shebang problem, CI/pre-push command mismatch or pre-commit stage mismatch, or native stack-tool failure.
 3. Fix only failures within the requested scope.
 4. Re-run the same command after fixes.
 

@@ -4,20 +4,23 @@
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
   },
   "hooks": {
-    "EnterWorktree": {
-      "hooks": [
-        {
-          "async": true,
-          "command": "codegraph init; codegraph index",
-          "type": "command"
-        },
-        {
-          "async": true,
-          "command": "bun install",
-          "type": "command"
-        }
-      ]
-    }
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "codegraph init; codegraph index",
+            "type": "command"
+          },
+          {
+            "async": true,
+            "command": "bun install",
+            "type": "command"
+          }
+        ],
+        "matcher": "EnterWorktree"
+      }
+    ]
   },
   "includeCoAuthoredBy": false,
   "includeGitInstructions": false,

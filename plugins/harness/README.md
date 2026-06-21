@@ -143,12 +143,9 @@ The installer creates this repository context structure, and validators require 
 |   |   +-- core-beliefs.md
 |   +-- exec-plans/
 |   |   +-- active/
-|   |   |   +-- .gitkeep
 |   |   +-- completed/
-|   |   |   +-- .gitkeep
 |   |   +-- tech-debt-tracker.md
 |   +-- generated/
-|   |   +-- .gitkeep
 |   +-- product-specs/
 |   |   +-- new-user-onboarding.md
 |   +-- references/
@@ -173,7 +170,6 @@ The installed inventory also includes `WORKFLOW.md`, stack-specific validation a
 `WORKFLOW.md` defines branch, review, validation, and publication decisions.
 Installed target agents receive workflow decisions through their task prompt.
 
-Empty required directories are kept in version control with `.gitkeep`.
 Active `pre-commit` includes the selected-mode command and may include stack preflight checks.
 Active `pre-push` comes from the stack-specific final check, which may be stronger than `pre-commit`.
 Stack assets activate hooks through their ecosystem tool:
@@ -183,7 +179,7 @@ The selected stack supplies `.worktreeinclude` for portable gitignored local inp
 Examples include `.env` and `*.local.*` files.
 Target `.gitignore` files ignore `.claude/worktrees/`.
 The selected stack also supplies `.claude/settings.json`.
-The `hooks.EnterWorktree.hooks[]` entries run async setup commands from the worktree directory.
+The `hooks.PostToolUse[]` entry matches the `EnterWorktree` tool and runs async setup commands from the worktree directory.
 All stacks run `codegraph init; codegraph index`.
 Bun runs `bun install`.
 uv runs `uv sync`.
