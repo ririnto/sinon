@@ -70,3 +70,20 @@ Record evidence in the execution plan, change description, or review note:
 - manual QA action and observed output
 - review findings or approval record
 - unresolved blockers with owner
+
+## Autonomous Improvement Orchestration
+
+Use this section only when the task explicitly asks for autonomous improvement, broad cleanup, multi-issue discovery, or parallel subagent work.
+Use the normal work loop for ordinary features, fixes, and documentation edits.
+
+| Case | Method |
+| --- | --- |
+| Broad exploration or candidate discovery | Run read-only subagents in parallel and let the main agent select the actionable findings. |
+| One issue implementation | Use one isolated worktree and one review request as the default unit. |
+| Multiple independent issues | Split by issue, worktree, and subagent; the main agent revalidates each result. |
+| Post-implementation quality judgment | Use a separate review subagent; the main agent decides from verified evidence. |
+
+Delegation prompts MUST include `TASK`, `SCOPE`, `DELIVERABLE`, `VERIFY`, and `CONSTRAINTS`.
+Subagents MUST stay inside their assigned scope.
+Discovery results MUST NOT become implementation scope until the main agent accepts them.
+The main agent MUST verify key evidence before merge or completion.

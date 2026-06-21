@@ -9,7 +9,6 @@ description: >-
 
 Validate this target repository's installed contract.
 This target skill uses the validation command supplied in the task prompt.
-Plugin-level validation belongs to the plugin checkout.
 
 ## First Safe Checks
 
@@ -37,7 +36,7 @@ Run the supplied validation command:
 - The installed `AGENTS.md` and `.editorconfig`/stack config files are the target repository contract.
 - Installed pre-commit and pre-push hooks both run the stack-specific validation command.
 - `docs/generated/` may be empty, but generated files that exist need regeneration metadata.
-- Seed references may be replaced when the target stack or domain uses different sources.
+- Offline references may be replaced when the target stack or domain uses different sources.
 
 ## Output Contract
 
