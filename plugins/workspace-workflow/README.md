@@ -48,26 +48,26 @@ This includes `skills/`, `agents/`, and executable `bin/` when present.
 
 ```text
 plugins/workspace-workflow/
-├── .claude-plugin/plugin.json
-├── LICENSE
-├── README.md
-├── agents/
-│   ├── workspace-architect.md
-│   ├── commit-message-architect.md
-│   └── pr-body-architect.md
-└── skills/
-    ├── commit-convention/
-    │   └── SKILL.md
-    ├── git-merge-strategies/
-    │   └── SKILL.md
-    ├── git-rebase-strategies/
-    │   └── SKILL.md
-    ├── git-worktree-management/
-    │   └── SKILL.md
-    ├── pr-mr-convention/
-    │   └── SKILL.md
-    └── working-tree-hygiene/
-        └── SKILL.md
++-- .claude-plugin/plugin.json
++-- LICENSE
++-- README.md
++-- agents/
+|   +-- workspace-architect.md
+|   +-- commit-message-architect.md
+|   +-- pr-body-architect.md
++-- skills/
+    +-- commit-convention/
+    |   +-- SKILL.md
+    +-- git-merge-strategies/
+    |   +-- SKILL.md
+    +-- git-rebase-strategies/
+    |   +-- SKILL.md
+    +-- git-worktree-management/
+    |   +-- SKILL.md
+    +-- pr-mr-convention/
+    |   +-- SKILL.md
+    +-- working-tree-hygiene/
+        +-- SKILL.md
 ```
 
 ## Shipped Surfaces

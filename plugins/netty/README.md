@@ -56,11 +56,11 @@ The actual reusable content lives beside the manifest at the plugin root.
 
 ```text
 plugins/netty/
-├── .claude-plugin/plugin.json
-├── README.md
-└── skills/
-    ├── netty/
-    └── reactor-netty/
++-- .claude-plugin/plugin.json
++-- README.md
++-- skills/
+    +-- netty/
+    +-- reactor-netty/
 ```
 
 ## Shipped Surfaces

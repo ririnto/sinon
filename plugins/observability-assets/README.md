@@ -76,17 +76,17 @@ This includes `skills/`, `agents/`, and executable `bin/` when present.
 
 ```text
 plugins/observability-assets/
-├── .claude-plugin/plugin.json
-├── README.md
-├── agents/
-│   └── observability-architect.md
-└── skills/
-    ├── alert-rule-testing/
-    ├── alertmanager/
-    ├── dashboard-provisioning/
-    ├── grafana-dashboards/
-    ├── prometheus-alert-rules/
-    └── promql/
++-- .claude-plugin/plugin.json
++-- README.md
++-- agents/
+|   +-- observability-architect.md
++-- skills/
+    +-- alert-rule-testing/
+    +-- alertmanager/
+    +-- dashboard-provisioning/
+    +-- grafana-dashboards/
+    +-- prometheus-alert-rules/
+    +-- promql/
 ```
 
 ## Shipped Surfaces

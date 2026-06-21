@@ -74,21 +74,21 @@ Local JDTLS support files live beside the manifest at the plugin root.
 
 ```text
 plugins/java/
-├── .claude-plugin/plugin.json
-├── .lsp.json
-├── README.md
-├── agents/
-│   └── java-architect.md
-├── scripts/
-│   ├── has-lombok.sh
-│   ├── jdtls-wrapper.sh
-│   └── test-jdtls-wrapper.sh
-└── skills/
-    ├── java-dependency-versioning/
-    ├── java-language-design/
-    ├── java-language-syntax/
-    ├── java-performance-concurrency/
-    └── java-test/
++-- .claude-plugin/plugin.json
++-- .lsp.json
++-- README.md
++-- agents/
+|   +-- java-architect.md
++-- scripts/
+|   +-- has-lombok.sh
+|   +-- jdtls-wrapper.sh
+|   +-- test-jdtls-wrapper.sh
++-- skills/
+    +-- java-dependency-versioning/
+    +-- java-language-design/
+    +-- java-language-syntax/
+    +-- java-performance-concurrency/
+    +-- java-test/
 ```
 
 ## Shipped Surfaces

@@ -22,6 +22,7 @@ Claude Code plugin packaging rules extend that model but do not override it.
 - `.claude/agents/`: `-> plugins/agent-capability-kit/agents/`.
 - `.agents/skills/`: `-> .claude/skills/`.
 - `.codex/agents/`: `-> .claude/agents/`.
+- `scripts/no-box-drawing.ts`: `-> plugins/harness/skills/harness-install/assets/common/scripts/no-box-drawing.ts`.
 - Root-level documentation MUST describe repository-wide structure and rules, not fast-changing plugin details.
 
 ## Versioning
@@ -151,6 +152,8 @@ If a skill distinguishes direct-source assets from generated or rendered assets,
 ## Documentation style
 
 - Markdown documents MUST prefer headings, lists, and code blocks over dense prose.
+- Markdown documents MUST NOT use Unicode box drawing characters.
+  - Use ASCII tree markers such as `+--` and `|` instead.
 - Normative statements in stable rules documents MUST use BCP 14 language.
 - Documentation examples SHOULD use the native language or tool syntax of the subject being documented.
 - Comments in example code MUST use documentation comment styles: JavaDoc (Java), KDoc (Kotlin), TSDoc/JSDoc (TypeScript/JavaScript), or reStructuredText docstrings (Python).
@@ -326,24 +329,27 @@ Before making changes, an agent MUST read:
 ### Required Repository Structure
 
 ```text
-AGENTS.md
-CLAUDE.md            (imports AGENTS.md)
-README.md
-LICENSE
-.claude-plugin/
-`-- marketplace.json
-.claude/
-|-- agents/         -> plugins/agent-capability-kit/agents/
-`-- skills/         -> plugins/agent-capability-kit/skills/
-.agents/
-`-- skills/         -> .claude/skills/
-.codex/
-`-- agents/         -> .claude/agents/
-plugins/
-`-- <plugin>/
-    |-- README.md
-    |-- .claude-plugin/plugin.json
-    `-- skills/, agents/, scripts/, assets/, or runtime files as needed
+./
++-- AGENTS.md
++-- CLAUDE.md            (imports AGENTS.md)
++-- README.md
++-- LICENSE
++-- .claude-plugin/
+|   +-- marketplace.json
++-- .claude/
+|   +-- agents/         -> plugins/agent-capability-kit/agents/
+|   +-- skills/         -> plugins/agent-capability-kit/skills/
++-- .agents/
+|   +-- skills/         -> .claude/skills/
++-- .codex/
+|   +-- agents/         -> .claude/agents/
++-- scripts/
+|   +-- no-box-drawing.ts -> plugins/harness/skills/harness-install/assets/common/scripts/no-box-drawing.ts
++-- plugins/
+    +-- <plugin>/
+        +-- README.md
+        +-- .claude-plugin/plugin.json
+        +-- skills/, agents/, scripts/, assets/, or runtime files as needed
 ```
 
 ### Operating Model
