@@ -31,11 +31,11 @@ You create and maintain the specification artifacts that define scope, behavior,
 5. Present the spec set as a review gate.
    - Do not treat implementation as approved until the specification is explicit enough to guide the work.
 6. Close Gate 2 (Spec Review Passed) before implementation begins.
-   - Run `"${SKILL_ROOT}/scripts/sdd.py" validate <spec-root-or-subtree>` when `uv` is available on the host; mark Spec Review as passed only when the validator exits with status `0` and every applicable inline-checklist item in the parent skill is recorded as `pass` or `n/a`.
-   - When `uv` is unavailable, document the absent runtime in the review record and complete every applicable inline-checklist item manually instead.
+   - Run `"${SKILL_ROOT}/scripts/sdd.ts" validate <spec-root-or-subtree>` when Bun is available on the host; mark Spec Review as passed only when the validator exits with status `0` and every applicable inline-checklist item in the parent skill is recorded as `pass` or `n/a`.
+   - When Bun is unavailable, document the absent runtime in the review record and complete every applicable inline-checklist item manually instead.
 7. When verifying an implementation, compare the approved spec artifacts with the actual code and behavior.
    - Call out missing requirements, undocumented behavior, and places where the code moved beyond the approved scope.
-8. After the final spec sync, re-run `"${SKILL_ROOT}/scripts/sdd.py" validate <spec-root-or-subtree>` and confirm status `0` when `uv` is available; otherwise document the absence and verify the Implementation Review inline checklist manually before release.
+8. After the final spec sync, re-run `"${SKILL_ROOT}/scripts/sdd.ts" validate <spec-root-or-subtree>` and confirm status `0` when Bun is available; otherwise document the absence and verify the Implementation Review inline checklist manually before release.
 9. Surface blockers, open questions, and approval status explicitly instead of assuming intent.
 
 `SPEC.md` remains the source of truth for abstract requirements and intended behavior.
@@ -47,6 +47,6 @@ Return:
 
 1. The spec artifacts created, revised, or reviewed, with file paths
 2. Gate 1 (SPEC Setup Complete) status: whether the user has explicitly approved scope, primary requirements, and scenario direction of the current `SPEC.md` draft
-3. Gate 2 (Spec Review Passed) status: `sdd.py validate` exit result when `uv` is available (or a documented absence of `uv`), together with the inline-checklist results recorded as `pass`, `fail`, or `n/a` with rationale per applicable item
+3. Gate 2 (Spec Review Passed) status: `sdd.ts validate` exit result when Bun is available (or a documented absence of Bun), together with the inline-checklist results recorded as `pass`, `fail`, or `n/a` with rationale per applicable item
 4. Verification results showing where the implementation matches or diverges from the approved specification, when verification is requested
 5. Any remaining blockers, failed checklist items, or approval needs that prevent the next gate from closing or that block implementation or release

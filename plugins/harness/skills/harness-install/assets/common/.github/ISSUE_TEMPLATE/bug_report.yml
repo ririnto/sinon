@@ -1,0 +1,73 @@
+name: Bug report
+description: Report reproducible incorrect behavior.
+title: "fix: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the incorrect behavior.
+      placeholder: The expected action does not complete when...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: List exact steps, commands, inputs, or fixtures.
+      placeholder: |-
+        1. Run ...
+        2. Open ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: State the observable result that should happen.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: State the observed result, including errors or logs.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, runtime versions, browser, service versions, and commit when relevant.
+      placeholder: |-
+        - OS:
+        - Runtime:
+        - Browser:
+        - Commit:
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Define how a maintainer can tell the bug is fixed.
+      placeholder: |-
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
+      description: Name the exact test, command, or manual QA action.
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+      description: Note regression or rollout risks.
+    validations:
+      required: false

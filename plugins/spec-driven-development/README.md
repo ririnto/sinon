@@ -53,7 +53,7 @@ plugins/spec-driven-development/
         |   +-- review-checklist.md
         |   +-- examples/
         +-- scripts/
-        |   +-- sdd.py          # Single CLI entrypoint and Python toolkit
+        |   +-- sdd.ts          # Single CLI entrypoint and Bun toolkit
         +-- assets/
         |   +-- templates/
         |   +-- schemas/
@@ -64,7 +64,7 @@ plugins/spec-driven-development/
 
 - The plugin ships one reusable skill under `skills/`.
 - `agents/` contains the Claude-facing agent trigger surface.
-- `skills/spec-driven-development/scripts/sdd.py` is the single CLI entrypoint for all SDD subcommands (`validate`, `list-frontmatter`, `get-frontmatter`, `generate-diagram`, `list-tags`).
+- `skills/spec-driven-development/scripts/sdd.ts` is the single CLI entrypoint for all SDD subcommands (`validate`, `list-frontmatter`, `get-frontmatter`, `generate-diagram`, `list-tags`).
 - `assets/templates/` contains scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `CHANGELOG.md`, and openapi.yaml.
 - `assets/schemas/` contains JSON Schema definitions for frontmatter validation.
 - The plugin does not ship hooks, MCP servers, LSP servers, or custom runtime data surfaces.
@@ -78,11 +78,10 @@ plugins/spec-driven-development/
 
 ## Offline-Capable Runtime
 
-The packaged skill is usable offline only when [uv](https://github.com/astral-sh/uv) is installed and the Python interpreter plus dependencies declared by the bundled CLI entrypoint are already cached or otherwise available locally.
-`skills/spec-driven-development/scripts/sdd.py` uses a `uv run` shebang and PEP 723 metadata to declare the required Python dependencies.
-If uv must download Python or dependencies, network access may be required unless those inputs are already cached.
+The packaged skill is usable offline when [Bun](https://bun.sh/) is installed on the host.
+`skills/spec-driven-development/scripts/sdd.ts` uses a Bun shebang and Bun's built-in TypeScript runtime.
 
-Maintainers update the runtime by editing `skills/spec-driven-development/scripts/sdd.py` and its dependency metadata.
+Maintainers update the runtime by editing `skills/spec-driven-development/scripts/sdd.ts`.
 
 ## Installation
 

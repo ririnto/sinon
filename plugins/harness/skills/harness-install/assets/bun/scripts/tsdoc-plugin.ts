@@ -10,7 +10,7 @@ import type {
   MethodDefinition,
   Node,
   PropertyKey,
-  VariableDeclaration,
+  VariableDeclaration
 } from "@oxc-project/types";
 
 /**
@@ -82,7 +82,7 @@ const nodeName = (node: Class | MethodDefinition | OxcFunction): string => {
  * @returns True when the element is a non-constructor public method.
  */
 const isPublicClassElement = (
-  element: ClassElement,
+  element: ClassElement
 ): element is MethodDefinition =>
   element.type === "MethodDefinition" &&
   element.kind !== "constructor" &&
@@ -97,7 +97,7 @@ const isPublicClassElement = (
  * @returns True when the node is a function declaration.
  */
 const isFunctionDeclaration = (
-  node: Node,
+  node: Node
 ): node is OxcFunction & { type: "FunctionDeclaration" } =>
   node.type === "FunctionDeclaration";
 
@@ -117,7 +117,7 @@ const isVariableDeclaration = (node: Node): node is VariableDeclaration =>
  * @returns True when the node is a class declaration.
  */
 const isClassDeclaration = (
-  node: Node,
+  node: Node
 ): node is Class & { type: "ClassDeclaration" } =>
   node.type === "ClassDeclaration";
 
@@ -145,7 +145,7 @@ const exportTsdocRule = {
   create(context: RuleContext) {
     const { filename, sourceCode } = context;
     const isTypeScript = /\.(?:ts|tsx)$/u.test(
-      filename ?? context.getFilename?.() ?? "",
+      filename ?? context.getFilename?.() ?? ""
     );
     /**
      * Determine whether a node or its export wrapper has a TSDoc block.
@@ -159,7 +159,7 @@ const exportTsdocRule = {
           .getCommentsBefore(node)
           .some(
             (comment) =>
-              comment.type === "Block" && comment.value.startsWith("*"),
+              comment.type === "Block" && comment.value.startsWith("*")
           )
       ) {
         return true;
@@ -169,7 +169,7 @@ const exportTsdocRule = {
           .getCommentsBefore(node.parent)
           .some(
             (comment) =>
-              comment.type === "Block" && comment.value.startsWith("*"),
+              comment.type === "Block" && comment.value.startsWith("*")
           );
       }
       return false;
@@ -189,7 +189,7 @@ const exportTsdocRule = {
       context.report({
         data: { kind, name },
         messageId: "missingTsdoc",
-        node,
+        node
       });
     };
     /**
@@ -213,7 +213,7 @@ const exportTsdocRule = {
      * @returns Nothing.
      */
     const validateExportedDeclaration = (
-      node: Node | null | undefined,
+      node: Node | null | undefined
     ): void => {
       if (!node) {
         return;
@@ -239,20 +239,19 @@ const exportTsdocRule = {
       },
       ExportNamedDeclaration(node: ExportNamedDeclaration) {
         validateExportedDeclaration(node.declaration);
-      },
+      }
     };
   },
   meta: {
     docs: {
       description:
-        "Require TSDoc on exported TypeScript public API declarations.",
+        "Require TSDoc on exported TypeScript public API declarations."
     },
     messages: {
-      missingTsdoc:
-        'Missing TSDoc for exported public API {{kind}} "{{name}}".',
+      missingTsdoc: 'Missing TSDoc for exported public API {{kind}} "{{name}}".'
     },
-    type: "suggestion",
-  } as const,
+    type: "suggestion"
+  } as const
 };
 
 /**
@@ -261,8 +260,8 @@ const exportTsdocRule = {
 const plugin = {
   meta: { name: "tsdoc" },
   rules: {
-    "require-export-tsdoc": exportTsdocRule,
-  },
+    "require-export-tsdoc": exportTsdocRule
+  }
 };
 
 export default plugin;

@@ -19,7 +19,7 @@ paths:
               default:
                 summary: "Primary request example"
                 value:
-                  {{input_field_name}}: "{{input_field_value}}"
+                  "{{input_field_name}}": "{{input_field_value}}"
       responses:
         "200":
           description: "Successful response"
@@ -31,7 +31,7 @@ paths:
                 default:
                   summary: "Primary response example"
                   value:
-                    {{output_field_name}}: "{{output_field_value}}"
+                    "{{output_field_name}}": "{{output_field_value}}"
         "400":
           description: "Invalid request"
           content:
@@ -59,19 +59,19 @@ components:
     "{{request_schema_name}}":
       type: object
       required:
-        - {{input_field_name}}
+        - "{{input_field_name}}"
       properties:
-        {{input_field_name}}:
+        "{{input_field_name}}":
           type: string
-          description: {{description_yaml}}
+          description: "{{description_yaml}}"
     "{{response_schema_name}}":
       type: object
       required:
-        - {{output_field_name}}
+        - "{{output_field_name}}"
       properties:
-        {{output_field_name}}:
+        "{{output_field_name}}":
           type: string
-          description: {{description_yaml}}
+          description: "{{description_yaml}}"
     Error:
       type: object
       required:
@@ -79,4 +79,4 @@ components:
       properties:
         error:
           type: string
-          description: {{description_yaml}}
+          description: "{{description_yaml}}"

@@ -29,7 +29,7 @@ Summaries are secondary.
 
 ## Review Focus
 
-- Contract drift between `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, docs, and `docs/git-hooks/**`.
+- Contract drift between `AGENTS.md`, `ARCHITECTURE.md`, docs, and stack hook assets.
 - Workflow drift between supplied workflow policy, host CLI usage, and review evidence.
 - Missing acceptance criteria, execution plans, or architecture updates.
 - Required fake product content or obsolete seed references.

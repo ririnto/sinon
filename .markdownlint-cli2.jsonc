@@ -3,16 +3,8 @@
   "config": {
     "line-length": false,
     "no-inline-html": {
-      "allowed_elements": [
-        "details",
-        "summary",
-        "kbd",
-        "img",
-        "code"
-      ],
-      "table_allowed_elements": [
-        "br"
-      ]
+      "allowed_elements": ["details", "summary", "kbd", "img", "code"],
+      "table_allowed_elements": ["br"]
     },
     "no-duplicate-heading": {
       "siblings_only": true
@@ -23,11 +15,7 @@
     "no-emphasis-as-heading": true,
     "docs/no-box-drawing": true
   },
-  "customRules": [
-    "./scripts/no-box-drawing.ts"
-  ],
+  "customRules": ["./scripts/no-box-drawing.ts"],
   "gitignore": ".gitignore",
-  "globs": [
-    "**/*.md"
-  ]
+  "globs": ["**/*.md"]
 }

@@ -1,11 +1,7 @@
 {
   "example-lsp": {
-    "command": "uv",
-    "args": [
-      "run",
-      "${CLAUDE_PLUGIN_ROOT}/lsp/example-lsp.py",
-      "--stdio"
-    ],
+    "command": "bun",
+    "args": ["${CLAUDE_PLUGIN_ROOT}/lsp/example-lsp.ts", "--stdio"],
     "extensionToLanguage": {
       ".example": "example"
     },

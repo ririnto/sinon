@@ -217,7 +217,7 @@ Open `references/plugin-release.md` for data split and release-review context.
 Use this command first when checking a real plugin root:
 
 ```sh
-uv run -m json.tool .claude-plugin/plugin.json
+bun -e 'JSON.parse(await Bun.file(".claude-plugin/plugin.json").text())'
 ```
 
 The command above validates JSON syntax offline.

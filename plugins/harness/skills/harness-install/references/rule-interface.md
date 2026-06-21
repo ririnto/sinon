@@ -52,7 +52,7 @@ Structural checks that cannot be automated remain prose conventions in the insta
   - TypeScript does not need an override for those tag rules because Ultracite core already sets them to `off`.
 - TypeScript public API docs (local oxlint JS plugin): `scripts/tsdoc-plugin.ts` provides `tsdoc/require-export-tsdoc`, which requires TSDoc on directly exported TypeScript top-level functions, directly exported top-level variables/constants, directly exported classes, and public methods/accessors on directly exported classes.
   - The plugin name `tsdoc` is local and does not collide with oxlint's documented built-in plugin names.
-- Plugin style hardening: `sh plugins/harness/scripts/plugin-self-check.sh` enforces style contracts for the Python installer and Bun oxlint JS plugin: no leading-underscore function/class/variable declarations, no one-line Python docstrings on public declarations, and no static `SKIP_TREE_PARTS` directory-name filtering (asset discovery uses `git ls-files` exclusively).
+- Plugin style hardening: `plugins/harness/scripts/plugin-self-check.ts` enforces style contracts for packaged assets, the Bun installer, and the Bun oxlint JS plugin.
 - Tool provisioning: run `bun install` before `bun run check`; package scripts use installed dependencies and fail if those dependencies are absent or broken.
 
 ### Shell

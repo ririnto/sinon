@@ -3,7 +3,7 @@
 This repository uses versioned contracts for agent work.
 Agents get stable project context, bounded delegation, deterministic checks, and reviewable evolution.
 Fresh installs use `AGENTS.md` as the primary contract.
-`CLAUDE.md` is a pointer document that imports `AGENTS.md` so Claude Code loads the same root rules.
+Child `AGENTS.md` files, when present, own local subtree rules.
 
 ## Entry Point
 
@@ -20,16 +20,33 @@ Generated outputs SHOULD record their source command, input files, freshness, an
 Contract changes MAY be made during development when the current contract no longer matches project reality.
 Such changes MUST be committed as versioned files and validated before merge.
 
+## Source-of-Truth Routing
+
+| Change type | Source of truth |
+| --- | --- |
+| Repository contract | `AGENTS.md` |
+| Architecture and system boundaries | `ARCHITECTURE.md` |
+| Git flow, validation, review, and publication | `WORKFLOW.md` |
+| Product requirements | `docs/product-specs/**` |
+| Design decisions | `docs/design-docs/**` |
+| Temporary execution plans | `docs/exec-plans/**` |
+| Generated artifacts | `docs/generated/**` |
+| Agent and skill behavior | `.claude/agents/**` and `.claude/skills/**` |
+| Validation helpers and Markdown rules | `scripts/**` |
+
 ## Invariants
 
 - The repository MUST keep agent instructions, skills, templates, documentation structure, and validation adapters in versioned files.
 - `AGENTS.md` SHOULD be the primary repository contract for coding agents on fresh installs.
-- `CLAUDE.md` MUST remain a pointer document that imports `AGENTS.md`.
+- Child `AGENTS.md` files MAY define local subtree policy.
+- `CLAUDE.md` files MUST only import the matching `AGENTS.md`.
 - `.agents/skills/` MUST be `-> .claude/skills/`.
 - `.agents/agents/` MUST NOT exist.
 - `.codex/agents/` MUST be `-> .claude/agents/`.
 - `ARCHITECTURE.md` MUST describe system boundaries, major components, data flow, and validation surfaces.
 - `WORKFLOW.md` MUST describe intake, branch naming, worktree isolation, host CLI selection, validation, review, and publication.
+- Worktree management SHOULD use the agent runtime's built-in worktree tool when one is available.
+- Manual Git worktree commands are the fallback when no built-in tool is available.
 - Manual Git worktree paths are operator-owned and MUST be written as `<worktree-path>` in reusable instructions.
 - `.claude/settings.json` MUST remain valid Claude Code project settings.
 - `.gitignore` MUST include the selected install mode's ecosystem ignores plus common OS, editor, log, and temporary-file ignores.
@@ -156,7 +173,7 @@ Treat target-owned project truth as the source for future contract evolution.
 
 Run the stack-specific validation command before merging changes that alter:
 
-- `CLAUDE.md`
+- `CLAUDE.md` pointer integrity
 - `AGENTS.md`
 - `ARCHITECTURE.md`
 - `WORKFLOW.md`

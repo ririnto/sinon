@@ -5,13 +5,7 @@
   },
   "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.",
   "homepage": "https://github.com/ririnto/sinon/tree/main/plugins/spec-driven-development",
-  "keywords": [
-    "spec",
-    "specification",
-    "workflow",
-    "review",
-    "research"
-  ],
+  "keywords": ["spec", "specification", "workflow", "review", "research"],
   "license": "Apache-2.0",
   "name": "spec-driven-development",
   "repository": "https://github.com/ririnto/sinon"

@@ -53,14 +53,13 @@ They are not installed as day-to-day target repository agents.
 
 ## Packaged Scripts and Assets
 
-- `scripts/plugin-self-check.sh` validates packaged files, stack assets, hook wiring, CI parity, helper packaging, source-size policy, style hardening, and native-tool smoke checks.
+- `scripts/plugin-self-check.ts` validates packaged files, stack assets, hook wiring, CI parity, package metadata, style hardening, and native-tool smoke checks.
   - It skips a stack gracefully when its toolchain is absent from PATH.
-- `skills/harness-install/scripts/install-harness.py` is the executable installer entry point.
-  - `skills/harness-install/scripts/install_harness/` contains the packaged implementation modules.
+- `skills/harness-install/scripts/install-harness.ts` is the executable installer entry point.
+  - `skills/harness-install/scripts/install-harness/` contains the packaged implementation modules.
   - The installer discovers installable target assets via `git ls-files`.
 - `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs`, CI files, validation adapters, and Git hook scaffolds.
 - Long Markdown files under `skills/harness-install/assets/common/docs/references/` are packaged reference material, not source modules.
-  - The plugin self-check rejects oversized first-party source files and long Markdown outside that reference location.
 
 ## Runtime Model
 
@@ -82,7 +81,7 @@ Documented host policy controls optional CI file removal.
 
 From a target repository, ask Claude Code to use the `harness-install` skill with an explicit stack mode: `gradle`, `maven`, `uv`, `bun`, or `shell`.
 
-The skill invokes `skills/harness-install/scripts/install-harness.py` with the target repository as `--target`.
+The skill invokes `skills/harness-install/scripts/install-harness.ts` with the target repository as `--target`.
 It requires the selected stack mode, copies repository-level files and `.claude/` assets, then prints the stack-specific validation command.
 Supported modes are `gradle`, `maven`, `uv`, `bun`, and `shell`.
 
@@ -107,7 +106,7 @@ If a CI file is present, it is validated for command parity against the selected
 To run the installer directly, pass the target repository explicitly with both stack mode and CI host:
 
 ```sh
-/path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.py --target /path/to/target-repo --mode uv --ci-host both
+/path/to/sinon/plugins/harness/skills/harness-install/scripts/install-harness.ts --target /path/to/target-repo --mode uv --ci-host both
 ```
 
 ## Required Repository Structure

@@ -73,14 +73,7 @@ They become target-owned after copying.
 2. Run the installer with the target repository as `--target` and an explicit `--mode`.
 
     ```sh
-    "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.py" \
-      --target "$PWD" \
-      --mode gradle \
-      --ci-host github
-    ```
-
-    ```sh
-    uv run "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.py" \
+    "${CLAUDE_PLUGIN_ROOT:-/path/to/sinon/plugins/harness}/skills/harness-install/scripts/install-harness.ts" \
       --target "$PWD" \
       --mode gradle \
       --ci-host github
@@ -155,7 +148,7 @@ They become target-owned after copying.
 
 - Run the installer on a committed or stashed target working tree.
   - `--force` overwrites tracked files, and a clean starting point keeps rollback separate from unrelated edits.
-- Keep `scripts/install-harness.py` changes in plugin evolution work.
+- Keep `scripts/install-harness.ts` changes in plugin evolution work.
 - Report project readiness only after target truth exists.
   - Product specs, architecture decisions, acceptance criteria, and generated artifacts must all contain target truth.
 - Replace target-owned hook files with `--force` after explicit approval for that repository.

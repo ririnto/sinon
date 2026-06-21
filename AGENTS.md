@@ -369,4 +369,4 @@ Before merging changes, run the narrowest relevant validation for the changed su
 - Plugin packaging changes: validate the affected plugin root against the manifest and filesystem rules in this document.
 - Security-sensitive plugin surface changes: review changed hooks, MCP servers, LSP servers, settings, scripts, and packaged target assets for command execution, filesystem, network, credential, and publication risks.
 - Agent Skill changes: review the changed `SKILL.md` against the Authoring Agent Skills contract above.
-- Harness plugin implementation changes: run `sh plugins/harness/scripts/plugin-self-check.sh` when the change touches `plugins/harness/` runtime, installer, validator, or packaged assets.
+- Harness plugin implementation changes: run `plugins/harness/scripts/plugin-self-check.ts` when the change touches `plugins/harness/` runtime, installer, validator, or packaged assets.

@@ -17,7 +17,7 @@ Open this file when the plugin work reaches installation, packaging review, or p
 ## Persistent data example split
 
 ```text
-${CLAUDE_PLUGIN_ROOT}/hooks/check.sh        # shipped with the plugin (read-only)
+${CLAUDE_PLUGIN_ROOT}/hooks/check.ts        # shipped with the plugin (read-only)
 ${CLAUDE_PLUGIN_DATA}/cache/index.json      # generated at runtime (writable)
 ```
 
@@ -36,4 +36,4 @@ Use this split as a concrete reference when reviewing whether a starter file or 
 - confirm `interface` is absent and `version` is absent unless the plugin has a semver release policy
 - confirm bundled files are read from `${CLAUDE_PLUGIN_ROOT}` and generated state is written under `${CLAUDE_PLUGIN_DATA}`
 - confirm no `__pycache__`, `.DS_Store`, or other build artifacts are committed
-- confirm shell scripts under `assets/` have executable permission bits
+- confirm Bun scripts referenced by runtime config exist under the plugin root
