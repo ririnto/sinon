@@ -1,0 +1,81 @@
+name: Improvement
+description: Propose a measurable improvement to performance, usability, maintainability, security, or operations.
+title: "chore: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Current problem
+      description: Describe the observed limitation or cost.
+    validations:
+      required: true
+  - type: textarea
+    id: direction
+    attributes:
+      label: Improvement direction
+      description: Describe the proposed direction without over-specifying implementation.
+    validations:
+      required: true
+  - type: dropdown
+    id: type
+    attributes:
+      label: Improvement type
+      options:
+        - Performance
+        - Usability or accessibility
+        - Maintainability
+        - Security
+        - Operations
+    validations:
+      required: true
+  - type: textarea
+    id: measurement
+    attributes:
+      label: Measurement
+      description: State the baseline, target, and measurement method.
+      placeholder: |-
+        - Current:
+        - Target:
+        - Method:
+    validations:
+      required: true
+  - type: dropdown
+    id: compatibility
+    attributes:
+      label: Compatibility impact
+      options:
+        - No behavior or API change
+        - Minor compatible behavior or API change
+        - Breaking behavior or API change
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |-
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
+      description: Name the exact benchmark, test, command, or manual QA action.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Add metrics, traces, logs, commands, screenshots, or reproduction notes.
+    validations:
+      required: false
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+      description: Note regression, rollout, security, migration, or UX risks.
+    validations:
+      required: false

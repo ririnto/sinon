@@ -102,11 +102,17 @@ const stackModes = ["gradle", "maven", "bun", "uv", "shell"] as const;
 const hostTemplateFiles = [
   ".github/ISSUE_TEMPLATE/config.yml",
   ".github/ISSUE_TEMPLATE/bug_report.yml",
+  ".github/ISSUE_TEMPLATE/docs.yml",
   ".github/ISSUE_TEMPLATE/feature_request.yml",
+  ".github/ISSUE_TEMPLATE/improvement.yml",
+  ".github/ISSUE_TEMPLATE/refactor.yml",
   ".github/ISSUE_TEMPLATE/task.yml",
   ".github/pull_request_template.md",
   ".gitlab/issue_templates/Bug.md",
+  ".gitlab/issue_templates/Docs.md",
+  ".gitlab/issue_templates/Enhancement.md",
   ".gitlab/issue_templates/Feature.md",
+  ".gitlab/issue_templates/Refactor.md",
   ".gitlab/issue_templates/Task.md",
   ".gitlab/merge_request_templates/Default.md"
 ] as const;
@@ -117,8 +123,28 @@ const hostTemplateTexts: readonly TextCheck[] = [
     path: ".github/ISSUE_TEMPLATE/bug_report.yml"
   },
   {
+    fragments: [
+      "Documentation target",
+      "Acceptance criteria",
+      "Validation plan"
+    ],
+    path: ".github/ISSUE_TEMPLATE/docs.yml"
+  },
+  {
     fragments: ["Non-goals", "Acceptance criteria", "Validation plan"],
     path: ".github/ISSUE_TEMPLATE/feature_request.yml"
+  },
+  {
+    fragments: ["Measurement", "Compatibility impact", "Validation plan"],
+    path: ".github/ISSUE_TEMPLATE/improvement.yml"
+  },
+  {
+    fragments: [
+      "Behavior preservation",
+      "Interfaces and handoffs",
+      "Rollback plan"
+    ],
+    path: ".github/ISSUE_TEMPLATE/refactor.yml"
   },
   {
     fragments: ["Completion criteria", "Validation method", "Risks"],
@@ -131,6 +157,30 @@ const hostTemplateTexts: readonly TextCheck[] = [
   {
     fragments: ["## Validation", "## Unverified Items", "## Rollback"],
     path: ".gitlab/merge_request_templates/Default.md"
+  },
+  {
+    fragments: ["## Documentation Target", "## Validation Plan", "## Risks"],
+    path: ".gitlab/issue_templates/Docs.md"
+  },
+  {
+    fragments: ["## Measurement", "## Compatibility Impact", "## Risks"],
+    path: ".gitlab/issue_templates/Enhancement.md"
+  },
+  {
+    fragments: ["## Non-goals", "## Validation Plan", "## Risks"],
+    path: ".gitlab/issue_templates/Feature.md"
+  },
+  {
+    fragments: [
+      "## Behavior Preservation",
+      "## Interfaces and Handoffs",
+      "## Risks"
+    ],
+    path: ".gitlab/issue_templates/Refactor.md"
+  },
+  {
+    fragments: ["## Completion Criteria", "## Validation Method", "## Risks"],
+    path: ".gitlab/issue_templates/Task.md"
   },
   {
     fragments: [
@@ -404,7 +454,9 @@ const checkCommonAssets = (root: string): void => {
     ".claude/agents/implementation-agent.md",
     ".claude/agents/review-agent.md",
     ".claude/skills/review/SKILL.md",
+    ".claude/skills/start-worktree/SKILL.md",
     ".claude/skills/validate/SKILL.md",
+    ".claude/skills/work/SKILL.md",
     "scripts/no-box-drawing.ts",
     "scripts/exec-plan-links.ts",
     "scripts/docs-root-files.ts"

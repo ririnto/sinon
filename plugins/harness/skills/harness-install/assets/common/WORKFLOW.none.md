@@ -62,7 +62,7 @@ Respect included work from other contributors with a cherry-pick or `Co-authored
 
 ## Local Review
 
-Draft issue, review, and release notes in `.tmp/`.
+Draft temporary local issue and review bodies in `.tmp/`.
 Move durable decisions to `docs/exec-plans/` or the project tracker.
 
 ## Evidence

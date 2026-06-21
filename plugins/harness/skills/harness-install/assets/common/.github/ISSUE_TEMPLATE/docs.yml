@@ -1,0 +1,62 @@
+name: Documentation
+description: Report missing, stale, or unclear documentation.
+title: "docs: "
+labels: ["documentation"]
+body:
+  - type: textarea
+    id: target
+    attributes:
+      label: Documentation target
+      description: Name the document, generated artifact, API docs, or code docs.
+    validations:
+      required: true
+  - type: textarea
+    id: gap
+    attributes:
+      label: Gap
+      description: Describe what is missing, stale, incorrect, or unclear.
+    validations:
+      required: true
+  - type: textarea
+    id: audience
+    attributes:
+      label: Audience
+      description: Name who depends on this documentation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the documentation change.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |-
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
+      description: Name the exact command, link check, review, or manual follow-through.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Add source files, current behavior, screenshots, logs, or examples.
+    validations:
+      required: false
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks
+      description: Note reader confusion, migration, compatibility, or rollout risks.
+    validations:
+      required: false

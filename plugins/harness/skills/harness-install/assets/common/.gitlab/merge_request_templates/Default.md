@@ -18,10 +18,11 @@ List concrete changes by file, component, or behavior.
 
 ## Validation
 
-- [ ] Tests or focused checks passed
-- [ ] Stack validation passed
-- [ ] Manual QA completed when behavior is user-visible
-- [ ] Self-review completed
+```sh
+<command>
+```
+
+Expected result:
 
 ## Unverified Items
 
@@ -38,3 +39,13 @@ Revert command, feature flag, migration reversal, or operational fallback.
 ## Follow-ups
 
 Follow-up work that should not block this merge request.
+
+## Checklist
+
+- [ ] Tests or focused checks passed, or skipped with reason
+- [ ] Stack validation passed
+- [ ] Manual QA completed when behavior is user-visible
+- [ ] Self-review completed
+- [ ] Interfaces, docs, and links remain aligned
+- [ ] Review evidence is recorded
+- [ ] Title follows Conventional Commits
