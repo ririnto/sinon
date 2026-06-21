@@ -102,7 +102,11 @@ Such changes MUST be committed as versioned files and validated before merge.
 |   +-- skills/
 |       +-- review/
 |       |   +-- SKILL.md
+|       +-- start-worktree/
+|       |   +-- SKILL.md
 |       +-- validate/
+|       |   +-- SKILL.md
+|       +-- work/
 |           +-- SKILL.md
 +-- .agents/
 |   +-- skills/         -> .claude/skills/
