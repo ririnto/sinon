@@ -102,11 +102,17 @@ const stackModes = ["gradle", "maven", "bun", "uv", "shell"] as const;
 const hostTemplateFiles = [
   "docs/templates/github/README.md",
   "docs/templates/github/tasks/bug-report.md",
+  "docs/templates/github/tasks/documentation.md",
   "docs/templates/github/tasks/feature-request.md",
+  "docs/templates/github/tasks/improvement.md",
+  "docs/templates/github/tasks/refactor.md",
   "docs/templates/github/tasks/task.md",
   "docs/templates/github/change-description.md",
   "docs/templates/gitlab/tasks/bug-report.md",
+  "docs/templates/gitlab/tasks/documentation.md",
+  "docs/templates/gitlab/tasks/enhancement.md",
   "docs/templates/gitlab/tasks/feature-request.md",
+  "docs/templates/gitlab/tasks/refactor.md",
   "docs/templates/gitlab/tasks/task.md",
   "docs/templates/gitlab/change-description.md"
 ] as const;
@@ -117,8 +123,28 @@ const hostTemplateTexts: readonly TextCheck[] = [
     path: "docs/templates/github/tasks/bug-report.md"
   },
   {
+    fragments: [
+      "Documentation target",
+      "Acceptance criteria",
+      "Validation plan"
+    ],
+    path: "docs/templates/github/tasks/documentation.md"
+  },
+  {
     fragments: ["Non-goals", "Acceptance criteria", "Validation plan"],
     path: "docs/templates/github/tasks/feature-request.md"
+  },
+  {
+    fragments: ["Measurement", "Compatibility impact", "Validation plan"],
+    path: "docs/templates/github/tasks/improvement.md"
+  },
+  {
+    fragments: [
+      "Behavior preservation",
+      "Interfaces and handoffs",
+      "Rollback plan"
+    ],
+    path: "docs/templates/github/tasks/refactor.md"
   },
   {
     fragments: ["Completion criteria", "Validation method", "Risks"],
@@ -131,6 +157,30 @@ const hostTemplateTexts: readonly TextCheck[] = [
   {
     fragments: ["## Validation", "## Unverified Items", "## Rollback"],
     path: "docs/templates/gitlab/change-description.md"
+  },
+  {
+    fragments: ["## Documentation Target", "## Validation Plan", "## Risks"],
+    path: "docs/templates/gitlab/tasks/documentation.md"
+  },
+  {
+    fragments: ["## Measurement", "## Compatibility Impact", "## Risks"],
+    path: "docs/templates/gitlab/tasks/enhancement.md"
+  },
+  {
+    fragments: ["## Non-goals", "## Validation Plan", "## Risks"],
+    path: "docs/templates/gitlab/tasks/feature-request.md"
+  },
+  {
+    fragments: [
+      "## Behavior Preservation",
+      "## Interfaces and Handoffs",
+      "## Risks"
+    ],
+    path: "docs/templates/gitlab/tasks/refactor.md"
+  },
+  {
+    fragments: ["## Completion Criteria", "## Validation Method", "## Risks"],
+    path: "docs/templates/gitlab/tasks/task.md"
   },
   {
     fragments: [
@@ -404,7 +454,9 @@ const checkCommonAssets = (root: string): void => {
     ".claude/agents/implementation-agent.md",
     ".claude/agents/review-agent.md",
     ".claude/skills/review/SKILL.md",
+    ".claude/skills/start-worktree/SKILL.md",
     ".claude/skills/validate/SKILL.md",
+    ".claude/skills/work/SKILL.md",
     "scripts/no-box-drawing.ts",
     "scripts/exec-plan-links.ts",
     "scripts/docs-root-files.ts"
