@@ -34,7 +34,9 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 +-- .agents/
 |   +-- skills/         -> .claude/skills/
 +-- .codex/
-|   +-- agents/         -> .claude/agents/
+|   +-- agents/
+|       +-- implementation.toml
+|       +-- review.toml
 +-- docs/
 |   +-- design-docs/
 |   |   +-- core-beliefs.md
@@ -70,7 +72,8 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 - `.claude/skills/issue-mining/SKILL.md` defines issue investigation and optional issue-registration workflow.
 - `.claude/skills/review/SKILL.md` defines main-agent readiness review.
 - `.agents/skills/` links to `.claude/skills/`.
-- `.codex/agents/` links to `.claude/agents/`.
+- `.codex/agents/implementation.toml` defines the Codex implementation agent.
+- `.codex/agents/review.toml` defines the Codex review agent.
 - `.mcp.json` configures the project-local CodeGraph MCP server.
 - `.codegraph/.gitignore` keeps CodeGraph local data out of Git.
 - `.worktreeinclude` lists portable gitignored local inputs for Claude Code worktrees.

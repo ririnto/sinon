@@ -205,6 +205,7 @@ export const installFullPlan = async (
   config: InstallerConfig
 ): Promise<void> => {
   await ensureRootContracts(config);
+  await ensureRuntimeSymlinks(config);
   await copyTree(config, path.join(templateDir, "common"), ".", true);
   await ensureRuntimeSymlinks(config);
   await ensureGitkeepPaths(config);

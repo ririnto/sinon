@@ -1,4 +1,4 @@
-import { mkdir, readlink } from "node:fs/promises";
+import { lstat, mkdir, readlink } from "node:fs/promises";
 import path from "node:path";
 
 import {
@@ -144,13 +144,14 @@ const ensureTargetDirectory = async (
     }
     await removePath(directoryPath);
   }
-  if (await pathExists(directoryPath)) {
-    if (!(await isDirectory(directoryPath))) {
-      return fail(
-        `conflict directory: ${directoryPath} exists and is not a directory`
-      );
-    }
+  const current = await lstat(directoryPath).catch(() => null);
+  if (current?.isDirectory() === true) {
     return;
+  }
+  if (current !== null) {
+    return fail(
+      `conflict directory: ${directoryPath} exists and is not a directory`
+    );
   }
   ensureSafeRelativePath(directoryPath);
   const parent = path.dirname(directoryPath);
@@ -228,15 +229,10 @@ export const ensureOneRootContract = async (
 export const ensureRuntimeSymlinks = async (
   config: InstallerConfig
 ): Promise<void> => {
-  if (!(await isDirectory(".claude"))) {
-    return;
-  }
   await ensureTargetDirectory(config, ".agents");
   await ensureTargetDirectory(config, ".codex");
+  await ensureTargetDirectory(config, ".codex/agents");
   if (await isDirectory(".claude/skills")) {
     await ensureTargetSymlink(config, ".agents/skills", "../.claude/skills");
-  }
-  if (await isDirectory(".claude/agents")) {
-    await ensureTargetSymlink(config, ".codex/agents", "../.claude/agents");
   }
 };
