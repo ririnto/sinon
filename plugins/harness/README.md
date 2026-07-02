@@ -148,7 +148,9 @@ The installer creates this target repository structure, and validators require i
 +-- .agents/
 |   +-- skills/         -> .claude/skills/
 +-- .codex/
-|   +-- agents/         -> .claude/agents/
+|   +-- agents/
+|       +-- implementation.toml
+|       +-- review.toml
 +-- docs/
 |   +-- design-docs/
 |   |   +-- core-beliefs.md

@@ -68,7 +68,8 @@ Target repositories MUST uphold these in documentation, agent instructions, and 
 
 - filePresence: Required files (`AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, workflow files, etc.) MUST exist and be tracked in version control.
 - directoryPresence: Required directories (.claude/agents/, .claude/skills/, docs/templates/, docs/generated/, etc.) MUST exist.
-- symlinkSafety: Symlinks under protected harness paths MUST be limited to documented safe links such as `.agents/skills/ -> .claude/skills/` and `.codex/agents/ -> .claude/agents/`.
+- symlinkSafety: Symlinks under protected harness paths MUST be limited to documented safe links such as `.agents/skills/ -> .claude/skills/`.
+- codexAgents: `.codex/agents/` MUST be a regular directory containing Codex TOML agent files.
 - agentFrontmatter: Agent .md files MUST include required `name` and `description` frontmatter fields.
 - skillFrontmatter: Skill `SKILL.md` files MUST include required `name` frontmatter field and `description`.
 - docHeadings: Documentation MUST use properly nested Markdown headings, starting at level 1, with blank lines before headings.

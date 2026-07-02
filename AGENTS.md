@@ -21,7 +21,7 @@ Claude Code plugin packaging rules extend that model but do not override it.
 - `.claude/skills/`: `-> plugins/agent-capability-kit/skills/`.
 - `.claude/agents/`: `-> plugins/agent-capability-kit/agents/`.
 - `.agents/skills/`: `-> .claude/skills/`.
-- `.codex/agents/`: `-> .claude/agents/`.
+- `.codex/agents/`: regular directory containing one Codex TOML file per shared agent.
 - `scripts/no-box-drawing.ts`: `-> plugins/harness/skills/harness-install/assets/common/scripts/no-box-drawing.ts`.
 - Root-level documentation MUST describe repository-wide structure and rules, not fast-changing plugin details.
 
@@ -319,7 +319,7 @@ Before making changes, an agent MUST read:
 - `.claude/agents/` MUST be `-> plugins/agent-capability-kit/agents/`.
 - `.agents/skills/` MUST be `-> .claude/skills/`.
 - `.agents/agents/` MUST NOT exist.
-- `.codex/agents/` MUST be `-> .claude/agents/`.
+- `.codex/agents/` MUST be a regular directory containing one Codex TOML file per shared agent.
 - `.claude-plugin/marketplace.json` MUST be the root Claude Code marketplace catalog.
 - Plugin packages MUST live under `plugins/`.
 - Plugin-specific manifests, README files, skills, agents, hooks, MCP servers, LSP servers, settings, scripts, templates, and packaged target assets MUST stay inside the owning plugin root.
@@ -342,7 +342,7 @@ Before making changes, an agent MUST read:
 +-- .agents/
 |   +-- skills/         -> .claude/skills/
 +-- .codex/
-|   +-- agents/         -> .claude/agents/
+|   +-- agents/         (Codex TOML files)
 +-- scripts/
 |   +-- no-box-drawing.ts -> plugins/harness/skills/harness-install/assets/common/scripts/no-box-drawing.ts
 +-- plugins/

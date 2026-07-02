@@ -3,11 +3,7 @@
 ## Purpose
 
 `docs/references/` is the system of record for external documents that agents need to access offline.
-References preserve upstream content by default, with attribution and an editor's note documenting local runtime layout or local terminology deviations.
-The note covers these local runtime details:
-
-- `.agents/skills/ -> .claude/skills/`.
-- `.codex/agents/ -> .claude/agents/`.
+References preserve upstream content by default, with attribution and an optional editor's note for required local formatting or repository-rule deviations.
 The validator excludes this directory from placeholder-token checks.
 Upstream content may contain `TODO`, `{{...}}`, or other tokens that agents must not alter.
 
@@ -25,9 +21,9 @@ Upstream content may contain `TODO`, `{{...}}`, or other tokens that agents must
 2. Prepend the file with the NOTE-style attribution block.
    - Start with `<!-- @formatter:off -->`.
    - Then add `> [!NOTE]`.
-   - Include source, original URL, raw URL, verbatim caveat, and the editor's note.
-3. Reproduce the upstream body verbatim unless the editor's note documents a local terminology deviation.
-   - Add an editor's note only for documented local deviations.
+   - Include source, canonical URL, raw URL, and the verbatim caveat.
+3. Reproduce the upstream body verbatim unless a repository rule requires a documented local formatting deviation.
+   - Add an editor's note only for required local deviations.
 4. Keep references self-contained: leave external links in place but do not depend on them at runtime.
    - References must be readable offline.
 5. Update `## Shipped References` above with the new file.
