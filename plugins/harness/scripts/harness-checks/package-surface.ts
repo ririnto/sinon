@@ -17,6 +17,14 @@ type JsonValue =
   | string
   | { readonly [key: string]: JsonValue };
 
+type TomlValue =
+  | boolean
+  | null
+  | number
+  | readonly TomlValue[]
+  | string
+  | { readonly [key: string]: TomlValue };
+
 const pluginSchema =
   "https://json.schemastore.org/claude-code-plugin-manifest.json";
 const marketplaceSchema =
@@ -27,8 +35,7 @@ const kebabPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 const rootLinks = {
   ".agents/skills": ".claude/skills",
   ".claude/agents": "plugins/agent-capability-kit/agents",
-  ".claude/skills": "plugins/agent-capability-kit/skills",
-  ".codex/agents": ".claude/agents"
+  ".claude/skills": "plugins/agent-capability-kit/skills"
 } as const;
 
 const autoDiscoveredComponentPaths = {
@@ -109,6 +116,19 @@ const readJsonObject = (filePath: string): Record<string, JsonValue> => {
     fail(`${filePath}: top-level JSON value must be an object`);
   }
   return value as Record<string, JsonValue>;
+};
+
+/**
+ * Read one TOML object from disk.
+ *
+ * @param filePath TOML file path.
+ */
+const readTomlObject = (filePath: string): Record<string, TomlValue> => {
+  const value = Bun.TOML.parse(readFileSync(filePath, "utf-8")) as TomlValue;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    fail(`${filePath}: top-level TOML value must be an object`);
+  }
+  return value as Record<string, TomlValue>;
 };
 
 /**
@@ -279,6 +299,83 @@ const validateRootLink = (
 const validateRootLinkLayout = (root: string, errors: string[]): void => {
   for (const [link, target] of Object.entries(rootLinks)) {
     validateRootLink(root, link, target, errors);
+  }
+  const codexAgentsPath = path.join(root, ".codex", "agents");
+  if (!pathExists(codexAgentsPath)) {
+    errors.push(
+      packageError(
+        root,
+        codexAgentsPath,
+        "required Codex agent directory is missing"
+      )
+    );
+  } else if (lstatSync(codexAgentsPath).isDirectory()) {
+    const codexAgentEntries = readdirSync(codexAgentsPath, {
+      withFileTypes: true
+    }).filter((entry) => entry.isFile() && entry.name.endsWith(".toml"));
+    const codexAgentNames = new Set(
+      codexAgentEntries.map((entry) => entry.name.slice(0, -".toml".length))
+    );
+    for (const entry of codexAgentEntries) {
+      const name = entry.name.slice(0, -".toml".length);
+      const filePath = path.join(codexAgentsPath, entry.name);
+      const toml = readTomlObject(filePath);
+      if (toml["name"] !== name) {
+        errors.push(
+          packageError(root, filePath, `name must match basename ${name}`)
+        );
+      }
+      if (
+        typeof toml["description"] !== "string" ||
+        toml["description"] === ""
+      ) {
+        errors.push(
+          packageError(root, filePath, "description must be a non-empty string")
+        );
+      }
+      if (
+        typeof toml["developer_instructions"] !== "string" ||
+        toml["developer_instructions"] === ""
+      ) {
+        errors.push(
+          packageError(
+            root,
+            filePath,
+            "developer_instructions must be a non-empty string"
+          )
+        );
+      }
+    }
+    const sharedAgentsPath = path.join(
+      root,
+      "plugins",
+      "agent-capability-kit",
+      "agents"
+    );
+    const sharedAgentNames = readdirSync(sharedAgentsPath, {
+      withFileTypes: true
+    })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+      .map((entry) => entry.name.slice(0, -".md".length));
+    for (const name of sharedAgentNames) {
+      if (!codexAgentNames.has(name)) {
+        errors.push(
+          packageError(
+            root,
+            codexAgentsPath,
+            `missing Codex TOML for shared agent ${name}`
+          )
+        );
+      }
+    }
+  } else {
+    errors.push(
+      packageError(
+        root,
+        codexAgentsPath,
+        "must be a regular directory of TOML agents"
+      )
+    );
   }
   const blockedAgentsPath = path.join(root, ".agents", "agents");
   if (pathExists(blockedAgentsPath)) {

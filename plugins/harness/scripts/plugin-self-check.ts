@@ -211,11 +211,6 @@ const targetAssetBannedFragments = [
   "scaffold-token"
 ] as const;
 
-const targetAssetBannedFragmentExceptions = [
-  "docs/references/openai-harness-engineering.md",
-  "docs/references/symphony-spec.md"
-] as const;
-
 const expectedSetupCommands: Record<StackMode, readonly string[]> = {
   bun: ["codegraph init; codegraph index", "bun install"],
   gradle: ["codegraph init; codegraph index", "./gradlew help"],
@@ -238,6 +233,36 @@ const requireFile = (filePath: string): void => {
   }
   if (!statSync(filePath).isFile()) {
     fail(`[requireFile] expected regular file: ${filePath}`);
+  }
+};
+
+/**
+ * Require one Codex agent TOML file to contain the expected fields.
+ *
+ * @param filePath TOML file path.
+ * @param expectedName Expected agent name.
+ */
+const requireCodexAgentToml = (
+  filePath: string,
+  expectedName: string
+): void => {
+  requireFile(filePath);
+  const value: unknown = Bun.TOML.parse(readFileSync(filePath, "utf-8"));
+  if (!isRecord(value)) {
+    fail(`[codexAgentToml] expected TOML object: ${filePath}`);
+  }
+  const toml = value as Record<string, unknown>;
+  if (toml["name"] !== expectedName) {
+    fail(`[codexAgentToml] name must match ${expectedName}: ${filePath}`);
+  }
+  if (typeof toml["description"] !== "string" || toml["description"] === "") {
+    fail(`[codexAgentToml] missing description: ${filePath}`);
+  }
+  if (
+    typeof toml["developer_instructions"] !== "string" ||
+    toml["developer_instructions"] === ""
+  ) {
+    fail(`[codexAgentToml] missing developer_instructions: ${filePath}`);
   }
 };
 
@@ -480,6 +505,15 @@ const checkCommonAssets = (root: string): void => {
     "assets",
     "common"
   );
+  requireDir(root, path.join(common, ".codex", "agents"));
+  requireCodexAgentToml(
+    path.join(common, ".codex", "agents", "implementation.toml"),
+    "implementation"
+  );
+  requireCodexAgentToml(
+    path.join(common, ".codex", "agents", "review.toml"),
+    "review"
+  );
   for (const filePath of [
     "AGENTS.md",
     "CLAUDE.md",
@@ -595,10 +629,6 @@ const checkCommonAssets = (root: string): void => {
       path: path.join(common, filePath)
     }))
   );
-  for (const filePath of targetAssetBannedFragmentExceptions) {
-    requireText(path.join(common, filePath), "reproduced verbatim");
-    requireText(path.join(common, filePath), "No other content is altered.");
-  }
   console.error("[common assets] OK");
 };
 

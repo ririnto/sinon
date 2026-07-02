@@ -10,10 +10,8 @@
 > Copyright remains with the upstream authors.
 > This reference is included so an agent can reason about the upstream contract directly from the repository without live internet access.
 >
-> Editor's note on local names: `AGENTS.md` is the root contract; `.agents/skills/` and `.codex/agents/` point to the matching `.claude/` paths.
-> Treat upstream references to those files and directories through this local layout.
-> Note other deviations from upstream here when they apply.
-> Otherwise no other content is altered.
+> Preserve upstream headings, prose, examples, diagrams, punctuation, and terminology by default.
+> Document any required local formatting or repository-rule deviation in this note before changing upstream content.
 
 <!-- @formatter:on -->
 

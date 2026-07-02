@@ -18,7 +18,7 @@ Stable repository rules, layout policies, and skill-authoring contracts are in `
 - Store installable plugin packages in a consistent directory layout.
 - Keep marketplace metadata and plugin manifests aligned.
 - Keep generic Agent Skills mirrored through `.claude/skills/` and `.agents/skills/` without treating those paths as plugin marketplace catalogs.
-- Keep Codex-facing agents available through `.codex/agents/`.
+- Keep Codex-facing agents available as TOML files under `.codex/agents/`.
 
 ## Repository Structure
 
@@ -31,7 +31,7 @@ Stable repository rules, layout policies, and skill-authoring contracts are in `
 - `.claude-plugin/marketplace.json`: Claude marketplace catalog.
 - `.claude/skills/` and `.claude/agents/`: `-> plugins/agent-capability-kit/{skills,agents}/`.
 - `.agents/skills/`: `-> .claude/skills/`; `.agents/agents/` is intentionally absent.
-- `.codex/agents/`: `-> .claude/agents/`.
+- `.codex/agents/`: regular directory containing one Codex TOML file per shared agent.
 - `plugins/`: plugins maintained in this repository.
 
 ## Plugin Layout
