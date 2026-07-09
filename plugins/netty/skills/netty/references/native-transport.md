@@ -16,7 +16,7 @@ Open this when Linux or macOS deployment needs native transport features, lower 
 | NIO | all platforms | start here |
 | epoll | Linux | high-throughput production servers |
 | kqueue | macOS and BSD | native readiness on those systems |
-| io_uring | Linux | first-class transport in Netty 4.2; opt-in when kernel 5.9+ and the native dependency are available |
+| io_uring | Linux | first-class transport in Netty 4.2; opt-in when kernel 5.14+ and the native dependency are available |
 
 ## Dependency pattern
 
@@ -53,7 +53,7 @@ macOS or BSD kqueue:
 </dependency>
 ```
 
-Linux io_uring on Java 9+ and kernel 5.9+ (a first-class transport since Netty 4.2, replacing the `netty-incubator-transport-io_uring` module):
+Linux io_uring on Java 9+ and kernel 5.14+ (a first-class transport since Netty 4.2, replacing the `netty-incubator-transport-io_uring` module; the `netty-transport-native-io_uring` README lists kernel 5.14 with `CONFIG_IO_URING=y` as the floor):
 
 ```xml
 <dependency>
