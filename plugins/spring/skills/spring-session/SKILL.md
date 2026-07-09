@@ -2,7 +2,7 @@
 name: spring-session
 description: >-
   Replace container bound sessions with Spring Session across Spring Security, WebFlux, and WebSocket endpoints using a chosen backing store and customized cookies or headers.
-  Use when selecting a session repository (Redis, JDBC, Hazelcast), configuring session id transport, wiring shared sessions into Spring Security, or tuning session timeout and concurrency policy.
+  Use when selecting a session repository (Redis, JDBC), configuring session id transport, wiring shared sessions into Spring Security, or tuning session timeout.
 ---
 
 # Spring Session
@@ -19,15 +19,16 @@ Use `spring-session` for session persistence, clustered session sharing, cookie 
 
 ## Version alignment
 
-Spring Session 4.1.x targets Spring Boot 4.0.x and 4.1.x.
+Spring Session 4.1.x targets Spring Boot 4.1.x.
+Spring Session 4.0.x targets Spring Boot 4.0.x.
 Spring Boot manages the Spring Session version; add the session starter and Boot resolves the correct artifact.
 
 Minimum requirements:
 
 - Java 17+
-- Spring Framework 6.0+ (7.0 for Boot 4.x)
-- Servlet 3.1+ when running in a servlet container
-- Redis 2.8+ when using `@EnableRedisHttpSession`
+- Spring Framework 7.0+ (Session 4.x targets the Framework 7 line)
+- Servlet 6.1+ when running in a servlet container (Jakarta, Tomcat 11.0.x or Jetty 12.1.x)
+- Redis 6.0+ when using `@EnableRedisHttpSession` (governed by Spring Data Redis and the Lettuce client that Spring Boot manages)
 
 ## Common path
 
@@ -248,7 +249,7 @@ Return:
 - Verify the second request reuses the same session id and sees state written by the first request.
 - Verify expiration behavior with the configured timeout instead of assuming the store default.
 - For Redis, verify the configured namespace, repository type, and serialization strategy match the deployed cluster conventions.
-- For Spring Security integration, verify logout invalidates the stored session and concurrent-session controls see the same repository when indexed lookup is required.
+- For Spring Security integration, verify logout invalidates the stored session and Spring Security's concurrent-session control uses the same Spring Session repository when indexed lookup is required.
 - For header-based session ids, verify the client sends and rotates the expected header.
 
 ## Production checklist

@@ -41,7 +41,7 @@ Use task-execution inspection to verify launch state, exit status, and execution
 
 ```text
 dataflow:>task execution list
-dataflow:>task execution display --id 123
+dataflow:>task execution status --id 123
 ```
 
 ## Logs and metrics blocker
