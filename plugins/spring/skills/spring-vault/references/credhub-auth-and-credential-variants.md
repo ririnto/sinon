@@ -14,17 +14,41 @@ Choose the authentication mode that the platform already supports.
 
 ## Mutual TLS configuration shape
 
+The CredHub starter exposes no `spring.credhub.tls.*` namespace.
+It binds only `spring.credhub.url`, `spring.credhub.oauth2.registration-id`, and the `ClientOptions` fields (`connection-timeout`, `read-timeout`, `ca-cert-files`).
+
+For CA trust (validating the CredHub server certificate), use the `ca-cert-files` property.
+
 ```yaml
 spring:
   credhub:
     url: https://credhub.example.com:8844
-    tls:
-      enabled: true
-      key-store: classpath:credhub-client.p12
-      key-store-password: ${CREDHUB_KEYSTORE_PASSWORD}
-      trust-store: classpath:credhub-truststore.p12
-      trust-store-password: ${CREDHUB_TRUSTSTORE_PASSWORD}
+    ca-cert-files:
+      - file:/etc/credhub/credhub-ca.pem
 ```
+
+For client-certificate mutual TLS, the starter has no property and `ClientOptions` carries no key material.
+Supply a custom `CredHubOperations` bean; the auto-configured bean backs off with `@ConditionalOnMissingBean`.
+Build it from a `CredHubTemplate(CredHubProperties, ClientHttpRequestFactory)` whose request factory carries the client key material.
+
+```java
+@Configuration
+class CredHubMutualTlsConfiguration {
+    /**
+     * Provide a CredHub client that presents a client certificate.
+     *
+     * @param properties the bound CredHub properties carrying the configured URL.
+     * @param requestFactory a request factory preloaded with the client key material.
+     * @return a CredHubOperations backed by a mutual-TLS request factory.
+     */
+    @Bean
+    CredHubOperations credHubOperations(CredHubProperties properties, ClientHttpRequestFactory requestFactory) {
+        return new CredHubTemplate(properties, requestFactory);
+    }
+}
+```
+
+Obtain the mutual-TLS `ClientHttpRequestFactory` from the surrounding platform's SSL configuration; the CredHub library provides no client-certificate helper.
 
 ## OAuth2 configuration shape
 

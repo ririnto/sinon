@@ -174,9 +174,9 @@ spring:
 spring:
   grpc:
     client:
-      channel:
+      channels:
         greeter:
-          target: static://localhost:9090
+          address: static://localhost:9090
 ```
 
 Start with explicit static addresses in local development.
@@ -380,9 +380,9 @@ throw Status.INVALID_ARGUMENT
 spring:
   grpc:
     client:
-      channel:
+      channels:
         greeter:
-          target: static://localhost:9090
+          address: static://localhost:9090
 ```
 
 ### Deadline shape
@@ -425,9 +425,9 @@ Keep it intentional instead of publishing every service by default.
 spring:
   grpc:
     client:
-      channel:
+      channels:
         greeter:
-          target: static://localhost:9090
+          address: static://localhost:9090
           health:
             enabled: true
 ```

@@ -10,26 +10,30 @@ Common features across Jackson formats (JSON, CBOR, XML) are configurable via `s
 spring:
   jackson:
     read:
-      unknown-properties: false
-      fail-on-unknown-properties: false
+      strict-duplicate-detection: true
     write:
-      empty-collections: false
-      write-date-timestamps-as-nanoseconds: false
+      write-bigdecimal-as-plain: true
 ```
+
+These maps accept Jackson 3 `StreamReadFeature` and `StreamWriteFeature` names in relaxed kebab-case form.
+Format-level features such as `FAIL_ON_UNKNOWN_PROPERTIES` belong under `spring.jackson.deserialization.*` and `spring.jackson.serialization.*`, not under `read` or `write`.
 
 ## Factory configuration
 
-Factory-level read/write constraints use `spring.jackson.factory.*`.
+Factory-level read/write constraints use `spring.jackson.factory.constraints.*`.
+Read constraints are `max-string-length`, `max-number-length`, `max-nesting-depth`, `max-name-length`, `max-document-length`, and `max-token-count`.
+The only write constraint is `max-nesting-depth`.
 
 ```yaml
 spring:
   jackson:
     factory:
-      stream-read-constraints:
-        max-string-length: "256KB"
-        max-number-length: "1024"
-      stream-write-constraints:
-        max-nesting-depth: 50
+      constraints:
+        read:
+          max-string-length: "256KB"
+          max-number-length: "1024"
+        write:
+          max-nesting-depth: 50
 ```
 
 ## HandlerInstantiator

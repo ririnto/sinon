@@ -6,6 +6,8 @@ Use Kubernetes auth only when Vault is already configured to trust the cluster a
 
 ## Configuration shape
 
+This `spring.cloud.vault.*` configuration requires Spring Cloud Vault (`spring-cloud-starter-vault-config`); `spring-vault-core` alone does not bind these properties.
+
 ```yaml
 spring:
   cloud:

@@ -156,7 +156,7 @@ Use the Boot authorization-server starter when the application acts as an OAuth2
 
 ### PathPatternRequestMatcher
 
-Spring Security 7 provides `PathPatternRequestMatcher` for direct matcher construction.
+Spring Security provides `PathPatternRequestMatcher` for direct matcher construction.
 Use it when a matcher instance must be explicit, for example in custom `securityMatcher(...)` logic or filter-chain composition.
 
 ```java
@@ -229,7 +229,7 @@ SecurityFilterChain spa(HttpSecurity http) throws Exception {
 ```
 
 Spring Security's SPA support uses `CookieCsrfTokenRepository` under the hood.
-In the Spring Security 7 line, the default cookie name is `XSRF-TOKEN` and the default request header is `X-XSRF-TOKEN`.
+The default cookie name is `XSRF-TOKEN` and the default request header is `X-XSRF-TOKEN`.
 
 Keep pure bearer-token API endpoints in a separate stateless chain if they must ignore CSRF entirely.
 
@@ -504,7 +504,7 @@ Return:
 ## OAuth 2.1 / OpenID Connect Authorization Server
 
 This section covers building an OAuth 2.1 or OIDC provider with Spring Authorization Server.
-Authorization Server is the "issuing" side of the same security token model that the resource-server path covers for "enforcement".
+Spring Authorization Server is a separate project on its own version line and is the "issuing" side of the same security token model that the resource-server path covers for "enforcement".
 
 Use this section when the application must issue bearer tokens for other applications to consume.
 When the application instead validates tokens issued by someone else, use the resource-server path above.
