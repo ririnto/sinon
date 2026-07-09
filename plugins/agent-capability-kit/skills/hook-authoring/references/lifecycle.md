@@ -276,10 +276,9 @@ conditional_validate() {
     fi
     FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path')
     if printf '%s' "$FILE_PATH" | grep -qE '\.(env|aws|pem|key)$'; then
-        printf '{"permissionDecision": "deny", "systemMessage": "Sensitive file"}\n' >&2
-        exit 2
+        printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Sensitive file blocked by flag-file hook"}}'
+        exit 0
     fi
-    printf '{"permissionDecision": "allow"}\n'
     exit 0
 }
 conditional_validate

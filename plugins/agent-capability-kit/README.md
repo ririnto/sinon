@@ -30,7 +30,7 @@ Six reusable skills for authoring Claude Code plugins and portable Agent Skills.
 - `skill-authoring`: build or refactor cross-platform Agent Skills.
 - `hook-authoring`: author Claude Code plugin hooks with matchers, lifecycle events, and security guardrails.
 - `mcp-integration`: integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key.
-- `plugin-settings`: author plugin-level configuration via `settings.json` and per-project state with YAML frontmatter parsing patterns.
+- `plugin-settings`: author plugin configuration across three surfaces - plugin-root `settings.json`, manifest `userConfig`, and a per-project `.claude/{{plugin-name}}.local.md` state file with YAML frontmatter parsing patterns.
 
 ## Included Agents
 
