@@ -466,7 +466,8 @@ Return:
   - Grafana config file locations and load order
   - environment variable syntax in provider configs
   - delete behavior and UI export workflows
-- Do not activate for: dashboard panel authoring and visualization design
+- Do not activate for:
+  - dashboard panel authoring and visualization design
   - Prometheus alert-rule authoring or testing
   - Alertmanager routing and notification design
   - datasource provisioning configuration

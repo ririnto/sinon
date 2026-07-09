@@ -210,7 +210,7 @@ This is a fragment to merge into the full dashboard shell, not a complete dashbo
 
 ### Query Options
 
-Query options control how much data is fetched and how queries are evaluated:
+Per-target fields that control how a Prometheus query runs:
 
 ```json
 {
@@ -218,10 +218,10 @@ Query options control how much data is fetched and how queries are evaluated:
     {
       "expr": "rate(http_requests_total[5m])",
       "refId": "A",
-      "maxDataPoints": 500,
-      "interval": "",
-      "intervalMs": 15000,
-      "queryType": "range",
+      "legendFormat": "{{job}}",
+      "format": "time_series",
+      "range": true,
+      "interval": "15s",
       "datasource": { "type": "prometheus", "uid": "prometheus" }
     }
   ]
@@ -232,14 +232,14 @@ Key fields:
 
 | Field | Type | Purpose |
 | --- | --- | --- |
-| `maxDataPoints` | integer | Maximum number of data points returned (default varies by datasource) |
-| `interval` / `intervalMs` | string / integer | Override `$__interval` (e.g., `15s`, `1m`) |
-| `queryType` | string | `"range"` (time series) or `"instant"` (single value at `to` time) |
-| `timeFrom` | string | Relative offset from dashboard start (e.g., `"now-6h"`) |
-| `timeShift` | string | Shift query time window (e.g., `"1d"` for day-over-day comparison) |
-| `cacheTimeout` | string | Cache duration override (e.g., `"5m"`) |
+| `format` | string | `"time_series"` (default), `"table"`, or `"heatmap"`; maps to the UI Format option |
+| `instant` / `range` | boolean | Selects an instant or range query; maps to the UI Type option (Both sets both `true`; omit `instant` for a range query) |
+| `interval` | string | Min step and `$__interval` override (e.g., `15s`, `1m`); also accepts `$__rate_interval` |
+| `intervalMs` / `maxDataPoints` | integer | Computed by Grafana per request and serialized into exports; not authored by hand |
+| `legendFormat` | string | Legend template such as `"{{job}}"` or a fixed label |
 
-Time shift example -- compare today vs yesterday: add `"timeShift": "1d"` to a second target with the same expression and a different `legendFormat`.
+Time-range overrides such as `timeFrom` and `timeShift` are panel-level fields, not per-target; see Time Picker Configuration.
+For day-over-day comparison inside one panel, shift the second query in PromQL with `offset` (for example `rate(http_requests_total[5m] offset 1d)`) instead of a per-target time shift.
 
 ## Panel Type Decision Guide
 

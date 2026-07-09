@@ -206,6 +206,17 @@ global:
       insecure_skip_verify: false
 ```
 
+## Suppression Scope: Config versus Runtime
+
+Alertmanager has three mechanisms that stop notifications, and they live in different places:
+
+- **Inhibition** (config): top-level `inhibit_rules` mute a target alert while a matching source alert fires.
+- **Mute and active time intervals** (config): `mute_time_intervals` and `active_time_intervals` on routes suppress by schedule.
+- **Silences** (runtime): created through the Alertmanager API (`POST /api/v2/silences`) or `amtool silence add`, matched by label matchers with a start and end time, and stored in Alertmanager state that is replicated across the HA cluster.
+
+This skill owns the two config-time mechanisms.
+Runtime silences are operational state outside config authoring: create, list, and expire them through the API or `amtool`, never by editing the config file.
+
 ## Inhibition Rules
 
 Inhibition mutes target alerts when a source alert is already firing and both share specified equal labels.
@@ -412,7 +423,8 @@ Default `send_resolved` by receiver type:
 - Email: `false`
 - Slack: `false`
 - WeChat: `false`
-- All other types: `true`
+- Rocket.Chat: `false`
+- All other receiver types: `true`
 
 ### Available Receiver Types
 
