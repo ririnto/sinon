@@ -528,13 +528,27 @@ Same format as `--cached` but shows unstaged (working directory) changes instead
 
 ```text
 ## <branch>...<upstream> [<sync>]
-<porcelain-status> <file>
-<porcelain-status> <file>
+<XY> <file>
+<XY> <file>
 ```
 
-Porcelain status codes:
+`<XY>` is a two-letter status code followed by a space and the path.
+The two letters have three classes:
 
-- `M` = modified, unstaged
-- `M` = modified, staged
-- `??` = untracked
-- `MM` = modified staged and unstaged
+- **Normal (no merge, or merge succeeded)**: `X` is the status in the index (staged), `Y` is the status in the working tree (unstaged).
+- **Unmerged (merge conflict not yet resolved)**: `X` and `Y` show the state each side introduced relative to the common ancestor (for example `UU` both modified, `AA` both added, `DD` both deleted, `AU` added by us, `UA` added by them, `DU` deleted by us, `UD` deleted by them).
+- **Untracked and ignored**: `X` and `Y` are always the same letter (`??` untracked, `!!` ignored — the latter only with `--ignored`).
+
+Normal-case codes in full:
+
+```text
+ M  modified, unstaged only (working tree)
+M   modified, staged (index)
+MM  staged, then modified again in the working tree
+A   new file added to the index
+D   deleted from the index (staged deletion)
+ D  deleted in the working tree only
+R   renamed in the index
+C   copied in the index (needs status.renames=copies)
+T   file type changed (regular file, symbolic link, or submodule)
+```
