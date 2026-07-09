@@ -28,8 +28,8 @@ The container manages unique registrations and deduplicates identical `Requested
 
 ### TTL tuning
 
-- `setExpiryThresholdSeconds` - how long before lease expiry the container considers a lease expired (default 60 seconds).
-- `setMinRenewalSeconds` - minimum time between renewal requests to avoid excessive calls (default 10 seconds).
+- `setExpiryThreshold(Duration)` - how long before lease expiry the container considers a lease expired (default `Duration.ofSeconds(60)`).
+- `setMinRenewal(Duration)` - minimum time between renewal requests to avoid excessive calls (default `Duration.ofSeconds(10)`).
 
 Both values are calculated from the lease TTL and local system clock.
 
@@ -114,7 +114,7 @@ VaultCertificateRequest request = VaultCertificateRequest.builder()
 ManagedCertificate managed = ManagedCertificate.issue("my-bundle", "my-role", request, bundle -> {
     KeyStore keyStore = bundle.createKeyStore("my-alias");
 });
-managed.register(container);
+managed.registerCertificate(container);
 ```
 
 ### Decision points

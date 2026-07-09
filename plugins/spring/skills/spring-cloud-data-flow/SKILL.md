@@ -30,6 +30,24 @@ Prefer current Spring Cloud Stream or Spring Cloud Task guidance for new applica
 4. Launch, schedule, update, or roll back definitions through SCDF runtime operations.
 5. Verify deployed application state with SCDF views and the target platform logs or metrics.
 
+## Ordinary path
+
+Register the apps a topology needs, then create and deploy or launch the definition.
+The stream and task cycles share one command shape; only the definition DSL and the deploy or launch verb change.
+
+```text
+dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
+dataflow:>app register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:3.2.1
+dataflow:>stream create --name http-log --definition "http | log"
+dataflow:>stream deploy --name http-log
+dataflow:>task create --name print-time --definition "timestamp"
+dataflow:>task launch --name print-time
+dataflow:>stream list
+dataflow:>task execution list
+```
+
+Register task apps with the same `app register` command using `--type task`, or import a curated starter catalog with `app import`.
+
 ## Surface map
 
 | Surface | Open when |

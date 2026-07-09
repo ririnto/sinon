@@ -71,7 +71,7 @@ The ordinary Spring Vault job is:
 ## Dependency baseline
 
 Use `spring-vault-core` for direct client access.
-Add Spring Boot config integration only when Vault-backed property loading is the actual requirement.
+Use Spring Cloud Vault (`spring-cloud-starter-vault-config`) only when Vault-backed property loading is the actual requirement.
 
 ```xml
 <dependencies>
@@ -79,6 +79,20 @@ Add Spring Boot config integration only when Vault-backed property loading is th
         <groupId>org.springframework.vault</groupId>
         <artifactId>spring-vault-core</artifactId>
         <version>4.1.0</version>
+    </dependency>
+</dependencies>
+```
+
+`spring-vault-core` does not bind `spring.cloud.vault.*` properties and does not provide a `vault://` config-import resolver.
+Those belong to Spring Cloud Vault (`spring-cloud-starter-vault-config`), which is managed by the Spring Cloud release train and brings `spring-vault-core` transitively.
+The current Spring Cloud Vault line is 5.0.x.
+Add it only when the application loads Vault-backed property sources at startup, and let the Spring Cloud BOM manage its version.
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-vault-config</artifactId>
     </dependency>
 </dependencies>
 ```
@@ -93,10 +107,12 @@ Add Spring Boot config integration only when Vault-backed property loading is th
 | KV v2 version-aware access and CAS | `spring-vault-core` |
 | Declarative secret rotation with `ManagedSecret` | `spring-vault-core` |
 | Certificate issuance and rotation with `CertificateContainer` | `spring-vault-core` |
-| Spring Boot property import from Vault | Spring Boot config import plus Vault environment support in the active runtime |
+| Vault-backed property import with `spring.cloud.vault.*` and `spring.config.import: vault://` | Spring Cloud Vault (`spring-cloud-starter-vault-config`) |
 | Tests that prove the secret boundary | the project test stack plus focused Vault integration tests |
 
 ## First safe configuration
+
+The `spring.cloud.vault.*` examples in this section require Spring Cloud Vault (`spring-cloud-starter-vault-config`); `spring-vault-core` alone does not bind these properties.
 
 ### Token-authenticated local setup
 
@@ -256,6 +272,8 @@ class TransitEncryptionService {
 
 ### Vault-backed property import shape
 
+The `vault://` import resolver is provided by Spring Cloud Vault (`spring-cloud-starter-vault-config`), not by `spring-vault-core`.
+
 ```yaml
 spring:
   config:
@@ -332,16 +350,16 @@ Spring CredHub 4.0.1 provides the client library.
 
 Mutual TLS (preferred):
 
+The CredHub starter exposes no `spring.credhub.tls.*` namespace.
+It binds only `spring.credhub.url`, `spring.credhub.oauth2.registration-id`, and the `ClientOptions` fields (`connection-timeout`, `read-timeout`, `ca-cert-files`).
+Configure CA trust through `spring.credhub.ca-cert-files`, and configure client-certificate mutual TLS by supplying a custom `CredHubOperations` bean backed by a `ClientHttpRequestFactory` that carries the client certificate and trust material.
+
 ```yaml
 spring:
   credhub:
     url: https://credhub.example.com:8844
-    tls:
-      enabled: true
-      key-store: classpath:credhub-client.p12
-      key-store-password: ${CREDHUB_KEYSTORE_PASSWORD}
-      trust-store: classpath:credhub-truststore.p12
-      trust-store-password: ${CREDHUB_TRUSTSTORE_PASSWORD}
+    ca-cert-files:
+      - file:/etc/credhub/credhub-ca.pem
 ```
 
 OAuth2 (when client certificates are not available):
@@ -409,6 +427,9 @@ class MessagingCredentialService {
 
 ### CredHub credential write
 
+`write` accepts a `CredentialRequest`, not a name and value pair.
+Build a `ValueCredentialRequest` to write a value credential.
+
 ```java
 @Service
 class FeatureFlagWriter {
@@ -419,12 +440,15 @@ class FeatureFlagWriter {
     }
 
     void writeFlag(String environment, String value) {
-        credHub.credentials().write(new SimpleCredentialName("/app/%s/feature-flag".formatted(environment)), new ValueCredential(value));
+        credHub.credentials().write(ValueCredentialRequest.builder().name(new SimpleCredentialName("/app/%s/feature-flag".formatted(environment))).value(new ValueCredential(value)).build());
     }
 }
 ```
 
 ### CredHub generated password
+
+`generate` accepts a `ParametersRequest`, not a credential name.
+Build a `PasswordParametersRequest` to generate a password.
 
 ```java
 @Service
@@ -436,7 +460,7 @@ class PasswordGenerationService {
     }
 
     void generateDatabasePassword() {
-        credHub.credentials().generatePassword(new SimpleCredentialName("/app/prod/db-password"));
+        credHub.credentials().generate(PasswordParametersRequest.builder().name(new SimpleCredentialName("/app/prod/db-password")).parameters(PasswordParameters.builder().length(30).build()).build());
     }
 }
 ```
@@ -462,7 +486,7 @@ try {
 void passwordReturnsValueFromCredHub() {
     PasswordCredential credential = new PasswordCredential("s3cret");
     when(credHub.credentials().getByName(any(SimpleCredentialName.class), eq(PasswordCredential.class)))
-        .thenReturn(new CredHubCredential<>(credential));
+        .thenReturn(new CredentialDetails<>("id", new SimpleCredentialName("/app/prod/db-password"), CredentialType.PASSWORD, credential));
     String password = service.password();
     assertAll(
         () -> assertNotNull(password),
@@ -530,7 +554,7 @@ credHub.credentials().getByName(new SimpleCredentialName("/app/prod/db-password"
 ### CredHub credential write shape
 
 ```java
-credHub.credentials().write(new SimpleCredentialName("/app/%s/feature-flag".formatted(env)), new ValueCredential(value));
+credHub.credentials().write(ValueCredentialRequest.builder().name(new SimpleCredentialName("/app/%s/feature-flag".formatted(env))).value(new ValueCredential(value)).build());
 ```
 
 ### CredHub missing credential failure shape
@@ -558,7 +582,7 @@ CredHub credential unreadable: /app/prod/db-password
 - Bound Vault client timeouts and surface Vault availability through health or startup failure signals.
 - Bound CredHub client timeouts and surface CredHub availability through application health signals.
 - Use the narrowest policy needed for the application's read, write, or transit operations.
-- Keep CredHub HTTP wire logging disabled outside of tokens and credential payloads can leak.
+- Keep CredHub HTTP wire logging disabled; tokens and credential payloads can leak.
 
 ## References
 

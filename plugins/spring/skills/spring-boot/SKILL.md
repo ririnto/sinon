@@ -2,7 +2,7 @@
 name: spring-boot
 description: >-
   Build Spring Boot applications with bootstrap, starter selection, externalized configuration, configuration properties, test strategy, Actuator, and packaging.
-  Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, packaging executable archives, configuring Jackson multi-format features, setting up gRPC server or client, using @RedisListener, or managing 4.1.0 changes.
+  Use when choosing starters, writing `@ConfigurationProperties` classes, configuring profiles, setting up test slices, packaging executable archives, configuring Jackson multi-format features, using @RedisListener, or managing Spring Boot 4.1 changes.
 ---
 
 # Spring Boot
@@ -144,14 +144,15 @@ Auto-configured mappers use a `HandlerInstantiator` that resolves handler instan
 spring:
   jackson:
     read:
-      unknown-properties: false
+      strict-duplicate-detection: true
     write:
-      empty-collections: false
+      write-bigdecimal-as-plain: true
     factory:
-      stream-read-constraints:
-        max-string-length: "256KB"
-      stream-write-constraints:
-        max-nesting-depth: 50
+      constraints:
+        read:
+          max-string-length: "256KB"
+        write:
+          max-nesting-depth: 50
 ```
 
 For advanced customization, register `JsonMapperBuilderCustomizer`, `JsonFactoryBuilderCustomizer`, `CborFactoryBuilderCustomizer`, or `XmlFactoryBuilderCustomizer` beans.
@@ -186,11 +187,11 @@ Background bootstrap of `LocalContainerEntityManagerFactoryBean` for faster star
 ```yaml
 spring:
   jpa:
-    bootstrap: deferred
+    bootstrap: async
 ```
 
 Requires an `AsyncTaskExecutor` bean.
-If none is available when `deferred` is set, Boot will fail with a clear message.
+If none is available when `async` is set, Boot will fail with a clear message.
 
 ### WebFlux HTML escaping
 
@@ -247,37 +248,6 @@ server:
   compression:
     additional-mime-types: application/protobuf,application/octet-stream
 ```
-
-### gRPC support
-
-Spring Boot 4.1 adds first-class gRPC auto-configuration.
-Three new starters are available.
-
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-grpc-server</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-grpc-client</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-grpc-test</artifactId>
-    <scope>test</scope>
-</dependency>
-```
-
-```kotlin
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-grpc-server")
-    implementation("org.springframework.boot:spring-boot-starter-grpc-client")
-    testImplementation("org.springframework.boot:spring-boot-grpc-test")
-}
-```
-
-Open [references/grpc.md](references/grpc.md) when the task is about gRPC server, client, or testing setup.
 
 ### @RedisListener auto-configuration
 
@@ -353,7 +323,7 @@ Docker Compose now supports `docker.elastic.co/elasticsearch/elasticsearch` serv
 - `bootBuildImage --environment KEY=VALUE` for Gradle CLI environment overrides.
 - `BuildInfo` task output changed to `META-INF/build-info.properties`.
   - Use the `filename` property to customize.
-- Maven plugin loads `layers.xml` from classpath at `META-INF/spring/layers/.xml`.
+- Maven plugin loads `layers.xml` from classpath at `META-INF/spring/layers/<name>.xml`.
 - `-DskipTests` no longer skips AOT.
   - Use `maven.test.skip` instead.
 
@@ -364,16 +334,16 @@ Add the `spring-boot-starter-test` dependency as usual; Spock tests work out of 
 
 ### Spring Batch with MongoDB
 
-Auto-configuration for Spring Batch with MongoDB is now available via the existing `spring-boot-starter-batch` when `spring-data-mongodb` is on the classpath.
+Auto-configuration for Spring Batch with MongoDB is provided by the dedicated `spring-boot-starter-batch-data-mongodb` starter, with `spring.batch.data.mongodb.*` properties controlling schema initialization and transaction validation.
 
 ## 4.1.0 changes
 
 - **Layertools jar mode removed.** Use `tools` jar mode instead (`java -Djarmode=tools -jar app.jar`).
 - **`-DskipTests` no longer skips AOT.** Use `-Dmaven.test.skip` for both test and AOT skip.
 - **Changed Logback properties removed.** `logging.file.*` is gone; use `logging.logback.rollingpolicy.*`.
-- **Derby support changed.** Migrate to H2 or HSQLDB.
-- **LiveReload in DevTools changed.** No replacement planned.
-- **Dynatrace V1 API changed.** Migrate to V2 API.
+- **Derby support deprecated.** Deprecated in 4.1 and slated for removal; migrate to H2 or HSQLDB.
+- **LiveReload in DevTools deprecated.** Deprecated in 4.1 with no replacement; still functional and disabled by default since 4.0.
+- **Dynatrace V1 API deprecated.** Deprecated in 4.1; migrate to the V2 API.
 
 Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) for the full migration guide.
 
@@ -454,5 +424,4 @@ Return:
 - Open [references/aot-processing.md](references/aot-processing.md) when the blocker is AOT generation or runtime hints.
 - Open [references/native-image.md](references/native-image.md) when the blocker is native-image build or runtime behavior.
 - Open [references/jackson-configuration.md](references/jackson-configuration.md) when the blocker is Jackson multi-format features, factory constraints, or HandlerInstantiator wiring.
-- Open [references/grpc.md](references/grpc.md) when the task is about gRPC server, client, or testing setup.
 - Open [references/spring-boot-4.1-changes.md](references/spring-boot-4.1-changes.md) when migrating from 4.0 to 4.1 or applying Spring Boot 4.1 behavior changes.

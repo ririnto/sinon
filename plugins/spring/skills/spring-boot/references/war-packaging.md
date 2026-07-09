@@ -32,7 +32,7 @@ Apply this to the existing `@SpringBootApplication` class when the application m
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-tomcat</artifactId>
+        <artifactId>spring-boot-starter-tomcat-runtime</artifactId>
         <scope>provided</scope>
     </dependency>
 </dependencies>
