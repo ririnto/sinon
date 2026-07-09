@@ -188,7 +188,8 @@ Risks, caveats, breaking changes, deployment notes, or follow-up work.
 
 ```sh
   --description "$(cat body.md)" \
-  --draft
+  --draft \
+  --yes
 ```
 
 ## Decision: Draft versus Ready
@@ -323,11 +324,12 @@ host-cli pr ready <number>
 # Create MR in draft status with title and body (including quick actions)
 host-cli mr create --draft \
   --title "feat(api): add user authentication" \
-  --description "$(cat mr-body.md)"
+  --description "$(cat mr-body.md)" \
+  --yes
 
 # The MR body includes quick actions like /assign, /label, /reviewer
 # After CI passes and checklist is complete, mark ready via web UI or:
-host-cli mr update <number> --ready
+host-cli mr update <number> --ready --yes
 ```
 
 ## hosted service CLI (host-cli) Cheat Sheet
@@ -349,8 +351,8 @@ host-cli pr create --fill --draft
 host-cli pr create --title "feat(auth): JWT refresh token" \
   --body-file body.md \
   --label "type:feature,scope:auth,priority:high" \
-  --reviewer @alice,@bob \
-  --assignee @maintainer
+  --reviewer alice,bob \
+  --assignee maintainer
 ```
 
 ### Edit an Existing PR
@@ -361,9 +363,9 @@ host-cli pr edit 42 --title "New title" --body-file body.md
 
 # Add/remove labels
 
-# Add/remove reviewers
+# Add/remove reviewers (bare logins; no '@')
 
-# Add/remove assignees
+# Add/remove assignees ('@me' is supported; other logins are bare)
 ```
 
 ### Check PR Status and Details
@@ -427,20 +429,23 @@ host-cli pr merge 42 --squash --delete-branch
 ```sh
 # Create with title and description from file (most common)
   --description "$(cat body.md)" \
-  --draft
+  --draft \
+  --yes
 
 # Create with inline description
 host-cli mr create --title "fix(db): handle null connection" \
+  --yes
 
-# Auto-fill from commits
-host-cli mr create --fill --draft
+# Auto-fill from commits (--fill skips title/description prompts and pushes the branch)
+host-cli mr create --fill --draft --yes
 
-# Create with labels, reviewers, assignees (via flags or quick actions)
+# Create with labels, reviewers, assignees (reviewers/assignees are bare usernames, no '@')
 host-cli mr create --title "feat(auth): JWT refresh token" \
   --description "$(cat body.md)" \
   --label "type::feature,scope::auth" \
-  --reviewer @alice,@bob \
-  --assignee @maintainer
+  --reviewer alice,bob \
+  --assignee maintainer \
+  --yes
 ```
 
 ### Edit an Existing MR
@@ -448,13 +453,14 @@ host-cli mr create --title "feat(auth): JWT refresh token" \
 ```sh
 # Update title and description
 host-cli mr update 42 --title "New title" \
-  --description "$(cat body.md)"
+  --description "$(cat body.md)" \
+  --yes
 
-# Add/remove labels
+# Add/remove labels (--label adds, --unlabel removes)
 
-# Add/remove reviewers (prefix with '+' to add, '-' to remove)
+# Set reviewers: '+alice' adds, '-bob' or '!bob' removes; a bare list replaces them all.
 
-# Add/remove assignees
+# Set assignees with the same prefix rule as reviewers.
 ```
 
 ### Check MR Status and Details
@@ -487,40 +493,40 @@ host-cli mr list --source-branch "new-feature" --target-branch "main"
 
 ```sh
 # Convert from draft to ready for review
-host-cli mr update 42 --ready
+host-cli mr update 42 --ready --yes
 
 # Convert from ready to draft
-host-cli mr update 42 --draft
+host-cli mr update 42 --draft --yes
 ```
 
 ### Merge an MR
 
 ```sh
-# Standard merge (create merge commit)
-host-cli mr merge 42
+# Standard merge (create merge commit); add --yes (-y) to skip the confirm prompt
+host-cli mr merge 42 --yes
 
 # Squash commits before merge
-host-cli mr merge 42 --squash
+host-cli mr merge 42 --squash --yes
 
 # Rebase and merge
-host-cli mr merge 42 --rebase
+host-cli mr merge 42 --rebase --yes
 
 # Merge when pipeline succeeds (do not merge immediately)
-host-cli mr merge 42 --auto-merge
+host-cli mr merge 42 --auto-merge --yes
 
 # Merge and delete source branch
-host-cli mr merge 42 --remove-source-branch
+host-cli mr merge 42 --remove-source-branch --yes
 
 # Custom commit message for merge
-host-cli mr merge 42 --message "Merge feature X"
+host-cli mr merge 42 --message "Merge feature X" --yes
 ```
 
 ### Recommended Option Combinations
 
 | Scenario | Command |
 | --- | --- |
-| Ready after tests pass | `host-cli mr update <n> --ready` |
-| Merge when approved | `host-cli mr merge <n> --squash --auto-merge` |
+| Ready after tests pass | `host-cli mr update <n> --ready --yes` |
+| Merge when approved | `host-cli mr merge <n> --squash --auto-merge --yes` |
 
 ## Using External Body Files
 
@@ -563,10 +569,11 @@ host-cli pr edit 42 --body-file body.md
 # Pass file content to --description using command substitution
 host-cli mr create --title "feat(auth): JWT refresh" \
   --description "$(cat body.md)" \
-  --draft
+  --draft \
+  --yes
 
 # Update existing MR description from file
-host-cli mr update 42 --description "$(cat body.md)"
+host-cli mr update 42 --description "$(cat body.md)" --yes
 ```
 
 ## Output Contract

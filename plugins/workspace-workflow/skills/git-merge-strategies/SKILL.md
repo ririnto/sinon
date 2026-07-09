@@ -142,7 +142,7 @@ This uses the provided merge message without opening an editor.
 Example output:
 
 ```text
-Merge made by the 'recursive' strategy.
+Merge made by the 'ort' strategy.
  src/feature.js | 10 +++++++++-
  test/feature.test.js | 5 +++++
  2 files changed, 14 insertions(+), 1 deletion(-)
@@ -569,7 +569,7 @@ git merge --abort
 
 Report:
 
-1. Merge command used and output (e.g., "Fast-forward" or "Merge made by recursive strategy").
+1. Merge command used and output (e.g., "Fast-forward" or "Merge made by the 'ort' strategy").
 2. Commit hash of the merge (or most recent commit if fast-forward).
 3. Files changed (from `git diff --stat {{base-branch}}^..{{branch}}`).
 4. Verification: `git log --oneline -n 3` showing merge in history.
