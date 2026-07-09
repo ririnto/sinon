@@ -26,7 +26,7 @@ void decodesOneLine() {
     assertAll(
         () -> assertTrue(channel.writeInbound(input)),
         () -> assertEquals("hello", channel.readInbound()),
-        () -> assertFalse(channel.finish())
+        () -> assertFalse(channel.finishAndReleaseAll())
     );
 }
 ```
@@ -44,7 +44,7 @@ void encodesUppercase() {
         ByteBuf finalEncoded = encoded;
         assertAll(
             () -> assertEquals("HELLO", finalEncoded.toString(StandardCharsets.UTF_8)),
-            () -> assertFalse(channel.finish())
+            () -> assertFalse(channel.finishAndReleaseAll())
         );
     } finally {
         if (encoded != null) {
@@ -78,7 +78,7 @@ void decodesLengthPrefixedMessage() {
     assertAll(
         () -> assertTrue(channel.writeInbound(input)),
         () -> assertEquals("hello", channel.<Message>readInbound().text()),
-        () -> assertFalse(channel.finish())
+        () -> assertFalse(channel.finishAndReleaseAll())
     );
 }
 ```
@@ -87,7 +87,7 @@ void decodesLengthPrefixedMessage() {
 
 Only 2 bytes arrive instead of the required 4 - no frame is produced and no exception is thrown from the decoder.
 `writeInbound` returns `false` because the decoder cannot produce a complete frame.
-`finish()` releases pending internal buffers and returns `true` if any remain.
+`finishAndReleaseAll()` releases pending internal buffers and returns `true` if any remain.
 
 ```java
 import io.netty.buffer.Unpooled;
@@ -100,13 +100,14 @@ void propagatesExceptionOnShortFrame() {
     ByteBuf shortInput = Unpooled.buffer(2);
     shortInput.writeShort(42);
     assertFalse(channel.writeInbound(shortInput));
-    assertTrue(channel.finish());
+    assertTrue(channel.finishAndReleaseAll());
 }
 ```
 
 ## Invariants
 
-- call `finish()` so queued messages and buffers are released
+- call `finishAndReleaseAll()` to release queued messages and buffers
+  - `finish()` only marks the channel as finished and returns whether anything remains to read; it does not release pending messages, so prefer `finishAndReleaseAll()` for cleanup
 - assert both inbound and outbound sides explicitly when the handler transforms messages
 - use `assertThrowsExactly(...)` for exception paths - verify that malformed input either produces no output or triggers the expected error response through the pipeline
 - release outbound `ByteBuf` values read from `readOutbound()` after assertion

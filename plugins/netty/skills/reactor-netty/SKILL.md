@@ -90,6 +90,7 @@ Keep low-level Netty concerns out of this common path:
 ```
 
 Use `reactor-netty-core` instead when the work is only TCP or UDP.
+Use `reactor-netty-quic` when the work includes QUIC; that module provides `QuicServer` and `QuicClient`.
 
 ### Lifecycle and composition
 
