@@ -34,14 +34,16 @@ Nest the decision under `hookSpecificOutput`:
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
     "permissionDecision": "allow|deny|ask",
-    "permissionDecisionReason": "Decision rationale"
+    "permissionDecisionReason": "Decision rationale",
+    "updatedInput": {"file_path": "/safe/path"}
   },
   "systemMessage": "Reason shown to Claude"
 }
 ```
 
-- `permissionDecision` (string) - `allow` (proceed unchanged), `deny` (block), `ask` (prompt user)
+- `permissionDecision` (string) - `allow` (proceed, optionally with `updatedInput`), `deny` (block), `ask` (prompt user)
 - `permissionDecisionReason` (string) - Why the decision was made
+- `updatedInput` (object, optional) - When `permissionDecision` is `allow`, replace the tool input with this object; it MUST satisfy the tool's input schema or the hook rejects it as a validation error. Omit it to let the original input run unchanged.
 - `systemMessage` (string, optional) - Reasoning shown in Claude's transcript
 
 ### PostToolUse feedback output

@@ -13,6 +13,7 @@
     "ai-consumable",
     "structured"
   ],
+  "license": "MIT",
   "name": "document-creator",
   "repository": "https://github.com/ririnto/sinon"
 }
