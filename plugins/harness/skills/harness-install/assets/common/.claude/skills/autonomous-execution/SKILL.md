@@ -17,9 +17,7 @@ Use this skill only after the user explicitly authorizes autonomous follow-throu
 - Use one scoped outcome per cycle.
 - Give each candidate an owning record, acceptance criteria, failure limit, validation command, review checklist, and publication or completion target before implementation.
 - Process non-overlapping candidates in separate worktrees when their files, contracts, validation surfaces, and publication or completion targets do not conflict.
-- Use `issue-mining` for issue investigation and registration.
-- Use `review` for readiness review.
-- Use `implementation` and `review` agents only through the orchestrator's subagent policy.
+- Investigate and register issues, review readiness, and delegate implementation through whatever skills and agents are installed; when a dedicated skill or agent for that step is absent, perform the step directly against the candidate's acceptance criteria.
 
 ## First Safe Checks
 
@@ -27,7 +25,7 @@ Use this skill only after the user explicitly authorizes autonomous follow-throu
 2. Use `WORKFLOW.md` to confirm the host or local review flow.
 3. Confirm the host flow: GitHub, GitLab, or local review.
 4. Write down scope, stop condition, validation command, review target, and publication or completion target.
-5. Identify candidate sources: user request, issue mining, validation failures, review findings, or repository scan.
+5. Identify candidate sources: user request, issue investigation, validation failures, review findings, or repository scan.
 
 ## Procedure
 

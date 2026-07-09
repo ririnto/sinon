@@ -23,7 +23,7 @@ Structural checks that cannot be automated remain prose conventions in the insta
 - Automated enforcement: Checkstyle lints imports and braces; Spotless enforces Java formatting.
   - Remaining Java code-structure detection rules are prose-only.
 - Check command: generated Maven Checkstyle plus Spotless command with `git ls-files` and `spotlessFiles`
-- Fix command: use the generated Maven `git ls-files` wrapper shape with `./mvnw spotless:apply` and the same escaped, repo-root-anchored `spotlessFiles` value.
+- Fix command: use the generated Maven `git ls-files` wrapper shape with `./mvnw exec:exec@format-markdown spotless:apply` and the same escaped, repo-root-anchored `spotlessFiles` value; `exec:exec@format-markdown` applies Markdown fixes and `spotless:apply` applies Java formatting, mirroring the check command's coverage (Checkstyle is lint-only and has no fix step).
 
 ### uv
 
@@ -79,8 +79,8 @@ Target repositories MUST uphold these in documentation, agent instructions, and 
 - hookExecutable: Installed hook files MUST have executable bits set (mode 755 or `a+x`).
 - hookSourceMarker: Installed hook files SHOULD identify the stack asset that owns their command contract.
 - hookStage: Hook files MUST declare which stage they run (pre-commit or pre-push).
-- hookCommand: Installed hooks MUST invoke the selected stack validation command for both `pre-commit` and `pre-push`.
-- ciHookCommandParity: The `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml` files MUST run the same final-check command as the installed pre-push hook.
+- hookCommand: The installed `pre-commit` hook MUST run the stack canonical check command; the installed `pre-push` hook runs a local final gate that is a superset of the canonical check, adding tests for Gradle (`./gradlew check`), Maven (`./mvnw verify`), and Bun (`bun run check && bun test`), and identical to the canonical check for uv and Shell.
+- ciHookCommandParity: The `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml` files MUST run the same canonical check command as the installed `pre-commit` hook, and the two CI hosts MUST agree with each other; CI re-runs the canonical check, not the local `pre-push` superset.
 - envShebangUsage: Shell scripts MUST use the `/usr/bin/env` shebang pattern rather than direct interpreters.
 - uncheckedTasks: Completed execution plans in `docs/exec-plans/` MUST NOT contain any unchecked `- [ ]` task items.
 - templateGroups: Templates under docs/templates/ MUST match the installed template structure and renderable variable names used by the installer.

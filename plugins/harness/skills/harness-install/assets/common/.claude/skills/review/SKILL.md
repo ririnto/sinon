@@ -54,7 +54,7 @@ For stack hook assets, check `.githooks/`, `.husky/`, `.pre-commit-config.yaml`,
 - Workflow drift between supplied workflow policy, host CLI usage, and review evidence.
 - Missing acceptance criteria, execution plans, or architecture updates.
 - Required fake product content or obsolete references.
-- Inconsistent validation commands across docs, CI, active pre-commit, and active pre-push final checks.
+- Canonical check command drift across docs, CI, and the active `pre-commit` hook, or an active `pre-push` hook that is not a superset of that canonical check.
 - Agents or skills with unclear trigger descriptions or unsupported scope.
 
 ## Output Contract

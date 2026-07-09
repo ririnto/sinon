@@ -5,6 +5,10 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
+import {
+  computeAssetManifest,
+  manifestPathFor
+} from "../skills/harness-install/scripts/asset-manifest.js";
 import { checkPackageSurface } from "./harness-checks/package-surface.js";
 
 type StackMode = "bun" | "gradle" | "maven" | "shell" | "uv";
@@ -775,8 +779,21 @@ const checkBunAssets = (root: string): void => {
 const checkUvAssets = (root: string): void => {
   const assets = path.join(root, "skills", "harness-install", "assets", "uv");
   requireFile(path.join(assets, "ruff.toml"));
-  requireFile(path.join(assets, "uv.toml"));
+  requireFile(path.join(assets, "pyproject.toml"));
   requireFile(path.join(assets, "scripts", "check.py"));
+  requireTexts([
+    {
+      fragments: ['dev = ["pre-commit', "package = false"],
+      path: path.join(assets, "pyproject.toml")
+    },
+    {
+      fragments: ['minimum_pre_commit_version: "4.6.0"'],
+      path: path.join(assets, ".pre-commit-config.yaml")
+    }
+  ]);
+  if (existsSync(path.join(assets, "uv.toml"))) {
+    fail("[uv assets] uv.toml must not exist; use pyproject.toml instead");
+  }
   checkGithubWorkflow(
     path.join(assets, ".github", "workflows", "ruff.yaml"),
     "uv run scripts/check.py",
@@ -867,21 +884,109 @@ const checkRepositoryScripts = (root: string): void => {
 const checkInstallerSurface = (root: string): void => {
   const scripts = path.join(root, "skills", "harness-install", "scripts");
   requireFile(path.join(scripts, "install-harness.ts"));
+  requireFile(path.join(scripts, "asset-manifest.ts"));
+  requireFile(path.join(scripts, "generate-asset-manifest.ts"));
   for (const filePath of [
     "cli.ts",
     "commands.ts",
     "contracts.ts",
     "files.ts",
     "installer.ts",
+    "managed.ts",
     "operations.ts",
     "paths.ts",
     "planning.ts",
     "preview.ts",
+    "record.ts",
     "types.ts"
   ]) {
     requireFile(path.join(scripts, "install-harness", filePath));
   }
   console.error("[installer surface] OK");
+};
+
+/**
+ * Lock installer contract shapes added by the harness-improvements work.
+ *
+ * Guards against silent regression of the opt-in flags, managed-block
+ * markers, install-record schema, the Maven markdown-fix step, and the
+ * removed `--no-ci` flag staying removed.
+ *
+ * @param root Harness plugin root.
+ */
+const checkInstallerContract = (root: string): void => {
+  const installerDir = path.join(
+    root,
+    "skills",
+    "harness-install",
+    "scripts",
+    "install-harness"
+  );
+  requireTexts([
+    {
+      fragments: ['"--activate-hooks"', '"--preview"', '"--show"', '"--only"'],
+      path: path.join(installerDir, "cli.ts")
+    },
+    {
+      fragments: [
+        'installRecordPath = ".harness/install-record.json"',
+        "schemaVersion: 1"
+      ],
+      path: path.join(installerDir, "record.ts")
+    },
+    {
+      fragments: [
+        'import { writeInstallRecord } from "./record.js";',
+        "await writeInstallRecord(config);"
+      ],
+      path: path.join(installerDir, "installer.ts")
+    },
+    {
+      fragments: [
+        "<!-- harness:managed begin -->",
+        "<!-- harness:managed end -->"
+      ],
+      path: path.join(installerDir, "managed.ts")
+    },
+    {
+      fragments: ["exec:exec@format-markdown spotless:apply"],
+      path: path.join(installerDir, "commands.ts")
+    }
+  ]);
+  rejectTextFragments(path.join(installerDir, "cli.ts"), ['"--no-ci"']);
+  console.error("[installer contract] OK");
+};
+
+/**
+ * Validate the checked-in deny-by-default asset manifest against git-tracked files.
+ *
+ * @param root Harness plugin root.
+ */
+const checkAssetManifest = (root: string): void => {
+  const skillDir = path.join(root, "skills", "harness-install");
+  const manifestPath = manifestPathFor(skillDir);
+  requireFile(manifestPath);
+  const expected: Record<string, readonly string[]> = {};
+  for (const [subdir, entries] of Object.entries(
+    computeAssetManifest(skillDir)
+  )) {
+    expected[subdir] = [...entries].toSorted();
+  }
+  const actual = JSON.parse(readFileSync(manifestPath, "utf-8")) as Record<
+    string,
+    readonly string[]
+  >;
+  const expectedJson = JSON.stringify(expected);
+  const actualJson = JSON.stringify(actual);
+  if (expectedJson !== actualJson) {
+    fail(
+      `[assetManifest] ${path.relative(
+        root,
+        manifestPath
+      )} is stale; run scripts/generate-asset-manifest.ts`
+    );
+  }
+  console.error("[asset manifest] OK");
 };
 
 /**
@@ -923,6 +1028,8 @@ const main = (): number => {
     checkRepositoryScripts(root);
     checkPackageSurface(root);
     checkInstallerSurface(root);
+    checkInstallerContract(root);
+    checkAssetManifest(root);
     requireFile(path.join(root, "scripts", "plugin-self-check.ts"));
     checkNativeTools();
     console.error("\nHarness asset/package smoke checks passed.");
