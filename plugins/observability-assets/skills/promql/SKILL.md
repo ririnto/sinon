@@ -813,7 +813,8 @@ Return:
   - query tuning for alert or dashboard context
   - HTTP API interaction patterns for querying Prometheus
   - understanding data types, literals, operator precedence, and staleness
-- Do not activate for: full alert-rule YAML authoring
+- Do not activate for:
+  - full alert-rule YAML authoring
   - Alertmanager routing and notification design
   - Grafana dashboard layout, provisioning, or panel configuration
   - Prometheus server configuration, scraping, or relabeling rules
