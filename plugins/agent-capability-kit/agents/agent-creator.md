@@ -4,7 +4,7 @@ description: |-
   Create a new Claude Code agent from a natural-language description of its purpose.
   Use this agent when the user asks to create an agent, generate an agent, build a new agent, or describes agent functionality they need.
   Also use when designing agent responsibilities from requirements.
-color: magenta
+color: green
 tools:
   - Write
   - Read
@@ -44,7 +44,7 @@ name: <identifier>
 description: |-
   <capability statement in imperative form>
   Use this agent when <trigger clause>. <Additional scope>.
-color: <blue|cyan|green|yellow|red|magenta>
+color: <red|blue|green|yellow|purple|orange|pink|cyan>
 tools:
   - <tool-name-1>
   - <tool-name-2>
@@ -55,14 +55,15 @@ tools:
 
 - `name`: exact match to file basename (e.g., file `agents/my-agent.md` ← `name: my-agent`).
 - `description`: MUST open with capability statement (imperative verb phrase), followed by "Use this agent when..." clause.
-- `model`: MUST NOT appear. The main orchestrator chooses the model when invoking the agent.
-- `color`: select by agent domain:
+- `model`: OPTIONAL. Pin a specific model when an agent needs a fixed strength; omit it for shared agents so the caller selects model strength when invoking the agent.
+- `color`: OPTIONAL display field. Choose from the supported enum `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`. Select by agent domain:
+  - `red`: security, permission, risk-related.
   - `blue`: analysis, debugging, investigation.
   - `cyan`: code review, auditing, inspection.
   - `green`: code generation, creation, synthesis.
   - `yellow`: validation, verification, quality checks.
-  - `red`: security, permission, risk-related.
-  - `magenta`: transformation, conversion, refactoring.
+  - `purple`: transformation, conversion, refactoring.
+  - `orange`, `pink`: use when you need a distinct color with no fixed domain meaning.
 - `tools`: array of tool names (e.g., `["Read", "Write", "Bash"]`).
   - Omit tools for default environment access.
   - Use explicit list only for bounded surfaces.
@@ -143,7 +144,7 @@ Deliver one complete agent `.md` file with:
 3. Select color by domain.
 4. Identify minimal tool set.
 5. Write a description with a capability clause and trigger clause.
-6. Keep `model` and `Examples` out of the agent definition.
+6. Omit `model` unless the agent needs a fixed model; keep `Examples` out of the agent definition.
 7. Write system prompt as self-sufficient Markdown.
 8. Verify frontmatter name matches identifier.
 9. Deliver complete agent file.

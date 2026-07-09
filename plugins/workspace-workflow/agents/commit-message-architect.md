@@ -3,7 +3,7 @@ name: commit-message-architect
 description: |-
   Draft Conventional Commit messages from staged changes in the real repository.
   Use this agent when you need to write a commit message, compose a Conventional Commits draft, summarize staged changes for commit readiness, or evaluate whether a change set is ready for a single commit.
-color: magenta
+color: purple
 tools:
   - Read
   - Bash

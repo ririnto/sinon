@@ -134,9 +134,10 @@ All hook input fields accessible via `jq`:
 # -*- coding: utf-8 -*-
 set -e
 
-tool_name=$(cat | jq -r '.tool_name')
-tool_input=$(cat | jq -r '.tool_input')
-cwd=$(cat | jq -r '.cwd')
+input=$(cat)
+tool_name=$(printf '%s' "$input" | jq -r '.tool_name')
+tool_input=$(printf '%s' "$input" | jq -r '.tool_input')
+cwd=$(printf '%s' "$input" | jq -r '.cwd')
 printf 'Tool: %s, Input: %s, CWD: %s\n' "$tool_name" "$tool_input" "$cwd"
 ```
 
@@ -147,8 +148,8 @@ printf 'Tool: %s, Input: %s, CWD: %s\n' "$tool_name" "$tool_input" "$cwd"
 # -*- coding: utf-8 -*-
 set -e
 
-user_prompt=$(cat | jq -r '.user_prompt')
-echo "User prompt received: $user_prompt"
+prompt=$(cat | jq -r '.prompt')
+echo "User prompt received: $prompt"
 ```
 
 ## Path resolution rules

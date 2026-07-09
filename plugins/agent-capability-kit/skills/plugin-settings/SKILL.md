@@ -1,68 +1,95 @@
 ---
 name: plugin-settings
 description: >-
-  Author plugin-level configuration via `settings.json`, prompted values via `userConfig`, and per-project state via `.claude/{{plugin-name}}.local.md` with YAML frontmatter parsing patterns.
-  Triggers on plugin settings creation or reads, per-project state file design, YAML frontmatter extraction from markdown, or wiring settings into hooks and agents.
+  Author plugin configuration across three surfaces: plugin-root `settings.json` for host-supported static settings, manifest `userConfig` for prompted install-time values, and a plugin-defined `.claude/{{plugin-name}}.local.md` state file for per-project configuration that plugin hooks and agents read.
+  Triggers on plugin settings creation, prompted `userConfig` wiring, per-project state file design, or YAML frontmatter extraction from markdown for plugin runtime code.
 ---
 
 # Plugin Settings
 
-Author plugin-level static configuration and per-project plugin state with YAML frontmatter patterns, readable offline from hooks, agents, and bundled runtime code.
+Choose the right configuration surface for a plugin and author it so hooks, agents, and bundled runtime code can read it offline.
 
 ## Goal
 
-Enable plugins to store configurable state in `.claude/{{plugin-name}}.local.md` files so projects can customize plugin behavior without code changes, and document the file structure and parsing patterns needed to read and validate settings.
+Give a plugin a trustworthy place to keep configuration, and document the parsing patterns plugin code uses to read it.
 
-## Scope
+## Scope: choose the right surface
 
-This skill covers two independent surfaces:
+Start by picking the surface that matches where the value comes from and who edits it.
+Two surfaces are host-supported; the third is a plugin-defined convention.
 
-### Plugin-Level Settings
+### Plugin-level settings - `settings.json`
 
-`settings.json` at the plugin root.
-Claude Code auto-discovers this file.
-Do not declare a `settings` key in `plugin.json`; use `userConfig` when the plugin needs prompted install-time values.
-Static configuration, shared across all projects.
-One file per plugin.
+Plugin-root `settings.json`, auto-discovered by Claude Code.
+Host-supported static settings shared across every project that enables the plugin.
 
-### Per-Project State
-
-`.claude/{{plugin-name}}.local.md` in user projects, gitignored, user-managed.
-YAML frontmatter (structured key-value config) + markdown body (freeform content).
-One file per plugin per project.
-
-## Operating Rules
-
-1. Plugin-level `settings.json` contains Claude Code-supported default settings; project state files are writable by end users.
-2. State files use YAML frontmatter as the authoritative config layer; markdown body is secondary context.
-3. Hooks and agents MUST check file existence before parsing to avoid errors on first run.
-4. Changes to `.local.md` files require Claude Code restart before hooks recognize them.
-5. All `.local.md` and `.local.json` entries MUST be added to project `.gitignore`.
-6. File paths in settings MUST be validated for path traversal (no `..`); file permissions MUST be `chmod 600`.
-7. User input written to settings files MUST be sanitized (escape quotes, validate types).
-8. When the settings file is absent or invalid, behavior MUST fall back to documented defaults.
-
-## File Structure
-
-### Plugin-level settings.json
-
-Use plugin-root `settings.json` only for Claude Code-supported default settings.
-Current supported keys are `agent` and `subagentStatusLine`:
+Use it for host-supported settings keys such as `permissions`, `env`, `model`, `statusLine`, `outputStyle`, and `hooks`.
+Consult the Claude Code settings schema for the full key set; do not invent keys.
 
 ```json
 {
-  "agent": "inherit",
-  "subagentStatusLine": true
+  "env": {
+    "MY_PLUGIN_DEFAULT_MODE": "standard"
+  },
+  "statusLine": "echo my-plugin active"
 }
 ```
 
-Use `plugin.json` `userConfig` for prompted plugin options.
-Read prompted values through `${user_config.KEY}` substitution or `CLAUDE_PLUGIN_OPTION_<KEY>` in plugin subprocesses.
-Use project `.local.md` state files for project-owned configuration that users edit directly.
+Do not redeclare `settings` as a manifest path when `settings.json` at the plugin root is the only surface.
 
-### Per-project .claude/`{{plugin-name}}`.`local.md`
+### Prompted config - `userConfig`
 
-Template with frontmatter (YAML key-value pairs) and optional markdown body:
+Declared in the plugin manifest under `userConfig`.
+Claude Code prompts the user at enable time for each declared value; non-sensitive values are saved to `settings.json` and sensitive values go to secure storage.
+Use it for values that vary per user and are chosen up front, such as an API endpoint or a preferred mode.
+
+```json
+{
+  "userConfig": {
+    "apiEndpoint": {
+      "type": "string",
+      "title": "API endpoint",
+      "description": "Base URL the plugin calls.",
+      "default": "https://api.example.com"
+    }
+  }
+}
+```
+
+Read prompted values through `${user_config.KEY}` substitution in plugin configuration, or through the `CLAUDE_PLUGIN_OPTION_<KEY>` environment variable in plugin subprocesses.
+
+### Per-project local state - `.claude/{{plugin-name}}.local.md`
+
+A plugin-defined convention, not a host feature.
+A gitignored, user-managed Markdown file with YAML frontmatter that the plugin's own hooks and agents read each time they run.
+Use it for per-project configuration that users edit directly and that is not a host setting.
+
+One file per plugin per project.
+
+## Decision table
+
+| Need | Surface | Why |
+| --- | --- | --- |
+| Static host setting, shared across projects | `settings.json` | Host-supported, auto-discovered |
+| Value chosen once at install, varies per user | `userConfig` | Host prompts the user; `${user_config.KEY}` exposes it |
+| Per-project value, user-edited, read by plugin code | `.local.md` | Plugin convention; no host contract to satisfy |
+
+## Operating rules
+
+1. Pick one surface per value using the decision table; do not mirror the same value across surfaces.
+2. Plugin-level `settings.json` holds host-supported keys only; do not invent keys the host does not recognize.
+3. `.local.md` files are a plugin convention: the plugin's own hooks and agents read them; no host feature is implied.
+4. Hooks and agents MUST check file existence before parsing to avoid errors on first run.
+5. Content changes in a `.local.md` file take effect the next time a plugin command hook reads it, because command hooks run their script fresh each fire.
+   Only structural changes to `hooks.json` need a plugin reload.
+6. All `.local.md` and `.local.json` entries MUST be added to project `.gitignore`.
+7. File paths supplied through settings MUST be validated for path traversal (no `..`); user-scoped state files SHOULD use `chmod 600`.
+8. User input written to settings files MUST be sanitized (escape quotes, validate types).
+9. When the state file is absent or invalid, behavior MUST fall back to documented defaults.
+
+## Per-project state file structure
+
+`.claude/{{plugin-name}}.local.md` with YAML frontmatter (structured key-value config) and an optional Markdown body:
 
 ```markdown
 ---
@@ -78,45 +105,43 @@ list_setting:
 # Plugin Configuration
 
 This file controls per-project behavior for your-plugin.
-Edit settings above and restart Claude Code for changes to take effect.
+Edit the frontmatter above; settings apply on the next hook run.
 ```
 
-Common frontmatter keys:
+Common frontmatter keys are plugin-defined.
+Typical examples:
 
-- `enabled` (boolean): Master on/off switch for hook behavior.
-- Plugin-specific keys: custom fields matching the plugin's config schema.
-- `coordinator_session` (string): tmux session name for multi-agent coordination.
-- `task_number` (string): Agent task identifier for swarm workflows.
-- `additional_instructions` (string): Freeform instructions fed back to Claude.
+- `enabled` (boolean): master on/off switch for hook behavior.
+- `mode` (string): selects a behavior profile the plugin recognizes.
+- Plugin-specific keys: custom fields matching the plugin's own schema.
 
-## Reading Settings from Hooks
+## Reading settings from hooks
 
-Hooks (bash scripts) that read settings follow a three-step pattern: existence check, frontmatter extraction, field parsing.
-
-Pattern: Check file exists, extract frontmatter between `---` delimiters, parse individual fields with `grep` + `sed`:
+Hooks that read state follow a three-step pattern: existence check, frontmatter extraction, field parsing.
+Check the file exists, extract frontmatter between `---` delimiters, then parse individual fields with `grep` and `sed`:
 
 ```sh
 if [ ! -f "$STATE_FILE" ]; then
     return 0
 fi
 FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
-ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
+ENABLED=$(printf '%s\n' "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
 ```
 
 See `references/frontmatter-parsing.md` for per-field type patterns (boolean, string, numeric, array, multi-line), edge cases, validation, and complete working examples.
 
-## Reading Settings from Agents
+## Reading settings from agents
 
-Agents reference settings in their instructions:
+Agents reference state in their instructions:
 
 ```markdown
 ---
 name: configured-agent
 description: >-
-  Adapts behavior to project settings
+  Adapts behavior to project settings.
 ---
 
-- Check for plugin settings at `.claude/your-plugin.local.md`.
+- Check for plugin state at `.claude/your-plugin.local.md`.
 - If the file exists:
   - Parse YAML frontmatter (the content between `---` markers at the top).
   - Read the `enabled`, `mode`, and other fields.
@@ -124,11 +149,11 @@ description: >-
 - If the file is absent, use documented defaults.
 ```
 
-## Common Patterns
+## Common patterns
 
-### Pattern 1: Conditional Hook Activation
+### Pattern 1: Conditional hook activation
 
-Use `enabled` flag to activate/deactivate hooks without editing `hooks.json` (which requires restart):
+Use an `enabled` flag to activate or deactivate hook logic without editing `hooks.json`:
 
 ```sh
 #!/usr/bin/env sh
@@ -144,62 +169,17 @@ if [ ! -f "$STATE_FILE" ]; then
     exit 0
 fi
 FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
-ENABLED=$(echo "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
+ENABLED=$(printf '%s\n' "$FRONTMATTER" | grep '^enabled:' | sed 's/enabled: *//')
 if [ "$ENABLED" != "true" ]; then
     exit 0
 fi
 ```
 
-Restart Claude Code after changing `enabled: true/false`.
+Changing `enabled: true` to `false` applies on the next hook run; no restart is required for content changes.
 
-### Pattern 2: Agent Task Coordination
+### Pattern 2: Configuration-driven validation mode
 
-Store agent identity and coordinator session for multi-agent swarms:
-
-`.claude/multi-agent-swarm.`local.md`:`
-
-```markdown
----
-agent_name: auth-service
-task_number: 3.5
-pr_number: 1234
-coordinator_session: team-leader
-enabled: true
----
-
-# Task: Implement JWT Authentication
-
-Coordinate with database-agent on schema changes.
-```
-
-Hook reads fields and sends notifications to coordinator:
-
-```markdown
-# Validate tmux session name format.
-#
-# @param session Session name.
-# @return Exits 0 if valid; 1 otherwise.
-validate_tmux_session() {
-    session="$1"
-    if ! printf '%s' "$session" | grep -qE '^[a-zA-Z0-9_-]+$'; then
-        return 1
-    fi
-    return 0
-}
-
-AGENT_NAME=$(echo "$FRONTMATTER" | grep '^agent_name:' | sed 's/agent_name: *//')
-COORDINATOR=$(echo "$FRONTMATTER" | grep '^coordinator_session:' | sed 's/coordinator_session: *//')
-if validate_tmux_session "$COORDINATOR"; then
-    safe_agent=$(printf '%q' "$AGENT_NAME")
-    tmux send-keys -t "$COORDINATOR" "Agent $safe_agent completed task" Enter
-fi
-```
-
-### Pattern 3: Configuration-Driven Validation Mode
-
-Store validation policy and apply in hooks or bundled runtime code:
-
-`.claude/security-plugin.`local.md`:`
+Store a validation policy and apply it in hooks or bundled runtime code:
 
 ```markdown
 ---
@@ -213,42 +193,40 @@ allowed_extensions:
 
 Switch behavior based on mode:
 
-```json
-LEVEL=$(echo "$FRONTMATTER" | grep '^validation_level:' | sed 's/validation_level: *//')
+```sh
+LEVEL=$(printf '%s\n' "$FRONTMATTER" | grep '^validation_level:' | sed 's/validation_level: *//')
 case "$LEVEL" in
     strict)
-        # Apply strict checks
+        # Apply strict checks.
         ;;
     standard)
-        # Apply standard checks
+        # Apply standard checks.
         ;;
     lenient)
-        # Minimal checks
+        # Minimal checks.
         ;;
 esac
 ```
 
-## Creating Settings Files
+## Creating state files
 
-Agents can scaffold settings files when requested by the user.
+Agents can scaffold state files when requested by the user.
 
-### Steps
-
-1. Ask user for configuration preferences.
+1. Ask the user for configuration preferences.
 2. Sanitize user input (escape quotes, validate types).
-3. Write `.claude/{{plugin-name}}.local.md` with YAML frontmatter and optional body.
-4. Add `.claude/*.local.md` to project `.gitignore`.
-5. Inform user that settings are active and require Claude Code restart.
+3. Write `.claude/{{plugin-name}}.local.md` with YAML frontmatter and an optional body.
+4. Add `.claude/*.local.md` to the project `.gitignore`.
+5. Tell the user the settings apply on the next hook run.
 
-### Sanitization Example
+### Sanitization
 
-```markdown
-# Write sanitized user input to plugin settings file.
+```sh
+# Write sanitized user input to a plugin state file.
 #
 # @param USER_INPUT Raw user input string.
 # @return Creates .claude/your-plugin.local.md with escaped values.
 USER_INPUT="$1"
-SAFE_VALUE=$(echo "$USER_INPUT" | sed 's/"/\\"/g')
+SAFE_VALUE=$(printf '%s' "$USER_INPUT" | sed 's/"/\\"/g')
 cat > ".claude/your-plugin.local.md" <<EOF
 ---
 user_setting: "$SAFE_VALUE"
@@ -260,71 +238,36 @@ EOF
 chmod 600 ".claude/your-plugin.local.md"
 ```
 
-Validate path fields to prevent path traversal:
+### Path validation
 
-```markdown
-# Canonicalize and validate path against base directory.
+Reject absolute paths and `..` traversal segments before using a path from settings.
+This check is POSIX and avoids GNU-only `realpath -m`:
+
+```sh
+# Validate a relative path stays inside the base directory.
 #
 # @param base_dir Base directory (e.g., ${CLAUDE_PROJECT_DIR}).
-# @param path_value User-provided path to validate.
-# @return Exits 2 if unsafe; exits 0 and echoes normalized path otherwise.
+# @param path_value User-provided relative path to validate.
+# @return Returns 2 and prints to stderr if unsafe; returns 0 and echoes base/value otherwise.
 validate_path_safe() {
     base_dir="$1"
     path_value="$2"
     if [ -z "$path_value" ]; then
-        echo "⚠️ Empty path" >&2
+        echo "error: empty path" >&2
         return 2
     fi
-    normalized=$(realpath -m "$base_dir/$path_value" || echo "")
-    if [ -z "$normalized" ]; then
-        echo "⚠️ Invalid path" >&2
-        return 2
-    fi
-    base_real=$(realpath -m "$base_dir" || echo "")
-    if [ -z "$base_real" ] || { [ "$normalized" != "$base_real" ] && ! printf '%s' "$normalized" | grep -qE "^${base_real}/"; }; then
-        echo "⚠️ Path escapes base directory" >&2
-        return 2
-    fi
-    echo "$normalized"
+    case "$path_value" in
+        ..|../*|*/..|*/../*|/*)
+            echo "error: path escapes base directory" >&2
+            return 2
+            ;;
+    esac
+    printf '%s/%s\n' "$base_dir" "$path_value"
     return 0
 }
-
-FILE_PATH=$(echo "$FRONTMATTER" | grep '^data_file:' | sed 's/data_file: *//')
-if ! FILE_PATH=$(validate_path_safe "${CLAUDE_PROJECT_DIR}" "$FILE_PATH"); then
-    echo "⚠️ Invalid path in settings" >&2
-    exit 2
-fi
 ```
 
-## Gitignore and Defaults
-
-### Add to project .gitignore
-
-User scope state files MUST never be committed:
-
-```text
-.claude/*.local.md
-.claude/*.local.json
-```
-
-Document this in plugin README:
-
-```markdown
-## Configuration
-
-Create `.claude/your-plugin.local.md` in your project:
-
-\`\`\`markdown
----
-enabled: true
-mode: standard
----
-\`\`\`
-
-Note: This file is local to your project and should be added to `.gitignore`.
-```
-
-### Defaults when file is absent
+## Defaults when the file is absent
 
 ```sh
 if [ ! -f "$STATE_FILE" ]; then
@@ -332,72 +275,57 @@ if [ ! -f "$STATE_FILE" ]; then
     MODE="standard"
     MAX_RETRIES=3
 else
-    # Parse from file
+    FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
 fi
 ```
 
-Validate numeric ranges:
+Validate numeric ranges and fall back on invalid input:
 
-```json
-MAX=$(echo "$FRONTMATTER" | grep '^max_retries:' | sed 's/max_retries: *//')
+```sh
+MAX=$(printf '%s\n' "$FRONTMATTER" | grep '^max_retries:' | sed 's/max_retries: *//')
 if ! printf '%s' "$MAX" | grep -qE '^[0-9]+$' || [ "$MAX" -lt 1 ] || [ "$MAX" -gt 100 ]; then
-    echo "⚠️ Invalid max_retries (must be 1-100), using default 3" >&2
+    echo "error: invalid max_retries (must be 1-100), using default 3" >&2
     MAX=3
 fi
 ```
 
-## Restart Requirement
+## When a reload is actually required
 
-Critical: Changes to `.local.md` files require Claude Code restart before hooks reload them.
+Two different reload rules apply; do not conflate them.
 
-Document in plugin README:
+- `.local.md` content changes: read fresh by plugin command hooks on the next fire.
+  No restart is required for content edits.
+- `hooks.json` structure changes (adding, removing, or rewiring events or matchers): take effect on the next plugin load.
+  Restart the session when a structural change must be guaranteed live.
 
-```markdown
-## Changing Settings
-
-After editing `.claude/your-plugin.local.md`:
-1. Save the file
-2. Exit Claude Code (or use `/exit`)
-3. Restart: `claude` or `cc`
-4. New settings will be active
-```
-
-Hooks loaded during startup cannot be hot-reloaded within the same session.
+Document this distinction in the plugin README so users know which edits are live immediately.
 
 ## Security
 
-### Input Sanitization
+### Input sanitization
 
-Always escape user input before writing to YAML:
+Escape user input before writing it to YAML:
 
-```json
-SAFE_VALUE=$(echo "$INPUT" | sed 's/"/\\"/g' | sed "s/'/\\\\'/g")
-echo "field: \"$SAFE_VALUE\"" >> "$STATE_FILE"
+```sh
+SAFE_VALUE=$(printf '%s' "$INPUT" | sed 's/"/\\"/g' | sed "s/'/\\\\'/g")
+printf 'field: "%s"\n' "$SAFE_VALUE" >> "$STATE_FILE"
 ```
 
-### Path Validation
+### Path validation
 
-Reject paths containing `..` or absolute paths when not intended:
+Reject paths containing `..` or unintended absolute paths using `validate_path_safe` above.
 
-```jsonc
-PATH_VALUE=$(echo "$FRONTMATTER" | grep '^output_dir:' | sed 's/output_dir: *//')
-if printf '%s' "$PATH_VALUE" | grep -qE '^/' || [ "$PATH_VALUE" != "${PATH_VALUE%..*}" ]; then
-    echo "⚠️ Invalid path in settings" >&2
-    PATH_VALUE="./output"
-fi
-```
+### File permissions
 
-### File Permissions
+User-scoped state files SHOULD be readable only by the user:
 
-Settings files MUST be readable only by the user:
-
-```json
+```sh
 chmod 600 ".claude/your-plugin.local.md"
 ```
 
-## First Safe Commands
+## First safe commands
 
-Check that a settings file exists and is valid YAML:
+Check that a state file exists:
 
 ```sh
 if [ -f ".claude/your-plugin.local.md" ]; then
@@ -407,39 +335,41 @@ fi
 
 Extract frontmatter without parsing:
 
-```json
+```sh
 sed -n '/^---$/,/^---$/{ /^---$/d; p; }' ".claude/your-plugin.local.md"
 ```
 
 Read a single field:
 
-```json
+```sh
 grep '^enabled:' ".claude/your-plugin.local.md" | sed 's/enabled: *//'
 ```
 
-## Output Contract
+## Output contract
 
 When implementing settings support in a plugin, return:
 
-1. The template `.claude/{{plugin-name}}.local.md` file showing example frontmatter and body.
-2. Example hook code that reads and uses settings.
-3. Updated plugin README documenting the settings schema, defaults, and restart requirement.
-4. Updated `.gitignore` entry for `.claude/*.local.md`.
+1. The chosen surface per value, justified by the decision table.
+2. The template `.claude/{{plugin-name}}.local.md` file, if per-project state is in scope, showing example frontmatter and body.
+3. Example hook or agent code that reads and uses the settings.
+4. The updated plugin README documenting the settings schema, defaults, and the reload rules.
+5. The updated `.gitignore` entry for `.claude/*.local.md` and `.claude/*.local.json`.
 
 ## Pitfalls
 
+- DO: pick one surface per value using the decision table.
 - DO: check file existence with `[ -f "$FILE" ]` before parsing to avoid parse errors on first run.
-- DO: fallback to documented defaults when settings file is absent.
+- DO: fall back to documented defaults when the state file is absent or invalid.
 - DO: validate numeric ranges and string values; warn and use defaults on invalid input.
 - DO: add `.claude/*.local.md` and `.claude/*.local.json` to `.gitignore`.
-- DO: document restart requirement clearly in plugin README.
 - DO: sanitize user input before writing to files (escape quotes, validate types).
-- DO: set file permissions to `chmod 600` for user scope state files.
-- DON'T: assume the settings file exists or is valid YAML; always check and provide defaults.
-- DON'T: put plugin-level settings in `.local.md` files; use plugin-root `settings.json`, or `userConfig` for prompted values, instead.
-- DON'T: commit user scope files to git; rely on `.gitignore`.
-- DON'T: try to hot-reload hooks within the same Claude Code session; document the restart requirement.
-- DON'T: store secrets (API keys, tokens) in `.local.md` files without encryption; use Claude Code secrets or environment variables instead.
+- DO: document the reload rules (content vs `hooks.json` structure) in the plugin README.
+- DON'T: treat `.local.md` as a host feature; it is a plugin convention the plugin's own code reads.
+- DON'T: put host-supported static settings in `.local.md`; use plugin-root `settings.json`.
+- DON'T: put install-time prompted values in `.local.md`; use manifest `userConfig`.
+- DON'T: assume the state file exists or is valid YAML; always check and provide defaults.
+- DON'T: commit user-scoped files to git; rely on `.gitignore`.
+- DON'T: store secrets (API keys, tokens) in `.local.md` without encryption; use Claude Code secrets or environment variables instead.
 - DON'T: allow arbitrary file paths in settings without validation; reject `..` and absolute paths when not explicitly intended.
 
 ## References

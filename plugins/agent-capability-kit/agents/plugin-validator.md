@@ -39,8 +39,8 @@ Check `.claude-plugin/plugin.json`:
   - `.lsp.json`, `settings.json`, `output-styles/`, `themes/`, `monitors/monitors.json`
   - executable `bin/`
 - If a manifest component field declares a string path, the plugin-root file or directory MUST exist.
-- If `settings` appears in `plugin.json`, report it as an unsupported manifest field.
-  - Plugin-level settings SHOULD stay in default `settings.json`.
+- `settings` is a recognized manifest field for inline plugin settings and MAY also live in the default `settings.json` file at the plugin root.
+  - Report it only when a declared `settings` path restates the auto-discovered default `settings.json` as its sole value.
   - Prompted plugin values SHOULD use `userConfig`.
 
 ### Directory structure
@@ -50,10 +50,10 @@ Validate these optional directories only if present:
 - `agents/`: each `.md` file is an agent (see agent frontmatter rules below).
 - `skills/`: each subdirectory is a skill with `SKILL.md` at root.
 - `hooks/`: hooks configuration MUST use a wrapper object with a top-level `hooks` key.
-- `.mcp.json`: all URLs MUST use HTTPS or WSS protocols (HTTP and WS forbidden).
+- `.mcp.json`: remote server URLs for `http` and `sse` transports SHOULD use HTTPS; plain HTTP is acceptable only for localhost. MCP does not use WebSocket transports.
 - `.lsp.json`: syntax validated if present.
 - `settings.json`: JSON format validated.
-- `output-styles/`: CSS files scanned for syntax.
+- `output-styles/`: Markdown output-style files validated for structure if present.
 - `themes/`: JSON color theme files validated if present.
 - `monitors/`: each `.json` file validated.
 - `bin/`: executable files are available to Bash while the plugin is enabled.
@@ -66,7 +66,7 @@ If `agents/` directory exists:
 - `name` MUST match the file basename exactly (e.g., `agents/schema-reviewer.md` ← `name: schema-reviewer`).
 - `name` MUST use kebab-case.
 - `description` is required and MUST start with capability statement (imperative verb) before "Use this agent when...".
-- `model` MUST NOT appear. The caller chooses model strength when invoking the agent.
+- `model` is OPTIONAL. Omit it for shared agents so the caller selects model strength; set it only when an agent needs a fixed model.
 - `color` MAY appear when it helps distinguish the agent visually.
 
 ### Skill directory rules
@@ -86,7 +86,7 @@ Report findings in three categories:
   - Agent or skill `name` mismatch with basename.
 - Major (strongly recommended fixes):
   - Missing required frontmatter fields in agents.
-  - HTTP or WS URLs in `.mcp.json` (HTTPS/WSS required).
+  - Remote `http` or `sse` server URLs in `.mcp.json` use plain HTTP on a non-localhost host.
   - Missing `SKILL.md` in skill directories.
   - Malformed JSON in `.mcp.json`, `hooks/hooks.json`, or `settings.json`.
   - Declared manifest path does not exist at the plugin root.
