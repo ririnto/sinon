@@ -69,7 +69,7 @@ Trade-off: first tool call is slower (2-3s for OAuth), subsequent calls are fast
 
 ## Connection pooling: reuse remote connections
 
-HTTP and WebSocket connections to MCP servers can be pooled (connection reuse across tool calls).
+HTTP and SSE connections to MCP servers can be pooled (connection reuse across tool calls).
 
 ### Problem: new connection per tool call
 
@@ -83,7 +83,7 @@ Total: 200ms
 
 ### Solution: persistent connection pool
 
-MCP runtime maintains connection pool automatically for HTTP/WebSocket.
+MCP runtime maintains connection pool automatically for HTTP/SSE.
 No config needed.
 
 Verify pooling is active:

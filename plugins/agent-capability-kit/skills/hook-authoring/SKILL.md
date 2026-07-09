@@ -25,15 +25,16 @@ This skill owns hook authoring within `${CLAUDE_PLUGIN_ROOT}`:
 - Hook input and output JSON contracts
 - Environment variable access (`${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_PROJECT_DIR}`, `$CLAUDE_ENV_FILE`)
 - Security guardrails: input validation, path safety, variable quoting
-- Hook lifecycle: session-start loading, no hot-swap, restart requirement
+- Hook lifecycle: load on plugin enable, settings reload behavior, restart to guarantee a change is live
 
 Hook configuration in `~/.claude/settings.json` uses direct JSON.
 Plugin `hooks.json` wraps events in the `"hooks"` field.
 
 ## Operating Rules
 
-1. Hooks are loaded at session start only.
-   - Configuration changes require session restart.
+1. Plugin `hooks.json` is loaded when the plugin is enabled, typically at session start.
+   - Settings-defined hooks are snapshotted at session start; mid-session edits require `/hooks` review to take effect.
+   - Restart the session when a hook change must be guaranteed live.
 2. Plugin `hooks.json` MUST use the wrapper format: `{"hooks": {"PreToolUse": [...], ...}}`.
 3. User settings hooks MUST use direct format: `{"PreToolUse": [...], ...}` (no wrapper).
 4. Plugin-root `hooks/hooks.json` is auto-discovered and SHOULD stay out of `plugin.json` when it is the only hook configuration.
@@ -56,12 +57,13 @@ Plugin `hooks.json` wraps events in the `"hooks"` field.
 ### Prompt-Based (Recommended)
 
 Context-aware LLM decision via natural language.
-Supports variable substitution (`$TOOL_INPUT`, `$TOOL_RESULT`, `$USER_PROMPT`).
+The full hook input JSON is injected through the `$ARGUMENTS` placeholder.
 
 ```json
 {
   "type": "prompt",
-  "prompt": "Evaluate if this write is safe: $TOOL_INPUT. Check for path traversal (..), sensitive files (.env, .aws), and system paths. Return 'approve' or 'deny'.",
+  "prompt": "Evaluate whether the write described in the hook input JSON ($ARGUMENTS) is safe. Check for path traversal (..), sensitive files (.env, .aws), and system paths. Return 'approve' or 'deny'.",
+  "model": "claude-haiku-4-5-20251001",
   "timeout": 30
 }
 ```
@@ -82,6 +84,12 @@ Read JSON from stdin, return JSON on stdout/stderr.
 ```
 
 Use for: fast file checks, system calls, external integrations, performance-critical paths.
+
+### Other Handler Types
+
+Claude Code also supports `http`, `mcp_tool`, and `agent` hook handlers for advanced routing such as calling an HTTP endpoint, invoking an MCP tool, or delegating to an agent.
+These are additive to the common `command` and `prompt` paths above.
+Reach for them only when a deterministic command or an LLM prompt cannot express the check.
 
 ## Plugin hooks.json Format
 
@@ -156,7 +164,7 @@ User settings `.claude/settings.json` use flat format:
 
 No wrapper, no description field, events at top level.
 
-## Hook Events (9 Types)
+## Common Hook Events
 
 Each event is triggered by specific Claude Code lifecycle moment.
 Use matchers to filter which tools or contexts trigger the hooks.
@@ -174,7 +182,7 @@ Validate, block, or modify tool input.
       "hooks": [
         {
           "type": "prompt",
-          "prompt": "Check if file write is safe: $TOOL_INPUT. Deny .env, .aws, path traversal (..). Return 'approve' or 'deny'."
+          "prompt": "Check whether the file write in the hook input JSON ($ARGUMENTS) is safe. Deny .env, .aws, path traversal (..). Return 'approve' or 'deny'."
         }
       ]
     }
@@ -182,8 +190,8 @@ Validate, block, or modify tool input.
 }
 ```
 
-Input fields: `tool_name`, `tool_input`, `permission_mode`.
-Output: `{"permissionDecision": "allow|deny|ask", "updatedInput": {...}, "systemMessage": "..."}`
+Input fields: `tool_name`, `tool_input` (plus common fields such as `permission_mode`).
+Output: `{"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow|deny|ask", "permissionDecisionReason": "..."}, "systemMessage": "..."}`
 
 ### PostToolUse
 
@@ -198,7 +206,7 @@ React to results, provide feedback, or log outcomes.
       "hooks": [
         {
           "type": "prompt",
-          "prompt": "Analyze command output for errors, warnings, or security issues: $TOOL_RESULT. Provide feedback."
+          "prompt": "Analyze the command output in the hook input JSON ($ARGUMENTS) for errors, warnings, or security issues. Provide feedback."
         }
       ]
     }
@@ -230,7 +238,7 @@ Validate completeness.
 }
 ```
 
-Output: `{"decision": "approve|block", "reason": "...", "systemMessage": "..."}`
+Output: `{"decision": "block", "reason": "Why work should continue"}` (omit `decision` to let the agent stop)
 
 ### SubagentStop
 
@@ -266,7 +274,7 @@ Add context, validate, or block user input.
       "hooks": [
         {
           "type": "prompt",
-          "prompt": "User asked: $USER_PROMPT. If they mention security, auth, or API keys, add security guidance."
+          "prompt": "Read the submitted prompt in the hook input JSON ($ARGUMENTS). If it mentions security, auth, or API keys, add security guidance."
         }
       ]
     }
@@ -274,7 +282,7 @@ Add context, validate, or block user input.
 }
 ```
 
-Input fields: `user_prompt`.
+Input fields: `prompt`.
 
 ### SessionStart
 
@@ -376,7 +384,7 @@ Match tools, events, or patterns to control which hooks fire.
 | Pipe | `"Write\|Edit\|Read"` | Match any in list (OR) |
 | Wildcard | `"*"` | Match all tools/events |
 | Regex | `"mcp__.*"` | Match MCP tools (greedy) |
-| Underscore | `"mcp__plugin_asana_.*"` | Specific plugin MCP tools |
+| Underscore | `"mcp__asana__.*"` | Specific server MCP tools |
 
 Common patterns:
 
@@ -384,15 +392,15 @@ Common patterns:
 "matcher": "Bash"                          // Bash only
 "matcher": "Write|Edit"                    // File operations
 "matcher": "mcp__.*"                       // All MCP tools
-"matcher": "mcp__plugin_asana_.*"          // Asana MCP tools
+"matcher": "mcp__asana__.*"               // Asana MCP tools
 ```
 
-Matchers are case-sensitive and match against the full tool name.
+Matchers apply to `PreToolUse` and `PostToolUse` only and are case-sensitive.
+A plain string matches the full tool name exactly (`Write` matches only the Write tool); regex is supported for broader patterns (`Edit|Write`, `Notebook.*`); `*`, an empty string, or a blank matcher matches every tool.
 
-Matcher evaluation precedence is ordered.
-Exact-match patterns are tried first, then pipe-separated alternations left-to-right, then regex as a fallback.
-Wildcard `*` matches unconditionally if no prior pattern matched.
-Configure more specific matchers first to ensure they take precedence over broader patterns.
+Every hook entry under an event whose matcher matches the current tool or event runs.
+There is no precedence ordering between matcher entries: do not rely on a specific entry winning over a broader one.
+If two entries can both match, both fire, so keep matchers disjoint or merge them into a single entry.
 
 ## Hook Input/Output Contract
 
@@ -405,27 +413,24 @@ All hooks receive JSON with common fields:
   "session_id": "abc123",
   "transcript_path": "/path/to/transcript.txt",
   "cwd": "/project/root",
-  "permission_mode": "ask|allow",
+  "permission_mode": "default|acceptEdits|plan|bypassPermissions",
   "hook_event_name": "PreToolUse"
 }
 ```
 
 Event-specific fields:
 
-- `PreToolUse`/`PostToolUse` - `tool_name`, `tool_input`, `tool_result`
-- `UserPromptSubmit` - `user_prompt`
-- `Stop`/`SubagentStop` - `reason`
+- `PreToolUse` - `tool_name`, `tool_input`
+- `PostToolUse` - `tool_name`, `tool_input`, `tool_response`
+- `UserPromptSubmit` - `prompt`
+- `Stop`/`SubagentStop` - `stop_hook_active`
 
-### Prompt Hook Variable Substitution
+### Prompt Hook Input
 
-In prompt-type hooks, variables are substituted before sending to LLM:
-
-- `$TOOL_INPUT` → JSON stringified tool input
-- `$TOOL_RESULT` → JSON stringified tool result
-- `$USER_PROMPT` → User's submitted prompt
-- `$TOOL_NAME` → Name of the tool
-- `${CLAUDE_PLUGIN_ROOT}` → Plugin root directory
-- `${CLAUDE_PROJECT_DIR}` → Project directory
+Prompt-type hooks receive the full hook event JSON through the `$ARGUMENTS` placeholder.
+The fields documented under Hook Input live inside that JSON: `tool_name`, `tool_input`, and `tool_response` for tool events, and `prompt` for `UserPromptSubmit`.
+The `prompt` field is the instruction the LLM evaluates against that JSON.
+`${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_PROJECT_DIR}` are expanded in the prompt text for portable path references.
 
 ### Hook Output (JSON via stdout or stderr)
 
@@ -439,25 +444,30 @@ Standard return (all hooks):
 }
 ```
 
-PreToolUse output:
+PreToolUse output (nest the decision under `hookSpecificOutput`):
 
 ```json
 {
-  "permissionDecision": "allow|deny|ask",
-  "updatedInput": {"field": "modified_value"},
-  "systemMessage": "Reason for decision"
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow|deny|ask",
+    "permissionDecisionReason": "Reason for decision"
+  },
+  "systemMessage": "Reason shown to Claude"
 }
 ```
 
-Stop/SubagentStop output:
+Stop/SubagentStop output (use top-level `decision` and `reason`):
 
 ```json
 {
-  "decision": "approve|block",
-  "reason": "Why work should continue",
-  "systemMessage": "Context for Claude"
+  "decision": "block",
+  "reason": "Why work should continue"
 }
 ```
+
+Omit `decision` to let the agent stop.
+`continue: false` stops the agent outright and takes precedence over any `decision: "block"`.
 
 Exit codes:
 
@@ -499,26 +509,24 @@ Apply these rules strictly:
 See `references/security-patterns.md` for complete working examples.
 Also see it for broken-vs-correct comparisons and testing strategies.
 
-## Hook Lifecycle and Limitations
+## Hook Lifecycle and Reload
 
-### Hooks Load at Session Start
+### When Hooks Load
 
-Hooks are loaded when Claude Code session starts.
-Changes to hook configuration or scripts are NOT applied until the session is restarted.
+- Plugin `hooks/hooks.json` is loaded when the plugin is enabled, typically at session start.
+- Hooks defined in `settings.json` are snapshotted at session start; mid-session edits require `/hooks` review before they take effect.
 
-### Cannot Hot-Swap Hooks
+### Applying Changes
 
-- Editing `hooks/hooks.json` has no effect on running session
-- Adding or modifying hook scripts has no effect
-- Must exit and restart Claude Code
+- Edits to plugin `hooks.json` take effect on the next plugin load; restart the session to be certain.
+- Edits to a command hook script take effect the next time the hook fires, because command hooks invoke the script fresh each run.
+- When a configuration change must be live, restart the session rather than relying on reload timing.
 
 ### To Test Changes
 
-1. Edit `hooks/hooks.json` or hook scripts
-2. Exit Claude Code session
-3. Restart: `claude` or `cc`
-4. New configuration loads at startup
-5. Test with `claude --debug` to see hook logs
+1. Edit `hooks/hooks.json` or hook scripts.
+2. Restart the session (`claude` or `cc`) so plugin configuration reloads.
+3. Run `claude --debug` to see hook execution logs.
 
 ### Hook Validation at Session Start
 
@@ -526,7 +534,7 @@ Claude Code validates hooks when session starts:
 
 - Invalid JSON in `hooks.json` prevents hook loading
 - Missing hook scripts generate warnings
-- Use `/hooks` command (if available) to list loaded hooks in current session
+- Use the `/hooks` command to list loaded hooks in the current session
 
 ## First Safe Commands
 
@@ -587,7 +595,7 @@ Return:
 - Rely on side effects between hooks.
 - Create long-running hooks (> 30s for prompt, > 60s for command).
 - Log or expose sensitive data in hook output.
-- Edit hooks.json and expect hot-reload (requires session restart).
+- Assume a plugin `hooks.json` edit is live without restarting (settings-defined hooks reload, but plugin `hooks.json` reloads on plugin load).
 - Trust user input without validation in command hooks.
 - Run I/O-heavy operations in PreToolUse (blocks tool execution).
 

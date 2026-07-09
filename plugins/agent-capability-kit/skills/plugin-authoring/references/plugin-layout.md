@@ -72,7 +72,7 @@ Claude Code auto-discovers default component locations at the plugin root.
 Do not declare default entries in `plugin.json` when the default path is the only value.
 Default entries include:
 
-- `skills/`, `agents/`, `output-styles/`, and `themes/`
+- `skills/`, `agents/`, `commands/`, `output-styles/`, and `themes/`
 - `hooks/hooks.json`, `.mcp.json`, `.lsp.json`, `settings.json`, and `monitors/monitors.json`
 
 Executable files under `bin/` are added to Bash `PATH` while the plugin is enabled and do not use a manifest path field.
@@ -81,11 +81,11 @@ Use manifest component fields only for custom paths or inline configuration.
 When a manifest component field declares a string path, the matching plugin-root file or directory MUST exist.
 Inline object component fields do not need companion files.
 
-Path fields have field-specific merge behavior:
+Path fields are additive across the board:
 
-- `skills` adds to the default `skills/` scan.
-- `agents` and `outputStyles` replace the default unless the default path is listed explicitly.
-- `experimental.themes` and `experimental.monitors` follow the same replacement behavior.
+- `skills`, `agents`, `commands`, `outputStyles`, `themes`, and `monitors` each add to the matching default directory scan rather than replacing it.
+- `settings` merges into user settings and applies only documented allowlisted keys.
+- `userConfig` declares prompted values exposed as `${user_config.KEY}`.
 - hooks, MCP servers, and LSP servers follow their own merge rules.
 
 ## When this file matters

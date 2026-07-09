@@ -55,7 +55,7 @@ The server entrypoint should point at something the plugin ships.
 ## Settings
 
 Plugin-root `settings.json` is for Claude Code-supported default settings, not arbitrary plugin-owned runtime configuration.
-Current supported keys are `agent` and `subagentStatusLine`.
+Only documented allowlisted keys are applied; consult the Claude Code settings schema for the full key set, which includes keys such as `permissions`, `env`, `model`, `statusLine`, `outputStyle`, and `hooks`.
 
 The asset (`assets/settings.json`) provides a minimal starting point.
 Use `userConfig` for prompted plugin options.
@@ -79,7 +79,7 @@ Do not overload one style with incompatible audiences or responsibilities.
 
 Keep theme files limited to color theme data.
 Each JSON file in `themes/` defines one read-only plugin theme that appears alongside built-in and user themes.
-Use `experimental.themes` only for custom theme paths.
+Use the `themes` key only for custom theme paths.
 
 ## Monitors
 
@@ -87,7 +87,7 @@ The tradeoff is operational overhead: monitors need a clear observed subsystem, 
 
 The starter monitor (`assets/monitors/monitors.json` + `assets/monitors/watch.ts`) runs a local Bun script from `${CLAUDE_PLUGIN_ROOT}` and writes timestamped state under `${CLAUDE_PLUGIN_DATA}/monitor-state/`.
 The monitor file is a top-level JSON array at the default `monitors/monitors.json` path.
-Declare `experimental.monitors` only for a custom monitor path or inline monitor configuration.
+Declare `monitors` only for a custom monitor path or inline monitor configuration.
 Extend it by changing the command, adding more monitor entries, or replacing the Bun script with another local executable.
 
 If the condition is transient, event-driven, or cheap to check on demand, prefer the simpler surface and leave monitors out.

@@ -35,15 +35,16 @@ Preserve the existing job the agent covers unless the task explicitly changes th
 
 ## Required frontmatter
 
-Every agent file should include these fields in frontmatter:
+Every agent file MUST include these required frontmatter fields:
 
 - `name`
 - `description`
-- `color`
 
-Omit `tools` by default.
-Use it only when the agent needs a bounded tool surface or a tool boundary different from the default environment.
+`color` is an optional display field that helps distinguish the agent visually.
+Omit `tools` by default; an agent with no `tools` field inherits every tool the main thread has, including MCP tools.
+Add `tools` only when the agent needs a bounded tool surface different from the default environment.
 
+`model` is also supported; omit it for shared agents so the caller selects model strength, and set it only when an agent needs a fixed model.
 Other optional frontmatter fields may be kept only when the host actually supports them and the field changes runtime behavior in a meaningful way.
 
 ## Frontmatter rules
@@ -86,6 +87,7 @@ description: >-
 ### `color`
 
 - Pick a stable color that helps distinguish the agent visually.
+- Use one of the supported values: `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`.
 - Keep the existing color on refactors unless there is a reason to change it.
 
 ### `tools`
@@ -271,7 +273,9 @@ description: >-
   Inspect schemas, contracts, and config files for defects, risks, and missing structure.
   Use this agent when a schema, contract, or config file needs focused read-only review before implementation, release, or migration.
 color: cyan
-tools: ["Read", "Grep"]
+tools:
+  - Read
+  - Grep
 ---
 
 # Schema Reviewer

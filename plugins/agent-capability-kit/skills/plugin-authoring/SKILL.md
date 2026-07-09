@@ -22,6 +22,7 @@ This skill owns the plugin root and plugin-level runtime files:
 - `README.md`
 - `agents/`
 - `skills/`
+- `commands/`
 - `hooks/`
 - `.mcp.json`
 - `.lsp.json`
@@ -39,13 +40,13 @@ This skill owns the plugin root and plugin-level runtime files:
 4. Inside `plugin.json`, every declared path MUST begin with `./`.
    - Keep default component locations out of the manifest because Claude Code discovers them automatically.
    - Default runtime locations include:
-     - `skills/`, `agents/`, `hooks/hooks.json`, `.mcp.json`
+     - `skills/`, `agents/`, `commands/`, `hooks/hooks.json`, `.mcp.json`
      - `.lsp.json`, `settings.json`, `output-styles/`, `themes/`, `monitors/monitors.json`, `bin/`
    - Use component path fields only for custom paths or schema-supported inline configuration.
-   - Custom path fields use official merge rules:
-     - `skills` adds to the default `skills/` scan.
-     - `agents` and `outputStyles` replace the matching default directory unless the default path is listed explicitly.
-     - `experimental.themes` and `experimental.monitors` follow the same replacement behavior.
+   - Custom path fields are additive: each adds to the matching default directory scan rather than replacing it.
+     - `skills`, `agents`, `commands`, `outputStyles`, `themes`, and `monitors` all supplement their default directories when declared.
+     - `settings` merges into the user settings and applies only documented allowlisted keys.
+     - `userConfig` declares prompted values exposed as `${user_config.KEY}`.
    - Custom directory paths, when present, SHOULD use the trailing-slash directory form.
 5. Manifest path declarations MUST match real files or directories.
    - Path-valued component fields MUST resolve inside the plugin root.
@@ -90,6 +91,7 @@ Remove any directory the plugin does not actually use, and add other runtime sur
 4. Keep only metadata, custom component paths, and inline component configuration in the manifest.
 5. Create root-level component directories only when the plugin ships that component.
 6. Add optional runtime surfaces only after deciding that the plugin needs that specific behavior:
+   - Add `commands` only when the plugin ships slash commands outside the default `commands/` directory.
    - Add `hooks` only when the plugin reacts to Claude Code lifecycle events.
    - Add `mcpServers` only when the plugin ships MCP server definitions.
    - Add `lspServers` only when the plugin configures LSP servers.
@@ -162,6 +164,8 @@ Omit both the manifest key and filesystem artifact when a surface is not in use.
 
 | Surface | Manifest key | Add when | Starter path |
 | --- | --- | --- | --- |
+| Commands | none for default `commands/` | Plugin ships slash commands outside the default directory. | `commands/` |
+| | `commands` for custom paths | | |
 | Skills | none for default `skills/` | Plugin ships skills outside the default directory. | `skills/` |
 | | `"skills": ["./custom/skills/"]` for custom paths | | |
 | Agents | none for default `agents/` | Plugin ships agents or subagents. | `agents/` |
@@ -174,17 +178,15 @@ Omit both the manifest key and filesystem artifact when a surface is not in use.
 | | use `userConfig` for prompted values | | |
 | Output styles | none for default `output-styles/` | Plugin ships reusable output styles. | `output-styles/` |
 | | `outputStyles` for custom paths | | |
-| Themes | none for default `themes/`; `experimental.themes` for custom paths | Plugin ships Claude Code color themes. | `themes/` |
-| Monitors | none for default `monitors/monitors.json` | Plugin ships genuine monitor behavior. | `monitors/monitors.json` |
-| | `experimental.monitors` for custom path or inline config | It must not be a default scaffold. | |
+| Themes | none for default `themes/`; `themes` for custom paths | Plugin ships Claude Code color themes. | `themes/` |
+| Monitors | none for default `monitors/monitors.json`; `monitors` for custom path or inline config | Plugin ships genuine monitor behavior, not a default scaffold. | `monitors/monitors.json` |
 | Executables | none | Plugin ships executables that should be available to Bash as bare executables. | `bin/` |
 
 Open `references/plugin-runtime-components.md` for per-surface extension points, tradeoffs, and wiring guidance.
 
-Manifest path fields do not all merge with defaults the same way.
-When you declare `skills`, Claude Code still scans the default `skills/` directory.
-When you declare `agents`, the matching default directory is replaced unless it appears in the path list.
-That replacement behavior also applies to `outputStyles`, `experimental.themes`, and `experimental.monitors`.
+Manifest path fields are additive across the board.
+When you declare `skills`, `agents`, `commands`, `outputStyles`, `themes`, or `monitors`, Claude Code loads the declared paths in addition to the matching default directory, not instead of it.
+Every declared path MUST still begin with `./` and resolve inside the plugin root.
 
 ## Data boundary guidance
 

@@ -3,7 +3,7 @@ name: spec-driven-development
 description: |-
   Author, update, and complete `SPEC.md`-driven specification artifacts before implementation, and verify implementation against approved specs.
   Use this agent when the user wants a spec-first workflow, needs `SPEC.md` artifacts authored or revised before implementation, wants research and contract notes captured alongside the spec, or needs implementation checked against an approved specification.
-color: magenta
+color: purple
 tools:
   - Read
   - Write

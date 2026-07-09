@@ -23,7 +23,7 @@ Multiple hooks on the same event fire simultaneously:
       "hooks": [
         {"type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/check-path.sh"},
         {"type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/check-permissions.sh"},
-        {"type": "prompt", "prompt": "Validate write safety: $TOOL_INPUT"}
+        {"type": "prompt", "prompt": "Validate write safety using the tool input in $ARGUMENTS"}
       ]
     }
   ]
@@ -100,7 +100,7 @@ If hook exceeds timeout, it is terminated:
         },
         {
           "type": "prompt",
-          "prompt": "Validate write safety: $TOOL_INPUT",
+          "prompt": "Validate write safety using the tool input in $ARGUMENTS",
           "timeout": 30
         }
       ]
@@ -256,7 +256,7 @@ Then add a second, slower prompt hook for deep validation only when needed:
         },
         {
           "type": "prompt",
-          "prompt": "Perform deep security analysis: $TOOL_INPUT. Validate code style, performance, correctness.",
+          "prompt": "Perform deep security analysis using the tool input in $ARGUMENTS. Validate code style, performance, correctness.",
           "timeout": 30
         }
       ]

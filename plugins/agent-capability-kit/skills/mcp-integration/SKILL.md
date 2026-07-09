@@ -1,7 +1,7 @@
 ---
 name: mcp-integration
 description: >-
-  Integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key with stdio, SSE, HTTP, or WebSocket transports.
+  Integrate Model Context Protocol servers into Claude Code plugins via `.mcp.json` or the `mcpServers` manifest key with stdio, SSE, or HTTP transports.
   Use when configuring MCP server entries, choosing between stdio and network transports, or wiring external tool servers into a plugin manifest.
 ---
 
@@ -26,10 +26,12 @@ This skill owns:
 ## Operating rules
 
 1. MUST use `${CLAUDE_PLUGIN_ROOT}` for all bundled paths - never hardcoded absolute paths.
-2. MUST use HTTPS for remote servers, WSS for WebSocket connections.
+2. MUST use HTTPS for remote servers.
 3. MUST NOT hardcode credentials.
    - Use environment variables or OAuth flows.
-4. MUST NOT use wildcards in `allowed-tools` - pre-allow only specific tool names.
+4. Prefer specific tool names in `allowed-tools`.
+   - A whole-server pattern such as `mcp__<server>__*` is acceptable only when you intentionally trust every tool that server exposes.
+   - Never use a bare `mcp__*` that admits every tool from every server.
 5. Plugin-root `.mcp.json` is auto-discovered and SHOULD stay out of `plugin.json` when it is the only MCP surface.
 6. MAY use `.mcp.json` (recommended for multi-server plugins) or `mcpServers` in `plugin.json` for custom paths or inline single-server configuration.
    - When `mcpServers` declares a string path, that file MUST exist.
@@ -81,27 +83,11 @@ This skill owns:
   - Use `type: "sse"` + `url`.
 - `HTTP` - REST + token (custom APIs).
   - Use `type: "http"` + HTTPS URL + bearer token in `headers`.
-- `WebSocket` - Real-time bidirectional (streaming).
-  - Use `type: "ws"` + WSS URL + auth headers.
+
+MCP in Claude Code supports `stdio`, `sse`, and `http` transports only.
+WebSocket transports are not supported.
 
 See `references/transport-types.md` for lifecycle details, failure modes, selection decision tree, and performance characteristics.
-
-### WebSocket (BROKEN - Uses Plaintext, Exposes Credentials)
-
-> [!CAUTION]
->
-> This example uses unencrypted plaintext transport.
-> Use `wss://` instead of `ws://` to encrypt credentials and data.
-
-```jsonc
-{
-  "realtime": {
-    "type": "ws",
-    "url": "ws://mcp.example.com/ws",
-    "headers": { "Authorization": "Bearer ${TOKEN}" }
-  }
-}
-```
 
 ## Environment variable expansion
 
@@ -120,26 +106,32 @@ Use `${CLAUDE_PLUGIN_ROOT}` for portable bundled paths:
 
 ## MCP Tool Naming and Allowlists
 
-MCP tools are prefixed: `mcp__plugin_{{plugin-name}}_{{server-name}}__{{tool-name}}`
+MCP tools are named `mcp__<server>__<tool>`, where `<server>` is the key used for the server in `.mcp.json` or `mcpServers`.
 
-When an allowlist accepts MCP tools, list exact tool names:
-
-```text
-mcp__plugin_github_github__search_repositories
-mcp__plugin_github_github__create_issue
-```
-
-### Broken (Wildcard Too Permissive)
+When an allowlist accepts MCP tools, prefer exact tool names:
 
 ```text
-mcp__plugin_github_github__*
+mcp__github__search_repositories
+mcp__github__create_issue
 ```
 
 ### Correct (Specific Tools Only)
 
 ```text
-mcp__plugin_github_github__search_repositories
-mcp__plugin_github_github__create_issue
+mcp__github__search_repositories
+mcp__github__create_issue
+```
+
+### Acceptable (Whole Server, Intentional Trust)
+
+```text
+mcp__github__*
+```
+
+### Broken (Bare Wildcard Admits Every Server)
+
+```text
+mcp__*
 ```
 
 ## Multi-server example
@@ -171,7 +163,7 @@ Plugin with multiple MCP servers in `.mcp.json`:
 OAuth (SSE/HTTP): Handled automatically by Claude Code.
 User authenticates in browser on first use.
 
-Token (HTTP/WebSocket): Pass via environment variables in headers:
+Token (HTTP): Pass via environment variables in headers:
 
 ```json
 {
@@ -242,20 +234,15 @@ List active MCP servers in Claude Code:
 /mcp
 ```
 
-Test a specific MCP server's connectivity and tools after plugin restart (required after config changes):
+After changing MCP configuration, reload the plugin or session so the new servers load, then run `/mcp` to confirm each server and its tools appear.
 
-```text
-/mcp test <server-name>
-```
-
-Distinction: `/mcp` displays all configured servers and their tools.
-`/mcp test {{server}}` establishes a live connection to verify the server responds correctly and tool definitions are accessible.
+`/mcp` lists every configured server and its tools; invoke a tool from the intended plugin surface to confirm the live connection works.
 
 ## Testing checklist
 
 - [ ] Configuration JSON is syntactically valid
 - [ ] All file paths use `${CLAUDE_PLUGIN_ROOT}`
-- [ ] Remote URLs use HTTPS/WSS, not HTTP/WS
+- [ ] Remote URLs use HTTPS, not HTTP
 - [ ] No hardcoded credentials
 - [ ] Required environment variables documented in README
 - [ ] `/mcp` command shows servers and tools
@@ -264,9 +251,9 @@ Distinction: `/mcp` displays all configured servers and their tools.
 
 ## Pitfalls
 
-DO: Use `${CLAUDE_PLUGIN_ROOT}` for bundled paths, document required env vars, use HTTPS/WSS, pre-allow specific tools only, test with `/mcp` after config changes.
+DO: Use `${CLAUDE_PLUGIN_ROOT}` for bundled paths, document required env vars, use HTTPS, prefer specific tool names, test with `/mcp` after config changes.
 
-DON'T: Hardcode absolute paths, commit credentials, use HTTP instead of HTTPS, pre-allow all tools with `*`, skip error handling.
+DON'T: Hardcode absolute paths, commit credentials, use HTTP instead of HTTPS, use a bare `*` that admits every server, skip error handling.
 
 ## References
 
