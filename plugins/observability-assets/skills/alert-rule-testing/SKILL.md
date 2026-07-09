@@ -298,7 +298,7 @@ promtool test rules alerts/api-errors.test.yaml
 Use when: the test file already exists or has just been edited and you need the first safe validation run.
 If `promtool` is unavailable, stop at a blocked validation state instead of claiming the rule test is ready.
 
-Run a single test group within a file by name with the `--run` flag (short form `-r`), which matches each test group's `name` field as a regular expression:
+Run only the test groups within a file whose `name` field matches the `--run` flag, interpreted as a regular expression (the flag has no short form and may be repeated to match several groups):
 
 ```sh
 promtool test rules --run api-error-rate-firing alerts/api-errors.test.yaml
