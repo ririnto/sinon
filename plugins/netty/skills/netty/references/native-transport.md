@@ -16,7 +16,7 @@ Open this when Linux or macOS deployment needs native transport features, lower 
 | NIO | all platforms | start here |
 | epoll | Linux | high-throughput production servers |
 | kqueue | macOS and BSD | native readiness on those systems |
-| io_uring | newer Linux | only when the environment and dependency are explicitly supported |
+| io_uring | Linux | first-class transport in Netty 4.2; opt-in when kernel 5.9+ and the native dependency are available |
 
 ## Dependency pattern
 
@@ -53,7 +53,7 @@ macOS or BSD kqueue:
 </dependency>
 ```
 
-Linux io_uring on JDK 21+ and kernel 5.11+:
+Linux io_uring on Java 9+ and kernel 5.9+ (a first-class transport since Netty 4.2, replacing the `netty-incubator-transport-io_uring` module):
 
 ```xml
 <dependency>
@@ -70,16 +70,16 @@ The classifier determines which native library (`.so`, `.dylib`, `.dll`) is bund
 ## Conditional fallback
 
 ```java
-import io.netty.channel.MultiThreadIoEventLoopGroup;
-import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollIoHandler;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.kqueue.KQueueIoHandler;
 import io.netty.channel.kqueue.KQueueServerSocketChannel;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 EventLoopGroup bossGroup;
@@ -87,12 +87,12 @@ EventLoopGroup workerGroup;
 Class<? extends ServerChannel> serverChannelClass;
 
 if (Epoll.isAvailable()) {
-    bossGroup = new EpollEventLoopGroup(1);
-    workerGroup = new EpollEventLoopGroup();
+    bossGroup = new MultiThreadIoEventLoopGroup(1, EpollIoHandler.newFactory());
+    workerGroup = new MultiThreadIoEventLoopGroup(EpollIoHandler.newFactory());
     serverChannelClass = EpollServerSocketChannel.class;
 } else if (KQueue.isAvailable()) {
-    bossGroup = new KQueueEventLoopGroup(1);
-    workerGroup = new KQueueEventLoopGroup();
+    bossGroup = new MultiThreadIoEventLoopGroup(1, KQueueIoHandler.newFactory());
+    workerGroup = new MultiThreadIoEventLoopGroup(KQueueIoHandler.newFactory());
     serverChannelClass = KQueueServerSocketChannel.class;
 } else {
     bossGroup = new MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory());
@@ -100,6 +100,9 @@ if (Epoll.isAvailable()) {
     serverChannelClass = NioServerSocketChannel.class;
 }
 ```
+
+The `MultiThreadIoEventLoopGroup` + `IoHandler` form requires Netty 4.2 or later.
+In Netty 4.2, the transport-specific event loop groups such as `EpollEventLoopGroup` and `KQueueEventLoopGroup` are deprecated in favor of the `IoHandlerFactory` constructor.
 
 ## Channel mapping
 
@@ -114,3 +117,6 @@ if (Epoll.isAvailable()) {
 - Start with NIO unless the deployment environment is known and controlled.
 - Keep fallback logic explicit so development machines still run.
 - Treat io_uring as an explicit opt-in, not the common path.
+- In Netty 4.2, io_uring graduated from incubator to a supported transport.
+  - The classes use the `IoUring*` prefix in `io.netty.channel.uring`, for example `IoUringServerSocketChannel` and `IoUringIoHandler.newFactory()`.
+  - The old `IOUring*` incubator class names no longer exist.

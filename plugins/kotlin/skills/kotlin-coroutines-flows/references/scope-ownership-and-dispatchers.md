@@ -22,12 +22,14 @@ Open this when you need to decide who owns coroutine work, where to launch it, o
 | `Dispatchers.Default` | CPU-bound (core count) | Computation, sorting, parsing | Blocking I/O, UI work |
 | `Dispatchers.IO` | Shared I/O pool (~64 threads) | File, network, database I/O | CPU-heavy computation |
 | `Dispatchers.Main` | Main/UI thread | UI updates, quick dispatches | Blocking, CPU-heavy work |
-| `Dispatchers.Unconfined` | Resumes on caller's thread | Tests, non-blocking bridges | Production concurrency |
+| `Dispatchers.Unconfined` | Caller thread until first suspension | Tests, non-blocking bridges | Production concurrency |
 
 Root scope with exception handler:
 
 ```kotlin
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 val applicationScope = CoroutineScope(
@@ -121,6 +123,7 @@ Control parallelism for CPU-bound work without creating extra threads.
 ```kotlin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 

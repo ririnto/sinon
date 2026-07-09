@@ -95,7 +95,7 @@ Do not activate for:
 5. Make terminal behavior explicit.
    - Empty fallback: `defaultIfEmpty` (eager static value), `switchIfEmpty` (lazy alternative publisher).
    - Error recovery: `onErrorReturn`, `onErrorResume`, `onErrorMap`.
-   - Time bound: `timeout(...)` or `timeoutWhen(...)` for delayed fallback on silence.
+   - Time bound: `timeout(Duration, fallback)` for a delayed fallback on silence.
    - Completion-side repeat: `repeat(...)` or `repeatWhen(...)` for re-subscription loops.
    - Cleanup: `doFinally`.
    - Bounded retry: `retry(n)` or `retryWhen(...)` with a deliberate policy.

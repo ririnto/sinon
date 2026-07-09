@@ -118,6 +118,7 @@ Use `yield()` when you want to both check cancellation AND allow other coroutine
 Selective cancellation -- use `cancelChildren()` to cancel all child coroutines without cancelling the parent scope itself, and `Job.join()` to wait for a specific child coroutine to finish:
 
 ```kotlin
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 
