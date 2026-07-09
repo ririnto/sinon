@@ -90,6 +90,25 @@ Target business logic and day-to-day feature code stay in the target repository.
 4. Inspect changed files and distinguish kept files from written files in the final report.
 5. Report hook behavior, validation status, and any files the user must fill with project truth.
 
+## Installer Flags
+
+The installer entry point `skills/harness-install/scripts/install-harness.ts` accepts these flags.
+
+| Flag | Purpose |
+| --- | --- |
+| `--target <path>` | Target repository root to install into (defaults to `.`). |
+| `--mode <gradle\|maven\|uv\|bun\|shell>` | Required stack mode; the installer does not auto-detect. |
+| `--ci-host <github\|gitlab\|both\|none>` | Required CI host selection. |
+| `--force` | Overwrite or update existing target files; required to resolve drift on root contracts. |
+| `--activate-hooks` | Activate Git hooks through the stack ecosystem tool after install; the installer fails if the tool or activation step errors instead of silently skipping. |
+| `--preview` | Print the planned write/keep/overwrite/drift set without writing anything. |
+| `--show <path>` | Print the asset that would be installed at one target path. |
+| `--only <path>` | Install only one target path from the resolved plan. |
+
+`--preview` reports drift explicitly: a target file that differs from its template is reported as `drift` and requires `--force` to overwrite, so a successful preview never silently claims a refresh it did not perform.
+
+A full install writes `.harness/install-record.json` capturing the mode, CI host, canonical check, fix, and pre-push commands plus the installed asset inventory; it is the durable source of truth for `harness-validate` and later refreshes.
+
 ## Asset Role Map
 
 - `skills/harness-install/assets/common/AGENTS.md`: root contract.
@@ -115,7 +134,7 @@ Target business logic and day-to-day feature code stay in the target repository.
 | Target uses GitHub CI | Pass `--ci-host github` to write only `.github/workflows/<tool>.yaml`. |
 | Target uses GitLab CI | Pass `--ci-host gitlab` to write only `.gitlab-ci.yml`. |
 | Target mirrors to GitHub and GitLab | Pass `--ci-host both` to write both CI files. |
-| | The installed `pre-push` final check command must match both scripts. |
+| | Both CI scripts must run the same canonical check command. |
 | Target has a no-CI policy | Pass `--ci-host none`. |
 | No CI host is specified | Request an explicit choice: GitHub, GitLab, both, or none. |
 | | Pass `--ci-host <github\|gitlab\|both\|none>` to the installer. |
@@ -186,3 +205,7 @@ Report these fields:
 - `ci`: which CI files were installed (GitHub Actions, GitLab CI, both, or none per `--ci-host` flag).
 - `validation`: command run and result.
 - `target follow-up`: placeholders, seed references, or unused CI files that require project-specific action.
+
+## References
+
+- `references/rule-interface.md`: open it when changing a shipped validator, fix command, custom rule, EditorConfig knob, hook command, or CI command, and you need the exact native enforcement shape (validator/fix commands, rule ids, or the prose-only structural checks) for one stack before editing.

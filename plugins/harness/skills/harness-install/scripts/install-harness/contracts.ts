@@ -13,6 +13,7 @@ import {
   replaceFile,
   writeUtf8
 } from "./files.js";
+import { applyManagedBlock, hasManagedBlock } from "./managed.js";
 import {
   ensureSafeFileDestination,
   ensureSafeParentDir,
@@ -20,13 +21,7 @@ import {
   requiredRealTarget,
   requiredSrc
 } from "./paths.js";
-import {
-  agentsMarker,
-  claudeMarker,
-  fail,
-  hasRootContractMarker,
-  templateDir
-} from "./types.js";
+import { fail, templateDir } from "./types.js";
 import type { InstallCandidate, InstallerConfig } from "./types.js";
 
 const writeRootContractUpdate = async (
@@ -38,27 +33,19 @@ const writeRootContractUpdate = async (
   const tmp = `${realTarget}.harness.tmp.${process.pid}`;
   await ensureSafeFileDestination(tmp);
   const template = await readInstallAsset(templatePath);
-  if (exists) {
-    const content =
-      dst === "CLAUDE.md"
-        ? template
-        : `${await readUtf8(realTarget)}\n${template}`;
-    await writeUtf8(tmp, content);
-    await copyMode(templatePath, tmp);
-    await replaceFile(tmp, realTarget);
-    console.log(`update root contract (--force): ${dst}`);
-    return;
-  }
-  await writeUtf8(tmp, template);
+  const existing = exists ? await readUtf8(realTarget) : "";
+  const content = applyManagedBlock(existing, template);
+  await writeUtf8(tmp, content);
   await copyMode(templatePath, tmp);
   await replaceFile(tmp, realTarget);
-  console.log(`create root contract: ${dst}`);
+  console.log(
+    exists
+      ? `update root contract (--force): ${dst}`
+      : `create root contract: ${dst}`
+  );
 };
 
-const checkRootContractConflict = async (
-  dst: string,
-  marker: string
-): Promise<boolean> => {
+const checkRootContractConflict = async (dst: string): Promise<boolean> => {
   if (await isSymlink(dst)) {
     console.error(
       `conflict root contract: ${dst} is a symlink; rerun with --force to replace it`
@@ -66,12 +53,9 @@ const checkRootContractConflict = async (
     return true;
   }
   await ensureSafeFileDestination(dst);
-  if (
-    (await pathExists(dst)) &&
-    !hasRootContractMarker(dst, marker, await readUtf8(dst))
-  ) {
+  if ((await pathExists(dst)) && !hasManagedBlock(await readUtf8(dst))) {
     console.error(
-      `conflict root contract: ${dst} lacks marker ${marker}; rerun with --force to update`
+      `conflict root contract: ${dst} has no managed block; rerun with --force to add one while preserving existing content`
     );
     return true;
   }
@@ -81,7 +65,6 @@ const checkRootContractConflict = async (
 const ensureRootContract = async (
   config: InstallerConfig,
   dst: string,
-  marker: string,
   templatePath: string
 ): Promise<void> => {
   if ((await isSymlink(dst)) && config.force) {
@@ -93,13 +76,13 @@ const ensureRootContract = async (
     return;
   }
   const content = await readUtf8(dst);
-  if (hasRootContractMarker(dst, marker, content)) {
+  if (hasManagedBlock(content)) {
     console.log(`skip root contract: ${dst}`);
     return;
   }
   if (!config.force) {
     console.error(
-      `conflict root contract: ${dst} lacks marker ${marker}; rerun with --force to update`
+      `conflict root contract: ${dst} has no managed block; rerun with --force to add one while preserving existing content`
     );
     return;
   }
@@ -168,8 +151,8 @@ export const ensureRootContracts = async (
 ): Promise<void> => {
   if (!config.force) {
     const hasConflict =
-      (await checkRootContractConflict("AGENTS.md", agentsMarker)) ||
-      (await checkRootContractConflict("CLAUDE.md", claudeMarker));
+      (await checkRootContractConflict("AGENTS.md")) ||
+      (await checkRootContractConflict("CLAUDE.md"));
     if (hasConflict) {
       return fail(
         "root contract conflicts must be resolved before installing assets"
@@ -179,13 +162,11 @@ export const ensureRootContracts = async (
   await ensureRootContract(
     config,
     "AGENTS.md",
-    agentsMarker,
     path.join(templateDir, "common", "AGENTS.md")
   );
   await ensureRootContract(
     config,
     "CLAUDE.md",
-    claudeMarker,
     path.join(templateDir, "common", "CLAUDE.md")
   );
 };
@@ -203,18 +184,14 @@ export const ensureOneRootContract = async (
   await ensureSafeFileDestination(realTarget);
   if (
     (await pathExists(realTarget)) &&
-    hasRootContractMarker(
-      candidate.dst,
-      candidate.marker ?? "",
-      await readUtf8(realTarget)
-    )
+    hasManagedBlock(await readUtf8(realTarget))
   ) {
     console.log(`skip root contract: ${candidate.dst}`);
     return;
   }
   if ((await pathExists(realTarget)) && !config.force) {
     return fail(
-      `conflict root contract: ${realTarget} lacks marker ${candidate.marker ?? ""}; rerun with --force to update`
+      `conflict root contract: ${realTarget} has no managed block; rerun with --force to add one while preserving existing content`
     );
   }
   await writeRootContractUpdate(

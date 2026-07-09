@@ -11,6 +11,7 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 
+import { manifestFilesForSubdir } from "../asset-manifest.js";
 import type { InstallCandidate } from "./types.js";
 import { fail, skillDir } from "./types.js";
 
@@ -103,22 +104,8 @@ export const listTrackedTreeFiles = async (
   if (!(await isDirectory(srcDir))) {
     return [];
   }
-  const srcRel = path.relative(skillDir, srcDir).split("\\").join("/");
-  const proc = Bun.spawnSync(
-    ["git", "-C", skillDir, "ls-files", "--", srcRel],
-    {
-      stderr: "pipe",
-      stdout: "pipe"
-    }
-  );
-  if (!proc.success) {
-    fail(`git ls-files failed for ${srcRel}: ${proc.stderr.toString().trim()}`);
-  }
-  return proc.stdout
-    .toString()
-    .split(/\r?\n/u)
-    .filter(Boolean)
-    .map((line) => path.join(skillDir, line));
+  const subdir = path.basename(srcDir);
+  return manifestFilesForSubdir(skillDir, subdir);
 };
 
 export const copyMode = async (srcFile: string, tmp: string): Promise<void> => {

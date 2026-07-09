@@ -4,10 +4,10 @@ import { fail } from "./types.js";
 import type { Action, InstallerConfig } from "./types.js";
 
 type ParsedFlags = Readonly<{
+  activateHooks: boolean;
   ciHost: null | string;
   force: boolean;
   mode: null | string;
-  noCi: boolean;
   only: null | string;
   preview: boolean;
   show: null | string;
@@ -28,10 +28,10 @@ const requireValue = (
 
 const parseFlags = (argv: readonly string[]): ParsedFlags => {
   const mutable = {
+    activateHooks: false,
     ciHost: null as null | string,
     force: false,
     mode: null as null | string,
-    noCi: false,
     only: null as null | string,
     preview: false,
     show: null as null | string,
@@ -40,6 +40,10 @@ const parseFlags = (argv: readonly string[]): ParsedFlags => {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     switch (arg) {
+      case "--activate-hooks": {
+        mutable.activateHooks = true;
+        break;
+      }
       case "--mode": {
         mutable.mode = requireValue(argv, index, arg);
         index += 1;
@@ -57,10 +61,6 @@ const parseFlags = (argv: readonly string[]): ParsedFlags => {
       }
       case "--force": {
         mutable.force = true;
-        break;
-      }
-      case "--no-ci": {
-        mutable.noCi = true;
         break;
       }
       case "--preview": {
@@ -114,9 +114,6 @@ const modeCiHost = (flags: ParsedFlags): InstallerConfig["ciHost"] => {
   if (rawCiHost === null) {
     return fail("--ci-host is required (github|gitlab|both|none).", 2);
   }
-  if (flags.noCi) {
-    return "none";
-  }
   return ciHostFromValue(rawCiHost);
 };
 
@@ -156,12 +153,10 @@ export const parseArgs = (argv: readonly string[]): InstallerConfig => {
   if (parsed.ciHost === null) {
     return fail("--ci-host is required (github|gitlab|both|none).", 2);
   }
-  if (parsed.noCi && parsed.ciHost !== "none") {
-    return fail("--no-ci cannot be combined with --ci-host other than none", 2);
-  }
   const action = selectedAction(parsed);
   return {
     action,
+    activateHooks: parsed.activateHooks,
     ciHost: modeCiHost(parsed),
     force: parsed.force,
     mode: modeFromValue(parsed.mode),

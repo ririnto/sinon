@@ -32,8 +32,8 @@ Check these support surfaces before running the stack command.
 | Path | Use it for | Failure example |
 | --- | --- | --- |
 | `WORKFLOW.md` | Selected validation command and Git host notes | `WORKFLOW.md: missing harness file - run harness-install or restore workflow` |
-| `.github/workflows/<tool>.yaml` | GitHub Actions command parity (when present) | `.github/workflows/<tool>.yaml: CI command mismatch - expected installed pre-push final check command` |
-| `.gitlab-ci.yml` | GitLab CI command parity | `.gitlab-ci.yml: CI command mismatch - expected installed pre-push final check command` |
+| `.github/workflows/<tool>.yaml` | GitHub Actions command parity (when present) | `.github/workflows/<tool>.yaml: CI command mismatch - expected installed canonical check command` |
+| `.gitlab-ci.yml` | GitLab CI command parity | `.gitlab-ci.yml: CI command mismatch - expected installed canonical check command` |
 
 ## Mode Detection
 
@@ -58,8 +58,9 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | `bun` | `bun.lock`, `bun.lockb`, or `package.json` exists | `bun run check` |
 | `shell` | shell-script-only or Makefile-driven repository | `sh scripts/check.sh` |
 
-The installed workflow command is the local harness validation command.
-The installed `pre-commit` and `pre-push` command markers both carry this same stack validation command listed above.
+The canonical check command in the table is the local harness validation command, matches the installed `pre-commit` hook, and is the command CI (both hosts) re-runs; the two CI hosts MUST agree with each other and with `pre-commit`.
+The installed `pre-push` hook is a local-only stricter superset that adds tests on top of the canonical command: `./gradlew check` (gradle), `./mvnw verify` (maven), `bun run check && bun test` (bun), or the same canonical command for uv and shell; it is not required to match CI.
+`.harness/install-record.json` persists the canonical check, fix, and pre-push commands as the durable source of truth; read it when command selection is unclear instead of guessing.
 
 ## Command Examples
 
@@ -74,7 +75,7 @@ gradle ktlintCheck
 ```
 
 ```sh
-root=$(pwd -P); files=$(git ls-files -- "*.java" | while IFS= read -r file; do case "$file" in *,*) echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2; exit 1;; esac; printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then ./mvnw validate; echo "spotless: no tracked Java files to check"; else ./mvnw validate -DspotlessFiles="$files"; fi
+root=$(pwd -P); if git ls-files -- "*.java" | grep -q '^"'; then unsafe_file=$(git ls-files -- "*.java" | grep '^"'); echo "error: escaped Java path for spotlessFiles: $unsafe_file" >&2; exit 1; fi; if git ls-files -- "*.java" | grep -q ','; then comma_file=$(git ls-files -- "*.java" | grep ','); echo "error: comma Java path for spotlessFiles: $comma_file" >&2; exit 1; fi; files=$(git ls-files -- "*.java" | while IFS= read -r file; do printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'; done | paste -sd, -); if [ -z "$files" ]; then ./mvnw validate; echo "spotless: no tracked Java files to check"; else ./mvnw validate -DspotlessFiles="$files"; fi
 ```
 
 ```sh
@@ -140,24 +141,24 @@ Reject any pattern that discards validator output or forces a successful exit af
 | Script permission | Installed hook or validator exists but is not executable where execution is required | Restore executable bit on the script. |
 | Script shebang | Executable script does not use `/usr/bin/env` shebang | Update the executable script shebang. |
 | Unsupported validation command | Installed `pre-push` declares a command outside the installer allow-list | Reinstall selected-mode hook content from the installer. |
-| Hook wiring | Installed `pre-commit` does not match the stack-specific hook contract, installed `pre-push` lacks the selected final check command, or CI drifts from installed `pre-push` | Reinstall selected-mode hook content only with explicit hook approval. |
-| CI command mismatch | `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml` uses a different validation command | Align CI with the installed pre-push final check command. |
+| Hook wiring | Installed `pre-commit` does not match the stack-specific hook contract, installed `pre-push` lacks the selected final check command, or CI drifts from the installed canonical check command | Reinstall selected-mode hook content only with explicit hook approval. |
+| CI command mismatch | `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml` uses a different validation command | Align CI with the installed canonical check command (the `pre-commit` command). |
 | Stack-tool failure | The native tool exits before harness checks run | Report the tool failure separately from harness contract health. |
 
 ## CI Checks
 
 Local validation is the source of truth.
-CI files are install-time assets that should run the installed pre-push final check command.
+CI files are install-time assets that re-run the installed canonical check command (the `pre-commit` command), not the local `pre-push` superset.
 
 | CI file | Expected validation shape |
 | --- | --- |
-| `.github/workflows/<tool>.yaml` | One job whose run step matches the installed pre-push final check command. |
-| `.gitlab-ci.yml` | One `harness` job whose script entry matches the installed pre-push final check command. |
+| `.github/workflows/<tool>.yaml` | One job whose run step matches the installed canonical check command. |
+| `.gitlab-ci.yml` | One `harness` job whose script entry matches the installed canonical check command. |
 
 When install uses `--ci-host none`, report local validation status and the chosen no-CI policy.
 
 GitHub-only and GitLab-only repositories may intentionally delete the unused CI file as a post-install step.
-When `git remote -v` shows only one host and the matching CI file is missing or out of sync with the installed pre-push command, report it as `not active` rather than `mismatch`; report the still-present CI file under the normal parity table.
+When `git remote -v` shows only one host and the matching CI file is missing or out of sync with the installed canonical check command, report it as `not active` rather than `mismatch`; report the still-present CI file under the normal parity table.
 
 Report CI drift with the expected command.
 
@@ -191,8 +192,8 @@ path/to/file [SEVERITY] category: file-level message
 ## Safe-Format Conventions
 
 Fix commands apply changes through their native tools.
-All fixes are idempotent: a second run immediately after the first produces no additional modifications.
-Fix commands run validation after applying changes, print remaining findings, and fail when any remaining finding has `ERROR` severity.
+Native formatting tools (ruff `format`, shfmt, ktlint `ktlintFormat`, Spotless `spotless:apply`, ultracite `fix`, markdownlint `--fix`) are idempotent for the subset they can rewrite; lint rules may still leave findings that require manual edits.
+Not every fix command re-runs validation afterward, so treat the canonical check command as the source of truth: re-run it after any fix and use its exit status as the verdict rather than assuming the fix command already revalidated.
 
 ## Invariants
 
@@ -201,7 +202,7 @@ Fix commands run validation after applying changes, print remaining findings, an
 - Stack validators invoke native ecosystem tools (ktlint, Spotless, ruff, ultracite, shellcheck).
 - File presence alone does not prove project readiness when placeholders still lack project-specific content.
 - Generated artifacts are valid only when they document source command, source inputs, freshness, and regeneration trigger.
-- GitHub Actions, GitLab CI, and the installed `pre-commit` and `pre-push` hooks MUST remain examples of the same selected stack validation command.
+- GitHub Actions, GitLab CI, and the installed `pre-commit` hook MUST run the same canonical check command, and the two CI hosts MUST agree with each other; the installed `pre-push` hook is a local-only superset that MAY add tests and is not required to match CI.
 - Check and validation findings MUST use the canonical diagnostic prefix with one-based line and column numbers when position is available.
 
 ## Operating Checks
@@ -233,5 +234,5 @@ Report these fields:
 - `command`: exact validation command.
 - `result`: pass or fail with exit status when reported.
 - `failures`: file paths and contract categories for any failures.
-- `ci`: whether GitHub Actions or GitLab CI files match the selected command when present.
+- `ci`: whether GitHub Actions or GitLab CI files match the installed canonical check command when present.
 - `next action`: smallest valid fix or explicit reason no fix was made.

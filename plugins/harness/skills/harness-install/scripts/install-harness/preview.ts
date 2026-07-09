@@ -8,9 +8,10 @@ import {
   readInstallAsset,
   readUtf8
 } from "./files.js";
+import { hasManagedBlock, renderManagedBlock } from "./managed.js";
 import { requiredRealTarget, requiredSrc } from "./paths.js";
 import { buildPlan } from "./planning.js";
-import { fail, hasRootContractMarker } from "./types.js";
+import { fail } from "./types.js";
 import type { InstallCandidate, InstallerConfig } from "./types.js";
 
 const previewFileCandidate = async (
@@ -21,15 +22,22 @@ const previewFileCandidate = async (
     console.log(`skip seed (target exists): ${candidate.dst}`);
     return;
   }
-  if (await pathExists(candidate.dst)) {
-    console.log(
-      config.force
-        ? `overwrite (--force): ${candidate.dst}`
-        : `keep existing: ${candidate.dst}`
-    );
+  if (!(await pathExists(candidate.dst))) {
+    console.log(`write: ${candidate.dst}`);
     return;
   }
-  console.log(`write: ${candidate.dst}`);
+  const template = await readInstallAsset(requiredSrc(candidate));
+  if ((await readUtf8(candidate.dst)) === template) {
+    console.log(`keep existing (matches template): ${candidate.dst}`);
+    return;
+  }
+  if (config.force) {
+    console.log(`overwrite (--force): ${candidate.dst}`);
+    return;
+  }
+  console.error(
+    `drift: ${candidate.dst} differs from template (manual integration unresolved); rerun with --force to overwrite`
+  );
 };
 
 const previewRootContractCandidate = async (
@@ -39,18 +47,14 @@ const previewRootContractCandidate = async (
   const realTarget = requiredRealTarget(candidate);
   if (
     (await pathExists(realTarget)) &&
-    hasRootContractMarker(
-      candidate.dst,
-      candidate.marker ?? "",
-      await readUtf8(realTarget)
-    )
+    hasManagedBlock(await readUtf8(realTarget))
   ) {
     console.log(`skip root contract: ${candidate.dst}`);
     return;
   }
   if ((await pathExists(realTarget)) && !config.force) {
     console.error(
-      `conflict root contract: ${realTarget} lacks marker ${candidate.marker ?? ""}; rerun with --force to update`
+      `conflict root contract: ${realTarget} has no managed block; rerun with --force to add one while preserving existing content`
     );
     return;
   }
@@ -107,20 +111,17 @@ const showRootContractCandidate = async (
   const realTarget = requiredRealTarget(candidate);
   if (
     (await pathExists(realTarget)) &&
-    hasRootContractMarker(
-      candidate.dst,
-      candidate.marker ?? "",
-      await readUtf8(realTarget)
-    )
+    hasManagedBlock(await readUtf8(realTarget))
   ) {
     return;
   }
   if (await pathExists(realTarget)) {
     console.error(
-      `note: requested root contract content would be appended to existing file: ${realTarget}`
+      `note: requested root contract managed block would be added to existing file: ${realTarget}`
     );
   }
-  process.stdout.write(await readInstallAsset(requiredSrc(candidate)));
+  const template = await readInstallAsset(requiredSrc(candidate));
+  process.stdout.write(renderManagedBlock(template));
 };
 
 const previewCandidateStatus = async (
