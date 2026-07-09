@@ -187,7 +187,7 @@ Do not call instance methods, read instance fields, or assign fields that alread
 ## Preview and withdrawn notes
 
 - Primitive-type patterns still need explicit preview framing even on Java 25.
-- String templates should not be presented as default guidance because they were previewed in JDK 21-23 and then withdrawn instead of being finalized.
+- String templates should not be presented as default guidance because they were previewed in JDK 21 and 22 (JEP 430, JEP 459) and then withdrawn before JDK 23 instead of being finalized.
 
 ## Official verification notes
 

@@ -34,7 +34,7 @@ The common case is writing the smallest failing JUnit 5 test, making the smalles
 1. Read the target production code and the nearest related tests.
 2. Identify the requested behavior or bug before touching implementation.
 3. Write the smallest failing JUnit 5 test that captures that behavior.
-4. Prefer `assertThrowsExactly` when the exception type is part of the contract, and verify the returned exception message with `assertEquals` when the message matters.
+4. Prefer `assertThrowsExactly` when the exception type is part of the contract (JUnit Jupiter 5.8 or later), and verify the returned exception message with `assertEquals` when the message matters.
 5. Use Mockito only for real collaboration boundaries and Awaitility only for genuinely asynchronous behavior.
 6. Wire the build tool (Maven Surefire or Gradle `useJUnitPlatform()`) only when execution setup is the actual blocker.
 

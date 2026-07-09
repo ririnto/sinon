@@ -16,7 +16,7 @@ Primary references:
 LTS reference points for this workflow:
 
 - JDK 8 tools overview: [Java SE 8 tools](https://docs.oracle.com/javase/8/docs/technotes/tools/)
-- JDK 11 tool index: [Java SE 11 tool specifications](https://docs.oracle.com/en/java/javase/11/docs/specs/man/index.html)
+- JDK 11 tool index: [Java SE 11 tools reference](https://docs.oracle.com/en/java/javase/11/tools/index.html)
 - JDK 17 tool index: [Java SE 17 tool specifications](https://docs.oracle.com/en/java/javase/17/docs/specs/man/index.html)
 - JDK 21 tool index: [Java SE 21 tool specifications](https://docs.oracle.com/en/java/javase/21/docs/specs/man/index.html)
 - JDK 25 packaging baseline: [Java SE 25 packaging overview](https://docs.oracle.com/en/java/javase/25/jpackage/packaging-overview.html)

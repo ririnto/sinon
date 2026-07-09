@@ -22,7 +22,7 @@ Official references:
 
 ## Representative JUnit 5 patterns
 
-Prefer `assertThrowsExactly` when the exact exception type is part of the contract.
+Prefer `assertThrowsExactly` when the exact exception type is part of the contract; it requires JUnit Jupiter 5.8 or later.
 
 When the exception message is part of the contract, capture the returned exception and verify `getMessage()` with `assertEquals`:
 

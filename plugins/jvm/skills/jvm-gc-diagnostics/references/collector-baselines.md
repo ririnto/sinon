@@ -50,7 +50,7 @@ If the flag is not present, Shenandoah is not available in that build.
 
 ### JDK 11
 
-- G1 becomes the default collector.
+- G1 is the default collector (since JDK 9; JDK 11 is the first LTS on this line).
 - ZGC exists but requires `-XX:+UnlockExperimentalVMOptions -XX:+UseZGC`.
 - Unified logging (`-Xlog`) replaces all legacy GC log flags.
 - JFR is available without commercial-feature unlock on OpenJDK 11.

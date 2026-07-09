@@ -3,8 +3,8 @@ name: java-language-syntax
 description: >-
   Explain Java syntax availability across LTS baselines.
   Compare expression forms between Java versions, rewrite code for older or newer targets, and choose foundational java.base package families.
-  Use when the user asks about Java grammar, var, switch expressions, records, pattern matching, sealed classes, text blocks, or unnamed patterns.
-  Use when checking whether a syntax form compiles on a given Java baseline.
+  Use when the user asks about Java grammar, var, switch expressions, text blocks, unnamed patterns, or the syntax and baseline availability of records, sealed classes, and pattern matching.
+  Use when checking whether a syntax form compiles on a given Java baseline or migrating source between Java versions.
 ---
 
 # Java Language Syntax
@@ -18,7 +18,7 @@ The common case is checking the target Java LTS baseline first, then choosing th
 - MUST distinguish stable language features from preview-only or withdrawn features.
 - SHOULD prefer stable syntax unless preview use is explicitly requested.
 - MUST explain fallback forms when recommending syntax unavailable on the target baseline.
-- MUST treat string templates as withdrawn (previewed in JDK 21-23, then withdrawn instead of being finalized), not as a valid Java 25 default or modernization path.
+- MUST treat string templates as withdrawn (previewed in JDK 21 and 22, then withdrawn before JDK 23 instead of being finalized), not as a valid Java 25 default or modernization path.
 - MUST keep version-difference guidance centered on LTS releases unless the user explicitly asks about a non-LTS release.
 - MUST treat `java.base` guidance here as foundational standard-library coverage, not as a claim about broader Java SE modules or JDK tooling.
 - SHOULD focus on syntax and expression differences that materially affect code shape.
@@ -398,7 +398,7 @@ items.addFirst("z");
 items.addLast("d");
 ```
 
-### Unnamed pattern `(JDK 25+)`
+### Unnamed pattern `(preview JDK 21, final JDK 22+)`
 
 ```java
 if (obj instanceof Order(String id, _, double total)) {

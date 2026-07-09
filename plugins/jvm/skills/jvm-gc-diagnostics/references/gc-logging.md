@@ -145,7 +145,7 @@ Key fields to read from legacy output:
 | `-XX:+PrintGCTimeStamps` | `uptime` or `timemillis` in output decorator |
 | `-XX:+PrintGCDateStamps` | `time` in output decorator |
 | `-Xloggc:gc.log` | `file=gc.log` in output decorator |
-| `-XX:+PrintGCApplicationConcurrentTime` | `-Xlog:safepoint+application` |
+| `-XX:+PrintGCApplicationConcurrentTime` | `-Xlog:safepoint` |
 | `-XX:+PrintGCApplicationStoppedTime` | `-Xlog:safepoint` |
 | `-XX:+PrintTenuringDistribution` | `-Xlog:gc+age=trace` |
 | `-XX:+PrintHeapAtGC` | Not directly equivalent; use `-Xlog:gc+heap=debug` |
