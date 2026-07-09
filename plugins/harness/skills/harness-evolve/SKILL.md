@@ -10,19 +10,30 @@ description: >-
 
 # Harness Evolve
 
-Review how the installed target harness changed and produce a versioned evolution plan.
+Review how an installed target harness changed and produce a versioned evolution plan.
 This plugin skill is the visible runtime surface for harness evolution guidance.
-Repository files remain packaged under `skills/harness-install/assets/`
-before installation and become project files after copying.
 
 This skill is report-only unless the user separately asks for implementation.
 Produce the evolution plan first, then use `harness-validate` after changes are implemented.
 
+## Two Evolution Tracks
+
+Harness evolution has two separate tracks with different file surfaces; classify the request before editing.
+
+| Track | File surface | Who acts | Affects |
+| --- | --- | --- | --- |
+| Installed-target evolution | Copied target files: `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `docs/**`, `.claude/agents/**`, `.claude/skills/**`, target hooks, target CI | Target repository maintainer | One installed target only |
+| Plugin-default evolution | `skills/harness-install/assets/`, plugin manifest, self-check, marketplace entry | Plugin maintainer | Future installs only; existing targets change only on reinstall |
+
+- Installed-target evolution edits project files that the installer already copied; treat them as owned by the target repository, not by the plugin package.
+- Plugin-default evolution changes what future installs ship and MUST NOT be used to patch one target; reinstall the target if a default change should reach it.
+- A repeated drift across many targets is the signal to move a fix from installed-target evolution to plugin-default evolution.
+
 ## Ownership Boundary
 
-- This skill owns harness evolution guidance.
-- Project assets evolve under `skills/harness-install/assets/`.
-  - Includes agents, project skills, docs, validators, CI files, and hook scaffolds.
+- This skill owns harness evolution guidance across both tracks.
+- Installed-target evolution edits copied project files in the target repository.
+- Plugin-default evolution edits `skills/harness-install/assets/` and keeps agents, project skills, docs, validators, CI files, and hook scaffolds installable.
 - Plugin-root structural agents evolve only when their harness-lifecycle advisory role changes.
 
 ## First Safe Checks
@@ -76,8 +87,8 @@ Produce the evolution plan first, then use `harness-validate` after changes are 
 | Product architecture changed and docs are stale | evolve | Update `ARCHITECTURE.md` and relevant design docs. |
 | | | Update validation expectations in the same change. |
 | A generated artifact moved or was renamed | evolve | Update generated-artifact docs and any installed CI references. |
-| CI should run the same final check command on a new platform | evolve | Add or update install-time CI assets. |
-| | | Preserve the selected pre-push command. |
+| CI should run the same canonical check command on a new platform | evolve | Add or update install-time CI assets. |
+| | | Preserve the selected canonical check command. |
 | Validation fails because a required file is missing unexpectedly | reject as drift | Restore the file or re-run installation. |
 | | | Fix the underlying contract or target content. |
 | Placeholder content is still generic after installation | defer | Ask for target truth. |
@@ -111,7 +122,7 @@ Use this sequence before recommending deletion:
 
 Cleanup preserves active target truth even when the default template stops using that surface.
 It MUST leave one validation source of truth.
-GitHub Actions and GitLab CI are host-specific files for the selected final check command.
+GitHub Actions and GitLab CI are host-specific files for the selected canonical check command.
 
 ### Cleanup examples
 
@@ -120,7 +131,7 @@ delta: Target repository runs GitLab CI only and wants to remove `.github/workfl
 decision: evolve if GitHub Actions is documented as an optional CI asset.
 contract updates: remove the GitHub Actions file and any target-facing references that assume it exists.
 validation impact: selected stack command must pass.
-The present `.gitlab-ci.yml` must match the installed pre-push final-check command.
+The present `.gitlab-ci.yml` must match the installed canonical check command.
 risks: downstream docs may still mention GitHub pull request checks.
 ```
 
@@ -129,7 +140,7 @@ delta: Plugin package should stop receiving GitHub-only CI scaffolding for this 
 decision: evolve only when this cleanup is also intended for future installs.
 contract updates: update installer assets, `WORKFLOW.md`, and self-check expectations together.
 This is separate from target-side cleanup of existing installs.
-validation impact: selected stack command must pass and post-install CI assets must still match installed `pre-push`.
+validation impact: selected stack command must pass and post-install CI assets must still match the installed canonical check command.
 risks: mixed-host repositories may still need optional GitHub Actions assets.
 ```
 
@@ -163,7 +174,7 @@ Use this checklist before proposing or applying harness evolution.
 - `WORKFLOW.md` documents the selected stack validation command and CI host configuration.
 - `.claude/agents/**` and `.claude/skills/**` remain self-sufficient for target repository use.
 - `docs/templates/**` still contain placeholders only where the human copy step expects them.
-- `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml`, when present, run the selected final check command.
+- `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml`, when present, run the selected canonical check command.
 - `docs/generated/**` follows the generated-artifact contract.
 - A `docs/exec-plans/` entry records non-trivial evolution:
   - Reason.
@@ -207,9 +218,9 @@ The plan SHOULD include:
 ```text
 delta: Target repository needs GitLab CI in addition to GitHub Actions.
 decision: evolve
-contract updates: add `.gitlab-ci.yml` harness job that runs the same installed pre-push final check command.
+contract updates: add `.gitlab-ci.yml` harness job that runs the same installed canonical check command.
 validation impact: local harness validation stays unchanged.
-CI mirrors the installed pre-push final check command.
+CI mirrors the installed canonical check command.
 risks: image tags may need pinning under strict supply-chain policy.
 ```
 
@@ -277,14 +288,18 @@ The expected stack commands are:
 
   ```sh
   root=$(pwd -P)
+  if git ls-files -- "*.java" | grep -q '^"'; then
+      unsafe_file=$(git ls-files -- "*.java" | grep '^"')
+      echo "error: escaped Java path for spotlessFiles: $unsafe_file" >&2
+      exit 1
+  fi
+  if git ls-files -- "*.java" | grep -q ','; then
+      comma_file=$(git ls-files -- "*.java" | grep ',')
+      echo "error: comma Java path for spotlessFiles: $comma_file" >&2
+      exit 1
+  fi
   files=$(
       git ls-files -- "*.java" | while IFS= read -r file; do
-          case "$file" in
-              *,*)
-                  echo "error: Java path contains comma and cannot be represented in spotlessFiles: $file" >&2
-                  exit 1
-                  ;;
-          esac
           printf '%s/%s\n' "$root" "$file" | sed 's/[][\\.^$*+?{}()|]/\\&/g; s/^/^/; s/$/$/'
       done | paste -sd, -
   )
@@ -334,7 +349,7 @@ The expected stack commands are:
 - Validation must remain runnable after the evolution.
 - Placeholder changes must guide target truth without inventing fake product content.
 - Seed references may be replaced when the target stack or domain changes.
-- CI additions and the installed pre-push hook MUST mirror the selected stack validation command as one source of truth.
+- CI files and the installed `pre-commit` hook MUST run the same canonical check command as one source of truth; the installed `pre-push` hook is a local-only superset that MAY add tests and is not required to match CI.
 - Generated-artifact policy MUST distinguish source templates, generated outputs, and keep files.
 - Plugin evolution MUST keep `interface` out of the Claude plugin manifest.
 - Plugin evolution SHOULD omit manifest `version` unless the plugin has a semver release policy.
@@ -354,7 +369,7 @@ The expected stack commands are:
 - Check installed docs before changing the templates that support them.
 - Treat the current committed validators as the authoritative shape.
   - Replace obsolete forms directly.
-- Keep GitHub Actions and GitLab CI aligned to the same validation command.
+- Keep GitHub Actions and GitLab CI aligned to the same canonical check command as the installed `pre-commit` hook.
 - Keep product implementation work separate from harness evolution when the user asks only for harness work.
 - Keep plugin manifest surfaces within the supported schema.
 - Preserve validation output as review evidence.

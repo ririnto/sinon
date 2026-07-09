@@ -39,10 +39,11 @@ Installed assets under `assets/common` and `assets/<mode>` carry repository runt
 
 ## Install in Claude Code
 
-Install from this repository checkout:
+Register the `sinon` marketplace from a local checkout, then install the harness plugin from it:
 
 ```sh
-claude plugin install ./plugins/harness --scope project
+claude plugin marketplace add /path/to/sinon
+claude plugin install harness@sinon
 ```
 
 ## Included Skills
@@ -330,8 +331,7 @@ Hooks therefore activate through the selected stack's setup path rather than thr
 - Manifest author: `ririnto`, matching the repository owner metadata.
 - Plugin license: Apache-2.0, recorded in `LICENSE`.
 - External inspiration and adapted taxonomy are documented in `THIRD_PARTY_NOTICES.md`.
-- The marketplace catalog has top-level version metadata in `.claude-plugin/marketplace.json`.
-  - Plugin manifests and plugin entries intentionally omit `version`, so git SHA is the plugin update key.
+- The marketplace catalog in `.claude-plugin/marketplace.json` and all plugin manifests and entries intentionally omit `version`, so git SHA is the plugin update key.
 
 ## Harness Evolution
 

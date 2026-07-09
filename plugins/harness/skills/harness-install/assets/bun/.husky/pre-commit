@@ -2,5 +2,4 @@
 # -*- coding: utf-8 -*-
 set -e
 
-bun typecheck
 bun run check

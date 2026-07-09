@@ -5,18 +5,66 @@ import { validationCommandForMode } from "./commands.js";
 import { installFullPlan, installOneTargetPath } from "./operations.js";
 import { normalizeRequestedTargetPath, requiredSelectedPath } from "./paths.js";
 import { previewInstallSet, showOneTargetPath } from "./preview.js";
+import { writeInstallRecord } from "./record.js";
 import { fail } from "./types.js";
 import type { InstallerConfig, Mode } from "./types.js";
 
-type ActivationCommand = Readonly<{
+type HookActivation = Readonly<{
   command: readonly string[];
   executable: string;
-  failureLabel: string;
-  successMessage: string;
+  message: string;
+  prepare?: readonly string[];
 }>;
 
 const executableExists = (executable: string): boolean =>
   Bun.which(executable) !== null;
+
+/**
+ * Return the explicit Git hook activation command for one stack mode.
+ *
+ * @param mode Selected stack mode.
+ * @returns Hook activation command, executable dependency, and human message.
+ */
+const hookActivationForMode = (mode: Mode): HookActivation => {
+  switch (mode) {
+    case "gradle": {
+      return {
+        command: [],
+        executable: "",
+        message:
+          "Git hooks are created by the Gradle pre-commit-git-hooks plugin on first build; no explicit activation step."
+      };
+    }
+    case "maven":
+    case "shell": {
+      return {
+        command: ["git", "config", "core.hooksPath", ".githooks/"],
+        executable: "git",
+        message: "git config core.hooksPath .githooks/"
+      };
+    }
+    case "uv": {
+      return {
+        command: ["uv", "run", "pre-commit", "install"],
+        executable: "uv",
+        message: "uv sync && uv run pre-commit install",
+        prepare: ["uv", "sync"]
+      };
+    }
+    case "bun": {
+      return {
+        command: ["bun", "install"],
+        executable: "bun",
+        message: "bun install (Husky prepare)"
+      };
+    }
+    default: {
+      return fail(
+        `unsupported mode (must be gradle|maven|uv|bun|shell): ${mode}`
+      );
+    }
+  }
+};
 
 const printSummary = (
   config: InstallerConfig,
@@ -32,72 +80,50 @@ const printSummary = (
   }
 };
 
-const runActivationCommand = (activation: ActivationCommand): void => {
-  if (!executableExists(activation.executable)) {
-    console.log(
-      `[warning] ${activation.executable} not in PATH; skipping ${activation.failureLabel}`
-    );
+/**
+ * Activate Git hooks when explicitly requested; fail on any activation error.
+ *
+ * @param config Installer config.
+ */
+const activateHooks = (config: InstallerConfig): void => {
+  if (!config.activateHooks) {
     return;
+  }
+  const activation = hookActivationForMode(config.mode);
+  if (activation.command.length === 0) {
+    console.log(`activate git hooks: ${activation.message}`);
+    return;
+  }
+  if (!executableExists(activation.executable)) {
+    return fail(
+      `--activate-hooks: ${activation.executable} not in PATH; cannot run ${activation.message}`
+    );
+  }
+  if (activation.prepare !== undefined) {
+    const prepared = Bun.spawnSync([...activation.prepare], {
+      stderr: "pipe",
+      stdout: "pipe"
+    });
+    if (!prepared.success) {
+      return fail(
+        `--activate-hooks: ${activation.prepare.join(" ")} failed: ${prepared.stderr.toString().trim()}`
+      );
+    }
   }
   const proc = Bun.spawnSync([...activation.command], {
     stderr: "pipe",
     stdout: "pipe"
   });
-  if (proc.success) {
-    console.log(activation.successMessage);
-    return;
+  if (!proc.success) {
+    return fail(
+      `--activate-hooks: ${activation.message} failed: ${proc.stderr.toString().trim()}`
+    );
   }
-  console.log(
-    `[warning] ${activation.failureLabel} failed: ${proc.stderr.toString().trim()}`
-  );
-};
-
-const activateGitHooks = (mode: Mode): void => {
-  switch (mode) {
-    case "gradle": {
-      console.log(
-        "activate git hooks: Gradle plugin creates hooks on first build"
-      );
-      return;
-    }
-    case "maven":
-    case "shell": {
-      runActivationCommand({
-        command: ["git", "config", "core.hooksPath", ".githooks/"],
-        executable: "git",
-        failureLabel: "git config core.hooksPath",
-        successMessage:
-          "activate git hooks: git config core.hooksPath .githooks/"
-      });
-      return;
-    }
-    case "uv": {
-      runActivationCommand({
-        command: ["uv", "run", "pre-commit", "install"],
-        executable: "uv",
-        failureLabel: "pre-commit install",
-        successMessage: "activate git hooks: uv run pre-commit install"
-      });
-      return;
-    }
-    case "bun": {
-      runActivationCommand({
-        command: ["bun", "install"],
-        executable: "bun",
-        failureLabel: "bun install",
-        successMessage: "activate git hooks: bun install (Husky prepare)"
-      });
-      return;
-    }
-    default: {
-      return fail(
-        `unsupported mode (must be gradle|maven|uv|bun|shell): ${mode}`
-      );
-    }
-  }
+  console.log(`activate git hooks: ${activation.message}`);
 };
 
 const runtimeAdvisoryForMode = (mode: Mode): void => {
+  const activation = hookActivationForMode(mode);
   switch (mode) {
     case "gradle": {
       if (!existsSync("./gradlew")) {
@@ -105,10 +131,7 @@ const runtimeAdvisoryForMode = (mode: Mode): void => {
           "[advisory] ./gradlew is required before running validation; add or restore the Gradle wrapper in the target repository."
         );
       }
-      console.error(
-        "[advisory] Git hooks are managed by the Gradle pre-commit-git-hooks plugin; hooks are created on first build."
-      );
-      return;
+      break;
     }
     case "maven": {
       if (!existsSync("./mvnw")) {
@@ -116,10 +139,7 @@ const runtimeAdvisoryForMode = (mode: Mode): void => {
           "[advisory] ./mvnw is required before running validation; add or restore the Maven wrapper in the target repository."
         );
       }
-      console.error(
-        "[advisory] Git hooks use .githooks/ with core.hooksPath; run ./mvnw validate to activate."
-      );
-      return;
+      break;
     }
     case "uv": {
       if (!executableExists("uv")) {
@@ -127,10 +147,7 @@ const runtimeAdvisoryForMode = (mode: Mode): void => {
           "[advisory] uv command not found on PATH; install via the official script (`curl -LsSf https://astral.sh/uv/install.sh | sh`) or Homebrew (`brew install uv`) before running validation."
         );
       }
-      console.error(
-        "[advisory] Git hooks use pre-commit framework; run uv sync && uv run pre-commit install to activate."
-      );
-      return;
+      break;
     }
     case "bun": {
       if (!executableExists("bun")) {
@@ -138,19 +155,13 @@ const runtimeAdvisoryForMode = (mode: Mode): void => {
           "[advisory] bun command not found on PATH; install via the official script (`curl -fsSL https://bun.sh/install | bash`) or Homebrew (`brew install oven-sh/bun/bun`) before running validation."
         );
       }
-      console.error(
-        "[advisory] Git hooks use Husky; run bun install to activate (Husky runs via the prepare script)."
-      );
-      return;
+      break;
     }
     case "shell": {
       console.error(
         "[advisory] shellcheck and shfmt are required; install them via your OS package manager (for example, `apt install shellcheck shfmt` on Debian/Ubuntu or `brew install shellcheck shfmt` on macOS) before running validation."
       );
-      console.error(
-        "[advisory] Git hooks use .githooks/ with core.hooksPath; run git config core.hooksPath .githooks/ to activate."
-      );
-      return;
+      break;
     }
     default: {
       return fail(
@@ -158,6 +169,11 @@ const runtimeAdvisoryForMode = (mode: Mode): void => {
       );
     }
   }
+  console.error(
+    activation.command.length === 0
+      ? `[advisory] ${activation.message}`
+      : `[advisory] To activate Git hooks, run: ${activation.message}`
+  );
 };
 
 /** Run the requested installer action from the target repository root. */
@@ -193,7 +209,8 @@ export const runInstaller = async (config: InstallerConfig): Promise<void> => {
     }
     case "install": {
       await installFullPlan(config);
-      activateGitHooks(config.mode);
+      await writeInstallRecord(config);
+      activateHooks(config);
       printSummary(config, null);
       runtimeAdvisoryForMode(config.mode);
       return;

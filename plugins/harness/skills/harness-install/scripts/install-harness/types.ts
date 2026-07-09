@@ -16,6 +16,7 @@ export type CandidateKind =
   | "symlink";
 
 export type InstallerConfig = Readonly<{
+  activateHooks: boolean;
   action: Action;
   ciHost: CiHost;
   force: boolean;
@@ -27,16 +28,11 @@ export type InstallerConfig = Readonly<{
 export type InstallCandidate = Readonly<{
   dst: string;
   kind: CandidateKind;
-  marker?: string;
   realTarget?: string;
   seed?: boolean;
   src?: string;
   symlinkTarget?: string;
 }>;
-
-export const agentsMarker = "# Repository Contract";
-export const claudeMarker = "@AGENTS.md";
-export const claudePointerContent = "# CLAUDE.md\n\n@AGENTS.md";
 
 export const scriptDir = path.join(import.meta.dirname, "..");
 export const skillDir = path.join(scriptDir, "..");
@@ -54,15 +50,4 @@ export class HarnessError extends Error {
 
 export const fail = (message: string, exitCode = 1): never => {
   throw new HarnessError(`[error] ${message}`, exitCode);
-};
-
-export const hasRootContractMarker = (
-  dst: string,
-  marker: string,
-  content: string
-): boolean => {
-  if (dst === "CLAUDE.md") {
-    return content.trim() === claudePointerContent;
-  }
-  return content.includes(marker);
 };

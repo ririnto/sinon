@@ -12,7 +12,7 @@
 ## Subagent Use
 
 Use subagents as the normal tool for bounded exploration, implementation, and review when the work needs isolated context or independent judgment.
-The orchestrator owns workflow selection, agent type selection, model class selection, prompt scope, fan-in, and final decisions.
+The orchestrator owns workflow selection, agent type selection, capability tier selection, prompt scope, fan-in, and final decisions.
 
 Repository subagents:
 
@@ -28,14 +28,14 @@ Choose the narrowest agent type that can complete the assignment.
 | Independent quality, risk, validation, or contract review | `review` |
 | GitHub issue or pull request publication | main orchestrator |
 
-Choose the lightest model class that can complete the assignment.
-If a model appears in more than one class, use the lower class for mechanical work and the higher class only when task risk requires stronger reasoning.
+Choose the lightest capability tier that can complete the assignment.
+Tiers name capability bands, not specific vendor models; map the available runtime's models to Haiku-, Sonnet-, and Opus-equivalent bands by published capability, not by marketing label.
 
-| Difficulty | Model class |
+| Difficulty | Capability tier |
 | --- | --- |
-| Narrow lookup, mechanical formatting, short evidence collection | Haiku-class: Haiku, GPT-5.4-nano, or GPT-5.4-mini |
-| Routine implementation, validation triage, issue-mining synthesis | Sonnet-class: Sonnet, GPT-5.4, GPT-5.4-mini, or GPT-5.3-codex |
-| Ambiguous architecture, security-sensitive work, broad autonomous planning, final high-risk review | Opus-class: Opus or GPT-5.5 |
+| Narrow lookup, mechanical formatting, short evidence collection | Haiku-tier |
+| Routine implementation, validation triage, issue-mining synthesis | Sonnet-tier |
+| Ambiguous architecture, security-sensitive work, broad autonomous planning, final high-risk review | Opus-tier |
 
 Include the inputs the assignment needs:
 
@@ -50,6 +50,17 @@ Add context paths only when the assignment has known files, directories, records
 Pass only the branch, validation, review, and publication decisions needed for the assignment.
 Integrate returned changes or findings through the active orchestration workflow.
 Wait for delegated results before making dependent decisions.
+
+## Non-interactive Delegation
+
+Subagent orchestration assumes an interactive main loop.
+For CI jobs, hooks, and autonomous loops where no human is present, delegate through `claude -p` (print mode), which runs one prompt to completion and exits instead of opening a session.
+
+```sh
+claude -p "List each validation failure in this repository as path: reason" > .tmp/review.md
+```
+
+Pass the same scope, acceptance criteria, validation command, and output fields as an interactive subagent assignment; capture stdout to a file when the caller needs the result.
 
 ## Orchestration Workflow
 
@@ -93,15 +104,12 @@ Run `git fetch <remote>` first when `<base-ref>` is remote.
 git worktree add <worktree-path> -b <type>/<short-description> <base-ref>
 ```
 
-Draft issue and pull request bodies in `.tmp/`.
-Pass draft files with `--body-file`.
+Write the composed issue and pull request bodies to `.tmp/` and pass them with `--body-file`.
 When the repository operates GitHub milestones and the work belongs to one, add `--milestone "<milestone>"`.
 
 ```sh
 mkdir -p .tmp
-$EDITOR .tmp/issue.md
 gh issue create --title "<title>" --body-file .tmp/issue.md
-$EDITOR .tmp/review.md
 gh pr create --draft --title "<title>" --body-file .tmp/review.md --base main --head "$(git branch --show-current)"
 gh pr merge --squash <pr-number>
 ```
@@ -111,5 +119,5 @@ Use `gh issue edit` or `gh pr edit` when the record already exists.
 ## Autonomous Execution Loop
 
 Use the `autonomous-execution` skill only when the user explicitly asks for autonomous follow-through beyond one scoped work item.
-The skill uses this workflow's GitHub policy, subagent rules, model-class rules, evidence requirements, and pull request path.
+The skill uses this workflow's GitHub policy, subagent rules, capability-tier rules, evidence requirements, and pull request path.
 The orchestrator may process non-overlapping issues in separate worktrees when their files, contracts, validation surfaces, and pull request targets do not conflict.

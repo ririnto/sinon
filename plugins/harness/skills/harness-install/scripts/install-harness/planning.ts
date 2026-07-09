@@ -8,7 +8,7 @@ import {
   isHostTemplatePath,
   toPosixRelative
 } from "./paths.js";
-import { agentsMarker, claudeMarker, templateDir } from "./types.js";
+import { templateDir } from "./types.js";
 import type { InstallCandidate, InstallerConfig } from "./types.js";
 
 const commonInstallCandidates = async (
@@ -69,14 +69,12 @@ const rootContractInstallCandidates = (): readonly InstallCandidate[] => [
   {
     dst: "AGENTS.md",
     kind: "root-contract",
-    marker: agentsMarker,
     realTarget: "AGENTS.md",
     src: path.join(templateDir, "common", "AGENTS.md")
   },
   {
     dst: "CLAUDE.md",
     kind: "root-contract",
-    marker: claudeMarker,
     realTarget: "CLAUDE.md",
     src: path.join(templateDir, "common", "CLAUDE.md")
   }
