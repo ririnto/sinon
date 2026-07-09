@@ -1,14 +1,15 @@
 ---
 name: transport-types
 description: |-
-  Transport-specific lifecycle, failure modes, and decision tree for stdio, SSE, HTTP, and WebSocket MCP servers.
+  Transport-specific lifecycle, failure modes, and decision tree for stdio, SSE, and HTTP MCP servers.
 ---
 
 # MCP Transport Types: Detailed Lifecycle, Failure Modes, and Selection
 
-Open this reference when choosing between stdio, SSE, HTTP, or WebSocket transports for an MCP server, or troubleshooting transport-specific failures.
+Open this reference when choosing between stdio, SSE, or HTTP transports for an MCP server, or troubleshooting transport-specific failures.
 
-This reference covers the four MCP transport types (stdio, SSE, HTTP, WebSocket) with lifecycle details, failure modes, and decision tree for choosing the right transport.
+This reference covers the three MCP transport types Claude Code supports (stdio, SSE, HTTP) with lifecycle details, failure modes, and decision tree for choosing the right transport.
+WebSocket transports are not supported in Claude Code MCP.
 
 ## Transport overview
 
@@ -17,7 +18,6 @@ This reference covers the four MCP transport types (stdio, SSE, HTTP, WebSocket)
 | stdio | Local only | Env vars | 10-100ms | Custom servers, local tools |
 | SSE | Remote | OAuth | 1-5s | Hosted services (GitHub, Asana) |
 | HTTP | Remote | Token/headers | 50-500ms | REST APIs, custom backends |
-| WebSocket | Remote | Token/headers | 20-200ms | Real-time, streaming, bidirectional |
 
 ## Stdio transport: local process
 
@@ -121,7 +121,7 @@ OAuth handles auth.
 1. Claude Code starts session
 2. SSE connection opened to remote URL
 3. Server sends tool list via event stream
-4. Claude Code makes tool calls via separate HTTPS POST to `/call` endpoint (inferred)
+4. Claude Code sends JSON-RPC tool-call requests to the server HTTP endpoint
 5. Server streams response events
 6. Session ends → SSE connection closes
 
@@ -144,7 +144,7 @@ Error: User denied access to GitHub
 Tool calls fail for this session
 ```
 
-Mitigation: User can retry with `/mcp authorize github`.
+Mitigation: Retry the connection with `/mcp reconnect github`.
 
 Token expired: Stored OAuth token is stale.
 
@@ -163,9 +163,9 @@ Error: Connection timeout to https://mcp.github.com/sse
 ```
 
 Mitigation: Check network, verify server is online.
-Retry with `/mcp test github`.
+Retry with `/mcp reconnect github`.
 
-Unimplemented tool: Server lists tool but `/call` endpoint returns error.
+Unimplemented tool: Server lists tool but the call returns an error.
 
 ```text
 Error: Tool 'create_issue' not supported
@@ -179,7 +179,7 @@ Report to server maintainer.
 - Use only for official hosted services
 - Verify OAuth scope is minimal (don't over-request permissions)
 - Monitor token refresh logs: `claude --debug 2>&1 | grep OAuth`
-- Test connectivity: `/mcp test github`
+- Verify connectivity: run `/mcp` and confirm the server and its tools appear
 
 ## HTTP transport: token-based REST
 
@@ -205,7 +205,7 @@ HTTP: stateless requests with bearer token in headers.
 1. Claude Code starts session
 2. GET request to `https://api.example.com/mcp` with bearer token
 3. Server responds with tool list (JSON)
-4. Tool call: POST to `https://api.example.com/mcp/call` with tool name + args
+4. Tool call: JSON-RPC request to the server endpoint with tool name and args
 5. Server responds with result
 6. Session ends → no cleanup (stateless)
 
@@ -240,7 +240,7 @@ Error: Failed to parse MCP response
 Fix: Verify server sends valid JSON.
 Test with:
 
-```json
+```text
 curl -H "Authorization: Bearer $API_TOKEN" https://api.example.com/mcp | jq .
 ```
 
@@ -292,132 +292,6 @@ Fix: Ensure headers object is valid JSON:
 - Implement exponential backoff for transient failures
 - Monitor rate limits and adjust batch sizes
 
-## WebSocket transport: real-time bidirectional
-
-WebSocket: persistent connection with bidirectional message flow.
-
-### Configuration
-
-```jsonc
-{
-  "realtime-service": {
-    "type": "ws",
-    "url": "wss://mcp.example.com/ws",
-    "headers": {
-      "Authorization": "Bearer ${TOKEN}"
-    }
-  }
-}
-```
-
-### Lifecycle
-
-1. Claude Code starts session
-2. WebSocket connection established to `wss://mcp.example.com/ws` with auth header
-3. Server sends initial message with tool list
-4. Bidirectional message exchange for tool calls
-5. Server can send async notifications (push messages)
-6. Session ends → connection closed cleanly
-
-### Persistent connection benefits
-
-- Streaming responses: server sends partial results as they compute
-- Async notifications: server can push updates without tool call
-- Lower latency: no connection overhead per request
-- Stateful: server can maintain session context
-
-### Failure modes
-
-Connection refused: Server not listening or port wrong.
-
-```text
-Error: WebSocket connection refused
-```
-
-Fix: Verify server is running, port is correct.
-
-TLS certificate error: Server cert invalid or self-signed.
-
-```text
-Error: Certificate verification failed
-```
-
-Mitigation: For self-signed certs in dev, configure trust (not recommended for prod):
-
-```jsonc
-{
-  "type": "ws",
-  "url": "wss://localhost:8443/ws",
-  "verify_ssl": false
-}
-```
-
-Protocol mismatch: Server doesn't speak MCP protocol.
-
-```text
-Error: Invalid MCP message received
-```
-
-Fix: Verify server implements MCP protocol correctly.
-
-Message timeout: Server doesn't respond within timeout.
-
-```text
-Error: Tool call timeout after 30s
-```
-
-Mitigation: Increase timeout for slow operations:
-
-```markdown
----
-allowed-tools:
-  - mcp__plugin_realtime__*
-tool_timeout: 120
----
-```
-
-Connection drop: Network interruption mid-call.
-
-```text
-Error: Connection lost, reconnecting...
-```
-
-Mitigation: Implement exponential backoff reconnection:
-
-```text
-max_retries=3
-for attempt in $(seq 1 $max_retries); do
-    call_tool && break
-    sleep $((2 ** attempt))
-done
-```
-
-Note: This block uses `bash` due to exponential operators, which are not available in POSIX sh.
-
-### Streaming example
-
-Tool that returns results in chunks:
-
-```jsonc
-// Server-side pseudocode
-async function* streamData(input) {
-    for (const chunk of largeDataset) {
-        yield {type: "chunk", data: chunk};
-    }
-    yield {type: "complete"};
-}
-```
-
-Claude Code collects all chunks and assembles result.
-
-### Best practices
-
-- Use for long-running operations or streaming
-- Implement graceful reconnection with exponential backoff
-- Set per-tool timeouts if needed
-- Monitor connection health: `claude --debug 2>&1 | grep WebSocket`
-- Verify server closes connection cleanly on session end
-
 ## Transport selection decision tree
 
 ```text
@@ -426,21 +300,18 @@ Is the service hosted remotely?
 +-- YES
     +-- Is it an official service (GitHub, Asana, etc.)?
     |  +-- YES → Use SSE (OAuth handled automatically)
-    +-- Is it real-time or streaming?
-       +-- YES → Use WebSocket
-       +-- NO → Use HTTP (stateless, simple)
+    +-- NO → Use HTTP (stateless, token-authenticated)
 ```
 
 ### Decision matrix
 
-| Requirement | stdio | SSE | HTTP | WebSocket |
-| --- | --- | --- | --- | --- |
-| Local only | Yes | No | No | No |
-| Official OAuth | No | Yes | No | No |
-| Custom token | No | No | Yes | Yes |
-| Real-time streaming | No | No | No | Yes |
-| Simple stateless | No | Yes | Yes | No |
-| Multiple servers | Yes | Yes | Yes | Yes |
+| Requirement | stdio | SSE | HTTP |
+| --- | --- | --- | --- |
+| Local only | Yes | No | No |
+| Official OAuth | No | Yes | No |
+| Custom token | No | No | Yes |
+| Simple stateless | No | Yes | Yes |
+| Multiple servers | Yes | Yes | Yes |
 
 ## References
 
