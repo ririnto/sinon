@@ -47,7 +47,8 @@ const previewRootContractCandidate = async (
   const realTarget = requiredRealTarget(candidate);
   if (
     (await pathExists(realTarget)) &&
-    hasManagedBlock(await readUtf8(realTarget))
+    hasManagedBlock(await readUtf8(realTarget)) &&
+    !config.force
   ) {
     console.log(`skip root contract: ${candidate.dst}`);
     return;

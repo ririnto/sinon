@@ -76,7 +76,7 @@ const ensureRootContract = async (
     return;
   }
   const content = await readUtf8(dst);
-  if (hasManagedBlock(content)) {
+  if (hasManagedBlock(content) && !config.force) {
     console.log(`skip root contract: ${dst}`);
     return;
   }
@@ -184,7 +184,8 @@ export const ensureOneRootContract = async (
   await ensureSafeFileDestination(realTarget);
   if (
     (await pathExists(realTarget)) &&
-    hasManagedBlock(await readUtf8(realTarget))
+    hasManagedBlock(await readUtf8(realTarget)) &&
+    !config.force
   ) {
     console.log(`skip root contract: ${candidate.dst}`);
     return;
