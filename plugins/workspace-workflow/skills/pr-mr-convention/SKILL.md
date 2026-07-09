@@ -194,7 +194,8 @@ gh pr create --title "feat(api): add rate limit headers" \
 ```sh
 glab mr create --title "feat(api): add rate limit headers" \
   --description "$(cat body.md)" \
-  --draft
+  --draft \
+  --yes
 ```
 
 ## Decision: Draft versus Ready
@@ -248,7 +249,7 @@ GitLab supports scoped labels: `scope::value` syntax.
 Use consistently:
 
 ```sh
-glab mr create --title "..." --label "type::feature,scope::api,priority::high"
+glab mr create --title "..." --label "type::feature,scope::api,priority::high" --yes
 ```
 
 Key difference from GitHub: Scoped labels enforce a single value per scope (e.g., only one `type::*` can be active).
@@ -265,7 +266,7 @@ Use this to prevent conflicting labels.
 ### GitHub Example
 
 ```sh
-gh pr create --title "..." --assignee @reviewer-github-handle --reviewer @code-owner
+gh pr create --title "..." --assignee reviewer-github-handle --reviewer code-owner
 ```
 
 ### GitLab Example
@@ -326,7 +327,7 @@ gh pr create --draft \
 gh pr edit <number> --add-label "type:feature,scope:api,priority:high"
 
 # Assign reviewer
-gh pr edit <number> --add-reviewer @reviewer-name
+gh pr edit <number> --add-reviewer reviewer-name
 
 # Convert to ready when tests pass and checklist is complete
 gh pr ready <number>
@@ -338,11 +339,12 @@ gh pr ready <number>
 # Create MR in draft status with title and body (including quick actions)
 glab mr create --draft \
   --title "feat(api): add user authentication" \
-  --description "$(cat mr-body.md)"
+  --description "$(cat mr-body.md)" \
+  --yes
 
 # The MR body includes quick actions like /assign, /label, /reviewer
 # After CI passes and checklist is complete, mark ready via web UI or:
-glab mr update <number> --ready
+glab mr update <number> --ready --yes
 ```
 
 ## GitHub CLI (gh) Cheat Sheet
@@ -366,8 +368,8 @@ gh pr create --fill --draft
 gh pr create --title "feat(auth): JWT refresh token" \
   --body-file body.md \
   --label "type:feature,scope:auth,priority:high" \
-  --reviewer @alice,@bob \
-  --assignee @maintainer
+  --reviewer alice,bob \
+  --assignee maintainer
 ```
 
 ### Edit an Existing PR
@@ -379,11 +381,11 @@ gh pr edit 42 --title "New title" --body-file body.md
 # Add/remove labels
 gh pr edit 42 --add-label "needs-review" --remove-label "draft-review"
 
-# Add/remove reviewers
-gh pr edit 42 --add-reviewer @alice --remove-reviewer @bob
+# Add/remove reviewers (bare logins; no '@')
+gh pr edit 42 --add-reviewer alice --remove-reviewer bob
 
-# Add/remove assignees
-gh pr edit 42 --add-assignee @me --remove-assignee @previous-owner
+# Add/remove assignees ('@me' is supported; other logins are bare)
+gh pr edit 42 --add-assignee @me --remove-assignee previous-owner
 ```
 
 ### Check PR Status and Details
@@ -440,7 +442,7 @@ gh pr merge 42 --squash --delete-branch
 | Scenario | Command |
 | --- | --- |
 | Start new feature with discipline | `gh pr create --draft --title "feat(x): ..." --body-file body.md --label "type:feature"` |
-| Add CI/review requirements | `gh pr edit <n> --add-reviewer @maintainer --add-label "needs-review"` |
+| Add CI/review requirements | `gh pr edit <n> --add-reviewer maintainer --add-label "needs-review"` |
 | Ready after tests pass | `gh pr ready <n>` |
 | Merge when approved (avoid manual merge button) | `gh pr merge <n> --squash --auto --delete-branch` |
 
@@ -452,21 +454,24 @@ gh pr merge 42 --squash --delete-branch
 # Create with title and description from file (most common)
 glab mr create --title "feat(api): add rate limit headers" \
   --description "$(cat body.md)" \
-  --draft
+  --draft \
+  --yes
 
 # Create with inline description
 glab mr create --title "fix(db): handle null connection" \
-  --description "Fixes #123. Adds null checks to prevent crash."
+  --description "Fixes #123. Adds null checks to prevent crash." \
+  --yes
 
-# Auto-fill from commits
-glab mr create --fill --draft
+# Auto-fill from commits (--fill skips title/description prompts and pushes the branch)
+glab mr create --fill --draft --yes
 
-# Create with labels, reviewers, assignees (via flags or quick actions)
+# Create with labels, reviewers, assignees (reviewers/assignees are bare usernames, no '@')
 glab mr create --title "feat(auth): JWT refresh token" \
   --description "$(cat body.md)" \
   --label "type::feature,scope::auth" \
-  --reviewer @alice,@bob \
-  --assignee @maintainer
+  --reviewer alice,bob \
+  --assignee maintainer \
+  --yes
 ```
 
 ### Edit an Existing MR
@@ -474,16 +479,17 @@ glab mr create --title "feat(auth): JWT refresh token" \
 ```sh
 # Update title and description
 glab mr update 42 --title "New title" \
-  --description "$(cat body.md)"
+  --description "$(cat body.md)" \
+  --yes
 
-# Add/remove labels
-glab mr update 42 --label "needs-review" --unlabel "wip"
+# Add/remove labels (--label adds, --unlabel removes)
+glab mr update 42 --label "needs-review" --unlabel "wip" --yes
 
-# Add/remove reviewers (prefix with '+' to add, '-' to remove)
-glab mr update 42 --reviewer "+@alice,-@bob"
+# Set reviewers: '+alice' adds, '-bob' or '!bob' removes; a bare list replaces them all.
+glab mr update 42 --reviewer "+alice,-bob" --yes
 
-# Add/remove assignees
-glab mr update 42 --assignee "+@me,-@previous"
+# Set assignees with the same prefix rule as reviewers.
+glab mr update 42 --assignee "+alice,-bob" --yes
 ```
 
 ### Check MR Status and Details
@@ -519,42 +525,42 @@ glab mr list --source-branch "new-feature" --target-branch "main"
 
 ```sh
 # Convert from draft to ready for review
-glab mr update 42 --ready
+glab mr update 42 --ready --yes
 
 # Convert from ready to draft
-glab mr update 42 --draft
+glab mr update 42 --draft --yes
 ```
 
 ### Merge an MR
 
 ```sh
-# Standard merge (create merge commit)
-glab mr merge 42
+# Standard merge (create merge commit); add --yes (-y) to skip the confirm prompt
+glab mr merge 42 --yes
 
 # Squash commits before merge
-glab mr merge 42 --squash
+glab mr merge 42 --squash --yes
 
 # Rebase and merge
-glab mr merge 42 --rebase
+glab mr merge 42 --rebase --yes
 
 # Merge when pipeline succeeds (do not merge immediately)
-glab mr merge 42 --auto-merge
+glab mr merge 42 --auto-merge --yes
 
 # Merge and delete source branch
-glab mr merge 42 --remove-source-branch
+glab mr merge 42 --remove-source-branch --yes
 
 # Custom commit message for merge
-glab mr merge 42 --message "Merge feature X"
+glab mr merge 42 --message "Merge feature X" --yes
 ```
 
 ### Recommended Option Combinations
 
 | Scenario | Command |
 | --- | --- |
-| Start new feature with discipline | `glab mr create --draft --title "feat(x): ..." --description "$(cat body.md)" --label "type::feature"` |
-| Add review requirements | `glab mr update <n> --reviewer @maintainer --label "needs-review"` |
-| Ready after tests pass | `glab mr update <n> --ready` |
-| Merge when approved | `glab mr merge <n> --squash --auto-merge` |
+| Start new feature with discipline | `glab mr create --draft --title "feat(x): ..." --description "$(cat body.md)" --label "type::feature" --yes` |
+| Add review requirements | `glab mr update <n> --reviewer maintainer --label "needs-review" --yes` |
+| Ready after tests pass | `glab mr update <n> --ready --yes` |
+| Merge when approved | `glab mr merge <n> --squash --auto-merge --yes` |
 
 ## Using External Body Files
 
@@ -597,10 +603,11 @@ gh pr edit 42 --body-file body.md
 # Pass file content to --description using command substitution
 glab mr create --title "feat(auth): JWT refresh" \
   --description "$(cat body.md)" \
-  --draft
+  --draft \
+  --yes
 
 # Update existing MR description from file
-glab mr update 42 --description "$(cat body.md)"
+glab mr update 42 --description "$(cat body.md)" --yes
 ```
 
 ## Output Contract
