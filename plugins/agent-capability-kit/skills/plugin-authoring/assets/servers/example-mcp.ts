@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
-/* eslint-disable func-style, no-await-in-loop, promise/avoid-new */
+
+import { createInterface } from "node:readline";
 
 type JsonValue =
   | null
@@ -12,165 +13,99 @@ type JsonValue =
 
 type JsonObject = Readonly<Record<string, JsonValue>>;
 
-const decoder = new TextDecoder();
-const encoder = new TextEncoder();
+const PROTOCOL_VERSION = "2025-11-25";
 
 /** Return true when a parsed value is a JSON object. */
-function isJsonObject(value: unknown): value is JsonObject {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+const isJsonObject = (value: unknown): value is JsonObject =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
 /** Read a string property from a JSON object. */
-function stringField(message: JsonObject, key: string): string {
+const stringField = (message: JsonObject, key: string): string => {
   const value = message[key];
   return typeof value === "string" ? value : "";
-}
+};
 
-/** Find the byte span that separates JSON-RPC headers from a body. */
-function headerBoundary(
-  bytes: Uint8Array,
-  offset: number
-): readonly [number, number] | undefined {
-  for (let index = offset; index < bytes.length - 1; index += 1) {
-    if (bytes[index] === 10 && bytes[index + 1] === 10) {
-      return [index, index + 2];
-    }
-    if (
-      index < bytes.length - 3 &&
-      bytes[index] === 13 &&
-      bytes[index + 1] === 10 &&
-      bytes[index + 2] === 13 &&
-      bytes[index + 3] === 10
-    ) {
-      return [index, index + 4];
-    }
-  }
-  return undefined;
-}
-
-/** Append one byte chunk to a buffered byte stream. */
-function appendBytes(
-  left: Uint8Array<ArrayBufferLike>,
-  right: Uint8Array<ArrayBufferLike>
-): Uint8Array<ArrayBufferLike> {
-  const merged = new Uint8Array(left.byteLength + right.byteLength);
-  merged.set(left);
-  merged.set(right, left.byteLength);
-  return merged;
-}
-
-/** Process complete framed JSON-RPC messages from a byte buffer. */
-function readMessagesFromBuffer(
-  bytes: Uint8Array<ArrayBufferLike>
-): readonly [readonly JsonObject[], Uint8Array<ArrayBufferLike>] {
-  let offset = 0;
-  const messages: JsonObject[] = [];
-  while (offset < bytes.length) {
-    const boundary = headerBoundary(bytes, offset);
-    if (boundary === undefined) {
-      break;
-    }
-    const [headerEnd, bodyStart] = boundary;
-    const headers = decoder.decode(bytes.subarray(offset, headerEnd));
-    const contentLength = headers
-      .split(/\r?\n/u)
-      .map((line) => line.split(":", 2))
-      .find(([name]) => name?.toLowerCase() === "content-length")?.[1];
-    const length = Math.trunc(Number(contentLength?.trim() ?? "0"));
-    if (length <= 0 || bodyStart + length > bytes.length) {
-      break;
-    }
-    const parsed: unknown = JSON.parse(
-      decoder.decode(bytes.subarray(bodyStart, bodyStart + length))
-    );
-    if (isJsonObject(parsed)) {
-      messages.push(parsed);
-    }
-    offset = bodyStart + length;
-  }
-  return [messages, bytes.subarray(offset)];
-}
-
-/** Write one framed JSON-RPC message to stdout. */
-function writeMessage(message: JsonObject): void {
-  const body = encoder.encode(JSON.stringify(message));
-  process.stdout.write(`Content-Length: ${body.byteLength}\r\n\r\n`);
-  process.stdout.write(body);
-}
+/** Write one newline-delimited JSON-RPC message to stdout. */
+const writeMessage = (message: JsonObject): void => {
+  process.stdout.write(`${JSON.stringify(message)}\n`);
+};
 
 /** Create a successful JSON-RPC response. */
-function success(
+const success = (
   messageId: JsonValue | undefined,
   result: JsonValue
-): JsonObject {
-  return { id: messageId ?? null, jsonrpc: "2.0", result };
-}
+): JsonObject => ({ id: messageId ?? null, jsonrpc: "2.0", result });
 
 /** Create a JSON-RPC error response. */
-function error(
+const error = (
   messageId: JsonValue | undefined,
   code: number,
   message: string
-): JsonObject {
-  return {
-    error: { code, message },
-    id: messageId ?? null,
-    jsonrpc: "2.0"
-  };
-}
+): JsonObject => ({
+  error: { code, message },
+  id: messageId ?? null,
+  jsonrpc: "2.0"
+});
 
 /** Return the tool definition for read_plugin_paths. */
-function toolDefinition(): JsonObject {
-  return {
-    description:
-      "Return the plugin root and data directories for local runtime checks.",
-    inputSchema: {
-      additionalProperties: false,
-      properties: {},
-      type: "object"
-    },
-    name: "read_plugin_paths"
-  };
-}
+const toolDefinition = (): JsonObject => ({
+  description:
+    "Return the plugin root and data directories for local runtime checks.",
+  inputSchema: {
+    additionalProperties: false,
+    properties: {},
+    type: "object"
+  },
+  name: "read_plugin_paths"
+});
 
 /** Return the result of the read_plugin_paths tool. */
-function toolResult(): JsonObject {
-  return {
-    content: [
-      {
-        text: JSON.stringify(
-          {
-            pluginData: process.env["CLAUDE_PLUGIN_DATA"] ?? "",
-            pluginRoot: process.env["CLAUDE_PLUGIN_ROOT"] ?? ""
-          },
-          null,
-          2
-        ),
-        type: "text"
-      }
-    ]
-  };
-}
+const toolResult = (): JsonObject => ({
+  content: [
+    {
+      text: JSON.stringify(
+        {
+          pluginData: process.env["CLAUDE_PLUGIN_DATA"] ?? "",
+          pluginRoot: process.env["CLAUDE_PLUGIN_ROOT"] ?? ""
+        },
+        null,
+        2
+      ),
+      type: "text"
+    }
+  ]
+});
 
-/** Handle an MCP request message. */
-function handleRequest(message: JsonObject): JsonObject | undefined {
+/** Handle one MCP request or notification. */
+const handleMessage = (message: JsonObject): JsonObject | undefined => {
   const method = stringField(message, "method");
   const messageId = message["id"];
+  const isNotification = messageId === undefined;
   if (method === "initialize") {
-    return success(messageId, {
-      capabilities: { tools: {} },
-      protocolVersion: "2024-11-05",
-      serverInfo: { name: "example-mcp", version: "0.1.0" }
-    });
+    return isNotification
+      ? undefined
+      : success(messageId, {
+          capabilities: { tools: {} },
+          protocolVersion: PROTOCOL_VERSION,
+          serverInfo: { name: "example-mcp", version: "0.1.0" }
+        });
   }
-  if (method === "notifications/initialized" || method === "exit") {
+  if (method === "notifications/initialized") {
     return undefined;
   }
+  if (method === "ping") {
+    return isNotification ? undefined : success(messageId, {});
+  }
   if (method === "tools/list") {
-    return success(messageId, { tools: [toolDefinition()] });
+    return isNotification
+      ? undefined
+      : success(messageId, { tools: [toolDefinition()] });
   }
   if (method === "tools/call") {
     const { params } = message;
+    if (isNotification) {
+      return undefined;
+    }
     if (
       !isJsonObject(params) ||
       stringField(params, "name") !== "read_plugin_paths"
@@ -179,36 +114,37 @@ function handleRequest(message: JsonObject): JsonObject | undefined {
     }
     return success(messageId, toolResult());
   }
-  if (method === "shutdown") {
-    return success(messageId, {});
-  }
-  return error(messageId, -32_601, `Unsupported method: ${method}`);
-}
+  return isNotification
+    ? undefined
+    : error(messageId, -32_601, `Unsupported method: ${method}`);
+};
 
-/** Read stdin as a live JSON-RPC stream. */
-async function runServer(): Promise<void> {
-  return await new Promise((resolve) => {
-    let buffer: Uint8Array<ArrayBufferLike> = new Uint8Array();
-    process.stdin.resume();
-    process.stdin.on("data", (chunk: Buffer) => {
-      buffer = appendBytes(buffer, chunk);
-      const [messages, remaining] = readMessagesFromBuffer(buffer);
-      buffer = remaining;
-      for (const message of messages) {
-        const response = handleRequest(message);
-        if (response !== undefined) {
-          writeMessage(response);
-        }
-        if (stringField(message, "method") === "shutdown") {
-          resolve();
-          return;
-        }
-      }
-    });
-    process.stdin.on("end", () => {
-      resolve();
-    });
+/** Read newline-delimited JSON-RPC messages from stdin. */
+const runServer = async (): Promise<void> => {
+  const lines = createInterface({
+    crlfDelay: Number.POSITIVE_INFINITY,
+    input: process.stdin
   });
-}
+  for await (const line of lines) {
+    if (line.length === 0) {
+      continue;
+    }
+    try {
+      const parsed: unknown = JSON.parse(line);
+      if (!isJsonObject(parsed)) {
+        writeMessage(
+          error(null, -32_600, "JSON-RPC message must be an object")
+        );
+        continue;
+      }
+      const response = handleMessage(parsed);
+      if (response !== undefined) {
+        writeMessage(response);
+      }
+    } catch {
+      writeMessage(error(null, -32_700, "Invalid JSON"));
+    }
+  }
+};
 
 await runServer();

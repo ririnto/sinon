@@ -818,10 +818,11 @@ If the project requires OPTIONAL extensions:
 - Create sub-tables in Section 24 showing which tests apply to each extension.
 - Cross-link extension requirements from the main requirement sections using "IF [Extension] is implemented" notes.
 
-### Multi-Document Split
+### Large Single-File Specification
 
 If the spec grows beyond ~10,000 words:
 
-- Keep this document as the authoritative primary contract.
-- Create sub-specs for each integration surface (e.g., "Agent Runner Protocol `SPEC.md`") and link them by explicit reference (only permitted outside the generated spec).
-- Ensure the primary spec is still readable without opening sub-specs.
+- Keep every requirement, contract, and conditional detail in the generated `SPEC.md`.
+- Move large integration surfaces or extension profiles to appendices inside the same file.
+- Link from the main sections to stable appendix headings within the artifact.
+- Keep the main section flow readable without delegating required content to another document.

@@ -116,7 +116,7 @@ If revision requires human judgment, record a focused open question instead of g
 - [ ] The spec clearly separates WHAT/WHY from HOW unless design is explicitly in scope.
 - [ ] The spec includes enough boundaries (limits, states, transitions) to prevent feature inflation during implementation.
 - [ ] The spec does not instruct an agent to mine repository-local docs (`ARCHITECTURE.md`, `README.md`, `WORKFLOW.md`, etc.) unless the user explicitly authorized that task.
-- [ ] The spec fits in a single reading; if it is longer than ~10,000 words, large details are moved to sub-specs or appendices (with explicit cross-references allowed when sub-specs are out of the generated `SPEC.md`).
+- [ ] The spec remains one standalone artifact; when it grows beyond ~10,000 words, large conditional details move to appendices inside the same `SPEC.md` and the main sections link to those internal headings.
 - [ ] Ambiguities are resolved; no "implementation may choose" text left without explicit `Implementation-defined` marking.
 - [ ] Scenarios are detailed enough for an agent to write test code from them.
 - [ ] Reference algorithms are specific enough for an agent to implement from them.

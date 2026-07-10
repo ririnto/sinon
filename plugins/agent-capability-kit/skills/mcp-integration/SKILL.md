@@ -82,6 +82,9 @@ Every manifest path MUST begin with `./` and resolve inside the plugin root.
 | SSE | `type: "sse"`, `url`, optional headers | Legacy remote server that has not migrated to HTTP |
 | WebSocket | `type: "ws"`, `url`, optional headers | Remote server that pushes events over a persistent connection |
 
+Stdio servers MUST exchange one JSON-RPC message per line on stdin and stdout.
+They MUST NOT use LSP `Content-Length` framing.
+
 Prefer HTTP for new remote integrations.
 SSE is deprecated but still supported for compatibility.
 Configure WebSocket in `.mcp.json` or through `claude mcp add-json`; `claude mcp add --transport` does not accept `ws`.
@@ -173,6 +176,7 @@ Open `references/performance.md` when tuning a real connection or output problem
 - `/reload-plugins` reconnects changed plugin servers
 - `/mcp` shows each expected server and authentication state
 - one intended tool succeeds through its plugin-scoped name
+- a stdio server returns a newline-delimited initialize response without `Content-Length` headers
 - missing credentials fail without exposing secrets
 - generated state is written only under `${CLAUDE_PLUGIN_DATA}`
 - remote URLs use HTTPS or WSS outside localhost

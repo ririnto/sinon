@@ -19,6 +19,7 @@ Run `/reload-plugins` after changes.
 
 Plugin `.mcp.json` MUST contain a top-level `mcpServers` object.
 Copy `assets/.mcp.json` with `assets/servers/example-mcp.ts` for a local stdio starter.
+Stdio MCP uses one JSON-RPC message per line on stdin and stdout, without LSP `Content-Length` framing.
 Bundled server code belongs under `${CLAUDE_PLUGIN_ROOT}`; generated server data belongs under `${CLAUDE_PLUGIN_DATA}`.
 
 ## LSP
@@ -55,6 +56,8 @@ Top-level manifest `themes` is deprecated.
 Default monitor configuration lives at `monitors/monitors.json`.
 Use `experimental.monitors` for custom paths or inline declarations.
 Top-level manifest `monitors` is deprecated.
+Each monitor object requires `name`, `command`, and `description`.
+The command MUST remain running for the intended monitoring lifetime and write notification lines to stdout.
 
 Monitors that write state MUST use `${CLAUDE_PLUGIN_DATA}`.
 After a plugin update, monitors require a session restart to switch to the new plugin path.
