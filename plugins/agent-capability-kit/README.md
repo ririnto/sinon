@@ -43,7 +43,9 @@ Four runtime agents with explicit model and effort routing.
 
 All installable agents are leaves.
 The substantive agents use Claude Sonnet with medium effort and Codex Terra counterparts where shared.
-The inventory scanner uses Claude Haiku and Codex Luna with low effort; Claude's current official model table does not list Haiku effort as effective, so the declaration is compatibility metadata.
+The inventory scanner uses Claude Haiku and Codex Luna with low effort; Claude's current
+official model table does not list Haiku effort as effective, so the declaration is
+compatibility metadata.
 The user-facing top-level session owns orchestration and is not packaged as an agent.
 
 ## Runtime Model
