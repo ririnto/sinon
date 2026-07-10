@@ -167,6 +167,14 @@ test("workflow documents carry the complete lifecycle and selected-host split", 
     expect(text).toContain("The top-level orchestrator assigns");
   }
   for (const text of workflowTexts) {
+    expect(text).toContain(
+      "Delegate bounded exploration, implementation, documentation, audit, and review work to leaves."
+    );
+    expect(text).toMatch(
+      /Assign bounded leaf workers to run focused and integrated (?:repository )?checks[\s\S]*full fan-in before the root session decides release\./iu
+    );
+    expect(text).not.toMatch(/\| Validate \|\s*(?:Run|run)\b/u);
+    expect(text).not.toMatch(/\bValidate: run focused and integrated\b/u);
     for (const fragment of [
       "max_depth = 1",
       "scoped-implementer",

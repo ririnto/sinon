@@ -93,7 +93,7 @@ Pass the same scope, acceptance criteria, validation command, and output fields 
 | Plan | Define subagent scopes, changed files, acceptance criteria, validation, manual QA, and local review target. |
 | Implement | The top-level orchestrator assigns the change set to a bounded leaf worker to satisfy the criteria and preserve the contracts that cover changed files. |
 | Review | Assign independent review for correctness, security, contract drift, and missing evidence when the change is non-trivial. |
-| Validate | Run the active validation command and active hooks after integrating subagent output. |
+| Validate | Assign bounded leaf workers to run the active validation command and hooks, collect their evidence, and require full fan-in before the root session decides release. |
 | Complete | Update the local review record or execution plan with validation, review, evidence, and blockers. |
 
 ## Issue Mining
@@ -144,7 +144,7 @@ git worktree add <worktree-path> -b <type>/<short-description> <base-ref>
 7. Review: run independent `review` over integrated changes.
 8. Fix: return findings to the owning writer.
 9. Re-review: verify the fix over the same scope.
-10. Validate: run focused and integrated repository checks on the combined tree.
+10. Validate: assign bounded leaf workers to run focused and integrated repository checks, collect their evidence, and require full fan-in before the root session decides release.
 11. Complete: update the local review record or execution plan from the root session.
 
 Missing, failed, or contradictory workers block completion.
