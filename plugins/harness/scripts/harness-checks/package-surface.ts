@@ -11,8 +11,6 @@ import {
 } from "node:fs";
 import path from "node:path";
 
-import { validateAgentRouting } from "../../../../scripts/agent-routing.js";
-
 type JsonValue =
   | boolean
   | null
@@ -1645,15 +1643,116 @@ const validateMarketplace = (
   }
 };
 
-/** Validate marketplace package metadata and filesystem contracts. */
+/** Return runtime TypeScript files shipped by one plugin package. */
+const packageRuntimeFiles = (directory: string): readonly string[] => {
+  const files: string[] = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...packageRuntimeFiles(entryPath));
+    } else if (entry.isFile() && entry.name.endsWith(".ts")) {
+      files.push(entryPath);
+    }
+  }
+  return files;
+};
+
+/** Return the source file addressed by one package-relative import. */
+const importedSourcePath = (sourcePath: string): readonly string[] => {
+  const candidates = [sourcePath];
+  if (sourcePath.endsWith(".js")) {
+    candidates.push(`${sourcePath.slice(0, -".js".length)}.ts`);
+  }
+  candidates.push(path.join(sourcePath, "index.ts"));
+  return candidates;
+};
+
+/** Validate that shipped runtime imports stay inside the plugin package. */
+const validatePackageRuntimeImports = (
+  pluginRoot: string,
+  errors: string[]
+): void => {
+  const importPatterns = [
+    /^\s*(?:import|export)\s+(?:type\s+)?(?:.+?\s+from\s+)?["'](?<specifier>[^"']+)["']/gmu,
+    /\bimport\s*\(\s*["'](?<specifier>[^"']+)["']\s*\)/gu
+  ];
+  for (const filePath of packageRuntimeFiles(pluginRoot)) {
+    if (
+      filePath.endsWith(".test.ts") ||
+      path.relative(pluginRoot, filePath).split(path.sep).includes("assets")
+    ) {
+      continue;
+    }
+    const content = readFileSync(filePath, "utf-8");
+    for (const importPattern of importPatterns) {
+      for (const match of content.matchAll(importPattern)) {
+        const specifier = match.groups?.["specifier"];
+        if (specifier === undefined) {
+          continue;
+        }
+        if (!specifier.startsWith(".")) {
+          if (!specifier.startsWith("node:")) {
+            errors.push(
+              packageError(
+                pluginRoot,
+                filePath,
+                `runtime dependency is not declared by the package: ${specifier}`
+              )
+            );
+          }
+          continue;
+        }
+        const sourcePath = path.resolve(path.dirname(filePath), specifier);
+        if (!isInsidePath(pluginRoot, sourcePath)) {
+          errors.push(
+            packageError(
+              pluginRoot,
+              filePath,
+              `runtime import escapes package: ${specifier}`
+            )
+          );
+          continue;
+        }
+        if (
+          !importedSourcePath(sourcePath).some((candidate) =>
+            existsSync(candidate)
+          )
+        ) {
+          errors.push(
+            packageError(
+              pluginRoot,
+              filePath,
+              `runtime import does not resolve: ${specifier}`
+            )
+          );
+        }
+      }
+    }
+  }
+};
+
+/** Validate one Harness package without requiring a marketplace checkout. */
 export const checkPackageSurface = (root: string): void => {
+  const pluginRoot = realpathSync(root);
+  const errors: string[] = [];
+  const manifest = validateManifest(pluginRoot, pluginRoot, errors);
+  validateSkills(pluginRoot, pluginRoot, errors);
+  validateAgents(pluginRoot, pluginRoot, errors);
+  validateReadme(pluginRoot, pluginRoot, errors);
+  validateSettingsFile(pluginRoot, pluginRoot, errors);
+  validatePluginAgentRules(pluginRoot, pluginRoot, errors);
+  validateLicense(pluginRoot, pluginRoot, manifest, errors);
+  validatePackageRuntimeImports(pluginRoot, errors);
+  if (errors.length > 0) {
+    throw new Error(`Plugin package validation failed:\n${errors.join("\n")}`);
+  }
+  console.error("[plugin package surface] OK");
+};
+
+/** Validate repository marketplace metadata and filesystem contracts. */
+export const checkRepositoryPackageSurface = (root: string): void => {
   const repositoryRoot = path.resolve(root, "..", "..");
   const errors: string[] = [];
-  const routing = validateAgentRouting(repositoryRoot);
-  errors.push(...routing.errors);
-  for (const warning of routing.warnings) {
-    console.error(`[agent routing warning] ${warning}`);
-  }
   validateRootLayout(repositoryRoot, errors);
   const roots = pluginRoots(repositoryRoot);
   const manifests = new Map<string, Record<string, JsonValue>>();

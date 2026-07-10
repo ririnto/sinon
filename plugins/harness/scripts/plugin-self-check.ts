@@ -6,14 +6,15 @@ import {
   accessSync,
   constants,
   existsSync,
+  lstatSync,
   readFileSync,
   statSync
 } from "node:fs";
 import path from "node:path";
 
 import {
-  computeAssetManifest,
-  manifestPathFor
+  manifestPathFor,
+  readAssetManifest
 } from "../skills/harness-install/scripts/asset-manifest.js";
 import { checkInstallerRuntime } from "./harness-checks/installer-runtime.js";
 import { checkPackageSurface } from "./harness-checks/package-surface.js";
@@ -503,29 +504,16 @@ const requireCodexAgentToml = (
 };
 
 /**
- * Require one tracked directory path to exist.
+ * Require one directory path to exist.
  *
- * @param root Harness plugin root.
  * @param directoryPath Directory path to inspect.
  */
-const requireDir = (root: string, directoryPath: string): void => {
+const requireDir = (directoryPath: string): void => {
   if (!existsSync(directoryPath)) {
     fail(`[requireDir] missing required directory: ${directoryPath}`);
   }
   if (!statSync(directoryPath).isDirectory()) {
     fail(`[requireDir] expected directory: ${directoryPath}`);
-  }
-  const repositoryRoot = path.resolve(root, "..", "..");
-  const relativePath = path.relative(repositoryRoot, directoryPath);
-  const result = spawnSync(
-    "git",
-    ["-C", repositoryRoot, "ls-files", "--", relativePath],
-    {
-      encoding: "utf-8"
-    }
-  );
-  if (result.status !== 0 || result.stdout.trim() === "") {
-    fail(`[requireDir] missing tracked entries: ${directoryPath}`);
   }
 };
 
@@ -728,7 +716,7 @@ const checkCommonAssets = (root: string): void => {
     "assets",
     "common"
   );
-  requireDir(root, path.join(common, ".codex", "agents"));
+  requireDir(path.join(common, ".codex", "agents"));
   for (const spec of targetAgentSpecs) {
     requireClaudeAgentMarkdown(
       path.join(common, ".claude", "agents", `${spec.name}.md`),
@@ -899,7 +887,6 @@ const checkGradleAssets = (root: string): void => {
     "gradle"
   );
   requireDir(
-    root,
     path.join(
       assets,
       "buildSrc",
@@ -1303,7 +1290,7 @@ const checkInstallerContract = (root: string): void => {
 };
 
 /**
- * Validate the checked-in deny-by-default asset manifest against git-tracked files.
+ * Validate the checked-in deny-by-default asset manifest against packaged paths.
  *
  * @param root Harness plugin root.
  */
@@ -1311,25 +1298,26 @@ const checkAssetManifest = (root: string): void => {
   const skillDir = path.join(root, "skills", "harness-install");
   const manifestPath = manifestPathFor(skillDir);
   requireFile(manifestPath);
-  const expected: Record<string, readonly string[]> = {};
-  for (const [subdir, entries] of Object.entries(
-    computeAssetManifest(skillDir)
-  )) {
-    expected[subdir] = [...entries].toSorted();
-  }
-  const actual = JSON.parse(readFileSync(manifestPath, "utf-8")) as Record<
-    string,
-    readonly string[]
-  >;
-  const expectedJson = JSON.stringify(expected);
-  const actualJson = JSON.stringify(actual);
-  if (expectedJson !== actualJson) {
-    fail(
-      `[assetManifest] ${path.relative(
-        root,
-        manifestPath
-      )} is stale; run scripts/generate-asset-manifest.ts`
-    );
+  const assetsDir = path.join(skillDir, "assets");
+  for (const [subdir, entries] of Object.entries(readAssetManifest(skillDir))) {
+    const subdirDir = path.resolve(assetsDir, subdir);
+    if (
+      !subdirDir.startsWith(`${assetsDir}${path.sep}`) ||
+      !existsSync(subdirDir) ||
+      !lstatSync(subdirDir).isDirectory()
+    ) {
+      fail(`[assetManifest] invalid asset subdirectory: ${subdir}`);
+    }
+    for (const entry of entries) {
+      const assetPath = path.resolve(subdirDir, entry);
+      if (
+        !assetPath.startsWith(`${subdirDir}${path.sep}`) ||
+        !existsSync(assetPath) ||
+        !lstatSync(assetPath).isFile()
+      ) {
+        fail(`[assetManifest] invalid asset path: ${subdir}/${entry}`);
+      }
+    }
   }
   console.error("[asset manifest] OK");
 };
