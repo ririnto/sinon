@@ -1,4 +1,5 @@
 ---
+title: "Domain Ingest Contract"
 description: >-
   Behavioral contract for the domain ingest capability
 last_updated: "2026-03-06"

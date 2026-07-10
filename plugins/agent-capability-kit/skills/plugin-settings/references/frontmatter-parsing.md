@@ -27,15 +27,16 @@ Keep frontmatter extraction, YAML parsing, and schema validation separate so err
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
 
-import { chmod, readFile, rename, writeFile } from "node:fs/promises";
-import { realpathSync } from "node:fs";
-import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { randomUUID } from "node:crypto";
+import { lstatSync, realpathSync } from "node:fs";
+import { readFile, rename, rm, writeFile } from "node:fs/promises";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { parseDocument, stringify } from "yaml@2.8.1";
 
-type ParsedMarkdown = {
+interface ParsedMarkdown {
   data: Record<string, unknown>;
   body: string;
-};
+}
 
 function parseLocalMarkdown(source: string): ParsedMarkdown {
   const lines = source.split(/\r?\n/u);
@@ -43,7 +44,7 @@ function parseLocalMarkdown(source: string): ParsedMarkdown {
     throw new Error("state file must begin with ---");
   }
   const closing = lines.indexOf("---", 1);
-  if (closing < 0) {
+  if (closing === -1) {
     throw new Error("state file is missing its closing --- delimiter");
   }
   const document = parseDocument(lines.slice(1, closing).join("\n"), { uniqueKeys: true });
@@ -66,46 +67,94 @@ function serializeLocalMarkdown(data: Record<string, unknown>, body: string): st
   return `---\n${yaml}\n---\n\n${normalizedBody}\n`;
 }
 
+function isMissingPathError(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
+function assertInside(base: string, candidate: string): void {
+  const fromBase = relative(base, candidate);
+  if (isAbsolute(fromBase) || fromBase === ".." || fromBase.startsWith(`..${sep}`)) {
+    throw new Error("configured path escapes the allowed directory");
+  }
+}
+
 function resolveExistingInside(baseDirectory: string, configuredPath: string): string {
   const base = realpathSync(baseDirectory);
   const candidate = realpathSync(resolve(base, configuredPath));
-  const fromBase = relative(base, candidate);
-  if (fromBase.startsWith("..") || isAbsolute(fromBase)) {
-    throw new Error("configured path escapes the allowed directory");
-  }
+  assertInside(base, candidate);
   return candidate;
 }
 
 function resolveWriteInside(baseDirectory: string, configuredPath: string): string {
   const base = realpathSync(baseDirectory);
   const requested = resolve(base, configuredPath);
-  const realParent = realpathSync(dirname(requested));
-  const candidate = join(realParent, basename(requested));
-  const fromBase = relative(base, candidate);
-  if (fromBase.startsWith("..") || isAbsolute(fromBase)) {
-    throw new Error("configured path escapes the allowed directory");
+  try {
+    lstatSync(requested);
+  } catch (error) {
+    if (!isMissingPathError(error)) {
+      throw error;
+    }
+    const realParent = realpathSync(dirname(requested));
+    const candidate = join(realParent, basename(requested));
+    assertInside(base, candidate);
+    return candidate;
   }
+  const candidate = realpathSync(requested);
+  assertInside(base, candidate);
   return candidate;
 }
 
 async function writeAtomic(path: string, content: string): Promise<void> {
-  const temporary = `${path}.${process.pid}.tmp`;
-  await writeFile(temporary, content, { encoding: "utf8", mode: 0o600 });
-  await rename(temporary, path);
-  await chmod(path, 0o600);
+  const temporary = join(
+    dirname(path),
+    `.${basename(path)}.${process.pid}.${randomUUID()}.tmp`
+  );
+  try {
+    await writeFile(temporary, content, {
+      encoding: "utf-8",
+      flag: "wx",
+      mode: 0o600,
+    });
+    await rename(temporary, path);
+  } catch (error) {
+    await rm(temporary, { force: true });
+    throw error;
+  }
 }
 
 const projectDirectory = process.env["CLAUDE_PROJECT_DIR"] ?? process.cwd();
-const statePath = resolveWriteInside(projectDirectory, ".claude/example-plugin.local.md");
-const source = await readFile(statePath, "utf8");
+const configuredPath = ".claude/example-plugin.local.md";
+const sourcePath = resolveExistingInside(projectDirectory, configuredPath);
+const source = await readFile(sourcePath, "utf-8");
 const parsed = parseLocalMarkdown(source);
 parsed.data["enabled"] = false;
+const statePath = resolveWriteInside(projectDirectory, configuredPath);
 await writeAtomic(statePath, serializeLocalMarkdown(parsed.data, parsed.body));
 ```
 
 `resolveExistingInside` is for an existing configured input path.
-`resolveWriteInside` resolves the real parent so a new final path cannot escape through a parent symlink.
-It fails when the parent does not exist; create and validate an authorized parent explicitly when that is part of the contract.
+It resolves the final component before the read, so an in-project symlink to an outside file is rejected.
+
+`resolveWriteInside` resolves an existing final component before a write.
+For a new destination, it resolves the real parent and appends only the new basename.
+It rejects dangling final symlinks and fails when the parent does not exist.
+Create and validate an authorized parent explicitly when that is part of the contract.
+
+`writeAtomic` creates an unpredictable same-directory temporary file with exclusive creation.
+The final rename replaces a raced-in symlink instead of following it.
+
+## Symlink Attack Examples
+
+- Existing read escape: `.claude/example-plugin.local.md` points to `/tmp/outside.md`.
+  `resolveExistingInside` resolves `/tmp/outside.md` and rejects it before `readFile`.
+- Existing write escape: the configured destination points to `/tmp/outside.md`.
+  `resolveWriteInside` resolves the final symlink and rejects the outside target.
+- Dangling write escape: the destination is a symlink to a nonexistent outside file.
+  `lstatSync` detects the link, `realpathSync` fails, and the write is rejected.
+- New contained destination: the final file does not exist, but its real parent is inside the project.
+  The helper returns the canonical parent plus the new basename.
+- Parent escape: `.claude/plugin-state` points to an outside directory.
+  Resolving the parent exposes the escape and the containment check rejects it.
 
 ## Schema Policy
 
@@ -162,6 +211,9 @@ Malformed or invalid state SHOULD fail closed unless the plugin documents a safe
 - relative contained path
 - absolute or relative escape
 - symlinked parent escape
+- existing final symlink escape on read and write
+- dangling final symlink on write
+- nonexistent destination under a contained real parent
 - path containing spaces
 - atomic write interruption
 - body preservation after serialization

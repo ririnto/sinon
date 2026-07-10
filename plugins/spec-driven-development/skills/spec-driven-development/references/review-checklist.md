@@ -17,6 +17,7 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 - [ ] description field exists (multiline allowed via `>-`)
 - [ ] last_updated field exists (ISO 8601 calendar date, `YYYY-MM-DD`)
 - [ ] status field is one of: draft, review, approved, wip, implemented, deprecated, superseded, removed
+- [ ] tag, when present, is a YAML array of strings
 - [ ] call field exists (empty list allowed)
 - [ ] Custom frontmatter fields, if any, are nested under `metadata`
 
@@ -46,7 +47,7 @@ Review output MUST record the review type, the reviewed artifact scope, and each
 ### Research
 
 - [ ] `RESEARCH.md` exists when external behavior or version-sensitive behavior affects the SPEC
-- [ ] If `RESEARCH.md` exists, frontmatter captures the investigated subject and version
+- [ ] If `RESEARCH.md` exists, frontmatter captures the investigated subject and version, and `tag` is a YAML array of strings
 - [ ] If `RESEARCH.md` exists, it documents framework/library/topic behavior and is not project comparison, repository audits, implementation planning, migration sequencing, or task management
 - [ ] If `RESEARCH.md` exists, findings are current enough for this review
 - [ ] In authored `RESEARCH.md`, scaffold `TODO:` markers are resolved (no unresolved `TODO:` markers remain in non-fenced content)

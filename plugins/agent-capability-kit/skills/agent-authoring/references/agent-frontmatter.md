@@ -24,6 +24,7 @@ Open this reference when an agent needs runtime fields beyond `name`, `descripti
 | `background` | supported | supported | Boolean |
 | `isolation` | supported | supported | Only `worktree` |
 | `color` | supported | supported | Display field |
+| `initialPrompt` | supported | supported | Auto-submitted only when the agent runs as the main session agent |
 | `hooks` | ignored | supported | Do not put on plugin agents |
 | `mcpServers` | ignored | supported | Do not put on plugin agents |
 | `permissionMode` | ignored | supported | Do not put on plugin agents |
@@ -51,6 +52,16 @@ isolation: worktree
 
 Each optional field needs a concrete role requirement.
 Remove a field that does not change execution.
+
+## Main-Session Startup
+
+`initialPrompt` applies when the agent runs as the main session agent through `--agent` or the `agent` setting.
+Claude Code processes commands and skills in the value, prepends it to any user-provided prompt, and does not use it as the delegated subagent prompt.
+
+```yaml
+initialPrompt: >-
+  Inspect the current repository state and report the highest-priority validation failure.
+```
 
 ## Skill Preloading
 

@@ -19,15 +19,15 @@ This Bun hook denies `Write` and `Edit` targets whose real parent is outside the
 #!/usr/bin/env bun
 // -*- coding: utf-8 -*-
 
-import { realpathSync } from "node:fs";
-import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { lstatSync, realpathSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
-type HookInput = {
+interface HookInput {
   tool_name?: unknown;
   tool_input?: {
     file_path?: unknown;
   };
-};
+}
 
 function deny(reason: string): never {
   console.log(JSON.stringify({
@@ -38,6 +38,31 @@ function deny(reason: string): never {
     },
   }));
   process.exit(0);
+}
+
+function isMissingPathError(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
+function assertInside(root: string, candidate: string): void {
+  const fromRoot = relative(root, candidate);
+  if (isAbsolute(fromRoot) || fromRoot === ".." || fromRoot.startsWith(`..${sep}`)) {
+    deny("The target path is outside the project root.");
+  }
+}
+
+function resolveWriteTarget(root: string, filePath: string): string {
+  const requested = resolve(root, filePath);
+  try {
+    lstatSync(requested);
+  } catch (error) {
+    if (!isMissingPathError(error)) {
+      throw error;
+    }
+    const realParent = realpathSync(dirname(requested));
+    return join(realParent, basename(requested));
+  }
+  return realpathSync(requested);
 }
 
 let input: HookInput;
@@ -56,20 +81,28 @@ if (typeof filePath !== "string" || !projectDir) {
 }
 try {
   const projectRoot = realpathSync(projectDir);
-  const requested = isAbsolute(filePath) ? filePath : resolve(projectRoot, filePath);
-  const realParent = realpathSync(dirname(requested));
-  const target = join(realParent, basename(requested));
-  const projectRelative = relative(projectRoot, target);
-  if (projectRelative.startsWith("..") || isAbsolute(projectRelative)) {
-    deny("The target path is outside the project root.");
-  }
+  const target = resolveWriteTarget(projectRoot, filePath);
+  assertInside(projectRoot, target);
 } catch {
   deny("The target path cannot be resolved safely.");
 }
 ```
 
-The example fails closed when the parent directory does not exist or cannot be resolved.
-Adapt that behavior only when the tool contract explicitly permits creating missing parent directories.
+The example resolves an existing final component, including a symlink, before checking containment.
+For a nonexistent destination, it resolves the real parent and appends only the new basename.
+It fails closed for dangling final symlinks and when the parent directory does not exist or cannot be resolved.
+Adapt missing-parent behavior only when the tool contract explicitly permits creating and validating parent directories.
+
+## Symlink Attack Examples
+
+- Existing final escape: `project/output.txt` points to `/tmp/outside.txt`.
+  The helper resolves `/tmp/outside.txt`, and `assertInside` denies the request.
+- Dangling final escape: `project/output.txt` points to a nonexistent outside file.
+  `lstatSync` detects the link, `realpathSync` fails, and the hook denies the request.
+- New contained file: `project/generated/output.txt` does not exist and `project/generated` is a real contained directory.
+  The helper returns the canonical parent plus `output.txt`.
+- Symlinked parent escape: `project/generated` points to `/tmp/generated`.
+  Resolving the parent exposes the outside target, and `assertInside` denies the request.
 
 ## Command Safety
 
@@ -100,6 +133,9 @@ Adapt that behavior only when the tool contract explicitly permits creating miss
 - absolute path inside the project
 - `..` traversal
 - symlinked parent outside the project
+- existing final symlink outside the project
+- dangling final symlink
+- nonexistent destination under a contained real parent
 - missing parent directory
 - path containing spaces and shell metacharacters
 - malformed or oversized JSON

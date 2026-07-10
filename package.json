@@ -19,6 +19,7 @@
   "type": "module",
   "scripts": {
     "check": "run-p check:*",
+    "check:authoring-assets": "bun test scripts/authoring-assets.test.ts scripts/sdd-assets.test.ts",
     "check:harness": "plugins/harness/scripts/plugin-self-check.ts",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:typescript": "tsc --noEmit",

@@ -62,7 +62,7 @@ Use these bundled paths from `SKILL_ROOT`:
     - `generate-diagram [spec-root]` - generate Mermaid relationship diagrams from SPEC links
     - `list-tags [spec-path]` - aggregate tag inventory across the tree
 - `./assets/templates/` - scaffolds for `SPEC.md`, `RESEARCH.md`, `CONTRACT.md`, `openapi.yaml`, and `spec/CHANGELOG.md`
-- `./assets/schemas/` - schema files used by the validator
+- `./assets/schemas/` - frontmatter schemas mirrored by the validator and checked against the shipped templates
 - `./references/examples/` - validator-clean examples for comparison
 
 ## Ordinary offline-capable workflow
@@ -178,6 +178,7 @@ Add rationale for `fail`, `n/a`, and any `pass` whose evidence would be unclear 
 ### Spec Review minimum checklist
 
 - `SPEC.md` frontmatter includes `title`, `description`, `last_updated`, `status`, and `call`
+- `tag`, when present in `SPEC.md` or `RESEARCH.md`, is a YAML array of strings
 - `SPEC.md` is placed under `spec/domain/{{ownership-path}}/SPEC.md`
 - Functional Requirements are verifiable and covered by scenarios
 - Scenarios include Normal, Alternative, and Error flows

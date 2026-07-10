@@ -45,7 +45,7 @@ For Sinon plugin agents:
 
 - filename stem and frontmatter `name` match and use kebab-case
 - `description` begins with a capability and contains distinct trigger vocabulary
-- plugin-supported optional fields are limited to `tools`, `disallowedTools`, `model`, `effort`, `maxTurns`, `skills`, `memory`, `background`, `isolation`, and `color`
+- plugin-supported optional fields are limited to `tools`, `disallowedTools`, `model`, `effort`, `maxTurns`, `skills`, `memory`, `background`, `isolation`, `color`, and `initialPrompt`
 - `hooks`, `mcpServers`, and `permissionMode` are absent because plugin agents ignore them
 - `Examples` is absent from frontmatter
 - declared tools support the agent's discovery, action, and verification claims

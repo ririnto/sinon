@@ -21,6 +21,8 @@ For Sinon plugins, the filename stem and frontmatter `name` MUST match exactly a
 
 ## Supported Plugin-Agent Fields
 
+This field surface is verified against Claude Code 2.1.205.
+
 Plugin agents require:
 
 - `name`
@@ -40,6 +42,7 @@ Plugin agents may use:
 | `background` | Always run the agent as a background task when `true` |
 | `isolation` | Use `worktree` for temporary Git worktree isolation |
 | `color` | Distinguish the agent in the interface |
+| `initialPrompt` | Auto-submit a first user turn when the agent runs as the main session agent |
 
 Plugin agents MUST NOT rely on `hooks`, `mcpServers`, or `permissionMode`; Claude Code ignores those fields for agents loaded from a plugin.
 Those fields are available only on user- or project-scoped agents.
@@ -148,6 +151,8 @@ Return:
 - Use `memory` only when cross-session learning is part of the role and its scope is appropriate.
 - Use `background: true` only when background execution is always correct for the agent.
 - Use `isolation: worktree` only when Git worktree isolation fits the mutation and cleanup model.
+- Use `initialPrompt` only when the agent is selected as the main session agent through `--agent` or the `agent` setting.
+  Claude Code prepends it to any user-provided prompt and processes commands and skills in the value.
 
 ## Prompt Structure
 
@@ -173,6 +178,7 @@ Even then, keep the agent's role and output shape explicit.
 - no plugin agent relies on `hooks`, `mcpServers`, or `permissionMode`
 - tool list supports file discovery, action, and verification claims
 - optional runtime fields have a concrete reason
+- `initialPrompt`, when present, is intended for main-session startup rather than delegated subagent execution
 - body is self-contained and bounded to one role
 - examples live in the body, not `Examples` frontmatter
 - output shape is explicit
@@ -196,6 +202,7 @@ Return:
 - Do not grant broad mutation or Bash access for a report-only role.
 - Do not hide required workflow instructions in another file.
 - Do not pin a model or effort level without a role-specific reason.
+- Do not use `initialPrompt` as delegated subagent instructions; keep those instructions in the agent body.
 
 ## Support Files
 

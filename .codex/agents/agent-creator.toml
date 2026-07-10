@@ -58,7 +58,8 @@ tools:
 - `tools`: array of tool names (e.g., `["Read", "Write", "Bash"]`).
   - Omit tools for default environment access.
   - Use explicit list only for bounded surfaces.
-- Plugin agents also support `disallowedTools`, `effort`, `maxTurns`, `skills`, `memory`, `background`, and `isolation: worktree` when those fields change required runtime behavior.
+- Plugin agents also support `disallowedTools`, `effort`, `maxTurns`, `skills`, `memory`, `background`, `isolation: worktree`, and `initialPrompt` when those fields change required runtime behavior.
+- `initialPrompt` applies only when the agent runs as the main session agent through `--agent` or the `agent` setting.
 - Plugin agents do not support `hooks`, `mcpServers`, or `permissionMode`; Claude Code ignores those fields on agents loaded from a plugin.
 - `Examples` is not a supported frontmatter field; keep examples in the Markdown body.
 
