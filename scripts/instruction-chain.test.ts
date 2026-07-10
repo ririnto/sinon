@@ -130,3 +130,20 @@ test("the AGENTS template exposes adaptable init sections", () => {
     expect(template).toContain(placeholder);
   }
 });
+
+test("repository conventions remain discoverable and complete", () => {
+  const reference = path.join(
+    ROOT,
+    "docs/agent-references/repository-conventions.md"
+  );
+  const text = readFileSync(reference, "utf-8");
+  for (const fragment of ["POSIX scripts", "AST, PSI, or parser", "YAML"]) {
+    expect(text).toContain(fragment);
+  }
+  expect(readFileSync(path.join(ROOT, "AGENTS.md"), "utf-8")).toContain(
+    "docs/agent-references/repository-conventions.md"
+  );
+  expect(readFileSync(path.join(ROOT, "plugins/AGENTS.md"), "utf-8")).toContain(
+    "../docs/agent-references/repository-conventions.md"
+  );
+});

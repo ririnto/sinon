@@ -14,6 +14,7 @@ Sinon publishes Claude Code plugins and portable Agent Skills. Read this file, `
 - `scripts/` contains repository validation and routing checks.
 
 Open `plugins/AGENTS.md` for package, documentation, and script rules. Open the affected plugin's `AGENTS.md` for its local contract. Open `plugins/harness/skills/harness-install/assets/common/WORKFLOW.md` for delegation lifecycle and publication decisions.
+Open [repository conventions](docs/agent-references/repository-conventions.md) when editing source, scripts, docs, or config.
 
 ## Build, Test, and Development Commands
 

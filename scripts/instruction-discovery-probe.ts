@@ -8,7 +8,6 @@ import { resolveInstructionChain } from "./instruction-contract.js";
 
 type ProbeTarget = Readonly<{
   directory: string;
-  markers: readonly string[];
   name: string;
 }>;
 
@@ -24,43 +23,22 @@ const LIMIT = 32 * 1024;
 const TARGETS: readonly ProbeTarget[] = [
   {
     directory: ROOT,
-    markers: ["# Sinon Project Rules"],
     name: "root"
   },
   {
     directory: path.join(ROOT, "plugins", "agent-capability-kit", "agents"),
-    markers: [
-      "# Sinon Project Rules",
-      "# Plugin Package Rules",
-      "# Agent Capability Kit Rules"
-    ],
     name: "agent-capability-kit"
   },
   {
     directory: path.join(ROOT, "plugins", "harness", "agents"),
-    markers: [
-      "# Sinon Project Rules",
-      "# Plugin Package Rules",
-      "# Harness Plugin Rules"
-    ],
     name: "harness"
   },
   {
     directory: path.join(ROOT, "plugins", "spring", "agents"),
-    markers: [
-      "# Sinon Project Rules",
-      "# Plugin Package Rules",
-      "# Spring Plugin Rules"
-    ],
     name: "spring"
   },
   {
     directory: path.join(ROOT, "plugins", "workspace-workflow", "agents"),
-    markers: [
-      "# Sinon Project Rules",
-      "# Plugin Package Rules",
-      "# Workspace Workflow Rules"
-    ],
     name: "workspace-workflow"
   }
 ];
@@ -92,7 +70,14 @@ const runProbe = async (target: ProbeTarget): Promise<ProbeResult> => {
       `${target.name}: codex prompt-input failed: ${stderr.trim()}`
     );
   }
-  for (const marker of target.markers) {
+  for (const marker of [
+    "# Repository Guidelines",
+    "## Project Structure",
+    "## Build, Test, and Development Commands",
+    "## Coding Style and Testing",
+    "## Commit and Publication",
+    "## Security and Configuration"
+  ]) {
     if (!stdout.includes(marker)) {
       throw new Error(`${target.name}: live prompt is missing ${marker}`);
     }
