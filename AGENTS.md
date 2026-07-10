@@ -25,7 +25,7 @@ Make the smallest change that satisfies observable acceptance criteria. Preserve
 
 ## Commit and Publication
 
-Inspect `git status --short --branch` and the intended diff before staging. The user-facing root session is the sole general orchestrator for integration and publication. Sinon MUST NOT package a `project-orchestrator`. It delegates exploration, implementation, documentation, audit, review, and validation to bounded leaves. Writers receive disjoint ownership and worktrees; failed or missing workers block fan-in. When a dispatch API exposes `fork_turns`, new workers use `fork_turns: "none"` with self-contained context. Do not infer this field for CLI dispatch.
+Inspect `git status --short --branch` and the intended diff before staging. The user-facing root session owns integration and publication. Do not package a general orchestration profile. It delegates exploration, implementation, documentation, audit, review, and validation to bounded leaves. Writers receive disjoint ownership and worktrees; failed or missing workers block fan-in. When a dispatch API exposes `fork_turns`, new workers use `fork_turns: "none"` with self-contained context. Do not infer this field for CLI dispatch.
 
 ## Security and Configuration
 
