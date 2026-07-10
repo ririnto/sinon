@@ -9,9 +9,12 @@ Reactor is a shared, skill-first plugin for Project Reactor reactive programming
 
 ## Purpose
 
-- Provide reusable Reactor workflows that remain portable across Claude Code plugin installations.
-- Keep skills practical, example-driven, and focused on real reactive programming tasks rather than framework trivia.
-- Separate reactive programming concerns from Java language, Spring framework, and general concurrency concerns.
+- Provide reusable Reactor workflows that remain portable across Claude Code plugin
+  installations.
+- Keep skills practical, example-driven, and focused on real reactive programming tasks rather
+  than framework trivia.
+- Separate reactive programming concerns from Java language, Spring framework, and general
+  concurrency concerns.
 - Document the primary skill for each Reactor task while keeping secondary concerns explicit.
 
 ## Included Skills

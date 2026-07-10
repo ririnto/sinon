@@ -10,8 +10,10 @@ Kotlin is a shared, skill-first plugin for Kotlin application and library work i
 ## Purpose
 
 - Provide reusable Kotlin workflows that remain portable across Claude Code plugin installations.
-- Keep skills practical, example-driven, and focused on writing or reviewing real Kotlin code in the smallest matching Kotlin domain.
-- Separate Kotlin language, coroutine, and Kotlin-native testing concerns from Java language, JVM tooling, and framework-specific Spring behavior.
+- Keep skills practical, example-driven, and focused on writing or reviewing real Kotlin code
+  in the smallest matching Kotlin domain.
+- Separate Kotlin language, coroutine, and Kotlin-native testing concerns from Java language,
+  JVM tooling, and framework-specific Spring behavior.
 
 ## Included Skills
 
@@ -43,14 +45,18 @@ Start here when Kotlin work could fit more than one skill:
 2. Add coroutine and Flow guidance when async control flow, cancellation, or stream semantics matter with `kotlin-coroutines-flows`.
 3. Lock behavior with deterministic tests and the smallest correct scope with `kotlin-test`.
 4. Java syntax and JVM tooling questions belong in Java- or JVM-focused guidance.
-5. Spring-specific coroutine controllers, Spring Boot tests, and Spring WebFlux behavior belong in Spring-focused guidance.
+5. Spring-specific coroutine controllers, Spring Boot tests, and Spring WebFlux behavior belong
+   in Spring-focused guidance.
 
 ### Scope boundaries
 
-Pure Kotlin unit tests, coroutine tests, and test-structure decisions that do not require Spring context stay in Kotlin-focused guidance.
-Tests that depend on Spring Boot test slices, Spring-managed wiring, or Spring infrastructure behavior belong in Spring-focused guidance.
+Pure Kotlin unit tests, coroutine tests, and test-structure decisions that do not require Spring
+context stay in Kotlin-focused guidance.
+Tests that depend on Spring Boot test slices, Spring-managed wiring, or Spring infrastructure
+behavior belong in Spring-focused guidance.
 
-Kotlin stays responsible for Kotlin-native language patterns, coroutine and Flow modeling, Kotlin-focused test structure, and kotlin-lsp-assisted source analysis.
+Kotlin stays responsible for Kotlin-native language patterns, coroutine and Flow modeling,
+Kotlin-focused test structure, and kotlin-lsp-assisted source analysis.
 
 These topics fall outside Kotlin's scope:
 
