@@ -7,12 +7,15 @@ A custom repository changes durability and operational behavior at the core sess
 
 ## Repository choice
 
-Hazelcast and MongoDB Spring Session modules do not currently have stable 4.1.0 releases in Maven metadata.
-Keep Redis or JDBC as the preferred repository path unless another repository has independently verified stable support for the Spring Session line used by the application.
+The [Spring Session 4.0 release notes](https://docs.spring.io/spring-session/reference/whats-new.html) record that the Hazelcast and MongoDB modules moved to the Hazelcast and MongoDB teams. Treat these integrations as independently maintained rather than assuming that Spring Session releases them in lockstep.
+
+When a repository is required to use MongoDB or Hazelcast, use the maintained integration from its owning team and verify that its artifact is available and compatible with the application's Spring Session and Spring Boot line. For example, Maven Central publishes MongoDB's [`org.mongodb:mongodb-spring-session:4.0.0`](https://central.sonatype.com/artifact/org.mongodb/mongodb-spring-session/4.0.0). Do not infer a Hazelcast artifact or version without checking the Hazelcast maintainer's current documentation.
+
+Keep Redis or JDBC as the preferred repository path when no platform requirement mandates another store.
 
 ## Custom SessionRepository
 
-Implement `SessionRepository<S>` or `ReactiveSessionRepository<S>` only when no current module fits.
+Implement `SessionRepository<S>` or `ReactiveSessionRepository<S>` only when no compatible maintained integration satisfies the repository requirements.
 
 ```java
 class InMemorySessionRepository implements SessionRepository<Session>, FindByIndexNameSessionRepository<Session> {
