@@ -257,7 +257,7 @@ Gradle, Maven, uv, and shell fix commands also run `markdownlint-cli2 --fix` whe
 The Bun validator uses its packaged `markdownlint-cli2` dependency and fails normally if dependency installation is missing or broken.
 
 The Bun validator runs through `bun run check`, a package.json script that runs packaged `markdownlint-cli2` and `ultracite check`.
-The root and Bun target manifests require Node.js 22 or newer because their CLI dependencies declare that baseline. Bun target hooks and CI call `bun run` scripts, so Bun resolves packaged CLIs without a global installation.
+Root and Bun target manifests declare Node.js 22 or newer because their CLI dependencies require it. Bun target hooks and CI use `bun run`, which resolves packaged CLIs without a global install.
 JavaScript files use oxlint JSDoc tag rules so JSDoc remains usable as type input.
 The local oxlint JS plugin rule `tsdoc/require-export-tsdoc` from `scripts/tsdoc-plugin.ts` requires TSDoc only on TypeScript exported APIs.
 That means exported top-level functions, exported top-level constants/variables, exported classes, and public methods/accessors on exported classes.

@@ -49,6 +49,17 @@ const requireCondition = (condition: boolean, message: string): void => {
 const countOccurrences = (content: string, marker: string): number =>
   content.split(marker).length - 1;
 
+/** Return an environment that lets Git resolve state from a temporary target. */
+const targetGitEnvironment = (): NodeJS.ProcessEnv => {
+  const environment = { ...process.env };
+  for (const key of Object.keys(environment)) {
+    if (key.startsWith("GIT_")) {
+      Reflect.deleteProperty(environment, key);
+    }
+  }
+  return environment;
+};
+
 /** Run one Bun script and enforce its expected exit result. */
 const runScript = (
   scriptPath: string,
@@ -56,6 +67,7 @@ const runScript = (
   expectSuccess: boolean
 ): string => {
   const result = Bun.spawnSync([process.execPath, scriptPath, ...args], {
+    env: targetGitEnvironment(),
     stderr: "pipe",
     stdout: "pipe"
   });
@@ -75,6 +87,7 @@ const runCommand = (
 ): string => {
   const result = Bun.spawnSync([...command], {
     cwd,
+    env: targetGitEnvironment(),
     stderr: "pipe",
     stdout: "pipe"
   });
@@ -125,7 +138,12 @@ const initializeGitTarget = (target: string): void => {
 const requireHookState = (target: string, active: boolean): void => {
   const configured = Bun.spawnSync(
     ["git", "config", "--local", "--get", "core.hooksPath"],
-    { cwd: target, stderr: "pipe", stdout: "pipe" }
+    {
+      cwd: target,
+      env: targetGitEnvironment(),
+      stderr: "pipe",
+      stdout: "pipe"
+    }
   );
   if (active) {
     requireCondition(

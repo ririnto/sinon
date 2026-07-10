@@ -23,6 +23,15 @@ type HookActivation = Readonly<{
 const executableExists = (executable: string): boolean =>
   Bun.which(executable) !== null;
 
+/** Clear Git state inherited from a caller before operating on an explicit target. */
+const isolateTargetGitEnvironment = (): void => {
+  for (const key of Object.keys(process.env)) {
+    if (key.startsWith("GIT_")) {
+      Reflect.deleteProperty(process.env, key);
+    }
+  }
+};
+
 /** Return the shared explicit Git hook activation command. */
 const hookActivation = (): HookActivation => ({
   command: ["git", "config", "--local", "core.hooksPath", ".githooks/"],
@@ -167,6 +176,7 @@ export const runInstaller = async (config: InstallerConfig): Promise<void> => {
     fail(`target root is not a directory: ${config.targetRoot}`);
   }
   process.chdir(targetRoot);
+  isolateTargetGitEnvironment();
   switch (config.action) {
     case "adopt": {
       if (config.force) {
