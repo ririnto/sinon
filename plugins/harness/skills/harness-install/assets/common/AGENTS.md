@@ -16,10 +16,19 @@ Child `AGENTS.md` files may add narrower rules for their directories.
 ## Workflow
 
 - Use `WORKFLOW.md` for branch, worktree, validation, review, and publication decisions.
+- Treat the user-facing root session as the sole orchestrator.
+  - Repository agents are leaves and do not delegate or publish.
+- Classify work before assignment.
+  - Use `scoped-implementer` only for an exhaustive single-file or small related-file set.
+  - Use `implementation` for affected-set discovery, cross-file or cross-layer work, design choices, and integrated validation.
+- Give each writer one disjoint scope and one owning worktree.
+- Wait for complete fan-in; failed or missing workers block completion.
+- Return review fixes to the owning writer, re-review, then validate the integrated tree.
 - Use `ARCHITECTURE.md` and relevant `docs/**` files for task-specific context.
 - Use `.claude/agents/**` and `.claude/skills/**` only for the scoped task they describe.
 - Run the validation command selected for the task before completion, or report the blocker.
 - Report changed files, validation evidence, skipped checks, and remaining risks.
+- Keep Codex subagent depth at the default `max_depth = 1`; nested delegation is not part of this workflow.
 
 ## Documentation
 

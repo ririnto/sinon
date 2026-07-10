@@ -3,6 +3,8 @@ name: your-agent-name
 description: >-
   [Imperative capability statement].
   Use this agent when [distinct trigger condition with an asset, system, or task].
+model: sonnet
+effort: medium
 color: blue
 tools:
   - Read
@@ -13,6 +15,11 @@ tools:
 # [Agent Title]
 
 Perform one bounded role for [domain or artifact].
+
+## Execution Topology
+
+This agent is a [read-only|writer|router] leaf.
+Do not delegate; return completed work or blockers to the caller.
 
 ## Responsibilities
 

@@ -11,6 +11,8 @@ import {
 } from "node:fs";
 import path from "node:path";
 
+import { validateAgentRouting } from "../../../../scripts/agent-routing.js";
+
 type JsonValue =
   | boolean
   | null
@@ -1647,6 +1649,11 @@ const validateMarketplace = (
 export const checkPackageSurface = (root: string): void => {
   const repositoryRoot = path.resolve(root, "..", "..");
   const errors: string[] = [];
+  const routing = validateAgentRouting(repositoryRoot);
+  errors.push(...routing.errors);
+  for (const warning of routing.warnings) {
+    console.error(`[agent routing warning] ${warning}`);
+  }
   validateRootLayout(repositoryRoot, errors);
   const roots = pluginRoots(repositoryRoot);
   const manifests = new Map<string, Record<string, JsonValue>>();

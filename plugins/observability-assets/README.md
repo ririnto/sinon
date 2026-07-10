@@ -37,6 +37,9 @@ Target deployments may stay on an older supported line, but version-sensitive fe
 
 - `observability-architect`: alerting, dashboard, SLO, and metrics architecture decisions.
 
+`observability-architect` is a substantive leaf domain router using Claude Sonnet with medium effort.
+It may load observability skills but does not delegate to other agents.
+
 ## When to Use Which Skill
 
 - PromQL expression design, aggregation, and vector matching belong in `promql`.

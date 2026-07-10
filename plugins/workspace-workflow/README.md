@@ -34,6 +34,9 @@ These skills compose into the everyday loop: prepare a clean working tree (optio
 - commit-message-architect: drafts Conventional Commit messages from staged changes and evaluates commit cohesion and readiness.
 - pr-body-architect: drafts change description bodies that preserve repository templates and describe real change intent.
 
+All three agents are substantive read-only leaves using Claude Sonnet with medium effort.
+They may load workspace skills but do not delegate, mutate Git state, or integrate.
+
 ## Runtime Model
 
 This plugin uses `.claude-plugin/plugin.json` at the plugin root.
@@ -60,6 +63,9 @@ plugins/workspace-workflow/
     |   +-- SKILL.md
     +-- change-description/
     |   +-- SKILL.md
+    |   +-- references/
+    |       +-- hosted-service.md
+    |       +-- hosted-service.md
     +-- working-tree-hygiene/
         +-- SKILL.md
 ```
@@ -75,6 +81,7 @@ plugins/workspace-workflow/
   - Route cross-skill decisions through `workspace-architect`.
 - Keep the common path self-sufficient inside each `SKILL.md` with concrete commands, invariants, and decision tables.
 - Derive guidance from real Git behavior and repository state rather than generic tutorials.
+- Detect the integration handoff host from explicit intent and repository evidence, then load only the selected repository reference.
 - Treat shared history as a contract: rebasing or force-pushing integrateed branches requires explicit, team-acknowledged intent.
 - Keep `plugin.json` thin and let the skills and agents carry the reusable substance.
 
