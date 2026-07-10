@@ -5,7 +5,7 @@
 ## Authority
 
 The user-facing root session is the sole orchestrator.
-It delegates all task work and owns decomposition, worker selection, fan-in, integrated validation, Git state, and publication.
+It delegates all task work and owns decomposition, worker selection, fan-in, Git state, and publication. It decides release only from returned worker evidence.
 
 Claude Code can nest subagents when `Agent` is granted, but this repository deliberately omits delegation tools from project agents.
 Codex uses `max_depth = 1` for the same leaf policy.
@@ -92,7 +92,7 @@ git worktree add <worktree-path> -b <type>/<short-description> <base-ref>
 7. Review: run independent `review` after integration-ready changes exist.
 8. Fix: return findings to the owning writer.
 9. Re-review: verify the owner fix over the same scope.
-10. Validate: run focused checks and the integrated repository command on the combined tree.
+10. Validate: assign bounded leaf workers to run focused and integrated checks, collect their evidence, and require full fan-in before the root session decides release.
 11. Publish: update the selected host record only from the root session.
 
 A failed, missing, or contradictory worker result blocks fan-in and completion.
