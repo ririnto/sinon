@@ -2,7 +2,8 @@
 name: harness-install
 description: >-
   Install repository harness assets from the plugin asset package.
-  Use when setting up or refreshing `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `WORKFLOW.md`, docs, project agents, project skills, validators, CI files, and Git hook templates.
+  Use when setting up or refreshing `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `WORKFLOW.md`,
+  docs, project agents, project skills, validators, CI files, and Git hook templates.
 ---
 
 # Harness Install
@@ -102,7 +103,9 @@ The installer entry point `skills/harness-install/scripts/install-harness.ts` ac
 A target file that differs from its template is reported as `drift` and names both safe resolutions: `--adopt <path>` preserves target truth, while `--force` overwrites it.
 A successful preview never silently claims a refresh it did not perform.
 
-A full install writes `.harness/install-record.json` with the mode, CI host, canonical commands, exact expected plan, completeness, and each asset's actual `created`, `updated`, `kept`, or `conflict` outcome.
+A full install writes `.harness/install-record.json` with the mode, CI host, canonical commands,
+exact expected plan, completeness, and each asset's actual `created`, `updated`, `kept`, or
+`conflict` outcome.
 Each outcome also records `harness`, `shared`, or `target` ownership.
 Later refreshes update an unchanged harness-owned file when its plugin source changes.
 Target drift remains a conflict until the maintainer either overwrites it with `--force` or preserves it with `--adopt <path>`.
@@ -118,8 +121,12 @@ A first-time `--only` record remains explicitly partial until a full install est
 - `skills/harness-install/assets/common/WORKFLOW.md`: process rules.
 - `skills/harness-install/assets/common/docs/**`: operating and domain context.
 - `skills/harness-install/assets/<mode>/**`: stack validation and hook assets for the chosen mode.
-- `skills/harness-install/assets/common/.claude/agents/scoped-implementer.md`: Haiku low-effort subagent for exact edits with an exhaustive file ownership list, desired behavior, and targeted validation commands.
-- `skills/harness-install/assets/common/.claude/agents/implementation.md`: Sonnet medium-effort subagent for large or cross-file work that requires affected-set discovery, reasoning, and integration validation.
+- `skills/harness-install/assets/common/.claude/agents/scoped-implementer.md`: Haiku low-effort
+  subagent for exact edits with an exhaustive file ownership list, desired behavior, and targeted
+  validation commands.
+- `skills/harness-install/assets/common/.claude/agents/implementation.md`: Sonnet medium-effort
+  subagent for large or cross-file work that requires affected-set discovery, reasoning, and
+  integration validation.
 - `skills/harness-install/assets/common/.claude/agents/review.md`: independent read-only review subagent.
 - `skills/harness-install/assets/common/.codex/agents/scoped-implementer.toml`: Luna low-effort counterpart for exact exhaustive file scopes.
 - `skills/harness-install/assets/common/.codex/agents/implementation.toml`: Terra medium-effort counterpart for broad or cross-file implementation.

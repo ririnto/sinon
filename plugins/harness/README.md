@@ -6,7 +6,8 @@ description: >-
 
 # Harness
 
-Harness is a Claude Code plugin for installing, validating, and evolving agent development scaffolding for repositories.
+Harness is a Claude Code plugin for installing, validating, and evolving agent development
+scaffolding for repositories.
 It packages the current harness assets inside the plugin layout required by this repository.
 Skills are the declared runtime surface.
 Plugin-root agents are structural harness specialists for changing a target repository's harness contract.
@@ -24,11 +25,14 @@ Installed assets under `assets/common` and `assets/<mode>` carry repository runt
 
 ## Purpose
 
-- Install a repository harness with `AGENTS.md`, `CLAUDE.md` pointer, `ARCHITECTURE.md`, docs, project agents and skills, repository templates, validators, CI files, and hook templates.
-- Keep implementation, repository docs, product specs, execution plans, generated references, and deterministic checks evolving together.
+- Install a repository harness with `AGENTS.md`, `CLAUDE.md` pointer, `ARCHITECTURE.md`, docs,
+  project agents and skills, repository templates, validators, CI files, and hook templates.
+- Keep implementation, repository docs, product specs, execution plans, generated references,
+  and deterministic checks evolving together.
   - Agents should work from versioned context rather than hidden convention.
 - Preserve harness-only development readiness.
-  - Target repositories still supply requirements, architecture decisions, source code, runtime configuration, secrets, and domain references.
+  - Target repositories still supply requirements, architecture decisions, source code, runtime
+    configuration, secrets, and domain references.
 - Provide `WORKFLOW.md` for branch policy, host CLI use, validation, review, and publication.
 
 ## Lifecycle
@@ -67,13 +71,19 @@ They do not delegate or publish.
 
 ## Packaged Scripts and Assets
 
-- `scripts/plugin-self-check.ts` validates packaged files, stack assets, hook wiring, CI parity, package metadata, installer outcome scenarios, style hardening, and native-tool smoke checks.
+- `scripts/plugin-self-check.ts` validates packaged files, stack assets, hook wiring, CI parity,
+  package metadata, installer outcome scenarios, style hardening, and native-tool smoke checks.
   - It skips a stack gracefully when its toolchain is absent from PATH.
 - `skills/harness-install/scripts/install-harness.ts` is the executable installer entry point.
   - `skills/harness-install/scripts/install-harness/` contains the packaged implementation modules.
-  - The installer reads the checked-in `skills/harness-install/asset-manifest.json`, so an installed plugin cache does not require Git metadata.
-- `skills/harness-validate/scripts/validate-install-record.ts` is a self-contained check for recorded outcomes, ownership, target drift, managed-block drift, ownership digests, command parity, and inventory integrity.
-- `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs`, CI files, validation adapters, and Git hook scaffolds.
+  - The installer reads the checked-in `skills/harness-install/asset-manifest.json`, so an
+    installed plugin cache does not require Git metadata.
+- `skills/harness-validate/scripts/validate-install-record.ts` is a self-contained check for
+  recorded outcomes, ownership, target drift, managed-block drift, ownership digests, command
+  parity, and inventory integrity.
+- `skills/harness-install/assets/` contains files the installer copies into target repositories,
+  including `.claude/agents`, `.claude/skills`, `docs`, CI files, validation adapters, and Git
+  hook scaffolds.
 - Long Markdown files under `skills/harness-install/assets/common/docs/references/` are packaged reference material, not source modules.
 
 ## Runtime Model
@@ -201,14 +211,23 @@ The installer creates this target repository structure, and validators require i
 ```
 
 The installed inventory also includes `WORKFLOW.md`, stack-specific validation adapters, CI files when enabled, and inactive hook templates for every stack.
-Installed day-to-day runtime surfaces are three project agents (`implementation`, `scoped-implementer`, `review`) and three project skills (`autonomous-execution`, `issue-mining`, `review`).
-The general `implementation` agent uses Sonnet/Terra medium for related-file discovery, cross-module or cross-layer changes, design choices, and integrated validation. `scoped-implementer` uses Haiku/Luna low for exhaustive single-file or small related-file edits, and `review` uses Sonnet/Terra medium as a read-only reviewer.
+Installed day-to-day runtime surfaces are three project agents (`implementation`,
+`scoped-implementer`, `review`) and three project skills (`autonomous-execution`, `issue-mining`,
+`review`).
+The general `implementation` agent uses Sonnet/Terra medium for related-file discovery,
+cross-module or cross-layer changes, design choices, and integrated validation.
+`scoped-implementer` uses Haiku/Luna low for exhaustive single-file or small related-file edits,
+and `review` uses Sonnet/Terra medium as a read-only reviewer.
 Plugin-root Harness skills and agents remain plugin-owned and are not copied into target repositories.
 `WORKFLOW.md` defines branch, review, validation, and publication decisions.
 Installed target agents receive workflow decisions through their task prompt.
 Only the user-facing top-level or root agent orchestrates work; installed repository agents are delegation targets, and the Harness does not install a `project-orchestrator` agent.
-Use the Haiku/Luna low-effort `scoped-implementer` only when the caller supplies an exhaustive single-file or related-file ownership list, exact desired behavior, and targeted validation commands.
-Use the Sonnet/Terra medium-effort `implementation` agent when the change is large, spans related files, modules, or layers, requires discovering the complete affected set, or needs cross-file reasoning and integration validation.
+Use the Haiku/Luna low-effort `scoped-implementer` only when the caller supplies an exhaustive
+single-file or related-file ownership list, exact desired behavior, and targeted validation
+commands.
+Use the Sonnet/Terra medium-effort `implementation` agent when the change is large, spans related
+files, modules, or layers, requires discovering the complete affected set, or needs cross-file
+reasoning and integration validation.
 An orchestrator MUST explore and plan an ambiguous file set before delegation and MUST NOT send it directly to `scoped-implementer`.
 Parallel `scoped-implementer` assignments MUST own disjoint file sets.
 
