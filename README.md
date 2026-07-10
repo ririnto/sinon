@@ -88,10 +88,13 @@ The marketplace catalog lists plugin roots that ship the Claude manifest.
 
 ## Registering This Marketplace in Claude Code
 
-Claude Code supports registering marketplaces from GitHub repositories, generic git URLs, direct URLs to `marketplace.json`, and local paths.
+Claude Code supports registering marketplaces from GitHub repositories, generic git URLs,
+direct URLs to `marketplace.json`, and local paths.
 
 For this repository, use a GitHub repository, git URL, or local path.
-Sinon currently uses relative plugin sources such as `./plugins/java` inside `.claude-plugin/marketplace.json`, so a direct HTTP URL to the catalog file is not a safe distribution path for this marketplace.
+Sinon currently uses relative plugin sources such as `./plugins/java` inside
+`.claude-plugin/marketplace.json`, so a direct HTTP URL to the catalog file is not a safe
+distribution path for this marketplace.
 
 The Claude marketplace catalog for this repository is:
 

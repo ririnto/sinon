@@ -7,7 +7,8 @@ description: >-
 
 # Agent Authoring
 
-Build one reusable Claude Code plugin agent whose description routes reliably and whose prompt can execute its bounded role without hidden prerequisites.
+Build one reusable Claude Code plugin agent whose description routes reliably and whose
+prompt can execute its bounded role without hidden prerequisites.
 
 Sinon agents MUST declare a model and effort.
 The repository uses explicit routing so runtime cost and capability do not depend on a caller default.
@@ -70,14 +71,17 @@ Classify topology before choosing a model:
 | Lightweight inventory or exhaustive mechanical edit | `haiku` | `gpt-5.6-luna` | `low` |
 
 Sinon does not package a general orchestrator agent.
-The user-facing top-level session owns orchestration and reserves Claude `opus` or Codex `gpt-5.6-sol` with `medium` effort through repository policy.
-It delegates all task work to bounded leaves and keeps decomposition, ownership, fan-in, conflict coordination, and release decisions at the top level.
+The user-facing top-level session owns orchestration and reserves Claude `opus` or Codex
+`gpt-5.6-sol` with `medium` effort through repository policy.
+It delegates all task work to bounded leaves and keeps decomposition, ownership, fan-in,
+conflict coordination, and release decisions at the top level.
 
 Use `high`, `xhigh`, or `max` only when the agent body contains an `Effort Exception` section that explains why medium is insufficient.
 A substantive leaf using `low` needs a `Low Effort Rationale` section.
 
 Claude Code accepts an `effort` declaration with Haiku, but the current official model-effort table does not list Haiku as effort-aware.
-Keep `effort: low` for explicit repository routing and report it as runtime-inert compatibility metadata rather than claiming it changes Haiku reasoning.
+Keep `effort: low` for explicit repository routing and report it as runtime-inert
+compatibility metadata rather than claiming it changes Haiku reasoning.
 
 Codex counterparts use `model_reasoning_effort`, not `effort`:
 
@@ -205,7 +209,8 @@ Keep the body direct and executable:
 
 The agent body MUST contain ordinary-path guidance.
 Use frontmatter `skills` only when every invocation needs the full skill content at startup.
-An agent with the `Skill` tool MAY load a matched project, user, or plugin skill on demand; domain routers SHOULD prefer that progressive-disclosure path.
+An agent with the `Skill` tool MAY load a matched project, user, or plugin skill on demand;
+domain routers SHOULD prefer that progressive-disclosure path.
 In either case, keep the agent's role, decision boundary, and output shape explicit.
 
 ## Topology and Delegation
@@ -214,8 +219,10 @@ The user-facing root session is the sole general orchestrator and is not package
 Every Sinon agent file is a leaf and MUST NOT expose `Agent` or `Task` delegation tools.
 Skill loading is not subagent delegation.
 
-When a leaf discovers work that needs decomposition, integration, or parallel writers, it returns a decomposition handoff to the root session.
-Current Claude Code supports nested subagents up to depth 5 when `Agent` is granted, but Sinon deliberately omits delegation tools from installable agents.
+When a leaf discovers work that needs decomposition, integration, or parallel writers, it
+returns a decomposition handoff to the root session.
+Current Claude Code supports nested subagents up to depth 5 when `Agent` is granted, but
+Sinon deliberately omits delegation tools from installable agents.
 Installed Codex workflows use `max_depth = 1`.
 
 Read-only reviewers and validators MUST NOT expose mutation tools.
