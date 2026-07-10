@@ -2,12 +2,14 @@
 name: skill-authoring
 description: >-
   Write or refactor a cross-platform Agent Skill.
-  Use when the skill must stay self-sufficient in `SKILL.md`, easy to trigger from its description, and usable offline without mandatory external tooling.
+  Use when the skill must stay self-sufficient in `SKILL.md`, easy to trigger from its
+  description, and usable offline without mandatory external tooling.
 ---
 
 # Skill Authoring
 
-Write or refactor one Agent Skill so `SKILL.md` is the activation entrypoint, the ordinary path is self-sufficient, and support files remain optional additive depth.
+Write or refactor one Agent Skill so `SKILL.md` is the activation entrypoint, the ordinary
+path is self-sufficient, and support files remain optional additive depth.
 
 ## Quickstart
 
@@ -71,7 +73,8 @@ The Agent Skills specification permits these optional fields:
 - `allowed-tools`: a space-separated experimental tool allowlist whose support varies by host
 
 These fields are portable-schema-valid, but they are not automatically appropriate for every repository.
-Sinon house style keeps published skill frontmatter to `name` and `description` unless the task explicitly needs a portable optional field and repository policy allows it.
+Sinon house style keeps published skill frontmatter to `name` and `description` unless the
+task explicitly needs a portable optional field and repository policy allows it.
 A Sinon reviewer MUST report an extra portable field as a house-style or policy issue, not as an Agent Skills schema violation.
 
 Do not add non-standard fields such as `title`, `owner`, `version`, `source`, `officialDocs`, URLs, argument hints, or baseline fields.
@@ -102,7 +105,8 @@ Default pattern:
 Strong example:
 
 ```text
-Draft release automation runbooks and rollback notes. Use when preparing deployment procedures, CI release steps, or operational handoff docs.
+Draft release automation runbooks and rollback notes. Use when preparing deployment
+procedures, CI release steps, or operational handoff docs.
 ```
 
 Valid capability-only example:
@@ -124,7 +128,8 @@ Run an offline trigger test before keeping a description:
 3. Ask whether another engineer would load it for intended prompts and avoid it for nearby prompts.
 4. Tighten or widen the wording until both answers are yes.
 
-Use `assets/description-patterns.md` or `references/description-design.md` only when the description is still vague, too broad, or hard to trigger.
+Use `assets/description-patterns.md` or `references/description-design.md` only when the
+description is still vague, too broad, or hard to trigger.
 
 ## YAML scalar style
 
@@ -151,13 +156,16 @@ description: >-
    - Write one sentence for the job this skill owns.
    - Remove adjacent jobs, optional branches, and host-specific sprawl from that sentence.
 3. Plan the file split.
-   - Put always-needed guidance in `SKILL.md`, copyable artifacts in `assets/`, blocker-specific depth in `references/`, and deterministic helper code in `scripts/`.
+   - Put always-needed guidance in `SKILL.md`, copyable artifacts in `assets/`,
+     blocker-specific depth in `references/`, and deterministic helper code in `scripts/`.
 4. Draft `SKILL.md` first.
-   - Start with outcome, operating rules, first safe checks, numbered procedure, edge cases, output contract, and a short support-file index.
+   - Start with outcome, operating rules, first safe checks, numbered procedure, edge
+     cases, output contract, and a short support-file index.
 5. Validate the ordinary path.
    - Confirm an agent can perform the common task from `SKILL.md` alone and that every support file is optional.
 6. Revise for trigger and scope.
-   - Check the description trigger, fold always-needed reference content back into `SKILL.md`, and move additive catalogs out of the main file.
+   - Check the description trigger, fold always-needed reference content back into
+     `SKILL.md`, and move additive catalogs out of the main file.
 7. Finish with the checklist.
    - Use `assets/validation-checklist.md` as the final pass and fix each finding or report the blocker.
 
@@ -175,7 +183,8 @@ An ordinary-path `SKILL.md` should contain:
 8. Brief support-file pointers indexed by concrete blocker or job.
 
 Prefer imperative wording, concrete paths, copy-adaptable examples, and explicit commands.
-Keep tutorials, large examples, compatibility matrices, and troubleshooting branches in support files when they are not required on most activations.
+Keep tutorials, large examples, compatibility matrices, and troubleshooting branches in
+support files when they are not required on most activations.
 
 ## Placement rules
 
