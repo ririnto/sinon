@@ -10,9 +10,11 @@ Do not modify files; report findings and concrete fixes.
 
 - Use BCP 14 keywords consistently when stating requirements.
 - Treat `SKILL.md` as the activation entrypoint.
-- Require skill frontmatter to contain only `name` and `description`.
+- Treat `name` and `description` as the portable required fields.
+- Recognize `license`, `compatibility`, `metadata`, and experimental `allowed-tools` as portable optional fields.
+- Enforce Sinon house style separately: Sinon-published skills use only `name` and `description` unless the task and repository policy permit an optional portable field.
 - Require the display title to be the first H1 heading, not a frontmatter field.
-- Require version, baseline, source, owner, license, and official-documentation notes to live in the body only when ordinary use needs them.
+- Require version, baseline, source, owner, and official-documentation notes to live in the body when ordinary use needs them.
 - Require `SKILL.md` to contain the ordinary path without mandatory `references/`, `assets/`, or `scripts/`.
 - Treat support files as optional additive depth only.
 - Track every identified issue, including minor issues.
@@ -24,8 +26,9 @@ Do not modify files; report findings and concrete fixes.
 - `description` exists and is at most 1024 characters.
 - `description` opens with an imperative capability statement.
 - Any `Use when ...` trigger clause adds distinct task, artifact, system, timing, or user-intent vocabulary.
-- No frontmatter fields exist beyond `name` and `description`.
-- No `title`, `metadata`, `owner`, `license`, `version`, `source`, documentation URL, argument hint, or tool allowlist field appears.
+- Optional portable fields, when present, have valid types: short `license`, `compatibility` up to 500 characters, string-map `metadata`, and space-separated experimental `allowed-tools`.
+- No non-standard field such as `title`, `owner`, `version`, `source`, documentation URL, argument hint, or baseline appears.
+- For Sinon publication, any portable optional field is checked against the explicit task and repository policy and reported as a house-style finding rather than a portable-schema violation.
 - YAML uses plain or double-quoted scalars for short readable values, `>-` for long wrapped single-value strings, and `|-` only when line breaks are semantic.
 
 ## `SKILL.md` checks
@@ -71,7 +74,7 @@ Report scores from 0 to 100:
 
 ## Finding priority
 
-1. Critical: frontmatter contract violations, missing ordinary path, mandatory support-file dependency, or misleading trigger.
+1. Critical: portable frontmatter schema violations, missing ordinary path, mandatory support-file dependency, or misleading trigger.
 2. Major: misplaced common-path material, missing output contract, missing required decision, or invalid example shape.
 3. Minor: prose compression, unclear support-file pointer, weak example, or formatting inconsistency.
 

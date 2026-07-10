@@ -58,6 +58,9 @@ tools:
 - `tools`: array of tool names (e.g., `["Read", "Write", "Bash"]`).
   - Omit tools for default environment access.
   - Use explicit list only for bounded surfaces.
+- Plugin agents also support `disallowedTools`, `effort`, `maxTurns`, `skills`, `memory`, `background`, and `isolation: worktree` when those fields change required runtime behavior.
+- Plugin agents do not support `hooks`, `mcpServers`, or `permissionMode`; Claude Code ignores those fields on agents loaded from a plugin.
+- `Examples` is not a supported frontmatter field; keep examples in the Markdown body.
 
 ### Write system prompt
 
@@ -114,7 +117,7 @@ When the user creates an agent for their own plugin:
 
 ### Tool Principles
 
-- Default to minimal tool set (e.g., read-only agents use `["Read", "Bash"]` only).
+- Default to the minimal tool set; read-only discovery agents typically use `Read`, `Glob`, and `Grep`.
 - File-writing agents MUST include `Write` or equivalent mutation tool.
 - Specialized agents (MCP, language-specific) MAY include domain-specific tools if available.
 
@@ -135,7 +138,7 @@ Deliver one complete agent `.md` file with:
 3. Select color by domain.
 4. Identify minimal tool set.
 5. Write a description with a capability clause and trigger clause.
-6. Omit `model` unless the agent needs a fixed model; keep `Examples` out of the agent definition.
+6. Add only supported plugin-agent fields; omit `model` unless the agent needs a fixed model and keep examples in the body.
 7. Write system prompt as self-sufficient Markdown.
 8. Verify frontmatter name matches identifier.
 9. Deliver complete agent file.

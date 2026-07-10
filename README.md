@@ -58,7 +58,7 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 - `plugins/netty`: Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.
 - `plugins/observability-assets`: Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.
 - `plugins/reactor`: Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.
-- `plugins/spec-driven-development`: Spec-first workflow: research unknowns, write abstract requirements in `SPEC.md`, get approval, implement, verify completeness.
+- `plugins/spec-driven-development`: Explicit end-to-end gated delivery: research unknowns, approve `SPEC.md`, implement, review drift, and verify completeness.
 - `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.
 - `plugins/workspace-workflow`: Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.
 
@@ -188,4 +188,5 @@ claude --plugin-dir /path/to/sinon/plugins/java
 
 This repository is distributed under the MIT License.
 See [LICENSE](./LICENSE).
-The harness plugin is distributed under Apache-2.0 and includes attribution notes under [plugins/harness/THIRD_PARTY_NOTICES.md](./plugins/harness/THIRD_PARTY_NOTICES.md).
+The harness, spec-driven-development, and workspace-workflow plugins are distributed under Apache-2.0.
+The harness plugin includes attribution notes under [plugins/harness/THIRD_PARTY_NOTICES.md](./plugins/harness/THIRD_PARTY_NOTICES.md).

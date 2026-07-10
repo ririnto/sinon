@@ -1,400 +1,78 @@
 ---
-name: lifecycle
-description: |-
-  Session loading, timing constraints, environment variable scope, and conditional activation patterns for hooks.
+description: >-
+  Current Claude Code hook events, matcher keys, reload behavior, and environment timing.
 ---
 
-# Hook Lifecycle: Session Loading and Timing
+# Hook Lifecycle
 
-Open this reference when configuring hook timing, session lifecycle events, environment variable scope, or understanding when hook changes require session restart.
+Open this reference when selecting an uncommon event, writing a matcher, or deciding when a changed plugin hook becomes live.
 
-Hooks are loaded at session start only.
-This reference covers exact session timing, when restart is required, environment variable scope, and conditional activation patterns.
+## Event Inventory
 
-## Session lifecycle overview
+| Phase | Events |
+| --- | --- |
+| Setup and session | `Setup`, `SessionStart`, `SessionEnd` |
+| Prompt and display | `UserPromptSubmit`, `UserPromptExpansion`, `MessageDisplay` |
+| Tool loop | `PreToolUse`, `PermissionRequest`, `PermissionDenied`, `PostToolUse`, `PostToolUseFailure`, `PostToolBatch` |
+| Agents and tasks | `SubagentStart`, `SubagentStop`, `TaskCreated`, `TaskCompleted`, `TeammateIdle` |
+| Compaction and stopping | `PreCompact`, `PostCompact`, `Stop`, `StopFailure` |
+| Runtime changes | `Notification`, `ConfigChange`, `InstructionsLoaded`, `CwdChanged`, `FileChanged` |
+| Worktrees | `WorktreeCreate`, `WorktreeRemove` |
+| MCP elicitation | `Elicitation`, `ElicitationResult` |
 
-Claude Code session initialization:
+Choose an event because its input and decision contract match the job, not because its name sounds adjacent.
 
-1. User runs `claude` or `cc` command
-2. Claude Code reads `hooks/hooks.json` from active plugins
-3. Hooks are validated and loaded in memory
-4. `SessionStart` hooks execute (if defined)
-5. Session is ready for user input
-6. During session: `PreToolUse`, `PostToolUse`, `Stop`, `UserPromptSubmit`, `PreCompact`, `Notification` hooks may fire
-7. User runs `/exit` or exits session
-8. `SessionEnd` hooks execute (if defined)
-9. Session closes
+## Matcher Keys
 
-## Critical rule: no hot-swap
+Matcher evaluation is event-specific:
 
-Hooks loaded at step 3 remain fixed for the entire session.
-Changes to `hooks/hooks.json` or hook scripts have ZERO effect until session restart.
+- tool events match `tool_name`
+- `SubagentStart` and `SubagentStop` match agent type
+- `SessionStart` and `Setup` match startup source
+- `Notification` matches notification type
+- `PreCompact` matches compaction trigger
+- `ConfigChange` matches configuration source
+- `InstructionsLoaded` matches load reason
+- `FileChanged` matches watched filenames
+- `UserPromptExpansion` matches the command name
 
-### Broken: editing hook and expecting immediate effect
+These events have no matcher support and always fire on every occurrence: `UserPromptSubmit`, `PostToolBatch`, `Stop`, `TeammateIdle`, `TaskCreated`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, `MessageDisplay`, and `CwdChanged`.
+A matcher on those events is silently ignored.
+
+For plugin MCP tools, match the scoped name:
 
 ```text
-User session running...
-Edit hooks/hooks.json
-Edit hooks/validate.sh
-# Hook changes have NO effect on current session
-Test hook
-# Behavior unchanged
+mcp__plugin_<plugin-name>_<server-name>__<tool-name>
 ```
 
-### Correct: restart requirement
+A bare server key such as `mcp__database__.*` does not match a plugin-bundled server.
 
-```text
-Edit hooks/hooks.json
-Edit hooks/validate.sh
-Exit Claude Code (or /exit)
-Restart: claude or cc
-Test hook
-# New configuration is active
-```
+## Loading and Reloading
 
-## Environment variables by event
+- A plugin's `hooks/hooks.json` loads when the plugin is enabled.
+- Skill changes become live immediately, but plugin hook changes do not.
+- Run `/reload-plugins` or restart Claude Code after changing plugin hooks.
+- `/hooks` only inspects loaded configuration.
+- A plugin update keeps existing hook processes on the previous plugin path until reload.
 
-### SessionStart: special access to $CLAUDE_ENV_FILE
+## Environment Timing
 
-Only `SessionStart` hooks can write to `$CLAUDE_ENV_FILE` to persist environment variables across the entire session.
+Use `${CLAUDE_PLUGIN_ROOT}` for bundled read-only files and `${CLAUDE_PLUGIN_DATA}` for persistent writable data.
 
-```json
-{
-  "SessionStart": [
-    {
-      "matcher": "*",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/setup-env.sh"
-        }
-      ]
-    }
-  ]
-}
-```
+`CLAUDE_ENV_FILE` is available only for:
 
-Hook script (note: uses bash `printf %q` for safe quoting):
+- `SessionStart`
+- `Setup`
+- `CwdChanged`
+- `FileChanged`
 
-```sh
-#!/usr/bin/env bash
-# -*- coding: utf-8 -*-
-set -e
+Values appended to that file become available to later Bash commands in the session.
+Do not depend on it from other events.
 
-# Initialize session environment from project config.
-#
-# @return Appends environment variables to CLAUDE_ENV_FILE.
-setup_env() {
-    if [ ! -f "$CLAUDE_ENV_FILE" ]; then
-        echo "Error: CLAUDE_ENV_FILE not set" >&2
-        exit 1
-    fi
-    PROJECT_TYPE=$(jq -r '.type' .project.config)
-    printf 'export PROJECT_TYPE=%q\n' "$PROJECT_TYPE" >> "$CLAUDE_ENV_FILE"
-    printf 'export PROJECT_ROOT=%q\n' "$(pwd)" >> "$CLAUDE_ENV_FILE"
-}
-setup_env
-```
+## Lifecycle Checks
 
-These variables are available to all subsequent hooks and tool execution in the session.
-
-### All other events: no CLAUDE_ENV_FILE access
-
-`PreToolUse`, `PostToolUse`, `Stop`, `UserPromptSubmit`, `PreCompact`, and `Notification` hooks CANNOT modify `$CLAUDE_ENV_FILE`.
-They can only read environment variables set by:
-
-- SessionStart hooks (via `$CLAUDE_ENV_FILE`)
-- User's shell environment (passed at session start)
-- Hooks themselves (but only local to that hook)
-
-## Available variables by event
-
-### All events
-
-- `${CLAUDE_PLUGIN_ROOT}` - Plugin root directory
-- `${CLAUDE_PROJECT_DIR}` - Project root directory (current working directory at session start)
-- `$CLAUDE_CODE_REMOTE` - Set if running in remote context.
-  - Undefined locally.
-
-Values are constant for entire session.
-
-### SessionStart only
-
-- `$CLAUDE_ENV_FILE` - Path to session environment file (write-only).
-  - Persist env vars here.
-
-Available in SessionStart command hooks only.
-
-### PreToolUse / PostToolUse / SubagentStop
-
-All hook input fields accessible via `jq`:
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-input=$(cat)
-tool_name=$(printf '%s' "$input" | jq -r '.tool_name')
-tool_input=$(printf '%s' "$input" | jq -r '.tool_input')
-cwd=$(printf '%s' "$input" | jq -r '.cwd')
-printf 'Tool: %s, Input: %s, CWD: %s\n' "$tool_name" "$tool_input" "$cwd"
-```
-
-### UserPromptSubmit
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-prompt=$(cat | jq -r '.prompt')
-echo "User prompt received: $prompt"
-```
-
-## Path resolution rules
-
-### ${CLAUDE_PLUGIN_ROOT} resolution
-
-Hook commands are evaluated in the project directory (`${CLAUDE_PROJECT_DIR}`).
-Use full paths or relative-to-plugin:
-
-```json
-{
-  "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate.sh"
-}
-```
-
-Resolves to: `/path/to/plugin/hooks/validate.sh` (absolute path from environment variable)
-
-### ${CLAUDE_PROJECT_DIR} resolution
-
-Project directory is the working directory where Claude Code was invoked.
-Use for relative path references:
-
-```json
-cd "${CLAUDE_PROJECT_DIR}" || exit
-ls ./src
-```
-
-### Relative paths in hooks (avoid)
-
-Relative paths are relative to current working directory, which is `${CLAUDE_PROJECT_DIR}`.
-Avoid relying on implicit paths:
-
-```sh
-# Fragile: depends on current directory
-bash hooks/validate.sh
-# Robust: explicit path
-bash "${CLAUDE_PLUGIN_ROOT}/hooks/validate.sh"
-```
-
-## Remote context handling
-
-Claude Code can run in remote context (ssh, cloud environments).
-Some operations are unsafe in remote context.
-
-### Detect remote context
-
-```sh
-if [ -n "${CLAUDE_CODE_REMOTE:-}" ]; then
-    echo "Running in remote context"
-else
-    echo "Running locally"
-fi
-```
-
-### I/O safety in remote context
-
-Some operations are unsafe or unavailable in remote:
-
-- File I/O may be slow or unavailable
-- System calls may fail (no access to `/dev`)
-- tmux operations may fail (no terminal)
-
-Pattern: conditional behavior based on context
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-# Log results with context-aware I/O.
-#
-# @return Local: writes file; Remote: outputs to stdout.
-log_result() {
-    message="$1"
-    if [ -z "${CLAUDE_CODE_REMOTE:-}" ]; then
-        echo "$message" >> "${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
-    else
-        echo "$message"
-    fi
-}
-```
-
-## Temporarily active hooks (flag-file pattern)
-
-Enable/disable hooks without restarting by using a flag file:
-
-Hook configuration:
-
-```json
-{
-  "PreToolUse": [
-    {
-      "matcher": "Write",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/conditional-validate.sh"
-        }
-      ]
-    }
-  ]
-}
-```
-
-Hook script with flag file:
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-# Conditionally run validation based on flag file.
-#
-# @return Exits 0 if disabled; runs validation if enabled.
-conditional_validate() {
-    FLAG_FILE="${CLAUDE_PROJECT_DIR}/.hook-validation-enabled"
-    if [ ! -f "$FLAG_FILE" ]; then
-        exit 0
-    fi
-    INPUT=$(cat)
-    TOOL_NAME=$(printf '%s' "$INPUT" | jq -r '.tool_name')
-    if [ "$TOOL_NAME" != "Write" ]; then
-        exit 0
-    fi
-    FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path')
-    if printf '%s' "$FILE_PATH" | grep -qE '\.(env|aws|pem|key)$'; then
-        printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Sensitive file blocked by flag-file hook"}}'
-        exit 0
-    fi
-    exit 0
-}
-conditional_validate
-```
-
-User can toggle validation:
-
-```sh
-touch .hook-validation-enabled      # Enable for this project
-rm .hook-validation-enabled         # Disable for this project
-# No session restart required
-```
-
-Hook still runs on every tool use (no restart needed), but early-exits if flag absent.
-
-## SessionEnd: cleanup and state preservation
-
-`SessionEnd` hooks run when session closes, before process termination.
-
-Use for:
-
-- Cleanup: removing temporary files
-- Logging: recording final session state
-- State preservation: saving agent progress for multi-session workflows
-
-Example:
-
-```json
-{
-  "SessionEnd": [
-    {
-      "matcher": "*",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/cleanup.sh"
-        }
-      ]
-    }
-  ]
-}
-```
-
-Script:
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-# Clean up session state and save logs.
-#
-# @return Removes temp files and archives logs.
-cleanup() {
-    rm -f "${CLAUDE_PROJECT_DIR}/.hook-temp-*"
-    if [ -d "${CLAUDE_PLUGIN_ROOT}/logs" ]; then
-        tar -czf "${CLAUDE_PLUGIN_ROOT}/logs/session-$(date +%s).tar.gz" \
-            "${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
-        rm -f "${CLAUDE_PLUGIN_ROOT}/logs/hook.log"
-    fi
-}
-cleanup
-```
-
-## Timeout and session end
-
-If a hook times out:
-
-- Hook is forcefully terminated
-- Subsequent hooks may not run
-- Session continues (tool may proceed depending on hook type)
-
-Set reasonable timeouts:
-
-```json
-{
-  "type": "command",
-  "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/fast-check.sh",
-  "timeout": 5
-}
-```
-
-For `SessionEnd` hooks, timeouts are enforced at session close.
-Hook MUST complete before process exits.
-
-## Testing with session restart
-
-Validate hook behavior with session restart:
-
-```sh
-# 1. Edit hooks/hooks.json or hook scripts
-
-# 2. Exit current session
-/exit
-
-# 3. Restart
-claude
-
-# 4. Debug output
-claude --debug
-```
-
-In debug output, look for:
-
-```toml
-[hooks] Loading hooks from .../hooks/hooks.json
-[hooks] SessionStart: running 2 hooks
-[hooks] PreToolUse: 1 matcher (Write)
-```
-
-If hooks fail to load, JSON syntax error or missing scripts will be reported.
-
-## References
-
-Refer to `SKILL.md` for hook event types and input/output contracts.
-
-Refer to `references/security-patterns.md` for safe environment variable handling.
-
-Refer to `references/performance.md` for parallel execution guarantees during a session.
+- Confirm the selected event can produce the intended decision.
+- Confirm the event supports the chosen handler type.
+- Confirm the matcher filters the documented input field.
+- Exercise the hook after `/reload-plugins`.
+- Verify repeated events and concurrent matching handlers do not corrupt shared state.

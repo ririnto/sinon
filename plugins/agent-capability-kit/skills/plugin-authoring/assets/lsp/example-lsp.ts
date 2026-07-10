@@ -82,7 +82,7 @@ function readMessagesFromBuffer(
       .split(/\r?\n/u)
       .map((line) => line.split(":", 2))
       .find(([name]) => name?.toLowerCase() === "content-length")?.[1];
-    const length = Number.parseInt(contentLength?.trim() ?? "0", 10);
+    const length = Math.trunc(Number(contentLength?.trim() ?? "0"));
     if (length <= 0 || bodyStart + length > bytes.length) {
       break;
     }

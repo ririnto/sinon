@@ -11,7 +11,13 @@ Items marked with `[repo]` are specific to the Sinon publishing standard and may
 - `description` opens with an imperative capability statement.
 - `description` trigger wording adds distinct task, artifact, system, timing, or user-intent vocabulary.
 - No verb-synonym duplication appears between the capability and trigger clause.
-- Frontmatter contains no `title`, `metadata`, `owner`, `license`, `version`, `source`, documentation URL, argument hint, or tool allowlist fields.
+- Portable fields use the Agent Skills contract: required `name` and `description`; optional `license`, `compatibility`, `metadata`, and experimental `allowed-tools` only.
+- Optional `license` is a short license name or bundled-file reference.
+- Optional `compatibility` is at most 500 characters.
+- Optional `metadata` maps string keys to string values.
+- Optional `allowed-tools` is a space-separated string and is treated as experimental.
+- No non-standard frontmatter fields such as `title`, `owner`, `version`, `source`, documentation URL, argument hint, or baseline appear.
+- [repo] Sinon-published skills use only `name` and `description` unless the task explicitly requires a portable optional field and repository policy permits it.
 - First body heading is the display title.
 - YAML uses plain or double-quoted scalars for short readable values, `>-` for long wrapped single-value strings, and `|-` only when line breaks are semantic.
 
@@ -53,5 +59,6 @@ Items marked with `[repo]` are specific to the Sinon publishing standard and may
 ## Cross-platform [repo]
 
 - No Claude-only frontmatter guidance appears in skill source unless the skill is intentionally Claude-specific.
+- Portable optional fields are not reported as Agent Skills schema violations; repository-specific restrictions are reported separately.
 - No product-specific SDK code appears in cross-platform skill source.
 - Examples are raw files, shell commands, JSON, YAML, Markdown, or another directly relevant artifact format.

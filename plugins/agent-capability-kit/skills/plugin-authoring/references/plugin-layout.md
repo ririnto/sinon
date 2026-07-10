@@ -1,17 +1,14 @@
 ---
 name: plugin-layout
-description: |-
-  Expanded plugin-root tree examples for composite surfaces, helper directories, and layout exceptions.
-  Open this file when `SKILL.md` already covers the baseline shape and a richer tree is needed.
+description: >-
+  Composite plugin-root trees and custom-path examples for selected runtime surfaces.
 ---
 
 # Plugin Layout
 
-Open this file when `SKILL.md` already covers the baseline shape and you need a deeper layout for a plugin that combines surfaces, adds helper directories, or hits a layout exception.
+Open this reference when a plugin combines several runtime surfaces or needs custom paths in the manifest.
 
-## Composite roots
-
-Use this when a Claude Code plugin ships multiple optional surfaces and the simple starter tree is no longer descriptive.
+## Composite Root
 
 ```text
 your-plugin/
@@ -21,73 +18,55 @@ your-plugin/
 +-- agents/
 +-- skills/
 +-- hooks/
-|   +-- check.ts
 |   +-- hooks.json
+|   +-- check.ts
 +-- .mcp.json
 +-- servers/
 |   +-- example-mcp.ts
-+-- bin/
-|   +-- my-tool
-+-- output-styles/
-    +-- executive-summary.md
-```
-
-This shape is useful when policy, server, and formatting surfaces all ship together for Claude Code.
-
-## Surface-specific helper directories
-
-Some surfaces need adjacent helper files that do not fit the bare root list:
-
-```text
-your-plugin/
-+-- .claude-plugin/
-|   +-- plugin.json
-+-- README.md
-+-- hooks/
-|   +-- check.ts
-|   +-- hooks.json
++-- .lsp.json
 +-- lsp/
 |   +-- example-lsp.ts
++-- output-styles/
++-- themes/
 +-- monitors/
 |   +-- monitors.json
 |   +-- watch.ts
-+-- servers/
-    +-- example-mcp.ts
++-- bin/
 ```
 
-Use these helper directories only when the associated surface needs local code beside its manifest or content file.
+Keep only selected surfaces.
+Helper programs stay beside or under the surface that owns them.
 
-## Layout exceptions
+## Replacing Paths
 
-- prefer one helper directory per surface so the plugin tree stays readable when a surface grows beyond one file
-- when a surface needs multiple files, group them under a directory named after the surface rather than scattering files at the root
-- keep runtime output and generated state outside the shipped surface files unless the specific component explicitly expects it
+`commands`, `agents`, `outputStyles`, `experimental.themes`, and `experimental.monitors` replace their default scan when declared.
+Include the default path explicitly when adding a custom path:
 
-## Default surfaces and the manifest
+```json
+{
+  "agents": ["./agents/", "./special/agents/"],
+  "outputStyles": ["./output-styles/", "./branding/styles/"],
+  "experimental": {
+    "themes": ["./themes/", "./branding/themes/"],
+    "monitors": ["./monitors/monitors.json", "./operations/monitors.json"]
+  }
+}
+```
 
-Open this subsection whenever a composite-root tree contains optional surfaces.
-Use it to verify manifest entries against Claude Code discovery rules.
+## Additive Skills
 
-Claude Code auto-discovers default component locations at the plugin root.
-Do not declare default entries in `plugin.json` when the default path is the only value.
-Default entries include:
+`skills` adds to the default `skills/` scan:
 
-- `skills/`, `agents/`, `commands/`, `output-styles/`, and `themes/`
-- `hooks/hooks.json`, `.mcp.json`, `.lsp.json`, `settings.json`, and `monitors/monitors.json`
+```json
+{
+  "skills": ["./shared-skills/"]
+}
+```
 
-Executable files under `bin/` are added to Bash `PATH` while the plugin is enabled and do not use a manifest path field.
+## Components with Merge Rules
 
-Use manifest component fields only for custom paths or inline configuration.
-When a manifest component field declares a string path, the matching plugin-root file or directory MUST exist.
-Inline object component fields do not need companion files.
+`hooks`, `mcpServers`, and `lspServers` combine sources according to their component-specific rules.
+Use their default files for the ordinary path and manifest fields only for custom paths or inline definitions.
 
-Path fields are additive across the board:
-
-- `skills`, `agents`, `commands`, `outputStyles`, `themes`, and `monitors` each add to the matching default directory scan rather than replacing it.
-- `settings` merges into user settings and applies only documented allowlisted keys.
-- `userConfig` declares prompted values exposed as `${user_config.KEY}`.
-- hooks, MCP servers, and LSP servers follow their own merge rules.
-
-## When this file matters
-
-Open this file when you need to compare a combined plugin tree against the manifest, or when a surface needs extra files that would make the baseline tree misleading.
+Manifest `settings` is an inline object.
+Plugin-root `settings.json` is a separate auto-discovered file and is not declared through a path.

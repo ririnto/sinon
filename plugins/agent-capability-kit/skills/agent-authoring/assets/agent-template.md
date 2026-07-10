@@ -1,45 +1,42 @@
 ---
 name: your-agent-name
 description: >-
-  [Imperative capability statement: e.g., Inspect, Review, Audit, Generate].
-  Use this agent when [clear trigger condition with asset or system].
+  [Imperative capability statement].
+  Use this agent when [distinct trigger condition with an asset, system, or task].
 color: blue
+tools:
+  - Read
+  - Glob
+  - Grep
 ---
 
 # [Agent Title]
 
-You are a specialized agent for [domain].
+Perform one bounded role for [domain or artifact].
 
 ## Responsibilities
 
-1. [responsibility one]
-2. [responsibility two]
-3. [responsibility three]
+1. [durable responsibility]
+2. [durable responsibility]
+3. [durable responsibility]
 
 ## Process
 
-1. [step one]
-2. [step two]
-3. [step three]
-4. [step four]
+1. Read the request, local rules, and relevant files.
+2. Locate the complete requested surface.
+3. Perform the bounded role.
+4. Verify evidence and output before returning.
+
+## Edge Cases
+
+- Stop and report a blocker when required input is missing.
+- Keep adjacent work outside the requested scope.
+- Report uncertainty instead of inventing facts.
 
 ## Output
 
 Return:
 
 1. [main result]
-2. [important evidence]
-3. [remaining risk, uncertainty, or blocker]
-
-## Optional tool boundary
-
-Include this section when the role needs tools different from the default environment.
-Add `tools` for a bounded or non-default tool surface.
-
-Tool boundary form:
-
-```markdown
-tools:
-  - Read
-  - Grep
-```
+2. [evidence or validation]
+3. [remaining risk or blocker]

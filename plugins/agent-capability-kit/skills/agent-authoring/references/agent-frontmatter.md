@@ -1,51 +1,69 @@
 ---
 name: agent-frontmatter
 description: >-
-  Decisions for tools and extra fields.
-  Description upgrade patterns when the baseline feels weak.
+  Supported Claude Code agent fields and plugin-specific restrictions for non-default runtime behavior.
 ---
 
 # Agent Frontmatter
 
-Open this file when the ordinary `SKILL.md` rules are not enough to choose between multiple reasonable frontmatter shapes.
+Open this reference when an agent needs runtime fields beyond `name`, `description`, `color`, and a simple `tools` list.
 
-## When to open this reference
+## Field Matrix
 
-- the role needs a decision about whether to omit or include `tools`
-- the existing file already uses extra supported fields and you need to decide whether to keep them
-- the description trigger is still too weak to route reliably
+| Field | Plugin agent | User or project agent | Notes |
+| --- | --- | --- | --- |
+| `name` | supported | supported | Required; Sinon also requires filename match |
+| `description` | supported | supported | Required routing surface |
+| `tools` | supported | supported | Omission inherits tools |
+| `disallowedTools` | supported | supported | Removes inherited or specified tools |
+| `model` | supported | supported | Alias, full ID, or `inherit` |
+| `effort` | supported | supported | Available values depend on model |
+| `maxTurns` | supported | supported | Positive turn bound |
+| `skills` | supported | supported | Preloads full skill content |
+| `memory` | supported | supported | `user`, `project`, or `local` |
+| `background` | supported | supported | Boolean |
+| `isolation` | supported | supported | Only `worktree` |
+| `color` | supported | supported | Display field |
+| `hooks` | ignored | supported | Do not put on plugin agents |
+| `mcpServers` | ignored | supported | Do not put on plugin agents |
+| `permissionMode` | ignored | supported | Do not put on plugin agents |
 
-## Field decision notes
+`Examples` is not a frontmatter field in either scope.
 
-### `tools`
+## Optional Field Example
 
-Prefer omission when the default environment is already safe and sufficient.
-
-Add `tools` when the role benefits from a narrower explicit boundary, especially for review-only agents or tightly bounded editors.
-
-### Additional supported fields
-
-Keep non-core fields only when they change runtime behavior in a meaningful way.
-If a field is decorative, redundant, or host-specific without a clear benefit, leave it out.
-
-## Description upgrade pattern
-
-If the description still feels weak, tighten it in this order:
-
-1. Name the asset or system
-2. Name the job to perform
-3. Add realistic user wording only if the trigger still needs disambiguation
-
-Upgrade pattern:
-
-Weak:
-
-```markdown
-description: Use this agent when docs need work.
+```yaml
+---
+name: migration-runner
+description: >-
+  Apply and verify a bounded repository migration in an isolated worktree.
+  Use this agent when a multi-file migration needs direct edits, focused checks, and worktree isolation.
+tools:
+  - Read
+  - Glob
+  - Grep
+  - Edit
+  - Bash
+maxTurns: 40
+isolation: worktree
+---
 ```
 
-Stronger:
+Each optional field needs a concrete role requirement.
+Remove a field that does not change execution.
 
-```markdown
-description: Rewrite Markdown guides, READMEs, and handoff notes for structure and clarity. Use this agent when a specific documentation file needs bounded editing before release, review, or handoff.
-```
+## Skill Preloading
+
+`skills` injects the complete named skill content when the agent starts.
+Use it only when that content is a deliberate part of every invocation.
+Do not use `tools: [Skill]` as a substitute for preloading.
+
+## Model and Effort
+
+Omit `model` and `effort` when session inheritance is correct.
+Pin them only when the role needs stable capability or cost behavior and the selected model supports the requested effort value.
+
+## Scope Check
+
+Before retaining an existing field, determine whether the file is loaded from a plugin, `.claude/agents/`, or `~/.claude/agents/`.
+A field that is valid for a project agent may still be ignored for a plugin agent.
