@@ -162,6 +162,10 @@ test("workflow documents carry the complete lifecycle and selected-host split", 
       "WORKFLOW.none.md"
     ].map((name) => Bun.file(path.join(common, name)).text())
   );
+  for (const text of workflowTexts.slice(1)) {
+    expect(text).not.toMatch(/\bassign or perform\b/iu);
+    expect(text).toContain("The top-level orchestrator assigns");
+  }
   for (const text of workflowTexts) {
     for (const fragment of [
       "max_depth = 1",

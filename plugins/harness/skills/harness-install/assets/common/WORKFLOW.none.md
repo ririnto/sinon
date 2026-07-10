@@ -89,9 +89,9 @@ Pass the same scope, acceptance criteria, validation command, and output fields 
 | Phase | Action |
 | --- | --- |
 | Intake | Confirm the task, plan, local review record, or user request that owns the work. |
-| Explore | Assign or perform architecture, docs, code, validation, and local-review-context exploration. |
+| Explore | The top-level orchestrator assigns architecture, docs, code, validation, and local-review-context exploration to bounded leaf workers. |
 | Plan | Define subagent scopes, changed files, acceptance criteria, validation, manual QA, and local review target. |
-| Implement | Assign or perform the change set needed to satisfy the criteria and preserve the contracts that cover changed files. |
+| Implement | The top-level orchestrator assigns the change set to a bounded leaf worker to satisfy the criteria and preserve the contracts that cover changed files. |
 | Review | Assign independent review for correctness, security, contract drift, and missing evidence when the change is non-trivial. |
 | Validate | Run the active validation command and active hooks after integrating subagent output. |
 | Complete | Update the local review record or execution plan with validation, review, evidence, and blockers. |
