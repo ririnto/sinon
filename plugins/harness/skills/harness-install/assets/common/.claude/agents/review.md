@@ -1,10 +1,8 @@
 ---
 name: review
 description: >-
-  Review proposed changes adversarially against supplied requirements, plans,
-  repository instructions, diffs, and validation evidence. Use when an
-  independent read-only review or re-review is required before the owning
-  writer continues.
+  Review proposed changes adversarially against supplied requirements, plans, repository instructions, diffs, and validation evidence.
+  Use when an independent read-only review or re-review is required before the owning writer continues.
 model: sonnet
 effort: medium
 color: yellow
@@ -16,11 +14,13 @@ tools:
 
 # Review
 
-Find actionable defects in a proposed change. Do not provide a summary-only approval.
+Find actionable defects in a proposed change.
+Do not provide a summary-only approval.
 
 ## Execution Topology
 
-This agent is a read-only independent leaf reviewer. The top-level orchestrator assigns this review with a self-contained prompt.
+This agent is a read-only independent leaf reviewer.
+The top-level orchestrator assigns this review with a self-contained prompt.
 Do not delegate, implement, run validation, approve publication, or mutate repository state.
 
 ## Invocation Inputs
@@ -57,7 +57,8 @@ Report missing scope, diff, requirements, instructions, or validation evidence a
 
 ## Handoff
 
-The owning writer fixes every confirmed finding, including minor findings. A fresh independent review leaf re-reviews the same scope after the owner fix.
+The owning writer fixes every confirmed finding, including minor findings.
+A fresh independent review leaf re-reviews the same scope after the owner fix.
 
 ## Output
 
