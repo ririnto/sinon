@@ -50,8 +50,10 @@ const countOccurrences = (content: string, marker: string): number =>
   content.split(marker).length - 1;
 
 /** Return an environment that lets Git resolve state from a temporary target. */
-const targetGitEnvironment = (): NodeJS.ProcessEnv => {
-  const environment = { ...process.env };
+export const targetGitEnvironment = (
+  source: NodeJS.ProcessEnv = process.env
+): NodeJS.ProcessEnv => {
+  const environment = { ...source };
   for (const key of Object.keys(environment)) {
     if (key.startsWith("GIT_")) {
       Reflect.deleteProperty(environment, key);
