@@ -62,9 +62,15 @@ const groupByAssetSubdir = (
 export const computeAssetManifest = (
   skillDir: string
 ): Record<string, readonly string[]> => {
+  const environment = { ...process.env };
+  delete environment.GIT_DIR;
+  delete environment.GIT_INDEX_FILE;
+  delete environment.GIT_PREFIX;
+  delete environment.GIT_WORK_TREE;
   const proc = Bun.spawnSync(
     ["git", "-C", skillDir, "ls-files", "--", "assets/"],
     {
+      env: environment,
       stderr: "pipe",
       stdout: "pipe"
     }

@@ -9,6 +9,7 @@ import {
   computeAssetManifest,
   manifestPathFor
 } from "../skills/harness-install/scripts/asset-manifest.js";
+import { checkInstallerRuntime } from "./harness-checks/installer-runtime.js";
 import { checkPackageSurface } from "./harness-checks/package-surface.js";
 
 type StackMode = "bun" | "gradle" | "maven" | "shell" | "uv";
@@ -283,10 +284,11 @@ const requireDir = (root: string, directoryPath: string): void => {
   if (!statSync(directoryPath).isDirectory()) {
     fail(`[requireDir] expected directory: ${directoryPath}`);
   }
-  const relativePath = path.relative(root, directoryPath);
+  const repositoryRoot = path.resolve(root, "..", "..");
+  const relativePath = path.relative(repositoryRoot, directoryPath);
   const result = spawnSync(
     "git",
-    ["-C", root, "ls-files", "--", relativePath],
+    ["-C", repositoryRoot, "ls-files", "--", relativePath],
     {
       encoding: "utf-8"
     }
@@ -902,6 +904,15 @@ const checkInstallerSurface = (root: string): void => {
   ]) {
     requireFile(path.join(scripts, "install-harness", filePath));
   }
+  requireFile(
+    path.join(
+      root,
+      "skills",
+      "harness-validate",
+      "scripts",
+      "validate-install-record.ts"
+    )
+  );
   console.error("[installer surface] OK");
 };
 
@@ -930,14 +941,22 @@ const checkInstallerContract = (root: string): void => {
     {
       fragments: [
         'installRecordPath = ".harness/install-record.json"',
-        "schemaVersion: 1"
+        "schemaVersion: 2"
       ],
       path: path.join(installerDir, "record.ts")
     },
     {
       fragments: [
+        'InstallOutcome = "conflict" | "created" | "kept" | "updated"',
+        'AssetOwnership = "harness" | "shared" | "target"'
+      ],
+      path: path.join(installerDir, "types.ts")
+    },
+    {
+      fragments: [
         'import { writeInstallRecord } from "./record.js";',
-        "await writeInstallRecord(config);"
+        "await writeInstallRecord(config, results, true);",
+        "await writeInstallRecord(config, results, false);"
       ],
       path: path.join(installerDir, "installer.ts")
     },
@@ -1030,6 +1049,7 @@ const main = (): number => {
     checkInstallerSurface(root);
     checkInstallerContract(root);
     checkAssetManifest(root);
+    checkInstallerRuntime(root);
     requireFile(path.join(root, "scripts", "plugin-self-check.ts"));
     checkNativeTools();
     console.error("\nHarness asset/package smoke checks passed.");

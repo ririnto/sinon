@@ -8,17 +8,35 @@ import {
   readInstallAsset,
   readUtf8
 } from "./files.js";
-import { hasManagedBlock, renderManagedBlock } from "./managed.js";
+import {
+  applyManagedBlock,
+  hasManagedBlock,
+  renderManagedBlock
+} from "./managed.js";
 import { requiredRealTarget, requiredSrc } from "./paths.js";
 import { buildPlan } from "./planning.js";
+import {
+  canRefreshOwnedAsset,
+  digestContent,
+  previousAssetsForConfig
+} from "./record.js";
 import { fail } from "./types.js";
-import type { InstallCandidate, InstallerConfig } from "./types.js";
+import type {
+  InstallAssetRecord,
+  InstallCandidate,
+  InstallerConfig
+} from "./types.js";
 
 const previewFileCandidate = async (
   config: InstallerConfig,
-  candidate: InstallCandidate
+  candidate: InstallCandidate,
+  previousAssets: ReadonlyMap<string, InstallAssetRecord>
 ): Promise<void> => {
-  if (candidate.seed === true && (await pathExists(candidate.dst))) {
+  if (
+    candidate.seed === true &&
+    (await pathExists(candidate.dst)) &&
+    !config.force
+  ) {
     console.log(`skip seed (target exists): ${candidate.dst}`);
     return;
   }
@@ -27,12 +45,23 @@ const previewFileCandidate = async (
     return;
   }
   const template = await readInstallAsset(requiredSrc(candidate));
-  if ((await readUtf8(candidate.dst)) === template) {
+  const current = await readUtf8(candidate.dst);
+  if (current === template) {
     console.log(`keep existing (matches template): ${candidate.dst}`);
     return;
   }
   if (config.force) {
     console.log(`overwrite (--force): ${candidate.dst}`);
+    return;
+  }
+  if (
+    canRefreshOwnedAsset(
+      previousAssets.get(candidate.dst),
+      digestContent(current),
+      digestContent(template)
+    )
+  ) {
+    console.log(`refresh owned: ${candidate.dst}`);
     return;
   }
   console.error(
@@ -45,28 +74,34 @@ const previewRootContractCandidate = async (
   candidate: InstallCandidate
 ): Promise<void> => {
   const realTarget = requiredRealTarget(candidate);
-  if (
-    (await pathExists(realTarget)) &&
-    hasManagedBlock(await readUtf8(realTarget)) &&
-    !config.force
-  ) {
-    console.log(`skip root contract: ${candidate.dst}`);
+  const exists = await pathExists(realTarget);
+  const current = exists ? await readUtf8(realTarget) : "";
+  if (exists && hasManagedBlock(current) && !config.force) {
+    const template = await readInstallAsset(requiredSrc(candidate));
+    if (applyManagedBlock(current, template) === current) {
+      console.log(`skip root contract: ${candidate.dst}`);
+      return;
+    }
+    console.error(
+      `drift root contract: ${candidate.dst} managed block differs from template; rerun with --force to update it`
+    );
     return;
   }
-  if ((await pathExists(realTarget)) && !config.force) {
+  if (exists && !config.force) {
     console.error(
       `conflict root contract: ${realTarget} has no managed block; rerun with --force to add one while preserving existing content`
     );
     return;
   }
   console.log(
-    (await pathExists(realTarget))
+    exists
       ? `update root contract (--force): ${candidate.dst}`
       : `create root contract: ${candidate.dst}`
   );
 };
 
 const previewSymlinkCandidate = async (
+  config: InstallerConfig,
   candidate: InstallCandidate
 ): Promise<void> => {
   if (await isSymlink(candidate.dst)) {
@@ -74,6 +109,12 @@ const previewSymlinkCandidate = async (
     if (currentTarget === candidate.symlinkTarget) {
       console.log(
         `skip existing symlink: ${candidate.dst} -> ${candidate.symlinkTarget ?? ""}`
+      );
+      return;
+    }
+    if (config.force) {
+      console.log(
+        `replace symlink (--force): ${candidate.dst} -> ${candidate.symlinkTarget ?? ""}`
       );
       return;
     }
@@ -127,13 +168,14 @@ const showRootContractCandidate = async (
 
 const previewCandidateStatus = async (
   config: InstallerConfig,
-  candidate: InstallCandidate
+  candidate: InstallCandidate,
+  previousAssets: ReadonlyMap<string, InstallAssetRecord>
 ): Promise<void> => {
   switch (candidate.kind) {
     case "file":
     case "seed":
     case "stack-file": {
-      await previewFileCandidate(config, candidate);
+      await previewFileCandidate(config, candidate, previousAssets);
       return;
     }
     case "root-contract": {
@@ -141,7 +183,7 @@ const previewCandidateStatus = async (
       return;
     }
     case "symlink": {
-      await previewSymlinkCandidate(candidate);
+      await previewSymlinkCandidate(config, candidate);
       return;
     }
     case "gitkeep": {
@@ -157,6 +199,7 @@ const previewCandidateStatus = async (
 const previewCandidates = async (
   config: InstallerConfig,
   candidates: readonly InstallCandidate[],
+  previousAssets: ReadonlyMap<string, InstallAssetRecord>,
   index = 0
 ): Promise<void> => {
   if (index >= candidates.length) {
@@ -164,9 +207,9 @@ const previewCandidates = async (
   }
   const candidate = candidates[index];
   if (candidate !== undefined) {
-    await previewCandidateStatus(config, candidate);
+    await previewCandidateStatus(config, candidate, previousAssets);
   }
-  await previewCandidates(config, candidates, index + 1);
+  await previewCandidates(config, candidates, previousAssets, index + 1);
 };
 
 /** Print the selected install set and each candidate status without writing files. */
@@ -177,7 +220,11 @@ export const previewInstallSet = async (
   console.log(`mode: ${config.mode}`);
   console.log(`ci-host: ${config.ciHost}`);
   console.log(`validation command: ${validationCommandForMode(config.mode)}`);
-  await previewCandidates(config, await buildPlan(config));
+  await previewCandidates(
+    config,
+    await buildPlan(config),
+    await previousAssetsForConfig(config, false)
+  );
 };
 
 /** Print rendered content for one target path without writing files. */
@@ -195,10 +242,10 @@ export const showOneTargetPath = async (
     }
     case "root-contract": {
       await showRootContractCandidate(candidate);
-      return;
+      break;
     }
     case "gitkeep": {
-      return;
+      break;
     }
     case "symlink": {
       return fail(

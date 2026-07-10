@@ -64,11 +64,12 @@ They are not installed as day-to-day target repository agents.
 
 ## Packaged Scripts and Assets
 
-- `scripts/plugin-self-check.ts` validates packaged files, stack assets, hook wiring, CI parity, package metadata, style hardening, and native-tool smoke checks.
+- `scripts/plugin-self-check.ts` validates packaged files, stack assets, hook wiring, CI parity, package metadata, installer outcome scenarios, style hardening, and native-tool smoke checks.
   - It skips a stack gracefully when its toolchain is absent from PATH.
 - `skills/harness-install/scripts/install-harness.ts` is the executable installer entry point.
   - `skills/harness-install/scripts/install-harness/` contains the packaged implementation modules.
-  - The installer discovers installable target assets via `git ls-files`.
+  - The installer reads the checked-in `skills/harness-install/asset-manifest.json`, so an installed plugin cache does not require Git metadata.
+- `skills/harness-validate/scripts/validate-install-record.ts` is a self-contained check for recorded outcomes, ownership, target drift, managed-block drift, ownership digests, command parity, and inventory integrity.
 - `skills/harness-install/assets/` contains files the installer copies into target repositories, including `.claude/agents`, `.claude/skills`, `docs`, CI files, validation adapters, and Git hook scaffolds.
 - Long Markdown files under `skills/harness-install/assets/common/docs/references/` are packaged reference material, not source modules.
 
@@ -84,8 +85,10 @@ Stack assets provide the active pre-commit and pre-push hooks installed for the 
 
 ## Target Ownership
 
-Target repositories own every installed harness file.
-Harness evolution keeps copied docs, scripts, CI files, hooks, agents, skills, repository templates, and validation adapters aligned with manifests, docs, validators, CI, and hook policy.
+`.harness/install-record.json` records each asset as `harness`, `shared`, or `target` owned for refresh purposes.
+The installer may refresh an unchanged harness-owned file when its plugin source changes; user drift becomes a target-owned conflict until an explicit `--force` update.
+Root `AGENTS.md` and `CLAUDE.md` contracts are shared: the installer owns only their managed blocks and preserves target-authored content outside those blocks.
+Seeds and preserved pre-existing files remain target owned.
 Documented host policy controls optional CI file removal.
 
 ## Install Harness Assets

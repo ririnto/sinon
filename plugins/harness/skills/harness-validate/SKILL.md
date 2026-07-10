@@ -21,9 +21,10 @@ This plugin skill is the visible runtime surface for validation guidance; it che
 1. Confirm the selected stack and validation command from the caller, installer output, or target files.
 2. Confirm the target stack from the argument or repository files.
 3. Check that validation is being run from the target repository root; uv, bun, and Maven validators bind the current working directory as the target root.
-4. Use the selected stack command for local validation.
-5. Inspect `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml` when validation is being checked through CI, but run local validation from the target root first.
-6. Report ambiguity when command selection remains unclear.
+4. Validate `.harness/install-record.json` before selecting or running the native stack command.
+5. Use the selected stack command for local validation.
+6. Inspect `.github/workflows/<tool>.yaml` or `.gitlab-ci.yml` when validation is being checked through CI, but run local validation from the target root first.
+7. Report ambiguity when command selection remains unclear.
 
 ## Preflight
 
@@ -60,7 +61,13 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 
 The canonical check command in the table is the local harness validation command, matches the installed `pre-commit` hook, and is the command CI (both hosts) re-runs; the two CI hosts MUST agree with each other and with `pre-commit`.
 The installed `pre-push` hook is a local-only stricter superset that adds tests on top of the canonical command: `./gradlew check` (gradle), `./mvnw verify` (maven), `bun run check && bun test` (bun), or the same canonical command for uv and shell; it is not required to match CI.
-`.harness/install-record.json` persists the canonical check, fix, and pre-push commands as the durable source of truth; read it when command selection is unclear instead of guessing.
+`.harness/install-record.json` persists canonical commands plus complete asset outcomes and ownership. Validate it from the target root before the native stack command:
+
+```sh
+bun "${CLAUDE_PLUGIN_ROOT}/skills/harness-validate/scripts/validate-install-record.ts" .
+```
+
+The self-contained preflight fails on a partial first-time `--only` record, unresolved conflict, harness-owned target drift, shared managed-block drift, missing ownership digest, command mismatch, duplicate path, or empty inventory. Target-owned content is not silently reclaimed.
 
 ## Command Examples
 

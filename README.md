@@ -186,7 +186,10 @@ claude --plugin-dir /path/to/sinon/plugins/java
 
 ## License
 
-This repository is distributed under the MIT License.
-See [LICENSE](./LICENSE).
-The harness, spec-driven-development, and workspace-workflow plugins are distributed under Apache-2.0.
-The harness plugin includes attribution notes under [plugins/harness/THIRD_PARTY_NOTICES.md](./plugins/harness/THIRD_PARTY_NOTICES.md).
+The repository root and plugins whose manifests declare `MIT` use the [MIT License](./LICENSE).
+
+The following plugins use their local canonical Apache-2.0 license:
+
+- [harness](./plugins/harness/LICENSE), with attribution notes in [THIRD_PARTY_NOTICES.md](./plugins/harness/THIRD_PARTY_NOTICES.md)
+- [spec-driven-development](./plugins/spec-driven-development/LICENSE)
+- [workspace-workflow](./plugins/workspace-workflow/LICENSE)

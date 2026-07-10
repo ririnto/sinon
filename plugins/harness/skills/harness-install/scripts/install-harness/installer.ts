@@ -202,14 +202,15 @@ export const runInstaller = async (config: InstallerConfig): Promise<void> => {
       const selectedPath = normalizeRequestedTargetPath(
         requiredSelectedPath(config)
       );
-      await installOneTargetPath(config, selectedPath);
+      const results = await installOneTargetPath(config, selectedPath);
+      await writeInstallRecord(config, results, false);
       printSummary(config, selectedPath);
       runtimeAdvisoryForMode(config.mode);
       return;
     }
     case "install": {
-      await installFullPlan(config);
-      await writeInstallRecord(config);
+      const results = await installFullPlan(config);
+      await writeInstallRecord(config, results, true);
       activateHooks(config);
       printSummary(config, null);
       runtimeAdvisoryForMode(config.mode);
