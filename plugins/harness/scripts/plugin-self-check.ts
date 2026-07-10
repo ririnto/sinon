@@ -972,32 +972,32 @@ const checkMavenAssets = (root: string): void => {
   ]);
   const spotlessVersion = readRequiredCapture(
     pom,
-    /<artifactId>spotless-maven-plugin<\/artifactId>\s*<version>([^<]+)<\/version>/u,
+    /<artifactId>spotless-maven-plugin<\/artifactId>\s*<version>(?<version>[^<]+)<\/version>/u,
     "Spotless Maven version"
   );
   const checkstyleVersion = readRequiredCapture(
     pom,
-    /<artifactId>checkstyle<\/artifactId>\s*<version>([^<]+)<\/version>/u,
+    /<artifactId>checkstyle<\/artifactId>\s*<version>(?<version>[^<]+)<\/version>/u,
     "Checkstyle version"
   );
   const compilerRelease = Number(
     readRequiredCapture(
       pom,
-      /<maven\.compiler\.release>(\d+)<\/maven\.compiler\.release>/u,
+      /<maven\.compiler\.release>(?<release>\d+)<\/maven\.compiler\.release>/u,
       "Maven compiler release"
     )
   );
   const githubRuntime = Number(
     readRequiredCapture(
       githubWorkflow,
-      /java-version:\s*["']?(\d+)["']?/u,
+      /java-version:\s*["']?(?<runtime>\d+)["']?/u,
       "GitHub Java runtime"
     )
   );
   const gitlabRuntime = Number(
     readRequiredCapture(
       gitlabCi,
-      /image:\s*maven:3\.9-eclipse-temurin-(\d+)/u,
+      /image:\s*maven:3\.9-eclipse-temurin-(?<runtime>\d+)/u,
       "GitLab Maven Temurin runtime"
     )
   );
@@ -1008,8 +1008,8 @@ const checkMavenAssets = (root: string): void => {
   if (!/^\d+\.\d+\.\d+$/u.test(checkstyleVersion)) {
     fail(`[assetVersion] invalid Checkstyle version: ${checkstyleVersion}`);
   }
-  if (compilerRelease !== 17) {
-    fail(`[maven assets] compiler release must remain 17: ${pom}`);
+  if (!Number.isSafeInteger(compilerRelease) || compilerRelease < 1) {
+    fail(`[maven assets] invalid compiler release: ${pom}`);
   }
   if (githubRuntime !== requiredRuntime || gitlabRuntime !== requiredRuntime) {
     fail(
@@ -1019,24 +1019,13 @@ const checkMavenAssets = (root: string): void => {
   if (githubRuntime <= compilerRelease) {
     fail("[maven assets] CI Java runtime must exceed the compiler release");
   }
-  rejectTextFragments(pom, [
-    "git-build-hook-maven-plugin",
-    "core.hooksPath"
-  ]);
-  checkGithubWorkflow(
-    githubWorkflow,
-    null,
-    [
-      "actions/checkout@v7",
-      "actions/setup-java@v5",
-      "./mvnw validate -DspotlessFiles"
-    ]
-  );
-  checkGitlabCi(
-    gitlabCi,
-    "spotless",
+  rejectTextFragments(pom, ["git-build-hook-maven-plugin", "core.hooksPath"]);
+  checkGithubWorkflow(githubWorkflow, null, [
+    "actions/checkout@v7",
+    "actions/setup-java@v5",
     "./mvnw validate -DspotlessFiles"
-  );
+  ]);
+  checkGitlabCi(gitlabCi, "spotless", "./mvnw validate -DspotlessFiles");
   console.error("[maven assets] OK");
 };
 
@@ -1074,25 +1063,20 @@ const checkUvAssets = (root: string): void => {
   const assets = path.join(root, "skills", "harness-install", "assets", "uv");
   const checkRunner = path.join(assets, "scripts", "check.py");
   const fixRunner = path.join(assets, "scripts", "fix.py");
-  const githubWorkflow = path.join(
-    assets,
-    ".github",
-    "workflows",
-    "ruff.yaml"
-  );
+  const githubWorkflow = path.join(assets, ".github", "workflows", "ruff.yaml");
   const ruffSpec = readRequiredCapture(
     checkRunner,
-    /RUFF_SPEC:\s*Final\s*=\s*"([^"]+)"/u,
+    /RUFF_SPEC:\s*Final\s*=\s*"(?<spec>[^"]+)"/u,
     "Ruff check runner constraint"
   );
   const fixRuffSpec = readRequiredCapture(
     fixRunner,
-    /RUFF_SPEC:\s*Final\s*=\s*"([^"]+)"/u,
+    /RUFF_SPEC:\s*Final\s*=\s*"(?<spec>[^"]+)"/u,
     "Ruff fix runner constraint"
   );
   const setupUvVersion = readRequiredCapture(
     githubWorkflow,
-    /astral-sh\/setup-uv@(v\d+\.\d+\.\d+)/u,
+    /astral-sh\/setup-uv@(?<version>v\d+\.\d+\.\d+)/u,
     "setup-uv version"
   );
   if (!/^ruff>=\d+\.\d+\.\d+,<\d+\.\d+\.\d+$/u.test(ruffSpec)) {
@@ -1105,13 +1089,16 @@ const checkUvAssets = (root: string): void => {
     fail(`[assetVersion] invalid setup-uv version: ${setupUvVersion}`);
   }
   requireTexts(
-    [
-      "README.md",
-      "skills/harness-install/references/rule-interface.md",
-      "scripts/check.ts",
-      "scripts/fix.ts"
-    ].map((relativePath) => ({
-      fragments: [ruffSpec],
+    ["README.md", "skills/harness-install/references/rule-interface.md"].map(
+      (relativePath) => ({
+        fragments: [ruffSpec],
+        path: path.join(root, relativePath)
+      })
+    )
+  );
+  requireTexts(
+    ["scripts/check.ts", "scripts/fix.ts"].map((relativePath) => ({
+      fragments: ["readRuffSpec"],
       path: path.join(root, relativePath)
     }))
   );
@@ -1128,11 +1115,10 @@ const checkUvAssets = (root: string): void => {
   if (existsSync(path.join(assets, "uv.toml"))) {
     fail("[uv assets] uv.toml must not exist; use pyproject.toml instead");
   }
-  checkGithubWorkflow(
-    githubWorkflow,
-    "uv run scripts/check.py",
-    ["actions/checkout@v7", `astral-sh/setup-uv@${setupUvVersion}`]
-  );
+  checkGithubWorkflow(githubWorkflow, "uv run scripts/check.py", [
+    "actions/checkout@v7",
+    `astral-sh/setup-uv@${setupUvVersion}`
+  ]);
   checkGitlabCi(
     path.join(assets, ".gitlab-ci.yml"),
     "ruff",

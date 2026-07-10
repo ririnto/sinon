@@ -22,6 +22,27 @@ const root =
   process.env["CLAUDE_PLUGIN_ROOT"] ??
   path.resolve(import.meta.dirname, "..", "..", "..");
 
+/** Read the canonical Ruff constraint from the packaged UV runner. */
+const readRuffSpec = (): string => {
+  const runner = path.resolve(
+    import.meta.dirname,
+    "..",
+    "skills",
+    "harness-install",
+    "assets",
+    "uv",
+    "scripts",
+    "check.py"
+  );
+  const match = readFileSync(runner, "utf-8").match(
+    /RUFF_SPEC:\s*Final\s*=\s*"(?<spec>[^"]+)"/u
+  );
+  if (match?.[1] === undefined) {
+    throw new Error(`missing Ruff constraint: ${runner}`);
+  }
+  return match[1];
+};
+
 /**
  * Run a command and capture output.
  *
@@ -203,9 +224,10 @@ async function fixPythonFiles(): Promise<FixResult> {
   }
   const files = await trackedFiles("*.py");
   const before = snapshotFiles(files);
+  const ruffSpec = readRuffSpec();
   const lint = await runCommand(
     "uv",
-    ["run", "--with", "ruff>=0.15.21,<0.16.0", "ruff", "check", "--fix", "."],
+    ["run", "--with", ruffSpec, "ruff", "check", "--fix", "."],
     { cwd: root }
   );
   if (lint.code !== 0) {
@@ -215,7 +237,7 @@ async function fixPythonFiles(): Promise<FixResult> {
   }
   const format = await runCommand(
     "uv",
-    ["run", "--with", "ruff>=0.15.21,<0.16.0", "ruff", "format", "."],
+    ["run", "--with", ruffSpec, "ruff", "format", "."],
     { cwd: root }
   );
   if (format.code !== 0) {
