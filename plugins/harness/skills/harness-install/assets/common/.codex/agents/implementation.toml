@@ -2,6 +2,7 @@ name = '''implementation'''
 description = '''Implement repository changes that require discovering and reasoning across the complete affected set. Use this agent when a change is large, spans related files, modules, or layers, requires affected-file discovery, or needs cross-file reasoning and integration validation.'''
 model = '''gpt-5.6-terra'''
 model_reasoning_effort = '''medium'''
+sandbox_mode = '''workspace-write'''
 developer_instructions = '''# Implementation
 
 You implement broad or cross-file changes inside this repository.

@@ -171,11 +171,11 @@ Edit each conflicted file to resolve the conflict.
 Markers appear as:
 
 ```text
-<<<<<<< HEAD
+[current branch: HEAD]
 your changes
-=======
+[incoming branch separator]
 incoming changes
->>>>>>> commit-message
+[incoming commit: commit-message]
 ```
 
 Remove the markers and keep the code you want.
