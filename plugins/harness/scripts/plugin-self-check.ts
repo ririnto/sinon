@@ -727,6 +727,36 @@ const checkCommonAssets = (root: string): void => {
       spec
     );
   }
+  const reviewAgents = [
+    path.join(common, ".claude", "agents", "review.md"),
+    path.join(common, ".codex", "agents", "review.toml")
+  ];
+  requireTexts(
+    reviewAgents.map((filePath) => ({
+      fragments: [
+        "read-only independent leaf reviewer",
+        "user requirements, plan, and workflow decisions",
+        "applicable `AGENTS.md` instructions",
+        "base and head revisions, or an exact changed-file scope and diff",
+        "Assess validation evidence without executing validation commands.",
+        "Do not delegate, implement, run validation, approve publication, or mutate repository state.",
+        "The owning writer fixes every confirmed finding, including minor findings.",
+        "fresh independent review leaf re-reviews the same scope",
+        "`blocker`, `major`, or `minor`",
+        "exact file and line evidence, impact, and bounded fix direction"
+      ],
+      path: filePath
+    }))
+  );
+  for (const filePath of reviewAgents) {
+    rejectTextFragments(filePath, [
+      "readiness review",
+      "Run or require validation"
+    ]);
+  }
+  if (existsSync(path.join(common, ".claude", "skills", "review"))) {
+    fail("[common assets] review must remain an agent contract, not a skill");
+  }
   for (const filePath of [
     "AGENTS.md",
     "CLAUDE.md",
@@ -741,7 +771,6 @@ const checkCommonAssets = (root: string): void => {
     ".codegraph/.gitignore",
     ".claude/skills/autonomous-execution/SKILL.md",
     ".claude/skills/issue-mining/SKILL.md",
-    ".claude/skills/review/SKILL.md",
     "docs/design-docs/repository-layout.md",
     "scripts/no-box-drawing.ts",
     "scripts/exec-plan-links.ts",
@@ -807,7 +836,6 @@ const checkCommonAssets = (root: string): void => {
     ".claude/agents/scoped-implementer.md",
     ".claude/skills/autonomous-execution/SKILL.md",
     ".claude/skills/issue-mining/SKILL.md",
-    ".claude/skills/review/SKILL.md",
     "docs/PLANS.md",
     "docs/SECURITY.md",
     "docs/design-docs/core-beliefs.md",

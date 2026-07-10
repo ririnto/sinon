@@ -141,9 +141,9 @@ git worktree add <worktree-path> -b <type>/<short-description> <base-ref>
 4. Isolate: assign disjoint writer worktrees and serialize overlap.
 5. Dispatch: provide scope, base commit, criteria, validation, and output fields.
 6. Fan in: wait for every requested result and resolve contradictions.
-7. Review: assign an independent `review` leaf over integrated changes, collect its findings, and fan them in.
+7. Review: assign an independent `review` leaf with requirements, plan, applicable `AGENTS.md`, diff, and validation evidence; use `fork_turns: "none"` when available, then collect findings and fan them in.
 8. Fix: return findings to the owning writer.
-9. Re-review: assign an independent `review` leaf to verify the fix over the same scope, collect its findings, and fan them in.
+9. Re-review: assign a fresh independent `review` leaf over the same scope after the owner fix, collect its findings, and fan them in.
 10. Validate: assign bounded leaf workers to run focused and integrated repository checks, collect their evidence, and require full fan-in before the root session decides release.
 11. Complete: update the local review record or execution plan from the root session.
 
