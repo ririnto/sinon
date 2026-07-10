@@ -297,3 +297,30 @@ test("documentation treats Claude leaf behavior as policy, not a platform limit"
   );
   expect(executionReference).toContain("intentionally omits delegation tools");
 });
+
+test("new Codex spawn examples isolate parent turns", async () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const files = [
+    "AGENTS.md",
+    "plugins/harness/skills/harness-install/assets/common/WORKFLOW.md",
+    "plugins/agent-capability-kit/skills/agent-authoring/references/agent-execution.md"
+  ];
+  const texts = await Promise.all(
+    files.map((filePath) => Bun.file(path.join(root, filePath)).text())
+  );
+  for (const text of texts) {
+    expect(text).toContain('fork_turns: "none"');
+  }
+  const reference = await Bun.file(
+    path.join(
+      root,
+      "plugins/agent-capability-kit/skills/agent-authoring/references/agent-execution.md"
+    )
+  ).text();
+  expect(reference).toMatch(
+    /spawn_agent\(\{[\s\S]*fork_turns: "none"[\s\S]*cwd:[\s\S]*objective:[\s\S]*ownership:[\s\S]*constraints:[\s\S]*user decisions:[\s\S]*validation:[\s\S]*output:/u
+  );
+  expect(reference).not.toMatch(
+    /spawn_agent\(\{[\s\S]*fork_turns: "(?:all|[1-9])/u
+  );
+});
