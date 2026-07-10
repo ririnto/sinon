@@ -12,13 +12,12 @@ indent_size = 4
 max_line_length = 120
 ij_kotlin_allow_trailing_comma = false
 ij_kotlin_code_style_defaults = KOTLIN_STYLE_GUIDE
+ktlint_companion_object_position = top
+ktlint_multiline_doc_style_mode = multiline
+ktlint_standard_no-wildcard-imports = disabled
+ktlint_standard_trailing-comma-on-call-site = disabled
+ktlint_standard_trailing-comma-on-declaration-site = disabled
 
 [{*.bash,*.sh,*.zsh}]
 indent_size = 2
 tab_width = 2
-
-ktlint_multiline_doc_style_mode = multiline
-ktlint_companion_object_position = top
-ktlint_standard_no-wildcard-imports = disabled
-ktlint_standard_trailing-comma-on-call-site = disabled
-ktlint_standard_trailing-comma-on-declaration-site = disabled

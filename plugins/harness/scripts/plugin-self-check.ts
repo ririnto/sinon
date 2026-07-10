@@ -2,7 +2,13 @@
 // -*- coding: utf-8 -*-
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import {
+  accessSync,
+  constants,
+  existsSync,
+  readFileSync,
+  statSync
+} from "node:fs";
 import path from "node:path";
 
 import {
@@ -17,6 +23,17 @@ type StackMode = "bun" | "gradle" | "maven" | "shell" | "uv";
 type TextCheck = Readonly<{
   fragments: readonly string[];
   path: string;
+}>;
+
+type TargetAgentSpec = Readonly<{
+  claudeDisallowedTools?: readonly string[];
+  claudeEffort?: string;
+  claudeModel?: string;
+  claudeTools?: readonly string[];
+  codexEffort?: string;
+  codexModel?: string;
+  fragments: readonly string[];
+  name: string;
 }>;
 
 type ClaudeHook = Readonly<{
@@ -104,28 +121,70 @@ const isAsyncCommandHook = (
 
 const stackModes = ["gradle", "maven", "bun", "uv", "shell"] as const;
 
+const targetAgentSpecs: readonly TargetAgentSpec[] = [
+  {
+    claudeEffort: "medium",
+    claudeModel: "sonnet",
+    codexEffort: "medium",
+    codexModel: "gpt-5.6-terra",
+    fragments: [
+      "complete affected set",
+      "cross-file reasoning and integration validation",
+      "`scoped-implementer`",
+      "explore and plan"
+    ],
+    name: "implementation"
+  },
+  {
+    claudeDisallowedTools: ["Agent"],
+    claudeEffort: "low",
+    claudeModel: "haiku",
+    claudeTools: ["Read", "Edit", "Write", "Bash"],
+    codexEffort: "low",
+    codexModel: "gpt-5.6-luna",
+    fragments: [
+      "exhaustive list of every file",
+      "desired behavior",
+      "targeted validation commands",
+      "Do not broaden",
+      "Do not decide architecture",
+      "Do not refactor adjacent code",
+      "Do not delegate",
+      "Do not integrate",
+      "Do not commit, push, publish",
+      "ownership lists are disjoint",
+      "Sonnet/Terra `implementation` agent or the root orchestrator"
+    ],
+    name: "scoped-implementer"
+  },
+  {
+    fragments: [],
+    name: "review"
+  }
+];
+
 const hostTemplateFiles = [
-  "docs/templates/github/README.md",
-  "docs/templates/github/tasks/bug-report.md",
-  "docs/templates/github/tasks/documentation.md",
-  "docs/templates/github/tasks/feature-request.md",
-  "docs/templates/github/tasks/improvement.md",
-  "docs/templates/github/tasks/refactor.md",
-  "docs/templates/github/tasks/task.md",
-  "docs/templates/github/change-description.md",
-  "docs/templates/gitlab/tasks/bug-report.md",
-  "docs/templates/gitlab/tasks/documentation.md",
-  "docs/templates/gitlab/tasks/enhancement.md",
-  "docs/templates/gitlab/tasks/feature-request.md",
-  "docs/templates/gitlab/tasks/refactor.md",
-  "docs/templates/gitlab/tasks/task.md",
-  "docs/templates/gitlab/change-description.md"
+  ".github/ISSUE_TEMPLATE/config.yml",
+  ".github/ISSUE_TEMPLATE/bug_report.yml",
+  ".github/ISSUE_TEMPLATE/docs.yml",
+  ".github/ISSUE_TEMPLATE/feature_request.yml",
+  ".github/ISSUE_TEMPLATE/improvement.yml",
+  ".github/ISSUE_TEMPLATE/refactor.yml",
+  ".github/ISSUE_TEMPLATE/task.yml",
+  ".github/pull_request_template.md",
+  ".gitlab/issue_templates/Bug.md",
+  ".gitlab/issue_templates/Docs.md",
+  ".gitlab/issue_templates/Enhancement.md",
+  ".gitlab/issue_templates/Feature.md",
+  ".gitlab/issue_templates/Refactor.md",
+  ".gitlab/issue_templates/Task.md",
+  ".gitlab/merge_request_templates/Default.md"
 ] as const;
 
 const hostTemplateTexts: readonly TextCheck[] = [
   {
     fragments: ["Acceptance criteria", "Validation plan", "Risks"],
-    path: "docs/templates/github/tasks/bug-report.md"
+    path: ".github/ISSUE_TEMPLATE/bug_report.yml"
   },
   {
     fragments: [
@@ -133,15 +192,15 @@ const hostTemplateTexts: readonly TextCheck[] = [
       "Acceptance criteria",
       "Validation plan"
     ],
-    path: "docs/templates/github/tasks/documentation.md"
+    path: ".github/ISSUE_TEMPLATE/docs.yml"
   },
   {
     fragments: ["Non-goals", "Acceptance criteria", "Validation plan"],
-    path: "docs/templates/github/tasks/feature-request.md"
+    path: ".github/ISSUE_TEMPLATE/feature_request.yml"
   },
   {
     fragments: ["Measurement", "Compatibility impact", "Validation plan"],
-    path: "docs/templates/github/tasks/improvement.md"
+    path: ".github/ISSUE_TEMPLATE/improvement.yml"
   },
   {
     fragments: [
@@ -149,31 +208,31 @@ const hostTemplateTexts: readonly TextCheck[] = [
       "Interfaces and handoffs",
       "Rollback plan"
     ],
-    path: "docs/templates/github/tasks/refactor.md"
+    path: ".github/ISSUE_TEMPLATE/refactor.yml"
   },
   {
     fragments: ["Completion criteria", "Validation method", "Risks"],
-    path: "docs/templates/github/tasks/task.md"
+    path: ".github/ISSUE_TEMPLATE/task.yml"
   },
   {
     fragments: ["## Validation", "## Unverified Items", "## Rollback"],
-    path: "docs/templates/github/change-description.md"
+    path: ".github/pull_request_template.md"
   },
   {
     fragments: ["## Validation", "## Unverified Items", "## Rollback"],
-    path: "docs/templates/gitlab/change-description.md"
+    path: ".gitlab/merge_request_templates/Default.md"
   },
   {
     fragments: ["## Documentation Target", "## Validation Plan", "## Risks"],
-    path: "docs/templates/gitlab/tasks/documentation.md"
+    path: ".gitlab/issue_templates/Docs.md"
   },
   {
     fragments: ["## Measurement", "## Compatibility Impact", "## Risks"],
-    path: "docs/templates/gitlab/tasks/enhancement.md"
+    path: ".gitlab/issue_templates/Enhancement.md"
   },
   {
     fragments: ["## Non-goals", "## Validation Plan", "## Risks"],
-    path: "docs/templates/gitlab/tasks/feature-request.md"
+    path: ".gitlab/issue_templates/Feature.md"
   },
   {
     fragments: [
@@ -181,11 +240,11 @@ const hostTemplateTexts: readonly TextCheck[] = [
       "## Interfaces and Handoffs",
       "## Risks"
     ],
-    path: "docs/templates/gitlab/tasks/refactor.md"
+    path: ".gitlab/issue_templates/Refactor.md"
   },
   {
     fragments: ["## Completion Criteria", "## Validation Method", "## Risks"],
-    path: "docs/templates/gitlab/tasks/task.md"
+    path: ".gitlab/issue_templates/Task.md"
   },
   {
     fragments: [
@@ -242,14 +301,137 @@ const requireFile = (filePath: string): void => {
 };
 
 /**
- * Require one Codex agent TOML file to contain the expected fields.
+ * Require one file to contain a text fragment.
  *
- * @param filePath TOML file path.
- * @param expectedName Expected agent name.
+ * @param filePath File path to inspect.
+ * @param fragment Text fragment that must appear in the file.
  */
+const requireText = (filePath: string, fragment: string): void => {
+  requireFile(filePath);
+  const content = readFileSync(filePath, "utf-8");
+  if (!content.includes(fragment)) {
+    fail(`[requireText] missing text in ${filePath}: ${fragment}`);
+  }
+};
+
+/** Require an executable Git hook with the repository POSIX header. */
+const requirePosixHook = (filePath: string): void => {
+  requireFile(filePath);
+  try {
+    accessSync(filePath, constants.X_OK);
+  } catch {
+    fail(`[gitHook] hook must be executable: ${filePath}`);
+  }
+  if (
+    !readFileSync(filePath, "utf-8").startsWith(
+      "#!/usr/bin/env sh\n# -*- coding: utf-8 -*-\nset -e\n"
+    )
+  ) {
+    fail(`[gitHook] hook must use the POSIX header: ${filePath}`);
+  }
+};
+
+/**
+ * Parse one Claude agent YAML frontmatter object.
+ *
+ * @param filePath Agent Markdown path.
+ */
+const readClaudeAgentFrontmatter = (
+  filePath: string
+): Record<string, unknown> => {
+  const lines = readFileSync(filePath, "utf-8").split(/\r?\n/u);
+  if (lines[0] !== "---") {
+    return fail(`[claudeAgent] missing YAML frontmatter: ${filePath}`);
+  }
+  const end = lines.indexOf("---", 1);
+  if (end === -1) {
+    return fail(`[claudeAgent] unterminated YAML frontmatter: ${filePath}`);
+  }
+  let value: unknown;
+  try {
+    value = Bun.YAML.parse(lines.slice(1, end).join("\n"));
+  } catch (error) {
+    return fail(
+      `[claudeAgent] invalid YAML frontmatter: ${filePath}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
+  if (isRecord(value) && !Array.isArray(value)) {
+    return value;
+  }
+  return fail(`[claudeAgent] frontmatter must be an object: ${filePath}`);
+};
+
+/** Require one exact string-list field when the specification declares it. */
+const requireAgentStringList = (
+  filePath: string,
+  field: string,
+  actual: unknown,
+  expected: readonly string[] | undefined
+): void => {
+  if (expected === undefined) {
+    return;
+  }
+  if (
+    !Array.isArray(actual) ||
+    JSON.stringify(actual) !== JSON.stringify(expected)
+  ) {
+    fail(
+      `[claudeAgent] ${field} must equal ${expected.join(", ")}: ${filePath}`
+    );
+  }
+};
+
+/** Require one Claude agent Markdown file to match its target specification. */
+const requireClaudeAgentMarkdown = (
+  filePath: string,
+  spec: TargetAgentSpec
+): void => {
+  requireFile(filePath);
+  const frontmatter = readClaudeAgentFrontmatter(filePath);
+  if (frontmatter["name"] !== spec.name) {
+    fail(`[claudeAgent] name must match ${spec.name}: ${filePath}`);
+  }
+  if (
+    typeof frontmatter["description"] !== "string" ||
+    frontmatter["description"] === ""
+  ) {
+    fail(`[claudeAgent] missing description: ${filePath}`);
+  }
+  if (
+    spec.claudeModel !== undefined &&
+    frontmatter["model"] !== spec.claudeModel
+  ) {
+    fail(`[claudeAgent] model must match ${spec.claudeModel}: ${filePath}`);
+  }
+  if (
+    spec.claudeEffort !== undefined &&
+    frontmatter["effort"] !== spec.claudeEffort
+  ) {
+    fail(`[claudeAgent] effort must match ${spec.claudeEffort}: ${filePath}`);
+  }
+  requireAgentStringList(
+    filePath,
+    "tools",
+    frontmatter["tools"],
+    spec.claudeTools
+  );
+  requireAgentStringList(
+    filePath,
+    "disallowedTools",
+    frontmatter["disallowedTools"],
+    spec.claudeDisallowedTools
+  );
+  for (const fragment of spec.fragments) {
+    requireText(filePath, fragment);
+  }
+};
+
+/** Require one Codex agent TOML file to match its target specification. */
 const requireCodexAgentToml = (
   filePath: string,
-  expectedName: string
+  spec: TargetAgentSpec
 ): void => {
   requireFile(filePath);
   const value: unknown = Bun.TOML.parse(readFileSync(filePath, "utf-8"));
@@ -257,8 +439,8 @@ const requireCodexAgentToml = (
     fail(`[codexAgentToml] expected TOML object: ${filePath}`);
   }
   const toml = value as Record<string, unknown>;
-  if (toml["name"] !== expectedName) {
-    fail(`[codexAgentToml] name must match ${expectedName}: ${filePath}`);
+  if (toml["name"] !== spec.name) {
+    fail(`[codexAgentToml] name must match ${spec.name}: ${filePath}`);
   }
   if (typeof toml["description"] !== "string" || toml["description"] === "") {
     fail(`[codexAgentToml] missing description: ${filePath}`);
@@ -268,6 +450,20 @@ const requireCodexAgentToml = (
     toml["developer_instructions"] === ""
   ) {
     fail(`[codexAgentToml] missing developer_instructions: ${filePath}`);
+  }
+  if (spec.codexModel !== undefined && toml["model"] !== spec.codexModel) {
+    fail(`[codexAgentToml] model must match ${spec.codexModel}: ${filePath}`);
+  }
+  if (
+    spec.codexEffort !== undefined &&
+    toml["model_reasoning_effort"] !== spec.codexEffort
+  ) {
+    fail(
+      `[codexAgentToml] model_reasoning_effort must match ${spec.codexEffort}: ${filePath}`
+    );
+  }
+  for (const fragment of spec.fragments) {
+    requireText(filePath, fragment);
   }
 };
 
@@ -295,20 +491,6 @@ const requireDir = (root: string, directoryPath: string): void => {
   );
   if (result.status !== 0 || result.stdout.trim() === "") {
     fail(`[requireDir] missing tracked entries: ${directoryPath}`);
-  }
-};
-
-/**
- * Require one file to contain a text fragment.
- *
- * @param filePath File path to inspect.
- * @param fragment Text fragment that must appear in the file.
- */
-const requireText = (filePath: string, fragment: string): void => {
-  requireFile(filePath);
-  const content = readFileSync(filePath, "utf-8");
-  if (!content.includes(fragment)) {
-    fail(`[requireText] missing text in ${filePath}: ${fragment}`);
   }
 };
 
@@ -512,14 +694,16 @@ const checkCommonAssets = (root: string): void => {
     "common"
   );
   requireDir(root, path.join(common, ".codex", "agents"));
-  requireCodexAgentToml(
-    path.join(common, ".codex", "agents", "implementation.toml"),
-    "implementation"
-  );
-  requireCodexAgentToml(
-    path.join(common, ".codex", "agents", "review.toml"),
-    "review"
-  );
+  for (const spec of targetAgentSpecs) {
+    requireClaudeAgentMarkdown(
+      path.join(common, ".claude", "agents", `${spec.name}.md`),
+      spec
+    );
+    requireCodexAgentToml(
+      path.join(common, ".codex", "agents", `${spec.name}.toml`),
+      spec
+    );
+  }
   for (const filePath of [
     "AGENTS.md",
     "CLAUDE.md",
@@ -532,10 +716,8 @@ const checkCommonAssets = (root: string): void => {
     ".editorconfig",
     ".markdownlint-cli2.jsonc",
     ".codegraph/.gitignore",
-    ".claude/agents/implementation.md",
-    ".claude/agents/review.md",
     ".claude/skills/autonomous-execution/SKILL.md",
-    ".claude/skills/problem-analysis/SKILL.md",
+    ".claude/skills/issue-mining/SKILL.md",
     ".claude/skills/review/SKILL.md",
     "docs/design-docs/repository-layout.md",
     "scripts/no-box-drawing.ts",
@@ -596,11 +778,12 @@ const checkCommonAssets = (root: string): void => {
     "WORKFLOW.github.md",
     "WORKFLOW.gitlab.md",
     "WORKFLOW.none.md",
-    "docs/templates/gitlab/tasks/enhancement.md",
+    ".gitlab/issue_templates/Enhancement.md",
     ".claude/agents/implementation.md",
     ".claude/agents/review.md",
+    ".claude/agents/scoped-implementer.md",
     ".claude/skills/autonomous-execution/SKILL.md",
-    ".claude/skills/problem-analysis/SKILL.md",
+    ".claude/skills/issue-mining/SKILL.md",
     ".claude/skills/review/SKILL.md",
     "docs/PLANS.md",
     "docs/SECURITY.md",
@@ -628,9 +811,16 @@ const checkCommonAssets = (root: string): void => {
     ].map((filePath) => ({
       fragments: [
         "`implementation`",
+        "`scoped-implementer`",
         "`review`",
         "`issue-mining`",
-        "`autonomous-execution`"
+        "`autonomous-execution`",
+        "exhaustive single-file or related-file ownership list",
+        "large or cross-file changes",
+        "Never send an ambiguous or incomplete file set directly",
+        "Parallel `scoped-implementer` assignments MUST have disjoint ownership lists",
+        "Only the user-facing top-level or root agent acts as orchestrator",
+        "do not create or delegate to a `project-orchestrator` agent"
       ],
       path: path.join(common, filePath)
     }))
@@ -651,6 +841,8 @@ const checkStackCommonAssets = (root: string): void => {
     requireFile(path.join(assets, ".worktreeinclude"));
     checkGitignoreCommon(path.join(assets, ".gitignore"));
     checkWorktreeinclude(path.join(assets, ".worktreeinclude"));
+    requirePosixHook(path.join(assets, ".githooks", "pre-commit"));
+    requirePosixHook(path.join(assets, ".githooks", "pre-push"));
     checkSettings(
       path.join(assets, ".claude", "settings.json"),
       expectedSetupCommands[mode]
@@ -693,11 +885,11 @@ const checkGradleAssets = (root: string): void => {
         "markdownlint-cli2"
       ],
       path: path.join(assets, "build.gradle.kts")
-    },
-    {
-      fragments: ['tasks("ktlintCheck")', "createHooks()"],
-      path: path.join(assets, "settings.gradle.kts")
     }
+  ]);
+  rejectTextFragments(path.join(assets, "settings.gradle.kts"), [
+    "createHooks()",
+    "pre-commit-git-hooks"
   ]);
   checkGithubWorkflow(
     path.join(assets, ".github", "workflows", "ktlint.yaml"),
@@ -735,6 +927,10 @@ const checkMavenAssets = (root: string): void => {
       path: path.join(assets, "pom.xml")
     }
   ]);
+  rejectTextFragments(path.join(assets, "pom.xml"), [
+    "git-build-hook-maven-plugin",
+    "core.hooksPath"
+  ]);
   checkGithubWorkflow(
     path.join(assets, ".github", "workflows", "spotless.yaml"),
     null,
@@ -760,6 +956,10 @@ const checkMavenAssets = (root: string): void => {
 const checkBunAssets = (root: string): void => {
   const assets = path.join(root, "skills", "harness-install", "assets", "bun");
   requireFile(path.join(assets, "package.json"));
+  rejectTextFragments(path.join(assets, "package.json"), [
+    '"prepare"',
+    '"husky"'
+  ]);
   checkGithubWorkflow(
     path.join(assets, ".github", "workflows", "ultracite.yaml"),
     "bun run check",
@@ -783,16 +983,13 @@ const checkUvAssets = (root: string): void => {
   requireFile(path.join(assets, "ruff.toml"));
   requireFile(path.join(assets, "pyproject.toml"));
   requireFile(path.join(assets, "scripts", "check.py"));
-  requireTexts([
-    {
-      fragments: ['dev = ["pre-commit', "package = false"],
-      path: path.join(assets, "pyproject.toml")
-    },
-    {
-      fragments: ['minimum_pre_commit_version: "4.6.0"'],
-      path: path.join(assets, ".pre-commit-config.yaml")
-    }
-  ]);
+  requireText(path.join(assets, "pyproject.toml"), "package = false");
+  rejectTextFragments(path.join(assets, "pyproject.toml"), ["pre-commit"]);
+  if (existsSync(path.join(assets, ".pre-commit-config.yaml"))) {
+    fail(
+      "[uv assets] .pre-commit-config.yaml must not activate generated hooks"
+    );
+  }
   if (existsSync(path.join(assets, "uv.toml"))) {
     fail("[uv assets] uv.toml must not exist; use pyproject.toml instead");
   }
@@ -892,6 +1089,7 @@ const checkInstallerSurface = (root: string): void => {
     "cli.ts",
     "commands.ts",
     "contracts.ts",
+    "decisions.ts",
     "files.ts",
     "installer.ts",
     "managed.ts",
@@ -935,12 +1133,19 @@ const checkInstallerContract = (root: string): void => {
   );
   requireTexts([
     {
-      fragments: ['"--activate-hooks"', '"--preview"', '"--show"', '"--only"'],
+      fragments: [
+        '"--activate-hooks"',
+        '"--adopt"',
+        '"--preview"',
+        '"--show"',
+        '"--only"'
+      ],
       path: path.join(installerDir, "cli.ts")
     },
     {
       fragments: [
         'installRecordPath = ".harness/install-record.json"',
+        "expectedPlanDigest",
         "schemaVersion: 2"
       ],
       path: path.join(installerDir, "record.ts")

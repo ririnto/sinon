@@ -23,16 +23,20 @@ import {
   renderManagedBlock
 } from "./managed.js";
 import {
+  checkSafeFileDestination,
+  checkSafeParentDir,
   ensureSafeFileDestination,
   requiredRealTarget,
   requiredSrc
 } from "./paths.js";
+import { buildPlan } from "./planning.js";
 import { ciHosts, fail, modes } from "./types.js";
 import type {
   CiHost,
   InstallAssetRecord,
   InstallCandidate,
   InstallerConfig,
+  InstallOperationResult,
   Mode
 } from "./types.js";
 
@@ -45,6 +49,8 @@ export type InstallRecord = Readonly<{
   canonicalCheckCommand: string;
   ciHost: CiHost;
   complete: boolean;
+  expectedAssets: readonly string[];
+  expectedPlanDigest: string;
   fixCommand: string;
   mode: Mode;
   prePushCommand: string;
@@ -115,6 +121,9 @@ const readCandidateState = async (
     candidate.kind === "root-contract"
       ? requiredRealTarget(candidate)
       : candidate.dst;
+  await (candidate.kind === "symlink"
+    ? checkSafeParentDir(target)
+    : checkSafeFileDestination(target));
   if (await isSymlink(target)) {
     const linkTarget = await readlink(target);
     return {
@@ -152,13 +161,6 @@ export const captureCandidateStates = async (
     )
   );
 
-/** Check whether two captured candidate states differ. */
-const stateChanged = (before: CandidateState, after: CandidateState): boolean =>
-  before.exists !== after.exists ||
-  before.linkTarget !== after.linkTarget ||
-  before.managedDigest !== after.managedDigest ||
-  before.targetDigest !== after.targetDigest;
-
 /** Check whether one candidate matches its current plugin source. */
 const stateMatchesSource = (
   candidate: InstallCandidate,
@@ -171,42 +173,11 @@ const stateMatchesSource = (
   return state.targetDigest === sourceDigest;
 };
 
-/** Determine durable ownership from one actual install outcome. */
-const ownershipForResult = (
-  candidate: InstallCandidate,
-  outcome: InstallAssetRecord["outcome"],
-  before: CandidateState,
-  after: CandidateState,
-  previous: InstallAssetRecord | undefined
-): InstallAssetRecord["ownership"] => {
-  if (candidate.kind === "root-contract") {
-    return "shared";
-  }
-  if (candidate.kind === "seed") {
-    return "target";
-  }
-  if (outcome === "conflict") {
-    return "target";
-  }
-  if (outcome === "created" || outcome === "updated") {
-    return "harness";
-  }
-  if (
-    previous?.ownership === "harness" &&
-    previous.targetDigest !== undefined &&
-    previous.targetDigest === before.targetDigest &&
-    before.targetDigest === after.targetDigest
-  ) {
-    return "harness";
-  }
-  return "target";
-};
-
 /** Build records from actual before-and-after installer states. */
 export const buildInstallResults = (
   candidates: readonly InstallCandidate[],
   beforeStates: ReadonlyMap<string, CandidateState>,
-  previousAssets: ReadonlyMap<string, InstallAssetRecord>
+  operations: ReadonlyMap<string, InstallOperationResult>
 ): Promise<readonly InstallAssetRecord[]> =>
   Promise.all(
     candidates.map(async (candidate): Promise<InstallAssetRecord> => {
@@ -214,17 +185,33 @@ export const buildInstallResults = (
       const after = await readCandidateState(candidate);
       const sourceDigest = await sourceDigestForCandidate(candidate);
       const matchesSource = stateMatchesSource(candidate, after, sourceDigest);
-      let outcome: InstallAssetRecord["outcome"];
-      if (!before.exists && after.exists && matchesSource) {
-        outcome = "created";
-      } else if (stateChanged(before, after) && matchesSource) {
-        outcome = "updated";
-      } else if (matchesSource) {
-        outcome = "kept";
-      } else {
-        outcome = "conflict";
+      const operation = operations.get(candidate.dst);
+      if (operation === undefined) {
+        return fail(`missing actual install operation for ${candidate.dst}`);
       }
-      const previous = previousAssets.get(candidate.dst);
+      if (operation.outcome === "created" && before.exists) {
+        return fail(
+          `created operation had a pre-existing target: ${candidate.dst}`
+        );
+      }
+      if (operation.outcome !== "created" && !before.exists) {
+        return fail(
+          `${operation.outcome} operation had no pre-existing target: ${candidate.dst}`
+        );
+      }
+      if (!after.exists) {
+        return fail(`install operation left no target: ${candidate.dst}`);
+      }
+      if (
+        operation.outcome !== "conflict" &&
+        (operation.ownership === "harness" ||
+          operation.ownership === "shared") &&
+        !matchesSource
+      ) {
+        return fail(
+          `installed ${operation.ownership} target does not match source: ${candidate.dst}`
+        );
+      }
       return {
         kind: candidate.kind,
         ...(after.linkTarget === undefined
@@ -233,14 +220,8 @@ export const buildInstallResults = (
         ...(after.managedDigest === undefined
           ? {}
           : { managedDigest: after.managedDigest }),
-        outcome,
-        ownership: ownershipForResult(
-          candidate,
-          outcome,
-          before,
-          after,
-          previous
-        ),
+        outcome: operation.outcome,
+        ownership: operation.ownership,
         path: candidate.dst,
         sourceDigest,
         ...(after.targetDigest === undefined
@@ -304,6 +285,7 @@ const parseLegacyRecord = (value: Record<string, unknown>): InstallRecord => {
   }
   const ciHost = legacy.ciHost as CiHost;
   const mode = legacy.mode as Mode;
+  const expectedAssets = [...legacy.installedAssets].toSorted();
   return {
     assets: legacy.installedAssets.map((asset) => ({
       kind: "file",
@@ -314,6 +296,8 @@ const parseLegacyRecord = (value: Record<string, unknown>): InstallRecord => {
     canonicalCheckCommand: legacy.canonicalCheckCommand,
     ciHost,
     complete: true,
+    expectedAssets,
+    expectedPlanDigest: digestContent(JSON.stringify(expectedAssets)),
     fixCommand: legacy.fixCommand,
     mode,
     prePushCommand: legacy.prePushCommand,
@@ -334,6 +318,8 @@ const parseInstallRecord = (value: unknown): InstallRecord => {
     canonicalCheckCommand,
     ciHost,
     complete,
+    expectedAssets,
+    expectedPlanDigest,
     fixCommand,
     mode,
     prePushCommand,
@@ -345,6 +331,9 @@ const parseInstallRecord = (value: unknown): InstallRecord => {
     !ciHosts.includes(ciHost as CiHost) ||
     typeof complete !== "boolean" ||
     !Array.isArray(assets) ||
+    !Array.isArray(expectedAssets) ||
+    !expectedAssets.every((asset) => typeof asset === "string") ||
+    typeof expectedPlanDigest !== "string" ||
     typeof canonicalCheckCommand !== "string" ||
     typeof fixCommand !== "string" ||
     typeof prePushCommand !== "string"
@@ -358,11 +347,20 @@ const parseInstallRecord = (value: unknown): InstallRecord => {
   ) {
     return fail(`${installRecordPath}: duplicate asset path`);
   }
+  const sortedExpectedAssets = [...expectedAssets].toSorted();
+  if (
+    new Set(sortedExpectedAssets).size !== sortedExpectedAssets.length ||
+    expectedPlanDigest !== digestContent(JSON.stringify(sortedExpectedAssets))
+  ) {
+    return fail(`${installRecordPath}: invalid expected plan inventory`);
+  }
   return {
     assets: parsedAssets,
     canonicalCheckCommand,
     ciHost: ciHost as CiHost,
     complete,
+    expectedAssets: sortedExpectedAssets,
+    expectedPlanDigest,
     fixCommand,
     mode: mode as Mode,
     prePushCommand,
@@ -399,7 +397,7 @@ export const requireCompatibleRecord = (
 ): void => {
   if (record.mode !== config.mode || record.ciHost !== config.ciHost) {
     fail(
-      `${installRecordPath}: recorded mode/CI host is ${record.mode}/${record.ciHost}; --only requires the same selection`
+      `${installRecordPath}: recorded mode/CI host is ${record.mode}/${record.ciHost}; targeted actions require the same selection`
     );
   }
 };
@@ -437,7 +435,8 @@ export const canRefreshOwnedAsset = (
 const recordForResults = (
   config: InstallerConfig,
   assets: readonly InstallAssetRecord[],
-  complete: boolean
+  complete: boolean,
+  expectedAssets: readonly string[]
 ): InstallRecord => ({
   assets: [...assets].toSorted((left, right) =>
     left.path.localeCompare(right.path)
@@ -445,6 +444,8 @@ const recordForResults = (
   canonicalCheckCommand: validationCommandForMode(config.mode),
   ciHost: config.ciHost,
   complete,
+  expectedAssets,
+  expectedPlanDigest: digestContent(JSON.stringify(expectedAssets)),
   fixCommand: fixCommandForMode(config.mode),
   mode: config.mode,
   prePushCommand: prePushCommandForMode(config.mode),
@@ -461,6 +462,25 @@ export const writeInstallRecord = async (
   if (existing !== null) {
     requireCompatibleRecord(existing, config);
   }
+  const plan = await buildPlan(config);
+  const expectedAssets = plan.map((candidate) => candidate.dst).toSorted();
+  const resultAssets = results.map((asset) => asset.path).toSorted();
+  if (
+    fullInstall &&
+    JSON.stringify(resultAssets) !== JSON.stringify(expectedAssets)
+  ) {
+    return fail(
+      `${installRecordPath}: full install results do not match the expected plan`
+    );
+  }
+  if (
+    existing !== null &&
+    JSON.stringify(existing.expectedAssets) !== JSON.stringify(expectedAssets)
+  ) {
+    return fail(
+      `${installRecordPath}: selected install plan changed; run a full install before a targeted update`
+    );
+  }
   const merged = new Map(
     (existing?.assets ?? []).map((asset) => [asset.path, asset])
   );
@@ -470,7 +490,8 @@ export const writeInstallRecord = async (
   const record = recordForResults(
     config,
     fullInstall ? results : [...merged.values()],
-    fullInstall || existing?.complete === true
+    fullInstall || existing?.complete === true,
+    expectedAssets
   );
   await ensureSafeFileDestination(installRecordPath);
   const temporary = await temporaryDestination(

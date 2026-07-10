@@ -64,8 +64,10 @@ const manifestFields = new Set([
   "author",
   "channels",
   "commands",
+  "defaultEnabled",
   "dependencies",
   "description",
+  "displayName",
   "experimental",
   "homepage",
   "hooks",
@@ -73,23 +75,16 @@ const manifestFields = new Set([
   "license",
   "lspServers",
   "mcpServers",
-  "monitors",
   "name",
   "outputStyles",
   "repository",
   "settings",
   "skills",
-  "themes",
   "userConfig",
   "version"
 ]);
 
-const pathOnlyComponentFields = new Set([
-  "agents",
-  "outputStyles",
-  "skills",
-  "themes"
-]);
+const pathOnlyComponentFields = new Set(["agents", "outputStyles", "skills"]);
 
 const mixedComponentFields = new Set(["hooks", "lspServers", "mcpServers"]);
 
@@ -102,6 +97,7 @@ const supportedAgentFields = new Set([
   "disallowedTools",
   "effort",
   "isolation",
+  "initialPrompt",
   "maxTurns",
   "memory",
   "model",
@@ -388,7 +384,7 @@ const validateManifestStringPath = (
     return;
   }
   const pluginRealPath = realpathSync(pluginRoot);
-  const declaredPath = path.resolve(pluginRoot, value);
+  const declaredPath = path.resolve(pluginRealPath, value);
   if (!isInsidePath(pluginRealPath, declaredPath)) {
     errors.push(
       packageError(
@@ -423,6 +419,138 @@ const validateManifestStringPath = (
         `declared path cannot be resolved: ${value}: ${
           error instanceof Error ? error.message : String(error)
         }`
+      )
+    );
+  }
+};
+
+/** Validate one plugin subagent status-line command. */
+const validateSubagentStatusLine = (
+  root: string,
+  settingsPath: string,
+  value: JsonValue,
+  errors: string[]
+): void => {
+  if (!isRecord(value)) {
+    errors.push(
+      packageError(
+        root,
+        settingsPath,
+        "settings.subagentStatusLine must be a command object"
+      )
+    );
+    return;
+  }
+  const allowed = new Set([
+    "command",
+    "hideVimModeIndicator",
+    "padding",
+    "refreshInterval",
+    "type"
+  ]);
+  if (value["type"] !== "command") {
+    errors.push(
+      packageError(
+        root,
+        settingsPath,
+        "settings.subagentStatusLine.type must be command"
+      )
+    );
+  }
+  if (typeof value["command"] !== "string" || value["command"] === "") {
+    errors.push(
+      packageError(
+        root,
+        settingsPath,
+        "settings.subagentStatusLine.command must be a non-empty string"
+      )
+    );
+  }
+  if (
+    value["padding"] !== undefined &&
+    (typeof value["padding"] !== "number" ||
+      !Number.isInteger(value["padding"]) ||
+      value["padding"] < 0)
+  ) {
+    errors.push(
+      packageError(
+        root,
+        settingsPath,
+        "settings.subagentStatusLine.padding must be a non-negative integer"
+      )
+    );
+  }
+  if (
+    value["refreshInterval"] !== undefined &&
+    (typeof value["refreshInterval"] !== "number" ||
+      value["refreshInterval"] < 1)
+  ) {
+    errors.push(
+      packageError(
+        root,
+        settingsPath,
+        "settings.subagentStatusLine.refreshInterval must be at least 1"
+      )
+    );
+  }
+  if (
+    value["hideVimModeIndicator"] !== undefined &&
+    typeof value["hideVimModeIndicator"] !== "boolean"
+  ) {
+    errors.push(
+      packageError(
+        root,
+        settingsPath,
+        "settings.subagentStatusLine.hideVimModeIndicator must be a boolean"
+      )
+    );
+  }
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) {
+      errors.push(
+        packageError(
+          root,
+          settingsPath,
+          `unsupported subagentStatusLine key: ${key}`
+        )
+      );
+    }
+  }
+};
+
+/** Validate the two settings keys supported for plugin defaults. */
+const validatePluginSettings = (
+  root: string,
+  settingsPath: string,
+  value: JsonValue,
+  errors: string[]
+): void => {
+  if (!isRecord(value)) {
+    errors.push(packageError(root, settingsPath, "settings must be an object"));
+    return;
+  }
+  for (const [key, setting] of jsonEntries(value)) {
+    if (key === "agent") {
+      if (typeof setting !== "string" || setting === "") {
+        errors.push(
+          packageError(
+            root,
+            settingsPath,
+            "settings.agent must be a non-empty string"
+          )
+        );
+      }
+      continue;
+    }
+    if (key === "subagentStatusLine") {
+      validateSubagentStatusLine(root, settingsPath, setting, errors);
+      continue;
+    }
+    errors.push(
+      packageError(
+        root,
+        settingsPath,
+        `unsupported plugin settings key: ${key}`
       )
     );
   }
@@ -805,7 +933,15 @@ const validateManifestField = (
   value: JsonValue,
   errors: string[]
 ): void => {
-  if (!manifestFields.has(key)) {
+  if (key === "themes" || key === "monitors") {
+    errors.push(
+      packageError(
+        root,
+        manifestPath,
+        `${key} is deprecated at the top level; use experimental.${key}`
+      )
+    );
+  } else if (!manifestFields.has(key)) {
     errors.push(
       packageError(root, manifestPath, `unsupported manifest field: ${key}`)
     );
@@ -835,18 +971,12 @@ const validateManifestField = (
     validateCommands(root, pluginRoot, manifestPath, value, errors);
   } else if (key === "experimental") {
     validateExperimental(root, pluginRoot, manifestPath, value, errors);
-  } else if (key === "monitors") {
-    validateDefaultPathPreservation(
-      root,
-      pluginRoot,
-      manifestPath,
-      key,
-      value,
-      errors
+  } else if (key === "settings") {
+    validatePluginSettings(root, manifestPath, value, errors);
+  } else if (key === "userConfig" && !isRecord(value)) {
+    errors.push(
+      packageError(root, manifestPath, "userConfig must be an object")
     );
-    validateMonitors(root, pluginRoot, manifestPath, value, errors);
-  } else if ((key === "settings" || key === "userConfig") && !isRecord(value)) {
-    errors.push(packageError(root, manifestPath, `${key} must be an object`));
   } else if (
     (key === "channels" || key === "dependencies") &&
     !Array.isArray(value)
@@ -855,29 +985,14 @@ const validateManifestField = (
   }
 };
 
-/** Validate one plugin manifest against the current Claude schema surface. */
-const validateManifest = (
+/** Validate manifest metadata fields that do not own runtime paths. */
+const validateManifestMetadata = (
   root: string,
-  pluginRoot: string,
+  manifestPath: string,
+  manifest: Record<string, JsonValue>,
   errors: string[]
-): Record<string, JsonValue> => {
-  const manifestPath = path.join(pluginRoot, ".claude-plugin", "plugin.json");
-  const manifest = readJsonObject(manifestPath);
+): void => {
   const { author, keywords } = manifest;
-  if (manifest["$schema"] !== pluginSchema) {
-    errors.push(
-      packageError(root, manifestPath, `$schema must be ${pluginSchema}`)
-    );
-  }
-  if (manifest["name"] !== path.basename(pluginRoot)) {
-    errors.push(
-      packageError(
-        root,
-        manifestPath,
-        "name must match plugin directory basename"
-      )
-    );
-  }
   for (const field of ["description", "license"] as const) {
     if (typeof manifest[field] !== "string" || manifest[field] === "") {
       errors.push(
@@ -902,6 +1017,23 @@ const validateManifest = (
     }
   }
   if (
+    manifest["displayName"] !== undefined &&
+    (typeof manifest["displayName"] !== "string" ||
+      manifest["displayName"] === "")
+  ) {
+    errors.push(
+      packageError(root, manifestPath, "displayName must be a non-empty string")
+    );
+  }
+  if (
+    manifest["defaultEnabled"] !== undefined &&
+    typeof manifest["defaultEnabled"] !== "boolean"
+  ) {
+    errors.push(
+      packageError(root, manifestPath, "defaultEnabled must be a boolean")
+    );
+  }
+  if (
     keywords !== undefined &&
     (!Array.isArray(keywords) ||
       !keywords.every((item) => typeof item === "string"))
@@ -910,6 +1042,31 @@ const validateManifest = (
       packageError(root, manifestPath, "keywords must be a string array")
     );
   }
+};
+
+/** Validate one plugin manifest against the current Claude schema surface. */
+const validateManifest = (
+  root: string,
+  pluginRoot: string,
+  errors: string[]
+): Record<string, JsonValue> => {
+  const manifestPath = path.join(pluginRoot, ".claude-plugin", "plugin.json");
+  const manifest = readJsonObject(manifestPath);
+  if (manifest["$schema"] !== pluginSchema) {
+    errors.push(
+      packageError(root, manifestPath, `$schema must be ${pluginSchema}`)
+    );
+  }
+  if (manifest["name"] !== path.basename(pluginRoot)) {
+    errors.push(
+      packageError(
+        root,
+        manifestPath,
+        "name must match plugin directory basename"
+      )
+    );
+  }
+  validateManifestMetadata(root, manifestPath, manifest, errors);
   for (const [key, value] of jsonEntries(manifest)) {
     validateManifestField(root, pluginRoot, manifestPath, key, value, errors);
   }
@@ -1006,7 +1163,7 @@ const validateAgentField = (
       )
     );
   } else if (
-    ["color", "effort", "memory", "model"].includes(field) &&
+    ["color", "effort", "initialPrompt", "memory", "model"].includes(field) &&
     typeof value !== "string"
   ) {
     errors.push(packageError(root, agentPath, `${field} must be a string`));
@@ -1136,10 +1293,7 @@ const validateInventory = (
 ): void => {
   const missing = [...actual].filter((name) => !listed.has(name)).toSorted();
   const extra = [...listed].filter((name) => !actual.has(name)).toSorted();
-  if (
-    actual.size > 0 &&
-    (listed.size === 0 || missing.length > 0 || extra.length > 0)
-  ) {
+  if (missing.length > 0 || extra.length > 0) {
     errors.push(
       packageError(
         root,
@@ -1148,6 +1302,30 @@ const validateInventory = (
       )
     );
   }
+};
+
+/** Validate auto-discovered plugin settings when present. */
+const validateSettingsFile = (
+  root: string,
+  pluginRoot: string,
+  errors: string[]
+): void => {
+  const settingsPath = path.join(pluginRoot, "settings.json");
+  if (!pathExists(settingsPath)) {
+    return;
+  }
+  if (lstatSync(settingsPath).isSymbolicLink()) {
+    errors.push(
+      packageError(root, settingsPath, "settings.json must be a regular file")
+    );
+    return;
+  }
+  validatePluginSettings(
+    root,
+    settingsPath,
+    readJsonObject(settingsPath),
+    errors
+  );
 };
 
 /** Validate README purpose, runtime, layout, scope, skill, and agent alignment. */
@@ -1478,6 +1656,7 @@ export const checkPackageSurface = (root: string): void => {
     validateSkills(repositoryRoot, pluginRoot, errors);
     validateAgents(repositoryRoot, pluginRoot, errors);
     validateReadme(repositoryRoot, pluginRoot, errors);
+    validateSettingsFile(repositoryRoot, pluginRoot, errors);
     validatePluginAgentRules(repositoryRoot, pluginRoot, errors);
     validateLicense(repositoryRoot, pluginRoot, manifest, errors);
   }

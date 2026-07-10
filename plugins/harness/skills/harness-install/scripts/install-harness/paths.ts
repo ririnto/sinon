@@ -4,6 +4,30 @@ import path from "node:path";
 import type { CiHost, InstallCandidate, InstallerConfig } from "./types.js";
 import { fail } from "./types.js";
 
+/** Check parent components in order so no lookup crosses a symlink. */
+const checkParentComponents = async (
+  parents: readonly string[],
+  index = 0
+): Promise<void> => {
+  if (index >= parents.length) {
+    return;
+  }
+  const checkedParent = parents[index];
+  if (checkedParent === undefined) {
+    return;
+  }
+  const stat = await lstat(checkedParent).catch(() => null);
+  if (stat?.isSymbolicLink() === true) {
+    fail(
+      `[safe_parent] refusing symlink directory component: ${checkedParent}`
+    );
+  }
+  if (stat !== null && !stat.isDirectory()) {
+    fail(`[safe_parent] parent component is not a directory: ${checkedParent}`);
+  }
+  await checkParentComponents(parents, index + 1);
+};
+
 export const ensureSafeRelativePath = (targetPath: string): void => {
   const cleanPath = targetPath.startsWith("./")
     ? targetPath.slice(2)
@@ -39,9 +63,8 @@ export const normalizeRequestedTargetPath = (requestedPath: string): string => {
   return normalized;
 };
 
-export const ensureSafeParentDir = async (
-  targetPath: string
-): Promise<void> => {
+/** Check destination parents without creating them. */
+export const checkSafeParentDir = async (targetPath: string): Promise<void> => {
   const parent = path.dirname(targetPath);
   if (parent === "" || parent === ".") {
     return;
@@ -53,33 +76,18 @@ export const ensureSafeParentDir = async (
     current = current === "" ? part : `${current}/${part}`;
     parents.push(current);
   }
-  const stats = await Promise.all(
-    parents.map((entry) => lstat(entry).catch(() => null))
-  );
-  for (const [index, stat] of stats.entries()) {
-    const checkedParent = parents[index];
-    if (stat?.isSymbolicLink() === true) {
-      fail(
-        `[safe_parent] refusing symlink directory component: ${checkedParent}`
-      );
-    }
-    if (stat !== null && !stat.isDirectory()) {
-      fail(
-        `[safe_parent] parent component is not a directory: ${checkedParent}`
-      );
-    }
-  }
-  await mkdir(parent, { recursive: true });
+  await checkParentComponents(parents);
 };
 
-export const ensureSafeFileDestination = async (
+/** Check a file destination without following or creating path components. */
+export const checkSafeFileDestination = async (
   targetPath: string
 ): Promise<void> => {
   const cleanPath = targetPath.startsWith("./")
     ? targetPath.slice(2)
     : targetPath;
   ensureSafeRelativePath(cleanPath);
-  await ensureSafeParentDir(cleanPath);
+  await checkSafeParentDir(cleanPath);
   const stat = await lstat(cleanPath).catch(() => null);
   if (stat?.isSymbolicLink() === true) {
     fail(`[safe_destination] refusing symlink file destination: ${cleanPath}`);
@@ -88,6 +96,31 @@ export const ensureSafeFileDestination = async (
     fail(
       `[safe_destination] refusing directory file destination: ${cleanPath}`
     );
+  }
+};
+
+/** Check a file destination, then create its missing parent directories. */
+export const ensureSafeFileDestination = async (
+  targetPath: string
+): Promise<void> => {
+  await checkSafeFileDestination(targetPath);
+  const cleanPath = targetPath.startsWith("./")
+    ? targetPath.slice(2)
+    : targetPath;
+  const parent = path.dirname(cleanPath);
+  if (parent !== "" && parent !== ".") {
+    await mkdir(parent, { recursive: true });
+  }
+};
+
+/** Check a parent destination, then create its missing directories. */
+export const ensureSafeParentDir = async (
+  targetPath: string
+): Promise<void> => {
+  await checkSafeParentDir(targetPath);
+  const parent = path.dirname(targetPath);
+  if (parent !== "" && parent !== ".") {
+    await mkdir(parent, { recursive: true });
   }
 };
 
@@ -115,7 +148,7 @@ export const isHostTemplatePath = (rel: string, ciHost: CiHost): boolean => {
 };
 
 export const isDirectTemplateEntry = (rel: string): boolean =>
-  rel.startsWith("docs/templates/") && rel.split("/").length === 3;
+  rel.startsWith("docs/templates/");
 
 export const requiredSelectedPath = (config: InstallerConfig): string => {
   if (config.selectedPath !== null) {

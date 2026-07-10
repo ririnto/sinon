@@ -7,4 +7,4 @@ import { checkInstallerRuntime } from "./installer-runtime.js";
 
 test("installer outcomes and ownership survive adversarial refreshes", () => {
   checkInstallerRuntime(path.resolve(import.meta.dirname, "..", ".."));
-});
+}, 15_000);

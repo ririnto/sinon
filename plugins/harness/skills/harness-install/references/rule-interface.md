@@ -61,6 +61,11 @@ Structural checks that cannot be automated remain prose conventions in the insta
 - Fix command: `sh scripts/fix.sh` (wrapper invoking `markdownlint-cli2 --fix` when it is available on PATH, then `shfmt`, then rerunning `shellcheck` and `shfmt -d` through `scripts/check.sh`)
 - Structural checks (prose-only): file presence, directory presence, hook shebangs, hook executable bits, hook command parity, CI command parity, symlink safety, scaffold-leak scanning.
 
+Every mode ships both hook stages under `.githooks/`.
+The installer copies those files without activating them.
+Only `--activate-hooks` MAY set repository-local `core.hooksPath` to `.githooks/`.
+Ordinary dependency installation, synchronization, and build commands MUST NOT activate hooks.
+
 ## Structural Conventions (Prose-Only)
 
 These checks are now DOCUMENT-LEVEL PROSE CONVENTIONS enforced by code review and project discipline, not automated validators.
@@ -79,7 +84,8 @@ Target repositories MUST uphold these in documentation, agent instructions, and 
 - hookExecutable: Installed hook files MUST have executable bits set (mode 755 or `a+x`).
 - hookSourceMarker: Installed hook files SHOULD identify the stack asset that owns their command contract.
 - hookStage: Hook files MUST declare which stage they run (pre-commit or pre-push).
-- hookCommand: The installed `pre-commit` hook MUST run the stack canonical check command; the installed `pre-push` hook runs a local final gate that is a superset of the canonical check, adding tests for Gradle (`./gradlew check`), Maven (`./mvnw verify`), and Bun (`bun run check && bun test`), and identical to the canonical check for uv and Shell.
+- hookCommand: The installed `pre-commit` hook MUST run the stack canonical check command; the installed `pre-push` hook runs a local final gate that is a superset of the canonical check, adding tests for Gradle (`./gradlew check`), Maven (`./mvnw verify`), and Bun (`bun run check && bun test --pass-with-no-tests`), and identical to the canonical check for uv and Shell.
+- hookActivation: Both hook files MUST remain inactive until `--activate-hooks` sets repository-local `core.hooksPath` to `.githooks/`.
 - ciHookCommandParity: The `.github/workflows/<tool>.yaml` and `.gitlab-ci.yml` files MUST run the same canonical check command as the installed `pre-commit` hook, and the two CI hosts MUST agree with each other; CI re-runs the canonical check, not the local `pre-push` superset.
 - envShebangUsage: Shell scripts MUST use the `/usr/bin/env` shebang pattern rather than direct interpreters.
 - uncheckedTasks: Completed execution plans in `docs/exec-plans/` MUST NOT contain any unchecked `- [ ]` task items.

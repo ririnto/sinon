@@ -26,6 +26,9 @@ Harness evolution has two separate tracks with different file surfaces; classify
 | Plugin-default evolution | `skills/harness-install/assets/`, plugin manifest, self-check, marketplace entry | Plugin maintainer | Future installs only; existing targets change only on reinstall |
 
 - Installed-target evolution edits project files that the installer already copied; treat them as owned by the target repository, not by the plugin package.
+- When install-record validation reports that legitimate target truth conflicts with the plugin source, preserve it with `harness-install --adopt <path>`.
+- Adoption MUST update ownership without rewriting the target file.
+- Run a normal refresh after adoption to prove the target-owned file remains stable.
 - Plugin-default evolution changes what future installs ship and MUST NOT be used to patch one target; reinstall the target if a default change should reach it.
 - A repeated drift across many targets is the signal to move a fix from installed-target evolution to plugin-default evolution.
 
@@ -74,6 +77,8 @@ Harness evolution has two separate tracks with different file surfaces; classify
     | Generated artifacts | `docs/generated/**`, generated-artifact template |
 
 2. Decide whether the change is a legitimate evolution or a local drift.
+   - Use `--adopt <path>` only for reviewed legitimate target truth.
+   - Keep unresolved accidental drift as a validation failure.
 3. Keep valid minor improvements.
    - Reject only changes that break the harness contract or product fit.
 4. Update the evolution plan so related surfaces stay aligned.
@@ -86,6 +91,8 @@ Harness evolution has two separate tracks with different file surfaces; classify
 | --- | --- | --- |
 | Product architecture changed and docs are stale | evolve | Update `ARCHITECTURE.md` and relevant design docs. |
 | | | Update validation expectations in the same change. |
+| A copied harness file legitimately diverged for one target | evolve | Run `--adopt <path>` to preserve the file and record target ownership. |
+| | | Re-run install-record validation and a full refresh. |
 | A generated artifact moved or was renamed | evolve | Update generated-artifact docs and any installed CI references. |
 | CI should run the same canonical check command on a new platform | evolve | Add or update install-time CI assets. |
 | | | Preserve the selected canonical check command. |
@@ -276,6 +283,8 @@ risks: adding the dispatcher early creates a second validation source of truth.
 ## Validation Commands
 
 Use `harness-validate` after implementing an evolution.
+Validate `.harness/install-record.json` before the stack command.
+An adopted path passes only after the record contains the full expected inventory and the path is `kept`/`target` owned.
 The expected stack commands are:
 
 - Gradle:
@@ -360,6 +369,7 @@ The expected stack commands are:
 - Plugin evolution SHOULD keep default plugin-root component locations out of the manifest.
   - Use component keys only for custom paths or inline configuration.
 - Hook evolution preserves project `core.hooksPath` and records any required hook migration as explicit target policy.
+- Installed-target adoption MUST preserve target bytes and exact record inventory.
 
 ## Operating Checks
 
