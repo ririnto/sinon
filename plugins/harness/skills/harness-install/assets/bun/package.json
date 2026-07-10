@@ -10,12 +10,15 @@
     "fix:ultracite": "ultracite fix"
   },
   "devDependencies": {
-    "@oxc-project/types": "^0.137.0",
+    "@oxc-project/types": "^0.139.0",
     "markdownlint": "^0.41.0",
-    "markdownlint-cli2": "^0.22.1",
+    "markdownlint-cli2": "^0.23.0",
     "npm-run-all2": "^9.0.2",
-    "oxfmt": "^0.55.0",
-    "oxlint": "^1.70.0",
-    "ultracite": "^7.8.3"
+    "oxfmt": "^0.58.0",
+    "oxlint": "^1.73.0",
+    "ultracite": "^7.9.3"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
