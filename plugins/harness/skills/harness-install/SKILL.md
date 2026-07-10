@@ -18,7 +18,7 @@ They become project files after copying.
 
 - choose the installed mode (`bun`, `gradle`, `maven`, `shell`, `uv`)
 - copy role-partitioned artifacts
-- activate stack hook state
+- optionally activate stack hook state after explicit approval
 - report installation + validation outcomes
 
 Target business logic and day-to-day feature code stay in the target repository.
@@ -45,21 +45,13 @@ Target business logic and day-to-day feature code stay in the target repository.
 4. Identify the active CI host.
    - Use `git remote -v` to confirm whether the project ships through GitHub, GitLab, both, or neither.
    - Remove unused CI files as a post-install step.
-5. Git hooks are managed by ecosystem-standard tools:
-   - Bun uses Husky.
-   - uv uses the pre-commit framework.
-   - Gradle uses the Gradle pre-commit plugin.
-   - Maven and Shell use `core.hooksPath`.
-   - Each stack ships static hook files in its asset tree.
-     - Bun uses `.husky/`.
-     - uv uses `.pre-commit-config.yaml`.
-     - Gradle wires hooks from `settings.gradle.kts`.
-     - Maven and Shell use `.githooks/`.
-   - The installer copies these as regular stack assets and activates hooks as a post-install step.
-     - Gradle hooks are created by the Gradle plugin on the first build.
-     - Maven and Shell run `git config core.hooksPath .githooks/`.
-     - uv runs `uv run pre-commit install`.
-     - Bun runs Husky through the `prepare` script after `bun install`.
+5. Every stack ships executable POSIX hooks under `.githooks/`.
+   - `pre-commit` runs the selected canonical check.
+   - `pre-push` runs the selected final gate.
+   - Copying hooks does not activate them.
+   - Ordinary stack setup and build commands MUST NOT change Git hook configuration.
+   - Pass `--activate-hooks` only after explicit approval.
+   - Activation runs `git config --local core.hooksPath .githooks/` and verifies both hooks.
 6. Use `--force` only when the user explicitly wants existing target harness files replaced.
 7. Keep plugin files separate from target files.
    - Edit this plugin only when improving the installer.
@@ -100,14 +92,22 @@ The installer entry point `skills/harness-install/scripts/install-harness.ts` ac
 | `--mode <gradle\|maven\|uv\|bun\|shell>` | Required stack mode; the installer does not auto-detect. |
 | `--ci-host <github\|gitlab\|both\|none>` | Required CI host selection. |
 | `--force` | Overwrite or update existing target files; required to resolve drift on root contracts. |
-| `--activate-hooks` | Activate Git hooks through the stack ecosystem tool after install; the installer fails if the tool or activation step errors instead of silently skipping. |
+| `--activate-hooks` | Activate both POSIX hook files through repository-local `core.hooksPath`; fail if either file, its executable bit, its header, or Git configuration is invalid. |
+| `--adopt <path>` | Preserve one legitimate target-owned evolution without changing its bytes, merge `kept`/`target` ownership into a complete record, and make later refreshes preserve it. |
 | `--preview` | Print the planned write/keep/overwrite/drift set without writing anything. |
 | `--show <path>` | Print the asset that would be installed at one target path. |
 | `--only <path>` | Install one target path and merge its outcome into the install record. A first-time targeted install creates an explicitly partial record. |
 
-`--preview` reports drift explicitly: a target file that differs from its template is reported as `drift` and requires `--force` to overwrite, so a successful preview never silently claims a refresh it did not perform.
+`--preview` reports drift explicitly.
+A target file that differs from its template is reported as `drift` and names both safe resolutions: `--adopt <path>` preserves target truth, while `--force` overwrites it.
+A successful preview never silently claims a refresh it did not perform.
 
-A full install writes `.harness/install-record.json` with the mode, CI host, canonical commands, completeness, and each asset's actual `created`, `updated`, `kept`, or `conflict` outcome plus `harness`, `shared`, or `target` ownership. Later refreshes update an unchanged `harness`-owned file when its plugin source changes, preserve target drift as a conflict, and require `--force` before taking ownership of that conflict. Root contracts remain shared managed-block files.
+A full install writes `.harness/install-record.json` with the mode, CI host, canonical commands, exact expected plan, completeness, and each asset's actual `created`, `updated`, `kept`, or `conflict` outcome.
+Each outcome also records `harness`, `shared`, or `target` ownership.
+Later refreshes update an unchanged harness-owned file when its plugin source changes.
+Target drift remains a conflict until the maintainer either overwrites it with `--force` or preserves it with `--adopt <path>`.
+Adoption changes only the record; it never changes target bytes.
+Root contracts remain shared managed-block files and cannot be adopted.
 
 A first-time `--only` record remains explicitly partial until a full install establishes the complete inventory; do not report it as a complete harness installation.
 
@@ -118,8 +118,11 @@ A first-time `--only` record remains explicitly partial until a full install est
 - `skills/harness-install/assets/common/WORKFLOW.md`: process rules.
 - `skills/harness-install/assets/common/docs/**`: operating and domain context.
 - `skills/harness-install/assets/<mode>/**`: stack validation and hook assets for the chosen mode.
-- `skills/harness-install/assets/common/.claude/agents/implementation.md`: implementation subagent for bounded changes.
+- `skills/harness-install/assets/common/.claude/agents/scoped-implementer.md`: Haiku low-effort subagent for exact edits with an exhaustive file ownership list, desired behavior, and targeted validation commands.
+- `skills/harness-install/assets/common/.claude/agents/implementation.md`: Sonnet medium-effort subagent for large or cross-file work that requires affected-set discovery, reasoning, and integration validation.
 - `skills/harness-install/assets/common/.claude/agents/review.md`: review subagent for contract and validation review.
+- `skills/harness-install/assets/common/.codex/agents/scoped-implementer.toml`: Luna low-effort counterpart for exact exhaustive file scopes.
+- `skills/harness-install/assets/common/.codex/agents/implementation.toml`: Terra medium-effort counterpart for broad or cross-file implementation.
 - `skills/harness-install/assets/common/.claude/skills/autonomous-execution/SKILL.md`: orchestration loop for explicit autonomous follow-through.
 - `skills/harness-install/assets/common/.claude/skills/issue-mining/SKILL.md`: investigation and issue-registration skill.
 - `skills/harness-install/assets/common/.claude/skills/review/SKILL.md`: readiness review skill.
@@ -130,9 +133,11 @@ A first-time `--only` record remains explicitly partial until a full install est
 | --- | --- |
 | Target has no obvious stack files | Ask for `gradle`, `maven`, `uv`, `bun`, or `shell`. |
 | Existing harness files are present | Preserve them unless `--force` was requested. |
-| Existing Git hook is present | Each stack uses ecosystem-standard hook management. |
-| | The installer activates hooks as a post-install step. |
+| Existing Git hook is present | The installer copies `.githooks/` but leaves current Git configuration unchanged by default. |
+| | Pass `--activate-hooks` only after reviewing the existing hook policy. |
 | | Request explicit approval before changing active hooks directly. |
+| Legitimate target evolution conflicts with the plugin source | Run `--adopt <path>` to preserve the target bytes and record target ownership. |
+| | Re-run install-record validation, then a full refresh to prove the adopted path remains stable. |
 | Target uses GitHub CI | Pass `--ci-host github` to write only `.github/workflows/<tool>.yaml`. |
 | Target uses GitLab CI | Pass `--ci-host gitlab` to write only `.gitlab-ci.yml`. |
 | Target mirrors to GitHub and GitLab | Pass `--ci-host both` to write both CI files. |
@@ -148,18 +153,14 @@ A first-time `--only` record remains explicitly partial until a full install est
 ## Invariants
 
 - Copied harness files become project files.
-- Git hooks use ecosystem-standard tools:
-  - Bun uses Husky with `.husky/`.
-  - uv uses the pre-commit framework with `.pre-commit-config.yaml`.
-  - Gradle uses the Gradle pre-commit plugin.
-  - Maven and Shell use `core.hooksPath` pointing to `.githooks/`.
-  - The installer activates hooks as a post-install step for Maven, Shell, and uv.
-  - Gradle hooks are created by the Gradle plugin on the first build.
-  - Bun hooks activate via `bun install` through the Husky `prepare` script.
+- Git hooks are opt-in for every stack:
+  - Each mode ships `.githooks/pre-commit` and `.githooks/pre-push` with the POSIX hook header.
+  - Installation and ordinary dependency/build setup MUST leave hooks inactive.
+  - `--activate-hooks` configures repository-local `core.hooksPath` as `.githooks/`.
 - `pre-commit` hooks run the stack lint check.
   - Bun always runs packaged markdownlint; non-Bun stacks run markdownlint when `markdownlint-cli2` is installed.
   - `pre-push` hooks run the full validation including tests and broader checks where applicable.
-    - Examples: `./gradlew check`, `./mvnw verify`, and `bun test`.
+    - Examples: `./gradlew check`, `./mvnw verify`, and `bun test --pass-with-no-tests`.
 - Claude worktrees use Claude Code's default Git worktree behavior.
   - The selected stack supplies `.worktreeinclude` for portable gitignored local inputs.
   - The target `.gitignore` ignores `.claude/worktrees/`.
@@ -193,6 +194,7 @@ A first-time `--only` record remains explicitly partial until a full install est
 - Report project readiness only after target truth exists.
   - Product specs, architecture decisions, acceptance criteria, and generated artifacts must all contain target truth.
 - Replace hook files with `--force` after explicit approval for that repository.
+- Adopt a legitimate target-owned file with `--adopt <path>` instead of overwriting it.
 - Treat seed references as replaceable starting points.
 - Keep runtime services, issue queues, workspace management, and team generation in project systems.
 
@@ -203,7 +205,7 @@ Report these fields:
 - `mode`: explicit stack mode (`--mode` flag).
 - `installer command`: the command that ran.
 - `files`: written, kept, and skipped file groups.
-- `hooks`: ecosystem tool activation status for the selected stack (Husky, pre-commit, or `core.hooksPath`).
+- `hooks`: whether copied `.githooks/` remain inactive or were explicitly activated through repository-local `core.hooksPath`.
 - `ci`: which CI files were installed (GitHub Actions, GitLab CI, both, or none per `--ci-host` flag).
 - `validation`: command run and result.
 - `target follow-up`: placeholders, seed references, or unused CI files that require project-specific action.

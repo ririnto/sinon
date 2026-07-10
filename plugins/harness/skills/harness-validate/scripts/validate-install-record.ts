@@ -28,6 +28,8 @@ type ParsedRecord = Readonly<{
   assets: readonly unknown[];
   canonicalCheckCommand: string;
   complete: boolean;
+  expectedAssets: readonly string[];
+  expectedPlanDigest: string;
   fixCommand: string;
   mode: Mode;
   prePushCommand: string;
@@ -213,7 +215,7 @@ const prePushCommand = (mode: Mode): string => {
       return "uv run scripts/check.py";
     }
     case "bun": {
-      return "bun run check && bun test";
+      return "bun run check && bun test --pass-with-no-tests";
     }
     case "shell": {
       return "sh scripts/check.sh";
@@ -348,6 +350,8 @@ const parseRecord = (value: unknown): ParsedRecord | string => {
     canonicalCheckCommand,
     ciHost,
     complete,
+    expectedAssets,
+    expectedPlanDigest,
     fixCommand: recordedFixCommand,
     mode,
     prePushCommand: recordedPrePushCommand,
@@ -359,6 +363,9 @@ const parseRecord = (value: unknown): ParsedRecord | string => {
     ciHosts.has(ciHost),
     typeof complete === "boolean",
     Array.isArray(assets),
+    Array.isArray(expectedAssets) &&
+      expectedAssets.every((asset) => typeof asset === "string"),
+    typeof expectedPlanDigest === "string",
     typeof canonicalCheckCommand === "string",
     typeof recordedFixCommand === "string",
     typeof recordedPrePushCommand === "string"
@@ -370,6 +377,8 @@ const parseRecord = (value: unknown): ParsedRecord | string => {
     assets: assets as readonly unknown[],
     canonicalCheckCommand: canonicalCheckCommand as string,
     complete: complete as boolean,
+    expectedAssets: expectedAssets as readonly string[],
+    expectedPlanDigest: expectedPlanDigest as string,
     fixCommand: recordedFixCommand as string,
     mode: mode as Mode,
     prePushCommand: recordedPrePushCommand as string
@@ -423,6 +432,14 @@ const validateRecord = (root: string): readonly string[] => {
   if (record.assets.length === 0) {
     errors.push(`${installRecordPath}: asset inventory is empty`);
   }
+  const expectedAssets = [...record.expectedAssets].toSorted();
+  if (
+    expectedAssets.length === 0 ||
+    new Set(expectedAssets).size !== expectedAssets.length ||
+    record.expectedPlanDigest !== digestContent(JSON.stringify(expectedAssets))
+  ) {
+    errors.push(`${installRecordPath}: expected plan inventory is invalid`);
+  }
   errors.push(...validateCommands(record));
   const paths = record.assets
     .filter(isRecord)
@@ -430,6 +447,15 @@ const validateRecord = (root: string): readonly string[] => {
     .filter((assetPath): assetPath is string => typeof assetPath === "string");
   if (new Set(paths).size !== paths.length) {
     errors.push(`${installRecordPath}: duplicate asset path`);
+  }
+  const pathSet = new Set(paths);
+  const expectedSet = new Set(expectedAssets);
+  const missing = expectedAssets.filter((assetPath) => !pathSet.has(assetPath));
+  const unexpected = paths.filter((assetPath) => !expectedSet.has(assetPath));
+  if (missing.length > 0 || unexpected.length > 0) {
+    errors.push(
+      `${installRecordPath}: asset inventory does not match expected plan; missing: ${missing.join(", ") || "none"}; unexpected: ${unexpected.join(", ") || "none"}`
+    );
   }
   for (const asset of record.assets) {
     errors.push(...validateAsset(root, asset));

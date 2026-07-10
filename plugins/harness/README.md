@@ -81,12 +81,20 @@ Plugin-root agents remain in `agents/` as optional structural specialists for ch
 They are not copied into target repositories.
 Target repository agents, project skills, docs, CI files, validators, and hook scaffolds are packaged under `skills/harness-install/assets/` and become project files after installation.
 The plugin does not expose top-level hooks.
-Stack assets provide the active pre-commit and pre-push hooks installed for the selected mode.
+Stack assets provide inactive POSIX `pre-commit` and `pre-push` templates for the selected mode.
+The installer activates them only when `--activate-hooks` is supplied.
 
 ## Target Ownership
 
-`.harness/install-record.json` records each asset as `harness`, `shared`, or `target` owned for refresh purposes.
-The installer may refresh an unchanged harness-owned file when its plugin source changes; user drift becomes a target-owned conflict until an explicit `--force` update.
+`.harness/install-record.json` records the exact expected plan and each asset as `harness`, `shared`, or `target` owned for refresh purposes.
+The validator rejects a complete record whose asset inventory differs from that persisted plan.
+The installer may refresh an unchanged harness-owned file when its plugin source changes.
+User drift becomes a target-owned conflict until the maintainer chooses one of two explicit resolutions:
+
+- Use `--force` to replace the target with the plugin source and restore harness ownership.
+- Use `--adopt <path>` to preserve legitimate target truth and record the file as target owned.
+
+Later full refreshes preserve adopted target-owned content.
 Root `AGENTS.md` and `CLAUDE.md` contracts are shared: the installer owns only their managed blocks and preserves target-authored content outside those blocks.
 Seeds and preserved pre-existing files remain target owned.
 Documented host policy controls optional CI file removal.
@@ -103,6 +111,7 @@ The installer requires `--ci-host` to select which CI files to create.
 `--ci-host github` writes `.github/workflows/<tool>.yaml`, `--ci-host gitlab` writes `.gitlab-ci.yml`, `--ci-host both` writes both, and `--ci-host none` writes neither.
 CI files are stack-specific initial install assets selected by `--ci-host`.
 Installed `pre-push` hooks may run a stronger stack final check.
+Hook templates remain inactive unless the installer receives `--activate-hooks`.
 
 ## CI Host Selection
 
@@ -141,6 +150,7 @@ The installer creates this target repository structure, and validators require i
 |   +-- agents/
 |   |   +-- implementation.md
 |   |   +-- review.md
+|   |   +-- scoped-implementer.md
 |   +-- settings.json
 |   +-- skills/
 |       +-- autonomous-execution/
@@ -155,6 +165,7 @@ The installer creates this target repository structure, and validators require i
 |   +-- agents/
 |       +-- implementation.toml
 |       +-- review.toml
+|       +-- scoped-implementer.toml
 +-- docs/
 |   +-- design-docs/
 |   |   +-- core-beliefs.md
@@ -186,16 +197,22 @@ The installer creates this target repository structure, and validators require i
     +-- exec-plan-links.ts
 ```
 
-The installed inventory also includes `WORKFLOW.md`, stack-specific validation adapters, CI files when enabled, and active hook files when the selected stack uses hooks.
-Installed day-to-day runtime surfaces are two project agents (`implementation`, `review`) and three project skills (`autonomous-execution`, `issue-mining`, `review`).
+The installed inventory also includes `WORKFLOW.md`, stack-specific validation adapters, CI files when enabled, and inactive hook templates for every stack.
+Installed day-to-day runtime surfaces are three project agents (`implementation`, `scoped-implementer`, `review`) and three project skills (`autonomous-execution`, `issue-mining`, `review`).
 Plugin-root Harness skills and agents remain plugin-owned and are not copied into target repositories.
 `WORKFLOW.md` defines branch, review, validation, and publication decisions.
 Installed target agents receive workflow decisions through their task prompt.
+Only the user-facing top-level or root agent orchestrates work; installed repository agents are delegation targets, and the Harness does not install a `project-orchestrator` agent.
+Use the Haiku/Luna low-effort `scoped-implementer` only when the caller supplies an exhaustive single-file or related-file ownership list, exact desired behavior, and targeted validation commands.
+Use the Sonnet/Terra medium-effort `implementation` agent when the change is large, spans related files, modules, or layers, requires discovering the complete affected set, or needs cross-file reasoning and integration validation.
+An orchestrator MUST explore and plan an ambiguous file set before delegation and MUST NOT send it directly to `scoped-implementer`.
+Parallel `scoped-implementer` assignments MUST own disjoint file sets.
 
-Active `pre-commit` includes the selected-mode command and may include stack preflight checks.
-Active `pre-push` comes from the stack-specific final check, which may be stronger than `pre-commit`.
-Stack assets activate hooks through their ecosystem tool:
-Husky for Bun, pre-commit for uv, the Gradle pre-commit plugin for Gradle, and `core.hooksPath` for Maven and Shell.
+Each stack ships POSIX `.githooks/pre-commit` and `.githooks/pre-push` files.
+`pre-commit` runs the selected-mode command and may include stack preflight checks.
+`pre-push` runs the stack-specific final check, which may be stronger than `pre-commit`.
+The installer activates both files only through `git config --local core.hooksPath .githooks/` when `--activate-hooks` is supplied.
+Ordinary setup commands such as `bun install`, `uv sync`, `gradle help`, and `mvn validate` MUST NOT activate hooks.
 Claude worktrees use Claude Code's default Git worktree behavior.
 The selected stack supplies `.worktreeinclude` for portable gitignored local inputs.
 Examples include `.env` and `*.local.*` files.
@@ -321,13 +338,13 @@ Run the stack check command afterward.
 
 ## Git Hooks
 
-Active `pre-commit` includes the selected-mode command and may include stack preflight checks.
-Active `pre-push` runs the stack-specific final check and may include tests or broader verification.
+The copied `pre-commit` template includes the selected-mode command and may include stack preflight checks.
+The copied `pre-push` template runs the stack-specific final check and may include tests or broader verification.
 
 The installer does not write into `.git/hooks/`.
-Instead, stack assets use ecosystem-standard hook activation:
-Bun uses Husky through the `prepare` script, uv uses the pre-commit framework, Gradle uses the Gradle pre-commit plugin, and Maven and Shell use `core.hooksPath` pointing at copied `.githooks/` files.
-Hooks therefore activate through the selected stack's setup path rather than through ad hoc writes to `.git/hooks/`.
+Every mode copies executable POSIX hooks under `.githooks/`.
+Without `--activate-hooks`, the installer and ordinary stack setup leave Git configuration unchanged.
+With `--activate-hooks`, the installer points the repository-local `core.hooksPath` at `.githooks/`, activating both stages atomically and explicitly.
 
 ## Metadata and Attribution
 

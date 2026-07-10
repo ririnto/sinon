@@ -1,6 +1,7 @@
 import { readlink } from "node:fs/promises";
 
 import { validationCommandForMode } from "./commands.js";
+import { decideFileInstall } from "./decisions.js";
 import {
   isSymlink,
   matchCandidate,
@@ -13,13 +14,14 @@ import {
   hasManagedBlock,
   renderManagedBlock
 } from "./managed.js";
-import { requiredRealTarget, requiredSrc } from "./paths.js";
-import { buildPlan } from "./planning.js";
 import {
-  canRefreshOwnedAsset,
-  digestContent,
-  previousAssetsForConfig
-} from "./record.js";
+  checkSafeFileDestination,
+  checkSafeParentDir,
+  requiredRealTarget,
+  requiredSrc
+} from "./paths.js";
+import { buildPlan } from "./planning.js";
+import { previousAssetsForConfig } from "./record.js";
 import { fail } from "./types.js";
 import type {
   InstallAssetRecord,
@@ -32,41 +34,14 @@ const previewFileCandidate = async (
   candidate: InstallCandidate,
   previousAssets: ReadonlyMap<string, InstallAssetRecord>
 ): Promise<void> => {
-  if (
-    candidate.seed === true &&
-    (await pathExists(candidate.dst)) &&
-    !config.force
-  ) {
-    console.log(`skip seed (target exists): ${candidate.dst}`);
-    return;
+  const decision = await decideFileInstall(config, candidate, previousAssets);
+  if (decision.diagnostic === "stderr") {
+    console.error(
+      `drift: ${candidate.dst} differs from the plugin source; run --adopt ${candidate.dst} to preserve target truth or --force to overwrite it`
+    );
+  } else {
+    console.log(decision.message);
   }
-  if (!(await pathExists(candidate.dst))) {
-    console.log(`write: ${candidate.dst}`);
-    return;
-  }
-  const template = await readInstallAsset(requiredSrc(candidate));
-  const current = await readUtf8(candidate.dst);
-  if (current === template) {
-    console.log(`keep existing (matches template): ${candidate.dst}`);
-    return;
-  }
-  if (config.force) {
-    console.log(`overwrite (--force): ${candidate.dst}`);
-    return;
-  }
-  if (
-    canRefreshOwnedAsset(
-      previousAssets.get(candidate.dst),
-      digestContent(current),
-      digestContent(template)
-    )
-  ) {
-    console.log(`refresh owned: ${candidate.dst}`);
-    return;
-  }
-  console.error(
-    `drift: ${candidate.dst} differs from template (manual integration unresolved); rerun with --force to overwrite`
-  );
 };
 
 const previewRootContractCandidate = async (
@@ -74,6 +49,7 @@ const previewRootContractCandidate = async (
   candidate: InstallCandidate
 ): Promise<void> => {
   const realTarget = requiredRealTarget(candidate);
+  await checkSafeFileDestination(realTarget);
   const exists = await pathExists(realTarget);
   const current = exists ? await readUtf8(realTarget) : "";
   if (exists && hasManagedBlock(current) && !config.force) {
@@ -104,6 +80,7 @@ const previewSymlinkCandidate = async (
   config: InstallerConfig,
   candidate: InstallCandidate
 ): Promise<void> => {
+  await checkSafeParentDir(candidate.dst);
   if (await isSymlink(candidate.dst)) {
     const currentTarget = await readlink(candidate.dst);
     if (currentTarget === candidate.symlinkTarget) {
@@ -136,6 +113,7 @@ const previewGitkeepCandidate = async (
   config: InstallerConfig,
   candidate: InstallCandidate
 ): Promise<void> => {
+  await checkSafeFileDestination(candidate.dst);
   if (await pathExists(candidate.dst)) {
     console.log(
       config.force
@@ -151,13 +129,9 @@ const showRootContractCandidate = async (
   candidate: InstallCandidate
 ): Promise<void> => {
   const realTarget = requiredRealTarget(candidate);
-  if (
-    (await pathExists(realTarget)) &&
-    hasManagedBlock(await readUtf8(realTarget))
-  ) {
-    return;
-  }
-  if (await pathExists(realTarget)) {
+  await checkSafeFileDestination(realTarget);
+  const exists = await pathExists(realTarget);
+  if (exists && !hasManagedBlock(await readUtf8(realTarget))) {
     console.error(
       `note: requested root contract managed block would be added to existing file: ${realTarget}`
     );
@@ -237,6 +211,7 @@ export const showOneTargetPath = async (
     case "file":
     case "seed":
     case "stack-file": {
+      await checkSafeFileDestination(candidate.dst);
       process.stdout.write(await readInstallAsset(requiredSrc(candidate)));
       return;
     }
@@ -245,6 +220,7 @@ export const showOneTargetPath = async (
       break;
     }
     case "gitkeep": {
+      await checkSafeFileDestination(candidate.dst);
       break;
     }
     case "symlink": {

@@ -2,7 +2,7 @@ import path from "node:path";
 
 export const modes = ["gradle", "maven", "uv", "bun", "shell"] as const;
 export const ciHosts = ["github", "gitlab", "both", "none"] as const;
-export const actions = ["install", "preview", "show", "only"] as const;
+export const actions = ["adopt", "install", "preview", "show", "only"] as const;
 
 export type Mode = (typeof modes)[number];
 export type CiHost = (typeof ciHosts)[number];
@@ -45,6 +45,11 @@ export type InstallAssetRecord = Readonly<{
   path: string;
   sourceDigest?: string;
   targetDigest?: string;
+}>;
+
+export type InstallOperationResult = Readonly<{
+  outcome: InstallOutcome;
+  ownership: AssetOwnership;
 }>;
 
 export const scriptDir = path.join(import.meta.dirname, "..");

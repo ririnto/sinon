@@ -150,7 +150,7 @@ export const prePushCommandForMode = (mode: Mode): string => {
       return "uv run scripts/check.py";
     }
     case "bun": {
-      return "bun run check && bun test";
+      return "bun run check && bun test --pass-with-no-tests";
     }
     case "shell": {
       return "sh scripts/check.sh";

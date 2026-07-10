@@ -2,5 +2,4 @@
 # -*- coding: utf-8 -*-
 set -e
 
-bun run check
-bun test
+uv run scripts/check.py

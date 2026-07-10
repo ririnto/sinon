@@ -4,6 +4,7 @@ import { fail } from "./types.js";
 import type { Action, InstallerConfig } from "./types.js";
 
 type ParsedFlags = Readonly<{
+  adopt: null | string;
   activateHooks: boolean;
   ciHost: null | string;
   force: boolean;
@@ -29,6 +30,7 @@ const requireValue = (
 const parseFlags = (argv: readonly string[]): ParsedFlags => {
   const mutable = {
     activateHooks: false,
+    adopt: null as null | string,
     ciHost: null as null | string,
     force: false,
     mode: null as null | string,
@@ -40,6 +42,11 @@ const parseFlags = (argv: readonly string[]): ParsedFlags => {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     switch (arg) {
+      case "--adopt": {
+        mutable.adopt = requireValue(argv, index, arg);
+        index += 1;
+        break;
+      }
       case "--activate-hooks": {
         mutable.activateHooks = true;
         break;
@@ -87,13 +94,14 @@ const parseFlags = (argv: readonly string[]): ParsedFlags => {
 
 const selectedAction = (flags: ParsedFlags): Action => {
   const selected = [
+    flags.adopt !== null,
     flags.preview,
     flags.show !== null,
     flags.only !== null
   ].filter(Boolean).length;
   if (selected > 1) {
     return fail(
-      "argument --show/--only/--preview: not allowed with another action",
+      "argument --adopt/--show/--only/--preview: not allowed with another action",
       2
     );
   }
@@ -105,6 +113,9 @@ const selectedAction = (flags: ParsedFlags): Action => {
   }
   if (flags.only !== null) {
     return "only";
+  }
+  if (flags.adopt !== null) {
+    return "adopt";
   }
   return "install";
 };
@@ -122,6 +133,12 @@ const selectedPathForAction = (
   flags: ParsedFlags
 ): null | string => {
   switch (action) {
+    case "adopt": {
+      if (flags.adopt !== null) {
+        return flags.adopt;
+      }
+      return fail("--adopt requires a path argument.", 2);
+    }
     case "show": {
       if (flags.show !== null) {
         return flags.show;
@@ -154,6 +171,9 @@ export const parseArgs = (argv: readonly string[]): InstallerConfig => {
     return fail("--ci-host is required (github|gitlab|both|none).", 2);
   }
   const action = selectedAction(parsed);
+  if (parsed.activateHooks && action !== "install") {
+    return fail("--activate-hooks is supported only for a full install", 2);
+  }
   return {
     action,
     activateHooks: parsed.activateHooks,

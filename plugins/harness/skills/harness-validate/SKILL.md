@@ -60,14 +60,17 @@ Choose exactly one mode unless the user explicitly asks for cross-stack analysis
 | `shell` | shell-script-only or Makefile-driven repository | `sh scripts/check.sh` |
 
 The canonical check command in the table is the local harness validation command, matches the installed `pre-commit` hook, and is the command CI (both hosts) re-runs; the two CI hosts MUST agree with each other and with `pre-commit`.
-The installed `pre-push` hook is a local-only stricter superset that adds tests on top of the canonical command: `./gradlew check` (gradle), `./mvnw verify` (maven), `bun run check && bun test` (bun), or the same canonical command for uv and shell; it is not required to match CI.
-`.harness/install-record.json` persists canonical commands plus complete asset outcomes and ownership. Validate it from the target root before the native stack command:
+The installed `pre-push` hook is a local-only stricter superset that adds tests on top of the canonical command: `./gradlew check` (gradle), `./mvnw verify` (maven), `bun run check && bun test --pass-with-no-tests` (bun), or the same canonical command for uv and shell; it is not required to match CI.
+`.harness/install-record.json` persists canonical commands, the exact expected plan, and complete asset outcomes and ownership.
+Validate it from the target root before the native stack command:
 
 ```sh
 bun "${CLAUDE_PLUGIN_ROOT}/skills/harness-validate/scripts/validate-install-record.ts" .
 ```
 
-The self-contained preflight fails on a partial first-time `--only` record, unresolved conflict, harness-owned target drift, shared managed-block drift, missing ownership digest, command mismatch, duplicate path, or empty inventory. Target-owned content is not silently reclaimed.
+The self-contained preflight fails on a partial first-time `--only` record, expected-plan mismatch, unresolved conflict, harness-owned target drift, shared managed-block drift, missing ownership digest, command mismatch, duplicate path, or empty inventory.
+Target-owned content is not silently reclaimed.
+After a maintainer reviews legitimate target evolution, `harness-install --adopt <path>` preserves its bytes and records `kept`/`target` ownership.
 
 ## Command Examples
 
@@ -128,6 +131,7 @@ Reject any pattern that discards validator output or forces a successful exit af
 | Situation | Action |
 | --- | --- |
 | Missing harness file | Report the path, or rerun `harness-install` only if the user asked for repair. |
+| Reviewed target evolution remains an install conflict | Run `harness-install --adopt <path>`, then validate and perform a normal refresh. |
 | Placeholder docs remain generic | Report exact files and request target facts. |
 | Hook command mismatch | Report unless the user explicitly approved hook changes. |
 | CI command mismatch | Align CI only when CI files are in scope; otherwise report expected and actual commands. |
@@ -140,6 +144,8 @@ Reject any pattern that discards validator output or forces a successful exit af
 | --- | --- | --- |
 | Missing harness file | Validator names an absent `AGENTS.md`, `docs/**`, agent, or skill | Re-run installation or restore the missing file. |
 | Missing harness directory | Validator names an absent docs, `.claude/agents`, `.claude/skills`, or template directory | Restore the missing directory. |
+| Install inventory mismatch | Complete record omits or adds paths relative to its persisted expected plan | Run a full install to rebuild the exact inventory; do not hand-truncate the record. |
+| Unresolved target conflict | A legitimate copied file differs from plugin source after review | Use `--adopt <path>` to preserve target truth, then rerun validation and refresh. |
 | Stale placeholder | File exists but still contains generic scaffold content | Replace placeholder with target truth or request target facts. |
 | Agent or skill metadata | Agent or skill frontmatter lacks required `name` or `description` | Fix the specific agent or skill metadata. |
 | Documentation contract | Required doc headings, generated-artifact semantics, or harness evolution wording is missing | Restore the documented contract in the named file. |
@@ -208,6 +214,8 @@ Not every fix command re-runs validation afterward, so treat the canonical check
 - The installed README and native-tool contracts define the expected target repository contract.
 - Stack validators invoke native ecosystem tools (ktlint, Spotless, ruff, ultracite, shellcheck).
 - File presence alone does not prove project readiness when placeholders still lack project-specific content.
+- Complete install records MUST match their persisted expected plan exactly.
+- Adopted target-owned files MUST remain untouched by later normal refreshes.
 - Generated artifacts are valid only when they document source command, source inputs, freshness, and regeneration trigger.
 - GitHub Actions, GitLab CI, and the installed `pre-commit` hook MUST run the same canonical check command, and the two CI hosts MUST agree with each other; the installed `pre-push` hook is a local-only superset that MAY add tests and is not required to match CI.
 - Check and validation findings MUST use the canonical diagnostic prefix with one-based line and column numbers when position is available.

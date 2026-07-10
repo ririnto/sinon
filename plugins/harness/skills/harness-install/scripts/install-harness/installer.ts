@@ -2,7 +2,12 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 
 import { validationCommandForMode } from "./commands.js";
-import { installFullPlan, installOneTargetPath } from "./operations.js";
+import { isExecutable, readUtf8 } from "./files.js";
+import {
+  adoptOneTargetPath,
+  installFullPlan,
+  installOneTargetPath
+} from "./operations.js";
 import { normalizeRequestedTargetPath, requiredSelectedPath } from "./paths.js";
 import { previewInstallSet, showOneTargetPath } from "./preview.js";
 import { writeInstallRecord } from "./record.js";
@@ -13,58 +18,17 @@ type HookActivation = Readonly<{
   command: readonly string[];
   executable: string;
   message: string;
-  prepare?: readonly string[];
 }>;
 
 const executableExists = (executable: string): boolean =>
   Bun.which(executable) !== null;
 
-/**
- * Return the explicit Git hook activation command for one stack mode.
- *
- * @param mode Selected stack mode.
- * @returns Hook activation command, executable dependency, and human message.
- */
-const hookActivationForMode = (mode: Mode): HookActivation => {
-  switch (mode) {
-    case "gradle": {
-      return {
-        command: [],
-        executable: "",
-        message:
-          "Git hooks are created by the Gradle pre-commit-git-hooks plugin on first build; no explicit activation step."
-      };
-    }
-    case "maven":
-    case "shell": {
-      return {
-        command: ["git", "config", "core.hooksPath", ".githooks/"],
-        executable: "git",
-        message: "git config core.hooksPath .githooks/"
-      };
-    }
-    case "uv": {
-      return {
-        command: ["uv", "run", "pre-commit", "install"],
-        executable: "uv",
-        message: "uv sync && uv run pre-commit install",
-        prepare: ["uv", "sync"]
-      };
-    }
-    case "bun": {
-      return {
-        command: ["bun", "install"],
-        executable: "bun",
-        message: "bun install (Husky prepare)"
-      };
-    }
-    default: {
-      return fail(
-        `unsupported mode (must be gradle|maven|uv|bun|shell): ${mode}`
-      );
-    }
-  }
-};
+/** Return the shared explicit Git hook activation command. */
+const hookActivation = (): HookActivation => ({
+  command: ["git", "config", "--local", "core.hooksPath", ".githooks/"],
+  executable: "git",
+  message: "git config --local core.hooksPath .githooks/"
+});
 
 const printSummary = (
   config: InstallerConfig,
@@ -85,28 +49,33 @@ const printSummary = (
  *
  * @param config Installer config.
  */
-const activateHooks = (config: InstallerConfig): void => {
+const activateHooks = async (config: InstallerConfig): Promise<void> => {
   if (!config.activateHooks) {
     return;
   }
-  const activation = hookActivationForMode(config.mode);
-  if (activation.command.length === 0) {
-    console.log(`activate git hooks: ${activation.message}`);
-    return;
-  }
+  const activation = hookActivation();
   if (!executableExists(activation.executable)) {
     return fail(
       `--activate-hooks: ${activation.executable} not in PATH; cannot run ${activation.message}`
     );
   }
-  if (activation.prepare !== undefined) {
-    const prepared = Bun.spawnSync([...activation.prepare], {
-      stderr: "pipe",
-      stdout: "pipe"
-    });
-    if (!prepared.success) {
+  const expectedHeader = "#!/usr/bin/env sh\n# -*- coding: utf-8 -*-\nset -e\n";
+  const hookStates = await Promise.all(
+    [".githooks/pre-commit", ".githooks/pre-push"].map(async (hook) => ({
+      content: await readUtf8(hook).catch(() => ""),
+      executable: await isExecutable(hook),
+      hook
+    }))
+  );
+  for (const state of hookStates) {
+    if (!state.executable) {
       return fail(
-        `--activate-hooks: ${activation.prepare.join(" ")} failed: ${prepared.stderr.toString().trim()}`
+        `--activate-hooks: ${state.hook} must exist and be executable`
+      );
+    }
+    if (!state.content.startsWith(expectedHeader)) {
+      return fail(
+        `--activate-hooks: ${state.hook} must use the POSIX hook header`
       );
     }
   }
@@ -119,11 +88,23 @@ const activateHooks = (config: InstallerConfig): void => {
       `--activate-hooks: ${activation.message} failed: ${proc.stderr.toString().trim()}`
     );
   }
+  const configured = Bun.spawnSync(
+    ["git", "config", "--local", "--get", "core.hooksPath"],
+    { stderr: "pipe", stdout: "pipe" }
+  );
+  if (
+    !configured.success ||
+    configured.stdout.toString().trim() !== ".githooks/"
+  ) {
+    return fail(
+      "--activate-hooks: core.hooksPath did not persist as .githooks/"
+    );
+  }
   console.log(`activate git hooks: ${activation.message}`);
 };
 
-const runtimeAdvisoryForMode = (mode: Mode): void => {
-  const activation = hookActivationForMode(mode);
+const runtimeAdvisoryForMode = (mode: Mode, hooksActive: boolean): void => {
+  const activation = hookActivation();
   switch (mode) {
     case "gradle": {
       if (!existsSync("./gradlew")) {
@@ -170,8 +151,8 @@ const runtimeAdvisoryForMode = (mode: Mode): void => {
     }
   }
   console.error(
-    activation.command.length === 0
-      ? `[advisory] ${activation.message}`
+    hooksActive
+      ? `[advisory] Git hooks are active through: ${activation.message}`
       : `[advisory] To activate Git hooks, run: ${activation.message}`
   );
 };
@@ -187,6 +168,19 @@ export const runInstaller = async (config: InstallerConfig): Promise<void> => {
   }
   process.chdir(targetRoot);
   switch (config.action) {
+    case "adopt": {
+      if (config.force) {
+        return fail("--adopt cannot be combined with --force");
+      }
+      const selectedPath = normalizeRequestedTargetPath(
+        requiredSelectedPath(config)
+      );
+      const results = await adoptOneTargetPath(config, selectedPath);
+      await writeInstallRecord(config, results, false);
+      printSummary(config, selectedPath);
+      runtimeAdvisoryForMode(config.mode, false);
+      return;
+    }
     case "preview": {
       await previewInstallSet(config);
       return;
@@ -205,15 +199,15 @@ export const runInstaller = async (config: InstallerConfig): Promise<void> => {
       const results = await installOneTargetPath(config, selectedPath);
       await writeInstallRecord(config, results, false);
       printSummary(config, selectedPath);
-      runtimeAdvisoryForMode(config.mode);
+      runtimeAdvisoryForMode(config.mode, false);
       return;
     }
     case "install": {
       const results = await installFullPlan(config);
       await writeInstallRecord(config, results, true);
-      activateHooks(config);
+      await activateHooks(config);
       printSummary(config, null);
-      runtimeAdvisoryForMode(config.mode);
+      runtimeAdvisoryForMode(config.mode, config.activateHooks);
       return;
     }
     default: {

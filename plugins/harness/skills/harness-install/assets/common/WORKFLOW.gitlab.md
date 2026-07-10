@@ -13,10 +13,13 @@
 
 Use subagents as the normal tool for bounded exploration, implementation, and review when the work needs isolated context or independent judgment.
 The orchestrator owns workflow selection, agent type selection, capability tier selection, prompt scope, fan-in, and final decisions.
+Only the user-facing top-level or root agent acts as orchestrator.
+Installed repository agents are delegation targets only; do not create or delegate to a `project-orchestrator` agent.
 
 Repository subagents:
 
-- `implementation`: implements bounded changes with clear acceptance criteria.
+- `scoped-implementer`: performs a fully specified edit inside an exhaustive single-file or related-file ownership list with targeted validation.
+- `implementation`: handles large or cross-file changes that require affected-set discovery, cross-file reasoning, or integration validation.
 - `review`: reviews changes and validation evidence for risks and contract drift.
 
 Choose the narrowest agent type that can complete the assignment.
@@ -24,9 +27,16 @@ Choose the narrowest agent type that can complete the assignment.
 | Need | Agent type |
 | --- | --- |
 | Read-only search, issue duplicate checks, dependency scan | explorer or read-only research agent |
-| Bounded code or documentation change | `implementation` |
+| Exhaustive single-file or related-file edit with desired behavior and exact validation commands | `scoped-implementer` |
+| Large change, related modules or layers, unknown affected set, cross-file reasoning, or integration validation | `implementation` |
 | Independent quality, risk, validation, or contract review | `review` |
 | GitLab issue or merge request publication | main orchestrator |
+
+The packaged `scoped-implementer` uses the lightweight Haiku/Luna low-effort tier.
+The general `implementation` agent uses the Sonnet/Terra medium-effort tier.
+Never send an ambiguous or incomplete file set directly to `scoped-implementer`.
+When ownership is not exhaustive, explore and plan first, then either supply a complete ownership list or route the work to `implementation`.
+Parallel `scoped-implementer` assignments MUST have disjoint ownership lists.
 
 Choose the lightest capability tier that can complete the assignment.
 Tiers name capability bands, not specific vendor models; map the available runtime's models to Haiku-, Sonnet-, and Opus-equivalent bands by published capability, not by marketing label.

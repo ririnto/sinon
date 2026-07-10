@@ -23,6 +23,7 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 |   +-- agents/
 |   |   +-- implementation.md
 |   |   +-- review.md
+|   |   +-- scoped-implementer.md
 |   +-- settings.json
 |   +-- skills/
 |       +-- autonomous-execution/
@@ -37,6 +38,7 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 |   +-- agents/
 |       +-- implementation.toml
 |       +-- review.toml
+|       +-- scoped-implementer.toml
 +-- docs/
 |   +-- design-docs/
 |   |   +-- core-beliefs.md
@@ -66,13 +68,15 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 
 ## Runtime Assets
 
-- `.claude/agents/implementation.md` defines the bounded-change subagent contract.
+- `.claude/agents/scoped-implementer.md` defines the exhaustive-file-scope Haiku contract for exact edits and targeted validation.
+- `.claude/agents/implementation.md` defines the Sonnet contract for large or cross-file work that requires discovery and integration validation.
 - `.claude/agents/review.md` defines the independent review subagent contract.
 - `.claude/skills/autonomous-execution/SKILL.md` defines the explicit autonomous follow-through loop.
 - `.claude/skills/issue-mining/SKILL.md` defines issue investigation and optional issue-registration workflow.
 - `.claude/skills/review/SKILL.md` defines main-agent readiness review.
 - `.agents/skills/` links to `.claude/skills/`.
-- `.codex/agents/implementation.toml` defines the Codex implementation agent.
+- `.codex/agents/scoped-implementer.toml` defines the equivalent Luna low-effort exact-scope agent.
+- `.codex/agents/implementation.toml` defines the Terra medium-effort general implementation agent.
 - `.codex/agents/review.toml` defines the Codex review agent.
 - `.mcp.json` configures the project-local CodeGraph MCP server.
 - `.codegraph/.gitignore` keeps CodeGraph local data out of Git.

@@ -121,23 +121,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>com.rudikershaw.gitbuildhook</groupId>
-        <artifactId>git-build-hook-maven-plugin</artifactId>
-        <version>3.6.0</version>
-        <configuration>
-          <gitConfig>
-            <core.hooksPath>.githooks/</core.hooksPath>
-          </gitConfig>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>configure</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>3.2.0</version>
