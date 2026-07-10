@@ -69,7 +69,7 @@ Required fields:
 
 Optional fields:
 
-- `tag`
+- `tag`: Array of classification strings; use `[]` when retaining the field without values.
 - `owner`
 - `priority`
 - `metadata`

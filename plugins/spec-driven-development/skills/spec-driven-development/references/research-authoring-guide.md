@@ -37,7 +37,7 @@ Required fields:
 - `last_updated`: ISO 8601 calendar date (for example, `2026-03-02`).
 - `subject.name`: Framework, library, or topic name.
 - `subject.version`: Investigated version or release line.
-- `tag`: Classification tag values.
+- `tag`: Array of classification strings; use `[]` when no values apply.
 
 Optional fields:
 

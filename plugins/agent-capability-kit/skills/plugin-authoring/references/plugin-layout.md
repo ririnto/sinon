@@ -47,11 +47,40 @@ Include the default path explicitly when adding a custom path:
   "agents": ["./agents/", "./special/agents/"],
   "outputStyles": ["./output-styles/", "./branding/styles/"],
   "experimental": {
-    "themes": ["./themes/", "./branding/themes/"],
-    "monitors": ["./monitors/monitors.json", "./operations/monitors.json"]
+    "themes": ["./themes/", "./branding/themes/"]
   }
 }
 ```
+
+`experimental.monitors` has two valid shapes.
+Use one relative path string for a non-default monitor file:
+
+```json
+{
+  "experimental": {
+    "monitors": "./operations/monitors.json"
+  }
+}
+```
+
+Alternatively, declare monitor objects inline:
+
+```json
+{
+  "experimental": {
+    "monitors": [
+      {
+        "name": "deployment-status",
+        "command": "tail -F ./logs/deployment.log",
+        "description": "Deployment status changes"
+      }
+    ]
+  }
+}
+```
+
+Do not use an array of monitor path strings.
+When several monitor definitions belong in files, consolidate them into one JSON array and point `experimental.monitors` at that file.
 
 ## Additive Skills
 
