@@ -1,73 +1,26 @@
-# Workspace Workflow Rules
+# Repository Guidelines
 
-These rules apply to `plugins/workspace-workflow/`.
-Normative keywords follow BCP 14.
+This file applies to `plugins/workspace-workflow/` and overrides broader plugin guidance.
 
-## Host Selection
+## Project Structure
 
-Common workflow MUST inspect repository state before loading host-specific guidance:
+`skills/pr-mr-convention/` owns host-neutral integration handoff guidance and host references. Agents draft or route work; they do not integrate.
 
-```sh
-git remote -v
-git status --short --branch
-git branch -vv
-```
+## Build, Test, and Development Commands
 
-Resolve the integration handoff host in this order:
+Inspect `git remote -v`, `git status --short --branch`, and `git branch -vv` before host advice. Run `claude plugin validate plugins/workspace-workflow`, `bun test scripts/workflow-contract.test.ts`, and `bun run check` after routing changes.
 
-1. explicit user choice
-2. existing pull or change description metadata
-3. repository policy
-4. current branch upstream
-5. remote URL as a clue
-
-An upstream or remote URL alone is not proof when multiple hosts are plausible.
-If hosted service and hosted service both remain candidates, stop for a focused choice before integration handoff.
-
-## Progressive Disclosure
-
-The common `pr-mr-convention/SKILL.md` MUST contain host-neutral title, body, validation, risk, and template-selection workflow.
-
-Load only one host reference after selection:
+## Coding Style and Testing
 
 
-Do not preload both CLI catalogs.
-Do not check `host-cli` or `host-cli` authentication until its host is selected.
-Unsupported or local hosts use the repository-approved local review flow without inventing a remote command.
+## Commit and integration handoff
 
-## Agent Boundaries
+Preserve dirty worktrees and unrelated branches. Treat force-push and history rewriting as explicit user decisions. The top-level session owns commits and integration handoff.
 
-- `workspace-architect` is a read-only leaf router, not a general orchestrator.
-- `commit-message-architect` reads staged state and drafts text without staging or committing.
-- `pr-body-architect` reads repository state, loads only the selected host reference, and drafts text without integrateing.
-- Every agent uses Sonnet/Terra medium and MUST NOT delegate.
-- integration handoff remains with the user-facing top-level session.
+## Security and Configuration
 
-## Safety
+Report stale remote data and template uncertainty. Do not expose credentials or run host authentication checks before host selection.
 
-- Preserve dirty worktrees and unrelated branches.
-- Inspect every involved worktree before merge or rebase advice.
-- Treat force-push and integrateed-history rewriting as explicit decisions.
-- Separate the review target branch from the repository default branch.
-- List only validation that actually ran.
-- Preserve a repository template exactly when one applies.
-- Report stale remote-tracking data and host-managed template uncertainty.
+## Scope and Precedence
 
-## Validation
-
-Changes to host routing MUST test:
-
-- hosted service-only selection
-- hosted service-only selection
-- ambiguous multiple remotes
-- explicit user override
-- no supported host
-- loading only the selected reference
-
-Run:
-
-```sh
-claude plugin validate plugins/workspace-workflow
-bun test scripts/workflow-contract.test.ts
-bun run check
-```
+State which host evidence selected before drafting integration handoff guidance.

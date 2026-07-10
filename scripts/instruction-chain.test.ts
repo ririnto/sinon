@@ -81,3 +81,52 @@ test("canonical Claude rule pointers remain exact", () => {
     expect(readFileSync(path.join(ROOT, relative), "utf-8")).toBe(POINTER);
   }
 });
+
+test("AGENTS files follow the concise init contract", () => {
+  const files = collectInstructionFiles(ROOT).filter(
+    (filePath) =>
+      !filePath.includes(`${path.sep}docs${path.sep}templates${path.sep}`)
+  );
+  for (const filePath of files) {
+    const text = readFileSync(filePath, "utf-8");
+    const words = text.trim().split(/\s+/u).length;
+    expect(text).toContain("# Repository Guidelines");
+    expect(words, path.relative(ROOT, filePath)).toBeGreaterThanOrEqual(200);
+    expect(words, path.relative(ROOT, filePath)).toBeLessThanOrEqual(400);
+    for (const heading of [
+      "## Project Structure",
+      "## Build, Test, and Development Commands",
+      "## Coding Style and Testing",
+      "## Commit and Publication",
+      "## Security and Configuration"
+    ]) {
+      expect(text).toContain(heading);
+    }
+  }
+});
+
+test("the AGENTS template exposes adaptable init sections", () => {
+  const template = readFileSync(
+    path.join(
+      ROOT,
+      "plugins/harness/skills/harness-install/assets/common/docs/templates/docs/AGENTS.md"
+    ),
+    "utf-8"
+  );
+  for (const placeholder of [
+    "{{scope_description}}",
+    "{{primary_context}}",
+    "{{project_structure}}",
+    "{{setup_command}}",
+    "{{build_command}}",
+    "{{development_command}}",
+    "{{validation_command}}",
+    "{{style_source}}",
+    "{{testing_surface}}",
+    "{{ownership_scope}}",
+    "{{commit_and_review_rule}}",
+    "{{security_or_configuration_rule}}"
+  ]) {
+    expect(template).toContain(placeholder);
+  }
+});
