@@ -14,6 +14,8 @@ export type CandidateKind =
   | "root-contract"
   | "gitkeep"
   | "symlink";
+export type InstallOutcome = "conflict" | "created" | "kept" | "updated";
+export type AssetOwnership = "harness" | "shared" | "target";
 
 export type InstallerConfig = Readonly<{
   activateHooks: boolean;
@@ -32,6 +34,17 @@ export type InstallCandidate = Readonly<{
   seed?: boolean;
   src?: string;
   symlinkTarget?: string;
+}>;
+
+export type InstallAssetRecord = Readonly<{
+  kind: CandidateKind;
+  linkTarget?: string;
+  managedDigest?: string;
+  outcome: InstallOutcome;
+  ownership: AssetOwnership;
+  path: string;
+  sourceDigest?: string;
+  targetDigest?: string;
 }>;
 
 export const scriptDir = path.join(import.meta.dirname, "..");

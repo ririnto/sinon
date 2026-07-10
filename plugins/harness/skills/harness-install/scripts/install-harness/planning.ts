@@ -11,6 +11,12 @@ import {
 import { templateDir } from "./types.js";
 import type { InstallCandidate, InstallerConfig } from "./types.js";
 
+const gitkeepPaths = [
+  "docs/exec-plans/active/.gitkeep",
+  "docs/exec-plans/completed/.gitkeep",
+  "docs/generated/.gitkeep"
+] as const;
+
 const commonInstallCandidates = async (
   config: InstallerConfig
 ): Promise<readonly InstallCandidate[]> => {
@@ -18,7 +24,11 @@ const commonInstallCandidates = async (
   const candidates: InstallCandidate[] = [];
   for (const src of await listTrackedTreeFiles(srcDir)) {
     const rel = toPosixRelative(srcDir, src);
-    if (isCommonSkipPath(rel) || isHostTemplatePath(rel, config.ciHost)) {
+    if (
+      isCommonSkipPath(rel) ||
+      isHostTemplatePath(rel, config.ciHost) ||
+      gitkeepPaths.includes(rel as (typeof gitkeepPaths)[number])
+    ) {
       continue;
     }
     const selectedSrc =
@@ -80,17 +90,31 @@ const rootContractInstallCandidates = (): readonly InstallCandidate[] => [
   }
 ];
 
-const gitkeepInstallCandidates = (): readonly InstallCandidate[] => [
-  { dst: "docs/exec-plans/active/.gitkeep", kind: "gitkeep" },
-  { dst: "docs/exec-plans/completed/.gitkeep", kind: "gitkeep" },
-  { dst: "docs/generated/.gitkeep", kind: "gitkeep" }
+const gitkeepInstallCandidates = (): readonly InstallCandidate[] =>
+  gitkeepPaths.map((dst) => ({ dst, kind: "gitkeep" as const }));
+
+const runtimeSymlinkCandidates = (): readonly InstallCandidate[] => [
+  {
+    dst: ".agents/skills",
+    kind: "symlink",
+    symlinkTarget: "../.claude/skills"
+  }
 ];
 
+/** Build one destination-unique plan where stack assets override common assets. */
 export const buildPlan = async (
   config: InstallerConfig
-): Promise<readonly InstallCandidate[]> => [
-  ...(await commonInstallCandidates(config)),
-  ...rootContractInstallCandidates(),
-  ...(await stackInstallCandidates(config)),
-  ...gitkeepInstallCandidates()
-];
+): Promise<readonly InstallCandidate[]> => {
+  const candidates = [
+    ...rootContractInstallCandidates(),
+    ...(await commonInstallCandidates(config)),
+    ...runtimeSymlinkCandidates(),
+    ...(await stackInstallCandidates(config)),
+    ...gitkeepInstallCandidates()
+  ];
+  return [
+    ...new Map(
+      candidates.map((candidate) => [candidate.dst, candidate])
+    ).values()
+  ];
+};

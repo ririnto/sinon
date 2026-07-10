@@ -23,6 +23,10 @@ Reactor is a shared, skill-first plugin for Project Reactor reactive programming
 | `reactor-sinks` | Hot sources | Sinks API, ConnectableFlux, replay/multicast choices, emit result handling |
 | `reactor-testing` | Test verification | StepVerifier, virtual time, TestPublisher, PublisherProbe, post-verification checks |
 
+## Included Agents
+
+- `reactor-architect`: Flux/Mono composition, scheduler, hot-source, and testing workflow decisions.
+
 ## Skill Selection Tree
 
 Use this tree to select the primary skill for any Reactor task.

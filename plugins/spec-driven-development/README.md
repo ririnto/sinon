@@ -15,6 +15,10 @@ Provide reusable spec-driven development guidance that remains portable across C
 
 - `spec-driven-development`: run the full research, `SPEC.md`, approval, implementation, implementation-review, and verification lifecycle.
 
+## Included Agent
+
+- `spec-driven-development`: spec-first research, authoring, review, implementation, and completeness decisions.
+
 ## How the Skill Branches
 
 Use `spec-driven-development` only when the user explicitly asks to run or resume the end-to-end gated lifecycle through implementation and verification.

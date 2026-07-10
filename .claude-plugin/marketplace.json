@@ -12,7 +12,8 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Authoring kit for Claude Code plugins, agents, hooks, MCP servers, plugin settings, and cross-platform Agent Skills; includes agents for plugin validation and skill review.",
+      "description": "Authoring kit for Claude Code plugins, agents, and cross-platform Agent Skills.",
+      "license": "MIT",
       "name": "agent-capability-kit",
       "source": "./plugins/agent-capability-kit"
     },
@@ -21,7 +22,8 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Authoring skills for AI-consumable engineering documents; currently provides SPEC.md creation with structured requirements, scenarios, and acceptance criteria.",
+      "description": "Skills for authoring AI-consumable engineering documents with structured requirements, scenarios, and acceptance criteria. Currently provides SPEC.md creation.",
+      "license": "MIT",
       "name": "document-creator",
       "source": "./plugins/document-creator"
     },
@@ -30,7 +32,8 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Install, validate, and evolve repository-owned harness assets for agent instructions, docs, templates, project agents, project skills, stack validators, CI snippets, and opt-in Git hook templates.",
+      "description": "Install, validate, and evolve project harness assets for agent instructions, docs, templates, project agents, project skills, stack validators, CI snippets, and opt-in Git hook templates.",
+      "license": "Apache-2.0",
       "name": "harness",
       "source": "./plugins/harness"
     },
@@ -39,7 +42,8 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Java development plugin with practical skills for syntax, language design, testing, dependency decisions, and performance analysis, plus an agent for architecture guidance and JDTLS-assisted editing.",
+      "description": "Java development plugin with practical skills for syntax boundaries, language design, testing workflows, dependency decisions, performance analysis, and JDTLS-assisted editing.",
+      "license": "MIT",
       "name": "java",
       "source": "./plugins/java"
     },
@@ -49,6 +53,7 @@
       },
       "category": "development",
       "description": "JVM development assistant with shared skills for tooling workflows, runtime diagnostics, and garbage-collection guidance.",
+      "license": "MIT",
       "name": "jvm",
       "source": "./plugins/jvm"
     },
@@ -57,7 +62,8 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Kotlin development plugin with practical skills for language design, coroutines and Flow, testing workflows, and kotlin-lsp-assisted editing.",
+      "description": "Kotlin development plugin with practical skills for idiomatic language design, coroutines and Flow decisions, Kotlin testing workflows, and kotlin-lsp-assisted editing.",
+      "license": "MIT",
       "name": "kotlin",
       "source": "./plugins/kotlin"
     },
@@ -66,7 +72,8 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, core API bootstrap and pipelines, and reactive HTTP/TCP/UDP workflows.",
+      "description": "Netty and Reactor Netty plugin with practical skills for high-performance network applications, bootstrap and pipeline design, ByteBuf and codec handling, and reactive HTTP/TCP/UDP workflows with Reactor Netty.",
+      "license": "MIT",
       "name": "netty",
       "source": "./plugins/netty"
     },
@@ -75,7 +82,8 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Prometheus and Grafana plugin with practical skills for alert-rule design, PromQL composition, dashboard JSON authoring, Grafana provisioning, plus an agent for observability architecture decisions.",
+      "description": "Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.",
+      "license": "MIT",
       "name": "observability-assets",
       "source": "./plugins/observability-assets"
     },
@@ -84,7 +92,8 @@
         "name": "ririnto"
       },
       "category": "development",
-      "description": "Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, hot-source design with Sinks, testing with StepVerifier, plus an agent for reactive architecture decisions.",
+      "description": "Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.",
+      "license": "MIT",
       "name": "reactor",
       "source": "./plugins/reactor"
     },
@@ -94,6 +103,7 @@
       },
       "category": "development",
       "description": "Spec-first workflow: research unknowns, write abstract requirements in SPEC.md, get approval, implement, verify completeness.",
+      "license": "Apache-2.0",
       "name": "spec-driven-development",
       "source": "./plugins/spec-driven-development"
     },
@@ -103,6 +113,7 @@
       },
       "category": "development",
       "description": "Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, messaging, Cloud, and Batch workflows, plus the spring-architect agent for architecture and component design.",
+      "license": "MIT",
       "name": "spring",
       "source": "./plugins/spring"
     },
@@ -112,6 +123,7 @@
       },
       "category": "development",
       "description": "Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.",
+      "license": "Apache-2.0",
       "name": "workspace-workflow",
       "source": "./plugins/workspace-workflow"
     }

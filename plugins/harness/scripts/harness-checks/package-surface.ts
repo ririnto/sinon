@@ -1,11 +1,13 @@
 // -*- coding: utf-8 -*-
 
+import { createHash } from "node:crypto";
 import {
   existsSync,
   lstatSync,
   readdirSync,
   readFileSync,
-  readlinkSync
+  readlinkSync,
+  realpathSync
 } from "node:fs";
 import path from "node:path";
 
@@ -30,190 +32,144 @@ const pluginSchema =
 const marketplaceSchema =
   "https://json.schemastore.org/claude-code-marketplace.json";
 const claudeAgentPointer = "# CLAUDE.md\n\n@AGENTS.md\n";
+const apacheLicenseSha256 =
+  "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30";
+const mitLicenseSha256 =
+  "3990b88c59157cdbc68c004fc583af6eb6204fe23f95f7620e16e74e8ac65c12";
 const kebabPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 
 const rootLinks = {
   ".agents/skills": ".claude/skills",
   ".claude/agents": "plugins/agent-capability-kit/agents",
-  ".claude/skills": "plugins/agent-capability-kit/skills"
+  ".claude/skills": "plugins/agent-capability-kit/skills",
+  "scripts/no-box-drawing.ts":
+    "plugins/harness/skills/harness-install/assets/common/scripts/no-box-drawing.ts"
 } as const;
 
 const autoDiscoveredComponentPaths = {
   agents: "./agents/",
-  "experimental.monitors": "./monitors/monitors.json",
-  "experimental.themes": "./themes/",
+  commands: "./commands/",
   hooks: "./hooks/hooks.json",
   lspServers: "./.lsp.json",
   mcpServers: "./.mcp.json",
+  monitors: "./monitors/monitors.json",
   outputStyles: "./output-styles/",
-  skills: "./skills/"
+  skills: "./skills/",
+  themes: "./themes/"
 } as const;
 
-const manifestMetadataKeys = new Set([
+const manifestFields = new Set([
   "$schema",
+  "agents",
   "author",
+  "channels",
+  "commands",
+  "dependencies",
   "description",
   "homepage",
+  "hooks",
   "keywords",
   "license",
+  "lspServers",
+  "mcpServers",
+  "monitors",
   "name",
+  "outputStyles",
   "repository",
+  "settings",
+  "skills",
+  "themes",
+  "userConfig",
   "version"
 ]);
 
-const manifestStructuredKeys = new Set([
-  "channels",
-  "defaultEnabled",
-  "dependencies",
-  "displayName",
-  "userConfig"
-]);
-
-const manifestComponentKeys = new Set([
+const pathOnlyComponentFields = new Set([
   "agents",
-  "hooks",
-  "lspServers",
-  "mcpServers",
   "outputStyles",
-  "skills"
+  "skills",
+  "themes"
 ]);
 
-const inlineObjectComponentKeys = new Set([
-  "hooks",
-  "lspServers",
-  "mcpServers"
-]);
-const topLevelExperimentalKeys: Readonly<Record<string, string>> = {
-  monitors: "experimental.monitors",
-  themes: "experimental.themes"
-};
+const mixedComponentFields = new Set(["hooks", "lspServers", "mcpServers"]);
 
-/**
- * Check whether an unknown value is an object record.
- *
- * @param value Value to inspect.
- */
+const supportedAgentFields = new Set([
+  "background",
+  "color",
+  "description",
+  "disallowedTools",
+  "effort",
+  "isolation",
+  "maxTurns",
+  "memory",
+  "model",
+  "name",
+  "skills",
+  "tools"
+]);
+
+/** Check whether an unknown value is an object record. */
 const isRecord = (value: unknown): value is Record<string, JsonValue> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-/**
- * Raise a package-surface validation failure.
- *
- * @param message Failure message.
- */
+/** Raise a package-surface validation failure. */
 const fail = (message: string): never => {
   throw new Error(message);
 };
 
-/**
- * Read one JSON object from disk.
- *
- * @param filePath JSON file path.
- */
+/** Read one JSON object from disk. */
 const readJsonObject = (filePath: string): Record<string, JsonValue> => {
   const value = JSON.parse(readFileSync(filePath, "utf-8")) as JsonValue;
-  if (!isRecord(value)) {
-    fail(`${filePath}: top-level JSON value must be an object`);
+  if (isRecord(value)) {
+    return value;
   }
-  return value as Record<string, JsonValue>;
+  return fail(`${filePath}: top-level JSON value must be an object`);
 };
 
-/**
- * Read one TOML object from disk.
- *
- * @param filePath TOML file path.
- */
+/** Read one TOML object from disk. */
 const readTomlObject = (filePath: string): Record<string, TomlValue> => {
-  const value = Bun.TOML.parse(readFileSync(filePath, "utf-8")) as TomlValue;
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    fail(`${filePath}: top-level TOML value must be an object`);
+  const value = Bun.TOML.parse(readFileSync(filePath, "utf-8")) as unknown;
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    return value as Record<string, TomlValue>;
   }
-  return value as Record<string, TomlValue>;
+  return fail(`${filePath}: top-level TOML value must be an object`);
 };
 
-/**
- * Parse simple scalar YAML frontmatter.
- *
- * @param filePath Markdown file path.
- */
-const parseFrontmatter = (filePath: string): Record<string, string> => {
+/** Parse complete YAML frontmatter with Bun's YAML parser. */
+const parseFrontmatter = (filePath: string): Record<string, JsonValue> => {
   const lines = readFileSync(filePath, "utf-8").split(/\r?\n/u);
-  if (lines[0]?.trim() !== "---") {
+  if (lines[0] !== "---") {
     fail(`${filePath}: missing YAML frontmatter`);
   }
-  const end = lines.slice(1).findIndex((line) => line.trim() === "---");
+  const end = lines.indexOf("---", 1);
   if (end === -1) {
     fail(`${filePath}: unterminated YAML frontmatter`);
   }
-  const values: Record<string, string> = {};
-  for (const line of lines.slice(1, end + 1)) {
-    if (
-      line === "" ||
-      line.startsWith(" ") ||
-      line.startsWith("\t") ||
-      line.startsWith("-")
-    ) {
-      continue;
-    }
-    const separator = line.indexOf(":");
-    if (separator > 0) {
-      values[line.slice(0, separator).trim()] = line
-        .slice(separator + 1)
-        .trim()
-        .replaceAll(/^["']|["']$/gu, "");
-    }
+  let value: unknown;
+  try {
+    value = Bun.YAML.parse(lines.slice(1, end).join("\n"));
+  } catch (error) {
+    fail(
+      `${filePath}: invalid YAML frontmatter: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
-  return values;
+  if (isRecord(value)) {
+    return value;
+  }
+  return fail(`${filePath}: YAML frontmatter must be an object`);
 };
 
-/**
- * Return skill names in one plugin root.
- *
- * @param pluginRoot Plugin root path.
- */
-const skillNames = (pluginRoot: string): readonly string[] => {
-  const skillsDir = path.join(pluginRoot, "skills");
-  if (!existsSync(skillsDir)) {
-    return [];
-  }
-  return readdirSync(skillsDir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    .filter((name) => existsSync(path.join(skillsDir, name, "SKILL.md")))
-    .toSorted();
-};
+/** Return a stable SHA-256 digest for one string. */
+const sha256 = (content: string): string =>
+  createHash("sha256").update(content).digest("hex");
 
-/**
- * Check whether a path exists, including broken symlinks.
- *
- * @param filePath Path to inspect.
- */
+/** Check whether a path exists, including a broken symlink. */
 const pathExists = (filePath: string): boolean =>
   existsSync(filePath) ||
   lstatSync(filePath, { throwIfNoEntry: false }) !== undefined;
 
-/**
- * Resolve a path if it exists.
- *
- * @param filePath Path to resolve.
- */
-const resolveExisting = (filePath: string): null | string => {
-  try {
-    return path.resolve(filePath);
-  } catch (error) {
-    if (error instanceof Error) {
-      return null;
-    }
-    throw error;
-  }
-};
-
-/**
- * Check whether a resolved child path stays inside the resolved parent path.
- *
- * @param parent Parent path.
- * @param child Child path.
- */
+/** Check whether a child path stays inside a parent path. */
 const isInsidePath = (parent: string, child: string): boolean => {
   const relativePath = path.relative(parent, child);
   return (
@@ -222,36 +178,19 @@ const isInsidePath = (parent: string, child: string): boolean => {
   );
 };
 
-/**
- * Return JSON object entries without losing value types.
- *
- * @param value JSON object.
- */
+/** Return JSON object entries without losing value types. */
 const jsonEntries = (
   value: Record<string, JsonValue>
 ): readonly (readonly [string, JsonValue])[] => Object.entries(value);
 
-/**
- * Report a package validation error.
- *
- * @param root Repository root.
- * @param filePath Error location.
- * @param message Error message.
- */
+/** Report a package validation error relative to the repository root. */
 const packageError = (
   root: string,
   filePath: string,
   message: string
 ): string => `${path.relative(root, filePath) || "."}: ${message}`;
 
-/**
- * Validate one root runtime symlink.
- *
- * @param root Repository root.
- * @param link Link path relative to root.
- * @param target Target path relative to root.
- * @param errors Error accumulator.
- */
+/** Validate one required root symlink and its dereferenced target. */
 const validateRootLink = (
   root: string,
   link: string,
@@ -270,33 +209,59 @@ const validateRootLink = (
     );
     return;
   }
-  const stat = lstatSync(linkPath);
-  if (!stat.isSymbolicLink()) {
+  if (!lstatSync(linkPath).isSymbolicLink()) {
     errors.push(
       packageError(root, linkPath, `must be symlink \`-> ${target}\``)
     );
     return;
   }
-  const actual = path.resolve(path.dirname(linkPath), readlinkSync(linkPath));
-  const expected = resolveExisting(targetPath);
-  if (expected === null) {
+  const linkTarget = readlinkSync(linkPath);
+  const declaredTarget = path.resolve(path.dirname(linkPath), linkTarget);
+  const expectedLinkTarget = path
+    .relative(path.dirname(linkPath), targetPath)
+    .split(path.sep)
+    .join("/");
+  if (linkTarget !== expectedLinkTarget) {
     errors.push(
-      packageError(root, targetPath, "target path cannot be resolved")
+      packageError(
+        root,
+        linkPath,
+        `must use symlink target ${expectedLinkTarget}`
+      )
     );
     return;
   }
-  if (path.resolve(actual) !== expected) {
-    errors.push(packageError(root, linkPath, `must resolve to ${target}`));
+  if (declaredTarget !== path.resolve(targetPath)) {
+    errors.push(packageError(root, linkPath, `must point to ${target}`));
+    return;
+  }
+  try {
+    if (realpathSync(linkPath) !== realpathSync(targetPath)) {
+      errors.push(packageError(root, linkPath, `must resolve to ${target}`));
+    }
+  } catch (error) {
+    errors.push(
+      packageError(
+        root,
+        linkPath,
+        `cannot resolve symlink target: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      )
+    );
   }
 };
 
-/**
- * Validate repository runtime symlink layout.
- *
- * @param root Repository root.
- * @param errors Error accumulator.
- */
-const validateRootLinkLayout = (root: string, errors: string[]): void => {
+/** Validate repository pointers, symlinks, and Codex agent layout. */
+const validateRootLayout = (root: string, errors: string[]): void => {
+  const claudePath = path.join(root, "CLAUDE.md");
+  if (!existsSync(claudePath)) {
+    errors.push(packageError(root, claudePath, "root pointer is missing"));
+  } else if (readFileSync(claudePath, "utf-8") !== claudeAgentPointer) {
+    errors.push(
+      packageError(root, claudePath, "must point exactly to root AGENTS.md")
+    );
+  }
   for (const [link, target] of Object.entries(rootLinks)) {
     validateRootLink(root, link, target, errors);
   }
@@ -309,66 +274,9 @@ const validateRootLinkLayout = (root: string, errors: string[]): void => {
         "required Codex agent directory is missing"
       )
     );
-  } else if (lstatSync(codexAgentsPath).isDirectory()) {
-    const codexAgentEntries = readdirSync(codexAgentsPath, {
-      withFileTypes: true
-    }).filter((entry) => entry.isFile() && entry.name.endsWith(".toml"));
-    const codexAgentNames = new Set(
-      codexAgentEntries.map((entry) => entry.name.slice(0, -".toml".length))
-    );
-    for (const entry of codexAgentEntries) {
-      const name = entry.name.slice(0, -".toml".length);
-      const filePath = path.join(codexAgentsPath, entry.name);
-      const toml = readTomlObject(filePath);
-      if (toml["name"] !== name) {
-        errors.push(
-          packageError(root, filePath, `name must match basename ${name}`)
-        );
-      }
-      if (
-        typeof toml["description"] !== "string" ||
-        toml["description"] === ""
-      ) {
-        errors.push(
-          packageError(root, filePath, "description must be a non-empty string")
-        );
-      }
-      if (
-        typeof toml["developer_instructions"] !== "string" ||
-        toml["developer_instructions"] === ""
-      ) {
-        errors.push(
-          packageError(
-            root,
-            filePath,
-            "developer_instructions must be a non-empty string"
-          )
-        );
-      }
-    }
-    const sharedAgentsPath = path.join(
-      root,
-      "plugins",
-      "agent-capability-kit",
-      "agents"
-    );
-    const sharedAgentNames = readdirSync(sharedAgentsPath, {
-      withFileTypes: true
-    })
-      .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
-      .map((entry) => entry.name.slice(0, -".md".length));
-    for (const name of sharedAgentNames) {
-      if (!codexAgentNames.has(name)) {
-        errors.push(
-          packageError(
-            root,
-            codexAgentsPath,
-            `missing Codex TOML for shared agent ${name}`
-          )
-        );
-      }
-    }
-  } else {
+    return;
+  }
+  if (!lstatSync(codexAgentsPath).isDirectory()) {
     errors.push(
       packageError(
         root,
@@ -376,6 +284,78 @@ const validateRootLinkLayout = (root: string, errors: string[]): void => {
         "must be a regular directory of TOML agents"
       )
     );
+    return;
+  }
+  const codexEntries = readdirSync(codexAgentsPath, { withFileTypes: true });
+  const codexNames = new Set<string>();
+  for (const entry of codexEntries) {
+    const filePath = path.join(codexAgentsPath, entry.name);
+    if (!entry.isFile() || !entry.name.endsWith(".toml")) {
+      errors.push(
+        packageError(
+          root,
+          filePath,
+          "Codex agent directory may contain only TOML files"
+        )
+      );
+      continue;
+    }
+    const name = entry.name.slice(0, -".toml".length);
+    codexNames.add(name);
+    const toml = readTomlObject(filePath);
+    if (toml["name"] !== name) {
+      errors.push(
+        packageError(root, filePath, `name must match basename ${name}`)
+      );
+    }
+    for (const field of ["description", "developer_instructions"] as const) {
+      if (typeof toml[field] !== "string" || toml[field] === "") {
+        errors.push(
+          packageError(root, filePath, `${field} must be a non-empty string`)
+        );
+      }
+    }
+    if (
+      toml["sandbox_mode"] !== undefined &&
+      typeof toml["sandbox_mode"] !== "string"
+    ) {
+      errors.push(
+        packageError(root, filePath, "sandbox_mode must be a string")
+      );
+    }
+  }
+  const sharedAgentsPath = path.join(
+    root,
+    "plugins",
+    "agent-capability-kit",
+    "agents"
+  );
+  const sharedNames = new Set(
+    readdirSync(sharedAgentsPath, { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+      .map((entry) => entry.name.slice(0, -".md".length))
+  );
+  for (const name of sharedNames) {
+    if (!codexNames.has(name)) {
+      errors.push(
+        packageError(
+          root,
+          codexAgentsPath,
+          `missing Codex TOML for shared agent ${name}`
+        )
+      );
+    }
+  }
+  for (const name of codexNames) {
+    if (!sharedNames.has(name)) {
+      errors.push(
+        packageError(
+          root,
+          codexAgentsPath,
+          `unexpected Codex TOML without shared agent ${name}`
+        )
+      );
+    }
   }
   const blockedAgentsPath = path.join(root, ".agents", "agents");
   if (pathExists(blockedAgentsPath)) {
@@ -389,16 +369,7 @@ const validateRootLinkLayout = (root: string, errors: string[]): void => {
   }
 };
 
-/**
- * Validate one manifest string path.
- *
- * @param root Repository root.
- * @param pluginRoot Plugin root.
- * @param manifestPath Manifest path.
- * @param key Manifest key.
- * @param value Manifest path value.
- * @param errors Error accumulator.
- */
+/** Validate one manifest path and reject lexical or symlink escapes. */
 const validateManifestStringPath = (
   root: string,
   pluginRoot: string,
@@ -411,15 +382,11 @@ const validateManifestStringPath = (
     errors.push(
       packageError(root, manifestPath, `${key} path must begin with ./`)
     );
-  }
-  const declaredPath = path.join(pluginRoot, value.replace(/^\.\//u, ""));
-  if (!existsSync(declaredPath)) {
-    errors.push(
-      packageError(root, manifestPath, `declared path does not exist: ${value}`)
-    );
     return;
   }
-  if (!isInsidePath(path.resolve(pluginRoot), path.resolve(declaredPath))) {
+  const pluginRealPath = realpathSync(pluginRoot);
+  const declaredPath = path.resolve(pluginRoot, value);
+  if (!isInsidePath(pluginRealPath, declaredPath)) {
     errors.push(
       packageError(
         root,
@@ -427,22 +394,40 @@ const validateManifestStringPath = (
         `declared path escapes plugin root: ${value}`
       )
     );
+    return;
+  }
+  if (!pathExists(declaredPath)) {
+    errors.push(
+      packageError(root, manifestPath, `declared path does not exist: ${value}`)
+    );
+    return;
+  }
+  try {
+    if (!isInsidePath(pluginRealPath, realpathSync(declaredPath))) {
+      errors.push(
+        packageError(
+          root,
+          manifestPath,
+          `declared path resolves outside plugin root: ${value}`
+        )
+      );
+    }
+  } catch (error) {
+    errors.push(
+      packageError(
+        root,
+        manifestPath,
+        `declared path cannot be resolved: ${value}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      )
+    );
   }
 };
 
-/**
- * Validate one manifest component field.
- *
- * @param root Repository root.
- * @param pluginRoot Plugin root.
- * @param manifestPath Manifest path.
- * @param key Manifest key.
- * @param value Manifest value.
- * @param errors Error accumulator.
- */
-const validateManifestComponent = (
+/** Report a manifest field that only restates its auto-discovered path. */
+const validateDefaultPathRestatement = (
   root: string,
-  pluginRoot: string,
   manifestPath: string,
   key: string,
   value: JsonValue,
@@ -461,10 +446,22 @@ const validateManifestComponent = (
       packageError(
         root,
         manifestPath,
-        `${defaultPath} is auto-discovered; omit ${key} unless combining it with custom paths`
+        `${defaultPath} is auto-discovered; omit ${key} when it is the only value`
       )
     );
   }
+};
+
+/** Validate a string path or array of string paths. */
+const validatePathComponent = (
+  root: string,
+  pluginRoot: string,
+  manifestPath: string,
+  key: string,
+  value: JsonValue,
+  errors: string[]
+): void => {
+  validateDefaultPathRestatement(root, manifestPath, key, value, errors);
   if (typeof value === "string") {
     validateManifestStringPath(
       root,
@@ -474,6 +471,55 @@ const validateManifestComponent = (
       value,
       errors
     );
+    return;
+  }
+  if (
+    Array.isArray(value) &&
+    value.every((item): item is string => typeof item === "string")
+  ) {
+    for (const item of value) {
+      validateManifestStringPath(
+        root,
+        pluginRoot,
+        manifestPath,
+        key,
+        item,
+        errors
+      );
+    }
+    return;
+  }
+  errors.push(
+    packageError(
+      root,
+      manifestPath,
+      `${key} must be a string path or path array`
+    )
+  );
+};
+
+/** Validate a component that accepts paths and inline object definitions. */
+const validateMixedComponent = (
+  root: string,
+  pluginRoot: string,
+  manifestPath: string,
+  key: string,
+  value: JsonValue,
+  errors: string[]
+): void => {
+  validateDefaultPathRestatement(root, manifestPath, key, value, errors);
+  if (typeof value === "string") {
+    validateManifestStringPath(
+      root,
+      pluginRoot,
+      manifestPath,
+      key,
+      value,
+      errors
+    );
+    return;
+  }
+  if (isRecord(value)) {
     return;
   }
   if (Array.isArray(value)) {
@@ -487,40 +533,223 @@ const validateManifestComponent = (
           item,
           errors
         );
-      } else if (!(key === "experimental.monitors" && isRecord(item))) {
+      } else if (!isRecord(item)) {
         errors.push(
           packageError(
             root,
             manifestPath,
-            `${key} array items must be string paths`
+            `${key} array items must be paths or inline objects`
           )
         );
       }
     }
     return;
   }
-  if (isRecord(value) && inlineObjectComponentKeys.has(key)) {
-    return;
-  }
   errors.push(
-    packageError(root, manifestPath, `${key} must be a string path or array`)
+    packageError(root, manifestPath, `${key} must be a path, object, or array`)
   );
 };
 
-/**
- * Validate one plugin manifest.
- *
- * @param root Repository root.
- * @param pluginRoot Plugin root.
- * @param errors Error accumulator.
- */
+/** Validate current command path and inline-object forms. */
+const validateCommands = (
+  root: string,
+  pluginRoot: string,
+  manifestPath: string,
+  value: JsonValue,
+  errors: string[]
+): void => {
+  if (typeof value === "string" || Array.isArray(value)) {
+    validatePathComponent(
+      root,
+      pluginRoot,
+      manifestPath,
+      "commands",
+      value,
+      errors
+    );
+    return;
+  }
+  if (!isRecord(value)) {
+    errors.push(
+      packageError(
+        root,
+        manifestPath,
+        "commands must be paths or an object map"
+      )
+    );
+    return;
+  }
+  const allowedFields = new Set([
+    "allowedTools",
+    "argumentHint",
+    "content",
+    "description",
+    "model",
+    "source"
+  ]);
+  for (const [name, command] of jsonEntries(value)) {
+    if (!isRecord(command)) {
+      errors.push(
+        packageError(root, manifestPath, `commands.${name} must be an object`)
+      );
+      continue;
+    }
+    for (const [field, fieldValue] of jsonEntries(command)) {
+      if (!allowedFields.has(field)) {
+        errors.push(
+          packageError(
+            root,
+            manifestPath,
+            `commands.${name} has unsupported field ${field}`
+          )
+        );
+      } else if (field === "source" && typeof fieldValue === "string") {
+        validateManifestStringPath(
+          root,
+          pluginRoot,
+          manifestPath,
+          `commands.${name}.source`,
+          fieldValue,
+          errors
+        );
+      } else if (
+        field === "allowedTools" &&
+        (!Array.isArray(fieldValue) ||
+          !fieldValue.every((item) => typeof item === "string"))
+      ) {
+        errors.push(
+          packageError(
+            root,
+            manifestPath,
+            `commands.${name}.allowedTools must be a string array`
+          )
+        );
+      } else if (field !== "allowedTools" && typeof fieldValue !== "string") {
+        errors.push(
+          packageError(
+            root,
+            manifestPath,
+            `commands.${name}.${field} must be a string`
+          )
+        );
+      }
+    }
+  }
+};
+
+/** Validate the current path-or-inline monitor forms. */
+const validateMonitors = (
+  root: string,
+  pluginRoot: string,
+  manifestPath: string,
+  value: JsonValue,
+  errors: string[]
+): void => {
+  validateDefaultPathRestatement(root, manifestPath, "monitors", value, errors);
+  if (typeof value === "string") {
+    validateManifestStringPath(
+      root,
+      pluginRoot,
+      manifestPath,
+      "monitors",
+      value,
+      errors
+    );
+    return;
+  }
+  if (!Array.isArray(value)) {
+    errors.push(
+      packageError(
+        root,
+        manifestPath,
+        "monitors must be a JSON path or inline array"
+      )
+    );
+    return;
+  }
+  const allowedFields = new Set(["command", "description", "name", "when"]);
+  for (const [index, monitor] of value.entries()) {
+    if (!isRecord(monitor)) {
+      errors.push(
+        packageError(root, manifestPath, `monitors[${index}] must be an object`)
+      );
+      continue;
+    }
+    for (const field of ["name", "command", "description"] as const) {
+      if (typeof monitor[field] !== "string" || monitor[field] === "") {
+        errors.push(
+          packageError(
+            root,
+            manifestPath,
+            `monitors[${index}].${field} must be a non-empty string`
+          )
+        );
+      }
+    }
+    if (
+      monitor["when"] !== undefined &&
+      (typeof monitor["when"] !== "string" ||
+        (monitor["when"] !== "always" &&
+          !monitor["when"].startsWith("on-skill-invoke:")))
+    ) {
+      errors.push(
+        packageError(root, manifestPath, `monitors[${index}].when is invalid`)
+      );
+    }
+    for (const field of Object.keys(monitor)) {
+      if (!allowedFields.has(field)) {
+        errors.push(
+          packageError(
+            root,
+            manifestPath,
+            `monitors[${index}] has unsupported field ${field}`
+          )
+        );
+      }
+    }
+  }
+};
+
+/** Validate one current manifest field. */
+const validateManifestField = (
+  root: string,
+  pluginRoot: string,
+  manifestPath: string,
+  key: string,
+  value: JsonValue,
+  errors: string[]
+): void => {
+  if (!manifestFields.has(key)) {
+    errors.push(
+      packageError(root, manifestPath, `unsupported manifest field: ${key}`)
+    );
+  } else if (pathOnlyComponentFields.has(key)) {
+    validatePathComponent(root, pluginRoot, manifestPath, key, value, errors);
+  } else if (mixedComponentFields.has(key)) {
+    validateMixedComponent(root, pluginRoot, manifestPath, key, value, errors);
+  } else if (key === "commands") {
+    validateCommands(root, pluginRoot, manifestPath, value, errors);
+  } else if (key === "monitors") {
+    validateMonitors(root, pluginRoot, manifestPath, value, errors);
+  } else if ((key === "settings" || key === "userConfig") && !isRecord(value)) {
+    errors.push(packageError(root, manifestPath, `${key} must be an object`));
+  } else if (
+    (key === "channels" || key === "dependencies") &&
+    !Array.isArray(value)
+  ) {
+    errors.push(packageError(root, manifestPath, `${key} must be an array`));
+  }
+};
+
+/** Validate one plugin manifest against the current Claude schema surface. */
 const validateManifest = (
   root: string,
   pluginRoot: string,
   errors: string[]
-): void => {
+): Record<string, JsonValue> => {
   const manifestPath = path.join(pluginRoot, ".claude-plugin", "plugin.json");
   const manifest = readJsonObject(manifestPath);
+  const { author, keywords } = manifest;
   if (manifest["$schema"] !== pluginSchema) {
     errors.push(
       packageError(root, manifestPath, `$schema must be ${pluginSchema}`)
@@ -535,7 +764,13 @@ const validateManifest = (
       )
     );
   }
-  const { author } = manifest;
+  for (const field of ["description", "license"] as const) {
+    if (typeof manifest[field] !== "string" || manifest[field] === "") {
+      errors.push(
+        packageError(root, manifestPath, `${field} must be a non-empty string`)
+      );
+    }
+  }
   if (
     !isRecord(author) ||
     typeof author["name"] !== "string" ||
@@ -545,112 +780,172 @@ const validateManifest = (
       packageError(root, manifestPath, "author must use object form with name")
     );
   }
-  if ("interface" in manifest) {
+  for (const field of ["homepage", "repository", "version"] as const) {
+    if (manifest[field] !== undefined && typeof manifest[field] !== "string") {
+      errors.push(
+        packageError(root, manifestPath, `${field} must be a string`)
+      );
+    }
+  }
+  if (
+    keywords !== undefined &&
+    (!Array.isArray(keywords) ||
+      !keywords.every((item) => typeof item === "string"))
+  ) {
     errors.push(
-      packageError(
-        root,
-        manifestPath,
-        "interface must not appear in plugin manifest"
-      )
+      packageError(root, manifestPath, "keywords must be a string array")
     );
   }
   for (const [key, value] of jsonEntries(manifest)) {
-    if (key === "experimental") {
-      if (!isRecord(value)) {
-        errors.push(
-          packageError(root, manifestPath, "experimental must be an object")
-        );
-        continue;
-      }
-      for (const experimentalKey of ["monitors", "themes"] as const) {
-        const experimentalValue = value[experimentalKey];
-        if (experimentalValue !== undefined) {
-          validateManifestComponent(
-            root,
-            pluginRoot,
-            manifestPath,
-            `experimental.${experimentalKey}`,
-            experimentalValue,
-            errors
-          );
-        }
-      }
-      continue;
-    }
-    const experimentalAlias = topLevelExperimentalKeys[key];
-    if (experimentalAlias !== undefined) {
-      validateManifestComponent(
-        root,
-        pluginRoot,
-        manifestPath,
-        experimentalAlias,
-        value,
-        errors
-      );
-      continue;
-    }
-    if (manifestMetadataKeys.has(key) || manifestStructuredKeys.has(key)) {
-      continue;
-    }
-    if (!manifestComponentKeys.has(key)) {
-      errors.push(
-        packageError(root, manifestPath, `unsupported manifest field: ${key}`)
-      );
-      continue;
-    }
-    validateManifestComponent(
-      root,
-      pluginRoot,
-      manifestPath,
-      key,
-      value,
-      errors
-    );
+    validateManifestField(root, pluginRoot, manifestPath, key, value, errors);
   }
+  return manifest;
 };
 
-/**
- * Validate packaged skill frontmatter.
- *
- * @param root Repository root.
- * @param pluginRoot Plugin root.
- * @param errors Error accumulator.
- */
+/** Return every direct skill directory, including malformed ones. */
+const skillDirectories = (pluginRoot: string): readonly string[] => {
+  const skillsDir = path.join(pluginRoot, "skills");
+  if (!existsSync(skillsDir)) {
+    return [];
+  }
+  return readdirSync(skillsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .toSorted();
+};
+
+/** Validate every packaged skill directory and current frontmatter fields. */
 const validateSkills = (
   root: string,
   pluginRoot: string,
   errors: string[]
 ): void => {
-  for (const name of skillNames(pluginRoot)) {
+  for (const name of skillDirectories(pluginRoot)) {
     const skillPath = path.join(pluginRoot, "skills", name, "SKILL.md");
-    const frontmatter = parseFrontmatter(skillPath);
-    if (frontmatter["name"] !== name) {
+    if (!existsSync(skillPath)) {
       errors.push(
         packageError(
           root,
           skillPath,
-          "frontmatter name must match skill directory basename"
+          "every skill directory must contain SKILL.md"
+        )
+      );
+      continue;
+    }
+    const frontmatter = parseFrontmatter(skillPath);
+    if (!kebabPattern.test(name) || frontmatter["name"] !== name) {
+      errors.push(
+        packageError(
+          root,
+          skillPath,
+          "frontmatter name must match the kebab-case skill directory basename"
         )
       );
     }
+    const { description } = frontmatter;
     if (
-      frontmatter["description"] === undefined ||
-      frontmatter["description"] === ""
+      typeof description !== "string" ||
+      description.length < 1 ||
+      description.length > 1024
     ) {
       errors.push(
-        packageError(root, skillPath, "frontmatter description is required")
+        packageError(
+          root,
+          skillPath,
+          "description must contain 1-1024 characters"
+        )
       );
+    }
+    for (const field of Object.keys(frontmatter)) {
+      if (field !== "name" && field !== "description") {
+        errors.push(
+          packageError(
+            root,
+            skillPath,
+            `unsupported skill frontmatter field: ${field}`
+          )
+        );
+      }
     }
   }
 };
 
-/**
- * Validate packaged agent frontmatter.
- *
- * @param root Repository root.
- * @param pluginRoot Plugin root.
- * @param errors Error accumulator.
- */
+/** Check whether a value is a string or string array. */
+const isStringList = (value: JsonValue): boolean =>
+  typeof value === "string" ||
+  (Array.isArray(value) && value.every((item) => typeof item === "string"));
+
+/** Validate one supported agent frontmatter field. */
+const validateAgentField = (
+  root: string,
+  agentPath: string,
+  field: string,
+  value: JsonValue,
+  errors: string[]
+): void => {
+  if (!supportedAgentFields.has(field)) {
+    errors.push(
+      packageError(
+        root,
+        agentPath,
+        `unsupported agent frontmatter field: ${field}`
+      )
+    );
+  } else if (
+    ["color", "effort", "memory", "model"].includes(field) &&
+    typeof value !== "string"
+  ) {
+    errors.push(packageError(root, agentPath, `${field} must be a string`));
+  } else if (
+    ["disallowedTools", "skills", "tools"].includes(field) &&
+    !isStringList(value)
+  ) {
+    errors.push(
+      packageError(root, agentPath, `${field} must be a string or string array`)
+    );
+  } else if (field === "background" && typeof value !== "boolean") {
+    errors.push(packageError(root, agentPath, "background must be a boolean"));
+  } else if (
+    field === "maxTurns" &&
+    (typeof value !== "number" || !Number.isInteger(value) || value < 1)
+  ) {
+    errors.push(
+      packageError(root, agentPath, "maxTurns must be a positive integer")
+    );
+  } else if (field === "isolation" && value !== "worktree") {
+    errors.push(packageError(root, agentPath, "isolation must be worktree"));
+  }
+};
+
+/** Validate one packaged agent. */
+const validateAgent = (
+  root: string,
+  agentPath: string,
+  stem: string,
+  errors: string[]
+): void => {
+  const frontmatter = parseFrontmatter(agentPath);
+  const { description, name } = frontmatter;
+  if (!kebabPattern.test(stem) || name !== stem) {
+    errors.push(
+      packageError(
+        root,
+        agentPath,
+        "frontmatter name must match the kebab-case agent filename stem"
+      )
+    );
+  }
+  if (typeof description !== "string" || description === "") {
+    errors.push(
+      packageError(root, agentPath, "description must be a non-empty string")
+    );
+  }
+  for (const [field, value] of jsonEntries(frontmatter)) {
+    validateAgentField(root, agentPath, field, value, errors);
+  }
+};
+
+/** Validate every packaged agent and current frontmatter fields. */
 const validateAgents = (
   root: string,
   pluginRoot: string,
@@ -665,31 +960,11 @@ const validateAgents = (
       continue;
     }
     const agentPath = path.join(agentsDir, entry.name);
-    const stem = path.basename(entry.name, ".md");
-    const frontmatter = parseFrontmatter(agentPath);
-    if (!kebabPattern.test(stem)) {
-      errors.push(
-        packageError(root, agentPath, "agent filename stem must use kebab-case")
-      );
-    }
-    if (frontmatter["name"] !== stem) {
-      errors.push(
-        packageError(
-          root,
-          agentPath,
-          "frontmatter name must match agent filename stem"
-        )
-      );
-    }
+    validateAgent(root, agentPath, path.basename(entry.name, ".md"), errors);
   }
 };
 
-/**
- * Extract one second-level Markdown section.
- *
- * @param text Markdown text.
- * @param heading Heading to extract.
- */
+/** Extract one second-level Markdown section. */
 const extractSection = (text: string, heading: string): string => {
   const start = text.indexOf(`${heading}\n`);
   if (start === -1) {
@@ -700,31 +975,34 @@ const extractSection = (text: string, heading: string): string => {
   return nextHeading < 0 ? rest : rest.slice(0, nextHeading);
 };
 
-/**
- * Return plugin skill names listed in README inventory.
- *
- * @param readmePath README path.
- */
-const listedSkills = (readmePath: string): Set<string> => {
-  const text = readFileSync(readmePath, "utf-8");
-  const section =
-    extractSection(text, "## Included Skills") ||
-    extractSection(text, "## Included Skill");
+/** Return names listed in the first matching README inventory section. */
+const listedInventory = (
+  text: string,
+  headings: readonly string[]
+): Set<string> => {
+  const section = headings
+    .map((heading) => extractSection(text, heading))
+    .find((candidate) => candidate !== "");
   const names = new Set<string>();
+  if (section === undefined) {
+    return names;
+  }
   for (const line of section.split(/\r?\n/u)) {
-    const bullet = /^\s*-\s+`(?<name>[a-z0-9]+(?:-[a-z0-9]+)*)`:/u.exec(line);
+    const bullet =
+      /^\s*-\s+`?(?<name>[a-z0-9]+(?:-[a-z0-9]+)*)`?(?:\s*:|\s+-)/u.exec(line);
     if (bullet?.groups?.["name"] !== undefined) {
       names.add(bullet.groups["name"]);
     }
     if (line.trim().startsWith("|")) {
-      const [firstCell] = line
+      const firstCell = line
         .split("|")
-        .slice(1)
-        .map((cell) => cell.trim().replaceAll(/^`|`$/gu, ""));
+        .slice(1)[0]
+        ?.trim()
+        .replaceAll(/^`|`$/gu, "");
       if (
         firstCell !== undefined &&
-        kebabPattern.test(firstCell) &&
-        firstCell !== "---"
+        firstCell !== "---" &&
+        kebabPattern.test(firstCell)
       ) {
         names.add(firstCell);
       }
@@ -733,13 +1011,32 @@ const listedSkills = (readmePath: string): Set<string> => {
   return names;
 };
 
-/**
- * Validate plugin README inventory.
- *
- * @param root Repository root.
- * @param pluginRoot Plugin root.
- * @param errors Error accumulator.
- */
+/** Validate one README inventory against the filesystem. */
+const validateInventory = (
+  root: string,
+  readmePath: string,
+  label: string,
+  actual: ReadonlySet<string>,
+  listed: ReadonlySet<string>,
+  errors: string[]
+): void => {
+  const missing = [...actual].filter((name) => !listed.has(name)).toSorted();
+  const extra = [...listed].filter((name) => !actual.has(name)).toSorted();
+  if (
+    actual.size > 0 &&
+    (listed.size === 0 || missing.length > 0 || extra.length > 0)
+  ) {
+    errors.push(
+      packageError(
+        root,
+        readmePath,
+        `${label} inventory drift; missing: ${missing.join(", ") || "none"}; extra: ${extra.join(", ") || "none"}`
+      )
+    );
+  }
+};
+
+/** Validate README purpose, runtime, layout, scope, skill, and agent alignment. */
 const validateReadme = (
   root: string,
   pluginRoot: string,
@@ -750,38 +1047,69 @@ const validateReadme = (
     errors.push(packageError(root, pluginRoot, "plugin README.md is required"));
     return;
   }
-  const actualSkills = new Set(skillNames(pluginRoot));
-  const readmeSkills = listedSkills(readmePath);
-  if (actualSkills.size > 0 && readmeSkills.size === 0) {
-    errors.push(
-      packageError(root, readmePath, "Included Skills inventory is required")
-    );
-    return;
-  }
-  const missing = [...actualSkills]
-    .filter((name) => !readmeSkills.has(name))
-    .toSorted();
-  const extra = [...readmeSkills]
-    .filter((name) => !actualSkills.has(name))
-    .toSorted();
-  if (actualSkills.size > 0 && (missing.length > 0 || extra.length > 0)) {
+  const text = readFileSync(readmePath, "utf-8");
+  const frontmatter = parseFrontmatter(readmePath);
+  if (
+    typeof frontmatter["description"] !== "string" ||
+    frontmatter["description"] === ""
+  ) {
     errors.push(
       packageError(
         root,
         readmePath,
-        `Included Skills inventory drift; missing: ${missing.join(", ") || "none"}; extra: ${extra.join(", ") || "none"}`
+        "README description must be a non-empty string"
       )
     );
   }
+  for (const heading of [
+    "## Purpose",
+    "## Runtime Model",
+    "## Scope Notes"
+  ] as const) {
+    if (!text.includes(`${heading}\n`)) {
+      errors.push(
+        packageError(root, readmePath, `missing required section ${heading}`)
+      );
+    }
+  }
+  if (!text.includes("## Plugin Layout\n") && !text.includes("## Layout\n")) {
+    errors.push(
+      packageError(root, readmePath, "missing required layout section")
+    );
+  }
+  const actualSkills = new Set(skillDirectories(pluginRoot));
+  const actualAgents = new Set<string>();
+  const agentsDir = path.join(pluginRoot, "agents");
+  if (existsSync(agentsDir)) {
+    for (const entry of readdirSync(agentsDir, { withFileTypes: true })) {
+      if (entry.isFile() && entry.name.endsWith(".md")) {
+        actualAgents.add(entry.name.slice(0, -".md".length));
+      }
+    }
+  }
+  validateInventory(
+    root,
+    readmePath,
+    "Included Skills",
+    actualSkills,
+    listedInventory(text, ["## Included Skills", "## Included Skill"]),
+    errors
+  );
+  validateInventory(
+    root,
+    readmePath,
+    "Included Agents",
+    actualAgents,
+    listedInventory(text, [
+      "## Included Agents",
+      "## Included Agent",
+      "## Plugin-Owned Structural Agents"
+    ]),
+    errors
+  );
 };
 
-/**
- * Validate plugin-local AGENTS and CLAUDE pointer files.
- *
- * @param root Repository root.
- * @param pluginRoot Plugin root.
- * @param errors Error accumulator.
- */
+/** Validate plugin-local AGENTS and CLAUDE pointer files. */
 const validatePluginAgentRules = (
   root: string,
   pluginRoot: string,
@@ -810,11 +1138,7 @@ const validatePluginAgentRules = (
   }
 };
 
-/**
- * Discover manifested plugin roots.
- *
- * @param root Repository root.
- */
+/** Discover every plugin root that ships a Claude manifest. */
 const pluginRoots = (root: string): readonly string[] => {
   const pluginsDir = path.join(root, "plugins");
   return readdirSync(pluginsDir, { withFileTypes: true })
@@ -826,13 +1150,64 @@ const pluginRoots = (root: string): readonly string[] => {
     .toSorted();
 };
 
-/**
- * Validate the root marketplace catalog.
- *
- * @param root Repository root.
- * @param errors Error accumulator.
- */
-const validateMarketplace = (root: string, errors: string[]): void => {
+/** Validate one plugin license against the repository's canonical texts. */
+const validateLicense = (
+  root: string,
+  pluginRoot: string,
+  manifest: Record<string, JsonValue>,
+  errors: string[]
+): void => {
+  const { license } = manifest;
+  if (typeof license !== "string" || license === "") {
+    return;
+  }
+  const localLicense = path.join(pluginRoot, "LICENSE");
+  if (license === "MIT") {
+    const effectiveLicense = existsSync(localLicense)
+      ? localLicense
+      : path.join(root, "LICENSE");
+    if (sha256(readFileSync(effectiveLicense, "utf-8")) !== mitLicenseSha256) {
+      errors.push(
+        packageError(
+          root,
+          effectiveLicense,
+          "must contain the canonical repository MIT license"
+        )
+      );
+    }
+    return;
+  }
+  if (!existsSync(localLicense)) {
+    errors.push(
+      packageError(
+        root,
+        localLicense,
+        `${license} plugin requires a local LICENSE file`
+      )
+    );
+    return;
+  }
+  if (
+    license === "Apache-2.0" &&
+    sha256(readFileSync(localLicense, "utf-8")) !== apacheLicenseSha256
+  ) {
+    errors.push(
+      packageError(
+        root,
+        localLicense,
+        "must contain the canonical Apache-2.0 text"
+      )
+    );
+  }
+};
+
+/** Validate catalog coverage and manifest metadata parity. */
+const validateMarketplace = (
+  root: string,
+  manifestedRoots: readonly string[],
+  manifests: ReadonlyMap<string, Record<string, JsonValue>>,
+  errors: string[]
+): void => {
   const marketplacePath = path.join(root, ".claude-plugin", "marketplace.json");
   const marketplace = readJsonObject(marketplacePath);
   if (marketplace["$schema"] !== marketplaceSchema) {
@@ -851,7 +1226,8 @@ const validateMarketplace = (root: string, errors: string[]): void => {
     );
     return;
   }
-  const seenSources = new Set<string>();
+  const seenNames = new Set<string>();
+  const seenRoots = new Set<string>();
   for (const entry of entries) {
     if (!isRecord(entry)) {
       errors.push(
@@ -863,8 +1239,7 @@ const validateMarketplace = (root: string, errors: string[]): void => {
       );
       continue;
     }
-    const { name } = entry;
-    const { source } = entry;
+    const { name, source } = entry;
     if (typeof name !== "string" || typeof source !== "string") {
       errors.push(
         packageError(
@@ -875,8 +1250,14 @@ const validateMarketplace = (root: string, errors: string[]): void => {
       );
       continue;
     }
-    const pluginRoot = path.join(root, source.replace(/^\.\//u, ""));
-    if (!source.startsWith("./plugins/") || !existsSync(pluginRoot)) {
+    if (seenNames.has(name)) {
+      errors.push(
+        packageError(root, marketplacePath, `duplicate plugin name: ${name}`)
+      );
+    }
+    seenNames.add(name);
+    const pluginPath = path.resolve(root, source);
+    if (!source.startsWith("./plugins/") || !pathExists(pluginPath)) {
       errors.push(
         packageError(
           root,
@@ -886,18 +1267,34 @@ const validateMarketplace = (root: string, errors: string[]): void => {
       );
       continue;
     }
-    if (!isInsidePath(path.join(root, "plugins"), path.resolve(pluginRoot))) {
+    let pluginRealPath: string;
+    try {
+      pluginRealPath = realpathSync(pluginPath);
+    } catch (error) {
       errors.push(
         packageError(
           root,
           marketplacePath,
-          `plugin source escapes plugins directory: ${source}`
+          `plugin source cannot be resolved: ${source}: ${
+            error instanceof Error ? error.message : String(error)
+          }`
         )
       );
       continue;
     }
-    const realPluginRoot = path.resolve(pluginRoot);
-    if (seenSources.has(realPluginRoot)) {
+    if (
+      !isInsidePath(realpathSync(path.join(root, "plugins")), pluginRealPath)
+    ) {
+      errors.push(
+        packageError(
+          root,
+          marketplacePath,
+          `plugin source escapes plugins/: ${source}`
+        )
+      );
+      continue;
+    }
+    if (seenRoots.has(pluginRealPath)) {
       errors.push(
         packageError(
           root,
@@ -907,17 +1304,18 @@ const validateMarketplace = (root: string, errors: string[]): void => {
       );
       continue;
     }
-    seenSources.add(realPluginRoot);
-    if (name !== path.basename(pluginRoot)) {
+    seenRoots.add(pluginRealPath);
+    if (name !== path.basename(pluginRealPath)) {
       errors.push(
         packageError(
           root,
           marketplacePath,
-          `plugin name ${name} does not match source basename ${path.basename(pluginRoot)}`
+          `plugin name ${name} does not match source basename ${path.basename(pluginRealPath)}`
         )
       );
     }
-    if (!existsSync(path.join(pluginRoot, ".claude-plugin", "plugin.json"))) {
+    const manifest = manifests.get(pluginRealPath);
+    if (manifest === undefined) {
       errors.push(
         packageError(
           root,
@@ -925,27 +1323,51 @@ const validateMarketplace = (root: string, errors: string[]): void => {
           `plugin source lacks manifest: ${source}`
         )
       );
+      continue;
+    }
+    for (const field of ["description", "license"] as const) {
+      if (entry[field] !== manifest[field]) {
+        errors.push(
+          packageError(
+            root,
+            marketplacePath,
+            `${name} ${field} must match plugin.json exactly`
+          )
+        );
+      }
+    }
+  }
+  for (const pluginRoot of manifestedRoots) {
+    const realRoot = realpathSync(pluginRoot);
+    if (!seenRoots.has(realRoot)) {
+      errors.push(
+        packageError(
+          root,
+          marketplacePath,
+          `manifested plugin is missing from catalog: ${path.basename(pluginRoot)}`
+        )
+      );
     }
   }
 };
 
-/**
- * Validate marketplace package metadata.
- *
- * @param root Harness plugin root.
- */
+/** Validate marketplace package metadata and filesystem contracts. */
 export const checkPackageSurface = (root: string): void => {
   const repositoryRoot = path.resolve(root, "..", "..");
   const errors: string[] = [];
-  validateRootLinkLayout(repositoryRoot, errors);
-  validateMarketplace(repositoryRoot, errors);
-  for (const pluginRoot of pluginRoots(repositoryRoot)) {
-    validateManifest(repositoryRoot, pluginRoot, errors);
+  validateRootLayout(repositoryRoot, errors);
+  const roots = pluginRoots(repositoryRoot);
+  const manifests = new Map<string, Record<string, JsonValue>>();
+  for (const pluginRoot of roots) {
+    const manifest = validateManifest(repositoryRoot, pluginRoot, errors);
+    manifests.set(realpathSync(pluginRoot), manifest);
     validateSkills(repositoryRoot, pluginRoot, errors);
     validateAgents(repositoryRoot, pluginRoot, errors);
     validateReadme(repositoryRoot, pluginRoot, errors);
     validatePluginAgentRules(repositoryRoot, pluginRoot, errors);
+    validateLicense(repositoryRoot, pluginRoot, manifest, errors);
   }
+  validateMarketplace(repositoryRoot, roots, manifests, errors);
   if (errors.length > 0) {
     throw new Error(`Plugin package validation failed:\n${errors.join("\n")}`);
   }

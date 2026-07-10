@@ -33,6 +33,10 @@ Target deployments may stay on an older supported line, but version-sensitive fe
 - `alert-rule-testing`: `promtool test rules`, fixture design, eval timing, SLO burn-rate alert regression, and alert correctness checks.
 - `dashboard-provisioning`: Grafana dashboard provider YAML, folder organization, SLO dashboard delivery, file-wins behavior, and dashboard-as-code delivery.
 
+## Included Agents
+
+- `observability-architect`: alerting, dashboard, SLO, and metrics architecture decisions.
+
 ## When to Use Which Skill
 
 - PromQL expression design, aggregation, and vector matching belong in `promql`.

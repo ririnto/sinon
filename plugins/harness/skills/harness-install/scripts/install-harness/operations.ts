@@ -3,6 +3,7 @@ import path from "node:path";
 import { workflowAssetNameForCiHost, workflowNameForMode } from "./commands.js";
 import {
   ensureOneRootContract,
+  ensureOneRuntimeSymlink,
   ensureRootContracts,
   ensureRuntimeSymlinks
 } from "./contracts.js";
@@ -12,6 +13,7 @@ import {
   matchCandidate,
   pathExists,
   readInstallAsset,
+  readUtf8,
   replaceFile,
   temporaryDestination,
   writeUtf8
@@ -25,8 +27,15 @@ import {
   toPosixRelative
 } from "./paths.js";
 import { buildPlan } from "./planning.js";
+import {
+  buildInstallResults,
+  canRefreshOwnedAsset,
+  captureCandidateStates,
+  digestContent,
+  previousAssetsForConfig
+} from "./record.js";
 import { fail, templateDir } from "./types.js";
-import type { InstallerConfig } from "./types.js";
+import type { InstallAssetRecord, InstallerConfig } from "./types.js";
 
 const runSerial = async <T>(
   items: readonly T[],
@@ -47,13 +56,37 @@ const copyAssetFile = async (
   config: InstallerConfig,
   srcFile: string,
   dst: string,
-  seed: boolean
+  seed: boolean,
+  previousAssets: ReadonlyMap<string, InstallAssetRecord>
 ): Promise<void> => {
   await ensureSafeFileDestination(dst);
   if ((await pathExists(dst)) && !config.force) {
-    console.log(
-      seed ? `skip seed (target exists): ${dst}` : `keep existing: ${dst}`
-    );
+    const source = await readInstallAsset(srcFile);
+    const current = await readUtf8(dst);
+    if (
+      !seed &&
+      canRefreshOwnedAsset(
+        previousAssets.get(dst),
+        digestContent(current),
+        digestContent(source)
+      )
+    ) {
+      const tmp = await temporaryDestination(dst, "refresh_file");
+      await writeUtf8(tmp, source);
+      await copyMode(srcFile, tmp);
+      await replaceFile(tmp, dst);
+      console.log(`refresh owned: ${dst}`);
+      return;
+    }
+    if (seed) {
+      console.log(`skip seed (target exists): ${dst}`);
+    } else if (current === source) {
+      console.log(`keep existing (matches template): ${dst}`);
+    } else {
+      console.error(
+        `conflict: ${dst} differs from template; preserving target`
+      );
+    }
     return;
   }
   const tmp = await temporaryDestination(dst, "copy_file");
@@ -109,10 +142,15 @@ const copyTree = async (
   config: InstallerConfig,
   srcDir: string,
   dstDir: string,
-  common: boolean
+  common: boolean,
+  previousAssets: ReadonlyMap<string, InstallAssetRecord>,
+  overriddenDestinations: ReadonlySet<string>
 ): Promise<void> => {
   await runSerial(await listTrackedTreeFiles(srcDir), async (src) => {
     const rel = toPosixRelative(srcDir, src);
+    if (overriddenDestinations.has(rel)) {
+      return;
+    }
     if (
       common &&
       (isCommonSkipPath(rel) || isHostTemplatePath(rel, config.ciHost))
@@ -128,7 +166,8 @@ const copyTree = async (
       config,
       selectedSrc,
       dst,
-      common && isDirectTemplateEntry(rel)
+      common && isDirectTemplateEntry(rel),
+      previousAssets
     );
   });
 };
@@ -136,7 +175,8 @@ const copyTree = async (
 const copyStackTree = async (
   config: InstallerConfig,
   srcDir: string,
-  dstDir: string
+  dstDir: string,
+  previousAssets: ReadonlyMap<string, InstallAssetRecord>
 ): Promise<void> => {
   const workflowName = workflowNameForMode(config.mode);
   await runSerial(await listTrackedTreeFiles(srcDir), async (src) => {
@@ -144,7 +184,7 @@ const copyStackTree = async (
     if (rel === ".gitlab-ci.yml") {
       if (config.ciHost === "gitlab" || config.ciHost === "both") {
         const dst = dstDir === "" || dstDir === "." ? rel : `${dstDir}/${rel}`;
-        await copyAssetFile(config, src, dst, false);
+        await copyAssetFile(config, src, dst, false, previousAssets);
       }
       return;
     }
@@ -154,12 +194,12 @@ const copyStackTree = async (
           dstDir === "" || dstDir === "."
             ? `.github/workflows/${workflowName}`
             : `${dstDir}/.github/workflows/${workflowName}`;
-        await copyAssetFile(config, src, dst, false);
+        await copyAssetFile(config, src, dst, false, previousAssets);
       }
       return;
     }
     const dst = dstDir === "" || dstDir === "." ? rel : `${dstDir}/${rel}`;
-    await copyAssetFile(config, src, dst, false);
+    await copyAssetFile(config, src, dst, false, previousAssets);
   });
 };
 
@@ -167,8 +207,11 @@ const copyStackTree = async (
 export const installOneTargetPath = async (
   config: InstallerConfig,
   requestedPath: string
-): Promise<void> => {
-  const candidate = matchCandidate(await buildPlan(config), requestedPath);
+): Promise<readonly InstallAssetRecord[]> => {
+  const candidates = await buildPlan(config);
+  const candidate = matchCandidate(candidates, requestedPath);
+  const previousAssets = await previousAssetsForConfig(config, true);
+  const before = await captureCandidateStates([candidate]);
   switch (candidate.kind) {
     case "file":
     case "stack-file":
@@ -177,37 +220,59 @@ export const installOneTargetPath = async (
         config,
         requiredSrc(candidate),
         candidate.dst,
-        candidate.seed === true
+        candidate.seed === true,
+        previousAssets
       );
-      return;
+      break;
     }
     case "gitkeep": {
       await installOneGitkeepPath(config, candidate.dst, false);
-      return;
+      break;
     }
     case "root-contract": {
       await ensureOneRootContract(config, candidate);
-      return;
+      break;
     }
     case "symlink": {
-      return fail(
-        `cannot place symlink entry with --only; run full install for ${requestedPath}`
-      );
+      await ensureOneRuntimeSymlink(config, candidate);
+      break;
     }
     default: {
       return fail(`unsupported --only target selection: ${requestedPath}`);
     }
   }
+  return buildInstallResults([candidate], before, previousAssets);
 };
 
 /** Install the full harness plan for the selected stack and CI host. */
 export const installFullPlan = async (
   config: InstallerConfig
-): Promise<void> => {
+): Promise<readonly InstallAssetRecord[]> => {
+  const candidates = await buildPlan(config);
+  const previousAssets = await previousAssetsForConfig(config, false);
+  const before = await captureCandidateStates(candidates);
+  const stackDestinations = new Set(
+    candidates
+      .filter((candidate) => candidate.kind === "stack-file")
+      .map((candidate) => candidate.dst)
+  );
   await ensureRootContracts(config);
   await ensureRuntimeSymlinks(config);
-  await copyTree(config, path.join(templateDir, "common"), ".", true);
+  await copyTree(
+    config,
+    path.join(templateDir, "common"),
+    ".",
+    true,
+    previousAssets,
+    stackDestinations
+  );
   await ensureRuntimeSymlinks(config);
   await ensureGitkeepPaths(config);
-  await copyStackTree(config, path.join(templateDir, config.mode), ".");
+  await copyStackTree(
+    config,
+    path.join(templateDir, config.mode),
+    ".",
+    previousAssets
+  );
+  return buildInstallResults(candidates, before, previousAssets);
 };
