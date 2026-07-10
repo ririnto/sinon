@@ -1,6 +1,7 @@
 // -*- coding: utf-8 -*-
 
 import { expect, test } from "bun:test";
+import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -382,4 +383,45 @@ test("pending integration files must be promoted into canonical inventory", asyn
   } finally {
     await removeFixture(fixture);
   }
+});
+
+test("packaged review agents require evidence and hand findings to the owner", async () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const common = path.join(
+    root,
+    "plugins",
+    "harness",
+    "skills",
+    "harness-install",
+    "assets",
+    "common"
+  );
+  const claude = await Bun.file(
+    path.join(common, ".claude", "agents", "review.md")
+  ).text();
+  const codex = await Bun.file(
+    path.join(common, ".codex", "agents", "review.toml")
+  ).text();
+  for (const text of [claude, codex]) {
+    expect(text).toContain("read-only independent leaf reviewer");
+    expect(text).toContain("applicable `AGENTS.md` instructions");
+    expect(text).toContain(
+      "base and head revisions, or an exact changed-file scope and diff"
+    );
+    expect(text).toContain("without executing validation commands");
+    expect(text).toContain("Do not provide a summary-only approval.");
+    expect(text).toContain(
+      "Do not delegate, implement, run validation, approve publication, or mutate repository state."
+    );
+    expect(text).toContain("including minor findings");
+    expect(text).toContain(
+      "fresh independent review leaf re-reviews the same scope"
+    );
+    expect(text).toContain("`blocker`, `major`, or `minor`");
+    expect(text).not.toContain("readiness review");
+    expect(text).not.toContain("Run or require validation");
+  }
+  expect(existsSync(path.join(common, ".claude", "skills", "review"))).toBe(
+    false
+  );
 });

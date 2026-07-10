@@ -18,7 +18,6 @@
     ".claude/agents/scoped-implementer.md",
     ".claude/skills/autonomous-execution/SKILL.md",
     ".claude/skills/issue-mining/SKILL.md",
-    ".claude/skills/review/SKILL.md",
     ".codegraph/.gitignore",
     ".codex/agents/implementation.toml",
     ".codex/agents/review.toml",

@@ -73,7 +73,6 @@ It is the inventory for files, directories, local settings, worktree setup, and 
 - `.claude/agents/review.md` defines the independent review subagent contract.
 - `.claude/skills/autonomous-execution/SKILL.md` defines the explicit autonomous follow-through loop.
 - `.claude/skills/issue-mining/SKILL.md` defines issue investigation and optional issue-registration workflow.
-- `.claude/skills/review/SKILL.md` defines main-agent readiness review.
 - `.agents/skills/` links to `.claude/skills/`.
 - `.codex/agents/scoped-implementer.toml` defines the equivalent Luna low-effort exact-scope agent.
 - `.codex/agents/implementation.toml` defines the Terra medium-effort general implementation agent.

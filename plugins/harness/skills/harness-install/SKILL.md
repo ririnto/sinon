@@ -120,12 +120,11 @@ A first-time `--only` record remains explicitly partial until a full install est
 - `skills/harness-install/assets/<mode>/**`: stack validation and hook assets for the chosen mode.
 - `skills/harness-install/assets/common/.claude/agents/scoped-implementer.md`: Haiku low-effort subagent for exact edits with an exhaustive file ownership list, desired behavior, and targeted validation commands.
 - `skills/harness-install/assets/common/.claude/agents/implementation.md`: Sonnet medium-effort subagent for large or cross-file work that requires affected-set discovery, reasoning, and integration validation.
-- `skills/harness-install/assets/common/.claude/agents/review.md`: review subagent for contract and validation review.
+- `skills/harness-install/assets/common/.claude/agents/review.md`: independent read-only review subagent.
 - `skills/harness-install/assets/common/.codex/agents/scoped-implementer.toml`: Luna low-effort counterpart for exact exhaustive file scopes.
 - `skills/harness-install/assets/common/.codex/agents/implementation.toml`: Terra medium-effort counterpart for broad or cross-file implementation.
 - `skills/harness-install/assets/common/.claude/skills/autonomous-execution/SKILL.md`: orchestration loop for explicit autonomous follow-through.
 - `skills/harness-install/assets/common/.claude/skills/issue-mining/SKILL.md`: investigation and issue-registration skill.
-- `skills/harness-install/assets/common/.claude/skills/review/SKILL.md`: readiness review skill.
 
 ## Decisions
 

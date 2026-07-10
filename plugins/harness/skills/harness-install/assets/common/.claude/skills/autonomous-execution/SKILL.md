@@ -34,7 +34,7 @@ Use this skill only after the user explicitly authorizes autonomous follow-throu
 3. Split candidates into separate worktrees only when their scopes do not overlap.
 4. Execute one scoped work cycle per candidate through `WORKFLOW.md`.
 5. Run the selected validation command from `WORKFLOW.md`.
-6. Run the repository readiness review.
+6. Request an independent `review` agent through `WORKFLOW.md` and collect its findings.
 7. Fix blocking failures within the failure limit.
 8. Publish or complete the owning record through `WORKFLOW.md` after validation, review, and evidence are complete.
 9. Continue to the next candidate only while it remains inside the user-approved scope and stop condition.
