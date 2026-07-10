@@ -205,7 +205,7 @@ async function fixPythonFiles(): Promise<FixResult> {
   const before = snapshotFiles(files);
   const lint = await runCommand(
     "uv",
-    ["run", "--with", "ruff>=0.15.18,<0.16.0", "ruff", "check", "--fix", "."],
+    ["run", "--with", "ruff>=0.15.21,<0.16.0", "ruff", "check", "--fix", "."],
     { cwd: root }
   );
   if (lint.code !== 0) {
@@ -215,7 +215,7 @@ async function fixPythonFiles(): Promise<FixResult> {
   }
   const format = await runCommand(
     "uv",
-    ["run", "--with", "ruff>=0.15.18,<0.16.0", "ruff", "format", "."],
+    ["run", "--with", "ruff>=0.15.21,<0.16.0", "ruff", "format", "."],
     { cwd: root }
   );
   if (format.code !== 0) {

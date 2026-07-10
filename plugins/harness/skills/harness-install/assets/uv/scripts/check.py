@@ -18,7 +18,7 @@ import sys
 from typing import Final, Protocol, Sequence, runtime_checkable
 
 
-RUFF_SPEC: Final = "ruff>=0.15.18,<0.16.0"
+RUFF_SPEC: Final = "ruff>=0.15.21,<0.16.0"
 
 
 @runtime_checkable

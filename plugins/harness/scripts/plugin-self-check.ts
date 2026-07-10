@@ -314,6 +314,41 @@ const requireText = (filePath: string, fragment: string): void => {
   }
 };
 
+/**
+ * Read one required regular-expression capture from an asset.
+ *
+ * @param filePath Asset path to inspect.
+ * @param pattern Expression with one required capture group.
+ * @param label Description used in a failure message.
+ * @returns Captured asset value.
+ */
+const readRequiredCapture = (
+  filePath: string,
+  pattern: RegExp,
+  label: string
+): string => {
+  requireFile(filePath);
+  const match = readFileSync(filePath, "utf-8").match(pattern);
+  if (match?.[1] === undefined) {
+    return fail(`[assetVersion] missing ${label}: ${filePath}`);
+  }
+  return match[1];
+};
+
+/**
+ * Return the Java release required by the declared Checkstyle major line.
+ *
+ * @param version Declared Checkstyle version.
+ * @returns Required Java release.
+ */
+const requiredJavaReleaseForCheckstyle = (version: string): number => {
+  const major = Number(version.split(".")[0]);
+  if (!Number.isInteger(major) || major < 1) {
+    return fail(`[assetVersion] invalid Checkstyle version: ${version}`);
+  }
+  return major >= 13 ? 21 : 17;
+};
+
 /** Require an executable Git hook with the repository POSIX header. */
 const requirePosixHook = (filePath: string): void => {
   requireFile(filePath);
@@ -917,6 +952,14 @@ const checkMavenAssets = (root: string): void => {
     "assets",
     "maven"
   );
+  const pom = path.join(assets, "pom.xml");
+  const githubWorkflow = path.join(
+    assets,
+    ".github",
+    "workflows",
+    "spotless.yaml"
+  );
+  const gitlabCi = path.join(assets, ".gitlab-ci.yml");
   requireTexts([
     {
       fragments: [
@@ -924,15 +967,64 @@ const checkMavenAssets = (root: string): void => {
         "markdownlint-cli2",
         "maven-checkstyle-plugin"
       ],
-      path: path.join(assets, "pom.xml")
+      path: pom
     }
   ]);
-  rejectTextFragments(path.join(assets, "pom.xml"), [
+  const spotlessVersion = readRequiredCapture(
+    pom,
+    /<artifactId>spotless-maven-plugin<\/artifactId>\s*<version>([^<]+)<\/version>/u,
+    "Spotless Maven version"
+  );
+  const checkstyleVersion = readRequiredCapture(
+    pom,
+    /<artifactId>checkstyle<\/artifactId>\s*<version>([^<]+)<\/version>/u,
+    "Checkstyle version"
+  );
+  const compilerRelease = Number(
+    readRequiredCapture(
+      pom,
+      /<maven\.compiler\.release>(\d+)<\/maven\.compiler\.release>/u,
+      "Maven compiler release"
+    )
+  );
+  const githubRuntime = Number(
+    readRequiredCapture(
+      githubWorkflow,
+      /java-version:\s*["']?(\d+)["']?/u,
+      "GitHub Java runtime"
+    )
+  );
+  const gitlabRuntime = Number(
+    readRequiredCapture(
+      gitlabCi,
+      /image:\s*maven:3\.9-eclipse-temurin-(\d+)/u,
+      "GitLab Maven Temurin runtime"
+    )
+  );
+  const requiredRuntime = requiredJavaReleaseForCheckstyle(checkstyleVersion);
+  if (!/^\d+\.\d+\.\d+$/u.test(spotlessVersion)) {
+    fail(`[assetVersion] invalid Spotless Maven version: ${spotlessVersion}`);
+  }
+  if (!/^\d+\.\d+\.\d+$/u.test(checkstyleVersion)) {
+    fail(`[assetVersion] invalid Checkstyle version: ${checkstyleVersion}`);
+  }
+  if (compilerRelease !== 17) {
+    fail(`[maven assets] compiler release must remain 17: ${pom}`);
+  }
+  if (githubRuntime !== requiredRuntime || gitlabRuntime !== requiredRuntime) {
+    fail(
+      `[maven assets] CI Java runtime must match Checkstyle compatibility release ${requiredRuntime}`
+    );
+  }
+  if (githubRuntime <= compilerRelease) {
+    fail("[maven assets] CI Java runtime must exceed the compiler release");
+  }
+  rejectTextFragments(pom, [
     "git-build-hook-maven-plugin",
     "core.hooksPath"
   ]);
   checkGithubWorkflow(
-    path.join(assets, ".github", "workflows", "spotless.yaml"),
+    githubWorkflow,
     null,
     [
       "actions/checkout@v7",
@@ -941,7 +1033,7 @@ const checkMavenAssets = (root: string): void => {
     ]
   );
   checkGitlabCi(
-    path.join(assets, ".gitlab-ci.yml"),
+    gitlabCi,
     "spotless",
     "./mvnw validate -DspotlessFiles"
   );
@@ -980,9 +1072,52 @@ const checkBunAssets = (root: string): void => {
  */
 const checkUvAssets = (root: string): void => {
   const assets = path.join(root, "skills", "harness-install", "assets", "uv");
+  const checkRunner = path.join(assets, "scripts", "check.py");
+  const fixRunner = path.join(assets, "scripts", "fix.py");
+  const githubWorkflow = path.join(
+    assets,
+    ".github",
+    "workflows",
+    "ruff.yaml"
+  );
+  const ruffSpec = readRequiredCapture(
+    checkRunner,
+    /RUFF_SPEC:\s*Final\s*=\s*"([^"]+)"/u,
+    "Ruff check runner constraint"
+  );
+  const fixRuffSpec = readRequiredCapture(
+    fixRunner,
+    /RUFF_SPEC:\s*Final\s*=\s*"([^"]+)"/u,
+    "Ruff fix runner constraint"
+  );
+  const setupUvVersion = readRequiredCapture(
+    githubWorkflow,
+    /astral-sh\/setup-uv@(v\d+\.\d+\.\d+)/u,
+    "setup-uv version"
+  );
+  if (!/^ruff>=\d+\.\d+\.\d+,<\d+\.\d+\.\d+$/u.test(ruffSpec)) {
+    fail(`[assetVersion] invalid Ruff constraint: ${ruffSpec}`);
+  }
+  if (fixRuffSpec !== ruffSpec) {
+    fail("[uv assets] Ruff check and fix constraints must match");
+  }
+  if (!/^v\d+\.\d+\.\d+$/u.test(setupUvVersion)) {
+    fail(`[assetVersion] invalid setup-uv version: ${setupUvVersion}`);
+  }
+  requireTexts(
+    [
+      "README.md",
+      "skills/harness-install/references/rule-interface.md",
+      "scripts/check.ts",
+      "scripts/fix.ts"
+    ].map((relativePath) => ({
+      fragments: [ruffSpec],
+      path: path.join(root, relativePath)
+    }))
+  );
   requireFile(path.join(assets, "ruff.toml"));
   requireFile(path.join(assets, "pyproject.toml"));
-  requireFile(path.join(assets, "scripts", "check.py"));
+  requireFile(checkRunner);
   requireText(path.join(assets, "pyproject.toml"), "package = false");
   rejectTextFragments(path.join(assets, "pyproject.toml"), ["pre-commit"]);
   if (existsSync(path.join(assets, ".pre-commit-config.yaml"))) {
@@ -994,9 +1129,9 @@ const checkUvAssets = (root: string): void => {
     fail("[uv assets] uv.toml must not exist; use pyproject.toml instead");
   }
   checkGithubWorkflow(
-    path.join(assets, ".github", "workflows", "ruff.yaml"),
+    githubWorkflow,
     "uv run scripts/check.py",
-    ["actions/checkout@v7", "astral-sh/setup-uv@v8.2.0"]
+    ["actions/checkout@v7", `astral-sh/setup-uv@${setupUvVersion}`]
   );
   checkGitlabCi(
     path.join(assets, ".gitlab-ci.yml"),

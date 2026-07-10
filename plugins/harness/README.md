@@ -266,8 +266,8 @@ The Bun-side validator and the plugin installer are covered by plugin checks for
 
 The uv validator self-provisions ruff on first use with two commands:
 
-- `uv run --with "ruff>=0.15.18,<0.16.0" ruff check .`
-- `uv run --with "ruff>=0.15.18,<0.16.0" ruff format --check .`
+- `uv run --with "ruff>=0.15.21,<0.16.0" ruff check .`
+- `uv run --with "ruff>=0.15.21,<0.16.0" ruff format --check .`
 
 It uses Ruff's normal project discovery.
 Network access is required on first run.
