@@ -62,6 +62,9 @@ They are not installed as day-to-day target repository agents.
 - `harness-reviewer`: review target harness assets and evolution proposals for contract drift.
 - `harness-validator`: diagnose target harness validation output and readiness gates.
 
+All three plugin-owned agents are substantive leaf specialists and declare Claude Sonnet with medium effort.
+They do not delegate or publish.
+
 ## Packaged Scripts and Assets
 
 - `scripts/plugin-self-check.ts` validates packaged files, stack assets, hook wiring, CI parity, package metadata, installer outcome scenarios, style hardening, and native-tool smoke checks.
@@ -199,6 +202,7 @@ The installer creates this target repository structure, and validators require i
 
 The installed inventory also includes `WORKFLOW.md`, stack-specific validation adapters, CI files when enabled, and inactive hook templates for every stack.
 Installed day-to-day runtime surfaces are three project agents (`implementation`, `scoped-implementer`, `review`) and three project skills (`autonomous-execution`, `issue-mining`, `review`).
+The general `implementation` agent uses Sonnet/Terra medium for related-file discovery, cross-module or cross-layer changes, design choices, and integrated validation. `scoped-implementer` uses Haiku/Luna low for exhaustive single-file or small related-file edits, and `review` uses Sonnet/Terra medium as a read-only reviewer.
 Plugin-root Harness skills and agents remain plugin-owned and are not copied into target repositories.
 `WORKFLOW.md` defines branch, review, validation, and publication decisions.
 Installed target agents receive workflow decisions through their task prompt.

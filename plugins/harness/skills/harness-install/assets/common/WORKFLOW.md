@@ -1,28 +1,40 @@
 # Workflow
 
-`WORKFLOW.md` is the operational playbook for this repository.
+`WORKFLOW.md` is the operational playbook for repositories that publish through GitHub, GitLab, or both.
 
-## Role
+## Authority
 
-- Orchestrate repository work from intake through publication.
-- Choose direct execution or scoped subagent delegation for each phase.
-- Integrate subagent results, validation evidence, review findings, and publication state.
-- Keep GitHub, GitLab, or local review policy aligned with the work record.
+The user-facing root session is the sole orchestrator.
+It owns decomposition, worker selection, fan-in, integrated validation, Git state, and publication.
 
-## Subagent Use
+Claude Code can nest subagents when `Agent` is granted, but this repository deliberately omits delegation tools from project agents.
+Codex uses `max_depth = 1` for the same leaf policy.
+Every repository agent returns a decomposition handoff when additional workers are needed.
 
 Use subagents as the normal tool for bounded exploration, implementation, and review when the work needs isolated context or independent judgment.
 The orchestrator owns workflow selection, agent type selection, capability tier selection, prompt scope, fan-in, and final decisions.
 Only the user-facing top-level or root agent acts as orchestrator.
 Installed repository agents are delegation targets only; do not create or delegate to a `project-orchestrator` agent.
 
-Repository subagents:
+## Model and Agent Routing
+
+| Work | Claude | Codex | Effort | Agent |
+| --- | --- | --- | --- | --- |
+| Top-level orchestration and final decisions | `opus` | `gpt-5.6-sol` | `medium` | interactive root session |
+| Exhaustive single-file or small related-file edit | `haiku` | `gpt-5.6-luna` | `low` | `scoped-implementer` |
+| Related-file discovery, broad implementation, or integration | `sonnet` | `gpt-5.6-terra` | `medium` | `implementation` |
+| Independent change review | `sonnet` | `gpt-5.6-terra` | `medium` | `review` |
 
 - `scoped-implementer`: performs a fully specified edit inside an exhaustive single-file or related-file ownership list with targeted validation.
 - `implementation`: handles large or cross-file changes that require affected-set discovery, cross-file reasoning, or integration validation.
 - `review`: reviews changes and validation evidence for risks and contract drift.
 
-Choose the narrowest agent type that can complete the assignment.
+Use `scoped-implementer` only when the caller can enumerate the complete file set and no architecture, scope expansion, or integration decision remains.
+Use `implementation` when the affected set must be discovered or crosses files, modules, layers, contracts, or validation surfaces.
+If scope exhaustiveness is unclear, run read-only exploration and produce a verifiable plan before selecting a writer.
+
+Claude accepts Haiku's explicit `effort: low`, but current official documentation does not list Haiku as effort-aware.
+Treat the field as runtime-inert routing metadata.
 
 | Need | Agent type |
 | --- | --- |
@@ -41,91 +53,93 @@ Parallel `scoped-implementer` assignments MUST have disjoint ownership lists.
 Choose the lightest capability tier that can complete the assignment.
 Tiers name capability bands, not specific vendor models; map the available runtime's models to Haiku-, Sonnet-, and Opus-equivalent bands by published capability, not by marketing label.
 
-| Difficulty | Capability tier |
-| --- | --- |
-| Narrow lookup, mechanical formatting, short evidence collection | Haiku-tier |
-| Routine implementation, validation triage, issue-mining synthesis | Sonnet-tier |
-| Ambiguous architecture, security-sensitive work, broad autonomous planning, final high-risk review | Opus-tier |
+## Verifiable Plan
 
-Include the inputs the assignment needs:
+Before dispatching work, record:
 
-- scope
-- acceptance criteria or question to answer
-- workflow decisions that affect the assigned scope
-- validation command or blocker, when validation is part of the assignment
-- publication or completion target, when the assignment owns that record
-- expected output fields
+- observable acceptance criteria
+- affected behavior and known paths
+- read-only versus writer classification
+- difficulty, agent, model, and effort
+- owner, base commit, and worktree for every writer
+- focused and integrated validation commands
+- review and publication target
 
-Add context paths only when the assignment has known files, directories, records, or commands.
-Pass only the branch, validation, review, and publication decisions needed for the assignment.
-Integrate returned changes or findings through the active orchestration workflow.
-Wait for delegated results before making dependent decisions.
+Material ambiguity blocks writer dispatch.
 
-## Non-interactive Delegation
+## Parallelism and Ownership
 
-Subagent orchestration assumes an interactive main loop.
-For CI jobs, hooks, and autonomous loops where no human is present, delegate through `claude -p` (print mode), which runs one prompt to completion and exits instead of opening a session.
+- Independent read-only workers may share a worktree.
+- Each writer owns one disjoint file and contract surface in one worktree.
+- Overlapping writers are serialized under one owner.
+- Generated outputs and their source templates count as one ownership surface.
+- Workers do not commit, push, publish, or change another worker's branch.
 
-```sh
-claude -p "List each validation failure in this repository as path: reason" > .tmp/review.md
-```
-
-Pass the same scope, acceptance criteria, validation command, and output fields as an interactive subagent assignment; capture stdout to a file when the caller needs the result.
-
-## Orchestration Workflow
-
-| Phase | Action |
-| --- | --- |
-| Intake | Confirm the issue, plan, review record, or user request that owns the work. |
-| Explore | Assign or perform architecture, docs, code, validation, and review-context exploration. |
-| Plan | Define subagent scopes, changed files, acceptance criteria, validation, manual QA, and publication target. |
-| Implement | Assign or perform the change set needed to satisfy the criteria and preserve the contracts that cover changed files. |
-| Review | Assign independent review for correctness, security, contract drift, and missing evidence when the change is non-trivial. |
-| Validate | Run the active validation command and active hooks after integrating subagent output. |
-| Publish | Use the host or local review path that owns the work record. |
-
-## Issue Mining
-
-Use the `issue-mining` skill when the user asks to investigate a specific issue, duplicate or related reports, likely code cause, or open-ended issue candidates.
-Issue mining ends with a report or requested record registration.
-It does not implement fixes.
-The orchestrator may assign internal or external exploration and then integrates findings before reporting or registration.
-
-## Evidence
-
-Record these items before publishing:
-
-- issue source or mining rationale
-- validation command and result
-- test names or CI job names
-- manual QA action and observed output
-- review findings or approval record
-- unresolved blockers and owner
-
-## Git and Records
-
-Branch names use `<type>/<short-description>`.
-
-Use built-in worktree tooling if the runtime provides it.
-Fallback to Git worktrees from the repository-approved base ref.
-Run `git fetch <remote>` first when `<base-ref>` is remote.
+Create an isolated writer worktree from the approved base when the runtime does not provide one:
 
 ```sh
 git worktree add <worktree-path> -b <type>/<short-description> <base-ref>
 ```
 
-Use the host CLI for the system that owns the issue or review.
+## Lifecycle
 
-| Review host | CLI |
+1. Intake: identify the request, issue, plan, or review record that owns the work.
+2. Plan: define acceptance criteria, dependencies, ownership, validation, and publication target.
+3. Classify: select read-only exploration, `scoped-implementer`, `implementation`, or `review` with model and effort.
+4. Isolate: assign disjoint writers to explicit worktrees and serialize overlap.
+5. Dispatch: provide scope, acceptance criteria, base commit, workflow decisions, validation, and output fields.
+6. Fan in: wait for every requested result and reconcile contradictions.
+7. Review: run independent `review` after integration-ready changes exist.
+8. Fix: return findings to the owning writer.
+9. Re-review: verify the owner fix over the same scope.
+10. Validate: run focused checks and the integrated repository command on the combined tree.
+11. Publish: update the selected host record only from the root session.
+
+A failed, missing, or contradictory worker result blocks fan-in and completion.
+Worker-branch validation does not replace integrated validation.
+
+## Non-Interactive Leaf Runs
+
+For CI or hooks, invoke one leaf prompt through print mode:
+
+```sh
+claude -p "Inventory validation failures as path: reason"
+```
+
+Print mode does not grant nested orchestration or publication authority.
+
+## Review Host Selection
+
+Resolve the host from explicit user choice, existing review metadata, repository policy, upstream, then remote URL.
+When GitHub and GitLab are both plausible, ask which host owns the record.
+After selection, inspect only that CLI and authentication state.
+
+| Host | CLI |
 | --- | --- |
 | GitHub | `gh` |
 | GitLab | `glab` |
-| Local policy | project-approved local review flow |
+| Local policy | repository-approved local review flow |
 
-Follow the review host that owns the work record for issue, review request, merge, and local completion actions.
+Do not preload both host command catalogs.
 
-## Autonomous Execution Loop
+## Evidence and Completion
 
-Use the `autonomous-execution` skill only when the user explicitly asks for autonomous follow-through beyond one scoped work item.
-The skill uses this workflow's host policy, subagent rules, capability-tier rules, evidence requirements, and publication path.
-The orchestrator may process non-overlapping issues in separate worktrees when their files, contracts, validation surfaces, and publication or completion targets do not conflict.
+Record:
+
+- acceptance criteria and owning record
+- worker results and fan-in status
+- focused and integrated validation commands and results
+- review findings, owner fixes, and re-review result
+- manual QA actions and observed output
+- unresolved blockers and owners
+- final publication URL or local completion record
+
+Do not report completion while any required result, owner fix, re-review, validation, or publication action is missing.
+
+## Autonomous Execution
+
+Use `autonomous-execution` only when the user explicitly requests continued follow-through beyond one scoped item.
+It inherits this workflow's ownership, model routing, fan-in, validation, and root-only publication gates.
+
+Use `issue-mining` for investigation and record preparation only.
+It does not implement fixes.

@@ -1,627 +1,214 @@
 ---
 name: pr-mr-convention
 description: >-
-  Compose GitHub pull requests and GitLab merge requests with disciplined titles, structured bodies, review checklists, and consistent metadata.
-  Triggers on PR/MR description drafting, label or reviewer selection, self-review checklist authoring, or GitHub vs GitLab metadata convention decisions.
+  Compose focused pull request and merge request titles, bodies, review evidence, and metadata.
+  Use when drafting or updating PR/MR review context, preserving repository templates, selecting draft status, or routing GitHub versus GitLab publication details.
 ---
 
 # PR/MR Convention
 
-Compose pull requests and merge requests that guide reviewers through a single, focused change with clear intent, structured evidence, and honest assessment of testing and risk.
-
-## Goal
-
-Communicate change intent, impact, and validation so reviewers can assess the work quickly and accurately.
-A well-formed PR/MR surfaces the "why" and "what," demonstrates testing discipline, and respects the reviewer's time.
+Compose one truthful review request from real repository state.
+Keep host-neutral drafting in this file and load only the selected host reference for template locations and CLI commands.
 
 ## Scope
 
 This skill covers:
 
-- PR/MR title composition aligned with Conventional Commits.
-- Body structure with sections for Summary, Why, Changes, Testing, and Notes.
-- Label and reviewer selection strategies.
-- Host-specific metadata (GitHub labels versus GitLab scoped labels, draft versus ready status).
-- Self-review checklist before merging.
+- title and body composition
+- repository template preservation
+- validation and risk reporting
+- draft versus ready decisions
+- labels, reviewers, and assignees
+- GitHub or GitLab publication routing
 
-This skill does not cover:
-
-- Code review itself (how to review code is a separate discipline).
-- CI/CD pipeline configuration.
-- Merge strategy selection (fast-forward, squash, no-ff; covered in git-merge-strategies).
-- Commit message content for merged commits.
+It does not cover code-review judgment, CI design, merge strategy, history rewriting, or issue management.
 
 ## Operating Rules
 
-- **Title MUST be a single, clear statement of intent**: One line, 50–72 characters, in imperative mood.
-  - Use Conventional Commits format: `type(scope): description` (e.g., `feat(api): add user authentication`).
-- **Body MUST be structured**: Use consistent section headings (Summary, Why, Changes, Testing, Notes) to guide the reviewer through the change.
-- **Title and body MUST convey a single, cohesive change**: Multi-purpose PRs/MRs MUST be split into separate, sequential requests.
-  - Large refactors and feature additions MUST be separate.
-- **Testing MUST be explicit and honest**: List only tests, lints, type checks, and manual validations that were actually performed.
-  - MUST NOT claim "all tests pass" if CI is incomplete.
-- **Self-review checklist MUST be completed before marking as ready**: Verify lint, type safety, unit tests, documentation, and relevant migration steps.
-- **Draft status SHOULD be used when design, tests, or CI are incomplete**: Move to ready only when all checklist items pass.
+- Ground every claim in the actual diff, commit history, validation evidence, or explicit user context.
+- Preserve an applicable repository template exactly, including heading order.
+- List only checks that actually ran.
+- Keep one cohesive change per PR or MR.
+- Use draft status while design, tests, validation, or dependencies remain incomplete.
+- Do not publish, edit host metadata, or assign reviewers without authorization.
+- Treat the target branch and repository default branch as separate values.
+- Stop for clarification when more than one publication host or template remains plausible.
 
-## Title Convention
+## First Safe Checks
 
-Use Conventional Commits format for PR/MR titles:
+Inspect local state without mutating it:
 
-```text
-type(scope): description
+```sh
+git remote -v
+git status --short --branch
+git branch -vv
+git log -5 --oneline
 ```
 
-Components:
+Resolve publication context in this order:
 
-- `type`: One of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`.
-- `scope`: The module, feature, or area affected (e.g., `api`, `auth`, `ui`, `deps`).
-  - MUST be lowercase, no spaces.
-  - Omit if single-scope project.
-- `description`: Imperative mood, no period, lowercase start.
-  - Summarize the change concisely.
+1. explicit user choice
+2. existing PR or MR metadata
+3. repository policy
+4. current branch upstream
+5. remote URL as a clue
 
-Examples:
+An upstream or remote URL is not proof when GitHub and GitLab are both plausible.
+Ask one focused host question before publication when ambiguity remains.
 
-- `feat(auth): implement JWT refresh token rotation`
-- `fix(api): handle null customer ID in billing endpoint`
-- `docs: update API authentication guide`
-- `refactor(db): migrate connection pool to async-await`
-- `perf(search): add query result caching`
+After selecting a host, open exactly one host reference and use only its CLI and authentication checks.
+Do not run both host branches speculatively.
 
-Length: 50–72 characters (enforce via linter or manual review).
+## Drafting Procedure
 
-## Body Template
+1. Resolve the publication host, target branch, and repository default branch independently.
+2. Load only `references/github.md` or `references/gitlab.md` when host-specific template or CLI behavior is needed.
+3. Locate repository templates from the default branch.
+4. Resolve the comparison base from explicit target, existing review metadata, or repository policy.
+5. Inspect feature-only commits and the merge-base diff.
+6. Determine whether the change is one cohesive review unit.
+7. Draft the title, body, validation, risks, and metadata from evidence.
+8. Preserve the selected template or use the fallback body when none applies.
+9. Mark the review draft unless readiness evidence is complete.
+10. Return the draft and blockers to the user-facing top-level session for publication.
 
-Use this structure for all PR/MR bodies.
-Customize section depth based on change scope, but preserve section order.
+Safe comparison commands after resolving `<base>`:
 
-````markdown
+```sh
+git log <base>..HEAD --oneline
+git diff <base>...HEAD --stat
+git diff <base>...HEAD
+```
+
+Report when remote-tracking refs may be stale.
+
+## Title
+
+Prefer the repository's established convention.
+When it uses Conventional Commits, use:
+
+```text
+type(scope): imperative description
+```
+
+- Use one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, or `revert`.
+- Add scope only when it clarifies the affected subsystem.
+- Keep the description imperative, specific, and without a trailing period.
+- Follow repository length policy; when none exists, keep the title within 72 characters when practical.
+
+## Fallback Body
+
+Use this only when no repository or host-managed template is confirmed:
+
+```markdown
 ## Summary
 
-Brief overview of what changed. 2–4 bullet points, each starting with a verb (adds, fixes, removes, refactors, updates).
-
-- Adds JWT refresh token endpoint with 7-day expiry.
-- Fixes race condition in session cleanup on logout.
-- Removes deprecated BasicAuth header support.
+- <one to three evidence-backed changes>
 
 ## Why
 
-Context: the problem being solved or the requirement driving the change. 1–3 bullets.
-
-- Refresh tokens reduce the window of exposure if access tokens are leaked.
-- Session cleanup race allowed zombie sessions to persist for up to 30 seconds.
-- BasicAuth is no longer used by any active client; removing it reduces attack surface.
+- <problem, requirement, or explicit author context>
 
 ## Changes
 
-Factual description of implementation. Group related file changes.
+- <grouped implementation facts>
 
-- `src/auth/tokens.ts`: New `RefreshTokenManager` class with rotation logic.
-- `src/auth/routes.ts`: New POST `/auth/refresh` endpoint; validates refresh token and returns new access token.
-- `src/session/cleanup.ts`: Wrapped cleanup in mutex to prevent concurrent deletes.
-- `src/types/auth.ts`: Added `RefreshTokenPayload` interface.
-- Removed deprecated routes from `src/routes/legacy.ts`.
+## Validation
 
-## Testing
+- <checks that actually ran, with result>
 
-List only validations that were actually performed.
+## Risks
 
-- [x] Unit tests for RefreshTokenManager (100% coverage).
-- [x] Integration test: POST /auth/refresh with valid and expired tokens.
-- [x] Manual test: refresh token lifecycle with 5-minute sleep to verify expiry window.
-- [x] Lint and type check pass (`npm run lint`, `npm run typecheck`).
-- [ ] Load test on refresh endpoint (deferred to post-merge optimization task).
+- <specific compatibility, rollout, dependency, or performance risk, or None>
 
-## Notes
+## Unverified Items
 
-Risks, caveats, breaking changes, deployment notes, or follow-up work.
-
-- **Breaking change**: Clients relying on BasicAuth must migrate to Bearer token before this release.
-- **Deployment note**: Refresh tokens are stored in a new database table; run migration in pre-deployment window.
-- **Known limitation**: Refresh token rotation is not yet replicated across multi-region deployments (tracked in issue #456).
-- **Follow-up**: Add refresh token analytics in next sprint to identify abuse patterns.
-````
-
-## Title and Body: Host-Specific Details
-
-### GitHub
-
-- **Title**: Use Conventional Commits format as shown above.
-- **Body**: Use standard markdown.
-  - GitHub supports GFM alerts (`> [!NOTE]`, `> [!WARNING]`, etc.) in PR descriptions.
-
-#### Minimal GitHub Alert Example
-
-```markdown
-## Summary
-
-- Adds rate limit header to all API responses.
-
-## Why
-
-- Client SDKs need visibility into rate limit consumption.
-
-## Testing
-
-- [x] Unit tests pass.
-- [x] Integration tests pass.
-
-> [!WARNING]
->
-> Rate limit defaults have changed. Clients MUST update their backoff logic.
+- <pending check or None>
 ```
 
-#### Create Command
+If motivation is not evident from the diff or supplied context, write `Reason not evident from available evidence; confirm with author` instead of inventing one.
 
-```sh
-gh pr create --title "feat(api): add rate limit headers" \
-  --body-file body.md \
-  --draft
-```
+## Template Selection
 
-### GitLab
+- Search the repository default branch, not only the feature tree.
+- Preserve exact headings and required checklists.
+- Distinguish optional named templates from the default template.
+- Report host-managed project, group, organization, or instance templates as unconfirmed when the selected CLI cannot inspect them.
+- When multiple templates apply, list them and request a choice.
 
-- **Title**: Use Conventional Commits format as shown above.
-- **Body**: Use standard markdown.
-  - GitLab supports quick actions (e.g., `/assign`, `/label`) in MR descriptions.
+Host-specific template paths and commands are in the selected reference.
 
-#### Minimal Quick Actions Example
+## Validation Evidence
 
-```markdown
-## Summary
+Classify every check as:
 
-- Adds rate limit header to all API responses.
+- passed: command ran and succeeded
+- failed: command ran and failed
+- pending: not run or result unavailable
+- not applicable: reason recorded
 
-## Why
+Do not convert a planned check into a completed checklist item.
+Name exact commands, test cases, CI jobs, or manual actions when known.
 
-- Client SDKs need visibility into rate limit consumption.
+## Draft Versus Ready
 
-## Testing
+Keep the review in draft when any of these remain:
 
-- [x] Unit tests pass.
-- [x] Integration tests pass.
+- unresolved design decision
+- incomplete implementation or dependency
+- failed or missing required validation
+- unresolved review finding
+- placeholder text or unconfirmed template
+- unclear target branch or publication host
 
-## Notes
+Ready status requires complete review context, appropriate passing validation, resolved blockers, and explicit publication authorization.
 
-**Breaking change**: Clients MUST update their backoff logic.
+## Metadata
 
-/assign @reviewer-name
-/label ~type:feature ~priority:high
-```
+- Reuse the repository's existing label taxonomy.
+- Do not invent labels or assume handles exist.
+- Prefer reviewers who own the affected subsystem or are named by `CODEOWNERS` or repository policy.
+- Report missing reviewer information instead of assigning an arbitrary account.
+- Keep labels, reviewers, milestones, and assignees host-specific after host selection.
 
-#### Create Command
+## Self-Review
 
-```sh
-glab mr create --title "feat(api): add rate limit headers" \
-  --description "$(cat body.md)" \
-  --draft \
-  --yes
-```
+Before returning the draft, confirm:
 
-## Decision: Draft versus Ready
+- title describes one change
+- target and default branches are not conflated
+- template source is named
+- summary and changes match the diff
+- motivation is evidenced or marked unconfirmed
+- validation is honest
+- risks and unverified items are explicit
+- draft status matches readiness
+- no publication action was taken
 
-Move a PR/MR from draft to ready only when:
+## Edge Cases
 
-- **All title and body sections are complete** and truthful.
-- **CI pipeline is passing** (lint, type check, tests).
-- **Test coverage is appropriate** for the change type (100% for critical paths; ≥80% for features; optional for docs).
-- **Self-review checklist is complete** (see below).
-- **Design is finalized** (no open questions or unresolved decisions in the PR/MR comments).
-
-### Keep As Draft
-
-- CI is not yet passing.
-- Tests are pending or incomplete.
-- Design or implementation is still being debated.
-- Waiting for dependent PR/MR to merge.
-
-### Example Workflow
-
-1. Create PR/MR in draft status.
-2. Push commits, run CI, fix failures.
-3. When CI passes and tests are complete, complete the self-review checklist.
-4. Mark as ready for review.
-
-## Labels and Metadata
-
-### GitHub Labels
-
-Use a consistent label taxonomy.
-Recommended categories:
-
-| Category | Examples | Purpose |
-| --- | --- | --- |
-| **type** | `type:feature`, `type:fix`, `type:docs`, `type:refactor` | Classify change kind. |
-| **scope** | `scope:auth`, `scope:api`, `scope:ui`, `scope:deps` | Identify affected subsystem. |
-| **priority** | `priority:high`, `priority:medium`, `priority:low` | Signal urgency. |
-| **status** | `status:ready-to-merge`, `status:needs-revision`, `status:blocked` | Communicate blockers. |
-| **effort** | `effort:small`, `effort:medium`, `effort:large` | Estimate reviewer time. |
-
-### Apply Labels When Opening the PR
-
-```sh
-gh pr create --title "..." --label "type:feature,scope:api,priority:high"
-```
-
-### GitLab Scoped Labels
-
-GitLab supports scoped labels: `scope::value` syntax.
-Use consistently:
-
-```sh
-glab mr create --title "..." --label "type::feature,scope::api,priority::high" --yes
-```
-
-Key difference from GitHub: Scoped labels enforce a single value per scope (e.g., only one `type::*` can be active).
-Use this to prevent conflicting labels.
-
-## Reviewer and Assignee Strategy
-
-- **Assign MUST include at least one reviewer** before marking ready.
-  - Assign to the person directly responsible for review.
-- **Reviewers SHOULD be from the same team or subsystem** when possible (domain knowledge reduces review time).
-- **Codeowners SHOULD be used** to auto-request reviewers if the repository defines a `CODEOWNERS` file.
-- **Round-robin assignment SHOULD rotate reviewers** across the team to distribute load and knowledge.
-
-### GitHub Example
-
-```sh
-gh pr create --title "..." --assignee reviewer-github-handle --reviewer code-owner
-```
-
-### GitLab Example
-
-```markdown
-/assign @reviewer-name
-/reviewer @code-owner
-```
-
-## Self-Review Checklist
-
-Complete this checklist before marking your PR/MR as ready for review.
-Do not rely on reviewers to catch these items.
-
-- [ ] **Title follows Conventional Commits**: Type, scope, description in imperative mood.
-- [ ] **Body is complete**: Summary, Why, Changes, Testing, and Notes sections are filled with truthful details.
-- [ ] **Single, cohesive change**: If multiple features or major refactors, split into separate PRs/MRs.
-- [ ] **Lint passes**: Run linter; fix all violations.
-- [ ] **Type check passes**: No `any` types; resolve all type errors.
-- [ ] **Unit tests added**: New public functions have corresponding tests; coverage ≥80%.
-- [ ] **Integration tests pass**: Feature or fix is validated end-to-end.
-- [ ] **Documentation updated**: Comments, README, or user-facing docs reflect the change.
-- [ ] **No debug code**: Remove `console.log`, `debugger`, or commented-out code.
-- [ ] **Breaking changes listed**: If API changes, incompatible behavior shifts, or migration steps are required, document them in Notes.
-- [ ] **Dependencies reviewed**: New or updated deps have been checked for security, size, and maintenance status.
-- [ ] **Commit history is clean**: Squash merge-in commits or intermediate debugging commits (unless rebasing is not allowed).
-- [ ] **Labels assigned**: Type, scope, priority applied appropriately.
-- [ ] **Reviewers assigned**: At least one domain expert assigned.
-
-## Pitfalls
-
-- **Large PR/MR (>400 lines)**: Split into smaller, focused requests.
-  - Reviewers will skim large diffs and miss issues.
-  - Exception: generated code or large refactors; document the rationale in Notes.
-- **Vague titles**: avoid "Updates", "Fixes bug", or "WIP".
-  - Be specific.
-  - "fix(auth): prevent session fixation attack" is better than "Fixes auth bug".
-- **Fabricated validation**: MUST NOT claim "all tests pass" if you have not run tests.
-  - Write "tests pending CI confirmation" instead.
-- **No Why section**: Reviewers may not understand why the change is necessary.
-  - Always explain the problem, requirement, or context.
-- **Multiple concerns in one PR/MR**: Feature + refactor + dependency bump = hard to review and harder to revert.
-  - Keep each change separate.
-- **Unresolved conflicts in commit history**: MUST NOT merge with rebase conflicts, merge conflicts, or unmerged dependencies.
-- **Reviewer assignment to inactive accounts**: Verify assignee is active and available before sending for review.
-
-## First Safe Commands
-
-### GitHub Workflow
-
-```sh
-# Create PR in draft status with title and body file
-gh pr create --draft \
-  --title "feat(api): add user authentication" \
-  --body-file pr-body.md
-
-# Add labels after creation
-gh pr edit <number> --add-label "type:feature,scope:api,priority:high"
-
-# Assign reviewer
-gh pr edit <number> --add-reviewer reviewer-name
-
-# Convert to ready when tests pass and checklist is complete
-gh pr ready <number>
-```
-
-### GitLab Workflow
-
-```sh
-# Create MR in draft status with title and body (including quick actions)
-glab mr create --draft \
-  --title "feat(api): add user authentication" \
-  --description "$(cat mr-body.md)" \
-  --yes
-
-# The MR body includes quick actions like /assign, /label, /reviewer
-# After CI passes and checklist is complete, mark ready via web UI or:
-glab mr update <number> --ready --yes
-```
-
-## GitHub CLI (gh) Cheat Sheet
-
-### Create a Pull Request
-
-```sh
-# Create with title and body file (most common)
-gh pr create --title "feat(api): add rate limit headers" \
-  --body-file body.md \
-  --draft
-
-# Create with explicit title and inline body
-gh pr create --title "fix(db): handle null connection" \
-  --body "Fixes #123. Adds null checks to prevent crash."
-
-# Auto-fill from commits (use with caution)
-gh pr create --fill --draft
-
-# Create and assign reviewers/labels immediately
-gh pr create --title "feat(auth): JWT refresh token" \
-  --body-file body.md \
-  --label "type:feature,scope:auth,priority:high" \
-  --reviewer alice,bob \
-  --assignee maintainer
-```
-
-### Edit an Existing PR
-
-```sh
-# Update title and body from file
-gh pr edit 42 --title "New title" --body-file body.md
-
-# Add/remove labels
-gh pr edit 42 --add-label "needs-review" --remove-label "draft-review"
-
-# Add/remove reviewers (bare logins; no '@')
-gh pr edit 42 --add-reviewer alice --remove-reviewer bob
-
-# Add/remove assignees ('@me' is supported; other logins are bare)
-gh pr edit 42 --add-assignee @me --remove-assignee previous-owner
-```
-
-### Check PR Status and Details
-
-```sh
-# View PR details (title, body, CI status)
-gh pr view 42
-
-# View PR with comments
-gh pr view 42 --comments
-
-# List open PRs (default)
-gh pr list
-
-# List all PRs with filters
-gh pr list --state all --assignee @me
-gh pr list --label "needs-review" --state open
-gh pr list --search "status:success review:required"
-gh pr list --draft
-gh pr list --author "@me" --state closed
-```
-
-### Mark as Ready / Convert to Draft
-
-```sh
-# Convert from draft to ready
-gh pr ready 42
-
-# Convert from ready to draft
-gh pr ready 42 --undo
-```
-
-### Merge a PR
-
-```sh
-# Standard merge (create merge commit)
-gh pr merge 42 --merge
-
-# Squash and merge (flatten commits into one)
-gh pr merge 42 --squash
-
-# Rebase and merge (reapply commits on base branch)
-gh pr merge 42 --rebase
-
-# Auto-merge when checks pass (do not merge immediately)
-gh pr merge 42 --auto --squash
-
-# Merge and delete source branch
-gh pr merge 42 --squash --delete-branch
-```
-
-### Recommended Option Combinations
-
-| Scenario | Command |
-| --- | --- |
-| Start new feature with discipline | `gh pr create --draft --title "feat(x): ..." --body-file body.md --label "type:feature"` |
-| Add CI/review requirements | `gh pr edit <n> --add-reviewer maintainer --add-label "needs-review"` |
-| Ready after tests pass | `gh pr ready <n>` |
-| Merge when approved (avoid manual merge button) | `gh pr merge <n> --squash --auto --delete-branch` |
-
-## GitLab CLI (glab) Cheat Sheet
-
-### Create a Merge Request
-
-```sh
-# Create with title and description from file (most common)
-glab mr create --title "feat(api): add rate limit headers" \
-  --description "$(cat body.md)" \
-  --draft \
-  --yes
-
-# Create with inline description
-glab mr create --title "fix(db): handle null connection" \
-  --description "Fixes #123. Adds null checks to prevent crash." \
-  --yes
-
-# Auto-fill from commits (--fill skips title/description prompts and pushes the branch)
-glab mr create --fill --draft --yes
-
-# Create with labels, reviewers, assignees (reviewers/assignees are bare usernames, no '@')
-glab mr create --title "feat(auth): JWT refresh token" \
-  --description "$(cat body.md)" \
-  --label "type::feature,scope::auth" \
-  --reviewer alice,bob \
-  --assignee maintainer \
-  --yes
-```
-
-### Edit an Existing MR
-
-```sh
-# Update title and description
-glab mr update 42 --title "New title" \
-  --description "$(cat body.md)" \
-  --yes
-
-# Add/remove labels (--label adds, --unlabel removes)
-glab mr update 42 --label "needs-review" --unlabel "wip" --yes
-
-# Set reviewers: '+alice' adds, '-bob' or '!bob' removes; a bare list replaces them all.
-glab mr update 42 --reviewer "+alice,-bob" --yes
-
-# Set assignees with the same prefix rule as reviewers.
-glab mr update 42 --assignee "+alice,-bob" --yes
-```
-
-### Check MR Status and Details
-
-```sh
-# View MR details (title, body, CI status, discussions)
-glab mr view 42
-
-# View MR with comments and discussions
-glab mr view 42 --comments
-
-# View only resolved discussions
-glab mr view 42 --resolved
-
-# List open MRs (default)
-glab mr list
-
-# List with filters
-glab mr list --assignee @me
-glab mr list --reviewer @me
-glab mr list --label "needs-review"
-glab mr list --draft
-glab mr list --all
-
-# Search in title and description
-glab mr list --search "adds feature X"
-
-# Filter by branch
-glab mr list --source-branch "new-feature" --target-branch "main"
-```
-
-### Mark as Ready / Convert to Draft
-
-```sh
-# Convert from draft to ready for review
-glab mr update 42 --ready --yes
-
-# Convert from ready to draft
-glab mr update 42 --draft --yes
-```
-
-### Merge an MR
-
-```sh
-# Standard merge (create merge commit); add --yes (-y) to skip the confirm prompt
-glab mr merge 42 --yes
-
-# Squash commits before merge
-glab mr merge 42 --squash --yes
-
-# Rebase and merge
-glab mr merge 42 --rebase --yes
-
-# Merge when pipeline succeeds (do not merge immediately)
-glab mr merge 42 --auto-merge --yes
-
-# Merge and delete source branch
-glab mr merge 42 --remove-source-branch --yes
-
-# Custom commit message for merge
-glab mr merge 42 --message "Merge feature X" --yes
-```
-
-### Recommended Option Combinations
-
-| Scenario | Command |
-| --- | --- |
-| Start new feature with discipline | `glab mr create --draft --title "feat(x): ..." --description "$(cat body.md)" --label "type::feature" --yes` |
-| Add review requirements | `glab mr update <n> --reviewer maintainer --label "needs-review" --yes` |
-| Ready after tests pass | `glab mr update <n> --ready --yes` |
-| Merge when approved | `glab mr merge <n> --squash --auto-merge --yes` |
-
-## Using External Body Files
-
-Both `gh` and `glab` support reading PR/MR body text from files.
-This pattern enables pre-writing a body offline and using it repeatedly.
-
-### Prepare Body File
-
-```markdown
-## Summary
-
-- Adds JWT refresh token endpoint.
-- Fixes session cleanup race condition.
-
-## Why
-
-- Refresh tokens reduce exposure window if access tokens leak.
-- Session cleanup race allowed zombie sessions up to 30 seconds.
-
-## Testing
-
-- [x] Unit tests (100% coverage).
-- [x] Integration tests with valid/expired tokens.
-- [x] Manual test: 5-minute refresh lifecycle validation.
-```
-
-### GitHub CLI
-
-```sh
-# Use --body-file to read from file
-gh pr create --title "feat(auth): JWT refresh" --body-file body.md --draft
-
-# Update existing PR body from file
-gh pr edit 42 --body-file body.md
-```
-
-### GitLab CLI
-
-```sh
-# Pass file content to --description using command substitution
-glab mr create --title "feat(auth): JWT refresh" \
-  --description "$(cat body.md)" \
-  --draft \
-  --yes
-
-# Update existing MR description from file
-glab mr update 42 --description "$(cat body.md)" --yes
-```
+- Multiple GitHub and GitLab remotes: ask which host owns the review unless explicit metadata resolves it.
+- Unsupported forge: draft the host-neutral body and return host publication as a blocker.
+- Detached HEAD or missing upstream: rely on explicit target or repository policy; do not invent a base.
+- Large or multi-purpose diff: recommend split boundaries before drafting one review body.
+- Binary or generated changes: name their source and verification when available.
+- Stale remote refs: disclose that template and diff discovery may be incomplete.
 
 ## Output Contract
 
-When composed correctly, a PR/MR output satisfies these invariants:
+Return:
 
-- **Title**: 50–72 characters, Conventional Commits format, single intent.
-- **Body**: Markdown with sections (Summary, Why, Changes, Testing, Notes), all populated with truthful details extracted from diff.
-- **Labels**: Type, scope, priority; no conflicting or redundant labels.
-- **Assignees**: At least one reviewer from the affected team or subsystem.
-- **Status**: Draft if CI incomplete or design unresolved; ready if all checklist items passed.
-- **No placeholder text**: All sections include concrete details, not "TBD" or "[fill in]".
+1. selected host and evidence, or the unresolved ambiguity
+2. target branch and repository default branch
+3. template source
+4. title
+5. complete body
+6. draft or ready recommendation with evidence
+7. proposed labels, reviewers, and assignees only when confirmed
+8. validation, risks, and unverified items
+9. publication blocker or authorized next command
 
-## References
+## Optional References
 
-- None yet.
-  - All common-case guidance is contained in `SKILL.md`.
+- `references/github.md` - open only after GitHub is selected for template discovery or `gh` commands.
+- `references/gitlab.md` - open only after GitLab is selected for template discovery or `glab` commands.

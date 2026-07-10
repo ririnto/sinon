@@ -23,6 +23,8 @@ Write or refactor one Agent Skill so `SKILL.md` is the activation entrypoint, th
 - Treat `name` and `description` as the portable required fields.
 - The Agent Skills specification also permits optional `license`, `compatibility`, `metadata`, and experimental `allowed-tools` fields.
 - For Sinon-published skills, use only `name` and `description` by default; add a portable optional field only when the task requires it and repository policy permits it.
+- Never add agent runtime `model` or `effort` fields to portable Agent Skill frontmatter.
+  - Put runtime routing in Claude agent frontmatter, Codex agent TOML, or repository workflow policy.
 - Put the display title in the first H1 heading, not in frontmatter.
 - Put version, baseline, source, owner, and official-documentation notes in the body when ordinary use needs them.
 - Treat `references/`, `assets/`, and `scripts/` as optional support files, not prerequisites.
@@ -73,6 +75,7 @@ Sinon house style keeps published skill frontmatter to `name` and `description` 
 A Sinon reviewer MUST report an extra portable field as a house-style or policy issue, not as an Agent Skills schema violation.
 
 Do not add non-standard fields such as `title`, `owner`, `version`, `source`, `officialDocs`, URLs, argument hints, or baseline fields.
+Do not add agent runtime fields such as `model`, `effort`, or `model_reasoning_effort`.
 Put non-standard publishing notes in the body when ordinary use needs them.
 
 ### `name`

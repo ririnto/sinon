@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "pendingIntegrations": [
+    {
+      "name": "scoped-implementer",
+      "claudePath": "plugins/harness/skills/harness-install/assets/common/.claude/agents/scoped-implementer.md",
+      "claudeModel": "haiku",
+      "claudeEffort": "low",
+      "codexPath": "plugins/harness/skills/harness-install/assets/common/.codex/agents/scoped-implementer.toml",
+      "codexModel": "gpt-5.6-luna",
+      "codexEffort": "low",
+      "topology": "mechanical",
+      "access": "writer"
+    }
+  ],
+  "agents": [
+    {
+      "name": "agent-creator",
+      "claudePath": "plugins/agent-capability-kit/agents/agent-creator.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "codexPath": ".codex/agents/agent-creator.toml",
+      "codexModel": "gpt-5.6-terra",
+      "codexEffort": "medium",
+      "topology": "leaf",
+      "access": "writer"
+    },
+    {
+      "name": "inventory-scanner",
+      "claudePath": "plugins/agent-capability-kit/agents/inventory-scanner.md",
+      "claudeModel": "haiku",
+      "claudeEffort": "low",
+      "codexPath": ".codex/agents/inventory-scanner.toml",
+      "codexModel": "gpt-5.6-luna",
+      "codexEffort": "low",
+      "topology": "inventory",
+      "access": "read-only"
+    },
+    {
+      "name": "plugin-validator",
+      "claudePath": "plugins/agent-capability-kit/agents/plugin-validator.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "codexPath": ".codex/agents/plugin-validator.toml",
+      "codexModel": "gpt-5.6-terra",
+      "codexEffort": "medium",
+      "topology": "leaf",
+      "access": "read-only"
+    },
+    {
+      "name": "skill-reviewer",
+      "claudePath": "plugins/agent-capability-kit/agents/skill-reviewer.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "codexPath": ".codex/agents/skill-reviewer.toml",
+      "codexModel": "gpt-5.6-terra",
+      "codexEffort": "medium",
+      "topology": "leaf",
+      "access": "read-only"
+    },
+    {
+      "name": "harness-architect",
+      "claudePath": "plugins/harness/agents/harness-architect.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "router"
+    },
+    {
+      "name": "harness-reviewer",
+      "claudePath": "plugins/harness/agents/harness-reviewer.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "read-only"
+    },
+    {
+      "name": "harness-validator",
+      "claudePath": "plugins/harness/agents/harness-validator.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "read-only"
+    },
+    {
+      "name": "implementation",
+      "claudePath": "plugins/harness/skills/harness-install/assets/common/.claude/agents/implementation.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "codexPath": "plugins/harness/skills/harness-install/assets/common/.codex/agents/implementation.toml",
+      "codexModel": "gpt-5.6-terra",
+      "codexEffort": "medium",
+      "topology": "leaf",
+      "access": "writer"
+    },
+    {
+      "name": "review",
+      "claudePath": "plugins/harness/skills/harness-install/assets/common/.claude/agents/review.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "codexPath": "plugins/harness/skills/harness-install/assets/common/.codex/agents/review.toml",
+      "codexModel": "gpt-5.6-terra",
+      "codexEffort": "medium",
+      "topology": "leaf",
+      "access": "read-only"
+    },
+    {
+      "name": "java-architect",
+      "claudePath": "plugins/java/agents/java-architect.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "router"
+    },
+    {
+      "name": "observability-architect",
+      "claudePath": "plugins/observability-assets/agents/observability-architect.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "router"
+    },
+    {
+      "name": "reactor-architect",
+      "claudePath": "plugins/reactor/agents/reactor-architect.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "router"
+    },
+    {
+      "name": "spec-driven-development",
+      "claudePath": "plugins/spec-driven-development/agents/spec-driven-development.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "writer"
+    },
+    {
+      "name": "spring-architect",
+      "claudePath": "plugins/spring/agents/spring-architect.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "router"
+    },
+    {
+      "name": "commit-message-architect",
+      "claudePath": "plugins/workspace-workflow/agents/commit-message-architect.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "read-only"
+    },
+    {
+      "name": "pr-body-architect",
+      "claudePath": "plugins/workspace-workflow/agents/pr-body-architect.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "read-only"
+    },
+    {
+      "name": "workspace-architect",
+      "claudePath": "plugins/workspace-workflow/agents/workspace-architect.md",
+      "claudeModel": "sonnet",
+      "claudeEffort": "medium",
+      "topology": "leaf",
+      "access": "router"
+    }
+  ]
+}

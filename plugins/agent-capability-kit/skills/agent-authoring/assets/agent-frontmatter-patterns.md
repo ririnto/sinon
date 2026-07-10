@@ -2,6 +2,22 @@
 
 Use these copyable fragments only after the ordinary role and tool boundary are clear.
 
+## Substantive Leaf
+
+```yaml
+model: sonnet
+effort: medium
+```
+
+## Lightweight Inventory or Mechanical Leaf
+
+```yaml
+model: haiku
+effort: low
+```
+
+Haiku's effort declaration is required repository metadata but is currently runtime-inert according to Claude's official effort compatibility table.
+
 ## Read-Only Discovery
 
 ```yaml

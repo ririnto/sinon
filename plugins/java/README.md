@@ -31,6 +31,9 @@ They should not stop at pointing toward other repositories or documentation when
 
 - `java-architect`: coordinates Java language, testing, dependency, performance, and API design decisions when a task crosses multiple Java skills or needs architecture-level tradeoff review.
 
+`java-architect` is a substantive leaf domain router using Claude Sonnet with medium effort.
+It may load Java skills but does not delegate to other agents.
+
 ## Skill Selection
 
 Start here when the Java work could fit more than one skill:

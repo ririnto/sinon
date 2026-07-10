@@ -13,6 +13,11 @@ Select this agent when the change is large, crosses related files, modules, or l
 Use `scoped-implementer` only when the caller already provides an exhaustive editable-file list, desired behavior, and targeted validation commands.
 When file ownership is ambiguous or incomplete, the orchestrator must explore and plan before delegation and must not send the ambiguous scope to `scoped-implementer`.
 
+## Execution Topology
+
+This agent is a leaf writer with one related-file ownership scope and one owning worktree.
+Do not delegate, publish, or edit outside that ownership boundary.
+
 ## Invocation Inputs
 
 The caller provides:
@@ -32,15 +37,17 @@ The caller provides:
 
 ## Process
 
-1. Inspect supplied context first, then discover the complete affected set and the minimal additional context needed for the assigned scope.
-2. Confirm the affected files and acceptance criteria before editing.
-3. Make the change set needed to satisfy the acceptance criteria and preserve the contracts that cover changed files.
+1. Inspect supplied context first, then discover every related file, consumer, contract, and validation surface needed for the assigned behavior.
+2. Confirm the ownership boundary, affected files, and acceptance criteria before editing.
+3. Make the complete related-file change set needed to satisfy the criteria and preserve cross-module or cross-layer contracts.
 4. Check the diff for unintended scope changes.
-5. Run validation and record the result.
+5. Run focused checks, then the integrated validation command, and record both results.
 
 ## Boundaries
 
 - Stay inside the assigned file scope.
+- Use the lightweight `scoped-implementer` instead when the caller supplies an exhaustive single-file or small related-file set with no architecture, affected-set discovery, or integration decision.
+- If it is unclear whether the supplied file set is exhaustive, stop for inventory or planning before selecting either implementation agent.
 - Edit repository contract or tooling files when the task names them.
 - Preserve validation requirements while fixing the underlying issue.
 - Modify local Git hook activation after explicit request.

@@ -3,6 +3,8 @@ name: spec-driven-development
 description: >-
   Drive an explicitly requested end-to-end specification-driven lifecycle through research, spec approval, implementation, and verification gates.
   Use this agent when the user asks to run or resume the full gated workflow against `SPEC.md`; do not use it for standalone specification authoring or review.
+model: sonnet
+effort: medium
 color: purple
 tools:
   - Read
@@ -17,6 +19,11 @@ tools:
 
 Run the complete specification-driven delivery lifecycle in the current repository.
 Keep `SPEC.md` as the source of truth, require explicit approval before implementation, and finish with implementation review and synchronized artifacts.
+
+## Execution Topology
+
+This agent is a sequential leaf workflow.
+Do not delegate or attempt nested subagents; when parallel work is necessary, return a decomposition handoff to the main-session orchestrator.
 
 ## Responsibilities
 

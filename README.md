@@ -10,7 +10,8 @@ It publishes curated plugins from a single source tree.
 
 Plugins live under `plugins/`.
 The Claude marketplace catalog lives at the repository root.
-Stable repository rules, layout policies, and skill-authoring contracts are in `AGENTS.md`.
+Always-on repository rules are in `AGENTS.md`.
+Narrow package, authoring, Harness, and forge rules load from nearer `AGENTS.md` files under `plugins/`.
 
 ## Purpose
 
@@ -22,7 +23,7 @@ Stable repository rules, layout policies, and skill-authoring contracts are in `
 
 ## Repository Structure
 
-- `AGENTS.md`: stable repository rules, skill-authoring contracts, and layout policies.
+- `AGENTS.md`: stable repository invariants, orchestration, routing, and completion gates.
 - `CLAUDE.md`: Claude Code pointer that imports `AGENTS.md`.
 - `README.md`: repository overview and marketplace registration guidance.
 - `.gitignore`: development ignore rules.
@@ -32,7 +33,21 @@ Stable repository rules, layout policies, and skill-authoring contracts are in `
 - `.claude/skills/` and `.claude/agents/`: `-> plugins/agent-capability-kit/{skills,agents}/`.
 - `.agents/skills/`: `-> .claude/skills/`; `.agents/agents/` is intentionally absent.
 - `.codex/agents/`: regular directory containing one Codex TOML file per shared agent.
+- `scripts/agent-routing-manifest.json`: canonical agent model, effort, topology, and counterpart inventory.
+- `scripts/agent-routing.ts`: deterministic routing and mirror validator.
 - `plugins/`: plugins maintained in this repository.
+
+## Agent Routing
+
+The interactive top-level session is the sole general orchestrator and uses Claude `opus` or Codex `gpt-5.6-sol` with `medium` effort.
+It is workflow policy, not an installable agent profile.
+
+Installable substantive agents use Claude `sonnet` or Codex `gpt-5.6-terra` with `medium` effort.
+Lightweight inventory and exhaustive mechanical agents use Claude `haiku` or Codex `gpt-5.6-luna` with `low` effort.
+Every repository agent declares its model and effort explicitly.
+
+Current Claude documentation does not list Haiku as effort-aware.
+Sinon keeps the explicit `effort: low` declaration as runtime-inert compatibility metadata and reports that limitation during validation.
 
 ## Plugin Layout
 
