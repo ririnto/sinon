@@ -66,27 +66,21 @@ const copyRepositoryFixture = (temporaryRoot: string): string => {
 const copyPluginFixture = (temporaryRoot: string): string => {
   const sourceRoot = path.resolve(import.meta.dirname, "..", "..");
   const fixtureRoot = path.join(temporaryRoot, "harness");
-  const repositoryRoot = path.resolve(sourceRoot, "..", "..");
-  const tracked = Bun.spawnSync(
-    ["git", "-C", repositoryRoot, "ls-files", "-z", "--", "plugins/harness"],
-    { stderr: "pipe", stdout: "pipe" }
-  );
-  if (!tracked.success) {
-    throw new Error(tracked.stderr.toString());
-  }
-  for (const filePath of tracked.stdout.toString().split("\0")) {
-    if (filePath === "") {
-      continue;
-    }
-    const targetPath = path.join(
-      fixtureRoot,
-      path.relative("plugins/harness", filePath)
-    );
-    mkdirSync(path.dirname(targetPath), { recursive: true });
-    cpSync(path.join(repositoryRoot, filePath), targetPath);
-  }
+  cpSync(sourceRoot, fixtureRoot, {
+    filter: (source) => path.basename(source) !== ".git",
+    recursive: true
+  });
   return fixtureRoot;
 };
+
+const runSelfCheck = (pluginRoot: string): ReturnType<typeof Bun.spawnSync> =>
+  Bun.spawnSync(
+    [
+      process.execPath,
+      path.join(pluginRoot, "scripts", "plugin-self-check.ts")
+    ],
+    { cwd: pluginRoot, stderr: "pipe", stdout: "pipe" }
+  );
 
 test("package surface follows Claude 2.1.205 fields and filesystem boundaries", () => {
   const temporaryRoot = mkdtempSync(path.join(tmpdir(), "package-surface-"));
@@ -226,17 +220,54 @@ test("a copied Harness package runs its self-check without repository files", ()
     );
     expect(() => checkPackageSurface(pluginRoot)).toThrow();
     unlinkSync(escapingRuntime);
-    const result = Bun.spawnSync(
-      [
-        process.execPath,
-        path.join(pluginRoot, "scripts", "plugin-self-check.ts")
-      ],
-      { cwd: pluginRoot, stderr: "pipe", stdout: "pipe" }
-    );
+    const result = runSelfCheck(pluginRoot);
     expect(
       result.success,
-      `${result.stdout.toString()}${result.stderr.toString()}`
+      `${result.stdout?.toString() ?? ""}${result.stderr?.toString() ?? ""}`
     ).toBe(true);
+  } finally {
+    rmSync(temporaryRoot, { force: true, recursive: true });
+  }
+}, 120_000);
+
+test("the self-check works in a nested superproject and rejects missing assets", () => {
+  const temporaryRoot = mkdtempSync(path.join(tmpdir(), "harness-nested-"));
+  try {
+    const superprojectRoot = path.join(temporaryRoot, "superproject");
+    const pluginRoot = path.join(superprojectRoot, "plugins", "harness");
+    mkdirSync(path.dirname(pluginRoot), { recursive: true });
+    cpSync(path.resolve(import.meta.dirname, "..", ".."), pluginRoot, {
+      filter: (source) => path.basename(source) !== ".git",
+      recursive: true
+    });
+    const initialized = Bun.spawnSync(["git", "init", "--quiet"], {
+      cwd: superprojectRoot,
+      stderr: "pipe",
+      stdout: "pipe"
+    });
+    expect(initialized.success, initialized.stderr.toString()).toBe(true);
+    const nestedResult = runSelfCheck(pluginRoot);
+    expect(
+      nestedResult.success,
+      `${nestedResult.stdout?.toString() ?? ""}${nestedResult.stderr?.toString() ?? ""}`
+    ).toBe(true);
+    rmSync(
+      path.join(
+        pluginRoot,
+        "skills",
+        "harness-install",
+        "assets",
+        "common",
+        ".codex",
+        "agents"
+      ),
+      { recursive: true }
+    );
+    const missingAssets = runSelfCheck(pluginRoot);
+    expect(missingAssets.success).toBe(false);
+    expect(missingAssets.stderr?.toString() ?? "").toContain(
+      "missing required directory"
+    );
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });
   }
