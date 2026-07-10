@@ -10,7 +10,7 @@ Every repository agent is a deliberate leaf.
 
 ## Model and Agent Routing
 
-Use subagents as the normal tool for bounded exploration, implementation, and review when the work needs isolated context or independent judgment.
+Delegate bounded exploration, implementation, documentation, audit, and review work to leaves.
 The orchestrator owns workflow selection, agent type selection, capability tier selection, prompt scope, fan-in, and final decisions.
 Only the user-facing top-level or root agent acts as orchestrator.
 Installed repository agents are delegation targets only; do not create or delegate to a `project-orchestrator` agent.

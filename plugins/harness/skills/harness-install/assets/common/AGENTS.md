@@ -18,6 +18,7 @@ Child `AGENTS.md` files may add narrower rules for their directories.
 - Use `WORKFLOW.md` for branch, worktree, validation, review, and publication decisions.
 - Treat the user-facing root session as the sole orchestrator.
   - Repository agents are leaves and do not delegate or publish.
+- Delegate every exploration, implementation, documentation edit, audit, and validation task to a bounded leaf worker.
 - Classify work before assignment.
   - Use `scoped-implementer` only for an exhaustive single-file or small related-file set.
   - Use `implementation` for affected-set discovery, cross-file or cross-layer work, design choices, and integrated validation.
