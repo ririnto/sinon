@@ -103,11 +103,13 @@ The installer entry point `skills/harness-install/scripts/install-harness.ts` ac
 | `--activate-hooks` | Activate Git hooks through the stack ecosystem tool after install; the installer fails if the tool or activation step errors instead of silently skipping. |
 | `--preview` | Print the planned write/keep/overwrite/drift set without writing anything. |
 | `--show <path>` | Print the asset that would be installed at one target path. |
-| `--only <path>` | Install only one target path from the resolved plan. |
+| `--only <path>` | Install one target path and merge its outcome into the install record. A first-time targeted install creates an explicitly partial record. |
 
 `--preview` reports drift explicitly: a target file that differs from its template is reported as `drift` and requires `--force` to overwrite, so a successful preview never silently claims a refresh it did not perform.
 
-A full install writes `.harness/install-record.json` capturing the mode, CI host, canonical check, fix, and pre-push commands plus the installed asset inventory; it is the durable source of truth for `harness-validate` and later refreshes.
+A full install writes `.harness/install-record.json` with the mode, CI host, canonical commands, completeness, and each asset's actual `created`, `updated`, `kept`, or `conflict` outcome plus `harness`, `shared`, or `target` ownership. Later refreshes update an unchanged `harness`-owned file when its plugin source changes, preserve target drift as a conflict, and require `--force` before taking ownership of that conflict. Root contracts remain shared managed-block files.
+
+A first-time `--only` record remains explicitly partial until a full install establishes the complete inventory; do not report it as a complete harness installation.
 
 ## Asset Role Map
 

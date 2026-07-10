@@ -214,3 +214,20 @@ export const ensureRuntimeSymlinks = async (
     await ensureTargetSymlink(config, ".agents/skills", "../.claude/skills");
   }
 };
+
+/** Install one selected runtime symlink after checking its real target. */
+export const ensureOneRuntimeSymlink = async (
+  config: InstallerConfig,
+  candidate: InstallCandidate
+): Promise<void> => {
+  if (candidate.symlinkTarget === undefined) {
+    return fail(`candidate has no symlink target: ${candidate.dst}`);
+  }
+  if (!(await isDirectory(".claude/skills"))) {
+    return fail(
+      `cannot create ${candidate.dst}; install .claude/skills before selecting this symlink`
+    );
+  }
+  await ensureTargetDirectory(config, ".agents");
+  await ensureTargetSymlink(config, candidate.dst, candidate.symlinkTarget);
+};
