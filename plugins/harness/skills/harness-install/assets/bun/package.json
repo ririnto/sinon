@@ -2,7 +2,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prepare": "husky",
     "check": "run-p check:*",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:ultracite": "ultracite check",
@@ -12,7 +11,6 @@
   },
   "devDependencies": {
     "@oxc-project/types": "^0.137.0",
-    "husky": "^9.1.7",
     "markdownlint": "^0.41.0",
     "markdownlint-cli2": "^0.22.1",
     "npm-run-all2": "^9.0.2",
