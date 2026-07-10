@@ -1,50 +1,51 @@
 # Agent Frontmatter Patterns
 
-Use these patterns when you need copyable frontmatter shapes for common agent roles.
-Adapt the role wording and tool boundary to the actual job.
+Use these copyable fragments only after the ordinary role and tool boundary are clear.
 
-## Read-only analysis agent
-
-See the Minimal example in `SKILL.md` for a complete read-only analysis shape (`schema-reviewer`).
-The pattern below shows only the frontmatter differences for a read-only role:
+## Read-Only Discovery
 
 ```yaml
 color: cyan
 tools:
   - Read
+  - Glob
   - Grep
 ```
 
-Key traits: narrow inspection scope, no mutation tools, and a `description` that states the trigger condition clearly.
+## Bounded Editor
 
-## Editing agent
-
-```markdown
----
-name: docs-refiner
-description: >-
-  Rewrite documentation files for structure, tone, and reader-ready handoff.
-  Use this agent when a documentation file needs direct rewriting with a bounded writing workflow.
+```yaml
 color: green
 tools:
   - Read
-  - Write
----
+  - Glob
+  - Grep
+  - Edit
 ```
 
-## Multi-file refactor agent
+## Isolated Migration
 
-```markdown
----
-name: dependency-updater
-description: >-
-  Update dependency versions, import paths, or API signatures across multiple files.
-  Use this agent when a bounded multi-file update needs coordinated reads and targeted edits.
+```yaml
 color: yellow
 tools:
   - Read
-  - Write
-  - Edit
+  - Glob
   - Grep
----
+  - Edit
+  - Bash
+maxTurns: 40
+isolation: worktree
 ```
+
+## Preloaded Skill
+
+```yaml
+skills:
+  - repository-migration
+```
+
+Preloading injects the full skill content at startup.
+Use it only when every invocation needs that content.
+
+Do not add `hooks`, `mcpServers`, or `permissionMode` to a plugin agent.
+Do not add an `Examples` frontmatter field; keep examples in the Markdown body.

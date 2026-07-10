@@ -15,11 +15,11 @@ Focus on documents that capture requirements, design intent, and acceptance crit
 
 ## Included Skills
 
-- `spec-creator`: Turn rough ideas, feature requests, interviews, or planning notes into structured `SPEC.md` documents with requirements, scenarios, and acceptance criteria.
+- `spec-creator`: Turn rough ideas, feature requests, interviews, or planning notes into one standalone `SPEC.md` with requirements, scenarios, and acceptance criteria.
 
 ## How the Skill Branches
 
-Use `spec-creator` when the user asks to "create `SPEC.md`", "write a spec", "draft a product spec", "create structured requirements", "write acceptance criteria", "make an RFC-style spec", "make an SRS-style spec", or define testable feature behavior before implementation.
+Use `spec-creator` when the requested deliverable is the specification document itself: "create `SPEC.md`", "write a spec", "draft a product spec", "create structured requirements", "write acceptance criteria", "make an RFC-style spec", or "make an SRS-style spec".
 
 - `references/spec-template.md` - canonical `SPEC.md` skeleton and section rules.
 - `references/requirements-style.md` - requirement IDs, RFC 2119 language, and EARS patterns.
@@ -72,11 +72,9 @@ claude --plugin-dir /path/to/sinon/plugins/document-creator
 
 ## Scope Notes
 
-This plugin focuses on authoring individual AI-consumable documents well.
-It does not cover:
+This plugin focuses on authoring an individual AI-consumable specification document well.
+It does not run:
 
-- Full spec-driven development workflow (research → spec → review → implement → verify) - see `spec-driven-development` plugin for that end-to-end workflow.
+- gated research, approval, implementation, implementation review, or verification lifecycles
 - Git branch management, CI/CD pipeline design, or project management.
 - Document templates for non-engineering contexts (e.g., marketing, legal, general communication).
-
-The sibling `spec-driven-development` plugin drives the full research-to-verification workflow and uses specs created by this plugin as input.

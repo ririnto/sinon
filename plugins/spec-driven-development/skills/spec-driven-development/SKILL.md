@@ -1,9 +1,8 @@
 ---
 name: spec-driven-development
 description: >-
-  Drive implementation through a `SPEC.md`-first workflow covering research, review gates, approved-spec execution, and completeness verification.
-  Use when starting a new feature with a spec-first approach, writing `SPEC.md` before code, running review gates, or verifying implementation completeness against an approved specification.
-  Activated only on explicit user request, not automatically.
+  Drive an explicitly requested end-to-end specification-driven delivery lifecycle through research, spec approval, implementation, and verification gates.
+  Use when the user asks to run or resume the full gated workflow against `SPEC.md`; do not activate for standalone specification authoring or review.
 ---
 
 # spec-driven-development

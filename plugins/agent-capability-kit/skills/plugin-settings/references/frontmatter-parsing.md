@@ -1,589 +1,167 @@
 ---
 name: frontmatter-parsing
-description: |-
-  Complete YAML frontmatter parsing patterns for `.claude/{{plugin-name}}.local.md` files, including all data types, edge cases, and validation.
+description: >-
+  Complete Bun and YAML patterns for parsing, validating, serializing, and safely locating plugin-defined `.local.md` state.
 ---
 
-# YAML Frontmatter Parsing: Complete Patterns and Edge Cases
+# YAML Frontmatter Parsing
 
-Open this reference when parsing YAML frontmatter from `.local.md` files, handling edge cases like missing fields or malformed input, or validating numeric ranges and enums.
+Open this reference when plugin code must both read and write `.claude/<plugin>.local.md`, preserve a Markdown body, or consume path-valued settings.
 
-This reference covers exhaustive YAML frontmatter parsing patterns for `.claude/{{plugin-name}}.local.md` files, including all data types, edge cases, malformed input handling, and validation.
+## Dependency
 
-## Frontmatter structure
+Use a real YAML parser.
+The example is a standalone Bun module with a versioned package import:
 
-Markdown file with YAML frontmatter between `---` delimiters:
-
-```markdown
----
-field1: value1
-field2: 42
-field3: true
-field4:
-  - item1
-  - item2
-field5: |-
-  Multi-line
-  string value
----
-
-# Markdown content below frontmatter
-
-This is body content.
+```ts
+import { parseDocument, stringify } from "yaml@2.8.1";
 ```
 
-## Extraction pattern (complete)
-
-Extract raw frontmatter without parsing:
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-# Extract frontmatter between --- delimiters.
-#
-# @param file_path Path to .local.md file.
-# @return Outputs frontmatter lines; exits 1 if file absent or malformed.
-extract_frontmatter() {
-    file_path="$1"
-    if [ ! -f "$file_path" ]; then
-        return 1
-    fi
-    in_frontmatter=0
-    line_num=0
-    while IFS= read -r line; do
-        line_num=$((line_num + 1))
-        if [ "$line_num" -eq 1 ]; then
-            if [ "$line" != "---" ]; then
-                echo "Error: file does not start with ---" >&2
-                return 1
-            fi
-            in_frontmatter=1
-            continue
-        fi
-        if [ "$in_frontmatter" -eq 1 ] && [ "$line" = "---" ]; then
-            break
-        fi
-        if [ "$in_frontmatter" -eq 1 ]; then
-            echo "$line"
-        fi
-    done < "$file_path"
-}
-```
-
-## Per-field type parsing
-
-### Boolean fields
-
-YAML boolean values: `true`, `false` (case-insensitive).
-
-```sh
-
-# Parse boolean field with strict type checking.
-#
-# @param frontmatter Frontmatter content as multi-line string.
-# @param field_name Field name to extract.
-# @return Outputs "true" or "false"; exits 1 if invalid.
-parse_boolean() {
-    frontmatter="$1"
-    field_name="$2"
-    value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//")
-    if [ -z "$value" ]; then
-        return 1
-    fi
-    case "$value" in
-        true|True|TRUE|yes|Yes|YES|on|On|ON)
-            echo "true"
-            ;;
-        false|False|FALSE|no|No|NO|off|Off|OFF)
-            echo "false"
-            ;;
-        *)
-            echo "Error: invalid boolean value for $field_name: $value" >&2
-            return 1
-            ;;
-    esac
-}
-```
-
-Usage:
-
-```sh
-FRONTMATTER=$(extract_frontmatter ".claude/plugin.local.md")
-ENABLED=$(parse_boolean "$FRONTMATTER" "enabled")
-if [ "$ENABLED" = "true" ]; then
-    echo "Plugin enabled"
-fi
-```
-
-### Numeric fields
-
-Integer and floating-point numbers.
-
-```sh
-
-# Parse numeric field with range validation.
-#
-# @param frontmatter Frontmatter content.
-# @param field_name Field name to extract.
-# @param min_value Minimum allowed value.
-# @param max_value Maximum allowed value.
-# @return Outputs numeric value; exits 1 if invalid.
-parse_numeric() {
-    frontmatter="$1"
-    field_name="$2"
-    min_value="${3:-}"
-    max_value="${4:-}"
-    value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//")
-    if [ -z "$value" ]; then
-        return 1
-    fi
-    if ! printf '%s' "$value" | grep -qE '^-?[0-9]+(\.[0-9]+)?$'; then
-        echo "Error: $field_name must be numeric, got: $value" >&2
-        return 1
-    fi
-    if [ -n "$min_value" ]; then
-        if echo "$value < $min_value" | bc -l | grep -qE '^1$'; then
-            echo "Error: $field_name must be >= $min_value, got: $value" >&2
-            return 1
-        fi
-    fi
-    if [ -n "$max_value" ]; then
-        if echo "$value > $max_value" | bc -l | grep -qE '^1$'; then
-            echo "Error: $field_name must be <= $max_value, got: $value" >&2
-            return 1
-        fi
-    fi
-    echo "$value"
-}
-```
-
-Usage:
-
-```sh
-RETRY_COUNT=$(parse_numeric "$FRONTMATTER" "max_retries" 1 100)
-echo "Max retries: $RETRY_COUNT"
-```
-
-### String fields (unquoted)
-
-Simple unquoted strings up to end of line.
-
-```sh
-
-# Parse unquoted string field.
-#
-# @param frontmatter Frontmatter content.
-# @param field_name Field name to extract.
-# @param default_value Default if field absent (optional).
-# @return Outputs string value.
-parse_string_unquoted() {
-    frontmatter="$1"
-    field_name="$2"
-    default_value="${3:-}"
-    value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//" | sed 's/ *$//')
-    if [ -z "$value" ]; then
-        if [ -n "$default_value" ]; then
-            echo "$default_value"
-        fi
-        return 1
-    fi
-    echo "$value"
-}
-```
-
-### String fields (quoted)
-
-Quoted strings with escaped quotes.
-
-```sh
-
-# Parse quoted string field with quote unescaping.
-#
-# @param frontmatter Frontmatter content.
-# @param field_name Field name to extract.
-# @return Outputs unquoted string value.
-parse_string_quoted() {
-    frontmatter="$1"
-    field_name="$2"
-    value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//")
-    if [ -z "$value" ]; then
-        return 1
-    fi
-    if [ "${value#\"}" != "$value" ] && [ "${value%\"}" != "$value" ]; then
-        value="${value%\"}"
-        value="${value#\"}"
-        value=$(echo "$value" | sed 's/\\"/"/g' | sed "s/\\\\'/'/g")
-    fi
-    echo "$value"
-}
-```
-
-### Array fields (YAML list syntax)
-
-YAML arrays in `[item1, item2]` syntax.
-
-```sh
-
-# Parse array field into bash array.
-#
-# @param frontmatter Frontmatter content.
-# @param field_name Field name to extract.
-# @return Outputs array items one per line.
-parse_array() {
-    frontmatter="$1"
-    field_name="$2"
-    value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//")
-    if [ -z "$value" ]; then
-        return 1
-    fi
-    if ! printf '%s' "$value" | grep -qE '^\[' || ! printf '%s' "$value" | grep -qE '\]$'; then
-        echo "Error: $field_name must be array syntax [item1, item2]" >&2
-        return 1
-    fi
-    value="${value%\]}"
-    value="${value#\[}"
-    echo "$value" | tr ',' '\n' | sed 's/^ *"//' | sed 's/"$ *//' | sed 's/^ *//' | sed 's/ *$//'
-}
-```
-
-Usage:
-
-```json
-readarray -t EXTENSIONS < <(parse_array "$FRONTMATTER" "allowed_extensions")
-for ext in "${EXTENSIONS[@]}"; do
-    echo "Allowed: $ext"
-done
-```
-
-### Multi-line string fields
-
-YAML literal (`|`) or folded (`>`) scalars spanning multiple lines.
-
-```sh
-
-# Extract multi-line string (literal or folded).
-#
-# @param frontmatter Frontmatter content.
-# @param field_name Field name to extract.
-# @return Outputs multi-line string.
-parse_multiline() {
-    frontmatter="$1"
-    field_name="$2"
-    in_multiline=0
-    result=""
-    while IFS= read -r line; do
-        if printf '%s' "$line" | grep -qE "^${field_name}:\ *(\||>)" ; then
-            in_multiline=1
-            continue
-        fi
-        if [ "$in_multiline" -eq 1 ]; then
-            if printf '%s' "$line" | grep -qE '^[a-zA-Z_]'; then
-                break
-            fi
-            if [ -n "$line" ]; then
-                result="$result$(echo "$line" | sed 's/^  //')"$'\n'
-            fi
-        fi
-    done <<< "$frontmatter"
-    printf '%s' "$result"
-}
-```
-
-## Edge cases and malformed input
-
-### Missing fields
-
-Field not present in frontmatter:
-
-```sh
-OPTIONAL_FIELD=$(parse_string_unquoted "$FRONTMATTER" "optional_field" "default_value")
-echo "Optional field: $OPTIONAL_FIELD"
-```
-
-Provide default as third argument.
-If field absent, default is returned.
-
-### Empty values
-
-Field present but value is empty:
-
-```markdown
----
-empty_field:
----
-```
-
-Parsing:
-
-```sh
-VALUE=$(echo "$FRONTMATTER" | grep '^empty_field:' | sed 's/^empty_field: *//')
-if [ -z "$VALUE" ]; then
-    VALUE="default"
-fi
-```
-
-### Malformed YAML (missing closing ---)
-
-File:
-
-```markdown
----
-field1: value1
-field2: value2
-
-# No closing --- delimiter
-
-Some content
-```
-
-Extraction will read until EOF instead of second `---`.
-
-Validate strictly:
-
-```sh
-
-# Validate frontmatter has proper delimiters.
-#
-# @param file_path Path to .local.md file.
-# @return Exits 0 if valid; exits 1 if malformed.
-validate_frontmatter() {
-    file_path="$1"
-    delimiter_count=$(grep -c "^---$" "$file_path" || true)
-    if [ "$delimiter_count" -lt 2 ]; then
-        echo "Error: frontmatter missing closing --- delimiter" >&2
-        return 1
-    fi
-    return 0
-}
-```
-
-### Duplicate fields
-
-When same field appears twice:
-
-```markdown
----
-field: value1
-field: value2
----
-```
-
-`grep` returns both lines.
-
-First match wins:
-
-```sh
-VALUE=$(echo "$FRONTMATTER" | grep "^field:" | head -1 | sed 's/^field: *//')
-echo "Value: $VALUE"
-```
-
-Use `head -1` to take first occurrence.
-
-### Escaped quotes in strings
-
-Quoted string with escaped quotes:
-
-```markdown
----
-message: "He said \"hello\""
----
-```
-
-Parsing:
-
-```sh
-MESSAGE=$(parse_string_quoted "$FRONTMATTER" "message")
-echo "Message: $MESSAGE"
-```
-
-Result: He said "hello"
-
-### Special characters in values
-
-YAML requires quoting for special characters:
-
-```markdown
----
-path: "/home/user/my-folder"
-regex: "^[a-z]+"
-command: "ls -la"
----
-```
-
-Always quote values containing special characters.
-Parsing with `parse_string_quoted` handles escaping.
-
-### Inconsistent indentation
-
-YAML is whitespace-sensitive:
-
-```markdown
----
-field1: value1
-  field2: value2
-field3: value3
----
-```
-
-Indented field2 is treated as nested (incorrect for flat structure).
-
-Validate strict formatting:
-
-```json
-grep "^[^ ]" "$FRONTMATTER"  # Lines starting with non-space (no indentation)
-```
-
-### Comments in frontmatter
-
-YAML allows comments after `#`:
-
-```markdown
----
-enabled: true  # Master on/off switch
-mode: strict   # Validation level
----
-```
-
-Parsing removes comments:
-
-```sh
-VALUE=$(echo "$FRONTMATTER" | grep "^mode:" | sed 's/ *#.*//' | sed 's/^mode: *//')
-echo "Mode: $VALUE"
-```
-
-## Validation ranges and defaults
-
-### Numeric range validation
-
-```markdown
-
-# Parse and validate numeric field within range.
-#
-# @param frontmatter Frontmatter content.
-# @param field_name Field name.
-# @param min Minimum allowed value.
-# @param max Maximum allowed value.
-# @param default Default if absent or invalid.
-# @return Outputs validated value.
-parse_numeric_safe() {
-    frontmatter="$1"
-    field_name="$2"
-    min="$3"
-    max="$4"
-    default="$5"
-    value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//" || echo "")
-    if [ -z "$value" ]; then
-        echo "$default"
-        return 0
-    fi
-    if ! printf '%s' "$value" | grep -qE '^[0-9]+$' || [ "$value" -lt "$min" ] || [ "$value" -gt "$max" ]; then
-        echo "Warning: $field_name out of range [$min, $max], using default $default" >&2
-        echo "$default"
-        return 0
-    fi
-    echo "$value"
-}
-```
-
-Usage:
-
-```sh
-RETRIES=$(parse_numeric_safe "$FRONTMATTER" "max_retries" 1 100 3)
-echo "Retries: $RETRIES"
-```
-
-### String enum validation
-
-```markdown
-
-# Parse and validate string from allowed set.
-#
-# @param frontmatter Frontmatter content.
-# @param field_name Field name.
-# @param default Default value.
-# @param allowed_values Space-separated list of allowed values.
-# @return Outputs validated value or default.
-parse_enum() {
-    frontmatter="$1"
-    field_name="$2"
-    default="$3"
-    shift 3
-    allowed_values=("$@")
-    value=$(echo "$frontmatter" | grep "^${field_name}:" | sed "s/^${field_name}: *//" || echo "")
-    if [ -z "$value" ]; then
-        echo "$default"
-        return 0
-    fi
-    for allowed in "${allowed_values[@]}"; do
-        if [ "$value" = "$allowed" ]; then
-            echo "$value"
-            return 0
-        fi
-    done
-    echo "Warning: $field_name has invalid value '$value', using default '$default'" >&2
-    echo "$default"
-}
-```
-
-Usage:
-
-```sh
-LEVEL=$(parse_enum "$FRONTMATTER" "validation_level" "standard" "strict" "standard" "lenient")
-echo "Validation level: $LEVEL"
-```
-
-### Default when file absent or invalid
-
-```sh
-if [ ! -f ".claude/plugin.local.md" ] || ! validate_frontmatter ".claude/plugin.local.md"; then
-    ENABLED=true
-    MODE="standard"
-    MAX_RETRIES=3
-else
-    FRONTMATTER=$(extract_frontmatter ".claude/plugin.local.md")
-    ENABLED=$(parse_boolean "$FRONTMATTER" "enabled")
-    MODE=$(parse_string_unquoted "$FRONTMATTER" "mode" "standard")
-    MAX_RETRIES=$(parse_numeric_safe "$FRONTMATTER" "max_retries" 1 100 3)
-fi
-echo "Enabled: $ENABLED, Mode: $MODE, Retries: $MAX_RETRIES"
-```
-
-## Complete example: full parsing workflow
-
-Composite script using per-field parsing functions defined earlier:
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-load_settings() {
-    state_file="$1"
-    if [ ! -f "$state_file" ]; then
-        export ENABLED=true
-        export MODE="standard"
-        export MAX_RETRIES=3
-        return 0
-    fi
-    frontmatter=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$state_file")
-    export ENABLED
-    ENABLED=$(parse_boolean "$frontmatter" "enabled" || echo "true")
-    export MODE
-    MODE=$(parse_enum "$frontmatter" "mode" "standard" "strict" "standard" "lenient")
-    export MAX_RETRIES
-    MAX_RETRIES=$(parse_numeric_safe "$frontmatter" "max_retries" 1 100 3)
+Pin or update the version according to the plugin's dependency policy.
+
+## Read and Validate
+
+Keep frontmatter extraction, YAML parsing, and schema validation separate so errors name the failing boundary.
+
+```ts
+#!/usr/bin/env bun
+// -*- coding: utf-8 -*-
+
+import { chmod, readFile, rename, writeFile } from "node:fs/promises";
+import { realpathSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { parseDocument, stringify } from "yaml@2.8.1";
+
+type ParsedMarkdown = {
+  data: Record<string, unknown>;
+  body: string;
+};
+
+function parseLocalMarkdown(source: string): ParsedMarkdown {
+  const lines = source.split(/\r?\n/u);
+  if (lines[0] !== "---") {
+    throw new Error("state file must begin with ---");
+  }
+  const closing = lines.indexOf("---", 1);
+  if (closing < 0) {
+    throw new Error("state file is missing its closing --- delimiter");
+  }
+  const document = parseDocument(lines.slice(1, closing).join("\n"), { uniqueKeys: true });
+  if (document.errors.length > 0) {
+    throw new Error(document.errors.map((error) => error.message).join("; "));
+  }
+  const value = document.toJS();
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("frontmatter must be a YAML mapping");
+  }
+  return {
+    data: value as Record<string, unknown>,
+    body: lines.slice(closing + 1).join("\n").replace(/^\n/u, ""),
+  };
 }
 
-load_settings ".claude/plugin.local.md"
-echo "Enabled: $ENABLED, Mode: $MODE, Retries: $MAX_RETRIES"
+function serializeLocalMarkdown(data: Record<string, unknown>, body: string): string {
+  const yaml = stringify(data, { lineWidth: 100 }).trimEnd();
+  const normalizedBody = body.trimEnd();
+  return `---\n${yaml}\n---\n\n${normalizedBody}\n`;
+}
+
+function resolveExistingInside(baseDirectory: string, configuredPath: string): string {
+  const base = realpathSync(baseDirectory);
+  const candidate = realpathSync(resolve(base, configuredPath));
+  const fromBase = relative(base, candidate);
+  if (fromBase.startsWith("..") || isAbsolute(fromBase)) {
+    throw new Error("configured path escapes the allowed directory");
+  }
+  return candidate;
+}
+
+function resolveWriteInside(baseDirectory: string, configuredPath: string): string {
+  const base = realpathSync(baseDirectory);
+  const requested = resolve(base, configuredPath);
+  const realParent = realpathSync(dirname(requested));
+  const candidate = join(realParent, basename(requested));
+  const fromBase = relative(base, candidate);
+  if (fromBase.startsWith("..") || isAbsolute(fromBase)) {
+    throw new Error("configured path escapes the allowed directory");
+  }
+  return candidate;
+}
+
+async function writeAtomic(path: string, content: string): Promise<void> {
+  const temporary = `${path}.${process.pid}.tmp`;
+  await writeFile(temporary, content, { encoding: "utf8", mode: 0o600 });
+  await rename(temporary, path);
+  await chmod(path, 0o600);
+}
+
+const projectDirectory = process.env["CLAUDE_PROJECT_DIR"] ?? process.cwd();
+const statePath = resolveWriteInside(projectDirectory, ".claude/example-plugin.local.md");
+const source = await readFile(statePath, "utf8");
+const parsed = parseLocalMarkdown(source);
+parsed.data["enabled"] = false;
+await writeAtomic(statePath, serializeLocalMarkdown(parsed.data, parsed.body));
 ```
 
-Use parsing functions from Sections: Boolean, String enum validation, Numeric range validation.
+`resolveExistingInside` is for an existing configured input path.
+`resolveWriteInside` resolves the real parent so a new final path cannot escape through a parent symlink.
+It fails when the parent does not exist; create and validate an authorized parent explicitly when that is part of the contract.
 
-## References
+## Schema Policy
 
-Refer to `SKILL.md` for common frontmatter keys and templates.
+After parsing, define these decisions explicitly:
 
-Refer to `references/multi-agent-coordination.md` for complex settings in multi-agent scenarios.
+- required and optional keys
+- default values
+- accepted primitive and collection types
+- enum members
+- numeric bounds
+- whether unknown keys are rejected or ignored
+- whether YAML aliases and custom tags are accepted
+- behavior for an absent file versus an invalid file
+
+Reject duplicate keys through the parser.
+Do not let YAML coercion silently convert a value that the plugin expects to be a string.
+
+## Serialization Rules
+
+- Serialize typed values with the YAML library.
+- Preserve the Markdown body intentionally.
+- Write to a temporary file in the same directory, then rename atomically.
+- Use restrictive permissions for user-local state.
+- Do not write secrets into the state file.
+- Do not construct YAML by quoting user input manually.
+
+## Error Contract
+
+Use focused errors that distinguish:
+
+- file absent
+- missing delimiter
+- malformed YAML
+- duplicate key
+- non-mapping frontmatter
+- schema violation
+- path containment failure
+- filesystem read or write failure
+
+An absent optional state file MAY use defaults.
+Malformed or invalid state SHOULD fail closed unless the plugin documents a safer recovery policy.
+
+## Test Matrix
+
+- quoted strings containing `:` and `#`
+- boolean and numeric types
+- arrays and nested mappings
+- literal and folded multiline strings
+- duplicate keys
+- missing closing delimiter
+- YAML syntax error
+- unknown key
+- invalid enum and out-of-range number
+- relative contained path
+- absolute or relative escape
+- symlinked parent escape
+- path containing spaces
+- atomic write interruption
+- body preservation after serialization

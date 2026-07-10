@@ -1,370 +1,107 @@
 ---
-name: security-patterns
-description: |-
-  Input validation, injection prevention, path safety, and sensitive file detection patterns for hook scripts.
+description: >-
+  Input validation, filesystem containment, credential handling, and command safety for Claude Code hooks.
 ---
 
-# Security Patterns for Hook Scripts
+# Hook Security Patterns
 
-Open this reference when implementing input validation, path safety checks, sensitive file detection, or shell injection prevention in hook scripts.
+Open this reference when hook input controls a filesystem path, command, network request, credential, or persistent write.
 
-Hook scripts run with elevated context and must strictly validate all inputs.
-This reference extends `SKILL.md` with working patterns for input validation, path safety, sensitive file detection, and shell injection prevention.
+## Treat Input as Untrusted
 
-See `SKILL.md` for foundational rules: JSON validation via jq, path traversal/sensitive file rejection, variable quoting, timeouts.
+Validate the event name, tool name, required fields, types, and size before acting.
+Do not interpolate hook input into a shell command.
+Prefer exec-form commands with a fixed executable and argument vector.
 
-## Input validation patterns
+This Bun hook denies `Write` and `Edit` targets whose real parent is outside the project root:
 
-### JSON parsing (CORRECT)
+```ts
+#!/usr/bin/env bun
+// -*- coding: utf-8 -*-
 
-Parse JSON inputs with `jq` and validate field presence:
+import { realpathSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, resolve } from "node:path";
 
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
+type HookInput = {
+  tool_name?: unknown;
+  tool_input?: {
+    file_path?: unknown;
+  };
+};
 
-# Validate JSON input before processing.
-#
-# @param input Raw JSON from stdin.
-# @return Extracts validated fields or exits with error.
-validate_input() {
-    input=$(cat)
-    if ! tool_name=$(printf '%s' "$input" | jq --exit-status -r '.tool_name // empty'); then
-        printf '{"decision": "deny", "reason": "Invalid JSON or parse failure"}\n' >&2
-        exit 2
-    fi
-    if [ -z "$tool_name" ]; then
-        printf '{"decision": "deny", "reason": "Missing tool_name field"}\n' >&2
-        exit 2
-    fi
-    if ! printf '%s' "$tool_name" | grep -qE '^[a-zA-Z0-9_]+$'; then
-        printf '{"decision": "deny", "reason": "Invalid tool_name format"}\n' >&2
-        exit 2
-    fi
-    echo "$tool_name"
+function deny(reason: string): never {
+  console.log(JSON.stringify({
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: reason,
+    },
+  }));
+  process.exit(0);
 }
-```
 
-Rules:
-
-- Use `jq -r` to extract string values
-- Use `// empty` to provide defaults
-- Validate field presence before use
-- Validate format with regex
-
-### JSON parsing (BROKEN)
-
-Trusting input without validation:
-
-```sh
-#!/bin/sh
-input=$(cat)
-tool_name=$(printf '%s' "$input" | jq -r '.tool_name')
-# Dangerous: no validation of format or presence
-rm -rf "/projects/$tool_name"
-```
-
-Risk: `tool_name` could be `..` or `/tmp` or contain spaces, leading to unintended deletions.
-
-## Path safety validation
-
-### Correct: reject traversal and sensitive paths
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-# Validate file paths for safety before processing.
-#
-# @param file_path File path to validate.
-# @return Exits 0 if safe; exits 2 with error JSON if unsafe.
-validate_path() {
-    file_path="$1"
-    if [ -z "$file_path" ]; then
-        printf '{"decision": "deny", "reason": "Missing file path"}\n' >&2
-        exit 2
-    fi
-    if [ "$file_path" != "${file_path%..*}" ]; then
-        printf '{"decision": "deny", "reason": "Path traversal (..) detected"}\n' >&2
-        exit 2
-    fi
-    if printf '%s' "$file_path" | grep -qE '^/'; then
-        printf '{"decision": "deny", "reason": "Absolute paths not allowed"}\n' >&2
-        exit 2
-    fi
-    if printf '%s' "$file_path" | grep -qE '\.(env|aws|pem|key|ssh)$'; then
-        printf '{"decision": "deny", "reason": "Sensitive file extension"}\n' >&2
-        exit 2
-    fi
-    if printf '%s' "$file_path" | grep -qE '(secring\.gpg|\.gpg\.key|\.gnupg/.*)$'; then
-        printf '{"decision": "deny", "reason": "GPG secret key file"}\n' >&2
-        exit 2
-    fi
-    if printf '%s' "$file_path" | grep -qE '^(node_modules|\.git|\.env\..*)'; then
-        printf '{"decision": "deny", "reason": "Protected directory"}\n' >&2
-        exit 2
-    fi
-    return 0
+let input: HookInput;
+try {
+  input = JSON.parse(await Bun.stdin.text()) as HookInput;
+} catch {
+  deny("The hook input is not valid JSON.");
 }
-```
-
-Patterns to reject:
-
-- `..` or `../` - path traversal
-- Leading `/` - absolute paths
-- `.env`, `.aws`, `.pem`, `.key`, `.ssh` - sensitive files; `.gpg` only when matching private key patterns (e.g., `secring.gpg`, `*.gpg.key`, or paths under `~/.gnupg/`)
-- `node_modules/`, `.git/`, `.env.*` - protected directories
-
-### Correct: system path detection
-
-```sh
-#!/bin/sh
-
-# Ensure writes do not target system directories.
-#
-# @param file_path Path to validate.
-# @return Exits 2 if system path; exits 0 otherwise.
-ensure_non_system_path() {
-    file_path="$1"
-    for prefix in "/bin" "/usr" "/etc" "/sys" "/var" "/opt" "/boot" "/proc" "/dev"; do
-        case "$file_path" in
-            "$prefix"*)
-                printf '{"decision": "deny", "reason": "System path"}\n' >&2
-                exit 2
-                ;;
-        esac
-    done
-    return 0
+const filePath = input.tool_input?.file_path;
+const projectDir = process.env["CLAUDE_PROJECT_DIR"];
+if (input.tool_name !== "Write" && input.tool_name !== "Edit") {
+  process.exit(0);
 }
-```
-
-### Broken: insufficient path validation
-
-```sh
-#!/bin/sh
-file_path=$(cat | jq -r '.tool_input.file_path')
-# Only checks for ..
-if [ "$file_path" = "${file_path%..*}" ]; then
-    cp "$file_path" /tmp/upload
-fi
-# Risk: allows absolute paths like /etc/passwd
-```
-
-## Sensitive file detection
-
-### Correct: multi-layer detection
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-# Comprehensive sensitive file detection.
-#
-# @param file_path Path to check.
-# @return Exits 2 if sensitive; exits 0 otherwise.
-detect_sensitive_files() {
-    file_path="$1"
-    basename=$(basename "$file_path")
-    case "$basename" in
-        .env|.env.local|.env.*|.aws|.npmrc|.yarnrc|*.pem|*.key|*.gpg|*.ssh|id_rsa|id_ed25519|*.crt|*.cer|*.p12|*.pfx|.gitignore|.dockerignore)
-            printf '{"decision": "deny", "reason": "Sensitive file detected"}\n' >&2
-            exit 2
-            ;;
-    esac
-    case "$basename" in
-        package-lock.json|yarn.lock|composer.lock|Gemfile.lock)
-            if [ "$file_path" = "${file_path%..*}" ] && ! printf '%s' "$file_path" | grep -qE '^/'; then
-                printf '{"decision": "deny", "reason": "Lock file modifications dangerous"}\n' >&2
-                exit 2
-            fi
-            ;;
-    esac
-    return 0
+if (typeof filePath !== "string" || !projectDir) {
+  deny("The write request is missing a valid path or project root.");
 }
-```
-
-Categories:
-
-- Secrets: `.env`, `.aws`, `.pem`, `.key`, `.ssh`
-- GPG secret keys: `secring.gpg`, `*.gpg.key`, `~/.gnupg/*` (not opaque `.gpg` encrypted blobs)
-- Certificates: `.crt`, `.cer`, `.p12`, `.pfx`
-- Private keys: `id_rsa`, `id_ed25519`, `*.key`
-- Credentials: `.docker/config.json`, `~/.aws/credentials`
-- Configuration: `.gitignore`, `.npmrc`, `.yarnrc`, lock files
-
-### Broken: name-only detection
-
-```sh
-basename=$(basename "$file_path")
-if [ "$basename" = ".env" ]; then
-    printf 'deny\n' >&2
-fi
-# Allows /tmp/.env or /other/path/.env without checking
-```
-
-## Shell injection prevention
-
-### Correct: safe command construction
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-# Build and execute safe shell commands.
-#
-# @param command Command name to run.
-# @param arg Command argument.
-# @return Executes command safely.
-run_command() {
-    command="$1"
-    arg="$2"
-    if ! printf '%s' "$command" | grep -qE '^(grep|find|ls|cat)$'; then
-        printf '{"decision": "deny", "reason": "Unsafe command"}\n' >&2
-        exit 2
-    fi
-    "$command" "$arg"
-}
-```
-
-Safe patterns:
-
-- Array arguments: `"${arr[@]}"` prevents word splitting
-- Validated commands: whitelist known-safe commands
-- Separate args from command: `"$cmd" "$arg"` not `"$cmd $arg"`
-
-### Broken: command injection via variable
-
-```sh
-#!/bin/sh
-search_term=$(cat | jq -r '.search_term')
-# Dangerous: search_term could be '; rm -rf /'
-grep "$search_term" /tmp/file.txt
-```
-
-## Numeric validation
-
-### Correct: type and range checking
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-# Validate numeric input with range constraints.
-#
-# @param max_value Numeric string to validate.
-# @return Exits 2 if invalid; sets MAX on success.
-validate_numeric() {
-    max_value="$1"
-    if ! printf '%s' "$max_value" | grep -qE '^[0-9]+$'; then
-        printf '{"decision": "deny", "reason": "max_value must be numeric"}\n' >&2
-        exit 2
-    fi
-    if [ "$max_value" -lt 1 ] || [ "$max_value" -gt 1000 ]; then
-        printf '{"decision": "deny", "reason": "max_value must be 1-1000"}\n' >&2
-        exit 2
-    fi
-    echo "$max_value"
-}
-```
-
-### Broken: trusting numeric input
-
-```sh
-max_value=$(cat | jq -r '.max_value')
-if [ "$max_value" -gt 100 ]; then
-    # Risk: max_value could be non-numeric or contain operators
-fi
-```
-
-## Complete example: hardened PreToolUse hook
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-# Comprehensive file write validation hook.
-#
-# @return JSON output with permissionDecision and systemMessage.
-main() {
-    input=$(cat)
-    if ! tool_name=$(printf '%s' "$input" | jq --exit-status -r '.tool_name // empty'); then
-        printf '{"permissionDecision": "deny", "systemMessage": "JSON parse failure"}\n' >&2
-        exit 2
-    fi
-    if ! file_path=$(printf '%s' "$input" | jq --exit-status -r '.tool_input.file_path // empty'); then
-        printf '{"permissionDecision": "deny", "systemMessage": "JSON parse failure"}\n' >&2
-        exit 2
-    fi
-    if [ -z "$tool_name" ] || [ -z "$file_path" ]; then
-        printf '{"permissionDecision": "deny", "systemMessage": "Missing required fields"}\n' >&2
-        exit 2
-    fi
-    if ! printf '%s' "$tool_name" | grep -qE '^[a-zA-Z0-9_]+$'; then
-        printf '{"permissionDecision": "deny", "systemMessage": "Invalid tool_name"}\n' >&2
-        exit 2
-    fi
-    if [ "$file_path" != "${file_path%..*}" ]; then
-        printf '{"permissionDecision": "deny", "systemMessage": "Path traversal detected"}\n' >&2
-        exit 2
-    fi
-    if printf '%s' "$file_path" | grep -qE '\.(env|aws|pem|key)$'; then
-        printf '{"permissionDecision": "deny", "systemMessage": "Sensitive file"}\n' >&2
-        exit 2
-    fi
-    if printf '%s' "$file_path" | grep -qE '^/'; then
-        printf '{"permissionDecision": "deny", "systemMessage": "Absolute paths not allowed"}\n' >&2
-        exit 2
-    fi
-    printf '{"permissionDecision": "allow", "systemMessage": "Path validation passed"}\n'
-    exit 0
-}
-main
-```
-
-## Testing security patterns
-
-Validate hook script with sample attack payloads:
-
-```sh
-cat > /tmp/test-attack.json << 'EOF'
-{
-  "tool_name": "Write",
-  "tool_input": {
-    "file_path": "../../../../etc/passwd"
+try {
+  const projectRoot = realpathSync(projectDir);
+  const requested = isAbsolute(filePath) ? filePath : resolve(projectRoot, filePath);
+  const realParent = realpathSync(dirname(requested));
+  const target = join(realParent, basename(requested));
+  const projectRelative = relative(projectRoot, target);
+  if (projectRelative.startsWith("..") || isAbsolute(projectRelative)) {
+    deny("The target path is outside the project root.");
   }
+} catch {
+  deny("The target path cannot be resolved safely.");
 }
-EOF
-
-sh hooks/validate.sh < /tmp/test-attack.json
-# Expected: deny output on stderr, exit 2
 ```
 
-Test with various paths:
+The example fails closed when the parent directory does not exist or cannot be resolved.
+Adapt that behavior only when the tool contract explicitly permits creating missing parent directories.
 
-```sh
-# Path traversal
-echo '{"tool_name":"Write","tool_input":{"file_path":"../../../etc/passwd"}}' | sh hooks/validate.sh
+## Command Safety
 
-# Sensitive file
-echo '{"tool_name":"Write","tool_input":{"file_path":".env"}}' | sh hooks/validate.sh
+- Keep `command` fixed and move path placeholders into `args`.
+- Do not use shell form for untrusted values.
+- If shell syntax is required, pass untrusted data over stdin or a validated file, not string interpolation.
+- Treat handler-level `if` as a best-effort filter, not an authorization boundary.
+- Use Claude Code permissions for broad allow or deny policy and hook code for narrower deterministic checks.
 
-# System path
-echo '{"tool_name":"Write","tool_input":{"file_path":"/usr/bin/malware"}}' | sh hooks/validate.sh
+## Credential and Network Safety
 
-# Safe path (should succeed)
-echo '{"tool_name":"Write","tool_input":{"file_path":"src/index.js"}}' | sh hooks/validate.sh
-```
+- Read credentials from the environment or host-managed secure configuration.
+- Never include credentials in hook output, logs, error text, or URLs.
+- Use HTTPS for remote HTTP hooks except explicit localhost development.
+- Validate destination hosts when hook input can influence a URL.
+- Bound response size and timeout for network handlers.
 
-## References
+## Writable Data
 
-Refer to `SKILL.md` for hook event types and output contracts.
+- `${CLAUDE_PLUGIN_ROOT}` is ephemeral, bundled, and read-only by contract.
+- `${CLAUDE_PLUGIN_DATA}` owns plugin-generated state.
+- `${CLAUDE_PROJECT_DIR}` owns authorized project changes.
+- Persistent writes MUST be atomic or concurrency-safe because matching handlers run in parallel.
 
-Refer to `references/lifecycle.md` for environment variable handling.
+## Security Verification
 
-Refer to `references/performance.md` for timeouts and error recovery.
+- relative path inside the project
+- absolute path inside the project
+- `..` traversal
+- symlinked parent outside the project
+- missing parent directory
+- path containing spaces and shell metacharacters
+- malformed or oversized JSON
+- missing environment variables
+- secret-bearing input and error paths

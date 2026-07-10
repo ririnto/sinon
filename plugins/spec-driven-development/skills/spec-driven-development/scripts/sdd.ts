@@ -591,11 +591,11 @@ function validateDocument(filePath: string, kind: string): ValidationResult {
       passed: false
     };
   }
-  errors.push(...validateFrontmatterShape(filePath, kind, data));
-  errors.push(...validateMarkdownText(filePath, text));
-  if (kind === "spec") {
-    errors.push(...validateSpecLinks(filePath, data));
-  }
+  errors.push(
+    ...validateFrontmatterShape(filePath, kind, data),
+    ...validateMarkdownText(filePath, text),
+    ...(kind === "spec" ? validateSpecLinks(filePath, data) : [])
+  );
   return { errors, passed: errors.length === 0 };
 }
 

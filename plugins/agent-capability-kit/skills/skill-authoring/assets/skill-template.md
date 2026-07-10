@@ -12,9 +12,10 @@ Keep the ordinary path usable from this file alone.
 
 ## Operating rules
 
-- Keep skill frontmatter limited to `name` and `description`.
+- Keep Sinon skill frontmatter limited to `name` and `description` by default.
+- Portable Agent Skills MAY also use `license`, `compatibility`, `metadata`, and experimental `allowed-tools` when the target repository permits them.
 - Put the display title in this H1, not in frontmatter.
-- Put version, source, baseline, owner, or license notes in the body only when ordinary use needs them.
+- Put version, source, baseline, owner, or other non-standard publishing notes in the body only when ordinary use needs them.
 - Use support files only for named blockers, copyable artifacts, or deterministic checks.
 - Do not require web access, host-specific wrappers, or external validators for the ordinary path.
 

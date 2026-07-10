@@ -1,340 +1,205 @@
 ---
 name: agent-authoring
 description: >-
-  Create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work.
-  Triggers on agent frontmatter fields, tool allowlist boundaries, or system-prompt structure that keeps agents scoped to a single responsibility.
+  Create or refactor Claude Code plugin agents with clear triggers, supported frontmatter, bounded tools, and self-contained prompts.
+  Use when authoring `agents/*.md`, choosing agent runtime fields, or aligning an agent's process with its tool boundary.
 ---
 
 # Agent Authoring
 
-Create or refactor one reusable Claude Code agent so it is easy to trigger, safe to run, and self-explanatory without external documentation.
+Build one reusable Claude Code plugin agent whose description routes reliably and whose prompt can execute its bounded role without hidden prerequisites.
 
-## Scope
+## Owned Surface
 
-This skill owns agent files in `agents/*.md`.
+- plugin-root `agents/<name>.md`
+- frontmatter discovery and runtime fields
+- system-prompt structure
+- tool and autonomy boundaries
+- output contracts and inline examples
 
-Keep the scope on one agent role per file.
-Preserve the existing job the agent covers unless the task explicitly changes that scope.
+For Sinon plugins, the filename stem and frontmatter `name` MUST match exactly and both MUST use kebab-case.
 
-## Operating rules
+## Supported Plugin-Agent Fields
 
-1. Write one agent file for one clear role.
-2. Keep repository-facing and agent-facing instructions in English.
-3. Make the `description` field the discovery surface.
-   - It must say when to use the agent.
-4. Give the agent the smallest safe tool boundary for the job.
-5. Make the body read like a system prompt for autonomous execution, not like release notes or background prose.
-6. Put the normal authoring path in the agent file itself.
-   - Use in-file guidance for the ordinary path.
-7. State the output shape explicitly so the caller can use the result without guessing.
-8. Keep the ordinary path self-sufficient inside the agent file.
-   - Put required workflow context in the prompt or agent body.
-9. Make process verbs and declared tools agree.
-   - A report-only agent returns findings; an editing agent has the mutation tools its process requires.
-10. Ordinary authoring remains offline, but maintainers changing host-specific agent behavior should verify against official host documentation when available and record any verification blocker.
-
-## Required frontmatter
-
-Every agent file MUST include these required frontmatter fields:
+Plugin agents require:
 
 - `name`
 - `description`
 
-`color` is an optional display field that helps distinguish the agent visually.
-Omit `tools` by default; an agent with no `tools` field inherits every tool the main thread has, including MCP tools.
-Add `tools` only when the agent needs a bounded tool surface different from the default environment.
+Plugin agents may use:
 
-`model` is also supported; omit it for shared agents so the caller selects model strength, and set it only when an agent needs a fixed model.
-Other optional frontmatter fields may be kept only when the host actually supports them and the field changes runtime behavior in a meaningful way.
+| Field | Use |
+| --- | --- |
+| `tools` | Explicit allowlist; omit to inherit available tools |
+| `disallowedTools` | Remove tools from the inherited or explicit set |
+| `model` | Pin a supported model or use `inherit` |
+| `effort` | Override session effort where the selected model supports it |
+| `maxTurns` | Bound agentic turns |
+| `skills` | Preload complete skill content at startup |
+| `memory` | Use `user`, `project`, or `local` persistent memory |
+| `background` | Always run the agent as a background task when `true` |
+| `isolation` | Use `worktree` for temporary Git worktree isolation |
+| `color` | Distinguish the agent in the interface |
 
-## Frontmatter rules
+Plugin agents MUST NOT rely on `hooks`, `mcpServers`, or `permissionMode`; Claude Code ignores those fields for agents loaded from a plugin.
+Those fields are available only on user- or project-scoped agents.
 
-### `name`
+`Examples` is not a supported frontmatter field.
+Place short examples in the Markdown body when they materially improve execution.
 
-- Use kebab-case exclusively, and the `name` field MUST match the file basename exactly.
-  - `agents/schema-reviewer.md` must use `name: schema-reviewer`.
-- Make it role-oriented, not task-ticket-oriented.
-- Prefer stable names such as `schema-reviewer`, `docs-refiner`, or `release-checker`.
-- Keep temporary request details in the caller prompt.
+Open `references/agent-frontmatter.md` for field-specific constraints and plugin-versus-project differences.
 
-### `description`
+## Description Contract
 
-The description is the main trigger surface.
-It should do all of the following:
+Use the description as the routing surface:
 
-- Open with an imperative capability clause that names what the agent does (for example "Enforce…", "Review…", "Detect…", "Author…", "Reproduce…").
-- Follow with a trigger clause such as `Use this agent when...`.
-- Name the job, inputs, or system clearly.
-- Make it obvious why this agent is the right fit.
-
-Agent descriptions use direct trigger language with concrete nouns and task terms.
+1. Open with an imperative capability clause.
+2. Add `Use this agent when ...` only when it contributes distinct assets, systems, timing, or task vocabulary.
+3. Keep one coherent responsibility.
+4. Avoid implementation steps and release notes.
 
 Weak:
 
-```markdown
+```yaml
+description: Helps with schemas.
+```
+
+Strong:
+
+```yaml
 description: >-
-  Helps with schemas.
+  Inspect schemas and configuration files for defects and missing constraints.
+  Use this agent when a schema or config needs focused read-only review before implementation or release.
 ```
 
-Stronger:
+## Choose the Tool Boundary
 
-```markdown
-description: >-
-  Inspect schemas, contracts, and config files for defects, risks, and missing structure.
-  Use this agent when a schema, contract, or config file needs focused read-only review before implementation, release, or migration.
-```
+Start from the ordinary process, then grant the narrowest tools that can perform it.
 
-### `color`
+- Read-only reviewers usually need `Read`, `Glob`, and `Grep`.
+- Editors need discovery plus the minimal mutation tool their process uses.
+- Agents that run validation need `Bash` only when commands are part of the role.
+- Omit `tools` only when inheriting the complete caller tool set is intentional.
+- Use `disallowedTools` when inheritance is useful but a small set must be removed.
 
-- Pick a stable color that helps distinguish the agent visually.
-- Use one of the supported values: `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`.
-- Keep the existing color on refactors unless there is a reason to change it.
+Do not claim repository discovery if the agent lacks `Glob` or `Grep`.
+Do not claim file edits if the agent lacks a mutation tool.
+Do not claim runtime verification if the agent lacks the command or connector surface required to perform it.
 
-### `tools`
-
-- Omit `tools` when the default tool set is already appropriate.
-- Add `tools` when the role needs a tighter boundary.
-- Grant only the tools the agent genuinely needs for its ordinary path.
-
-Review-only agents usually need read/search tools only.
-Direct editing agents need mutation tools only when editing is their normal job.
-
-## Minimal body structure
-
-The body should stay short, direct, and executable.
-
-Use this shape unless the role has a strong reason to vary:
-
-1. One role statement
-2. `## Responsibilities`
-3. `## Process`
-4. `## Output`
-
-Each section should be concrete enough that the agent can act without extra prompting.
-
-### Role statement
-
-Open with one or two lines that define the agent's job.
-
-Example:
-
-```text
-You are a specialized review agent for schemas, contracts, and structured configuration.
-```
-
-### Responsibilities
-
-List the durable duties of the role.
-
-Good:
-
-```markdown
-## Responsibilities
-
-1. Inspect the target file closely.
-2. Identify concrete defects, risks, or missing structure.
-3. Support findings with direct evidence from the file.
-```
-
-### Process
-
-Use an ordered process when the execution path matters.
-
-Good:
-
-```markdown
-## Process
-
-1. Read the provided files before drawing conclusions.
-2. Check the highest-risk issues first.
-3. Keep the review bounded to the requested scope.
-4. Verify that every finding is supported by evidence.
-```
-
-### Output
-
-Tell the agent exactly what to return.
-
-Good:
-
-```markdown
-## Output
-
-Return:
-
-1. Findings in priority order
-2. Supporting evidence with file references
-3. Remaining uncertainty or blockers
-```
-
-## Ordinary authoring procedure
-
-1. Read the existing agent file if you are refactoring.
-   - Otherwise start from `assets/agent-template.md` or use the Minimal example below as an inline fallback.
-2. Define the agent role in one sentence.
-3. Check that the role is narrow enough to be discoverable and autonomous.
-4. Draft or revise frontmatter:
-   - `name` matches the file basename and is stable and role-based
-   - `description` opens with an imperative capability clause, then says when to use the agent
-   - model selection belongs to the caller
-   - `color` is stable and distinguishable
-   - `tools` appears only when a bounded tool surface is needed
-5. Write the body with a role statement plus `Responsibilities`, `Process`, and `Output` sections.
-6. Make the autonomy level explicit:
-   - The agent should complete its narrow role without asking for routine confirmation.
-   - The agent should stay inside the requested scope.
-   - The agent should report blockers or uncertainty instead of inventing missing facts.
-7. Check the tool boundary against the ordinary path:
-   - Read-only roles stay read-only.
-   - Editing roles get mutation tools only when direct edits are part of the role.
-   - Broad tool access must be justified by the role, not by convenience.
-8. Verify that the output section is directly usable by the caller.
-9. Check that the ordinary path is self-sufficient inside the agent body.
-   - If the draft says to 'load skill X first' or depends on hidden runtime guidance, fold the required instructions back into the agent file.
-10. Check that the tool boundary matches the process and output claims.
-    - Remove file-updating claims from read-only agents, or add the minimal mutation tools only when direct edits are genuinely part of the role.
-
-## Autonomy defaults
-
-Use these defaults unless the role needs a stricter rule:
-
-- The agent should act independently inside its bounded role.
-- The agent should stay inside its declared role.
-- The agent should claim only work it performed.
-- The agent should surface uncertainty, blockers, and risks explicitly.
-- The agent should prefer deterministic checks and direct evidence over speculation.
-
-For most agents, that means: do the requested role fully, stay narrow, and return a structured result.
-
-If the role depends on repository-specific invariants such as worktree isolation, observability-backed validation, or execution-plan lifecycle rules, state those invariants directly in the body.
-State them where the agent reads them.
-
-## Tool-boundary rule
-
-Choose the narrowest tool set that still lets the agent complete its ordinary job.
-
-- Review, triage, and analysis agents should usually stay read-only.
-- Writing or editing agents may receive mutation tools when editing is part of the core role.
-- Give a role both broad read access and broad mutation access only when it needs both for its ordinary path.
-- If a role can succeed with fewer tools, remove the extras.
-
-Broken:
-
-```markdown
-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - Grep
-```
-
-Correct for a read-only reviewer:
-
-```markdown
-tools:
-  - Read
-  - Grep
-```
-
-Correct for a bounded editor:
-
-```markdown
-tools:
-  - Read
-  - Write
-```
-
-Also keep the output contract consistent with the tools:
-
-- report-only agent: findings, evidence, and recommended follow-up only
-- editing agent: changed files, validation, and remaining risks
-- execution agent with `Bash`: runtime evidence, commands or checks performed, and any cleanup or teardown status
-
-## First safe checks
-
-Use simple local checks first:
-
-1. Open the target agent Markdown file.
-2. Confirm that the frontmatter includes the required fields.
-3. Confirm that the body contains a role statement plus `Responsibilities`, `Process`, and `Output` sections.
-4. Confirm that the `description` trigger and `tools` choice match the role.
-5. Confirm that the process does not require hidden skill loading or contradict the tool boundary.
-6. Confirm that the `name` value matches the file basename without `.md`.
-
-## Minimal example
-
-Use this as a smallest useful agent starting point:
+## Minimal Plugin Agent
 
 ```markdown
 ---
 name: schema-reviewer
 description: >-
-  Inspect schemas, contracts, and config files for defects, risks, and missing structure.
-  Use this agent when a schema, contract, or config file needs focused read-only review before implementation, release, or migration.
+  Inspect schemas and configuration files for defects and missing constraints.
+  Use this agent when a schema or config needs focused read-only review before implementation or release.
 color: cyan
 tools:
   - Read
+  - Glob
   - Grep
 ---
 
 # Schema Reviewer
 
-You are a specialized review agent for schemas, contracts, and structured configuration.
+Inspect the requested schema or configuration surface and report evidence-backed findings without modifying files.
 
 ## Responsibilities
 
-1. Inspect the target files closely.
-2. Identify concrete defects, risks, or missing structure.
-3. Support every finding with direct evidence.
+1. Locate the files in the requested scope.
+2. Check syntax, field contracts, and cross-file consistency.
+3. Support each finding with direct file evidence.
 
 ## Process
 
-1. Read the provided files before drawing conclusions.
-2. Check the highest-risk inconsistencies first.
-3. Keep the review bounded to the requested scope.
-4. Verify that every finding is supported by file evidence.
+1. Read local rules and the target files.
+2. Search for declarations and consumers of the affected fields.
+3. Report material findings in priority order.
+4. Recheck every cited path and line before returning.
 
 ## Output
 
 Return:
 
-1. Findings in priority order
-2. Supporting evidence with file references
-3. Remaining uncertainty or blockers
+1. findings ordered by severity
+2. file evidence for each finding
+3. remaining uncertainty or blockers
 ```
 
-## Edge cases
+## Authoring Procedure
 
-- If the requested role mixes unrelated jobs, split it into one clearer role and move the other job to a separate agent.
-- If the description is too vague to trigger reliably, rewrite it before changing the body.
-- If the frontmatter is long, tighten the capability and trigger clauses.
-- If the tool boundary is hard to choose, default to the read-only or narrower set first.
-- If the agent needs exceptional autonomy or unusually broad tools, document the reason directly in the body or open the deeper reference for that blocker.
+1. Read the target plugin rules, README, existing agent, and sibling naming conventions.
+2. State the agent's one responsibility in a sentence.
+3. Choose a stable kebab-case name and matching filename.
+4. Write the capability and trigger description.
+5. Select the smallest tool boundary that supports discovery, action, and verification.
+6. Add optional runtime fields only when they change required behavior.
+7. Write a self-contained body with role, responsibilities, process, quality rules, edge cases, and output.
+8. Add one short inline example when format or decision behavior would otherwise be ambiguous.
+9. Verify that every process verb is possible with the declared tools and supported plugin fields.
+10. Validate frontmatter and run `claude plugin validate <plugin-root>`.
 
-## Checklist
+## Optional Runtime Decisions
 
-- Write a specific description with clear trigger conditions.
-- Keep one coherent responsibility per agent.
-- Grant the narrowest tool set that supports the ordinary path.
-- State the output contract explicitly.
-- Put ordinary-path guidance in the agent body.
-- Include required workflow context in the prompt or agent body.
-- Align report-only wording with findings, and editing wording with supported mutation tools.
+- Omit `model` for shared agents when the caller should choose strength; pin it only when correctness requires a known capability.
+- Set `maxTurns` when an otherwise bounded workflow can loop indefinitely.
+- Use `skills` only when full skill content is an intentional startup prerequisite; keep the agent prompt understandable about what that content contributes.
+- Use `memory` only when cross-session learning is part of the role and its scope is appropriate.
+- Use `background: true` only when background execution is always correct for the agent.
+- Use `isolation: worktree` only when Git worktree isolation fits the mutation and cleanup model.
 
-## Output contract
+## Prompt Structure
+
+Keep the body direct and executable:
+
+1. role statement
+2. `Responsibilities`
+3. `Process`
+4. quality or safety rules when needed
+5. edge cases or stop conditions
+6. `Output`
+
+The agent body MUST contain ordinary-path guidance.
+Do not instruct a plugin agent to load another skill unless the frontmatter intentionally preloads that skill and the dependency is part of the agent contract.
+Even then, keep the agent's role and output shape explicit.
+
+## Validation
+
+- filename stem and `name` match for Sinon plugins
+- `name` is kebab-case
+- description has a capability and distinct trigger vocabulary
+- only supported plugin-agent fields are used
+- no plugin agent relies on `hooks`, `mcpServers`, or `permissionMode`
+- tool list supports file discovery, action, and verification claims
+- optional runtime fields have a concrete reason
+- body is self-contained and bounded to one role
+- examples live in the body, not `Examples` frontmatter
+- output shape is explicit
+- `claude plugin validate` reports no blocking error
+
+## Output Contract
 
 Return:
 
-1. The final agent file path
-2. The full agent Markdown file
-3. A short note explaining the trigger conditions
-4. A short note explaining the selected tool boundary
-5. Any explicit remaining risk or blocker
+1. final agent path and Markdown
+2. trigger rationale
+3. tool and optional-field rationale
+4. validation results
+5. remaining risks or blockers
 
-## Optional support files
+## Pitfalls
 
-- `references/agent-frontmatter.md` - open when a frontmatter field choice is still ambiguous after applying the rules above
-- `references/agent-execution.md` - open when the agent needs exceptional autonomy, a non-obvious tool boundary, or a more specialized execution pattern
-- `assets/agent-template.md` - copy when creating a new agent from scratch
-- `assets/agent-frontmatter-patterns.md` - copy when you need more frontmatter patterns for different role shapes
+- Do not put `hooks`, `mcpServers`, or `permissionMode` on a plugin agent.
+- Do not invent an `Examples` frontmatter field.
+- Do not omit discovery tools from an agent expected to locate files.
+- Do not grant broad mutation or Bash access for a report-only role.
+- Do not hide required workflow instructions in another file.
+- Do not pin a model or effort level without a role-specific reason.
+
+## Support Files
+
+- `references/agent-frontmatter.md` - open for supported-field details or plugin-versus-project scope.
+- `references/agent-execution.md` - open for exceptional autonomy, isolation, background, or broad execution boundaries.
+- `assets/agent-template.md` - copy when creating a new agent.
+- `assets/agent-frontmatter-patterns.md` - copy when a role needs optional runtime fields.

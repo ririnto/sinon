@@ -20,9 +20,11 @@ Write or refactor one Agent Skill so `SKILL.md` is the activation entrypoint, th
 ## Operating rules
 
 - Keep the ordinary path usable from `SKILL.md` alone, even offline.
-- Keep skill frontmatter limited to `name` and `description`.
+- Treat `name` and `description` as the portable required fields.
+- The Agent Skills specification also permits optional `license`, `compatibility`, `metadata`, and experimental `allowed-tools` fields.
+- For Sinon-published skills, use only `name` and `description` by default; add a portable optional field only when the task requires it and repository policy permits it.
 - Put the display title in the first H1 heading, not in frontmatter.
-- Put version, baseline, source, owner, license, and official-documentation notes in the body only when the ordinary path needs them.
+- Put version, baseline, source, owner, and official-documentation notes in the body when ordinary use needs them.
 - Treat `references/`, `assets/`, and `scripts/` as optional support files, not prerequisites.
 - Verify host, API, command, or library facts against official documentation when available; record blockers instead of inventing facts.
 - Do not add scoring rubrics, generic background essays, or adjacent-domain handoffs.
@@ -54,13 +56,24 @@ skill-name/
 
 ## Frontmatter contract
 
-Required fields:
+Portable required fields:
 
 - `name`
 - `description`
 
-Do not add `title`, `metadata`, `owner`, `license`, `version`, `source`, `officialDocs`, URLs, tool allowlists, argument hints, or baseline fields to skill frontmatter.
-If the information matters during ordinary use, place it under an H2 section in the body.
+The Agent Skills specification permits these optional fields:
+
+- `license`: a short license name or reference to a bundled license file
+- `compatibility`: environment requirements, up to 500 characters
+- `metadata`: a string-to-string mapping for implementation-specific metadata
+- `allowed-tools`: a space-separated experimental tool allowlist whose support varies by host
+
+These fields are portable-schema-valid, but they are not automatically appropriate for every repository.
+Sinon house style keeps published skill frontmatter to `name` and `description` unless the task explicitly needs a portable optional field and repository policy allows it.
+A Sinon reviewer MUST report an extra portable field as a house-style or policy issue, not as an Agent Skills schema violation.
+
+Do not add non-standard fields such as `title`, `owner`, `version`, `source`, `officialDocs`, URLs, argument hints, or baseline fields.
+Put non-standard publishing notes in the body when ordinary use needs them.
 
 ### `name`
 
@@ -214,6 +227,7 @@ Open `references/scripts-guidance.md` only when deciding whether a helper script
 - If host or vendor differences share the same job, keep one skill and move deltas to focused references.
 - If the workflow depends on web access, rewrite the ordinary path so it remains useful offline and record official-doc verification separately.
 - If a version or source baseline matters for normal use, place it in the body near the rules or workflow it constrains.
+- If a portable optional frontmatter field is present, validate its Agent Skills type and separately check whether the target repository permits it.
 
 ## Output contract
 

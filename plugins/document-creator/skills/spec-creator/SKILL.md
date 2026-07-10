@@ -1,8 +1,8 @@
 ---
 name: spec-creator
 description: >-
-  Author a self-sufficient `SPEC.md` that serves as a single-file implementation contract for a project, modelled on the OpenAI Symphony specification structure.
-  Triggers on `SPEC.md` creation or refactoring, system specification drafts, implementation contracts, RFC-style or SRS-style requirements, or normative behavior definitions before implementation begins.
+  Author or refactor one self-sufficient `SPEC.md` as a standalone implementation contract.
+  Use when creating a feature or system specification, RFC-style or SRS-style requirements, scenarios, acceptance criteria, or normative behavior definitions without running an implementation lifecycle.
 ---
 
 # Spec Creator
@@ -11,6 +11,7 @@ This skill produces single-file `SPEC.md` documents that are implementation cont
 The produced spec is self-sufficient and MUST NOT depend on other in-repo documents.
 It uses RFC 2119 normative language deliberately.
 It scales from feature-level to full system-level specifications by including the relevant section catalog.
+It does not own research gates, implementation, implementation review, or end-to-end spec-driven delivery.
 
 ## Core Principles
 
@@ -33,22 +34,22 @@ It scales from feature-level to full system-level specifications by including th
 
 3. Choose the spec scale.
    - Feature-scale specs (one feature, one actor, bounded scope) use the mini template inside `SKILL.md`.
-   - System-scale specs (service, protocol, multi-component system, long-running daemon, or anything requiring state machine / reference algorithms / conformance matrix) use the comprehensive template in `references/spec-template.md`.
+   - System-scale specs (service, protocol, multi-component system, long-running daemon, or anything requiring a state machine, reference algorithms, or conformance matrix) use the system-scale section order in this file.
 
 4. Draft the structure.
    - Use the section catalog in the chosen template.
    - Remove sections that do not apply instead of leaving `TBD`, `N/A`, or placeholder text.
 
 5. Write requirements.
-   - Use `references/requirements-style.md` for IDs, RFC 2119 language, and patterns.
+   - Apply the requirement rules and EARS patterns in this file.
    - Every functional requirement MUST describe observable behavior and MUST map to at least one scenario or state why it cannot be scenario-tested.
 
 6. Write scenarios, acceptance criteria, and success criteria.
-   - Use `references/scenarios-and-acceptance.md` for Given/When/Then scenarios, negative cases, boundary cases, and measurable success criteria.
+   - Apply the scenario and acceptance rules in this file.
    - Acceptance criteria MUST be testable and observable.
 
 7. Validate the spec.
-   - Use `references/quality-checklist.md` before presenting the result.
+   - Apply the validation checklist in this file before presenting the result.
    - Fix quality failures directly when possible.
    - Leave unresolved items as explicit open questions when the user must decide.
 
@@ -116,6 +117,109 @@ Every produced `SPEC.md` MUST satisfy these properties:
 - Reference algorithms (when present): Language-agnostic pseudocode in fenced ` ```text ` blocks.
 - Test matrix (when present): Conformance profiles labeled (Core, Extension, Real Integration).
 - No placeholders: No unresolved `TBD`, `N/A`, or bracketed placeholders remain.
+
+## Requirement Authoring
+
+Use stable identifiers that survive reordering:
+
+| Prefix | Use |
+| --- | --- |
+| `FR-001` | Functional behavior |
+| `NFR-PERF-001` | Performance |
+| `NFR-SEC-001` | Security or privacy |
+| `NFR-REL-001` | Reliability or availability |
+| `NFR-OBS-001` | Observability |
+| `NFR-UX-001` | Usability or accessibility |
+| `NFR-COMPAT-001` | Compatibility |
+| `AC-001-A` | Acceptance criterion for requirement 001 |
+| `SC-001` | Measurable outcome |
+
+Do not reuse an identifier after deleting a requirement when traceability matters.
+
+Write one observable behavior per requirement.
+Use one of these EARS shapes when it clarifies the trigger:
+
+```text
+The system MUST [always-active behavior].
+WHEN [event], the system MUST [response].
+WHILE [state], the system MUST [behavior].
+IF [unwanted condition], THEN the system MUST [response].
+WHERE [optional feature is enabled], the system MUST [behavior].
+```
+
+Every requirement MUST be testable or inspectable.
+Functional requirements MUST map to at least one scenario or state why scenario testing does not apply.
+Non-functional requirements SHOULD name the metric, measurement point, and verification method.
+Quantify limits and units.
+Move unresolved facts to Open Questions instead of hiding guesses in normative text.
+
+Good:
+
+```markdown
+- FR-001: WHEN a signed-in user submits a valid export request, the system MUST create an export job and return a unique tracking identifier.
+- NFR-PERF-001: The system MUST create an export job within 2 seconds for 95 percent of valid requests, measured at the service boundary during the documented load test.
+```
+
+Block vague, compound, and implementation-led requirements such as "handle exports well", "be fast and secure", or "use Redis" unless a specific implementation is an approved constraint.
+
+## Scenario and Acceptance Rules
+
+Use this shape for every observable path:
+
+```markdown
+#### Scenario: [Descriptive name]
+
+- GIVEN [precondition]
+- WHEN [single action, event, or trigger]
+- THEN [observable outcome]
+- AND [additional outcome from the same action]
+```
+
+`WHEN` and `THEN` are REQUIRED.
+`GIVEN` MAY be omitted when no precondition exists.
+Use separate scenarios for diverging paths.
+
+Cover the applicable cases:
+
+- happy path
+- invalid, missing, malformed, unauthorized, or duplicate input
+- minimum, maximum, empty, timeout, and other boundaries
+- permission and privacy behavior
+- retry, recovery, and partial failure
+- every named state transition and trigger
+
+Write each acceptance criterion as one independently testable assertion:
+
+```markdown
+- AC-001-A: GIVEN a valid export request, WHEN it is submitted, THEN the system returns HTTP 201 with a job identifier.
+```
+
+Write success criteria as measurable outcomes rather than implementation checks:
+
+```markdown
+- SC-001: At least 95 percent of valid export requests return a tracking identifier within 2 seconds during the release load test.
+```
+
+## Pre-Delivery Validation
+
+Before delivery, verify:
+
+- the document stands alone without in-repo routing
+- problem, goals, non-goals, scope, users, and stakeholders are explicit
+- normative language and `Implementation-defined` are defined
+- every requirement has a stable ID and one observable behavior
+- every functional requirement has scenario coverage or a stated exception
+- applicable negative, boundary, permission, recovery, and state cases exist
+- acceptance criteria are independently testable
+- non-functional requirements have metrics and verification methods when applicable
+- security and privacy constraints are hard requirements, not optional aspirations
+- system-scale state, configuration, integration, failure, safety, and conformance sections are complete when applicable
+- validated assumptions name their source or approval
+- open questions are specific and answerable
+- no `TBD`, `N/A`, unresolved bracketed placeholder, or silent assumption remains
+
+Fix failures directly.
+If a failure requires product judgment, record a focused open question instead of guessing.
 
 ## Mini Template (Feature-Scale Spec)
 
@@ -218,7 +322,87 @@ The key words `MUST`, `MUST NOT`, `REQUIRED`, `SHOULD`, `SHOULD NOT`, `RECOMMEND
 
 ## System-Scale Specification Template
 
-For projects that are systems, services, daemons, protocols, agents, or anything that warrants reference algorithms, state machines, or conformance matrices, open `references/spec-template.md` to access the comprehensive Symphony-style skeleton.
+For projects that are systems, services, daemons, protocols, agents, or anything that warrants reference algorithms, state machines, or conformance matrices, use the Section Catalog in this file in the listed order.
+The catalog, output properties, authoring rules, and validation checklist are sufficient for ordinary system-scale authoring.
+Open `references/spec-template.md` only when a copyable expanded skeleton would reduce mechanical setup.
+
+Use this inline shape and delete conditional sections that do not apply:
+
+```markdown
+# [System Name] Specification
+
+## Summary
+
+## Normative Language
+
+## 1. Problem Statement
+
+## 2. Goals and Non-Goals
+
+## 3. Scope
+
+## 4. Users and Stakeholders
+
+## 5. System Overview
+
+## 6. Core Domain Model
+
+## 7. Configuration Specification
+
+## 8. State Machine
+
+## 9. Scheduling and Reconciliation
+
+## 10. Resource Management and Safety
+
+## 11. Integration Protocol
+
+## 12. External System Integration Contract
+
+## 13. Functional Requirements
+
+## 14. Non-Functional Requirements
+
+## 15. Scenarios
+
+## 16. Acceptance Criteria
+
+## 17. Edge Cases and Failure Modes
+
+## 18. Success Criteria
+
+## 19. Logging, Status, and Observability
+
+## 20. Failure Model and Recovery
+
+## 21. Security and Operational Safety
+
+## 22. Reference Algorithms
+
+## 23. Test and Validation Matrix
+
+## 24. Implementation Checklist
+
+## 25. Validated Assumptions
+
+## 26. Open Questions
+
+## 27. Decision Log
+
+## 28. Rollout and Migration
+
+## 29. Risks and Mitigations
+```
+
+Within system-scale sections:
+
+- entity fields name type, constraints, nullability, and identifier rules
+- configuration names resolution order, defaults, validation, and reload behavior
+- state machines enumerate states, triggers, transitions, invariants, and idempotency
+- protocols name launch, framing, messages, timeouts, errors, and write boundaries
+- failure sections map each failure class to detection, recovery, and operator action
+- reference algorithms use language-agnostic `text` fences
+- conformance separates required core, optional extension, and real integration profiles
 
 The choice between feature-scale and system-scale is determined by:
 
@@ -246,9 +430,9 @@ The choice between feature-scale and system-scale is determined by:
 - Retroactive spec written after implementation as justification.
 - Cross-doc routing ("see README", "refer to `ARCHITECTURE.md`") - the spec MUST stand alone.
 
-## Reference Files
+## Optional Reference Files
 
-- [requirements-style.md](references/requirements-style.md) - Requirement IDs, RFC 2119 keywords, patterns, and examples.
-- [scenarios-and-acceptance.md](references/scenarios-and-acceptance.md) - Scenario format, acceptance criteria, success criteria, and conformance matrices.
-- [spec-template.md](references/spec-template.md) - Comprehensive system-scale `SPEC.md` skeleton with all sections.
-- [quality-checklist.md](references/quality-checklist.md) - Pre-delivery validation checklist for self-sufficiency and completeness.
+- [requirements-style.md](references/requirements-style.md) - Open for extended category patterns, delta requirements, and prioritization examples.
+- [scenarios-and-acceptance.md](references/scenarios-and-acceptance.md) - Open for recovery, state-machine, and conformance-matrix examples.
+- [spec-template.md](references/spec-template.md) - Copy when an expanded system-scale skeleton is useful.
+- [quality-checklist.md](references/quality-checklist.md) - Open for a full audit worksheet after the inline validation pass.
