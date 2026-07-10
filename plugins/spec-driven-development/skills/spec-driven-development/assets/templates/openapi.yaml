@@ -1,8 +1,7 @@
 openapi: "3.1.0"
 info:
   title: "{{title}} API"
-  description: >-
-    {{description_yaml}}
+  description: "{{description_yaml}}"
   version: "0.1.0"
 paths:
   /{{operation_path}}:

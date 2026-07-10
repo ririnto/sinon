@@ -1,11 +1,11 @@
 ---
 description: >-
-  Plugin for spec-first development workflow with research, specification authoring, review gates, and verification.
+  Plugin for an explicitly requested end-to-end specification-driven delivery lifecycle with research, approval, implementation, and verification gates.
 ---
 
 # Spec-Driven Development
 
-Spec-Driven Development is a skill-first plugin for spec-first development workflow in the Sinon Claude marketplace.
+Spec-Driven Development is a skill-first plugin for gated specification-driven delivery in the Sinon Claude marketplace.
 
 ## Purpose
 
@@ -13,11 +13,12 @@ Provide reusable spec-driven development guidance that remains portable across C
 
 ## Included Skill
 
-- `spec-driven-development`: research unknowns, author `SPEC.md`, pass review gates, implement against approved spec, verify completeness.
+- `spec-driven-development`: run the full research, `SPEC.md`, approval, implementation, implementation-review, and verification lifecycle.
 
 ## How the Skill Branches
 
-Use `spec-driven-development` when the user explicitly asks to follow a spec-first workflow, write a `SPEC.md` before implementing, create a specification, or use a spec-first approach.
+Use `spec-driven-development` only when the user explicitly asks to run or resume the end-to-end gated lifecycle through implementation and verification.
+Standalone `SPEC.md` creation or review is outside this trigger.
 
 - `references/workflow.md` - full stage model, approval gates, review loops, and lifecycle semantics.
 - `references/spec-authoring-guide.md` - writing or revising `SPEC.md` content.
@@ -93,7 +94,7 @@ claude --plugin-dir /path/to/sinon/plugins/spec-driven-development
 
 ## Scope Notes
 
-This plugin focuses on spec-first development workflow guidance.
+This plugin focuses on the complete gated delivery lifecycle, not specification documents as standalone artifacts.
 It does not cover:
 
 - Git branch management

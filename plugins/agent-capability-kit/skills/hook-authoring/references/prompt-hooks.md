@@ -1,201 +1,92 @@
 ---
-name: prompt-hooks
-description: |-
-  LLM-driven validation patterns for prompt-based hooks with context-aware reasoning and natural-language examples.
+description: >-
+  Prompt and agent hook response behavior plus event-specific command-hook decision shapes.
 ---
 
-# Prompt-Based Hooks: LLM-Driven Validation
+# Prompt and Decision Hooks
 
-Open this reference when implementing LLM-driven validation, using variable substitution in prompts, injecting policies into hooks, or designing multi-step decision flows.
+Open this reference when a hook needs semantic evaluation, tool-using verification, or structured decision control beyond an exit code.
 
-See `SKILL.md` for basic hook structure and the 9 event types.
+## Prompt Handler
 
-## Variable substitution in prompts
+Use `$ARGUMENTS` to place the input JSON in the prompt.
+If it is absent, Claude Code appends the input automatically.
 
-Prompt hooks receive the full hook event JSON through the `$ARGUMENTS` placeholder, plus two inline path expansions:
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Decide whether the requested task is complete: $ARGUMENTS",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
-- `$ARGUMENTS` - The complete hook event JSON the model evaluates against. It carries common fields (`session_id`, `cwd`, `permission_mode`, `hook_event_name`) and event-specific fields: `tool_name` and `tool_input` for tool events, `tool_response` for `PostToolUse`, and `prompt` for `UserPromptSubmit`.
-- `${CLAUDE_PLUGIN_ROOT}` - Plugin root directory path (e.g., `/project/.claude/plugins/my-plugin`)
-- `${CLAUDE_PROJECT_DIR}` - Project root directory path
+The model returns:
 
-Ask the model to read specific fields out of `$ARGUMENTS`; there is no `$TOOL_INPUT`, `$TOOL_RESULT`, or `$USER_PROMPT` placeholder, because those values live inside the `$ARGUMENTS` JSON.
-Complex escaping MUST be handled in the prompt text itself.
+```json
+{
+  "ok": false,
+  "reason": "The requested verification has not run."
+}
+```
 
-## Decision output schemas
+`reason` is required when `ok` is `false`.
+Claude Code translates the result according to the event.
+For `PreToolUse`, false denies the tool; for `Stop` and `SubagentStop`, false feeds the reason back and continues work.
+For `PermissionRequest` and `PermissionDenied`, prompt rejection does not perform the event-specific deny or retry action; use a command hook for that control.
 
-These shapes mirror the contracts in `SKILL.md` and apply to prompt hooks and command hooks alike.
+## Agent Handler
 
-### PreToolUse decision output
+Use `type: "agent"` only when the verifier must inspect files or perform multiple steps.
+The handler uses the same `prompt` and optional `model` fields and returns the same `{ "ok", "reason" }` schema.
+Bound its prompt, timeout, and expected evidence so the verifier does not expand scope.
 
-Nest the decision under `hookSpecificOutput`:
+## Command Decisions
+
+Command-hook JSON is event-specific.
+Do not reuse one shape across events.
+
+Allow a `PreToolUse` call while replacing its input:
 
 ```json
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
-    "permissionDecision": "allow|deny|ask",
-    "permissionDecisionReason": "Decision rationale",
-    "updatedInput": {"file_path": "/safe/path"}
-  },
-  "systemMessage": "Reason shown to Claude"
+    "permissionDecision": "allow",
+    "permissionDecisionReason": "The normalized target remains inside the project.",
+    "updatedInput": {
+      "file_path": "/workspace/src/example.ts",
+      "content": "export const value = 1;\n"
+    }
+  }
 }
 ```
 
-- `permissionDecision` (string) - `allow` (proceed, optionally with `updatedInput`), `deny` (block), `ask` (prompt user)
-- `permissionDecisionReason` (string) - Why the decision was made
-- `updatedInput` (object, optional) - When `permissionDecision` is `allow`, replace the tool input with this object; it MUST satisfy the tool's input schema or the hook rejects it as a validation error. Omit it to let the original input run unchanged.
-- `systemMessage` (string, optional) - Reasoning shown in Claude's transcript
+The replacement input MUST validate against the selected tool's input schema.
 
-### PostToolUse feedback output
+Block stopping:
 
 ```json
 {
   "decision": "block",
-  "reason": "Why feedback is needed"
+  "reason": "Focused tests are still failing."
 }
 ```
 
-- `decision` (string) - Omit for non-blocking feedback; set to `block` to feed the reason back to Claude
-- `reason` (string) - Feedback shown to Claude when blocking
+For context-only events, return the documented `hookSpecificOutput.additionalContext` shape rather than a block decision.
+For side-effect-only events, emit no decision JSON.
 
-### Stop / SubagentStop decision output
+## Concurrency
 
-Use a top-level `decision` and `reason`:
-
-```json
-{
-  "decision": "block",
-  "reason": "Why work should continue"
-}
-```
-
-- Omit `decision` to let the agent stop; set it to `block` to force continued work
-- `reason` (string) - Describes the unfinished work when blocking
-- `continue: false` stops the agent outright and takes precedence over any `decision: "block"`
-
-## Policy Injection Pattern
-
-Read project policy from `.claude/{{plugin-name}}.local.md` frontmatter and apply it where the decision is made.
-Prompt hooks do not inherit shell environment variables exported by command hooks, so a command hook emits its own decision, and a prompt hook applies policy through text embedded in the prompt.
-
-### Command Hook Example
-
-```sh
-#!/usr/bin/env sh
-# -*- coding: utf-8 -*-
-set -e
-
-# Load plugin configuration and emit a permission decision.
-#
-# @return Outputs a JSON hook decision based on the policy file.
-POLICY_FILE="${CLAUDE_PLUGIN_ROOT}/.claude/plugin-name.local.md"
-if [ ! -f "$POLICY_FILE" ]; then
-  echo '{"permissionDecision": "allow", "systemMessage": "No policy found"}' >&2
-  exit 0
-fi
-FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$POLICY_FILE")
-VALIDATION_LEVEL=$(echo "$FRONTMATTER" | grep '^validation_level:' | sed 's/validation_level: *//' || echo "strict")
-if [ "$VALIDATION_LEVEL" = "strict" ]; then
-  echo '{"permissionDecision": "ask", "permissionDecisionReason": "strict policy active"}' >&2
-  exit 0
-fi
-echo '{"permissionDecision": "allow"}' >&2
-```
-
-### Prompt Hook Example
-
-A prompt hook reads the tool input from `$ARGUMENTS` and applies the policy in natural language:
-
-```json
-{
-  "type": "prompt",
-  "prompt": "Apply the project's strict validation policy. Read the tool input from $ARGUMENTS, check it, and decide allow or deny."
-}
-```
-
-## Timeout and failure modes
-
-Prompt hooks have LLM latency (2-10 seconds typical).
-Timeout is in seconds (integer, default 30, min 10, max 120).
-
-If timeout expires or LLM response does not match the expected output schema, the hook is treated as a no-op (tool/event proceeds unchanged).
-Use `claude --debug` to see parse errors.
-
-## Multi-step decision flow
-
-For complex policies, break decisions into multiple hooks on the same event:
-
-```json
-{
-  "PreToolUse": [
-    {
-      "matcher": "Write",
-      "hooks": [
-        {
-          "type": "prompt",
-          "prompt": "Check basic path safety using the tool input in $ARGUMENTS. Deny path traversal (..) and system paths.",
-          "timeout": 10
-        },
-        {
-          "type": "prompt",
-          "prompt": "Check sensitive files using the tool input in $ARGUMENTS. Deny .env, .aws, .git.",
-          "timeout": 10
-        }
-      ]
-    }
-  ]
-}
-```
-
-Each hook runs sequentially.
-If any hook denies, the tool is blocked.
-
-## Concrete examples
-
-### Security policy with multi-rule chaining
-
-```json
-{
-  "PreToolUse": [
-    {
-      "matcher": "Write|Edit",
-      "hooks": [
-        {
-          "type": "prompt",
-          "prompt": "Check path safety using the tool input in $ARGUMENTS. Deny (..), /bin, /usr, /etc, /sys. Deny .env, .aws, .pem, .key. Return allow or deny only.",
-          "timeout": 10
-        },
-        {
-          "type": "prompt",
-          "prompt": "Check file content policy using the tool input in $ARGUMENTS. Deny node_modules override, hardcoded secrets, root-level config changes. Return allow or deny.",
-          "timeout": 10
-        }
-      ]
-    }
-  ]
-}
-```
-
-Each hook runs sequentially.
-If any denies, tool is blocked.
-
-### Completeness validation at Stop
-
-```json
-{
-  "Stop": [
-    {
-      "matcher": "*",
-      "hooks": [
-        {
-          "type": "prompt",
-          "prompt": "Review the stop hook event in $ARGUMENTS. Verify whether the work is complete: tests pass, code style consistent, all requirements met. Return approve or block with reason.",
-          "timeout": 30
-        }
-      ]
-    }
-  ]
-}
-```
-
-Claude evaluates context and decides whether work is truly complete.
+All matching handlers run in parallel.
+Do not rely on one prompt or command result being available to another handler.
+If multiple checks jointly own one decision, combine them into one handler or make each independently safe.
