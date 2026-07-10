@@ -43,6 +43,8 @@ The top-level orchestrator owns:
 - integrated review and validation
 - commits, pushes, pull or merge requests, and other publication
 
+It delegates every exploration, implementation, documentation edit, audit, and validation task to a bounded leaf worker. It does not execute leaf work itself.
+
 Claude Code supports nested subagents to a fixed depth when an agent receives the `Agent` tool.
 Sinon deliberately omits delegation tools from installable agents, and installed Codex workflows use `max_depth = 1`.
 Every packaged or project agent is a repository-policy leaf and MUST return a decomposition handoff when its task needs further delegation.
@@ -79,9 +81,11 @@ Canonical mappings and counterpart paths live in `scripts/agent-routing-manifest
 Portable Agent Skills MUST NOT contain runtime `model`, `effort`, or `model_reasoning_effort` frontmatter.
 Runtime routing belongs in agent files and repository workflow policy.
 
-## Decomposition and Single-Editor Safety
+## Delegation and Single-Editor Safety
 
 Before parallel work, classify every unit as read-only or mutating.
+
+Dispatch independent reads and disjoint writers in parallel. Assign even narrow work to the lightest suitable worker with an explicit prompt, ownership, behavior, and completion check.
 
 - Independent read-only workers MAY share a worktree.
 - Each writer MUST receive one explicit, disjoint ownership scope, one base commit, one worktree, acceptance criteria, and validation target.
