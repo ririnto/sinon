@@ -5,12 +5,7 @@ Open this reference when subscription mode or listener concurrency must be chose
 ## Shared subscription shape
 
 ```java
-@PulsarListener(
-    topics = "shipments",
-    subscriptionName = "warehouse",
-    subscriptionType = SubscriptionType.Shared,
-    concurrency = "3"
-)
+@PulsarListener(topics = "shipments", subscriptionName = "warehouse", subscriptionType = SubscriptionType.Shared, concurrency = "3")
 void handle(ShipmentEvent event) {
     service.handle(event);
 }
@@ -19,12 +14,7 @@ void handle(ShipmentEvent event) {
 ## Key-shared subscription shape
 
 ```java
-@PulsarListener(
-    topics = "shipments",
-    subscriptionName = "warehouse",
-    subscriptionType = SubscriptionType.Key_Shared,
-    concurrency = "3"
-)
+@PulsarListener(topics = "shipments", subscriptionName = "warehouse", subscriptionType = SubscriptionType.Key_Shared, concurrency = "3")
 void handle(ShipmentEvent event) {
     service.handle(event);
 }

@@ -46,7 +46,7 @@ tasks.named<org.springframework.boot.gradle.tasks.buildinfo.BuildInfo>("buildInf
 
 ## Maven layers.xml from classpath
 
-The Maven plugin can load custom layers configuration from `META-INF/spring/layers/.xml` added as a plugin dependency.
+The Maven plugin can load custom layers configuration from `META-INF/spring/layers/<name>.xml` added as a plugin dependency.
 
 ## Gotchas
 

@@ -37,10 +37,7 @@ class ShipmentFlowTest {
     @Test
     void verifiesDeliveryPath() throws Exception {
         pulsarTemplate.send("shipments", new ShipmentEvent("shipment-42"));
-        assertAll(
-            () -> assertThat(deliveries.await(10, TimeUnit.SECONDS)).isTrue(),
-            () -> assertThat(received.get().shipmentId()).isEqualTo("shipment-42")
-        );
+        assertAll(() -> assertThat(deliveries.await(10, TimeUnit.SECONDS)).isTrue(), () -> assertThat(received.get().shipmentId()).isEqualTo("shipment-42"));
     }
 
     @Component
@@ -65,7 +62,7 @@ class ShipmentFlowTest {
 - Use admin-backed verification when the assertion depends on topic provisioning or partition count.
 - Keep one failure-path test that proves the listener reaches the intended redelivery or dead-letter behavior.
 - Keep the broker image aligned with one of the supported Pulsar client lines.
-  - Spring Boot 4.1.0 manages Spring Pulsar 2.0.6 with Pulsar client 4.2.2.
+  - Spring Boot 4.1 manages Spring Pulsar 2.0.6 with Pulsar client 4.2.2.
   - Pin a specific image version only when the test must prove compatibility with a chosen Pulsar line.
 
 ## Admin verification shape

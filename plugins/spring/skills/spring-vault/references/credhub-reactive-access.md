@@ -4,7 +4,7 @@ Open this reference when the blocker is reactive-only CredHub access through `Re
 
 Use `ReactiveCredHubOperations` only when the surrounding application flow is already reactive and blocking a request thread would be the real problem.
 
-Reactive access is available in the current stable 4.0.1 line, but it remains additive to the ordinary blocking client path in [`SKILL.md`](../SKILL.md).
+Reactive access is available in the current stable 4.0.x line, but it remains additive to the ordinary blocking client path in [`SKILL.md`](../SKILL.md).
 
 ```java
 @Service

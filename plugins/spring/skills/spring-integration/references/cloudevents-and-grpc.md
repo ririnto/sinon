@@ -119,11 +119,8 @@ GrpcInboundGateway helloWorldService() {
 
 @Bean
 IntegrationFlow grpcInboundFlow() {
-    return IntegrationFlow.from(
-                    Grpc.inboundGateway(TestSingleHelloWorldGrpc.TestSingleHelloWorldImplBase.class)
-                        .requestTimeout(3000L))
-            .transform(this::requestReply)
-            .get();
+    GrpcInboundGateway gateway = Grpc.inboundGateway(TestSingleHelloWorldGrpc.TestSingleHelloWorldImplBase.class).requestTimeout(3000L);
+    return IntegrationFlow.from(gateway).transform(this::requestReply).get();
 }
 ```
 

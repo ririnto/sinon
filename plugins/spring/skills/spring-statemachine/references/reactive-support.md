@@ -3,7 +3,7 @@
 Open this reference when application guards, actions, or event flows must stay reactive end to end.
 Keep the ordinary path imperative unless the surrounding application is already reactive.
 
-Reactive support is available in the current 4.0.2 line and remains an additive path rather than the baseline modeling shape.
+Reactive support is available in the current 4.0.x line and remains an additive path rather than the baseline modeling shape.
 
 ## Reactive boundary
 
@@ -35,7 +35,7 @@ Reactive support changes how side effects and eligibility checks are composed, b
 
 Use the reactive event path when event dispatch itself must stay reactive.
 The reactive `sendEvent(Mono<Message>)` and `sendEvents(Flux<Message>)` APIs require subscription, and `sendEvents(Flux<Message>)` returns a combined `Flux<StateMachineEventResult>`.
-The synchronous boolean `sendEvent(...)` methods are still present in the current 4.0.2 line.
+The synchronous boolean `sendEvent(...)` methods are still present in the current 4.0.x line.
 
 ```java
 Flux<StateMachineEventResult<States, Events>> results = stateMachine.sendEvents(Flux.just(MessageBuilder.withPayload(Events.PAY).build(), MessageBuilder.withPayload(Events.SHIP).build()));

@@ -12,10 +12,7 @@ JobExecution execution = jobOperatorTestUtils.startStep("importStep", new JobPar
 ```
 
 ```java
-assertAll(
-    () -> assertEquals(BatchStatus.COMPLETED, execution.getStatus()),
-    () -> assertEquals(100, execution.getStepExecutions().iterator().next().getWriteCount())
-);
+assertAll(() -> assertEquals(BatchStatus.COMPLETED, execution.getStatus()), () -> assertEquals(100, execution.getStepExecutions().iterator().next().getWriteCount()));
 ```
 
 ## Scope test blocker

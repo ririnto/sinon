@@ -66,8 +66,7 @@ completed.purgeOlderThan(Duration.ofDays(1));
 @Autowired
 IncompleteEventPublications incomplete;
 
-incomplete.resubmitIncompletePublications(
-    Duration.ofMinutes(5));
+incomplete.resubmitIncompletePublications(Duration.ofMinutes(5));
 ```
 
 ## Failed publications shape (2.0)

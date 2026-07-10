@@ -59,10 +59,7 @@ response:
 ## Stub Runner shape
 
 ```java
-@AutoConfigureStubRunner(
-    ids = "com.example:orders-service:+:stubs:8081",
-    stubsMode = StubRunnerProperties.StubsMode.LOCAL
-)
+@AutoConfigureStubRunner(ids = "com.example:orders-service:+:stubs:8081", stubsMode = StubRunnerProperties.StubsMode.LOCAL)
 class ConsumerTests {
 }
 ```

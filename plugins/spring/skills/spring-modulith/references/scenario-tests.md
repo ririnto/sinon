@@ -100,8 +100,7 @@ class OrdersScenarioTest {
 
     static class MyCustomizer implements ScenarioCustomizer {
         @Override
-        Function<ConditionFactory, ConditionFactory> getDefaultCustomizer(
-                Method method, ApplicationContext context) {
+        Function<ConditionFactory, ConditionFactory> getDefaultCustomizer(Method method, ApplicationContext context) {
             return factory -> factory.atMost(Duration.ofSeconds(3));
         }
     }
