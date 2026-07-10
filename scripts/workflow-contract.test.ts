@@ -177,6 +177,13 @@ test("workflow documents carry the complete lifecycle and selected-host split", 
     expect(text).not.toMatch(/\bValidate: run focused and integrated\b/u);
     expect(text).not.toMatch(/\b(?:run|perform) independent `?review\b/iu);
     expect(text).toContain("assign an independent `review` leaf");
+    expect(text).toContain(
+      "requirements, plan, applicable `AGENTS.md`, diff, and validation evidence"
+    );
+    expect(text).toContain('`fork_turns: "none"` when available');
+    expect(text).toContain(
+      "fresh independent `review` leaf over the same scope"
+    );
     for (const fragment of [
       "max_depth = 1",
       "scoped-implementer",
