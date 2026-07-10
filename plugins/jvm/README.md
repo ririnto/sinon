@@ -5,7 +5,8 @@ description: >-
 
 # JVM
 
-JVM is a shared, skill-first plugin for standard JDK tooling, JVM runtime diagnostics, and garbage-collection workflows in the Sinon Claude marketplace.
+JVM is a shared, skill-first plugin for standard JDK tooling, JVM runtime diagnostics, and
+garbage-collection workflows in the Sinon Claude marketplace.
 
 This plugin treats JDK 8, 11, 17, 21, and 25 as the supported LTS reference line.
 
@@ -17,7 +18,8 @@ This plugin treats JDK 8, 11, 17, 21, and 25 as the supported LTS reference line
 
 ## Included Skills
 
-- `jvm-tooling-workflows`: `javac`, `java`, `javadoc`, and `jdeps` across the supported LTS line, plus version-gated `jshell` (JDK 9+), `jlink` (JDK 9+), and `jpackage` workflows.
+- `jvm-tooling-workflows`: `javac`, `java`, `javadoc`, and `jdeps` across the supported LTS
+  line, plus version-gated `jshell` (JDK 9+), `jlink` (JDK 9+), and `jpackage` workflows.
   - Treat `jpackage` as standard from JDK 16.
     - JDK 14-15 shipped it only as an incubating tool.
 - `jvm-runtime-diagnostics`: runtime incident triage with stack traces, thread dumps, `jcmd`, JFR, and memory-pressure evidence.
