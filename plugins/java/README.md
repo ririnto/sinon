@@ -10,8 +10,10 @@ Java is a shared, skill-first plugin for Java language work in the Sinon Claude 
 ## Purpose
 
 - Provide reusable Java workflows that remain portable across Claude Code plugin installations.
-- Keep the portable value surface in `skills/`, with Java-specific language-server integration kept separate from the shared skill corpus.
-- Keep skills practical, example-driven, and focused on direct Java implementation work rather than directory-style guidance.
+- Keep the portable value surface in `skills/`, with Java-specific language-server integration
+  kept separate from the shared skill corpus.
+- Keep skills practical, example-driven, and focused on direct Java implementation work rather
+  than directory-style guidance.
 - Ground guidance in plugin bundled skills, wrapper behavior, and stable Java ecosystem conventions instead of ad-hoc advice.
 
 ## Included Skills
@@ -29,7 +31,8 @@ They should not stop at pointing toward other repositories or documentation when
 
 ## Included Agents
 
-- `java-architect`: coordinates Java language, testing, dependency, performance, and API design decisions when a task crosses multiple Java skills or needs architecture-level tradeoff review.
+- `java-architect`: coordinates Java language, testing, dependency, performance, and API design
+  decisions when a task crosses multiple Java skills or needs architecture-level tradeoff review.
 
 `java-architect` is a substantive leaf domain router using Claude Sonnet with medium effort.
 It may load Java skills but does not delegate to other agents.
@@ -61,7 +64,8 @@ Start here when the Java work could fit more than one skill:
 ### Scope boundaries
 
 Each skill states its own scope and exclusions.
-When work lands on a boundary, keep the active task inside the skill that owns the current implementation blocker instead of turning the answer into transfer instructions.
+When work lands on a boundary, keep the active task inside the skill that owns the current
+implementation blocker instead of turning the answer into transfer instructions.
 
 ## Runtime Model
 
