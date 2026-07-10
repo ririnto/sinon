@@ -34,7 +34,7 @@ Plugin-root `settings.json` currently supports only:
 - `agent`: the name of an agent to run as the main thread
 - `subagentStatusLine`: a command configuration that renders subagent rows
 
-The starter `assets/settings.json` demonstrates the `agent` key and MUST be adapted to an agent the target plugin actually ships or can resolve.
+The starter `assets/settings.json` demonstrates the `agent` key and MUST name an agent the target plugin ships or resolves.
 Delete the file if neither supported key is needed.
 
 Manifest `settings` MAY provide the same allowlisted settings inline.

@@ -193,4 +193,4 @@ Return:
 - `references/plugin-layout.md` - open for composite trees and custom-path examples.
 - `references/plugin-runtime-components.md` - open after choosing hooks, MCP, LSP, settings, output styles, themes, monitors, or executables.
 - `references/plugin-release.md` - open for install scope, release, and persistent-data review.
-- `assets/` - copy only the starter file for a component the plugin will actually ship.
+- `assets/` - copy a starter file only for a component the plugin ships.

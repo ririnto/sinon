@@ -537,7 +537,7 @@ The two letters have three classes:
 
 - **Normal (no merge, or merge succeeded)**: `X` is the status in the index (staged), `Y` is the status in the working tree (unstaged).
 - **Unmerged (merge conflict not yet resolved)**: `X` and `Y` show the state each side introduced relative to the common ancestor (for example `UU` both modified, `AA` both added, `DD` both deleted, `AU` added by us, `UA` added by them, `DU` deleted by us, `UD` deleted by them).
-- **Untracked and ignored**: `X` and `Y` are always the same letter (`??` untracked, `!!` ignored — the latter only with `--ignored`).
+- **Untracked and ignored**: `X` and `Y` use the same letter (`??` untracked; `!!` ignored with `--ignored`).
 
 Normal-case codes in full:
 

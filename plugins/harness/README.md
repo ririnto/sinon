@@ -269,9 +269,8 @@ The uv validator self-provisions ruff on first use with two commands:
 - `uv run --with "ruff>=0.15.21,<0.16.0" ruff check .`
 - `uv run --with "ruff>=0.15.21,<0.16.0" ruff format --check .`
 
-It uses Ruff's normal project discovery.
-Network access is required on first run.
-The ruff binary is then cached.
+Ruff uses its normal project discovery.
+The first run requires network access and caches the Ruff binary.
 Markdown validation runs only when `markdownlint-cli2` is available on PATH, as described above.
 
 ## Native Tool Enforcement
