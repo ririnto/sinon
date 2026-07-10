@@ -48,7 +48,7 @@ tasks.test {
 | Baseline assertions + JUnit 5 runner | `kotlin.test` + `kotlin-test-junit5` | `org.jetbrains.kotlin:kotlin-test-junit5:2.4.0` |
 | Coroutine test control | `kotlinx-coroutines-test` | `org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0` |
 | Mocking | MockK | `io.mockk:mockk:1.14.11` |
-| Rich matchers + spec styles | Kotest | `io.kotest:kotest-runner-junit5:6.2.1` |
+| Rich matchers + spec styles | Kotest | `io.kotest:kotest-runner-junit5:6.2.2` |
 | Step-by-step Flow inspection | Turbine | `app.cash.turbine:turbine:1.2.1` |
 | Polling / eventual consistency | Awaitility | `org.awaitility:awaitility-kotlin:4.3.0` |
 | Docker-based integration tests | Testcontainers | `org.testcontainers:*` |
