@@ -28,8 +28,8 @@ Structural checks that cannot be automated remain prose conventions in the insta
 ### uv
 
 - Validator: `uv run scripts/check.py`
-  - Runs `uv run --with "ruff>=0.15.18,<0.16.0" ruff check .`.
-  - Runs `uv run --with "ruff>=0.15.18,<0.16.0" ruff format --check .`.
+  - Runs `uv run --with "ruff>=0.15.21,<0.16.0" ruff check .`.
+  - Runs `uv run --with "ruff>=0.15.21,<0.16.0" ruff format --check .`.
   - Uses Ruff's normal project discovery.
 - Ruff configuration: `ruff.toml` at repository root; keeps Ruff lint defaults and sets ruff format quote style.
 - Custom Python AST conventions: 7 prose-only rules.
@@ -37,8 +37,8 @@ Structural checks that cannot be automated remain prose conventions in the insta
   - These are documented code conventions, not automated enforcement.
 - Fix command: `uv run scripts/fix.py`
   - Runs `markdownlint-cli2 --fix` when it is available on PATH.
-  - Runs `uv run --with "ruff>=0.15.18,<0.16.0" ruff check --fix .`.
-  - Runs `uv run --with "ruff>=0.15.18,<0.16.0" ruff format .`.
+  - Runs `uv run --with "ruff>=0.15.21,<0.16.0" ruff check --fix .`.
+  - Runs `uv run --with "ruff>=0.15.21,<0.16.0" ruff format .`.
   - Uses Ruff's normal project discovery.
 - Quote style: ruff format uses double quotes.
 
