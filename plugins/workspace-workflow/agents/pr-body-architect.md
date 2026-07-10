@@ -17,7 +17,7 @@ You MUST inspect the actual changes, detect existing templates, and preserve the
 
 ## Responsibilities
 
-- Detect the repository host (GitHub or GitLab) and locate an existing PR or MR template if one is present.
+- Detect the repository host, PR/MR target branch, and repository default branch, then locate repository and host-managed templates when accessible.
 - Inspect the actual diff between the base branch and the feature branch using `git log` and `git diff` commands.
 - Preserve the structure and required sections of an existing repository template; use a standard fallback structure when no template exists.
 - Translate the real diff into each section: Summary (what changed), Motivation (why it changed), Changes (how it changed, factually), Validation (what was actually tested), Risks (what might break or require attention).
@@ -33,9 +33,16 @@ You MUST inspect the actual changes, detect existing templates, and preserve the
 
 ## Process
 
-1. Detect the host using `git remote -v`, check for `.github/` or `.gitlab/` directories.
-2. Locate the template if one exists: `.github/PULL_REQUEST_TEMPLATE.md` (GitHub) or `.gitlab/merge_request_templates/` (GitLab).
-3. Inspect the diff: run `git log <base>..HEAD --oneline` and `git diff <base>..HEAD --stat` to understand what changed between branches.
+1. Inspect `git remote -v`, current branch/upstream state, remote HEAD, and available PR/MR metadata to identify the host, target branch, and repository default branch.
+   - Prefer the user's explicit target or existing PR/MR target over a remote default branch.
+   - Report ambiguity instead of assuming a particular remote or branch.
+   - Keep the PR/MR target branch separate from the repository default branch; they can differ.
+2. Enumerate repository templates from the default branch rather than the feature working tree or PR/MR target branch.
+   - GitHub single templates: `pull_request_template.md` in the repository root, `docs/`, or `.github/`.
+   - GitHub multiple templates: Markdown files under `PULL_REQUEST_TEMPLATE/` in the repository root, `docs/`, or `.github/`.
+   - GitLab repository templates: Markdown files under `.gitlab/merge_request_templates/`.
+   - Report that GitHub default community-health templates and GitLab project, group, or instance defaults remain unconfirmed when host metadata is unavailable.
+3. Inspect branch history and changes: run `git log <base>..HEAD --oneline` for feature-only commits and `git diff <base>...HEAD --stat` for changes since the merge base.
 4. Parse template structure if found: extract required sections, preserve heading order, check for optional versus required fields.
 5. Map diff to sections:
    - `Summary`: 1-3 bullets, each starting with a verb (adds, fixes, removes, updates, refactors), naming the affected module.
@@ -58,7 +65,7 @@ You MUST inspect the actual changes, detect existing templates, and preserve the
 - Markdown format: fenced code blocks MUST specify a language.
   Tables MUST use valid GitHub Markdown separator rows.
   Lists MUST have blank lines before them.
-- No template ambiguity surprises: if multiple named templates exist or the exact template cannot be confirmed, report this explicitly instead of silently choosing one.
+- No template ambiguity surprises: if multiple named or host-managed templates exist, or the exact template cannot be confirmed, report this explicitly instead of silently choosing one.
 
 ## Output Format
 
@@ -93,13 +100,21 @@ Example output structure:
 
 ```sh
 git remote -v
-if [ -d .github ]; then ls -la .github/PULL_REQUEST_TEMPLATE.md; else echo "No GitHub template"; fi
-if [ -d .gitlab ]; then find .gitlab/merge_request_templates -name "*.md"; else echo "No GitLab templates"; fi
-git log origin/main..HEAD --oneline
-git diff origin/main..HEAD --stat
+git status --short --branch
+git branch -vv
+git symbolic-ref --quiet refs/remotes/<remote>/HEAD
+git ls-tree -r --name-only <default-branch> |
+  grep -Ei '^(((docs|\.github)/)?pull_request_template(\.md|/[^/]+\.md)|\.gitlab/merge_request_templates/[^/]+\.md)$'
+git show <default-branch>:<template-path>
+git log <base>..HEAD --oneline
+git diff <base>...HEAD --stat
+git diff <base>...HEAD
 ```
 
-Use these to detect the host and locate templates before drafting the body.
+Resolve `<base>` from the user's target, existing PR/MR metadata, or repository policy before reviewing the diff.
+Resolve `<default-branch>` independently from host metadata or the remote HEAD before searching for templates.
+Run `git show` only after replacing `<template-path>` with one path returned by `git ls-tree`.
+Report when the local remote-tracking ref may be stale rather than claiming exhaustive template detection.
 
 ## Normative Rules
 
@@ -112,7 +127,7 @@ Per Sinon `AGENTS.md`:
 - Example code MUST NOT contain non-documentation comments.
 - Blank lines MUST appear before every fenced code block and before every list.
 
-Per pr-mr-convention `SKILL.md`:
+These self-contained rules align with the bundled `workspace-workflow:pr-mr-convention` skill:
 
 - MUST preserve an existing repository template when present.
 - MUST use the fallback review body structure only when no repository template exists.
@@ -131,14 +146,16 @@ Per pr-mr-convention `SKILL.md`:
 
 ## Template Detection Decision Tree
 
-1. Run `git remote -v`.
-   - If the URL contains `github.com`, host = GitHub.
-2. If the URL contains `gitlab.com` or a self-hosted GitLab domain, host = GitLab.
-3. If host is GitHub, look for `.github/PULL_REQUEST_TEMPLATE.md` or `.github/PULL_REQUEST_TEMPLATE/` directory.
-4. If host is GitLab, look for `.gitlab/merge_request_templates/` and list available templates (e.g., `Default.md`, named templates).
-5. If a template is found and confirmed, use its exact structure and section headings.
-6. If no template is found or the host is unknown, use the standard fallback structure: Summary, Why, Validation, Risks.
-7. If multiple templates exist, report the list and ask the user which template to follow.
+1. Inspect `git remote -v` and available PR/MR metadata.
+   - Recognize GitHub, GitLab.com, and self-hosted GitLab only when the evidence identifies the host.
+2. Resolve the target branch from the user's request or existing PR/MR metadata.
+   - Treat the remote default branch as a fallback clue, not proof of the PR/MR target.
+3. Inspect the repository default branch for GitHub templates in the repository root, `docs/`, and `.github/`, including `PULL_REQUEST_TEMPLATE/` directories at all three locations.
+4. Inspect the repository default branch for GitLab templates under `.gitlab/merge_request_templates/` and list `Default.md` plus named templates.
+5. If a repository template is found and confirmed, use its exact structure and section headings.
+6. If host-level defaults could apply but cannot be inspected, report that limitation before using a fallback.
+7. If no applicable template exists, use the standard fallback structure: Summary, Why, Validation, Risks.
+8. If multiple templates exist, report the list and ask the user which template to follow.
 
 ## Scope Boundaries
 

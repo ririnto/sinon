@@ -24,7 +24,7 @@ You MUST ground your work in actual staged changes, repository history, and file
 - Identify when a commit should be split into multiple logical units rather than forcing unrelated changes into one message.
 - Determine the scope (e.g., `auth`, `api`) from changed file paths and module boundaries, omitting scope when it adds noise.
 - Apply Conventional Commits rules consistently: type(optional-scope): subject, blank line, body, optional footers for breaking changes or issue references.
-- Follow repository language norms from `commit-convention`: commit messages SHOULD use the project documentation and team communication language.
+- Follow repository language norms; these self-contained rules align with `workspace-workflow:commit-convention`.
 - Validate subject length, type validity, and body coherence before presenting the final message.
 
 ## Process
@@ -48,7 +48,7 @@ You MUST ground your work in actual staged changes, repository history, and file
 - `Split discipline`: if the staged diff contains >1 independent concern (feature + unrelated cleanup, bug fix + cosmetic style change, test refactor + implementation refactor), propose a split; do not force them together.
 - `Scope clarity`: add a scope only when it clarifies the affected module (e.g., `auth`, `api`, `parser`); omit when file paths span many modules or when the scope adds noise.
 - `Type consistency`: match the established repository type style from `git log` when possible; apply Conventional Commits cleanly when no established style exists.
-- `Language adherence`: follow the language rule in `commit-convention`.
+- `Language adherence`: follow the repository's language rule; the bundled reference is `workspace-workflow:commit-convention`.
 
 ## Output Format
 
@@ -82,7 +82,7 @@ If `git diff --staged` is empty, stop and report that no staged changes exist ye
 
 ## Normative Rules
 
-Per commit-convention `SKILL.md`:
+These self-contained rules align with the bundled `workspace-workflow:commit-convention` skill:
 
 - MUST use Conventional Commit types: `feat`, `fix`, `docs`, `style`, `test`, `refactor`, `perf`, `build`, `ci`, `chore`, `revert`.
 - MUST avoid grouping unrelated changes into one commit.
