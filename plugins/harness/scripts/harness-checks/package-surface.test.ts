@@ -15,7 +15,10 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { checkPackageSurface } from "./package-surface.js";
+import {
+  checkPackageSurface,
+  checkRepositoryPackageSurface
+} from "./package-surface.js";
 
 type Manifest = Record<string, unknown>;
 
@@ -56,6 +59,31 @@ const copyRepositoryFixture = (temporaryRoot: string): string => {
     const linkPath = path.join(fixtureRoot, link);
     rmSync(linkPath, { force: true, recursive: true });
     symlinkSync(target, linkPath);
+  }
+  return fixtureRoot;
+};
+
+const copyPluginFixture = (temporaryRoot: string): string => {
+  const sourceRoot = path.resolve(import.meta.dirname, "..", "..");
+  const fixtureRoot = path.join(temporaryRoot, "harness");
+  const repositoryRoot = path.resolve(sourceRoot, "..", "..");
+  const tracked = Bun.spawnSync(
+    ["git", "-C", repositoryRoot, "ls-files", "-z", "--", "plugins/harness"],
+    { stderr: "pipe", stdout: "pipe" }
+  );
+  if (!tracked.success) {
+    throw new Error(tracked.stderr.toString());
+  }
+  for (const filePath of tracked.stdout.toString().split("\0")) {
+    if (filePath === "") {
+      continue;
+    }
+    const targetPath = path.join(
+      fixtureRoot,
+      path.relative("plugins/harness", filePath)
+    );
+    mkdirSync(path.dirname(targetPath), { recursive: true });
+    cpSync(path.join(repositoryRoot, filePath), targetPath);
   }
   return fixtureRoot;
 };
@@ -115,29 +143,29 @@ test("package surface follows Claude 2.1.205 fields and filesystem boundaries", 
       ),
       "utf-8"
     );
-    expect(() => checkPackageSurface(harnessRoot)).not.toThrow();
+    expect(() => checkRepositoryPackageSurface(harnessRoot)).not.toThrow();
 
     writeJson(manifestPath, {
       ...originalManifest,
       settings: { permissions: { allow: ["Bash"] } }
     });
-    expect(() => checkPackageSurface(harnessRoot)).toThrow();
+    expect(() => checkRepositoryPackageSurface(harnessRoot)).toThrow();
 
     writeJson(manifestPath, {
       ...originalManifest,
       themes: "./branding/theme.json"
     });
-    expect(() => checkPackageSurface(harnessRoot)).toThrow();
+    expect(() => checkRepositoryPackageSurface(harnessRoot)).toThrow();
 
     writeJson(manifestPath, originalManifest);
     writeFileSync(agentPath, originalAgent, "utf-8");
     writeFileSync(agentPath, "---\nname: [\n---\n", "utf-8");
-    expect(() => checkPackageSurface(harnessRoot)).toThrow();
+    expect(() => checkRepositoryPackageSurface(harnessRoot)).toThrow();
     writeFileSync(agentPath, originalAgent, "utf-8");
     const agentsPath = path.join(harnessRoot, "agents");
     const hiddenAgentsPath = path.join(harnessRoot, "agents.hidden");
     renameSync(agentsPath, hiddenAgentsPath);
-    expect(() => checkPackageSurface(harnessRoot)).toThrow();
+    expect(() => checkRepositoryPackageSurface(harnessRoot)).toThrow();
     renameSync(hiddenAgentsPath, agentsPath);
 
     const documentSkills = path.join(
@@ -148,17 +176,17 @@ test("package surface follows Claude 2.1.205 fields and filesystem boundaries", 
     );
     const hiddenDocumentSkills = `${documentSkills}.hidden`;
     renameSync(documentSkills, hiddenDocumentSkills);
-    expect(() => checkPackageSurface(harnessRoot)).toThrow();
+    expect(() => checkRepositoryPackageSurface(harnessRoot)).toThrow();
     renameSync(hiddenDocumentSkills, documentSkills);
 
     const missingSkill = path.join(harnessRoot, "skills", "missing-entry");
     mkdirSync(missingSkill);
-    expect(() => checkPackageSurface(harnessRoot)).toThrow();
+    expect(() => checkRepositoryPackageSurface(harnessRoot)).toThrow();
     rmSync(missingSkill, { recursive: true });
 
     const settingsPath = path.join(harnessRoot, "settings.json");
     writeJson(settingsPath, { permissions: { allow: ["Bash"] } });
-    expect(() => checkPackageSurface(harnessRoot)).toThrow();
+    expect(() => checkRepositoryPackageSurface(harnessRoot)).toThrow();
     unlinkSync(settingsPath);
 
     const outside = path.join(temporaryRoot, "outside-skills");
@@ -172,12 +200,43 @@ test("package surface follows Claude 2.1.205 fields and filesystem boundaries", 
     expect(() => checkPackageSurface(harnessRoot)).toThrow();
     unlinkSync(escapedPath);
     writeJson(manifestPath, originalManifest);
-    expect(() => checkPackageSurface(harnessRoot)).not.toThrow();
+    expect(() => checkRepositoryPackageSurface(harnessRoot)).not.toThrow();
     const repositoryAlias = path.join(temporaryRoot, "repository-alias");
     symlinkSync(repositoryRoot, repositoryAlias, "dir");
     expect(() =>
-      checkPackageSurface(path.join(repositoryAlias, "plugins", "harness"))
+      checkRepositoryPackageSurface(
+        path.join(repositoryAlias, "plugins", "harness")
+      )
     ).not.toThrow();
+  } finally {
+    rmSync(temporaryRoot, { force: true, recursive: true });
+  }
+}, 120_000);
+
+test("a copied Harness package runs its self-check without repository files", () => {
+  const temporaryRoot = mkdtempSync(path.join(tmpdir(), "harness-package-"));
+  try {
+    const pluginRoot = copyPluginFixture(temporaryRoot);
+    expect(() => checkPackageSurface(pluginRoot)).not.toThrow();
+    const escapingRuntime = path.join(pluginRoot, "scripts", "escape.ts");
+    writeFileSync(
+      escapingRuntime,
+      'import "../../../../scripts/agent-routing.js";\n',
+      "utf-8"
+    );
+    expect(() => checkPackageSurface(pluginRoot)).toThrow();
+    unlinkSync(escapingRuntime);
+    const result = Bun.spawnSync(
+      [
+        process.execPath,
+        path.join(pluginRoot, "scripts", "plugin-self-check.ts")
+      ],
+      { cwd: pluginRoot, stderr: "pipe", stdout: "pipe" }
+    );
+    expect(
+      result.success,
+      `${result.stdout.toString()}${result.stderr.toString()}`
+    ).toBe(true);
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });
   }

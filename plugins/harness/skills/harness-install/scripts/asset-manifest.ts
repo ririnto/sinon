@@ -107,12 +107,15 @@ export const readAssetManifest = (
   for (const [subdir, entries] of Object.entries(
     parsed as Record<string, unknown>
   )) {
-    if (!Array.isArray(entries)) {
+    if (
+      !Array.isArray(entries) ||
+      !entries.every((entry) => typeof entry === "string")
+    ) {
       throw new TypeError(
-        `asset manifest entry must be an array: ${subdir} in ${manifestPath}`
+        `asset manifest entry must be a string array: ${subdir} in ${manifestPath}`
       );
     }
-    result[subdir] = entries.map(String);
+    result[subdir] = entries;
   }
   return result;
 };
