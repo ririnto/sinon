@@ -32,7 +32,7 @@ The ordinary Spring Batch job is:
 Use the Boot starter for application code and the Batch test module for job and step tests.
 
 Spring Boot 4.1.x manages Spring Batch 6.0.x.
-The current released Spring Batch artifact line is 6.0.4. Spring Boot 3.4.x and 3.5.x use the Spring Batch 5.2.x compatibility branch; Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
+The current released Spring Batch artifact line is 6.0.x. Spring Boot 3.4.x and 3.5.x use the Spring Batch 5.2.x compatibility branch; Batch 6-specific APIs require the Boot 4.1.x path or an intentional direct Spring Batch 6.x dependency.
 
 JDBC store (default when a `DataSource` is present):
 

@@ -6,15 +6,7 @@ Open this reference when active-profile selection or profile-specific config loa
 spring.profiles.active=prod
 ```
 
-```yaml
-spring:
-  config:
-    activate:
-      on-profile: prod
-catalog:
-  region: eu-west-1
-```
-
+Put profile-specific values in `application-prod.yaml` using the canonical `spring.config.activate.on-profile` shape from `SKILL.md`.
 Prefer explicit profile activation and profile-specific files over hidden conditional code.
 
 ## Validation rule

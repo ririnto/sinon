@@ -7,10 +7,7 @@ Open this reference when the minimal validation in [`SKILL.md`](../SKILL.md) is 
 void introspectionReturnsActiveForIssuedToken() {
     ResponseEntity<Map> response = restTemplate.postForEntity("http://127.0.0.1:8080/oauth2/introspect", introspectionRequest("issued-token"), Map.class);
     Map body = Objects.requireNonNull(response.getBody());
-    assertAll(
-        () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
-        () -> assertEquals(Boolean.TRUE, body.get("active"))
-    );
+    assertAll(() -> assertEquals(HttpStatus.OK, response.getStatusCode()), () -> assertEquals(Boolean.TRUE, body.get("active")));
 }
 
 @Test

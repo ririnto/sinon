@@ -18,7 +18,7 @@ Use `spring-web-services` for SOAP transport, XML contract publication, endpoint
 
 ## Baseline
 
-The latest released Spring Web Services line is 5.0.2.
+The latest released Spring Web Services line is 5.0.x.
 Spring Web Services 5.0 requires JDK 17+ (compatible through JDK 27), Jakarta EE 11 (Servlet 6.1, Jakarta XML Bind 4.0, Jakarta Activation 2.1), Spring Framework 7.0, Spring Security 7.0, Apache WSS4J 4.0, and JUnit 6.0.
 
 - Spring WS 5.0.x aligns with Spring Boot 4.0.x and 4.1.x.

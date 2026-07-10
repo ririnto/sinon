@@ -59,13 +59,7 @@ Boot also supports `docker.elastic.co/elasticsearch/elasticsearch` images for Do
 When `docker compose up` or `docker compose start` fails, Boot logs container output at the configured level.
 Defaults to `info`.
 
-```yaml
-spring:
-  docker:
-    compose:
-      start:
-        log-level: debug
-```
+Set `spring.docker.compose.start.log-level=debug` when local Compose startup needs container output above the default `info` level.
 
 ## Gotchas
 

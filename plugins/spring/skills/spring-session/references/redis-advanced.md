@@ -5,18 +5,27 @@ Open reference when Redis repository type, JSON serialization, session events, l
 ## RedisSessionRepository vs RedisIndexedSessionRepository
 
 - Use `RedisSessionRepository` when the application only needs normal read, write, and expiration behavior for each session.
-  - This is the default when `spring.session.redis.repository-type=default`.
+  - This is the default when `spring.session.data.redis.repository-type=default`.
 - Use `RedisIndexedSessionRepository` when Spring Security, administration, or messaging needs `findByPrincipalName(...)`, session lifecycle events, or concurrent-session control.
-  - This is the default when `spring.session.redis.repository-type=indexed`.
+  - This is selected when `spring.session.data.redis.repository-type=indexed`.
 
-Annotation selection:
+For the Boot-managed path, prefer the property above.
+Use annotations only in a deliberately manual configuration that replaces Boot's session auto-configuration.
+
+Default manual repository:
 
 ```java
-// Default repository - no indexing, no events
 @EnableRedisHttpSession
+class DefaultRedisSessionConfiguration {
+}
+```
 
-// Indexed repository - supports findByPrincipalName and session events
+Indexed manual repository:
+
+```java
 @EnableRedisIndexedHttpSession
+class IndexedRedisSessionConfiguration {
+}
 ```
 
 Application properties:
@@ -24,22 +33,16 @@ Application properties:
 ```yaml
 spring:
   session:
-    redis:
-      repository-type: indexed
+    data:
+      redis:
+        repository-type: indexed
 ```
 
 ### RedisIndexedSessionRepository with Spring Security
 
-Register `HttpSessionEventPublisher` as a bean to bridge session lifecycle events into Spring Security's concurrency control:
+Use the `SpringSessionBackedSessionRegistry` common-path configuration in `SKILL.md` so clustered concurrent-session control reads the same indexed repository as Spring Session.
 
-```java
-@Bean
-HttpSessionEventPublisher httpSessionEventPublisher() {
-    return new HttpSessionEventPublisher();
-}
-```
-
-This enables Spring Security's `maximumSessions()` and `sessionRegistry()` to see the same sessions that Spring Session manages in Redis.
+`SpringSessionBackedSessionRegistry` does not implement `getAllPrincipals()` because Spring Session cannot enumerate every principal; Spring Security's concurrent-session control does not require that method.
 
 ## JSON serialization
 
@@ -48,22 +51,12 @@ Switch to JSON when multiple applications share the Redis instance or when class
 
 ```java
 @Configuration
-@EnableRedisIndexedHttpSession
 class SessionConfig {
     @Bean
-    RedisSerializer<Object> springSessionRedisSerializer() {
+    RedisSerializer<Object> springSessionDefaultRedisSerializer() {
         return new GenericJackson2JsonRedisSerializer();
     }
 }
-```
-
-Application property:
-
-```yaml
-spring:
-  session:
-    redis:
-      serializer: json
 ```
 
 ## Session events
@@ -94,9 +87,7 @@ For servlet `HttpSessionListener` bridging, declare `SessionEventHttpSessionList
 ```java
 @Bean
 SessionEventHttpSessionListenerAdapter sessionEventAdapter() {
-    return new SessionEventHttpSessionListenerAdapter(
-        List.of(new MyHttpSessionListener())
-    );
+    return new SessionEventHttpSessionListenerAdapter(List.of(new MyHttpSessionListener()));
 }
 ```
 
@@ -166,5 +157,5 @@ session.setAttribute(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME,
   - Pick one and enforce it in every application.
 - Do not assume `SessionExpiredEvent` fires at the exact moment of TTL expiry.
   - Redis expiration is approximate and events may arrive with delay.
-- Do not skip `HttpSessionEventPublisher` registration when using Spring Security's `maximumSessions()` with an indexed repository.
-  - Without it, Spring Security does not see session lifecycle transitions.
+- Do not use the in-memory Spring Security `SessionRegistryImpl` when concurrent-session limits must work across nodes.
+  - Inject `SpringSessionBackedSessionRegistry` into `maximumSessions()` instead.

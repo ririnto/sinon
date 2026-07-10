@@ -7,26 +7,18 @@ Do not mix `HttpSession` terminology or servlet-only configuration into a `WebSe
 
 ## Reactive baseline
 
-```java
-@Configuration
-@EnableRedisWebSession
-class SessionConfig {
-    @Bean
-    LettuceConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory();
-    }
-}
-```
+Use the Boot-managed `spring-boot-starter-session-data-redis` dependency from `SKILL.md` in a WebFlux application.
+Boot selects the reactive repository from the application type and configures the managed Redis connection factory.
 
 Application properties:
 
 ```yaml
 spring:
   session:
-    store-type: redis
     timeout: 30m
-    redis:
-      namespace: app:session
+    data:
+      redis:
+        namespace: app:session
   data:
     redis:
       host: localhost
@@ -112,7 +104,7 @@ class WebFluxSessionFlowTest {
 
 | Situation | Use |
 | --- | --- |
-| Reactive app needs shared login state across nodes | `@EnableRedisWebSession` |
+| Reactive app needs shared login state across nodes | Boot-managed reactive Redis session repository |
 | Session mutation timing is ambiguous in a low-level flow | save the `WebSession` explicitly |
 | Reactive security context must survive across nodes | validate `WebSession` persistence together with security behavior |
 | Reactive Redis session timeout or namespace needs adjustment | `ReactiveSessionRepositoryCustomizer` |
@@ -122,5 +114,5 @@ class WebFluxSessionFlowTest {
 - Do not reuse servlet `HttpSessionIdResolver` or servlet cookie APIs in a reactive path.
 - Do not assume a servlet-only logout or listener pattern applies to `WebSession`.
 - Do not block inside session serialization or persistence hooks.
-- Do not use `@EnableRedisHttpSession` or `@EnableRedisIndexedHttpSession` in a reactive application.
-  - Use `@EnableRedisWebSession` exclusively.
+- Do not add servlet session enablement annotations to a reactive application.
+- Use `@EnableRedisWebSession` only when deliberately replacing the Boot-managed repository configuration.

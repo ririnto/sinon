@@ -7,7 +7,7 @@ description: >-
 
 # Spring AMQP
 
-The latest released Spring AMQP line is 4.1.0. Keep this skill on the 4.1.x stable line.
+The latest released Spring AMQP line is 4.1.x.
 
 ## Boundaries
 

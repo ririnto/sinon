@@ -59,18 +59,8 @@ Use a Mongo-backed repository only when the platform already standardizes on Mon
 
 ## MongoDB store configuration (Boot 4.1+)
 
-Schema initialization (creates collections and indexes from a newline-delimited JSON script):
-
-```yaml
-spring:
-  batch:
-    data:
-      mongodb:
-        schema:
-          initialize: true
-```
-
-Custom schema script location (defaults to `org/springframework/batch/core/schema-mongodb.jsonl`):
+The common path enables schema initialization with `spring.batch.data.mongodb.schema.initialize`.
+Use a custom schema script location when the default `org/springframework/batch/core/schema-mongodb.jsonl` does not match the deployment:
 
 ```yaml
 spring:

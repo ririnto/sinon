@@ -1,4 +1,4 @@
-# Spring Boot 4.1.0 changes
+# Spring Boot 4.1 changes
 
 Open this reference when migrating from 4.0 to 4.1 or replacing features that changed features.
 

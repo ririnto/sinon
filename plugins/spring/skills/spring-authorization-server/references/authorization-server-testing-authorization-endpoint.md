@@ -11,9 +11,6 @@ void authorizationRequestWithPkceSucceeds() {
         .scopes(Set.of("openid", "message.read"))
         .apply(OAuth2AuthorizationRequestCustomizers.withPkce())
         .build();
-    assertAll(
-        () -> assertNotNull(request.getAttribute(PkceParameterNames.CODE_VERIFIER)),
-        () -> assertEquals("S256", request.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD))
-    );
+    assertAll(() -> assertNotNull(request.getAttribute(PkceParameterNames.CODE_VERIFIER)), () -> assertEquals("S256", request.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE_METHOD)));
 }
 ```

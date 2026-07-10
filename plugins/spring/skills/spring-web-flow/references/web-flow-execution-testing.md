@@ -33,6 +33,7 @@ final class BookingServiceStub implements BookingService {
 ```java
 class BookingFlowHarness extends AbstractXmlFlowExecutionTests {
     private final BookingServiceStub bookingService = new BookingServiceStub();
+    private Flow paymentSubflow;
 
     @Override
     protected FlowDefinitionResource getResource(FlowDefinitionResourceFactory resourceFactory) {
@@ -42,10 +43,17 @@ class BookingFlowHarness extends AbstractXmlFlowExecutionTests {
     @Override
     protected void configureFlowBuilderContext(MockFlowBuilderContext builderContext) {
         builderContext.registerBean("bookingService", bookingService);
+        if (paymentSubflow != null) {
+            builderContext.registerSubflow(paymentSubflow);
+        }
     }
 
     void start(MutableAttributeMap<Object> input, MockExternalContext context) {
         startFlow(input, context);
+    }
+
+    void start() {
+        startFlow(new MockExternalContext());
     }
 
     void signal(String stateId, String eventId, Booking booking) {
@@ -57,11 +65,23 @@ class BookingFlowHarness extends AbstractXmlFlowExecutionTests {
     }
 
     void registerPaymentSubflow(Flow paymentSubflow) {
-        getFlowDefinitionRegistry().registerFlowDefinition(paymentSubflow);
+        this.paymentSubflow = paymentSubflow;
     }
 
     BookingServiceStub bookingService() {
         return bookingService;
+    }
+
+    void assertState(String stateId) {
+        assertCurrentStateEquals(stateId);
+    }
+
+    void assertEnded() {
+        assertFlowExecutionEnded();
+    }
+
+    void assertOutcome(String outcome) {
+        assertFlowExecutionOutcomeEquals(outcome);
     }
 }
 ```
@@ -83,7 +103,7 @@ class BookingFlowExecutionTests {
         MockExternalContext context = new MockExternalContext();
         context.setCurrentUser("keith");
         harness.start(input, context);
-        harness.assertCurrentStateEquals("enterDetails");
+        harness.assertState("enterDetails");
     }
 }
 ```
@@ -95,8 +115,9 @@ Use `MockExternalContext` and set the event id explicitly before `resumeFlow(...
 ```java
 @Test
 void enterDetailsNextMovesToConfirm() {
+    harness.start();
     harness.signal("enterDetails", "next", createTestBooking());
-    harness.assertCurrentStateEquals("confirm");
+    harness.assertState("confirm");
 }
 ```
 
@@ -107,14 +128,16 @@ Test the smallest meaningful transition sequence first, then add edge cases for 
 ```java
 @Test
 void invalidInputStaysOnEnterDetails() {
+    harness.start();
     harness.signal("enterDetails", "next", invalidBooking());
-    harness.assertCurrentStateEquals("enterDetails");
+    harness.assertState("enterDetails");
 }
 
 @Test
 void confirmBackReturnsToEnterDetails() {
+    harness.start();
     harness.signal("confirm", "back", createTestBooking());
-    harness.assertCurrentStateEquals("enterDetails");
+    harness.assertState("enterDetails");
 }
 ```
 
@@ -129,11 +152,9 @@ Register a mock subflow when the parent flow behavior depends on the child flow 
 @Test
 void collectPaymentPaidFinishesParentFlow() {
     harness.registerPaymentSubflow(createMockPaymentSubflow());
+    harness.start();
     harness.signal("collectPayment", "paid", createTestBooking());
-    assertAll(
-        () -> harness.assertFlowExecutionEnded(),
-        () -> harness.assertFlowExecutionOutcomeEquals("finished")
-    );
+    assertAll(harness::assertEnded, () -> harness.assertOutcome("finished"));
 }
 ```
 
@@ -143,8 +164,9 @@ void collectPaymentPaidFinishesParentFlow() {
 @Test
 void saveBookingFailureGoesToTechnicalError() {
     harness.bookingService().failOnSave();
+    harness.start();
     harness.signal("saveBooking", "success", createTestBooking());
-    harness.assertCurrentStateEquals("technicalError");
+    harness.assertState("technicalError");
 }
 ```
 

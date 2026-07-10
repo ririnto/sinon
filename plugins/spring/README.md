@@ -5,7 +5,7 @@ description: >-
 
 # Spring
 
-Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and the broader Spring portfolio in the Sinon Claude marketplace.
+Spring is a development plugin with practical skills for Spring Boot, Web, Data, transactions, messaging, Cloud, and Batch workflows, plus the `spring-architect` agent for architecture and component design.
 
 ## Purpose
 
@@ -17,13 +17,13 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 
 - `spring-ai`: Spring AI patterns, model invocation, and vector-store integration.
 - `spring-amqp`: AMQP bindings, template-based messaging, and RabbitMQ integration.
+- `spring-authorization-server`: OAuth 2.1 and OIDC provider configuration, registered clients, token issuance, signing keys, and protocol endpoints.
 - `spring-batch`: Jobs, steps, chunk processing, retry/skip, and scaling-oriented batch design.
 - `spring-boot`: Spring Boot application shape, configuration, beans, profiles, and startup conventions.
 - `spring-cloud`: Common Spring Cloud patterns, service discovery, distributed configuration, load-balanced clients, and circuit-breaker wiring.
 - `spring-cloud-data-flow`: SCDF stream and task estate operations, app registration, schedules, platform accounts, and troubleshooting.
 - `spring-data`: Shared Spring Data patterns, repository abstractions, and cross-store conventions (JPA, JDBC, MongoDB, Redis, R2DBC).
-- `spring-framework`: Core framework annotations, container behavior, MVC/WebFlux, WebClient, transactions, events, and TestContext.
-- `spring-web-flow`: Stateful browser conversations, flow scopes, validation, exception handling, and flow execution tests.
+- `spring-framework`: Core container configuration, bean lifecycle, transactions, events, scheduling, resilience, JDBC, and TestContext.
 - `spring-graphql`: GraphQL endpoint setup, schema execution, and GraphQL-specific testing.
 - `spring-grpc`: gRPC service definition, channel customization, and in-process testing.
 - `spring-hateoas`: Hypermedia-driven APIs, HAL forms, and entity links.
@@ -33,11 +33,13 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 - `spring-modulith`: Spring Modulith patterns, event publication registry, and module-boundary testing.
 - `spring-pulsar`: Apache Pulsar producers, consumers, and Spring integration.
 - `spring-rest-docs`: API documentation via Spring REST Docs with Asciidoctor.
-- `spring-security`: Filter chain, HTTP security, method security, and OAuth 2.1/OIDC authorization server.
+- `spring-security`: Filter chains, HTTP security, method security, sessions, and bearer-token enforcement.
 - `spring-session`: HTTP session abstraction, Redis/JDBC store, and WebSocket session integration.
 - `spring-shell`: Interactive CLI shells, command registration, and terminal UI styling.
 - `spring-statemachine`: State machine setup, transitions, pseudo-states, and persistence.
 - `spring-vault`: Vault secret handling, KV property-source loading, transit encryption, and CredHub credential management.
+- `spring-web`: Servlet MVC, reactive WebFlux, RestClient, WebClient, API versioning, and focused web tests.
+- `spring-web-flow`: Stateful browser conversations, flow scopes, validation, exception handling, and flow execution tests.
 - `spring-web-services`: SOAP endpoints, WS-Security, and client-variant patterns.
 
 ## Included Agents
@@ -47,11 +49,11 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 ## When to Use Which Skill
 
 - Spring Boot application shape, configuration, bean wiring, and startup conventions belong in `spring-boot` guidance.
-- Core framework annotations, container behavior, and extension points belong in `spring-framework` guidance.
+- Core container behavior, lifecycle, transactions, events, scheduling, and extension points belong in `spring-framework` guidance.
 - Spring test-slice choice, Spring Boot test scaffolding, and generic Spring context test strategy belong in `spring-boot` and `spring-framework` guidance.
-- Filter chain, HTTP security, method-security structure, and OAuth 2.1/OIDC authorization server setup belong in `spring-security` guidance.
-- Servlet-style REST controllers, validation, and exception handling belong in `spring-framework` guidance.
-- Reactive endpoints, `Mono`/`Flux`, and `WebClient` design belong in `spring-framework` guidance.
+- Filter chains, HTTP security, method-security structure, sessions, and resource-server enforcement belong in `spring-security` guidance.
+- OAuth 2.1/OIDC token issuance, registered clients, signing keys, and provider endpoints belong in `spring-authorization-server` guidance.
+- Servlet MVC controllers, reactive WebFlux endpoints, `RestClient`, and `WebClient` belong in `spring-web` guidance.
 - Hypermedia-driven APIs, HAL forms, and entity links belong in `spring-hateoas` guidance.
 - Adapter chains, channels, routers, and generic message-flow modeling belong in `spring-integration` guidance.
 - Kafka producer and consumer behavior, listener delivery semantics, embedded-Kafka listener verification, and retry/DLT behavior belong in `spring-kafka` guidance.
@@ -68,16 +70,16 @@ Spring is a shared, skill-first plugin for Spring Boot, Spring Framework, and th
 
 Typical workflow:
 
-1. Establish the application shape first using `spring-boot` and `spring-framework`.
+1. Establish the application and container shape first using `spring-boot` and `spring-framework`.
 2. Add Spring-aware tests when behavior needs to be locked with framework context.
 3. Bring in `spring-security` guidance when authentication, authorization, or filter-chain concerns are in scope.
 4. Add Spring messaging guidance when consistency crosses Integration, Kafka, AMQP, or Pulsar boundaries.
-5. Choose the concrete web, data, messaging, or cloud guidance for the active subsystem.
+5. Choose the concrete `spring-web`, data, messaging, or cloud guidance for the active subsystem.
 6. Java syntax, JVM diagnostics, and JDK packaging questions belong in Java- or JVM-focused guidance.
 
 Testing boundary:
 
-- Tests that load Spring context behavior, Spring MVC/WebFlux infrastructure, Spring Data slices, or Spring-managed integrations belong in Spring testing guidance covered by `spring-boot` and `spring-framework`.
+- Tests that load generic Spring context behavior belong in `spring-framework`; MVC/WebFlux HTTP tests belong in `spring-web`; Boot slices and Boot-managed integration tests belong in `spring-boot`.
 - Kafka listener tests whose contract depends on delivery semantics, retry, dead-letter handling, or embedded Kafka belong in `spring-kafka` guidance.
 - Pure unit tests that do not need Spring context belong in language- or platform-level testing guidance.
 
@@ -118,6 +120,7 @@ plugins/spring/
 +-- skills/
     +-- spring-ai/
     +-- spring-amqp/
+    +-- spring-authorization-server/
     +-- spring-batch/
     +-- spring-boot/
     +-- spring-cloud/
@@ -138,13 +141,14 @@ plugins/spring/
     +-- spring-shell/
     +-- spring-statemachine/
     +-- spring-vault/
+    +-- spring-web/
     +-- spring-web-flow/
     +-- spring-web-services/
 ```
 
 ## Shipped Surfaces
 
-- The plugin ships twenty-four reusable Spring skills under `skills/`.
+- The plugin ships twenty-six reusable Spring skills under `skills/`.
 - The plugin ships one agent (`spring-architect`) for guiding Spring architecture decisions and component design.
 
 ## Design Principles

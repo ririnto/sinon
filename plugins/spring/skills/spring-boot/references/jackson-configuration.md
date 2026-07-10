@@ -65,9 +65,7 @@ class MyJacksonCustomizerConfiguration {
     }
     @Bean
     JsonFactoryBuilderCustomizer myFactoryCustomizer() {
-        return (builder) -> builder.streamReadConstraints(
-            StreamReadConstraints.builder().maxNameLength(128).build()
-        );
+        return builder -> builder.streamReadConstraints(StreamReadConstraints.builder().maxNameLength(128).build());
     }
 }
 ```
