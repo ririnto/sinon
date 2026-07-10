@@ -3,7 +3,7 @@
 /* eslint-disable func-style, promise/avoid-new */
 
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 type CheckResult = Readonly<{
@@ -21,6 +21,27 @@ type CommandResult = Readonly<{
 const root =
   process.env["CLAUDE_PLUGIN_ROOT"] ??
   path.resolve(import.meta.dirname, "..", "..", "..");
+
+/** Read the canonical Ruff constraint from the packaged UV runner. */
+const readRuffSpec = (): string => {
+  const runner = path.resolve(
+    import.meta.dirname,
+    "..",
+    "skills",
+    "harness-install",
+    "assets",
+    "uv",
+    "scripts",
+    "check.py"
+  );
+  const match = readFileSync(runner, "utf-8").match(
+    /RUFF_SPEC:\s*Final\s*=\s*"(?<spec>[^"]+)"/u
+  );
+  if (match?.[1] === undefined) {
+    throw new Error(`missing Ruff constraint: ${runner}`);
+  }
+  return match[1];
+};
 
 /**
  * Run a command and capture output.
@@ -197,24 +218,17 @@ async function checkPythonFiles(): Promise<CheckResult> {
     process.stderr.write("warning: uv not in PATH; skipping ruff checks\n");
     return { errors: 0, name: "ruff", warnings: 1 };
   }
+  const ruffSpec = readRuffSpec();
   const lint = await runCommand(
     "uv",
-    ["run", "--with", "ruff>=0.15.21,<0.16.0", "ruff", "check", "."],
+    ["run", "--with", ruffSpec, "ruff", "check", "."],
     {
       cwd: root
     }
   );
   const format = await runCommand(
     "uv",
-    [
-      "run",
-      "--with",
-      "ruff>=0.15.21,<0.16.0",
-      "ruff",
-      "format",
-      "--check",
-      "."
-    ],
+    ["run", "--with", ruffSpec, "ruff", "format", "--check", "."],
     { cwd: root }
   );
   if (lint.code !== 0 || format.code !== 0) {
