@@ -66,6 +66,7 @@ const manifestFields = new Set([
   "commands",
   "dependencies",
   "description",
+  "experimental",
   "homepage",
   "hooks",
   "keywords",
@@ -91,6 +92,8 @@ const pathOnlyComponentFields = new Set([
 ]);
 
 const mixedComponentFields = new Set(["hooks", "lspServers", "mcpServers"]);
+
+const experimentalFields = new Set(["monitors", "themes"]);
 
 const supportedAgentFields = new Set([
   "background",
@@ -452,6 +455,36 @@ const validateDefaultPathRestatement = (
   }
 };
 
+/** Require replacing component fields to retain an existing default path. */
+const validateDefaultPathPreservation = (
+  root: string,
+  pluginRoot: string,
+  manifestPath: string,
+  key: string,
+  value: JsonValue,
+  errors: string[]
+): void => {
+  const defaultPath =
+    autoDiscoveredComponentPaths[
+      key as keyof typeof autoDiscoveredComponentPaths
+    ];
+  if (
+    defaultPath === undefined ||
+    !pathExists(path.resolve(pluginRoot, defaultPath)) ||
+    value === defaultPath ||
+    (Array.isArray(value) && value.includes(defaultPath))
+  ) {
+    return;
+  }
+  errors.push(
+    packageError(
+      root,
+      manifestPath,
+      `${key} replaces default discovery; include ${defaultPath} or remove the unused default path`
+    )
+  );
+};
+
 /** Validate a string path or array of string paths. */
 const validatePathComponent = (
   root: string,
@@ -647,6 +680,11 @@ const validateMonitors = (
 ): void => {
   validateDefaultPathRestatement(root, manifestPath, "monitors", value, errors);
   if (typeof value === "string") {
+    if (!value.endsWith(".json")) {
+      errors.push(
+        packageError(root, manifestPath, "monitors path must end with .json")
+      );
+    }
     validateManifestStringPath(
       root,
       pluginRoot,
@@ -710,6 +748,54 @@ const validateMonitors = (
   }
 };
 
+/** Validate current experimental theme and monitor fields. */
+const validateExperimental = (
+  root: string,
+  pluginRoot: string,
+  manifestPath: string,
+  value: JsonValue,
+  errors: string[]
+): void => {
+  if (!isRecord(value)) {
+    errors.push(
+      packageError(root, manifestPath, "experimental must be an object")
+    );
+    return;
+  }
+  for (const [key, component] of jsonEntries(value)) {
+    if (!experimentalFields.has(key)) {
+      errors.push(
+        packageError(
+          root,
+          manifestPath,
+          `unsupported experimental field: ${key}`
+        )
+      );
+      continue;
+    }
+    validateDefaultPathPreservation(
+      root,
+      pluginRoot,
+      manifestPath,
+      key,
+      component,
+      errors
+    );
+    if (key === "themes") {
+      validatePathComponent(
+        root,
+        pluginRoot,
+        manifestPath,
+        key,
+        component,
+        errors
+      );
+    } else {
+      validateMonitors(root, pluginRoot, manifestPath, component, errors);
+    }
+  }
+};
+
 /** Validate one current manifest field. */
 const validateManifestField = (
   root: string,
@@ -724,12 +810,40 @@ const validateManifestField = (
       packageError(root, manifestPath, `unsupported manifest field: ${key}`)
     );
   } else if (pathOnlyComponentFields.has(key)) {
+    if (key !== "skills") {
+      validateDefaultPathPreservation(
+        root,
+        pluginRoot,
+        manifestPath,
+        key,
+        value,
+        errors
+      );
+    }
     validatePathComponent(root, pluginRoot, manifestPath, key, value, errors);
   } else if (mixedComponentFields.has(key)) {
     validateMixedComponent(root, pluginRoot, manifestPath, key, value, errors);
   } else if (key === "commands") {
+    validateDefaultPathPreservation(
+      root,
+      pluginRoot,
+      manifestPath,
+      key,
+      value,
+      errors
+    );
     validateCommands(root, pluginRoot, manifestPath, value, errors);
+  } else if (key === "experimental") {
+    validateExperimental(root, pluginRoot, manifestPath, value, errors);
   } else if (key === "monitors") {
+    validateDefaultPathPreservation(
+      root,
+      pluginRoot,
+      manifestPath,
+      key,
+      value,
+      errors
+    );
     validateMonitors(root, pluginRoot, manifestPath, value, errors);
   } else if ((key === "settings" || key === "userConfig") && !isRecord(value)) {
     errors.push(packageError(root, manifestPath, `${key} must be an object`));
