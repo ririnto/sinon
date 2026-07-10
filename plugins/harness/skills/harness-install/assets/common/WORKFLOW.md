@@ -5,13 +5,13 @@
 ## Authority
 
 The user-facing root session is the sole orchestrator.
-It owns decomposition, worker selection, fan-in, integrated validation, Git state, and publication.
+It delegates all task work and owns decomposition, worker selection, fan-in, integrated validation, Git state, and publication.
 
 Claude Code can nest subagents when `Agent` is granted, but this repository deliberately omits delegation tools from project agents.
 Codex uses `max_depth = 1` for the same leaf policy.
 Every repository agent returns a decomposition handoff when additional workers are needed.
 
-Use subagents as the normal tool for bounded exploration, implementation, and review when the work needs isolated context or independent judgment.
+Delegate bounded exploration, implementation, documentation, audit, and review work to leaves.
 The orchestrator owns workflow selection, agent type selection, capability tier selection, prompt scope, fan-in, and final decisions.
 Only the user-facing top-level or root agent acts as orchestrator.
 Installed repository agents are delegation targets only; do not create or delegate to a `project-orchestrator` agent.
@@ -98,15 +98,9 @@ git worktree add <worktree-path> -b <type>/<short-description> <base-ref>
 A failed, missing, or contradictory worker result blocks fan-in and completion.
 Worker-branch validation does not replace integrated validation.
 
-## Non-Interactive Leaf Runs
+## Background CLI Dispatch
 
-For CI or hooks, invoke one leaf prompt through print mode:
-
-```sh
-claude -p "Inventory validation failures as path: reason"
-```
-
-Print mode does not grant nested orchestration or publication authority.
+When native delegation cannot select the required model, dispatch a bounded leaf through a background CLI. Record the requested model and effort, prompt, worktree, ownership, job or session identifier, output, and exit status. Wait for full fan-in before integration or release. Request acceptance does not prove backend identity. Open the selected host reference for commands and version-sensitive flags.
 
 ## Review Host Selection
 

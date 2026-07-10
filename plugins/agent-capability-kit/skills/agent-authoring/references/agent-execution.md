@@ -58,6 +58,7 @@ Use this reference's decision test when the role falls between the obvious categ
 
 Do not package a general orchestrator agent in Sinon.
 The user-facing root session owns complete fan-in, integration, and publication through repository workflow policy.
+It delegates all exploration, implementation, documentation, audit, and validation work to bounded leaves.
 
 Every packaged agent is a leaf.
 Return a decomposition handoff when the task needs parallel workers or integration.

@@ -71,6 +71,7 @@ Classify topology before choosing a model:
 
 Sinon does not package a general orchestrator agent.
 The user-facing top-level session owns orchestration and reserves Claude `opus` or Codex `gpt-5.6-sol` with `medium` effort through repository policy.
+It delegates all task work to bounded leaves and keeps decomposition, ownership, fan-in, conflict coordination, and release decisions at the top level.
 
 Use `high`, `xhigh`, or `max` only when the agent body contains an `Effort Exception` section that explains why medium is insufficient.
 A substantive leaf using `low` needs a `Low Effort Rationale` section.
