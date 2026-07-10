@@ -258,8 +258,8 @@ test("sequential SDD leaf returns nested work to the top-level session", async (
 test("orchestration remains top-level policy rather than an installable profile", async () => {
   const root = path.resolve(import.meta.dirname, "..");
   const rules = await Bun.file(path.join(root, "AGENTS.md")).text();
-  expect(rules).toContain("sole general orchestrator");
-  expect(rules).toContain("MUST NOT package a `project-orchestrator`");
+  expect(rules).toMatch(/root session owns integration and publication/u);
+  expect(rules).toMatch(/Do not package a general orchestration profile/u);
   expect(
     await Bun.file(
       path.join(
