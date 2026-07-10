@@ -13,13 +13,8 @@ Open this reference when exception-to-status mapping should be reused across mul
 
 ## Reusable handler bean
 
-```java
-@Bean
-GrpcExceptionHandler<IllegalArgumentException, HelloRequest> invalidArgumentHandler() {
-    return (exception, request) -> Status.INVALID_ARGUMENT
-        .withDescription(exception.getMessage());
-}
-```
+Keep the non-generic `GrpcExceptionHandler` bean from `SKILL.md` as the shared fallback mapping.
+Return `null` for exceptions it does not classify so the remaining handler chain can continue.
 
 ## Advice-style handler
 

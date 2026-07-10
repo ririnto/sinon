@@ -132,7 +132,7 @@ If the deployment baseline is container-native, keep the image build path explic
 - Keep startup work in runners or dedicated services, not in bean constructors.
 - Let auto-configuration do the ordinary wiring before adding custom Boot infrastructure.
 
-## 4.1.0 new features
+## Spring Boot 4.1 features
 
 ### Jackson multi-format configuration
 
@@ -235,7 +235,6 @@ Slice tests that need an embedded web server without the full application contex
 class MyWebServerTests {
     @Autowired
     TomcatWebServerFactory webServerFactory;
-    // ...
 }
 ```
 
@@ -336,11 +335,11 @@ Add the `spring-boot-starter-test` dependency as usual; Spock tests work out of 
 
 Auto-configuration for Spring Batch with MongoDB is provided by the dedicated `spring-boot-starter-batch-data-mongodb` starter, with `spring.batch.data.mongodb.*` properties controlling schema initialization and transaction validation.
 
-## 4.1.0 changes
+## Spring Boot 4.1 changes
 
 - **Layertools jar mode removed.** Use `tools` jar mode instead (`java -Djarmode=tools -jar app.jar`).
 - **`-DskipTests` no longer skips AOT.** Use `-Dmaven.test.skip` for both test and AOT skip.
-- **Changed Logback properties removed.** `logging.file.*` is gone; use `logging.logback.rollingpolicy.*`.
+- **Legacy Logback rolling-policy properties removed.** Move `logging.file.clean-history-on-start`, `logging.file.max-history`, `logging.file.max-size`, `logging.file.total-size-cap`, and `logging.pattern.rolling-file-name` to `logging.logback.rollingpolicy.*`; `logging.file.name` and `logging.file.path` remain supported.
 - **Derby support deprecated.** Deprecated in 4.1 and slated for removal; migrate to H2 or HSQLDB.
 - **LiveReload in DevTools deprecated.** Deprecated in 4.1 with no replacement; still functional and disabled by default since 4.0.
 - **Dynatrace V1 API deprecated.** Deprecated in 4.1; migrate to the V2 API.

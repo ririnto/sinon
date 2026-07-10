@@ -1,31 +1,45 @@
 # Spring Web Flow validation and exception handling
 
-Open this reference when the ordinary wizard flow in `SKILL.md` is not enough and the task needs custom validation timing, grouped validation, or shared recovery paths.
+Open this reference when the common path is not enough and the blocker is state-specific model validation, application validator wiring, or exception recovery local to one action.
 
-## Validation timing
+## State-specific model validator
 
-Validate at the state transition where the user commits a step, not on unrelated transitions.
+For a model named `registration`, expose a `registrationValidator` bean.
+Web Flow invokes `validateDetails` when leaving the `details` view state with validation enabled.
 
-```xml
-<transition on="next" to="confirm" validate="true"/>
+```java
+@Component("registrationValidator")
+class RegistrationValidator {
+    void validateDetails(Registration registration, ValidationContext context) {
+        if (!StringUtils.hasText(registration.email())) {
+            context.getMessageContext().addMessage(new MessageBuilder().error().source("email").code("email.required").build());
+        }
+    }
+}
 ```
 
-Keep validation rules close to the model or validator instead of scattering them across actions.
+Name validation methods after the state whose model is being committed.
+Put reusable domain invariants on the model or service boundary; keep flow validators focused on step-specific completeness.
 
-## Exception handling
+## Local action recovery
 
-Use global transitions or exception handlers when one recovery path should apply across many states.
+Handle a known application exception at the action that can raise it instead of sending it through the global technical-error state.
 
 ```xml
-<global-transitions>
-    <transition on-exception="java.lang.Exception" to="technicalError"/>
-</global-transitions>
+<action-state id="saveRegistration">
+    <evaluate expression="registrationService.save(registration)"/>
+    <transition on="success" to="finished"/>
+    <transition on-exception="com.example.DuplicateRegistrationException" to="review">
+        <set name="flashScope.saveError" value="'This registration already exists'"/>
+    </transition>
+</action-state>
 ```
 
-Do not hide business-rule failures behind a generic technical error path.
+Reserve the global recovery state in `SKILL.md` for unexpected failures that cannot be represented as a normal validation or business event.
 
 ## Gotchas
 
-- Do not validate on backward navigation unless the UX genuinely requires it.
-- Do not scatter duplicate error transitions across many states when one shared recovery path is enough.
-- Do not use a global technical-error path for expected business validation failures.
+- Do not validate backward navigation unless the product flow requires it.
+- Do not duplicate the same validation rule in the form object, flow validator, and service.
+- Do not route expected conflicts through a generic technical-error state.
+- Do not catch broad exceptions at one action when the flow-level recovery transition already owns unexpected failures.

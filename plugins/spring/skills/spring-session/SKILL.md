@@ -26,9 +26,11 @@ Spring Boot manages the Spring Session version; add the session starter and Boot
 Minimum requirements:
 
 - Java 17+
-- Spring Framework 7.0+ (Session 4.x targets the Framework 7 line)
-- Servlet 6.1+ when running in a servlet container (Jakarta, Tomcat 11.0.x or Jetty 12.1.x)
-- Redis 6.0+ when using `@EnableRedisHttpSession` (governed by Spring Data Redis and the Lettuce client that Spring Boot manages)
+- Spring Framework 6+ when other Spring libraries are used
+- Servlet 3.1+ when running in a servlet container
+- Redis 2.8+ when using `@EnableRedisHttpSession`
+
+Spring Boot 4.1 applications use the newer Framework 7, Servlet 6.1, and managed Redis client baselines supplied by that Boot line; do not present those platform choices as Spring Session's library minimums.
 
 ## Common path
 
@@ -52,33 +54,33 @@ The ordinary Spring Session job is:
 
 ## Dependency baseline
 
-Prefer the Spring Session module that matches the store, plus the matching data-access starter or driver support.
+Use the Spring Boot starter that matches the store so the session module, data-access integration, and client dependencies remain aligned.
 Start with Redis for the common clustered browser-session path unless the deployment already standardizes on a different store.
 
 ### Redis-backed servlet sessions
 
 ```xml
 <dependency>
-    <groupId>org.springframework.session</groupId>
-    <artifactId>spring-session-data-redis</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-session-data-redis</artifactId>
 </dependency>
 ```
 
 ```groovy
-implementation 'org.springframework.session:spring-session-data-redis'
+implementation 'org.springframework.boot:spring-boot-starter-session-data-redis'
 ```
 
 ### JDBC-backed servlet sessions
 
 ```xml
 <dependency>
-    <groupId>org.springframework.session</groupId>
-    <artifactId>spring-session-jdbc</artifactId>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-session-jdbc</artifactId>
 </dependency>
 ```
 
 ```groovy
-implementation 'org.springframework.session:spring-session-jdbc'
+implementation 'org.springframework.boot:spring-boot-starter-session-jdbc'
 ```
 
 ## Store selection
@@ -101,13 +103,13 @@ implementation 'org.springframework.session:spring-session-jdbc'
 ```yaml
 spring:
   session:
-    store-type: redis
     timeout: 30m
-    redis:
-      namespace: app:session
-      repository-type: indexed
-      flush-mode: on-save
-      save-mode: on-set-attribute
+    data:
+      redis:
+        namespace: app:session
+        repository-type: indexed
+        flush-mode: on-save
+        save-mode: on-set-attribute
   data:
     redis:
       host: localhost
@@ -127,7 +129,6 @@ Use the indexed Redis variant when principal lookup is part of the job.
 
 ```java
 @Configuration
-@EnableRedisIndexedHttpSession
 class SessionConfig {
     @Bean
     CookieSerializer cookieSerializer() {
@@ -141,6 +142,8 @@ class SessionConfig {
     }
 }
 ```
+
+The Redis session starter and `repository-type: indexed` select `RedisIndexedSessionRepository`; do not add an enable annotation to the Boot-managed common path.
 
 ### Header-based session id shape
 
@@ -175,6 +178,26 @@ Switch to JSON serialization when multiple applications, rolling upgrades, or pa
 
 - Session lifecycle events and `HttpSessionListener` bridging are additive features, not the ordinary path.
 - Open the Redis advanced reference when Spring Security concurrent-session control, audit handling, or administrator-driven invalidation depends on indexed lookup or published session events.
+
+### Clustered Spring Security concurrency
+
+Use `SpringSessionBackedSessionRegistry` when Spring Security's concurrent-session limit must inspect the same indexed repository across application nodes.
+
+```java
+@Bean
+SpringSessionBackedSessionRegistry<RedisIndexedSessionRepository.RedisSession> sessionRegistry(RedisIndexedSessionRepository sessions) {
+    return new SpringSessionBackedSessionRegistry<>(sessions);
+}
+
+@Bean
+SecurityFilterChain securityFilterChain(HttpSecurity http, SpringSessionBackedSessionRegistry<RedisIndexedSessionRepository.RedisSession> sessionRegistry) throws Exception {
+    return http
+        .sessionManagement(session -> session.maximumSessions(2).sessionRegistry(sessionRegistry))
+        .build();
+}
+```
+
+This branch requires the indexed Redis repository because `SpringSessionBackedSessionRegistry` depends on principal lookup through `FindByIndexNameSessionRepository`.
 
 ## Edge cases
 
@@ -225,10 +248,7 @@ class SessionFlowTest {
         Cookie sessionCookie = first.getResponse().getCookie("SESSION");
         MockHttpServletRequestBuilder secondRequestBuilder = post("/cart/items").cookie(sessionCookie).contentType(MediaType.APPLICATION_JSON).content("{\"sku\":\"SKU-2\"}");
         ResultActions secondRequest = mockMvc.perform(secondRequestBuilder);
-        assertAll(
-            () -> secondRequest.andExpect(status().isOk()),
-            () -> secondRequest.andExpect(jsonPath("$.itemCount").value(2))
-        );
+        assertAll(() -> secondRequest.andExpect(status().isOk()), () -> secondRequest.andExpect(jsonPath("$.itemCount").value(2)));
     }
 }
 ```

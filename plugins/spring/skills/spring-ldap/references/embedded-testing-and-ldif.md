@@ -33,16 +33,13 @@ Prefer UnboundID when the project does not already have a known-good ApacheDS te
 @Test
 void verifyEmbeddedDataLoads() {
     List<Person> people = repository.findBySurname("Doe");
-    assertAll(
-        () -> assertEquals(1, people.size()),
-        () -> assertEquals("Doe", people.get(0).getSurname())
-    );
+    assertAll(() -> assertEquals(1, people.size()), () -> assertEquals("Doe", people.get(0).getSurname()));
 }
 ```
 
 ## Embedded LDAP SSL (LDAPS)
 
-Spring Boot 4.1.0 adds SSL support for the embedded UnboundID server.
+Spring Boot 4.1 adds SSL support for the embedded UnboundID server.
 The server starts an LDAPS listener instead of the plain LDAP listener when an SSL bundle is configured.
 
 Properties:

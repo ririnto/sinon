@@ -109,16 +109,11 @@ Combine multiple converters with `DelegatingJwtGrantedAuthoritiesConverter`:
 @Bean
 Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter() {
     SpelExpressionParser parser = new SpelExpressionParser();
-    ExpressionJwtGrantedAuthoritiesConverter realmRoles =
-            new ExpressionJwtGrantedAuthoritiesConverter(
-                    parser.parseExpression("[\"realm_access\"][\"roles\"]"));
+    ExpressionJwtGrantedAuthoritiesConverter realmRoles = new ExpressionJwtGrantedAuthoritiesConverter(parser.parseExpression("[\"realm_access\"][\"roles\"]"));
     realmRoles.setAuthorityPrefix("ROLE_");
-    ExpressionJwtGrantedAuthoritiesConverter clientRoles =
-            new ExpressionJwtGrantedAuthoritiesConverter(
-                    parser.parseExpression("[\"resource_access\"][\"my-client-id\"][\"roles\"]"));
+    ExpressionJwtGrantedAuthoritiesConverter clientRoles = new ExpressionJwtGrantedAuthoritiesConverter(parser.parseExpression("[\"resource_access\"][\"my-client-id\"][\"roles\"]"));
     clientRoles.setAuthorityPrefix("ROLE_");
-    DelegatingJwtGrantedAuthoritiesConverter combined =
-            new DelegatingJwtGrantedAuthoritiesConverter(realmRoles, clientRoles);
+    DelegatingJwtGrantedAuthoritiesConverter combined = new DelegatingJwtGrantedAuthoritiesConverter(realmRoles, clientRoles);
     JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
     converter.setJwtGrantedAuthoritiesConverter(combined);
     return converter;

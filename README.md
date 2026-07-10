@@ -59,7 +59,7 @@ For full descriptions, runtime surfaces, and scope notes, see each plugin's own 
 - `plugins/observability-assets`: Prometheus and Grafana plugin with practical skills for alert-rule design, recording-rule support, promtool validation, dashboard JSON authoring, and Grafana mixin workflows for version-controlled observability assets.
 - `plugins/reactor`: Project Reactor plugin with practical skills for Flux and Mono composition, scheduler selection, Sinks and ConnectableFlux hot-source design, and reactor-test workflows with StepVerifier, TestPublisher, PublisherProbe, and virtual time.
 - `plugins/spec-driven-development`: Explicit end-to-end gated delivery: research unknowns, approve `SPEC.md`, implement, review drift, and verify completeness.
-- `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, observability, Batch, Integration, Cloud, and Kafka workflows.
+- `plugins/spring`: Spring development plugin with practical skills for Spring Boot, Web, Data, transactions, messaging, Cloud, and Batch workflows, plus the spring-architect agent for architecture and component design.
 - `plugins/workspace-workflow`: Coordinate workspace and Git workflow across worktree management, working-tree hygiene, merge and rebase strategies, commit conventions, and PR/MR composition.
 
 ## Publishing Model

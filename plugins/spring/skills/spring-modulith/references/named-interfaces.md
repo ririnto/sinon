@@ -2,19 +2,8 @@
 
 Open this reference when module exposure rules need explicit `allowedDependencies` or several named interface packages.
 
-## Module dependency rule shape
-
-```java
-@ApplicationModule(allowedDependencies = "inventory::api")
-package example.orders;
-```
-
-## Package-level named interface shape
-
-```java
-@NamedInterface("api")
-package example.orders.api;
-```
+The ordinary module dependency and package-level named-interface declarations stay in `SKILL.md`.
+Use the variants below when consuming another module, exposing several interfaces, or customizing detection.
 
 ## Consuming-module shape
 
@@ -70,8 +59,7 @@ class CustomStrategy implements ApplicationModuleDetectionStrategy {
     }
 
     @Override
-    NamedInterfaces detectNamedInterfaces(
-            JavaPackage basePackage, ApplicationModuleInformation information) {
+    NamedInterfaces detectNamedInterfaces(JavaPackage basePackage, ApplicationModuleInformation information) {
         return NamedInterfaces.builder()
             .recursive()
             .matching("api")

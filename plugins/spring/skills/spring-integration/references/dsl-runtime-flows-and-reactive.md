@@ -6,11 +6,6 @@ Open this reference when the task needs runtime flow registration, subflows, rea
 
 Set `spring.integration.annotations.enable=false` to disable messaging annotation post-processor registration.
 When disabled, `MessagingAnnotationPostProcessor` and `MessagingAnnotationBeanPostProcessor` are not registered, reducing overhead in applications that use only Java DSL without annotation-driven endpoints (`@ServiceActivator`, `@Transformer`, `@Gateway`, etc.).
-
-```properties
-spring.integration.annotations.enable=false
-```
-
 Use this property only in pure DSL applications.
 Do not disable it when any annotation-driven messaging endpoints are present.
 

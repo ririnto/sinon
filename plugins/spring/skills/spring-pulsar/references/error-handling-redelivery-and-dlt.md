@@ -27,22 +27,14 @@ Pulsar's native `DeadLetterPolicy` works only with `Shared` subscriptions.
 For `Exclusive`, `Failover`, or `Key_Shared` subscriptions, use `PulsarConsumerErrorHandler` instead.
 
 ```java
-@PulsarListener(
-    topics = "shipments",
-    subscriptionName = "warehouse",
-    subscriptionType = SubscriptionType.Exclusive,
-    pulsarConsumerErrorHandler = "shipmentErrorHandler"
-)
+@PulsarListener(topics = "shipments", subscriptionName = "warehouse", subscriptionType = SubscriptionType.Exclusive, pulsarConsumerErrorHandler = "shipmentErrorHandler")
 void handle(ShipmentEvent event) {
     service.handle(event);
 }
 
 @Bean
 PulsarConsumerErrorHandler<ShipmentEvent> shipmentErrorHandler(PulsarTemplate<ShipmentEvent> template) {
-    return new DefaultPulsarConsumerErrorHandler<>(
-        new PulsarDeadLetterPublishingRecoverer<>(template, event -> "shipments-dlt"),
-        backoff
-    );
+    return new DefaultPulsarConsumerErrorHandler<>(new PulsarDeadLetterPublishingRecoverer<>(template, event -> "shipments-dlt"), backoff);
 }
 ```
 
@@ -52,12 +44,7 @@ For batch listeners, the container retries the entire batch starting from the fa
 ## Acknowledgment timeout redelivery
 
 ```java
-@PulsarListener(
-    topics = "shipments",
-    subscriptionName = "warehouse",
-    subscriptionType = SubscriptionType.Shared,
-    ackTimeoutMillis = 60_000
-)
+@PulsarListener(topics = "shipments", subscriptionName = "warehouse", subscriptionType = SubscriptionType.Shared, ackTimeoutMillis = 60_000)
 void handle(ShipmentEvent event) {
     service.handle(event);
 }
@@ -68,13 +55,7 @@ When ack timeout has a value above zero and the consumer does not acknowledge wi
 ## Negative acknowledgment redelivery
 
 ```java
-@PulsarListener(
-    topics = "shipments",
-    subscriptionName = "warehouse",
-    subscriptionType = SubscriptionType.Shared,
-    negativeAckRedeliveryBackoff = "redeliveryBackoff",
-    properties = {"negativeAckRedeliveryDelay=10ms"}
-)
+@PulsarListener(topics = "shipments", subscriptionName = "warehouse", subscriptionType = SubscriptionType.Shared, negativeAckRedeliveryBackoff = "redeliveryBackoff", properties = {"negativeAckRedeliveryDelay=10ms"})
 void handle(ShipmentEvent event) {
     if (event.isInvalid()) {
         throw new RuntimeException("fail " + event);

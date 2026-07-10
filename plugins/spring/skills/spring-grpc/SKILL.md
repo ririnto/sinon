@@ -7,7 +7,7 @@ description: >-
 
 # Spring gRPC
 
-The latest stable Spring gRPC line is 1.1.0. Starting with this release, Spring Boot 4.1 provides auto-configuration for gRPC servers and clients, so the ordinary path in this skill uses the Boot-managed starter artifacts.
+The latest stable Spring gRPC line is 1.1.x. On this line, Spring Boot 4.1 provides auto-configuration for gRPC servers and clients, so the ordinary path in this skill uses the Boot-managed starter artifacts.
 
 ## Boundaries
 
@@ -22,7 +22,7 @@ Use `spring-grpc` for gRPC transport, generated protobuf stubs, Spring-managed g
 The ordinary Spring gRPC job is:
 
 1. Define the `.proto` contract first and generate Java stubs before writing Spring code.
-2. Add only the server or client starter needed by the application, plus reflection support only when operators or local tools actually need it.
+2. Add only the server or client starter needed by the application, then decide explicitly whether the server starter's default reflection exposure fits the deployment.
 3. Register client stubs with `@ImportGrpcClients` for the ordinary path, and fall back to explicit `@Bean` stub creation only when the channel or stub needs custom construction.
 4. Implement a Spring-managed gRPC service that maps protobuf messages to application inputs and outputs.
 5. Configure deadlines, metadata, and interceptors at the client or server boundary.
@@ -45,13 +45,13 @@ The ordinary Spring gRPC job is:
 | Application only serves gRPC | server starter |
 | Application only calls another gRPC service | client starter |
 | Same application serves and calls gRPC | both starters |
-| Operators or local tooling need descriptor discovery | add reflection support |
+| Operators or local tooling need descriptor discovery | leave the server starter's reflection service enabled |
 
-Keep reflection and optional support services out of the default path unless a concrete runtime need exists.
+Treat reflection exposure as an explicit deployment decision even though the server starter includes the service and enables it by default.
 
 ## Dependency baseline
 
-Use only the starter set the application actually needs on the stable 1.1.0 line.
+Use only the starter set the application actually needs on the stable 1.1.x line.
 
 ### Stable BOM baseline
 
@@ -109,18 +109,8 @@ Keep starter coordinates versionless underneath it.
 </dependencies>
 ```
 
-### Optional support-services add-on
-
-```xml
-<dependencies>
-    <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-services</artifactId>
-    </dependency>
-</dependencies>
-```
-
-Add `grpc-services` only when reflection, health, or other optional gRPC support services are needed.
+The Boot server starter already includes `io.grpc:grpc-services` for reflection and health support.
+Add that artifact explicitly only in a manual runtime that does not use `spring-boot-starter-grpc-server`.
 
 ### Proto generation baseline
 
@@ -145,7 +135,7 @@ If the project intentionally tracks generated sources in VCS, keep the `.proto` 
 
 ### Milestone branch note
 
-Spring gRPC 1.1.0 moves starters and autoconfiguration into Spring Boot 4.1. Use the Boot-managed gRPC starters on this line.
+Spring gRPC 1.1 moves starters and autoconfiguration into Spring Boot 4.1. Use the Boot-managed gRPC starters on this line.
 
 ## First safe configuration
 
@@ -174,9 +164,9 @@ spring:
 spring:
   grpc:
     client:
-      channels:
+      channel:
         greeter:
-          address: static://localhost:9090
+          target: static://localhost:9090
 ```
 
 Start with explicit static addresses in local development.
@@ -358,9 +348,10 @@ ServerInterceptor correlationInterceptor() {
 
 ```java
 @Bean
-GrpcExceptionHandler<IllegalArgumentException, HelloRequest> invalidArgumentHandler() {
-    return (exception, request) -> Status.INVALID_ARGUMENT
-        .withDescription(exception.getMessage());
+GrpcExceptionHandler invalidArgumentHandler() {
+    return exception -> exception instanceof IllegalArgumentException
+        ? Status.INVALID_ARGUMENT.withDescription(exception.getMessage()).asException()
+        : null;
 }
 ```
 
@@ -380,9 +371,9 @@ throw Status.INVALID_ARGUMENT
 spring:
   grpc:
     client:
-      channels:
+      channel:
         greeter:
-          address: static://localhost:9090
+          target: static://localhost:9090
 ```
 
 ### Deadline shape
@@ -391,7 +382,7 @@ spring:
 greeter.withDeadlineAfter(2, TimeUnit.SECONDS)
 ```
 
-### Reflection-enabled local server shape
+### Reflection configuration
 
 ```yaml
 spring:
@@ -401,7 +392,8 @@ spring:
         enabled: true
 ```
 
-Keep this as an opt-in local tooling shape rather than the ordinary default.
+Reflection defaults to enabled when the reflection service is present and the application exposes a gRPC service.
+Set `spring.grpc.server.reflection.enabled: false` explicitly when production deployments must not expose reflection.
 
 ### Server health shape
 
@@ -425,9 +417,9 @@ Keep it intentional instead of publishing every service by default.
 spring:
   grpc:
     client:
-      channels:
+      channel:
         greeter:
-          address: static://localhost:9090
+          target: static://localhost:9090
           health:
             enabled: true
 ```
@@ -465,7 +457,7 @@ GreeterGrpc.GreeterBlockingStub greeterStub(GrpcChannelFactory channels, @LocalG
 - Prefer the autoconfigured observability interceptor when Actuator is already in use instead of hand-rolling duplicate metrics logic.
 - Distinguish server health publication from client health gating and enable each intentionally.
 - Expose reflection only when operations tooling requires it.
-- Use the Boot-managed gRPC starters on the 1.1.0 line; starter coordinates should align with the Boot version.
+- Use the Boot-managed gRPC starters on the 1.1.x line; starter coordinates should align with the Boot version.
 - Keep transport errors and application errors distinct so retries and observability stay meaningful.
 
 ## References

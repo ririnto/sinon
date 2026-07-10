@@ -6,23 +6,13 @@ Choose JDBC-backed sessions when the application depends on a relational databas
 
 ## JDBC baseline
 
-```xml
-<dependency>
-    <groupId>org.springframework.session</groupId>
-    <artifactId>spring-session-jdbc</artifactId>
-</dependency>
-```
-
-```groovy
-implementation 'org.springframework.session:spring-session-jdbc'
-```
+Use the Boot-managed `spring-boot-starter-session-jdbc` dependency from `SKILL.md`, then add the JDBC-specific properties below.
 
 Application properties:
 
 ```yaml
 spring:
   session:
-    store-type: jdbc
     timeout: 45m
     jdbc:
       table-name: SPRING_SESSION
@@ -97,8 +87,7 @@ Provide a dedicated `TransactionOperations` bean when session write operations n
 
 ```java
 @Bean("springSessionTransactionOperations")
-TransactionOperations sessionTransactionOperations(
-        @Qualifier("springSessionTransactionManager") PlatformTransactionManager tm) {
+TransactionOperations sessionTransactionOperations(@Qualifier("springSessionTransactionManager") PlatformTransactionManager tm) {
     TransactionTemplate template = new TransactionTemplate(tm);
     template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     return template;
@@ -113,22 +102,24 @@ Use the `@EnableJdbcHttpSession` attribute `serializationConverter` or provide a
 @Bean("springSessionConversionService")
 ConversionService sessionConversionService() {
     DefaultConversionService service = new DefaultConversionService();
-    service.addConverter(MySerializableType.class, String.class, source -> {
+    Converter<MySerializableType, String> serializer = source -> {
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.writeValueAsString(source);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Cannot serialize session attribute", e);
         }
-    });
-    service.addConverter(String.class, MySerializableType.class, source -> {
+    };
+    Converter<String, MySerializableType> deserializer = source -> {
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readValue(source, MySerializableType.class);
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Cannot deserialize session attribute", e);
         }
-    });
+    };
+    service.addConverter(MySerializableType.class, String.class, serializer);
+    service.addConverter(String.class, MySerializableType.class, deserializer);
     return service;
 }
 ```
@@ -151,18 +142,11 @@ class JdbcSessionFlowTest {
 
     @Test
     void sessionStateIsReusedAcrossRequests() throws Exception {
-        MvcResult first = mockMvc.perform(post("/cart/items")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"sku\":\"SKU-1\"}"))
-            .andExpect(status().isOk())
-            .andReturn();
+        MockHttpServletRequestBuilder firstRequest = post("/cart/items").contentType(MediaType.APPLICATION_JSON).content("{\"sku\":\"SKU-1\"}");
+        MvcResult first = mockMvc.perform(firstRequest).andExpect(status().isOk()).andReturn();
         Cookie sessionCookie = first.getResponse().getCookie("SESSION");
-        MvcResult second = mockMvc.perform(post("/cart/items")
-                .cookie(sessionCookie)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"sku\":\"SKU-2\"}"))
-            .andExpect(status().isOk())
-            .andReturn();
+        MockHttpServletRequestBuilder secondRequest = post("/cart/items").cookie(sessionCookie).contentType(MediaType.APPLICATION_JSON).content("{\"sku\":\"SKU-2\"}");
+        MvcResult second = mockMvc.perform(secondRequest).andExpect(status().isOk()).andReturn();
         assertThat(second.getResponse().getContentAsString()).contains("\"itemCount\":2");
     }
 }

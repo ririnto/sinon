@@ -2,14 +2,6 @@
 
 Open this reference when clients depend on `prev`, `next`, `first`, or `last` navigation links, or when page metadata semantics must be verified precisely.
 
-## Paged model assembly
-
-```java
-PagedModel<OrderModel> model = pagedResourcesAssembler.toModel(page, assembler);
-```
-
-Use the paged assembler when the API should expose both item representations and top-level page navigation.
-
 ## Controller integration shape
 
 ```java
@@ -21,6 +13,7 @@ PagedModel<OrderModel> all(Pageable pageable) {
 ```
 
 Inject `PagedResourcesAssembler<Order>` into the controller path that already returns a `Page<Order>`.
+Use the paged assembler when the API should expose both item representations and top-level page navigation.
 Keep item link generation inside the ordinary assembler so paged navigation and item links stay aligned.
 
 ## Paged response shape

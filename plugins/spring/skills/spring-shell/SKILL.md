@@ -326,7 +326,7 @@ Command downloadCommand() {
         .availabilityProvider(() -> connected
             ? Availability.available()
             : Availability.unavailable("run 'cluster connect' first"))
-        .execute(ctx -> { /* ... */ });
+        .execute(context -> downloadService.download());
 }
 ```
 

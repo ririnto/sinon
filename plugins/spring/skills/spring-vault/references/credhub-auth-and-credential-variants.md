@@ -2,7 +2,7 @@
 
 Open this reference when the ordinary mutual-TLS password-read path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is choosing between mutual TLS and OAuth2 client authentication.
 
-The current stable Spring CredHub line is 4.0.1, and the official reference documents both mutual TLS and OAuth2 client-auth paths.
+The current stable Spring CredHub line is 4.0.x, and the official reference documents both mutual TLS and OAuth2 client-auth paths.
 
 ## Mutual TLS versus OAuth2
 
@@ -18,14 +18,9 @@ The CredHub starter exposes no `spring.credhub.tls.*` namespace.
 It binds only `spring.credhub.url`, `spring.credhub.oauth2.registration-id`, and the `ClientOptions` fields (`connection-timeout`, `read-timeout`, `ca-cert-files`).
 
 For CA trust (validating the CredHub server certificate), use the `ca-cert-files` property.
+Add `org.apache.httpcomponents.client5:httpclient5` when the application relies on this property; the starter does not include it, and the JDK request-factory fallback does not install custom CA trust.
 
-```yaml
-spring:
-  credhub:
-    url: https://credhub.example.com:8844
-    ca-cert-files:
-      - file:/etc/credhub/credhub-ca.pem
-```
+The ordinary URL and CA-file property shape stays in `SKILL.md`; this reference covers the request-factory and authentication variants around it.
 
 For client-certificate mutual TLS, the starter has no property and `ClientOptions` carries no key material.
 Supply a custom `CredHubOperations` bean; the auto-configured bean backs off with `@ConditionalOnMissingBean`.
@@ -52,15 +47,7 @@ Obtain the mutual-TLS `ClientHttpRequestFactory` from the surrounding platform's
 
 ## OAuth2 configuration shape
 
-```yaml
-spring:
-  credhub:
-    url: https://credhub.example.com:8844
-    oauth2:
-      registration-id: credhub-client
-```
-
-Keep the OAuth2 client registration outside the skill-specific service layer so token acquisition stays a platform concern.
+Use the `spring.credhub.oauth2.registration-id` shape from `SKILL.md` and keep the OAuth2 client registration outside the skill-specific service layer so token acquisition stays a platform concern.
 
 ## OAuth2 manager caveat
 

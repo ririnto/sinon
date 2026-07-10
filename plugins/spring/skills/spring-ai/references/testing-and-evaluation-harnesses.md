@@ -64,10 +64,7 @@ class KnowledgeBaseRetrievalTests {
     void retrievesRelatedParagraphs() {
         knowledgeBase.ingest("guide", List.of("Spring AI supports ChatClient.", "ChatClient wraps a Model.", "Embeddings convert text to vectors."));
         List<Document> results = knowledgeBase.search("how does ChatClient work");
-        assertAll(
-            () -> assertEquals(2, results.size()),
-            () -> assertTrue(results.get(0).getContent().contains("ChatClient"))
-        );
+        assertAll(() -> assertEquals(2, results.size()), () -> assertTrue(results.get(0).getContent().contains("ChatClient")));
     }
 }
 ```

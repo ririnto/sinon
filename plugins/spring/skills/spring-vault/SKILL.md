@@ -7,7 +7,7 @@ description: >-
 
 # Spring Vault and CredHub
 
-The latest released Spring Vault line is 4.1.0.
+The latest released Spring Vault line is 4.1.x.
 Pin the concrete artifact example in this skill to 4.1.0 because this skill documents the current released standalone client path rather than a Spring BOM-managed path.
 
 ## Boundaries
@@ -180,10 +180,7 @@ class SecretServiceTests {
     @Test
     void databaseSecretReturnsRequiredData() {
         Map<String, Object> secret = secretService.readDatabaseSecret();
-        assertAll(
-            () -> assertNotNull(secret),
-            () -> assertTrue(secret.containsKey("username"))
-        );
+        assertAll(() -> assertNotNull(secret), () -> assertTrue(secret.containsKey("username")));
     }
 }
 ```
@@ -334,17 +331,26 @@ class MyConfiguration {
 ## CredHub integration (Cloud Foundry)
 
 Use this section when the secret store is Cloud Foundry CredHub instead of HashiCorp Vault.
-Spring CredHub 4.0.1 provides the client library.
+Spring CredHub 4.0.x provides the client library.
 
 ### CredHub dependency baseline
 
 ```xml
-<dependency>
-    <groupId>org.springframework.credhub</groupId>
-    <artifactId>spring-credhub-starter</artifactId>
-    <version>4.0.1</version>
-</dependency>
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.credhub</groupId>
+        <artifactId>spring-credhub-starter</artifactId>
+        <version>4.0.1</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+    </dependency>
+</dependencies>
 ```
+
+The starter does not bring Apache HttpClient 5 transitively.
+Keep it in the dependency baseline when `ca-cert-files` must configure custom trust; the JDK request-factory fallback does not install that trust material.
 
 ### CredHub first safe configuration
 
@@ -359,7 +365,7 @@ spring:
   credhub:
     url: https://credhub.example.com:8844
     ca-cert-files:
-      - file:/etc/credhub/credhub-ca.pem
+      - /etc/credhub/credhub-ca.pem
 ```
 
 OAuth2 (when client certificates are not available):
@@ -488,10 +494,7 @@ void passwordReturnsValueFromCredHub() {
     when(credHub.credentials().getByName(any(SimpleCredentialName.class), eq(PasswordCredential.class)))
         .thenReturn(new CredentialDetails<>("id", new SimpleCredentialName("/app/prod/db-password"), CredentialType.PASSWORD, credential));
     String password = service.password();
-    assertAll(
-        () -> assertNotNull(password),
-        () -> assertFalse(password.isEmpty())
-    );
+    assertAll(() -> assertNotNull(password), () -> assertFalse(password.isEmpty()));
 }
 ```
 

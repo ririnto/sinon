@@ -395,10 +395,7 @@ class InventoryGatewayIntegrationTests {
     @Test
     void logicalServiceIdCallReturnsItem() {
         ItemDto item = gateway.find("sku-1");
-        assertAll(
-            () -> assertNotNull(item),
-            () -> assertEquals("sku-1", item.sku())
-        );
+        assertAll(() -> assertNotNull(item), () -> assertEquals("sku-1", item.sku()));
     }
 }
 ```

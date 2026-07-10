@@ -1,4 +1,4 @@
-# Spring Framework WebClient and reactive depth
+# Spring WebClient and reactive depth
 
 Open this reference when the common path in `SKILL.md` is not enough and the blocker is client filters, transport-specific timeouts, retry selection, or deeper reactive pipeline behavior.
 
@@ -9,14 +9,13 @@ Use an `ExchangeFilterFunction` for correlation IDs, auth headers, or request/re
 ```java
 @Bean
 WebClient webClient(WebClient.Builder builder) {
+    ExchangeFilterFunction correlation = (request, next) -> {
+        ClientRequest filtered = ClientRequest.from(request).header("X-Correlation-Id", UUID.randomUUID().toString()).build();
+        return next.exchange(filtered);
+    };
     return builder
         .baseUrl("https://api.example.com")
-        .filter((request, next) -> {
-            ClientRequest filtered = ClientRequest.from(request)
-                .header("X-Correlation-Id", UUID.randomUUID().toString())
-                .build();
-            return next.exchange(filtered);
-        })
+        .filter(correlation)
         .build();
 }
 ```
@@ -40,12 +39,14 @@ WebClient client = WebClient.builder()
 Per-request timeout:
 
 ```java
+Consumer<ClientHttpRequest> responseTimeout = httpRequest -> {
+    HttpClientRequest reactorRequest = httpRequest.getNativeRequest();
+    reactorRequest.responseTimeout(Duration.ofSeconds(5));
+};
+
 Mono<Order> order = client.get()
     .uri("/orders/{id}", orderId)
-    .httpRequest(httpRequest -> {
-        HttpClientRequest reactorRequest = httpRequest.getNativeRequest();
-        reactorRequest.responseTimeout(Duration.ofSeconds(5));
-    })
+    .httpRequest(responseTimeout)
     .retrieve()
     .bodyToMono(Order.class);
 ```
@@ -58,12 +59,13 @@ Other WebClient transports have different timeout APIs.
 Retry the reactive chain selectively rather than retrying every `WebClientResponseException`:
 
 ```java
+Retry transientFailureRetry = Retry.backoff(3, Duration.ofMillis(100)).filter(ex -> ex instanceof WebClientResponseException response && response.getStatusCode().is5xxServerError());
+
 Mono<Order> order = client.get()
     .uri("/orders/{id}", orderId)
     .retrieve()
     .bodyToMono(Order.class)
-    .retryWhen(Retry.backoff(3, Duration.ofMillis(100))
-        .filter(ex -> ex instanceof WebClientResponseException response && response.getStatusCode().is5xxServerError()));
+    .retryWhen(transientFailureRetry);
 ```
 
 Do not retry 4xx responses unless the upstream contract explicitly marks them as retryable.

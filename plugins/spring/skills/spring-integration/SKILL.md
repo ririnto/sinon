@@ -45,7 +45,7 @@ Add pollers only for sources that do not naturally push messages.
 
 Use the Boot starter for core Integration features and add only the protocol modules the flow actually needs.
 
-For the current stable line, Spring Integration is 7.1.0. The latest released Spring Boot line, 4.1.0, already manages Spring Integration 7.1.0. Boot 3.5.x applications manage Spring Integration 6.5.9 and therefore remain a separate compatibility branch.
+For the current stable line, use Spring Integration 7.1.x. Spring Boot 4.1.x manages that line. Boot 3.5.x applications manage the Spring Integration 6.5.x line and therefore remain a separate compatibility branch.
 
 ### Core baseline
 
@@ -98,7 +98,7 @@ Remove any adapter or test module the flow does not actually use.
 When Spring Boot already manages the module line, keep Spring Integration artifacts versionless.
 Add an exact version only on a standalone path that intentionally pins Spring Integration outside Boot-managed dependency control.
 
-## 7.1.0 changes that affect flow design
+## Spring Integration 7.1 changes that affect flow design
 
 ### HTTP outbound: RestClient
 

@@ -61,7 +61,7 @@ ManagedSecret awsSecret(RequestedSecret requestedSecret) {
         String accessKey = secrets.getRequiredString("access_key");
         String secretKey = secrets.getRequiredString("secret_key");
     }, error -> {
-        // handle rotation errors
+        throw new IllegalStateException("Secret rotation failed", error);
     });
 }
 ```
@@ -82,10 +82,9 @@ Previously, only secrets with a renewable lease or no lease at all were rotated.
 Secrets with a non-renewable lease (such as certificates issued without lease generation) are now eligible for rotation.
 
 ```java
-RequestedSecret requestedSecret = RequestedSecret.renewing("secret/data/my-app")
-        .withMode(RequestedSecret.Mode.ROTATE);
+RequestedSecret requestedSecret = RequestedSecret.rotating("secret/data/my-app");
 container.register(requestedSecret, (lease, secrets) -> {
-    // called on initial request and each rotation
+    applyRotatedSecret(secrets);
 });
 ```
 
@@ -99,8 +98,8 @@ Rotate them when they expire.
 CertificateContainer container = new CertificateContainer(vaultOperations.opsForPki());
 container.afterPropertiesSet();
 container.start();
-RequestedCertificate cert = container
-        .register(RequestedCertificate.trustAnchor("vault-ca"));
+RequestedCertificate cert = RequestedCertificate.trustAnchor("vault-ca");
+container.register(cert);
 ```
 
 ### Issuing a managed certificate
@@ -124,7 +123,7 @@ managed.registerCertificate(container);
 | Database credentials need periodic renewal | `SecretLeaseContainer` with `RequestedSecret.rotating` |
 | Credentials should propagate to application components declaratively | `ManagedSecret` bean |
 | PKI certificates need scheduled re-issuance | `CertificateContainer` with `ManagedCertificate` |
-| Secrets without a renewable lease must rotate on TTL | `RequestedSecret` with `Mode.ROTATE` on a generic secret |
+| Secrets without a renewable lease must rotate on TTL | `RequestedSecret.rotating(...)` on a generic secret |
 | Fine-grained control over lease events | `LeaseListener` directly on `SecretLeaseContainer` |
 
 ## Gotchas

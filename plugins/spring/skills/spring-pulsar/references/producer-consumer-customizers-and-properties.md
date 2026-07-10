@@ -41,8 +41,9 @@ The producer factory caches producers in an LRU fashion.
 Customizers are included in the cache key.
 Lambda customizers require careful handling because `equals`/`hashCode` for Lambdas depends on whether they share the same instance and whether they capture variables from outside their closure.
 
+Safe: an inline lambda with no external closure variables can match the producer cache key.
+
 ```java
-// Safe: inline Lambda with no external closure variables -- matches on cache key
 void sendUser() {
     var user = randomUser();
     template.newMessage(user)
@@ -52,8 +53,9 @@ void sendUser() {
 }
 ```
 
+Unsafe: a lambda that captures `name` can miss the producer cache on every call.
+
 ```java
-// Unsafe: Lambda captures `name` from outside its closure -- cache miss every call
 void sendUser() {
     var user = randomUser();
     var name = randomName();

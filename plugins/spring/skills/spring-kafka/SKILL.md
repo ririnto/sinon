@@ -44,7 +44,7 @@ Keep the default path small: one producer, one listener, one serialization strat
 
 Use Spring Kafka for application code and the Kafka test module for integration tests.
 
-The current stable Spring Kafka line is `4.1.0`, requiring Spring Framework 7.0.x and Apache Kafka `kafka-clients` 4.2.x.
+The current stable Spring Kafka line is `4.1.x`, requiring Spring Framework 7.0.x and Apache Kafka `kafka-clients` 4.2.x.
 Spring Boot `4.0.x` manages Spring Kafka `4.0.x`; Spring Boot `3.5.x` and `3.4.x` manage Spring Kafka `3.3.x`.
 Applications on Boot 3.4.x or earlier must stay on the `3.3.x` line and should be treated as a separate compatibility branch.
 

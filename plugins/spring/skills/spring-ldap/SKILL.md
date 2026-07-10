@@ -7,8 +7,8 @@ description: >-
 
 # Spring LDAP
 
-The latest released Spring LDAP line is 4.1.0. That 4.x line targets Spring Framework 7+, while Spring Boot 3.x still manages the parallel 3.x line, so keep the direct 4.1.0 path in this skill only when the project baseline already matches the 4.x generation.
-If the job needs `LdapRepository`, the current stable repository module is Spring Data LDAP 4.1.0, which depends on Spring LDAP 4.1.0.
+The latest released Spring LDAP line is 4.1.x. That 4.x line targets Spring Framework 7+, while Spring Boot 3.x still manages the parallel 3.x line, so keep the direct 4.1.x path in this skill only when the project baseline already matches the 4.x generation.
+If the job needs `LdapRepository`, use the matching Spring Data LDAP 4.1.x and Spring LDAP 4.1.x lines.
 
 ## Boundaries
 
@@ -53,7 +53,7 @@ Prefer one mapping style per aggregate unless the schema forces a mixed approach
 
 ## Dependency baseline
 
-Use direct Spring LDAP artifacts for the ordinary 4.1.0 path.
+Use direct Spring LDAP artifacts for the ordinary 4.1.x path.
 Treat Spring Boot starter wiring as a parallel Boot-managed path only when the project is already on the matching Boot generation.
 
 ### Runtime baseline
@@ -205,7 +205,7 @@ class LdapConfiguration {
 }
 ```
 
-Use this direct bean path as the ordinary 4.1.0 baseline when the project is not relying on Boot-managed LDAP configuration.
+Use this direct bean path as the ordinary 4.1.x baseline when the project is not relying on Boot-managed LDAP configuration.
 
 ### Direct repository configuration shape
 
@@ -286,7 +286,7 @@ class PersonWriter {
 
 Use `DirContextAdapter` when the task needs direct write operations such as attribute updates and the schema is too small for a full ODM aggregate workflow.
 
-### LdapClient search (Spring LDAP 4.1.0)
+### LdapClient search (Spring LDAP 4.1.x)
 
 ```java
 @Service
@@ -390,10 +390,7 @@ class PersonRepositoryTest {
     @Test
     void findBySurnameReturnsExpectedPerson() {
         List<Person> results = repository.findBySurname("Doe");
-        assertAll(
-            () -> assertEquals(1, results.size()),
-            () -> assertEquals("jane.doe@example.com", results.get(0).getEmail())
-        );
+        assertAll(() -> assertEquals(1, results.size()), () -> assertEquals("jane.doe@example.com", results.get(0).getEmail()));
     }
 }
 ```

@@ -10,7 +10,15 @@ Use `@EnableStateMachineFactory` when the application needs many machine instanc
 @Configuration
 @EnableStateMachineFactory
 class OrderStateMachineFactoryConfig extends EnumStateMachineConfigurerAdapter<States, Events> {
-    // configure states and transitions as usual
+    @Override
+    public void configure(StateMachineStateConfigurer<States, Events> states) throws Exception {
+        states.withStates().initial(States.NEW).state(States.PAID);
+    }
+
+    @Override
+    public void configure(StateMachineTransitionConfigurer<States, Events> transitions) throws Exception {
+        transitions.withExternal().source(States.NEW).target(States.PAID).event(Events.PAY);
+    }
 }
 ```
 
@@ -181,10 +189,7 @@ class OrderPersistenceTests {
         stateMachinePersister.persist(machine, "order-1");
         StateMachine<States, Events> restored = factory.getStateMachine("order-1");
         stateMachinePersister.restore(restored, "order-1");
-        assertAll(
-            () -> assertEquals(States.PAID, restored.getState().getId()),
-            () -> assertEquals("order-1", restored.getId())
-        );
+        assertAll(() -> assertEquals(States.PAID, restored.getState().getId()), () -> assertEquals("order-1", restored.getId()));
     }
 }
 ```

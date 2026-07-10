@@ -7,7 +7,7 @@ description: >-
 
 # Spring Statemachine
 
-The current stable Spring Statemachine line is 4.0.2. Prefer the ordinary configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
+The current stable Spring Statemachine line is 4.0.x. Prefer the ordinary configuration path unless the workflow clearly needs factories, persistence, pseudo states, or reactive dispatch.
 
 > [!WARNING]
 >
@@ -362,10 +362,7 @@ class OrderStateMachineTests {
             .allMatch(r -> r == StateMachineEventResult.ResultType.ACCEPTED)
             .blockOptional()
             .orElse(false);
-        assertAll(
-            () -> assertTrue(accepted),
-            () -> assertEquals(States.PAID, stateMachine.getState().getId())
-        );
+        assertAll(() -> assertTrue(accepted), () -> assertEquals(States.PAID, stateMachine.getState().getId()));
     }
 
     @Test

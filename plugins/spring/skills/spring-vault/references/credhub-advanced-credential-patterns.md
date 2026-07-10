@@ -2,7 +2,7 @@
 
 Open this reference when the ordinary password, JSON, or value read-write path in [`SKILL.md`](../SKILL.md) is not enough and the blocker is advanced credential usage such as interpolation, certificate generation, permissions or info APIs, or less-common credential families.
 
-The current stable Spring CredHub line is 4.0.1, and these APIs stay additive to the ordinary starter-backed service path in [`SKILL.md`](../SKILL.md).
+The current stable Spring CredHub line is 4.0.x, and these APIs stay additive to the ordinary starter-backed service path in [`SKILL.md`](../SKILL.md).
 
 ## Interpolation blocker
 

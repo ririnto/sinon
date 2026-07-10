@@ -7,7 +7,7 @@ Use Spring Data REST only when repository exposure is an intentional API choice.
 This path is for Spring MVC / servlet-based repository exposure.
 For reactive HTTP endpoints, keep the repository internal and build the contract explicitly in the reactive web layer.
 
-This reference assumes the current stable Spring Data REST line shipped with release train `2026.0.0`.
+This reference assumes the Spring Data REST line shipped with the `2026.0.x` release train.
 
 Do not expose repositories directly just because the feature exists.
 
@@ -111,7 +111,7 @@ Verify one HTTP test proves the repository resource path, HAL `_links`, and proj
 
 ## Return body on delete
 
-Spring Data REST 5.1 (with Spring Boot 4.1.0) supports `spring.data.rest.return-body-on-delete`.
+Spring Data REST 5.1 with Spring Boot 4.1 supports `spring.data.rest.return-body-on-delete`.
 When set to `true`, DELETE responses include the deleted resource body in the response.
 
 ```properties

@@ -31,10 +31,7 @@ class OrderMessagingIntegrationTests {
 Verify the published message reaches the expected exchange, routing key, queue, and dead-letter path.
 
 ```java
-assertAll(
-    () -> assertEquals("orders.created", receivedRoutingKey),
-    () -> assertEquals("42", event.orderId())
-);
+assertAll(() -> assertEquals("orders.created", receivedRoutingKey), () -> assertEquals("42", event.orderId()));
 ```
 
 Use representative payload fixtures and assert conversion plus selected headers together in the same end-to-end path.

@@ -12,7 +12,7 @@ description: >-
 - Java 17 or later
 - Spring Boot 4.1.x for the latest managed path
 - Spring for Apache Pulsar 2.0.6
-- Apache Pulsar Java Client 4.2.2 when managed by Spring Boot 4.1.0
+- Apache Pulsar Java Client 4.2.2 when managed by Spring Boot 4.1
 
 See the [version compatibility matrix](https://docs.spring.io/spring-pulsar/reference/appendix/version-compatibility.html) for the full matrix.
 
@@ -124,13 +124,7 @@ class ShipmentListener {
 ### Schema and subscription shape
 
 ```java
-@PulsarListener(
-    topics = "shipments",
-    subscriptionName = "warehouse",
-    schemaType = SchemaType.JSON,
-    subscriptionType = SubscriptionType.Shared,
-    concurrency = "3"
-)
+@PulsarListener(topics = "shipments", subscriptionName = "warehouse", schemaType = SchemaType.JSON, subscriptionType = SubscriptionType.Shared, concurrency = "3")
 void handle(ShipmentEvent event) {
     service.handle(event);
 }
@@ -231,10 +225,7 @@ class ShipmentFlowTest {
     @Test
     void sendsAndReceivesJsonPayload() throws Exception {
         pulsarTemplate.send("shipments", new ShipmentEvent("shipment-42"));
-        assertAll(
-            () -> assertThat(deliveries.await(10, TimeUnit.SECONDS)).isTrue(),
-            () -> assertThat(received.get().shipmentId()).isEqualTo("shipment-42")
-        );
+        assertAll(() -> assertThat(deliveries.await(10, TimeUnit.SECONDS)).isTrue(), () -> assertThat(received.get().shipmentId()).isEqualTo("shipment-42"));
     }
 
     @Component
@@ -248,7 +239,7 @@ class ShipmentFlowTest {
 }
 ```
 
-The example pins the broker image to the Spring Boot 4.1.0 managed Pulsar client line.
+The example pins the broker image to the Spring Boot 4.1 managed Pulsar client line.
 Change the image only when the test must prove compatibility with another supported Pulsar line.
 
 ## Testing checklist

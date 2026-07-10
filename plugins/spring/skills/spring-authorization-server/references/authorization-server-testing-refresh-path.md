@@ -7,10 +7,7 @@ Open this reference when the minimal validation in [`SKILL.md`](../SKILL.md) is 
 void refreshTokenGrantSucceedsForRegisteredClient() {
     ResponseEntity<Map> response = restTemplate.postForEntity("http://127.0.0.1:8080/oauth2/token", refreshTokenRequest("refresh-client", "valid-refresh-token"), Map.class);
     Map body = Objects.requireNonNull(response.getBody());
-    assertAll(
-        () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
-        () -> assertTrue(body.containsKey("access_token"))
-    );
+    assertAll(() -> assertEquals(HttpStatus.OK, response.getStatusCode()), () -> assertTrue(body.containsKey("access_token")));
 }
 
 @Test

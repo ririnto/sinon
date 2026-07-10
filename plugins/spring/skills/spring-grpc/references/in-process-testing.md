@@ -32,13 +32,7 @@ class GreetingIntegrationTests {
 }
 ```
 
-```yaml
-spring:
-  grpc:
-    test:
-      inprocess:
-        enabled: true
-```
+`@AutoConfigureTestGrpcTransport` installs the in-process server and channel factory; no additional enablement property is required.
 
 ## Guardrails
 

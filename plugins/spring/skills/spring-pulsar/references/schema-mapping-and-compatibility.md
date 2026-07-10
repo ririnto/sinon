@@ -9,11 +9,7 @@ Choose one schema strategy per topic before multiple producers or consumers depe
 ## Listener declaration shape
 
 ```java
-@PulsarListener(
-    topics = "shipments",
-    subscriptionName = "warehouse",
-    schemaType = SchemaType.JSON
-)
+@PulsarListener(topics = "shipments", subscriptionName = "warehouse", schemaType = SchemaType.JSON)
 void handle(ShipmentEvent event) {
     service.handle(event);
 }

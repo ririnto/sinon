@@ -7,10 +7,10 @@ description: >-
 
 # Spring Cloud Data Flow
 
-Use `spring-cloud-data-flow` for SCDF server and shell operations around existing stream or task estates.
-Use `spring-cloud` for application-side Spring Cloud dependencies, Spring Cloud Stream, Spring Cloud Task, service discovery, load-balanced clients, and circuit-breaker wiring.
+Use this skill for SCDF server and shell operations around existing stream or task estates.
+Application-side dependencies, stream or task code, service discovery, load-balanced clients, and circuit-breaker wiring are separate application-development concerns.
 
-The current public SCDF server artifact line is 2.11.5.
+The current public SCDF server artifact is 2.11.5.
 The 2.11.x server line is the last open-source release.
 Later patches (for example 2.11.7) ship only in the Spring Enterprise repository to Tanzu Spring customers.
 Prefer current Spring Cloud Stream or Spring Cloud Task guidance for new application code.
@@ -30,14 +30,13 @@ Prefer current Spring Cloud Stream or Spring Cloud Task guidance for new applica
 4. Launch, schedule, update, or roll back definitions through SCDF runtime operations.
 5. Verify deployed application state with SCDF views and the target platform logs or metrics.
 
-## Ordinary path
-
-Register the apps a topology needs, then create and deploy or launch the definition.
-The stream and task cycles share one command shape; only the definition DSL and the deploy or launch verb change.
+Register every app a topology needs before creating and deploying or launching its definition.
+The stream and task cycles share one command shape; only the definition DSL and deploy or launch verb change.
 
 ```text
 dataflow:>app register --name http --type source --uri maven://org.springframework.cloud.stream.app:http-source-rabbit:3.2.1
 dataflow:>app register --name log --type sink --uri maven://org.springframework.cloud.stream.app:log-sink-rabbit:3.2.1
+dataflow:>app register --name timestamp --type task --uri maven://io.spring:timestamp-task:3.2.1
 dataflow:>stream create --name http-log --definition "http | log"
 dataflow:>stream deploy --name http-log
 dataflow:>task create --name print-time --definition "timestamp"
@@ -46,7 +45,7 @@ dataflow:>stream list
 dataflow:>task execution list
 ```
 
-Register task apps with the same `app register` command using `--type task`, or import a curated starter catalog with `app import`.
+Import a curated starter catalog with `app import` only when the deployment owns and verifies that catalog.
 
 ## Surface map
 
@@ -62,11 +61,11 @@ Register task apps with the same `app register` command using `--type task`, or 
 
 ## First safe commands
 
-```sh
-dataflow version
-dataflow app list
-dataflow stream list
-dataflow task list
+```text
+dataflow:>version
+dataflow:>app list
+dataflow:>stream list
+dataflow:>task list
 ```
 
 ## Output contract
