@@ -199,7 +199,7 @@ async function checkPythonFiles(): Promise<CheckResult> {
   }
   const lint = await runCommand(
     "uv",
-    ["run", "--with", "ruff>=0.15.18,<0.16.0", "ruff", "check", "."],
+    ["run", "--with", "ruff>=0.15.21,<0.16.0", "ruff", "check", "."],
     {
       cwd: root
     }
@@ -209,7 +209,7 @@ async function checkPythonFiles(): Promise<CheckResult> {
     [
       "run",
       "--with",
-      "ruff>=0.15.18,<0.16.0",
+      "ruff>=0.15.21,<0.16.0",
       "ruff",
       "format",
       "--check",
