@@ -9,6 +9,9 @@ description: >-
 
 Build one reusable Claude Code plugin agent whose description routes reliably and whose prompt can execute its bounded role without hidden prerequisites.
 
+Sinon agents MUST declare a model and effort.
+The repository uses explicit routing so runtime cost and capability do not depend on a caller default.
+
 ## Owned Surface
 
 - plugin-root `agents/<name>.md`
@@ -21,12 +24,17 @@ For Sinon plugins, the filename stem and frontmatter `name` MUST match exactly a
 
 ## Supported Plugin-Agent Fields
 
-This field surface is verified against Claude Code 2.1.205.
+This field surface was verified with Claude Code 2.1.206.
 
 Plugin agents require:
 
 - `name`
 - `description`
+
+Sinon additionally requires:
+
+- `model`
+- `effort`
 
 Plugin agents may use:
 
@@ -51,6 +59,33 @@ Those fields are available only on user- or project-scoped agents.
 Place short examples in the Markdown body when they materially improve execution.
 
 Open `references/agent-frontmatter.md` for field-specific constraints and plugin-versus-project differences.
+
+## Model and Effort Routing
+
+Classify topology before choosing a model:
+
+| Role | Claude | Codex counterpart | Effort |
+| --- | --- | --- | --- |
+| Substantive implementer, reviewer, validator, or domain expert | `sonnet` | `gpt-5.6-terra` | `medium` |
+| Lightweight inventory or exhaustive mechanical edit | `haiku` | `gpt-5.6-luna` | `low` |
+
+Sinon does not package a general orchestrator agent.
+The user-facing top-level session owns orchestration and reserves Claude `opus` or Codex `gpt-5.6-sol` with `medium` effort through repository policy.
+
+Use `high`, `xhigh`, or `max` only when the agent body contains an `Effort Exception` section that explains why medium is insufficient.
+A substantive leaf using `low` needs a `Low Effort Rationale` section.
+
+Claude Code accepts an `effort` declaration with Haiku, but the current official model-effort table does not list Haiku as effort-aware.
+Keep `effort: low` for explicit repository routing and report it as runtime-inert compatibility metadata rather than claiming it changes Haiku reasoning.
+
+Codex counterparts use `model_reasoning_effort`, not `effort`:
+
+```toml
+model = "gpt-5.6-terra"
+model_reasoning_effort = "medium"
+```
+
+Do not put runtime `model` or `effort` fields in portable Agent Skill frontmatter.
 
 ## Description Contract
 
@@ -97,6 +132,8 @@ name: schema-reviewer
 description: >-
   Inspect schemas and configuration files for defects and missing constraints.
   Use this agent when a schema or config needs focused read-only review before implementation or release.
+model: sonnet
+effort: medium
 color: cyan
 tools:
   - Read
@@ -133,19 +170,19 @@ Return:
 ## Authoring Procedure
 
 1. Read the target plugin rules, README, existing agent, and sibling naming conventions.
-2. State the agent's one responsibility in a sentence.
-3. Choose a stable kebab-case name and matching filename.
-4. Write the capability and trigger description.
-5. Select the smallest tool boundary that supports discovery, action, and verification.
-6. Add optional runtime fields only when they change required behavior.
-7. Write a self-contained body with role, responsibilities, process, quality rules, edge cases, and output.
-8. Add one short inline example when format or decision behavior would otherwise be ambiguous.
-9. Verify that every process verb is possible with the declared tools and supported plugin fields.
-10. Validate frontmatter and run `claude plugin validate <plugin-root>`.
+2. Classify the packaged agent as a substantive leaf or a lightweight inventory or mechanical leaf.
+3. State the agent's one responsibility in a sentence.
+4. Choose a stable kebab-case name and matching filename.
+5. Write the capability and trigger description.
+6. Assign the required model and effort from the routing table.
+7. Select the smallest tool boundary that supports discovery, action, and verification.
+8. Write a self-contained body with role, topology, responsibilities, process, quality rules, edge cases, escalation, and output.
+9. Add one short inline example when format or decision behavior would otherwise be ambiguous.
+10. Verify that every process verb is possible with the declared tools and supported plugin fields.
+11. Validate frontmatter and run `claude plugin validate <plugin-root>`.
 
-## Optional Runtime Decisions
+## Additional Runtime Decisions
 
-- Omit `model` for shared agents when the caller should choose strength; pin it only when correctness requires a known capability.
 - Set `maxTurns` when an otherwise bounded workflow can loop indefinitely.
 - Use `skills` only when full skill content is an intentional startup prerequisite; keep the agent prompt understandable about what that content contributes.
 - Use `memory` only when cross-session learning is part of the role and its scope is appropriate.
@@ -166,8 +203,22 @@ Keep the body direct and executable:
 6. `Output`
 
 The agent body MUST contain ordinary-path guidance.
-Do not instruct a plugin agent to load another skill unless the frontmatter intentionally preloads that skill and the dependency is part of the agent contract.
-Even then, keep the agent's role and output shape explicit.
+Use frontmatter `skills` only when every invocation needs the full skill content at startup.
+An agent with the `Skill` tool MAY load a matched project, user, or plugin skill on demand; domain routers SHOULD prefer that progressive-disclosure path.
+In either case, keep the agent's role, decision boundary, and output shape explicit.
+
+## Topology and Delegation
+
+The user-facing root session is the sole general orchestrator and is not packaged as an agent profile.
+Every Sinon agent file is a leaf and MUST NOT expose `Agent` or `Task` delegation tools.
+Skill loading is not subagent delegation.
+
+When a leaf discovers work that needs decomposition, integration, or parallel writers, it returns a decomposition handoff to the root session.
+Current Claude Code supports nested subagents up to depth 5 when `Agent` is granted, but Sinon deliberately omits delegation tools from installable agents.
+Installed Codex workflows use `max_depth = 1`.
+
+Read-only reviewers and validators MUST NOT expose mutation tools.
+Writers receive one explicit ownership scope; overlapping writers are serialized or isolated in separate non-overlapping worktrees.
 
 ## Validation
 
@@ -175,10 +226,17 @@ Even then, keep the agent's role and output shape explicit.
 - `name` is kebab-case
 - description has a capability and distinct trigger vocabulary
 - only supported plugin-agent fields are used
+- `model` and `effort` are present and match the declared topology
+- any Codex counterpart uses the mapped slug and `model_reasoning_effort`
+- Haiku effort is reported as runtime-inert compatibility metadata
+- high-or-greater effort has a written exception
 - no plugin agent relies on `hooks`, `mcpServers`, or `permissionMode`
 - tool list supports file discovery, action, and verification claims
 - optional runtime fields have a concrete reason
 - `initialPrompt`, when present, is intended for main-session startup rather than delegated subagent execution
+- leaf agents expose no delegation tools
+- no installable agent claims general orchestration or child ownership
+- read-only roles expose no mutation tools
 - body is self-contained and bounded to one role
 - examples live in the body, not `Examples` frontmatter
 - output shape is explicit
@@ -201,7 +259,11 @@ Return:
 - Do not omit discovery tools from an agent expected to locate files.
 - Do not grant broad mutation or Bash access for a report-only role.
 - Do not hide required workflow instructions in another file.
-- Do not pin a model or effort level without a role-specific reason.
+- Do not omit model or effort from a Sinon agent.
+- Do not assign Opus or Sol to an installable agent; reserve them for the user-facing root session.
+- Do not claim Haiku effort is effective under the current official compatibility table.
+- Do not use high-or-greater effort without a written exception.
+- Do not place model or effort in portable Agent Skill frontmatter.
 - Do not use `initialPrompt` as delegated subagent instructions; keep those instructions in the agent body.
 
 ## Support Files

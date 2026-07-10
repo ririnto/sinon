@@ -11,7 +11,7 @@ This package is a Claude Code authoring plugin that teaches three distinct domai
 - Claude Code agent authoring
 - cross-platform Agent Skill authoring
 
-It also includes three runtime agents for validating, reviewing, and creating plugin components.
+It also includes four leaf runtime agents for validating, reviewing, creating, and inventorying plugin components.
 
 All content in this package is written in English.
 
@@ -34,11 +34,17 @@ Six reusable skills for authoring Claude Code plugins and portable Agent Skills.
 
 ## Included Agents
 
-Three runtime agents for validating, reviewing, and creating plugin components.
+Four runtime agents with explicit model and effort routing.
 
 - `plugin-validator`: validate a Claude Code plugin root against Sinon manifest, directory, agent, skill, and hook rules.
 - `skill-reviewer`: review Agent Skills for self-sufficiency, coherent sizing, progressive disclosure, and adherence to blocker-based reference organization.
 - `agent-creator`: create or refactor Claude Code agents with clear trigger descriptions, bounded tool access, and strong system prompts for autonomous work.
+- `inventory-scanner`: inventory bounded repository surfaces and cite direct evidence without editing or making architecture decisions.
+
+All installable agents are leaves.
+The substantive agents use Claude Sonnet with medium effort and Codex Terra counterparts where shared.
+The inventory scanner uses Claude Haiku and Codex Luna with low effort; Claude's current official model table does not list Haiku effort as effective, so the declaration is compatibility metadata.
+The user-facing top-level session owns orchestration and is not packaged as an agent.
 
 ## Runtime Model
 
@@ -87,6 +93,7 @@ Then use Quick navigation to choose the relevant namespaced skills or runtime ag
 - Agent authoring: `agent-capability-kit:agent-authoring`
 - Plugin infrastructure: `agent-capability-kit:hook-authoring`, `agent-capability-kit:mcp-integration`, `agent-capability-kit:plugin-settings`
 - Validation and review: `plugin-validator` agent, `skill-reviewer` agent
+- Lightweight evidence collection: `inventory-scanner` agent
 - Plugin creation guidance: `agent-creator` agent
 
 ## Reuse the scaffolds
@@ -106,6 +113,7 @@ agent-capability-kit/
 +-- README.md
 +-- agents/
 |   +-- agent-creator.md
+|   +-- inventory-scanner.md
 |   +-- plugin-validator.md
 |   +-- skill-reviewer.md
 +-- skills/

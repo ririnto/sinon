@@ -2,27 +2,38 @@
 
 `WORKFLOW.md` is the operational playbook for this repository's local review flow.
 
-## Role
+## Authority
 
-- Orchestrate local-review repository work from intake through completion.
-- Choose direct execution or scoped subagent delegation for each phase.
-- Integrate subagent results, validation evidence, review findings, and local record state.
-- Close work through the repository-approved local review path.
+The user-facing root session is the sole orchestrator and completion authority.
+Claude Code can nest subagents when `Agent` is granted, but this repository omits delegation tools from project agents; Codex uses `max_depth = 1` for the same leaf policy.
+Every repository agent is a deliberate leaf.
 
-## Subagent Use
+## Model and Agent Routing
 
 Use subagents as the normal tool for bounded exploration, implementation, and review when the work needs isolated context or independent judgment.
 The orchestrator owns workflow selection, agent type selection, capability tier selection, prompt scope, fan-in, and final decisions.
 Only the user-facing top-level or root agent acts as orchestrator.
 Installed repository agents are delegation targets only; do not create or delegate to a `project-orchestrator` agent.
+| Work | Claude | Codex | Effort | Agent |
+| --- | --- | --- | --- | --- |
+| Top-level orchestration and completion | `opus` | `gpt-5.6-sol` | `medium` | interactive root session |
+| Exhaustive single-file or small related-file edit | `haiku` | `gpt-5.6-luna` | `low` | `scoped-implementer` |
+| Related-file discovery, broad implementation, or integration | `sonnet` | `gpt-5.6-terra` | `medium` | `implementation` |
+| Independent change review | `sonnet` | `gpt-5.6-terra` | `medium` | `review` |
 
-Repository subagents:
+Use `scoped-implementer` only for a complete, explicit file set with no architecture or scope expansion.
+Use `implementation` for affected-set discovery, related contracts, multi-file or multi-layer work, design choices, and integrated validation.
+Ambiguous scope returns to read-only exploration and planning before writer selection.
+Haiku's `effort: low` is explicit runtime-inert metadata under the current Claude compatibility table.
 
 - `scoped-implementer`: performs a fully specified edit inside an exhaustive single-file or related-file ownership list with targeted validation.
 - `implementation`: handles large or cross-file changes that require affected-set discovery, cross-file reasoning, or integration validation.
 - `review`: reviews changes and validation evidence for risks and contract drift.
 
-Choose the narrowest agent type that can complete the assignment.
+## Required Plan
+
+Record acceptance criteria, difficulty, routing, ownership, base commit, worktree, validation, review, and local completion target before dispatch.
+Material ambiguity blocks writers.
 
 | Need | Agent type |
 | --- | --- |
@@ -110,14 +121,43 @@ Use built-in worktree tooling if the runtime provides it.
 Fallback to Git worktrees from the repository-approved base ref.
 Run `git fetch <remote>` first when `<base-ref>` is remote.
 
+## Parallelism
+
+- Independent read-only workers may share a worktree.
+- Each writer owns one disjoint file and contract surface in one worktree.
+- Serialize overlapping writers.
+- Workers do not commit, publish, or edit another worker's branch.
+
 ```sh
 git worktree add <worktree-path> -b <type>/<short-description> <base-ref>
 ```
 
-Record durable decisions in `docs/exec-plans/` or the project tracker.
+## Lifecycle
 
-## Autonomous Execution Loop
+1. Intake: identify the user request, task, plan, or local review record.
+2. Plan: define verifiable criteria, dependencies, owners, validation, and completion target.
+3. Classify: select exploration, `scoped-implementer`, `implementation`, or `review` with model and effort.
+4. Isolate: assign disjoint writer worktrees and serialize overlap.
+5. Dispatch: provide scope, base commit, criteria, validation, and output fields.
+6. Fan in: wait for every requested result and resolve contradictions.
+7. Review: run independent `review` over integrated changes.
+8. Fix: return findings to the owning writer.
+9. Re-review: verify the fix over the same scope.
+10. Validate: run focused and integrated repository checks on the combined tree.
+11. Complete: update the local review record or execution plan from the root session.
 
-Use the `autonomous-execution` skill only when the user explicitly asks for autonomous follow-through beyond one scoped work item.
-The skill uses this workflow's local review policy, subagent rules, capability-tier rules, evidence requirements, and completion path.
-The orchestrator may process non-overlapping issues in separate worktrees when their files, contracts, validation surfaces, and local completion targets do not conflict.
+Missing, failed, or contradictory workers block completion.
+Worker-branch validation is not integrated validation.
+
+## Local Records
+
+Record durable decisions and completion evidence in the repository-approved tracker or `docs/exec-plans/`.
+Do not invent a GitHub or GitLab path when local review is selected.
+
+## Evidence and Completion
+
+Record worker fan-in, validation commands and results, review findings, owner fixes, re-review, manual QA, blockers, and the completed local record.
+Do not report completion while any required evidence or record update is missing.
+
+Use `autonomous-execution` only when explicitly requested.
+Use `issue-mining` for investigation and local record preparation, not fixes.

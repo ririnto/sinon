@@ -6,7 +6,7 @@ description: >-
 
 # Agent Frontmatter
 
-Open this reference when an agent needs runtime fields beyond `name`, `description`, `color`, and a simple `tools` list.
+Open this reference when an agent needs field-level compatibility detail or a Codex counterpart.
 
 ## Field Matrix
 
@@ -39,6 +39,8 @@ name: migration-runner
 description: >-
   Apply and verify a bounded repository migration in an isolated worktree.
   Use this agent when a multi-file migration needs direct edits, focused checks, and worktree isolation.
+model: sonnet
+effort: medium
 tools:
   - Read
   - Glob
@@ -67,12 +69,57 @@ initialPrompt: >-
 
 `skills` injects the complete named skill content when the agent starts.
 Use it only when that content is a deliberate part of every invocation.
-Do not use `tools: [Skill]` as a substitute for preloading.
+Use the `Skill` tool instead when a domain router should load only the skill selected at runtime.
+On-demand Skill invocation and frontmatter preloading are complementary, not interchangeable.
 
 ## Model and Effort
 
-Omit `model` and `effort` when session inheritance is correct.
-Pin them only when the role needs stable capability or cost behavior and the selected model supports the requested effort value.
+Every Sinon Claude agent declares `model` and `effort`.
+
+| Topology | Model | Default effort |
+| --- | --- | --- |
+| Substantive leaf | `sonnet` | `medium` |
+| Lightweight inventory or mechanical leaf | `haiku` | `low` |
+
+Sinon reserves `opus` and `gpt-5.6-sol` for the user-facing root session and does not package that orchestrator as an agent file.
+
+Use `high`, `xhigh`, or `max` only with a body section named `Effort Exception`.
+Use low on a substantive leaf only with a body section named `Low Effort Rationale`.
+
+Current Claude documentation does not list Haiku as effort-aware.
+Declare `effort: low` for explicit routing, but treat it as runtime-inert compatibility metadata.
+
+Claude resolves subagent model selection in this order:
+
+1. `CLAUDE_CODE_SUBAGENT_MODEL`
+2. per-invocation model selection
+3. agent frontmatter `model`
+4. parent model inheritance
+
+Runtime `availableModels` policy may further restrict selection.
+Frontmatter therefore declares the repository route; it does not prove the final backend identity, especially behind a model gateway.
+Treat backend identity as unobservable unless the runtime event explicitly reports the resolved backend model.
+
+## Codex Counterpart
+
+Use these exact pairs:
+
+| Claude | Codex |
+| --- | --- |
+| `sonnet` | `gpt-5.6-terra` |
+| `haiku` | `gpt-5.6-luna` |
+
+The top-level runtime policy maps `opus` to `gpt-5.6-sol`, but neither value belongs in a Sinon installable agent.
+
+Codex TOML uses:
+
+```toml
+model = "gpt-5.6-terra"
+model_reasoning_effort = "medium"
+```
+
+Keep paired descriptions and instruction bodies semantically identical.
+Use `sandbox_mode = "read-only"` for report-only roles and `workspace-write` only for writers or the main orchestrator.
 
 ## Scope Check
 

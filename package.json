@@ -19,7 +19,8 @@
   "type": "module",
   "scripts": {
     "check": "run-p check:*",
-    "check:authoring-assets": "bun test scripts/authoring-assets.test.ts scripts/sdd-assets.test.ts",
+    "check:agent-routing": "bun scripts/agent-routing.ts",
+    "check:authoring-assets": "bun test scripts/agent-routing.test.ts scripts/authoring-assets.test.ts scripts/instruction-chain.test.ts scripts/sdd-assets.test.ts scripts/workflow-contract.test.ts",
     "check:harness": "plugins/harness/scripts/plugin-self-check.ts",
     "check:markdownlint-cli2": "markdownlint-cli2",
     "check:typescript": "tsc --noEmit",
@@ -27,6 +28,9 @@
     "fix": "run-p fix:*",
     "fix:markdownlint-cli2": "markdownlint-cli2 --fix",
     "fix:ultracite": "ultracite fix",
+    "probe:agent-models": "bun scripts/agent-model-probes.ts",
+    "probe:claude-plugins": "bun scripts/claude-plugin-probes.ts",
+    "probe:instruction-discovery": "bun scripts/instruction-discovery-probe.ts",
     "prepare": "husky"
   },
   "devDependencies": {

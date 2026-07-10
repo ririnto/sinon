@@ -17,6 +17,7 @@ Items marked with `[repo]` are specific to the Sinon publishing standard and may
 - Optional `metadata` maps string keys to string values.
 - Optional `allowed-tools` is a space-separated string and is treated as experimental.
 - No non-standard frontmatter fields such as `title`, `owner`, `version`, `source`, documentation URL, argument hint, or baseline appear.
+- No agent runtime field such as `model`, `effort`, or `model_reasoning_effort` appears in Agent Skill frontmatter.
 - [repo] Sinon-published skills use only `name` and `description` unless the task explicitly requires a portable optional field and repository policy permits it.
 - First body heading is the display title.
 - YAML uses plain or double-quoted scalars for short readable values, `>-` for long wrapped single-value strings, and `|-` only when line breaks are semantic.

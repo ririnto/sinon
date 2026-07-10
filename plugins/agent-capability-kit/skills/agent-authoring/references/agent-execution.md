@@ -53,3 +53,23 @@ Use this three-step test when the tool choice is not obvious from the role descr
 
 The broken-vs-correct examples in `SKILL.md` under Tool-boundary rule show concrete frontmatter for each case.
 Use this reference's decision test when the role falls between the obvious categories.
+
+## Orchestration boundary
+
+Do not package a general orchestrator agent in Sinon.
+The user-facing root session owns complete fan-in, integration, and publication through repository workflow policy.
+
+Every packaged agent is a leaf.
+Return a decomposition handoff when the task needs parallel workers or integration.
+Claude Code supports nested subagents up to depth 5 when the `Agent` tool is granted, but Sinon intentionally omits delegation tools from packaged agents; Codex repositories use `max_depth = 1` for the same leaf policy.
+
+This boundary follows the current [Claude Code nested subagent documentation](https://code.claude.com/docs/en/sub-agents.md#spawn-nested-subagents), whose feature minimum is Claude Code 2.1.172.
+
+## Writer ownership
+
+- Share one worktree only among read-only workers.
+- Give each writer one disjoint file or contract scope and one owning worktree.
+- Serialize overlapping writer scopes.
+- Return review fixes to the owning writer and re-review the result.
+- Validate the integrated tree after complete fan-in.
+- Treat missing or failed worker results as blockers to completion.

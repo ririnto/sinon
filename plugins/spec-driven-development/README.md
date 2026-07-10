@@ -19,6 +19,9 @@ Provide reusable spec-driven development guidance that remains portable across C
 
 - `spec-driven-development`: spec-first research, authoring, review, implementation, and completeness decisions.
 
+The agent is a sequential substantive leaf using Claude Sonnet with medium effort.
+It does not create nested subagents; work that needs parallel decomposition returns to the user-facing top-level session.
+
 ## How the Skill Branches
 
 Use `spec-driven-development` only when the user explicitly asks to run or resume the end-to-end gated lifecycle through implementation and verification.
