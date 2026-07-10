@@ -74,3 +74,17 @@ This boundary follows the current [Claude Code nested subagent documentation](ht
 - Return review fixes to the owning writer and re-review the result.
 - Validate the integrated tree after complete fan-in.
 - Treat missing or failed worker results as blockers to completion.
+
+## Codex dispatch context
+
+Open this section when the Codex dispatch API exposes `fork_turns`. Set it to `"none"` for every new worker so the prompt carries all required context. Do not add this field to Claude CLI commands or existing-worker follow-up calls.
+
+```ts
+await spawn_agent({
+  task_name: "bounded_review",
+  fork_turns: "none",
+  message: "cwd: /repo\nobjective: Review package validation.\nownership: read-only plugins/harness/.\nconstraints: Preserve other workers' changes.\nuser decisions: Do not publish.\nvalidation: bun run check.\noutput: findings with paths and evidence.",
+  model: "gpt-5.6-terra",
+  reasoning_effort: "medium"
+});
+```

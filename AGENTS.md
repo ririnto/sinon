@@ -87,6 +87,8 @@ Before parallel work, classify every unit as read-only or mutating.
 
 Dispatch independent reads and disjoint writers in parallel. Assign even narrow work to the lightest suitable worker with an explicit prompt, ownership, behavior, and completion check.
 
+When the dispatch API exposes `fork_turns`, every new worker spawn MUST set `fork_turns: "none"`. Supply the worker's cwd or worktree, objective, exact ownership, constraints, user decisions, validation, output contract, and the instruction that other workers may be editing nearby and their work must not be reverted. Existing-worker follow-up APIs without `fork_turns` are unchanged.
+
 - Independent read-only workers MAY share a worktree.
 - Each writer MUST receive one explicit, disjoint ownership scope, one base commit, one worktree, acceptance criteria, and validation target.
 - Overlapping file, contract, or generated-output ownership MUST be serialized under one writer.

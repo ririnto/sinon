@@ -67,6 +67,8 @@ Before dispatching work, record:
 
 Material ambiguity blocks writer dispatch.
 
+When the selected dispatch API exposes `fork_turns`, set `fork_turns: "none"` for every new leaf. The prompt must stand alone: cwd or worktree, objective, exact ownership, constraints, user decisions, validation, output contract, and the instruction not to revert other workers' changes. This does not apply to background `claude -p` or `codex exec` dispatch.
+
 ## Parallelism and Ownership
 
 - Independent read-only workers may share a worktree.
